@@ -1,8 +1,11 @@
 kd                   = require 'kd'
+jspath               = require 'jspath'
 
 JView                = require 'app/jview'
+whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
 showError            = require 'app/util/showError'
+applyMarkdown         = require 'app/util/applyMarkdown'
 
 {yamlToJson}         = require './yamlutils'
 providersParser      = require './providersparser'
@@ -69,13 +72,24 @@ module.exports = class DefineStackView extends kd.View
       loader         : yes
       callback       : @bound 'handleSave'
 
+    @previewButton   = new kd.ButtonView
+      title          : 'Template Preview'
+      cssClass       : 'solid compact light-gray nav next'
+      loader         : yes
+      callback       : @bound 'handlePreview'
+      tooltip        :
+        title        : "Generates a preview of this template
+                        with your own account information."
+
     @setAsDefaultButton = new kd.ButtonView
       title          : 'Set as Default for Team'
       cssClass       : 'solid compact nav next hidden'
       loader         : yes
       callback       : @bound 'handleSetDefaultTemplate'
 
-    @setAsDefaultButton.setCss 'right', '110px'
+    # TODO getrid off from these css properties ~ GG
+    @previewButton.setCss      'right', '110px'
+    @setAsDefaultButton.setCss 'right', '265px'
 
 
     @credentialStatus.on 'StatusChanged', (status) =>
@@ -270,6 +284,65 @@ module.exports = class DefineStackView extends kd.View
       callback err, stackTemplate
 
 
+  handlePreview: ->
+
+    template      = @editorView.getValue()
+
+    group         = kd.singletons.groupsController.getCurrentGroup()
+    account       = whoami()
+    availableData = { group, account }
+
+    requiredData  = requirementsParser template
+    errors        = []
+
+    fetchUserData = (callback) ->
+      account.fetchFromUser requiredData.user, (err, data) ->
+        kd.warn err  if err
+        callback data ? {}
+
+    generatePreview = =>
+
+      for type, data of requiredData
+        for field in data
+          if content = jspath.getAt availableData[type], field
+            template = template.replace \
+              (new RegExp "{{#{type} #{field}}}", 'g'), content
+          else
+            errors.push "Variable `#{field}` not found in `#{type}` data."
+
+      if errors.length > 0
+        console.warn "Errors for preview requirements: ", errors
+
+        errors = " - #{error}\n" for error in errors
+        errors = "> Following errors found while generating
+                  preview for this template: \n#{errors}"
+      else
+        errors = ''
+
+      new kd.ModalView
+        title          : 'Template Preview'
+        subtitle       : 'Generated from your account data'
+        cssClass       : 'has-markdown content-modal'
+        height         : 500
+        overlay        : yes
+        overlayOptions : cssClass : 'second-overlay'
+        content        : applyMarkdown """
+          #{errors}
+          ```coffee
+          #{template}
+          ```
+        """
+
+      @previewButton.hideLoader()
+
+    if requiredData.user?
+      fetchUserData (data) =>
+        availableData.user = data
+        generatePreview()
+    else
+      generatePreview()
+
+
   handleSetDefaultTemplate: ->
 
     { stackTemplate } = @getData()
@@ -306,5 +379,6 @@ module.exports = class DefineStackView extends kd.View
       {{> @outputView}}
       {{> @cancelButton}}
       {{> @setAsDefaultButton}}
+      {{> @previewButton}}
       {{> @saveButton}}
     """
