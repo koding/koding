@@ -6,6 +6,7 @@ showError            = require 'app/util/showError'
 
 {yamlToJson}         = require './yamlutils'
 providersParser      = require './providersparser'
+requirementsParser   = require './requirementsparser'
 
 OutputView           = require './outputview'
 StackEditorView      = require './stackeditorview'
@@ -217,10 +218,29 @@ module.exports = class DefineStackView extends kd.View
     {title}         = @inputTitle.getData()
     templateContent = @editorView.getValue()
 
+    # TODO split following into their own helper methods
+    # and call them in here ~ GG
+
+    # Parsing credential requirements
+    @outputView.add 'Parsing template for credential requirements...'
+
+    requiredProviders = providersParser templateContent
+
     @outputView
-      .add 'Parsing template for credential requirements...'
       .add 'Following credentials are required:'
-      .add '-', providersParser templateContent
+      .add '-', requiredProviders
+
+    # Parsing additional requirements, like user/group authentications
+    @outputView.add 'Parsing template for additional requirements...'
+
+    requiredData = requirementsParser templateContent
+
+    @outputView
+      .add 'Following extra information will be requested from members:'
+      .add requiredData
+
+    # Generate config data from parsed values
+    config = { requiredData, requiredProviders }
 
     # TODO this needs to be filled in when we implement
     # Github flow for new stack editor
@@ -240,7 +260,7 @@ module.exports = class DefineStackView extends kd.View
 
     updateStackTemplate {
       template: templateContent, templateDetails
-      credential, stackTemplate, title
+      credential, stackTemplate, title, config
     }, (err, stackTemplate) =>
 
       if not err and stackTemplate
