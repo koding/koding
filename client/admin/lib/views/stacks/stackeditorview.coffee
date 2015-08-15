@@ -20,7 +20,7 @@ module.exports = class StackEditorView extends IDEEditorPane
 
     { content, contentType, err } = jsonToYaml content
 
-    new kd.NotificationView "Parse error on template"  if err
+    new kd.NotificationView 'Parse error on template'  if err
 
     options.content     = content
     options.contentType = contentType
@@ -31,3 +31,8 @@ module.exports = class StackEditorView extends IDEEditorPane
     super options, data
 
     @setCss background: 'black'
+
+    {ace} = @aceView
+
+    ace.ready ->
+      @emit 'ace.changeSetting', 'tabSize', 2
