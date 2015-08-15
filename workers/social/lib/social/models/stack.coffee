@@ -146,18 +146,20 @@ module.exports = class JComputeStack extends jraphical.Module
    * @param  {Function} callback
    * @return {void}
   ###
-  @create = (data, callback)->
+  @create = (data, callback) ->
 
-    { account, groupSlug, config, title, baseStackId, stackRevision } = data
+    { account, groupSlug, config, credentials
+      title, baseStackId, stackRevision } = data
 
     originId = account.getId()
 
     stack = new JComputeStack {
-      title, config, originId, baseStackId, stackRevision
+      title, config, originId, baseStackId
+      stackRevision, credentials
       group: groupSlug
     }
 
-    stack.save (err)->
+    stack.save (err) ->
       return callback err  if err?
       callback null, stack
 

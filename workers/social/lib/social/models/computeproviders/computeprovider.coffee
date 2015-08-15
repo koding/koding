@@ -223,6 +223,7 @@ module.exports = class ComputeProvider extends Base
     JComputeStack.create {
       title         : template.title
       config        : template.config
+      credentials   : template.credentials
       baseStackId   : template._id
       groupSlug     : group.slug
       account, stackRevision
