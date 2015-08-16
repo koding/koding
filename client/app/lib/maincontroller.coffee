@@ -168,10 +168,16 @@ class MainController extends KDController
     @forwardEvents remote, ['disconnected', 'reconnected']
 
 
-  isFeatureDisabled: (name) ->
+  isFeatureDisabled: (name, options = {}) ->
 
-    return no  if checkFlag 'super-admin'
     return no  unless name
+
+    options.godMode ?= yes
+
+    { godMode } = options
+
+    if godMode
+      return no  if checkFlag 'super-admin'
 
     {roles}            = globals.config
     {disabledFeatures} = getGroup()

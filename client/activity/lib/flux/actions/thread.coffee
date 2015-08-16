@@ -1,6 +1,7 @@
 kd          = require 'kd'
 isKoding    = require 'app/util/isKoding'
 actionTypes = require '../actions/actiontypes'
+getGroup    = require 'app/util/getGroup'
 
 ###*
  * Change selected thread's id to given channel id.
@@ -24,14 +25,12 @@ changeSelectedThreadByName = (name) ->
   { SET_SELECTED_CHANNEL_THREAD_FAIL,
     SET_SELECTED_CHANNEL_THREAD } = actionTypes
 
-  type = if isKoding()
-    switch name
-      when 'Public'    then 'group'
-      when 'Changelog' then 'announcement'
-      else 'topic'
-  else 'topic'
-
   name = name.toLowerCase()
+
+  type = switch name
+    when 'public'                     then 'group'
+    when 'changelog', getGroup().slug then 'announcement'
+    else 'topic'
 
   kd.singletons.socialapi.channel.byName { name, type }, (err, channel) ->
     if err
