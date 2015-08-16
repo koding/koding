@@ -35,7 +35,6 @@ module.exports =
             browser.elements 'css selector', newPaneSelector, (result) =>
               assert.equal result.value.length, oldLength - 1
 
-
   split: (browser, direction) ->
 
     if direction is 'vertical'
@@ -44,7 +43,6 @@ module.exports =
     else
       splitButtonSelector = 'li.split-horizontally'
       splitViewSelector   = '.panel-1 .kdsplitview-horizontal'
-
 
     browser.waitForElementVisible '.panel-1', 20000
 
@@ -63,8 +61,6 @@ module.exports =
     browser.elements 'css selector', splitViewSelector, (result) =>
       length = result.value.length
       callback(length)
-
-
 
   assertSplit: (browser, splitViewSelector, prevLength) ->
 

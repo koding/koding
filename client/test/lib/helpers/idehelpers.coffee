@@ -1,5 +1,6 @@
 helpers           = require './helpers.js'
-panelSelector     = '.pane-wrapper .kdsplitview-panel.panel-1'
+shortcutHelpers   = require './shortcutHelpers.js'
+panelSelector     = '.kdsplitview-panel.panel-1'
 tabHandleSelector = "#{panelSelector} .application-tab-handle-holder"
 
 activeEditorSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active'
@@ -25,35 +26,27 @@ module.exports =
 
   closeAllTabs: (browser) ->
 
-    browser.pause 5000 # wait for snapshot restore
-
-    doClose = (handleSelector) ->
-      browser
-        .moveToElement handleSelector, 5, 5
-        .click         handleSelector + ' .close-tab'
-        .pause         300
-
-
-    close = =>
-      @getAmountOfTabs browser, (length, handleSelector) ->
-
-        if length isnt 0 then doClose(handleSelector)
-        if length - 1 > 0 then close(handleSelector)
-
+   doClose = ->
+      # More reliable and faster
+      shortcutHelpers.ctrlAltKey(browser,"w")
+   close = =>
+      @getAmountOfTabs browser, (length) ->
+        if length isnt 0 then doClose()
+        if length - 1 > 0 then close()
     close()
 
   getAmountOfTabs: (browser,callback) ->
 
-    @getTabHandleElements browser, (result, handleSelector) ->
+    @getTabHandleElements browser, (result) ->
       length = result.length
-      callback length, handleSelector
+      callback length
 
   getTabHandleElements: (browser,callback) ->
 
-    handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
+    handleSelector = panelSelector+' .kdtabhandle.kddraggable'
 
     browser.elements 'css selector', handleSelector, (result) ->
-      callback result.value, handleSelector
+      callback result.value
 
   openContextMenu: (browser) ->
 
