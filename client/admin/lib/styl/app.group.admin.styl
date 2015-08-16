@@ -1253,8 +1253,18 @@ Admin main styles
 
   .step-define-stack
     height                  100%
+
+    > .kdbutton
+      z-index               14
+
     .editor-view
       height                calc(100% \- 140px)
+
+    .showlogs-link
+      z-index               13
+      right                 0
+      bottom                0
+      abs()
 
   .kdview.credential-status
     width                   200px
@@ -1290,10 +1300,10 @@ Admin main styles
   .kdview.output
     top                     100%
     vendor                  transition, top .2s ease
-    height                  calc(50% - 43px)
-    background-color        rgba(255,255,255,.98)
+    height                  calc(50% - 33px)
+    background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
-    z-index                 12
+    z-index                 13
     abs()
 
     &.raise
@@ -1556,3 +1566,5 @@ Admin main styles
 
 .kdmodal.content-modal
   overflow                  auto
+  .kdmodal-content
+    font-size               14px !important

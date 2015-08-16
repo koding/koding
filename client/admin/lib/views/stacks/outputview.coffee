@@ -1,9 +1,10 @@
 kd             = require 'kd'
-
 hljs           = require 'highlight.js'
+dateFormat     = require 'dateformat'
+
 JView          = require 'app/jview'
 curryIn        = require 'app/util/curryIn'
-dateFormat     = require 'dateformat'
+objectToString = require 'app/util/objectToString'
 
 
 module.exports = class OutputView extends kd.ScrollView
@@ -34,10 +35,18 @@ module.exports = class OutputView extends kd.ScrollView
     @code.updatePartial ''
     return this
 
+  stringify = (content) ->
+
+    for item,i in content
+      content[i] = if typeof item is 'object' \
+                   then objectToString item else item
+
+    content = content.join ' '
+
 
   add: (content...) ->
 
-    content = content.join ' '
+    content = stringify content
     content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
     @code.setPartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
@@ -47,7 +56,7 @@ module.exports = class OutputView extends kd.ScrollView
 
   set: (content...) ->
 
-    content = content.join ' '
+    content = stringify content
     @code.updatePartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
 
