@@ -147,7 +147,7 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
 
   destroy: ->
 
-    @input.unsetTooltip()
+    @input?.unsetTooltip()
 
     super
 
