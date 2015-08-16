@@ -1,4 +1,4 @@
-module.exports = (req, res)->
+module.exports = (req, res) ->
 
   if req.method is 'POST'
     res.clearCookie 'clientId'

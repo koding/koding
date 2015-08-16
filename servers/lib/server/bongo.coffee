@@ -1,11 +1,11 @@
 nodePath = require 'path'
-Bongo    = require 'bongo'
-Broker   = require 'broker'
-{argv}   = require 'optimist'
-{extend} = require 'underscore'
+Bongo      = require 'bongo'
+Broker     = require 'broker'
+{ argv }   = require 'optimist'
+{ extend } = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{projectRoot, webserver, mongoReplSet} = KONFIG
+{ projectRoot, webserver, mongoReplSet } = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"
 
@@ -14,14 +14,14 @@ module.exports = koding = new Bongo
   mongo       : mongoReplSet or mongo
   root        : projectRoot
   models      : 'workers/social/lib/social/models'
-  fetchClient : (sessionToken, context, callback)->
+  fetchClient : (sessionToken, context, callback) ->
 
     { JUser, JAccount } = koding.models
     [callback, context] = [context, callback]  unless callback
 
     callback ?= ->
 
-    JUser.authenticateClient sessionToken, (err, res = {})->
+    JUser.authenticateClient sessionToken, (err, res = {}) ->
 
       return console.error err  if err
 
@@ -39,9 +39,9 @@ module.exports = koding = new Bongo
 
         callback {
           sessionToken, context, clientIP
-          connection: delegate: account
+          connection: { delegate: account }
         }
 
       else
 
-        callback { message: "Session error" }
+        callback { message: 'Session error' }

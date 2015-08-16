@@ -12,7 +12,7 @@ querystring                               = require 'querystring'
   ResetHandlerHelper
   RegisterHandlerHelper }                 = require '../../../testhelper'
 
-{ generateResetRequestParams  }          = ResetHandlerHelper
+{ generateResetRequestParams }           = ResetHandlerHelper
 { generateRegisterRequestParams }        = RegisterHandlerHelper
 
 JUser                                    = null
@@ -102,9 +102,7 @@ runTests = -> describe 'server.handlers.reset', ->
     username     = generateRandomUsername()
     certificate  = null
     expiryPeriod = ResetHandlerHelper.defaultExpiryPeriod
-    expectedBody = """
-      This password recovery certificate cannot be redeemed.
-    """
+    expectedBody = 'This password recovery certificate cannot be redeemed.'
 
     resetRequestParams = generateResetRequestParams
       body            :

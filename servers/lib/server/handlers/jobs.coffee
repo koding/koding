@@ -7,5 +7,5 @@ module.exports = (req, res) ->
     json  : yes
 
   request options, (err, r, postings) ->
-    res.status(404).send "Not found" if err
+    res.status(404).send 'Not found' if err
     res.json postings

@@ -1,10 +1,10 @@
-Bongo                               = require "bongo"
+Bongo                               = require 'bongo'
 koding                              = require './../bongo'
 { argv }                            = require 'optimist'
 KONFIG                              = require('koding-config-manager').load "main.#{argv.c}"
 
 { daisy }                           = Bongo
-{ expect }                          = require "chai"
+{ expect }                          = require 'chai'
 { hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper

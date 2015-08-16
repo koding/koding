@@ -1,4 +1,4 @@
-{projectRoot}   = KONFIG
+{ projectRoot } = KONFIG
 fs              = require 'fs'
 
 authRegisterPath     = "#{projectRoot}/website/authRegister.html"
@@ -10,4 +10,4 @@ errorTemplate        = fs.readFileSync errorPath, 'utf-8'
 notFoundPath       = "#{projectRoot}/website/404.html"
 notFoundTemplate   = fs.readFileSync notFoundPath, 'utf-8'
 
-module.exports = {errorTemplate, notFoundTemplate, authRegisterTemplate}
+module.exports = { errorTemplate, notFoundTemplate, authRegisterTemplate }

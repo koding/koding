@@ -1,6 +1,6 @@
 koding = require './../bongo'
 
-module.exports = (req, res, next)->
+module.exports = (req, res, next) ->
 
   { params }          = req
   { email }           = params

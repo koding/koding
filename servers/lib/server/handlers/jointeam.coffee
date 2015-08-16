@@ -1,4 +1,4 @@
-Bongo                                   = require "bongo"
+Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
 { uniq }                                = require 'underscore'
 { dash, daisy }                         = Bongo
@@ -33,7 +33,7 @@ module.exports = (req, res, next) ->
   return handleClientIdNotFound res, req  unless clientId
 
   client          = {}
-  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  clientIPAddress = req.headers['x-forwarded-for'] or req.connection.remoteAddress
 
   queue = [
 
@@ -43,7 +43,7 @@ module.exports = (req, res, next) ->
 
         # when there is an error in the fetchClient, it returns message in it
         if client.message
-          console.error JSON.stringify {req, client}
+          console.error JSON.stringify { req, client }
           return res.status(500).send client.message
 
         client.clientIP = (clientIPAddress.split ',')[0]
@@ -86,7 +86,7 @@ generateJoinTeamKallback = (res, body) ->
     # return if we got error from join/register
     return res.status(400).send getErrorMessage err  if err?
     # set clientId
-    res.cookie 'clientId', result.newToken, path : '/'
+    res.cookie 'clientId', result.newToken, { path : '/' }
 
     # handle the request with an HTTP redirect:
     return res.redirect 301, redirect if redirect

@@ -2,7 +2,7 @@ Bongo                             = require 'bongo'
 koding                            = require './../bongo'
 
 { daisy }                         = Bongo
-{ expect }                        = require "chai"
+{ expect }                        = require 'chai'
 { generateRandomString
   RegisterHandlerHelper }         = require '../../../testhelper'
 { generateRegisterRequestParams } = RegisterHandlerHelper
@@ -186,7 +186,7 @@ runTests = -> describe 'server.handlers.register', ->
         # expecting user to be saved on mongodb
         params = { username : username }
 
-        JUser.one params, (err, { data : {email, registeredFrom} }) ->
+        JUser.one params, (err, { data : { email, registeredFrom } }) ->
           expect(err)               .to.not.exist
           expect(email)             .to.be.equal email
           queue.next()
@@ -195,7 +195,7 @@ runTests = -> describe 'server.handlers.register', ->
         #expecting acount to be created
         params = { 'profile.nickname' : username }
 
-        JAccount.one params, (err, { data : {profile} }) ->
+        JAccount.one params, (err, { data : { profile } }) ->
           expect(err)               .to.not.exist
           expect(profile.nickname)  .to.be.equal username
           queue.next()

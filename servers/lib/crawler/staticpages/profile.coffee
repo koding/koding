@@ -6,7 +6,7 @@ module.exports = (account, statusUpdates, index) ->
   getGraphMeta = require './graphmeta'
   analytics    = require './analytics'
 
-  {profile:{nickname}} = account  if account
+  { profile:{ nickname } } = account  if account
 
   """
   <!DOCTYPE html>
@@ -14,7 +14,7 @@ module.exports = (account, statusUpdates, index) ->
   <head>
     <title>#{nickname} - Koding</title>
     <style>body, html {height: 100%}</style>
-    #{getGraphMeta({index})}
+    #{getGraphMeta({ index })}
   </head>
   <body itemscope itemtype="http://schema.org/WebPage" class="super profile">
     <div id="kdmaincontainer" class="kdview with-sidebar">
@@ -38,7 +38,7 @@ module.exports = (account, statusUpdates, index) ->
 putContent = (account, statusUpdates) ->
   profile      = getProfile account
 
-  if statusUpdates is ""
+  if statusUpdates is ''
     statusUpdates = """<div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>"""
 
   imgURL  = getAvatarImageUrl profile.hash, profile.avatar, 143

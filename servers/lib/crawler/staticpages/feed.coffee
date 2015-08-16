@@ -1,16 +1,16 @@
-{argv}                  = require 'optimist'
-{uri}                   = require('koding-config-manager').load("main.#{argv.c}")
-{daisy}                 = require "bongo"
-encoder                 = require 'htmlencode'
-{createActivityContent} = require '../helpers'
+{ argv }                  = require 'optimist'
+{ uri }                   = require('koding-config-manager').load("main.#{argv.c}")
+{ daisy }                 = require 'bongo'
+encoder                   = require 'htmlencode'
+{ createActivityContent } = require '../helpers'
 
-createProfileFeed = (models, account, options, callback)->
+createProfileFeed = (models, account, options, callback) ->
   { client, page, targetId } = options
   { SocialChannel } = models
   { sessionToken } = client
   targetId = account.socialApiId
 
-  SocialChannel.fetchProfileFeedCount client, {targetId, sessionToken}, (err, response)->
+  SocialChannel.fetchProfileFeedCount client, { targetId, sessionToken }, (err, response) ->
     return callback err  if err
     itemCount = response?.totalCount
     return callback null, ''  unless itemCount
@@ -32,7 +32,7 @@ createProfileFeed = (models, account, options, callback)->
       buildContent models, result, options, (err, content) ->
         return callback err  if err
 
-        return callback {message: "content not found"}  if not content
+        return callback { message: 'content not found' }  if not content
 
         paginationOptions = {
           currentPage   : page
@@ -45,15 +45,15 @@ createProfileFeed = (models, account, options, callback)->
         if pagination
           content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
 
-        callback null, {content, index}
+        callback null, { content, index }
 
 
-createFeed = (models, options, callback)->
-  {JAccount, SocialChannel} = models
+createFeed = (models, options, callback) ->
+  { JAccount, SocialChannel } = models
   { page, channelId, client
     route, contentType, channelName, sessionToken } = options
 
-  return callback "channelId not set"  unless channelId
+  return callback 'channelId not set'  unless channelId
 
   itemsPerPage = 20
   skip = 0
@@ -68,7 +68,7 @@ createFeed = (models, options, callback)->
     sessionToken
   }
 
-  SocialChannel.fetchActivityCount {channelId, sessionToken}, (err, response)->
+  SocialChannel.fetchActivityCount { channelId, sessionToken }, (err, response) ->
     return callback err  if err
     itemCount = response?.totalCount
     return callback null, getEmptyPage channelName  unless itemCount
@@ -77,7 +77,7 @@ createFeed = (models, options, callback)->
     SocialChannel.fetchActivities client, options, (err, result) ->
       return callback err  if err
 
-      {messageList} = result
+      { messageList } = result
       return callback null, getEmptyPage channelName unless messageList?.length
 
       options.page = page
@@ -98,7 +98,7 @@ createFeed = (models, options, callback)->
         }
 
         pagination = getPagination paginationOptions
-        fullPage = putContentIntoFullPage content, pagination, {index: yes}
+        fullPage = putContentIntoFullPage content, pagination, { index: yes }
 
         callback null, fullPage
 
@@ -108,21 +108,21 @@ getChannelTitleContent = (channelName) ->
 
 
 buildContent = (models, messageList, options, callback) ->
-  {SocialChannel} = models
-  {client, page} = options
+  { SocialChannel } = models
+  { client, page } = options
 
-  pageContent = ""
-  queue = messageList.map (activity)->->
-    queue.pageContent or= ""
+  pageContent = ''
+  queue = messageList.map (activity) -> ->
+    queue.pageContent or= ''
 
-    createActivityContent models, activity, (err, content)->
+    createActivityContent models, activity, (err, content) ->
       if err
-        console.error "activity not listed", err
+        console.error 'activity not listed', err
         return queue.next()
 
       unless content
         # TODO Activity id can be added to error message
-        console.error "content not found"
+        console.error 'content not found'
         return queue.next()
 
       pageContent = pageContent + content
@@ -134,7 +134,7 @@ buildContent = (models, messageList, options, callback) ->
   daisy queue
 
 
-getPagination = (options)->
+getPagination = (options) ->
   # This is the number of adjacent link around current page.
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
@@ -143,15 +143,15 @@ getPagination = (options)->
   options.route ?= ''
 
   numberOfPages = Math.ceil(options.numberOfItems / options.itemsPerPage)
-  firstLink = prevLink = nextLink = lastLink = ""
+  firstLink = prevLink = nextLink = lastLink = ''
 
   if options.currentPage > 1
-    firstLink = getSinglePageLink 1, "First", options.route
-    prevLink  = getSinglePageLink (options.currentPage - 1), "Prev", options.route
+    firstLink = getSinglePageLink 1, 'First', options.route
+    prevLink  = getSinglePageLink (options.currentPage - 1), 'Prev', options.route
 
   if options.currentPage < numberOfPages
-    lastLink  = getSinglePageLink numberOfPages, "Last", options.route
-    nextLink  = getSinglePageLink (options.currentPage + 1), "Next", options.route
+    lastLink  = getSinglePageLink numberOfPages, 'Last', options.route
+    nextLink  = getSinglePageLink (options.currentPage + 1), 'Next', options.route
 
   pagination = firstLink + prevLink
 
@@ -164,24 +164,24 @@ getPagination = (options)->
     end   = options.currentPage + PAGERWINDOW
 
   if start > 1
-    pagination += getNoHrefLink " ... "
+    pagination += getNoHrefLink ' ... '
 
-  [start..end].map (pageNumber)->
+  [start..end].map (pageNumber) ->
     pagination += getSinglePageLink pageNumber, null, options.route, options.currentPage
 
   if end < numberOfPages
-    pagination += getNoHrefLink " ... "
+    pagination += getNoHrefLink ' ... '
 
   pagination += nextLink
   pagination += lastLink
 
   return pagination
 
-getNoHrefLink = (linkText)->
+getNoHrefLink = (linkText) ->
   "<a href='#'>#{linkText}  </a>"
 
-getSinglePageLink = (pageNumber, linkText=pageNumber, route, currentPage)->
-  currentPageClass = ""
+getSinglePageLink = (pageNumber, linkText=pageNumber, route, currentPage) ->
+  currentPageClass = ''
 
   if currentPage is pageNumber
     currentPageClass = "class='activePage'"
@@ -189,38 +189,38 @@ getSinglePageLink = (pageNumber, linkText=pageNumber, route, currentPage)->
   link = "<a href='#{uri.address}/#{route}?page=#{pageNumber}' #{currentPageClass}>#{linkText}  </a>"
   return link
 
-appendDecoratedTopic = (tag, queue)->
+appendDecoratedTopic = (tag, queue) ->
   queue.pageContent += createTagNode tag
   queue.next()
 
 getSchemaOpeningTags = (contentType) ->
-  openingTag = ""
-  title = ""
+  openingTag = ''
+  title = ''
   switch contentType
-    when "post"
-      title = "activities"
-      openingTag += """<article itemscope itemtype="http://schema.org/BlogPosting">"""
-    when "topic"
-      title = "topics"
+    when 'post'
+      title = 'activities'
+      openingTag += """<article itemscope itemtype='http://schema.org/BlogPosting'>"""
+    when 'topic'
+      title = 'topics'
 
   openingTag +=
-      """
-          <div itemscope itemtype="http://schema.org/ItemList">
-            <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name" class="hidden">Latest #{title}</h2>
-            <meta itemprop="itemListOrder" content="Descending" />
-      """
+    """
+        <div itemscope itemtype="http://schema.org/ItemList">
+          <meta itemprop="mainContentOfPage" content="true"/>
+          <h2 itemprop="name" class="hidden">Latest #{title}</h2>
+          <meta itemprop="itemListOrder" content="Descending" />
+    """
 
   return openingTag
 
 getSchemaClosingTags = (contentType) ->
-  closingTag = "</div>"
-  closingTag += "</article>"  if contentType is "post"
+  closingTag = '</div>'
+  closingTag += '</article>'  if contentType is 'post'
 
   return closingTag
 
-createTagNode = (tag)->
-  tagContent = ""
+createTagNode = (tag) ->
+  tagContent = ''
   return tagContent  unless tag.title
   """
   <div class="kdview kdlistitemview kdlistitemview-topics topic-item">
@@ -278,9 +278,9 @@ getEmptyPage = (channelName) ->
   content  = getChannelTitleContent channelName
   content += "<div class='no-item-found'>There is no activity.</div>"
 
-  putContentIntoFullPage content, ""
+  putContentIntoFullPage content, ''
 
-putContentIntoFullPage = (content, pagination, graphMeta)->
+putContentIntoFullPage = (content, pagination, graphMeta) ->
   getGraphMeta  = require './graphmeta'
   analytics     = require './analytics'
 
