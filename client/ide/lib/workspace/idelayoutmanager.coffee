@@ -17,8 +17,8 @@ module.exports = class IDELayoutManager extends KDObject
 
     super options, data
 
-    @isRestored     = no
-    @storedSnapshot = null
+    @isRestored = no
+    @snapshot   = null
 
 
   ###*
