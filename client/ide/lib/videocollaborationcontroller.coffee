@@ -1,6 +1,8 @@
-VideoCollaborationModel = require 'app/videocollaboration/model'
-socialHelpers           = require './collaboration/helpers/social'
-isVideoFeatureEnabled   = require 'app/util/isVideoFeatureEnabled'
+kd                      = require 'kd'
+VideoCollaborationModel       = require 'app/videocollaboration/model'
+socialHelpers                 = require './collaboration/helpers/social'
+isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
+showError                     = require 'app/util/showError'
 
 generatePayloadFromModel = (model) ->
   return {
