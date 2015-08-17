@@ -3,6 +3,8 @@ VideoCollaborationModel       = require 'app/videocollaboration/model'
 socialHelpers                 = require './collaboration/helpers/social'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
 showError                     = require 'app/util/showError'
+LimitedVideoCollaborationFree = require './views/collaboration/limitedvideocollaborationfree'
+
 
 generatePayloadFromModel = (model) ->
   return {
@@ -171,4 +173,19 @@ module.exports = VideoCollaborationController =
     @statusBar?.emit args...
     @chat?.emit args...
 
+
+  canFreeUserStartVideo: (callback = kd.noop, isVideoActive = no) ->
+
+    { paymentController } = kd.singletons
+
+    paymentController.subscriptions (err, plan) =>
+
+      return showError err if err?
+
+      pLength = @participants.asArray().length
+
+      if plan.planTitle is 'free' and (pLength > 2 or (pLength is 2 and isVideoActive))
+        return new LimitedVideoCollaborationFree
+
+      callback()
 
