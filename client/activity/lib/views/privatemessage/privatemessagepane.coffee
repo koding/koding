@@ -432,14 +432,19 @@ module.exports = class PrivateMessagePane extends MessagePane
         accountIds        : [participant.socialApiId]
         participantStatus : @getOptions().initialParticipantStatus
 
-      {channel} = kd.singleton 'socialapi'
-      channel.addParticipants options, (err, result) =>
-        if err
-          showError err
-          @autoComplete.reset()
-          return
+      @addParticipant options, participant
 
-        @emit 'AddedParticipant', participant
+
+  addParticipant: (options, participant) ->
+
+    {channel} = kd.singleton 'socialapi'
+    channel.addParticipants options, (err, result) =>
+      if err
+        showError err
+        @autoComplete.reset()
+        return
+
+      @emit 'AddedParticipant', participant
 
 
   viewAppended: ->
