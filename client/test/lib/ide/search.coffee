@@ -8,7 +8,7 @@ module.exports =
 
   findInFiles: (browser) ->
 
-    helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
     contentSearchModalSelector  = '.content-search-modal'
@@ -37,7 +37,7 @@ module.exports =
 
         return browser.end() unless lowercase
 
-        tabHandleSelector = ".panel-1 div[title='#{fileName}']"
+        tabHandleSelector = ".panel-1 div[title='/home/#{user.username}/Web/#{fileName}']"
         editorSelector    = ".panel-1 .kdtabpaneview.active.#{lowercase} .ace_content"
 
         browser
