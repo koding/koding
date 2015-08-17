@@ -3,6 +3,7 @@ React     = require 'kd-react'
 immutable = require 'immutable'
 
 SuggestionItem = require 'activity/components/suggestionitem'
+scrollToTarget = require 'activity/util/scrollToTarget'
 
 
 module.exports = class SuggestionList extends React.Component
@@ -17,25 +18,10 @@ module.exports = class SuggestionList extends React.Component
     { selectedIndex } = @props
     return  if prevProps.selectedIndex is selectedIndex or selectedIndex < 0
 
-    containerElement = $ React.findDOMNode @refs.list
-    itemElement      = $ React.findDOMNode @refs["SuggestionItem_#{selectedIndex}"]
+    containerElement = React.findDOMNode @refs.list
+    itemElement      = React.findDOMNode @refs["SuggestionItem_#{selectedIndex}"]
 
-    containerScrollTop    = containerElement.scrollTop()
-    containerHeight       = containerElement.outerHeight()
-    containerScrollBottom = containerScrollTop + containerHeight
-    itemTop               = itemElement.position().top
-    itemHeight            = itemElement.outerHeight()
-    itemBottom            = itemTop + itemHeight
-
-    # scroll container if selected item is outside the visible area
-    isUnderContainerBottom = itemBottom > containerScrollBottom
-    isAboveContainerTop    = itemTop < containerScrollTop
-    fitContainerHeight     = itemHeight < containerHeight
-
-    if isUnderContainerBottom and fitContainerHeight
-      containerElement.scrollTop itemBottom - containerHeight
-    else if isAboveContainerTop or (isUnderContainerBottom and not fitContainerHeight)
-      containerElement.scrollTop itemTop
+    scrollToTarget containerElement, itemElement
 
 
   renderChildren: ->
