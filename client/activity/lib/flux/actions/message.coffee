@@ -1,3 +1,4 @@
+_                      = require 'lodash'
 kd                     = require 'kd'
 whoami                 = require 'app/util/whoami'
 actionTypes            = require './actiontypes'
@@ -15,14 +16,15 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 loadMessages = (channelId, options = {}) ->
 
   options.limit ?= 25
-  { from, limit } = options
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId }
 
-  socialapi.channel.fetchActivities {id: channelId, from, limit}, (err, messages) ->
+  _options = _.assign {}, options, { id: channelId }
+
+  socialapi.channel.fetchActivities _options, (err, messages) ->
     if err
       dispatch LOAD_MESSAGES_FAIL, { err, channelId }
       return
@@ -223,17 +225,19 @@ editMessage = (messageId, body, payload) ->
 loadComments = (messageId, options = {}) ->
 
   options.limit ?= 25
-  { from, limit } = options
   { socialapi } = kd.singletons
   { LOAD_COMMENTS_BEGIN
     LOAD_COMMENTS_FAIL
     LOAD_COMMENT_SUCCESS } = actionTypes
 
-  dispatch LOAD_COMMENTS_BEGIN, { messageId, from, limit }
+  _options = _.assign {}, options, { messageId }
 
-  socialapi.message.listReplies {messageId, from, limit}, (err, comments) ->
+  dispatch LOAD_COMMENTS_BEGIN, _options
+
+  socialapi.message.listReplies _options, (err, comments) ->
     if err
-      dispatch LOAD_COMMENTS_FAIL, { err, messageId, from, limit }
+      dispatchData = _.assign {}, { err }, options
+      dispatch LOAD_COMMENTS_FAIL, dispatchData
       return
 
     kd.singletons.reactor.batch ->
