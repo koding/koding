@@ -1,18 +1,19 @@
-$                    = require 'jquery'
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-formatEmojiName      = require 'activity/util/formatEmojiName'
-ActivityFlux         = require 'activity/flux'
-Dropup               = require 'activity/components/dropup'
-EmojiDropupItem      = require 'activity/components/emojidropupitem'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+$                       = require 'jquery'
+kd                      = require 'kd'
+React                   = require 'kd-react'
+immutable               = require 'immutable'
+classnames              = require 'classnames'
+formatEmojiName         = require 'activity/util/formatEmojiName'
+ActivityFlux            = require 'activity/flux'
+Dropup                  = require 'activity/components/dropup'
+EmojiDropupItem         = require 'activity/components/emojidropupitem'
+KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
+ImmutableRenderMixin    = require 'react-immutable-render-mixin'
 
 
 module.exports = class EmojiDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, KeyboardNavigatedDropup]
 
 
   @defaultProps =
@@ -20,43 +21,16 @@ module.exports = class EmojiDropup extends React.Component
     selectedItem : null
 
 
-  isActive: -> @props.items.size > 0
+  formatSelectedValue: -> formatEmojiName @props.selectedItem
 
 
-  hasOnlyItem: -> @props.items.size is 1
+  close: -> ActivityFlux.actions.emoji.unsetFilteredListQuery()
 
 
-  confirmSelectedItem: ->
-
-    { selectedItem } = @props
-
-    @props.onItemConfirmed? formatEmojiName selectedItem
-    @close()
+  requestNextIndex: -> ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
 
 
-  close: ->
-
-    ActivityFlux.actions.emoji.unsetFilteredListQuery()
-
-
-  moveToNextPosition: ->
-
-    if @hasOnlyItem()
-      @close()
-      return no
-    else
-      ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
-      return yes
-
-
-  moveToPrevPosition: ->
-
-    if @hasOnlyItem()
-      @close()
-      return no
-    else
-      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
-      return yes
+  requestPrevIndex: -> ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
 
 
   setQuery: (query) ->

@@ -1,17 +1,18 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
-Dropup               = require 'activity/components/dropup'
-ChannelDropupItem    = require 'activity/components/channeldropupitem'
-scrollToTarget       = require 'activity/util/scrollToTarget'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+kd                      = require 'kd'
+React                   = require 'kd-react'
+immutable               = require 'immutable'
+classnames              = require 'classnames'
+ActivityFlux            = require 'activity/flux'
+Dropup                  = require 'activity/components/dropup'
+ChannelDropupItem       = require 'activity/components/channeldropupitem'
+KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
+KeyboardScrolledDropup  = require 'activity/components/dropup/keyboardscrolleddropup'
+ImmutableRenderMixin    = require 'react-immutable-render-mixin'
 
 
 module.exports = class ChannelDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, KeyboardNavigatedDropup, KeyboardScrolledDropup]
 
 
   @defaultProps =
@@ -20,46 +21,19 @@ module.exports = class ChannelDropup extends React.Component
     selectedItem : null
 
 
-  isActive: ->
-
-    { items, visible } = @props
-    return items.size > 0 and visible
+  formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"
 
 
-  hasOnlyItem: -> @props.items.size is 1
+  getItemKey: (item) -> item.get 'id'
 
 
-  confirmSelectedItem: ->
-
-    { selectedItem } = @props
-    
-    @props.onItemConfirmed? "##{selectedItem.get 'name'}"
-    @close()
+  close: -> ActivityFlux.actions.channel.setChatInputChannelsVisibility no
 
 
-  close: ->
-
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility no
+  requestNextIndex: -> ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
 
 
-  moveToNextPosition: ->
-
-    if @hasOnlyItem()
-      @close()
-      return no
-    else
-      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
-      return yes
-
-
-  moveToPrevPosition: ->
-
-    if @hasOnlyItem()
-      @close()
-      return no
-    else
-      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
-      return yes
+  requestPrevIndex: -> ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
 
 
   setQuery: (query) ->
@@ -71,17 +45,6 @@ module.exports = class ChannelDropup extends React.Component
       ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
     else if @isActive()
       @close()
-
-
-  componentDidUpdate: (prevProps, prevState) ->
-
-    { selectedItem } = @props
-    return  if prevProps.selectedItem is selectedItem or not selectedItem
-
-    containerElement = @refs.dropup.getMainElement()
-    itemElement      = React.findDOMNode @refs[selectedItem.get 'id']
-
-    scrollToTarget containerElement, itemElement
 
 
   onItemSelected: (index) ->
@@ -102,8 +65,8 @@ module.exports = class ChannelDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = { item.get 'id' }
-        ref         = { item.get 'id' }
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 

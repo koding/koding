@@ -1,17 +1,18 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
-Dropup               = require 'activity/components/dropup'
-UserDropupItem       = require 'activity/components/userdropupitem'
-scrollToTarget       = require 'activity/util/scrollToTarget'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+kd                      = require 'kd'
+React                   = require 'kd-react'
+immutable               = require 'immutable'
+classnames              = require 'classnames'
+ActivityFlux            = require 'activity/flux'
+Dropup                  = require 'activity/components/dropup'
+UserDropupItem          = require 'activity/components/userdropupitem'
+KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
+KeyboardScrolledDropup  = require 'activity/components/dropup/keyboardscrolleddropup'
+ImmutableRenderMixin    = require 'react-immutable-render-mixin'
 
 
 module.exports = class UserDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, KeyboardNavigatedDropup, KeyboardScrolledDropup]
 
 
   @defaultProps =
@@ -20,46 +21,19 @@ module.exports = class UserDropup extends React.Component
     selectedItem : null
 
 
-  isActive: ->
-
-    { items, visible } = @props
-    return items.size > 0 and visible
+  formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
 
 
-  hasOnlyItem: -> @props.items.size is 1
+  getItemKey: (item) -> item.get '_id'
 
 
-  confirmSelectedItem: ->
-
-    { selectedItem } = @props
-
-    @props.onItemConfirmed? "@#{selectedItem.getIn ['profile', 'nickname']}"
-    @close()
+  close: -> ActivityFlux.actions.user.setChatInputUsersVisibility no
 
 
-  close: ->
-
-    ActivityFlux.actions.user.setChatInputUsersVisibility no
+  requestNextIndex: -> ActivityFlux.actions.user.moveToNextChatInputUsersIndex()
 
 
-  moveToNextPosition: ->
-
-    if @hasOnlyItem()
-      @close()
-      return no
-    else
-      ActivityFlux.actions.user.moveToNextChatInputUsersIndex()
-      return yes
-
-
-  moveToPrevPosition: ->
-
-    if @hasOnlyItem()
-      @close()
-      return no
-    else
-      ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()
-      return yes
+  requestPrevIndex: -> ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()
 
 
   setQuery: (query) ->
@@ -71,17 +45,6 @@ module.exports = class UserDropup extends React.Component
       ActivityFlux.actions.user.setChatInputUsersVisibility yes
     else if @isActive()
       @close()
-
-
-  componentDidUpdate: (prevProps, prevState) ->
-
-    { selectedItem } = @props
-    return  if prevProps.selectedItem is selectedItem or not selectedItem
-
-    containerElement = @refs.dropup.getMainElement()
-    itemElement      = React.findDOMNode @refs[selectedItem.get '_id']
-
-    scrollToTarget containerElement, itemElement
 
 
   onItemSelected: (index) ->
@@ -102,8 +65,8 @@ module.exports = class UserDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = { item.get '_id' }
-        ref         = { item.get '_id' }
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 
