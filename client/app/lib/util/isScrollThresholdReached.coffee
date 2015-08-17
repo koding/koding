@@ -9,7 +9,7 @@ module.exports = isScrollThresholdReached = (options) ->
   scrollTop    = $el.scrollTop()
   innerHeight  = $el.innerHeight()
 
-  return no if isDataLoading
+  return no  if isDataLoading
 
   if scrollDirection is 'up' and scrollMoveTo is 'up' and scrollTop < scrollOffset
     return yes
