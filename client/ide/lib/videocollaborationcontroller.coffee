@@ -59,7 +59,10 @@ module.exports = VideoCollaborationController =
     callback @videoModel.getParticipants()
 
 
-  startVideoCollaboration: -> @videoModel.start()
+  startVideoCollaboration: ->
+
+    @canFreeUserStartVideo =>
+      @videoModel.start()
 
 
   endVideoCollaboration: -> @videoModel.end()
