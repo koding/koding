@@ -24,6 +24,8 @@ module.exports =
 
   closeAllTabs: (browser) ->
 
+    browser.pause 5000 # wait for snapshot restore
+
     handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
 
     doClose = ->
@@ -57,12 +59,13 @@ module.exports =
       .waitForElementVisible  '.kdlistview-contextmenu', 20000 # Assertion
 
 
-  createAndSaveNewFile: (browser, text) ->
+  createAndSaveNewFile: (browser, user, text) ->
 
     saveSelector        = '.kdlistview-contextmenu li.save'
     saveAsModalSelector = '.save-as-dialog'
     saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
     newName             = helpers.getFakeText().split(' ')[0] + '.txt'
+    titleSelector       = "div[title='/home/#{user.username}/#{newName}']"
 
     saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
 
@@ -81,7 +84,7 @@ module.exports =
       .clearValue             saveAsInputSelector
       .setValue               saveAsInputSelector, newName
       .click                  saveButtonSelector
-      .waitForElementVisible  "#{tabHandleSelector} div[title='#{newName}']", 20000 # Assertion
+      .waitForElementVisible  "#{tabHandleSelector} #{titleSelector}", 20000 # Assertion
       .waitForElementVisible  filesTabSelector, 20000
       .assert.containsText    filesTabSelector, newName # Assertion
 
@@ -146,7 +149,7 @@ module.exports =
     chevronSelector     = "#{fileSelector} + span.chevron"
     contextMenuSelector = '.kdlistview-contextmenu'
     openFileSelector    = "#{contextMenuSelector} li.open-file"
-    fileTabSelector     = "div[title='#{fileName}']"
+    fileTabSelector     = "div[title='#{filePath}']"
 
     browser
       .waitForElementVisible  fileSelector, 20000
