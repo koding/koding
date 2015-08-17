@@ -314,3 +314,18 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @onboarding?.destroy()
     @onboarding = null
+
+
+  addParticipant: (options, participant) ->
+
+    unless @videoActive
+
+      super options, participant
+
+      return
+
+    appManager = kd.getSingleton 'appManager'
+
+    appManager.tell 'IDE', 'canFreeUserStartVideo', @videoActive, =>
+      PrivateMessagePane::addParticipant.call this, options, participant
+
