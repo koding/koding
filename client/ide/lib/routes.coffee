@@ -33,9 +33,6 @@ getLatestWorkspace = (machine) ->
   if machine
     workspace = storage.getValue "LatestWorkspace_#{machine.uid}"
 
-  unless machine and workspace
-    workspace = storage.getValue 'LatestWorkspace'
-
   return  unless workspace
 
   { machineLabel, workspaceSlug, channelId } = workspace
