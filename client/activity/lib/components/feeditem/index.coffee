@@ -50,7 +50,6 @@ module.exports = class FeedItem extends React.Component
           <button
             onClick={@bound 'onConversationButtonClick'}
             className="Button Button--info">View Conversation</button>
-          {makeRepliesCount message}
         </div>
       </footer>
     </div>
@@ -91,13 +90,4 @@ makeAvatar = (imAccount) ->
 
 makeLikeLink = (message) -> <MessageLikeLink message={message} />
 
-
-makeRepliesCount = (message) ->
-  repliesCount = message.get 'repliesCount'
-  label = if repliesCount is 1 then 'reply' else 'replies'
-
-  <span className="FeedItem-repliesCount">
-    <span className="FeedItem-repliesCountNumber">{repliesCount}</span>
-    <span className="FeedItem-repliesCountLable">{label}</span>
-  </span>
 
