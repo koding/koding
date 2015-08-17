@@ -76,10 +76,10 @@ module.exports =
 
   saveUntitledFile: (browser) ->
 
-    helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    ideHelpers.createAndSaveNewFile(browser)
+    ideHelpers.createAndSaveNewFile(browser, user)
 
     browser.end()
 
