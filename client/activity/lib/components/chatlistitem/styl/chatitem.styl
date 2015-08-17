@@ -171,10 +171,10 @@
 
 .ChatItem-editAction
   pointer()
-  padding                   0
-  outline                   none
-  border                    none
-  bg                        color, transparent
+  padding                     0
+  outline                     none
+  border                      none
+  bg                          color, transparent
 
   &:before
     blockMid()
@@ -185,10 +185,30 @@
     margin-right              3px
 
     &:before
-      r-sprite                  activity 'icon-cross'
+      r-sprite                activity 'icon-cross'
 
   &.submit
     margin-right              20px
 
     &:before
-      r-sprite                  activity 'check-green'
+      r-sprite                activity 'check-green'
+
+.Modal-BlockUserPrompt
+  .duration
+    label
+      color                   $gray-12
+
+    input
+      borderBox()
+      rounded                 6px
+      text-align              left
+      font-weight             300
+      border                  1px solid $gray-18
+      margin-left             10px
+      size                    393px, auto
+      padding                 10px 14px
+      font-size               16px
+      line-height             22px
+      outline                 none
+      color                   #3E4F55
+      bg                      color, #F4F4F4
