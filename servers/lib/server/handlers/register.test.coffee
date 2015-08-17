@@ -147,7 +147,7 @@ runTests = -> describe 'server.handlers.register', ->
     username  = username.replace /(.)/g, '$1.'
     email = "#{username}@#{host}"
 
-    registerParams = generateRegisterRequestParams body: {email}
+    registerParams = generateRegisterRequestParams { body: { email } }
 
     request.post registerParams, (err, res, body) ->
       expect(err)             .to.not.exist
