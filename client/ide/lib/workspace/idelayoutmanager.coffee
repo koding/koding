@@ -320,10 +320,16 @@ module.exports = class IDELayoutManager extends KDObject
   isSnapshotRestored: -> @isRestored
 
 
-  keepSnapshot: (snapshot) ->
-
-    @storedSnapshot = snapshot
+  setSnapshot: (snapshot) -> @snapshot = snapshot
 
 
-  getStoredSnapshot: -> @storedSnapshot
+  getSnapshot: -> @snapshot
+
+
+  restoreSnapshot: ->
+
+    return  unless snapshot = @getSnapshot()
+
+    @clearLayout()
+    kd.utils.defer => @resurrectSnapshot snapshot
 

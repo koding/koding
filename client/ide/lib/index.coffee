@@ -118,12 +118,7 @@ class IDEAppController extends AppController
       @runOnboarding()  if @isMachineRunning()
 
       if app.getId() is @getId() and not @layoutManager.isSnapshotRestored()
-        snapshot = @layoutManager.getStoredSnapshot()
-
-        return  unless snapshot
-
-        @layoutManager.clearLayout()
-        kd.utils.defer => @layoutManager.resurrectSnapshot snapshot
+        @layoutManager.restoreSnapshot()
 
 
   prepareIDE: (withFakeViews = no) ->
@@ -1114,7 +1109,7 @@ class IDEAppController extends AppController
         if @getActiveInstance().isActive
           @layoutManager.resurrectSnapshot snapshot
         else
-          @layoutManager.keepSnapshot snapshot
+          @layoutManager.setSnapshot snapshot
 
       else
         @addInitialViews()  unless @initialViewsReady
