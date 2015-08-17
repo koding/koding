@@ -22,8 +22,13 @@ module.exports = class ComputePlansModalFree extends ComputePlansModal
         'hobbyist' : "Hobbyist plan is restricted to only one VM. <br/>"
       }[@getOption 'plan']
 
+    @addPricingLink 'Upgrade your account for more VMs RAM and Storage'
+
+
+  addPricingLink: (title) ->
+
     @addSubView new CustomLinkView
-      title    : 'Upgrade your account for more VMs RAM and Storage'
+      title    : title
       href     : '/Pricing'
       click    : ->
         trackEvent 'Upgrade your account, click',
