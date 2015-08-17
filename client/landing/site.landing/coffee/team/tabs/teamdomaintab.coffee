@@ -6,7 +6,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor:(options = {}, data) ->
 
     super options, data
 
@@ -32,7 +32,8 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
           error    : =>
             @form.input.setClass 'validation-error'
-            new KDNotificationView title : 'That domain is taken, please try another one.'
+            error = 'That domain is invalid or taken, please try another one.'
+            new KDNotificationView { title : error }
 
 
 
