@@ -20,8 +20,6 @@ module.exports = class VerifySlugHandlerHelper
 
   @generateVerifySlugRequestParams = (opts = {}) ->
 
-    name = opts?.body?.name or generateRandomString()
-
     url  = generateUrl
       route : '-/teams/verify-domain'
 
