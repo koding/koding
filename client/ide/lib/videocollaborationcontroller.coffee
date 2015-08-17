@@ -185,9 +185,9 @@ module.exports = VideoCollaborationController =
 
       return showError err if err?
 
-      pLength = @participants.asArray().length
+      participantsLen = @participants.asArray().length
 
-      if plan.planTitle is 'free' and (pLength > 2 or (pLength is 2 and isVideoActive))
+      if plan.planTitle is 'free' and (participantsLen > 2 or (participantsLen is 2 and isVideoActive))
         return new LimitedVideoCollaborationFree
 
       callback()
