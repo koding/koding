@@ -19,11 +19,13 @@ module.exports = class FeedItem extends React.Component
   shouldComponentUpdate: (nextProps, nextState) ->
     return @props.message isnt nextProps.message
 
+
   onConversationButtonClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
     kd.singletons.router.handleRoute "/Channels/Public/summary/#{@props.message.get 'slug'}"
+
 
   render: ->
     { message } = @props
@@ -62,24 +64,26 @@ makeAvatarGroup = (message) ->
     , immutable.Map()
     .map makeAvatar
 
-  return (
+  return \
     <span className="FeedItem-avatarGroup">
       <span className="FeedItem-avatarGroupLabel">People:</span>
       {avatars}
     </span>
-  )
 
 makeTimeAgo = (createdAt) ->
+
   <Link className="FeedItem-date u-color-light-text">
     <TimeAgo from={createdAt} />
   </Link>
 
 makeProfileLink = (imAccount) ->
+
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
 
 makeAvatar = (imAccount) ->
+
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <Avatar className="FeedItem-Avatar" width={28} height={28} />
   </ProfileLinkContainer>
