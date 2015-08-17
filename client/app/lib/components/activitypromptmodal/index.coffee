@@ -19,7 +19,7 @@ module.exports = class ActivityPromptModal extends React.Component
     closeOnOutsideClick : yes
     hasOverlay          : yes
     isOpen              : no
-
+    className           : ''
 
   onClose: (args...) -> @props.onClose? args...
 
@@ -36,7 +36,7 @@ module.exports = class ActivityPromptModal extends React.Component
 
     return (
       <Portal {...portalProps}>
-        <div className="Reactivity Modal ActivityPromptModal">
+        <div className={kd.utils.curry 'Reactivity Modal ActivityPromptModal', @props.className}>
           <h4 className="Modal-title">{@props.title}</h4>
           <div className="Modal-content">
             <p>{@props.children}</p>
