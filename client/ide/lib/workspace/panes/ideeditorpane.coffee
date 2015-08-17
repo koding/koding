@@ -251,9 +251,8 @@ module.exports = class IDEEditorPane extends IDEPane
       editor     : @getEditor()
       html       : lineWidgetHTML
 
-    kd.utils.defer =>
-      widgetManager.addLineWidget lineWidgetOptions
-      @lineWidgets[username] = lineWidgetOptions
+    widgetManager.addLineWidget lineWidgetOptions
+    @lineWidgets[username] = lineWidgetOptions
 
 
   removeAllCursorWidgets: ->
