@@ -102,13 +102,9 @@ module.exports = class Sidebar extends bongo.Base
 
       return ->
 
-        failureFn = (err) ->
+        failureFn = ->
 
           filterQueue.fin()
-
-          return  unless err
-          console.error \
-            new KodingError "Sidebar decorate environment data: #{JSON.stringify err}"
 
         makeSuccessFn = (fn) ->
 
