@@ -5,6 +5,7 @@ KDButtonView        = kd.ButtonView
 KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 InvitationInputView = require './invitationinputview'
+showError           = require 'app/util/showError'
 
 
 module.exports = class InviteSomeoneView extends KDView
@@ -62,7 +63,11 @@ module.exports = class InviteSomeoneView extends KDView
     invites = []
 
     for view in @inputViews
-      return unless view.email.validate()
+      result = view.email.validate()
+
+      unless result
+        showError 'That doesn\'t seem like a valid email address.'
+        return view.email.setClass 'validation-error'
 
       invites.push view.serialize()
 
