@@ -61,8 +61,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-      ComputeHelpers.handleNewMachineRequest { provider }
       @getDelegate().emit 'ModalDestroyRequested'
+      ComputeHelpers.handleNewMachineRequest { provider }
 
 
   createExtraViews: ->

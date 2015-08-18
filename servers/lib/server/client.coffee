@@ -1,13 +1,13 @@
-{argv} = require 'optimist'
+{ argv } = require 'optimist'
 
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-bongo  = require './bongo'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+bongo    = require './bongo'
 
 handleError = (err, callback) ->
   console.error err
   return callback? err
 
-updateCookie = (req, res, session)->
+updateCookie = (req, res, session) ->
   { clientId }       = session
 
   # if we already have the same cookie in request, dont do anything
@@ -20,10 +20,10 @@ updateCookie = (req, res, session)->
 
   res.cookie 'clientId', clientId, { maxAge, secure }
 
-generateFakeClientFromReq = (req, res, callback)->
+generateFakeClientFromReq = (req, res, callback) ->
 
-  {clientId} = req.cookies
-  {section} = req.params
+  { clientId } = req.cookies
+  { section }  = req.params
 
   # TODO change this with Team product
   groupName = 'koding'
@@ -32,11 +32,11 @@ generateFakeClientFromReq = (req, res, callback)->
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
 
-  generateFakeClient {clientId, groupName, section}, (err, fakeClient, session) ->
+  generateFakeClient { clientId, groupName, section }, (err, fakeClient, session) ->
 
     return callback err  if err
 
-    {delegate} = fakeClient.connection
+    { delegate } = fakeClient.connection
 
     updateCookie req, res, session
 
@@ -45,7 +45,7 @@ generateFakeClientFromReq = (req, res, callback)->
 
 generateFakeClient = (options, callback) ->
 
-  {clientId, groupName, section} = options
+  { clientId, groupName, section } = options
 
   fakeClient    =
     context       :
@@ -61,44 +61,46 @@ generateFakeClient = (options, callback) ->
 
   { JSession, JAccount } = bongo.models
 
-  JSession.fetchSession clientId, (err, response)->
+  JSession.fetchSession clientId, (err, response) ->
 
     return handleError err, callback  if err
 
     if not response or not response.session
-      return handleError new Error "Session is not set", callback
+      return handleError new Error 'Session is not set', callback
 
-    { session } = response
+    { session }             = response
     { username, groupName } = session
 
-    JAccount.one { "profile.nickname": username }, (err, account) ->
+    JAccount.one { 'profile.nickname': username }, (err, account) ->
       # we can ignore err here
-      prepareFakeClient fakeClient, {groupName, session, username, account}
+      prepareFakeClient fakeClient, { groupName, session, username, account }
       return callback null, fakeClient, session
 
 prepareFakeClient = (fakeClient, options) ->
-  {groupName, session, username, account, sessionToken} = options
+  { groupName, session, username, account, sessionToken } = options
 
-  {JAccount}      = bongo.models
+  { JAccount }      = bongo.models
 
   unless account
     account         = new JAccount
-    account.profile = nickname: username
+    account.profile = { nickname: username }
     account.type    = 'unregistered'
 
   fakeClient.sessionToken = sessionToken ? session.clientId
 
   # set username into context
-  fakeClient.context or= {}
+  fakeClient.context     or= {}
   fakeClient.context.group = groupName or fakeClient.context.group
   fakeClient.context.user  = session.username or fakeClient.context.user
 
   # create connection property
-  fakeClient.connection or= {}
+  fakeClient.connection         or= {}
   fakeClient.connection.delegate  = account or fakeClient.connection.delegate
   fakeClient.connection.groupName = groupName or fakeClient.connection.groupName
 
   fakeClient.impersonating = session.impersonating or false
 
 
-module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie}
+module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie }
+
+

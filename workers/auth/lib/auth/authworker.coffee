@@ -1,4 +1,4 @@
-{EventEmitter} = require 'microemitter'
+{ EventEmitter } = require 'microemitter'
 
 module.exports = class AuthWorker extends EventEmitter
 
@@ -22,6 +22,8 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'topic'
     autoDelete  : yes
 
+  # due to a bug in coffeelint 1.10.1
+  # coffeelint: disable=no_implicit_braces
   constructor: (@bongo, options = {}) ->
 
     # instance options
@@ -51,11 +53,11 @@ module.exports = class AuthWorker extends EventEmitter
   bound: require 'koding-bound'
 
   authenticate: (messageData, routingKey, socketId, callback) ->
-    {clientId, channel, event} = messageData
+    { clientId, channel, event } = messageData
     @requireSession clientId, routingKey, socketId, callback
 
   requireSession: (clientId, routingKey, socketId, callback) ->
-    {JSession} = @bongo.models
+    { JSession } = @bongo.models
     JSession.fetchSession clientId, (err, { session }) =>
       if err? then console.error err
       if err? or not session? then @rejectClient routingKey
@@ -91,7 +93,7 @@ module.exports = class AuthWorker extends EventEmitter
     @counts[serviceType] += 1
     return serviceInfo
 
-  removeService: ({serviceGenericName, serviceUniqueName}) ->
+  removeService: ({ serviceGenericName, serviceUniqueName }) ->
     servicesOfType = @services[serviceGenericName]
     [index] = (i for s, i in servicesOfType \
                  when s.serviceUniqueName is serviceUniqueName)
@@ -100,7 +102,7 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByExchange?.forEach @bound 'cycleClient'
 
   cycleClient: (client) ->
-    {routingKey} = client
+    { routingKey } = client
     @bongo.respondToClient routingKey,
       method      : 'cycleChannel'
       arguments   : []
@@ -115,7 +117,7 @@ module.exports = class AuthWorker extends EventEmitter
     delete @clients.byExchange[exchange]
     delete @clients.byRoutingKey[routingKey]
 
-  addClient: (socketId, exchange, routingKey, sendOk=yes) ->
+  addClient: (socketId, exchange, routingKey, sendOk = yes) ->
     if sendOk
       @bongo.respondToClient routingKey,
         method    : 'auth.authOk'
@@ -129,15 +131,15 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByRoutingKey.push client
     clientsByExchange.push client
 
-  rejectClient:(routingKey, message)->
+  rejectClient:(routingKey, message) ->
     # console.log 'rejecting', routingKey
     return console.trace()  unless routingKey?
     @bongo.respondToClient routingKey,
       method    : 'error'
-      arguments : [message: message ? 'Access denied']
+      arguments : [{ message: message ? 'Access denied' }]
       callbacks : {}
 
-  setSecretNames:(routingKey, publishingName, subscribingName)->
+  setSecretNames:(routingKey, publishingName, subscribingName) ->
     setSecretNamesEvent = "#{routingKey}.setSecretNames"
     message = JSON.stringify { publishingName, subscribingName }
     @bongo.respondToClient setSecretNamesEvent, message
@@ -145,7 +147,7 @@ module.exports = class AuthWorker extends EventEmitter
   publishToService: (exchangeName, routingKey, payload, callback) ->
     { connection } = @bongo.mq
     connection.exchange exchangeName, AUTH_EXCHANGE_OPTIONS,
-      (exchange) =>
+      (exchange) ->
         exchange.publish routingKey, payload
         exchange.close() # don't leak a channel
         callback? null
@@ -154,14 +156,14 @@ module.exports = class AuthWorker extends EventEmitter
   getWaitingAuthWhoKey = (o) ->
     "#{o.username}!#{o.correlationName}!#{o.serviceGenericName}"
 
-  makeExchangeFetcher =(exchangeName, exchangeOptions)->
+  makeExchangeFetcher = (exchangeName, exchangeOptions) ->
     exKey   = "#{exchangeName}_"
-    (callback)->
+    (callback) ->
       if @[exKey] then return process.nextTick => callback @[exKey]
       @bongo.mq.connection.exchange(
         @[exchangeName]
         exchangeOptions
-        (exchange)=> callback @[exKey] = exchange
+        (exchange) => callback @[exKey] = exchange
       ).on 'error', console.error.bind console
 
   fetchReroutingExchange: makeExchangeFetcher(
@@ -176,9 +178,9 @@ module.exports = class AuthWorker extends EventEmitter
     'usersPresenceControlExchange', USERS_PRESENCE_CONTROL_EXCHANGE_OPTIONS
   )
 
-  addBinding:(bindingExchange, bindingKey, publishingExchange, routingKey, suffix = '')->
+  addBinding:(bindingExchange, bindingKey, publishingExchange, routingKey, suffix = '') ->
     suffix = ".#{suffix}"  if suffix.length
-    @fetchReroutingExchange (exchange)=>
+    @fetchReroutingExchange (exchange) ->
       exchange.publish 'auth.join', {
         bindingExchange
         bindingKey
@@ -187,8 +189,8 @@ module.exports = class AuthWorker extends EventEmitter
         suffix
       }
 
-  notify:(routingKey, event, contents)->
-    @fetchNotificationExchange (exchange)->
+  notify:(routingKey, event, contents) ->
+    @fetchNotificationExchange (exchange) ->
       exchange.publish routingKey, { event, contents }
 
   respondServiceUnavailable: (routingKey, serviceGenericName) ->
@@ -203,61 +205,61 @@ module.exports = class AuthWorker extends EventEmitter
 
   join: do ->
 
-    ensureGroupPermission = ({group, account}, callback) ->
-      {JGroup} = @bongo.models
+    ensureGroupPermission = ({ group, account }, callback) ->
+      { JGroup } = @bongo.models
       checkGroupPermission.call this, group, account, (err, hasPermission) ->
         if err then callback err
         else if hasPermission
           JGroup.fetchSecretChannelName group.slug, callback
         else
-          callback {message: 'Access denied!', code: 403}
+          callback { message: 'Access denied!', code: 403 }
 
-    ensureSocialapiChannelPermission = ({group, account, options}, callback) ->
-      {SocialChannel} = @bongo.models
+    ensureSocialapiChannelPermission = ({ group, account, options }, callback) ->
+      { SocialChannel } = @bongo.models
       checkGroupPermission.call this, group, account, (err, hasPermission) ->
         if err then callback err
         else if hasPermission
-            client =
-              context   : group   : group.slug
-              connection: delegate: account
+          client =
+            context   : group   : group.slug
+            connection: delegate: account
 
-            reqOptions =
-              type: options.apiChannelType
-              name: options.apiChannelName
+          reqOptions =
+            type: options.apiChannelType
+            name: options.apiChannelName
 
-            SocialChannel.checkChannelParticipation client, reqOptions, (err, res)->
-              if err
-                console.warn """
-                  tries to open an unattended channel:
-                  user: #{account.profile.nickname}
-                  channelname: #{reqOptions.name}
-                  channeltype: #{reqOptions.type}
+          SocialChannel.checkChannelParticipation client, reqOptions, (err, res) ->
+            if err
+              console.warn """
+                tries to open an unattended channel:
+                user: #{account.profile.nickname}
+                channelname: #{reqOptions.name}
+                channeltype: #{reqOptions.type}
 
-                """
-                return callback err
-              SocialChannel.fetchSecretChannelName options, callback
+              """
+              return callback err
+            SocialChannel.fetchSecretChannelName options, callback
 
         else
-          callback {message: 'Access denied!', code: 403}
+          callback { message: 'Access denied!', code: 403 }
 
     checkGroupPermission = (group, account, callback) ->
-      {JPermissionSet, JGroup, SocialChannel} = @bongo.models
-      client = {context: {group: group.slug}, connection: delegate: account}
-      JPermissionSet.checkPermission client, "read group activity", group,
+      { JPermissionSet, JGroup, SocialChannel } = @bongo.models
+      client = { context: { group: group.slug }, connection: delegate: account }
+      JPermissionSet.checkPermission client, 'read group activity', group,
         null, callback
 
-    joinGroupHelper =(messageData, routingKey, socketId)->
-      {JAccount, JGroup} = @bongo.models
+    joinGroupHelper = (messageData, routingKey, socketId) ->
+      { JAccount, JGroup } = @bongo.models
       fail = (err) =>
         console.error err  if err
         @rejectClient routingKey
       @authenticate messageData, routingKey, socketId, (session) =>
         unless session then fail()
         fetchAccountAndGroup.call this, session.username, messageData.group,
-          (err, data)=>
+          (err, data) =>
             return fail err  if err
-            {account, group} = data
-            ensureGroupPermission.call this, {group, account},
+            { account, group } = data
+            ensureGroupPermission.call this, { group, account },
               (err, secretChannelName) =>
                 if err or not secretChannelName
                   @rejectClient routingKey
@@ -266,32 +268,32 @@ module.exports = class AuthWorker extends EventEmitter
                     routingKey,
                     secretChannelName
 
-    handleSecretnameAndRoutingKey = (routingKey, secretChannelName)->
+    handleSecretnameAndRoutingKey = (routingKey, secretChannelName) ->
       @addBinding 'broadcast', secretChannelName, 'broker', routingKey
       @setSecretNames routingKey, secretChannelName
 
-    fetchAccountAndGroup= (username, groupSlug, callback)->
-      {JAccount, JGroup} = @bongo.models
-      JAccount.one {'profile.nickname': username},
+    fetchAccountAndGroup = (username, groupSlug, callback) ->
+      { JAccount, JGroup } = @bongo.models
+      JAccount.one { 'profile.nickname': username },
         (err, account) ->
           return callback err  if err
-          return callback {message: "Account not found"}  if not account
-          JGroup.one {slug: groupSlug}, (err, group) ->
+          return callback { message: 'Account not found' }  if not account
+          JGroup.one { slug: groupSlug }, (err, group) ->
             return callback err  if err
-            return callback {message: "Group not found"}  if not group
-            return callback null, {account, group}
+            return callback { message: 'Group not found' }  if not group
+            return callback null, { account, group }
 
-    joinSocialApiHelper =(messageData, routingKey, socketId)->
-      {JAccount, JGroup, SocialChannel} = @bongo.models
+    joinSocialApiHelper = (messageData, routingKey, socketId) ->
+      { JAccount, JGroup, SocialChannel } = @bongo.models
       fail = (err) =>
         console.error err  if err
         @rejectClient routingKey
       @authenticate messageData, routingKey, socketId, (session) =>
         return fail()  unless session
         fetchAccountAndGroup.call this, session.username, messageData.group,
-          (err, data)=>
+          (err, data) =>
             return fail err  if err
-            {account, group} = data
+            { account, group } = data
 
             options =
               groupSlug      : group.slug
@@ -302,20 +304,20 @@ module.exports = class AuthWorker extends EventEmitter
               group,
               account,
               options
-            } , (err, secretChannelName)=>
+            } , (err, secretChannelName) =>
               return fail err if err
               unless secretChannelName
-                return fail {message: "secretChannelName not set"}
+                return fail { message: 'secretChannelName not set' }
               handleSecretnameAndRoutingKey.call this,
                 routingKey,
                 secretChannelName
 
-    joinNotificationHelper =(messageData, routingKey, socketId)->
-      fail = (err)=>
+    joinNotificationHelper = (messageData, routingKey, socketId) ->
+      fail = (err) =>
         console.error err  if err
         @rejectClient routingKey
 
-      @authenticate messageData, routingKey, socketId, (session)=>
+      @authenticate messageData, routingKey, socketId, (session) =>
         unless session then fail()
         else if session?.username
           @addClient socketId, @reroutingExchange, routingKey, no
@@ -324,13 +326,13 @@ module.exports = class AuthWorker extends EventEmitter
         else
           @rejectClient routingKey
 
-    joinChatHelper =(messageData, routingKey, socketId)->
-      {name} = messageData
-      {JName} = @bongo.models
+    joinChatHelper = (messageData, routingKey, socketId) ->
+      { name } = messageData
+      { JName } = @bongo.models
       fail = => @rejectClient routingKey
-      @authenticate messageData, routingKey, socketId, (session)=>
+      @authenticate messageData, routingKey, socketId, (session) =>
         return fail()  unless session?.username?
-        JName.fetchSecretName name, (err, secretChannelName)=>
+        JName.fetchSecretName name, (err, secretChannelName) =>
           return console.error err  if err
 
           personalToken = 'pt' + do require 'hat'
@@ -338,7 +340,7 @@ module.exports = class AuthWorker extends EventEmitter
           bindingKey          = "client.#{personalToken}"
           consumerRoutingKey  = "chat.#{secretChannelName}"
 
-          {username} = session
+          { username } = session
 
           @addBinding 'chat', bindingKey, 'chat-hose', consumerRoutingKey, username
 
@@ -348,7 +350,7 @@ module.exports = class AuthWorker extends EventEmitter
             bindingKey  : consumerRoutingKey
           }
 
-    joinClient =(messageData, socketId)->
+    joinClient = (messageData, socketId) ->
       { routingKey, brokerExchange, serviceType, wrapperRoutingKeyPrefix } = messageData
 
       switch serviceType
@@ -392,20 +394,20 @@ module.exports = class AuthWorker extends EventEmitter
     clientServices?.forEach @bound 'cleanUpClient'
 
   connect: ->
-    {bongo} = this
+    { bongo } = this
     bongo.on 'connected', =>
-      {connection} = bongo.mq
+      { connection } = bongo.mq
 
       # FIXME: this is a hack to hold the chat exchange open for the meantime
       connection.exchange 'chat', NOTIFICATION_EXCHANGE_OPTIONS, (chatExchange) ->
         # *chirp chirp chirp chirp*
 
       connection.exchange @authAllExchange, AUTH_EXCHANGE_OPTIONS, (authAllExchange) =>
-        connection.queue '', {exclusive:yes}, (authAllQueue) =>
+        connection.queue '', { exclusive:yes }, (authAllQueue) =>
           authAllQueue.bind authAllExchange, ''
           authAllQueue.on 'queueBindOk', =>
             authAllQueue.subscribe (message, headers, deliveryInfo) =>
-              {routingKey} = deliveryInfo
+              { routingKey } = deliveryInfo
               messageStr = "#{message.data}"
               switch routingKey
                 when 'broker.clientConnected' then # ignore
@@ -413,11 +415,11 @@ module.exports = class AuthWorker extends EventEmitter
                   @cleanUpAfterDisconnect messageStr
 
       connection.exchange @authExchange, AUTH_EXCHANGE_OPTIONS, (authExchange) =>
-        connection.queue  @authExchange, (authQueue)=>
+        connection.queue  @authExchange, (authQueue) =>
           authQueue.bind authExchange, ''
           authQueue.on 'queueBindOk', =>
             authQueue.subscribe (message, headers, deliveryInfo) =>
-              {routingKey, correlationId} = deliveryInfo
+              { routingKey, correlationId } = deliveryInfo
               socketId = correlationId
               messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message

@@ -14,7 +14,7 @@ ActivityFlux         = require 'activity/flux'
 classnames           = require 'classnames'
 Portal               = require 'react-portal'
 whoami               = require 'app/util/whoami'
-
+checkFlag            = require 'app/util/checkFlag'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -58,13 +58,27 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMenuItems: ->
+
+    if checkFlag('super-admin') then @getAdminMenuItems() else @getDefaultMenuItems()
+
+
+  getDefaultMenuItems: ->
+
     return [
       {title: 'Edit Post',          key: 'editpost',    onClick: @bound 'editPost'}
       {title: 'Delete Post',        key: 'deletepost',  onClick: @bound 'deletePost'}
+    ]
+
+
+  getAdminMenuItems: ->
+
+    adminMenuItems = [
       {title: 'Mark User as Troll', key: 'markuser',    onClick: @bound 'markUser'}
       {title: 'Block User',         key: 'blockuser',   onClick: @bound 'blockUser'}
-      {title: 'impersonate User',   key: 'impersonate', onClick: @bound 'impersonate'}
+      {title: 'Impersonate User',   key: 'impersonate', onClick: @bound 'impersonate'}
     ]
+
+    return @getDefaultMenuItems().concat adminMenuItems
 
 
   getDeleteItemModalProps: ->
@@ -191,7 +205,7 @@ module.exports = class ChatListItem extends React.Component
   renderChatItemMenu: ->
 
     { message } = @props
-    if message.get('accountId') is whoami().socialApiId
+    if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
       <ButtonWithMenu
         items       = {@getMenuItems()}
         onMenuOpen  = {=> @onMenuToggle yes}

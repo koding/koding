@@ -1,3 +1,5 @@
+# due to a bug in coffeelint 1.10.1
+# coffeelint: disable=no_implicit_braces
 ElasticSearch = require './elasticsearch'
 _             = require 'underscore'
 
@@ -14,19 +16,19 @@ module.exports = class JPageHit extends ElasticSearch
       static:
         create: (signature Object, Function)
 
-  @pagesHitIndex :->
-    @getIndexOptions("pagehits", "events")
+  @pagesHitIndex : ->
+    @getIndexOptions('pagehits', 'events')
 
-  @create: secure (client, params, callback)->
-    @getUserInfo client, (err, record)=>
+  @create: secure (client, params, callback) ->
+    @getUserInfo client, (err, record) =>
       return callback err  if err
 
-      {path, query} = params
-      if path is "/"
-        path = "/Home"
+      { path, query } = params
+      if path is '/'
+        path = '/Home'
 
-      {pathname, query} = (require "url").parse path
-      query             = (require "querystring").parse query
+      { pathname, query } = (require 'url').parse path
+      query             = (require 'querystring').parse query
 
       record = _.extend {
         pathname

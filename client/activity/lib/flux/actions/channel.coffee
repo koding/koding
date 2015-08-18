@@ -20,14 +20,12 @@ loadChannelByName = (name) ->
     LOAD_CHANNEL_BY_NAME_FAIL
     LOAD_CHANNEL_SUCCESS } = actionTypes
 
-  type = if isKoding()
-    switch name
-      when 'Public'    then 'group'
-      when 'Changelog' then 'announcement'
-      else 'topic'
-  else 'topic'
-
   name = name.toLowerCase()
+
+  type = switch name
+    when 'public'                     then 'group'
+    when 'changelog', getGroup().slug then 'announcement'
+    else 'topic'
 
   dispatch LOAD_CHANNEL_BY_NAME_BEGIN, { name, type }
 

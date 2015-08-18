@@ -1,6 +1,6 @@
 processes = new(require 'processes')
 
-{argv} = require 'optimist'
+{ argv } = require 'optimist'
 
 processes.run
   name    : argv.n ? 'kite'

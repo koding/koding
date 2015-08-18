@@ -1,35 +1,35 @@
 {
   redirectOauth
   saveOauthToSession
-}                  = require './helpers'
-{google}           = KONFIG
-http               = require "https"
-querystring        = require 'querystring'
-provider           = "google"
+}           = require './helpers'
+{ google }  = KONFIG
+http        = require 'https'
+querystring = require 'querystring'
+provider    = 'google'
 
 module.exports = (req, res) ->
   access_token  = null
   refresh_token = null
-  {code}        = req.query
-  {clientId}    = req.cookies
+  { code }      = req.query
+  { clientId }  = req.cookies
   {
     client_id
     client_secret
     redirect_uri
   }            = google
 
-  return redirectOauth "No code in query", req, res, {provider}  unless code
+  return redirectOauth 'No code in query', req, res, { provider }  unless code
 
   # Get user info with access token
-  fetchUserInfo = (userInfoResp)->
-    rawResp = ""
-    userInfoResp.on "data", (chunk) -> rawResp += chunk
-    userInfoResp.on "end", ->
+  fetchUserInfo = (userInfoResp) ->
+    rawResp = ''
+    userInfoResp.on 'data', (chunk) -> rawResp += chunk
+    userInfoResp.on 'end', ->
       try
         response = JSON.parse rawResp
-        {id, email, given_name, family_name} = response
+        { id, email, given_name, family_name } = response
       catch e
-        redirectOauth "Error getting id", req, res, {provider}
+        redirectOauth 'Error getting id', req, res, { provider }
 
       if id
         googleResp = {
@@ -43,45 +43,45 @@ module.exports = (req, res) ->
           profile      : response
         }
 
-        saveOauthToSession googleResp, clientId, provider, (err)->
+        saveOauthToSession googleResp, clientId, provider, (err) ->
           if err
-            return redirectOauth "Error saving oauth info", req, res, {provider}
+            return redirectOauth 'Error saving oauth info', req, res, { provider }
 
-          redirectOauth null, req, res, {provider}
+          redirectOauth null, req, res, { provider }
 
-  authorizeUser = (authUserResp)->
-    rawResp = ""
+  authorizeUser = (authUserResp) ->
+    rawResp = ''
     authUserResp.setEncoding('utf8')
-    authUserResp.on "data", (chunk) -> rawResp += chunk
-    authUserResp.on "end", ->
+    authUserResp.on 'data', (chunk) -> rawResp += chunk
+    authUserResp.on 'end', ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        redirectOauth "Error getting access token", req, res, {provider}
+        redirectOauth 'Error getting access token', req, res, { provider }
 
-      {access_token, refresh_token} = tokenInfo
+      { access_token, refresh_token } = tokenInfo
       if access_token
         options =
-          host   : "www.googleapis.com"
+          host   : 'www.googleapis.com'
           path   : "/oauth2/v2/userinfo?alt=json&access_token=#{access_token}"
-          method : "GET"
+          method : 'GET'
         r = http.request options, fetchUserInfo
         r.end()
       else
-        redirectOauth "No access token", req, res, {provider}
+        redirectOauth 'No access token', req, res, { provider }
 
   postData   = querystring.stringify {
     code,
     client_id,
     client_secret,
     redirect_uri,
-    grant_type : "authorization_code"
+    grant_type : 'authorization_code'
   }
 
   options   =
-    host    : "accounts.google.com"
-    path    : "/o/oauth2/token"
-    method  : "POST"
+    host    : 'accounts.google.com'
+    path    : '/o/oauth2/token'
+    method  : 'POST'
     headers : {
       'Content-Type'  : 'application/x-www-form-urlencoded'
       'Content-Length': postData.length,
@@ -92,4 +92,4 @@ module.exports = (req, res) ->
   r.write postData
   r.end()
 
-  r.on 'error', (e)-> console.error 'problem with request: ' + e.message
+  r.on 'error', (e) -> console.error 'problem with request: ' + e.message

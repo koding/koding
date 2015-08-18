@@ -1,10 +1,10 @@
-Bongo   = require 'bongo'
-Broker  = require 'broker'
-{argv}  = require 'optimist'
+Bongo     = require 'bongo'
+Broker    = require 'broker'
+{ argv }  = require 'optimist'
 
-{daisy, race} = Bongo
+{ daisy, race } = Bongo
 
-{mongo, mq} = require('koding-config-manager').load("main.#{argv.c}")
+{ mongo, mq } = require('koding-config-manager').load("main.#{argv.c}")
 
 if 'string' is typeof mongo
   mongo = "mongodb://#{mongo}?auto_reconnect"
@@ -19,17 +19,17 @@ worker = new Bongo {
 }
 
 importProducts = (callback) ->
-  data = require(__dirname + '/products');
+  data = require(__dirname + '/products')
   queue = []
   insertProducts = race (i, product, fin) ->
-    {JPaymentProduct} = worker.models
+    { JPaymentProduct } = worker.models
     kreate = ->
-      JPaymentProduct.create "koding", product, (err) ->
+      JPaymentProduct.create 'koding', product, (err) ->
         console.log "#{product.title} product added successfully" unless err
         fin()
 
-    {title} = product
-    JPaymentProduct.one title: title, (err, paymentProduct) ->
+    { title } = product
+    JPaymentProduct.one { title: title }, (err, paymentProduct) ->
       if err
         console.error err
         return fin()
@@ -43,18 +43,18 @@ importProducts = (callback) ->
   insertProducts product for product in data
 
 importPacks = (callback) ->
-  data = require(__dirname + '/packs');
+  data = require(__dirname + '/packs')
   queue = []
   fetchAllProducts (err, productPlanCodes) ->
     if err
       console.error err
       return callback err
     insertPacks = race (i, pack, fin) ->
-      {title} = pack
-      {JPaymentPack, JPaymentProduct} = worker.models
+      { title } = pack
+      { JPaymentPack, JPaymentProduct } = worker.models
 
       kreate = ->
-        JPaymentPack.create "koding", pack, (err, pack) ->
+        JPaymentPack.create 'koding', pack, (err, pack) ->
           if err
             console.error err
             fin()
@@ -68,7 +68,7 @@ importPacks = (callback) ->
             console.log "#{pack.title} pack products are added"
             fin()
 
-      JPaymentPack.one title: title, (err, paymentPack) ->
+      JPaymentPack.one { title: title }, (err, paymentPack) ->
         if err
           console.error err  if err
           fin()
@@ -80,18 +80,18 @@ importPacks = (callback) ->
     insertPacks pack for pack in data
 
 fetchAllProducts = (callback) ->
-  {JPaymentProduct} = worker.models
+  { JPaymentProduct } = worker.models
   productPlanCodes = {}
   JPaymentProduct.all {}, (err, products) ->
-    return console.error "products cannot be fetched" if err
+    return console.error 'products cannot be fetched' if err
     for product in products
       productPlanCodes[product.title] = product.planCode
 
     callback null, productPlanCodes
 
 importPlans = (callback) ->
-  data = require(__dirname + '/plans');
-  {JPaymentPlan} = worker.models
+  data = require(__dirname + '/plans')
+  { JPaymentPlan } = worker.models
 
   fetchAllProducts (err, productPlanCodes) ->
     return console.error err  if err
@@ -99,7 +99,7 @@ importPlans = (callback) ->
     queue = []
     insertPlans = race (i, plan, fin) ->
       kreate = ->
-        JPaymentPlan.create "koding", plan, (err, newPlan) ->
+        JPaymentPlan.create 'koding', plan, (err, newPlan) ->
           if err
             console.error err
             fin()
@@ -107,17 +107,17 @@ importPlans = (callback) ->
           console.log "#{plan.title} plan added successfully"
           quantities = {}
           switch plan.title
-            when "Team Plan"
-              quantities[productPlanCodes["Always On"]] = 1
-              quantities[productPlanCodes["VM"]] = 2
-              quantities[productPlanCodes["User"]] = 1
-              quantities[productPlanCodes["Group"]] = 1
-            when "Free plan"
-              quantities[productPlanCodes["VM"]] = 1
+            when 'Team Plan'
+              quantities[productPlanCodes['Always On']] = 1
+              quantities[productPlanCodes['VM']] = 2
+              quantities[productPlanCodes['User']] = 1
+              quantities[productPlanCodes['Group']] = 1
+            when 'Free plan'
+              quantities[productPlanCodes['VM']] = 1
             else
-              {count} = plan
-              quantities[productPlanCodes["Always On"]] = count
-              quantities[productPlanCodes["VM"]] = count * 2
+              { count } = plan
+              quantities[productPlanCodes['Always On']] = count
+              quantities[productPlanCodes['VM']] = count * 2
 
           console.log 'quantities', quantities
           newPlan.updateProducts quantities, (err) ->
@@ -125,8 +125,8 @@ importPlans = (callback) ->
             else console.log "#{plan.title} plan products are added"
             fin()
 
-      {title} = plan
-      JPaymentPlan.one title: title, (err, paymentPlan) ->
+      { title } = plan
+      JPaymentPlan.one { title: title }, (err, paymentPlan) ->
         if err
           console.error err
           fin()
@@ -140,33 +140,33 @@ importPlans = (callback) ->
     insertPlans plan for plan in data
 
 createBot = (callback) ->
-  {JUser, JAccount} = worker.models
+  { JUser, JAccount } = worker.models
 
   userInfo =
-    username  : "bot"
-    email     : "bot@koding.com"
-    firstName : "Bot"
-    lastName  : " "
+    username  : 'bot'
+    email     : 'bot@koding.com'
+    firstName : 'Bot'
+    lastName  : ' '
 
   JUser.createUser userInfo, (err) ->
     return callback err if err
-    JUser.one username : "bot", (err, user) ->
+    JUser.one { username : 'bot' }, (err, user) ->
       user.confirmEmail (err) ->
         return callback err if err
-        JAccount.update "profile.nickname" : "bot", {$set: type: "registered"}, \
-          {multi: no}, (err, account) ->
-            return callback err if err
-            callback null
+        JAccount.update { 'profile.nickname' : 'bot' }, { $set: { type: 'registered' } }, \
+          { multi: no }, (err, account) ->
+          return callback err if err
+          callback null
 
-initFreeSubscriptions = (callback=->) ->
+initFreeSubscriptions = (callback = -> ) ->
   worker.on 'dbClientReady', ->
-    {JPaymentSubscription, JAccount, Relationship} = worker.models
+    { JPaymentSubscription, JAccount, Relationship } = worker.models
 
     count = 0
     index = 0
     queue = []
     batchHandler = (skip) ->
-      JAccount.some {"type": "registered"}, {limit: 100, skip}, (err, accounts) ->
+      JAccount.some { 'type': 'registered' }, { limit: 100, skip }, (err, accounts) ->
         return callback err  if err
 
         count += accounts.length
@@ -175,8 +175,8 @@ initFreeSubscriptions = (callback=->) ->
           queue.next()
           return callback null
 
-        queue = accounts.map (account) ->->
-          options = targetOptions: selector: tags: "nosync"
+        queue = accounts.map (account) -> ->
+          options ={ targetOptions: { selector: { tags: 'nosync' } } }
           account.fetchSubscription null, options, (err, subscription) ->
             console.warn "error occurred for #{account?.profile?.nickname}: #{err}"  if err
             return queue.next()  if subscription
@@ -187,7 +187,7 @@ initFreeSubscriptions = (callback=->) ->
               queue.next()
 
         queue.push ->
-          console.log "next"
+          console.log 'next'
           batchHandler skip + 100
 
         daisy queue
@@ -215,10 +215,10 @@ initPaymentData = ->
     daisy queue
 
 switch argv.i
-  when "payment"
+  when 'payment'
     initPaymentData()
-  when "subscription"
+  when 'subscription'
     initFreeSubscriptions (err) ->
       process.exit(1)
   else
-    console.error "unknown -i value"
+    console.error 'unknown -i value'
