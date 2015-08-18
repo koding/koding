@@ -15,7 +15,7 @@ type GatherStat struct {
 	Id         bson.ObjectId      `bson:"_id" json:"-"`
 	Env        string             `bson:"env" json:"env"`
 	Username   string             `bson:"username" json:"username"`
-	InstanceId string             `bson:"instanceId" json:"instanceId"`
+	InstanceId string             `bson:"instanceId" json:"instanceId,omitempty"`
 	Type       string             `bson:"type" json:"type"`
 	CreatedAt  time.Time          `bson:"createdAt" json:"createdAt"`
 	Stats      []GatherSingleStat `bson:"stats" json:"stats"`
