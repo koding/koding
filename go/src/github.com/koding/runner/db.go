@@ -30,7 +30,7 @@ func MustInitDB(conf *Config, log logging.Logger, debug bool) *gorm.DB {
 	}
 	// By default, table name is plural of struct type, you can use struct type as table name with:
 	db.SingularTable(true)
-
+	db.DB().SetMaxOpenConns(50)
 	db.SetLogger(NewGormLogger(log))
 
 	// log queries if only in debug mode
