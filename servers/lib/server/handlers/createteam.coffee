@@ -19,12 +19,13 @@ module.exports = (req, res, next) ->
     newsletter
     # is group creator already a member
     alreadyMember }              = body
-  { JUser, JGroup, JInvitation } = koding.models
   body.groupName                 = slug
   # needed for JUser.login to know that it is a regular login or group creation
   body.groupIsBeingCreated       = yes
 
   clientId                       = getClientId req, res
+
+  { JUser, JGroup, JInvitation, JTeamInvitation } = koding.models
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -36,7 +37,16 @@ module.exports = (req, res, next) ->
   alreadyMember       = alreadyMember is 'true'
 
   queue = [
+    ->
+      { teamAccessCode } = body
+      # if we dont have teamaccesscode just continue
+      return queue.next() if not teamAccessCode
 
+      JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+        return res.status(400).send err.message
+        return res.status(400).send 'Team Invitation is not found'  if not invitation
+        return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
+        return queue.next()
     ->
       koding.fetchClient clientId, context, (client_) ->
 
@@ -108,6 +118,8 @@ generateCreateGroupKallback = (client, req, res, body) ->
       domains
       # username or email of the user, can be already registered or a new one for creation
       username
+      # access code for admin to create a team
+      teamAccessCode
     } = body
 
     token = result.newToken or result.replacementToken
@@ -152,7 +164,17 @@ generateCreateGroupKallback = (client, req, res, body) ->
         -> createInvitations client, invitees, (err) ->
             console.error 'Err while creating invitations', err  if err
             queue.fin()
-
+        ->
+          if not teamAccessCode
+            queue.fin()
+          else
+            JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+              if err or not invitation
+                queue.fin()
+              else
+                invitation.markAsUsed (err) ->
+                  console.error err
+                  queue.fin()
       ]
 
       dash queue, (err) ->
