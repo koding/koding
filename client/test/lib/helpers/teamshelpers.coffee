@@ -84,6 +84,15 @@ module.exports =
       .click                  '[testpath=register-button]'
       .pause                  2000 # wait for modal change
 
+    @loginAssertion(browser)
+
+
+  loginAssertion: (browser) ->
+
+    browser
+      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
+      .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+
 
   setupStackPage: (browser) ->
 
@@ -112,8 +121,8 @@ module.exports =
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
       .click                  'button[testpath=login-button]'
-      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
-      .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+
+    @loginAssertion(browser)
 
 
   loginTeam: (browser) ->
@@ -154,3 +163,9 @@ module.exports =
     browser
       .waitForElementVisible  sidebarSelector, 20000
       .assert.containsText    sidebarSelector, name
+
+
+  clickTeamSettings: (browser) ->
+
+    helpers.openAvatarAreaModal(browser)
+    @openTeamSettingsModal(browser)
