@@ -1568,3 +1568,66 @@ Admin main styles
   overflow                  auto
   .kdmodal-content
     font-size               14px !important
+
+
+// stack onboarding styling
+.stack-onboarding
+
+  .header
+    text-align              center
+
+  .title
+    font-size               24px
+    color                   #00B057
+    margin                  43px 0 18px 0
+
+  .description
+    font-size               18px
+    color                   #565656
+    font-weight             300
+    width                   400px
+    margin                  0 auto 53px
+
+  .kdbutton
+    &.green
+      background            #00B057
+
+    &.medium
+      height                50px
+      padding               0 35px
+
+  &.get-started
+
+    .item
+      width                 290px
+      text-align            center
+      margin-left           35px
+      fl()
+
+      p
+        font-size           18px
+        color               #434343
+        margin-bottom       15px
+
+      span
+        color               #B2B2B2
+        font-size           18px
+        font-weight         300
+
+      .icon
+        r-sprite            'admin', 'document'
+        margin              0 auto 38px
+
+        &.invite-users
+          r-sprite          'admin', 'team'
+
+    .artwork
+      margin-top            98px
+      overflow              hidden
+      margin-left           12px
+
+    .arrow
+      r-sprite              'admin', 'arrow'
+      margin                0 auto 40px
+      rel()
+      left                  -8px
