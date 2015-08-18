@@ -1,6 +1,6 @@
 { error_404, isLoggedIn, isInAppRoute } = require './../helpers'
 
-module.exports = (req, res, next)->
+module.exports = (req, res, next) ->
 
   { params }              = req
   { name, section, slug } = params
@@ -17,4 +17,4 @@ module.exports = (req, res, next)->
     then require('./app')
     else require('./profile')
 
-    handler req, res, next, {loggedIn, account, path}
+    handler req, res, next, { loggedIn, account, path }

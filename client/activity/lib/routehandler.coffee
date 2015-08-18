@@ -1,3 +1,4 @@
+kd                  = require 'kd'
 React               = require 'kd-react'
 Router              = require 'app/components/router'
 Location            = require 'react-router/lib/Location'
@@ -16,12 +17,17 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
     'SinglePostWithSummary'
   ]
 
-  if type in reactivityRoutes
-    if isReactivityEnabled()
-    then handleReactivity info, ctx
-    # unless reactivity is enabled redirect reactivity routes to `Public`
-    else ctx.handleRoute '/Activity/Public'
-  else handle type
+  # since `isReactivityEnabled` flag checks roles from config,
+  # wait for mainController to be ready to call `isReactivityEnabled`
+  # FIXME: Remove this call before public release. ~Umut
+  kd.singletons.mainController.ready ->
+
+    if type in reactivityRoutes
+      if isReactivityEnabled()
+      then handleReactivity info, ctx
+      # unless reactivity is enabled redirect reactivity routes to `Public`
+      else ctx.handleRoute '/Activity/Public'
+    else handle type
 
 
 ###*

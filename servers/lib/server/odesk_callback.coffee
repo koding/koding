@@ -1,8 +1,8 @@
-provider             = "odesk"
-http                 = require "https"
+provider             = 'odesk'
+http                 = require 'https'
 koding               = require './bongo'
-{parseString}        = require "xml2js"
-{OAuth}              = require "oauth"
+{ parseString }      = require 'xml2js'
+{ OAuth }            = require 'oauth'
 
 {
   redirectOauth
@@ -19,21 +19,20 @@ koding               = require './bongo'
   signature
 }                    = KONFIG[provider]
 
-module.exports = (req, res)->
-  {query, cookies} = req
-  {oauth_token, oauth_verifier} = query
-  {clientId} = cookies
+module.exports = (req, res) ->
+  { query, cookies }              = req
+  { oauth_token, oauth_verifier } = query
+  { clientId }                    = cookies
+  { JSession }                    = koding.models
 
-  {JSession} = koding.models
-
-  JSession.one {clientId}, (err, session)->
+  JSession.one { clientId }, (err, session) ->
     if err or not session
-      redirectOauth err, req, res, {provider}
+      redirectOauth err, req, res, { provider }
       return
 
-    {foreignAuth}        = session
-    {username}           = session.data
-    {requestTokenSecret} = foreignAuth[provider]
+    { foreignAuth }        = session
+    { username }           = session.data
+    { requestTokenSecret } = foreignAuth[provider]
 
     customHeaders =
       'Accept'     : 'application/json',
@@ -43,18 +42,19 @@ module.exports = (req, res)->
     client = new OAuth request_url, access_url, key, secret, version, redirect_uri,
       signature, 0 , customHeaders
 
-    client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
+    # coffeelint: disable=indentation
+    client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier, \
       (err, accessToken, accessTokenSecret) ->
         if err
-          redirectOauth err, req, res, {provider}
+          redirectOauth err, req, res, { provider }
           return
 
         client.get 'https://www.odesk.com/api/auth/v1/info',
-          accessToken, accessTokenSecret, (err, data)->
+          accessToken, accessTokenSecret, (err, data) ->
             try
               response = JSON.parse data
             catch e
-              redirectOauth "Error parsing user info", req, res, {provider}
+              redirectOauth 'Error parsing user info', req, res, { provider }
               return
 
             odesk                   = session.foreignAuth.odesk
@@ -64,9 +64,10 @@ module.exports = (req, res)->
             odesk.profileUrl        = response.info.profile_url
             odesk.profile           = response
 
-            saveOauthToSession odesk, clientId, provider, (err)->
+            saveOauthToSession odesk, clientId, provider, (err) ->
               if err
-                redirectOauth err, req, res, {provider}
+                redirectOauth err, req, res, { provider }
                 return
 
-              redirectOauth null, req, res, {provider}
+              redirectOauth null, req, res, { provider }
+    # coffeelint: enable=indentation

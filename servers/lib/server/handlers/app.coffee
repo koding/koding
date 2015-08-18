@@ -1,10 +1,10 @@
 { serve, serveHome, isMainDomain }   = require './../helpers'
 
 koding                 = require './../bongo'
-{ generateFakeClient } = require "./../client"
+{ generateFakeClient } = require './../client'
 Crawler                = require './../../crawler'
 
-module.exports = (req, res, next, options)->
+module.exports = (req, res, next, options) ->
 
   { JName, JGroup }           = bongoModels = koding.models
   { params }                  = req

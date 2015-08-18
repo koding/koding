@@ -1,10 +1,10 @@
 Bongo       = require 'bongo'
 Broker      = require 'broker'
-{argv}      = require 'optimist'
-{extend}    = require 'underscore'
+{ argv }    = require 'optimist'
+{ extend }  = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{mongo, mq, projectRoot, emailConfirmationCheckerWorker : config} = KONFIG
+{ mongo, mq, projectRoot, emailConfirmationCheckerWorker : config } = KONFIG
 
 mongo += '?auto_reconnect'  if 'string' is typeof mongo
 

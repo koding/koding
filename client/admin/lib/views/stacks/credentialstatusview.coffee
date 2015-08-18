@@ -43,8 +43,7 @@ module.exports = class CredentialStatusView extends kd.View
       click      : =>
 
         modal = new CredentialSelectorModal
-          selectedCredentials:
-            (@credentials[val].first.identifier for val of @credentials)
+          selectedCredentials: @credentials
 
         modal.on 'ItemSelected', (credential) =>
 

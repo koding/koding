@@ -1,17 +1,17 @@
-{argv} = require 'optimist'
-process.title = 'koding-authworker'
-koding = require './bongo'
+{ argv }         = require 'optimist'
+process.title    = 'koding-authworker'
+koding           = require './bongo'
 koding.connect()
 
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG         = require('koding-config-manager').load("main.#{argv.c}")
 
-AuthWorker = require './authworker'
+AuthWorker     = require './authworker'
 
-{authWorker} = KONFIG
+{ authWorker } = KONFIG
 
 processMonitor = (require 'processes-monitor').start
   name : "Auth Worker #{process.pid}"
-  stats_id: "worker.auth." + process.pid
+  stats_id: 'worker.auth.' + process.pid
   interval : 30000
 
 authWorker = new AuthWorker koding, {
@@ -20,6 +20,6 @@ authWorker = new AuthWorker koding, {
 }
 
 # expose healthcheck and version handlers
-require('../../../runartifactserver')("authworker")
+require('../../../runartifactserver')('authworker')
 
 authWorker.connect()

@@ -2,7 +2,7 @@
 
 module.exports = (req, res) ->
 
-  {url}      = req
+  { url }    = req
   queryIndex = url.indexOf '?'
 
   [ urlOnly, query ] = if ~queryIndex

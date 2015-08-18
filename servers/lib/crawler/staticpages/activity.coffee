@@ -1,38 +1,38 @@
-{argv}        = require 'optimist'
-{uri, client} = require('koding-config-manager').load("main.#{argv.c}")
+{ argv }        = require 'optimist'
+{ uri, client } = require('koding-config-manager').load("main.#{argv.c}")
 
 
-getAvatarImageUrl = (hash, avatar, size = 38)->
+getAvatarImageUrl = (hash, avatar, size = 38) ->
   imgURL   = "//gravatar.com/avatar/#{hash}?size=#{size}&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   if avatar
     imgURL = "/-/image/cache?endpoint=crop&grow=false&width=#{size}&height=#{size}&url=#{encodeURIComponent avatar}"
   return imgURL
 
-createAvatarImage = (hash, avatar, size = 38)=>
+createAvatarImage = (hash, avatar, size = 38) ->
   imgURL = getAvatarImageUrl hash, avatar, size
   """
   <img width="#{size}" height="#{size}" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
 
-createCreationDate = (createdAt, slug)->
+createCreationDate = (createdAt, slug) ->
   """
   <time class="kdview" itemprop="dateCreated">#{createdAt}</time>
   """
 
-createAuthor = (accountName, nickname)->
+createAuthor = (accountName, nickname) ->
   return "<a href=\"#{uri.address}/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
 
-prepareComments = (activityContent)->
-  commentsList = ""
+prepareComments = (activityContent) ->
+  commentsList = ''
   return commentsList  unless activityContent?.replies
 
   activityContent.replies.reverse()
   for comment in activityContent.replies
-    {replier, message}                 = comment
-    {createdAt}                        = message
-    {hash, avatar, nickname, fullName} = replier
-    createdAt                          = createCreationDate createdAt
-    avatarImage                        = createAvatarImage hash, avatar, 30
+    { replier, message }                 = comment
+    { createdAt }                        = message
+    { hash, avatar, nickname, fullName } = replier
+    createdAt                            = createCreationDate createdAt
+    avatarImage                          = createAvatarImage hash, avatar, 30
 
     commentsList +=
       """
@@ -54,30 +54,36 @@ prepareComments = (activityContent)->
   return commentsList
 
 
-getActivityContent = (activityContent)->
+getActivityContent = (activityContent) ->
   slugWithDomain = "#{uri.address}/Activity/Post/#{activityContent.slug}"
-  {body, nickname, fullName, hash, avatar, createdAt, commentCount, likeCount} = activityContent
+  { body, nickname, fullName, hash, avatar, createdAt, commentCount, likeCount } = activityContent
   location = activityContent?.payload?.location
   if location
     location = "from #{location}"
   else
-    location = ""
+    location = ''
 
   avatarImage   = createAvatarImage hash, avatar
   createdAt     = createCreationDate createdAt, activityContent.slug
   author        = createAuthor fullName, nickname
 
-  displayCommentCount = if commentCount then commentCount else ""
+  displayCommentCount = if commentCount then commentCount else ''
 
-  {formatBody} = require './bodyrenderer'
-  body         = formatBody body
-  commentsList = prepareComments activityContent
-  repliesCount = activityContent.replies?.length
-  count        = Math.min (commentCount - repliesCount), 10
-  repliesText  = if count is 1
-  then "There is one comment above, please login to see."
+  { formatBody } = require './bodyrenderer'
+  body           = formatBody body
+  commentsList   = prepareComments activityContent
+  repliesCount   = activityContent.replies?.length
+  count          = Math.min (commentCount - repliesCount), 10
+
+  repliesText    = if count is 1
+  then 'There is one comment above, please login to see.'
   else "There are #{count} comments above, please login to see."
-  hasComments  = if repliesCount > 0
+
+  repliesLink    = if count > 0
+  then "<a class='custom-link-view list-previous-link' href='/Login'>#{repliesText}</a>"
+  else ''
+
+  hasComments    = if repliesCount > 0
   then 'has-comments'
   else 'no-comments'
 
@@ -110,7 +116,7 @@ getActivityContent = (activityContent)->
         </div>
       </div>
       <div class="kdview comment-container static #{hasComments}">
-        #{if count > 0 then "<a class='custom-link-view list-previous-link' href='/Login'>#{repliesText}</a>" else ""}
+        #{repliesLink}
         <div class="kdview listview-wrapper">
           <div class="kdview kdscrollview">
             <div class="kdview kdlistview kdlistview-comments">

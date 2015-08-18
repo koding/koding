@@ -131,7 +131,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # updating user passwordStatus as needs reset
-        options = { $set: passwordStatus: 'needs reset' }
+        options = { $set: { passwordStatus: 'needs reset' } }
         JUser.update { username }, options, (err) ->
           expect(err).to.not.exist
           queue.next()
@@ -179,7 +179,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # setting two factor authentication on by adding twofactorkey field
-        JUser.update { username }, { $set: twofactorkey: 'somekey' }, (err) ->
+        JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -226,7 +226,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # setting two factor authentication on by adding twofactorkey field
-        JUser.update { username }, { $set: twofactorkey: 'somekey' }, (err) ->
+        JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -274,7 +274,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # setting two factor authentication on by adding twofactorkey field
-        JUser.update { username }, { $set: twofactorkey: 'somekey' }, (err) ->
+        JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -314,7 +314,7 @@ runTests = -> describe 'server.handlers.login', ->
 
         validtfKey = tfcode
 
-        JUser.update { username }, { $set: twofactorkey: tfcode }, (err) ->
+        JUser.update { username }, { $set: { twofactorkey: tfcode } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -508,7 +508,7 @@ runTests = -> describe 'server.handlers.login', ->
 
       ->
         # deleting account of newly registered user
-        JAccount.remove { "profile.nickname": username }, (err)->
+        JAccount.remove { 'profile.nickname': username }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -783,7 +783,6 @@ runTests = -> describe 'server.handlers.login', ->
     daisy queue
 
 
-
-
 runTests()
+
 
