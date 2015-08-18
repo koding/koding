@@ -119,6 +119,11 @@ func (g *GatherStat) stopVM(username string) error {
 
 		g.log.Info("Starting to stop machine: '%s' for username: '%s'", machine.ObjectId, username)
 
+		if g.kiteClient == nil {
+			g.log.Debug("Kite Client required to stop machaine...skipping")
+			continue
+		}
+
 		_, err = g.kiteClient.TellWithTimeout("stop", KloudTimeout, &kloudRequestArgs{
 			MachineId: machine.ObjectId.Hex(),
 			Reason:    DefaultReason,
