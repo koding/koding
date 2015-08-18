@@ -70,7 +70,7 @@ func GetMachinesByUsernameAndProvider(username, provider string) ([]*models.Mach
 		},
 	}
 
-	return findMachine(query)
+	return findMachines(query)
 }
 
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
