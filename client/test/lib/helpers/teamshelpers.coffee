@@ -136,7 +136,7 @@ module.exports =
 
     avatarareaPopup      = '.avatararea-popup'
     teamDashboard        = '.AppModal--admin'
-    teamSettingsLinkItem = avatarareaPopup + ' .content a[href="/Admin"]'
+    teamSettingsLinkItem = "#{avatarareaPopup} .content a[href='/Admin']"
 
     browser
       .waitForElementVisible  avatarareaPopup, 20000
