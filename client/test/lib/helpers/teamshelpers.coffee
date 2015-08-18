@@ -134,12 +134,14 @@ module.exports =
 
   openTeamSettingsModal: (browser) ->
 
-    avatarareaPopup = '.avatararea-popup'
-    teamDashboard   = '.AppModal--admin'
+    avatarareaPopup      = '.avatararea-popup'
+    teamDashboard        = '.AppModal--admin'
+    teamSettingsLinkItem = avatarareaPopup + ' .content a[href="/Admin"]'
 
     browser
-      .waitForElementVisible  avatarareaPopup
-      .click                  avatarareaPopup + ' .content a[href="/Admin"'
+      .waitForElementVisible  avatarareaPopup, 20000
+      .waitForElementVisible  teamSettingsLinkItem, 20000
+      .click                  teamSettingsLinkItem
       .waitForElementVisible  teamDashboard, 20000 # Assertion
       .pause                  200 # Wait for team dashboard
       .assert.containsText    teamDashboard, 'Team Dashboard' # Assertion
