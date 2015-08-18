@@ -57,15 +57,15 @@ build:
           INSTANCE_OPTIONS=$(scripts/test-instance/get-options)
           scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
-    - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
+    #- script:
+        #name: copy prod creds
+        #code: ./scripts/copy-prod-creds.sh
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
-    - script:
-        name: delete prod creds unless prod
-        code: ./scripts/delete-prod-creds-unless-prod.sh
+    #- script:
+        #name: delete prod creds unless prod
+        #code: ./scripts/delete-prod-creds-unless-prod.sh
     - script:
         name: client node modules
         code: scripts/install-npm.sh -d client -u
