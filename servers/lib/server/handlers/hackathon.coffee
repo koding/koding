@@ -5,7 +5,7 @@ module.exports = (req, res, next) ->
 
   { JGroup } = koding.models
 
-  isLoggedIn req, res, (err, loggedIn, account)->
+  isLoggedIn req, res, (err, loggedIn, account) ->
 
     return next()  if err
 

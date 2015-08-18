@@ -1,6 +1,6 @@
 module.exports = (req, res) ->
 
-  options      = subject : 'https://www.googleapis.com/auth/drive'
+  options      = { subject : 'https://www.googleapis.com/auth/drive' }
   google_utils = require 'koding-googleapis'
 
   google_utils.authorize options, (err, authToken) ->

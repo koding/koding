@@ -174,8 +174,10 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         isAuthorized:
           (signature String, Function)
-        fetchFromUser:
+        fetchFromUser: [
           (signature String, Function)
+          (signature [String], Function)
+        ]
         likeMember:
           (signature String, Function)
         fetchKites :

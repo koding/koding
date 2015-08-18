@@ -1680,7 +1680,7 @@ Configuration = (options={}) ->
         go test koding/db/mongodb/modelhelper -test.v=true
 
       elif [ "$1" == "socialworkertests" ]; then
-        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social/lib/social"
+        #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/workers/social"
 
       elif [ "$1" == "nodeservertests" ]; then
         #{projectRoot}/scripts/node-testing/mocha-runner "#{projectRoot}/servers"

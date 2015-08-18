@@ -3,7 +3,7 @@ koding                 = require './../bongo'
 
 { daisy }              = Bongo
 { isLoggedIn }         = require './../helpers'
-{ generateFakeClient } = require "./../client"
+{ generateFakeClient } = require './../client'
 
 # handleTokenedRequest handles the request if it has a token as query param,
 # fetchMembers is secured by a permission, that can be turned off by default,
@@ -81,7 +81,7 @@ module.exports = (req, res, next) ->
 
     ->
       options       = {}
-      options.sort  = 'meta.createdAt' : -1
+      options.sort  = { 'meta.createdAt' : -1 }
       options.limit = Math.min limit ? 10, 25
 
       group.fetchMembers$ client, {}, options, (err, members) ->

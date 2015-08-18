@@ -1,11 +1,15 @@
 kd                   = require 'kd'
+jspath               = require 'jspath'
 
 JView                = require 'app/jview'
+whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
 showError            = require 'app/util/showError'
+applyMarkdown         = require 'app/util/applyMarkdown'
 
 {yamlToJson}         = require './yamlutils'
 providersParser      = require './providersparser'
+requirementsParser   = require './requirementsparser'
 
 OutputView           = require './outputview'
 StackEditorView      = require './stackeditorview'
@@ -42,9 +46,19 @@ module.exports = class DefineStackView extends kd.View
 
     { @credentialStatus } = @inputTitle.inputs
 
-    @editorView      = new StackEditorView {delegate: this, content}
+    @editorView      = new StackEditorView { delegate: this, content }
 
     @outputView      = new OutputView
+
+    @outputView.add 'Welcome to Stack Template Editor'
+
+    @editorView.addSubView new kd.ButtonView
+      title    : 'Logs'
+      cssClass : 'solid compact showlogs-link'
+      callback : @outputView.bound 'raise'
+
+    # FIXME Not liked this ~ GG
+    @editorView.on 'click', @outputView.bound 'fall'
 
     @cancelButton    = new kd.ButtonView
       title          : 'Cancel'
@@ -58,13 +72,24 @@ module.exports = class DefineStackView extends kd.View
       loader         : yes
       callback       : @bound 'handleSave'
 
+    @previewButton   = new kd.ButtonView
+      title          : 'Template Preview'
+      cssClass       : 'solid compact light-gray nav next'
+      loader         : yes
+      callback       : @bound 'handlePreview'
+      tooltip        :
+        title        : "Generates a preview of this template
+                        with your own account information."
+
     @setAsDefaultButton = new kd.ButtonView
       title          : 'Set as Default for Team'
       cssClass       : 'solid compact nav next hidden'
       loader         : yes
       callback       : @bound 'handleSetDefaultTemplate'
 
-    @setAsDefaultButton.setCss 'right', '110px'
+    # TODO getrid off from these css properties ~ GG
+    @previewButton.setCss      'right', '110px'
+    @setAsDefaultButton.setCss 'right', '265px'
 
 
     @credentialStatus.on 'StatusChanged', (status) =>
@@ -207,10 +232,29 @@ module.exports = class DefineStackView extends kd.View
     {title}         = @inputTitle.getData()
     templateContent = @editorView.getValue()
 
+    # TODO split following into their own helper methods
+    # and call them in here ~ GG
+
+    # Parsing credential requirements
+    @outputView.add 'Parsing template for credential requirements...'
+
+    requiredProviders = providersParser templateContent
+
     @outputView
-      .add 'Parsing template for credential requirements...'
       .add 'Following credentials are required:'
-      .add '-', providersParser templateContent
+      .add '-', requiredProviders
+
+    # Parsing additional requirements, like user/group authentications
+    @outputView.add 'Parsing template for additional requirements...'
+
+    requiredData = requirementsParser templateContent
+
+    @outputView
+      .add 'Following extra information will be requested from members:'
+      .add requiredData
+
+    # Generate config data from parsed values
+    config = { requiredData, requiredProviders }
 
     # TODO this needs to be filled in when we implement
     # Github flow for new stack editor
@@ -230,7 +274,7 @@ module.exports = class DefineStackView extends kd.View
 
     updateStackTemplate {
       template: templateContent, templateDetails
-      credential, stackTemplate, title
+      credential, stackTemplate, title, config
     }, (err, stackTemplate) =>
 
       if not err and stackTemplate
@@ -238,6 +282,65 @@ module.exports = class DefineStackView extends kd.View
         @emit 'Reload'
 
       callback err, stackTemplate
+
+
+  handlePreview: ->
+
+    template      = @editorView.getValue()
+
+    group         = kd.singletons.groupsController.getCurrentGroup()
+    account       = whoami()
+    availableData = { group, account }
+
+    requiredData  = requirementsParser template
+    errors        = []
+
+    fetchUserData = (callback) ->
+      account.fetchFromUser requiredData.user, (err, data) ->
+        kd.warn err  if err
+        callback data ? {}
+
+    generatePreview = =>
+
+      for type, data of requiredData
+        for field in data
+          if content = jspath.getAt availableData[type], field
+            template = template.replace \
+              (new RegExp "{{#{type} #{field}}}", 'g'), content
+          else
+            errors.push "Variable `#{field}` not found in `#{type}` data."
+
+      if errors.length > 0
+        console.warn "Errors for preview requirements: ", errors
+
+        errors = " - #{error}\n" for error in errors
+        errors = "> Following errors found while generating
+                  preview for this template: \n#{errors}"
+      else
+        errors = ''
+
+      new kd.ModalView
+        title          : 'Template Preview'
+        subtitle       : 'Generated from your account data'
+        cssClass       : 'has-markdown content-modal'
+        height         : 500
+        overlay        : yes
+        overlayOptions : cssClass : 'second-overlay'
+        content        : applyMarkdown """
+          #{errors}
+          ```coffee
+          #{template}
+          ```
+        """
+
+      @previewButton.hideLoader()
+
+    if requiredData.user?
+      fetchUserData (data) =>
+        availableData.user = data
+        generatePreview()
+    else
+      generatePreview()
 
 
   handleSetDefaultTemplate: ->
@@ -276,5 +379,6 @@ module.exports = class DefineStackView extends kd.View
       {{> @outputView}}
       {{> @cancelButton}}
       {{> @setAsDefaultButton}}
+      {{> @previewButton}}
       {{> @saveButton}}
     """

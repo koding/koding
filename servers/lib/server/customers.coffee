@@ -1,54 +1,54 @@
 { get } = require (
-  "../../../workers/social/lib/social/models/socialapi/requests.coffee"
+  '../../../workers/social/lib/social/models/socialapi/requests.coffee'
 )
 
 { dash } = require 'bongo'
 
 module.exports = (req, res) ->
-  koding = require './bongo'
-  {JMachine, JUser} = koding.models
+  koding              = require './bongo'
+  { JMachine, JUser } = koding.models
 
-  errMsg = (msg)->
+  errMsg = (msg) ->
     {
-      "description" : msg
-      "error"       : "bad_request"
+      'description' : msg
+      'error'       : 'bad_request'
     }
 
-  {key} = req.query
+  { key } = req.query
 
   unless key
-    return res.status(401).send errMsg "key is required"
+    return res.status(401).send errMsg 'key is required'
 
   # Hardcoding is wrong, however this key won't change
   # depending on environments, so there's point of
   # putting it in config : SA
-  unless key is "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
-    return res.status(401).send errMsg "key is wrong"
+  unless key is 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
+    return res.status(401).send errMsg 'key is wrong'
 
-  url = "/payments/customers"
+  url = '/payments/customers'
 
-  get url, {}, (err, usernames)->
+  get url, {}, (err, usernames) ->
     return res.status(400).send err  if err
 
     response = []
     queue    = []
 
-    JUser.someData {username: {$in:usernames}, status: "confirmed"}, {}, (err, cursor) ->
+    JUser.someData { username: { $in:usernames }, status: 'confirmed' }, {}, (err, cursor) ->
       return res.status(400).send err  if err
 
-      cursor.toArray (err, usernames)->
+      cursor.toArray (err, usernames) ->
         return res.status(400).send err  if err
 
-        usernames.forEach (username)->
-          queue.push -> JMachine.fetchByUsername username, (err, machines)->
+        usernames.forEach (username) ->
+          queue.push -> JMachine.fetchByUsername username, (err, machines) ->
             if err
               queue.fin()
             else
               slugs = []
-              machines.forEach (machine)->
+              machines.forEach (machine) ->
                 slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
 
-              response.push { "username" : username, "vms" : slugs }
+              response.push { 'username' : username, 'vms' : slugs }
               queue.fin()
 
       dash queue, -> res.status(200).send response

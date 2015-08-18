@@ -21,7 +21,7 @@ module.exports = (req, res, next) ->
     # update clientId cookie
     updateCookie req, res, result.session
 
-    remoteIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    remoteIp = req.headers['x-forwarded-for'] or req.connection.remoteAddress
     return next()  unless remoteIp
 
     res.cookie 'clientIPAddress', remoteIp, { maxAge: 900000, httpOnly: no }
@@ -29,6 +29,6 @@ module.exports = (req, res, next) ->
     if result?.session?.username
       usertracker.track result.session.username
 
-    JSession.updateClientIP result.session.clientId, remoteIp, (err)->
+    JSession.updateClientIP result.session.clientId, remoteIp, (err) ->
       console.log err  if err?
       next()

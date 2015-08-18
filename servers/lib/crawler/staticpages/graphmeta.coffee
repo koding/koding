@@ -1,15 +1,15 @@
-{argv} = require 'optimist'
-{uri, client:{version}} = require('koding-config-manager').load("main.#{argv.c}")
+{ argv } = require 'optimist'
+{ uri, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
 encoder      = require 'htmlencode'
 
-module.exports = (options={})->
-  options.title    ?= "Koding | Say goodbye to your localhost and write code in the cloud."
-  options.shareUrl ?= "https://koding.com"
+module.exports = (options={}) ->
+  options.title    ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'
+  options.shareUrl ?= 'https://koding.com'
   options.image    ?= "#{uri.address}/a/images/logos/share_logo.png"
-  options.body     ?= "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+  options.body     ?= 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
   options.index    ?= no
 
-  robotsContent = "noodp,noydir"
+  robotsContent = 'noodp,noydir'
 
   robotsContent = "#{robotsContent},noindex,nofollow"  unless options.index
 

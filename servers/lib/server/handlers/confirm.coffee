@@ -1,6 +1,6 @@
-{argv}    = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-{secret}  = KONFIG.jwt
+{ argv }   = require 'optimist'
+KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
+{ secret } = KONFIG.jwt
 
 Tracker = require '../../../../workers/social/lib/social/models/tracker.coffee'
 Jwt     = require 'jsonwebtoken'
@@ -18,7 +18,7 @@ module.exports = (req, res, next) ->
   unless token
     return res.status(400).end()
 
-  Jwt.verify token, secret, algorithms: ['HS256'], (err, decoded) ->
+  Jwt.verify token, secret, { algorithms: ['HS256'] }, (err, decoded) ->
     return logErrorAndReturn err  if err
 
     unless username = decoded.username
@@ -36,7 +36,7 @@ module.exports = (req, res, next) ->
         JSession.createNewSession { username, groupName }, (err, session) ->
           return logErrorAndReturn err  if err
 
-          res.cookie 'clientId', session.clientId, path: '/'
+          res.cookie 'clientId', session.clientId, { path: '/' }
           res.redirect redirect_uri or '/'
 
           Tracker.track username, { subject : Tracker.types.CONFIRM_USING_TOKEN }

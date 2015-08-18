@@ -9,7 +9,7 @@ module.exports = (req, res) ->
   _url      = "https://www.gravatar.com/#{_hash}.json"
   _request  =
     url     : _url
-    headers : 'User-Agent': 'request'
+    headers : { 'User-Agent': 'request' }
     timeout : 3000
 
   request _request, (err, response, body) ->

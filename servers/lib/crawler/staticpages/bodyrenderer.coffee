@@ -1,8 +1,8 @@
 # This code block is copied from client side (activitylistitem).
 # As a future work it could be implemented as a node module.
 
-{argv} = require 'optimist'
-{uri}  = require('koding-config-manager').load("main.#{argv.c}")
+{ argv } = require 'optimist'
+{ uri }  = require('koding-config-manager').load("main.#{argv.c}")
 
 # We're using an older version of highlight.js that has the method
 # `getLanguage`. I wasn't able to find out which version, therefore
@@ -14,12 +14,12 @@ renderBody = (body) ->
   # If href goes to outside of koding, add rel=nofollow.
   # this is necessary to prevent link abusers.
   renderer = new marked.Renderer()
-  renderer.link= (href, title, text)->
+  renderer.link = (href, title, text) ->
     linkHTML = "<a href=\"#{href}\""
     if title
       linkHTML += " title=\"#{title}\""
 
-    re = new RegExp("#{uri.address}", "g")
+    re = new RegExp("#{uri.address}", 'g')
     if re.test href
       linkHTML += ">#{text}</a>"
     else
@@ -39,7 +39,7 @@ expandUsernames = (body = '') ->
 
   # default case for regular text
   body.replace /\B\@([\w\-]+)/gim, (u) ->
-    username = u.replace "@", ""
+    username = u.replace '@', ''
     "<a href='#{uri.address}/#{username}' class='profile-link'>#{u}</a>"
 
 formatBody = (body = '') ->

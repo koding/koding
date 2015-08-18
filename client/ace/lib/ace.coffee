@@ -682,8 +682,9 @@ class Ace extends KDView
       return
 
     { tabView }     = aceView.delegate
-    activeTabHandle = tabView.getActivePane().getHandle()
     return  unless tabView
+
+    activeTabHandle = tabView.getActivePane().getHandle()
 
     { handles }  = tabView
     targetHandle = null

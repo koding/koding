@@ -19,14 +19,14 @@ module.exports = (req, res) ->
 
   urls.push("http://localhost:#{publicPort}/-/versionCheck")
 
-  urlFns = urls.map (url)->->
-    request url, (err, resp, body)->
+  urlFns = urls.map (url) -> ->
+    request url, (err, resp, body) ->
       errs.push({ url, err })  if err?
       urlFns.fin()
 
   dash urlFns, ->
     if Object.keys(errs).length > 0
-      console.log "HEALTHCHECK ERROR:", errs
+      console.log 'HEALTHCHECK ERROR:', errs
       res.status(500).end()
     else
       res.status(200).end()

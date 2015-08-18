@@ -89,6 +89,10 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:
+        name: run coffeelint
+        code: |
+          ./scripts/lint-coffeescript.sh
+    - script:
         name: check social api code quality
         code: |
           ./scripts/check_socialapi_code_quality.sh
