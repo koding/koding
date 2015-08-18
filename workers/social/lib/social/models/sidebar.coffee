@@ -176,6 +176,11 @@ module.exports = class Sidebar extends bongo.Base
     SocialChannel.byId client, id: workspace.channelId, (err, channel) ->
 
       if err
+
+        switch err.error
+          when 'koding.NotFoundError'
+            return failureFn()
+
         data =
           channelId   : workspace.channelId
           workspaceId : workspace.getId()
