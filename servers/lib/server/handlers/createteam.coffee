@@ -173,7 +173,7 @@ generateCreateGroupKallback = (client, req, res, body) ->
                 queue.fin()
               else
                 invitation.markAsUsed (err) ->
-                  console.error err
+                  console.error err  if err
                   queue.fin()
       ]
 
