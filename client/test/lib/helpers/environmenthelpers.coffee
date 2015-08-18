@@ -84,7 +84,7 @@ module.exports =
 
     @attemptCreateSnapshot(browser)
 
-    browser.pause 2000 #Wait for the modal for upgrading to be displayed or not
+    browser.pause 6000 #Wait for the modal for upgrading to be displayed or not
 
     browser.isVisible upgradeSelector, (result) ->
 
