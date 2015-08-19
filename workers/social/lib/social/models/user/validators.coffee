@@ -1,6 +1,6 @@
 isEmailValid = require './emailchecker'
 
-module.exports = new class
+module.exports = class Validators
 
   @validateTeamDomain: (name) ->
 
