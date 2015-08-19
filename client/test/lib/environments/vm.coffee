@@ -74,3 +74,46 @@ module.exports =
       .waitForElementVisible  nicknameView, 20000
       .assert.containsText    nicknameView, nickname # Assertion
       .end()
+
+  terminateVMFreeUser: (browser) ->
+
+    accountModalSelector = '.AppModal--account.AppModal'
+    billingTabSelector   = accountModalSelector + ' .AppModal-navItem.billing'
+    freePlan             = 'Free'
+    planSelector         = accountModalSelector + ' .AppModal-content .subscription span[data-paths=planTitle]'
+    advancedSelector     = modalSelector + ' .advanced'
+    terminateSelector    = modalSelector + ' .AppModal-content .terminate figure'
+    removeButton         = '.kdmodal-inner button.red'
+    createNewVMButton    = '.env-modal .kdmodal-inner button.turn-on'
+
+    helpers.beginTest(browser)
+    helpers.openAccountPage(browser)
+
+    browser
+      .waitForElementVisible  billingTabSelector, 20000
+      .click                  billingTabSelector
+      .waitForElementVisible  planSelector, 20000
+      .assert.containsText    planSelector, freePlan
+      .click                  '.kdmodal-inner .close-icon'
+
+    helpers.waitForVMRunning(browser)
+
+    environmentHelpers.openGeneralSettings(browser)
+
+    browser
+      .waitForElementVisible  advancedSelector, 20000
+      .click                  advancedSelector
+      .waitForElementVisible  terminateSelector, 20000
+      .click                  terminateSelector
+      .waitForElementVisible  removeButton, 20000
+      .click                  removeButton
+      .waitForElementVisible  createNewVMButton, 300000
+      .click                  createNewVMButton
+
+    environmentHelpers.clickAddKodingVMButton(browser)
+
+    browser.pause 2000
+
+    helpers.waitForVMRunning(browser)
+
+    browser.end()
