@@ -11,6 +11,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const SessionsColl = "jSessions"
+
 func GetSession(clientId string) (*models.Session, error) {
 	session := new(models.Session)
 
@@ -18,8 +20,7 @@ func GetSession(clientId string) (*models.Session, error) {
 		return c.Find(bson.M{"clientId": clientId}).One(&session)
 	}
 
-	err := Mongo.Run("jSessions", query)
-	if err != nil {
+	if err := Mongo.Run(SessionsColl, query); err != nil {
 		return nil, fmt.Errorf("sessionID '%s' is not validated; err: %s", clientId, err)
 	}
 
@@ -33,8 +34,7 @@ func GetSessionFromToken(token string) (*models.Session, error) {
 		return c.Find(bson.M{"otaToken": token}).One(&session)
 	}
 
-	err := Mongo.Run("jSessions", query)
-	if err != nil {
+	if err := Mongo.Run(SessionsColl, query); err != nil {
 		return nil, fmt.Errorf("otaToken '%s' is not validated; err: %s", token, err)
 	}
 
@@ -50,8 +50,7 @@ func RemoveToken(clientId string) error {
 		return c.Update(bson.M{"clientId": clientId}, bson.M{"$unset": updateData})
 	}
 
-	err := Mongo.Run("jSessions", query)
-	if err != nil {
+	if err := Mongo.Run(SessionsColl, query); err != nil {
 		return fmt.Errorf("failed to remove the ota token for sessionID '%s'; err: %s", clientId, err)
 	}
 
@@ -67,8 +66,7 @@ func UpdateSessionIP(token string, ip string) error {
 		return c.Update(bson.M{"clientId": token}, bson.M{"$set": updateData})
 	}
 
-	err := Mongo.Run("jSessions", query)
-	if err != nil {
+	if err := Mongo.Run(SessionsColl, query); err != nil {
 		return fmt.Errorf("failed to update ip for sessionID '%s'; err: %s", token, err)
 	}
 
@@ -112,10 +110,19 @@ func GetOneSessionForAccount(username, groupName string) (*models.Session, error
 		}).One(&session)
 	}
 
-	err := Mongo.Run("jSessions", query)
-	if err != nil {
+	if err := Mongo.Run(SessionsColl, query); err != nil {
 		return nil, err
 	}
 
 	return session, nil
+}
+
+func RemoveSession(username string) error {
+	selector := bson.M{"profile": username}
+
+	query := func(c *mgo.Collection) error {
+		return c.Remove(selector)
+	}
+
+	return Mongo.Run(SessionsColl, query)
 }

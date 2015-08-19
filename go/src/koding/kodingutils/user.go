@@ -6,6 +6,9 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 )
@@ -37,7 +40,7 @@ func IsKodingEmployee(username string) (bool, error) {
 	return false, nil
 }
 
-func BlockUser(kiteClient *kite.Client, username, reason string) error {
+func StopVM(kiteClient *kite.Client, username, reason string) error {
 	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err
@@ -82,4 +85,26 @@ func BlockUser(kiteClient *kite.Client, username, reason string) error {
 	}
 
 	return nil
+}
+
+func BlockUser(kiteClient *kite.Client, username, reason string, d time.Duration) error {
+	if err := StopVM(kiteClient, username, reason); err != nil {
+		return err
+	}
+
+	selector := bson.M{"username": username}
+	updateQuery := bson.M{"$set": bson.M{
+		"status":        modelhelper.UserStatusBlocked,
+		"blockedReason": reason, "blockedUntil": time.Now().UTC().Add(d),
+	}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(selector, updateQuery)
+	}
+
+	if err := modelhelper.Mongo.Run(modelhelper.UserColl, query); err != nil {
+		return err
+	}
+
+	return modelhelper.RemoveSession(username)
 }
