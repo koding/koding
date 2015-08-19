@@ -304,49 +304,6 @@ module.exports = class ChatListItem extends React.Component
       'editing': @state.editMode
 
 
-  onKeyUpBlockingUserTime: (event)->
-
-    @changeButtonTitle event.target.value
-
-
-  changeButtonTitle: (value)->
-
-    blockingTime = @calculateBlockingTime value
-    if blockingTime > 0
-      date = new Date (Date.now() + blockingTime)
-      @setState blockUserConfirmButtonTitle: "Block until: #{date.toUTCString()}"
-    else
-      @setState blockUserConfirmButtonTitle: "Block User"
-
-
-  calculateBlockingTime: (value)->
-
-    totalTimestamp = 0
-    unless value then return totalTimestamp
-    for val in value.split(" ")
-      # this is the first part of blocking time
-      # if val 2D then numericalValue will be 2
-      numericalValue = parseInt(val.slice(0, -1), 10) or 0
-      if numericalValue is 0 then continue
-      hour = numericalValue * 60 * 60 * 1000
-      # we will get the lastest part of val as time case
-      timeCase = val.charAt(val.length-1)
-      switch timeCase.toUpperCase()
-        when "S"
-          totalTimestamp = 1000 # millisecond
-        when "H"
-          totalTimestamp = hour
-        when "D"
-          totalTimestamp = hour * 24
-        when "W"
-          totalTimestamp = hour * 24 * 7
-        when "M"
-          totalTimestamp = hour * 24 * 30
-        when "Y"
-          totalTimestamp = hour * 24 * 365
-
-    return totalTimestamp
-
   render: ->
     { message } = @props
     <div {...@getItemProps()}>
