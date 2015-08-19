@@ -1,4 +1,4 @@
-KodingError   = require '../../error.coffee'
+KodingError   = require '../../error'
 JResourcePlan = require './resourceplan'
 JPaymentPack  = require './pack'
 JPaymentFulfillmentNonce = require './nonce'

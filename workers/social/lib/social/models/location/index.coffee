@@ -1,4 +1,4 @@
-KodingError = require '../../error.coffee'
+KodingError = require '../../error'
 { Model, secure, daisy, signature } = require 'bongo'
 
 module.exports = class JLocation extends Model
