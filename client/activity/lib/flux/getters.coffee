@@ -41,6 +41,11 @@ ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
 ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
 ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
 ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
+ChatInputSearchQueryStore           = ['ChatInputSearchQueryStore']
+ChatInputSearchSelectedIndexStore   = ['ChatInputSearchSelectedIndexStore']
+ChatInputSearchVisibilityStore      = ['ChatInputSearchVisibilityStore']
+ChatInputSearchStore                = ['ChatInputSearchStore']
+
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -214,6 +219,25 @@ selectedChannelParticipants = [
     participants.get selectedId
 ]
 
+
+calculateListSelectedIndex = (list, currentIndex) ->
+
+  { size } = list
+  return -1  unless size > 0
+
+  index = currentIndex
+  unless 0 <= index < size
+    index = index % size
+    index += size  if index < 0
+
+  return index
+
+
+getListSelectedItem = (list, selectedIndex) ->
+  return  unless list.size > 0
+  return list.get selectedIndex
+
+
 # Aliases for providing consistent getter names for suggestion stores
 currentSuggestionsQuery         = SuggestionsQueryStore
 currentSuggestions              = SuggestionsStore
@@ -221,22 +245,12 @@ currentSuggestionsFlags         = SuggestionsFlagsStore
 currentSuggestionsSelectedIndex = [
   SuggestionsStore
   SuggestionsSelectedIndexStore
-  (suggestions, index) ->
-    { size } = suggestions
-    return -1  unless size > 0
-
-    unless 0 <= index < size
-      index = index % suggestions.size
-      index += size  if index < 0
-
-    return index
+  calculateListSelectedIndex
 ]
 currentSuggestionsSelectedItem  = [
   SuggestionsStore
   currentSuggestionsSelectedIndex
-  (suggestions, index) ->
-    return  unless suggestions.size > 0
-    return suggestions.get index
+  getListSelectedItem
 ]
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
@@ -331,6 +345,19 @@ chatInputUsersSelectedItem = [
 ]
 chatInputUsersVisibility = ChatInputUsersVisibilityStore
 
+chatInputSearchItems         = ChatInputSearchStore
+chatInputSearchQuery         = ChatInputSearchQueryStore
+chatInputSearchSelectedIndex = [
+  chatInputSearchItems
+  ChatInputSearchSelectedIndexStore
+  calculateListSelectedIndex
+]
+chatInputSearchSelectedItem  = [
+  chatInputSearchItems
+  chatInputSearchSelectedIndex
+  getListSelectedItem
+]
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -374,4 +401,9 @@ module.exports = {
   chatInputUsersSelectedIndex
   chatInputUsersSelectedItem
   chatInputUsersVisibility
+
+  chatInputSearchItems
+  chatInputSearchQuery
+  chatInputSearchSelectedIndex
+  chatInputSearchSelectedItem
 }
