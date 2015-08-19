@@ -3,6 +3,7 @@ curryIn         = require 'app/util/curryIn'
 
 InitialView     = require './stacks/initialview'
 DefineStackView = require './stacks/definestackview'
+GetStartedView  = require './stacks/onboarding/getstartedview'
 
 
 module.exports = class GroupStackSettings extends kd.View
@@ -12,6 +13,14 @@ module.exports = class GroupStackSettings extends kd.View
     curryIn options, cssClass: 'stacks stacks-v2'
 
     super options, data
+
+
+  createOnboardingView: ->
+
+    @scrollView = new kd.CustomScrollView
+    @scrollView.wrapper.addSubView new GetStartedView
+
+    @addSubView @scrollView
 
 
   viewAppended: ->
