@@ -2,13 +2,13 @@ JAccount  = require '../models/account'
 
 module.exports = class Likeable
 
-  {ObjectRef,daisy,secure} = require 'bongo'
-  {Relationship} = require 'jraphical'
-  {permit} = require '../models/group/permissionset'
+  { ObjectRef, daisy, secure } = require 'bongo'
+  { Relationship }             = require 'jraphical'
+  { permit }                   = require '../models/group/permissionset'
 
-  checkIfLikedBefore: secure ({connection}, callback)->
-    {delegate}    = connection
-    {constructor} = @
+  checkIfLikedBefore: secure ({ connection }, callback) ->
+    { delegate }    = connection
+    { constructor } = this
 
     if not delegate
       callback null, no
@@ -17,15 +17,15 @@ module.exports = class Likeable
         sourceId : @getId()
         targetId : delegate.getId()
         as       : 'like'
-      , (err, likedBy)->
+      , (err, likedBy) ->
         if likedBy then callback null, yes else callback err, no
 
   like: permit 'like posts',
-    success:({connection, context}, callback)->
+    success:({ connection, context }, callback) ->
 
-      {group}       = context
-      {delegate}    = connection
-      {constructor} = @
+      { group }       = context
+      { delegate }    = connection
+      { constructor } = this
       unless delegate instanceof JAccount
         callback new Error 'Only instances of JAccount can like things.'
       else
@@ -33,7 +33,7 @@ module.exports = class Likeable
           sourceId: @getId()
           targetId: delegate.getId()
           as: 'like'
-        , (err, likedBy)=>
+        , (err, likedBy) =>
           if err
             callback err
           else
@@ -42,20 +42,20 @@ module.exports = class Likeable
               # we need group slug, (see activityticker.coffee)
               options =
                 respondWithCount : yes
-                data             : if group then {group}
+                data             : if group then { group }
 
-              @addLikedBy delegate, options, (err, docs, count)=>
+              @addLikedBy delegate, options, (err, docs, count) =>
                 if err
                   callback err
                 else
-                  @update ($set: 'meta.likes': count), callback
-                  delegate.update ($inc: 'counts.likes': 1), (err)->
+                  @update ({ $set: { 'meta.likes': count } }), callback
+                  delegate.update ({ $inc: { 'counts.likes': 1 } }), (err) ->
                     console.log err if err
-                  @fetchOrigin? (err, origin)=>
+                  @fetchOrigin? (err, origin) =>
                     if err then console.log "Couldn't fetch the origin"
                     else @emit 'LikeIsAdded', {
                       origin
-                      subject       : ObjectRef(@).data
+                      subject       : ObjectRef(this).data
                       actorType     : 'liker'
                       actionType    : 'like'
                       liker         : ObjectRef(delegate).data
@@ -65,17 +65,20 @@ module.exports = class Likeable
                     }
 
             else
-              @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
+              @removeLikedBy delegate, { respondWithCount: yes }, (err, count) =>
                 if err
                   callback err
                   console.log err
                 else
-                  @update ($set: 'meta.likes': count), callback
-                  delegate.update ($inc: 'counts.likes': -1), (err)=>
+                  @update ({ $set: { 'meta.likes': count } }), callback
+                  delegate.update ({ $inc: { 'counts.likes': -1 } }), (err) =>
                     console.log err if err
-                    @fetchOrigin? (err, origin)=>
+                    @fetchOrigin? (err, origin) =>
                       if err then log "Couldn't fetch the origin"
                       else @emit 'LikeIsRemoved',
-                        origin
-                        subject : @
-                        liker   : delegate
+                        origin, {
+                          subject : this
+                          liker   : delegate
+                        }
+
+
