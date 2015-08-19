@@ -65,10 +65,10 @@ func TestGatherStat(t *testing.T) {
 			_, err := g.redis.Del(GlobalDisableKey)
 			So(err, ShouldBeNil)
 
-			So(g.globalStopEnabled(), ShouldBeTrue)
+			So(g.globalBlockEnabled(), ShouldBeTrue)
 
 			So(g.redis.Set(GlobalDisableKey, "true"), ShouldBeNil)
-			So(g.globalStopEnabled(), ShouldBeFalse)
+			So(g.globalBlockEnabled(), ShouldBeFalse)
 
 			defer g.redis.Del(GlobalDisableKey)
 		})
@@ -98,6 +98,25 @@ func TestGatherStat(t *testing.T) {
 			defer modeltesthelper.DeleteUsersByUsername(acc2.Profile.Nickname)
 
 			isExempt, err = g.isUserExempt(acc2.Profile.Nickname)
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeFalse)
+		})
+
+		Convey("It should return status of exempt", func() {
+			acc1 := &models.Account{
+				Id:      bson.NewObjectId(),
+				Profile: models.AccountProfile{Nickname: "indianajones"},
+			}
+			err := modeltesthelper.CreateAccount(acc1)
+			So(err, ShouldBeNil)
+
+			defer modeltesthelper.DeleteUsersByUsername(acc1.Profile.Nickname)
+
+			s := models.NewGatherStat()
+			s.Username = "indianajones"
+			s.Type = models.GatherStatAnalytics
+
+			isExempt, err := g.shouldBlock(s)
 			So(err, ShouldBeNil)
 			So(isExempt, ShouldBeFalse)
 		})
