@@ -34,14 +34,14 @@
     "level": "warn"
   },
   "eol_last": {
-    "level": "ignore"
+    "level": "error"
   },
   "indentation": {
     "value": 2,
     "level": "error"
   },
   "line_endings": {
-    "level": "ignore",
+    "level": "error",
     "value": "unix"
   },
   "max_line_length": {
@@ -61,7 +61,7 @@
     "level": "ignore"
   },
   "no_debugger": {
-    "level": "warn",
+    "level": "error",
     "console": false
   },
   "no_empty_functions": {
@@ -79,7 +79,7 @@
     "level": "ignore"
   },
   "no_interpolation_in_single_quotes": {
-    "level": "ignore"
+    "level": "error"
   },
   "no_plusplus": {
     "level": "ignore"
@@ -94,7 +94,7 @@
     "level": "ignore"
   },
   "no_throwing_strings": {
-    "level": "ignore"
+    "level": "error"
   },
   "no_trailing_semicolons": {
     "level": "error"
@@ -118,7 +118,7 @@
     "doubleNotLevel": "error"
   },
   "space_operators": {
-    "level": "ignore"
+    "level": "error"
   },
   "spacing_after_comma": {
     "level": "error"
