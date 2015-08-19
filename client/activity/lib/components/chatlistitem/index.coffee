@@ -191,22 +191,6 @@ module.exports = class ChatListItem extends React.Component
     @setState isBlockUserModalVisible: no
 
 
-  blockUser: ->
-
-    { message }  = @props
-    accountId    = message.getIn(['account', '_id'])
-    blockingTime = @calculateBlockingTime @refs.BlockingTimeInput.getDOMNode().value
-
-    whoami().blockUser accountId, blockingTime, (err, res) =>
-      if err
-        options = userMessage: "You are not allowed to block user!"
-        showErrorNotification err, options
-      else
-        showNotification "User is blocked!"
-
-      @closeBlockUserPromptModal()
-
-
   markUserAsTroll: ->
 
     @setUserTrollStatus(yes)
