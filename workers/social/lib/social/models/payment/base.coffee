@@ -25,6 +25,7 @@ module.exports = class JPaymentBase extends Module
   @removeByCode$ = permit 'manage products',
     success: (client, planCode, callback) -> @removeByCode planCode, callback
 
+  # coffeelint: disable=no_implicit_braces
   remove: (callback) ->
     { planCode } = this
     super (err) ->
@@ -32,8 +33,8 @@ module.exports = class JPaymentBase extends Module
         callback err
       else if planCode?
         recurly.deletePlan { planCode }, (err) ->
-          return callback err  if err and err.short isnt "not_found"
-          
+          return callback err  if err and err.short isnt 'not_found'
+
           callback null
       else
         callback null
@@ -51,7 +52,7 @@ module.exports = class JPaymentBase extends Module
     JPaymentProduct = require './product'
 
     planCodes = Object.keys quantities
-    productSelector = planCode: $in: planCodes
+    productSelector = { planCode: { $in: planCodes } }
 
     for planCode in planCodes
       quantities[planCode] = +quantities[planCode]
@@ -106,6 +107,8 @@ module.exports = class JPaymentBase extends Module
 
     targetOptions ?= {}
     targetOptions.options ?= {}
-    targetOptions.options.sort ?= sortWeight: 1
+    targetOptions.options.sort ?= { sortWeight: 1 }
 
     @fetchProducts selector, { options, targetOptions }, callback
+
+
