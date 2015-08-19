@@ -1,20 +1,18 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/artifact"
-	"koding/common"
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
 	"koding/tools/utils"
 	"log"
 	"net"
 	"net/http"
-	"runtime"
+	"socialapi/config"
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/runner"
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/PuerkitoBio/throttled/store"
@@ -33,30 +31,30 @@ var (
 	DefaultReason    = "abuse found in user VM"
 	KodingProvider   = "koding"
 	KloudTimeout     = 10 * time.Second
-
-	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 )
 
-func initializeConf() *config.Config {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	flag.Parse()
-	if *flagConfig == "" {
-		panic("Please define config file with -c")
+func main() {
+	r := runner.New(WorkerName)
+	if err := r.Init(); err != nil {
+		panic(fmt.Sprintf("Error starting runner: %s", err))
 	}
 
-	return config.MustConfig(*flagConfig)
-}
+	go r.Listen()
+	r.ShutdownHandler = func() { r.Kite.Close() }
 
-func main() {
-	log := common.CreateLogger(WorkerName, false)
+	log := r.Log
 
-	conf := initializeConf()
+	conf := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(conf.Mongo)
+
 	modelhelper.Initialize(conf.Mongo)
 
 	defer modelhelper.Close()
 
-	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	redisConn, err := redis.NewRedisSession(&redis.RedisConf{
+		Server: conf.Redis.URL,
+		DB:     conf.Redis.DB,
+	})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -100,7 +98,7 @@ func main() {
 	mux.HandleFunc("/version", artifact.VersionHandler())
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
-	port := fmt.Sprintf("%v", conf.GatherIngestor.Port)
+	port := conf.GatherIngestor.Port
 
 	log.Info("Listening on server: %s", port)
 
@@ -117,19 +115,14 @@ func main() {
 }
 
 func initializeKiteClient(conf *config.Config) *kite.Client {
-	var err error
-
-	// create new kite
-	k := kite.New(WorkerName, WorkerVersion)
 	config, err := kiteConfig.Get()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// set skeleton config
+	k := kite.New(WorkerName, WorkerVersion)
 	k.Config = config
 
-	// create a new connection to the cloud
 	kiteClient := k.NewClient(conf.GatherIngestor.KloudAddr)
 	kiteClient.Auth = &kite.Auth{
 		Type: WorkerName,

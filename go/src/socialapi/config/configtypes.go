@@ -60,6 +60,8 @@ type (
 
 		Janitor Janitor
 
+		GatherIngestor GatherIngestor
+
 		Github Github
 	}
 
@@ -178,5 +180,12 @@ type (
 		ClientId     string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTID"`
 		ClientSecret string `env:"key=KONFIG_SOCIALAPI_GITHUB_CLIENTSECRET"`
 		RedirectUri  string `env:"key=KONFIG_SOCIALAPI_GITHUB_REDIRECTURI"`
+	}
+
+	GatherIngestor struct {
+		Port           string `env:"key=KONFIG_SOCIALAPI_GATHERINGESTOR_PORT"`
+		KloudAddr      string `env:"key=KONFIG_SOCIALAPI_GATHERINGESTOR_KLOUDADDR"`
+		KloudSecretKey string `env:"key=KONFIG_SOCIALAPI_GATHERINGESTOR_KLOUDSECRETKEY"`
+		ConnectToKloud bool   `env:"key=KONFIG_SOCIALAPI_GATHERINGESTOR_CONNECTTOKLOUD"`
 	}
 )

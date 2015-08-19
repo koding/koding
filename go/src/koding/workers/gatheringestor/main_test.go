@@ -1,13 +1,9 @@
 package main
 
-import (
-	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
-)
+import "socialapi/config"
 
 var conf *config.Config
 
 func init() {
-	conf = initializeConf()
-	modelhelper.Initialize(conf.Mongo)
+	_, conf = initialize()
 }

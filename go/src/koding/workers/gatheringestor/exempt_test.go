@@ -42,7 +42,7 @@ func TestExempt(t *testing.T) {
 	})
 
 	Convey("It should exempt if user is in list of exempt users", t, func() {
-		redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+		redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis.URL})
 		So(err, ShouldBeNil)
 
 		defer redisConn.Close()
