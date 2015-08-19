@@ -728,7 +728,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   handleSplitViewCreated: (params) ->
 
-    { ideView, newIdeView, direction } = params
+    { mainView, appManager }            = kd.singletons
+    { ideView, newIdeView, direction }  = params
 
     change =
       context:
@@ -737,6 +738,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         direction       : direction
 
     @emitChange newIdeView, change, 'NewSplitViewCreated'
+
+    if ideView.isFullScreen
+      ideView.toggleFullscreen()
+      appManager.tell 'IDE', 'collapseSidebar'
+      mainView.toggleSidebar()
 
 
   handleSplitViewMerged: (params) ->
