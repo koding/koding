@@ -49,7 +49,7 @@ module.exports = class GuestCleanerWorker
     { JAccount, JSession, JName } = @bongo.models
 
     usageLimitInMinutes = @options.usageLimitInMinutes or 60
-    filterDate = new Date(Date.now()-(1000*60*usageLimitInMinutes))
+    filterDate = new Date(Date.now() - (1000 * 60 * usageLimitInMinutes))
 
     selector = {
       'meta.createdAt' : { $lte : filterDate },
@@ -132,3 +132,5 @@ module.exports = class GuestCleanerWorker
   init: ->
     guestCleanerCron = new CronJob @options.cronSchedule, @clean
     guestCleanerCron.start()
+
+
