@@ -5,6 +5,7 @@ EmojiDropup     = require 'activity/components/emojidropup'
 ChannelDropup   = require 'activity/components/channeldropup'
 UserDropup      = require 'activity/components/userdropup'
 EmojiSelector   = require 'activity/components/emojiselector'
+SearchDropup    = require 'activity/components/searchdropup'
 ActivityFlux    = require 'activity/flux'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
@@ -49,10 +50,15 @@ module.exports = class ChatInputWidget extends React.Component
       userSelectedIndex              : getters.chatInputUsersSelectedIndex
       usersSelectedItem              : getters.chatInputUsersSelectedItem
       usersVisibility                : getters.chatInputUsersVisibility
+      searchItems                    : getters.chatInputSearchItems
+      searchQuery                    : getters.chatInputSearchQuery
+      searchSelectedIndex            : getters.chatInputSearchSelectedIndex
+      searchSelectedItem             : getters.chatInputSearchSelectedItem
+      searchVisibility               : getters.chatInputSearchVisibility
     }
 
 
-  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup, @refs.userDropup ]
+  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup, @refs.userDropup, @refs.searchDropup ]
 
 
   onChange: (event) ->
@@ -204,6 +210,19 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
+  renderSearchDropup: ->
+
+    { searchItems, searchSelectedItem, searchQuery, searchVisibility } = @state
+
+    <SearchDropup
+      items           = { searchItems }
+      selectedItem    = { searchSelectedItem }
+      query           = { searchQuery }
+      visible         = { searchVisibility }
+      ref             = 'searchDropup'
+    />
+
+
   render: ->
 
     <div className="ChatInputWidget">
@@ -211,6 +230,7 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderEmojiDropup() }
       { @renderChannelDropup() }
       { @renderUserDropup() }
+      { @renderSearchDropup() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onChange' }

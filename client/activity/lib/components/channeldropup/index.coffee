@@ -78,7 +78,7 @@ module.exports = class ChannelDropup extends React.Component
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
     >
-      <div className="ChannelDropup-innerContainer">
+      <div className="Dropup-innerContainer">
         <div className="Dropup-header">
           Channels
         </div>

@@ -78,7 +78,7 @@ module.exports = class UserDropup extends React.Component
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
     >
-      <div className="UserDropup-innerContainer">
+      <div className="Dropup-innerContainer">
         <div className="Dropup-header">
           People
         </div>

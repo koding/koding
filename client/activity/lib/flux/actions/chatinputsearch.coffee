@@ -1,5 +1,6 @@
 kd              = require 'kd'
 actionTypes     = require './actiontypes'
+getGroup        = require 'app/util/getGroup'
 SearchConstants = require './searchconstants'
 
 MIN_QUERY_LENGTH = 1
@@ -39,10 +40,10 @@ setQuery = (query) ->
   if query
     { SET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
     dispatch SET_CHAT_INPUT_SEARCH_QUERY, { query }
-    resetChatInputSearchSelectedIndex()
+    resetSelectedIndex()
     fetchData query
   else
-    unsetChatInputSearchQuery()
+    unsetQuery()
 
 
 unsetQuery = ->
@@ -50,7 +51,7 @@ unsetQuery = ->
   { UNSET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
   dispatch UNSET_CHAT_INPUT_SEARCH_QUERY
 
-  resetChatInputSearchSelectedIndex()
+  resetSelectedIndex()
   resetData()
 
 

@@ -357,6 +357,7 @@ chatInputSearchSelectedItem  = [
   chatInputSearchSelectedIndex
   getListSelectedItem
 ]
+chatInputSearchVisibility    = ChatInputSearchVisibilityStore
 
 module.exports = {
   followedPublicChannelThreads
@@ -406,4 +407,5 @@ module.exports = {
   chatInputSearchQuery
   chatInputSearchSelectedIndex
   chatInputSearchSelectedItem
+  chatInputSearchVisibility
 }
