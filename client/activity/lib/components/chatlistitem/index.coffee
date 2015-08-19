@@ -191,50 +191,15 @@ module.exports = class ChatListItem extends React.Component
     @setState isBlockUserModalVisible: no
 
 
-  markUserAsTroll: ->
-
-    @setUserTrollStatus(yes)
-
-
   unMarkUserAsTroll: ->
 
-    @setUserTrollStatus(no)
-
-
-  setUserTrollStatus: (isUserTroll) =>
-
-    { message } = @props
-    message = message.toJS()
-
-    callback = (account)=>
-
-      if isUserTroll == true
-        successMessage = "@#{account.profile.nickname} marked as a troll!"
-      else
-        successMessage = "@#{account.profile.nickname} won't be treated as a troll anymore!"
-
-      account.markUserAsExempt isUserTroll, (err, res)=>
-        if err
-          options = userMessage: "You are not allowed to mark this user as a troll"
-          showErrorNotification err, options
-        else
-          showNotification successMessage
-          @props.message.setIn ['account', 'isExempt'], isUserTroll
-          @setState isUserMarkedAsTroll : isUserTroll
-
-        @closeMarkUserAsTrollModal()
-
-    if message.account._id
-      remote.cacheable "JAccount", message.account._id, (err, account)->
-        callback account if account
-    else if message.bongo_.constructorName is 'JAccount'
-      callback message
+    AppFlux.actions.user.unmarkUserAsTroll @state.account
+    @closeMarkUserAsTrollModal()
 
 
   showBlockUserPromptModal: ->
 
     @setState isBlockUserModalVisible: yes
-    console.log "block user clicked"
 
 
   impersonateUser: ->
