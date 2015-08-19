@@ -14,6 +14,18 @@ module.exports = class UsersStore extends KodingFluxStore
     @on actions.LOAD_USER_SUCCESS, @handleLoadSuccess
     @on actions.SEARCH_USERS_SUCCESS, @handleLoadListSuccess
 
+    @on actions.MARK_USER_AS_TROLL_BEGIN, @handleMarkUserAsTrollBegin
+    @on actions.MARK_USER_AS_TROLL_SUCCESS, @handleMarkUserAsTrollSuccess
+    @on actions.MARK_USER_AS_TROLL_FAIL, @handleMarkUserAsTrollFail
+
+    @on actions.UNMARK_USER_AS_TROLL_BEGIN, @handleUnmarkUserAsTrollBegin
+    @on actions.UNMARK_USER_AS_TROLL_SUCCESS, @handleUnmarkUserAsTrollSuccess
+    @on actions.UNMARK_USER_AS_TROLL_FAIL, @handleUnmarkUserAsTrollFail
+
+    @on actions.BLOCK_USER_BEGIN, @handleBlockUserBegin
+    @on actions.BLOCK_USER_SUCCESS, @handleBlockUserSuccess
+    @on actions.BLOCK_USER_FAIL, @handleBlockUserFail
+
 
   ###*
    * Load account.
