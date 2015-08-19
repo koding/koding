@@ -18,8 +18,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var callCount int
-
 // Machine represents a single MongodDB document that represents a Koding
 // Provider from the jMachines collection.
 type Machine struct {
@@ -292,8 +290,6 @@ func (m *Machine) stopIfKlientIsMissing(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	callCount++
 
 	// Hasta la vista, baby!
 	m.Log.Info("======> STOP started (missing klient) <======")

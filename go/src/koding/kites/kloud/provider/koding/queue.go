@@ -181,7 +181,3 @@ func (p *Provider) FetchOne() (*Machine, error) {
 
 	return machine, nil
 }
-
-func (p *Provider) StopUnlessKlientConn(m *Machine) error {
-	return nil
-}
