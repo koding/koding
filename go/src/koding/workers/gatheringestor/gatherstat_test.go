@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
@@ -68,6 +71,35 @@ func TestGatherStat(t *testing.T) {
 			So(g.globalStopEnabled(), ShouldBeFalse)
 
 			defer g.redis.Del(GlobalDisableKey)
+		})
+
+		Convey("It should exempt if user is Koding employee", func() {
+			acc1 := &models.Account{
+				Id:          bson.NewObjectId(),
+				Profile:     models.AccountProfile{Nickname: "indianajones"},
+				GlobalFlags: []string{models.AccountFlagStaff},
+			}
+			err := modeltesthelper.CreateAccount(acc1)
+			So(err, ShouldBeNil)
+
+			defer modeltesthelper.DeleteUsersByUsername(acc1.Profile.Nickname)
+
+			isExempt, err := g.isUserExempt(acc1.Profile.Nickname)
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeTrue)
+
+			acc2 := &models.Account{
+				Id:      bson.NewObjectId(),
+				Profile: models.AccountProfile{Nickname: "genghiskhan"},
+			}
+			err = modeltesthelper.CreateAccount(acc2)
+			So(err, ShouldBeNil)
+
+			defer modeltesthelper.DeleteUsersByUsername(acc2.Profile.Nickname)
+
+			isExempt, err = g.isUserExempt(acc2.Profile.Nickname)
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeFalse)
 		})
 	})
 }

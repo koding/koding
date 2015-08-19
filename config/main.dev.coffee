@@ -219,7 +219,6 @@ Configuration = (options={}) ->
 
     vmwatcher                      : {port          : "6400"              , awsKey    : awsKeys.vm_vmwatcher.accessKeyId     , awsSecret : awsKeys.vm_vmwatcher.secretAccessKey  , kloudSecretKey : kloud.secretKey , kloudAddr : kloud.address, connectToKlient: false, debug: false, mongo: mongo, redis: redis.url, secretKey: "vmwatchersecretkey-dev" }
     gowebserver                    : {port          : 6500}
-    gatheringestor                 : {port          : 6800                , kloudAddr: kloud.address                         ,  connectToKloud : false                          , secretKey : "gatheringestorsecretkey-dev" }
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq

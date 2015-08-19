@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/utils"
 	"net/http"
 	"socialapi/workers/email/emailsender"
 
@@ -133,7 +134,7 @@ func (g *GatherStat) globalStopEnabled() bool {
 
 // isUserExempt checks if user is exempt from having their machines.
 func (g *GatherStat) isUserExempt(username string) (bool, error) {
-	isEmployee, err := isKodingEmployee(username)
+	isEmployee, err := kodingutils.IsKodingEmployee(username)
 	if err != nil {
 		return false, err
 	}
@@ -166,6 +167,17 @@ func (g *GatherStat) stopVMs(username string) error {
 
 		if g.kiteClient == nil {
 			g.log.Debug("Kite Client required to stop machaine...skipping")
+			continue
+		}
+
+		isKodingOwned, err := kodingutils.IsKodingOwnedVM(machine.ObjectId)
+		if err != nil {
+			g.log.Error("Error fetching provider for VM to stop it: %s", err)
+			continue
+		}
+
+		if isKodingOwned {
+			g.log.Info("Machine: '%s' has provider: '%s'...skipping", machine.ObjectId, machine.Provider)
 			continue
 		}
 
