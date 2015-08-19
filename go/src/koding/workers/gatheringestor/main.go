@@ -29,8 +29,7 @@ var (
 	GlobalDisableKey = "globalStopDisabled"
 	ExemptUsersKey   = "exemptUsers"
 	DefaultReason    = "abuse found in user VM"
-	KodingProvider   = "koding"
-	KloudTimeout     = 10 * time.Second
+	BlockDuration    = time.Hour * 24 * 365
 )
 
 func initialize() (*runner.Runner, *config.Config) {

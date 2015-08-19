@@ -89,7 +89,7 @@ func (g *GatherStat) blockUserIfAbusve(s *models.GatherStat) error {
 			return err
 		}
 
-		return kodingutils.BlockUser(g.kiteClient, s.Username, DefaultReason)
+		return kodingutils.BlockUser(g.kiteClient, s.Username, DefaultReason, BlockDuration)
 	}
 
 	return nil
