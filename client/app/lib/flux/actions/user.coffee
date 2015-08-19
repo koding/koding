@@ -76,6 +76,27 @@ showBlockUserSuccess = (account) ->
   showNotification "User is blocked!"
 
 
+###*
+ * Action to mark user as troll
+###
+markUserAsTroll = (account) ->
+
+  { MARK_USER_AS_TROLL_BEGIN
+    MARK_USER_AS_TROLL_SUCCESS
+    MARK_USER_AS_TROLL_FAIL } = actions
+
+  dispatch MARK_USER_AS_TROLL_BEGIN, account
+
+  account.markUserAsExempt yes, (err, res)=>
+    if err
+      dispatch MARK_USER_AS_TROLL_FAIL, { err, account }
+      showMarkUserAsTrollFail err, account
+      return
+
+    dispatch MARK_USER_AS_TROLL_SUCCESS, account
+    showMarkUserAsTrollSuccess account
+
+
 module.exports = {
   loadAccount
   searchAccounts
