@@ -1,19 +1,6 @@
-koding = require './../bongo'
-
-validateTeamDomain = (name) ->
-
-  teamDomainPattern = ///
-    ^                     # beginning of the string
-    [a-z0-9]+             # one or more 0-9 and/or a-z
-    (
-      [-]                 # followed by a single dash
-      [a-z0-9]+           # one or more (0-9 and/or a-z)
-    )*                    # zero or more of the token in parentheses
-    $                     # end of string
-  ///
-
-  return teamDomainPattern.test name
-
+koding    = require './../bongo'
+Validator = require '../../../../workers/social/lib/social/models/user/validators'
+{ validateTeamDomain } = Validator
 
 module.exports = (req, res) ->
 
