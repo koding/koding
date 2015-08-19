@@ -2,6 +2,21 @@ isEmailValid = require './emailchecker'
 
 module.exports = new class
 
+  @validateTeamDomain: (name) ->
+
+    teamDomainPattern = ///
+      ^                     # beginning of the string
+      [a-z0-9]+             # one or more 0-9 and/or a-z
+      (
+        [-]                 # followed by a single dash
+        [a-z0-9]+           # one or more (0-9 and/or a-z)
+      )*                    # zero or more of the token in parentheses
+      $                     # end of string
+    ///
+
+    return teamDomainPattern.test name
+
+
   createKodingError = (err) ->
 
     message: if 'string' is typeof err then err else err.message
@@ -77,3 +92,5 @@ module.exports = new class
         createKodingError 'Password must be at least 8 characters'
       else
         null
+
+
