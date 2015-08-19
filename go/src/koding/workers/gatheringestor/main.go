@@ -28,7 +28,7 @@ var (
 	WorkerVersion    = "0.0.1"
 	GlobalDisableKey = "globalStopDisabled"
 	ExemptUsersKey   = "exemptUsers"
-	DefaultReason    = "abuse found in user VM"
+	DefaultReason    = "Abuse was found in VM by Gather"
 	BlockDuration    = time.Hour * 24 * 365
 )
 
@@ -75,7 +75,12 @@ func main() {
 		kiteClient = initializeKiteClient(conf)
 	}
 
-	stathandler := &GatherStat{log: log, dog: dogclient, kiteClient: kiteClient}
+	stathandler := &GatherStat{
+		log:        log,
+		dog:        dogclient,
+		redis:      redisConn,
+		kiteClient: kiteClient,
+	}
 	errhandler := &GatherError{log: log, dog: dogclient}
 
 	mux := http.NewServeMux()

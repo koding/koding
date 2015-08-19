@@ -118,10 +118,10 @@ func GetOneSessionForAccount(username, groupName string) (*models.Session, error
 }
 
 func RemoveSession(username string) error {
-	selector := bson.M{"profile": username}
-
+	selector := bson.M{"username": username}
 	query := func(c *mgo.Collection) error {
-		return c.Remove(selector)
+		_, err := c.RemoveAll(selector)
+		return err
 	}
 
 	return Mongo.Run(SessionsColl, query)

@@ -107,7 +107,7 @@ func (g *GatherStat) notifyUser(username string) error {
 		To:      user.Email,
 		Subject: DefaultReason,
 		Properties: &emailsender.Properties{
-			Username: DefaultReason,
+			Username: user.Name,
 			Options:  map[string]interface{}{},
 		},
 	}
@@ -127,7 +127,7 @@ func (g *GatherStat) shouldBlock(s *models.GatherStat) (bool, error) {
 		return false, nil
 	}
 
-	if !g.globalBlockEnabled() {
+	if g.globalBlockDisabled() {
 		return false, nil
 	}
 
@@ -139,8 +139,8 @@ func (g *GatherStat) shouldBlock(s *models.GatherStat) (bool, error) {
 }
 
 // globalBlockEnabled is a lock to enable/disable stopping of VMs.
-func (g *GatherStat) globalBlockEnabled() bool {
-	return !g.redis.Exists(GlobalDisableKey)
+func (g *GatherStat) globalBlockDisabled() bool {
+	return g.redis.Exists(GlobalDisableKey)
 }
 
 // isUserExempt checks if user is exempt from having their machines.
