@@ -1,11 +1,12 @@
-jraphical   = require "jraphical"
-KodingError = require "../../error"
+# coffeelint: disable=no_implicit_braces
+jraphical   = require 'jraphical'
+KodingError = require '../../error'
 
 module.exports = class JProxyFilter extends jraphical.Module
 
-  {secure, ObjectId, signature} = require "bongo"
+  { secure, ObjectId, signature } = require 'bongo'
 
-  @trait __dirname, "../../traits/protected"
+  @trait __dirname, '../../traits/protected'
 
   @share()
 
@@ -36,16 +37,16 @@ module.exports = class JProxyFilter extends jraphical.Module
         update        : (signature Object, Function)
 
   @create: secure (client, data, callback = noop) ->
-    {delegate}    = client.connection
-    {name, rules} = data
-    ruleTypes     = [ "ip", "country", "request.minute", "request.second" ]
-    actionTypes   = [ "allow", "block", "securepage" ]
+    { delegate }    = client.connection
+    { name, rules } = data
+    ruleTypes       = [ 'ip', 'country', 'request.minute', 'request.second' ]
+    actionTypes     = [ 'allow', 'block', 'securepage' ]
 
     unless name and rules?.length
-      return callback new KodingError { message: "Missing arguments" }
+      return callback new KodingError { message: 'Missing arguments' }
 
     for rule in rules
-      {enabled, type, match, action} = rule
+      { enabled, type, match, action } = rule
       hasAllFields       = enabled? and type and match and action
       hasValidRuleType   = ruleTypes.indexOf(type)     isnt -1
       hasValidActionType = actionTypes.indexOf(action) isnt -1
@@ -54,7 +55,7 @@ module.exports = class JProxyFilter extends jraphical.Module
         hasInvalidRule = yes
 
     if hasInvalidRule
-      return callback new KodingError { message: "One or more rules are invalid" }
+      return callback new KodingError { message: 'One or more rules are invalid' }
 
     data.owner = delegate.getId()
     filter     = new JProxyFilter data
@@ -71,16 +72,18 @@ module.exports = class JProxyFilter extends jraphical.Module
       callback null, filters
 
   remove$: secure (client, callback = noop) ->
-    {delegate} = client.connection
+    { delegate } = client.connection
     filterId   = @getId()
 
     if @owner.toString() is delegate.getId().toString()
       @remove (err) =>
         return callback err  if err
 
-        JProxyRestriction = require "./restriction"
+        JProxyRestriction = require './restriction'
         JProxyRestriction.clear client, @getId(), (err) ->
           callback err
 
   update$: secure (client, data, callback = noop) ->
     @update { $set: data }, callback
+
+
