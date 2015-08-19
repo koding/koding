@@ -206,9 +206,7 @@ module.exports = class ChatListItem extends React.Component
 
     { message } = @props
 
-    getMessageOwner message.toJS(), (err, owner) ->
-      return if err
-      impersonate owner.profile.nickname
+    AppFlux.actions.user.impersonateUser message.toJS()
 
 
   updateMessage: ->
