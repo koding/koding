@@ -6,6 +6,8 @@ ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
+BlockUserModal       = require 'app/components/blockusermodal'
 ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
 
@@ -36,22 +38,8 @@ module.exports = class SimpleChatListItem extends ChatListItem
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>
-
-        <ActivityPromptModal {...@getMarkUserAsTrollModalProps()} isOpen={@state.isMarkUserAsTrollModalVisible}>
-          This is what we call 'Trolling the troll' mode.<br/><br/>
-          All of the troll's activity will disappear from the feeds, but the troll himself will think that people still gets his posts/comments. <br/><br/>
-          Are you sure you want to mark him as a troll?
-        </ActivityPromptModal>
-
-        <ActivityPromptModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible}>
-          This will block user from logging in to Koding(with all sub-groups).<br/><br/>
-          You can specify a duration to block user.
-          Entry format: [number][S|H|D|T|M|Y] eg. 1M<br/><br/>
-          <div className="duration">
-            <label className="block-user-for" for="duration">Block User For</label>
-            <input name="duration" type="text" onKeyUp={@bound "onKeyUpBlockingUserTime"} ref="BlockingTimeInput" onChange={@bound "onKeyUpBlockingUserTime"} placeholder="e.g. 1Y 1W 3D 2H..."/>
-          </div>
-        </ActivityPromptModal>
+        <MarkUserAsTrollModal {...@getMarkUserAsTrollModalProps()} isOpen={@state.isMarkUserAsTrollModalVisible} />
+        <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
 
