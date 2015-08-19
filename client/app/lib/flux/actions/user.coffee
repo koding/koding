@@ -51,6 +51,31 @@ searchAccounts = (query, options = {}) ->
       reactor.dispatch SEARCH_USERS_FAIL, { err, query }
 
 
+showMarkUserAsTrollSuccess = (account) ->
+
+  showNotification "@#{account.profile.nickname} marked as a troll!"
+
+
+showMarkUserAsTrollFail = (err, account) ->
+
+  showErrorNotification err, userMessage: "You are not allowed to mark this user as a troll!"
+
+
+showUnmarkUserAsTrollSuccess = (account) ->
+
+  showErrorNotification "@#{account.profile.nickname} won't be treated as a troll anymore!"
+
+
+showBlockUserFail = (err, account) ->
+
+  showErrorNotification err, userMessage: "You are not allowed to block user!"
+
+
+showBlockUserSuccess = (account) ->
+
+  showNotification "User is blocked!"
+
+
 module.exports = {
   loadAccount
   searchAccounts
