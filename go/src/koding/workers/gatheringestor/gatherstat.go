@@ -6,6 +6,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
+	"socialapi/workers/email/emailsender"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -38,6 +39,11 @@ func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := g.save(req); err != nil {
+		write500Err(g.log, err, w)
+		return
+	}
+
+	if err := g.stopVMIfAbusive(req); err != nil {
 		write500Err(g.log, err, w)
 		return
 	}
@@ -75,6 +81,45 @@ func (g *GatherStat) save(s *models.GatherStat) error {
 	return nil
 }
 
+// stopVMIfAbusive stops VM if user is abusive, but only if user
+// isn't exempt from being stopped
+func (g *GatherStat) stopVMIfAbusive(s *models.GatherStat) error {
+	isExempt, err := g.isUserExempt(s.Username)
+	if err != nil {
+		return err
+	}
+
+	if g.shouldStop(s) && !isExempt {
+		if err := g.notifyUser(s.Username); err != nil {
+			return err
+		}
+
+		return g.stopVMs(s.Username)
+	}
+
+	return nil
+}
+
+// notifyUser sends an email to user alerting abuse has been found
+// in their VMs.
+func (g *GatherStat) notifyUser(username string) error {
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		return err
+	}
+
+	mail := &emailsender.Mail{
+		To:      user.Email,
+		Subject: DefaultReason,
+		Properties: &emailsender.Properties{
+			Username: DefaultReason,
+			Options:  map[string]interface{}{},
+		},
+	}
+
+	return emailsender.Send(mail)
+}
+
 // shouldStop returns if machine should be stopped or not. Abuse type
 // of stat is only sent when there's abuse.
 func (g *GatherStat) shouldStop(s *models.GatherStat) bool {
@@ -100,7 +145,7 @@ func (g *GatherStat) isUserExempt(username string) (bool, error) {
 	return isInExemptList(g.redis, username)
 }
 
-func (g *GatherStat) stopVM(username string) error {
+func (g *GatherStat) stopVMs(username string) error {
 	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err

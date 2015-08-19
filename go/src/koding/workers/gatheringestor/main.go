@@ -33,7 +33,7 @@ var (
 	KloudTimeout     = 10 * time.Second
 )
 
-func main() {
+func initialize() (*runner.Runner, *config.Config) {
 	r := runner.New(WorkerName)
 	if err := r.Init(); err != nil {
 		panic(fmt.Sprintf("Error starting runner: %s", err))
@@ -42,14 +42,17 @@ func main() {
 	go r.Listen()
 	r.ShutdownHandler = func() { r.Kite.Close() }
 
-	log := r.Log
-
 	conf := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(conf.Mongo)
 
-	modelhelper.Initialize(conf.Mongo)
+	return r, conf
+}
 
+func main() {
+	r, conf := initialize()
 	defer modelhelper.Close()
+
+	log := r.Log
 
 	redisConn, err := redis.NewRedisSession(&redis.RedisConf{
 		Server: conf.Redis.URL,
