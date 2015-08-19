@@ -8,9 +8,12 @@ ProfileText           = require 'app/components/profile/profiletext'
 ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
 ButtonWithMenu        = require 'app/components/buttonwithmenu'
 ActivityPromptModal   = require 'app/components/activitypromptmodal'
+MarkUserAsTrollModal  = require 'app/components/markuserastrollmodal'
+BlockUserModal        = require 'app/components/blockusermodal'
 ActivityLikeLink      = require 'activity/components/chatlistitem/activitylikelink'
 MessageTime           = require 'activity/components/chatlistitem/messagetime'
 keycode               = require 'keycode'
+AppFlux               = require 'app/flux'
 ActivityFlux          = require 'activity/flux'
 classnames            = require 'classnames'
 Portal                = require 'react-portal'
@@ -25,6 +28,7 @@ module.exports = class ChatListItem extends React.Component
 
   @defaultProps =
     hover                         : no
+    account                       : null
     editMode                      : no
     isDeleting                    : no
     isMenuOpen                    : no
@@ -32,7 +36,6 @@ module.exports = class ChatListItem extends React.Component
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
-    blockUserConfirmButtonTitle   : 'BLOCK USER'
 
   constructor: (props) ->
 
@@ -40,6 +43,7 @@ module.exports = class ChatListItem extends React.Component
 
     @state =
       hover                         : @props.hover
+      account                       : @props.account
       editMode                      : @props.editMode
       isDeleting                    : @props.isDeleting
       isMenuOpen                    : @props.isMenuOpen
@@ -135,22 +139,15 @@ module.exports = class ChatListItem extends React.Component
 
   getMarkUserAsTrollModalProps: ->
 
-    title              : "MARK USER AS TROLL"
-    buttonConfirmTitle : "YES, THIS USER IS DEFINITELY A TROLL"
-    buttonAbortTitle   : "CANCEL"
-    className          : "Modal-MarkUserAsTrollPrompt"
-    onConfirm          : @bound "markUserAsTroll"
+    account            : @state.account
     onAbort            : @bound "closeMarkUserAsTrollModal"
     onClose            : @bound "closeMarkUserAsTrollModal"
 
 
   getBlockUserModalProps: ->
 
-    title              : "Block User For a Time Period"
-    buttonConfirmTitle : @state.blockUserConfirmButtonTitle
-    buttonAbortTitle   : "CANCEL"
-    className          : "Modal-BlockUserPrompt"
-    onConfirm          : @bound "blockUser"
+    account            : @state.account
+    buttonConfirmTitle : 'BLOCK USER'
     onAbort            : @bound "closeBlockUserPromptModal"
     onClose            : @bound "closeBlockUserPromptModal"
 
