@@ -198,7 +198,7 @@ module.exports = VideoCollaborationController =
         { planTitle }     = plan
 
         # If there isn't any limit according to current plan.
-        callback()  unless PLAN_PARTICIPANT_LIMITS[planTitle]
+        return callback()  unless PLAN_PARTICIPANT_LIMITS[planTitle]
 
         limit             = PLAN_PARTICIPANT_LIMITS[planTitle]
         participantsCount = @participants.asArray().length

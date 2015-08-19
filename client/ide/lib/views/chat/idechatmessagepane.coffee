@@ -322,6 +322,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     appManager = kd.getSingleton 'appManager'
 
-    appManager.tell 'IDE', 'canUserStartVideo', @videoActive, =>
+    appManager.tell 'IDE', 'canUserStartVideo', =>
       super options, participant
+    ,@videoActive
 
