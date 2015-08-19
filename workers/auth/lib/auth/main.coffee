@@ -23,3 +23,5 @@ authWorker = new AuthWorker koding, {
 require('../../../runartifactserver')('authworker')
 
 authWorker.connect()
+
+
