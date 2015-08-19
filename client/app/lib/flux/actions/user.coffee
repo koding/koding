@@ -1,7 +1,14 @@
-kd           = require 'kd'
-actions      = require './actiontypes'
-fetchAccount = require 'app/util/fetchAccount'
+kd                    = require 'kd'
+whoami                = require 'app/util/whoami'
+actions               = require './actiontypes'
+fetchAccount          = require 'app/util/fetchAccount'
+showErrorNotification = require 'app/util/showErrorNotification'
+showNotification      = require 'app/util/showNotification'
+impersonate           = require 'app/util/impersonate'
+getMessageOwner       = require 'app/util/getMessageOwner'
 
+
+dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 ###*
  * Load account with given id.
@@ -136,8 +143,24 @@ blockUser = (account, blockingTime) ->
       dispatch BLOCK_USER_SUCCESS, account
       showBlockUserSuccess()
 
+
+###*
+ * Action to impersonate user
+###
+impersonateUser = (message) ->
+
+  getMessageOwner message, (err, owner) ->
+
+    return if err
+    impersonate owner.profile.nickname
+
+
 module.exports = {
   loadAccount
   searchAccounts
+  markUserAsTroll
+  unmarkUserAsTroll
+  blockUser
+  impersonateUser
 }
 
