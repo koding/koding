@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/utils"
+	"koding/kodingutils"
 	"net/http"
 	"socialapi/workers/email/emailsender"
 
@@ -20,12 +20,6 @@ type GatherStat struct {
 	dog        *metrics.DogStatsD
 	redis      *redis.RedisSession
 	kiteClient *kite.Client
-}
-
-type kloudRequestArgs struct {
-	MachineId string `json:"machineId"`
-	Reason    string `json:"reason"`
-	Provider  string `json:"provider"`
 }
 
 func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +38,7 @@ func (g *GatherStat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := g.stopVMIfAbusive(req); err != nil {
+	if err := g.blockUserIfAbusve(req); err != nil {
 		write500Err(g.log, err, w)
 		return
 	}
@@ -82,20 +76,20 @@ func (g *GatherStat) save(s *models.GatherStat) error {
 	return nil
 }
 
-// stopVMIfAbusive stops VM if user is abusive, but only if user
+// blockUserIfAbusve stops VM if user is abusive, but only if user
 // isn't exempt from being stopped
-func (g *GatherStat) stopVMIfAbusive(s *models.GatherStat) error {
-	isExempt, err := g.isUserExempt(s.Username)
+func (g *GatherStat) blockUserIfAbusve(s *models.GatherStat) error {
+	shouldBlock, err := g.shouldBlock(s)
 	if err != nil {
 		return err
 	}
 
-	if g.shouldStop(s) && !isExempt {
+	if shouldBlock {
 		if err := g.notifyUser(s.Username); err != nil {
 			return err
 		}
 
-		return g.stopVMs(s.Username)
+		return kodingutils.BlockUser(g.kiteClient, s.Username, DefaultReason)
 	}
 
 	return nil
@@ -121,14 +115,31 @@ func (g *GatherStat) notifyUser(username string) error {
 	return emailsender.Send(mail)
 }
 
-// shouldStop returns if machine should be stopped or not. Abuse type
-// of stat is only sent when there's abuse.
-func (g *GatherStat) shouldStop(s *models.GatherStat) bool {
-	return s.Type == models.GatherStatAbuse && g.globalStopEnabled()
+// shouldBlock returns if user should be stopped or not depending on
+// abuse is found in their VM.
+func (g *GatherStat) shouldBlock(s *models.GatherStat) (bool, error) {
+	isExempt, err := g.isUserExempt(s.Username)
+	if err != nil {
+		return false, err
+	}
+
+	if isExempt {
+		return false, nil
+	}
+
+	if !g.globalBlockEnabled() {
+		return false, nil
+	}
+
+	if s.Type != models.GatherStatAbuse {
+		return false, nil
+	}
+
+	return true, nil
 }
 
-// globalStopEnabled is a lock to enable/disable stopping of VMs.
-func (g *GatherStat) globalStopEnabled() bool {
+// globalBlockEnabled is a lock to enable/disable stopping of VMs.
+func (g *GatherStat) globalBlockEnabled() bool {
 	return !g.redis.Exists(GlobalDisableKey)
 }
 
@@ -144,53 +155,4 @@ func (g *GatherStat) isUserExempt(username string) (bool, error) {
 	}
 
 	return isInExemptList(g.redis, username)
-}
-
-func (g *GatherStat) stopVMs(username string) error {
-	machines, err := modelhelper.GetMachinesByUsername(username)
-	if err != nil {
-		return err
-	}
-
-	for _, machine := range machines {
-		if g.kiteClient == nil {
-			g.log.Info("KloudClient not initialized. Not stopping: %s", machine.ObjectId)
-			return nil
-		}
-
-		if machine.Status.State != "Running" {
-			g.log.Info("Machine: '%s' has status: '%s'...skipping", machine.ObjectId, machine.Status.State)
-			return nil
-		}
-
-		g.log.Info("Starting to stop machine: '%s' for username: '%s'", machine.ObjectId, username)
-
-		if g.kiteClient == nil {
-			g.log.Debug("Kite Client required to stop machaine...skipping")
-			continue
-		}
-
-		isKodingOwned, err := kodingutils.IsKodingOwnedVM(machine.ObjectId)
-		if err != nil {
-			g.log.Error("Error fetching provider for VM to stop it: %s", err)
-			continue
-		}
-
-		if isKodingOwned {
-			g.log.Info("Machine: '%s' has provider: '%s'...skipping", machine.ObjectId, machine.Provider)
-			continue
-		}
-
-		_, err = g.kiteClient.TellWithTimeout("stop", KloudTimeout, &kloudRequestArgs{
-			MachineId: machine.ObjectId.Hex(),
-			Reason:    DefaultReason,
-			Provider:  KodingProvider,
-		})
-
-		if err != nil {
-			g.log.Info("Failed to stop machine: '%s' for username: '%s' due to: %s", machine.ObjectId, username, err)
-		}
-	}
-
-	return nil
 }
