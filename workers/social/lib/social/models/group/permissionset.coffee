@@ -1,5 +1,5 @@
-{Model, secure, dash, daisy} = require 'bongo'
-{Module, Relationship} = require 'jraphical'
+{ Model, secure, dash, daisy } = require 'bongo'
+{ Module, Relationship } = require 'jraphical'
 
 # class JPermission extends Model
 #   @set
@@ -34,15 +34,17 @@ module.exports = class JPermissionSet extends Module
         type                : Array
         default             : -> []
 
-  {intersection} = require 'underscore'
+  { intersection } = require 'underscore'
 
   KodingError = require '../../error'
 
-  constructor:(data={}, options={})->
+  # coffeelint: disable=no_implicit_braces
+  # coffeelint: disable=indentation
+  constructor:(data = {}, options = {}) ->
     super data
     unless @isCustom
       # initialize the permission set with some sane defaults:
-      {permissionDefaultsByModule} = require '../../traits/protected'
+      { permissionDefaultsByModule } = require '../../traits/protected'
       permissionsByRole = {}
 
       options.privacy ?= 'public'
@@ -58,19 +60,19 @@ module.exports = class JPermissionSet extends Module
       @permissions = []
       for own module, moduleRoles of permissionsByRole
         for own role, modulePerms of moduleRoles
-          @permissions.push {module, role, permissions: modulePerms}
+          @permissions.push { module, role, permissions: modulePerms }
 
-  @wrapPermission = wrapPermission =(permission)->
-    [{permission, validateWith: require('./validators').any}]
+  @wrapPermission = wrapPermission = (permission) ->
+    [{ permission, validateWith: require('./validators').any }]
 
-  @checkPermission =(client, advanced, target, args, callback)->
+  @checkPermission = (client, advanced, target, args, callback) ->
     JGroup = require '../group'
     advanced = wrapPermission advanced  if 'string' is typeof advanced
-    kallback = (group, permissionSet)->
-      queue = advanced.map ({permission, validateWith})->->
+    kallback = (group, permissionSet) ->
+      queue = advanced.map ({ permission, validateWith }) -> ->
         validateWith ?= (require './validators').any
         validateWith.call target, client, group, permission, permissionSet, args,
-          (err, hasPermission)->
+          (err, hasPermission) ->
             if err then queue.next err
             else if hasPermission
               callback null, yes  # we can stop here.  One permission is enough.
@@ -80,7 +82,7 @@ module.exports = class JPermissionSet extends Module
         callback null, no
       daisy queue
     # permission = [permission]  unless Array.isArray permission
-    groupName =\
+    groupName = \
       if 'function' is typeof target
         module = target.name
         client?.context?.group ? 'koding'
@@ -92,12 +94,12 @@ module.exports = class JPermissionSet extends Module
         target.group ? client.context.group ? 'koding'
 
     client.groupName = groupName
-    JGroup.one {slug: groupName}, (err, group)->
+    JGroup.one { slug: groupName }, (err, group) ->
       if err then callback err, no
       else unless group?
         callback new KodingError "Unknown group! #{groupName}"
       else
-        group.fetchPermissionSet (err, permissionSet)->
+        group.fetchPermissionSet (err, permissionSet) ->
           if err then callback err, no
           else unless permissionSet
             group.fetchDefaultPermissionSet (err, permissionSet) ->
@@ -106,7 +108,7 @@ module.exports = class JPermissionSet extends Module
           else
             kallback group, permissionSet
 
-  @permit =(permission, promise)->
+  @permit = (permission, promise) ->
     # parameter hockey to allow either parameter to be optional
     if arguments.length is 1 and 'string' isnt typeof permission
       [promise, permission] = [permission, promise]
@@ -117,10 +119,10 @@ module.exports = class JPermissionSet extends Module
       else wrapPermission permission
     # Support a "stub" form of permit that simply calls back with yes if the
     # permission is supported:
-    promise.success ?= (client, callback)-> callback null, yes
+    promise.success ?= (client, callback) -> callback null, yes
     # return the validator:
-    permit = secure (client, rest...)->
-      if 'function' is typeof rest[rest.length-1]
+    permit = secure (client, rest...) ->
+      if 'function' is typeof rest[rest.length - 1]
         [rest..., callback] = rest
       else
         callback = (->)
@@ -128,9 +130,9 @@ module.exports = class JPermissionSet extends Module
         if 'function' is typeof promise then promise.bind this
         else promise.success.bind this
       failure = promise.failure?.bind this
-      {delegate} = client.connection
+      { delegate } = client.connection
       JPermissionSet.checkPermission client, advanced, this, rest,
-        (err, hasPermission, roles)->
+        (err, hasPermission, roles) ->
           client.roles = roles
           args = [client, rest..., callback]
           if err then callback err
@@ -140,3 +142,5 @@ module.exports = class JPermissionSet extends Module
             failure.apply null, args
           else
             callback new KodingError 'Access denied'
+
+
