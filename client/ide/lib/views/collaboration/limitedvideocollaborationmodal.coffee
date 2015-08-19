@@ -1,7 +1,8 @@
-kd                    = require 'kd'
-KDView                = kd.View
-CustomLinkView        = require 'app/customlinkview'
-ComputePlansModalFree = require 'app/providers/computeplansmodalfree'
+kd                          = require 'kd'
+KDView                      = kd.View
+KDModalView                 = kd.ModalView
+CustomLinkView              = require 'app/customlinkview'
+ComputePlansModalFooterLink = require 'app/providers/computeplansmodalfooterlink'
 
 
 MESSAGES = {
@@ -9,10 +10,14 @@ MESSAGES = {
 }
 
 
-module.exports = class LimitedVideoCollaborationModal extends ComputePlansModalFree
+module.exports = class LimitedVideoCollaborationModal extends KDModalView
 
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = 'free-plan computeplan-modal env-modal'
+    options.width   ?= 336
+    options.overlay ?= yes
 
     super options, data
 
@@ -25,5 +30,6 @@ module.exports = class LimitedVideoCollaborationModal extends ComputePlansModalF
       cssClass : 'message',
       partial  : MESSAGES[plan]
 
-    @addPricingLink 'Upgrade your account to any paid plan for unlimited video collaboration.'
+    @addSubView new ComputePlansModalFooterLink
+      title : 'Upgrade your account to any paid plan for unlimited video collaboration.'
 
