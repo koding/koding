@@ -117,6 +117,25 @@ unmarkUserAsTroll = (account) ->
     dispatch UNMARK_USER_AS_TROLL_SUCCESS, account
     showUnmarkUserAsTrollSuccess account
 
+
+###*
+ * Action to block user
+###
+blockUser = (account, blockingTime) ->
+
+  { BLOCK_USER_BEGIN, BLOCK_USER_SUCCESS, BLOCK_USER_FAIL } = actions
+
+  dispatch BLOCK_USER_BEGIN, account
+
+  whoami().blockUser account._id, blockingTime, (err, res) =>
+
+    if err
+      dispatch BLOCK_USER_FAIL, { err, account }
+      showBlockUserFail err, account
+    else
+      dispatch BLOCK_USER_SUCCESS, account
+      showBlockUserSuccess()
+
 module.exports = {
   loadAccount
   searchAccounts
