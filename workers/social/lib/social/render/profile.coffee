@@ -6,14 +6,14 @@ module.exports = (options, callback) ->
   getTitle     = require './title'
   encoder      = require 'htmlencode'
 
-  {account, renderedAccount, loggedIn, content, bongoModels, client} = options
-  {profile, counts, skilltags}                                       = renderedAccount
-  {nickname, firstName, lastName, hash, about, handles, staticPage}  = profile
+  { account, renderedAccount, loggedIn, content, bongoModels, client } = options
+  { profile, counts, skilltags }                                       = renderedAccount
+  { nickname, firstName, lastName, hash, about, handles, staticPage }  = profile
 
-  staticPage  ?= {}
-  {customize}  = staticPage
+  staticPage    ?= {}
+  { customize }  = staticPage
 
-  {locationTags, meta} = account
+  { locationTags, meta } = account
 
   firstName   ?= 'Koding'
   lastName    ?= 'User'
@@ -21,7 +21,7 @@ module.exports = (options, callback) ->
   about       ?= ''
   title        = "#{firstName} #{lastName}"
   slug         = nickname
-  amountOfDays = Math.floor (new Date().getTime()-meta.createdAt)/(1000*60*60*24)
+  amountOfDays = Math.floor (new Date().getTime() - meta.createdAt) / (1000 * 60 * 60 * 24)
 
   hash    = profile.hash or ''
   avatar  = profile.avatar or no
@@ -29,7 +29,7 @@ module.exports = (options, callback) ->
   if avatar
     bgImg = "/-/image/cache?endpoint=crop&grow=false&width=90&height=90&url=#{encodeURIComponent avatar}"
 
-  entryPoint = { slug : profile.nickname, type: "profile" }
+  entryPoint = { slug : profile.nickname, type: 'profile' }
 
   prepareHTML = (scripts) ->
 
@@ -44,7 +44,7 @@ module.exports = (options, callback) ->
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      #{KONFIG.getConfigScriptTag {entryPoint, roles:['guest'], permissions:[]}}
+      #{KONFIG.getConfigScriptTag { entryPoint, roles:['guest'], permissions:[] }}
       <script>KD.isLoggedInOnLoad=#{loggedIn};</script>
       #{scripts}
 
@@ -55,5 +55,7 @@ module.exports = (options, callback) ->
   # inject entryPoint
   options.entryPoint = entryPoint
 
-  fetchScripts options, (err, scripts)->
+  fetchScripts options, (err, scripts) ->
     callback null, prepareHTML scripts
+
+
