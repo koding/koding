@@ -1,9 +1,9 @@
-kd                      = require 'kd'
-VideoCollaborationModel       = require 'app/videocollaboration/model'
-socialHelpers                 = require './collaboration/helpers/social'
-isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
-showError                     = require 'app/util/showError'
-LimitedVideoCollaborationFree = require './views/collaboration/limitedvideocollaborationfree'
+kd                              = require 'kd'
+VideoCollaborationModel         = require 'app/videocollaboration/model'
+socialHelpers                   = require './collaboration/helpers/social'
+isVideoFeatureEnabled           = require 'app/util/isVideoFeatureEnabled'
+showError                       = require 'app/util/showError'
+LimitedVideoCollaborationModal  = require './views/collaboration/limitedvideocollaborationmodal'
 
 
 generatePayloadFromModel = (model) ->
@@ -13,7 +13,15 @@ generatePayloadFromModel = (model) ->
     participants        : model.getParticipants()
   }
 
+
+# If you want to limit {X} plan, you can add here and `LimitedVideoCollaborationModal.coffee`
+PLAN_PARTICIPANT_LIMITS = {
+  free : 2
+}
+
+
 module.exports = VideoCollaborationController =
+
 
   prepareVideoCollaboration: ->
 
@@ -61,7 +69,7 @@ module.exports = VideoCollaborationController =
 
   startVideoCollaboration: ->
 
-    @canFreeUserStartVideo =>
+    @canUserStartVideo =>
       @videoModel.start()
 
 
@@ -177,18 +185,25 @@ module.exports = VideoCollaborationController =
     @chat?.emit args...
 
 
-  canFreeUserStartVideo: (callback = kd.noop, isVideoActive = no) ->
+  canUserStartVideo: (callback = kd.noop, isVideoActive = no) ->
 
     { paymentController } = kd.singletons
 
-    paymentController.subscriptions (err, plan) =>
+    @whenRealtimeReady =>
 
-      return showError err if err?
+      paymentController.subscriptions (err, plan) =>
 
-      participantsLen = @participants.asArray().length
+        return showError err if err?
 
-      if plan.planTitle is 'free' and (participantsLen > 2 or (participantsLen is 2 and isVideoActive))
-        return new LimitedVideoCollaborationFree
+        { planTitle }     = plan
 
-      callback()
+        # If there isn't any limit according to current plan.
+        callback()  unless PLAN_PARTICIPANT_LIMITS[planTitle]
 
+        limit             = PLAN_PARTICIPANT_LIMITS[planTitle]
+        participantsCount = @participants.asArray().length
+
+        if participantsCount > limit or (participantsCount is 2 and isVideoActive)
+          return new LimitedVideoCollaborationModal plan: planTitle
+
+        callback()
