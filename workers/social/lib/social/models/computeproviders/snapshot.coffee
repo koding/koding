@@ -2,7 +2,7 @@
 { revive }  = require './computeutils'
 KodingError = require '../../error'
 
-{argv}      = require 'optimist'
+{ argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 
@@ -12,7 +12,7 @@ module.exports = class JSnapshot extends Module
 
   @trait __dirname, '../../traits/protected'
 
-  {permit}  = require '../group/permissionset'
+  { permit }  = require '../group/permissionset'
 
   @share()
 
@@ -62,8 +62,8 @@ module.exports = class JSnapshot extends Module
   ###
   @verifySnapshot = (client, options, callback) ->
 
-    {delegate} = client.connection
-    {storage, snapshotId} = options
+    { delegate } = client.connection
+    { storage, snapshotId } = options
 
     unless snapshotId
       return callback new KodingError 'snapshotId is not provided'
@@ -94,7 +94,7 @@ module.exports = class JSnapshot extends Module
 
     success: (client, snapshotId, callback) ->
 
-      {delegate} = client.connection
+      { delegate } = client.connection
 
       selector     =
         originId   : delegate.getId()
@@ -115,8 +115,8 @@ module.exports = class JSnapshot extends Module
 
     success: (client, selector, options, callback) ->
 
-      {delegate} = client.connection
-      selector  ?= {}
+      { delegate } = client.connection
+      selector    ?= {}
 
       # Ensure that a user can only list their own snapshots
       selector.originId = delegate.getId()
@@ -124,6 +124,8 @@ module.exports = class JSnapshot extends Module
       @some selector, options, callback
 
 
+  # due to a bug in coffeelint 1.10.1
+  # coffeelint: disable=no_implicit_braces
   # Instance Methods
   # ---------------
 
@@ -140,10 +142,12 @@ module.exports = class JSnapshot extends Module
       if not label or label is ''
         return callback new KodingError 'JSnapshot.rename: label is empty'
 
-      {delegate} = client.connection
+      { delegate } = client.connection
 
       unless delegate.getId().equals @originId
         return callback new KodingError 'Access denied'
 
-      @update $set: {label}, (err) ->
+      @update $set: { label }, (err) ->
         callback err
+
+
