@@ -13,26 +13,13 @@ class ModalOverlay extends React.Component
 
 module.exports = class ActivityPromptModal extends React.Component
 
-  @defaultProps =
-    onClose             : noop
-    closeOnEsc          : yes
-    closeOnOutsideClick : yes
-    hasOverlay          : yes
-    isOpen              : no
-    className           : ''
-
-  onClose: (args...) -> @props.onClose? args...
-
+module.exports = class ActivityPromptModal extends ActivityModal
 
   renderModal: ->
 
     return null  unless @props.isOpen
 
-    portalProps =
-      isOpened            : @props.isOpen
-      onClose             : @bound 'onClose'
-      closeOnEsc          : @props.closeOnEsc
-      closeOnOutsideClick : @props.closeOnOutsideClick
+    portalProps = @getPortalProps()
 
     return (
       <Portal {...portalProps}>
@@ -52,23 +39,4 @@ module.exports = class ActivityPromptModal extends React.Component
         </div>
       </Portal>
     )
-
-
-  renderOverlay: ->
-    return null  unless @props.isOpen and @props.hasOverlay
-
-    return (
-      <Portal isOpened={@props.isOpen}>
-        <ModalOverlay />
-      </Portal>
-    )
-
-
-
-  render: ->
-    <div className="ActivityPromptModal-container">
-      {@renderOverlay()}
-      {@renderModal()}
-    </div>
-
 
