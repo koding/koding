@@ -31,7 +31,7 @@
     "level": "ignore"
   },
   "ensure_comprehensions": {
-    "level": "warn"
+    "level": "ignore"
   },
   "eol_last": {
     "level": "error"
