@@ -36,7 +36,6 @@ module.exports = class IDETerminalPane extends IDEPane
       # TODO: Also pass sizeX and sizeY
       options.joinUser = joinUser
       options.session  = session
-      options.mode     = 'shared'
 
     @webtermView = new IDEWebTermView options
 
@@ -72,7 +71,7 @@ module.exports = class IDETerminalPane extends IDEPane
 
   getMode: ->
 
-    return  if @session? then 'resume' else 'create'
+    return  if @session? then 'shared' else 'create'
 
 
   runCommand: (command, callback) ->
