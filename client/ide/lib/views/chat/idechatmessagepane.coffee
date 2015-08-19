@@ -324,5 +324,5 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     appManager.tell 'IDE', 'canUserStartVideo', =>
       super options, participant
-    ,@videoActive
+    , @videoActive
 
