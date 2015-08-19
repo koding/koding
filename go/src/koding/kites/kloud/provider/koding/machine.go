@@ -294,7 +294,7 @@ func (m *Machine) stopIfKlientIsMissing(ctx context.Context) error {
 	// Hasta la vista, baby!
 	m.Log.Info("======> STOP started (missing klient) <======")
 	if err := m.Stop(ctx); err != nil {
-		m.Log.Info("======> STOP aborted (missing klient: %s) <======", err)
+		m.Log.Info("======> STOP failed (missing klient: %s) <======", err)
 		return err
 	}
 	m.Log.Info("======> STOP finished (missing klient) <======")
