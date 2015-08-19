@@ -39,11 +39,6 @@ func stopVMIfRunning(machineId, username, reason string) error {
 		return nil
 	}
 
-	if machine.Status.State != "Running" {
-		Log.Info("Machine: '%s' has status: '%s'...skipping", machineId, machine.Status.State)
-		return nil
-	}
-
 	Log.Info("Starting to stop machine: '%s' for username: '%s'", machineId, username)
 
 	_, err := controller.KiteClient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
