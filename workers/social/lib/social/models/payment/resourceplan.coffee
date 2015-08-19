@@ -1,4 +1,5 @@
-{ Base } = require 'bongo'
+{ Base }    = require 'bongo'
+KodingError = require '../../error'
 
 module.exports = class JResourcePlan extends Base
 
@@ -20,7 +21,7 @@ module.exports = class JResourcePlan extends Base
 
     plan.fetchProducts (err, products) ->
       return callback err  if err
-      return callback message: "no products found"  unless products?.length
+      return callback new KodingError 'no products found'  unless products?.length
 
       quantities = {}
 
@@ -64,3 +65,5 @@ module.exports = class JResourcePlan extends Base
       options.plan = plan
 
       @subscribeToPlan client, options, callback
+
+
