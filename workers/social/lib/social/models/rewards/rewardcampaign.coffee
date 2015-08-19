@@ -1,4 +1,5 @@
-{Model}     = require 'bongo'
+# coffeelint: disable=no_implicit_braces
+{ Model }   = require 'bongo'
 jraphical   = require 'jraphical'
 KodingError = require '../../error'
 
@@ -54,11 +55,11 @@ module.exports = class JRewardCampaign extends jraphical.Module
   #
 
 
-  {signature, secure} = require 'bongo'
+  { signature, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
 
-  {permit} = require '../group/permissionset'
+  { permit } = require '../group/permissionset'
 
   @share()
 
@@ -82,10 +83,10 @@ module.exports = class JRewardCampaign extends jraphical.Module
       isActive          : Boolean
       type              :
         type            : String
-        default         : "disk"
+        default         : 'disk'
       unit              :
         type            : String
-        default         : "MB"
+        default         : 'MB'
       initialAmount     :
         type            : Number
       maxAmount         :
@@ -130,15 +131,15 @@ module.exports = class JRewardCampaign extends jraphical.Module
   # Helpers
   # -------
 
-  DEFAULT_CAMPAIGN = "register"
+  DEFAULT_CAMPAIGN = 'register'
 
-  deleteExistingCampaign = (data, callback)->
+  deleteExistingCampaign = (data, callback) ->
 
-    {name} = data
+    { name } = data
 
-    return callback new KodingError "Name not provided"  unless name
+    return callback new KodingError 'Name not provided'  unless name
 
-    JRewardCampaign.one {name}, (err, campaign)->
+    JRewardCampaign.one { name }, (err, campaign) ->
 
       return callback err  if err
       return callback null unless campaign
@@ -151,19 +152,19 @@ module.exports = class JRewardCampaign extends jraphical.Module
 
   # Static Methods
 
-  @fetchCampaign = (campaignName, callback)->
+  @fetchCampaign = (campaignName, callback) ->
 
     unless callback
       [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
 
-    JRewardCampaign.one name: campaignName, (err, campaign) ->
+    JRewardCampaign.one { name: campaignName }, (err, campaign) ->
       return callback err  if err
       callback null, campaign
 
 
   # Instance Methods
 
-  increaseGivenAmount: (size, callback)->
+  increaseGivenAmount: (size, callback) ->
 
     unless callback
       [size, callback] = [@perEventAmount, size]
@@ -194,7 +195,7 @@ module.exports = class JRewardCampaign extends jraphical.Module
     success: (client, data, callback) ->
 
       campaign = new JRewardCampaign data
-      campaign.save (err)->
+      campaign.save (err) ->
 
         if err then callback err
         else callback null, campaign
@@ -203,12 +204,12 @@ module.exports = class JRewardCampaign extends jraphical.Module
   # Since we may need to use this method in pages where
   # users not registered yet, we are using secure instead
   # permit, from permission grid.
-  @isValid = secure (client, campaignName, callback)->
+  @isValid = secure (client, campaignName, callback) ->
 
     unless callback
       [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
 
-    JRewardCampaign.fetchCampaign campaignName, (err, campaign)->
+    JRewardCampaign.fetchCampaign campaignName, (err, campaign) ->
 
       return callback err  if err
       return callback null, isValid: no  unless campaign
@@ -244,10 +245,12 @@ module.exports = class JRewardCampaign extends jraphical.Module
   # Instance Methods
 
   update$: permit 'manage campaign',
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
       @update $set: data, callback
 
 
   remove$: permit 'manage campaign',
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
       @remove callback
+
+
