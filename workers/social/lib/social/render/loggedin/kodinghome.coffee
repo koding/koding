@@ -1,35 +1,35 @@
-module.exports = (options, callback)->
-  {account, client, bongoModels, models} = options
+module.exports = (options, callback) ->
+  { account, client, bongoModels, models } = options
   getStyles       = require './../styleblock'
   fetchScripts    = require './../scriptblock'
   getTitle        = require './../title'
   getGraphMeta    = require './../graphmeta'
-  {argv}          = require 'optimist'
-  {uri}           = require('koding-config-manager').load("main.#{argv.c}")
+  { argv }          = require 'optimist'
+  { uri }           = require('koding-config-manager').load("main.#{argv.c}")
 
-  entryPoint         = { slug : "koding", type: "group" }
+  entryPoint         = { slug : 'koding', type: 'group' }
   options.entryPoint = entryPoint
 
-  prepareHTML = (scripts, socialApiData)->
+  prepareHTML = (scripts, socialApiData) ->
     if socialApiData?.navigated?
-      {navigated} = socialApiData
+      { navigated } = socialApiData
 
-      {slug, data:{message}} = navigated
+      { slug, data:{ message } } = navigated
 
       if message
-        {body} = message
-        summary = body.slice(0, 80)
-        title = "#{summary} | Koding Community"
+        { body } = message
+        summary  = body.slice(0, 80)
+        title    = "#{summary} | Koding Community"
 
-      url = if uri?.address then uri.address else "https://koding.com/"
+      url = if uri?.address then uri.address else 'https://koding.com/'
       shareUrl = "#{url}/#{slug}"
 
     """
     <!doctype html>
     <html lang="en">
     <head>
-      #{getTitle title: title }
-      #{getGraphMeta shareUrl: shareUrl, body: body}
+      #{getTitle { title: title } }
+      #{getGraphMeta { shareUrl: shareUrl, body: body }}
       #{getStyles()}
     </head>
     <body class='logged-in'>
@@ -42,7 +42,7 @@ module.exports = (options, callback)->
     </html>
     """
 
-  fetchScripts options, (err, scripts, socialApiData)->
+  fetchScripts options, (err, scripts, socialApiData) ->
     callback null, prepareHTML scripts, socialApiData
 
 
