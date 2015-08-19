@@ -1,9 +1,11 @@
-Bongo          = require "bongo"
-{Relationship} = require "jraphical"
-request        = require 'request'
+# coffeelint: disable=no_implicit_braces
+Bongo            = require 'bongo'
+{ Relationship } = require 'jraphical'
+request          = require 'request'
+KodingError      = require '../../error'
 
-{secure, daisy, dash, signature, Base} = Bongo
-{throttle} = require 'underscore'
+{ secure, daisy, dash, signature, Base } = Bongo
+{ throttle } = require 'underscore'
 
 module.exports = class SocialChannel extends Base
   @share()
@@ -91,43 +93,43 @@ module.exports = class SocialChannel extends Base
         { name: 'broadcast' }
       ]
 
-  JAccount = require '../account'
+  JAccount     = require '../account'
 
-  Validators = require '../group/validators'
-  {permit}   = require '../group/permissionset'
+  Validators   = require '../group/validators'
+  { permit }   = require '../group/permissionset'
 
   { secureRequest, ensureGroupChannel,
-    doRequest, permittedRequest } = require "./helper"
+    doRequest, permittedRequest } = require './helper'
 
-  @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
+  @generateChannelName = ({ groupSlug, apiChannelType, apiChannelName }) ->
     return "socialapi-\
     group-#{groupSlug}-\
     type-#{apiChannelType}-\
     name-#{apiChannelName}"
 
-  @fetchSecretChannelName =(options, callback)->
-    {groupSlug, apiChannelType, apiChannelName} = options
+  @fetchSecretChannelName = (options, callback) ->
+    { groupSlug, apiChannelType, apiChannelName } = options
     name = @generateChannelName options
     JName = require '../name'
-    JName.fetchSecretName name, (err, secretName, oldSecretName)->
+    JName.fetchSecretName name, (err, secretName, oldSecretName) ->
       # just to know, how many parameters does this function return
       # callback err, secretName, oldSecretName
       if err then callback err
       else callback null, "socialapi.channelsecret.#{secretName}",
         if oldSecretName then "socialapi.channelsecret.#{oldSecretName}"
 
-  @cycleChannel =do->
-    cycleChannel = (options, callback=->)->
+  @cycleChannel = do ->
+    cycleChannel = (options, callback = -> ) ->
       JName = require '../name'
       name = @generateChannelName options
-      JName.cycleSecretName name, (err, oldSecretName, newSecretName)=>
+      JName.cycleSecretName name, (err, oldSecretName, newSecretName) =>
         return callback err if err
         routingKey = "socialapi.channelsecret.#{oldSecretName}.cycleChannel"
         @emit 'broadcast', routingKey, null
         return callback null
     return throttle cycleChannel, 5000
 
-  cycleChannel:(callback)->
+  cycleChannel:(callback) ->
     options =
       groupSlug     : @groupName
       apiChannelType: @typeConstant
@@ -143,22 +145,22 @@ module.exports = class SocialChannel extends Base
   # byId - fetch channel by id
   @byId = secureRequest
     fnName  : 'channelById'
-    validate: ["id"]
+    validate: ['id']
 
   # byName - fetch channel by name
   @byName = secureRequest
     fnName  : 'channelByName'
-    validate: ["name"]
+    validate: ['name']
 
   # update - update channel by name
   @update = secureRequest
     fnName  : 'updateChannel'
-    validate: ["id"]
+    validate: ['id']
 
   # create - create channel by name
   @create = secureRequest
     fnName  : 'createChannel'
-    validate: ["name"]
+    validate: ['name']
 
   # searchTopics - search topics for autocompletion
   @searchTopics          = secureRequest fnName: 'searchTopics'
@@ -191,22 +193,22 @@ module.exports = class SocialChannel extends Base
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
     fnName  : 'updateLastSeenTime'
-    validate: ["channelId"]
+    validate: ['channelId']
 
   @listParticipants = secureRequest
     fnName  : 'listParticipants'
-    validate: ["channelId"]
+    validate: ['channelId']
 
   @addParticipants = secureRequest
     fnName  : 'addParticipants'
-    validate: ["channelId"]
+    validate: ['channelId']
 
   @removeParticipants = secureRequest
     fnName  : 'removeParticipants'
-    validate: ["channelId"]
+    validate: ['channelId']
 
   @leave = secure (client, data, callback) ->
-    return callback message: "channel id is required for leaving a channel"  unless data.channelId
+    return callback new KodingError 'channel id is required for leaving a channel'  unless data.channelId
 
     { delegate } = client.connection
     data.accountIds = [ delegate.socialApiId ]  unless data.accountIds
@@ -214,7 +216,7 @@ module.exports = class SocialChannel extends Base
     doRequest 'removeParticipants', client, data, callback
 
   @acceptInvite = secure (client, data, callback) ->
-    return callback message: "channel id is required for accepting an invitation"  unless data.channelId
+    return callback new KodingError 'channel id is required for accepting an invitation'  unless data.channelId
 
     { delegate } = client.connection
     data.accountId = delegate.socialApiId
@@ -222,7 +224,7 @@ module.exports = class SocialChannel extends Base
     doRequest 'acceptInvite', client, data, callback
 
   @rejectInvite = secure (client, data, callback) ->
-    return callback message: "channel id is required for rejecting an invitation"  unless data.channelId
+    return callback new KodingError 'channel id is required for rejecting an invitation'  unless data.channelId
 
     { delegate } = client.connection
     data.accountId = delegate.socialApiId
@@ -232,7 +234,7 @@ module.exports = class SocialChannel extends Base
   # glancePinnedPost - updates user's lastSeenDate for pinned posts
   @glancePinnedPost = secureRequest
     fnName  : 'glancePinnedPost'
-    validate: ["messageId"]
+    validate: ['messageId']
 
   # fetchPinnedMessages - fetch user's pinned messages
   @fetchPinnedMessages = permittedRequest
@@ -252,41 +254,41 @@ module.exports = class SocialChannel extends Base
     validate      : ['messageId']
 
   # fetchActivities - fetch activities of a channel
-  @fetchActivities = secure (client, options, callback)->
-    {connection:{delegate}} = client
-    options.showExempt = delegate.checkFlag("super-admin") or delegate.isExempt
+  @fetchActivities = secure (client, options, callback) ->
+    { connection:{ delegate } } = client
+    options.showExempt = delegate.checkFlag('super-admin') or delegate.isExempt
     options.channelId = options.id
     # just to create social channels
-    ensureGroupChannel client, (err, socialApiChannelId)->
+    ensureGroupChannel client, (err, socialApiChannelId) ->
       return callback err  if err
 
       doRequest 'fetchChannelActivities', client, options, callback
 
   @fetchActivityCount = (options, callback) ->
-    {fetchActivityCount} = require './requests'
+    { fetchActivityCount } = require './requests'
     fetchActivityCount options, callback
 
   # fetchGroupActivities - fetch public activities of a group
-  @fetchGroupActivities = secure (client, options, callback)->
-    ensureGroupChannel client, (err, socialApiChannelId)->
+  @fetchGroupActivities = secure (client, options, callback) ->
+    ensureGroupChannel client, (err, socialApiChannelId) ->
       return callback err if err
-      return callback { message: "Channel Id is not set" } unless socialApiChannelId
+      return callback new KodingError 'Channel Id is not set'  unless socialApiChannelId
 
       options.id = socialApiChannelId
       SocialChannel.fetchActivities client, options, callback
 
   # followUser - a user follows a user
-  @followUser = secure (client, options, callback)->
-    {connection:{delegate}} = client
-    return callback {message: "Access denied"}  if delegate.type isnt 'registered'
+  @followUser = secure (client, options, callback) ->
+    { connection:{ delegate } } = client
+    return callback new KodingError 'Access denied'  if delegate.type isnt 'registered'
     unless options.followee
-      return callback {message: "Followee is not set"}
+      return callback new KodingError 'Followee is not set'
 
     delegate.createSocialApiId (err, actorId) ->
       return callback err  if err
       options.followee.createSocialApiId (err, targetId) ->
         return callback err  if err
-        {followUser, unfollowUser} = require './requests'
+        { followUser, unfollowUser } = require './requests'
         data =
           accountId   : actorId
           creatorId   : targetId
@@ -308,7 +310,7 @@ module.exports = class SocialChannel extends Base
     ]
     success: (client, options, callback) ->
 
-      return  callback message: "channel id not provided"  unless options.channelId?
+      return  callback new KodingError 'channel id not provided'  unless options.channelId?
 
 
       return deleteChannel options, (err) ->
@@ -319,5 +321,7 @@ module.exports = class SocialChannel extends Base
 
   @fetchBotChannel = (options, callback) ->
 
-    {fetchBotChannel} = require './requests'
+    { fetchBotChannel } = require './requests'
     fetchBotChannel options, callback
+
+

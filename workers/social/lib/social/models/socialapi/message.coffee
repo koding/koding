@@ -1,10 +1,11 @@
-Bongo          = require "bongo"
-{Relationship} = require "jraphical"
-request        = require 'request'
-ApiError       = require './error'
+Bongo            = require 'bongo'
+{ Relationship } = require 'jraphical'
+request          = require 'request'
+ApiError         = require './error'
+KodingError      = require '../../error'
 
-{secure, daisy, dash, signature, Base} = Bongo
-{uniq, extend} = require 'underscore'
+{ secure, daisy, dash, signature, Base } = Bongo
+{ uniq, extend } = require 'underscore'
 
 
 module.exports = class SocialMessage extends Base
@@ -69,56 +70,56 @@ module.exports = class SocialMessage extends Base
   JAccount = require '../account'
 
   Validators = require '../group/validators'
-  {permit}   = require '../group/permissionset'
+  { permit } = require '../group/permissionset'
 
   { secureRequest, ensureGroupChannel,
-    doRequest, permittedRequest } = require "./helper"
+    doRequest, permittedRequest } = require './helper'
 
   @post = permit 'create posts',
-    success: (client, data, callback)->
-      ensureGroupChannel client, (err, socialApiChannelId)->
+    success: (client, data, callback) ->
+      ensureGroupChannel client, (err, socialApiChannelId) ->
         data.channelId = socialApiChannelId unless data.channelId
         doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
       if not data.messageId or not data.body
-        return callback message: "Request is not valid for adding a reply"
-      ensureGroupChannel client, (err, socialApiChannelId)->
+        return callback new KodingError 'Request is not valid for adding a reply'
+      ensureGroupChannel client, (err, socialApiChannelId) ->
         data.initialChannelId = socialApiChannelId
         doRequest 'addReply', client, data, callback
 
   # todo add permission here
-  @edit = secure (client, data, callback)->
+  @edit = secure (client, data, callback) ->
     if not data?.body or not data.id
-      return callback { message: "Request is not valid for editing a message"}
+      return callback new KodingError 'Request is not valid for editing a message'
     # check ownership of the account
-    SocialMessage.canEdit client, data, (err, res)->
+    SocialMessage.canEdit client, data, (err, res) ->
       return callback err if err
-      return callback {message: "You can not edit this post"} unless res
+      return callback new KodingError 'You can not edit this post'  unless res
       doRequest 'editMessage', client, data, callback
 
 
-  @delete = secure (client, data, callback)->
+  @delete = secure (client, data, callback) ->
     if not data?.id
-      return callback { message: "Request is not valid for deleting a message" }
+      return callback new KodingError 'Request is not valid for deleting a message'
 
     # check ownership of the account
-    SocialMessage.canDelete client, data, (err, res)->
+    SocialMessage.canDelete client, data, (err, res) ->
       return callback err  if err
-      return callback {message: "You can not delete this post"} unless res
+      return callback new KodingError 'You can not delete this post'  unless res
       doRequest 'deleteMessage', client, data, callback
 
 
   # byId -get message by id
   @byId = secureRequest
     fnName  : 'messageById'
-    validate: ["id"]
+    validate: ['id']
 
   # bySlug -get message by slug
   @bySlug = secureRequest
     fnName  : 'messageBySlug'
-    validate: ["slug"]
+    validate: ['slug']
 
   @listReplies = secureRequest
     fnName   : 'listReplies'
@@ -151,19 +152,19 @@ module.exports = class SocialMessage extends Base
     fnName        : 'fetchMessage'
     validate      : ['id']
 
-  initPrivateMessageHelper = (client, data, callback)->
+  initPrivateMessageHelper = (client, data, callback) ->
 
     if not data.recipients or data.recipients.length < 1
-      return callback message: "You should have at least one recipient"
+      return callback new KodingError 'You should have at least one recipient'
 
     doRequest 'initPrivateMessage', client, data, callback
 
   sendPrivateMessageHelper = (client, data, callback) ->
     unless data.body
-      return callback message: "Message body should be set"
+      return callback new KodingError 'Message body should be set'
 
     unless data.channelId
-      return callback message: "Conversation is not defined"
+      return callback new KodingError 'Conversation is not defined'
 
     doRequest 'sendPrivateMessage', client, data, callback
 
@@ -174,32 +175,32 @@ module.exports = class SocialMessage extends Base
     success: sendPrivateMessageHelper
 
   # searchChats - browse chats depending on purpose/username fields
-  @search  = secureRequest fnName: 'searchChats'
+  @search  = secureRequest { fnName: 'searchChats' }
 
   # todo-- ask Chris about using validators.own
   # how to implement for this case
-  @canEdit = (client, data, callback)->
-    {delegate} = client.connection
+  @canEdit = (client, data, callback) ->
+    { delegate } = client.connection
     @checkMessagePermission client, data, delegate.canEditPost, callback
 
-  @canDelete = (client, data, callback)->
-    {delegate} = client.connection
+  @canDelete = (client, data, callback) ->
+    { delegate } = client.connection
     @checkMessagePermission client, data, delegate.canDeletePost, callback
 
-  @checkMessagePermission = (client, data, fn, callback)->
-    return callback {message: "Id is not set"} unless data.id
-    {delegate} = client.connection
+  @checkMessagePermission = (client, data, fn, callback) ->
+    return callback new KodingError 'Id is not set'  unless data.id
+    { delegate } = client.connection
     # get api id of the client
     # TODO we are also calling this method inside do request
-    delegate.createSocialApiId (err, socialApiId)=>
+    delegate.createSocialApiId (err, socialApiId) =>
       return callback err  if err
       # fetch the message
-      if delegate.checkFlag "super-admin"
+      if delegate.checkFlag 'super-admin'
         data.showExempt = true
-      @byId client, data, (err, message)->
+      @byId client, data, (err, message) ->
         return callback new ApiError err  if err
-        return callback { message: "Post is not found" }  unless message?.message
-        {message: {accountId}} = message
+        return callback new KodingError 'Post is not found'  unless message?.message
+        { message: { accountId } } = message
         if accountId is socialApiId
           return callback null, yes
         fn client, callback
@@ -214,10 +215,10 @@ module.exports = class SocialMessage extends Base
 
     urls = [urls]  unless Array.isArray urls
 
-    Embedly    = require "embedly"
+    Embedly    = require 'embedly'
     { apiKey } = KONFIG.embedly
 
-    new Embedly key: apiKey, (err, api) ->
+    new Embedly { key: apiKey }, (err, api) ->
 
       return callback err  if err
 
@@ -232,6 +233,7 @@ module.exports = class SocialMessage extends Base
         callback err, result
 
 
-  @paymentSubscribe = secure (client, options, callback)->
-    doRequest "paymentSubscribe", client, options, callback
+  @paymentSubscribe = secure (client, options, callback) ->
+    doRequest 'paymentSubscribe', client, options, callback
+
 

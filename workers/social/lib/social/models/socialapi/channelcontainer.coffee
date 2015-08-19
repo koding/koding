@@ -1,5 +1,5 @@
-Bongo          = require "bongo"
-{Base} = Bongo
+Bongo         = require 'bongo'
+{ Base }      = Bongo
 SocialChannel = require './channel'
 SocialMessage = require './message'
 
@@ -13,4 +13,5 @@ module.exports = class SocialChannelContainer extends Base
       participantCount   : Number
       participantPreview : Array
       lastMessage        : SocialMessage
+
 
