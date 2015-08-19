@@ -97,6 +97,26 @@ markUserAsTroll = (account) ->
     showMarkUserAsTrollSuccess account
 
 
+###*
+ * Action to unmark user as troll
+###
+unmarkUserAsTroll = (account) ->
+
+  { UNMARK_USER_AS_TROLL_BEGIN
+    UNMARK_USER_AS_TROLL_SUCCESS
+    UNMARK_USER_AS_TROLL_FAIL } = actions
+
+  dispatch UNMARK_USER_AS_TROLL_BEGIN, account
+
+  account.markUserAsExempt no, (err, res)=>
+    if err
+      dispatch UNMARK_USER_AS_TROLL_FAIL, { err, account }
+      showMarkUserAsTrollFail err, account
+      return
+
+    dispatch UNMARK_USER_AS_TROLL_SUCCESS, account
+    showUnmarkUserAsTrollSuccess account
+
 module.exports = {
   loadAccount
   searchAccounts
