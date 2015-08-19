@@ -103,3 +103,5 @@ module.exports = class ElasticSearch extends Base
       doc['@timestamp'] ?= new Date
 
     es.bulkIndex indexOptions, documents, callback
+
+
