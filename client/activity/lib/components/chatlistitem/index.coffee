@@ -47,7 +47,24 @@ module.exports = class ChatListItem extends React.Component
       isUserMarkedAsTroll           : @props.message.get('account').isExempt
       isBlockUserModalVisible       : @props.isBlockUserModalVisible
       isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
-      blockUserConfirmButtonTitle   : @props.blockUserConfirmButtonTitle
+
+
+  componentDidMount: ->
+
+    @getAccountInfo()
+
+
+  getAccountInfo: ->
+
+    { message } = @props
+    message = message.toJS()
+
+    if message.account._id
+      remote.cacheable "JAccount", message.account._id, (err, account)=>
+        return @setState account: account  if account
+    else if message.bongo_.constructorName is 'JAccount'
+      return @setState account: message  if account
+
 
   isEditedMessage: ->
 
@@ -58,6 +75,7 @@ module.exports = class ChatListItem extends React.Component
 
 
   getItemProps: ->
+
     key       : @props.message.get 'id'
     className : classnames
       'ChatItem': yes
@@ -82,7 +100,7 @@ module.exports = class ChatListItem extends React.Component
     ]
 
 
-  getAdminMenuItems: =>
+  getAdminMenuItems: ->
 
     { message } = @props
     markUserMenuItem = {title: 'Mark User as Troll', key: 'markuserastroll', onClick: @bound 'showMarkUserAsTrollPromptModal'}
