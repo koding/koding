@@ -5,7 +5,7 @@ KodingError              = require '../../error'
 
 module.exports = class JStackTemplate extends Module
 
-  {permit}     = require '../group/permissionset'
+  { permit }   = require '../group/permissionset'
   Validators   = require '../group/validators'
 
   @trait __dirname, '../../traits/protected'
@@ -117,7 +117,7 @@ module.exports = class JStackTemplate extends Module
       { delegate } = client.connection
 
       unless data?.title
-        return callback new KodingError "Title required."
+        return callback new KodingError 'Title required.'
 
       stackTemplate = new JStackTemplate
         originId    : delegate.getId()
@@ -135,7 +135,7 @@ module.exports = class JStackTemplate extends Module
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
 
-
+  # coffeelint: disable=no_implicit_braces
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -297,3 +297,5 @@ Default Template ---
 }
 
 ###
+
+
