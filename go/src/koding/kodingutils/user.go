@@ -40,53 +40,7 @@ func IsKodingEmployee(username string) (bool, error) {
 	return false, nil
 }
 
-func StopVM(kiteClient *kite.Client, username, reason string) error {
-	machines, err := modelhelper.GetMachinesByUsername(username)
-	if err != nil {
-		return err
-	}
-
-	var errs *multierror.Error
-
-	for _, machine := range machines {
-		if machine.Status.State != "Running" {
-			errs = multierror.Append(errs,
-				fmt.Errorf("Machine: '%s' has status: '%s'...skipping", machine.ObjectId, machine.Status.State),
-			)
-			continue
-		}
-
-		isKodingOwned, err := IsKodingOwnedVM(machine.ObjectId)
-		if err != nil {
-			errs = multierror.Append(errs,
-				fmt.Errorf("Error fetching provider for VM to stop it: %s", err),
-			)
-			continue
-		}
-
-		if isKodingOwned {
-			errs = multierror.Append(errs,
-				fmt.Errorf("Machine: '%s' has provider: '%s'...skipping", machine.ObjectId, machine.Provider),
-			)
-			continue
-		}
-
-		_, err = kiteClient.TellWithTimeout("stop", KloudTimeout, &kloudRequestArgs{
-			MachineId: machine.ObjectId.Hex(),
-			Reason:    reason,
-			Provider:  KodingProvider,
-		})
-
-		if err != nil {
-			errs = multierror.Append(errs,
-				fmt.Errorf("Failed to stop machine: '%s' for username: '%s' due to: %s", machine.ObjectId, username, err),
-			)
-		}
-	}
-
-	return nil
-}
-
+// BlockUser blocks user, stops their Koding VMs and removes sessions.
 func BlockUser(kiteClient *kite.Client, username, reason string, d time.Duration) error {
 	if err := StopVM(kiteClient, username, reason); err != nil {
 		return err
@@ -95,7 +49,8 @@ func BlockUser(kiteClient *kite.Client, username, reason string, d time.Duration
 	selector := bson.M{"username": username}
 	updateQuery := bson.M{"$set": bson.M{
 		"status":        modelhelper.UserStatusBlocked,
-		"blockedReason": reason, "blockedUntil": time.Now().UTC().Add(d),
+		"blockedReason": reason,
+		"blockedUntil":  time.Now().UTC().Add(d),
 	}}
 
 	query := func(c *mgo.Collection) error {
@@ -107,4 +62,30 @@ func BlockUser(kiteClient *kite.Client, username, reason string, d time.Duration
 	}
 
 	return modelhelper.RemoveSession(username)
+}
+
+// StopVM gets list of running Koding owned VMs for user and stops them.
+func StopVM(kiteClient *kite.Client, username, reason string) error {
+	machines, err := modelhelper.GetKodingRunningVMs(username)
+	if err != nil {
+		return err
+	}
+
+	var errs *multierror.Error
+
+	for _, machine := range machines {
+		_, err = kiteClient.TellWithTimeout("stop", KloudTimeout, &kloudRequestArgs{
+			MachineId: machine.ObjectId.Hex(),
+			Reason:    reason,
+			Provider:  KodingProvider,
+		})
+
+		if err != nil {
+			errs = multierror.Append(errs,
+				fmt.Errorf("Error stopping machine: '%s' for username: '%s' due to: '%s'", machine.ObjectId, username, err),
+			)
+		}
+	}
+
+	return errs.ErrorOrNil()
 }

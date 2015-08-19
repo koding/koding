@@ -12,6 +12,7 @@ const (
 	MachinesColl           = "jMachines"
 	MachineConstructorName = "JMachine"
 	MachineStateRunning    = "Running"
+	MachineProviderKoding  = "koding"
 )
 
 type Bongo struct {
@@ -81,6 +82,21 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": user.ObjectId, "owner": true},
+	}}
+
+	return findMachines(query)
+}
+
+func GetKodingRunningVMs(username string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.M{"users": bson.M{
+		"status.state": MachineStateRunning,
+		"provider":     MachineProviderKoding,
+		"$elemMatch":   bson.M{"id": user.ObjectId, "owner": true},
 	}}
 
 	return findMachines(query)
