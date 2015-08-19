@@ -1,3 +1,4 @@
+KodingError   = require '../../error.coffee'
 JResourcePlan = require './resourceplan'
 JPaymentPack  = require './pack'
 JPaymentFulfillmentNonce = require './nonce'
@@ -26,22 +27,28 @@ module.exports = class JGroupPlan extends JResourcePlan
 
     JGroup = require '../group'
 
-    JGroup.one slug: 'koding', (err, koding) ->
+    JGroup.one { slug: 'koding' }, (err, koding) ->
       return callback err  if err
 
-      packOptions = targetOptions: selector: tags: 'group'
+      packOptions =
+        targetOptions :
+          selector    :
+            tags      : 'group'
 
       koding.fetchPack {}, packOptions, (err, pack) ->
         return callback err  if err
 
-        subOptions = targetOptions: selector: tags: 'custom-plan'
+        subOptions =
+          targetOptions :
+            selector    :
+              tags      : 'custom-plan'
 
         delegate.fetchSubscription {}, subOptions, (err, subscription) ->
           return callback err  if err
           return callback null, no  unless subscription
 
           subscription.checkUsage pack, (err) ->
-            callback err, !err?
+            callback err, not err?
 
   @calculateQuantities = (calcOptions, callback) ->
     calculateQuantities.call this, calcOptions, (err, quantities) =>
@@ -50,11 +57,11 @@ module.exports = class JGroupPlan extends JResourcePlan
       { plan, userQuantity } = calcOptions
 
       unless 'custom-plan' in plan.tags
-        return callback message: 'This plan is not tagged with "custom-plan"'
+        return callback new KodingError 'This plan is not tagged with "custom-plan"'
 
       queue = [
         =>
-          @fetchProductCode plan, "group", (err, productCode) ->
+          @fetchProductCode plan, 'group', (err, productCode) ->
             return callback err  if err
 
             quantities[productCode] = plan.quantities[productCode]
@@ -64,11 +71,14 @@ module.exports = class JGroupPlan extends JResourcePlan
       dash queue, -> callback null, quantities
 
   @fetchProductCode = (plan, tags, callback) ->
-    queryOptions = targetOptions: selector: { tags }
+    queryOptions =
+      targetOptions :
+        selector    : { tags }
+
     plan.fetchProducts null, queryOptions, (err, products) ->
       return callback err  if err
       unless products?.length
-        return callback message: "no products found"
+        return callback new KodingError 'no products found'
 
       callback null, products[0].planCode
 
@@ -91,10 +101,12 @@ module.exports = class JGroupPlan extends JResourcePlan
 
     { userQuantity, resourceQuantity } = options.planOptions
 
-    if "custom-plan" in options.plan.tags
+    if 'custom-plan' in options.plan.tags
       unless userQuantity or resourceQuantity
-        return callback "User and resource quantities not specified"
+        return callback 'User and resource quantities not specified'
 
       options.feeAmount = calculateCustomPlanUnitAmount userQuantity, resourceQuantity
 
     subscribeToPlan.call this, client, options, callback
+
+
