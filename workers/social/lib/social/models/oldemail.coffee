@@ -1,6 +1,7 @@
+# coffeelint: disable=no_implicit_braces
 # We're not longer using JMail to send emails. See `email.coffee`,
 # this is here just for legacy reasons.
-{Model, signature} = require 'bongo'
+{ Model, signature } = require 'bongo'
 
 { v4: createId } = require 'node-uuid'
 
@@ -60,11 +61,11 @@ module.exports = class JMail extends Model
       bcc             : String
       properties      : Object
 
-  save:(callback)->
-    @unsubscribeId = getUniqueId()+''  unless @_id? or @force
+  save:(callback) ->
+    @unsubscribeId = getUniqueId() + ''  unless @_id? or @force
     super
 
-  isUnsubscribed:(callback)->
+  isUnsubscribed:(callback) ->
     JUnsubscribedMail = require './unsubscribedmail'
     JUnsubscribedMail.isUnsubscribed @email, callback
 
@@ -84,29 +85,29 @@ module.exports = class JMail extends Model
 
       mail.update operation, callback
 
-  @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
-    JMail.one {email, unsubscribeId}, (err, mail)->
+  @unsubscribeWithId = (unsubscribeId, email, opt, callback) ->
+    JMail.one { email, unsubscribeId }, (err, mail) ->
       return callback err  if err or not mail
 
       JUnsubscribedMail = require './unsubscribedmail'
-      JUnsubscribedMail.one {email}, (err, unsubscribed)->
+      JUnsubscribedMail.one { email }, (err, unsubscribed) ->
         return callback err  if err
         return callback null, 'Email was already unsubscribed'  if unsubscribed
 
-        unsubscribed = new JUnsubscribedMail {email}
-        unsubscribed.save (err)->
+        unsubscribed = new JUnsubscribedMail { email }
+        unsubscribed.save (err) ->
           callback err, unless err then 'Successfully unsubscribed' else null
 
-  @fetchWithUnsubscribedInfo = (selector, options, callback)->
+  @fetchWithUnsubscribedInfo = (selector, options, callback) ->
     JUnsubscribedMail = require './unsubscribedmail'
 
-    JMail.some selector, options, (err, mails)->
+    JMail.some selector, options, (err, mails) ->
       return callback err  if err
       return unless mails?.length > 0
 
       emailsToCheck = (mail.email  for mail in mails when not mail.force)
 
-      JUnsubscribedMail.some email: $in: emailsToCheck, {}, (err, uMails)->
+      JUnsubscribedMail.some { email: { $in: emailsToCheck } }, {}, (err, uMails) ->
         return callback err  if err
 
         unsubscribedEmails = (uMail.email  for uMail in uMails)
@@ -116,10 +117,12 @@ module.exports = class JMail extends Model
           unless mail.email in unsubscribedEmails
             cleanedMails.push mail
           else
-            mail.update $set: {status: 'unsubscribed'}, (err)->
+            mail.update { $set: { status: 'unsubscribed' } }, (err) ->
               # it's not fatal enough to break the process
               # also we don't wait for this to proceed with sending the emails
               # doing a callback(err) here can have unexpected outcomes
               console.log err  if err
 
         callback null, cleanedMails
+
+
