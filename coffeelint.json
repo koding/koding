@@ -79,7 +79,7 @@
     "level": "ignore"
   },
   "no_interpolation_in_single_quotes": {
-    "level": "error"
+    "level": "ignore"
   },
   "no_plusplus": {
     "level": "ignore"
