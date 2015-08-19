@@ -5,54 +5,54 @@ ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
 Regions           = require 'koding-regions'
-{argv}            = require 'optimist'
+{ argv }          = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 
-isValid = ({ipAddress, queryString, storage}, callback)->
+isValid = ({ ipAddress, queryString, storage }, callback) ->
 
   if ipAddress? and (ipAddress.split '.').length isnt 4
     return callback new KodingError \
-      "Provided IP is not valid", "WrongParameter"
+      'Provided IP is not valid', 'WrongParameter'
 
   if queryString? and (queryString.split '/').length isnt 8
     return callback new KodingError \
-      "Provided queryString is not valid", "WrongParameter"
+      'Provided queryString is not valid', 'WrongParameter'
 
   if storage? and isNaN +storage
     return callback new KodingError \
-      "Provided storage is not valid", "WrongParameter"
+      'Provided storage is not valid', 'WrongParameter'
 
   return yes
 
-getKiteIdOnly = (queryString)->
+getKiteIdOnly = (queryString) ->
   "///////#{queryString.split('/').reverse()[0]}"
 
 module.exports = class Managed extends ProviderInterface
 
   @providerSlug = 'managed'
 
-  @ping = (client, options, callback)->
+  @ping = (client, options, callback) ->
 
-    {nickname} = client.r.account.profile
+    { nickname } = client.r.account.profile
     callback null, "#{ @providerSlug } VMs rulez #{ nickname }!"
 
 
-  @create = (client, options, callback)->
+  @create = (client, options, callback) ->
 
     { label, queryString, ipAddress } = options
     { r: { group, user, account } } = client
 
-    return  unless isValid {queryString, ipAddress}, callback
+    return  unless isValid { queryString, ipAddress }, callback
 
     queryString = getKiteIdOnly queryString
     provider    = @providerSlug
 
     { guessNextLabel, fetchUserPlan, fetchUsage } = require './computeutils'
 
-    guessNextLabel { user, group, label, provider }, (err, label)->
-      fetchUserPlan client, (err, userPlan)->
-        fetchUsage client, {provider}, (err, usage)->
+    guessNextLabel { user, group, label, provider }, (err, label) ->
+      fetchUserPlan client, (err, userPlan) ->
+        fetchUsage client, { provider }, (err, usage) ->
 
           return callback err  if err?
 
@@ -60,7 +60,7 @@ module.exports = class Managed extends ProviderInterface
             return callback new KodingError """
               Total limit of #{userPlan.managed}
               managed vm limit has been reached.
-            """, "UsageLimitReached"
+            """, 'UsageLimitReached'
 
           meta =
             type          : @providerSlug
@@ -73,7 +73,7 @@ module.exports = class Managed extends ProviderInterface
           }
 
 
-  @postCreate = (client, options, callback)->
+  @postCreate = (client, options, callback) ->
 
     { r: { account } } = client
     { machine, postCreateOptions:{ queryString, ipAddress } } = options
@@ -83,9 +83,9 @@ module.exports = class Managed extends ProviderInterface
     machine.update {
       $set: {
         queryString, domain, ipAddress
-        status: {state: 'Running'}
+        status: { state: 'Running' }
       }
-    }, (err)->
+    }, (err) ->
 
       return callback err  if err
 
@@ -93,34 +93,34 @@ module.exports = class Managed extends ProviderInterface
       JWorkspace.createDefault client, machine.uid, callback
 
 
-  @remove = (client, options, callback)->
+  @remove = (client, options, callback) ->
 
-    {machineId} = options
+    { machineId } = options
     JMachine    = require './machine'
     selector    = JMachine.getSelectorFor client, { machineId, owner: yes }
 
-    JMachine.one selector, (err, machine)->
+    JMachine.one selector, (err, machine) ->
       if err or not machine
-      then callback new KodingError "Machine not found."
+      then callback new KodingError 'Machine not found.'
       else machine.destroy client, callback
 
 
-  @update = (client, options, callback)->
+  @update = (client, options, callback) ->
 
     { machineId, queryString, ipAddress, storage, managedProvider } = options
     { r: { group, user, account } } = client
 
     unless machineId? or (queryString? or ipAddress? or storage?)
       return callback new KodingError \
-        "A valid machineId and an update option is required.", "WrongParameter"
+        'A valid machineId and an update option is required.', 'WrongParameter'
 
-    return  unless isValid {ipAddress, queryString, storage}, callback
+    return  unless isValid { ipAddress, queryString, storage }, callback
 
     fieldsToUpdate = {}
 
     if ipAddress?
       domain = ipAddress
-      fieldsToUpdate = {domain, ipAddress}
+      fieldsToUpdate = { domain, ipAddress }
 
     fieldsToUpdate.queryString = getKiteIdOnly queryString  if queryString?
 
@@ -131,10 +131,12 @@ module.exports = class Managed extends ProviderInterface
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
     selector.provider = @providerSlug
 
-    JMachine.one selector, (err, machine)->
+    JMachine.one selector, (err, machine) ->
 
       if err? or not machine?
-        return callback err or new KodingError "Machine object not found."
+        return callback err or new KodingError 'Machine object not found.'
 
-      machine.update $set: fieldsToUpdate, (err)->
+      machine.update { $set: fieldsToUpdate }, (err) ->
         callback err
+
+
