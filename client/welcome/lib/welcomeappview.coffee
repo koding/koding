@@ -19,28 +19,27 @@ module.exports = class WelcomeAppView extends kd.View
         """
 
 
+  putAdminInstructions: ->
 
-  putInstructions: ->
-
-      @welcome.setPartial """
-        <ul>
-          <li>
-            <a href='/Admin/Stacks'>
-              <cite>1</cite>
-              <div>
-                <span>Configure user environment</span>
-                <span>Setup machine stacks & add their codebase</span>
-              </div>
-            </a>
-          </li>
-          <li>
-            <a href='/Admin/Invitations'>
-              <cite>2</cite>
-              <div>
-                <span>Invite your team</span>
-                <span>Send out invites to your developers</span>
-              </div>
-            </a>
-          </li>
-        </ul>
+    @welcome.addSubView new kd.CustomHTMLView
+      tagName : 'ul'
+      partial : """
+        <li>
+          <a href='/Admin/Stacks'>
+            <cite>1</cite>
+            <div>
+              <span>Configure user environment</span>
+              <span>Setup machine stacks & add their codebase</span>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href='/Admin/Invitations'>
+            <cite>2</cite>
+            <div>
+              <span>Invite your team</span>
+              <span>Send out invites to your developers</span>
+            </div>
+          </a>
+        </li>
         """
