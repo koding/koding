@@ -47,7 +47,21 @@ module.exports =
           .end()
 
 
- addVM: (browser) ->
+  createSnapshotForNonPaidUser: (browser) ->
+
+    messageSelector  = '.kdmodal.computeplan-modal .message'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.attemptCreateSnapshot(browser)
+
+    browser
+      .waitForElementVisible messageSelector, 20000
+      .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion
+      .end()
+
+
+  addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
 
@@ -126,37 +140,23 @@ module.exports =
               .end()
 
 
-  createSnapshotForNonPaidUser: (browser) ->
-    
-    messageSelector  = '.kdmodal.computeplan-modal .message'
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    environmentHelpers.attemptCreateSnapshot(browser)
-
-    browser
-      .waitForElementVisible messageSelector, 20000
-      .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion
-      .end()
-
-
   createSnapshot: (browser) ->
-   
+
     labelSelector   = '.kdlistitemview-snapshot .info .label'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    
+
     name = environmentHelpers.createSnapshot(browser)
 
     browser
       .waitForElementVisible labelSelector, 300000
       .assert.containsText   labelSelector, name #Assertion
       .end()
- 
+
 
   renameSnapshot: (browser) ->
-    
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
@@ -166,10 +166,9 @@ module.exports =
       renamed = environmentHelpers.nameSnapshot(browser)
       environmentHelpers.assertSnapshotPresent browser, renamed, false
       browser.end()
-      
 
 
-  #This test depends on createSnapshot
+  # This test depends on createSnapshot
   deleteSnapshot: (browser) ->
 
     confirmSelector = ".kdmodal .kdmodal-buttons .red"
@@ -185,7 +184,7 @@ module.exports =
       browser
         .waitForElementNotPresent confirmSelector, 20000
         .pause                    1000 #Deleted snapshots take a little time to disappear.
-      
+
       environmentHelpers.assertSnapshotPresent browser, name, true
 
       browser.end()
