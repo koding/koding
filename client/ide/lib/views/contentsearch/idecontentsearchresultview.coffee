@@ -23,9 +23,16 @@ module.exports = class IDEContentSearchResultView extends KDView
     { result, stats, searchText, isCaseSensitive, @machine } = options
 
     for fileName, lines of result
-      @scrollView.wrapper.addSubView new KDCustomHTMLView
-        partial  : "#{fileName}"
-        cssClass : 'filename'
+      @scrollView.wrapper.addSubView fileItem = new KDCustomHTMLView
+        partial     : "<span>#{fileName}</span>"
+        cssClass    : 'filename'
+
+      fileItem.on 'OpenFile', @bound 'openFile'
+      fileItem.setAttribute 'data-file-path', fileName
+
+      fileItem.on 'dblclick', ->
+        [target] = @getDomElement()
+        @emit 'OpenFile', target  if target
 
       previousLine = null
 
@@ -35,7 +42,7 @@ module.exports = class IDEContentSearchResultView extends KDView
             cssClass : 'separator'
             partial  : '...'
 
-        view = @scrollView.wrapper.addSubView new KDCustomHTMLView
+        view = fileItem.addSubView new KDCustomHTMLView
           tagName  : 'pre'
           cssClass : 'line'
 
@@ -55,10 +62,15 @@ module.exports = class IDEContentSearchResultView extends KDView
 
     { target } = event
 
-    return unless  target.classList.contains 'match'
+    return  unless target.classList.contains 'match'
+
+    @openFile target
+
+
+  openFile: (target) ->
 
     path       = target.getAttribute 'data-file-path'
-    lineNumber = target.getAttribute 'data-line-number'
+    lineNumber = target.getAttribute('data-line-number') or 0
     file       = FSHelper.createFileInstance { path, @machine }
 
     file.fetchContents (err, contents) ->
