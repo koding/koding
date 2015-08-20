@@ -69,7 +69,8 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	// Check klient state before rushing to AWS.
 	klientRef, err := klient.Connect(m.Session.Kite, m.QueryString)
 	if err != nil {
-		m.Log.Debug("Error connecting to klient, stopping if needed. Error: " + err.Error())
+		m.Log.Debug("Error connecting to klient, stopping if needed. Error: %s",
+			err.Error())
 		return m.stopIfKlientIsMissing(ctx)
 	}
 
@@ -83,7 +84,8 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	klientRef.Close()
 	klientRef = nil
 	if err != nil {
-		m.Log.Debug("Error getting klient usage, stopping if needed. Error: " + err.Error())
+		m.Log.Debug("Error getting klient usage, stopping if needed. Error: %s",
+			err.Error())
 		return m.stopIfKlientIsMissing(ctx)
 	}
 
