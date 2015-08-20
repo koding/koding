@@ -6,9 +6,11 @@ TimeAgo              = require 'app/components/common/timeago'
 immutable            = require 'immutable'
 MessageBody          = require 'activity/components/common/messagebody'
 ProfileText          = require 'app/components/profile/profiletext'
-FeedItemAction       = require './feeditemaction'
 MessageLikeSummary   = require 'activity/components/common/messagelikesummary'
+Avatar               = require 'app/components/profile/avatar'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+MessageLikeLink      = require 'activity/components/common/messagelikelink'
+
 
 module.exports = class FeedItem extends React.Component
 
@@ -17,11 +19,13 @@ module.exports = class FeedItem extends React.Component
   shouldComponentUpdate: (nextProps, nextState) ->
     return @props.message isnt nextProps.message
 
+
   onConversationButtonClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
     kd.singletons.router.handleRoute "/Channels/Public/summary/#{@props.message.get 'slug'}"
+
 
   render: ->
     { message } = @props
@@ -30,6 +34,7 @@ module.exports = class FeedItem extends React.Component
         <div className="FeedItem-headerContentWrapper">
           {makeProfileLink message.get 'account'}
           {makeTimeAgo message.get 'createdAt'}
+          {makeLikeLink message}
         </div>
       </header>
       <section className="FeedItem-body">
@@ -39,8 +44,7 @@ module.exports = class FeedItem extends React.Component
       </section>
       <footer className="FeedItem-footer">
         <div className="FeedItem-summary">
-          {makeLikes message.getIn ['interactions', 'like', 'actorsCount']}
-          {makeComments message.get 'repliesCount'}
+          {makeAvatarGroup message}
         </div>
         <div className="FeedItem-footerActionContainer">
           <button
@@ -51,35 +55,39 @@ module.exports = class FeedItem extends React.Component
     </div>
 
 
-makeComments = (count) ->
-  return null  unless count
-  <span className="FeedItem-summaryItem FeedItem-replyCount">
-    <cite>{count}</cite>
-    Comments
-  </span>
+makeAvatarGroup = (message) ->
+  return null  unless message.get('replies').size
+  avatars = message.get('replies')
+    .reduce (people, reply) ->
+      people.set reply.getIn(['account', '_id']), reply.get 'account'
+    , immutable.Map()
+    .map makeAvatar
 
-makeLikes = (count) ->
-  return null  unless count
-  <span className="FeedItem-summaryItem FeedItem-likeCount">
-    <cite>{count}</cite>
-    Likes
-  </span>
-
+  return \
+    <span className="FeedItem-avatarGroup">
+      <span className="FeedItem-avatarGroupLabel">People:</span>
+      {avatars}
+    </span>
 
 makeTimeAgo = (createdAt) ->
+
   <Link className="FeedItem-date u-color-light-text">
     <TimeAgo from={createdAt} />
   </Link>
 
 makeProfileLink = (imAccount) ->
+
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
 
 makeAvatar = (imAccount) ->
+
   <ProfileLinkContainer origin={imAccount.toJS()}>
-    <Avatar className="FeedItem-Avatar" width={35} height={35} />
+    <Avatar className="FeedItem-Avatar" width={28} height={28} />
   </ProfileLinkContainer>
 
+
+makeLikeLink = (message) -> <MessageLikeLink message={message} />
 
 

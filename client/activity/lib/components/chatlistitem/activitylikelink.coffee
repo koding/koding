@@ -1,6 +1,7 @@
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
+Link         = require 'app/components/common/link'
 
 
 module.exports = class ActivityLikeLink extends React.Component
@@ -20,14 +21,13 @@ module.exports = class ActivityLikeLink extends React.Component
     { likeMessage, unlikeMessage } = ActivityFlux.actions.message
 
     if @props.interactions.like.isInteracted
-      unlikeMessage @props.messageId
-    else
-      likeMessage @props.messageId
+    then unlikeMessage @props.messageId
+    else likeMessage @props.messageId
 
 
   render: ->
 
-    <a className={@getClassName()} onClick={ @bound 'onClick'} ></a>
+    <Link className={@getClassName()} onClick={@bound 'onClick'} ></Link>
 
 
 

@@ -2,9 +2,8 @@ $base-padding               = 18px
 
 .FeedItem
   width                     100%
-  background                $white
   border-radius             $border-radius
-  // border                    1px solid #EAEAEA
+  border                    1px solid #EAEAEA
   margin-bottom             10px
   padding                   0
   font-size                 $fs-regular
@@ -13,13 +12,18 @@ $base-padding               = 18px
     opacity                 .5 !important
 
 .FeedItem-header
+  background                $white
   padding                   $base-padding $base-padding 0 $base-padding
+  border-radius             $border-radius $border-radius 0 0
+
+.FeedItem-headerContentWrapper
+  rel()
 
 .FeedItem-date
   font-size                 $fs-small
   color                     $color-light-text
 
-
+.FeedItem .MessageLikeLink:before
 .FeedItem-date:before
   content                   ""
   display                   inline-block
@@ -30,7 +34,22 @@ $base-padding               = 18px
   margin                    0 6px
   vertical-align            middle
 
+.FeedItem .MessageLikeLink
+  abs()
+
+  &:after
+    abs                     3px 0 0 0
+    content                 ''
+    r-sprite                activity icon-feed-like-empty
+    size                    17px 15px
+    pointer()
+
+  &.is-likedByUser:after
+    r-sprite                activity icon-feed-like
+    size                    17px 15px
+
 .FeedItem-body
+  background                $white
   padding                   ($base-padding/2) $base-padding
 
 .FeedItemAction
@@ -43,7 +62,7 @@ $base-padding               = 18px
 
 .FeedItem-footer
   dispFlex()
-  border                    1px solid #EAEAEA
+  border-top                1px solid #EAEAEA
   bg                        color #FBFAF9
   border-radius             0 0 $border-radius $border-radius
   padding                   $base-padding
@@ -53,21 +72,20 @@ $base-padding               = 18px
   dispFlex()
   align-items               center
 
-.FeedItem-summaryItem
-  cite
-    font-weight             $fw-semibold
-    margin-right            3px
+.FeedItem-avatarGroup
+  dispFlex()
+  align-items               center
 
-.FeedItem-summaryItem~.FeedItem-summaryItem:before
-  content                   ""
-  display                   inline-block
-  size                      3px, 3px
-  rounded                   50%
-  background                $gray-5
-  margin                    0 6px
-  vertical-align            middle
+  .ProfilePicture
+    border-radius           2px
+    margin-right            2px
+
+.FeedItem-avatarGroupLabel
+  margin-right              10px
 
 .FeedItem-footerActionContainer
   flex                      4
   dispFlex()
   justify-content           flex-end
+
+
