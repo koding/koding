@@ -1,14 +1,18 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-immutable      = require 'immutable'
-classnames     = require 'classnames'
-ActivityFlux   = require 'activity/flux'
-Dropup         = require 'activity/components/dropup'
-UserDropupItem = require 'activity/components/userdropupitem'
-scrollToTarget  = require 'activity/util/scrollToTarget'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+UserDropupItem       = require 'activity/components/userdropupitem'
+scrollToTarget       = require 'activity/util/scrollToTarget'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class UserDropup extends React.Component
+
+  @include [ImmutableRenderMixin]
+
 
   @defaultProps =
     items        : immutable.List()
@@ -28,7 +32,7 @@ module.exports = class UserDropup extends React.Component
   confirmSelectedItem: ->
 
     { selectedItem } = @props
-    
+
     @props.onItemConfirmed? "@#{selectedItem.getIn ['profile', 'nickname']}"
     @close()
 
