@@ -17,14 +17,7 @@ module.exports = class WelcomeAppView extends kd.View
           environment in the cloud
         </p>
         """
-    { groupsController } = kd.singletons
-    groupsController.ready =>
-      currentGroup = groupsController.getCurrentGroup()
-      currentGroup.fetchMyRoles (err, roles) =>
-        return  kd.warn err  if err
-        return  unless 'admin' in (roles ? [])
 
-        @putInstructions()
 
 
   putInstructions: ->
