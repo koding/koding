@@ -2,6 +2,7 @@
 SocialChannel  = require '../models/socialapi/channel'
 SocialMessage  = require '../models/socialapi/message'
 JAccount       = require '../models/account'
+KodingError    = require '../error'
 
 
 module.exports = (options = {}, callback) ->
@@ -51,7 +52,7 @@ module.exports = (options = {}, callback) ->
     # fetch channel first
     SocialChannel.byName client, { name: channelName }, (err, data) ->
       return cb err if err
-      return cb { message: 'channel is not set' } unless data?.channel
+      return cb new KodingError 'channel is not set'  unless data?.channel
 
       # then fetch activity with channel id
       SocialChannel.fetchActivities client, { id: data.channel.id, sessionToken }, cb
@@ -59,7 +60,7 @@ module.exports = (options = {}, callback) ->
   fetchProfileFeed = (client, params, cb) ->
     JAccount.one { 'profile.nickname': entryPoint.slug }, (err, account) ->
       return cb err if err
-      return cb { message: 'account not found' } unless account
+      return cb new KodingError 'account not found'  unless account
       SocialChannel.fetchProfileFeed client, { targetId: account.socialApiId }, cb
 
   fetchActivitiesForNavigatedURL = (params, cb) ->
@@ -69,7 +70,7 @@ module.exports = (options = {}, callback) ->
       when 'Topic'           then fetchChannelActivities params.slug, cb
       when 'Message'         then SocialChannel.fetchActivities client, { id: params.slug, sessionToken }, cb
       when 'Post'            then SocialMessage.bySlug client, { slug: params.slug }, cb
-      when 'Announcement'    then cb { message: 'announcement not implemented' }
+      when 'Announcement'    then cb new KodingError 'announcement not implemented'
       else fetchGroupActivities cb
 
   reqs = [
