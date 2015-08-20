@@ -40,6 +40,28 @@ loadChannelByName = (name) ->
 
 
 ###*
+ * Action to load channel with given id.
+ *
+ * @param {string} id - id of the channel
+###
+loadChannelById = (id) ->
+
+  { LOAD_CHANNEL_BY_ID_BEGIN
+    LOAD_CHANNEL_BY_ID_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
+
+  dispatch LOAD_CHANNEL_BY_ID_BEGIN, { id }
+
+  kd.singletons.socialapi.channel.byId { id }, (err, channel) ->
+    if err
+      dispatch LOAD_CHANNEL_BY_ID_FAIL, { err }
+      return
+
+    realtimeActionCreators.bindChannelEvents channel
+    dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+
+###*
  * Load participants of a channel.
  *
  * @param {string} channelId
@@ -316,6 +338,7 @@ module.exports = {
   followChannel
   unfollowChannel
   loadChannelByName
+  loadChannelById
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
   loadParticipants

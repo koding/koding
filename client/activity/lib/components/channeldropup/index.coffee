@@ -1,18 +1,18 @@
-kd                      = require 'kd'
-React                   = require 'kd-react'
-immutable               = require 'immutable'
-classnames              = require 'classnames'
-ActivityFlux            = require 'activity/flux'
-Dropup                  = require 'activity/components/dropup'
-ChannelDropupItem       = require 'activity/components/channeldropupitem'
-KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
-KeyboardScrolledDropup  = require 'activity/components/dropup/keyboardscrolleddropup'
-ImmutableRenderMixin    = require 'react-immutable-render-mixin'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+ActivityFlux                 = require 'activity/flux'
+Dropup                       = require 'activity/components/dropup'
+ChannelDropupItem            = require 'activity/components/channeldropupitem'
+KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
+KeyboardScrolledDropupMixin  = require 'activity/components/dropup/keyboardscrolleddropupmixin'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 
 
 module.exports = class ChannelDropup extends React.Component
 
-  @include [ImmutableRenderMixin, KeyboardNavigatedDropup, KeyboardScrolledDropup]
+  @include [ImmutableRenderMixin, KeyboardNavigatedDropupMixin, KeyboardScrolledDropupMixin]
 
 
   @defaultProps =
@@ -36,15 +36,16 @@ module.exports = class ChannelDropup extends React.Component
   requestPrevIndex: -> ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^#(.*)/
+    { currentWord } = textData
+
+    matchResult = currentWord?.match /^#(.*)/
     if matchResult
       query = matchResult[1]
       ActivityFlux.actions.channel.setChatInputChannelsQuery query
       ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
-    else if @isActive()
-      @close()
+      return yes
 
 
   onItemSelected: (index) ->

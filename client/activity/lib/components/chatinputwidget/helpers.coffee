@@ -23,7 +23,7 @@ module.exports = helpers =
     return matchResult?[1]
 
 
-  getDropupQuery: (textInput) ->
+  getCurrentWord: (textInput) ->
 
     textBeforeCursor = helpers.getTextBeforeCursor textInput
     lastWord         = helpers.getLastWord textBeforeCursor

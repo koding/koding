@@ -1,21 +1,27 @@
-kd               = require 'kd'
-React            = require 'kd-react'
-immutable        = require 'immutable'
-classnames       = require 'classnames'
-ActivityFlux     = require 'activity/flux'
-Dropup           = require 'activity/components/dropup'
-SearchDropupItem = require 'activity/components/searchdropupitem'
-
-KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
-KeyboardScrolledDropup  = require 'activity/components/dropup/keyboardscrolleddropup'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+ActivityFlux                 = require 'activity/flux'
+Dropup                       = require 'activity/components/dropup'
+SearchDropupItem             = require 'activity/components/searchdropupitem'
+KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
+KeyboardScrolledDropupMixin  = require 'activity/components/dropup/keyboardscrolleddropupmixin'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 
 
 module.exports = class SearchDropup extends React.Component
+
+  @include [ ImmutableRenderMixin, KeyboardNavigatedDropupMixin, KeyboardScrolledDropupMixin ]
+
 
   @defaultProps =
     items        : immutable.List()
     visible      : no
     selectedItem : null
+
+
+  formatSelectedValue: -> @props.selectedItem.get('message').toJS()
 
 
   getItemKey: (item) -> item.getIn ['message', 'id']
@@ -30,15 +36,16 @@ module.exports = class SearchDropup extends React.Component
   requestPrevIndex: -> ActivityFlux.actions.chatInputSearch.moveToPrevIndex()
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^\/s(.+)/
+    { value } = textData
+
+    matchResult = value.match /\/s(.+)/
     if matchResult
       query = matchResult[1]
       ActivityFlux.actions.chatInputSearch.setQuery query
       ActivityFlux.actions.chatInputSearch.setVisibility yes
-    else if @isActive()
-      @close()
+      return yes
 
 
   onItemSelected: (index) ->
@@ -76,6 +83,3 @@ module.exports = class SearchDropup extends React.Component
         {@renderList()}
       </div>
     </Dropup>
-
-
-React.Component.include.call SearchDropup, [KeyboardNavigatedDropup, KeyboardScrolledDropup]

@@ -1,18 +1,18 @@
-kd                      = require 'kd'
-React                   = require 'kd-react'
-immutable               = require 'immutable'
-classnames              = require 'classnames'
-ActivityFlux            = require 'activity/flux'
-Dropup                  = require 'activity/components/dropup'
-UserDropupItem          = require 'activity/components/userdropupitem'
-KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
-KeyboardScrolledDropup  = require 'activity/components/dropup/keyboardscrolleddropup'
-ImmutableRenderMixin    = require 'react-immutable-render-mixin'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+ActivityFlux                 = require 'activity/flux'
+Dropup                       = require 'activity/components/dropup'
+UserDropupItem               = require 'activity/components/userdropupitem'
+KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
+KeyboardScrolledDropupMixin  = require 'activity/components/dropup/keyboardscrolleddropupmixin'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 
 
 module.exports = class UserDropup extends React.Component
 
-  @include [ImmutableRenderMixin, KeyboardNavigatedDropup, KeyboardScrolledDropup]
+  @include [ImmutableRenderMixin, KeyboardNavigatedDropupMixin, KeyboardScrolledDropupMixin]
 
 
   @defaultProps =
@@ -36,15 +36,16 @@ module.exports = class UserDropup extends React.Component
   requestPrevIndex: -> ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^@(.*)/
+    { currentWord } = textData
+
+    matchResult = currentWord?.match /^@(.*)/
     if matchResult
       query = matchResult[1]
       ActivityFlux.actions.user.setChatInputUsersQuery query
       ActivityFlux.actions.user.setChatInputUsersVisibility yes
-    else if @isActive()
-      @close()
+      return yes
 
 
   onItemSelected: (index) ->

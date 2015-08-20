@@ -1,19 +1,19 @@
-$                       = require 'jquery'
-kd                      = require 'kd'
-React                   = require 'kd-react'
-immutable               = require 'immutable'
-classnames              = require 'classnames'
-formatEmojiName         = require 'activity/util/formatEmojiName'
-ActivityFlux            = require 'activity/flux'
-Dropup                  = require 'activity/components/dropup'
-EmojiDropupItem         = require 'activity/components/emojidropupitem'
-KeyboardNavigatedDropup = require 'activity/components/dropup/keyboardnavigateddropup'
-ImmutableRenderMixin    = require 'react-immutable-render-mixin'
+$                            = require 'jquery'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+formatEmojiName              = require 'activity/util/formatEmojiName'
+ActivityFlux                 = require 'activity/flux'
+Dropup                       = require 'activity/components/dropup'
+EmojiDropupItem              = require 'activity/components/emojidropupitem'
+KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 
 
 module.exports = class EmojiDropup extends React.Component
 
-  @include [ImmutableRenderMixin, KeyboardNavigatedDropup]
+  @include [ImmutableRenderMixin, KeyboardNavigatedDropupMixin]
 
 
   @defaultProps =
@@ -33,13 +33,16 @@ module.exports = class EmojiDropup extends React.Component
   requestPrevIndex: -> ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^\:(.+)/
+    { currentWord } = textData
+
+    matchResult = currentWord?.match /^\:(.+)/
     query = matchResult?[1]
 
-    if @isActive() or query
+    if query
       ActivityFlux.actions.emoji.setFilteredListQuery query
+      return yes
 
 
   onItemSelected: (index) ->

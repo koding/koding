@@ -11,6 +11,8 @@ KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
 Link            = require 'app/components/common/link'
 helpers         = require './helpers'
+groupifyLink   = require 'app/util/groupifyLink'
+
 
 module.exports = class ChatInputWidget extends React.Component
 
@@ -66,11 +68,22 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = event.target
     @setState { value }
 
-    textInput   = React.findDOMNode @refs.textInput
-    dropupQuery = helpers.getDropupQuery textInput
+    textInput = React.findDOMNode @refs.textInput
+    textData  =
+      currentWord : helpers.getCurrentWord textInput
+      value       : value
 
+    # Let every dropup check entered text.
+    # If any dropup considers text as a query,
+    # stop checking for others and close active dropup
+    # if it exists
+    queryIsSet = no
     for dropup in @getDropups()
-      dropup.setQuery dropupQuery
+      unless queryIsSet
+        queryIsSet = dropup.checkTextForQuery textData
+        continue  if queryIsSet
+
+      dropup.close()  if dropup.isActive()
 
 
   onKeyDown: (event) ->
@@ -152,6 +165,13 @@ module.exports = class ChatInputWidget extends React.Component
     textInput.focus()
 
 
+  onSearchItemConfirmed: (message) ->
+
+    { initialChannelId, slug } = message
+    ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
+      kd.singletons.router.handleRoute groupifyLink "/Channels/#{channel.name}/#{slug}"
+
+
   handleEmojiButtonClick: (event) ->
 
     ActivityFlux.actions.emoji.setCommonListVisibility yes
@@ -219,6 +239,7 @@ module.exports = class ChatInputWidget extends React.Component
       selectedItem    = { searchSelectedItem }
       query           = { searchQuery }
       visible         = { searchVisibility }
+      onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropup'
     />
 
