@@ -81,10 +81,14 @@ module.exports =
     developerSelector    = '.developer .plan-price cite'
     professionalSelector = '.professional .plan-price cite'
     buttonSelector       = '.interval-toggle button.clean-gray:not(.toggle)'
+    pricingSelector      = '.content-page.pricing section.plans'
 
     browser
       .url                    helpers.getUrl() + '/Pricing'
       .waitForElementVisible  '.content-page.pricing', 20000
+      .pause                  3000 # wait for pricing page load
+      .waitForElementVisible  pricingSelector,20000
+      .waitForElementVisible  hobbyistSelector, 20000
       .assert.containsText    hobbyistSelector, '9.95' # Assertion
       .assert.containsText    developerSelector, '19.95' # Assertion
       .assert.containsText    professionalSelector, '39.95' # Assertion
