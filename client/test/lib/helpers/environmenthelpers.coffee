@@ -180,11 +180,11 @@ module.exports =
 
   addDomain: (browser, user) ->
 
-    buttonSelector     = '.domains .kdheaderview button.add-button'
+    buttonSelector       = '.domains .kdheaderview button.add-button'
     buttonLoaderSelector = '.add-view button.loading'
-    paragraph          = helpers.getFakeText()
-    createDomainName   = paragraph.split(' ')[0]
-    domainName         = createDomainName + '.' + user.username + '.dev.koding.io'
+    paragraph            = helpers.getFakeText()
+    createDomainName     = paragraph.split(' ')[0]
+    domainName           = createDomainName + '.' + user.username + '.dev.koding.io'
 
     @openDomainSettings(browser)
 
