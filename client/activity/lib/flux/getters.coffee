@@ -220,6 +220,11 @@ selectedChannelParticipants = [
 ]
 
 
+# Helper function to calculate a value
+# of list selected index getter.
+# It gets the list and list stored index
+# and reduce index to the value which is >= 0
+# and < list.size
 calculateListSelectedIndex = (list, currentIndex) ->
 
   { size } = list
@@ -233,6 +238,10 @@ calculateListSelectedIndex = (list, currentIndex) ->
   return index
 
 
+# Helper function to calculate a value
+# of list selected item getter.
+# It gets the list and its selected index
+# and returns item taken from the list by the index
 getListSelectedItem = (list, selectedIndex) ->
   return  unless list.size > 0
   return list.get selectedIndex

@@ -10,6 +10,12 @@ NUMBER_OF_ITEMS  = 5
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
+###*
+ * Action to search items by query
+ *
+ * @param {string} query
+###
+
 fetchData = (query) ->
 
   { HIGHLIGHT_PRE_MARKER, HIGHLIGHT_POST_MARKER } = SearchConstants
@@ -32,9 +38,19 @@ fetchData = (query) ->
       dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { err }
 
 
+###*
+ * Action to clear stored search items
+###
 resetData = -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET
 
 
+###*
+ * Action to set current search query.
+ * Also, it resets search items selected index and loads items
+ * filtered by query if query is not empty
+ *
+ * @param {string} query
+###
 setQuery = (query) ->
 
   if query
@@ -46,6 +62,10 @@ setQuery = (query) ->
     unsetQuery()
 
 
+###*
+ * Action to unset current search query.
+ * Also, it resets search items selected index
+###
 unsetQuery = ->
 
   { UNSET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
@@ -55,30 +75,47 @@ unsetQuery = ->
   resetData()
 
 
+###*
+ * Action to set search items selected index
+ *
+ * @param {number} index
+###
 setSelectedIndex = (index) ->
 
   { SET_CHAT_INPUT_SEARCH_SELECTED_INDEX } = actionTypes
   dispatch SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
 
 
+###*
+ * Action to increment search items selected index
+###
 moveToNextIndex = ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX } = actionTypes
   dispatch MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX
 
 
+###*
+ * Action to decrement search items selected index
+###
 moveToPrevIndex = ->
 
   { MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX } = actionTypes
   dispatch MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX
 
 
+###*
+ * Action to reset search items selected index to initial value
+###
 resetSelectedIndex = ->
 
   { RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX } = actionTypes
   dispatch RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX
 
 
+###*
+ * Action to set visibility of search items
+###
 setVisibility = (visible) ->
 
   { SET_CHAT_INPUT_SEARCH_VISIBILITY } = actionTypes
