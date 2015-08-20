@@ -1,14 +1,18 @@
-kd                = require 'kd'
-React             = require 'kd-react'
-immutable         = require 'immutable'
-classnames        = require 'classnames'
-ActivityFlux      = require 'activity/flux'
-Dropup            = require 'activity/components/dropup'
-ChannelDropupItem = require 'activity/components/channeldropupitem'
-scrollToTarget    = require 'activity/util/scrollToTarget'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+ChannelDropupItem    = require 'activity/components/channeldropupitem'
+scrollToTarget       = require 'activity/util/scrollToTarget'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class ChannelDropup extends React.Component
+
+  @include [ImmutableRenderMixin]
+
 
   @defaultProps =
     items        : immutable.List()
