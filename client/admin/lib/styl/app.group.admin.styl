@@ -1627,7 +1627,7 @@ Admin main styles
 
   .footer
     text-align              center
-    margin                  44px 0 0 42px
+    margin-left             42px
 
     .kdbutton
       width                 120px
@@ -1636,7 +1636,7 @@ Admin main styles
       border                1px solid #A8A1A1
 
       &.back
-        margin-right        11px
+        margin-right        8px
 
       span
         color               #A8A1A1
@@ -1649,6 +1649,41 @@ Admin main styles
     text-align              center
     font-weight             300
     pointer()
+
+  .box-wrapper
+    width                   525px
+    overflow                hidden
+    margin                  57px 0 0 123px !important
+
+  .box
+    size                    256px, 112px
+    rounded                 4px
+    border                  1px solid #E7E7E7
+    borderBox()
+    fl()
+
+    img
+      margin                23px 0 0 49px
+
+    &:nth-child(2n -1)
+      margin-right          11px
+
+    .label
+      font-size             16px
+      text-align            center
+      font-weight           300
+      margin-top            13px
+
+  .coming-soon
+    img
+      opacity               .4
+
+    .label
+      color                 #9E9E9E
+
+  .box.selected
+    border                  3px solid #00B057
+    background              #fff
 
   &.get-started
 
@@ -1692,39 +1727,7 @@ Admin main styles
   &.provider-selection
 
     .providers
-      size                  525px, 359px
-      overflow              hidden
-      margin                57px 0 0 123px
-
-    .footer
-      margin-top            38px
-
-    .provider
-      size                  256px, 112px
-      rounded               4px
-      border                1px solid #E7E7E7
-      borderBox()
-      fl()
-
-      img
-        margin              23px 0 0 49px
-
-      &:nth-child(2n -1)
-        margin-right        11px
-
-    .coming-soon
-      img
-        opacity             0.4
-
-      .label
-        color               #9E9E9E
-        font-size           16px
-        text-align          center
-        font-weight         300
-        margin-top          13px
-
-    .selected
-      border                3px solid #00B057
+      height                396px
 
     .provider
       &.koding
@@ -1736,7 +1739,7 @@ Admin main styles
 
       &.engineyard
         rel()
-        top                 4px
+        top                 -9px
 
         img
           margin            16px 0 0 38px
@@ -1746,7 +1749,7 @@ Admin main styles
 
       &.digitalocean
         rel()
-        top                 4px
+        top                 -9px
 
         img
           margin            29px 0 0 36px
@@ -1756,14 +1759,14 @@ Admin main styles
 
       &.googlecloud
         rel()
-        top                 8px
+        top                 -17px
 
         img
           margin            32px 0 0 34px
 
       &.rackspace
         rel()
-        top                 8px
+        top                 -17px
 
         img
           margin            27px 0 0 50px
