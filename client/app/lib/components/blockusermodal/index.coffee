@@ -3,15 +3,9 @@ React         = require 'kd-react'
 Portal        = require 'react-portal'
 AppFlux       = require 'app/flux'
 ActivityModal = require 'app/components/activitymodal'
-noop = ->
-
-class ModalOverlay extends React.Component
-
-  render: ->
-    <div className="ModalOverlay" />
 
 
-module.exports = class BlockUserModal extends ActivityModal
+module.exports = class BlockUserModal extends React.Component
 
   constructor: (props) ->
 
@@ -71,35 +65,14 @@ module.exports = class BlockUserModal extends ActivityModal
       @setState buttonConfirmTitle: "Block User"
 
 
-  renderModal: ->
+  render: ->
+    <ActivityModal {...@props} onConfirm={@bound 'blockUser'} buttonConfirmTitle={@state.buttonConfirmTitle}>
+      This will block user from logging in to Koding(with all sub-groups).<br/><br/>
+      You can specify a duration to block user.
+      Entry format: [number][S|H|D|T|M|Y] eg. 1M<br/><br/>
+      <div className="duration">
+        <label className="block-user-for" for="duration">Block User For</label>
+        <input name="duration" onKeyUp={@bound "onKeyUpBlockingUserTime"} onChange={@bound "onKeyUpBlockingUserTime"} type="text" ref="BlockingTimeInput" placeholder="e.g. 1Y 1W 3D 2H..."/>
+      </div>
+    </ActivityModal>
 
-    return null  unless @props.isOpen
-
-    portalProps = @getPortalProps()
-
-    return (
-      <Portal {...portalProps}>
-        <div className={kd.utils.curry 'Reactivity Modal BlockUserModal', @props.className}>
-          <h4 className="Modal-title">Block User For a Time Period</h4>
-          <div className="Modal-content">
-            <p>
-              This will block user from logging in to Koding(with all sub-groups).<br/><br/>
-              You can specify a duration to block user.
-              Entry format: [number][S|H|D|T|M|Y] eg. 1M<br/><br/>
-              <div className="duration">
-                <label className="block-user-for" for="duration">Block User For</label>
-                <input name="duration" onKeyUp={@bound "onKeyUpBlockingUserTime"} onChange={@bound "onKeyUpBlockingUserTime"} type="text" ref="BlockingTimeInput" placeholder="e.g. 1Y 1W 3D 2H..."/>
-              </div>
-            </p>
-          </div>
-          <div className="Modal-buttons">
-            <button className="Button Modal-Button Button--danger" onClick={@bound "blockUser"}>
-              {@state.buttonConfirmTitle}
-            </button>
-            <button className="Button Modal-Button Button--secondary" onClick={@props.onAbort}>
-              CANCEL
-            </button>
-          </div>
-        </div>
-      </Portal>
-    )
