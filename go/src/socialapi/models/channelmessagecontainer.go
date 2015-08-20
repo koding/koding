@@ -16,6 +16,7 @@ type ChannelMessageContainer struct {
 	AccountOldId       string                   `json:"accountOldId"`
 	IsFollowed         bool                     `json:"isFollowed"`
 	UnreadRepliesCount int                      `json:"unreadRepliesCount,omitempty"`
+	ParentID           int64                    `json:"parentId,omitempty"`
 	Err                error                    `json:"-"`
 }
 
