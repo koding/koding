@@ -141,7 +141,18 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       cssClass
       itemClass    : PermissionSwitch
       defaultValue : isChecked ? no
-      callback     : => @save()
+      delegate     : this
+      callback     : ->
+
+        # If the swicth is on now.
+        if @getValue()
+          switches = @parent.subViews.filter (item) -> item instanceof PermissionSwitch
+          switches = switches.slice 0, switches.indexOf @
+
+          switches.forEach (item) ->
+            item.setOn no  unless item.getValue()
+
+        @getDelegate().save()
     }
 
     if current in ['admin', 'owner']
@@ -251,6 +262,6 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
 
   save: ->
 
-    @group.updatePermissions @reducedList(), (err,res) =>
+    @group.updatePermissions @reducedList(), (err, res) =>
       return showError err if err
       new KDNotificationView title: 'Group permissions have been updated.'
