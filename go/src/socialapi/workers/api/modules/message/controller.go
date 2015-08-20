@@ -426,7 +426,8 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 
 	// reduce replies
 	replyIds := make([]int64, 0)
-	for _, cmc := range cmcs {
+	for i := range cmcs {
+		cmc := cmcs[i]
 		if cmc.Message.TypeConstant == models.ChannelMessage_TYPE_REPLY {
 			replyIds = append(replyIds, cmc.Message.Id)
 		}
