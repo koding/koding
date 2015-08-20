@@ -20,3 +20,5 @@ module.exports = new Bongo {
   mq: new Broker mqOptions
   resourceName: authWorker.queueName
 }
+
+

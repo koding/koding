@@ -1,9 +1,9 @@
-module.exports = (name='') ->
-  { argv } = require 'optimist'
-  express = require 'express'
-  cors = require 'cors'
-  helmet = require 'helmet'
-  app = express()
+module.exports = (name              = '') ->
+  { argv }     = require 'optimist'
+  express      = require 'express'
+  cors         = require 'cors'
+  helmet       = require 'helmet'
+  app          = express()
 
   compression = require 'compression'
   bodyParser = require 'body-parser'
@@ -21,3 +21,5 @@ module.exports = (name='') ->
     res.send "#{name} is running with version: #{KONFIG.version}"
 
   app.listen argv.p
+
+

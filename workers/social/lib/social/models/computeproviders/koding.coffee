@@ -5,7 +5,7 @@ ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
 Regions           = require 'koding-regions'
-{argv}            = require 'optimist'
+{ argv }          = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 SUPPORTED_REGIONS = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
@@ -14,9 +14,9 @@ module.exports = class Koding extends ProviderInterface
 
   @providerSlug = 'koding'
 
-  @ping = (client, options, callback)->
+  @ping = (client, options, callback) ->
 
-    {nickname} = client.r.account.profile
+    { nickname } = client.r.account.profile
     callback null, "#{ @providerSlug } is the best #{ nickname }!"
 
 
@@ -25,7 +25,7 @@ module.exports = class Koding extends ProviderInterface
    * @param {String=} options.snapshotId - The unique snapshotId to create
    *   this machine from, if any.
   ###
-  @create = (client, options, callback)->
+  @create = (client, options, callback) ->
 
     { instanceType, label, storage, region, snapshotId } = options
     { r: { group, user, account }, clientIP } = client
@@ -49,7 +49,7 @@ module.exports = class Koding extends ProviderInterface
       fetchUserPlan client, (err, userPlan) ->
         return callback err  if err
 
-        fetchUsage client, {provider}, (err, usage) ->
+        fetchUsage client, { provider }, (err, usage) ->
           return callback err  if err
 
           if err = checkUsage usage, userPlan, storage
@@ -82,7 +82,7 @@ module.exports = class Koding extends ProviderInterface
             callback null, { meta, label, credential: client.r.user.username }
 
 
-  @postCreate = (client, options, callback)->
+  @postCreate = (client, options, callback) ->
 
     { r: { account } } = client
     { machine } = options
@@ -95,14 +95,14 @@ module.exports = class Koding extends ProviderInterface
       JWorkspace.createDefault client, machine.uid, callback
 
 
-  @update = (client, options, callback)->
+  @update = (client, options, callback) ->
 
     { machineId, alwaysOn, resize } = options
     { r: { group, user, account } } = client
 
     unless machineId? or alwaysOn?
       return callback new KodingError \
-        "A valid machineId and an update option required.", "WrongParameter"
+        'A valid machineId and an update option required.', 'WrongParameter'
 
     provider = @providerSlug
 
@@ -110,18 +110,18 @@ module.exports = class Koding extends ProviderInterface
 
     { fetchUserPlan, fetchUsage } = require './computeutils'
 
-    fetchUserPlan client, (err, userPlan)=>
+    fetchUserPlan client, (err, userPlan) ->
 
       return callback err  if err?
 
-      fetchUsage client, {provider}, (err, usage)->
+      fetchUsage client, { provider }, (err, usage) ->
 
         return callback err  if err?
 
         if alwaysOn and usage.alwaysOn >= userPlan.alwaysOn
           return callback new KodingError \
             """Total limit of #{userPlan.alwaysOn}
-               always on vm limit has been reached.""", "UsageLimitReached"
+               always on vm limit has been reached.""", 'UsageLimitReached'
 
         if resize?
           resize = +resize
@@ -132,10 +132,10 @@ module.exports = class Koding extends ProviderInterface
           else if resize > userPlan.storage
             return callback new KodingError \
             """Requested new size exceeds allowed
-               limit of #{userPlan.storage}GB.""", "UsageLimitReached"
+               limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
           else if resize < 3
             return callback new KodingError \
-            """New size can't be less than 3GB.""", "WrongParameter"
+            """New size can't be less than 3GB.""", 'WrongParameter'
 
         { ObjectId } = require 'bongo'
 
@@ -144,13 +144,19 @@ module.exports = class Koding extends ProviderInterface
             { _id : ObjectId machineId }
             { uid : machineId }
           ]
-          users   : $elemMatch: id: user.getId(), sudo: yes, owner: yes
-          groups  : $elemMatch: id: group.getId()
+          users        :
+            $elemMatch :
+              id       : user.getId()
+              sudo     : yes
+              owner    : yes
+          groups       :
+            $elemMatch :
+              id       : group.getId()
 
-        JMachine.one selector, (err, machine)->
+        JMachine.one selector, (err, machine) ->
 
           if err? or not machine?
-            err ?= new KodingError "Machine object not found."
+            err ?= new KodingError 'Machine object not found.'
             return callback err
 
           fieldsToUpdate = {}
@@ -165,11 +171,11 @@ module.exports = class Koding extends ProviderInterface
             if (resize - storageSize) + usage.storage > userPlan.storage
               return callback new KodingError \
               """Requested new size exceeds allowed
-                 limit of #{userPlan.storage}GB.""", "UsageLimitReached"
-            else if resize == machine.getAt 'meta.storage_size'
+                 limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+            else if resize is machine.getAt 'meta.storage_size'
               return callback new KodingError \
               """Requested new size is same with current
-                 storage size (#{resize}GB).""", "SameValueForResize"
+                 storage size (#{resize}GB).""", 'SameValueForResize'
 
             fieldsToUpdate['meta.storage_size'] = resize
 
@@ -177,10 +183,10 @@ module.exports = class Koding extends ProviderInterface
 
             $set: fieldsToUpdate
 
-          , (err)-> callback err
+          , (err) -> callback err
 
 
-  @fetchAvailable = (client, options, callback)->
+  @fetchAvailable = (client, options, callback) ->
 
     callback null, [
       {
@@ -192,3 +198,5 @@ module.exports = class Koding extends ProviderInterface
         price : 'free'
       }
     ]
+
+

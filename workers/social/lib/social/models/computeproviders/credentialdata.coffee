@@ -27,3 +27,5 @@ module.exports = class JCredentialData extends Module
       originId        :
         type          : ObjectId
         required      : yes
+
+

@@ -2,7 +2,7 @@
 { uri, client:{ version } } = require('koding-config-manager').load("main.#{argv.c}")
 encoder      = require 'htmlencode'
 
-module.exports = (options={}) ->
+module.exports = (options = {}) ->
   options.title    ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'
   options.shareUrl ?= 'https://koding.com'
   options.image    ?= "#{uri.address}/a/images/logos/share_logo.png"
@@ -68,3 +68,5 @@ module.exports = (options={}) ->
   <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
   """
+
+

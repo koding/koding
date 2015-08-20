@@ -2,15 +2,15 @@ process.title = 'koding-socialworker'
 
 log = -> console.log arguments...
 
-{argv} = require 'optimist'
+{ argv } = require 'optimist'
 
-{exec} = require 'child_process'
-{extend} = require 'underscore'
+{ exec }           = require 'child_process'
+{ extend }         = require 'underscore'
 { join: joinPath } = require 'path'
 
 usertracker = require('../../../usertracker')
 
-process.on 'uncaughtException', (err)->
+process.on 'uncaughtException', (err) ->
   exec './beep'
   console.log err, err?.stack
   process.exit 1
@@ -19,8 +19,8 @@ Bongo = require 'bongo'
 Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-Object.defineProperty global, 'KONFIG', value: KONFIG
-{mq, email, social, mongoReplSet, socialapi} = KONFIG
+Object.defineProperty global, 'KONFIG', { value: KONFIG }
+{ mq, email, social, mongoReplSet, socialapi } = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
@@ -29,7 +29,7 @@ mqOptions.login = social.login if social?.login?
 
 broker = new Broker mqOptions
 
-mqConfig = {host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost}
+mqConfig = { host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost }
 
 # TODO exchange version must be injected here, when we have that support
 mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
@@ -58,28 +58,28 @@ koding = new Bongo {
     fetchClient: (name, context, callback) ->
       { JAccount } = koding.models
       [callback, context] = [context, callback] unless callback
-      context   ?= group: 'koding'
+      context   ?= { group: 'koding' }
       callback  ?= ->
-      JAccount.one 'profile.nickname': name, (err, account) ->
+      JAccount.one { 'profile.nickname': name }, (err, account) ->
         return callback err  if err?
 
         if account instanceof JAccount
-          callback null, { context, connection:delegate:account }
+          callback null, { context, connection: { delegate : account } }
 
-  fetchClient: (sessionToken, context, callback)->
+  fetchClient: (sessionToken, context, callback) ->
 
     { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback
     callback            ?= ->
 
-    JUser.authenticateClient sessionToken, (err, res = {})->
+    JUser.authenticateClient sessionToken, (err, res = {}) ->
 
       { account, session } = res
 
       context ?= { group: session?.groupName ? 'koding' }
 
       if err
-        console.error "bongo.fetchClient", {err, sessionToken, context}
+        console.error 'bongo.fetchClient', { err, sessionToken, context }
         koding.emit 'error', err
 
       else if account instanceof JAccount
@@ -89,19 +89,19 @@ koding = new Bongo {
         { clientIP } = session
         callback {
           sessionToken, context, clientIP,
-          connection:delegate:account
+          connection:{ delegate : account }
         }
 
       else
-        console.error "this is not a proper account", {sessionToken}
-        console.error "constructor is JAccount", JAccount is account.constructor
+        console.error 'this is not a proper account', { sessionToken }
+        console.error 'constructor is JAccount', JAccount is account.constructor
 }
 
-koding.on 'authenticateUser', (client, callback)->
-  {delegate} = client.connection
+koding.on 'authenticateUser', (client, callback) ->
+  { delegate } = client.connection
   callback delegate
 
-koding.on "errFirstDetected", (err)-> console.error err
+koding.on 'errFirstDetected', (err) -> console.error err
 
 koding.connect ->
   (require './init').init koding
@@ -109,9 +109,9 @@ koding.connect ->
   # create default roles for groups
   JGroupRole = require './models/group/role'
 
-  JGroupRole.createDefaultRoles (err)->
+  JGroupRole.createDefaultRoles (err) ->
     if err then console.log err.message
-    else console.log "Default group roles created!"
+    else console.log 'Default group roles created!'
 
   if KONFIG.misc?.claimGlobalNamesForUsers
     require('./models/account').reserveNames console.log
@@ -122,7 +122,7 @@ koding.connect ->
       require './models/app'
     ]
 
-  Tracker = require "./models/tracker"
+  Tracker = require './models/tracker'
   Tracker.setMqClient broker.connection
 
   { forcedRecipient } = KONFIG.email
@@ -148,13 +148,15 @@ do ->
   app.use cors()
 
   app.post '/xhr', koding.expressify()
-  app.get '/xhr',(req,res)->
-    res.send "Socialworker is OK"
+  app.get '/xhr', (req, res) ->
+    res.send 'Socialworker is OK'
 
-  app.get '/version',(req,res)->
+  app.get '/version', (req, res) ->
     res.send "#{KONFIG.version}"
 
-  app.get '/healthCheck',(req,res)->
+  app.get '/healthCheck', (req, res) ->
     res.send "Socialworker is running with version: #{KONFIG.version}"
 
   app.listen argv.p
+
+
