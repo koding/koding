@@ -34,19 +34,19 @@ module.exports = class JWFGH extends Model
 
     username = account?.profile?.nickname
 
-    return new KodingError 'No username received!'  unless username
+    return callback new KodingError 'No username received!'  unless username
 
     JCampaign.get 'WFGH', (err, campaign) ->
 
       if err or not campaign or not campaign.content.active
 
-        return new KodingError 'expired'
+        return callback new KodingError 'expired'
 
       JWFGH.one { username }, (err, data) ->
 
         return callback err  if err
 
-        return new KodingError 'Already applied'  if data
+        return callback new KodingError 'Already applied'  if data
 
         application = new JWFGH { username }
 
@@ -57,7 +57,7 @@ module.exports = class JWFGH extends Model
           JWFGH.getStats account, callback
 
 
-  @leave = (account, callback) -> new KodingError 'n/a'
+  @leave = (account, callback) -> callback new KodingError 'n/a'
 
 
   getUserStats = (username, callback) ->
@@ -79,7 +79,7 @@ module.exports = class JWFGH extends Model
 
       if err or not _campaign or not _campaign.content.active
 
-        return new KodingError 'expired'
+        return callback new KodingError 'expired'
 
       kallback = (err, userStats) ->
         { isApplicant, isApproved, isWinner } = userStats

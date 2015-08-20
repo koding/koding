@@ -886,7 +886,7 @@ module.exports = class JGroup extends Module
 
 
   isMember: (account, callback) ->
-    return callback new KodingError 'No account found!'  unless account
+    return callback new Error 'No account found!'  unless account
     selector =
       sourceId  : @getId()
       targetId  : account.getId()
