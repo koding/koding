@@ -20,6 +20,7 @@ module.exports = class ActivityModal extends React.Component
     hasOverlay          : yes
     isOpen              : no
     className           : ''
+    buttonAbortTitle    : 'CANCEL'
 
   onClose: (args...) -> @props.onClose? args...
 

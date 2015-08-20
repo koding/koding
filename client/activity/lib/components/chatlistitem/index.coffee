@@ -130,7 +130,6 @@ module.exports = class ChatListItem extends React.Component
     title              : "Delete post"
     body               : "Are you sure you want to delete this post?"
     buttonConfirmTitle : "DELETE"
-    buttonAbortTitle   : "CANCEL"
     className          : "Modal-DeleteItemPrompt"
     onConfirm          : @bound "deletePostButtonHandler"
     onAbort            : @bound "closeDeletePostModal"
