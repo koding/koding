@@ -76,9 +76,9 @@ module.exports = class UsersStore extends KodingFluxStore
     accountId = account._id
 
     if users.has accountId
-      user = users.get accountId
-      user = user.set 'isExempt', yes
-      return users.set accountId, user
+      users = users.setIn [accountId, 'isExempt'], yes
+
+    return users
 
 
   ###*
@@ -115,9 +115,9 @@ module.exports = class UsersStore extends KodingFluxStore
     accountId = account._id
 
     if users.has accountId
-      user = users.get accountId
-      user = user.set 'isExempt', no
-      return users.set accountId, user
+      users = users.setIn [accountId, 'isExempt'], no
+
+    return users
 
 
   ###*
