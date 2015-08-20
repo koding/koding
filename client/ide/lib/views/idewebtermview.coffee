@@ -16,9 +16,7 @@ module.exports = class IDEWebTermView extends WebTermView
 
     super
 
+    # Call the "triggerFitToWindow" when terminal is connected.
     if @getOption('mode') is 'shared'
-
-      # Execute it after 400ms. Because it needs to wait dom changes.
-      kd.utils.wait 400, =>
+      @on 'WebTermConnected', =>
         @triggerFitToWindow()
-
