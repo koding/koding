@@ -1,8 +1,9 @@
-{Model} = require 'bongo'
+{ Model }   = require 'bongo'
+KodingError = require '../error'
 
 module.exports = class JUrlAlias extends Model
 
-  {secure, signature} = require 'bongo'
+  { secure, signature } = require 'bongo'
 
   @share()
 
@@ -19,24 +20,26 @@ module.exports = class JUrlAlias extends Model
       alias       : String
       target      : String
 
-  @create =secure (client, alias, target, callback)->
-    {delegate} = client.connection
+  @create = secure (client, alias, target, callback) ->
+    { delegate } = client.connection
     unless delegate.can 'administer url aliases'
-      return callback message: 'Access denied'
-    aliasModel = new this {alias, target}
-    aliasModel.save (err, docs)->
+      return callback new KodingError 'Access denied'
+    aliasModel = new this { alias, target }
+    aliasModel.save (err, docs) ->
       if err then callback err
       else callback err, unless err then aliasModel
 
   # createRe =(alias)->
   #   ///^#{alias.split('/').map((edge)-> "(?:#{edge}|(\w+)").join('/')}$///
 
-  @resolve =(alias, callback)->
-    @someData {alias}, {target:1}, (err, cursor)->
+  @resolve = (alias, callback) ->
+    @someData { alias }, { target:1 }, (err, cursor) ->
       if err then callback err
-      else cursor.nextObject (err, doc)->
+      else cursor.nextObject (err, doc) ->
         if err then callback err
         else if doc?
           callback null, doc.target
         else
-          callback message: '404 - alias not found!'
+          callback new KodingError '404 - alias not found!'
+
+
