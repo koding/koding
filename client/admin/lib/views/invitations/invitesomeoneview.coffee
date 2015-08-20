@@ -63,9 +63,10 @@ module.exports = class InviteSomeoneView extends KDView
     invites = []
 
     for view in @inputViews
-      result = view.email.validate()
+      value  = view.email.getValue().trim()
+      result = if not value then no else view.email.validate()
 
-      unless result
+      if value and not result
         showError 'That doesn\'t seem like a valid email address.'
         return view.email.setClass 'validation-error'
 
