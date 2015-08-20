@@ -43,6 +43,7 @@ module.exports =
             .click                   '.payment-modal button'
             .waitForElementVisible   '.payment-modal', 20000
             .pause                   5000
+            .waitForElementVisible   '.payment-modal button', 20000
             .click                   '.payment-modal button'
             .waitForElementVisible   '[testpath=main-sidebar]', 20000
             .url                     helpers.getUrl() + '/Pricing'
