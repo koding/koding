@@ -1,8 +1,8 @@
-{Base, secure, signature} = require 'bongo'
+{ Base, secure, signature } = require 'bongo'
 crypto = require 'crypto'
 
-{argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+{ argv }    = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 KodingError = require '../error'
 
 module.exports = class S3 extends Base
@@ -17,7 +17,7 @@ module.exports = class S3 extends Base
   AWS_KEY      = KONFIG.awsKeys.worker_koding_client_s3_put_only.accessKeyId
   AWS_SECRET   = KONFIG.awsKeys.worker_koding_client_s3_put_only.secretAccessKey
 
-  AWS_BUCKET   = "koding-client"
+  AWS_BUCKET   = 'koding-client'
   AWS_URL      = "https://#{AWS_BUCKET}.s3.amazonaws.com"
 
   EXPIREIN     = 100     # in seconds.
@@ -31,14 +31,14 @@ module.exports = class S3 extends Base
         generatePolicy : (signature Function)
 
 
-  @generatePolicy = secure (client, callback = ->)->
+  @generatePolicy = secure (client, callback = -> ) ->
 
     { connection: { delegate } } = client
 
     unless delegate.type is 'registered'
-      return callback new KodingError "Not allowed"
+      return callback new KodingError 'Not allowed'
 
-    {nickname} = delegate.profile
+    { nickname } = delegate.profile
 
     expiration = new Date(Date.now() + EXPIREIN * 1000).toISOString()
 
@@ -69,3 +69,5 @@ module.exports = class S3 extends Base
       policy, signature
 
     }
+
+

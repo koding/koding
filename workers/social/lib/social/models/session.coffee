@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{ Model } = require 'bongo'
 
 module.exports = class JSession extends Model
 
@@ -46,7 +46,7 @@ module.exports = class JSession extends Model
         console.log "JAccount.on 'UsernameChanged' JSession#remove", {
           oldUsername, mustReauthenticate }
 
-        JSession.remove username: oldUsername, (err) ->
+        JSession.remove { username: oldUsername }, (err) ->
           console.error err  if err?
 
 
@@ -61,14 +61,14 @@ module.exports = class JSession extends Model
       return @emit 'error', err  if err
 
       unless resp
-        console.error message = "Failed to create guest user :/ ~ This is critical!"
-        return @emit 'error', {message}
+        console.error message = 'Failed to create guest user :/ ~ This is critical!'
+        return @emit 'error', { message }
 
-      {account} = resp
+      { account } = resp
       username  = JUser.createGuestUsername()
       session   = new JSession { clientId, username }
 
-      session.save (err)->
+      session.save (err) ->
         if err then callback err
         else callback null, { session, account }
 
@@ -87,11 +87,11 @@ module.exports = class JSession extends Model
   # given clientId, it creates a new one
   #
   # ps: i didnt write this function, just documenting it ~ CS
-  @fetchSession = (clientId, callback)->
+  @fetchSession = (clientId, callback) ->
 
     return @createSession callback  unless clientId
 
-    @one {clientId}, (err, session)=>
+    @one { clientId }, (err, session) =>
       if err
         callback err
       else if session?
@@ -107,19 +107,21 @@ module.exports = class JSession extends Model
   #
   # i dont like this function name but following the same principle with
   # fetchSession ~ CS
-  @fetchSessionByData = (data, callback)->
-    @one data, (err, session)=>
+  @fetchSessionByData = (data, callback) ->
+    @one data, (err, session) =>
       return callback err  if err
       return callback null, { session }  if session?
       @createNewSession data, callback
 
 
-  @updateClientIP = (clientId, ipAddress, callback)->
+  @updateClientIP = (clientId, ipAddress, callback) ->
 
     unless ipAddress
       return callback 'IP Address is missing'
 
     ipAddress = (ipAddress.split ',')[0]
 
-    JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->
+    JSession.update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
       callback err
+
+
