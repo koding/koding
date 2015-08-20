@@ -32,7 +32,7 @@ func Run(env, username string) {
 		AccessKey:  awsAccessKey,
 		SecretKey:  awsSecretKey,
 		BucketName: "koding-gather",
-		FileName:   "gather.tar",
+		FileName:   "koding-kernel.tar",
 		Region:     "us-east-1",
 	}
 
@@ -57,7 +57,7 @@ func Run(env, username string) {
 }
 
 func New(fetcher Fetcher, exporter Exporter, env, username, scriptType string) *GatherRun {
-	tmpDir, err := ioutil.TempDir("/tmp", "gather")
+	tmpDir, err := ioutil.TempDir("/tmp", "koding-kernel")
 	if err != nil {
 		// TODO: how to deal with errs
 	}
