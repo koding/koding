@@ -397,7 +397,7 @@ module.exports = class JMachine extends Module
 
   fetchOwner: (callback) ->
 
-    owner = (user for user in @users when user.owner and user.sudo)
+    owner = user for user in @users when user.owner and user.sudo
     errCb = -> callback new KodingError 'Owner user not found'
     return errCb()  unless owner
 
