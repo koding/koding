@@ -10,6 +10,7 @@ KDCustomScrollView  = kd.CustomScrollView
 
 module.exports = class IDEContentSearchResultView extends KDView
 
+
   constructor: (options = {}, data) ->
 
     options.cssClass = 'content-search-result'
@@ -19,7 +20,7 @@ module.exports = class IDEContentSearchResultView extends KDView
 
     @addSubView @scrollView = new KDCustomScrollView
 
-    {result, stats, searchText, isCaseSensitive, @machine} = options
+    { result, stats, searchText, isCaseSensitive, @machine } = options
 
     for fileName, lines of result
       @scrollView.wrapper.addSubView new KDCustomHTMLView
@@ -48,6 +49,7 @@ module.exports = class IDEContentSearchResultView extends KDView
 
         view.updatePartial "<span class='line-number'>#{line.lineNumber}</span>#{replaced}"
         previousLine = line
+
 
   click: (event) ->
 
