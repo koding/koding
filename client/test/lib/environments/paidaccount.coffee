@@ -21,6 +21,7 @@ module.exports =
         browser.end()
       else
         browser
+          .waitForElementVisible '.computeplan-modal.free-plan', 20000
           .waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
           .end()
 
