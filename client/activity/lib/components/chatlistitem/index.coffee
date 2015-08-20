@@ -139,14 +139,18 @@ module.exports = class ChatListItem extends React.Component
   getMarkUserAsTrollModalProps: ->
 
     account            : @state.account
+    title              : "MARK USER AS TROLL"
+    className          : "MarkUserAsTrollModal"
     onAbort            : @bound "closeMarkUserAsTrollModal"
     onClose            : @bound "closeMarkUserAsTrollModal"
+    buttonConfirmTitle : "YES, THIS USER IS DEFINITELY A TROLL"
 
 
   getBlockUserModalProps: ->
 
     account            : @state.account
-    buttonConfirmTitle : 'BLOCK USER'
+    buttonConfirmTitle : "BLOCK USER"
+    className          : "BlockUserModal"
     onAbort            : @bound "closeBlockUserPromptModal"
     onClose            : @bound "closeBlockUserPromptModal"
 
