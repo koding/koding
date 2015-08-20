@@ -1,4 +1,4 @@
-module.exports = (name              = '') ->
+module.exports = (name = '') ->
   { argv }     = require 'optimist'
   express      = require 'express'
   cors         = require 'cors'

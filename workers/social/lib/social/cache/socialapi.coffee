@@ -1,4 +1,4 @@
-{ dash }         = require 'bongo'
+{ dash }       = require 'bongo'
 SocialChannel  = require '../models/socialapi/channel'
 SocialMessage  = require '../models/socialapi/message'
 JAccount       = require '../models/account'
