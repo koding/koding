@@ -147,7 +147,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
         # If the swicth is on now.
         if @getValue()
           switches = @parent.subViews.filter (item) -> item instanceof PermissionSwitch
-          switches = switches.slice 0, switches.indexOf @
+          switches = switches.slice 0, switches.indexOf this
 
           switches.forEach (item) ->
             item.setOn no  unless item.getValue()
