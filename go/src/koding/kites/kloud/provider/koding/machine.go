@@ -286,10 +286,28 @@ func (m *Machine) stopIfKlientIsMissing(ctx context.Context) error {
 
 	// lock so it doesn't interfere with others.
 	err := m.Lock()
-	defer m.Unlock()
+
+	defer func(m *Machine) {
+		err := m.Unlock()
+		if err != nil {
+			m.Log.Error("Defer Error: Unlocking machine failed, " + err.Error())
+		}
+	}(m)
+
+	// Check for a Lock error
 	if err != nil {
 		return err
 	}
+
+	// Clear the klientMissingAt field, or we risk Stopping the user's
+	// machine next time they run it, without waiting the proper X minute
+	// timeout.
+	defer func(m *Machine) {
+		err := m.klientIsNotMissing()
+		if err != nil {
+			m.Log.Error("Defer Error: Call to klientIsNotMissing failed, " + err.Error())
+		}
+	}(m)
 
 	// Hasta la vista, baby!
 	m.Log.Info("======> STOP started (missing klient) <======")
@@ -298,11 +316,6 @@ func (m *Machine) stopIfKlientIsMissing(ctx context.Context) error {
 		return err
 	}
 	m.Log.Info("======> STOP finished (missing klient) <======")
-
-	// Clear the klientMissingAt field, or we risk Stopping the user's
-	// machine next time they run it, without waiting the proper X minute
-	// timeout.
-	m.klientIsNotMissing()
 
 	return nil
 }
