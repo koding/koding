@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestGenerateKey validetes and check the keys are created or not
 func TestGenerateKey(t *testing.T) {
 	pub, priv, err := Generate()
 	if pub == "" {
