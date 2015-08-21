@@ -6,6 +6,8 @@ ButtonWithMenu       = require 'app/components/buttonwithmenu'
 ChatListItem         = require 'activity/components/chatlistitem'
 MessageTime          = require 'activity/components/chatlistitem/messagetime'
 ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
+MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
+BlockUserModal       = require 'app/components/blockusermodal'
 ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
 
@@ -36,6 +38,8 @@ module.exports = class SimpleChatListItem extends ChatListItem
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>
+        <MarkUserAsTrollModal {...@getMarkUserAsTrollModalProps()} isOpen={@state.isMarkUserAsTrollModalVisible} />
+        <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
 

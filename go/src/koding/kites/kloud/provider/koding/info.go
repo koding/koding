@@ -42,8 +42,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			return
 		}
 
-		m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
-			resultState, reason)
+		m.Log.Info("Info decision: Inconsistent state. Database state '%s', updating state to '%s'. Reason: %s",
+			dbState.String(), resultState, reason)
 
 		// If the machine's state is being transitioned into Stop, use the
 		// normal Stop() method to use a proper shutdown sequence with Kloud.

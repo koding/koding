@@ -273,7 +273,48 @@ setChatInputChannelsVisibility = (visible) ->
   dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { visible }
 
 
+###*
+ * Action to set visibility of chat input channels
+###
+followChannel = (channelId) ->
+
+  { follow } = kd.singletons.socialapi.channel
+  { FOLLOW_CHANNEL_BEGIN, FOLLOW_CHANNEL_SUCCESS, FOLLOW_CHANNEL_FAIL } = actionTypes
+
+  dispatch FOLLOW_CHANNEL_BEGIN, { channelId }
+
+  follow { channelId }, (err) ->
+
+    if err
+      dispatch FOLLOW_CHANNEL_FAIL, { err, channelId }
+      return
+
+    dispatch FOLLOW_CHANNEL_SUCCESS, { channelId }
+
+
+###*
+ * Action to set visibility of chat input channels
+###
+unfollowChannel = (channelId) ->
+
+  { unfollow } = kd.singletons.socialapi.channel
+  { UNFOLLOW_CHANNEL_BEGIN, UNFOLLOW_CHANNEL_SUCCESS, UNFOLLOW_CHANNEL_FAIL } = actionTypes
+
+  dispatch UNFOLLOW_CHANNEL_BEGIN, { channelId }
+
+  unfollow { channelId }, (err) ->
+
+    if err
+      dispatch UNFOLLOW_CHANNEL_FAIL, { err, channelId }
+      return
+
+    dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId }
+
+
+
 module.exports = {
+  followChannel
+  unfollowChannel
   loadChannelByName
   loadFollowedPrivateChannels
   loadFollowedPublicChannels

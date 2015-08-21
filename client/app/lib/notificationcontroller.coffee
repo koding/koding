@@ -88,7 +88,8 @@ module.exports = class NotificationController extends KDObject
       switch action
         when 'removed'
           if ideInstance = envDataProvider.getIDEFromUId machineUId
-            ideInstance.showUserRemovedModal()
+            if ideInstance.mountedMachine.isPermanent()
+              ideInstance.showUserRemovedModal()
 
       kd.singletons.computeController.reset yes
 
