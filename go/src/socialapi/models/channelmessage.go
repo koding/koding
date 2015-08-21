@@ -151,8 +151,6 @@ type messageResponseStruct struct {
 
 // TODO - remove this function
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
-	var wg sync.WaitGroup
-
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
 		return containers, nil
@@ -160,6 +158,8 @@ func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelM
 
 	var onMessage = make(chan *messageResponseStruct, len(messages))
 	var onError = make(chan error, 1)
+
+	var wg sync.WaitGroup
 
 	for i, message := range messages {
 		wg.Add(1)
