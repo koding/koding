@@ -58,16 +58,22 @@ module.exports = class ChatPane extends React.Component
     ActivityFlux.actions.channel.followChannel @props.thread.getIn ['channel', 'id']
 
 
+  renderFollowChannel: ->
+
+    <div className="ChatPane-subscribeContainer">
+      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
+      <button ref="button" className="Button Button-followChannel" onClick={@bound 'onFollowChannelButtonClick'}>FOLLOW CHANNEL</button>
+    </div>
+
+
   renderFooter: ->
 
     isParticipant = @props.thread?.getIn ['channel', 'isParticipant']
+
     footerInnerComponent = if isParticipant is yes
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
+      <ChatInputWidget onSubmit={@bound 'onSubmit'} />
     else if isParticipant is no
-      <div className="ChatPane-subscribeContainer">
-        YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
-        <button ref="button" className="Button Button-followChannel" onClick={@bound 'onFollowChannelButtonClick'}>FOLLOW CHANNEL</button>
-      </div>
+      @renderFollowChannel()
 
     <footer className="ChatPane-footer">
       {footerInnerComponent}
