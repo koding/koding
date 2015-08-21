@@ -93,10 +93,15 @@ var (
 
 	machineCount      = 2
 	terraformTemplate = `{
+    "variable": {
+        "username": {
+            "default": "fatih"
+        }
+    },
     "provider": {
         "aws": {
-            "access_key": "${var.access_key}",
-            "secret_key": "${var.secret_key}",
+            "access_key": "${var.aws_access_key}",
+            "secret_key": "${var.aws_secret_key}",
             "region": "${var.region}"
         }
     },
@@ -105,7 +110,7 @@ var (
             "example": {
 				"count": %d,
                 "instance_type": "t2.micro",
-                "user_data": "sudo apt-get install sl -y\ntouch /tmp/arslan.txt"
+                "user_data": "sudo apt-get install sl -y\ntouch /tmp/${var.username}.txt"
             }
         }
     }
@@ -120,16 +125,16 @@ type args struct {
 }
 
 type singleUser struct {
-	MachineIds          []bson.ObjectId
-	MachineLabels       []string
-	StackId             string
-	StackTemplateId     string
-	PrivateKey          string
-	PublicKey           string
-	AccountId           bson.ObjectId
-	CredentialId        bson.ObjectId
-	CredentialPublicKey string
-	Remote              *kite.Client
+	MachineIds      []bson.ObjectId
+	MachineLabels   []string
+	StackId         string
+	StackTemplateId string
+	PrivateKey      string
+	PublicKey       string
+	AccountId       bson.ObjectId
+	CredentialId    bson.ObjectId
+	Identifier      string
+	Remote          *kite.Client
 }
 
 func init() {
@@ -239,8 +244,8 @@ func TestTerraformAuthenticate(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.AuthenticateRequest{
-		PublicKeys: []string{userData.CredentialPublicKey},
-		GroupName:  groupname,
+		Identifiers: []string{userData.Identifier},
+		GroupName:   groupname,
 	}
 
 	_, err = remote.Tell("authenticate", args)
@@ -260,8 +265,8 @@ func TestTerraformBootstrap(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformBootstrapRequest{
-		PublicKeys: []string{userData.CredentialPublicKey},
-		GroupName:  groupname,
+		Identifiers: []string{userData.Identifier},
+		GroupName:   groupname,
 	}
 
 	_, err = remote.Tell("bootstrap", args)
@@ -295,8 +300,8 @@ func TestTerraformStack(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformBootstrapRequest{
-		PublicKeys: []string{userData.CredentialPublicKey},
-		GroupName:  groupname,
+		Identifiers: []string{userData.Identifier},
+		GroupName:   groupname,
 	}
 
 	_, err = remote.Tell("bootstrap", args)
@@ -376,8 +381,8 @@ func TestTerraformStack(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
-	time.Sleep(time.Minute * 5)
+	// fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
+	// time.Sleep(time.Minute * 5)
 
 	destroyArgs := &kloud.TerraformApplyRequest{
 		StackId:   userData.StackId,
@@ -733,12 +738,13 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 
 	// jCredentials and jCredentialData
 	credentialId := bson.NewObjectId()
-	credPublicKey := randomID(24)
+	identifier := randomID(24)
+	credProvider := "aws"
 	credential := &models.Credential{
-		Id:        credentialId,
-		Provider:  "aws",
-		PublicKey: credPublicKey,
-		OriginId:  accountId,
+		Id:         credentialId,
+		Provider:   credProvider,
+		Identifier: identifier,
+		OriginId:   accountId,
 	}
 
 	if err := provider.DB.Run("jCredentials", func(c *mgo.Collection) error {
@@ -749,9 +755,9 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 
 	credentialDataId := bson.NewObjectId()
 	credentialData := &models.CredentialData{
-		Id:        credentialDataId,
-		PublicKey: credPublicKey,
-		OriginId:  accountId,
+		Id:         credentialDataId,
+		Identifier: identifier,
+		OriginId:   accountId,
 		Meta: bson.M{
 			"access_key": os.Getenv("KLOUD_TESTACCOUNT_ACCESSKEY"),
 			"secret_key": os.Getenv("KLOUD_TESTACCOUNT_SECRETKEY"),
@@ -828,8 +834,10 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 	// jComputeStack and jStackTemplates
 	stackTemplateId := bson.NewObjectId()
 	stackTemplate := &models.StackTemplate{
-		Id:          stackTemplateId,
-		Credentials: []string{credPublicKey},
+		Id: stackTemplateId,
+		Credentials: map[string][]string{
+			credProvider: []string{identifier},
+		},
 	}
 	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
 
@@ -875,16 +883,16 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 	}
 
 	return &singleUser{
-		MachineIds:          machineIds,
-		MachineLabels:       machineLabels,
-		StackId:             computeStackId.Hex(),
-		StackTemplateId:     stackTemplate.Id.Hex(),
-		PrivateKey:          privateKey,
-		PublicKey:           publicKey,
-		AccountId:           accountId,
-		CredentialId:        credentialId,
-		CredentialPublicKey: credPublicKey,
-		Remote:              remote,
+		MachineIds:      machineIds,
+		MachineLabels:   machineLabels,
+		StackId:         computeStackId.Hex(),
+		StackTemplateId: stackTemplate.Id.Hex(),
+		PrivateKey:      privateKey,
+		PublicKey:       publicKey,
+		AccountId:       accountId,
+		CredentialId:    credentialId,
+		Identifier:      identifier,
+		Remote:          remote,
 	}, nil
 }
 
@@ -894,8 +902,8 @@ func build(id string, remote *kite.Client) error {
 		Provider:  "koding",
 		TerraformContext: `
 provider "aws" {
-    access_key = "${var.access_key}"
-    secret_key = "${var.secret_key}"
+    access_key = "${var.aws_access_key}"
+    secret_key = "${var.aws_secret_key}"
     region = "us-east-1"
 }
 

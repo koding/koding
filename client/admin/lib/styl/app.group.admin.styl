@@ -684,10 +684,10 @@ Admin main styles
         top                 70px
 
       .avatar
-        bg                  size, 106px 110px
+        bg                  size, 110px 110px
 
     .avatar
-      size                  106px, 110px
+      size                  110px, 110px
       rounded               7px
       border                1px inset transparent
       margin-right          35px
@@ -1253,8 +1253,18 @@ Admin main styles
 
   .step-define-stack
     height                  100%
+
+    > .kdbutton
+      z-index               14
+
     .editor-view
       height                calc(100% \- 140px)
+
+    .showlogs-link
+      z-index               13
+      right                 0
+      bottom                0
+      abs()
 
   .kdview.credential-status
     width                   200px
@@ -1290,10 +1300,10 @@ Admin main styles
   .kdview.output
     top                     100%
     vendor                  transition, top .2s ease
-    height                  calc(50% - 43px)
-    background-color        rgba(255,255,255,.98)
+    height                  calc(50% - 33px)
+    background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
-    z-index                 12
+    z-index                 13
     abs()
 
     &.raise
@@ -1556,3 +1566,68 @@ Admin main styles
 
 .kdmodal.content-modal
   overflow                  auto
+  .kdmodal-content
+    font-size               14px !important
+
+
+// stack onboarding styling
+.stack-onboarding
+
+  .header
+    text-align              center
+
+  .title
+    font-size               24px
+    color                   #00B057
+    margin                  43px 0 18px 0
+
+  .description
+    font-size               18px
+    color                   #565656
+    font-weight             300
+    width                   400px
+    margin                  0 auto 53px
+
+  .kdbutton
+    &.green
+      background            #00B057
+
+    &.medium
+      height                50px
+      padding               0 35px
+
+  &.get-started
+
+    .item
+      width                 290px
+      text-align            center
+      margin-left           35px
+      fl()
+
+      p
+        font-size           18px
+        color               #434343
+        margin-bottom       15px
+
+      span
+        color               #B2B2B2
+        font-size           18px
+        font-weight         300
+
+      .icon
+        r-sprite            'admin', 'document'
+        margin              0 auto 38px
+
+        &.invite-users
+          r-sprite          'admin', 'team'
+
+    .artwork
+      margin-top            98px
+      overflow              hidden
+      margin-left           12px
+
+    .arrow
+      r-sprite              'admin', 'arrow'
+      margin                0 auto 40px
+      rel()
+      left                  -8px

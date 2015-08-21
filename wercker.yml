@@ -61,6 +61,11 @@ build:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
     - script:
+        name: check configs
+        code: |
+          ./configure --config sandbox
+          ./configure --config prod
+    - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
     - script:
@@ -88,6 +93,10 @@ build:
         name: build backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
+    - script:
+        name: run coffeelint
+        code: |
+          ./scripts/lint-coffeescript.sh
     - script:
         name: check social api code quality
         code: |
@@ -121,22 +130,16 @@ build:
           EXTRAS="-story=true" make testapi config=./config/test.toml
     - script:
         name: test janitor
-        code: |
-          cd go/src/koding/workers/janitor
-          ./test.sh
-    - script: # todo generalize this part when we have more tests
+        code: ./run janitortests
+    - script:
+        name: test gatheringestor
+        code: ./run gatheringestortests
+    - script:
         name: test koding mongo models
-        code: |
-          go test ./go/src/koding/db/mongodb/modelhelper/*go
+        code: ./run gomodeltests
     - script:
         name: test vmwatcher
-        code: |
-          ./run vmwatchertests
-    # - script:
-    #     name: test koding kites
-    #     code: |
-    #       cd go/src/koding/kites/terraformer
-    #       go test -c && mv terraformer.test ./../../../../bin/ &&  CONFIG_PORT=1234 CONFIG_REGION="dev" CONFIG_ENVIRONMENT="dev" ./../../../../bin/terraformer.test
+        code: ./run vmwatchertests
     - script:
         name: testing backend finished
         code: |
@@ -179,6 +182,7 @@ build:
         name: cleanup
         code: |
           export CLIENT_TEST=$(cat CLIENT_TEST)
+          scripts/wercker/destroy-user-machines INSTANCE_DATA
           scripts/wercker/after-step-cleanup INSTANCE_DATA
           rm -f INSTANCE_DATA CLIENT_TEST
     - jessefulton/slack-notify:

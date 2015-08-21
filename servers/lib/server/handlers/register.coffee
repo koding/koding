@@ -14,12 +14,12 @@ module.exports = (req, res) ->
 
   return handleClientIdNotFound res, req unless clientId
 
-  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  clientIPAddress = req.headers['x-forwarded-for'] or req.connection.remoteAddress
 
   koding.fetchClient clientId, context, (client) ->
     # when there is an error in the fetchClient, it returns message in it
     if client.message
-      console.error JSON.stringify {req, client}
+      console.error JSON.stringify { req, client }
       return res.status(500).send client.message
 
     client.clientIP = (clientIPAddress.split ',')[0]
@@ -28,7 +28,7 @@ module.exports = (req, res) ->
 
       if err?
 
-        {message} = err
+        { message } = err
 
         if err.errors?
           message = "#{message}: #{Object.keys err.errors}"
@@ -36,7 +36,7 @@ module.exports = (req, res) ->
         return res.status(400).send message
 
 
-      res.cookie 'clientId', result.newToken, path : '/'
+      res.cookie 'clientId', result.newToken, { path : '/' }
       # handle the request as an XHR response:
       return res.status(200).end() if req.xhr
       # handle the request with an HTTP redirect:

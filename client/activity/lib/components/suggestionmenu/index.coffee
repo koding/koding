@@ -20,22 +20,22 @@ module.exports = class SuggestionMenu extends React.Component
     { getters } = ActivityFlux
 
     return {
-      suggestions : getters.currentSuggestions
-      flags       : getters.currentSuggestionsFlags
+      suggestions   : getters.currentSuggestions
+      flags         : getters.currentSuggestionsFlags
+      selectedIndex : getters.currentSuggestionsSelectedIndex
     }
 
 
   handleClose: (e) ->
 
     e.preventDefault()
-    ActivityFlux.actions.suggestions.setAccessibility no
+    @props.onDisabled?()
 
 
   isVisible: ->
 
     { suggestions, flags } = @state
     return suggestions.size > 0 and flags.get('accessible') and flags.get('visible')
-
 
 
   checkVisibility: -> @props.checkVisibility? @isVisible()
@@ -47,17 +47,26 @@ module.exports = class SuggestionMenu extends React.Component
   componentDidUpdate: -> @checkVisibility()
 
 
+  onItemSelected: (index) -> ActivityFlux.actions.suggestions.setSelectedIndex index
+
+
   render: ->
 
-    { suggestions } = @state
+    { suggestions, selectedIndex } = @state
+    { onItemConfirmed } = @props
     return <div className="hidden" />  unless @isVisible()
 
     <div className="ActivitySuggestionMenu">
       <div className="ActivitySuggestionMenu-header">
         Searching for one of these?
-        <a href="#" className="ActivitySuggestionMenu-closeIcon" onClick={@handleClose} />
+        <div className="ActivitySuggestionMenu-closeIcon" onClick={@bound 'handleClose'} />
       </div>
-      <SuggestionList suggestions={suggestions} />
+      <SuggestionList
+        suggestions     = { suggestions }
+        selectedIndex   = { selectedIndex }
+        onItemSelected  = { @bound 'onItemSelected' }
+        onItemConfirmed = { onItemConfirmed }
+      />
       <div className="ActivitySuggestionMenu-footer">
         If none of these are relevant, post yours
         <button type="submit" className="kdbutton solid green small" onClick={@props.onSubmit}>

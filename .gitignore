@@ -46,6 +46,7 @@ node_modules_koding/*/node_modules/*
 
 /install/BUILD_DATA
 BUILD_CONFIG.json
+ABUSE_REPORT
 ebin
 sftp-config.json
 v8.log

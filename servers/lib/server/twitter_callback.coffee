@@ -2,10 +2,10 @@
 # set to 127.0.0.1 instead. If testing twitter, you'll need to
 # start koding in 127.0.0.1, which can be configured in config.
 
-provider             = "twitter"
-http                 = require "https"
+provider             = 'twitter'
+http                 = require 'https'
 koding               = require './bongo'
-{OAuth}              = require "oauth"
+{ OAuth }            = require 'oauth'
 
 {
   redirectOauth
@@ -22,41 +22,41 @@ koding               = require './bongo'
   signature
 }                    = KONFIG[provider]
 
-module.exports = (req, res)->
-  {query, cookies} = req
-  {oauth_token, oauth_verifier} = query
-  {clientId} = cookies
+module.exports = (req, res) ->
+  { query, cookies } = req
+  { oauth_token, oauth_verifier } = query
+  { clientId } = cookies
 
-  {JSession} = koding.models
+  { JSession } = koding.models
 
-  JSession.one {clientId}, (err, session)->
+  JSession.one { clientId }, (err, session) ->
     if err or not session
-      redirectOauth err, req, res, {provider}
+      redirectOauth err, req, res, { provider }
       return
 
-    {username}           = session.data
-    {foreignAuth}        = session
-    {requestTokenSecret} = foreignAuth[provider]
+    { username }           = session.data
+    { foreignAuth }        = session
+    { requestTokenSecret } = foreignAuth[provider]
 
     client = new OAuth request_url, access_url, key, secret, version,
       redirect_uri, signature
 
     client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,
-      (err, oauthAccessToken, oauthAccessTokenSecret, results)->
+      (err, oauthAccessToken, oauthAccessTokenSecret, results) ->
         if err
-          redirectOauth err, req, res, {provider}
+          redirectOauth err, req, res, { provider }
           return
 
         client.get 'https://api.twitter.com/1.1/account/verify_credentials.json',
-          oauthAccessToken, oauthAccessTokenSecret, (error, data)->
+          oauthAccessToken, oauthAccessTokenSecret, (error, data) ->
             if err
-              redirectOauth err, req, res, {provider}
+              redirectOauth err, req, res, { provider }
               return
 
             try
               response = JSON.parse data
             catch e
-              redirectOauth "twitter: parsing json", req, res, {provider}
+              redirectOauth 'twitter: parsing json', req, res, { provider }
               return
 
             [firstName, restOfNames...] = response.name.split ' '
@@ -70,9 +70,9 @@ module.exports = (req, res)->
             twitter.lastName          = lastName
             twitter.profile           = response
 
-            saveOauthToSession twitter, clientId, provider, (err)->
+            saveOauthToSession twitter, clientId, provider, (err) ->
               if err
-                redirectOauth err, req, res, {provider}
+                redirectOauth err, req, res, { provider }
                 return
 
-              redirectOauth null, req, res, {provider}
+              redirectOauth null, req, res, { provider }

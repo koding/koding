@@ -1,33 +1,20 @@
 kd              = require 'kd'
 React           = require 'kd-react'
-ActivityFlux    = require 'activity/flux'
-classnames      = require 'classnames'
+immutable       = require 'immutable'
 formatEmojiName = require 'activity/util/formatEmojiName'
-Link            = require 'app/components/common/link'
-
+DropupItem      = require 'activity/components/dropupitem'
 
 module.exports = class EmojiDropupItem extends React.Component
 
-  handleSelect: ->
-
-    { onSelect, index } = @props
-    onSelect? index
-
-
-  handleClick: -> @props.onClick?()
+  @defaultProps =
+    item       : immutable.Map()
+    isSelected : no
+    index      : 0
 
 
   render: ->
 
-    { emoji, isSelected } = @props
-    className = classnames
-      'EmojiDropupItem'         : yes
-      'EmojiDropupItem-selected': isSelected
-
-    <Link
-      className    = {className}
-      onMouseEnter = {@bound 'handleSelect'}
-      onClick      = {@bound 'handleClick'}
-    >
-      <span className="EmojiDropupItem-emojiName">{formatEmojiName emoji}</span>
-    </Link>
+    { item } = @props
+    <DropupItem {...@props} className="EmojiDropupItem">
+      {formatEmojiName item}
+    </DropupItem>

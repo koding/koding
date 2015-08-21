@@ -160,6 +160,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	machine.User = user
 	machine.cleanFuncs = make([]func(), 0)
 	machine.Checker = checker
+	machine.locker = p
 
 	ev, ok := eventer.FromContext(ctx)
 	if ok {
@@ -279,6 +280,8 @@ func (p *Provider) credential(publicKey string) (*Credential, error) {
 
 	return credential, nil
 }
+
+func (m *Machine) ProviderName() string { return m.Provider }
 
 func (m *Machine) UpdateState(reason string, state machinestate.State) error {
 	m.Log.Debug("Updating state to '%v'", state)

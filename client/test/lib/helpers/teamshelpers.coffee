@@ -84,6 +84,15 @@ module.exports =
       .click                  '[testpath=register-button]'
       .pause                  2000 # wait for modal change
 
+    @loginAssertion(browser)
+
+
+  loginAssertion: (browser) ->
+
+    browser
+      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
+      .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+
 
   setupStackPage: (browser) ->
 
@@ -106,13 +115,14 @@ module.exports =
   loginToTeam: (browser, user) ->
 
     browser
+      .pause                  2000 # wait for login page
       .waitForElementVisible  '.TeamsModal--login', 20000
       .waitForElementVisible  'form.login-form', 20000
       .setValue               'input[name=username]', user.username
       .setValue               'input[name=password]', user.password
       .click                  'button[testpath=login-button]'
-      .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
-      .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+
+    @loginAssertion(browser)
 
 
   loginTeam: (browser) ->
@@ -128,3 +138,34 @@ module.exports =
 
     @loginToTeam(browser, user)
 
+    return user
+
+
+  openTeamSettingsModal: (browser) ->
+
+    avatarareaPopup      = '.avatararea-popup'
+    teamDashboard        = '.AppModal--admin'
+    teamSettingsLinkItem = "#{avatarareaPopup} .content a[href='/Admin']"
+
+    browser
+      .waitForElementVisible  avatarareaPopup, 20000
+      .waitForElementVisible  teamSettingsLinkItem, 20000
+      .click                  teamSettingsLinkItem
+      .waitForElementVisible  teamDashboard, 20000 # Assertion
+      .pause                  200 # Wait for team dashboard
+      .assert.containsText    teamDashboard, 'Team Dashboard' # Assertion
+
+
+  seeTeamNameOnsideBar: (browser, name) ->
+
+    sidebarSelector = '.with-sidebar [testpath=main-sidebar]'
+
+    browser
+      .waitForElementVisible  sidebarSelector, 20000
+      .assert.containsText    sidebarSelector, name
+
+
+  clickTeamSettings: (browser) ->
+
+    helpers.openAvatarAreaModal(browser)
+    @openTeamSettingsModal(browser)

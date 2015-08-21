@@ -188,7 +188,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
       ->
         # activating token again
-        certificate.update {$set: status: 'active'}, (err) ->
+        certificate.update { $set: { status: 'active' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -216,7 +216,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
       ->
         # activating token again
-        certificate.update {$set: status: 'active'}, (err) ->
+        certificate.update { $set: { status: 'active' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -230,7 +230,7 @@ runTests = -> describe 'server.handlers.verifytoken', ->
 
       ->
         # invalidating token
-        certificate.update { $set: status: 'invalidated' }, (err) ->
+        certificate.update { $set: { status: 'invalidated' } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 

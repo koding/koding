@@ -223,6 +223,7 @@ module.exports = class ComputeProvider extends Base
     JComputeStack.create {
       title         : template.title
       config        : template.config
+      credentials   : template.credentials
       baseStackId   : template._id
       groupSlug     : group.slug
       account, stackRevision
@@ -246,7 +247,9 @@ module.exports = class ComputeProvider extends Base
           # We are passing the provided credential for the template
           # Provider implementation can override this value like we
           # did in Koding Provider ~ GG
-          machineInfo.credential    = template.credentials?.first
+          machineInfo.credential    =
+            template.credentials?[machineInfo.provider]?.first
+
           machineInfo.generatedFrom =
             templateId : template._id
             revision   : stackRevision

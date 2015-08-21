@@ -9,5 +9,5 @@ type StackTemplate struct {
 		Content string `bson:"content"`
 		Sum     string `bson:"sum"`
 	} `bson:"template"`
-	Credentials []string `bson:"credentials"`
+	Credentials map[string][]string `bson:"credentials"`
 }

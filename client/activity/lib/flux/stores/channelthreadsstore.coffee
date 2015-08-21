@@ -138,7 +138,7 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
    * @param {string} messageId
    * @param {IMTreadCollection} nextState
   ###
-  handleRemoveMessageSuccess: (threads, { channelId, messageId }) ->
+  handleRemoveMessageSuccess: (threads, { messageId }) ->
 
     return removeMessage threads, messageId
 

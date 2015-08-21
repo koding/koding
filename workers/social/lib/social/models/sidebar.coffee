@@ -102,13 +102,9 @@ module.exports = class Sidebar extends bongo.Base
 
       return ->
 
-        failureFn = (err) ->
+        failureFn = ->
 
           filterQueue.fin()
-
-          return  unless err
-          console.error \
-            new KodingError "Sidebar decorate environment data: #{JSON.stringify err}"
 
         makeSuccessFn = (fn) ->
 
@@ -180,6 +176,11 @@ module.exports = class Sidebar extends bongo.Base
     SocialChannel.byId client, id: workspace.channelId, (err, channel) ->
 
       if err
+
+        switch err.error
+          when 'koding.NotFoundError'
+            return failureFn()
+
         data =
           channelId   : workspace.channelId
           workspaceId : workspace.getId()

@@ -90,7 +90,7 @@ deepObjectExtend = (target, source) ->
   for own prop of source
 
     # recursive call to deep extend
-    if target[prop] and typeof source[prop] == 'object'
+    if target[prop] and typeof source[prop] is 'object'
       deepObjectExtend target[prop], source[prop]
     # overwriting property
     else
@@ -338,7 +338,7 @@ class ValidationHandlerHelper
 
 class TeamHandlerHelper
 
-  @convertToArray = (commaSeparatedData = '')->
+  @convertToArray = (commaSeparatedData = '') ->
 
     return []  if commaSeparatedData is ''
 
@@ -404,7 +404,7 @@ class TeamHandlerHelper
     url  = generateUrl
       route : '-/teams/join'
 
-    body = TeamHandlerHelper.generateCreateTeamRequestBody()
+    body = TeamHandlerHelper.generateJoinTeamRequestBody()
 
     params               = { url, body }
     defaultRequestParams = generateDefaultRequestParams params
@@ -573,7 +573,7 @@ class RegisterHandlerHelper
 
   @generateGetProfileRequestParams = (opts = {}) ->
 
-    url                  = generateUrl route : "-/profile/#{opts.email}"
+    url                  = generateUrl { route : "-/profile/#{opts.email}" }
     defaultRequestParams = generateDefaultRequestParams { url }
     requestParams        = deepObjectExtend defaultRequestParams, opts
     # after deep extending object, encodes body param to a query string
@@ -584,6 +584,7 @@ class RegisterHandlerHelper
 
 module.exports = {
   generateUrl
+  deepObjectExtend
   generateRandomEmail
   generateRandomString
   generateRandomUsername

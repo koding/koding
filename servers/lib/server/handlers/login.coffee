@@ -20,5 +20,5 @@ module.exports = (req, res) ->
     else if not info
       return res.status(500).send 'An error occurred'
 
-    res.cookie 'clientId', info.replacementToken, path : '/'
+    res.cookie 'clientId', info.replacementToken, { path : '/' }
     res.status(200).end()

@@ -57,7 +57,7 @@ module.exports = class MessageEventManager extends KDObject
     like.actorsPreview.unshift accountOldId  if accountOldId not in like.actorsPreview
     like.isInteracted = yes  if whoami().getId() is accountOldId
 
-    message.emit "LikeAdded"
+    message.emit "LikeAdded", { accountId: accountOldId }
     message.emit "update"
 
 
@@ -73,7 +73,7 @@ module.exports = class MessageEventManager extends KDObject
 
     like.isInteracted = no  if whoami().getId() is accountOldId
 
-    message.emit "LikeRemoved"
+    message.emit "LikeRemoved", { accountId: accountOldId }
     message.emit "update"
 
 

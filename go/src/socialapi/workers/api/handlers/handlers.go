@@ -351,6 +351,16 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  message.List,
+			Name:     "channel-message-history-list",
+			Endpoint: "/channel/{id}/list",
+			Type:     handler.GetRequest,
+			Securer:  models.MessageListReadSecurer,
+		},
+	)
+
 	// message count of the channel
 	m.AddHandler(
 		handler.Request{

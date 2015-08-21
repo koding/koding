@@ -1,5 +1,3 @@
-formatEmojiName = require 'activity/util/formatEmojiName'
-
 module.exports = helpers =
 
   getCursorPosition: (textInput) -> textInput.selectionStart
@@ -25,16 +23,15 @@ module.exports = helpers =
     return matchResult?[1]
 
 
-  getEmojiQuery: (textInput) ->
+  getDropupQuery: (textInput) ->
 
     textBeforeCursor = helpers.getTextBeforeCursor textInput
     lastWord         = helpers.getLastWord textBeforeCursor
 
-    matchResult = lastWord?.match /^\:(.+)/
-    return matchResult?[1]
+    return lastWord
 
 
-  insertEmoji: (textInput, emoji) ->
+  insertDropupItem: (textInput, item) ->
 
     textBeforeCursor  = helpers.getTextBeforeCursor textInput
     textToReplace     = helpers.getLastWord textBeforeCursor
@@ -43,7 +40,7 @@ module.exports = helpers =
 
     value             = textInput.value
     textBeforeCursor  = value.substring(0, startReplaceIndex)
-    textBeforeCursor += formatEmojiName(emoji) + " "
+    textBeforeCursor += item + " "
     cursorPosition    = textBeforeCursor.length
     newValue          = textBeforeCursor + value.substring endReplaceIndex
 

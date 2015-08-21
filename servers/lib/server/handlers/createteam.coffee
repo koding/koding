@@ -19,31 +19,41 @@ module.exports = (req, res, next) ->
     newsletter
     # is group creator already a member
     alreadyMember }              = body
-  { JUser, JGroup, JInvitation } = koding.models
   body.groupName                 = slug
   # needed for JUser.login to know that it is a regular login or group creation
   body.groupIsBeingCreated       = yes
 
   clientId                       = getClientId req, res
 
+  { JUser, JGroup, JInvitation, JTeamInvitation } = koding.models
+
   return handleClientIdNotFound res, req  unless clientId
 
   client              = {}
   context             = { group: slug }
   client.context      = context
-  clientIPAddress     = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  clientIPAddress     = req.headers['x-forwarded-for'] or req.connection.remoteAddress
   # parsing booling from string
   alreadyMember       = alreadyMember is 'true'
 
   queue = [
+    ->
+      { teamAccessCode } = body
+      # if we dont have teamaccesscode just continue
+      return queue.next() if not teamAccessCode
 
+      JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+        return res.status(400).send err.message
+        return res.status(400).send 'Team Invitation is not found'  if not invitation
+        return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
+        return queue.next()
     ->
       koding.fetchClient clientId, context, (client_) ->
 
         client = client_
         # when there is an error in the fetchClient, it returns message in it
         if client.message
-          console.error JSON.stringify {req, client}
+          console.error JSON.stringify { req, client }
           return res.status(500).send client.message
 
         client.clientIP = (clientIPAddress.split ',')[0]
@@ -108,6 +118,8 @@ generateCreateGroupKallback = (client, req, res, body) ->
       domains
       # username or email of the user, can be already registered or a new one for creation
       username
+      # access code for admin to create a team
+      teamAccessCode
     } = body
 
     token = result.newToken or result.replacementToken
@@ -119,8 +131,8 @@ generateCreateGroupKallback = (client, req, res, body) ->
     # need to find another way - SY
 
     teamDomain = switch environment
-      when 'production'  then ".koding.com"
-      when 'development' then ".dev.koding.com"
+      when 'production'  then '.koding.com'
+      when 'development' then '.dev.koding.com'
       else ".#{environment}.koding.com"
 
     # set session token for later usage down the line
@@ -150,14 +162,24 @@ generateCreateGroupKallback = (client, req, res, body) ->
 
         # add other parallel operations here
         -> createInvitations client, invitees, (err) ->
-            console.error "Err while creating invitations", err  if err
+            console.error 'Err while creating invitations', err  if err
             queue.fin()
-
+        ->
+          if not teamAccessCode
+            queue.fin()
+          else
+            JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+              if err or not invitation
+                queue.fin()
+              else
+                invitation.markAsUsed (err) ->
+                  console.error err  if err
+                  queue.fin()
       ]
 
-      dash queue, (err)->
+      dash queue, (err) ->
         # do not block group creation
-        console.error "Error while creating group artifacts", body, err if err
+        console.error 'Error while creating group artifacts', body, err if err
 
         opt =
           username  : result.account.profile.nickname
@@ -181,7 +203,7 @@ validateGroupDataAndReturnError = (body) ->
 
 # convertToArray converts given comma separated string value into cleaned,
 # trimmed, lowercased, unified array of string
-convertToArray = (commaSeparatedData = '')->
+convertToArray = (commaSeparatedData = '') ->
   return []  if commaSeparatedData is ''
 
   data = commaSeparatedData.split(',') or []
@@ -194,7 +216,7 @@ convertToArray = (commaSeparatedData = '')->
 
 # createInvitations converts given invitee list into JInvitation and creates
 # them in db
-createInvitations = (client, invitees, callback)->
+createInvitations = (client, invitees, callback) ->
   inviteEmails = convertToArray invitees
 
   return callback null  if inviteEmails.length is 0 # return early

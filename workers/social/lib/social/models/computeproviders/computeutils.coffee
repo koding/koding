@@ -47,7 +47,7 @@ reviveCredential = (client, credential, callback)->
     callback null, credential
   else
     JCredential = require './credential'
-    JCredential.fetchByPublicKey client, credential, callback
+    JCredential.fetchByIdentifier client, credential, callback
 
 
 reviveClient = (client, callback, revive = yes)->
@@ -191,7 +191,7 @@ revive = do -> ({
             return callback \
               new KodingError "Credential failed.", "AccessDenied"
         else
-          options.credential = cred.publicKey  if cred?.publicKey
+          options.credential = cred.identifier  if cred?.identifier
 
         reviveProvisioners client, provisioners, (err, provisioners)=>
 

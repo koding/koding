@@ -2,6 +2,7 @@ $             = require 'jquery'
 React         = require 'kd-react'
 Constants     = require 'activity/flux/actions/suggestionconstants'
 formatContent = require 'app/util/formatContent'
+emojify       = require 'emojify.js'
 
 module.exports = class SuggestionMessageBody extends React.Component
 
@@ -34,6 +35,8 @@ module.exports = class SuggestionMessageBody extends React.Component
 
     content = helper.cleanUselessMarkers content
     content = helper.replaceMarkers content, startTag, endTag
+
+    content = emojify.replace content
 
     return content
 

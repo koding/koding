@@ -1,26 +1,26 @@
 request = require 'request'
 
-baseUrl = "https://api.helpscout.net/v1"
-key     = "b041e4da61c0934cb73d47e1626098430738b049"
+baseUrl = 'https://api.helpscout.net/v1'
+key     = 'b041e4da61c0934cb73d47e1626098430738b049'
 
 module.exports = (account, req, res) ->
 
   Payment = require '../../../workers/social/lib/social/models/payment'
 
-  account.fetchUser (err, user)->
+  account.fetchUser (err, user) ->
 
     if err? or not user?
       return res.status(401).end()
 
-    {message, subject} = req.body
+    { message, subject } = req.body
 
     if not message or not subject
       return res.status(400).send
-        description : "message and subject required"
-        error       : "bad_request"
+        description : 'message and subject required'
+        error       : 'bad_request'
 
-    client = connection: delegate: account
-    Payment.subscriptions client, {}, (err, subscription)->
+    client = { connection: { delegate: account } }
+    Payment.subscriptions client, {}, (err, subscription) ->
 
       if err? or not subscription?
       then plan = 'free'
@@ -37,35 +37,35 @@ module.exports = (account, req, res) ->
 
       request
         url           : "#{baseUrl}/conversations.json"
-        method        : "POST"
+        method        : 'POST'
         auth          :
           user        : key
-          pass        : "x"
+          pass        : 'x'
         json          :
-          type        : "email"
+          type        : 'email'
           customer    :
             email     : user.email
-            type      : "customer"
+            type      : 'customer'
           subject     : subject
           mailbox     :
             id        : 19295
-            name      : "Support"
+            name      : 'Support'
           ,
           tags	      : ["Plan->#{plan}"]
           ,
           threads     : [
-            type      : "customer"
+            type      : 'customer'
             createdBy :
               email   : user.email
-              type    : "customer"
+              type    : 'customer'
             ,
             body      : message
           ]
 
-      , (error, response, body)->
+      , (error, response, body) ->
 
-        if error || body
+        if error or body
           console.error error, body
-          res.status(400).send ok: 0
+          res.status(400).send { ok: 0 }
         else
-          res.status(200).send ok: 1
+          res.status(200).send { ok: 1 }

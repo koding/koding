@@ -1,8 +1,8 @@
 process.title = 'koding-webserver'
-{argv}        = require 'optimist'
+{ argv }      = require 'optimist'
 
 Object.defineProperty global, \
-  'KONFIG', value : require('koding-config-manager').load "main.#{argv.c}"
+  'KONFIG', { value : require('koding-config-manager').load "main.#{argv.c}" }
 
 { webserver, projectRoot, basicAuth } = KONFIG
 
@@ -14,7 +14,7 @@ usertracker           = require '../../../workers/usertracker'
 app                   = express()
 webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
-{ generateHumanstxt } = require "./humanstxt"
+{ generateHumanstxt } = require './humanstxt'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -33,7 +33,7 @@ do ->
     secret            : 'foo'
     resave            : yes
     saveUninitialized : true
-  app.use bodyParser.urlencoded extended : yes
+  app.use bodyParser.urlencoded { extended : yes }
   app.use compression()
   # helmet:
   app.use helmet.xframe('sameorigin')
@@ -61,6 +61,7 @@ app.post '/-/teams/create'                       , require './handlers/createtea
 app.post '/-/teams/join'                         , require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
+app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
 
 # fetches last members of team
 app.all  '/-/team/:name/members'                 , require './handlers/getteammembers'
@@ -97,7 +98,7 @@ app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 30
 app.get  '/activity/p/?*'                        , (req, res) -> res.redirect 301, '/Activity'
 app.get  '/-/healthCheck'                        , require './handlers/healthcheck'
 app.get  '/-/versionCheck'                       , require './handlers/versioncheck'
-app.get  '/-/version'                            , (req, res) -> res.jsonp version: KONFIG.version
+app.get  '/-/version'                            , (req, res) -> res.jsonp { version: KONFIG.version }
 app.get  '/-/jobs'                               , require './handlers/jobs'
 app.post '/recaptcha'                            , require './handlers/recaptcha'
 app.get  '/-/presence/:service'                  , (req, res) -> res.status(200).end()
@@ -143,7 +144,7 @@ Tracker.setMqClient mqClient
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.
 app.use (err, req, res, next) ->
-  console.error "request error"
+  console.error 'request error'
   console.error err
   console.error err.stack
   res.status(500).send error_500()

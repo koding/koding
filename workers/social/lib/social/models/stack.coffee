@@ -52,9 +52,6 @@ module.exports = class JComputeStack extends jraphical.Module
         { name : 'updateInstance' }
       ]
 
-    indexes              :
-      publicKey          : 'unique'
-
     schema               :
 
       title              :
@@ -79,6 +76,18 @@ module.exports = class JComputeStack extends jraphical.Module
       config             : Object
 
       meta               : require 'bongo/bundles/meta'
+
+      # Identifiers of JCredentials
+      # structured like following;
+      #  { Provider: [JCredential.identifier ] }
+      #  ---
+      #  {
+      #    aws: [123123, 123124]
+      #    github: [234234]
+      #  }
+      credentials        :
+        type             : Object
+        default          : -> {}
 
       status             :
         type             : String
@@ -137,18 +146,20 @@ module.exports = class JComputeStack extends jraphical.Module
    * @param  {Function} callback
    * @return {void}
   ###
-  @create = (data, callback)->
+  @create = (data, callback) ->
 
-    { account, groupSlug, config, title, baseStackId, stackRevision } = data
+    { account, groupSlug, config, credentials
+      title, baseStackId, stackRevision } = data
 
     originId = account.getId()
 
     stack = new JComputeStack {
-      title, config, originId, baseStackId, stackRevision
+      title, config, originId, baseStackId
+      stackRevision, credentials
       group: groupSlug
     }
 
-    stack.save (err)->
+    stack.save (err) ->
       return callback err  if err?
       callback null, stack
 

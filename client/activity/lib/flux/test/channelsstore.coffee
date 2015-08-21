@@ -56,3 +56,31 @@ describe 'ChannelsStore', ->
       expect(storeState.foo).to.eql mockPublicChannel
 
 
+  describe 'handleLoadChannelListSuccess', ->
+
+    it 'loads a list of channels at a time', ->
+
+       channel1 = { id : 'koding', name : 'koding' }
+       channel2 = { id : 'qwerty', name : 'qwerty' }
+       channels = [ channel1, channel2 ]
+
+       @reactor.dispatch actionTypes.LOAD_CHANNELS_SUCCESS, { channels }
+
+       storeState = @reactor.evaluateToJS ['ChannelsStore']
+
+       expect(storeState.koding).to.eql channel1
+       expect(storeState.qwerty).to.eql channel2
+
+
+    it 'loads a list of popular channels', ->
+
+       channel1 = { id : 'programming', name : 'programming' }
+       channel2 = { id : 'testing', name : 'testing' }
+       channels = [ channel1, channel2 ]
+
+       @reactor.dispatch actionTypes.LOAD_POPULAR_CHANNELS_SUCCESS, { channels }
+
+       storeState = @reactor.evaluateToJS ['ChannelsStore']
+
+       expect(storeState.programming).to.eql channel1
+       expect(storeState.testing).to.eql channel2

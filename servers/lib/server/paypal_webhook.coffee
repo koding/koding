@@ -1,6 +1,6 @@
 request = require 'request'
 
-{ socialapi : {paymentwebhook : { port } } } = KONFIG
+{ socialapi : { paymentwebhook : { port } } } = KONFIG
 
 module.exports = (req, res) ->
   reqOptions =
@@ -10,6 +10,6 @@ module.exports = (req, res) ->
 
   reqOptions.body = req.body
 
-  request reqOptions, (err, resp, body)->
+  request reqOptions, (err, resp, body) ->
     return res.status(500).send err  if err
     res.status(200).end()

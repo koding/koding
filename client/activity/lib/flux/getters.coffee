@@ -18,6 +18,7 @@ ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
 MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
 FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
 FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+PopularChannelIdsStore         = [['PopularChannelIdsStore'], withEmptyMap]
 ChannelParticipantIdsStore     = [['ChannelParticipantIdsStore'], withEmptyMap]
 ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
 SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
@@ -25,6 +26,7 @@ SelectedMessageThreadIdStore   = ['SelectedMessageThreadIdStore']
 SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
 SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
+SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
@@ -32,7 +34,13 @@ EmojisStore                         = [['EmojisStore'], withEmptyList]
 FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
 FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
 CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
-CommonEmojiListFlagsStore           = [['CommonEmojiListFlagsStore'], withEmptyMap]
+CommonEmojiListVisibilityStore      = ['CommonEmojiListVisibilityStore']
+ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
+ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
+ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
+ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
+ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
+ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -48,6 +56,12 @@ followedPublicChannels = [
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
+  ChannelsStore
+  (ids, channels) -> ids.map (id) -> channels.get id
+]
+
+popularChannels = [
+  PopularChannelIdsStore
   ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
@@ -201,12 +215,33 @@ selectedChannelParticipants = [
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
-currentSuggestionsQuery = SuggestionsQueryStore
-currentSuggestions      = SuggestionsStore
-currentSuggestionsFlags = SuggestionsFlagsStore
+currentSuggestionsQuery         = SuggestionsQueryStore
+currentSuggestions              = SuggestionsStore
+currentSuggestionsFlags         = SuggestionsFlagsStore
+currentSuggestionsSelectedIndex = [
+  SuggestionsStore
+  SuggestionsSelectedIndexStore
+  (suggestions, index) ->
+    { size } = suggestions
+    return -1  unless size > 0
+
+    unless 0 <= index < size
+      index = index % suggestions.size
+      index += size  if index < 0
+
+    return index
+]
+currentSuggestionsSelectedItem  = [
+  SuggestionsStore
+  currentSuggestionsSelectedIndex
+  (suggestions, index) ->
+    return  unless suggestions.size > 0
+    return suggestions.get index
+]
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
 filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
+# Returns a list of emojis filtered by current query
 filteredEmojiList              = [
   EmojisStore
   filteredEmojiListQuery
@@ -214,6 +249,7 @@ filteredEmojiList              = [
     return immutable.List()  unless query
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
+# Returns emoji from emoji list by current selected index
 filteredEmojiListSelectedItem  = [
   filteredEmojiList
   filteredEmojiListSelectedIndex
@@ -227,12 +263,73 @@ filteredEmojiListSelectedItem  = [
 
 commonEmojiList              = EmojisStore
 commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
-commonEmojiListFlags         = CommonEmojiListFlagsStore
+commonEmojiListVisibility    = CommonEmojiListVisibilityStore
+# Returns emoji from emoji list by current selected index
 commonEmojiListSelectedItem  = [
   commonEmojiList
   commonEmojiListSelectedIndex
   (emojis, index) -> emojis.get index
 ]
+
+chatInputChannelsQuery         = ChatInputChannelsQueryStore
+chatInputChannelsSelectedIndex = ChatInputChannelsSelectedIndexStore
+# Returns a list of channels depending on the current query
+# If query if empty, returns popular channels
+# Otherwise, returns channels filtered by query
+chatInputChannels              = [
+  ChannelsStore
+  popularChannels
+  chatInputChannelsQuery
+  (channels, popularChannels, query) ->
+    return popularChannels.toList()  unless query
+
+    query = query.toLowerCase()
+    channels.toList().filter (channel) ->
+      channelName = channel.get('name').toLowerCase()
+      return channelName.indexOf(query) is 0
+]
+# Returns a channel from channel list by current selected index
+chatInputChannelsSelectedItem = [
+  chatInputChannels
+  chatInputChannelsSelectedIndex
+  (channels, index) ->
+    return  unless channels.size > 0
+
+    index = index % channels.size  if index >= channels.size
+    index = channels.size + index  if index < 0
+    return channels.get index
+]
+chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
+
+chatInputUsersQuery         = ChatInputUsersQueryStore
+chatInputUsersSelectedIndex = ChatInputUsersSelectedIndexStore
+# Returns a list of users depending on the current query
+# If query is empty, returns selected channel participants
+# Otherwise, returns users filtered by query
+chatInputUsers              = [
+  UsersStore
+  selectedChannelParticipants
+  chatInputUsersQuery
+  (users, participants, query) ->
+    return participants?.toList() ? immutable.List()  unless query
+
+    query = query.toLowerCase()
+    users.toList().filter (user) ->
+      userName = user.getIn(['profile', 'nickname']).toLowerCase()
+      return userName.indexOf(query) is 0
+]
+# Returns a user from user list by current selected index
+chatInputUsersSelectedItem = [
+  chatInputUsers
+  chatInputUsersSelectedIndex
+  (users, index) ->
+    return  unless users.size > 0
+
+    index = index % users.size  if index >= users.size
+    index = users.size + index  if index < 0
+    return users.get index
+]
+chatInputUsersVisibility = ChatInputUsersVisibilityStore
 
 module.exports = {
   followedPublicChannelThreads
@@ -253,6 +350,8 @@ module.exports = {
   currentSuggestionsQuery
   currentSuggestions
   currentSuggestionsFlags
+  currentSuggestionsSelectedIndex
+  currentSuggestionsSelectedItem
 
   filteredEmojiList
   filteredEmojiListQuery
@@ -261,6 +360,18 @@ module.exports = {
 
   commonEmojiList
   commonEmojiListSelectedIndex
-  commonEmojiListFlags
+  commonEmojiListVisibility
   commonEmojiListSelectedItem
+
+  chatInputChannels
+  chatInputChannelsQuery
+  chatInputChannelsSelectedIndex
+  chatInputChannelsSelectedItem
+  chatInputChannelsVisibility
+
+  chatInputUsers
+  chatInputUsersQuery
+  chatInputUsersSelectedIndex
+  chatInputUsersSelectedItem
+  chatInputUsersVisibility
 }

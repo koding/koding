@@ -1,12 +1,12 @@
-{argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+{ argv } = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 registeredUsers = {}
 allUsers = {}
 
 redisClient = null
 
-sendData = (prefix, keys)->
+sendData = (prefix, keys) ->
   dateObj = new Date()
   month = dateObj.getUTCMonth() + 1
   day   = dateObj.getUTCDate()
@@ -23,28 +23,28 @@ publishToRedis = ->
   if uniqueKeysRegistered.length > 0
     # clear the previous ones
     registeredUsers = {}
-    sendData "registered", uniqueKeysRegistered
+    sendData 'registered', uniqueKeysRegistered
 
   if uniqueKeysAll.length > 0
     # clear the previous ones
     allUsers = {}
-    sendData "all", uniqueKeysAll
+    sendData 'all', uniqueKeysAll
 
-module.exports.track = (username)->
+module.exports.track = (username) ->
   # if user is a registered one track them seperately
-  registeredUsers[username] = ""  unless /guest-/.test username
+  registeredUsers[username] = ''  unless /guest-/.test username
 
-  allUsers[username] = ""
+  allUsers[username] = ''
 
 module.exports.start = ->
-  redis = require "redis"
+  redis = require 'redis'
   redisClient = redis.createClient(
-    KONFIG.monitoringRedis.split(":")[1]
-    KONFIG.monitoringRedis.split(":")[0]
+    KONFIG.monitoringRedis.split(':')[1]
+    KONFIG.monitoringRedis.split(':')[0]
     {}
   )
 
-  redisClient.on "error", (err)-> console.log "redis err", err
-  redisClient.on "connect", -> console.log "connected to redis"
+  redisClient.on 'error', (err) -> console.log 'redis err', err
+  redisClient.on 'connect', -> console.log 'connected to redis'
 
   setInterval publishToRedis, 10000
