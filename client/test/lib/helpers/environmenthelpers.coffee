@@ -48,6 +48,105 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.domains'
 
+  openAdvancedSettings: (browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.advanced'
+
+  openSnapshotsSettings: (browser,vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.snapshots'
+
+  attemptCreateSnapshot: (browser) ->
+
+    buttonSelector   = '.snapshots .add-button'
+
+    @openSnapshotsSettings(browser)
+
+    browser
+      .waitForElementVisible buttonSelector, 20000
+      .click                 buttonSelector
+
+  nameSnapshot: (browser) ->
+    name            = helpers.getFakeText().split(' ')[0]
+    inputSelector   = '.snapshots .text.hitenterview'
+
+    browser
+      .waitForElementVisible inputSelector, 20000
+      .click                 inputSelector
+      .setValue              inputSelector, [name, browser.Keys.RETURN]
+
+    return name
+
+
+  createSnapshot: (browser) ->
+
+    upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
+
+    @attemptCreateSnapshot(browser)
+
+    browser.pause 6000 #Wait for the modal for upgrading to be displayed or not
+
+    browser.isVisible upgradeSelector, (result) ->
+
+      if result.value
+         browser.click(upgradeSelector)
+         helpers.selectPlan(browser)
+         helpers.fillPaymentForm(browser)
+         browser.url helpers.getUrl() + '/IDE'
+
+    @attemptCreateSnapshot(browser)
+
+    return @nameSnapshot(browser)
+
+  assertSnapshotPresent: (browser, name, reverse=false) ->
+
+    listSelector = ".snapshots .kdlistview"
+
+    browser.elements 'css selector', listSelector+" .kdlistitemview-snapshot.snapshot .label", (elements) ->
+      elements.value.map (value) ->
+        browser.elementIdText value.ELEMENT, (res) ->
+          if name is res
+            if reverse
+              assert.notEqual res,name, "Snapshot present when not expected to be"
+            else
+              assert.equal res,name
+
+
+  createSnapshotIfNotFound: (browser, callback) ->
+
+    browser.element 'css selector', ".kdlistview .kdlistitemview-snapshot", (result) ->
+      name = null
+      if result.status is not 0
+        name = environmentHelpers.createSnapshot(browser)
+
+      callback(name)
+
+
+  deleteSnapshot: (browser) ->
+
+    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot"
+    deleteSelector  = ".kdlistitemview-snapshot .buttons .delete"
+    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+
+    browser
+      .waitForElementVisible elementSelector, 20000
+      .moveToElement         elementSelector, 205, 22
+      .waitForElementVisible deleteSelector, 20000
+      .click                 deleteSelector
+      .waitForElementVisible confirmSelector, 20000
+      .click                 confirmSelector
+
+  openResizeVmModal: (browser) ->
+
+    resizeSelector  = ".disk-usage-info .footline .resize"
+
+    @openDiskUsageSettings(browser)
+
+    browser
+      .waitForElementVisible resizeSelector, 20000
+      .click                 resizeSelector
+
+
 
   clickAddVMButton: (browser) ->
 
@@ -124,3 +223,16 @@ module.exports =
       .waitForElementNotVisible '.env-modal.paid-plan', 250000
       .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 25000
       .end()
+
+  nameVM: (browser, name) ->
+
+    vmModal       = modalSelector + ' .AppModal-form'
+    nicknameInput = vmModal + ' .nickname input[name=nickEdit]'
+
+    browser
+      .waitForElementVisible  vmModal, 20000
+      .waitForElementVisible  vmModal + ' .nickname', 20000
+      .click                  vmModal + ' .nickname .edit'
+      .waitForElementVisible  nicknameInput, 20000
+      .clearValue             nicknameInput
+      .setValue               nicknameInput, name + '\n'

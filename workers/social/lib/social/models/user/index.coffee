@@ -1064,7 +1064,8 @@ module.exports = class JUser extends jraphical.Module
 
   @validateAll = (userFormData, callback) =>
 
-    validator  = require './validators'
+    Validator  = require './validators'
+    validator  = new Validator
 
     isError    = no
     errors     = {}

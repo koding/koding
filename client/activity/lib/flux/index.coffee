@@ -22,6 +22,7 @@ module.exports =
     require './stores/suggestions/suggestionsquerystore'
     require './stores/suggestions/suggestionsflagsstore'
     require './stores/suggestions/suggestionsstore'
+    require './stores/suggestions/suggestionsselectedindexstore'
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
     require './stores/chatinput/emojisstore'

@@ -1,14 +1,18 @@
-$                 = require 'jquery'
-kd                = require 'kd'
-React             = require 'kd-react'
-immutable         = require 'immutable'
-classnames        = require 'classnames'
-ActivityFlux      = require 'activity/flux'
-Dropup            = require 'activity/components/dropup'
-ChannelDropupItem = require 'activity/components/channeldropupitem'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+ChannelDropupItem    = require 'activity/components/channeldropupitem'
+scrollToTarget       = require 'activity/util/scrollToTarget'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class ChannelDropup extends React.Component
+
+  @include [ImmutableRenderMixin]
+
 
   @defaultProps =
     items        : immutable.List()
@@ -74,26 +78,10 @@ module.exports = class ChannelDropup extends React.Component
     { selectedItem } = @props
     return  if prevProps.selectedItem is selectedItem or not selectedItem
 
-    containerElement = $ @refs.dropup.getMainElement()
-    itemElement      = $ React.findDOMNode @refs[selectedItem.get 'id']
+    containerElement = @refs.dropup.getMainElement()
+    itemElement      = React.findDOMNode @refs[selectedItem.get 'id']
 
-    containerScrollTop    = containerElement.scrollTop()
-    containerHeight       = containerElement.height()
-    containerScrollBottom = containerScrollTop + containerHeight
-    itemTop               = itemElement.position().top
-    itemHeight            = itemElement.outerHeight()
-    itemBottom            = itemTop + itemHeight
-
-    # scroll container if selected item is outside the visible area
-    if itemBottom > containerScrollBottom
-      scrollTop = if itemElement.next().length > 0
-      then itemBottom - containerHeight
-      else containerElement.get(0).scrollHeight
-
-      containerElement.scrollTop scrollTop
-    else if itemTop < containerScrollTop
-      scrollTop = if itemElement.prev().length then itemTop else 0
-      containerElement.scrollTop scrollTop
+    scrollToTarget containerElement, itemElement
 
 
   onItemSelected: (index) ->

@@ -11,15 +11,13 @@ module.exports =
 
       name     = faker.Name.findName()
       username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
-      posts    = (faker.Lorem.paragraphs() for i in [1..10])
-      comments = (faker.Lorem.paragraph()  for i in [1..10])
-
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
+      teamSlug = name.toLowerCase().replace /\s/g, '-'
 
       email = "kodingtestuser+#{username}@koding.com"
 
-      users.push { name, email, username, password }
+      users.push { name, email, username, password, teamSlug }
 
 
     fs.writeFileSync 'users.json', JSON.stringify(users), 'utf-8'

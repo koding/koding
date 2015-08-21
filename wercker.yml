@@ -61,6 +61,11 @@ build:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
     - script:
+        name: check configs
+        code: |
+          ./configure --config sandbox
+          ./configure --config prod
+    - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
     - script:
@@ -177,6 +182,7 @@ build:
         name: cleanup
         code: |
           export CLIENT_TEST=$(cat CLIENT_TEST)
+          scripts/wercker/destroy-user-machines INSTANCE_DATA
           scripts/wercker/after-step-cleanup INSTANCE_DATA
           rm -f INSTANCE_DATA CLIENT_TEST
     - jessefulton/slack-notify:
