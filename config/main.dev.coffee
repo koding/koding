@@ -521,6 +521,10 @@ Configuration = (options={}) ->
             location    : "~ /sitemap(.*).xml"
             proxyPass   : "http://socialapi/sitemap$1.xml"
           }
+          {
+            location    : "~ /api/social/sshkey"
+            proxyPass   : "http://socialapi/sshkey$1$is_args$args"
+          }
         ]
 
     dailyemailnotifier  :
