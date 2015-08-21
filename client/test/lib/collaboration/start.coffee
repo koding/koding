@@ -5,8 +5,8 @@ collaborationHelpers = require '../helpers/collaborationhelpers.js'
 
 startSession = (browser, firstUser, secondUser) ->
 
-  secondUserName   = secondUser.username
-  secondUserAvatar = ".avatars .avatarview[href='/#{secondUserName}']"
+  secondUserName         = secondUser.username
+  secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
   secondUserOnlineAvatar = secondUserAvatar + '.online'
 
   helpers.beginTest browser, firstUser

@@ -82,10 +82,22 @@ module.exports =
 
   inviteUser: (browser, username) ->
 
+    @enterUserNameToInvite (browser, username)
     browser
-      .waitForElementVisible '.ParticipantHeads-button--new', 20000
-      .click '.ParticipantHeads-button--new'
-      .waitForElementVisible '.kdautocompletewrapper input', 20000
-      .setValue '.kdautocompletewrapper input', username
-      .pause 5000
-      .click "span.profile[href='/#{username}']"
+      .element 'css selector', "span.profile[href='/#{username}']", (result) ->
+        if result.status is 0
+          browser.click        "span.profile[href='/#{username}']"
+        else
+          @enterUserNameToInvite (browser, username)
+          browser
+            .click        "span.profile[href='/#{username}']"
+
+
+  enterUserNameToInvite: (browser, username) ->
+
+    browser
+      .waitForElementVisible   '.ParticipantHeads-button--new', 20000
+      .click                   '.ParticipantHeads-button--new'
+      .waitForElementVisible   '.kdautocompletewrapper input', 20000
+      .setValue                '.kdautocompletewrapper input', username
+      .pause                   5000
