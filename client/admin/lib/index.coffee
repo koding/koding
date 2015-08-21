@@ -29,7 +29,7 @@ module.exports = class AdminAppController extends AppController
     teams      :
       title    : 'Team Settings'
       items    : [
-        { slug : 'Settings',       title : 'Settings',          viewClass : GroupGeneralSettingsView }
+        { slug : 'General',        title : 'General',           viewClass : GroupGeneralSettingsView }
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
         { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
@@ -60,7 +60,7 @@ module.exports = class AdminAppController extends AppController
 
     data       or= kd.singletons.groupsController.getCurrentGroup()
     options.view = new AdminAppView
-      title      : 'Team Dashboard'
+      title      : 'Team Settings'
       cssClass   : 'AppModal AppModal--admin'
       width      : 1000
       height     : '100%'
@@ -101,7 +101,7 @@ module.exports = class AdminAppController extends AppController
               if handle.getOption('title') is parentTabTitle
                 handle.setClass 'active'
       else
-        kd.singletons.router.handleRoute '/Admin/Settings'
+        kd.singletons.router.handleRoute '/Admin/General'
 
 
   loadView: (modal) ->
