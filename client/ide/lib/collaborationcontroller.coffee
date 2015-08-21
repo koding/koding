@@ -530,8 +530,11 @@ module.exports = CollaborationController =
 
         return  unless data.origin is @collaborationHost
 
-        @showKickedModal()  if data.target is nick()
-        @handleParticipantKicked data.target
+        if data.target is nick()
+          @showKickedModal()
+          @quit()
+        else
+          @handleParticipantKicked data.target
 
       when 'SetMachineUser'
 
