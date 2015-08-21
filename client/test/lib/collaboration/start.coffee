@@ -72,3 +72,5 @@ module.exports =
       startSession browser, firstUser, secondUser
     else
       joinSession browser, firstUser, secondUser
+
+
