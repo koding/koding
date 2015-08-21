@@ -6,7 +6,7 @@ module.exports = class ProviderSelectionView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'stack-onboarding provider-selection'
+    options.cssClass = kd.utils.curry options.cssClass, 'provider-selection'
 
     super options, data
 

@@ -6,7 +6,7 @@ module.exports = class CodeSetupView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'stack-onboarding code-setup'
+    options.cssClass = kd.utils.curry options.cssClass, 'code-setup'
 
     super options, data
 
