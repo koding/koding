@@ -17,6 +17,14 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.LOAD_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
     @on actions.LOAD_POPULAR_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
 
+    @on actions.FOLLOW_CHANNEL_BEGIN, @handleFollowChannelBegin
+    @on actions.FOLLOW_CHANNEL_SUCCESS, @handleFollowChannelSuccess
+    @on actions.FOLLOW_CHANNEL_FAIL, @handleFollowChannelFail
+
+    @on actions.UNFOLLOW_CHANNEL_BEGIN, @handleUnfollowChannelBegin
+    @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
+    @on actions.UNFOLLOW_CHANNEL_FAIL, @handleUnfollowChannelFail
+
 
   handleLoadChannelSuccess: (channels, { channel }) ->
 
@@ -28,6 +36,22 @@ module.exports = class ChannelsStore extends KodingFluxStore
     return currentChannels.withMutations (map) ->
       map.set channel.id, toImmutable channel for channel in  channels
       return map
+
+
+  handleFollowChannelSuccess: (channels, { channelId }) ->
+
+    if channels.has channelId
+      channels = channels.setIn [channelId, 'isParticipant'], yes
+
+    return channels
+
+
+  handleUnfollowChannelSuccess: (channels, { channelId }) ->
+
+    if channels.has channelId
+      channels = channels.setIn [channelId, 'isParticipant'], no
+
+    return channels
 
 
 initChannel = (channels, id) ->
