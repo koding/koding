@@ -1,6 +1,5 @@
-kd           = require 'kd'
-KodingSwitch = require 'app/commonviews/kodingswitch'
-
+kd             = require 'kd'
+KodingSwitch   = require 'app/commonviews/kodingswitch'
 CONFIG_OPTIONS =
   Database     :
     mysql      : title: 'MySQL',    command: 'apt-get install mysql'
@@ -26,7 +25,6 @@ module.exports = class ServerConfigurationView extends kd.View
 
     super options, data
 
-
     for section, services of CONFIG_OPTIONS
       section = new kd.CustomHTMLView
         tagName  : 'section'
@@ -36,15 +34,18 @@ module.exports = class ServerConfigurationView extends kd.View
       for service, config of services
         row = new kd.CustomHTMLView cssClass: 'row'
 
-        row.addSubView kdSwitch = new KodingSwitch
-          size         : 'tiny'
-          name         : service
-          defaultValue : config.selected or no
+        do (service, config) ->
 
-        row.addSubView new kd.CustomHTMLView
-          partial  : config.title
-          cssClass : 'label'
+          row.addSubView kdSwitch = new KodingSwitch
+            size         : 'tiny'
+            name         : service
+            defaultValue : config.selected or no
 
-        section.addSubView row
+          row.addSubView new kd.CustomHTMLView
+            partial  : config.title
+            cssClass : 'label'
+            click    : -> if kdSwitch.getValue() then kdSwitch.setOff() else kdSwitch.setOn()
+
+          section.addSubView row
 
       @addSubView section
