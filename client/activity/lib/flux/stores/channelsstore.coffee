@@ -38,24 +38,12 @@ module.exports = class ChannelsStore extends KodingFluxStore
       return map
 
 
-  handleFollowChannelBegin: (channels, { channelId }) -> channels
-
-
-  handleFollowChannelFail: (channels, { channelId }) -> channels
-
-
   handleFollowChannelSuccess: (channels, { channelId }) ->
 
     if channels.has channelId
       channels = channels.setIn [channelId, 'isParticipant'], yes
 
     return channels
-
-
-  handleUnfollowChannelBegin: (channels, { channelId }) -> channels
-
-
-  handleUnfollowChannelFail: (channels, { channelId }) -> channels
 
 
   handleUnfollowChannelSuccess: (channels, { channelId }) ->
