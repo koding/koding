@@ -16,6 +16,42 @@ module.exports = class OnboardingView extends JView
 
     @createViews()
     @createFooter()
+    @createStackPreview()
+
+    @pages = [ @getStartedView, @providerSelectionView, @configurationView, @codeSetupView ]
+
+    @bindPageEvents()
+
+
+  createViews: ->
+
+    @getStartedView        = new GetStartedView
+    @codeSetupView         = new CodeSetupView          cssClass: 'hidden'
+    @configurationView     = new ConfigurationView      cssClass: 'hidden'
+    @providerSelectionView = new ProviderSelectionView  cssClass: 'hidden'
+
+    @setClass 'get-started'
+    @currentPage = @getStartedView
+
+
+  bindPageEvents: ->
+
+    @on 'PageNavigationRequested', (direction) =>
+      pageIndex  = @pages.indexOf @currentPage
+      nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
+      targetPage = @pages[nextIndex]
+
+      @currentPage.hide()
+      targetPage.show()
+
+      @setClass 'get-started'  if targetPage is @getStartedView
+
+      @currentPage = targetPage
+
+
+    @getStartedView.on 'NextPageRequested', =>
+      @unsetClass 'get-started'
+      @emit 'PageNavigationRequested', 'next'
 
 
   createFooter: ->
@@ -63,6 +99,10 @@ module.exports = class OnboardingView extends JView
   pistachio: ->
 
     return """
+      {{> @getStartedView}}
+      {{> @providerSelectionView}}
+      {{> @configurationView}}
+      {{> @codeSetupView}}
       <div class="footer">
         {{> @backButton}}
         {{> @nextButton}}
