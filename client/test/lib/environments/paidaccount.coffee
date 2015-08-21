@@ -50,15 +50,20 @@ module.exports =
   createSnapshotForNonPaidUser: (browser) ->
 
     messageSelector  = '.kdmodal.computeplan-modal .message'
+    message          = 'The Snapshot feature is only available for paid accounts.'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.attemptCreateSnapshot(browser)
 
-    browser
-      .waitForElementVisible messageSelector, 20000
-      .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion
-      .end()
+    browser.element 'css selector', '.snapshots .snapshot', (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        browser
+          .waitForElementVisible messageSelector, 20000
+          .assert.containsText   messageSelector, message #Assertion
+          .end()
 
 
   addVM: (browser) ->
