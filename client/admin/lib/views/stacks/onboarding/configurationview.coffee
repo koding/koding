@@ -1,14 +1,15 @@
 kd    = require 'kd'
 JView = require 'app/jview'
+
+ServerConfigurationView    = require './serverconfigurationview'
 ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
-ServerConfigurationView = require './serverconfigurationview'
 
 
 module.exports = class ConfigurationView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'stack-onboarding configuration'
+    options.cssClass = kd.utils.curry options.cssClass, 'configuration'
 
     super options, data
 
