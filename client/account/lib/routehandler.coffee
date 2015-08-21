@@ -1,5 +1,4 @@
 kd = require 'kd'
-kookies = require 'kookies'
 KDNotificationView = kd.NotificationView
 lazyrouter = require 'app/lazyrouter'
 

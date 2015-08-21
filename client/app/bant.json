@@ -11,7 +11,8 @@
     "/:slug/:name": "members",
     "/member/:username": "member",
     "/:name?/Unsubscribe/:token/:email/:opt?": "unsubscribe",
-    "/:name": "name"
+    "/:name": "name",
+    ":name?/Reset/:token": "reset"
   },
   "sprites": [
     "./lib/sprites"
