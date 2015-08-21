@@ -283,13 +283,13 @@ followChannel = (channelId) ->
 
   dispatch FOLLOW_CHANNEL_BEGIN, { channelId }
 
-  follow { channelId }, (err, lol) ->
+  follow { channelId }, (err) ->
 
     if err
       dispatch FOLLOW_CHANNEL_FAIL, { err, channelId }
       return
 
-    dispatch FOLLOW_CHANNEL_SUCCESS, {channelId }
+    dispatch FOLLOW_CHANNEL_SUCCESS, { channelId }
 
 
 ###*
@@ -302,13 +302,13 @@ unfollowChannel = (channelId) ->
 
   dispatch UNFOLLOW_CHANNEL_BEGIN, { channelId }
 
-  unfollow { channelId }, (err, lol) ->
+  unfollow { channelId }, (err) ->
 
     if err
       dispatch UNFOLLOW_CHANNEL_FAIL, { err, channelId }
       return
 
-    dispatch UNFOLLOW_CHANNEL_SUCCESS, {channelId }
+    dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId }
 
 
 
