@@ -34,18 +34,6 @@ module.exports = class ProviderSelectionView extends JView
           <div class="label">#{label}</div>
         """
 
-      @backButton = new kd.ButtonView
-        cssClass  : 'solid outline medium back'
-        title     : 'Back'
-
-      @nextButton = new kd.ButtonView
-        cssClass  : 'solid green medium next'
-        title     : 'Next'
-
-      @skipLink   = new kd.CustomHTMLView
-        cssClass  : 'skip-setup'
-        partial   : 'Skip setup guide'
-
 
   pistachio: ->
 
@@ -55,9 +43,4 @@ module.exports = class ProviderSelectionView extends JView
         <p class="description">Koding machines run on your own cloud infrastructure. You can switch providers later at any time.</p>
       </div>
       {{> @providers}}
-      <div class="footer">
-        {{> @backButton}}
-        {{> @nextButton}}
-        {{> @skipLink}}
-      </div>
     """

@@ -13,8 +13,6 @@ module.exports = class ConfigurationView extends JView
     super options, data
 
     @createTabView()
-    @createFooter()
-    @createStackPreview()
 
 
   createTabView: ->
@@ -43,46 +41,6 @@ module.exports = class ConfigurationView extends JView
     @tabHandleContainer.repositionPlusHandle @tabView.handles
 
 
-  createFooter: ->
-
-    @backButton = new kd.ButtonView
-      cssClass  : 'solid outline medium back'
-      title     : 'Back'
-
-    @nextButton = new kd.ButtonView
-      cssClass  : 'solid green medium next'
-      title     : 'Next'
-
-    @skipLink   = new kd.CustomHTMLView
-      cssClass  : 'skip-setup'
-      partial   : 'Skip setup guide'
-
-
-  createStackPreview: ->
-
-    @preview    = new kd.CustomHTMLView
-      cssClass : 'stack-preview'
-      partial  : """
-        <div class="header">STACK FILE PREVIEW</div>
-      """
-
-    @preview.addSubView new kd.CustomHTMLView
-      partial : """
-        <div class="lines">
-          <div>1</div>
-          <div>2</div>
-          <div>3</div>
-          <div>4</div>
-        </div>
-        <div class="code">
-          <p>provider:</p>
-          <p>aws:</p>
-          <p>access_key: '${var.access_key}'</p>
-          <p>secret_key: '${var.secret_key}'</p>
-        </div>
-      """
-
-
   pistachio: ->
 
     return """
@@ -92,10 +50,4 @@ module.exports = class ConfigurationView extends JView
       </div>
       {{> @tabHandleContainer}}
       {{> @tabView}}
-      <div class="footer">
-        {{> @backButton}}
-        {{> @nextButton}}
-        {{> @skipLink}}
-      </div>
-      {{> @preview}}
     """
