@@ -531,7 +531,7 @@ module.exports = CollaborationController =
         return  unless data.origin is @collaborationHost
 
         if data.target is nick()
-          @showKickedModal()
+          @once 'IDEDidQuit', @bound 'showKickedModal'
           @quit()
         else
           @handleParticipantKicked data.target
