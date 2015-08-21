@@ -215,8 +215,8 @@ module.exports = class ChatListItem extends React.Component
 
   getClassNames: ->
     editForm: classnames
-     'ChatItem-updateMessageForm': yes
-     'hidden': not @state.editMode
+      'ChatItem-updateMessageForm': yes
+      'hidden': not @state.editMode
     mediaContent: classnames
       'hidden': @state.editMode
     contentWrapper: classnames

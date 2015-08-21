@@ -84,3 +84,33 @@ describe 'ChannelsStore', ->
 
        expect(storeState.programming).to.eql channel1
        expect(storeState.testing).to.eql channel2
+
+
+  describe 'handleFollowChannelSuccess', ->
+
+    it 'follows a channel', ->
+
+       channel  = { id : 'koding', name : 'koding', isParticipant: no }
+       channels = [ channel ]
+
+       @reactor.dispatch actionTypes.LOAD_CHANNELS_SUCCESS, { channels }
+       @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
+
+       storeState = @reactor.evaluate ['ChannelsStore']
+
+       expect(storeState.getIn ['koding', 'isParticipant']).to.equal yes
+
+
+  describe 'handleUnfollowChannelSuccess', ->
+
+    it 'unfollows a channel', ->
+
+       channel  = { id : 'koding', name : 'koding', isParticipant: yes }
+       channels = [ channel ]
+
+       @reactor.dispatch actionTypes.LOAD_CHANNELS_SUCCESS, { channels }
+       @reactor.dispatch actionTypes.UNFOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
+
+       storeState = @reactor.evaluate ['ChannelsStore']
+
+       expect(storeState.getIn ['koding', 'isParticipant']).to.equal no
