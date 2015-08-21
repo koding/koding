@@ -1,40 +1,73 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-Avatar               = require 'app/components/profile/avatar'
-immutable            = require 'immutable'
-MessageBody          = require 'activity/components/common/messagebody'
-ProfileText          = require 'app/components/profile/profiletext'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-ButtonWithMenu       = require 'app/components/buttonwithmenu'
-ActivityPromptModal  = require 'app/components/activitypromptmodal'
-ActivityLikeLink     = require 'activity/components/chatlistitem/activitylikelink'
-MessageTime          = require 'activity/components/chatlistitem/messagetime'
-keycode              = require 'keycode'
-ActivityFlux         = require 'activity/flux'
-classnames           = require 'classnames'
-Portal               = require 'react-portal'
-whoami               = require 'app/util/whoami'
-checkFlag            = require 'app/util/checkFlag'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+remote                = require('app/remote').getInstance()
+Avatar                = require 'app/components/profile/avatar'
+immutable             = require 'immutable'
+MessageBody           = require 'activity/components/common/messagebody'
+ProfileText           = require 'app/components/profile/profiletext'
+ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
+ButtonWithMenu        = require 'app/components/buttonwithmenu'
+ActivityPromptModal   = require 'app/components/activitypromptmodal'
+MarkUserAsTrollModal  = require 'app/components/markuserastrollmodal'
+BlockUserModal        = require 'app/components/blockusermodal'
+ActivityLikeLink      = require 'activity/components/chatlistitem/activitylikelink'
+MessageTime           = require 'activity/components/chatlistitem/messagetime'
+keycode               = require 'keycode'
+AppFlux               = require 'app/flux'
+ActivityFlux          = require 'activity/flux'
+classnames            = require 'classnames'
+Portal                = require 'react-portal'
+whoami                = require 'app/util/whoami'
+checkFlag             = require 'app/util/checkFlag'
+impersonate           = require 'app/util/impersonate'
+getMessageOwner       = require 'app/util/getMessageOwner'
+showErrorNotification = require 'app/util/showErrorNotification'
+showNotification      = require 'app/util/showNotification'
 
 module.exports = class ChatListItem extends React.Component
 
   @defaultProps =
-    hover          : no
-    editMode       : no
-    isDeleting     : no
-    isMenuOpen     : no
-    editInputValue : ''
+    hover                         : no
+    account                       : null
+    editMode                      : no
+    isDeleting                    : no
+    isMenuOpen                    : no
+    editInputValue                : ''
+    isUserMarkedAsTroll           : no
+    isBlockUserModalVisible       : no
+    isMarkUserAsTrollModalVisible : no
 
   constructor: (props) ->
 
     super props
 
     @state =
-      hover          : @props.hover
-      editMode       : @props.editMode
-      isDeleting     : @props.isDeleting
-      isMenuOpen     : @props.isMenuOpen
-      editInputValue : @props.message.get 'body'
+      hover                         : @props.hover
+      account                       : @props.account
+      editMode                      : @props.editMode
+      isDeleting                    : @props.isDeleting
+      isMenuOpen                    : @props.isMenuOpen
+      editInputValue                : @props.message.get 'body'
+      isUserMarkedAsTroll           : @props.message.get('account').isExempt
+      isBlockUserModalVisible       : @props.isBlockUserModalVisible
+      isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
+
+
+  componentDidMount: ->
+
+    @getAccountInfo()
+
+
+  getAccountInfo: ->
+
+    { message } = @props
+    message = message.toJS()
+
+    if message.account._id
+      remote.cacheable "JAccount", message.account._id, (err, account)=>
+        return @setState account: account  if account
+    else if message.bongo_.constructorName is 'JAccount'
+      return @setState account: message  if account
 
 
   isEditedMessage: ->
@@ -46,6 +79,7 @@ module.exports = class ChatListItem extends React.Component
 
 
   getItemProps: ->
+
     key       : @props.message.get 'id'
     className : classnames
       'ChatItem': yes
@@ -65,30 +99,60 @@ module.exports = class ChatListItem extends React.Component
   getDefaultMenuItems: ->
 
     return [
-      {title: 'Edit Post',          key: 'editpost',    onClick: @bound 'editPost'}
-      {title: 'Delete Post',        key: 'deletepost',  onClick: @bound 'deletePost'}
+      {title: 'Edit Post',          key: 'editpost',              onClick: @bound 'editPost'}
+      {title: 'Delete Post',        key: 'showdeletepostprompt',  onClick: @bound 'showDeletePostPromptModal'}
     ]
 
 
   getAdminMenuItems: ->
 
+    { message } = @props
+    markUserMenuItem = {title: 'Mark User as Troll', key: 'markuserastroll', onClick: @bound 'showMarkUserAsTrollPromptModal'}
+
+    getMessageOwner message.toJS(), (err, owner) =>
+
+      return showErrorNotification err  if err
+
+      if owner.isExempt
+        markUserMenuItem = {title: 'Unmark User as Troll', key: 'unmarkuserastroll', onClick: @bound 'unMarkUserAsTroll'}
+
     adminMenuItems = [
-      {title: 'Mark User as Troll', key: 'markuser',    onClick: @bound 'markUser'}
-      {title: 'Block User',         key: 'blockuser',   onClick: @bound 'blockUser'}
-      {title: 'Impersonate User',   key: 'impersonate', onClick: @bound 'impersonate'}
+      markUserMenuItem
+      {title: 'Block User',         key: 'blockuser',   onClick: @bound 'showBlockUserPromptModal'}
+      {title: 'Impersonate User',   key: 'impersonateuser', onClick: @bound 'impersonateUser'}
     ]
 
     return @getDefaultMenuItems().concat adminMenuItems
 
 
   getDeleteItemModalProps: ->
-    title              : 'Delete post'
-    body               : 'Are you sure you want to delete this post?'
-    buttonConfirmTitle : 'DELETE'
-    buttonAbortTitle   : 'CANCEL'
-    onConfirm          : @bound 'deletePostButtonHandler'
-    onAbort            : @bound 'closeDeletePostModal'
-    onClose            : @bound 'closeDeletePostModal'
+
+    title              : "Delete post"
+    body               : "Are you sure you want to delete this post?"
+    buttonConfirmTitle : "DELETE"
+    className          : "Modal-DeleteItemPrompt"
+    onConfirm          : @bound "deletePostButtonHandler"
+    onAbort            : @bound "closeDeletePostModal"
+    onClose            : @bound "closeDeletePostModal"
+
+
+  getMarkUserAsTrollModalProps: ->
+
+    account            : @state.account
+    title              : "MARK USER AS TROLL"
+    className          : "MarkUserAsTrollModal"
+    onAbort            : @bound "closeMarkUserAsTrollModal"
+    onClose            : @bound "closeMarkUserAsTrollModal"
+    buttonConfirmTitle : "YES, THIS USER IS DEFINITELY A TROLL"
+
+
+  getBlockUserModalProps: ->
+
+    account            : @state.account
+    buttonConfirmTitle : "BLOCK USER"
+    className          : "BlockUserModal"
+    onAbort            : @bound "closeBlockUserPromptModal"
+    onClose            : @bound "closeBlockUserPromptModal"
 
 
   deletePostButtonHandler: ->
@@ -110,24 +174,42 @@ module.exports = class ChatListItem extends React.Component
       kd.utils.moveCaretToEnd domNode
 
 
-  deletePost: ->
+  showDeletePostPromptModal: ->
 
     @setState isDeleting: yes
 
 
-  markUser: ->
+  showMarkUserAsTrollPromptModal: ->
 
-    console.log "mark user clicked"
-
-
-  blockUser: ->
-
-    console.log "block user clicked"
+    @setState isMarkUserAsTrollModalVisible: yes
 
 
-  impersonate: ->
+  closeMarkUserAsTrollModal: ->
 
-    console.log "impersonate clicked"
+    @setState isMarkUserAsTrollModalVisible: no
+
+
+  closeBlockUserPromptModal: ->
+
+    @setState isBlockUserModalVisible: no
+
+
+  unMarkUserAsTroll: ->
+
+    AppFlux.actions.user.unmarkUserAsTroll @state.account
+    @closeMarkUserAsTrollModal()
+
+
+  showBlockUserPromptModal: ->
+
+    @setState isBlockUserModalVisible: yes
+
+
+  impersonateUser: ->
+
+    { message } = @props
+
+    AppFlux.actions.user.impersonateUser message.toJS()
 
 
   updateMessage: ->
@@ -249,6 +331,8 @@ module.exports = class ChatListItem extends React.Component
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>
+        <MarkUserAsTrollModal {...@getMarkUserAsTrollModalProps()} isOpen={@state.isMarkUserAsTrollModalVisible} />
+        <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
 
