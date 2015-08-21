@@ -38,9 +38,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             minLength     : "Passwords should be at least 8 characters."
         decorateValidation: no
 
-    @tfcode = @create2FAInput()
-    @tfcode.hide()
-
     @email?.destroy()
     @email = new LoginInputViewWithLoader
       inputOptions        :
@@ -85,6 +82,9 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
       @button.hideLoader()
 
+    @tfcode = @create2FAInput()
+    @tfcode.hide()
+
     @bind2FAEvents()
 
     KD.singletons.router.on 'RouteInfoHandled', =>
@@ -100,6 +100,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         testPath      : 'register-form-tfcode'
         attributes    :
           testpath    : 'register-form-tfcode'
+        keydown       : (event) =>
+          @button.click event  if event.which is ENTER
 
 
   bind2FAEvents: ->
