@@ -34,18 +34,6 @@ module.exports = class CodeSetupView extends JView
           <div class="label">#{label}</div>
         """
 
-      @backButton = new kd.ButtonView
-        cssClass  : 'solid outline medium back'
-        title     : 'Back'
-
-      @nextButton = new kd.ButtonView
-        cssClass  : 'solid green medium next'
-        title     : 'Next'
-
-      @skipLink   = new kd.CustomHTMLView
-        cssClass  : 'skip-setup'
-        partial   : 'Skip setup guide'
-
 
   pistachio: ->
 
@@ -55,9 +43,4 @@ module.exports = class CodeSetupView extends JView
         <p class="description">Koding can pull your project’s codebase from wherever its hosted.</p>
       </div>
       {{> @services}}
-      <div class="footer">
-        {{> @backButton}}
-        {{> @nextButton}}
-        {{> @skipLink}}
-      </div>
     """
