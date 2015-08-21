@@ -26,6 +26,7 @@ SelectedMessageThreadIdStore   = ['SelectedMessageThreadIdStore']
 SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
 SuggestionsQueryStore          = ['SuggestionsQueryStore']
 SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
+SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
@@ -214,9 +215,29 @@ selectedChannelParticipants = [
 ]
 
 # Aliases for providing consistent getter names for suggestion stores
-currentSuggestionsQuery = SuggestionsQueryStore
-currentSuggestions      = SuggestionsStore
-currentSuggestionsFlags = SuggestionsFlagsStore
+currentSuggestionsQuery         = SuggestionsQueryStore
+currentSuggestions              = SuggestionsStore
+currentSuggestionsFlags         = SuggestionsFlagsStore
+currentSuggestionsSelectedIndex = [
+  SuggestionsStore
+  SuggestionsSelectedIndexStore
+  (suggestions, index) ->
+    { size } = suggestions
+    return -1  unless size > 0
+
+    unless 0 <= index < size
+      index = index % suggestions.size
+      index += size  if index < 0
+
+    return index
+]
+currentSuggestionsSelectedItem  = [
+  SuggestionsStore
+  currentSuggestionsSelectedIndex
+  (suggestions, index) ->
+    return  unless suggestions.size > 0
+    return suggestions.get index
+]
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
 filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
@@ -329,6 +350,8 @@ module.exports = {
   currentSuggestionsQuery
   currentSuggestions
   currentSuggestionsFlags
+  currentSuggestionsSelectedIndex
+  currentSuggestionsSelectedItem
 
   filteredEmojiList
   filteredEmojiListQuery

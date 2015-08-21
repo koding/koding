@@ -116,10 +116,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        fetchGroupsWithPendingInvitations: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         cancelRequest:
           (signature String, Function)
         acceptInvitation:
@@ -700,7 +696,6 @@ module.exports = class JAccount extends jraphical.Module
 
   updateFlags: secure (client, flags, callback)->
     {delegate} = client.connection
-    JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$set: globalFlags: flags}, callback
     else
@@ -934,16 +929,6 @@ module.exports = class JAccount extends jraphical.Module
 
     JUser.one {username: @profile.nickname}, callback
 
-  @taintedAccounts = {}
-  @taint =(id)->
-    @taintedAccounts[id] = yes
-
-  @untaint =(id)->
-    delete @taintedAccounts[id]
-
-  @isTainted =(id)->
-    isTainted = @taintedAccounts[id]
-    isTainted
 
   sendNotification: (event, contents) ->
     @createSocialApiId (err, socialApiId) =>
@@ -959,26 +944,6 @@ module.exports = class JAccount extends jraphical.Module
       }
 
       @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
-
-  fetchGroupsWithPending:(method, status, options, callback)->
-    [callback, options] = [options, callback]  unless callback
-    options ?= {}
-
-    selector    = {}
-    if options.groupIds
-      selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
-      delete options.groupIds
-
-    relOptions = targetOptions: selector: {status}
-
-    @["fetchInvitation#{method}s"] {}, relOptions, (err, rels)->
-      return callback err  if err
-      JGroup = require './group'
-      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
-
-
-  fetchGroupsWithPendingInvitations:(options, callback)->
-    @fetchGroupsWithPending '', 'sent', options, callback
 
 
   cancelRequest: secure (client, slug, callback)->

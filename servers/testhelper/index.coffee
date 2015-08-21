@@ -404,7 +404,7 @@ class TeamHandlerHelper
     url  = generateUrl
       route : '-/teams/join'
 
-    body = TeamHandlerHelper.generateCreateTeamRequestBody()
+    body = TeamHandlerHelper.generateJoinTeamRequestBody()
 
     params               = { url, body }
     defaultRequestParams = generateDefaultRequestParams params
@@ -584,6 +584,7 @@ class RegisterHandlerHelper
 
 module.exports = {
   generateUrl
+  deepObjectExtend
   generateRandomEmail
   generateRandomString
   generateRandomUsername

@@ -48,6 +48,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
       label        : 'Name'
       description  : 'Your team name is displayed in menus and emails. It usually is (or includes) the name of your company.'
       name         : 'title'
+      cssClass     : 'name'
       defaultValue : Encoder.htmlDecode group.title ? ''
       placeholder  : 'Please enter a title here'
 
