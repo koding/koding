@@ -38,6 +38,20 @@ func (m *MessageReply) ById(id int64) error {
 	return bongo.B.ById(m, id)
 }
 
+func (a *MessageReply) FetchByIds(ids []int64) ([]MessageReply, error) {
+	var mrs []MessageReply
+
+	if len(ids) == 0 {
+		return mrs, nil
+	}
+
+	if err := bongo.B.FetchByIds(a, &mrs, ids); err != nil {
+		return nil, err
+	}
+
+	return mrs, nil
+}
+
 func (m *MessageReply) Create() error {
 	return bongo.B.Create(m)
 }

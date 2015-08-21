@@ -50,12 +50,7 @@ func (b *Bongo) GetFromBest(i Modellable, data Cacher, id int64) error {
 	}
 
 	// marshall it to the `modellable`
-	err = json.NewDecoder(strings.NewReader(d)).Decode(i)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return json.NewDecoder(strings.NewReader(d)).Decode(i)
 }
 
 func (b *Bongo) SetToCache(data Cacher) error {
