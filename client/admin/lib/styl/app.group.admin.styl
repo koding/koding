@@ -1688,7 +1688,7 @@ Admin main styles
     border                  3px solid #00B057
     background              #fff
 
-  &.get-started
+  .get-started
 
     .description
       width                 400px
@@ -1727,7 +1727,9 @@ Admin main styles
       rel()
       left                  -8px
 
-  &.provider-selection
+  .provider-selection
+
+    height                  auto
 
     .providers
       height                396px
@@ -1774,7 +1776,9 @@ Admin main styles
         img
           margin            27px 0 0 50px
 
-  &.code-setup
+  .code-setup
+
+    height                  auto
 
     .description
       width                 350px
@@ -1816,10 +1820,12 @@ Admin main styles
       .label
         margin              15px 0 0 -3px
 
-    .footer
+    + .footer
       margin                40px 0 0 18px
 
-  &.configuration
+  .configuration
+
+    height                  auto
 
     .footer
       margin-left           22px
@@ -1920,6 +1926,7 @@ Admin main styles
         color               #434343
         font-weight         100
         top                 -3px
+        pointer()
         rel()
 
   .stack-preview
@@ -1950,3 +1957,10 @@ Admin main styles
       text-align            right
       margin-right          15px
       fl()
+
+
+  &.main-content.get-started
+    .footer
+    .stack-preview
+      hidden()
+
