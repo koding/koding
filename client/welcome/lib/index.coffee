@@ -34,5 +34,8 @@ module.exports = class WelcomeAppController extends KDViewController
         if isAdmin
           appView.putAdminInstructions()
 
-        # if stacks
-        #   appView.putCredentialInstructions()
+        if providers.length > 0
+          appView.putProviderInstructions providers
+
+        if Object.keys(variables).length > 0
+          appView.putVariableInstructions variables
