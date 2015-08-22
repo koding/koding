@@ -19,7 +19,7 @@ parseTerraformOutput  = require './helpers/parseterraformoutput'
 CredentialStatusView  = require './credentialstatusview'
 
 
-module.exports = class StackTabPaneView extends KDView
+module.exports = class StackView extends KDView
 
   JView.mixin @prototype
 

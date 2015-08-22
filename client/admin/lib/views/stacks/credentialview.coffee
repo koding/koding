@@ -11,7 +11,7 @@ remote                  = require('app/remote').getInstance()
 showError               = require 'app/util/showError'
 
 
-module.exports = class CredentialTabPaneView extends KDView
+module.exports = class CredentialView extends KDView
 
   JView.mixin @prototype
 
@@ -27,7 +27,7 @@ module.exports = class CredentialTabPaneView extends KDView
 
     @infoText = new KDCustomHTMLView
       cssClass : 'info-message'
-      partial  : 'lorem ipsum dolor sit amet'
+      partial  : 'This screen is only allowed for admins.'
 
     @editorView = new CredentialEditorView { delegate: this, content }
 
