@@ -10,8 +10,8 @@ import (
 
 var (
 	bucketName = "koding-gather-test"
-	binaryName = "gather"
-	binaryTar  = "gather.tar"
+	binaryName = "koding-kernel"
+	binaryTar  = "koding-kernel.tar"
 )
 
 func newTestFetcher() *S3Fetcher {
