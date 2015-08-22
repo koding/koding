@@ -1,11 +1,11 @@
-kd              = require 'kd'
-curryIn         = require 'app/util/curryIn'
-
-InitialView     = require './stacks/initialview'
-DefineStackView = require './stacks/definestackview'
+kd                 = require 'kd'
+curryIn            = require 'app/util/curryIn'
+InitialView        = require './stacks/initialview'
+DefineStackTabView = require './stacks/definestacktabview'
 
 
 module.exports = class GroupStackSettings extends kd.View
+
 
   constructor: (options = {}, data) ->
 
@@ -27,11 +27,11 @@ module.exports = class GroupStackSettings extends kd.View
 
     @initialView.hide()
 
-    defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
+    defineStackTabView = @addSubView new DefineStackTabView {}, { stackTemplate }
 
-    defineStackView.on 'Reload', => @initialView.reload()
+    defineStackTabView.on 'Reload', => @initialView.reload()
 
-    defineStackView.on ['Cancel', 'Completed'], =>
+    defineStackTabView.on ['Cancel', 'Completed'], =>
       @initialView.show()
-      defineStackView.destroy()
+      defineStackTabView.destroy()
 
