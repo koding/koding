@@ -58,7 +58,7 @@ func New(c *Config) *kontrol.Kontrol {
 			DBName:   c.Postgres.DBName,
 		}
 		p := kontrol.NewPostgres(postgresConf, kon.Kite.Log)
-
+		p.DB.SetMaxOpenConns(20)
 		kon.SetStorage(p)
 		kon.SetKeyPairStorage(p)
 		// kon.MachineKeyPicker = newMachineKeyPicker(p)
