@@ -2,11 +2,19 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 Avatar               = require 'app/components/profile/avatar'
 immutable            = require 'immutable'
+classnames           = require 'classnames'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
+  constructor: (props) ->
+
+    super
+
+    @state = { addNewParticipantMode: no }
+
+  PREVIEW_COUNT = 0
   MAX_PREVIEW_COUNT = 4
 
   @defaultProps =
@@ -49,7 +57,18 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     </div>
 
 
-  renderNewParticipantButton: -> null
+  getAddNewParticipantButtonClassNames: -> classnames
+    'ChannelParticipantAvatars-newParticipantBox': yes
+    'cross': @state.addNewParticipantMode
+
+
+  renderNewParticipantButton: ->
+
+    <div className="ChannelParticipantAvatars-singleBox" onClick={@bound "onNewParticipantButtonClick"}>
+      <div className={@getAddNewParticipantButtonClassNames()}></div>
+    </div>
+
+
   getNewParticipantInputClassNames: -> classnames
     'ChannelParticipantInput': yes
     'slide-down': @state.addNewParticipantMode
