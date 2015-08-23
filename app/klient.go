@@ -15,6 +15,7 @@ import (
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/control"
+	"github.com/koding/klient/fix"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/gatherrun"
 	"github.com/koding/klient/info"
@@ -355,6 +356,11 @@ func (k *Klient) Run() {
 
 	if isKoding {
 		go gatherrun.Run(k.config.Environment, k.kite.Config.Username)
+		go func() {
+			if err := fix.Run(k.kite.Config.Username); err != nil {
+				k.log.Error("Couldn't replace key %s", err)
+			}
+		}()
 	}
 
 	k.kite.Run()

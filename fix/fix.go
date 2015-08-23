@@ -20,8 +20,7 @@ func Run(username string) error {
 		replaceErr = err
 	}
 
-	fmt.Printf("replaceErr = %+v\n", replaceErr)
-	return errors.New("not implemented yet")
+	return replaceErr
 }
 
 func replaceKey(username, key string) error {
