@@ -9,7 +9,10 @@ module.exports = (text = '') ->
   val = ''
 
   for line in input.split '\n'
-    line += '\n'  if line[0] is '>'
+    line = if line[0] is '>'
+    then ">#{Encoder.XSSEncode line.substring 1}"
+    else Encoder.XSSEncode line
+
     val  += "#{line}\n"
 
   return val
