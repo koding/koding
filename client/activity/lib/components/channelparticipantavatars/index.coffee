@@ -34,6 +34,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       else MAX_PREVIEW_COUNT - 1
 
 
+  onNewParticipantButtonClick: ->
+
+    if @state.addNewParticipantMode is yes
+    then @setState addNewParticipantMode: no
+    else @setState addNewParticipantMode: yes
+
   renderAvatars: ->
 
     return null  unless @props.participants
