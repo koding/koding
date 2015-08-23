@@ -43,15 +43,17 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
 
   renderMoreCount: ->
+
     return null  unless @props.participants
 
-    moreCount = @props.participants.size - MAX_PREVIEW_COUNT
-    return null  unless moreCount > 1
+    moreCount = @props.participants.size - PREVIEW_COUNT
+
+    return null  unless moreCount > 0
 
     moreCount = Math.min moreCount, 99
 
     <div className="ChannelParticipantAvatars-singleBox">
-      <div className="ChannelParticipantAvatars-moreCount">
+      <div className="ChannelParticipantAvatars-moreCount" onClick={@bound "onShowMoreParticipantButtonClick"}>
         {moreCount}+
       </div>
     </div>
