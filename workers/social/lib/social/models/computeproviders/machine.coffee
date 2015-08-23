@@ -3,7 +3,7 @@
 { revive }  = require './computeutils'
 KodingError = require '../../error'
 
-{argv}      = require 'optimist'
+{ argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JMachine extends Module
@@ -12,8 +12,8 @@ module.exports = class JMachine extends Module
 
   @trait __dirname, '../../traits/protected'
 
-  {slugify} = require '../../traits/slugifiable'
-  {permit}  = require '../group/permissionset'
+  { slugify } = require '../../traits/slugifiable'
+  { permit }  = require '../group/permissionset'
 
   @share()
 
@@ -89,7 +89,7 @@ module.exports = class JMachine extends Module
 
       label             :
         type            : String
-        default         : -> ""
+        default         : -> ''
 
       slug              : String
 
@@ -109,26 +109,26 @@ module.exports = class JMachine extends Module
 
         state           :
           type          : String
-          enum          : ["Wrong type specified!", [
+          enum          : ['Wrong type specified!', [
 
             # States which description ending with '...' means its an ongoing
             # proccess which you may get progress info about it
             #
-            "NotInitialized"  # Initial state, machine instance does not exists
-            "Building"        # Build started machine instance creating...
-            "Starting"        # Machine is booting...
-            "Running"         # Machine is physically running
-            "Stopping"        # Machine is turning off...
-            "Stopped"         # Machine is turned off
-            "Rebooting"       # Machine is rebooting...
-            "Terminating"     # Machine is getting destroyed...
-            "Terminated"      # Machine is destroyed, not exists anymore
-            "Unknown"         # Machine is in an unknown state
+            'NotInitialized'  # Initial state, machine instance does not exists
+            'Building'        # Build started machine instance creating...
+            'Starting'        # Machine is booting...
+            'Running'         # Machine is physically running
+            'Stopping'        # Machine is turning off...
+            'Stopped'         # Machine is turned off
+            'Rebooting'       # Machine is rebooting...
+            'Terminating'     # Machine is getting destroyed...
+            'Terminated'      # Machine is destroyed, not exists anymore
+            'Unknown'         # Machine is in an unknown state
                               # needs to solved manually
 
           ]]
 
-          default       : -> "NotInitialized"
+          default       : -> 'NotInitialized'
 
       meta              : Object
 
@@ -144,25 +144,29 @@ module.exports = class JMachine extends Module
   # Helpers
   # -------
 
-  generateSlugFromLabel = ({user, group, label, index}, callback)->
+  generateSlugFromLabel = ({ user, group, label, index }, callback) ->
 
     slug = _label = if index? then "#{label}-#{index}" else label
     slug = slugify slug
 
     JMachine.count {
-      users : $elemMatch: id: user.getId()
-      groups: $elemMatch: id: group.getId()
+      users        :
+        $elemMatch :
+          id       : user.getId()
+      groups       :
+        $elemMatch :
+          id       : group.getId()
       slug
-    }, (err, count)->
+    }, (err, count) ->
 
       return callback err  if err?
 
       if count is 0
-        callback null, {slug, label: _label}
+        callback null, { slug, label: _label }
       else
         index ?= 0
         index += 1
-        generateSlugFromLabel {user, group, label, index}, callback
+        generateSlugFromLabel { user, group, label, index }, callback
 
 
   isOwner  = (user, machine) ->
@@ -175,7 +179,7 @@ module.exports = class JMachine extends Module
     return owner
 
 
-  excludeUser = (options)->
+  excludeUser = (options) ->
 
     { users, user, permanent } = options
 
@@ -191,11 +195,11 @@ module.exports = class JMachine extends Module
     return newUsers
 
 
-  addUser = (users, options)->
+  addUser = (users, options) ->
 
     # asOwner option is disabled for now ~ GG
     # passing False for owner
-    {user, asOwner, permanent} = options
+    { user, asOwner, permanent } = options
 
     newUsers = excludeUser { users, user, permanent }
 
@@ -216,10 +220,10 @@ module.exports = class JMachine extends Module
 
   informAccounts = (users, machineUId, action) ->
 
-    users.forEach (user)->
-      user.fetchOwnAccount (err, account)->
+    users.forEach (user) ->
+      user.fetchOwnAccount (err, account) ->
         return if err or not account
-        account.sendNotification 'MachineListUpdated', {machineUId, action}
+        account.sendNotification 'MachineListUpdated', { machineUId, action }
 
 
   # Private Methods
@@ -227,7 +231,7 @@ module.exports = class JMachine extends Module
 
   # Static Methods
 
-  @create = (data, callback)->
+  @create = (data, callback) ->
 
     # JMachine.uid is a unique id which is generated from:
     #
@@ -237,7 +241,7 @@ module.exports = class JMachine extends Module
     # 3     first letter of `provider`
     # 4..12 32-bit random hex string
 
-    {user, group, provider} = data
+    { user, group, provider } = data
 
     data.user  = username  = user.username
     data.group = groupSlug = group.slug
@@ -262,10 +266,10 @@ module.exports = class JMachine extends Module
       assignedAt   : data.createdAt
 
     data.status    =
-      state        : "NotInitialized"
+      state        : 'NotInitialized'
       modifiedAt   : data.createdAt
 
-    if provider is "koding"
+    if provider is 'koding'
       { userSitesDomain } = KONFIG
       data.domain = "#{data.uid}.#{username}.#{userSitesDomain}"
     else
@@ -273,9 +277,9 @@ module.exports = class JMachine extends Module
 
     data.provisioners  ?= [ ]
 
-    {label} = data
+    { label } = data
 
-    generateSlugFromLabel {user, group, label}, (err, {slug, label})->
+    generateSlugFromLabel { user, group, label }, (err, { slug, label }) ->
 
       return callback err  if err?
 
@@ -283,20 +287,20 @@ module.exports = class JMachine extends Module
       data.slug  = slug
 
       machine = new JMachine data
-      machine.save (err)->
+      machine.save (err) ->
 
         if err
           callback err
-          console.warn "Failed to create Machine for ", {username, groupSlug}
+          console.warn 'Failed to create Machine for ', { username, groupSlug }
         else
           callback null, machine
 
 
-  @getSelectorFor = (client, {machineId, owner})->
+  @getSelectorFor = (client, { machineId, owner }) ->
 
     { r: { group, user } } = client
 
-    userObj    = if owner then {sudo: yes, owner: yes} else {}
+    userObj    = if owner then { sudo: yes, owner: yes } else {}
     userObj.id = user.getId()
 
     selector  =
@@ -304,15 +308,19 @@ module.exports = class JMachine extends Module
         { _id : ObjectId machineId }
         { uid : machineId }
       ]
-      users   : $elemMatch: userObj
-      groups  : $elemMatch: id: group.getId()
+      users        :
+        $elemMatch : userObj
+      groups       :
+        $elemMatch :
+          id       : group.getId()
 
     return selector
 
-
+  # due to a bug in coffeelint 1.10.1
+  # coffeelint: disable=no_implicit_braces
   # Instance Methods
 
-  destroy: (client, callback)->
+  destroy: (client, callback) ->
 
     { r: { user } } = client
 
@@ -322,27 +330,27 @@ module.exports = class JMachine extends Module
     @remove callback
 
 
-  addUsers: (options, callback)->
+  addUsers: (options, callback) ->
 
-    {targets, asOwner, permanent} = options
+    { targets, asOwner, permanent } = options
 
     users = @users.splice 0
 
     for user in targets
-      users = addUser users, {user, asOwner, permanent}
+      users = addUser users, { user, asOwner, permanent }
 
     if users.length > 10
       callback new KodingError \
-        "Machine sharing is limited up to 10 users."
+        'Machine sharing is limited up to 10 users.'
     else
       @update $set: { users }, (err) =>
         informAccounts targets, @getAt('uid'), 'added'
         callback err
 
 
-  removeUsers: (options, callback)->
+  removeUsers: (options, callback) ->
 
-    {targets, permanent, inform} = options
+    { targets, permanent, inform } = options
 
     users = @users.splice 0
 
@@ -354,7 +362,7 @@ module.exports = class JMachine extends Module
       callback err
 
 
-  shareWith: (options, callback)->
+  shareWith: (options, callback) ->
 
     { target, asUser, asOwner, permanent, inform } = options
 
@@ -363,15 +371,15 @@ module.exports = class JMachine extends Module
     inform  ?= yes
 
     unless target?
-      return callback new KodingError "Target required."
+      return callback new KodingError 'Target required.'
 
     JUser = require '../user'
     JName = require '../name'
 
-    JName.fetchModels target, (err, result)=>
+    JName.fetchModels target, (err, result) =>
 
       if err or not result?
-        return callback new KodingError "Target not found."
+        return callback new KodingError 'Target not found.'
 
       targets = (target.models[0]  for target in result)
 
@@ -380,11 +388,11 @@ module.exports = class JMachine extends Module
       if target instanceof JUser
 
         if asUser
-        then @addUsers {targets, asOwner, permanent}, callback
-        else @removeUsers {targets, permanent, inform}, callback
+        then @addUsers { targets, asOwner, permanent }, callback
+        else @removeUsers { targets, permanent, inform }, callback
 
       else
-        callback new KodingError "Target does not support machines."
+        callback new KodingError 'Target does not support machines.'
 
 
   fetchOwner: (callback) ->
@@ -411,11 +419,11 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, machineId, callback)->
+    , (client, machineId, callback) ->
 
-      selector = @getSelectorFor client, {machineId}
+      selector = @getSelectorFor client, { machineId }
 
-      JMachine.one selector, (err, machine)->
+      JMachine.one selector, (err, machine) ->
         callback err, machine
 
 
@@ -426,7 +434,7 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, selector, callback)->
+    , (client, selector, callback) ->
 
       { r: { group, user } } = client
 
@@ -434,24 +442,24 @@ module.exports = class JMachine extends Module
       selector['users.id']  = user.getId()
       selector['groups.id'] = group.getId()
 
-      JMachine.some selector, limit: 30, (err, machines)->
+      JMachine.some selector, limit: 30, (err, machines) ->
         callback err, machines
 
 
-  @fetchByUsername = (username, callback)->
+  @fetchByUsername = (username, callback) ->
 
     JUser = require '../user'
-    JUser.one {username}, (err, user)->
+    JUser.one { username }, (err, user) ->
 
       return callback err  if err
-      return callback new KodingError "User not found."  unless user
+      return callback new KodingError 'User not found.'  unless user
 
       selector        =
         'users.id'    : user.getId()
         'users.sudo'  : yes
         'users.owner' : yes
 
-      JMachine.some selector, limit: 30, (err, machines)->
+      JMachine.some selector, limit: 30, (err, machines) ->
         callback err, machines
 
 
@@ -464,7 +472,7 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, provisioner, callback)->
+    , (client, provisioner, callback) ->
 
       { r: { user } } = client
 
@@ -472,7 +480,7 @@ module.exports = class JMachine extends Module
         return callback new KodingError 'Access denied'
 
       JProvisioner = require './provisioner'
-      JProvisioner.one$ client, slug: provisioner, (err, provision)=>
+      JProvisioner.one$ client, { slug: provisioner }, (err, provision) =>
         if err or not provision?
           callback new KodingError 'Provisioner not found'
         else
@@ -486,10 +494,10 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, options, callback)->
+    , (client, options, callback) ->
 
       { r: { user } } = client
-      {permanentOnly} = options
+      { permanentOnly } = options
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -499,13 +507,13 @@ module.exports = class JMachine extends Module
       accounts = []
       queue    = []
 
-      (@users ? []).forEach (_user)->
+      (@users ? []).forEach (_user) ->
 
         return  if permanentOnly and not _user.permanent
 
-        queue.push -> JUser.one _id: _user.id, (err, user)->
+        queue.push -> JUser.one { _id: _user.id }, (err, user) ->
           if not err? and user
-            user.fetchOwnAccount (err, account)->
+            user.fetchOwnAccount (err, account) ->
               if not err? and account?
                 accounts.push account
               queue.next()
@@ -525,29 +533,29 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, label, callback)->
+    , (client, label, callback) ->
 
       { r: { user, group } } = client
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
 
-      kallback = (err, slug)->
+      kallback = (err, slug) ->
         if err?
         then callback err
         else callback null, slug
 
       slug = slugify label
 
-      if slug is ""
-        return callback new KodingError "Nickname cannot be empty"
+      if slug is ''
+        return callback new KodingError 'Nickname cannot be empty'
 
       if slug isnt @slug
-        generateSlugFromLabel { user, group, label }, (err, {slug, label})=>
+        generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @update $set: { slug, label }, (err)-> kallback err, slug
+          @update $set: { slug, label }, (err) -> kallback err, slug
       else
-        @update $set: { label }, (err)-> kallback err, slug
+        @update $set: { label }, (err) -> kallback err, slug
 
 
   # .shareWith can be used like this:
@@ -568,36 +576,36 @@ module.exports = class JMachine extends Module
       shouldReviveProvider : no
       shouldLockProcess    : yes
 
-    , (client, options, callback)->
+    , (client, options, callback) ->
 
       { r: { user } } = client
 
       # Only an owner of this machine can modify it
       unless isOwner user, this
-        return callback new KodingError "Access denied"
+        return callback new KodingError 'Access denied'
 
       { target, permanent, asUser } = options
 
       # At least one target is required
       if not target or target.length is 0
-        return callback new KodingError "A target required."
+        return callback new KodingError 'A target required.'
 
       # Max 9 target can be passed
       if target.length > 9
         return callback new KodingError \
-          "It is not allowed to change more than 9 state at once."
+          'It is not allowed to change more than 9 state at once.'
 
       # Owners cannot unassign them from a machine
       # Only another owner can unassign any other owner
       if user.username in target
         return callback \
-          new KodingError "You are not allowed to change your own state!"
+          new KodingError 'You are not allowed to change your own state!'
 
       # For Koding provider credential field is username
       # and we don't allow them to be removed from users
       if @provider is 'koding' and @credential in target
         return callback \
-          new KodingError "It is not allowed to change owner state!"
+          new KodingError 'It is not allowed to change owner state!'
 
       # If it's a call for unshare then no need to check
       # any other state for it
@@ -613,7 +621,7 @@ module.exports = class JMachine extends Module
                    # TODO: we can limit this for koding provider only ~ GG
 
         Payment = require '../payment'
-        Payment.subscriptions client, {}, (err, subscription)=>
+        Payment.subscriptions client, {}, (err, subscription) =>
 
           if err? or not subscription? or subscription.planTitle is 'free'
             return callback \
@@ -632,12 +640,12 @@ module.exports = class JMachine extends Module
     @shareWith$ client, options, callback
 
 
-  unshare: secure (client, users, callback)->
+  unshare: secure (client, users, callback) ->
 
     options = target: users, asUser: no
 
-    {connection:{delegate}} = client
-    {profile:{nickname}}    = delegate
+    { connection:{ delegate } } = client
+    { profile:{ nickname } }    = delegate
 
     if users.length is 1 and users[0] is nickname
     then @shareWith options, callback
@@ -662,7 +670,7 @@ module.exports = class JMachine extends Module
     shouldReviveProvider : no
     hasOptions           : no
 
-  , (client, callback)->
+  , (client, callback) ->
 
     { r: { user } } = client
 
@@ -671,9 +679,9 @@ module.exports = class JMachine extends Module
       return callback null
 
     JMachine.update
-      "_id"      : @getId()
-      "users.id" : user._id
-    , $set       : "users.$.approved" : yes
+      '_id'      : @getId()
+      'users.id' : user._id
+    , $set       : 'users.$.approved' : yes
     , (err) =>
       options = { action: 'approve', @uid }
       client.connection.delegate.sendNotification 'MachineShareActionTaken', options
@@ -687,7 +695,7 @@ module.exports = class JMachine extends Module
     shouldReviveProvider : no
     hasOptions           : no
 
-  , (client, callback)->
+  , (client, callback) ->
 
     { r: { user } } = client
 
@@ -709,7 +717,7 @@ module.exports = class JMachine extends Module
 
   @shareByUId = secure (client, uid, options, callback) ->
 
-    JMachine.one {uid}, (err, machine) ->
+    JMachine.one { uid }, (err, machine) ->
 
       return callback err  if err
       return callback 'Machine is not found'  unless machine
@@ -717,3 +725,5 @@ module.exports = class JMachine extends Module
       machine.shareWith$ client, options, (err) ->
 
         callback err, machine
+
+

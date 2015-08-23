@@ -23,11 +23,11 @@ module.exports = class JLog extends Module
       ip            :
         type        : String
         required    : yes
-        default     : "127.0.0.1"
+        default     : '127.0.0.1'
       username      :
         type        : String
         required    : yes
-        default     : "guest"
+        default     : 'guest'
       createdAt     :
         type        : Date
         default     : -> new Date
@@ -42,7 +42,7 @@ module.exports = class JLog extends Module
         required    : no
 
 
-  @log = (data, callback = ->) ->
+  @log = (data, callback = -> ) ->
 
     log = new JLog data
     log.save (err) -> callback err
@@ -76,9 +76,9 @@ module.exports = class JLog extends Module
         head.push i
       return head
 
-    results = headUntil results, (el)-> el.success is true
+    results = headUntil results, (el) -> el.success is true
     # we dont need anything older than 5 minutes
-    results = headUntil results, (el)-> ((Date.now() - el.createdAt) / 1000 / 60) > TIME_LIMIT_IN_MIN
+    results = headUntil results, (el) -> ((Date.now() - el.createdAt) / 1000 / 60) > TIME_LIMIT_IN_MIN
     # if items length is lt CHECK_LIMIT return true
     callback results.length < TRY_LIMIT_FOR_BLOCKING
 
@@ -97,8 +97,8 @@ module.exports = class JLog extends Module
           sort        :
             createdAt : -1
 
-        JLog.some { username }, options, (err, results)->
-          checkRestrictions err, results, (res)->
+        JLog.some { username }, options, (err, results) ->
+          checkRestrictions err, results, (res) ->
             unless res then return callback res
             queue.next()
 
@@ -108,3 +108,5 @@ module.exports = class JLog extends Module
     ]
 
     daisy queue
+
+

@@ -1,4 +1,4 @@
-{clone}              = require 'underscore'
+{ clone }            = require 'underscore'
 module.exports       = clone
   free               :
     total            : 1
@@ -49,3 +49,5 @@ module.exports       = clone
     allowedInstances : ['t2.micro']
     managed          : 0
     snapshots        : 0
+
+

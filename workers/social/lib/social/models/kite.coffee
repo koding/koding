@@ -1,10 +1,11 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 module.exports = class JKite extends jraphical.Module
 
   KodingError         = require '../error'
-  {permit}            = require './group/permissionset'
-  {signature}         = require 'bongo'
-  {Relationship}      = jraphical
+  { permit }          = require './group/permissionset'
+  { signature }       = require 'bongo'
+  { Relationship }    = jraphical
   { v4: createId }    = require 'node-uuid'
 
   @trait __dirname, '../traits/protected'
@@ -49,8 +50,8 @@ module.exports = class JKite extends jraphical.Module
 
   @create: permit 'create kite',
     success: (client, formData, callback) ->
-      {delegate} = client.connection
-      {profile}  = delegate
+      { delegate } = client.connection
+      { profile }  = delegate
 
       formData.manifest.authorNick = profile.nickname
       formData.manifest.author     = "#{profile.firstName} #{profile.lastName}"
@@ -58,48 +59,50 @@ module.exports = class JKite extends jraphical.Module
       kite = new JKite formData
       kite.kiteCode = createId()
 
-      kite.save (err)->
+      kite.save (err) ->
         return  callback new KodingError "kite couldn't saved" if err
 
-        delegate.addKite kite, (err, res)->
+        delegate.addKite kite, (err, res) ->
           return  callback new KodingError "kite couldn't added to account" if err
           callback null, kite
 
   @list: permit 'list kites',
     success: (client, selector, options, callback) ->
-      JKite.some selector, options, (err, kites) =>
+      JKite.some selector, options, (err, kites) ->
         delete kite.data.kiteCode  for kite in kites
         callback err, kites
 
   modify: permit 'edit kite',
-    success: (client, formData, callback)->
-      @update $set: {name: formData.name, description: formData.description} , callback
+    success: (client, formData, callback) ->
+      @update $set: { name: formData.name, description: formData.description } , callback
 
   deleteKite: permit 'delete kite',
-    success: (client, callback)->
+    success: (client, callback) ->
       account = client.connection.delegate
       Relationship.one {
-        targeName   : "JKite"
+        targeName   : 'JKite'
         targetId    : @getId()
-        sourceName  : "JAccount"
+        sourceName  : 'JAccount'
         sourceId    : account.getId()
-        as          : "owner"
+        as          : 'owner'
       }, (err, rel) =>
         return  callback new KodingError err if err
         if rel
-          @remove (err, res)->
+          @remove (err, res) ->
             return  callback err, res
 
   createPlan: permit 'create kite',
-    success: (client, formData, callback)->
-      {userTag} = formData
-      formData.tags = ["kite", userTag]
+    success: (client, formData, callback) ->
+      { userTag } = formData
+      formData.tags = ['kite', userTag]
       JPaymentPlan  = require './payment/plan'
-      JPaymentPlan.create client.context.group, formData, (err, plan)=>
+      JPaymentPlan.create client.context.group, formData, (err, plan) =>
         return  callback err if err
         @addPlan plan, callback
 
   deletePlan: permit 'delete kite plan',
-    success: (client, planCode, callback)->
+    success: (client, planCode, callback) ->
       @fetchPlans (err, plan) ->
         plan.remove
+
+

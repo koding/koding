@@ -1,5 +1,5 @@
 bongo = require 'bongo'
-{dash, secure, signature} = bongo
+{ dash, secure, signature } = bongo
 
 JMachine   = require './computeproviders/machine'
 JWorkspace = require './workspace'
@@ -10,7 +10,7 @@ KodingError = require '../error'
 
 module.exports = class Sidebar extends bongo.Base
 
-  {revive} = require './computeproviders/computeutils'
+  { revive } = require './computeproviders/computeutils'
 
   @share()
 
@@ -26,14 +26,14 @@ module.exports = class Sidebar extends bongo.Base
     shouldReviveProvider : no
     hasOptions           : no
 
-  , (client, callback)->
+  , (client, callback) ->
 
     data            =
       collaboration : []
       shared        : []
       own           : []
 
-    {r: {user, group}} = client
+    { r: { user, group } } = client
 
     query =
       'users.id'  : user.getId()
@@ -43,11 +43,11 @@ module.exports = class Sidebar extends bongo.Base
       return callback new KodingError err  if err
 
       machineUIds = machines.map (machine) -> machine.uid
-      JWorkspace.some machineUId: $in: machineUIds, {}, (err, workspaces) ->
+      JWorkspace.some { machineUId: { $in: machineUIds } }, {}, (err, workspaces) ->
 
         return callback new KodingError err  if err
 
-        options = {client, user, machines, workspaces, callback}
+        options = { client, user, machines, workspaces, callback }
         options.addOwnFn = makeEnvironmentNodeAdderFn data.own
         options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
         options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
@@ -64,22 +64,22 @@ module.exports = class Sidebar extends bongo.Base
         if machine.uid is node.machine.uid
           return node
 
-    return ({machine, workspace}) ->
+    return ({ machine, workspace }) ->
 
       unless node = findNode machine
-        node = {machine, workspaces: []}
+        node = { machine, workspaces: [] }
         list.push node
 
-      {workspaces} = node
+      { workspaces } = node
       workspaces.push workspace  if workspace
 
 
   decorateEnvironmentData = (options) ->
 
-    {client, user} = options
-    {machines, workspaces} = options
-    {addOwnFn, addSharedFn, addCollaborationFn} = options
-    {callback} = options
+    { client, user } = options
+    { machines, workspaces } = options
+    { addOwnFn, addSharedFn, addCollaborationFn } = options
+    { callback } = options
 
     machineMap = {}
 
@@ -92,13 +92,13 @@ module.exports = class Sidebar extends bongo.Base
         when isMachineShared user, machine
           addSharedFn
 
-      addNodeFn? {machine}
+      addNodeFn? { machine }
 
     workspaceQueue = workspaces.map (workspace) ->
 
       machine = machineMap[workspace.machineUId]
 
-      nodeValue = {machine, workspace}
+      nodeValue = { machine, workspace }
 
       return ->
 
@@ -142,7 +142,7 @@ module.exports = class Sidebar extends bongo.Base
 
             successFn = makeSuccessFn addCollaborationFn
 
-            options = {client, user, workspace, successFn, failureFn}
+            options = { client, user, workspace, successFn, failureFn }
             filterCollaborationWorkspace options
         ]
 
@@ -171,9 +171,9 @@ module.exports = class Sidebar extends bongo.Base
 
   filterCollaborationWorkspace = (options = {}) ->
 
-    {client, user, workspace, successFn, failureFn} = options
+    { client, user, workspace, successFn, failureFn } = options
 
-    SocialChannel.byId client, id: workspace.channelId, (err, channel) ->
+    SocialChannel.byId client, { id: workspace.channelId }, (err, channel) ->
 
       if err
 
@@ -186,9 +186,11 @@ module.exports = class Sidebar extends bongo.Base
           workspaceId : workspace.getId()
 
         console.error 'error: fetch workspace channel'
-        console.error JSON.stringify {data}
-        console.error JSON.stringify {err}
+        console.error JSON.stringify { data }
+        console.error JSON.stringify { err }
 
         return failureFn()
 
       successFn()
+
+

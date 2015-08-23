@@ -1,10 +1,10 @@
-Bongo          = require "bongo"
-{Relationship} = require "jraphical"
-request        = require 'request'
-KodingError    = require '../../error'
+Bongo            = require 'bongo'
+{ Relationship } = require 'jraphical'
+request          = require 'request'
+KodingError      = require '../../error'
 
-{secure, race, signature, Base} = Bongo
-{uniq} = require 'underscore'
+{ secure, race, signature, Base } = Bongo
+{ uniq } = require 'underscore'
 
 module.exports = class SocialNotification extends Base
   @share()
@@ -29,9 +29,9 @@ module.exports = class SocialNotification extends Base
       unreadCount      : Number
       updatedAt        : Date
 
-  {permit}   = require '../group/permissionset'
+  { permit }   = require '../group/permissionset'
 
-  { doRequest } = require "./helper"
+  { doRequest } = require './helper'
 
   JAccount = require '../account'
 
@@ -39,9 +39,9 @@ module.exports = class SocialNotification extends Base
     success: (client, options, callback) ->
       doRequest 'listNotifications', client, options, (err, response) ->
         return callback err if err?
-        {notificationList : notifications, unreadCount} = response
+        { notificationList : notifications, unreadCount } = response
         notifications = decorateNotifications notifications
-        callback null, {notifications, unreadCount}
+        callback null, { notifications, unreadCount }
 
   @glance = permit 'list notifications',
     success: (client, options, callback) ->
@@ -62,3 +62,5 @@ module.exports = class SocialNotification extends Base
 
 
     return revivedNotifications
+
+

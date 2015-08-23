@@ -1,9 +1,11 @@
-{Module, Relationship} = require 'jraphical'
+# coffeelint: disable=no_implicit_braces
+{ Module, Relationship } = require 'jraphical'
+KodingError              = require '../../error'
 
 module.exports = class JPaymentMethod extends Module
 
-  {secure, dash, signature} = require 'bongo'
-  {extend} = require 'underscore'
+  { secure, dash, signature } = require 'bongo'
+  { extend } = require 'underscore'
   { v4: createId } = require 'node-uuid'
 
   recurly = require 'koding-payment'
@@ -77,7 +79,7 @@ module.exports = class JPaymentMethod extends Module
         callback null, paymentMethod
 
   @create = secure (client, formData, callback) ->
-    {delegate} = client.connection
+    { delegate } = client.connection
 
     @createPaymentMethod client, formData, (err, paymentMethod) ->
       return callback err  if err
@@ -105,7 +107,7 @@ module.exports = class JPaymentMethod extends Module
     JSession = require '../session'
 
     unless @requirePaymentFields formData
-      return callback message: 'Missed a required value!'
+      return callback new KodingError 'Missed a required value!'
 
     { delegate } = client.connection
 
@@ -116,7 +118,7 @@ module.exports = class JPaymentMethod extends Module
 
       delegate.hasTarget this, 'payment method', (err, hasTarget) =>
         return callback err  if err
-        return callback message: 'Access denied!'  unless hasTarget
+        return callback new KodingError 'Access denied!'  unless hasTarget
 
         JSession.one clientId: client.sessionToken, (err, session) =>
           return callback err  if err

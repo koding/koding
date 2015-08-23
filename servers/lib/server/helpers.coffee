@@ -181,7 +181,7 @@ redirectOauth = (err, req, res, options) ->
         delegate    : account
       sessionToken  : sessionToken
 
-    { JUser }= koding.models
+    { JUser } = koding.models
     return JUser.authenticateWithOauth client, { provider, isUserLoggedIn }, (err, response) ->
 
       return res.status(400).send err  if err
@@ -266,3 +266,5 @@ module.exports = {
   isInAppRoute
   isMainDomain
 }
+
+

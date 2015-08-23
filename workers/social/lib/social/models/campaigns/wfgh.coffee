@@ -1,9 +1,10 @@
-JCampaign = require './campaign'
-{Model}  = require 'bongo'
+KodingError = require '../../error'
+JCampaign  = require './campaign'
+{ Model }  = require 'bongo'
 
 module.exports = class JWFGH extends Model
 
-  {signature, secure} = require 'bongo'
+  { signature, secure } = require 'bongo'
   @share()
 
   @set
@@ -17,7 +18,7 @@ module.exports = class JWFGH extends Model
       username    :
         type      : String
         validate  : require('./../name').validateName
-        set       : (value)-> value.toLowerCase()
+        set       : (value) -> value.toLowerCase()
       approved    :
         type      : Boolean
         default   : -> no
@@ -33,37 +34,35 @@ module.exports = class JWFGH extends Model
 
     username = account?.profile?.nickname
 
-    return callback message : 'No username received!'  unless username
+    return callback new KodingError 'No username received!'  unless username
 
     JCampaign.get 'WFGH', (err, campaign) ->
 
       if err or not campaign or not campaign.content.active
 
-        return callback message : 'expired'
+        return callback new KodingError 'expired'
 
-      JWFGH.one {username}, (err, data)->
+      JWFGH.one { username }, (err, data) ->
 
         return callback err  if err
 
-        return callback message : 'Already applied'  if data
+        return callback new KodingError 'Already applied'  if data
 
-        application = new JWFGH {username}
+        application = new JWFGH { username }
 
-        application.save (err)->
+        application.save (err) ->
 
           return callback err if err
 
           JWFGH.getStats account, callback
 
 
-  @leave = (account, callback) ->
-
-    callback message : 'n/a'
+  @leave = (account, callback) -> callback new KodingError 'n/a'
 
 
   getUserStats = (username, callback) ->
 
-    JWFGH.one { username }, (err, applied)->
+    JWFGH.one { username }, (err, applied) ->
 
       return callback err  if err
 
@@ -80,10 +79,10 @@ module.exports = class JWFGH extends Model
 
       if err or not _campaign or not _campaign.content.active
 
-        return callback message : 'expired'
+        return callback new KodingError 'expired'
 
       kallback = (err, userStats) ->
-        {isApplicant, isApproved, isWinner} = userStats
+        { isApplicant, isApproved, isWinner } = userStats
 
         campaign           = _campaign.content
         totalApplicants    = campaign.totalApplicants or 0
@@ -100,3 +99,5 @@ module.exports = class JWFGH extends Model
         isApproved    : no
         isApplication : no
       }
+
+

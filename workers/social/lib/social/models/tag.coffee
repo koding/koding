@@ -1,14 +1,17 @@
+# coffeelint: disable=space_operators
+# coffeelint: disable=no_implicit_braces
+# coffeelint: disable=no_unnecessary_double_quotes
 jraphical = require 'jraphical'
 KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
 
-  {Relationship} = jraphical
+  { Relationship } = jraphical
 
-  {ObjectId, ObjectRef, Inflector, daisy, secure, race, signature, dash} = require 'bongo'
+  { ObjectId, ObjectRef, Inflector, daisy, secure, race, signature, dash } = require 'bongo'
 
   Validators  = require './group/validators'
-  {permit}    = require './group/permissionset'
+  { permit }  = require './group/permissionset'
 
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/followable'
@@ -111,14 +114,14 @@ module.exports = class JTag extends jraphical.Module
     schema          :
       title         :
         type        : String
-        set         : (value)-> value.trim()
+        set         : (value) -> value.trim()
         required    : yes
       slug          :
         type        : String
-        default     : (value)-> Inflector.slugify @title.toLowerCase()
+        default     : (value) -> Inflector.slugify @title.toLowerCase()
         validate    : [
           'invalid tag name'
-          (value)->
+          (value) ->
             0 < value.length <= 256 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
         ]
       body          : String
@@ -138,20 +141,23 @@ module.exports = class JTag extends jraphical.Module
       status        : String
       category      :
         type        : String
-        default     : "user-tag"
+        default     : 'user-tag'
       # owner         : ObjectId
-    relationships   :->
+    relationships   : ->
       JAccount = require './account'
-      creator       :
-        targetType  : JAccount
-      follower      :
-        targetType  : JAccount
-        as          : 'follower'
-      synonym       :
-        targetType  : JTag
-        as          : "synonymOf"
 
-  constructor:->
+      return {
+        creator       :
+          targetType  : JAccount
+        follower      :
+          targetType  : JAccount
+          as          : 'follower'
+        synonym       :
+          targetType  : JTag
+          as          : 'synonymOf'
+      }
+
+  constructor: ->
     super
     @notifyGroupWhen 'FollowHappened'
 
@@ -160,34 +166,34 @@ module.exports = class JTag extends jraphical.Module
       { permission: 'edit own tags', validateWith: Validators.own }
       { permission: 'edit tags' }
     ]
-    success: (client, formData, callback)->
-      {delegate} = client.connection
+    success: (client, formData, callback) ->
+      { delegate } = client.connection
       if delegate.checkFlag ['super-admin', 'editor']
-        modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
-        JTag.one modifiedTag, (err, tag)=>
+        modifiedTag = { slug: formData.slug.trim(), _id: $ne: @getId() }
+        JTag.one modifiedTag, (err, tag) =>
           if tag
-            callback new KodingError "Slug already exists!"
+            callback new KodingError 'Slug already exists!'
           else
-            @update $set: formData, (err) =>
+            @update $set: formData, (err) ->
               return callback err if err
               callback null
       else
         callback new KodingError 'Access denied'
 
-  fetchContentTeasers:(options, selector, callback)->
+  fetchContentTeasers:(options, selector, callback) ->
     [callback, selector] = [selector, callback] unless callback
 
     selector or= {}
     selector['data.flags.isLowQuality'] = $ne: yes
-    selector['status'] = $ne: "deleted"
+    selector['status'] = { $ne: 'deleted' }
 
-    @fetchContents selector, options, (err, contents)->
+    @fetchContents selector, options, (err, contents) ->
       if err then callback err
       else if contents.length is 0 then callback null, []
       else
         teasers = []
-        collectTeasers = race (i, root, fin)->
-          root.fetchTeaser (err, teaser)->
+        collectTeasers = race (i, root, fin) ->
+          root.fetchTeaser (err, teaser) ->
             if err then callback err
             else
               teasers[i] = teaser
@@ -198,23 +204,23 @@ module.exports = class JTag extends jraphical.Module
   @canReadTags = permit 'read tags'
 
   @handleFreetags = permit 'freetag content',
-    success: (client, tagRefs, callbackForEach=->)->
+    success: (client, tagRefs, callbackForEach = -> ) ->
       existingTagIds = []
       daisy queue = [
         ->
-          fin =(i)-> if i is tagRefs.length-1 then queue.next()
-          tagRefs.forEach (tagRef, i)->
+          fin = (i) -> if i is tagRefs.length-1 then queue.next()
+          tagRefs.forEach (tagRef, i) ->
             if tagRef?.$suggest?
-              {group} = client.context
-              newTag = {title: tagRef.$suggest.trim(), group}
-              JTag.one newTag, (err, tag)->
+              { group } = client.context
+              newTag = { title: tagRef.$suggest.trim(), group }
+              JTag.one newTag, (err, tag) ->
                 if err
                   callbackForEach err
                 else if tag?
                   callbackForEach null, tag
                   fin i
                 else
-                  JTag.create client, newTag, (err, tag)->
+                  JTag.create client, newTag, (err, tag) ->
                     if err
                       callbackForEach err
                     else
@@ -225,39 +231,39 @@ module.exports = class JTag extends jraphical.Module
               existingTagIds.push ObjectId tagRef.id
               fin i
         ->
-          JTag.all (_id: $in: existingTagIds), (err, existingTags)->
+          JTag.all (_id: $in: existingTagIds), (err, existingTags) ->
             if err
               callbackForEach err
             else
               callbackForEach null, tag for tag in existingTags
       ]
 
-  create = (data, creator, callback) =>
+  create = (data, creator, callback) ->
     tag = new JTag data
-    tag.createSlug (err, slug)->
+    tag.createSlug (err, slug) ->
       return callback err  if err
       tag.slug = slug.slug
-      tag.save (err)->
+      tag.save (err) ->
         return callback err  if err
-        tag.addCreator creator, (err)->
+        tag.addCreator creator, (err) ->
           return callback err  if err
           callback null, tag
 
   checkTagExistence = (tag, callback) =>
-    {title, category} = tag
-    @one {title, category}, (err, tag) ->
+    { title, category } = tag
+    @one { title, category }, (err, tag) ->
       return callback err if err
       found = yes if tag
       callback null, found
 
   @create$ = permit 'create tags',
-    success: (client, data, callback)->
-      {connection:{delegate}} = client
-      data.category = "user-tag"
+    success: (client, data, callback) ->
+      { connection:{ delegate } } = client
+      data.category = 'user-tag'
       data.group = client.context.group
       checkTagExistence data, (err, found) ->
         return callback err if err
-        return callback new KodingError "Tag already exists!" if found
+        return callback new KodingError 'Tag already exists!' if found
         create data, delegate, callback
 
   addSynonym_ : (tag, callback) ->
@@ -265,73 +271,73 @@ module.exports = class JTag extends jraphical.Module
       return callback err if err
       @update $set: status :'synonym', (err) =>
         return callback err if err
-        @constructor.emit 'TagIsSynonym', @
+        @constructor.emit 'TagIsSynonym', this
         callback null
 
   addExistingTagAsSynonym : (tag, callback) ->
-    return callback new KodingError "Tag not found" unless tag
-    return callback new KodingError "Self reference is forbidden!" if @getId().equals tag.getId()
-    if tag.status in ["synonym", "deleted"]
-        return callback new KodingError "##{tag.title} already set as #{tag.status}!"
+    return callback new KodingError 'Tag not found' unless tag
+    return callback new KodingError 'Self reference is forbidden!' if @getId().equals tag.getId()
+    if tag.status in ['synonym', 'deleted']
+      return callback new KodingError "##{tag.title} already set as #{tag.status}!"
     @checkChildTopics (err) =>
       return callback err if err
       @addSynonym_ tag, callback
 
   addNewTagAsSynonym : (client, title, tag, callback) ->
     return if tag then @addExistingTagAsSynonym tag, callback
-    {delegate} = client.connection
-    {group} = client.context
+    { delegate } = client.connection
+    { group } = client.context
     @checkChildTopics (err) =>
       return callback err if err
-      create {title, group}, delegate, (err, tag) =>
+      create { title, group }, delegate, (err, tag) =>
         return callback err if err
         @addSynonym_ tag, callback
 
   # for preventing synonym links we are checking for existing
   # child topics
   checkChildTopics : (callback) ->
-    Relationship.one "targetId": @getId(), "as": "synonymOf", (err, childTopic) =>
+    Relationship.one 'targetId': @getId(), 'as': 'synonymOf', (err, childTopic) =>
       return callback err if err
       if childTopic
         return callback new KodingError "##{@title} have child topics! You must first delete them"
       callback null
 
   createSynonym : permit ['create synonym tags'],
-    success: (client, options, callback)->
+    success: (client, options, callback) ->
       # whenever client wants to create a new tag for synonym title is used
-      {title, id} = options
+      { title, id } = options
 
-      return callback new KodingError "Undefined synonym" unless title? or id?
+      return callback new KodingError 'Undefined synonym' unless title? or id?
 
       if @status in ['deleted', 'synonym']
         return callback new KodingError "Topic is already set as #{@status}!"
 
-      selector = if title then {title} else {_id : id}
+      selector = if title then { title } else { _id : id }
 
       JTag.one selector, (err, tag) =>
         return callback err if err
         if id then @addExistingTagAsSynonym tag, callback
         else @addNewTagAsSynonym client, title, tag, callback
 
-  @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip, category} = options
-    {group} = client.context
+  @findSuggestions = (client, seed, options, callback) ->
+    { limit, blacklist, skip, category } = options
+    { group } = client.context
     @some {
-        group
-        title   : seed
-        _id     :
-          $nin  : blacklist
-        category: "user-tag"
-      },{
-        skip
-        limit
-        sort    : 'title' : 1
-      }, callback
+      group
+      title   : seed
+      _id     :
+        $nin  : blacklist
+      category: 'user-tag'
+    }, {
+      skip
+      limit
+      sort    : 'title' : 1
+    }, callback
 
   delete_: (callback) ->
-    @update {$set: status: "deleted"}, (err)=>
+    @update { $set: status: 'deleted' }, (err) =>
       return callback err if err
-      @constructor.emit 'TagIsDeleted', @
+      @constructor.emit 'TagIsDeleted', this
       callback null
 
   delete: permit
@@ -339,49 +345,49 @@ module.exports = class JTag extends jraphical.Module
       { permission: 'delete own tags', validateWith: Validators.own }
       { permission: 'delete tags' }
     ]
-    success: (client, callback)->
-      {delegate} = client.connection
+    success: (client, callback) ->
+      { delegate } = client.connection
 
-      return callback new KodingError "Topic is already deleted!" if @status is 'deleted'
+      return callback new KodingError 'Topic is already deleted!' if @status is 'deleted'
 
       if @status is 'synonym'
-        @delete_ => Relationship.remove {sourceId: @getId(), as: "synonymOf"}, callback
+        @delete_ => Relationship.remove { sourceId: @getId(), as: 'synonymOf' }, callback
 
       # check child topics and delete all
-      Relationship.all "targetId": @getId(), "as": "synonymOf", (err, childTopicRels) =>
+      Relationship.all 'targetId': @getId(), 'as': 'synonymOf', (err, childTopicRels) =>
         return callback err if err
         unless childTopicRels?.length then @delete_ callback
         else
           queue = childTopicRels.map (childTopicRel) ->
-            -> JTag.one "_id": childTopicRel.sourceId, (err, childTopic) ->
+            -> JTag.one { '_id': childTopicRel.sourceId }, (err, childTopic) ->
               return callback err if err
               return callback new KodingError 'Child Topic could not be found' unless childTopic
               childTopic.delete_ (err) ->
                 return callback err if err
-                Relationship.remove {sourceId: childTopic.getId(), as: "synonymOf"}, -> queue.fin()
+                Relationship.remove { sourceId: childTopic.getId(), as: 'synonymOf' }, -> queue.fin()
           dash queue, => @delete_ callback
 
 
-  @fetchSkillTags:(selector, options, callback)->
+  @fetchSkillTags:(selector, options, callback) ->
     selector.group = 'koding'
     @some selector, options, callback
 
   @byRelevanceForSkills = permit 'read tags',
-    success: (client, seed, options, callback)->
+    success: (client, seed, options, callback) ->
       client.context.group = 'koding'
       @byRelevance client, seed, options, callback
 
-  makeGroupSelector =(group)->
+  makeGroupSelector = (group) ->
     if Array.isArray group then $in: group else group
 
   @one$ = permit 'read tags',
-    success:(client, uniqueSelector, options, callback)->
+    success:(client, uniqueSelector, options, callback) ->
       uniqueSelector.group = makeGroupSelector client.context.group
       @one uniqueSelector, options, callback
 
-  @_some = (client, selector, options, callback)->
+  @_some = (client, selector, options, callback) ->
     selector.group    = makeGroupSelector client.context.group
-    selector.category = "user-tag"
+    selector.category = 'user-tag'
     setSelectorStatus client, selector
     @some selector, options, callback
 
@@ -389,33 +395,33 @@ module.exports = class JTag extends jraphical.Module
 
   # fix: having read activity permission here may lead to obscurity - SY
   @fetchCount = permit 'read activity',
-    success:(client, callback)-> @count callback
+    success:(client, callback) -> @count callback
 
   @count$ = permit 'read tags',
-    success:(client, selector, callback)->
+    success:(client, selector, callback) ->
       [callback, selector] = [selector, callback]  unless callback
       selector ?= {}
       selector.group    = makeGroupSelector client.context.group
-      selector.category = "user-tag"
+      selector.category = 'user-tag'
       setSelectorStatus client, selector
       @count selector, callback
 
   @cursor$ = permit 'read tags',
-    success:(client, selector, options, callback)->
+    success:(client, selector, options, callback) ->
       selector.group    = makeGroupSelector client.context.group
-      selector.category = "user-tag"
+      selector.category = 'user-tag'
       setSelectorStatus client, selector
       @cursor selector, options, callback
 
   @each$ = permit 'read tags',
-    success:(client, selector, fields, options, callback)->
+    success:(client, selector, fields, options, callback) ->
       selector.group    = makeGroupSelector client.context.group
-      selector.category = "user-tag"
+      selector.category = 'user-tag'
       setSelectorStatus client, selector
       @each selector, fields, options, callback
 
   @byRelevance$ = permit 'read tags',
-    success: (client, seed, options, callback)->
+    success: (client, seed, options, callback) ->
       filterSynonyms = (err, tags) ->
         return callback err if err
         resultMap = {}
@@ -445,30 +451,30 @@ module.exports = class JTag extends jraphical.Module
       @byRelevance client, seed, options, filterSynonyms
 
   @fetchSystemTags    = permit 'fetch system tag',
-   success: (client, selector, options, callback)->
-    selector.group    = makeGroupSelector client.context.group
-    selector.category = "system-tag"
-    @some selector, options, callback
+    success: (client, selector, options, callback) ->
+      selector.group    = makeGroupSelector client.context.group
+      selector.category = 'system-tag'
+      @some selector, options, callback
 
   @createSystemTag = permit 'create system tag',
-    success: (client, data, callback)->
-      data.category = "system-tag"
+    success: (client, data, callback) ->
+      data.category = 'system-tag'
       @create client, data, callback
 
-  fetchLastInteractors: secure (client, options, callback)->
-    {limit}  = options
-    limit  or= 3
+  fetchLastInteractors: secure (client, options, callback) ->
+    { limit }  = options
+    limit    or= 3
 
     Relationship.some {
-      as       : "follower"
+      as       : 'follower'
       sourceId : @getId()
-    }, {limit, sort: {'_id' : -1}}, (err, rels)->
+    }, { limit, sort: { '_id' : -1 } }, (err, rels) ->
       accounts = []
-      daisy queue = rels.map (r)->
+      daisy queue = rels.map (r) ->
         ->
           JAccount = require './account'
-          JAccount.one _id: r.targetId, (err, acc)->
-            accounts.push acc  if !err and acc
+          JAccount.one _id: r.targetId, (err, acc) ->
+            accounts.push acc  if not err and acc
             queue.next()
 
       queue.push -> callback null, accounts
@@ -481,7 +487,7 @@ module.exports = class JTag extends jraphical.Module
     Followable::follow.call this, client, options, callback
 
   setSelectorStatus = (client, selector) ->
-    {connection:{delegate}} = client
+    { connection:{ delegate } } = client
     if delegate and not delegate.checkFlag 'super-admin'
-      selector.status = $nin: ['deleted','synonym']
+      selector.status = { $nin: ['deleted', 'synonym'] }
 

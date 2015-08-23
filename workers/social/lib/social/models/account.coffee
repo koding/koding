@@ -1,8 +1,9 @@
+# coffeelint: disable=no_implicit_braces
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 
-{argv}      = require 'optimist'
+{ argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JAccount extends jraphical.Module
@@ -23,12 +24,12 @@ module.exports = class JAccount extends jraphical.Module
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
 
-  {ObjectId, Register, secure, race, dash, daisy, signature} = require 'bongo'
-  {Relationship} = jraphical
-  {permit} = require './group/permissionset'
+  { ObjectId, Register, secure, race, dash, daisy, signature } = require 'bongo'
+  { Relationship } = jraphical
+  { permit } = require './group/permissionset'
   Validators = require './group/validators'
   Protected = require '../traits/protected'
-  {extend} = require 'underscore'
+  { extend } = require 'underscore'
 
   validateFullName = (value) -> not /<|>/.test value
 
@@ -55,7 +56,7 @@ module.exports = class JAccount extends jraphical.Module
         # { name: 'updateInstance' }
         { name : 'messageBusEvent' }
         { name : 'RemovedFromCollection' }
-        { name : 'NewWorkspaceCreated'}
+        { name : 'NewWorkspaceCreated' }
       ]
     sharedMethods :
       static:
@@ -219,7 +220,7 @@ module.exports = class JAccount extends jraphical.Module
       environmentIsCreated  : Boolean
       type                  :
         type                : String
-        enum                : ['invalid account type',[
+        enum                : ['invalid account type', [
                                 'registered'
                                 'unregistered'
                                 'deleted'
@@ -230,7 +231,7 @@ module.exports = class JAccount extends jraphical.Module
         nickname            :
           type              : String
           validate          : require('./name').validateName
-          set               : (value)-> value.toLowerCase()
+          set               : (value) -> value.toLowerCase()
         hash                : String
         ircNickname         : String
         firstName           :
@@ -260,7 +261,7 @@ module.exports = class JAccount extends jraphical.Module
       meta                  : require 'bongo/bundles/meta'
       onlineStatus          :
         type                : String
-        enum                : ['invalid status',['online','offline','away','busy']]
+        enum                : ['invalid status', ['online', 'offline', 'away', 'busy']]
         default             : 'online'
     broadcastableRelationships : [ 'follower' ]
 
@@ -271,101 +272,103 @@ module.exports = class JAccount extends jraphical.Module
       # targetType from string to object.
       JStackTemplate   = require './computeproviders/stacktemplate'
 
-      appStorage    :
-        as          : 'appStorage'
-        targetType  : "JAppStorage"
+      return {
+        appStorage    :
+          as          : 'appStorage'
+          targetType  : 'JAppStorage'
 
-      storage       :
-        as          : 'storage'
-        targetType  : 'JStorage'
+        storage       :
+          as          : 'storage'
+          targetType  : 'JStorage'
 
-      tag:
-        as          : 'skill'
-        targetType  : "JTag"
+        tag:
+          as          : 'skill'
+          targetType  : 'JTag'
 
-      domain        :
-        as          : 'owner'
-        targetType  : 'JProposedDomain'
+        domain        :
+          as          : 'owner'
+          targetType  : 'JProposedDomain'
 
-      proxyFilter   :
-        as          : 'owner'
-        targetType  : 'JProxyFilter'
+        proxyFilter   :
+          as          : 'owner'
+          targetType  : 'JProxyFilter'
 
-      referrer      :
-        targetType  : 'JReferral'
-        as          : 'referrer'
-      referred      :
-        targetType  : 'JReferral'
-        as          : 'referred'
-      invitation    :
-        as          : 'owner'
-        targetType  : 'JInvitation'
+        referrer      :
+          targetType  : 'JReferral'
+          as          : 'referrer'
+        referred      :
+          targetType  : 'JReferral'
+          as          : 'referred'
+        invitation    :
+          as          : 'owner'
+          targetType  : 'JInvitation'
 
-      paymentMethod :
-        as          : 'payment method'
-        targetType  : 'JPaymentMethod'
+        paymentMethod :
+          as          : 'payment method'
+          targetType  : 'JPaymentMethod'
 
-      subscription  :
-        as          : 'service subscription'
-        targetType  : 'JPaymentSubscription'
+        subscription  :
+          as          : 'service subscription'
+          targetType  : 'JPaymentSubscription'
 
-      kite          :
-        as          : 'owner'
-        targetType  : JKite
+        kite          :
+          as          : 'owner'
+          targetType  : JKite
 
-      credential    :
-        as          : ['owner', 'user']
-        targetType  : 'JCredential'
+        credential    :
+          as          : ['owner', 'user']
+          targetType  : 'JCredential'
 
-      stackTemplate :
-        as          : 'user'
-        targetType  : JStackTemplate
+        stackTemplate :
+          as          : 'user'
+          targetType  : JStackTemplate
+      }
 
 
-  constructor:->
+  constructor: ->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
-  @sendUpdateInstanceEvent = (obj, op) =>
-    JAccount.bongos.forEach (bongo) =>
-      bongo.handleEvent "instance", obj, "updateInstance", [op]
+  @sendUpdateInstanceEvent = (obj, op) ->
+    JAccount.bongos.forEach (bongo) ->
+      bongo.handleEvent 'instance', obj, 'updateInstance', [op]
 
   canEditPost: permit 'edit posts'
 
   canDeletePost: permit 'delete posts'
 
-  createSocialApiId:(callback)->
+  createSocialApiId:(callback) ->
     if @type is 'unregistered'
       return callback null, -1
 
     return callback null, @socialApiId  if @socialApiId
-    {createAccount} = require './socialapi/requests'
-    createAccount {id: @getId(), nickname: @profile.nickname}, (err, account)=>
+    { createAccount } = require './socialapi/requests'
+    createAccount { id: @getId(), nickname: @profile.nickname }, (err, account) =>
       return callback new ApiError err  if err
-      return callback {message: "Account is not set, malformed response from social api"} unless account?.id
-      @update $set: socialApiId: account.id, isExempt: account.isTroll, (err)->
+      return callback new KodingError 'Account is not set, malformed response from social api'  unless account?.id
+      @update $set: socialApiId: account.id, isExempt: account.isTroll, (err) ->
         # check for error
         if err
-          console.error "Error while creating account on social api", err
-          return callback { message: "Couldnt create/register Account"}
+          console.error 'Error while creating account on social api', err
+          return callback new KodingError 'Couldnt create/register Account'
         # check account
         # return account id from social api
         return callback null, account.id
 
-  checkGroupMembership: secure (client, groupName, callback)->
-    {delegate} = client.connection
-    JGroup = require "./group"
-    JGroup.one {slug : groupName}, (err, group)->
-      return callback new KodingError "An error occurred!" if err
+  checkGroupMembership: secure (client, groupName, callback) ->
+    { delegate } = client.connection
+    JGroup = require './group'
+    JGroup.one { slug : groupName }, (err, group) ->
+      return callback new KodingError 'An error occurred!' if err
       return callback null, no unless group
 
       Relationship.one {
         as          : 'member'
         targetId    : delegate.getId()
         sourceId    : group.getId()
-      }, (err, relation)=>
-        return callback new KodingError "An error occurred!" if err
+      }, (err, relation) ->
+        return callback new KodingError 'An error occurred!' if err
         return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
@@ -387,7 +390,7 @@ module.exports = class JAccount extends jraphical.Module
         return callback null
 
       else
-        return callback new KodingError "Username was not changed!"
+        return callback new KodingError 'Username was not changed!'
 
     # Validate username
     unless @constructor.validateAt 'profile.nickname', username
@@ -441,10 +444,10 @@ module.exports = class JAccount extends jraphical.Module
 
             # Free up the old username
             JName.remove name: oldUsername, (err) ->
-              console.warn "[JAccount.changeUsername]", err  if err?
+              console.warn '[JAccount.changeUsername]', err  if err?
 
 
-  checkPermission: (target, permission, callback)->
+  checkPermission: (target, permission, callback) ->
     JPermissionSet = require './group/permissionset'
     client =
       context     : { group: target.slug }
@@ -457,8 +460,8 @@ module.exports = class JAccount extends jraphical.Module
   @renderHomepage: require '../render/profile.coffee'
 
 
-  fetchHomepageView:(options, callback)->
-    {account} = options
+  fetchHomepageView:(options, callback) ->
+    { account } = options
 
     homePageOptions = extend options, {
       renderedAccount : account
@@ -468,12 +471,12 @@ module.exports = class JAccount extends jraphical.Module
 
     JAccount.renderHomepage homePageOptions, callback
 
-  fetchGroups: secure (client, options, callback)->
+  fetchGroups: secure (client, options, callback) ->
     [callback, options] = [options, callback]  unless callback
     options       ?= {}
     JGroup        = require './group'
-    {groupBy}     = require 'underscore'
-    {delegate}    = client.connection
+    { groupBy }   = require 'underscore'
+    { delegate }  = client.connection
     isMine        = @equals delegate
     edgeSelector  =
       sourceName  : 'JGroup'
@@ -486,10 +489,10 @@ module.exports = class JAccount extends jraphical.Module
       sort        : options.sort  or { timestamp: -1 }
       limit       : options.limit or 20
       skip        : options.skip  or 0
-    Relationship.someData edgeSelector, edgeFields, options, (err, cursor)->
+    Relationship.someData edgeSelector, edgeFields, options, (err, cursor) ->
       if err then callback err
       else
-        cursor.toArray (err, docs)->
+        cursor.toArray (err, docs) ->
           if err then callback err
           else unless docs
             callback null, []
@@ -497,40 +500,40 @@ module.exports = class JAccount extends jraphical.Module
             groupedDocs = groupBy docs, 'sourceId'
             targetSelector = { _id: $in: (doc.sourceId for doc in docs) }
             targetSelector.visibility = 'visible'  unless isMine
-            JGroup.all targetSelector, (err, groups)->
+            JGroup.all targetSelector, (err, groups) ->
               if err then callback err
-              else callback null, groups.map (group)->
+              else callback null, groups.map (group) ->
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
 
 
-  @verifyEmailByUsername = secure (client, username, callback)->
-    {connection:{delegate}, sessionToken} = client
+  @verifyEmailByUsername = secure (client, username, callback) ->
+    { connection:{ delegate }, sessionToken } = client
     unless delegate.can 'verify-emails'
       callback new KodingError 'Access denied'
     else
       JUser = require './user'
-      JUser.one {username}, (err, user)->
+      JUser.one { username }, (err, user) ->
         return  callback err if err
-        return  callback new Error "User is not found" unless user
-        user.confirmEmail (err)->
-          return callback new Error "An error occurred while confirming email" if err
+        return  callback new Error 'User is not found' unless user
+        user.confirmEmail (err) ->
+          return callback new Error 'An error occurred while confirming email' if err
           callback null, yes
 
-  @reserveNames =(options, callback)->
+  @reserveNames = (options, callback) ->
     [callback, options] = [options, callback]  unless callback
     options       ?= {}
     options.limit ?= 100
     options.skip  ?= 0
-    @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
+    @someData {}, { 'profile.nickname':1 }, options, (err, cursor) =>
       if err then callback err
       else
         count = 0
-        cursor.each (err, account)=>
+        cursor.each (err, account) =>
           if err then callback err
           else if account?
-            {nickname} = account.profile
-            JName.claim nickname, 'JUser', 'username', (err, name)=>
+            { nickname } = account.profile
+            JName.claim nickname, 'JUser', 'username', (err, name) =>
               count++
               if err then callback err
               else
@@ -540,7 +543,7 @@ module.exports = class JAccount extends jraphical.Module
                   @reserveNames options, callback
 
 
-  @fetchBlockedUsers = secure ({connection:{delegate}}, options, callback) ->
+  @fetchBlockedUsers = secure ({ connection:{ delegate } }, options, callback) ->
     unless delegate.can 'list-blocked-users'
       return callback new KodingError 'Access denied!'
 
@@ -562,7 +565,7 @@ module.exports = class JAccount extends jraphical.Module
 
         acctSelector = 'profile.nickname': $in: users.map (u) -> u.username
 
-        JAccount.some acctSelector, {}, (err, accounts)=>
+        JAccount.some acctSelector, {}, (err, accounts) ->
           if err
             callback err
           else
@@ -572,8 +575,8 @@ module.exports = class JAccount extends jraphical.Module
             callback null, accounts
 
 
-  @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip}  = options
+  @findSuggestions = (client, seed, options, callback) ->
+    { limit, blacklist, skip } = options
     ### TODO:
     It is highly dependent to culture and there are even onces w/o the concept
     of first and last names. For now we assume last part of the seed is the lastname
@@ -584,7 +587,7 @@ module.exports = class JAccount extends jraphical.Module
     deciding ourselves which parts of the search are for first or last name.
     MongoDB 2.4 and bongo implementation of aggregate required to use $concat
     ###
-    names = seed.toString().split('/')[1].replace(/[\\^]/g, "").split ' '
+    names = seed.toString().split('/')[1].replace(/[\\^]/g, '').split ' '
     names.push names.first if names.length is 1
     @some {
       $or : [
@@ -596,40 +599,40 @@ module.exports = class JAccount extends jraphical.Module
         $nin  : blacklist
       type    :
         $in   : ['registered', null]
-    },{
+    }, {
       skip
       limit
       sort    : 'profile.firstName' : 1
     }, callback
 
 
-  setEmailPreferences: (user, prefs, callback)->
+  setEmailPreferences: (user, prefs, callback) ->
     current = user.getAt('emailFrequency') or {}
-    Object.keys(prefs).forEach (granularity)->
+    Object.keys(prefs).forEach (granularity) ->
       state = prefs[granularity]
       current[granularity] = state# then 'instant' else 'never'
 
-    updateUserPref =->
-      user.update {$set: emailFrequency: current}, (err)->
+    updateUserPref = ->
+      user.update { $set: { emailFrequency: current } }, (err) ->
         return callback err  if err
 
     updateUserPref()
 
-  setEmailPreferences$: secure (client, prefs, callback)->
+  setEmailPreferences$: secure (client, prefs, callback) ->
     JUser = require './user'
-    JUser.fetchUser client, (err, user)=>
+    JUser.fetchUser client, (err, user) =>
       if err
         callback err
       else
         @setEmailPreferences user, prefs, callback
 
   # Update broken counts for user
-  updateCounts:->
+  updateCounts: ->
     JUser = require './user'
     # ReferredUsers count
     JAccount.count
       referrerUsername : @profile.nickname
-    , (err, count)=>
+    , (err, count) =>
       return if err
       count ?= 0
       @update ($set: 'counts.referredUsers': count), ->
@@ -638,7 +641,7 @@ module.exports = class JAccount extends jraphical.Module
     JReferrableEmail.count
       username   : @profile.nickname
       invited    : true
-    , (err, count)=>
+    , (err, count) =>
       return if err
       count ?= 0
       @update ($set: 'counts.invitations': count), ->
@@ -647,33 +650,33 @@ module.exports = class JAccount extends jraphical.Module
     @update ($set: 'counts.lastLoginDate': new Date), ->
 
     # Twitter follower count
-    JUser.one {username: @profile.nickname}, (err, user) =>
+    JUser.one { username: @profile.nickname }, (err, user) =>
       return if err or not user
       if followerCount = user.foreignAuth?.twitter?.profile?.followers_count
         @update $set: 'counts.twitterFollowers': followerCount, ->
 
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "fatihacet", "arslan",
-                  "sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
-                  "szkl", "canthefason", "nitin", "usirin", "kodinglearn" ] # kodinglearn is nitin's impersonation account
+  dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet', 'arslan',
+                  'sent-hil', 'cihangirsavas', 'leeolayvar', 'stefanbc',
+                  'szkl', 'canthefason', 'nitin', 'usirin', 'kodinglearn' ] # kodinglearn is nitin's impersonation account
 
 
-  isEmailVerified: (callback)->
-    @fetchUser (err, user)->
+  isEmailVerified: (callback) ->
+    @fetchUser (err, user) ->
       return callback err if err
-      callback null, (user.status is "confirmed")
+      callback null, (user.status is 'confirmed')
 
-  markUserAsExempt: secure (client, exempt, callback)->
-    {delegate} = client.connection
+  markUserAsExempt: secure (client, exempt, callback) ->
+    { delegate } = client.connection
     return callback new KodingError 'Access denied'  unless delegate.can 'flag', this
     return @markUserAsExemptUnsafe client, exempt, callback
 
-  markUserAsExemptUnsafe: (client, exempt, callback)->
+  markUserAsExemptUnsafe: (client, exempt, callback) ->
     # mark user as troll in social api
-    @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
+    @markUserAsExemptInSocialAPI client, exempt, (err, data) =>
       return callback new ApiError err  if err
-      op = $set: {isExempt: exempt}
-      @update op, (err, result)=>
+      op = { $set: { isExempt: exempt } }
+      @update op, (err, result) =>
         if err
           console.error 'Could not update user exempt information'
           return callback err
@@ -682,45 +685,45 @@ module.exports = class JAccount extends jraphical.Module
         JAccount.sendUpdateInstanceEvent this, op
         callback null, result
 
-  markUserAsExemptInSocialAPI: (client, exempt, callback)->
-    {markAsTroll, unmarkAsTroll} = require './socialapi/requests'
-    @createSocialApiId (err, accountId)->
+  markUserAsExemptInSocialAPI: (client, exempt, callback) ->
+    { markAsTroll, unmarkAsTroll } = require './socialapi/requests'
+    @createSocialApiId (err, accountId) ->
       return callback err  if err
-      return callback {message: "account id is not set"} unless accountId
+      return callback new KodingError 'account id is not set'  unless accountId
 
       if exempt
-        markAsTroll {accountId}, callback
+        markAsTroll { accountId }, callback
       else
-        unmarkAsTroll {accountId}, callback
+        unmarkAsTroll { accountId }, callback
 
 
-  updateFlags: secure (client, flags, callback)->
-    {delegate} = client.connection
+  updateFlags: secure (client, flags, callback) ->
+    { delegate } = client.connection
     if delegate.can 'flag', this
-      @update {$set: globalFlags: flags}, callback
+      @update { $set: { globalFlags: flags } }, callback
     else
       callback new KodingError 'Access denied'
 
-  fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback)->
+  fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback) ->
 
-    kallback= (err, account)->
+    kallback = (err, account) ->
       return callback err if err
       JUser = require './user'
-      JUser.one {username: account.profile.nickname}, (err, user)->
-        callback err, {user, account}
+      JUser.one { username: account.profile.nickname }, (err, user) ->
+        callback err, { user, account }
 
 
-    JAccount.one { 'profile.nickname' : accountIdOrNickname }, (err, account)->
+    JAccount.one { 'profile.nickname' : accountIdOrNickname }, (err, account) ->
       return kallback err, account if account
-      JAccount.one  { _id : accountIdOrNickname }, (err, account)->
+      JAccount.one  { _id : accountIdOrNickname }, (err, account) ->
         return kallback err, account if account
         callback new KodingError 'Account not found'
 
 
-  blockUser: secure (client, accountIdOrNickname, durationMillis, callback)->
-    {delegate} = client.connection
+  blockUser: secure (client, accountIdOrNickname, durationMillis, callback) ->
+    { delegate } = client.connection
     if delegate.can('flag', this) and accountIdOrNickname? and durationMillis?
-      @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, {user, account})->
+      @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, { user, account }) ->
         return callback err if err
         blockedDate = new Date(Date.now() + durationMillis)
         account.sendNotification 'UserBlocked', { blockedDate }
@@ -728,10 +731,10 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  unblockUser: secure (client, accountIdOrNickname, callback)->
-    {delegate} = client.connection
+  unblockUser: secure (client, accountIdOrNickname, callback) ->
+    { delegate } = client.connection
     if delegate.can('flag', this) and accountIdOrNickname?
-      @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, {user})->
+      @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, { user }) ->
         return callback err if err
         user.unblock callback
     else
@@ -748,44 +751,44 @@ module.exports = class JAccount extends jraphical.Module
             return yes
     return no
 
-  isDummyAdmin = (nickname)-> !!(nickname in dummyAdmins)
+  isDummyAdmin = (nickname) -> !!(nickname in dummyAdmins)
 
-  @getFlagRole =-> 'owner'
+  @getFlagRole = -> 'owner'
 
   # WARNING! Be sure everything is safe when you change anything in this function
-  can:(action, target)->
+  can:(action, target) ->
     switch action
       when 'delete'
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-      when 'flag', 'reset guests', 'reset groups', 'administer names',        \
-           'administer url aliases', 'administer accounts', 'search-by-email',\
-           'migrate-koding-users', 'list-blocked-users', 'verify-emails',     \
+      when 'flag', 'reset guests', 'reset groups', 'administer names',         \
+           'administer url aliases', 'administer accounts', 'search-by-email', \
+           'migrate-koding-users', 'list-blocked-users', 'verify-emails',      \
            'bypass-validations'
         @profile.nickname in dummyAdmins
 
-  fetchRoles: (group, callback)->
+  fetchRoles: (group, callback) ->
     Relationship.someData {
       targetId: group.getId()
       sourceId: @getId()
-    }, {as:1}, (err, cursor)->
+    }, { as:1 }, (err, cursor) ->
       if err
         callback err
       else
-        cursor.toArray (err, roles)->
+        cursor.toArray (err, roles) ->
           if err
             callback err
           else
-            roles = (roles ? []).map (role)-> role.as
+            roles = (roles ? []).map (role) -> role.as
             roles.push 'guest' unless roles.length
             callback null, roles
 
-  fetchRole: secure ({connection}, callback)->
+  fetchRole: secure ({ connection }, callback) ->
 
     if isDummyAdmin connection.delegate.profile.nickname
-      callback null, "super-admin"
+      callback null, 'super-admin'
     else
-      callback null, "regular"
+      callback null, 'regular'
 
   # temp dummy stuff ends
 
@@ -811,7 +814,7 @@ module.exports = class JAccount extends jraphical.Module
 
     for objKey in objKeys
       if objKey not in allowedFields
-        return callback new KodingError "Modify fields is not valid"
+        return callback new KodingError 'Modify fields is not valid'
 
     if @equals(client.connection.delegate)
       op = $set: fields
@@ -822,61 +825,61 @@ module.exports = class JAccount extends jraphical.Module
         SocialAccount.update {
           id            : @socialApiId
           nick          : @profile.nickname
-          settings      : {shareLocation: fields.shareLocation}
+          settings      : { shareLocation: fields.shareLocation }
         }, callback
 
     else
       callback new KodingError 'Access denied'
 
 
-  getFullName:->
-    {firstName, lastName} = @data.profile
+  getFullName: ->
+    { firstName, lastName } = @data.profile
     return "#{firstName} #{lastName}"
 
-  fetchStorage$: (name, callback)->
+  fetchStorage$: (name, callback) ->
 
     @fetchStorage { 'data.name' : name }, callback
 
-  fetchStorages$: (whitelist=[], callback)->
+  fetchStorages$: (whitelist = [], callback) ->
 
     options = if whitelist.length then { 'data.name' : $in : whitelist } else {}
 
     @fetchStorages options, callback
 
-  store: secure (client, {name, content}, callback)->
+  store: secure (client, { name, content }, callback) ->
     unless @equals client.connection.delegate
-      return callback new KodingError "Attempt to access unauthorized storage"
+      return callback new KodingError 'Attempt to access unauthorized storage'
 
-    @_store {name, content}, callback
+    @_store { name, content }, callback
 
-  unstore: secure (client, name, callback)->
+  unstore: secure (client, name, callback) ->
 
     unless @equals client.connection.delegate
-      return callback new KodingError "Attempt to remove unauthorized storage"
+      return callback new KodingError 'Attempt to remove unauthorized storage'
 
-    @fetchStorage { 'data.name' : name }, (err, storage)=>
+    @fetchStorage { 'data.name' : name }, (err, storage) ->
       console.error err, storage  if err
       return callback err  if err
       unless storage
-        return callback new KodingError "No such storage"
+        return callback new KodingError 'No such storage'
 
       storage.remove callback
 
-  unstoreAll: (callback)->
-    @fetchStorages [], (err, storages)->
+  unstoreAll: (callback) ->
+    @fetchStorages [], (err, storages) ->
       daisy queue = storages.map (storage) ->
         -> storage.remove -> queue.next()
       queue.push -> callback null
 
-  _store: ({name, content}, callback)->
-    @fetchStorage { 'data.name' : name }, (err, storage)=>
+  _store: ({ name, content }, callback) ->
+    @fetchStorage { 'data.name' : name }, (err, storage) =>
       if err
-        return callback new KodingError "Attempt to access storage failed"
+        return callback new KodingError 'Attempt to access storage failed'
       else if storage
-        storage.update $set: {content}, (err) -> callback err, storage
+        storage.update { $set: { content } }, (err) -> callback err, storage
       else
-        storage = new JStorage {name, content}
-        storage.save (err)=>
+        storage = new JStorage { name, content }
+        storage.save (err) =>
           return callback err  if err
           rel = new Relationship
             targetId    : storage.getId()
@@ -884,16 +887,16 @@ module.exports = class JAccount extends jraphical.Module
             sourceId    : @getId()
             sourceName  : 'JAccount'
             as          : 'storage'
-            data        : {name}
-          rel.save (err)-> callback err, storage
+            data        : { name }
+          rel.save (err) -> callback err, storage
 
   fetchOrCreateAppStorage: (options, callback) ->
-    {appId, version} = options
-    @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
+    { appId, version } = options
+    @fetchAppStorage { 'data.appId':appId, 'data.version':version }, (err, storage) =>
       if err then callback err
       else unless storage?
         # log.info 'Creating new storage:', appId, version, @profile.nickname
-        newStorage = new JAppStorage {appId, version}
+        newStorage = new JAppStorage { appId, version }
         newStorage.save (err) =>
           if err then callback err
           else
@@ -905,91 +908,91 @@ module.exports = class JAccount extends jraphical.Module
               sourceId    : @getId()
               sourceName  : 'JAccount'
               as          : 'appStorage'
-              data        : {appId, version}
-            rel.save (err)-> callback err, newStorage
+              data        : { appId, version }
+            rel.save (err) -> callback err, newStorage
       else
         callback err, storage
 
   fetchAppStorage$: secure (client, options, callback) ->
 
     unless client?.connection?.delegate
-      return callback "Not a valid session"
+      return callback 'Not a valid session'
 
     unless @equals client.connection.delegate
-      return callback "Attempt to access unauthorized application storage"
+      return callback 'Attempt to access unauthorized application storage'
 
     @fetchOrCreateAppStorage options, callback
 
-  fetchUser:(callback)->
+  fetchUser:(callback) ->
     JUser = require './user'
     if /^guest-/.test @profile.nickname
       user = new JUser()
       user.username = @profile.nickname
       return callback null, user
 
-    JUser.one {username: @profile.nickname}, callback
+    JUser.one { username: @profile.nickname }, callback
 
 
   sendNotification: (event, contents) ->
     @createSocialApiId (err, socialApiId) =>
-      return console.error "Could not send notification to account:", err  if err
+      return console.error 'Could not send notification to account:', err  if err
 
       message = {
-        account: {id: socialApiId, nick: @profile.nickname}
-        eventName: "social"
+        account: { id: socialApiId, nick: @profile.nickname }
+        eventName: 'social'
         body:
           contents : contents
           event    : event
-          context  : contents?.group or "koding"
+          context  : contents?.group or 'koding'
       }
 
-      @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
+      @emit 'messageBusEvent', { type: 'dispatcher_notify_user', message: message }
 
 
-  cancelRequest: secure (client, slug, callback)->
+  cancelRequest: secure (client, slug, callback) ->
     options = targetOptions: selector: status: 'pending'
     JGroup = require './group'
 
     JGroup.one { slug }, (err, group) ->
       return callback err  if err
 
-      @fetchInvitationRequests {sourceId: group.getId()}, options, (err, [request])->
+      @fetchInvitationRequests { sourceId: group.getId() }, options, (err, [request]) ->
         return callback err                                  if err
         return callback 'could not find invitation request'  unless request
         request.remove callback
 
-  fetchInvitationByGroupSlug:(slug, callback)->
-    options = targetOptions: selector: {status: 'sent', group: slug}
-    @fetchInvitations {}, options, (err, [invite])->
+  fetchInvitationByGroupSlug:(slug, callback) ->
+    options = targetOptions: selector: { status: 'sent', group: slug }
+    @fetchInvitations {}, options, (err, [invite]) ->
       return callback err                          if err
       return callback 'could not find invitation'  unless invite
 
       JGroup = require './group'
-      JGroup.one { slug }, (err, groupObj)->
+      JGroup.one { slug }, (err, groupObj) ->
         return callback err  if err
         callback null, { invite, group: groupObj }
 
-  acceptInvitation: secure (client, slug, callback)->
-    @fetchInvitationByGroupSlug slug, (err, { invite, group })=>
+  acceptInvitation: secure (client, slug, callback) ->
+    @fetchInvitationByGroupSlug slug, (err, { invite, group }) =>
       return callback err  if err
-      groupObj.approveMember this, (err)->
+      groupObj.approveMember this, (err) ->
         return callback err  if err
         invite.update $set:status:'accepted', callback
 
-  ignoreInvitation: secure (client, slug, callback)->
-    @fetchInvitationByGroupSlug slug, (err, { invite })->
+  ignoreInvitation: secure (client, slug, callback) ->
+    @fetchInvitationByGroupSlug slug, (err, { invite }) ->
       return callback err  if err
       invite.update $set:status:'ignored', callback
 
   @byRelevance$ = permit 'list members',
-    success: (client, seed, options, callback)->
+    success: (client, seed, options, callback) ->
       if options.byEmail
         account = client.connection.delegate
         if account.can 'search-by-email'
           JUser = require './user'
-          JUser.one {email:seed}, (err, user)->
+          JUser.one { email:seed }, (err, user) ->
             return callback err, []  if err? or not user?
-            user.fetchOwnAccount (err, account)->
+            user.fetchOwnAccount (err, account) ->
               return callback err  if err?
               callback null, [account]
         else
@@ -997,36 +1000,36 @@ module.exports = class JAccount extends jraphical.Module
       else
         @byRelevance client, seed, options, callback
 
-  fetchMyPermissions: secure (client, callback)->
-    @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
+  fetchMyPermissions: secure (client, callback) ->
+    @fetchMyPermissionsAndRoles client, (err, permissions, roles) ->
       callback err, permissions
 
-  fetchMyPermissionsAndRoles: secure (client, callback)->
+  fetchMyPermissionsAndRoles: secure (client, callback) ->
     JGroup = require './group'
 
     slug = client.context.group ? 'koding'
-    JGroup.one {slug}, (err, group)=>
+    JGroup.one { slug }, (err, group) =>
       return callback err  if err
-      return callback {message: "group not found"}  unless group
+      return callback new KodingError 'group not found'  unless group
 
-      kallback = (err, roles)=>
+      kallback = (err, roles) =>
         return callback err  if err
 
-        @fetchUser (err, user)=>
+        @fetchUser (err, user) ->
           return callback err  if err
 
           userId = user._id
 
-          {flatten} = require 'underscore'
+          { flatten } = require 'underscore'
 
-          if "admin" in roles
+          if 'admin' in roles
 
             perms = Protected.permissionsByModule
             callback null, { permissions: (flatten perms), roles, userId }
 
           else
 
-            group.fetchPermissionSetOrDefault (err, permissionSet)->
+            group.fetchPermissionSetOrDefault (err, permissionSet) ->
               return callback err if err
 
               perms = (perm.permissions.slice() for perm in permissionSet.permissions \
@@ -1038,39 +1041,39 @@ module.exports = class JAccount extends jraphical.Module
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
-  unlinkOauth: secure (client, provider, callback)->
-    {delegate} = client.connection
+  unlinkOauth: secure (client, provider, callback) ->
+    { delegate } = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user)=>
+      @fetchUser (err, user) =>
         return callback err  if err
 
         query = {}
-        query["foreignAuth.#{provider}"] = ""
-        user.update $unset: query, (err)=>
+        query["foreignAuth.#{provider}"] = ''
+        user.update { $unset: query }, (err) =>
           return callback err  if err
           @oauthDeleteCallback provider, user, callback
     else
       callback new KodingError 'Access denied'
 
-  oauthDeleteCallback: (provider, user, callback)->
-    if provider is "google"
-      user.fetchAccount 'koding', (err, account)->
+  oauthDeleteCallback: (provider, user, callback) ->
+    if provider is 'google'
+      user.fetchAccount 'koding', (err, account) ->
         return callback err  if err
-        JReferrableEmail = require "./referrableemail"
+        JReferrableEmail = require './referrableemail'
         JReferrableEmail.delete user.username, callback
     else
       callback()
 
   # we are using this in sorting members list..
-  updateMetaModifiedAt: (callback)->
+  updateMetaModifiedAt: (callback) ->
     @update $set: 'meta.modifiedAt': new Date, callback
 
-  fetchEmail: secure (client, callback)->
-    {delegate} = client.connection
+  fetchEmail: secure (client, callback) ->
+    { delegate } = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user)->
+      @fetchUser (err, user) ->
         return callback err  if err
         callback null, user?.email
     else
@@ -1083,20 +1086,20 @@ module.exports = class JAccount extends jraphical.Module
       JPaymentMethod.decoratePaymentMethods paymentMethods, callback
 
   fetchPaymentMethods$: secure (client, callback) ->
-    {delegate} = client.connection
+    { delegate } = client.connection
     if (delegate.equals this) or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
 
 
-  fetchMetaInformation: secure (client, callback)->
+  fetchMetaInformation: secure (client, callback) ->
 
-    {delegate} = client.connection
+    { delegate } = client.connection
     unless delegate.can 'administer accounts'
       return callback new KodingError 'Access denied!'
 
     Payment = require './payment'
 
-    @fetchUser (err, user)=>
+    @fetchUser (err, user) =>
 
       return callback err  if err
       return callback new KodingError 'Failed to fetch user!'  unless user
@@ -1106,16 +1109,16 @@ module.exports = class JAccount extends jraphical.Module
 
       fakeClient = connection: delegate: this
 
-      Payment.subscriptions fakeClient, {}, (err, subscription)=>
+      Payment.subscriptions fakeClient, {}, (err, subscription) ->
 
         if err? or not subscription?
         then plan = 'free'
         else plan = subscription.planTitle
 
-        JMachine = require "./computeproviders/machine"
+        JMachine = require './computeproviders/machine'
         selector = 'users.id' : user.getId()
 
-        JMachine.some selector, limit: 30, (err, machines)->
+        JMachine.some selector, limit: 30, (err, machines) ->
 
           if err? then machines = err
 
@@ -1125,7 +1128,7 @@ module.exports = class JAccount extends jraphical.Module
           }
 
 
-  fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
+  fetchSubscriptions$: secure ({ connection:{ delegate } }, options, callback) ->
     return callback { message: 'Access denied!' }  unless @equals delegate
 
     [callback, options] = [options, callback]  unless callback
@@ -1162,20 +1165,20 @@ module.exports = class JAccount extends jraphical.Module
 
         callback null, { subscriptions, plans }
 
-  fetchEmailAndStatus: secure (client, callback)->
+  fetchEmailAndStatus: secure (client, callback) ->
     @fetchFromUser client, ['email', 'status'], callback
 
-  fetchEmailFrequency: secure (client, callback)->
+  fetchEmailFrequency: secure (client, callback) ->
     @fetchFromUser client, 'emailFrequency', callback
 
-  fetchOAuthInfo: secure (client, callback)->
+  fetchOAuthInfo: secure (client, callback) ->
     @fetchFromUser client, 'foreignAuth', callback
 
-  fetchFromUser: secure (client, key, callback)->
-    {delegate} = client.connection
+  fetchFromUser: secure (client, key, callback) ->
+    { delegate } = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user)->
+      @fetchUser (err, user) ->
         return callback err  if err
         if Array.isArray key
           results = {}
@@ -1188,8 +1191,8 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  isAuthorized: secure (client, name, callback)->
-    @fetchOAuthInfo client, (err, response)->
+  isAuthorized: secure (client, name, callback) ->
+    @fetchOAuthInfo client, (err, response) ->
 
       return callback err  if err
 
@@ -1201,19 +1204,19 @@ module.exports = class JAccount extends jraphical.Module
 
 
   setLastLoginTimezoneOffset: secure (client, options, callback) ->
-    {lastLoginTimezoneOffset} = options
+    { lastLoginTimezoneOffset } = options
 
-    return callback new KodingError "timezone offset is not set"  unless lastLoginTimezoneOffset?
+    return callback new KodingError 'timezone offset is not set'  unless lastLoginTimezoneOffset?
 
-    @update $set: {lastLoginTimezoneOffset}, (err) ->
-      return callback new KodingError "Could not update last login timezone offset" if err
+    @update { $set: { lastLoginTimezoneOffset } }, (err) ->
+      return callback new KodingError 'Could not update last login timezone offset' if err
       callback null
 
-  expireSubscription: secure ({connection}, callback) ->
-    if KONFIG.environment is "production"
-      return callback new KodingError "permission denied"
+  expireSubscription: secure ({ connection }, callback) ->
+    if KONFIG.environment is 'production'
+      return callback new KodingError 'permission denied'
 
-    {expireSubscription} = require "./socialapi/requests"
+    { expireSubscription } = require './socialapi/requests'
     expireSubscription connection.delegate.getId(), callback
 
 
@@ -1237,13 +1240,13 @@ module.exports = class JAccount extends jraphical.Module
     JSession         = require './session'
     { v4: createId } = require 'node-uuid'
 
-    JSession.one {clientId: sessionToken}, (err, session) ->
+    JSession.one { clientId: sessionToken }, (err, session) ->
 
       if err or not session
         return errorCallback()
 
       [otaToken] = createId().split '-'
-      session.update $set: {otaToken}, (err)->
+      session.update { $set: { otaToken } }, (err) ->
         if err then errorCallback()
         else callback null, otaToken
 
@@ -1316,7 +1319,7 @@ module.exports = class JAccount extends jraphical.Module
     _fetchUser client, (err, user) ->
       return callback err  if err
 
-      {disable, password} = options
+      { disable, password } = options
 
       if not disable and user.getAt 'twofactorkey'
         return callback new KodingError '2Factor authentication already in use.'
@@ -1330,10 +1333,10 @@ module.exports = class JAccount extends jraphical.Module
 
         return
 
-      {key, verification} = options
+      { key, verification } = options
 
       speakeasy    = require 'speakeasy'
-      generatedKey = speakeasy.totp {key, encoding: 'base32'}
+      generatedKey = speakeasy.totp { key, encoding: 'base32' }
 
       if generatedKey isnt verification
         return callback new KodingError \
@@ -1341,3 +1344,5 @@ module.exports = class JAccount extends jraphical.Module
 
       user.update $set: twofactorkey: key, (err) ->
         callback err
+
+

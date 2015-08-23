@@ -1,8 +1,9 @@
-{Model}   = require 'bongo'
-jraphical = require 'jraphical'
+# coffeelint: disable=no_implicit_braces
+{ Model }      = require 'bongo'
+jraphical      = require 'jraphical'
 module.exports = class JReferralCampaign extends jraphical.Module
 
-  {signature, secure} = require 'bongo'
+  { signature, secure } = require 'bongo'
   @share()
 
   @set
@@ -17,10 +18,10 @@ module.exports = class JReferralCampaign extends jraphical.Module
       isActive               : Boolean
       campaignType           :
         type                 : String
-        default              : "disk"
+        default              : 'disk'
       campaignUnit           :
         type                 : String
-        default              : "MB"
+        default              : 'MB'
       campaignInitialAmount  :
         type                 : Number
       campaignPerEventAmount :
@@ -59,39 +60,39 @@ module.exports = class JReferralCampaign extends jraphical.Module
         ]
 
   @create = secure (client, data, callback) ->
-    checkPermission client, (err, res)=>
+    checkPermission client, (err, res) ->
       return callback err if err
       campaign = new JReferralCampaign data
-      campaign.save (err)->
+      campaign.save (err) ->
         return callback err if err
         return callback null, campaign
 
-  checkPermission: checkPermission = (client, callback)->
-    {context:{group}} = client
-    JGroup = require "../group"
-    JGroup.one {slug:group}, (err, group)=>
+  checkPermission: checkPermission = (client, callback) ->
+    { context:{ group } } = client
+    JGroup = require '../group'
+    JGroup.one { slug:group }, (err, group) ->
       return callback err if err
-      return callback new Error "group not found" unless group
-      group.canEditGroup client, (err, hasPermission)=>
+      return callback new Error 'group not found' unless group
+      group.canEditGroup client, (err, hasPermission) ->
         return callback err if err
-        return callback new Error "Can not edit group" unless hasPermission
+        return callback new Error 'Can not edit group' unless hasPermission
         return callback null, yes
 
-  update$: secure (client, data, callback)->
-    @checkPermission client, (err, res)=>
+  update$: secure (client, data, callback) ->
+    @checkPermission client, (err, res) =>
       return callback err if err
-      @update {$set:data}, callback
+      @update { $set:data }, callback
 
-  remove$: secure (client, callback)->
-    @checkPermission client, (err, res)=>
+  remove$: secure (client, callback) ->
+    @checkPermission client, (err, res) =>
       return callback err if err
       @remove callback
 
-  REGISTER_CAMPAIGN = "register"
+  REGISTER_CAMPAIGN = 'register'
 
-  isCampaignValid = (campaignName, callback)->
+  isCampaignValid = (campaignName, callback) ->
     [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
-    fetchCampaign campaignName, (err, campaign)->
+    fetchCampaign campaignName, (err, campaign) ->
       return callback err  if err
       return callback null, isValid: no  unless campaign
 
@@ -100,12 +101,12 @@ module.exports = class JReferralCampaign extends jraphical.Module
         endDate, startDate } = campaign
 
       if Date.now() < startDate.getTime()
-        console.info "campaign is not started yet"
+        console.info 'campaign is not started yet'
         return callback null, isValid: no
 
       # if date is valid
       if Date.now() > endDate.getTime()
-        console.info "date is not valid for campaign"
+        console.info 'date is not valid for campaign'
         return callback null, isValid: no
 
       # if campaign initial amount is 0
@@ -121,19 +122,21 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
   @isCampaignValid = isCampaignValid
 
-  @fetchCampaignDiskSize = (callback)->
-    @isCampaignValid (err, { isValid, campaign })->
+  @fetchCampaignDiskSize = (callback) ->
+    @isCampaignValid (err, { isValid, campaign }) ->
       return callback err if err
       return callback null, campaign?.campaignPerEventAmount or 256
 
-  @fetchCampaign = fetchCampaign = (campaignName, callback)->
+  @fetchCampaign = fetchCampaign = (campaignName, callback) ->
     [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
-    JReferralCampaign.one {name: campaignName}, (err, campaign) ->
+    JReferralCampaign.one { name: campaignName }, (err, campaign) ->
       return callback err if err
       return callback null, no  unless campaign
       return callback null, campaign
 
-   increaseGivenAmountSpace:(size, callback)->
+   increaseGivenAmountSpace:(size, callback) ->
     [size, callback] = [@campaignPerEventAmount, size] unless callback
     size = size * 4
-    @update $inc : campaignGivenAmount: size , callback
+    @update { $inc : { campaignGivenAmount: size } } , callback
+
+
