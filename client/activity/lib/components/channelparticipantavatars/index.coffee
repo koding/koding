@@ -22,6 +22,18 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     participants  : null
 
 
+  getPreviewCount: ->
+
+    { participants } = @props
+
+    diff = participants.size is MAX_PREVIEW_COUNT
+
+    PREVIEW_COUNT = switch
+      when diff = 0 then MAX_PREVIEW_COUNT
+      when diff < 0 then participants.size
+      else MAX_PREVIEW_COUNT - 1
+
+
   renderAvatars: ->
 
     return null  unless @props.participants
