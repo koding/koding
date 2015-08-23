@@ -40,6 +40,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     then @setState addNewParticipantMode: no
     else @setState addNewParticipantMode: yes
 
+
+  onShowMoreParticipantButtonClick: ->
+
+    console.log 'show more participants clicked'
+
+
   renderAvatars: ->
 
     return null  unless @props.participants
