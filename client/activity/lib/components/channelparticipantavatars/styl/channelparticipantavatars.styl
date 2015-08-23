@@ -1,17 +1,58 @@
-.ChannelParticipantAvatars
-  dispFlex()
-
 .ChannelParticipantAvatars-singleBox
-  flex                      1
+  blockMidTop()
+  size                    30px, 30px
+  margin                  10px 0 15px 10px
+  line-height             28px
+
+  &:first-child
+    margin-left           0
+
+.ChannelParticipantAvatars-newParticipantBox
+  pointer()
+  borderBox()
+  text-align              center
+  rounded                 4px
+  size                    30px, 30px
+  border                  1px dashed $gray-10
+
+  &:before
+    rel()
+    dIBlock()
+    content               ''
+    r-sprite              'activity', 'reactivity-new-participant-plus'
+    vendor                transition, .2s ease
+
+  &.cross
+    &:before
+      vendor              transform, rotate(45deg)
 
 .ChannelParticipantAvatars .ProfilePicture
-  border-radius             $border-radius
+  border-radius           $border-radius
 
 .ChannelParticipantAvatars-moreCount
-  width                     30px
-  height                    30px
-  border                    1px solid $gray-10
-  border-radius             $border-radius
-  dispFlex()
-  align-items               center
-  justify-content           center
+  pointer()
+  borderBox()
+  size                    30px, 30px
+  border                  1px solid $gray-10
+  border-radius           $border-radius
+  text-align              center
+
+.ChannelParticipantInput
+  input
+    borderBox()
+    abs()
+    outline               none
+    rounded               4px
+    height                0
+    width                 190px
+    padding               0 10px
+    border                none
+    opacity               0
+    vendor                transition, .2s ease
+
+  &.slide-down
+    input
+      rel()
+      opacity             1
+      height              32px
+      border              2px solid $gray-16
