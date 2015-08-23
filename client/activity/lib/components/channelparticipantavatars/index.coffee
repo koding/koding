@@ -15,20 +15,20 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
 
   renderAvatars: ->
+
     return null  unless @props.participants
 
     { participants } = @props
 
-    count = if participants.size is MAX_PREVIEW_COUNT + 1
-    then MAX_PREVIEW_COUNT + 1
-    else MAX_PREVIEW_COUNT
+    PREVIEW_COUNT = @getPreviewCount()
 
-    participants.slice(0, count).toList().map (participant) ->
+    participants.slice(0, PREVIEW_COUNT).toList().map (participant) ->
       <div key={participant.get 'id'} className="ChannelParticipantAvatars-singleBox">
         <ProfileLinkContainer account={participant.toJS()}>
           <Avatar
             className="ChannelParticipantAvatars-avatar"
             width={30}
+            account={participant.toJS()}
             height={30} />
         </ProfileLinkContainer>
       </div>
