@@ -510,6 +510,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
           {
+            location    : "~ /api/social/sshkey"
+            proxyPass   : "http://socialapi/sshkey$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/moderation/(.*)"
             proxyPass   : "http://socialapi/moderation/$1$is_args$args"
           }
@@ -526,10 +530,7 @@ Configuration = (options={}) ->
             location    : "~ /sitemap(.*).xml"
             proxyPass   : "http://socialapi/sitemap$1.xml"
           }
-          {
-            location    : "~ /api/social/sshkey"
-            proxyPass   : "http://socialapi/sshkey$1$is_args$args"
-          }
+
         ]
 
     dailyemailnotifier  :
