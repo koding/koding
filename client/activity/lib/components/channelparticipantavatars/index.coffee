@@ -50,6 +50,16 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
 
   renderNewParticipantButton: -> null
+  getNewParticipantInputClassNames: -> classnames
+    'ChannelParticipantInput': yes
+    'slide-down': @state.addNewParticipantMode
+
+
+  renderAddNewParticipantInput: ->
+
+    <div className={@getNewParticipantInputClassNames()}>
+      <input placeholder="type a @username and hit enter" />
+    </div>
 
 
   render: ->
@@ -57,4 +67,6 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       {@renderAvatars()}
       {@renderMoreCount()}
       {@renderNewParticipantButton()}
+      {@renderAddNewParticipantInput()}
     </div>
+
