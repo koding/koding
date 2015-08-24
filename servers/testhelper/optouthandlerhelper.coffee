@@ -33,7 +33,10 @@ generateOptoutRequestParams = (opts = {}) ->
 
   return requestParams
 
+
 module.exports = {
   generateOptoutRequestBody
   generateOptoutRequestParams
 }
+
+

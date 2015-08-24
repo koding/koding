@@ -12,12 +12,12 @@ defaultExpiryPeriod = 5 * 60 * 1000 # 5 minutes
 
 generateRecoverRequestBody = (opts = {}) ->
 
-    defaultBodyObject =
-      email : ''
+  defaultBodyObject =
+    email : ''
 
-    deepObjectExtend defaultBodyObject, opts
+  deepObjectExtend defaultBodyObject, opts
 
-    return defaultBodyObject
+  return defaultBodyObject
 
 
 generateRecoverRequestParams = (opts = {}) ->
@@ -43,3 +43,5 @@ module.exports = {
   generateRecoverRequestBody
   generateRecoverRequestParams
 }
+
+
