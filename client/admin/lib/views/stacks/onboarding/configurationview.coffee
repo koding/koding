@@ -41,6 +41,15 @@ module.exports = class ConfigurationView extends JView
     pane.addSubView pane.configView = configView = new ServerConfigurationView
     @tabHandleContainer.repositionPlusHandle @tabView.handles
 
+    pane.tabHandle.addSubView pane.instanceTypeSelectBox = new kd.SelectBox
+      defaultValue  : 't2.micro'
+      selectOptions : [
+        { title: 't2.micro',  value: 't2.micro'  }
+        { title: 't2.small',  value: 't2.small'  }
+        { title: 't2.medium', value: 't2.medium' }
+      ]
+      callback: => @emit 'StackTemplateNeedsToBeUpdated'
+
     configView.on 'StackTemplateNeedsToBeUpdated', =>
       @emit 'StackTemplateNeedsToBeUpdated'
 
