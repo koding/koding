@@ -6,7 +6,7 @@ request                                   = require 'request'
 
 { TeamHandlerHelper
   generateRandomString }                  = require '../../../testhelper'
-{ generateVerifySlugRequestParams }       = require '../../../testhelper/verifyslughandlerhelper.coffee'
+{ generateVerifySlugRequestParams }       = require '../../../testhelper/verifyslughandlerhelper'
 { generateCreateTeamRequestParams }       = TeamHandlerHelper
 
 
