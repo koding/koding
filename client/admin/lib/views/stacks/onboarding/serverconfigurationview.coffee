@@ -25,6 +25,8 @@ module.exports = class ServerConfigurationView extends kd.View
 
     super options, data
 
+    @configurationToggles = []
+
     for section, services of CONFIG_OPTIONS
       section = new kd.CustomHTMLView
         tagName  : 'section'
@@ -34,18 +36,24 @@ module.exports = class ServerConfigurationView extends kd.View
       for service, config of services
         row = new kd.CustomHTMLView cssClass: 'row'
 
-        do (service, config) ->
+        do (service, config) =>
 
           row.addSubView kdSwitch = new KodingSwitch
             size         : 'tiny'
             name         : service
-            defaultValue : config.selected or no
+            package      : config.package
+            command      : config.command
+            defaultValue : no
+            callback     : => @emit 'StackTemplateNeedsToBeUpdated'
 
           row.addSubView new kd.CustomHTMLView
             partial  : config.title
             cssClass : 'label'
-            click    : -> if kdSwitch.getValue() then kdSwitch.setOff() else kdSwitch.setOn()
+            click    : =>
+              if kdSwitch.getValue() then kdSwitch.setOff() else kdSwitch.setOn()
+              @emit 'StackTemplateNeedsToBeUpdated'
 
+          @configurationToggles.push kdSwitch
           section.addSubView row
 
       @addSubView section
