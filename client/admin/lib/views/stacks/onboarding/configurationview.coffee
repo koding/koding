@@ -38,8 +38,16 @@ module.exports = class ConfigurationView extends JView
 
     @tabView.addPane pane = new kd.TabPaneView { name, closable }
 
-    pane.addSubView new ServerConfigurationView
+    pane.addSubView pane.configView = configView = new ServerConfigurationView
     @tabHandleContainer.repositionPlusHandle @tabView.handles
+
+    configView.on 'StackTemplateNeedsToBeUpdated', =>
+      @emit 'StackTemplateNeedsToBeUpdated'
+
+    @tabView.on 'PaneRemoved', =>
+      @emit 'StackTemplateNeedsToBeUpdated'
+
+    @emit 'StackTemplateNeedsToBeUpdated'
 
 
   pistachio: ->

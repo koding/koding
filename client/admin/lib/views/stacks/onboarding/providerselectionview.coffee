@@ -40,6 +40,7 @@ module.exports = class ProviderSelectionView extends JView
           providerView.setClass 'selected'
           @selected?.unsetClass 'selected'
           @selected = if @selected is providerView then null else providerView
+          @emit 'StackTemplateNeedsToBeUpdated'
 
 
   pistachio: ->
