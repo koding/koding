@@ -8,7 +8,7 @@ koding                              = require './../bongo'
   generateRandomString }           = require '../../../testhelper'
 
 { generateGetTeamRequestParams
-  generateCreateTeamRequestParams } = require '../../../testhelper/teamhandlerhelper'
+  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 request                             = require 'request'
 querystring                         = require 'querystring'

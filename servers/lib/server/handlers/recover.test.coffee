@@ -8,8 +8,8 @@ querystring                               = require 'querystring'
 { generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
-{ generateRecoverRequestParams }          = require '../../../testhelper/recoverhandlerhelper'
-{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
+{ generateRecoverRequestParams }          = require '../../../testhelper/handler/recoverhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
 
 
 # here we have actual tests

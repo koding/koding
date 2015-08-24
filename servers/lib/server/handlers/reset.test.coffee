@@ -9,8 +9,8 @@ querystring                       = require 'querystring'
   generateRandomString
   generateRandomUsername }        = require '../../../testhelper'
 { defaultExpiryPeriod
-  generateResetRequestParams }    = require '../../../testhelper/resethandlerhelper'
-{ generateRegisterRequestParams } = require '../../../testhelper/registerhandlerhelper'
+  generateResetRequestParams }    = require '../../../testhelper/handler/resethelper'
+{ generateRegisterRequestParams } = require '../../../testhelper/handler/registerhelper'
 
 JUser                             = null
 JPasswordRecovery                 = null

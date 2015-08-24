@@ -8,7 +8,7 @@ koding                              = require './../bongo'
   RegisterHandlerHelper }           = require '../../../testhelper'
 
 { generateCheckTokenRequestParams
-  generateCreateTeamRequestParams } = require '../../../testhelper/teamhandlerhelper'
+  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 request                             = require 'request'
 

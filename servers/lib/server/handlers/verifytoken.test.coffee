@@ -8,8 +8,8 @@ request                                   = require 'request'
   generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
-{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
-{ generateVerifyTokenRequestParams }      = require '../../../testhelper/verifytokenhandlerhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
+{ generateVerifyTokenRequestParams }      = require '../../../testhelper/handler/verifytokenhelper'
 
 JUser                                     = null
 JPasswordRecovery                         = null

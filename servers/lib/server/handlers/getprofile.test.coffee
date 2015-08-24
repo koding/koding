@@ -10,8 +10,8 @@ request          = require 'request'
 
 { generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
-{ generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
-{ generateGetProfileRequestParams } = require '../../../testhelper/getprofilehandlerhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
+{ generateGetProfileRequestParams } = require '../../../testhelper/handler/getprofilehelper'
 
 # begin tests
 describe 'server.handlers.getprofile', ->

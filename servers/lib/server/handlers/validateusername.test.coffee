@@ -6,8 +6,8 @@ request                                   = require 'request'
 { expect }                                = require 'chai'
 { generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
-{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
-{ generateValidateUsernameRequestParams } = require '../../../testhelper/validateusernamehandlerhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
+{ generateValidateUsernameRequestParams } = require '../../../testhelper/handler/validateusernamehelper'
 
 JUser                                     = null
 

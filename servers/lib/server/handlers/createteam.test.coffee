@@ -10,10 +10,10 @@ KONFIG                              = require('koding-config-manager').load "mai
 { convertToArray
   generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
-{ generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 
 { generateCreateTeamRequestBody
-  generateCreateTeamRequestParams } = require '../../../testhelper/teamhandlerhelper'
+  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 hat                                 = require 'hat'
 request                             = require 'request'

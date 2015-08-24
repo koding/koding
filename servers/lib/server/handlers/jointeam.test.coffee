@@ -7,10 +7,10 @@ koding                              = require './../bongo'
 { convertToArray
   generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
-{ generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 
 { generateJoinTeamRequestParams
-  generateCreateTeamRequestParams } = require '../../../testhelper/teamhandlerhelper'
+  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 hat                                 = require 'hat'
 request                             = require 'request'

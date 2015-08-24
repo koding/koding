@@ -7,8 +7,8 @@ request                                   = require 'request'
 { generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
-{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
-{ generateValidateEmailRequestParams }    = require '../../../testhelper/validateemailhandlerhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
+{ generateValidateEmailRequestParams }    = require '../../../testhelper/handler/validateemailhelper'
 
 JUser                                     = null
 

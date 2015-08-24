@@ -5,8 +5,8 @@ request                                   = require 'request'
 { expect }                                = require 'chai'
 
 { generateRandomString }                  = require '../../../testhelper'
-{ generateVerifySlugRequestParams }       = require '../../../testhelper/verifyslughandlerhelper'
-{ generateCreateTeamRequestParams }       = require '../../../testhelper/teamhandlerhelper'
+{ generateVerifySlugRequestParams }       = require '../../../testhelper/handler/verifyslughelper'
+{ generateCreateTeamRequestParams }       = require '../../../testhelper/handler/teamhelper'
 
 
 runTests = -> describe 'server.handlers.verifyslug', ->

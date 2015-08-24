@@ -8,8 +8,8 @@ Speakeasy                                 = require 'speakeasy'
 { generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
-{ generateLoginRequestParams }            = require '../../../testhelper/loginhandlerhelper'
-{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
+{ generateLoginRequestParams }            = require '../../../testhelper/handler/loginhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
 
 JLog                                      = null
 JUser                                     = null
