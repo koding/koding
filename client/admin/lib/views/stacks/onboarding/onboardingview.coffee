@@ -118,8 +118,9 @@ module.exports = class OnboardingView extends JView
       owngitserver      : 'git clone git@yourgitserver.com/reponame.git'
     providerTemplates   =
       aws               :
-        'access_key'    : '${var.aws_access_key}'
-        'secret_key'    : '${var.aws_secret_key}'
+        aws             :
+          access_key    : '${var.aws_access_key}'
+          secret_key    : '${var.aws_secret_key}'
 
 
     serverConfigPanes.forEach (pane, index) ->
