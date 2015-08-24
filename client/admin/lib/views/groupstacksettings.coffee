@@ -14,29 +14,34 @@ module.exports = class GroupStackSettings extends kd.View
 
     super options, data
 
+    @scrollView = new kd.CustomScrollView
+    @addSubView @scrollView
+
+    @createInitialView()
+
 
   createOnboardingView: ->
 
-    @scrollView = new kd.CustomScrollView
-    @scrollView.wrapper.addSubView new OnboardingView
+    @initialView.hide()
+    @scrollView.wrapper.addSubView onboardingView = new OnboardingView
 
-    @addSubView @scrollView
+    onboardingView.on 'StackOnboardingCompleted', (template) =>
+      @showEditor template
 
 
-  viewAppended: ->
+  createInitialView: ->
 
-    @initialView = @addSubView new InitialView
+    @initialView = @scrollView.wrapper.addSubView new InitialView
 
-    @initialView.on [
-      'NoTemplatesFound', 'CreateNewStack', 'EditStack'
-    ], @bound 'showEditor'
+    @initialView.on 'EditStack', @bound 'showEditor'
+    @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
 
 
   showEditor: (stackTemplate) ->
 
     @initialView.hide()
 
-    defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
+    defineStackView = @scrollView.wrapper.addSubView new DefineStackView {}, { stackTemplate }
 
     defineStackView.on 'Reload', => @initialView.reload()
 
