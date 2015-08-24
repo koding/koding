@@ -34,7 +34,14 @@ module.exports = class ConfigurationView extends JView
 
   addPane: (closable = yes) ->
 
-    name = "Server #{@tabView.handles.length + 1}"
+    tabLength = @tabView.handles.length
+
+    if tabLength is 2
+      return new kd.NotificationView
+        title    : 'This is a preview mode. You can add more server manually in next steps.'
+        duration : 3663
+
+    name = "Server #{tabLength + 1}"
 
     @tabView.addPane pane = new kd.TabPaneView { name, closable }
 
