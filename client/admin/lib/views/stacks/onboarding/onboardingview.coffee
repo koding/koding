@@ -75,27 +75,13 @@ module.exports = class OnboardingView extends JView
 
   createStackPreview: ->
 
-    @preview    = new kd.CustomHTMLView
-      cssClass : 'stack-preview'
+    @stackPreview = new kd.CustomHTMLView
+      cssClass : 'stack-preview hidden'
       partial  : """
         <div class="header">STACK FILE PREVIEW</div>
       """
 
-    @preview.addSubView new kd.CustomHTMLView
-      partial : """
-        <div class="lines">
-          <div>1</div>
-          <div>2</div>
-          <div>3</div>
-          <div>4</div>
-        </div>
-        <div class="code">
-          <p>provider:</p>
-          <p>aws:</p>
-          <p>access_key: '${var.access_key}'</p>
-          <p>secret_key: '${var.secret_key}'</p>
-        </div>
-      """
+    @stackPreview.addSubView @stackContent = new kd.CustomHTMLView
 
 
   pistachio: ->
@@ -110,5 +96,5 @@ module.exports = class OnboardingView extends JView
         {{> @nextButton}}
         {{> @skipLink}}
       </div>
-      {{> @preview}}
+      {{> @stackPreview}}
     """
