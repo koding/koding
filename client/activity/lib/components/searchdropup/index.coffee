@@ -54,7 +54,7 @@ module.exports = class SearchDropup extends React.Component
 
     { value } = textData
 
-    matchResult = value.match /\/s(.+)/
+    matchResult = value.match /\/s (.+)/
     if matchResult
       query = matchResult[1]
       ActivityFlux.actions.chatInputSearch.setQuery query
