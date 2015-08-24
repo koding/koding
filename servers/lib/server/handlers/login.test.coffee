@@ -7,13 +7,9 @@ Speakeasy                                 = require 'speakeasy'
 { expect }                                = require 'chai'
 { generateRandomEmail
   generateRandomString
-  generateRandomUsername
-
-  LoginHandlerHelper
-  RegisterHandlerHelper }                 = require '../../../testhelper'
-
-{ generateLoginRequestParams }            = LoginHandlerHelper
-{ generateRegisterRequestParams }         = RegisterHandlerHelper
+  generateRandomUsername }                = require '../../../testhelper'
+{ generateLoginRequestParams }            = require '../../../testhelper/handler/loginhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
 
 JLog                                      = null
 JUser                                     = null
