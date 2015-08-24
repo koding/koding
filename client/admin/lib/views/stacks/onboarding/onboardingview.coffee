@@ -66,11 +66,26 @@ module.exports = class OnboardingView extends JView
     @nextButton = new kd.ButtonView
       cssClass  : 'solid green medium next'
       title     : 'Next'
-      callback  : => @emit 'PageNavigationRequested', 'next'
+      callback  : =>
+        @validatePageInteraction =>
+          @emit 'PageNavigationRequested', 'next'
 
     @skipLink   = new kd.CustomHTMLView
       cssClass  : 'skip-setup'
       partial   : 'Skip setup guide'
+
+
+  validatePageInteraction: (callback) ->
+
+    isCompleted = yes
+
+    switch @currentPage
+      when @providerSelectionView
+        unless @providerSelectionView.selected
+          new kd.NotificationView title: 'Please select a provider'
+          isCompleted = no
+
+    callback()  if isCompleted
 
 
   createStackPreview: ->
