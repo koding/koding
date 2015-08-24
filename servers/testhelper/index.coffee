@@ -99,36 +99,6 @@ deepObjectExtend = (target, source) ->
   return target
 
 
-class ValidationHandlerHelper
-
-  @generateValidateEmailRequestBody = (opts = {}) ->
-
-    defaultBodyObject =
-      email     : generateRandomEmail()
-      tfcode    : ''
-      password  : ''
-
-    deepObjectExtend defaultBodyObject, opts
-
-    return defaultBodyObject
-
-
-  @generateValidateEmailRequestParams = (opts = {}) ->
-
-    url  = generateUrl
-      route : '-/validate/email'
-
-    body = ValidationHandlerHelper.generateValidateEmailRequestBody()
-
-    params               = { url, body }
-    defaultRequestParams = generateDefaultRequestParams params
-    requestParams        = deepObjectExtend defaultRequestParams, opts
-    # after deep extending object, encodes body param to a query string
-    requestParams.body   = querystring.stringify requestParams.body
-
-    return requestParams
-
-
 class TeamHandlerHelper
 
   @convertToArray = (commaSeparatedData = '') ->
@@ -386,5 +356,4 @@ module.exports = {
   TeamHandlerHelper
   LoginHandlerHelper
   RegisterHandlerHelper
-  ValidationHandlerHelper
 }
