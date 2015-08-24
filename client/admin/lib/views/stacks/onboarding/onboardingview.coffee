@@ -55,7 +55,7 @@ module.exports = class OnboardingView extends JView
         @currentPage = targetPage
       else
         @hide()
-        @emit 'StackOnboardingCompleted'
+        @emit 'StackOnboardingCompleted', { template: content: @stackTemplate }
 
 
     @getStartedView.on 'NextPageRequested', =>
@@ -191,6 +191,8 @@ module.exports = class OnboardingView extends JView
         #{content}
         ```
       """
+
+    @stackTemplate = content
 
 
   pistachio: ->
