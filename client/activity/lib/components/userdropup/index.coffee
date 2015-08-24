@@ -1,24 +1,24 @@
-kd                           = require 'kd'
-React                        = require 'kd-react'
-immutable                    = require 'immutable'
-classnames                   = require 'classnames'
-ActivityFlux                 = require 'activity/flux'
-Dropup                       = require 'activity/components/dropup'
-UserDropupItem               = require 'activity/components/userdropupitem'
-KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
-KeyboardScrolledDropupMixin  = require 'activity/components/dropup/keyboardscrolleddropupmixin'
-ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+UserDropupItem       = require 'activity/components/userdropupitem'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class UserDropup extends React.Component
 
-  @include [ImmutableRenderMixin, KeyboardNavigatedDropupMixin, KeyboardScrolledDropupMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    visible      : no
-    selectedItem : null
+    items          : immutable.List()
+    visible        : no
+    selectedItem   : null
+    keyboardScroll : yes
 
 
   formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
@@ -30,10 +30,24 @@ module.exports = class UserDropup extends React.Component
   close: -> ActivityFlux.actions.user.setChatInputUsersVisibility no
 
 
-  requestNextIndex: -> ActivityFlux.actions.user.moveToNextChatInputUsersIndex()
+  moveToNextPosition: (keyInfo) ->
+
+    if keyInfo.isRightArrow
+      @close()
+      return no
+
+    ActivityFlux.actions.user.moveToNextChatInputUsersIndex()  unless @hasOnlyItem()
+    return yes
 
 
-  requestPrevIndex: -> ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()
+  moveToPrevPosition: (keyInfo) ->
+
+    if keyInfo.isLeftArrow
+      @close()
+      return no
+
+    ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()  unless @hasOnlyItem()
+    return yes
 
 
   checkTextForQuery: (textData) ->

@@ -89,14 +89,13 @@ module.exports = class ChatInputWidget extends React.Component
   onKeyDown: (event) ->
 
     switch event.which
-      when ENTER
-        @onEnter event
-      when ESC
-        @onEsc event
-      when RIGHT_ARROW, DOWN_ARROW, TAB
-        @onNextPosition event
-      when LEFT_ARROW, UP_ARROW
-        @onPrevPosition event
+      when ENTER       then @onEnter event
+      when ESC         then @onEsc event
+      when RIGHT_ARROW then @onNextPosition event, { isRightArrow : yes }
+      when DOWN_ARROW  then @onNextPosition event, { isDownArrow : yes }
+      when TAB         then @onNextPosition event, { isTab : yes }
+      when LEFT_ARROW  then @onPrevPosition event, { isLeftArrow : yes }
+      when UP_ARROW    then @onPrevPosition event, { isUpArrow : yes }
 
 
   onEnter: (event) ->
@@ -123,22 +122,22 @@ module.exports = class ChatInputWidget extends React.Component
     dropup.close() for dropup in @getDropups()
 
 
-  onNextPosition: (event) ->
+  onNextPosition: (event, keyInfo) ->
 
     for dropup in @getDropups()
       continue  unless dropup.isActive()
 
-      stopEvent = dropup.moveToNextPosition()
+      stopEvent = dropup.moveToNextPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
       break
 
 
-  onPrevPosition: (event) ->
+  onPrevPosition: (event, keyInfo) ->
 
     for dropup in @getDropups()
       continue  unless dropup.isActive()
 
-      stopEvent = dropup.moveToPrevPosition()
+      stopEvent = dropup.moveToPrevPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
       break
 
@@ -232,10 +231,11 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderSearchDropup: ->
 
-    { searchItems, searchSelectedItem, searchQuery, searchVisibility } = @state
+    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
 
     <SearchDropup
       items           = { searchItems }
+      selectedIndex   = { searchSelectedIndex }
       selectedItem    = { searchSelectedItem }
       query           = { searchQuery }
       visible         = { searchVisibility }

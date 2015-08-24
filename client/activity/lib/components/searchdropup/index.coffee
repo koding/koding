@@ -1,24 +1,25 @@
-kd                           = require 'kd'
-React                        = require 'kd-react'
-immutable                    = require 'immutable'
-classnames                   = require 'classnames'
-ActivityFlux                 = require 'activity/flux'
-Dropup                       = require 'activity/components/dropup'
-SearchDropupItem             = require 'activity/components/searchdropupitem'
-KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
-KeyboardScrolledDropupMixin  = require 'activity/components/dropup/keyboardscrolleddropupmixin'
-ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+SearchDropupItem     = require 'activity/components/searchdropupitem'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class SearchDropup extends React.Component
 
-  @include [ ImmutableRenderMixin, KeyboardNavigatedDropupMixin, KeyboardScrolledDropupMixin ]
+  @include [ ImmutableRenderMixin, DropupWrapperMixin ]
 
 
   @defaultProps =
-    items        : immutable.List()
-    visible      : no
-    selectedItem : null
+    items          : immutable.List()
+    visible        : no
+    selectedItem   : null
+    selectedIndex  : 0
+    keyboardScroll : yes
 
 
   formatSelectedValue: -> @props.selectedItem.get('message').toJS()
@@ -30,10 +31,20 @@ module.exports = class SearchDropup extends React.Component
   close: -> ActivityFlux.actions.chatInputSearch.setVisibility no
 
 
-  requestNextIndex: -> ActivityFlux.actions.chatInputSearch.moveToNextIndex()
+  moveToNextPosition: (keyInfo) ->
+
+    return no  if keyInfo.isRightArrow
+
+    ActivityFlux.actions.chatInputSearch.moveToNextIndex()  unless @hasOnlyItem()
+    return yes
 
 
-  requestPrevIndex: -> ActivityFlux.actions.chatInputSearch.moveToPrevIndex()
+  moveToPrevPosition: (keyInfo) ->
+
+    return no  if keyInfo.isLeftArrow
+
+    ActivityFlux.actions.chatInputSearch.moveToPrevIndex()  unless @hasOnlyItem()
+    return yes
 
 
   checkTextForQuery: (textData) ->
@@ -55,10 +66,10 @@ module.exports = class SearchDropup extends React.Component
 
   renderList: ->
 
-    { items, selectedItem } = @props
+    { items, selectedIndex } = @props
 
     items.map (item, index) =>
-      isSelected = item is selectedItem
+      isSelected = index is selectedIndex
 
       <SearchDropupItem
         isSelected  = { isSelected }

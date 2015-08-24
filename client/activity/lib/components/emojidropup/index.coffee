@@ -1,24 +1,25 @@
-$                            = require 'jquery'
-kd                           = require 'kd'
-React                        = require 'kd-react'
-immutable                    = require 'immutable'
-classnames                   = require 'classnames'
-formatEmojiName              = require 'activity/util/formatEmojiName'
-ActivityFlux                 = require 'activity/flux'
-Dropup                       = require 'activity/components/dropup'
-EmojiDropupItem              = require 'activity/components/emojidropupitem'
-KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
-ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+$                    = require 'jquery'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+formatEmojiName      = require 'activity/util/formatEmojiName'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+EmojiDropupItem      = require 'activity/components/emojidropupitem'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class EmojiDropup extends React.Component
 
-  @include [ImmutableRenderMixin, KeyboardNavigatedDropupMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    selectedItem : null
+    items          : immutable.List()
+    selectedItem   : null
+    keyboardScroll : no
 
 
   formatSelectedValue: -> formatEmojiName @props.selectedItem
@@ -27,10 +28,24 @@ module.exports = class EmojiDropup extends React.Component
   close: -> ActivityFlux.actions.emoji.unsetFilteredListQuery()
 
 
-  requestNextIndex: -> ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
+  moveToNextPosition: (keyInfo) ->
+
+    if @hasOnlyItem() and keyInfo.isRightArrow
+      @close()
+      return no
+
+    ActivityFlux.actions.emoji.moveToNextFilteredListIndex()  unless @hasOnlyItem()
+    return yes
 
 
-  requestPrevIndex: -> ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
+  moveToPrevPosition: (keyInfo) ->
+
+    if @hasOnlyItem() and keyInfo.isLeftArrow
+      @close()
+      return no
+
+    ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()  unless @hasOnlyItem()
+    return yes
 
 
   checkTextForQuery: (textData) ->

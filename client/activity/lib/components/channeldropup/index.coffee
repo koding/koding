@@ -1,24 +1,24 @@
-kd                           = require 'kd'
-React                        = require 'kd-react'
-immutable                    = require 'immutable'
-classnames                   = require 'classnames'
-ActivityFlux                 = require 'activity/flux'
-Dropup                       = require 'activity/components/dropup'
-ChannelDropupItem            = require 'activity/components/channeldropupitem'
-KeyboardNavigatedDropupMixin = require 'activity/components/dropup/keyboardnavigateddropupmixin'
-KeyboardScrolledDropupMixin  = require 'activity/components/dropup/keyboardscrolleddropupmixin'
-ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+ChannelDropupItem    = require 'activity/components/channeldropupitem'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class ChannelDropup extends React.Component
 
-  @include [ImmutableRenderMixin, KeyboardNavigatedDropupMixin, KeyboardScrolledDropupMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    visible      : no
-    selectedItem : null
+    items          : immutable.List()
+    visible        : no
+    selectedItem   : null
+    keyboardScroll : yes
 
 
   formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"
@@ -30,10 +30,24 @@ module.exports = class ChannelDropup extends React.Component
   close: -> ActivityFlux.actions.channel.setChatInputChannelsVisibility no
 
 
-  requestNextIndex: -> ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
+  moveToNextPosition: (keyInfo) ->
+
+    if keyInfo.isRightArrow
+      @close()
+      return no
+
+    ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()  unless @hasOnlyItem()
+    return yes
 
 
-  requestPrevIndex: -> ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
+  moveToPrevPosition: (keyInfo) ->
+
+    if keyInfo.isLeftArrow
+      @close()
+      return no
+
+    ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()  unless @hasOnlyItem()
+    return yes
 
 
   checkTextForQuery: (textData) ->
