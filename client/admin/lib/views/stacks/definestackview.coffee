@@ -141,7 +141,7 @@ module.exports = class DefineStackView extends kd.View
     {credentialsData} = @credentialStatus
     [credential]      = credentialsData
 
-    failed = (err) ->
+    failed = (err) =>
       @outputView.handleError err
       callback err
 
