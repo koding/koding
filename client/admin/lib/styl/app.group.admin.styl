@@ -1020,7 +1020,6 @@ Admin main styles
 
   button.solid.compact.nav
     right                   0
-    bottom                  0
     abs()
 
     &[disabled]
@@ -1261,12 +1260,14 @@ Admin main styles
 
   .step-define-stack
     height                  100%
+    margin-top              20px
 
     > .kdbutton
       z-index               14
 
     .editor-view
-      height                calc(100% \- 140px)
+      height                calc(100% \- 170px)
+      margin-bottom         20px
 
     .showlogs-link
       z-index               13
@@ -1274,13 +1275,30 @@ Admin main styles
       bottom                0
       abs()
 
+  .step-define-credential
+
+    .editor-view
+      border-radius         4px
+      height                calc(100% \- 185px)
+      margin-bottom         20px
+
+    .info-message
+      background            #FCFCE9
+      border                1px solid #D4D4A9
+      border-radius         4px
+      padding               5px
+      font-size             12px
+      color                 #888869
+      margin                15px 0
+      text-align            center
+
   .kdview.credential-status
     width                   200px
     line-height             38px
     font-size               13px
     text-align              right
     right                   10px
-    top                     0
+    top                     -10px
     z-index                 1
     abs()
 
@@ -1639,3 +1657,9 @@ Admin main styles
       margin                0 auto 40px
       rel()
       left                  -8px
+
+.AppModal--admin-tabs
+  .admin-stack
+    .kdtabhandlecontainer
+      .kdtabhandle
+        max-width           250px !important

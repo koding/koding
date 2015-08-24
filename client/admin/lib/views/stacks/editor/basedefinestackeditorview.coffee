@@ -3,12 +3,13 @@ Encoder        = require 'htmlencode'
 curryIn        = require 'app/util/curryIn'
 FSHelper       = require 'app/util/fs/fshelper'
 
-{jsonToYaml}   = require './yamlutils'
+{jsonToYaml}   = require '../helpers/yamlutils'
 
 IDEEditorPane  = require 'ide/workspace/panes/ideeditorpane'
 
 
-module.exports = class StackEditorView extends IDEEditorPane
+module.exports = class BaseDefineStackEditorView extends IDEEditorPane
+
 
   constructor: (options = {}, data) ->
 
@@ -16,7 +17,7 @@ module.exports = class StackEditorView extends IDEEditorPane
 
     curryIn options, cssClass: 'editor-view'
 
-    content = Encoder.htmlDecode options.content or require './defaulttemplate'
+    content = Encoder.htmlDecode(options.content) or options.defaultTemplate
 
     { content, contentType, err } = jsonToYaml content
 
@@ -26,7 +27,7 @@ module.exports = class StackEditorView extends IDEEditorPane
     options.contentType = contentType
 
     options.file        = FSHelper.createFileInstance
-      path: "localfile:/stack.#{contentType}"
+      path: "localfile:/#{options.fileName}.#{contentType}"
 
     super options, data
 
