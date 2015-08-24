@@ -3,15 +3,12 @@ koding                              = require './../bongo'
 
 { daisy }                           = Bongo
 { expect }                          = require 'chai'
-{ TeamHandlerHelper
-  generateRandomEmail
+{ generateRandomEmail
   generateRandomString
   RegisterHandlerHelper }           = require '../../../testhelper'
 
-{ convertToArray
-  generateJoinTeamRequestParams
-  generateCheckTokenRequestParams
-  generateCreateTeamRequestParams } = TeamHandlerHelper
+{ generateCheckTokenRequestParams
+  generateCreateTeamRequestParams } = require '../../../testhelper/teamhandlerhelper'
 
 request                             = require 'request'
 

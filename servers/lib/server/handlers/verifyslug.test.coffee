@@ -4,10 +4,9 @@ request                                   = require 'request'
 { daisy }                                 = Bongo
 { expect }                                = require 'chai'
 
-{ TeamHandlerHelper
-  generateRandomString }                  = require '../../../testhelper'
+{ generateRandomString }                  = require '../../../testhelper'
 { generateVerifySlugRequestParams }       = require '../../../testhelper/verifyslughandlerhelper'
-{ generateCreateTeamRequestParams }       = TeamHandlerHelper
+{ generateCreateTeamRequestParams }       = require '../../../testhelper/teamhandlerhelper'
 
 
 runTests = -> describe 'server.handlers.verifyslug', ->
