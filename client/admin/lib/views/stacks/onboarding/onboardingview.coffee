@@ -1,10 +1,11 @@
 kd                    = require 'kd'
 JView                 = require 'app/jview'
 CodeSetupView         = require './codesetupview'
+{ jsonToYaml }        = require '../yamlutils'
+applyMarkdown         = require 'app/util/applyMarkdown'
 GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
-{jsonToYaml}   = require '../yamlutils'
 
 
 module.exports = class OnboardingView extends JView
@@ -106,6 +107,7 @@ module.exports = class OnboardingView extends JView
       """
 
     @stackPreview.addSubView @stackContent = new kd.CustomHTMLView
+      cssClass: 'has-markdown'
 
 
   updateStackTemplate: ->
@@ -151,7 +153,10 @@ module.exports = class OnboardingView extends JView
         { user_data } = serverConfig
 
         if user_data
-          serverConfig.user_data = "#{user_data}\\n#{cloneText}"
+          serverConfig.user_data = """
+            #{user_data}
+            #{cloneText}
+          """
         else
           serverConfig.user_data = cloneText
 
@@ -173,9 +178,6 @@ module.exports = class OnboardingView extends JView
     for index in [1...templateLines.length]
       linesMarkup += "<div>#{index}</div>"
 
-    for line  in templateLines
-      codeMarkup  += "<p><pre>#{line}</pre></p>"
-
     @stackContent.destroySubViews()
     @stackContent.addSubView new kd.CustomHTMLView
       cssClass : 'lines'
@@ -183,7 +185,11 @@ module.exports = class OnboardingView extends JView
 
     @stackContent.addSubView new kd.CustomHTMLView
       cssClass : 'code'
-      partial  : "#{codeMarkup}"
+      partial  : applyMarkdown """
+        ```coffee
+        #{content}
+        ```
+      """
 
 
   pistachio: ->
