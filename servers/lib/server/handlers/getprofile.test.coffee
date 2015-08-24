@@ -12,8 +12,8 @@ request          = require 'request'
   generateRandomEmail
   generateRandomString } = require '../../../testhelper'
 
-{ generateGetProfileRequestParams
-  generateRegisterRequestParams } = RegisterHandlerHelper
+{ generateRegisterRequestParams }   = RegisterHandlerHelper
+{ generateGetProfileRequestParams } = require '../../../testhelper/getprofilehandlerhelper'
 
 # begin tests
 describe 'server.handlers.getprofile', ->
