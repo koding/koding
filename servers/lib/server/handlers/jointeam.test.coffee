@@ -5,12 +5,12 @@ koding                              = require './../bongo'
 { expect }                          = require 'chai'
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper
+  convertToArray
   generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
 { generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
 
-{ convertToArray
-  generateJoinTeamRequestParams
+{ generateJoinTeamRequestParams
   generateCreateTeamRequestParams } = TeamHandlerHelper
 
 hat                                 = require 'hat'

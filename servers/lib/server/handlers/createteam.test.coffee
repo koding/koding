@@ -8,12 +8,12 @@ KONFIG                              = require('koding-config-manager').load "mai
 { hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper
+  convertToArray
   generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
 { generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
 
-{ convertToArray
-  generateCreateTeamRequestBody
+{ generateCreateTeamRequestBody
   generateCreateTeamRequestParams } = TeamHandlerHelper
 
 hat                                 = require 'hat'
