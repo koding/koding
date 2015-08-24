@@ -82,13 +82,13 @@ module.exports =
 
   inviteUser: (browser, username) ->
 
-    @enterUserNameToInvite (browser, username)
+    @enterUserNameToInvite(browser, username)
     browser
       .element 'css selector', "span.profile[href='/#{username}']", (result) ->
         if result.status is 0
           browser.click        "span.profile[href='/#{username}']"
         else
-          @enterUserNameToInvite (browser, username)
+          @enterUserNameToInvite(browser, username)
           browser
             .click        "span.profile[href='/#{username}']"
 
