@@ -40,6 +40,7 @@ module.exports = class CodeSetupView extends JView
           serviceView.setClass  'selected'
           @selected?.unsetClass 'selected'
           @selected = if @selected is serviceView then null else serviceView
+          @emit 'StackTemplateNeedsToBeUpdated'
 
 
 
