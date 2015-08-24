@@ -7,13 +7,9 @@ querystring                               = require 'querystring'
 { expect }                                = require 'chai'
 { generateRandomEmail
   generateRandomString
-  generateRandomUsername
-
-  RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper'
-
+  generateRandomUsername }                = require '../../../testhelper'
 { generateValidateRequestBody
-  generateValidateRequestParams }         = ValidationHandlerHelper
+  generateValidateRequestParams }         = require '../../../testhelper/handler/validatehelper'
 
 
 
