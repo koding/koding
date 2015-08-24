@@ -130,4 +130,5 @@ module.exports = {
   moveToPrevIndex
   resetSelectedIndex
   setVisibility
+  resetData
 }

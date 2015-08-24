@@ -28,7 +28,10 @@ module.exports = class SearchDropup extends React.Component
   getItemKey: (item) -> item.getIn ['message', 'id']
 
 
-  close: -> ActivityFlux.actions.chatInputSearch.setVisibility no
+  close: ->
+
+    ActivityFlux.actions.chatInputSearch.setVisibility no
+    ActivityFlux.actions.chatInputSearch.resetData()
 
 
   moveToNextPosition: (keyInfo) ->
