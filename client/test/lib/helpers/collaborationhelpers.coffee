@@ -27,7 +27,7 @@ module.exports =
             console.log ' ✔ Session is active'
 
       browser
-        .waitForElementVisible  messagePane, 20000 # Assertion
+        .waitForElementVisible  messagePane, 200000 # Assertion
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
 
 
