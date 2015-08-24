@@ -98,20 +98,20 @@ deepObjectExtend = (target, source) ->
 
   return target
 
+convertToArray = (commaSeparatedData = '') ->
+
+  return []  if commaSeparatedData is ''
+
+  data = commaSeparatedData.split(',') or []
+
+  data = data
+    .filter (s) -> s isnt ''           # clear empty ones
+    .map (s) -> s.trim().toLowerCase() # clear empty spaces
+
+  return data
 
 class TeamHandlerHelper
 
-  @convertToArray = (commaSeparatedData = '') ->
-
-    return []  if commaSeparatedData is ''
-
-    data = commaSeparatedData.split(',') or []
-
-    data = data
-      .filter (s) -> s isnt ''           # clear empty ones
-      .map (s) -> s.trim().toLowerCase() # clear empty spaces
-
-    return data
 
 
   @generateCheckTokenRequestBody = (opts = {}) ->
@@ -268,6 +268,7 @@ class TeamHandlerHelper
 
 module.exports = {
   generateUrl
+  convertToArray
   deepObjectExtend
   generateRandomEmail
   generateRandomString
