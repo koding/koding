@@ -4,6 +4,7 @@ CodeSetupView         = require './codesetupview'
 GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
+{jsonToYaml}   = require '../yamlutils'
 
 
 module.exports = class OnboardingView extends JView
@@ -61,6 +62,9 @@ module.exports = class OnboardingView extends JView
       @emit 'PageNavigationRequested', 'next'
 
 
+    @getStartedView.emit 'NextPageRequested'
+
+
   createFooter: ->
 
     @backButton = new kd.ButtonView
@@ -105,6 +109,82 @@ module.exports = class OnboardingView extends JView
 
 
   updateStackTemplate: ->
+
+    selectedProvider    = @providerSelectionView.selected?.getOption 'provider'
+    selectedCodeService = @codeSetupView.selected?.getOption 'service'
+    serverConfigPanes   = @configurationView.tabView.panes
+    selectedInstances   = {}
+    cloneRepoTemplates  =
+      github            : 'git clone git@github.com/username/reponame.git'
+      owngitserver      : 'git clone git@yourgitserver.com/reponame.git'
+    providerTemplates   =
+      aws               :
+        'access_key'    : '${var.aws_access_key}'
+        'secret_key'    : '${var.aws_secret_key}'
+
+
+    serverConfigPanes.forEach (pane, index) ->
+
+      selectedServices = []
+
+      serverConfig = selectedInstances["example_#{++index}"] =
+        instance_type: 't2.micro'
+        ami: ''
+
+      { configurationToggles } = pane.configView
+
+      configurationToggles.forEach (toggle) ->
+        selectedServices.push toggle.getOption 'name'  if toggle.getValue()
+
+      if selectedServices.length
+        serverConfig.user_data = "apt-get -y install #{selectedServices.join ' '}"
+
+    stackTemplate    =
+      provider       : providerTemplates[selectedProvider]
+      resources      :
+        aws_instance : selectedInstances
+
+    if selectedCodeService
+      cloneText = cloneRepoTemplates[selectedCodeService]
+
+      for serverName, serverConfig of stackTemplate.resources.aws_instance
+        { user_data } = serverConfig
+
+        if user_data
+          serverConfig.user_data = "#{user_data}\\n#{cloneText}"
+        else
+          serverConfig.user_data = cloneText
+
+
+    { content, err } = jsonToYaml JSON.stringify stackTemplate
+
+    if err
+      return new kd.NotificationView 'Unable to update stack template preview'
+
+    @createStackPreviewFromYaml content
+
+
+  createStackPreviewFromYaml: (content) ->
+
+    linesMarkup   = ''
+    codeMarkup    = ''
+    templateLines = content.split '\n'
+
+    for index in [1...templateLines.length]
+      linesMarkup += "<div>#{index}</div>"
+
+    for line  in templateLines
+      codeMarkup  += "<p><pre>#{line}</pre></p>"
+
+    @stackContent.destroySubViews()
+    @stackContent.addSubView new kd.CustomHTMLView
+      cssClass : 'lines'
+      partial  : "#{linesMarkup}"
+
+    @stackContent.addSubView new kd.CustomHTMLView
+      cssClass : 'code'
+      partial  : "#{codeMarkup}"
+
 
   pistachio: ->
 
