@@ -9,11 +9,9 @@ querystring                               = require 'querystring'
   generateRandomString
   generateRandomUsername
 
-  RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper'
-
+  RegisterHandlerHelper }                 = require '../../../testhelper'
 { generateValidateRequestBody
-  generateValidateRequestParams }         = ValidationHandlerHelper
+  generateValidateRequestParams }         = require '../../../testhelper/validatehandlerhelper'
 
 
 
