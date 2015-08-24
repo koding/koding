@@ -9,11 +9,9 @@ request                                   = require 'request'
   generateRandomString
   generateRandomUsername
 
-  RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper'
-
+  RegisterHandlerHelper }                 = require '../../../testhelper'
 { generateRegisterRequestParams }         = RegisterHandlerHelper
-{ generateVerifyTokenRequestParams }      = ValidationHandlerHelper
+{ generateVerifyTokenRequestParams }      = require '../../../testhelper/verifytokenhandlerhelper'
 
 JUser                                     = null
 JPasswordRecovery                         = null
