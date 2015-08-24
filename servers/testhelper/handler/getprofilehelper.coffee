@@ -2,7 +2,7 @@ querystring = require 'querystring'
 
 { generateUrl
   deepObjectExtend
-  generateDefaultRequestParams } = require './index'
+  generateDefaultRequestParams } = require '../index'
 
 
 generateGetProfileRequestParams = (opts = {}) ->

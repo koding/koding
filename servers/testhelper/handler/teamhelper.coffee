@@ -5,7 +5,7 @@ querystring = require 'querystring'
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDefaultRequestParams } = require './index'
+  generateDefaultRequestParams } = require '../index'
 
 
 generateCheckTokenRequestBody = (opts = {}) ->

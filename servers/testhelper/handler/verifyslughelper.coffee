@@ -3,7 +3,7 @@ querystring = require 'querystring'
 { generateUrl
   deepObjectExtend
   generateRandomString
-  generateDefaultRequestParams } = require './index'
+  generateDefaultRequestParams } = require '../index'
 
 
 generateVerifySlugRequestBody = (opts = {}) ->

@@ -4,7 +4,7 @@ querystring = require 'querystring'
   deepObjectExtend
   generateRandomEmail
   generateRandomString
-  generateDefaultRequestParams } = require './index'
+  generateDefaultRequestParams } = require '../index'
 
 
 generateValidateEmailRequestBody = (opts = {}) ->
