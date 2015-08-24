@@ -36,6 +36,11 @@ module.exports = class OnboardingView extends JView
 
   bindPageEvents: ->
 
+    @pages.forEach (page) =>
+      page.on 'StackTemplateNeedsToBeUpdated', =>
+        @stackPreview.show()
+        @updateStackTemplate()
+
     @on 'PageNavigationRequested', (direction) =>
       pageIndex  = @pages.indexOf @currentPage
       nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
@@ -98,6 +103,8 @@ module.exports = class OnboardingView extends JView
 
     @stackPreview.addSubView @stackContent = new kd.CustomHTMLView
 
+
+  updateStackTemplate: ->
 
   pistachio: ->
 
