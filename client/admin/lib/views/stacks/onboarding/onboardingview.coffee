@@ -41,12 +41,14 @@ module.exports = class OnboardingView extends JView
       nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
       targetPage = @pages[nextIndex]
 
-      @currentPage.hide()
-      targetPage.show()
-
-      @setClass 'get-started'  if targetPage is @getStartedView
-
-      @currentPage = targetPage
+      if targetPage
+        @currentPage.hide()
+        targetPage.show()
+        @setClass 'get-started'  if targetPage is @getStartedView
+        @currentPage = targetPage
+      else
+        @hide()
+        @emit 'StackOnboardingCompleted'
 
 
     @getStartedView.on 'NextPageRequested', =>
