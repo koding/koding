@@ -2,19 +2,19 @@ kd             = require 'kd'
 KodingSwitch   = require 'app/commonviews/kodingswitch'
 CONFIG_OPTIONS =
   Database     :
-    mysql      : title: 'MySQL',    command: 'apt-get install mysql'
-    redis      : title: 'Redis',    command: 'apt-get install redis'
-    mongodb    : title: 'Mongo DB', command: 'apt-get install mongodb'
-    postgre    : title: 'Postgre',  command: 'apt-get install postgre-sql'
-    sqlite     : title: 'SQLite',   command: 'apt-get insall sqlite'
+    mysql      : title: 'MySQL',    package: 'mysql',       command: 'service mysql start'
+    redis      : title: 'Redis',    package: 'redis',       command: ''
+    mongodb    : title: 'Mongo DB', package: 'mongodb',     command: ''
+    postgre    : title: 'Postgre',  package: 'postgre-sql', command: ''
+    sqlite     : title: 'SQLite',   package: 'sqlite',      command: ''
   Language     :
-    node       : title: 'Node.js',  command: 'apt-get install node'
-    ruby       : title: 'Ruby',     command: 'apt-get install ruby'
-    python     : title: 'Python',   command: 'apt-get install python'
-    php        : title: 'PHP',      command: 'apt-get install php'
+    node       : title: 'Node.js',  package: 'node',        command: ''
+    ruby       : title: 'Ruby',     package: 'ruby',        command: ''
+    python     : title: 'Python',   package: 'python',      command: ''
+    php        : title: 'PHP',      package: 'php',         command: ''
   'Web Server' :
-    apache     : title: 'Apache',   command: 'apt-get install apache'
-    nginx      : title: 'Nginx',    command: 'apt-get install nginx'
+    apache     : title: 'Apache',   package: 'apache',      command: ''
+    nginx      : title: 'Nginx',    package: 'nginx',       command: 'nginx start'
 
 
 module.exports = class ServerConfigurationView extends kd.View
