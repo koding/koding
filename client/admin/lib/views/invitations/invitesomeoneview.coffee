@@ -2,6 +2,7 @@ kd                  = require 'kd'
 remote              = require('app/remote').getInstance()
 KDView              = kd.View
 KDButtonView        = kd.ButtonView
+KDCustomScrollView  = kd.CustomScrollView
 KDCustomHTMLView    = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 InvitationInputView = require './invitationinputview'
@@ -16,10 +17,13 @@ module.exports = class InviteSomeoneView extends KDView
 
     super options, data
 
+    @scrollView = new KDCustomScrollView
+    @addSubView @scrollView
+
     @inputViews = []
 
     @createInformationView()
-    @addSubView @inputWrapper = new KDCustomHTMLView cssClass: 'input-wrapper'
+    @scrollView.wrapper.addSubView @inputWrapper = new KDCustomHTMLView cssClass: 'input-wrapper'
     @createInvitationView no
     @createAddMoreButton()
     @createMainButtons()
@@ -39,7 +43,7 @@ module.exports = class InviteSomeoneView extends KDView
 
   createAddMoreButton: ->
 
-    @addSubView new KDButtonView
+    @scrollView.wrapper.addSubView new KDButtonView
       cssClass : 'compact solid add-more'
       title    : 'ADD INVITATION'
       callback : @bound 'createInvitationView'
@@ -93,7 +97,7 @@ module.exports = class InviteSomeoneView extends KDView
 
   createInformationView: ->
 
-    @addSubView new KDCustomHTMLView
+    @scrollView.wrapper.addSubView new KDCustomHTMLView
       cssClass : 'information'
       partial  : """
         <p>Invite others to join your team. You can also allow team members to sign up using your company's email domain.</p>
