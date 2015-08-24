@@ -7,11 +7,9 @@ request                                   = require 'request'
 { generateRandomString
   generateRandomUsername
 
-  RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper'
-
+  RegisterHandlerHelper }                 = require '../../../testhelper'
 { generateRegisterRequestParams }         = RegisterHandlerHelper
-{ generateValidateUsernameRequestParams } = ValidationHandlerHelper
+{ generateValidateUsernameRequestParams } = require '../../../testhelper/validateusernamehandlerhelper'
 
 JUser                                     = null
 
