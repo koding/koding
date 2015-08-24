@@ -9,10 +9,8 @@ KONFIG                              = require('koding-config-manager').load "mai
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper
   generateRandomEmail
-  generateRandomString
-  RegisterHandlerHelper }           = require '../../../testhelper'
-
-{ generateRegisterRequestParams }   = RegisterHandlerHelper
+  generateRandomString }            = require '../../../testhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
 
 { convertToArray
   generateCreateTeamRequestBody

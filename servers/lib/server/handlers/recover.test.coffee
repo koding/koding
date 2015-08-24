@@ -7,11 +7,9 @@ querystring                               = require 'querystring'
 { expect }                                = require 'chai'
 { generateRandomEmail
   generateRandomString
-  generateRandomUsername
-
-  RegisterHandlerHelper }                 = require '../../../testhelper'
+  generateRandomUsername }                = require '../../../testhelper'
 { generateRecoverRequestParams }          = require '../../../testhelper/recoverhandlerhelper'
-{ generateRegisterRequestParams }         = RegisterHandlerHelper
+{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
 
 
 # here we have actual tests

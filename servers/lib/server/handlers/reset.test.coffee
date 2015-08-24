@@ -7,12 +7,10 @@ querystring                       = require 'querystring'
 { expect }                        = require 'chai'
 { generateRandomEmail
   generateRandomString
-  generateRandomUsername
-
-  RegisterHandlerHelper }         = require '../../../testhelper'
+  generateRandomUsername }        = require '../../../testhelper'
 { defaultExpiryPeriod
   generateResetRequestParams }    = require '../../../testhelper/resethandlerhelper'
-{ generateRegisterRequestParams } = RegisterHandlerHelper
+{ generateRegisterRequestParams } = require '../../../testhelper/registerhandlerhelper'
 
 JUser                             = null
 JPasswordRecovery                 = null

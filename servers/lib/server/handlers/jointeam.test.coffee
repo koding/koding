@@ -6,10 +6,8 @@ koding                              = require './../bongo'
 { Relationship }                    = require 'jraphical'
 { TeamHandlerHelper
   generateRandomEmail
-  generateRandomString
-  RegisterHandlerHelper }           = require '../../../testhelper'
-
-{ generateRegisterRequestParams }   = RegisterHandlerHelper
+  generateRandomString }            = require '../../../testhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
 
 { convertToArray
   generateJoinTeamRequestParams

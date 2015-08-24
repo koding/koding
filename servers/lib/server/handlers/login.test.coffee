@@ -9,11 +9,9 @@ Speakeasy                                 = require 'speakeasy'
   generateRandomString
   generateRandomUsername
 
-  LoginHandlerHelper
-  RegisterHandlerHelper }                 = require '../../../testhelper'
-
+  LoginHandlerHelper }                    = require '../../../testhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/registerhandlerhelper'
 { generateLoginRequestParams }            = LoginHandlerHelper
-{ generateRegisterRequestParams }         = RegisterHandlerHelper
 
 JLog                                      = null
 JUser                                     = null

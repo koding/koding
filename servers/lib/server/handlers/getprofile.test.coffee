@@ -8,11 +8,9 @@ request          = require 'request'
 { daisy }        = Bongo
 { expect }       = require 'chai'
 
-{ RegisterHandlerHelper
-  generateRandomEmail
-  generateRandomString } = require '../../../testhelper'
-
-{ generateRegisterRequestParams }   = RegisterHandlerHelper
+{ generateRandomEmail
+  generateRandomString }            = require '../../../testhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/registerhandlerhelper'
 { generateGetProfileRequestParams } = require '../../../testhelper/getprofilehandlerhelper'
 
 # begin tests
