@@ -24,15 +24,22 @@ module.exports = class ProviderSelectionView extends JView
       label      = 'Coming Soon'
 
       if provider is 'aws'
-        extraClass = 'selected'
+        extraClass = ''
         label      = ''
 
-      @providers.addSubView new kd.CustomHTMLView
-        cssClass: "provider box #{extraClass} #{provider}"
-        partial : """
+      @providers.addSubView providerView = new kd.CustomHTMLView
+        cssClass : "provider box #{extraClass} #{provider}"
+        provider : provider
+        partial  : """
           <img class="#{provider}" src="/a/images/providers/stacks/#{provider}.png" />
           <div class="label">#{label}</div>
         """
+        click: =>
+          return if extraClass is 'coming-soon'
+
+          providerView.setClass 'selected'
+          @selected?.unsetClass 'selected'
+          @selected = if @selected is providerView then null else providerView
 
 
   pistachio: ->
