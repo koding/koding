@@ -24,15 +24,23 @@ module.exports = class CodeSetupView extends JView
       label      = 'Coming Soon'
 
       if service in [ 'github', 'owngitserver' ]
-        extraClass = if service is 'github' then 'selected' else ''
+        extraClass = ''
         label      = if service is 'owngitserver' then 'Your Git server' else ''
 
-      @services.addSubView new kd.CustomHTMLView
+      @services.addSubView serviceView = new kd.CustomHTMLView
         cssClass: "service box #{extraClass} #{service}"
+        service : service
         partial : """
           <img class="#{service}" src="/a/images/providers/stacks/#{service}.png" />
           <div class="label">#{label}</div>
         """
+        click: =>
+          return if extraClass is 'coming-soon'
+
+          serviceView.setClass  'selected'
+          @selected?.unsetClass 'selected'
+          @selected = if @selected is serviceView then null else serviceView
+
 
 
   pistachio: ->
