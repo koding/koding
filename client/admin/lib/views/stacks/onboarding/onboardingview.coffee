@@ -63,9 +63,6 @@ module.exports = class OnboardingView extends JView
       @emit 'PageNavigationRequested', 'next'
 
 
-    @getStartedView.emit 'NextPageRequested'
-
-
   createFooter: ->
 
     @backButton = new kd.ButtonView
