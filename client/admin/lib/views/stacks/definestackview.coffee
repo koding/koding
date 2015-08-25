@@ -305,8 +305,8 @@ module.exports = class DefineStackView extends kd.View
       for type, data of requiredData
         for field in data
           if content = jspath.getAt availableData[type], field
-            template = template.replace \
-              (new RegExp "{{#{type} #{field}}}", 'g'), content
+            search   = ///\${var.koding_#{type}_#{field}}///g
+            template = template.replace search, content
           else
             errors.push "Variable `#{field}` not found in `#{type}` data."
 
