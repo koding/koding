@@ -1,5 +1,8 @@
 kd = require 'kd'
 KDModalViewWithForms = kd.ModalViewWithForms
+KDNotificationView = kd.NotificationView
+whoami = require 'app/util/whoami'
+showError = require 'app/util/showError'
 globals = require 'globals'
 
 
@@ -29,10 +32,11 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                 style             : "solid light-gray medium"
                 title             : "Forgot Password?"
                 callback          : =>
-                  @destroy()
-                  kd.singletons.appManager.tell 'Account', 'closeModal'
-                  {entryPoint} = globals.config
-                  kd.singleton("router").handleRoute "/Recover", {entryPoint}
+                  account = whoami()
+                  account.fetchEmail (err, email) =>
+                    return @showError err  if err
+                    @doRecover email
+                    @destroy()
 
             fields                :
               password            :
@@ -46,3 +50,17 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                     required      : "Current Password required!"
 
     super options
+
+  doRecover:(email)->
+    $.ajax
+      url         : '/Recover'
+      data        : { email }
+      type        : 'POST'
+      error       : (xhr) =>
+        {responseText} = xhr
+        new KDNotificationView title : responseText
+      success     : =>
+        new KDNotificationView
+          title     : "Check your email"
+          content   : "We've sent you a password recovery code."
+          duration  : 4500

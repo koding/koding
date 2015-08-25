@@ -92,3 +92,9 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
           if models?
           then open.call this, info, models.first
           else ctx.handleNotFound info.params.name
+
+    when 'reset'
+      recoverPath = ctx
+      recoverPath.clear()
+      kd.singletons.mainController.doLogout()
+      global.location.href = path
