@@ -20,10 +20,10 @@ module.exports = class GroupStackSettings extends kd.View
     @createInitialView()
 
 
-  createOnboardingView: ->
+  createOnboardingView: (options = {}) ->
 
     @initialView.hide()
-    @scrollView.wrapper.addSubView onboardingView = new OnboardingView
+    @scrollView.wrapper.addSubView onboardingView = new OnboardingView options
 
     onboardingView.on 'StackOnboardingCompleted', (template) =>
       onboardingView.destroy()
