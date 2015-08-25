@@ -9,13 +9,6 @@ globals = require 'globals'
 module.exports = class VerifyPasswordModal extends KDModalViewWithForms
 
   constructor:(buttonTitle = "Submit", callback) ->
-    
-    user = whoami()
-    user.fetchEmail (err, email) =>
-
-      return @showError err  if err
-
-      @userEmail = email
 
     options =
       title                       : "Please verify your current password "
@@ -39,7 +32,10 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                 style             : "solid light-gray medium"
                 title             : "Forgot Password?"
                 callback          : =>
-                  @doRecover @userEmail
+                  account = whoami()
+                  account.fetchEmail (err, email) =>
+                    return @showError err  if err
+                    @doRecover email
                   @destroy()
 
             fields                :
