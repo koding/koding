@@ -36,22 +36,23 @@ module.exports = class PublicChatPane extends React.Component
     InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
 
 
-  onScrollThresholdReached: ->
+  onLoadMore: ->
+
+    return  unless @props.messages.size
+    return  if @props.thread.getIn ['flags', 'isMessagesLoading']
 
     from = @props.messages.first().get('createdAt')
-    ActivityFlux.actions.message.loadMessages @channel('id'), from
+    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
   render: ->
-    <div ref="ChatPaneWrapper">
-      <ChatPane
-        thread={@props.thread}
-        className="PublicChatPane"
-        messages={@props.messages}
-        onSubmit={@bound 'onSubmit'}
-        onScrollThresholdReached={@bound 'onScrollThresholdReached'}
-      />
-    </div>
-
+    <ChatPane
+      thread={@props.thread}
+      className="PublicChatPane"
+      messages={@props.messages}
+      onSubmit={@bound 'onSubmit'}
+      onLoadMore={@bound 'onLoadMore'}
+      isParticipant={@channel 'isParticipant'}
+    />
 
 
