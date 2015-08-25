@@ -1,13 +1,15 @@
+# due to a bug in coffeelint 1.10.1
+# coffeelint: disable=no_implicit_braces
 module.exports = class Joinable
 
-  {secure} = require 'bongo'
+  { secure } = require 'bongo'
 
   KodingError = require '../error'
 
-  @fetchMyMemberships = secure (client, ids, as, callback)->
+  @fetchMyMemberships = secure (client, ids, as, callback) ->
     [callback, as] = [as, callback] unless callback
     as ?= 'member'
-    {delegate} = client.connection
+    { delegate } = client.connection
     delegate.filterRelatedIds ids, as, callback
 
   addToGroup_ = (client, { as }, callback) ->
@@ -39,8 +41,8 @@ module.exports = class Joinable
           if err then callback err
           else invite.accept delegate, (err) -> callback err
 
-  join: secure (client, options, callback)->
-    {delegate} = client.connection
+  join: secure (client, options, callback) ->
+    { delegate } = client.connection
     [callback, options] = [options, callback]  unless callback
     options ?= {}
     if @privacy is 'public'
@@ -48,17 +50,18 @@ module.exports = class Joinable
     else if @privacy is 'private'
       addToPrivateGroup_.call this, client, options, callback
 
-  removeFromGroup_ =(client, {as}, callback)->
+  removeFromGroup_ = (client, { as }, callback) ->
     as ?= 'member'
-    {delegate} = client.connection
+    { delegate } = client.connection
     @removeMember delegate, as, callback
     @emit 'MemberRemoved', delegate  if as is 'member'
       # if err then callback err
       # else delegate.removeGroup this, as, callback
 
-  leave: secure (client, options, callback)->
-    {delegate} = client.connection
+  leave: secure (client, options, callback) ->
+    { delegate } = client.connection
     [callback, options] = [options, callback]  unless callback
     options ?= {}
-    removeFromGroup_.call @, client, options, callback
+    removeFromGroup_.call this, client, options, callback
+
 

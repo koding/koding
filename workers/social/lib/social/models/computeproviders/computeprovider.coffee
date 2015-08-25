@@ -1,9 +1,8 @@
-
-{Base, secure, signature, daisy} = require 'bongo'
+{ Base, secure, signature, daisy } = require 'bongo'
 KodingError = require '../../error'
 
-{argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+{ argv } = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class ComputeProvider extends Base
 
@@ -14,7 +13,7 @@ module.exports = class ComputeProvider extends Base
 
   @trait __dirname, '../../traits/protected'
 
-  {permit} = require '../group/permissionset'
+  { permit } = require '../group/permissionset'
 
   JMachine   = require './machine'
   JWorkspace = require '../workspace'
@@ -24,12 +23,12 @@ module.exports = class ComputeProvider extends Base
   @set
     permissions           :
       'sudoer'            : []
-      'ping machines'     : ['member','moderator']
-      'list machines'     : ['member','moderator']
-      'create machines'   : ['member','moderator']
-      'delete machines'   : ['member','moderator']
-      'update machines'   : ['member','moderator']
-      'list own machines' : ['member','moderator']
+      'ping machines'     : ['member', 'moderator']
+      'list machines'     : ['member', 'moderator']
+      'create machines'   : ['member', 'moderator']
+      'delete machines'   : ['member', 'moderator']
+      'update machines'   : ['member', 'moderator']
+      'list own machines' : ['member', 'moderator']
     sharedMethods         :
       static              :
         ping              :
@@ -56,23 +55,21 @@ module.exports = class ComputeProvider extends Base
 
   @providers      = PROVIDERS
 
-  @fetchProviders = secure (client, callback)->
+  @fetchProviders = secure (client, callback) ->
     callback null, Object.keys PROVIDERS
 
 
 
-  @ping = (client, options, callback)->
+  @ping = (client, options, callback) ->
 
-    {provider} = options
+    { provider } = options
     provider.ping client, options, callback
 
-  @ping$ = permit 'ping machines', success: revive
-
-    shouldReviveClient   : yes
-    shouldPassCredential : yes
-
-  , @ping
-
+  @ping$ = permit 'ping machines',
+    success: revive {
+      shouldReviveClient   : yes
+      shouldPassCredential : yes
+    }, @ping
 
 
   @create = revive
@@ -80,12 +77,12 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient       : yes
     shouldReviveProvisioners : yes
 
-  , (client, options, callback)->
+  , (client, options, callback) ->
 
     { provider, stack, label, provisioners, users, generatedFrom } = options
     { r: { group, user, account } } = client
 
-    provider.create client, options, (err, machineData)->
+    provider.create client, options, (err, machineData) ->
 
       return callback err  if err
 
@@ -97,7 +94,7 @@ module.exports = class ComputeProvider extends Base
         provider : provider.slug
         label, meta, group, user, generatedFrom
         users, credential, provisioners
-      }, (err, machine)->
+      }, (err, machine) ->
 
         # TODO if any error occurs here which means user paid for
         # not created vm ~ GG
@@ -105,30 +102,30 @@ module.exports = class ComputeProvider extends Base
 
         provider.postCreate client, {
           postCreateOptions, machine, meta, stack: stack._id
-        }, (err)->
+        }, (err) ->
 
           return callback err  if err
 
-          stack.appendTo machines: machine.getId(), (err)->
+          stack.appendTo { machines: machine.getId() }, (err) ->
             callback err, machine
 
 
-  @create$ = permit 'create machines', success: revive
+  @create$ = permit 'create machines', { success: revive
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
     shouldReviveProvider : no
     shouldLockProcess    : yes
 
-  , (client, options, callback)->
+  , (client, options, callback) ->
 
     { r: { account } } = client
     { stack } = options
 
     JComputeStack = require '../stack'
-    JComputeStack.getStack account, stack, (err, revivedStack)=>
+    JComputeStack.getStack account, stack, (err, revivedStack) =>
       return callback err  if err?
-      return callback new KodingError "No such stack"  unless revivedStack
+      return callback new KodingError 'No such stack'  unless revivedStack
 
       options.stack = revivedStack
 
@@ -140,7 +137,7 @@ module.exports = class ComputeProvider extends Base
       delete options.generatedFrom
 
       @create client, options, callback
-
+  }
 
 
   @fetchAvailable = secure revive
@@ -148,13 +145,13 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient   : no
     shouldPassCredential : yes
 
-  , (client, options, callback)->
+  , (client, options, callback) ->
 
-    {provider} = options
+    { provider } = options
     provider.fetchAvailable client, options, callback
 
 
-  @fetchUsage$ = secure (client, options, callback)->
+  @fetchUsage$ = secure (client, options, callback) ->
     ComputeProvider.fetchUsage client, options, callback
 
   @fetchUsage = revive
@@ -162,14 +159,14 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient   : yes
     shouldPassCredential : yes
 
-  , (client, options, callback)->
+  , (client, options, callback) ->
 
-    {slug} = options.provider
-    fetchUsage client, provider: slug, callback
+    { slug } = options.provider
+    fetchUsage client, { provider: slug }, callback
 
 
   @fetchPlans = permit 'create machines',
-    success: (client, callback)->
+    success: (client, callback) ->
       callback null, PLANS
 
 
@@ -178,9 +175,9 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient   : yes
     shouldPassCredential : yes
 
-  , (client, options, callback)->
+  , (client, options, callback) ->
 
-    {provider} = options
+    { provider } = options
     provider.update client, options, callback
 
 
@@ -189,25 +186,25 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient   : yes
     shouldPassCredential : yes
 
-  , (client, options, callback)->
+  , (client, options, callback) ->
 
-    {provider} = options
+    { provider } = options
     provider.remove client, options, callback
 
 
-  @createStackFromTemplate = permit 'create machines', success: revive
+  @createStackFromTemplate = permit 'create machines',
+    success: revive {
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
 
-    shouldReviveClient   : yes
-    shouldReviveProvider : no
+    }, (client, options, callback) ->
 
-  , (client, options, callback) ->
+      { account, user, group } = client.r
+      { template } = options
 
-    { account, user, group } = client.r
-    { template } = options
-
-    ComputeProvider.generateStackFromTemplate {
-      account, user, group, template, client
-    }, {}, callback
+      ComputeProvider.generateStackFromTemplate {
+        account, user, group, template, client
+      }, {}, callback
 
 
   @generateStackFromTemplate = (data, options, callback) ->
@@ -291,7 +288,7 @@ module.exports = class ComputeProvider extends Base
 
       queue.push ->
 
-        callback null, {stack, results}
+        callback null, { stack, results }
 
       daisy queue
 
@@ -315,7 +312,7 @@ module.exports = class ComputeProvider extends Base
 
       return callback err  if err
 
-      {template, account} = res
+      { template, account } = res
       checkTemplateUsage template, account, (err) ->
         return callback err  if err
 
@@ -329,7 +326,7 @@ module.exports = class ComputeProvider extends Base
   do ->
 
     JGroup = require '../group'
-    JGroup.on 'MemberAdded', ({group, member}) ->
+    JGroup.on 'MemberAdded', ({ group, member }) ->
 
       # No need to try creating group stacks for guests or koding group members
       return  if group.slug in ['guests', 'koding']
@@ -337,17 +334,17 @@ module.exports = class ComputeProvider extends Base
       client =
         connection :
           delegate : member
-        context    : group : group.slug
+        context    : { group : group.slug }
 
       ComputeProvider.createGroupStack client,
         addGroupAdminToMachines: no # Marked this as no until
                                     # we find a better solution ~ GG
       , (err, res = {}) ->
 
-        {stack, results} = res
+        { stack, results } = res
 
         if err?
-          {nickname} = member.profile
+          { nickname } = member.profile
           console.log "Create group #{group.slug} stack failed for #{nickname}:", err, results
 
 
@@ -362,16 +359,18 @@ module.exports = class ComputeProvider extends Base
       console.log "Removing user #{oldUsername} vms..."
 
       JMachine.update
-        provider      : $in: ['koding', 'managed']
+        provider      : { $in: ['koding', 'managed'] }
         credential    : oldUsername
       ,
         $set          :
           userDeleted : yes
       ,
         multi         : yes
-      , (err)->
+      , (err) ->
         if err?
           console.error \
             "Failed to mark them as deleted for #{oldUsername}:", err
 
       return
+
+

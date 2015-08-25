@@ -2,17 +2,17 @@ jraphical = require 'jraphical'
 
 module.exports = class Notifying
 
-  {ObjectRef} = require 'bongo'
-  {Relationship} = jraphical
+  { ObjectRef } = require 'bongo'
+  { Relationship } = jraphical
 
-  setNotifiers:(events, listener)->
-    events.forEach (event)=> @on event, listener.bind null, event
+  setNotifiers:(events, listener) ->
+    events.forEach (event) => @on event, listener.bind null, event
 
-  notifyAll:(receivers, event, contents)->
-    receivers.forEach (receiver)=>
+  notifyAll:(receivers, event, contents) ->
+    receivers.forEach (receiver) =>
       @notify receiver, event, contents
 
-  notify:(receiver, event, contents, callback)->
+  notify:(receiver, event, contents, callback) ->
     callback ?= (err) ->
       console.err err if err
 
@@ -21,12 +21,12 @@ module.exports = class Notifying
     JUser    = require '../models/user'
 
     actor = contents[contents.actorType]
-    {origin, recipient} = contents
+    { origin, recipient } = contents
     recipient or= null
 
-    sendNotification = =>
+    sendNotification = ->
       if receiver instanceof JAccount and receiver.type isnt 'unregistered'
-        JMailNotification.create {actor, receiver, event, contents}, (err)->
+        JMailNotification.create { actor, receiver, event, contents }, (err) ->
           console.error err if err
 
     if actor? and not receiver.getId().equals actor.id
@@ -37,26 +37,28 @@ module.exports = class Notifying
       # return if koding
       subject = contents.subject
       return  if subject and subject.constructorName is 'JGroup' \
-                         and subject.slug is "koding"
+                         and subject.slug is 'koding'
 
       do sendNotification
 
-  notifyOriginWhen:(events...)->
-    @setNotifiers events, (event, contents)=>
+  notifyOriginWhen:(events...) ->
+    @setNotifiers events, (event, contents) =>
       @notify contents.origin, event, contents
 
-  notifyFollowersWhen:(events...)->
-    @setNotifiers events, (event, contents)=>
-      {origin} = contents
-      @fetchFollowers (err, followers)=>
+  notifyFollowersWhen:(events...) ->
+    @setNotifiers events, (event, contents) =>
+      { origin } = contents
+      @fetchFollowers (err, followers) =>
         if err then console.log 'Could not fetch followers.'
         else
-          receivers = followers.filter (follower)->
+          receivers = followers.filter (follower) ->
             follower? and not follower.equals? origin
           @notifyAll receivers, event, contents
 
-  notifyGroupWhen:(events...)->
+  notifyGroupWhen:(events...) ->
     JGroup = require '../models/group'
-    @setNotifiers events, (event, contents)->
-      {group} = contents
+    @setNotifiers events, (event, contents) ->
+      { group } = contents
       JGroup.broadcast group, event, contents
+
+

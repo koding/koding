@@ -2,7 +2,7 @@ jraphical = require 'jraphical'
 
 module.exports = class JStorage extends jraphical.Module
 
-  {secure} = require 'bongo'
+  { secure } = require 'bongo'
 
   @share()
 
@@ -17,3 +17,5 @@ module.exports = class JStorage extends jraphical.Module
       content     :
         type      : Object
         default   : -> {}
+
+

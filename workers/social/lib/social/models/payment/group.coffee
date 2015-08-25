@@ -40,7 +40,7 @@ module.exports = class JPaymentGroup extends JPayment
 #  @fetchTransactions = (group, callback) ->
 #    recurly.fetchTransactions (groupCodeOf group), callback
 
-  @addPlan = (group, data, callback)->
+  @addPlan = (group, data, callback) ->
     data.feeAmount = data.price
     data.feeInitial = 0
     data.planCode = "groupplan_#{group.getId()}_#{data.name}_0"
@@ -49,20 +49,22 @@ module.exports = class JPaymentGroup extends JPayment
 
     recurly.createPlan data, callback
 
-  @deletePlan = (group, data, callback)->
+  @deletePlan = (group, data, callback) ->
     if data.planCode.indexOf("groupplan_#{group.getId()}_") > -1
       recurly.deletePlan data, callback
 
-  @fetchAccount = (group, callback)->
-    group.fetchOwner (err, owner)->
+  @fetchAccount = (group, callback) ->
+    group.fetchOwner (err, owner) ->
       return callback err  if err
-      owner.fetchUser (err, user)->
+      owner.fetchUser (err, user) ->
         return callback err  if err
         callback null,
           email     : user.email
           username  : group.slug
-          firstName : "Group"
+          firstName : 'Group'
           lastName  : group.title
 
-  @getBalance = (group, callback)->
+  @getBalance = (group, callback) ->
     @getBalance_ (groupCodeOf group), callback
+
+

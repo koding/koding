@@ -44,3 +44,5 @@ module.exports = (email, options = {}) ->
   if checkKoding email
   then email
   else sanitize email, options
+
+

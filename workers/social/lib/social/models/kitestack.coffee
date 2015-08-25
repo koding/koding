@@ -1,4 +1,5 @@
 { Model, signature, secure } = require 'bongo'
+KodingError                  = require '../error'
 
 module.exports = class JKiteStack extends Model
 
@@ -30,15 +31,17 @@ module.exports = class JKiteStack extends Model
         callback null, info
 
   @setInfo = secure (client, { ratio, isEnabled, useWebSockets }, callback) ->
-    { connection:{ delegate }} = client
+    { connection:{ delegate } } = client
 
     if delegate.can 'flag'
-      modifier = $set: {}
+      modifier = { $set: {} }
 
       modifier.$set.ratio         = ratio           if ratio?
       modifier.$set.isEnabled     = isEnabled       if isEnabled?
       modifier.$set.useWebSockets = useWebSockets   if useWebSockets?
 
-      @getCollection().update {}, modifier, upsert: yes, (err) -> callback err
+      @getCollection().update {}, modifier, { upsert: yes }, (err) -> callback err
     else
-      callback message: "Access denied!"
+      callback new KodingError 'Access denied!'
+
+

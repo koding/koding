@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{ Model } = require 'bongo'
 
 module.exports = class JLocationState extends Model
 
@@ -6,3 +6,5 @@ module.exports = class JLocationState extends Model
     countryCode : String
     stateCode   : String
     state       : String
+
+

@@ -1,8 +1,8 @@
-module.exports = (options, callback)->
+module.exports = (options, callback) ->
 
   getTitle = require './../title'
 
-  {campaign, account, bongoModels} = options
+  { campaign, account, bongoModels } = options
   campaign or= 'landing'
 
   userAccount   = JSON.stringify account
@@ -11,7 +11,7 @@ module.exports = (options, callback)->
   addSiteScripts = require './sitescripts'
   addSiteTags    = require './sitetags'
 
-  prepareHTML = (site)->
+  prepareHTML = (site) ->
     """
     <!doctype html>
     <html lang="en">

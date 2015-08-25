@@ -1,10 +1,10 @@
-bongo  = require 'bongo'
-{argv} = require 'optimist'
+bongo    = require 'bongo'
+{ argv } = require 'optimist'
 
-KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
-{socialapi}  = KONFIG
-exchangeName = "#{socialapi.eventExchangeName}:0"
-exchangeOpts = {autoDelete: no, durable:yes, type :'fanout'}
+KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
+{ socialapi } = KONFIG
+exchangeName  = "#{socialapi.eventExchangeName}:0"
+exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout' }
 
 Analytics = require('analytics-node')
 analytics = new Analytics(KONFIG.segment)
@@ -15,7 +15,7 @@ module.exports = class Tracker
 
   KodingError = require '../error'
 
-  {forcedRecipient, defaultFromMail} = KONFIG.email
+  { forcedRecipient, defaultFromMail } = KONFIG.email
 
   EVENT_TYPE = 'api.mail_send'
 
@@ -37,7 +37,7 @@ module.exports = class Tracker
     @track username, event, eventProperties
 
 
-  @identify = (username, traits={}) ->
+  @identify = (username, traits = {}) ->
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username     = forcedRecipient
@@ -48,11 +48,11 @@ module.exports = class Tracker
 
     # force flush so identify call doesn't sit in queue, while events
     # from Go/other systems are being sent
-    analytics.flush (err, batch)->
+    analytics.flush (err, batch) ->
       console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
-  @track = (username, mail, options={})->
+  @track = (username, mail, options = {}) ->
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username = forcedRecipient
@@ -64,12 +64,12 @@ module.exports = class Tracker
     unless mqClient
       return console.error 'RabbitMQ client not found for class `Tracker` @sent-hil'
 
-    sendMessage =->
-      mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>
+    sendMessage = ->
+      mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) ->
         unless exchange
           return console.error "Exchange not found to queue: #{exchangeName} @sent-hil"
 
-        exchange.publish '', mail, type:EVENT_TYPE
+        exchange.publish '', mail, { type:EVENT_TYPE }
         exchange.close()
 
     if mqClient.readyEmitted then sendMessage()
@@ -82,4 +82,6 @@ module.exports = class Tracker
     opts
 
 
-  @setMqClient = (m)-> mqClient = m
+  @setMqClient = (m) -> mqClient = m
+
+

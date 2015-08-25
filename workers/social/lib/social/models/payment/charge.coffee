@@ -6,7 +6,7 @@ forceInterval = 60 * 3
 
 module.exports = class JPaymentCharge extends jraphical.Module
 
-  {secure, signature}      = require 'bongo'
+  { secure, signature }      = require 'bongo'
   JPayment      = require './token'
   JPaymentToken = require './token'
   JUser         = require '../user'
@@ -41,7 +41,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
       status          : String
       lastUpdate      : Number
 
-  @charge = secure (client, data, callback)->
+  @charge = secure (client, data, callback) ->
     { connection: { delegate } } = client
 
     { paymentMethodId, description, feeAmount } = data
@@ -93,10 +93,13 @@ module.exports = class JPaymentCharge extends jraphical.Module
     #       console.log 'transaction created', arguments
     #       callback err, unless err then pay
 
-  cancel: secure ({ connection:{ client } }, callback)->
-    recurly.deleteTransaction @paymentMethodId, {@uuid, @amount},
+  # coffeelint: disable=no_implicit_braces
+  cancel: secure ({ connection:{ client } }, callback) ->
+    recurly.deleteTransaction @paymentMethodId, { @uuid, @amount },
       (err, charge) =>
         return callback err  if err
 
         @status = charge.status
-        @save (err)-> callback err, this
+        @save (err) -> callback err, this
+
+

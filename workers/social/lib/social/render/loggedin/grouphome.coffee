@@ -1,4 +1,4 @@
-module.exports = (options, callback)->
+module.exports = (options, callback) ->
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
@@ -12,10 +12,10 @@ module.exports = (options, callback)->
     bongoModels, client
   } = options
 
-  entryPoint = { slug : slug, type: "group" }
+  entryPoint = { slug : slug, type: 'group' }
   options.entryPoint = entryPoint
 
-  prepareHTML = (scripts)->
+  prepareHTML = (scripts) ->
     """
 
     <!DOCTYPE html>
@@ -35,5 +35,7 @@ module.exports = (options, callback)->
 
     """
 
-  fetchScripts options, (err, scripts)->
+  fetchScripts options, (err, scripts) ->
     callback null, prepareHTML scripts
+
+

@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 
@@ -5,9 +6,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
 
-  {secure, ObjectId, signature, daisy} = require 'bongo'
-  {Relationship}     = jraphical
-  {permit}           = require './group/permissionset'
+  { secure, ObjectId, signature, daisy } = require 'bongo'
+  { Relationship }   = jraphical
+  { permit }         = require './group/permissionset'
   Validators         = require './group/validators'
 
   @trait __dirname, '../traits/protected'
@@ -91,35 +92,35 @@ module.exports = class JComputeStack extends jraphical.Module
 
       status             :
         type             : String
-        enum             : ["Wrong type specified!", [
+        enum             : ['Wrong type specified!', [
 
           # States which description ending with '...' means its an ongoing
           # proccess which you may get progress info about it
           #
-          "Initial"         # Initial state
-          "Terminating"     # Stack is getting destroyed...
-          "Terminated"      # Stack is destroyed, not exists anymore
+          'Initial'         # Initial state
+          'Terminating'     # Stack is getting destroyed...
+          'Terminated'      # Stack is destroyed, not exists anymore
         ]]
 
-        default          : -> "Initial"
+        default          : -> 'Initial'
 
 
-  @getStack = (account, _id, callback)->
+  @getStack = (account, _id, callback) ->
 
-    JComputeStack.one { _id, originId : account.getId() }, (err, stackObj)->
+    JComputeStack.one { _id, originId : account.getId() }, (err, stackObj) ->
       if err? or not stackObj?
-        return callback new KodingError "A valid stack id required"
+        return callback new KodingError 'A valid stack id required'
       callback null, stackObj
 
 
-  appendTo: (itemToAppend, callback)->
+  appendTo: (itemToAppend, callback) ->
 
     # itemToAppend is like: { machines: machine.getId() }
 
     # TODO add check for itemToAppend to make sure its just ~ GG
     # including supported fields: [rules, domains, machines, extras]
 
-    @update $addToSet: itemToAppend, (err)-> callback err
+    @update $addToSet: itemToAppend, (err) -> callback err
 
 
   ###*
@@ -129,7 +130,7 @@ module.exports = class JComputeStack extends jraphical.Module
    * @param  {Function} callback
    * @return {void}
   ###
-  @create$ = permit 'create stack', success: (client, data, callback)->
+  @create$ = permit 'create stack', success: (client, data, callback) ->
 
     data.account   = client.connection.delegate
     data.groupSlug = client.context.group
@@ -164,14 +165,14 @@ module.exports = class JComputeStack extends jraphical.Module
       callback null, stack
 
 
-  @getSelector = (client, selector)->
+  @getSelector = (client, selector) ->
 
     { delegate } = client.connection
     { group }    = client.context
 
     selector ?= {}
     selector.originId = delegate.getId()
-    selector.status   = $ne: "Terminated"
+    selector.status   = { $ne: 'Terminated' }
     selector.group    = group
 
     return selector
@@ -179,7 +180,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
   @some$ = permit 'list stacks',
 
-    success: (client, selector, options, callback)->
+    success: (client, selector, options, callback) ->
 
       [options, callback] = [callback, options]  unless callback
       options ?= {}
@@ -187,11 +188,11 @@ module.exports = class JComputeStack extends jraphical.Module
       selector = @getSelector client, selector
 
 
-      JComputeStack.some selector, options, (err, _stacks)->
+      JComputeStack.some selector, options, (err, _stacks) ->
 
         if err
 
-          msg = "Failed to fetch stacks"
+          msg = 'Failed to fetch stacks'
           callback new KodingError msg
           console.warn msg, err
 
@@ -217,23 +218,23 @@ module.exports = class JComputeStack extends jraphical.Module
 
 
 
-  revive: (callback)->
+  revive: (callback) ->
 
-    JProposedDomain = require "./domain"
-    JMachine = require "./computeproviders/machine"
+    JProposedDomain = require './domain'
+    JMachine = require './computeproviders/machine'
 
     queue    = []
     domains  = []
     machines = []
 
-    (@machines ? []).forEach (machineId)->
-      queue.push -> JMachine.one _id: machineId, (err, machine)->
+    (@machines ? []).forEach (machineId) ->
+      queue.push -> JMachine.one { _id: machineId }, (err, machine) ->
         if not err? and machine
           machines.push machine
         queue.next()
 
-    (@domains ? []).forEach (domainId)->
-      queue.push -> JProposedDomain.one _id: domainId, (err, domain)->
+    (@domains ? []).forEach (domainId) ->
+      queue.push -> JProposedDomain.one { _id: domainId }, (err, domain) ->
         if not err? and domain
           domains.push domain
         queue.next()
@@ -255,37 +256,37 @@ module.exports = class JComputeStack extends jraphical.Module
       { permission: 'delete own stack', validateWith: Validators.own }
     ]
 
-    success: (client, callback)->
+    success: (client, callback) ->
 
       # TODO Implement delete methods.
-      @update $set: status: "Terminating"
+      @update { $set: { status: 'Terminating' } }
 
-      JProposedDomain  = require "./domain"
-      JMachine = require "./computeproviders/machine"
+      JProposedDomain  = require './domain'
+      JMachine = require './computeproviders/machine'
 
       { delegate } = client.connection
 
-      @domains?.forEach (_id)->
-        JProposedDomain.one {_id}, (err, domain)->
+      @domains?.forEach (_id) ->
+        JProposedDomain.one { _id }, (err, domain) ->
           if not err? and domain?
-            domain.remove (err)->
+            domain.remove (err) ->
               if err then console.error \
                 "Failed to remove domain: #{domain.domain}", err
 
-      @machines?.forEach (_id)->
-        JMachine.one {_id}, (err, machine)->
+      @machines?.forEach (_id) ->
+        JMachine.one { _id }, (err, machine) ->
           if not err? and machine?
-            machine.remove (err)->
+            machine.remove (err) ->
               if err then console.error \
                 "Failed to remove machine: #{machine.title}", err
 
       Relationship.remove {
-        targetName : "JStackTemplate"
+        targetName : 'JStackTemplate'
         targetId   : @baseStackId
         sourceId   : delegate.getId()
-        sourceName : "JAccount"
-        as         : "user"
-      }, (err)=>
+        sourceName : 'JAccount'
+        as         : 'user'
+      }, (err) =>
 
         @remove callback
 
@@ -297,17 +298,17 @@ module.exports = class JComputeStack extends jraphical.Module
       { permission: 'update own stack', validateWith: Validators.own }
     ]
 
-    success: (client, options, callback)->
+    success: (client, options, callback) ->
 
       { title, config } = options
 
       unless title or config
-        return callback new KodingError "Nothing to update"
+        return callback new KodingError 'Nothing to update'
 
       title  ?= @title
       config ?= @config
 
-      @update $set : { title, config }, (err)->
+      @update $set : { title, config }, (err) ->
         return callback err  if err?
         callback null
 
@@ -338,10 +339,10 @@ module.exports = class JComputeStack extends jraphical.Module
       if not @baseStackId
         return callback null, stackRevisionErrors.NOTFROMTEMPLATE
 
-      JStackTemplate = require "./computeproviders/stacktemplate"
+      JStackTemplate = require './computeproviders/stacktemplate'
       JStackTemplate.one { _id: @baseStackId }, (err, template) =>
         return callback err  if err
-        return callback new KodingError "Template not valid"  unless template
+        return callback new KodingError 'Template not valid'  unless template
 
         status =
           if not template?.template?.sum or not @stackRevision
@@ -352,3 +353,5 @@ module.exports = class JComputeStack extends jraphical.Module
             stackRevisionErrors.TEMPLATEDIFFERENT
 
         callback null, { status, machineCount: template.machines.length }
+
+

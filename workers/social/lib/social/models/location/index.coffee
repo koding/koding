@@ -1,4 +1,5 @@
-{Model, secure, daisy, signature} = require 'bongo'
+KodingError = require '../../error'
+{ Model, secure, daisy, signature } = require 'bongo'
 
 module.exports = class JLocation extends Model
 
@@ -30,7 +31,7 @@ module.exports = class JLocation extends Model
 
     JLocationState = require './state'
 
-    JLocationState.all { countryCode }, (err, states)->
+    JLocationState.all { countryCode }, (err, states) ->
       if err
       then callback err
       else callback null,
@@ -47,9 +48,9 @@ module.exports = class JLocation extends Model
 
   @importStates = secure (client, callback) ->
 
-    {delegate} = client.connection
+    { delegate } = client.connection
 
-    return callback { message: "Access denied!" }  unless delegate.can 'flag'
+    return callback new KodingError 'Access denied!'  unless delegate.can 'flag'
 
     JLocationState = require './state'
 
@@ -84,9 +85,9 @@ module.exports = class JLocation extends Model
 
   @importAll = secure (client, callback) ->
 
-    {delegate} = client.connection
+    { delegate } = client.connection
 
-    return callback { message: 'Access denied!' }  unless delegate.can 'flag'
+    return callback new KodingError 'Access denied!'  unless delegate.can 'flag'
 
     importer = (require 'koding-zips-importer')
       collectionName  : @getCollectionName()
@@ -95,3 +96,5 @@ module.exports = class JLocation extends Model
     importer
       .once('error', callback)
       .once('end', => @importStates client, callback)
+
+

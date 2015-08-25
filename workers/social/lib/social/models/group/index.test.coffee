@@ -747,3 +747,5 @@ runTests = -> describe 'workers.social.group.index', ->
 beforeTests()
 
 runTests()
+
+

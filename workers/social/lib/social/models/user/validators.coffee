@@ -1,3 +1,5 @@
+# coffeelint: disable=indentation
+# coffeelint: disable=no_implicit_braces
 isEmailValid = require './emailchecker'
 
 module.exports = class Validators
@@ -37,7 +39,7 @@ module.exports = class Validators
   # ['firstName', 'lastName'].forEach required
 
 
-  agree: ({agree}, callback) ->
+  agree: ({ agree }, callback) ->
 
     callback \
       unless agree is 'on'
@@ -46,9 +48,9 @@ module.exports = class Validators
         null
 
 
-  email: ({email}, callback)->
+  email: ({ email }, callback) ->
 
-    isEmailValid email, (valid)->
+    isEmailValid email, (valid) ->
 
       callback \
         unless valid
@@ -57,12 +59,12 @@ module.exports = class Validators
           null
 
 
-  username: ({username}, callback) ->
+  username: ({ username }, callback) ->
 
     unless username?
       return callback createKodingError 'Missed a required field: username'
 
-    @usernameAvailable username, (err, r) =>
+    @usernameAvailable username, (err, r) ->
 
       # r =
       #   forbidden    : yes/no
@@ -80,7 +82,7 @@ module.exports = class Validators
           null
 
 
-  password: ({password, passwordConfirm}, callback) ->
+  password: ({ password, passwordConfirm }, callback) ->
 
     callback \
 

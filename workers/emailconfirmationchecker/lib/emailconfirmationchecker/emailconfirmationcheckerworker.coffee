@@ -43,3 +43,5 @@ module.exports = class EmailConfirmationChecker
   init: ->
     guestCleanerCron = new CronJob @options.cronSchedule, @logoutUnregisteredUsers
     guestCleanerCron.start()
+
+

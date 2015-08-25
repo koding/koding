@@ -1,6 +1,6 @@
 { argv }                      = require 'optimist'
-{ expect }                    = require "chai"
-{ env : {MONGO_URL} }         = process
+{ expect }                    = require 'chai'
+{ env : { MONGO_URL } }       = process
 
 KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -26,13 +26,13 @@ TestHelper                    = require '../../../../testhelper'
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
 
-    bongo = new Bongo
-      root   : __dirname
-      mongo  : mongo
-      models : ''
+  bongo = new Bongo
+    root   : __dirname
+    mongo  : mongo
+    models : ''
 
-    bongo.once 'dbClientReady', ->
-      done()
+  bongo.once 'dbClientReady', ->
+    done()
 
 
 # this function will be called after all tests are executed
@@ -288,7 +288,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # setting two factor authentication on by adding twofactorkey field
-          JUser.update { username }, { $set: twofactorkey: 'somekey' }, (err) ->
+          JUser.update { username }, { $set: { twofactorkey: 'somekey' } }, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -311,7 +311,7 @@ runTests = -> describe 'workers.social.user.index', ->
           { base32 : tfcode } = Speakeasy.generate_key
             length    : 20
             encoding  : 'base32'
-          JUser.update { username }, { $set: twofactorkey: tfcode }, (err) ->
+          JUser.update { username }, { $set: { twofactorkey: tfcode } }, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -353,8 +353,8 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting not to able to login without an account
-          JUser.login null, loginCredentials, (err)->
-            expect(err.message).to.be.equal "No account found!"
+          JUser.login null, loginCredentials, (err) ->
+            expect(err.message).to.be.equal 'No account found!'
             queue.next()
 
         -> done()
@@ -382,7 +382,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting successful login with the newly generated user
-          JUser.login null, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -395,7 +395,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting login attempt to fail and return blocked message
-          JUser.login null, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err) ->
             toDate = user.blockedUntil.toUTCString()
             expect(err.message).to.be.equal JUser.getBlockedMessage toDate
             queue.next()
@@ -408,7 +408,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting user to be able to login
-          JUser.login null, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -426,7 +426,7 @@ runTests = -> describe 'workers.social.user.index', ->
       loginCredentials          = generateCredentials { username, password }
 
       setUserPasswordStatus = (queue, username, status) ->
-        JUser.update { username }, { $set: passwordStatus: status }, (err) ->
+        JUser.update { username }, { $set: { passwordStatus: status } }, (err) ->
           expect(err).to.not.exist
           queue.next()
 
@@ -443,7 +443,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting successful login
-          JUser.login null, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.not.exist
             queue.next()
 
@@ -452,7 +452,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # expecting unsuccessful login attempt
-          JUser.login null, loginCredentials, (err)->
+          JUser.login null, loginCredentials, (err) ->
             expect(err).to.exist
             queue.next()
 
@@ -593,7 +593,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
       JUser.convert client, userFormData, (err) ->
         expect(err)         .to.exist
-        expect(err.message) .to.be.equal "This account is already registered."
+        expect(err.message) .to.be.equal 'This account is already registered.'
         done()
 
 
@@ -623,7 +623,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
       JUser.convert client, userFormData, (err) ->
         expect(err)         .to.exist
-        expect(err.message) .to.be.equal "Passwords must match!"
+        expect(err.message) .to.be.equal 'Passwords must match!'
         done()
 
 
@@ -690,7 +690,7 @@ runTests = -> describe 'workers.social.user.index', ->
         ->
           params = { username : userFormData.username }
 
-          JUser.one params, (err, { data : {email, registeredFrom} }) ->
+          JUser.one params, (err, { data : { email, registeredFrom } }) ->
             expect(err)               .to.not.exist
             expect(email)             .to.be.equal userFormData.email
             expect(registeredFrom.ip) .to.be.equal client.clientIP
@@ -699,7 +699,7 @@ runTests = -> describe 'workers.social.user.index', ->
         ->
           params = { 'profile.nickname' : userFormData.username }
 
-          JAccount.one params, (err, { data : {profile} }) ->
+          JAccount.one params, (err, { data : { profile } }) ->
             expect(err)               .to.not.exist
             expect(profile.nickname)  .to.be.equal userFormData.username
             queue.next()

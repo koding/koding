@@ -1,12 +1,13 @@
-{Module} = require 'jraphical'
+# coffeelint: disable=no_implicit_braces
+{ Module } = require 'jraphical'
 
 JMachine = require './computeproviders/machine'
 
 module.exports = class JWorkspace extends Module
 
   KodingError  = require '../error'
-  {slugify}    = require '../traits/slugifiable'
-  {signature, secure, ObjectId} = require 'bongo'
+  { slugify }    = require '../traits/slugifiable'
+  { signature, secure, ObjectId } = require 'bongo'
 
   @share()
 
@@ -46,7 +47,7 @@ module.exports = class JWorkspace extends Module
 
   @create$ = secure (client, data, callback) ->
 
-    {delegate}    = client.connection
+    { delegate }    = client.connection
     data.originId = delegate._id
 
     @create client, data, callback
@@ -54,13 +55,13 @@ module.exports = class JWorkspace extends Module
 
   @create = secure (client, data, callback) ->
 
-    {delegate}     = client.connection
+    { delegate }     = client.connection
     data.originId ?= delegate._id
 
     nickname  = delegate.profile.nickname
     data.slug = slugify data.name?.toLowerCase()
 
-    {name, slug, machineUId, rootPath, originId, machineLabel} = data
+    { name, slug, machineUId, rootPath, originId, machineLabel } = data
 
     # we don't support saving layout for now, i will set it to empty object
     # to prevent storing any kind of data in it. -- acetz!
@@ -88,14 +89,14 @@ module.exports = class JWorkspace extends Module
           name: name
           groupName: slug
 
-        @emit 'messageBusEvent', {type: "social.workspace_created", message: message}
+        @emit 'messageBusEvent', { type: 'social.workspace_created', message: message }
 
         return callback null, workspace
 
     if data.isDefault
     then kallback data.name, data.slug
     else
-      generateUniqueName { originId, name, machineUId }, (err, res)->
+      generateUniqueName { originId, name, machineUId }, (err, res) ->
 
         return callback err  if err?
 
@@ -104,12 +105,12 @@ module.exports = class JWorkspace extends Module
         kallback name, slug
 
 
-  generateUniqueName = ({originId, machineUId, name, index}, callback)->
+  generateUniqueName = ({ originId, machineUId, name, index }, callback) ->
 
     slug = if index? then "#{name}-#{index}" else name
     slug = slugify slug
 
-    JWorkspace.count { originId, slug, machineUId }, (err, count)->
+    JWorkspace.count { originId, slug, machineUId }, (err, count) ->
 
       return callback err  if err?
 
@@ -130,7 +131,7 @@ module.exports = class JWorkspace extends Module
 
     query.originId = client.connection.delegate._id
 
-    JWorkspace.some query, limit: 30, callback
+    JWorkspace.some query, { limit: 30 }, callback
 
 
   @fetchByMachines$ = secure (client, callback) ->
@@ -138,40 +139,40 @@ module.exports = class JWorkspace extends Module
     client.connection.delegate.fetchUser (err, user) ->
       return callback err  if err
 
-      query = 'users.id': user.getId()
+      query = { 'users.id': user.getId() }
 
       JMachine.some query, {}, (err, machines) ->
         return callback err  if err
 
         machineUIds = machines.map (machine) -> machine.uid
-        JWorkspace.some machineUId: $in: machineUIds, {}, callback
+        JWorkspace.some { machineUId: { $in: machineUIds } }, {}, callback
 
 
-  @deleteById = secure (client, id, callback)->
+  @deleteById = secure (client, id, callback) ->
 
     selector   =
       originId : client.connection.delegate._id
       _id      : ObjectId id
 
-    JWorkspace.one selector, (err, ws)->
+    JWorkspace.one selector, (err, ws) ->
       return callback err  if err?
       unless ws
         callback new KodingError 'Workspace not found.'
       else
-        ws.remove (err)-> callback err
+        ws.remove (err) -> callback err
 
 
-  @deleteByUid = secure (client, uid, callback)->
+  @deleteByUid = secure (client, uid, callback) ->
 
     selector     =
       originId   : client.connection.delegate._id
       machineUId : uid
 
-    JWorkspace.remove selector, (err)->
+    JWorkspace.remove selector, (err) ->
       callback err
 
 
-  delete: secure (client, callback)->
+  delete: secure (client, callback) ->
 
     { delegate } = client.connection
 
@@ -181,7 +182,7 @@ module.exports = class JWorkspace extends Module
     @remove callback
 
 
-  @update: secure (client, id, options, callback)->
+  @update: secure (client, id, options, callback) ->
 
     selector   =
       originId : client.connection.delegate._id
@@ -201,9 +202,9 @@ module.exports = class JWorkspace extends Module
       return callback err  if err
       return callback 'Machine not found'  unless machine
 
-      {nickname} = client.connection.delegate.profile
+      { nickname } = client.connection.delegate.profile
       rootPath   = '/'  if machine.provider is 'managed'
-      selector   = {machineUId, slug: 'my-workspace'}
+      selector   = { machineUId, slug: 'my-workspace' }
 
       @one selector, (err, workspace) =>
 
@@ -214,7 +215,7 @@ module.exports = class JWorkspace extends Module
 
           return callback err  if err
 
-          {nickname}     = account.profile
+          { nickname }     = account.profile
 
           data           =
             name         : 'My Workspace'
@@ -225,3 +226,5 @@ module.exports = class JWorkspace extends Module
             originId     : account.getId()
 
           @create client, data, callback
+
+

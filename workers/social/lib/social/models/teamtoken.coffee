@@ -1,11 +1,12 @@
+# coffeelint: disable=no_implicit_braces
 # JTeamInvitation is a temporary invitation token collection will be used for
 # inviting companies to use/try teams product, this file should be removed after
 # releasing teams product.
-{argv}      = require 'optimist'
+{ argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
-shortid     = require('shortid');
-Bongo       = require "bongo"
+shortid     = require 'shortid'
+Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
@@ -19,7 +20,7 @@ module.exports = class JTeamInvitation extends jraphical.Module
 
   @trait __dirname, '../traits/protected'
 
-  {permit} = require './group/permissionset'
+  { permit } = require './group/permissionset'
 
   @share()
 
@@ -63,12 +64,12 @@ module.exports = class JTeamInvitation extends jraphical.Module
         default     : -> new Date
 
   markAsUsed: (callback) ->
-    operation = $set : { status: 'used' }
+    operation = { $set : { status: 'used' } }
     @update operation, callback
 
   validTypes: ['pending']
 
-  isValid:-> @status in @validTypes
+  isValid: -> @status in @validTypes
 
   remove$: permit 'send invitations',
     success: (client, callback) ->
@@ -80,7 +81,7 @@ module.exports = class JTeamInvitation extends jraphical.Module
       data =   {
         code      : options.code or shortid.generate()[0..3] # eg: VJPj9
         email     : options.email
-        groupName : options.groupName or "koding"
+        groupName : options.groupName or 'koding'
       }
 
       invite = new JTeamInvitation data
@@ -89,5 +90,5 @@ module.exports = class JTeamInvitation extends jraphical.Module
         return callback null, invite
 
   @byCode: (code, callback) ->
-    @one {code}, callback
+    @one { code }, callback
 

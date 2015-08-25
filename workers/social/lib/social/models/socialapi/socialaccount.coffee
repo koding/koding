@@ -1,4 +1,4 @@
-{Base} = require "bongo"
+{ Base } = require 'bongo'
 
 # this file named as socialaccount while it is under social folder, because i
 # dont want it to be listed first item while searching for account.coffe in
@@ -10,29 +10,29 @@ module.exports = class SocialAccount extends Base
   SocialChannel = require './channel'
   Validators    = require '../group/validators'
 
-  { bareRequest } = require "./helper"
+  { bareRequest } = require './helper'
 
-  @update = (args...)-> bareRequest 'updateAccount', args...
+  @update = (args...) -> bareRequest 'updateAccount', args...
 
   do ->
     JAccount = require '../account'
     JUser    = require '../user'
 
-    updateSocialAccount = (username)->
+    updateSocialAccount = (username) ->
 
-      JAccount.one "profile.nickname" : username, (err, account)->
+      JAccount.one { 'profile.nickname' : username }, (err, account) ->
         return console.error err if err?
-        return console.error {message: "account is not valid"} unless account?
+        return console.error { message: 'account is not valid' } unless account?
 
         SocialAccount.update {
           id   : account.socialApiId
           nick : username
-        }, (err)->
+        }, (err) ->
           if err?
-            console.error "err while updating account in social api", err
+            console.error 'err while updating account in social api', err
 
 
-    JAccount.on 'UsernameChanged', (data)->
+    JAccount.on 'UsernameChanged', (data) ->
       { oldUsername, username, isRegistration } = data
 
       unless oldUsername and username
@@ -44,7 +44,7 @@ module.exports = class SocialAccount extends Base
     # in postgres and social parts fetch email from mongo, we are just
     # triggering account update on postgres, so other services can get that
     # event and operate accordingly
-    JUser.on 'EmailChanged', (data)->
+    JUser.on 'EmailChanged', (data) ->
       { username } = data
 
       unless username
@@ -53,21 +53,21 @@ module.exports = class SocialAccount extends Base
       updateSocialAccount username
 
     JGroup.on 'MemberRemoved', (data) ->
-      participantHandler "removeParticipants", data
+      participantHandler 'removeParticipants', data
 
     JGroup.on 'MemberAdded', (data) ->
-      participantHandler "addParticipants", data
+      participantHandler 'addParticipants', data
 
-    participantHandler = (funcName, data)->
+    participantHandler = (funcName, data) ->
       { group, member } = data
-      group.fetchAdmin (err, admin)=>
-        return console.error "err while fetching admin", err  if err
-        return console.error "couldnt find admin"  unless admin
+      group.fetchAdmin (err, admin) ->
+        return console.error 'err while fetching admin', err  if err
+        return console.error 'couldnt find admin'  unless admin
 
         sessionData = { username: admin.profile.nickname, groupName: group.slug }
-        JSession.fetchSessionByData sessionData, (err, session)->
-          return console.error "err while fetching session", err  if err
-          return console.error "couldnt find a session"  unless session
+        JSession.fetchSessionByData sessionData, (err, session) ->
+          return console.error 'err while fetching session', err  if err
+          return console.error 'couldnt find a session'  unless session
 
           client = {}
           client.sessionToken = session.clientId
@@ -78,13 +78,13 @@ module.exports = class SocialAccount extends Base
           client.connection.delegate  = admin
           client.connection.groupName = group.slug
 
-          group.createSocialApiChannels client, (err, socialApiChannels)->
-            return console.error "couldnt create socialapi channels", err  if err
+          group.createSocialApiChannels client, (err, socialApiChannels) ->
+            return console.error 'couldnt create socialapi channels', err  if err
             { socialApiChannelId, socialApiAnnouncementChannelId } = socialApiChannels
 
             # ensure member has socialapi id
-            member.createSocialApiId (err, socialApiId)->
-              return console.error "couldnt create socialapi id", err  if err
+            member.createSocialApiId (err, socialApiId) ->
+              return console.error 'couldnt create socialapi id', err  if err
 
               options =
                 channelId  : socialApiChannelId
@@ -95,7 +95,7 @@ module.exports = class SocialAccount extends Base
                 return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
 
                 # only add koding's members to announcement channel
-                return if group.slug isnt "koding"
+                return if group.slug isnt 'koding'
 
                 options =
                   channelId  : socialApiAnnouncementChannelId

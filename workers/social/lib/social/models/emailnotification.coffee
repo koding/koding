@@ -1,5 +1,5 @@
-{Model, Base, ObjectId, secure, signature} = require 'bongo'
-{extend} = require 'underscore'
+{ Model, Base, ObjectId, secure, signature } = require 'bongo'
+{ extend } = require 'underscore'
 KodingError = require '../error'
 
 { v4: createId } = require 'node-uuid'
@@ -66,11 +66,11 @@ module.exports = class JMailNotification extends Model
     groupInvite          :
       eventType          : ['Invited']
       contentTypes       : ['JGroup'],
-      definition         : "when someone invites you to their group"
+      definition         : 'when someone invites you to their group'
     groupRequest         :
       eventType          : ['ApprovalRequested', 'InvitationRequested']
       contentTypes       : ['JGroup'],
-      definition         : "when someone requests membership to group"
+      definition         : 'when someone requests membership to group'
     groupApproved        :
       eventType          : ['Approved']
       contentTypes       : ['JGroup'],
@@ -78,23 +78,23 @@ module.exports = class JMailNotification extends Model
     groupJoined          :
       eventType          : ['GroupJoined']
       contentTypes       : ['JGroup'],
-      definition         : "when a member joins your group"
+      definition         : 'when a member joins your group'
     groupLeft            :
       eventType          : ['GroupLeft']
       contentTypes       : ['JGroup'],
-      definition         : "when a member leaves your group"
+      definition         : 'when a member leaves your group'
 
-  @checkEmailChoice = (options, callback)->
+  @checkEmailChoice = (options, callback) ->
 
-    {username, contentType, event} = options
+    { username, contentType, event } = options
 
     JUser = require './user'
-    JUser.someData {username}, {email:1, emailFrequency:1}, (err, cursor)->
+    JUser.someData { username }, { email:1, emailFrequency:1 }, (err, cursor) ->
       if err
         console.error "Could not load user record for #{username}"
         callback err
-      else cursor.nextObject (err, user)->
-        {emailFrequency, email} = user
+      else cursor.nextObject (err, user) ->
+        { emailFrequency, email } = user
         unless emailFrequency?
           callback null
         else
@@ -107,9 +107,9 @@ module.exports = class JMailNotification extends Model
                   return
           callback null
 
-  @create = (data, callback=->)->
+  @create = (data, callback = -> ) ->
 
-    {actor, receiver, event, contents, bcc} = data
+    { actor, receiver, event, contents, bcc } = data
 
     return callback null  if receiver.type is 'unregistered'
 
@@ -143,18 +143,18 @@ module.exports = class JMailNotification extends Model
                              when contentType in type.contentTypes \
                              and event in type.eventType][0][0]?[0]
 
-    selector = {event, receiver, contentId}
+    selector = { event, receiver, contentId }
     if sender instanceof ObjectId
     then selector.sender = sender
     else selector.senderEmail = sender
 
-    JMailNotification.count selector, (err, count)->
+    JMailNotification.count selector, (err, count) ->
       if not err and count is 0
         notification = new JMailNotification extend selector, {
-          eventFlag, activity, unsubscribeId: getUniqueId()+getUniqueId()+'', bcc
+          eventFlag, activity, unsubscribeId: getUniqueId() + getUniqueId() + '', bcc
         }
         # console.log "OK good to go."
-        notification.save (err)->
+        notification.save (err) ->
           if err then console.error err
           else
             callback null
@@ -162,13 +162,13 @@ module.exports = class JMailNotification extends Model
       # else
       #   console.log "Already exists"
 
-  @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
+  @unsubscribeWithId = (unsubscribeId, email, opt, callback) ->
 
-    JMailNotification.one {unsubscribeId}, (err, notification)->
+    JMailNotification.one { unsubscribeId }, (err, notification) ->
       if err or not notification then callback err
       else
         JAccount = require './account'
-        JAccount.one {_id: notification.receiver}, (err, account)->
+        JAccount.one { _id: notification.receiver }, (err, account) ->
           if err or not account then callback err
           else
             prefs = {}
@@ -179,14 +179,16 @@ module.exports = class JMailNotification extends Model
               prefs.daily = false
             else
               prefs[notification.eventFlag] = false
-              {definition} = flags[notification.eventFlag]
+              { definition } = flags[notification.eventFlag]
             username = account.profile.nickname
             JUser = require './user'
-            JUser.one {username}, (err, user)->
+            JUser.one { username }, (err, user) ->
               if err or not user then callback err
               else if user.email isnt email
                 callback new KodingError 'Unsubscribe token does not match given email.'
-              else account.setEmailPreferences user, prefs, (err)->
+              else account.setEmailPreferences user, prefs, (err) ->
                 if err then callback err
                 else
                   callback null, "You will no longer get e-mails #{definition}"
+
+

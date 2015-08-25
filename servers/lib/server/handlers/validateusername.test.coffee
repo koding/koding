@@ -5,13 +5,9 @@ request                                   = require 'request'
 { daisy }                                 = Bongo
 { expect }                                = require 'chai'
 { generateRandomString
-  generateRandomUsername
-
-  RegisterHandlerHelper
-  ValidationHandlerHelper }               = require '../../../testhelper'
-
-{ generateRegisterRequestParams }         = RegisterHandlerHelper
-{ generateValidateUsernameRequestParams } = ValidationHandlerHelper
+  generateRandomUsername }                = require '../../../testhelper'
+{ generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
+{ generateValidateUsernameRequestParams } = require '../../../testhelper/handler/validateusernamehelper'
 
 JUser                                     = null
 

@@ -1,6 +1,6 @@
 { argv }                      = require 'optimist'
-{ expect }                    = require "chai"
-{ env : {MONGO_URL} }         = process
+{ expect }                    = require 'chai'
+{ env : { MONGO_URL } }       = process
 
 KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -24,13 +24,13 @@ TestHelper                    = require '../../../testhelper'
 # making sure we have db connection before tests
 beforeTests = -> before (done) ->
 
-    bongo = new Bongo
-      root   : __dirname
-      mongo  : mongo
-      models : ''
+  bongo = new Bongo
+    root   : __dirname
+    mongo  : mongo
+    models : ''
 
-    bongo.once 'dbClientReady', ->
-      done()
+  bongo.once 'dbClientReady', ->
+    done()
 
 
 # here we have actual tests
@@ -240,7 +240,7 @@ runTests = -> describe 'workers.social.user.account', ->
           ->
             # unsetting account's socialApiId
             account.socialApiId = null
-            account.update { $unset : 'socialApiId' : 1 }, (err) ->
+            account.update { $unset : { 'socialApiId' : 1 } }, (err) ->
               expect(err)                          .to.not.exist
               expect(account.getAt 'socialApiId')  .to.not.exist
               queue.next()
