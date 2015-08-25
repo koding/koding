@@ -42,21 +42,6 @@ module.exports = class CredentialStatusView extends kd.View
     @stalledView.addSubView @link = new kd.CustomHTMLView
       cssClass   : 'link'
       partial    : 'Credentials are not set'
-      click      : =>
-
-        modal = new CredentialSelectorModal
-          selectedCredentials: @credentials
-
-        modal.on 'ItemSelected', (credential) =>
-
-          # After adding credential, we are sharing it with the current
-          # group, so anyone in this group can use this credential ~ GG
-          {slug} = kd.singletons.groupsController.getCurrentGroup()
-          credential.shareWith {target: slug}, (err) =>
-            console.warn 'Failed to share credential:', err  if err
-            @setCredential credential
-            modal.destroy()
-
 
     creds = Object.keys @credentials
 
