@@ -23,8 +23,11 @@ impersonate           = require 'app/util/impersonate'
 getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
+ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 module.exports = class ChatListItem extends React.Component
+
+  @include [ImmutableRenderMixin]
 
   @defaultProps =
     hover                         : no
@@ -36,6 +39,7 @@ module.exports = class ChatListItem extends React.Component
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
+
 
 
   constructor: (props) ->
