@@ -36,7 +36,7 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                   account.fetchEmail (err, email) =>
                     return @showError err  if err
                     @doRecover email
-                  @destroy()
+                    @destroy()
 
             fields                :
               password            :
@@ -50,7 +50,7 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
                     required      : "Current Password required!"
 
     super options
-    
+
   doRecover:(email)->
     $.ajax
       url         : '/Recover'
