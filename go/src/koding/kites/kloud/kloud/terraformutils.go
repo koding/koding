@@ -294,7 +294,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-// func injectKodingVariables(ctx context.Context, content string) (string, error) {
+// func injectKodingVariables(ctx context.Context, content string, data *terraformData) (string, error) {
 // 	sess, ok := session.FromContext(ctx)
 // 	if !ok {
 // 		return "", errors.New("session context is not passed")
@@ -322,7 +322,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 //
 // 	return "", nil
 // }
-//
+
 func injectKodingData(ctx context.Context, content, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -509,7 +509,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	return multiErrors
 }
 
-func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
+func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {

@@ -49,7 +49,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	k.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
+	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	defer tfKite.Close()
 
 	var region string
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		region, err = cred.region()
 		if err != nil {
 			return nil, err
@@ -77,7 +77,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	sess.Log.Debug("Plan: stack template before injecting Koding data")
-	buildData, err := injectKodingData(ctx, stackTemplate.Template.Content, r.Username, creds)
+	buildData, err := injectKodingData(ctx, stackTemplate.Template.Content, r.Username, data)
 	if err != nil {
 		return nil, err
 	}
