@@ -1,14 +1,12 @@
 kd             = require 'kd'
+KDView         = kd.View
 JView          = require 'app/jview'
 remote         = require('app/remote').getInstance()
-
 curryIn        = require 'app/util/curryIn'
 showError      = require 'app/util/showError'
 
-CredentialSelectorModal = require './credentialselectormodal'
 
-
-module.exports = class CredentialStatusView extends kd.View
+module.exports = class CredentialStatusView extends KDView
 
   JView.mixin @prototype
 
@@ -22,7 +20,7 @@ module.exports = class CredentialStatusView extends kd.View
     @credentials   or= {}
 
     # Waiting state view
-    @waitingView = new kd.View
+    @waitingView = new KDView
 
     @waitingView.addSubView @loader  = new kd.LoaderView
       showLoader : yes
@@ -33,7 +31,7 @@ module.exports = class CredentialStatusView extends kd.View
       partial    : 'Checking credentials...'
 
     # Stalled state view
-    @stalledView = new kd.View
+    @stalledView = new KDView
       cssClass   : 'hidden'
 
     @stalledView.addSubView @icon = new kd.CustomHTMLView
@@ -61,10 +59,10 @@ module.exports = class CredentialStatusView extends kd.View
 
     return @setNotVerified()  unless credential
 
-    creds             = {}
-    @credentialsData  = [credential]
-    @credentials      = creds[credential.provider] = [credential.identifier]
-    {provider, title} = credential
+    creds               = {}
+    @credentialsData    = [credential]
+    @credentials        = creds[credential.provider] = [credential.identifier]
+    { provider, title } = credential
     @setVerified "
       A credential titled as '#{title}' for #{provider} provider is selected.
     "

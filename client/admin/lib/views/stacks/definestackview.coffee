@@ -63,7 +63,7 @@ module.exports = class DefineStackView extends KDView
 
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        @stackTemplate.credentialStatus.setCredential credential
+        @stackTemplateView.credentialStatus.setCredential credential
 
 
     # TODO getrid off from these css properties ~ GG
@@ -146,7 +146,7 @@ module.exports = class DefineStackView extends KDView
 
   checkAndBootstrapCredentials: (callback) ->
 
-    { credentialsData } = @credentialStatus
+    { credentialsData } = @stackTemplateView.credentialStatus
     [credential]        = credentialsData
 
     failed = (err) =>

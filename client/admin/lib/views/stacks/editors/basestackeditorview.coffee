@@ -2,7 +2,7 @@ kd                  = require 'kd'
 Encoder             = require 'htmlencode'
 curryIn             = require 'app/util/curryIn'
 FSHelper            = require 'app/util/fs/fshelper'
-{jsonToYaml}        = require '../yamlutils'
+{ jsonToYaml }      = require '../yamlutils'
 IDEEditorPane       = require 'ide/workspace/panes/ideeditorpane'
 KDNotificationView  = kd.NotificationView
 
