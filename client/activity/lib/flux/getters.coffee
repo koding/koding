@@ -12,6 +12,7 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 # immutable list if data from the store is falsy.
 
 ChannelFlagsStore              = [['ChannelFlagsStore'], withEmptyMap]
+MessageFlagsStore              = [['MessageFlagsStore'], withEmptyMap]
 ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
 MessagesStore                  = [['MessagesStore'], withEmptyMap]
 ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
@@ -183,8 +184,11 @@ selectedMessage = [
 messageThreads = [
   MessageThreadsStore
   MessagesStore
-  (threads, messages) ->
+  MessageFlagsStore
+  (threads, messages, messageFlags) ->
     threads.map (thread) ->
+      messageId = thread.get 'messageId'
+      thread = thread.set 'flags', messageFlags.get messageId
       # replace messageIds in list with message instances.
       thread.update 'comments', (comments) ->
         comments.map (id) -> messages.get id

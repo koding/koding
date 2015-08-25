@@ -25,6 +25,7 @@ module.exports =
     require './stores/suggestions/suggestionsselectedindexstore'
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
+    require './stores/messageflagsstore'
     require './stores/chatinput/emojisstore'
     require './stores/chatinput/filteredemojilistquerystore'
     require './stores/chatinput/filteredemojilistselectedindexstore'
