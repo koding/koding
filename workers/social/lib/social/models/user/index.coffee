@@ -1583,7 +1583,7 @@ module.exports = class JUser extends jraphical.Module
 
         oldEmail = @getAt 'email'
 
-        @update { $set: { email }, sanitizedEmail }, (err, res) =>
+        @update { $set: { email, sanitizedEmail } }, (err, res) =>
           return callback err  if err
 
           account.profile.hash = getHash email
