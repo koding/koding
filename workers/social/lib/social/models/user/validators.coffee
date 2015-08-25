@@ -1,6 +1,23 @@
+# coffeelint: disable=indentation
+# coffeelint: disable=no_implicit_braces
 isEmailValid = require './emailchecker'
 
-module.exports = new class
+module.exports = class Validators
+
+  @validateTeamDomain: (name) ->
+
+    teamDomainPattern = ///
+      ^                     # beginning of the string
+      [a-z0-9]+             # one or more 0-9 and/or a-z
+      (
+        [-]                 # followed by a single dash
+        [a-z0-9]+           # one or more (0-9 and/or a-z)
+      )*                    # zero or more of the token in parentheses
+      $                     # end of string
+    ///
+
+    return teamDomainPattern.test name
+
 
   createKodingError = (err) ->
 
@@ -22,7 +39,7 @@ module.exports = new class
   # ['firstName', 'lastName'].forEach required
 
 
-  agree: ({agree}, callback) ->
+  agree: ({ agree }, callback) ->
 
     callback \
       unless agree is 'on'
@@ -31,9 +48,9 @@ module.exports = new class
         null
 
 
-  email: ({email}, callback)->
+  email: ({ email }, callback) ->
 
-    isEmailValid email, (valid)->
+    isEmailValid email, (valid) ->
 
       callback \
         unless valid
@@ -42,12 +59,12 @@ module.exports = new class
           null
 
 
-  username: ({username}, callback) ->
+  username: ({ username }, callback) ->
 
     unless username?
       return callback createKodingError 'Missed a required field: username'
 
-    @usernameAvailable username, (err, r) =>
+    @usernameAvailable username, (err, r) ->
 
       # r =
       #   forbidden    : yes/no
@@ -65,7 +82,7 @@ module.exports = new class
           null
 
 
-  password: ({password, passwordConfirm}, callback) ->
+  password: ({ password, passwordConfirm }, callback) ->
 
     callback \
 
@@ -77,3 +94,5 @@ module.exports = new class
         createKodingError 'Password must be at least 8 characters'
       else
         null
+
+

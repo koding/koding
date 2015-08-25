@@ -1,10 +1,11 @@
+# coffeelint: disable=no_implicit_braces
 jraphical      = require 'jraphical'
 KodingError    = require '../../error'
 module.exports = class JProxyRestriction extends jraphical.Module
 
-  {secure, signature, ObjectId} = require 'bongo'
-  JProposedDomain = require "../domain"
-  JProxyFilter = require "./index"
+  { secure, signature, ObjectId } = require 'bongo'
+  JProposedDomain                 = require '../domain'
+  JProxyFilter                    = require './index'
 
   @share()
 
@@ -37,21 +38,21 @@ module.exports = class JProxyRestriction extends jraphical.Module
       instance    : {}
 
   validate = (client, data, callback) ->
-    {domainName, filterId} = data
-    {delegate} = client.connection
-    {nickname} = delegate.profile
+    { domainName, filterId } = data
+    { delegate } = client.connection
+    { nickname } = delegate.profile
 
     if not domainName and not filterId
-      return callback new KodingError { message: "Missing arguments" }
+      return callback new KodingError { message: 'Missing arguments' }
 
     JProposedDomain.fetchDomains client, (err, domains) ->
       userDomains = (domain.domain for domain in domains)
       if userDomains.indexOf(domainName) is -1
-        return callback new KodingError { message: "Access Denied" }
+        return callback new KodingError { message: 'Access Denied' }
 
       JProxyFilter.some { _id: filterId }, {}, (err, filter) ->
         unless filter.length
-          return callback new KodingError { message: "Access Denied" }
+          return callback new KodingError { message: 'Access Denied' }
 
         JProxyRestriction.one { domainName }, {}, (err, restriction) ->
           if err
@@ -61,9 +62,9 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
 
   @create: secure (client, data, callback) ->
-    {domainName, filterId} = data
-    {delegate} = client.connection
-    {nickname} = delegate.profile
+    { domainName, filterId } = data
+    { delegate } = client.connection
+    { nickname } = delegate.profile
 
     validate client, data, (err, restriction) ->
       return callback err  if err
@@ -80,9 +81,9 @@ module.exports = class JProxyRestriction extends jraphical.Module
           callback err, restriction
 
   @remove: secure (client, data, callback) ->
-    {domainName, filterId} = data
-    {delegate} = client.connection
-    {nickname} = delegate.profile
+    { domainName, filterId } = data
+    { delegate } = client.connection
+    { nickname } = delegate.profile
     filterId   = ObjectId filterId
 
     validate client, data, (err, restriction) ->
@@ -113,3 +114,5 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
     JProxyRestriction.update selector, operation, { multi: true }, (err) ->
       callback err
+
+

@@ -1,5 +1,5 @@
 { argv }                      = require 'optimist'
-{ expect }                    = require "chai"
+{ expect }                    = require 'chai'
 { env : { MONGO_URL } }       = process
 KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
 mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
@@ -188,3 +188,5 @@ runTests = ->
 beforeTests()
 
 runTests()
+
+

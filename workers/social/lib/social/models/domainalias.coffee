@@ -6,8 +6,8 @@ module.exports = class JDomainAlias extends Module
 
   KodingError  = require '../error'
 
-  {ObjectId, signature} = require 'bongo'
-  {permit} = require './group/permissionset'
+  { ObjectId, signature } = require 'bongo'
+  { permit } = require './group/permissionset'
 
   @trait __dirname, '../traits/protected'
 
@@ -18,7 +18,7 @@ module.exports = class JDomainAlias extends Module
     softDelete        : no
 
     permissions       :
-     'list domains'   : ['member']
+      'list domains'  : ['member']
 
     sharedMethods     :
 
@@ -55,17 +55,17 @@ module.exports = class JDomainAlias extends Module
 
 
   @one$ = permit 'list domains',
-    success : (client, selector, callback)->
+    success : (client, selector, callback) ->
 
       { delegate }      = client.connection
       selector         ?= {}
       selector.originId = delegate.getId()
 
-      JDomainAlias.one selector, (err, domain)-> callback err, domain
+      JDomainAlias.one selector, (err, domain) -> callback err, domain
 
 
   @some$ = permit 'list domains',
-    success : (client, selector, options, callback)->
+    success : (client, selector, options, callback) ->
 
       [callback, options] = [options, callback]  unless callback
 
@@ -77,18 +77,18 @@ module.exports = class JDomainAlias extends Module
       options      ?= {}
       options.limit = 20
 
-      JDomainAlias.some selector, options, (err, domains)->
+      JDomainAlias.some selector, options, (err, domains) ->
         callback err, domains
 
-  @ensureTopDomainExistence = (account, machineId, callback)->
+  @ensureTopDomainExistence = (account, machineId, callback) ->
 
-    {nickname} = account.profile
+    { nickname } = account.profile
     topDomain  = "#{nickname}.#{KONFIG.userSitesDomain}"
 
     JDomainAlias.one
       originId : account._id
       domain   : topDomain
-    , (err, domain)->
+    , (err, domain) ->
       return callback err  if err?
 
       if domain?
@@ -107,4 +107,6 @@ module.exports = class JDomainAlias extends Module
           originId : account._id
         }
 
-        domain.save (err)-> callback err
+        domain.save (err) -> callback err
+
+

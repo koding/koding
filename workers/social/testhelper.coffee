@@ -45,7 +45,7 @@ generateDummyClient = (context, callback) ->
       callback 'session error'
 
 
-generateDummyUserFormData = ->
+generateDummyUserFormData = (opts = {}) ->
 
   dummyUserFormData =
     email                     : generateRandomEmail()
@@ -53,6 +53,8 @@ generateDummyUserFormData = ->
     password                  : 'testpass'
     username                  : generateRandomUsername()
     passwordConfirm           : 'testpass'
+
+  dummyUserFormData = _.extend dummyUserFormData, opts
 
   return dummyUserFormData
 

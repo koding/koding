@@ -1,8 +1,8 @@
-{Module} = require 'jraphical'
+{ Module } = require 'jraphical'
 
 module.exports = class JGroupRole extends Module
 
-  {dash}        = require 'bongo'
+  { dash }        = require 'bongo'
   KodingError   = require '../../error'
 
   @set
@@ -21,46 +21,46 @@ module.exports = class JGroupRole extends Module
         default       : no
 
   @defaultRoles = [
-    { title : "owner",      isDefault : yes }
-    { title : "admin",      isDefault : yes }
-    { title : "moderator",  isDefault : yes,  isConfigureable: yes }
-    { title : "member",     isDefault : yes }
-    { title : "guest",      isDefault : yes }
+    { title : 'owner',      isDefault : yes }
+    { title : 'admin',      isDefault : yes }
+    { title : 'moderator',  isDefault : yes,  isConfigureable: yes }
+    { title : 'member',     isDefault : yes }
+    { title : 'guest',      isDefault : yes }
   ]
 
-  @create = (formData, callback)->
+  @create = (formData, callback) ->
     JGroup = require '../group'
 
     JGroupRole.one
       title : formData.title
-    , (err, role)=>
+    , (err, role) =>
       if err
         console.log err
         callback err
       else unless role
-        newRole = new @ formData
-        newRole.save (err)->
+        newRole = new this formData
+        newRole.save (err) ->
           if err then callback err
           else callback null, newRole
       else
         callback null, role
 
-  createDefaultRolesHelper = (callback)->
+  createDefaultRolesHelper = (callback) ->
 
-    queue = JGroupRole.defaultRoles.map (roleData)->
+    queue = JGroupRole.defaultRoles.map (roleData) ->
       ->
         JGroupRole.create roleData, queue.fin.bind queue
 
     dash queue, callback
 
-  @createDefaultRoles = (callback)->
+  @createDefaultRoles = (callback) ->
 
-    @count isDefault : yes, (err, count)=>
+    @count { isDefault : yes }, (err, count) =>
 
       unless count is @defaultRoles.length
         createDefaultRolesHelper callback
       else
-        callback new KodingError "Default group roles are already created."
+        callback new KodingError 'Default group roles are already created.'
 
 
 

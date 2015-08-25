@@ -1,17 +1,23 @@
-$                 = require 'jquery'
-kd                = require 'kd'
-React             = require 'kd-react'
-classnames        = require 'classnames'
-immutable         = require 'immutable'
-emojify           = require 'emojify.js'
-formatEmojiName   = require 'activity/util/formatEmojiName'
-ActivityFlux      = require 'activity/flux'
-Dropup            = require 'activity/components/dropup'
-EmojiSelectorItem = require 'activity/components/emojiselectoritem'
+$                    = require 'jquery'
+kd                   = require 'kd'
+React                = require 'kd-react'
+classnames           = require 'classnames'
+immutable            = require 'immutable'
+emojify              = require 'emojify.js'
+formatEmojiName      = require 'activity/util/formatEmojiName'
+ActivityFlux         = require 'activity/flux'
+Dropup               = require 'activity/components/dropup'
+EmojiSelectorItem    = require 'activity/components/emojiselectoritem'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+
 
 module.exports = class EmojiSelector extends React.Component
 
   ESC = 27
+
+
+  @include [ImmutableRenderMixin]
+
 
   @defaultProps =
     items        : immutable.List()

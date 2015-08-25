@@ -38,3 +38,5 @@ module.exports = class JPageHit extends ElasticSearch
       documents = [ record ]
 
       ElasticSearch.create @pagesHitIndex(), documents, callback
+
+

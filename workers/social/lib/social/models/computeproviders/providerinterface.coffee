@@ -1,15 +1,14 @@
-
 NOT_IMPLEMENTED = ->
 
   KodingError   = require '../../error'
-  message       = "Not implemented yet."
+  message       = 'Not implemented yet.'
 
   if arguments.length > 0 and fn = arguments[arguments.length - 1]
-    if typeof fn is 'function' then fn new KodingError message, "NotImplemented"
+    if typeof fn is 'function' then fn new KodingError message, 'NotImplemented'
 
   return message
 
-PASS_THROUGH = (..., callback)-> callback null
+PASS_THROUGH = (..., callback) -> callback null
 
 module.exports = class ProviderInterface
 
@@ -27,16 +26,18 @@ module.exports = class ProviderInterface
 
   @postCreate     = PASS_THROUGH
 
-  @fetchCredentialData  = (credential, callback)->
+  @fetchCredentialData  = (credential, callback) ->
 
     if not credential?.fetchData?
       return callback null, {}
 
-    credential.fetchData (err, credData)->
+    credential.fetchData (err, credData) ->
 
       if err?
-        callback new KodingError "Failed to fetch credential"
+        callback new KodingError 'Failed to fetch credential'
       else if credData?
         callback null, credData
       else
         callback null, {}
+
+

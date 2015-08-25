@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 JPaymentBase = require './base'
 
 module.exports = class JPaymentPlan extends JPaymentBase
@@ -9,11 +10,11 @@ module.exports = class JPaymentPlan extends JPaymentBase
   recurly = require 'koding-payment'
   { v4: createId } = require 'node-uuid'
 
-  {secure, dash, signature}        = require 'bongo'
+  { secure, dash, signature }        = require 'bongo'
 
-  {partition} = require 'bongo/lib/util'
+  { partition } = require 'bongo/lib/util'
 
-  {permit}              = require '../group/permissionset'
+  { permit }              = require '../group/permissionset'
 
   JUser                 = require '../user'
   JPayment              = require './index'
@@ -129,7 +130,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
       recurly.createPlan plan, (err) ->
         return callback err  if err
 
-        JGroup.one slug: groupSlug, (err, group) ->
+        JGroup.one { slug: groupSlug }, (err, group) ->
           return callback err  if err
 
           group.addPlan plan, (err) ->
@@ -152,8 +153,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
       paymentMethodId
       @planCode
       $or       : [
-        {status : 'active'}
-        {status : 'canceled'}
+        { status : 'active' }
+        { status : 'canceled' }
       ]
     }, (err, subscription) =>
       return callback err  if err
@@ -176,10 +177,10 @@ module.exports = class JPaymentPlan extends JPaymentBase
           uuid: subscription.uuid
         }
 
-        recurly.updateSubscription paymentMethodId, update, (err) =>
+        recurly.updateSubscription paymentMethodId, update, (err) ->
           return callback err  if err
 
-          subscription.update $set: { quantity }, (err)->
+          subscription.update $set: { quantity }, (err) ->
             if err
             then callback err
             else callback null, subscription
@@ -234,14 +235,14 @@ module.exports = class JPaymentPlan extends JPaymentBase
   # subscribeGroup: (group, data, callback)->
   #   doSubscribe "group_#{group._id}", data, callback
 
-  fetchSubscription: secure ({ connection:{ delegate }}, callback) ->
+  fetchSubscription: secure ({ connection:{ delegate } }, callback) ->
     selector    =
       userCode  : "user_#{delegate.getId()}"
       planCode  : @planCode
 
     JPaymentSubscription.one selector, callback
 
-  getType:-> if @feeInterval is 1 then 'recurring' else 'single'
+  getType: -> if @feeInterval is 1 then 'recurring' else 'single'
 
   fetchSubscriptions: (callback) ->
     JPaymentSubscription.all
@@ -257,11 +258,11 @@ module.exports = class JPaymentPlan extends JPaymentBase
       callback null, 'koding'
     else
       JGroup = require '../group'
-      JGroup.one _id: @product.category, (err, group)->
+      JGroup.one _id: @product.category, (err, group) ->
         callback err, unless err then group.slug
 
   checkQuota: (options, callback) ->
-    {usage, couponCode, multiplyFactor} = options
+    { usage, couponCode, multiplyFactor } = options
     multiplyFactor ?= 1
 
     usages = for own planCode, quantity of usage
@@ -278,3 +279,5 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
   fetchCoupon: (type, callback) ->
     recurly.fetchCoupon @couponCodes[type], callback
+
+

@@ -1,4 +1,5 @@
-{ Base, signature, JsPath:{getAt, setAt} } = require 'bongo'
+  # coffeelint: disable=no_implicit_braces
+{ Base, signature, JsPath:{ getAt, setAt } } = require 'bongo'
 
 { argv }  = require 'optimist'
 GithubAPI = require 'github'
@@ -19,7 +20,7 @@ module.exports = class Github extends Base
 
   @set
     permissions           :
-      'api access'        : ['member','moderator']
+      'api access'        : ['member', 'moderator']
 
     sharedMethods         :
       static              :
@@ -42,7 +43,7 @@ module.exports = class Github extends Base
 
     gh = new GithubAPI {
       version : '3.0.0' # API version, not configurable
-      headers : 'user-agent': userAgent
+      headers : { 'user-agent': userAgent }
       debug, timeout
     }
 
@@ -171,3 +172,5 @@ module.exports = class Github extends Base
       gh[base][method] options, cb
     catch err
       cb err
+
+

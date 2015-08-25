@@ -6,8 +6,11 @@ whoami              = require 'app/util/whoami'
 
 module.exports = class ActivityInputView extends KDHitEnterInputView
 
-  ENTER = 13
-  TAB   = 9
+  ENTER      = 13
+  TAB        = 9
+  UP_ARROW   = 38
+  DOWN_ARROW = 40
+  ESC        = 27
 
   constructor: (options = {}, data) ->
 
@@ -42,10 +45,19 @@ module.exports = class ActivityInputView extends KDHitEnterInputView
 
   keyDown: (event) ->
 
-    if event.which is TAB
-      kd.utils.stopDOMEvent event
-      @emit 'Tab'
-      return no
+    switch event.which
+      when TAB
+        kd.utils.stopDOMEvent event
+        @emit 'Tab'
+        return no
+      when ESC
+        @emit 'Esc', event
+      when UP_ARROW
+        @emit 'UpArrow', event
+      when DOWN_ARROW
+        @emit 'DownArrow', event
+      when ENTER
+        @emit 'RawEnter', event
 
     super event
 

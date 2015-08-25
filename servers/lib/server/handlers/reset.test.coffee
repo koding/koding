@@ -1,22 +1,19 @@
-Bongo                                     = require 'bongo'
-koding                                    = require './../bongo'
-request                                   = require 'request'
-querystring                               = require 'querystring'
+Bongo                             = require 'bongo'
+koding                            = require './../bongo'
+request                           = require 'request'
+querystring                       = require 'querystring'
 
-{ daisy }                                 = Bongo
-{ expect }                                = require 'chai'
+{ daisy }                         = Bongo
+{ expect }                        = require 'chai'
 { generateRandomEmail
   generateRandomString
-  generateRandomUsername
+  generateRandomUsername }        = require '../../../testhelper'
+{ defaultExpiryPeriod
+  generateResetRequestParams }    = require '../../../testhelper/handler/resethelper'
+{ generateRegisterRequestParams } = require '../../../testhelper/handler/registerhelper'
 
-  ResetHandlerHelper
-  RegisterHandlerHelper }                 = require '../../../testhelper'
-
-{ generateResetRequestParams }           = ResetHandlerHelper
-{ generateRegisterRequestParams }        = RegisterHandlerHelper
-
-JUser                                    = null
-JPasswordRecovery                        = null
+JUser                             = null
+JPasswordRecovery                 = null
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.reset', ->
@@ -101,7 +98,7 @@ runTests = -> describe 'server.handlers.reset', ->
     token        = generateRandomString()
     username     = generateRandomUsername()
     certificate  = null
-    expiryPeriod = ResetHandlerHelper.defaultExpiryPeriod
+    expiryPeriod = defaultExpiryPeriod
     expectedBody = 'This password recovery certificate cannot be redeemed.'
 
     resetRequestParams = generateResetRequestParams
@@ -165,7 +162,7 @@ runTests = -> describe 'server.handlers.reset', ->
     token        = generateRandomString()
     username     = generateRandomUsername()
     certificate  = null
-    expiryPeriod = ResetHandlerHelper.defaultExpiryPeriod
+    expiryPeriod = defaultExpiryPeriod
 
     resetRequestParams = generateResetRequestParams
       body            :
@@ -209,7 +206,7 @@ runTests = -> describe 'server.handlers.reset', ->
     token               = generateRandomString()
     username            = generateRandomUsername()
     certificate         = null
-    expiryPeriod        = ResetHandlerHelper.defaultExpiryPeriod
+    expiryPeriod        = defaultExpiryPeriod
     passwordBeforeReset = null
 
     resetRequestParams = generateResetRequestParams
@@ -280,7 +277,7 @@ runTests = -> describe 'server.handlers.reset', ->
     username            = generateRandomUsername()
     certificate1        = null
     certificate2        = null
-    expiryPeriod        = ResetHandlerHelper.defaultExpiryPeriod
+    expiryPeriod        = defaultExpiryPeriod
 
     resetRequestParams = generateResetRequestParams
       body            :

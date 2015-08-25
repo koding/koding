@@ -1,6 +1,8 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 emailsanitize = require './user/emailsanitize'
+KodingError   = require '../error'
 
 module.exports = class JPasswordRecovery extends jraphical.Module
   # TODO - Refactor this file, now it is not only for password recovery
@@ -14,7 +16,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   KodingError                  = require '../error'
 
 
-  UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
+  UNKNOWN_ERROR = { message: 'Error occurred. Please try again.' }
 
   @share()
 
@@ -60,34 +62,34 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @expiryPeriod = 1000 * 60 * 90 # 90 min
 
-  @getEmailSubject = ({resetPassword})->
+  @getEmailSubject = ({ resetPassword }) ->
     if resetPassword then Tracker.types.REQUEST_NEW_PASSWORD
     else Tracker.types.REQUEST_EMAIL_CHANGE
 
-  @recoverPassword = secure (client, usernameOrEmail, callback)->
+  @recoverPassword = secure (client, usernameOrEmail, callback) ->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail {email: usernameOrEmail, resetPassword:yes}, callback
+      @recoverPasswordByEmail { email: usernameOrEmail, resetPassword:yes }, callback
     # Disable it until we find a solution ~ GG
     # else if JUser.validateAt 'username', usernameOrEmail
     #   @recoverPasswordByUsername {username: usernameOrEmail, resetPassword:yes}, callback
     else callback new KodingError 'Invalid input.'
 
-  @resendVerification = secure (client, usernameOrEmail, callback)->
+  @resendVerification = secure (client, usernameOrEmail, callback) ->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail {email: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+      @recoverPasswordByEmail { email: usernameOrEmail, resetPassword:no, verb:'Verify' }, callback
     else if JUser.validateAt 'username', usernameOrEmail
-      @recoverPasswordByUsername {username: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+      @recoverPasswordByUsername { username: usernameOrEmail, resetPassword:no, verb:'Verify' }, callback
     else callback new KodingError 'Invalid input.'
 
   @recoverPasswordByUsername = (options, callback) ->
     JUser = require './user'
     { username } = options
 
-    JUser.one { username }, (err, user)=>
+    JUser.one { username }, (err, user) =>
       unless user
-        return callback new KodingError "Unknown username"
+        return callback new KodingError 'Unknown username'
 
       options.email = user.getAt('email')
       @create options, callback
@@ -106,11 +108,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
       options.resetPassword = yes
       @create options, callback
 
-  @create = (options, callback)->
+  @create = (options, callback) ->
     JUser = require './user'
     token = createId()
 
-    {email, verb, expiryPeriod} = options
+    { email, verb, expiryPeriod } = options
 
     email = emailsanitize email
 
@@ -118,15 +120,15 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     expiryPeriod ?= @expiryPeriod
 
-    verb ?= "Reset"
+    verb ?= 'Reset'
 
-    {host, protocol} = require '../config.email'
+    { host, protocol } = require '../config.email'
 
-    JUser.one {email}, (err, user)=>
+    JUser.one { email }, (err, user) =>
       if err
         callback err
       else unless user
-        callback { message: 'User not found'}
+        callback new KodingError 'User not found'
       else
         username    = user.getAt('username')
         certificate = new JPasswordRecovery {
@@ -136,7 +138,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           username
           status    : 'active'
         }
-        certificate.save (err)=>
+        certificate.save (err) =>
           if err
             callback err
           else
@@ -153,13 +155,13 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             Tracker.track username, {
               to         : email
               subject    : @getEmailSubject messageOptions
-            }, {tokenUrl, firstName:username}
+            }, { tokenUrl, firstName:username }
 
             callback null
 
 
-  @validate = (token, callback)->
-    @one {token}, (err, certificate)->
+  @validate = (token, callback) ->
+    @one { token }, (err, certificate) ->
       return callback err  if err
 
       if not certificate or (certificate?.status is 'invalidated')
@@ -172,20 +174,20 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback { message: 'The token has expired.', short: 'expired_token' }
 
       if certificate.getAt('expiresAt') < new Date
-        certificate.expire (err)->
+        certificate.expire (err) ->
           return callback err  if err
           return callback { message: 'The token has expired.', short: 'expired_token' }
 
       JUser = require './user'
-      JUser.one {email:certificate.email}, (err, user)->
+      JUser.one { email:certificate.email }, (err, user) ->
         return callback UNKNOWN_ERROR  if err or not user
-        user.confirmEmail (err)->
+        user.confirmEmail (err) ->
           return callback UNKNOWN_ERROR  if err
-          certificate.update {$set: status: 'redeemed'}, callback
+          certificate.update { $set: { status: 'redeemed' } }, callback
 
-  @invalidate =(query, callback)->
+  @invalidate = (query, callback) ->
     query.status = 'active'
-    @update query, {$set: status: 'invalidated'}, callback
+    @update query, { $set: { status: 'invalidated' } }, callback
 
 
   @resetPassword = (token, newPassword, callback) ->
@@ -205,16 +207,16 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           { status, expiresAt } = certificate = certificate_
 
           if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
-            return callback new KodingError """
+            return callback new KodingError '''
               This password recovery certificate cannot be redeemed.
-              """
+              '''
           queue.next()
 
       ->
         # checking if user exists
         { username } = certificate
 
-        JUser.one { username }, (err, user_)->
+        JUser.one { username }, (err, user_) ->
           return callback err  if err
           return callback new KodingError 'Unknown user!'  unless user_
           user = user_
@@ -222,19 +224,19 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
       ->
         # redeeming token
-        certificate.redeem (err)->
+        certificate.redeem (err) ->
           return callback err  if err
           queue.next()
 
       ->
         # changing user's password to new one
-        user.changePassword newPassword, (err)->
+        user.changePassword newPassword, (err) ->
           return callback err  if err
           queue.next()
 
       ->
         # invalidating other active tokens
-        JPasswordRecovery.invalidate { username }, (err)->
+        JPasswordRecovery.invalidate { username }, (err) ->
           return callback err, username
 
     ]
@@ -242,9 +244,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     daisy queue
 
 
-  @resetPassword$ = secure (client, token, newPassword, callback)->
+  @resetPassword$ = secure (client, token, newPassword, callback) ->
     JUser = require './user'
-    {delegate} = client.connection
+    { delegate } = client.connection
     unless delegate.type is 'unregistered'
       callback { message: 'You are already logged in!' }
     else
@@ -259,7 +261,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
       { email, username } = certificate
 
-      JAccount.one 'profile.nickname': username, (err, account) ->
+      JAccount.one { 'profile.nickname': username }, (err, account) ->
         return callback err  if err
         return callback { message: 'Unrecognized token!' }  unless account
 
@@ -267,7 +269,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
         callback null, { firstName, lastName, email }
 
-  expire: (callback) -> @update {$set: status: 'expired'}, callback
+  expire: (callback) -> @update { $set: { status: 'expired' } }, callback
 
   redeem: (callback) ->
-    @update {$set: status: 'redeemed'}, callback
+    @update { $set: { status: 'redeemed' } }, callback
+
+

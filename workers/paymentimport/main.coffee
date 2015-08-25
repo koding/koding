@@ -176,7 +176,7 @@ initFreeSubscriptions = (callback = -> ) ->
           return callback null
 
         queue = accounts.map (account) -> ->
-          options ={ targetOptions: { selector: { tags: 'nosync' } } }
+          options = { targetOptions: { selector: { tags: 'nosync' } } }
           account.fetchSubscription null, options, (err, subscription) ->
             console.warn "error occurred for #{account?.profile?.nickname}: #{err}"  if err
             return queue.next()  if subscription
@@ -222,3 +222,5 @@ switch argv.i
       process.exit(1)
   else
     console.error 'unknown -i value'
+
+

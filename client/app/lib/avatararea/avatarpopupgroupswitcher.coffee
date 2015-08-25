@@ -40,11 +40,6 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
     @_popupListPending = new PopupList
       itemClass  : PopupGroupListItemPending
 
-    # does not work yet
-    # @_popupListPending.on 'PendingCountDecreased', @bound 'decreasePendingCount'
-    # @_popupListPending.on 'UpdateGroupList',       @bound 'populateGroups'
-    # whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
-
     @listControllerPending = new KDListViewController
       lazyLoaderOptions   :
         partial           : ''
@@ -259,22 +254,6 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Logout'
         @hide()
 
-  populatePendingGroups:->
-    @listControllerPending.removeAllItems()
-    @listControllerPending.hideLazyLoader()
-
-    return  unless isLoggedIn()
-
-    whoami().fetchGroupsWithPendingInvitations (err, groups)=>
-      if err then kd.warn err
-      else if groups?
-        @pending = 0
-        for group in groups when group
-          @listControllerPending.addItem {group, roles:[], admin:no}
-          @pending++
-        @updatePendingCount()
-        @notPopulatedPending = no
-
 
   populateGroups:->
     return  if not isLoggedIn() or @isLoading
@@ -327,7 +306,6 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
     # Commenting out these lines because of
     # removal of the groups links from avatar popup. ~Umut
     # @populateGroups() if @notPopulated
-    # @populatePendingGroups() if @notPopulatedPending
 
   hide:->
     super

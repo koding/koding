@@ -37,3 +37,35 @@ describe 'UsersStore', ->
 
       expect(storeState['123']).to.eql account1
       expect(storeState['456']).to.eql account2
+
+
+  describe '#handleMarkUserAsTrollSuccess', ->
+
+    it 'marks user as troll', ->
+
+      account = generateDummyAccount '321', 'testaccount'
+      @reactor.dispatch actions.LOAD_USER_SUCCESS, { id: '321', account }
+      @reactor.dispatch actions.MARK_USER_AS_TROLL_SUCCESS, account
+
+      storeState = @reactor.evaluate [UsersStore.getterPath]
+
+      console.log 'storeState ', storeState
+      expect(storeState.getIn ['321', 'isExempt']).to.equal yes
+
+
+  describe '#handleUnmarkUserAsTrollSuccess', ->
+
+    it 'deletes troll mark from user', ->
+
+      account          = generateDummyAccount '321', 'testaccount'
+      account.isExempt = true
+
+      @reactor.dispatch actions.LOAD_USER_SUCCESS, { id: '321', account }
+      @reactor.dispatch actions.UNMARK_USER_AS_TROLL_SUCCESS, account
+
+      storeState = @reactor.evaluate [UsersStore.getterPath]
+
+      console.log 'storeState ', storeState
+      expect(storeState.getIn ['321', 'isExempt']).to.equal no
+
+

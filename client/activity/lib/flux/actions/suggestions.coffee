@@ -18,6 +18,7 @@ setQuery = (query) ->
 
   dispatch SET_SUGGESTIONS_QUERY, { query }
   setAccessibility yes  unless query
+  resetSelectedIndex()
   fetchData query
 
 
@@ -88,6 +89,44 @@ resetData = -> dispatch actionTypes.SUGGESTIONS_DATA_RESET
 reset = -> setQuery ''
 
 
+###*
+ * Action to set suggestions selected index
+ *
+ * @param {number} index
+###
+setSelectedIndex = (index) ->
+
+  { SET_SUGGESTIONS_SELECTED_INDEX } = actionTypes
+  dispatch SET_SUGGESTIONS_SELECTED_INDEX, { index }
+
+
+###*
+ * Action to increment suggestions selected index
+###
+moveToNextIndex = ->
+
+  { MOVE_TO_NEXT_SUGGESTIONS_INDEX } = actionTypes
+  dispatch MOVE_TO_NEXT_SUGGESTIONS_INDEX
+
+
+###*
+ * Action to decrement suggestions selected index
+###
+moveToPrevIndex = ->
+
+  { MOVE_TO_PREV_SUGGESTIONS_INDEX } = actionTypes
+  dispatch MOVE_TO_PREV_SUGGESTIONS_INDEX
+
+
+###*
+ * Action to reset suggestions selected index to initial value
+###
+resetSelectedIndex = ->
+
+  { RESET_SUGGESTIONS_SELECTED_INDEX } = actionTypes
+  dispatch RESET_SUGGESTIONS_SELECTED_INDEX
+
+
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
@@ -97,4 +136,8 @@ module.exports = {
   setVisibility
   fetchData
   reset
+  setSelectedIndex
+  moveToNextIndex
+  moveToPrevIndex
+  resetSelectedIndex
 }

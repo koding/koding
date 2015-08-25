@@ -1,8 +1,8 @@
-
+# coffeelint: disable=no_implicit_braces
 # NOTE: All domain registry related stuff removed
 # you can look at them from 745b4914f14fa424a3e38db68e09a1bc832be7f4
 
-{argv}   = require 'optimist'
+{ argv }   = require 'optimist'
 KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 jraphical = require 'jraphical'
@@ -11,9 +11,9 @@ module.exports = class JProposedDomain extends jraphical.Module
   DomainManager      = require 'domainer'
   Validators         = require './group/validators'
   KodingError        = require '../error'
-  {secure, ObjectId, signature} = require 'bongo'
-  {Relationship}     = jraphical
-  {permit}           = require './group/permissionset'
+  { secure, ObjectId, signature } = require 'bongo'
+  { Relationship }   = jraphical
+  { permit }         = require './group/permissionset'
   JGroup             = require './group'
 
   @trait __dirname, '../traits/protected'
@@ -75,7 +75,7 @@ module.exports = class JProposedDomain extends jraphical.Module
       proposedDomain  : String
         type          : String
         required      : yes
-        set           : (value)-> value.toLowerCase()
+        set           : (value) -> value.toLowerCase()
 
       machines        :
         type          : Array
@@ -90,23 +90,23 @@ module.exports = class JProposedDomain extends jraphical.Module
         key           : String
         fullUrl       : String
 
-      meta            : require "bongo/bundles/meta"
+      meta            : require 'bongo/bundles/meta'
       group           : String
 
 
   # filters domains such as shared-x/vm-x.groupSlug.kd.io
   # or x.koding.kd.io. Also shows only group related
   # domains to users
-  filterDomains = (domains, account, group)->
+  filterDomains = (domains, account, group) ->
     domainList = []
-    domainList = domains.filter (domain)->
+    domainList = domains.filter (domain) ->
       if domain.group? # we filter domains per group
         return no  unless domain.group is group
 
-      {domain} = domain
+      { domain } = domain
       return yes  unless /\.kd\.io$/.test domain
 
-      re = if group is "koding" \
+      re = if group is 'koding' \
            then ///#{account.profile.nickname}\.kd\.io$///
            else ///(.*)\.#{group}\.kd\.io$///
 
@@ -116,10 +116,10 @@ module.exports = class JProposedDomain extends jraphical.Module
       not isVmAlias and not isKodingSubdomain and isGroupAlias
 
 
-  @fetchDomains: secure (client, callback)->
+  @fetchDomains: secure (client, callback) ->
 
-    {group} = client.context
-    {connection: {delegate}} = client
+    { group } = client.context
+    { connection: { delegate } } = client
 
     delegate.fetchDomains (err, domains) ->
       return callback err  if err
@@ -127,13 +127,13 @@ module.exports = class JProposedDomain extends jraphical.Module
       callback null, filterDomains domains, delegate, group
 
 
-  parseDomain = (domain, { nickname, group })->
+  parseDomain = (domain, { nickname, group }) ->
 
     { userSitesDomain } = KONFIG
 
     # Custom error
-    err = (message = "Invalid domain: #{domain}")->
-      err: new KodingError message, "INVALIDDOMAIN"
+    err = (message = "Invalid domain: #{domain}") ->
+      err: new KodingError message, 'INVALIDDOMAIN'
 
     # Domain check ~
     return err()  unless \
@@ -156,30 +156,30 @@ module.exports = class JProposedDomain extends jraphical.Module
     [rest..., prefix, slug] = match
 
     if slug isnt nickname
-      return err "Creating root domains is not allowed"
+      return err 'Creating root domains is not allowed'
 
-    slug = "koding"  if nickname is slug
+    slug = 'koding'  if nickname is slug
     if group? and group isnt slug
-      return err "Invalid group"
+      return err 'Invalid group'
 
     # Return type as internal and slug and domain
     return { type: 'internal', slug, prefix, domain }
 
 
-  resolveDomain = (domain, callback, check)->
+  resolveDomain = (domain, callback, check) ->
 
     return callback null  unless check
 
     dns = require 'dns'
-    dns.resolve domain, (err, remoteIps)->
+    dns.resolve domain, (err, remoteIps) ->
       return callback new KodingError \
-        "Cannot resolve #{domain}", "RESOLVEFAILED"  if err
+        "Cannot resolve #{domain}", 'RESOLVEFAILED'  if err
 
       baseDomain = 'RANDOM3MGQvnuLpU97.kd.io'
-      dns.resolve baseDomain, (err, baseIps)->
+      dns.resolve baseDomain, (err, baseIps) ->
         return callback err  if err
 
-        intersection = (a, b)->
+        intersection = (a, b) ->
           [a, b] = [b, a] if a.length > b.length
           value for value in a when value in b
 
@@ -188,70 +188,70 @@ module.exports = class JProposedDomain extends jraphical.Module
 
         callback new KodingError \
           """CNAME or A record for #{domain} is not
-             matching with #{baseDomain}""", "CNAMEMISMATCH"
+             matching with #{baseDomain}""", 'CNAMEMISMATCH'
 
 
-  @createDomain = (options, callback)->
+  @createDomain = (options, callback) ->
 
     { domain, account, group, stack, hostnameAlias } = options
 
     { nickname } = account.profile
 
-    {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
+    { err, domain, type, slug, prefix } = parseDomain domain, { nickname, group }
     return callback err  if err
 
     domainData = { proposedDomain: domain, group }
     domainData.hostnameAlias = hostnameAlias  if hostnameAlias?
 
     JComputeStack = require './stack'
-    JComputeStack.getStack account, stack, (err, stack)=>
+    JComputeStack.getStack account, stack, (err, stack) ->
       return callback err  if err?
 
       domain = new JProposedDomain domainData
-      domain.save (err)->
+      domain.save (err) ->
         return callback err  if err
 
-        account.addDomain domain, { data: { group } }, (err)->
+        account.addDomain domain, { data: { group } }, (err) ->
           return callback err  if err
 
-          stack.appendTo domains: domain.getId(), (err)->
+          stack.appendTo domains: domain.getId(), (err) ->
             callback err, domain
 
 
-  checkExistence = (domain, callback)->
+  checkExistence = (domain, callback) ->
 
-    JProposedDomain.count { domain }, (err, count)->
+    JProposedDomain.count { domain }, (err, count) ->
 
       return callback err  if err
 
       if count > 0
         callback new KodingError \
-          "The domain #{domain} already exists", "DUPLICATEDOMAIN"
+          "The domain #{domain} already exists", 'DUPLICATEDOMAIN'
       else
         callback null
 
 
-  @createDomain$: permit 'create domains', success: (client, data, callback)->
+  @createDomain$: permit 'create domains', success: (client, data, callback) ->
 
     { domain, stack } = data
 
-    error = (message, name)->
+    error = (message, name) ->
       callback new KodingError message, name
 
     unless domain
-      return error "Domain is not provided"
+      return error 'Domain is not provided'
 
-    {delegate} = client.connection
-    {group}    = client.context
-    {nickname} = delegate.profile
+    { delegate } = client.connection
+    { group }    = client.context
+    { nickname } = delegate.profile
 
-    {err, domain, type, slug, prefix} = parseDomain domain, { nickname, group }
+    { err, domain, type, slug, prefix } = parseDomain domain, { nickname, group }
     return callback err  if err
 
-    checkExistence domain, (err)->
+    checkExistence domain, (err) ->
       return callback err  if err
 
-      resolveDomain domain, (err)->
+      resolveDomain domain, (err) ->
         return callback err  if err
 
         JProposedDomain.createDomain {
@@ -262,7 +262,7 @@ module.exports = class JProposedDomain extends jraphical.Module
       , type is 'custom'
 
 
-  @createDomains = (options, callback)->
+  @createDomains = (options, callback) ->
 
     { account, domains, hostnameAlias, group, stack } = options
 
@@ -271,18 +271,18 @@ module.exports = class JProposedDomain extends jraphical.Module
       JProposedDomain.createDomain {
         domain, account, group, stack
         hostnameAlias : [ hostnameAlias ]
-      }, (err, domain)->
+      }, (err, domain) ->
 
         if err? then console.error err  unless err.code is 11000
 
 
-  updateState: (state, callback)->
+  updateState: (state, callback) ->
 
     if state
 
       domain = @proposedDomain
 
-      checkExistence domain, (err)=>
+      checkExistence domain, (err) =>
         return callback err  if err
         @update $set: { domain }, callback
 
@@ -293,55 +293,55 @@ module.exports = class JProposedDomain extends jraphical.Module
 
   activateDomain: permit
     advanced    : [
-      { permission: "edit own domains", validateWith: Validators.own }
+      { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, callback)->
+    success: (client, callback) ->
       @updateState yes, callback
 
 
   deactivateDomain: permit
     advanced    : [
-      { permission: "edit own domains", validateWith: Validators.own }
+      { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, callback)->
+    success: (client, callback) ->
       @updateState no, callback
 
 
-  bindMachine: (target, callback)->
+  bindMachine: (target, callback) ->
     @update $addToSet: machines: target, callback
 
-  unbindMachine: (target, callback)->
+  unbindMachine: (target, callback) ->
     @update $pullAll: machines: [ target ], callback
 
 
   bindMachine$: permit
     advanced: [
-      { permission: "edit own domains", validateWith: Validators.own }
+      { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, target, callback)->
+    success: (client, target, callback) ->
       JMachine = require './computeproviders/machine'
-      JMachine.count { _id : target }, (err, count)=>
+      JMachine.count { _id : target }, (err, count) =>
         if err? or count is 0
-        then callback new KodingError "Target does not exists"
+        then callback new KodingError 'Target does not exists'
         else @bindMachine ObjectId(target), (err) -> callback err
 
 
   unbindMachine$: permit
     advanced: [
-      { permission: "edit own domains", validateWith: Validators.own }
+      { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, target, callback)->
+    success: (client, target, callback) ->
       JMachine = require './computeproviders/machine'
-      JMachine.count { _id : target }, (err, count)=>
+      JMachine.count { _id : target }, (err, count) =>
         if err? or count is 0
-        then callback new KodingError "Target does not exists"
+        then callback new KodingError 'Target does not exists'
         else @unbindMachine ObjectId(target), (err) -> callback err
 
 
   @one$: permit 'list domains',
-    success: (client, selector, callback)->
-      {delegate} = client.connection
-      delegate.fetchDomains (err, domains)->
+    success: (client, selector, callback) ->
+      { delegate } = client.connection
+      delegate.fetchDomains (err, domains) ->
         return callback err if err
         for domain in domains
           # console.log "Testing domain:", domain, selector.domainName
@@ -351,8 +351,10 @@ module.exports = class JProposedDomain extends jraphical.Module
     advanced: [
       { permission: 'delete own domains', validateWith: Validators.own }
     ]
-    success: (client, callback)->
-      {delegate} = client.connection
+    success: (client, callback) ->
+      { delegate } = client.connection
       if /^([\w\-]+)\.kd\.io$/.test @domain
         return callback message: "It's not allowed to delete root domains"
-      @remove (err)=> callback err
+      @remove (err) -> callback err
+
+

@@ -61,6 +61,7 @@ app.post '/-/teams/create'                       , require './handlers/createtea
 app.post '/-/teams/join'                         , require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
+app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
 
 # fetches last members of team
 app.all  '/-/team/:name/members'                 , require './handlers/getteammembers'

@@ -498,12 +498,20 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
           }
           {
+            location    : "~ /api/social/channel/(.*)/list"
+            proxyPass   : "http://socialapi/channel/$1/list$is_args$args"
+          }
+          {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
           {
             location    : "~ /api/social/search-key"
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/sshkey"
+            proxyPass   : "http://socialapi/sshkey$1$is_args$args"
           }
           {
             location    : "~ /api/social/moderation/(.*)"
@@ -522,6 +530,7 @@ Configuration = (options={}) ->
             location    : "~ /sitemap(.*).xml"
             proxyPass   : "http://socialapi/sitemap$1.xml"
           }
+
         ]
 
     dailyemailnotifier  :

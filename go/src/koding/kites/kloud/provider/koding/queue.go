@@ -69,7 +69,9 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	// Check klient state before rushing to AWS.
 	klientRef, err := klient.Connect(m.Session.Kite, m.QueryString)
 	if err != nil {
-		return err
+		m.Log.Debug("Error connecting to klient, stopping if needed. Error: %s",
+			err.Error())
+		return m.stopIfKlientIsMissing(ctx)
 	}
 
 	// replace with the real and authenticated username
@@ -82,8 +84,14 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	klientRef.Close()
 	klientRef = nil
 	if err != nil {
-		return err
+		m.Log.Debug("Error getting klient usage, stopping if needed. Error: %s",
+			err.Error())
+		return m.stopIfKlientIsMissing(ctx)
 	}
+
+	// We successfully connected and communicated with Klient, clear the
+	// missing value.
+	m.klientIsNotMissing()
 
 	// get the timeout from the plan in which the user belongs to
 	plan := plans.Plans[m.Payment.Plan]
@@ -169,6 +177,9 @@ func (p *Provider) FetchOne() (*Machine, error) {
 	if err := p.DB.Run("jMachines", query); err != nil {
 		return nil, err
 	}
+
+	// Don't forget to set any important non-db related Machine values.
+	machine.locker = p
 
 	return machine, nil
 }

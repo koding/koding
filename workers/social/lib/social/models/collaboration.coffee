@@ -1,9 +1,9 @@
-{Base, secure, signature} = require 'bongo'
+{ Base, secure, signature } = require 'bongo'
 
 google       = require 'googleapis'
 google_utils = require 'koding-googleapis'
 
-{notifyByUsernames} = require './notify'
+{ notifyByUsernames } = require './notify'
 
 JMachine   = require './computeproviders/machine'
 JWorkspace = require './workspace'
@@ -27,14 +27,14 @@ module.exports = class Collaboration extends Base
 
     return callback 'drive is not ready'  unless drive
 
-    drive.realtime.get {fileId}, callback
+    drive.realtime.get { fileId }, callback
 
 
   authenticated = (method) ->
 
     options =
-      authorization_options  : subject: 'https://www.googleapis.com/auth/drive'
-      authentication_handler : (auth) -> drive = google.drive {version: 'v2', auth}
+      authorization_options  : { subject: 'https://www.googleapis.com/auth/drive' }
+      authentication_handler : (auth) -> drive = google.drive { version: 'v2', auth }
 
     return google_utils.authenticated options, method
 
@@ -42,14 +42,14 @@ module.exports = class Collaboration extends Base
   unshareMachine = (workspace, callback) ->
     uid = workspace.machineUId
 
-    JMachine.one {uid}, (err, machine) ->
+    JMachine.one { uid }, (err, machine) ->
       owner = null
 
       for user in machine.users when user.sudo and user.owner
         owner = user
         break
 
-      machine.update $set: users: [owner], callback
+      machine.update { $set: { users: [owner] } }, callback
 
 
   @stop = secure authenticated (client, fileId, workspace, callback) ->
@@ -64,7 +64,7 @@ module.exports = class Collaboration extends Base
 
       lastSeen = new Date parseInt doc.data.value.pingTime.value, 10
 
-      {timeout} = KONFIG.collaboration
+      { timeout } = KONFIG.collaboration
 
       if (Date.now() - lastSeen.getTime()) > timeout
       then unshareMachine workspace, callback
@@ -74,12 +74,12 @@ module.exports = class Collaboration extends Base
   @add = secure (client, workspaceId, target, callback) ->
 
     asUser  = yes
-    options = {target, asUser}
+    options = { target, asUser }
     setUsers client, workspaceId, options, (err, machine) ->
       return callback err  if err
 
       machineUId = machine.uid
-      data =  {machineUId, workspaceId}
+      data =  { machineUId, workspaceId }
 
       notifyByUsernames options.target, 'CollaborationInvitation', data
 
@@ -89,16 +89,18 @@ module.exports = class Collaboration extends Base
   @kick = secure (client, workspaceId, target, callback) ->
 
     asUser  = no
-    options = {target, asUser}
+    options = { target, asUser }
     setUsers client, workspaceId, options, callback
 
 
   setUsers = (client, workspaceId, options, callback) ->
 
-    JWorkspace.one _id: workspaceId, (err, workspace) ->
+    JWorkspace.one { _id: workspaceId }, (err, workspace) ->
 
       return callback err  if err
       return callback 'Workspace is not found'  unless workspace
 
       options.permanent = no
       JMachine.shareByUId client, workspace.machineUId, options, callback
+
+

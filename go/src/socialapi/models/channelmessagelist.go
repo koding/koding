@@ -2,6 +2,7 @@ package models
 
 import (
 	"socialapi/request"
+	"sync"
 	"time"
 
 	"github.com/koding/bongo"
@@ -138,7 +139,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		return nil, err
 	}
 
-	populatedChannelMessages, err := c.populateChannelMessages(messages, q)
+	populatedChannelMessages, err := c.PopulateChannelMessages(messages, q)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +172,7 @@ func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, erro
 	return false, err
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessageIds []int64, query *request.Query) ([]*ChannelMessageContainer, error) {
+func (c *ChannelMessageList) PopulateChannelMessages(channelMessageIds []int64, query *request.Query) ([]*ChannelMessageContainer, error) {
 	channelMessageCount := len(channelMessageIds)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
@@ -180,15 +181,35 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessageIds []int64, 
 		return populatedChannelMessages, nil
 	}
 
-	for i := 0; i < channelMessageCount; i++ {
-		cm := NewChannelMessage()
-		cm.Id = channelMessageIds[i]
-		cmc, err := cm.BuildMessage(query)
-		if err != nil {
-			return nil, err
-		}
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var processErr error
 
-		populatedChannelMessages[i] = cmc
+	for i := 0; i < channelMessageCount; i++ {
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+			cm := NewChannelMessage()
+			cm.Id = channelMessageIds[i]
+			cmc, err := cm.BuildMessage(query)
+			if err != nil {
+				mu.Lock()
+				processErr = err
+				mu.Unlock()
+				return
+			}
+
+			mu.Lock()
+			populatedChannelMessages[i] = cmc
+			mu.Unlock()
+		}(i)
+	}
+
+	wg.Wait()
+
+	if processErr != nil {
+		return nil, processErr
 	}
 
 	return populatedChannelMessages, nil

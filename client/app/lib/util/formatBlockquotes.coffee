@@ -1,4 +1,5 @@
 hljs = require 'highlight.js'
+Encoder = require 'htmlencode'
 
 module.exports = (text = '') ->
 
@@ -11,6 +12,6 @@ module.exports = (text = '') ->
         [lang] = match
         part = "\n#{part}"  unless hljs.getLanguage lang
 
-      parts[index] = "\n```#{part}\n```\n"
+      parts[index] = "\n```#{Encoder.htmlDecode part}\n```\n"
 
   parts.join ''

@@ -1,6 +1,7 @@
+# coffeelint: disable=no_implicit_braces
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
-request          = require "request"
+request          = require 'request'
 { argv }         = require 'optimist'
 KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable        = require '../../traits/flaggable'
@@ -25,29 +26,29 @@ module.exports = class JUser extends jraphical.Module
   ComputeProvider      = require '../computeproviders/computeprovider'
   Tracker              = require '../tracker'
 
-  @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
-                     'cthorn','daemon','dbus','dyasar','ec2-user','http',
-                     'games','ggoksel','gopher','haldaemon','halt','mail',
-                     'nfsnobody','nginx','nobody','node','operator','https',
-                     'root','rpcuser','saslauth','shutdown','sinanlocal',
-                     'sshd','sync','tcpdump','uucp','vcsa','zabbix',
-                     'search','blog','activity','guest','credits','about',
-                     'kodingen','alias','backup','bin','bind','daemon',
-                     'Debian-exim','dhcp','drweb','games','gnats','klog',
-                     'kluser','libuuid','list','mhandlers-user','more',
-                     'mysql','nagios','news','nobody','popuser','postgres',
-                     'proxy','psaadm','psaftp','qmaild','qmaill','qmailp',
-                     'qmailq','qmailr','qmails','sshd','statd','sw-cp-server',
-                     'sync','syslog','tomcat','tomcat55','uucp','what',
-                     'www-data','fuck','porn','p0rn','porno','fucking',
-                     'fucker','admin','postfix','puppet','main','invite',
-                     'administrator','members','register','activate','shared',
-                     'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework', 'kite'
-                     'landing','hello','dev', 'sandbox', 'latest']
+  @bannedUserList = ['abrt', 'amykhailov', 'apache', 'about', 'visa', 'shared-',
+                     'cthorn', 'daemon', 'dbus', 'dyasar', 'ec2-user', 'http',
+                     'games', 'ggoksel', 'gopher', 'haldaemon', 'halt', 'mail',
+                     'nfsnobody', 'nginx', 'nobody', 'node', 'operator', 'https',
+                     'root', 'rpcuser', 'saslauth', 'shutdown', 'sinanlocal',
+                     'sshd', 'sync', 'tcpdump', 'uucp', 'vcsa', 'zabbix',
+                     'search', 'blog', 'activity', 'guest', 'credits', 'about',
+                     'kodingen', 'alias', 'backup', 'bin', 'bind', 'daemon',
+                     'Debian-exim', 'dhcp', 'drweb', 'games', 'gnats', 'klog',
+                     'kluser', 'libuuid', 'list', 'mhandlers-user', 'more',
+                     'mysql', 'nagios', 'news', 'nobody', 'popuser', 'postgres',
+                     'proxy', 'psaadm', 'psaftp', 'qmaild', 'qmaill', 'qmailp',
+                     'qmailq', 'qmailr', 'qmails', 'sshd', 'statd', 'sw-cp-server',
+                     'sync', 'syslog', 'tomcat', 'tomcat55', 'uucp', 'what',
+                     'www-data', 'fuck', 'porn', 'p0rn', 'porno', 'fucking',
+                     'fucker', 'admin', 'postfix', 'puppet', 'main', 'invite',
+                     'administrator', 'members', 'register', 'activate', 'shared',
+                     'groups', 'blogs', 'forums', 'topics', 'develop', 'terminal',
+                     'term', 'twitter', 'facebook', 'google', 'framework', 'kite'
+                     'landing', 'hello', 'dev', 'sandbox', 'latest']
 
-  hashPassword = (value, salt)->
-    require('crypto').createHash('sha1').update(salt+value).digest('hex')
+  hashPassword = (value, salt) ->
+    require('crypto').createHash('sha1').update(salt + value).digest('hex')
 
   createSalt = require 'hat'
   rack       = createSalt.rack 64
@@ -56,7 +57,7 @@ module.exports = class JUser extends jraphical.Module
 
   @trait __dirname, '../../traits/flaggable'
 
-  @getFlagRole =-> 'owner'
+  @getFlagRole = -> 'owner'
 
   @set
     softDelete      : yes
@@ -115,7 +116,7 @@ module.exports = class JUser extends jraphical.Module
         validate    : JName.validateEmail
         set         : (value) ->
           return  unless typeof value is 'string'
-          emailsanitize value, excludeDots: yes, excludePlus: yes
+          emailsanitize value, { excludeDots: yes, excludePlus: yes }
       password      : String
       salt          : String
       twofactorkey  : String
@@ -125,7 +126,7 @@ module.exports = class JUser extends jraphical.Module
         type        : String
         enum        : [
           'invalid status type', [
-            'unconfirmed','confirmed','blocked','deleted'
+            'unconfirmed', 'confirmed', 'blocked', 'deleted'
           ]
         ]
         default     : 'unconfirmed'
@@ -158,7 +159,7 @@ module.exports = class JUser extends jraphical.Module
       onlineStatus  :
         actual      :
           type      : String
-          enum      : ['invalid status',['online','offline']]
+          enum      : ['invalid status', ['online', 'offline']]
           default   : 'online'
         userPreference:
           type      : String
@@ -277,7 +278,7 @@ module.exports = class JUser extends jraphical.Module
               "Account not found #{toBeDeletedUsername}"
 
           # update the account to be deleted with empty data
-          account.update $set: accountValues, (err) =>
+          account.update { $set: accountValues }, (err) =>
             return callback err  if err?
             JName.release toBeDeletedUsername, (err) =>
               return callback err  if err?
@@ -291,7 +292,7 @@ module.exports = class JUser extends jraphical.Module
 
                 Payment = require '../payment'
 
-                deletedClient = connection: delegate: account
+                deletedClient = { connection: { delegate: account } }
 
                 Payment.deleteAccount deletedClient, (err) =>
 
@@ -317,7 +318,7 @@ module.exports = class JUser extends jraphical.Module
         callback new KodingError reason
 
     # Let's try to lookup provided session first
-    JSession.one { clientId }, (err, session) =>
+    JSession.one { clientId }, (err, session) ->
 
       if err
 
@@ -366,7 +367,7 @@ module.exports = class JUser extends jraphical.Module
 
           return
 
-        JUser.one { username }, (err, user) =>
+        JUser.one { username }, (err, user) ->
 
           if err?
 
@@ -397,12 +398,12 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
 
 
-  @whoami = secure ({connection:{delegate}}, callback)-> callback null, delegate
+  @whoami = secure ({ connection:{ delegate } }, callback) -> callback null, delegate
 
 
   @getBlockedMessage = (toDate) ->
 
-     return """
+    return """
       This account has been put on suspension due to a violation of our acceptable use policy. The ban will be in effect until <b>#{toDate}.</b><br><br>
 
       If you have any questions, please email <a class="ban" href='mailto:ban@koding.com'>ban@koding.com</a> and allow 2-3 business days for a reply. Even though your account is banned, all your data is safe.<br><br>
@@ -669,7 +670,7 @@ module.exports = class JUser extends jraphical.Module
   @verifyByPin = secure (client, options, callback) ->
 
     account = client.connection.delegate
-    account.fetchUser (err, user) =>
+    account.fetchUser (err, user) ->
 
       return callback new Error 'User not found'  unless user
 
@@ -729,7 +730,7 @@ module.exports = class JUser extends jraphical.Module
     # let user log in for the first time, than set password status
     # as 'needs reset'
     if user.passwordStatus is 'needs set'
-        user.update { $set : { passwordStatus : 'needs reset' } }, callback
+      user.update { $set : { passwordStatus : 'needs reset' } }, callback
     else
       callback null
 
@@ -845,7 +846,7 @@ module.exports = class JUser extends jraphical.Module
 
       # check if user's email domain is in allowed domains
       checkWithDomain = (groupName, email, callback) ->
-        JGroup.one { slug: groupName }, (err, group) =>
+        JGroup.one { slug: groupName }, (err, group) ->
           return callback err  if err
           # yes weird, but we are creating user before creating group
           return callback null, { isEligible: yes } if not group
@@ -861,7 +862,7 @@ module.exports = class JUser extends jraphical.Module
 
       JInvitation.byCode invitationToken, (err, invitation) ->
         # check if invitation exists
-        if err or !invitation?
+        if err or not invitation?
           return callback new KodingError 'Invalid invitation code!'
 
         # check if invitation is valid
@@ -903,7 +904,7 @@ module.exports = class JUser extends jraphical.Module
 
     slugs.push invitation.groupName if invitation?.groupName
     slugs = uniq slugs # clean up slugs
-    queue = slugs.map (slug) =>=>
+    queue = slugs.map (slug) => =>
       @addToGroup account, slug, email, invitation, (err) ->
         return callback err  if err
         queue.fin()
@@ -914,18 +915,18 @@ module.exports = class JUser extends jraphical.Module
   @createGuestUsername = -> "guest-#{rack()}"
 
 
-  @fetchGuestUser = (callback)->
+  @fetchGuestUser = (callback) ->
 
     username      = @createGuestUsername()
 
     account = new JAccount()
-    account.profile = {nickname: username}
+    account.profile = { nickname: username }
     account.type = 'unregistered'
 
     callback null, { account, replacementToken: createId() }
 
 
-  @createUser = (userInfo, callback)->
+  @createUser = (userInfo, callback) ->
 
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
@@ -975,7 +976,7 @@ module.exports = class JUser extends jraphical.Module
 
       user.foreignAuth = foreignAuth  if foreignAuth
 
-      user.save (err)->
+      user.save (err) ->
 
         return  if err
           if err.code is 11000
@@ -990,7 +991,7 @@ module.exports = class JUser extends jraphical.Module
             lastName
           }
 
-        account.save (err)->
+        account.save (err) ->
 
           if err then callback err
           else user.addOwnAccount account, (err) ->
@@ -1024,7 +1025,7 @@ module.exports = class JUser extends jraphical.Module
 
         return callback new KodingError 'Couldn\'t restore your session!'
 
-      kallback = (err, resp={}) ->
+      kallback = (err, resp = {}) ->
         { account, replacementToken, returnUrl } = resp
         callback err, {
           isNewUser : false
@@ -1041,9 +1042,9 @@ module.exports = class JUser extends jraphical.Module
         if isUserLoggedIn
           if user and user.username isnt client.connection.delegate.profile.nickname
             @clearOauthFromSession session, ->
-              callback new KodingError """
+              callback new KodingError '''
                 Account is already linked with another user.
-              """
+              '''
           else
             @fetchUser client, (err, user) =>
               return callback new KodingError err.message  if err
@@ -1064,7 +1065,8 @@ module.exports = class JUser extends jraphical.Module
 
   @validateAll = (userFormData, callback) =>
 
-    validator  = require './validators'
+    Validator  = require './validators'
+    validator  = new Validator
 
     isError    = no
     errors     = {}
@@ -1092,26 +1094,26 @@ module.exports = class JUser extends jraphical.Module
     { account, oldUsername, email } = options
     # prevent from leading and trailing spaces
     email = emailsanitize email
-    @update { username: oldUsername }, { $set: { email } }, (err, res) =>
+    @update { username: oldUsername }, { $set: { email } }, (err, res) ->
       return callback err  if err
       account.profile.hash = getHash email
-      account.save (err)-> console.error if err
+      account.save (err) -> console.error if err
       callback null
 
 
   @changeUsernameByAccount = (options, callback) ->
 
     { account, username, clientId, isRegistration, groupName } = options
-    account.changeUsername { username, isRegistration }, (err) =>
+    account.changeUsername { username, isRegistration }, (err) ->
       return callback err   if err?
       return callback null  unless clientId?
       newToken = createId()
-      JSession.one { clientId }, (err, session) =>
+      JSession.one { clientId }, (err, session) ->
         if err?
           return callback new KodingError 'Could not update your session'
 
         if session?
-          session.update { $set: { clientId: newToken, username, groupName }}, (err) ->
+          session.update { $set: { clientId: newToken, username, groupName } }, (err) ->
             return callback err  if err?
             callback null, newToken
         else
@@ -1404,7 +1406,7 @@ module.exports = class JUser extends jraphical.Module
 
     return jwt.sign data, secret, options
 
-  @removeUnsubscription:({email}, callback) ->
+  @removeUnsubscription:({ email }, callback) ->
 
     JUnsubscribedMail = require '../unsubscribedmail'
     JUnsubscribedMail.one { email }, (err, unsubscribed) ->
@@ -1428,7 +1430,7 @@ module.exports = class JUser extends jraphical.Module
       if not session or not session.username
         return callback noUserError
 
-      JUser.one username: session.username, (err, user)->
+      JUser.one username: session.username, (err, user) ->
 
         if err or not user
           console.log '[JUser::fetchUser]', err  if err?
@@ -1457,14 +1459,14 @@ module.exports = class JUser extends jraphical.Module
     subject = if type is 'email' then Tracker.types.CHANGED_EMAIL
     else Tracker.types.CHANGED_PASSWORD
 
-    Tracker.track username, {to, subject}, {firstName}
+    Tracker.track username, { to, subject }, { firstName }
 
     callback null
 
 
-  @changeEmail = secure (client,options,callback) ->
+  @changeEmail = secure (client, options, callback) ->
 
-    {email} = options
+    { email } = options
 
     email = options.email = emailsanitize email
 
@@ -1473,7 +1475,7 @@ module.exports = class JUser extends jraphical.Module
       return callback new KodingError 'Something went wrong please try again!' if err
       return callback new KodingError 'EmailIsSameError' if email is user.email
 
-      @emailAvailable email, (err, res) =>
+      @emailAvailable email, (err, res) ->
         return callback new KodingError 'Something went wrong please try again!' if err
 
         if res is no
@@ -1489,7 +1491,7 @@ module.exports = class JUser extends jraphical.Module
 
     sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
 
-    @count {sanitizedEmail}, (err, count) ->
+    @count { sanitizedEmail }, (err, count) ->
       callback err, count is 0
 
 
@@ -1505,7 +1507,7 @@ module.exports = class JUser extends jraphical.Module
       kodingUser : no
       forbidden  : yes
 
-    JName.count { name: username }, (err, count)=>
+    JName.count { name: username }, (err, count) =>
       { minLength, maxLength } = JUser.getValidUsernameLengthRange()
 
       if err or username.length < minLength or username.length > maxLength
@@ -1537,7 +1539,7 @@ module.exports = class JUser extends jraphical.Module
       @fetchAccount 'koding', (err, account) =>
         return callback err  if err
 
-        {firstName} = account.profile
+        { firstName } = account.profile
         sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password', callback
 
 
@@ -1545,7 +1547,7 @@ module.exports = class JUser extends jraphical.Module
 
     JVerificationToken = require '../verificationtoken'
 
-    {email, pin} = options
+    { email, pin } = options
 
     email = options.email = emailsanitize email
     sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
@@ -1557,7 +1559,7 @@ module.exports = class JUser extends jraphical.Module
         callback null
       return
 
-    action = "update-email"
+    action = 'update-email'
 
     if not pin
 
@@ -1572,7 +1574,7 @@ module.exports = class JUser extends jraphical.Module
         email, action, pin, username: @getAt 'username'
       }
 
-      JVerificationToken.confirmByPin options, (err, confirmed)=>
+      JVerificationToken.confirmByPin options, (err, confirmed) =>
 
         return callback err  if err
 
@@ -1581,14 +1583,14 @@ module.exports = class JUser extends jraphical.Module
 
         oldEmail = @getAt 'email'
 
-        @update $set: {email, sanitizedEmail}, (err, res)=>
+        @update { $set: { email, sanitizedEmail } }, (err, res) =>
           return callback err  if err
 
           account.profile.hash = getHash email
-          account.save (err)=>
+          account.save (err) =>
             return callback err  if err
 
-            {firstName} = account.profile
+            { firstName } = account.profile
 
             # send EmailChanged event
             @constructor.emit 'EmailChanged', {
@@ -1635,13 +1637,13 @@ module.exports = class JUser extends jraphical.Module
         status       : 'blocked',
         blockedUntil : blockedUntil
     , (err) =>
-        return callback err if err
-        JUser.emit 'UserBlocked', this
-        # clear all of the cookies of the blocked user
+      return callback err if err
+      JUser.emit 'UserBlocked', this
+      # clear all of the cookies of the blocked user
 
-        console.log 'JUser#block JSession#remove', { @username, blockedUntil }
+      console.log 'JUser#block JSession#remove', { @username, blockedUntil }
 
-        JSession.remove { username: @username }, callback
+      JSession.remove { username: @username }, callback
 
 
   unblock: (callback) ->
@@ -1661,7 +1663,7 @@ module.exports = class JUser extends jraphical.Module
     @update $unset: { foreignAuth:1, foreignAuthType:1 }, (err) =>
       return callback err  if err
 
-      @fetchOwnAccount (err, account)->
+      @fetchOwnAccount (err, account) ->
         return callback err  if err
         account.unstoreAll callback
 
@@ -1699,7 +1701,7 @@ module.exports = class JUser extends jraphical.Module
         callback null # WARNING: don't assume it's an error if there's no foreignAuth
 
 
-  @saveOauthToUser: ({foreignAuth, foreignAuthType}, username, callback) ->
+  @saveOauthToUser: ({ foreignAuth, foreignAuthType }, username, callback) ->
 
     query = {}
     query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
@@ -1712,9 +1714,9 @@ module.exports = class JUser extends jraphical.Module
     session.update { $unset: { foreignAuth:1, foreignAuthType:1 } }, callback
 
 
-  @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback) ->
+  @copyPublicOauthToAccount: (username, { foreignAuth, foreignAuthType }, callback) ->
 
-    JAccount.one { "profile.nickname" : username }, (err, account) ->
+    JAccount.one { 'profile.nickname' : username }, (err, account) ->
       return callback err  if err
 
       name    = "ext|profile|#{foreignAuthType}"
@@ -1724,14 +1726,14 @@ module.exports = class JUser extends jraphical.Module
 
   @setSSHKeys: secure (client, sshKeys, callback) ->
 
-    @fetchUser client, (err,user) ->
+    @fetchUser client, (err, user) ->
       user.sshKeys = sshKeys
       user.save callback
 
 
   @getSSHKeys: secure (client, callback) ->
 
-    @fetchUser client, (err,user) ->
+    @fetchUser client, (err, user) ->
       callback user.sshKeys or []
 
 
@@ -1757,7 +1759,7 @@ module.exports = class JUser extends jraphical.Module
     key          = @getAt 'twofactorkey'
 
     speakeasy    = require 'speakeasy'
-    generatedKey = speakeasy.totp {key, encoding: 'base32'}
+    generatedKey = speakeasy.totp { key, encoding: 'base32' }
 
     return generatedKey is verificationCode
 
