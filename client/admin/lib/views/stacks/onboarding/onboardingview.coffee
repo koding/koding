@@ -144,7 +144,7 @@ module.exports = class OnboardingView extends JView
 
     stackTemplate    =
       provider       : providerTemplates[selectedProvider]
-      resources      :
+      resource       :
         aws_instance : selectedInstances
 
     if selectedCodeService
