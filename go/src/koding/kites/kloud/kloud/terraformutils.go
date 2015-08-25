@@ -40,6 +40,20 @@ type buildData struct {
 	KiteIds  map[string]string
 }
 
+type terraformTemplate struct {
+	Resource struct {
+		Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
+	} `json:"resource"`
+	Provider struct {
+		Aws struct {
+			Region    string `json:"region"`
+			AccessKey string `json:"access_key"`
+			SecretKey string `json:"secret_key"`
+		} `json:"aws"`
+	} `json:"provider"`
+	Variable map[string]map[string]interface{} `json:"variable,omitempty"`
+}
+
 func (m *Machines) AppendRegion(region string) {
 	for i, machine := range m.Machines {
 		machine.Region = region
@@ -162,6 +176,11 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
+func injectKodingVariables(ctx context.Context, content string) error {
+	return nil
+
+}
+
 func injectKodingData(ctx context.Context, content, username string, creds *terraformCredentials) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -184,20 +203,7 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
 	}
 
-	var data struct {
-		Resource struct {
-			Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
-		} `json:"resource"`
-		Provider struct {
-			Aws struct {
-				Region    string `json:"region"`
-				AccessKey string `json:"access_key"`
-				SecretKey string `json:"secret_key"`
-			} `json:"aws"`
-		} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
-
+	var data *terraformTemplate
 	if err := json.Unmarshal([]byte(content), &data); err != nil {
 		return nil, err
 	}
