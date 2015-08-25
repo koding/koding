@@ -64,13 +64,19 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     <span>{nickname}</span>
 
 
+  renderAvatars: (participants, isNicknameVisible) ->
+
+    participants.toList().map (participant) =>
       <div key={participant.get 'id'} className="ChannelParticipantAvatars-singleBox">
         <ProfileLinkContainer account={participant.toJS()}>
-          <Avatar
-            className="ChannelParticipantAvatars-avatar"
-            width={30}
-            account={participant.toJS()}
-            height={30} />
+          <div>
+            <Avatar
+              className="ChannelParticipantAvatars-avatar"
+              width={30}
+              account={participant.toJS()}
+              height={30} />
+            {@renderNickname(participant, isNicknameVisible)}
+          </div>
         </ProfileLinkContainer>
       </div>
 
