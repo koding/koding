@@ -10,6 +10,7 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -326,12 +327,37 @@ func (t *terraformTemplate) injectKodingData(data *terraformData) {
 
 		for _, field := range model.Fields() {
 			fieldName := strings.ToLower(field.Name())
-			if p.fieldToAdd[fieldName] {
-				varName := "koding_" + strings.ToLower(p.collection) + "_" + fieldName
+			// check if the user set a field tag
+			if field.Tag("bson") != "" {
+				fieldName = field.Tag("bson")
+			}
+
+			exists := p.fieldToAdd[fieldName]
+
+			// we need to declare to call it recursively
+			var addVariable func(*structs.Field, string, bool)
+
+			addVariable = func(field *structs.Field, varName string, allow bool) {
+				if !allow {
+					return
+				}
+
+				// nested structs, call again
+				if field.Kind() == reflect.Struct {
+					for _, f := range field.Fields() {
+						newName := varName + "_" + strings.ToLower(f.Name())
+						addVariable(f, newName, true)
+					}
+					return
+				}
+
 				t.Variable[varName] = map[string]interface{}{
 					"default": field.Value(),
 				}
 			}
+
+			varName := "koding_" + strings.ToLower(p.collection) + "_" + fieldName
+			addVariable(field, varName, exists)
 		}
 	}
 }
@@ -362,6 +388,7 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 		return nil, err
 	}
 
+	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
 	template.injectKodingData(data)
 
 	if len(template.Resource.Aws_Instance) == 0 {
