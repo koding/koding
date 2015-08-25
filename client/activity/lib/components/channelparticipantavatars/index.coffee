@@ -12,7 +12,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     super
 
-    @state = { addNewParticipantMode: no }
+    @state = { addNewParticipantMode: no, showAllParticipants: no }
 
   PREVIEW_COUNT = 0
   MAX_PREVIEW_COUNT = 4
@@ -43,10 +43,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
   onShowMoreParticipantButtonClick: ->
 
-    console.log 'show more participants clicked'
+    if @state.showAllParticipants is yes
+    then @setState showAllParticipants: no
+    else @setState showAllParticipants: yes
 
 
-  renderAvatars: ->
+  renderPreviewAvatars: ->
 
     return null  unless @props.participants
 
@@ -54,7 +56,10 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     PREVIEW_COUNT = @getPreviewCount()
 
-    participants.slice(0, PREVIEW_COUNT).toList().map (participant) ->
+    participants = participants.slice(0, PREVIEW_COUNT)
+
+    @renderAvatars(participants, no)
+
 
   renderNickname: (participant, isNicknameVisible)->
 
@@ -139,7 +144,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
   render: ->
     <div className="ChannelParticipantAvatars">
-      {@renderAvatars()}
+      {@renderPreviewAvatars()}
       {@renderMoreCount()}
       {@renderNewParticipantButton()}
       {@renderAddNewParticipantInput()}
