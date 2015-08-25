@@ -26,10 +26,13 @@ module.exports = class PostPane extends React.Component
     ActivityFlux.actions.message.createComment @message('id'), event.value
 
 
-  onScrollThresholdReached: (event) ->
+  onLoadMore: (event) ->
+
+    return  unless @props.messages.size
+    return  if @props.thread.getIn ['flags', 'isMessagesLoading']
 
     from = @props.messages.first().get('createdAt')
-    ActivityFlux.actions.message.loadComments @channel('id'), { from }
+    ActivityFlux.actions.message.loadComments @message('id'), { from }
 
 
   render: ->
@@ -38,7 +41,8 @@ module.exports = class PostPane extends React.Component
       className="PostPane"
       messages={@props.messages}
       onSubmit={@bound 'onSubmit'}
-      onScrollThresholdReached={@bound 'onScrollThresholdReached'}
+      onLoadMore={@bound 'onLoadMore'}
+      isParticipant={@channel 'isParticipant'}
     />
 
 
