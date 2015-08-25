@@ -26,6 +26,7 @@ module.exports = class GroupStackSettings extends kd.View
     @scrollView.wrapper.addSubView onboardingView = new OnboardingView
 
     onboardingView.on 'StackOnboardingCompleted', (template) =>
+      onboardingView.destroy()
       @showEditor template
 
 
@@ -45,7 +46,6 @@ module.exports = class GroupStackSettings extends kd.View
 
     defineStackView.on 'Reload', => @initialView.reload()
 
-    defineStackView.on ['Cancel', 'Completed'], =>
+    defineStackView.on [ 'Cancel', 'Completed' ], =>
       @initialView.show()
       defineStackView.destroy()
-
