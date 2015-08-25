@@ -299,18 +299,18 @@ func (t *terraformTemplate) injectKodingData(data *terraformData) {
 		collection string
 		fieldToAdd map[string]bool
 	}{
-		{"user",
+		{"User",
 			map[string]bool{
 				"username": true,
 				"email":    true,
 			},
 		},
-		{"account",
+		{"Account",
 			map[string]bool{
 				"profile": true,
 			},
 		},
-		{"group",
+		{"Group",
 			map[string]bool{
 				"title": true,
 				"slug":  true,
@@ -327,7 +327,7 @@ func (t *terraformTemplate) injectKodingData(data *terraformData) {
 		for _, field := range model.Fields() {
 			fieldName := strings.ToLower(field.Name())
 			if p.fieldToAdd[fieldName] {
-				varName := "koding_" + p.collection + "_" + fieldName
+				varName := "koding_" + strings.ToLower(p.collection) + "_" + fieldName
 				t.Variable[varName] = map[string]interface{}{
 					"default": field.Value(),
 				}
