@@ -1151,8 +1151,8 @@ Admin main styles
 
   .step-define-stack
     height                  calc(100% \- 100px)
+
     .editor-view
-      border-radius         4px
       height                calc(100% \- 100px)
 
   .steps-view
@@ -1250,7 +1250,6 @@ Admin main styles
       .credential-list
         display             none
 
-
   .step-define-stack
     height                  100%
 
@@ -1258,7 +1257,7 @@ Admin main styles
       z-index               14
 
     .editor-view
-      height                calc(100% \- 140px)
+      height                calc(100% \- 230px)
 
     .showlogs-link
       z-index               13
@@ -1268,7 +1267,7 @@ Admin main styles
 
   .kdview.credential-status
     width                   200px
-    line-height             38px
+    line-height             49px
     font-size               13px
     text-align              right
     right                   10px
@@ -1311,6 +1310,19 @@ Admin main styles
 
     pre.output-view
       height                auto
+
+  .template-title-form
+    height                  49px
+    bg                      color, #EFEFEF
+    border-bottom           1px solid #979797
+
+    .kdlabel
+      line-height           49px
+      text-indent           17px
+      margin                0
+
+  .template-title
+    margin-top              5px !important
 
 
 .AppModal--admin .members
@@ -1572,6 +1584,7 @@ Admin main styles
 
 // stack onboarding styling
 .stack-onboarding
+.step-define-stack
 
   .header
     text-align              center
@@ -1587,6 +1600,10 @@ Admin main styles
     font-weight             300
     width                   450px
     margin                  0 auto 53px
+
+
+// stack onboarding styling
+.stack-onboarding
 
   .kdbutton
     &.green
