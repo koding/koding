@@ -28,11 +28,28 @@ module.exports = class DefineStackView extends KDView
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'step-define-stack'
+    options.cssClass = kd.utils.curry 'define-stack-view', options.cssClass
 
-    super options, data ? {}
+    super options, data
 
-    {credential, stackTemplate, template} = @getData()
+    { stackTemplate } = @getData()
+
+    # I'm not sure about this usage.
+    options.delegate = this
+
+    @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
+
+    @tabView.addPane stackTemplate = new KDTabPaneView name: 'Stack Template'
+    @tabView.addPane variables     = new KDTabPaneView name: 'Variables'
+    @tabView.addPane providers     = new KDTabPaneView name: 'Providers'
+
+    variables.addSubView @variablesView         = new VariablesView
+    stackTemplate.addSubView @stackTemplateView = new StackTemplateView options, data
+
+    { @credentials } = stackTemplate or {}
+
+    providers.addSubView @providersView = new ProvidersView
+      selectedCredentials: @credentials
 
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
