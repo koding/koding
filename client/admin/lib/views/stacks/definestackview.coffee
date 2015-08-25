@@ -294,30 +294,48 @@ module.exports = class DefineStackView extends kd.View
 
     requiredData  = requirementsParser template
     errors        = []
+    warnings      = []
 
     fetchUserData = (callback) ->
       account.fetchFromUser requiredData.user, (err, data) ->
         kd.warn err  if err
         callback data ? {}
 
+    process = (data, type) ->
+
+      if data.length > 0
+        console.warn "#{type.capitalize()} for preview requirements: ", data
+
+        issueList = ''
+        for issue in data
+          issueList += " - #{issue}\n"
+
+        issues = "> Following #{type} found while generating
+                  preview for this template: \n#{issueList}"
+      else
+        issues = ''
+
+      return issues
+
+
     generatePreview = =>
 
       for type, data of requiredData
+
         for field in data
+
+          if type is 'userInput'
+            warnings.push "Variable `#{field}` will be requested from user."
+            continue
+
           if content = jspath.getAt availableData[type], field
             search   = ///\${var.koding_#{type}_#{field}}///g
             template = template.replace search, content
           else
             errors.push "Variable `#{field}` not found in `#{type}` data."
 
-      if errors.length > 0
-        console.warn "Errors for preview requirements: ", errors
-
-        errors = " - #{error}\n" for error in errors
-        errors = "> Following errors found while generating
-                  preview for this template: \n#{errors}"
-      else
-        errors = ''
+      errors   = process errors, 'errors'
+      warnings = process warnings, 'warnings'
 
       new kd.ModalView
         title          : 'Template Preview'
@@ -328,6 +346,8 @@ module.exports = class DefineStackView extends kd.View
         overlayOptions : cssClass : 'second-overlay'
         content        : applyMarkdown """
           #{errors}
+
+          #{warnings}
           ```coffee
           #{template}
           ```
