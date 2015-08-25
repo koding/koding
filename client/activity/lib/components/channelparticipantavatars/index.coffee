@@ -92,6 +92,21 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     </div>
 
 
+  renderAllParticipantsMenu: ->
+
+    return null  unless @state.showAllParticipants
+    return null  unless @props.participants
+
+    { participants } = @props
+
+    <div className="ChannelParticipantAvatars-allParticipantsMenu">
+      <div className="ChannelParticipantAvatars-allParticipantsMenuContainer">
+        <div className="ChannelParticipantAvatars-allParticipantsMenuTitle">Other participants</div>
+        {@renderAvatars(participants, yes)}
+      </div>
+    </div>
+
+
   getAddNewParticipantButtonClassNames: -> classnames
     'ChannelParticipantAvatars-newParticipantBox': yes
     'cross': @state.addNewParticipantMode
@@ -122,5 +137,6 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       {@renderMoreCount()}
       {@renderNewParticipantButton()}
       {@renderAddNewParticipantInput()}
+      {@renderAllParticipantsMenu()}
     </div>
 
