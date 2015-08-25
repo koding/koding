@@ -239,8 +239,8 @@ module.exports = class DefineStackView extends KDView
 
     { stackTemplate } = @getData()
 
-    { title }         = @inputTitle.getData()
-    templateContent   = @editorView.getValue()
+    { title }         = @stackTemplateView.inputTitle.getData()
+    templateContent   = @stackTemplateView.editorView.getValue()
 
     # TODO split following into their own helper methods
     # and call them in here ~ GG
@@ -271,9 +271,9 @@ module.exports = class DefineStackView extends KDView
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credential      = @credentialStatus.credentialsData.first
+    credential      = @stackTemplateView.credentialStatus.credentialsData.first
 
-    if 'yaml' is @editorView.getOption 'contentType'
+    if 'yaml' is @stackTemplateView.editorView.getOption 'contentType'
       convertedDoc = yamlToJson templateContent
 
       if convertedDoc.err
