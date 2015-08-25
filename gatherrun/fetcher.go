@@ -23,8 +23,6 @@ type Fetcher interface {
 
 // S3Fetcher downloads gather binary from a private S3 bucket.
 type S3Fetcher struct {
-	AccessKey  string
-	SecretKey  string
 	BucketName string
 	FileName   string
 	Region     string
