@@ -15,9 +15,14 @@ import (
 )
 
 var (
-	flagHost     = flag.String("env", "prod", "env name")
-	flagFiltered = flag.Bool("filtered", false, "filter by ec2 tags")
-	folderPath   = flag.String("folderPath", "/Users/siesta/Documents/koding/credential", "credential repo folder path")
+	// these keys are already on main.dev.coffee
+	// ELB & EC2 -> AmazonEC2ReadOnlyAccess
+	flagAWSSecret = flag.String("awsSecret", "/IQR6Y9Oo06TsQql0GSkmU5EG6Ks7hUOabxUh5OK", "aws secret key")
+	flagAWSAccess = flag.String("awsAccess", "AKIAI7CKP5SNHCBUEDXQ", "aws access key")
+
+	flagHost       = flag.String("env", "prod", "env name")
+	flagFiltered   = flag.Bool("filtered", false, "filter by ec2 tags")
+	flagFolderPath = flag.String("flagFolderPath", "/Users/siesta/Documents/koding/credential", "credential repo folder path")
 )
 
 var ELBS = map[string]string{
@@ -56,20 +61,16 @@ var ELB2Region = map[string]aws.Region{
 	"awseb-e-p-AWSEBLoa-16QIN1OI6WYNK": aws.USEast,
 }
 
-var auth = aws.Auth{
-	// these keys are already on main.dev.coffee
-	// ELB & EC2 -> AmazonEC2ReadOnlyAccess
-	AccessKey: "AKIAI7CKP5SNHCBUEDXQ",
-	SecretKey: "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",
-}
-
 func getEC2(elbName string) *ec2.EC2 {
 	reg, ok := ELB2Region[elbName]
 	if !ok {
 		panic(elbName)
 	}
 
-	return ec2.New(auth, reg)
+	return ec2.New(aws.Auth{
+		AccessKey: *flagAWSAccess,
+		SecretKey: *flagAWSSecret,
+	}, reg)
 }
 
 func getELB(elbName string) *elb.ELB {
@@ -78,7 +79,10 @@ func getELB(elbName string) *elb.ELB {
 		panic(elbName)
 	}
 
-	return elb.New(auth, reg)
+	return elb.New(aws.Auth{
+		AccessKey: *flagAWSAccess,
+		SecretKey: *flagAWSSecret,
+	}, reg)
 }
 
 func main() {
@@ -132,7 +136,7 @@ var paramToKey = map[string]string{
 func createI2csshString(param string, instances []string) string {
 	return fmt.Sprintf(
 		"--forward-agent --login ec2-user --rows 3 --broadcast -Xi=%s  --machines %s",
-		*folderPath+paramToKey[param],
+		*flagFolderPath+paramToKey[param],
 		strings.Join(instances, ","),
 	)
 }
