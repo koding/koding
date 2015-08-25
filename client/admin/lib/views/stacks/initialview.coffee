@@ -16,7 +16,7 @@ module.exports = class InitialView extends kd.View
     @createStackButton = new kd.ButtonView
       title    : 'Create new Stack'
       cssClass : 'solid compact green action'
-      callback : => @emit 'CreateNewStack'
+      callback : => @emit 'CreateNewStack', skipOnboarding: yes
 
     @stackTemplateList = new StackTemplateListView
 
