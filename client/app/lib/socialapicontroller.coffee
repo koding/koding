@@ -139,6 +139,12 @@ module.exports = class SocialApiController extends KDController
     m = new remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
 
+    # since node.js(realtime) and golang(regular fetch) is returning different
+    # timestamps, these are to unify all timestamp values. ~Umut
+    m.createdAt = (new Date m.createdAt).toJSON()
+    m.deletedAt = (new Date m.deletedAt).toJSON()
+    m.updatedAt = (new Date m.updatedAt).toJSON()
+
     m.replyIds = {}
     if data.replies and data.replies.length
       m.replyIds[reply.id] = yes  for reply in data.replies
