@@ -7,6 +7,7 @@ showError      = require 'app/util/showError'
 
 CredentialSelectorModal = require './credentialselectormodal'
 
+
 module.exports = class CredentialStatusView extends kd.View
 
   JView.mixin @prototype
@@ -26,6 +27,7 @@ module.exports = class CredentialStatusView extends kd.View
     @waitingView.addSubView @loader  = new kd.LoaderView
       showLoader : yes
       size       : width : 16
+
     @waitingView.addSubView @message = new kd.CustomHTMLView
       cssClass   : 'message'
       partial    : 'Checking credentials...'
