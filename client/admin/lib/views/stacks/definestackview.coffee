@@ -158,8 +158,8 @@ module.exports = class DefineStackView extends KDView
 
   checkAndBootstrapCredentials: (callback) ->
 
-    {credentialsData} = @credentialStatus
-    [credential]      = credentialsData
+    { credentialsData } = @credentialStatus
+    [credential]        = credentialsData
 
     failed = (err) =>
       @stackTemplateView.outputView.handleError err
@@ -214,7 +214,7 @@ module.exports = class DefineStackView extends KDView
 
   handleCheckTemplate: (options, callback) ->
 
-    { stackTemplate } = options
+    { stackTemplate }     = options
     { computeController } = kd.singletons
 
     computeController.getKloud()
@@ -247,10 +247,10 @@ module.exports = class DefineStackView extends KDView
 
   saveTemplate: (callback) ->
 
-    {stackTemplate} = @getData()
+    { stackTemplate } = @getData()
 
-    {title}         = @inputTitle.getData()
-    templateContent = @editorView.getValue()
+    { title }         = @inputTitle.getData()
+    templateContent   = @editorView.getValue()
 
     # TODO split following into their own helper methods
     # and call them in here ~ GG
@@ -389,7 +389,7 @@ module.exports = class DefineStackView extends KDView
 
   handleSetDefaultTemplate: ->
 
-    { stackTemplate } = @getData()
+    { stackTemplate }                       = @getData()
     { computeController, groupsController } = kd.singletons
 
     currentGroup = groupsController.getCurrentGroup()
