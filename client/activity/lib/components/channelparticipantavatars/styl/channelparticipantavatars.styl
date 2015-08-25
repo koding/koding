@@ -27,7 +27,8 @@
       vendor              transform, rotate(45deg)
 
 .ChannelParticipantAvatars .ProfilePicture
-  border-radius           $border-radius
+  vertical-align          middle
+  rounded                 $border-radius
 
 .ChannelParticipantAvatars-moreCount
   pointer()
@@ -56,3 +57,60 @@
       opacity             1
       height              32px
       border              2px solid $gray-16
+
+.ChannelParticipantAvatars-allParticipantsMenu
+  abs()
+  rounded                 $border-radius
+  border                  1px solid $gray-20
+  z-index                 9
+  padding                 5px 0
+  bg                      color, $white
+  right                   25px
+  max-height              420px
+  shadow                  0 8px 35px rgba(0, 0, 0, 0.22)
+
+  &:before
+    abs()
+    content               ''
+    top                   -7px
+    right                 50px
+    size                  0, 0
+    border-left           7px solid transparent;
+    border-right          7px solid transparent;
+    border-bottom         7px solid $white;
+
+  .ChannelParticipantAvatars-allParticipantsMenuContainer
+    width                 200px
+    max-height            420px
+    overflow-y            auto
+    overflow-x            hidden
+
+  .ChannelParticipantAvatars-allParticipantsMenuTitle
+    color                 $gray-14
+    border-bottom         1px solid $gray-16
+    padding               5px 10px
+    font-size             14px
+
+  .ChannelParticipantAvatars-singleBox
+    dBlock()
+    pointer()
+    width                 auto
+    color                 $gray-12
+    margin                0
+    padding               5px 10px
+
+    a
+      noTextDeco()
+      color               $gray-12
+
+    .ProfilePicture
+      fl()
+      margin-right        10px
+
+    &:hover
+      bg                  color, $gray-12
+
+      a
+        color             $white
+
+
