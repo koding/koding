@@ -16,11 +16,11 @@ module.exports = requirementsParser = (content) ->
     sections     = sections.join '|'
 
     # Check the example below
-    # http://regexr.com/3blbp ~ GG
+    # http://regexr.com/3bles ~ GG
 
     regexs = [
-      ///\$\{var\.koding\_(#{sections})\_(#{props})(\_(.*)\}|\})///g
-      /\$\{var\.(userInput)\_(.*)\}/g
+      ///\$\{var\.koding\_(#{sections})\_(#{props})(\_(.*?)\}|\})///g  # Koding Variables
+      /\$\{var\.(userInput)\_(.*)\}/g                                  # UserInputs
     ]
 
     requirements = {}
