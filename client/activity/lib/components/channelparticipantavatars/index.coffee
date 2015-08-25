@@ -55,6 +55,15 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     PREVIEW_COUNT = @getPreviewCount()
 
     participants.slice(0, PREVIEW_COUNT).toList().map (participant) ->
+
+  renderNickname: (participant, isNicknameVisible)->
+
+    return  if isNicknameVisible is no
+
+    nickname = participant.getIn ['profile', 'nickname']
+    <span>{nickname}</span>
+
+
       <div key={participant.get 'id'} className="ChannelParticipantAvatars-singleBox">
         <ProfileLinkContainer account={participant.toJS()}>
           <Avatar
