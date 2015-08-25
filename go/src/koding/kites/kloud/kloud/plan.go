@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
@@ -24,8 +25,11 @@ type TerraformPlanRequest struct {
 	GroupName string `json:"groupName"`
 }
 
-type terraformCredentials struct {
-	Creds []*terraformCredential
+type terraformData struct {
+	Creds   []*terraformCredential
+	Account *models.Account
+	Group   *models.Group
+	User    *models.User
 }
 
 type terraformCredential struct {
@@ -218,7 +222,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	return machines, nil
 }
 
-func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformCredentials, error) {
+func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -231,7 +235,13 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifie
 		return nil, err
 	}
 
-	// validate if username belongs to groupname
+	// fetch jUser from username
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate if username belongs to groupnam
 	selector := modelhelper.Selector{
 		"targetId": account.Id,
 		"sourceId": group.Id,
@@ -287,14 +297,17 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifie
 	}
 
 	// 5- return list of keys. We only support aws for now
-	creds := &terraformCredentials{
-		Creds: make([]*terraformCredential, 0),
+	data := &terraformData{
+		Account: account,
+		Group:   group,
+		User:    user,
+		Creds:   make([]*terraformCredential, 0),
 	}
 
-	for _, data := range credentialData {
-		provider, ok := validKeys[data.Identifier]
+	for _, c := range credentialData {
+		provider, ok := validKeys[c.Identifier]
 		if !ok {
-			return nil, fmt.Errorf("provider is not found for identifer: %s", data.Identifier)
+			return nil, fmt.Errorf("provider is not found for identifer: %s", c.Identifier)
 		}
 		// for now we only support aws
 		if provider != "aws" {
@@ -303,14 +316,15 @@ func fetchCredentials(username, groupname string, db *mongodb.MongoDB, identifie
 
 		cred := &terraformCredential{
 			Provider:   provider,
-			Identifier: data.Identifier,
+			Identifier: c.Identifier,
 		}
 
-		if err := mapstructure.Decode(data.Meta, &cred.Data); err != nil {
+		if err := mapstructure.Decode(c.Meta, &cred.Data); err != nil {
 			return nil, err
 		}
-		creds.Creds = append(creds.Creds, cred)
 
+		data.Creds = append(data.Creds, cred)
 	}
-	return creds, nil
+
+	return data, nil
 }
