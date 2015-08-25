@@ -1,4 +1,3 @@
-htmlencode = require 'htmlencode'
 hljs = require 'highlight.js'
 marked = require 'marked'
 
@@ -19,4 +18,4 @@ module.exports = (text, options = {})->
     then hljs.highlight(lang,text).value
     else text
 
-  marked htmlencode.htmlDecode(text), options
+  marked text, options
