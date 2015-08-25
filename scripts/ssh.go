@@ -1,3 +1,5 @@
+// this is just a helper package that i (cs) write for multiple ssh access to
+// servers
 package main
 
 import (
@@ -7,7 +9,6 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/goamz/elb"
@@ -16,6 +17,7 @@ import (
 var (
 	flagHost     = flag.String("env", "prod", "env name")
 	flagFiltered = flag.Bool("filtered", false, "filter by ec2 tags")
+	folderPath   = flag.String("folderPath", "/Users/siesta/Documents/koding/credential", "credential repo folder path")
 )
 
 var ELBS = map[string]string{
@@ -55,6 +57,8 @@ var ELB2Region = map[string]aws.Region{
 }
 
 var auth = aws.Auth{
+	// these keys are already on main.dev.coffee
+	// ELB & EC2 -> AmazonEC2ReadOnlyAccess
 	AccessKey: "AKIAI7CKP5SNHCBUEDXQ",
 	SecretKey: "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",
 }
@@ -77,45 +81,7 @@ func getELB(elbName string) *elb.ELB {
 	return elb.New(auth, reg)
 }
 
-// func join() chan error {
-// 	c := make(chan error, 2)
-
-// 	copy := func(i int) {
-// 		time.Sleep(time.Millisecond * time.Duration(100*i))
-// 		select {
-// 		case c <- fmt.Errorf("%d", i):
-// 		default:
-// 			fmt.Println("i-->", i)
-// 		}
-// 	}
-
-// 	go copy(1)
-// 	go copy(2)
-
-// 	return c
-// }
-//
-
-type KodingHstore gorm.Hstore
-
 func main() {
-	// go func() {
-	// 	c := join()
-	// 	fmt.Println(<-c)
-	// 	c = nil
-	// 	close(c)
-	// }()
-
-	// time.Sleep(time.Second * 2)
-	// fmt.Println("Hello, playground")
-	// endOfDay := now.EndOfDay().UTC()
-	// difference := time.Now().UTC().Sub(endOfDay)
-	// fmt.Println("difference-->", difference)
-
-	// endOfDay = now.EndOfDay().UTC()
-	// difference = endOfDay.Sub(time.Now().UTC())
-	// fmt.Println("difference-->", difference)
-	// return
 
 	flag.Parse()
 
@@ -142,8 +108,7 @@ func main() {
 			currentELBInstances = append(currentELBInstances, currentInstances...)
 		}
 	}
-	fmt.Println("currentELBInstances-->", currentELBInstances)
-	fmt.Println("strings.Fields(createI2csshString(currentELBInstances))...-->", strings.Fields(createI2csshString(*flagHost, currentELBInstances)))
+
 	_, err := exec.Command("i2cssh", strings.Fields(createI2csshString(*flagHost, currentELBInstances))...).Output()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -152,22 +117,22 @@ func main() {
 }
 
 var paramToKey = map[string]string{
-	"prod":       "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
-	"latest":     "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
-	"sandbox":    "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
-	"monitoring": "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"prod":       "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"latest":     "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"sandbox":    "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"monitoring": "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
 
-	"proxy-eu-west-1":      "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-eu-west-1-2015-06.pem",
-	"proxy-us-east-1":      "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
-	"proxy-us-west-2":      "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-west-2-2015-06.pem",
-	"proxy-ap-southeast-1": "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-ap-southeast-1-2015-06.pem",
-	"proxy-dev-us-e-1":     "/Users/siesta/Documents/koding/credential/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"proxy-eu-west-1":      "/private_keys/koding-eb-deployment-eu-west-1-2015-06.pem",
+	"proxy-us-east-1":      "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"proxy-us-west-2":      "/private_keys/koding-eb-deployment-us-west-2-2015-06.pem",
+	"proxy-ap-southeast-1": "/private_keys/koding-eb-deployment-ap-southeast-1-2015-06.pem",
+	"proxy-dev-us-e-1":     "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
 }
 
 func createI2csshString(param string, instances []string) string {
 	return fmt.Sprintf(
 		"--forward-agent --login ec2-user --rows 3 --broadcast -Xi=%s  --machines %s",
-		paramToKey[param],
+		*folderPath+paramToKey[param],
 		strings.Join(instances, ","),
 	)
 }
