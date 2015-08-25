@@ -10,3 +10,5 @@ module.exports = (req, res) ->
   JPasswordRecovery.resetPassword token, password, (err, username) ->
     return res.status(400).send err.message  if err?
     res.status(200).send({ username })
+
+

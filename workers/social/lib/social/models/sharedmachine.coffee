@@ -1,8 +1,8 @@
 bongo = require 'bongo'
 
-{secure, signature} = bongo
+{ secure, signature } = bongo
 
-{notifyByUsernames} = require './notify'
+{ notifyByUsernames } = require './notify'
 
 JMachine = require './computeproviders/machine'
 
@@ -21,17 +21,17 @@ module.exports = class SharedMachine extends bongo.Base
   @add = secure (client, uid, target, callback) ->
 
     asUser  = yes
-    options = {target, asUser}
+    options = { target, asUser }
     setUsers client, uid, options, (err) ->
       return callback err  if err
-      notifyByUsernames options.target, 'SharedMachineInvitation', {uid}
+      notifyByUsernames options.target, 'SharedMachineInvitation', { uid }
       callback()
 
 
   @kick = secure (client, uid, target, callback) ->
 
     asUser  = no
-    options = {target, asUser}
+    options = { target, asUser }
     setUsers client, uid, options, callback
 
 
@@ -39,3 +39,5 @@ module.exports = class SharedMachine extends bongo.Base
 
     options.permanent = yes
     JMachine.shareByUId client, uid, options, callback
+
+

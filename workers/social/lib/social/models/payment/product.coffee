@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 JPaymentBase = require './base'
 
 module.exports = class JPaymentProduct extends JPaymentBase
@@ -87,13 +88,13 @@ module.exports = class JPaymentProduct extends JPaymentBase
       tags
     }
 
-    product.save (err) =>
+    product.save (err) ->
       return callback err  if err
 
       product.savePlanToRecurly (err, plan) ->
         return callback err  if err
 
-        JGroup.one slug: group, (err, group) ->
+        JGroup.one { slug: group }, (err, group) ->
           return callback err  if err
 
           group.addProduct product, (err) ->
@@ -115,3 +116,5 @@ module.exports = class JPaymentProduct extends JPaymentBase
       recurly.createPlan planData, callback
 
     else process.nextTick -> callback null
+
+

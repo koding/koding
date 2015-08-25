@@ -11,3 +11,7 @@ function runCoffeeLint {
 
 echo 'Linting nodejs web servers directory'
 runCoffeeLint $SERVERS_DIR
+
+
+echo 'Linting workers directory'
+runCoffeeLint $WORKERS_DIR

@@ -48,3 +48,5 @@ module.exports.start = ->
   redisClient.on 'connect', -> console.log 'connected to redis'
 
   setInterval publishToRedis, 10000
+
+

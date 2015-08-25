@@ -69,10 +69,12 @@ module.exports = class JPaymentPack extends JPaymentBase
     pack.save (err) ->
       return callback err  if err
 
-      JGroup.one slug: groupSlug, (err, group) ->
+      JGroup.one { slug: groupSlug }, (err, group) ->
         return callback err  if err
 
         group.addPack pack, (err) ->
           return callback err  if err
 
           callback null, pack
+
+

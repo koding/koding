@@ -180,7 +180,7 @@ getPagination = (options) ->
 getNoHrefLink = (linkText) ->
   "<a href='#'>#{linkText}  </a>"
 
-getSinglePageLink = (pageNumber, linkText=pageNumber, route, currentPage) ->
+getSinglePageLink = (pageNumber, linkText = pageNumber, route, currentPage) ->
   currentPageClass = ''
 
   if currentPage is pageNumber
@@ -331,3 +331,5 @@ module.exports = {
   getSidebar
   getEmptyPage
 }
+
+

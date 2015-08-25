@@ -1,10 +1,11 @@
-{Model, Base} = require 'bongo'
+# coffeelint: disable=no_implicit_braces
+{ Model, Base } = require 'bongo'
 
 module.exports = class JName extends Model
 
   KodingError = require '../error'
 
-  {secure, JsPath:{getAt}, dash, signature} = require 'bongo'
+  { secure, JsPath:{ getAt }, dash, signature } = require 'bongo'
 
   { v4: createId } = require 'node-uuid'
 
@@ -33,9 +34,9 @@ module.exports = class JName extends Model
       type            : Date
       default         : -> new Date
 
-  @cycleSecretName =(name, callback)->
+  @cycleSecretName = (name, callback) ->
     JSecretName = require './secretname'
-    JSecretName.one {name}, (err, secretNameObj)=>
+    JSecretName.one { name }, (err, secretNameObj) ->
       if err then callback err
       else unless secretNameObj?
         callback new KodingError "Unknown name #{name} (Maybe non of the participants are using Broker anymore)"
@@ -46,16 +47,16 @@ module.exports = class JName extends Model
           $set: { oldSecretName, secretName }
         }, -> callback null, oldSecretName, secretName
         setTimeout ->
-          secretNameObj.update { $unset: oldSecretName: 1 }, ->
+          secretNameObj.update { $unset: { oldSecretName: 1 } }, ->
         , 5000
 
-  @fetchSecretName =(name, callback)->
+  @fetchSecretName = (name, callback) ->
     JSecretName = require './secretname'
-    JSecretName.one {name}, (err, secretNameObj) =>
+    JSecretName.one { name }, (err, secretNameObj) ->
       if err then callback err
       else unless secretNameObj
-        secretNameObj = new JSecretName {name}
-        secretNameObj.save (err) =>
+        secretNameObj = new JSecretName { name }
+        secretNameObj.save (err) ->
           if err then callback err
           else callback null, secretNameObj.secretName
       else
@@ -64,27 +65,27 @@ module.exports = class JName extends Model
         #@emit 'channel-control'
         callback null, secretNameObj.secretName, secretNameObj.oldSecretName
 
-  stripTemplate =(konstructor, nameStr)->
-    {slugTemplate} = konstructor#Base.constructors[@constructorName]
+  stripTemplate = (konstructor, nameStr) ->
+    { slugTemplate } = konstructor#Base.constructors[@constructorName]
     return nameStr  unless slugTemplate
     slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
     re = RegExp slugTemplate.replace slugStripPattern,
-      (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
+      (tmp, begin, slug, end) -> "^#{begin ? ''}(.*)#{end ? ''}$"
     nameStr.match(re)?[1]
 
-  stripTemplate:->
+  stripTemplate: ->
     stripTemplate Base.constructors[@constructorName], @name
 
-  @fetchModels = do->
+  @fetchModels = do ->
 
-    fetchByNameObject = (nameObj, callback)->
+    fetchByNameObject = (nameObj, callback) ->
       models = []
-      queue = nameObj.slugs.map (slug, i)->->
+      queue = nameObj.slugs.map (slug, i) -> ->
         konstructor = Base.constructors[slug.constructorName]
         return queue.fin() unless konstructor
         selector = {}
         selector[slug.usedAsPath] = slug.slug
-        konstructor.one selector, (err, model)->
+        konstructor.one selector, (err, model) ->
           return queue.fin() if err or not model
           models[i] = model
           queue.fin()
@@ -94,11 +95,11 @@ module.exports = class JName extends Model
         models = models.filter(Boolean)
         callback null, { models, name: nameObj }
 
-    fetchModels = (name, callback)->
+    fetchModels = (name, callback) ->
 
       if 'string' is typeof name
 
-        JName.one {name}, (err, nameObj)->
+        JName.one { name }, (err, nameObj) ->
           if err then callback err
           else if nameObj?
             fetchByNameObject nameObj, callback
@@ -107,13 +108,13 @@ module.exports = class JName extends Model
 
       else if Array.isArray name
 
-        JName.some {name: $in: name}, limit: 30, (err, nameObjects)->
+        JName.some { name: { $in: name } }, { limit: 30 }, (err, nameObjects) ->
           return callback err  if err?
 
           if nameObjects?
             models = []
-            queue = nameObjects.map (nameObj, i)->->
-              fetchByNameObject nameObj, (err, model)->
+            queue = nameObjects.map (nameObj, i) -> ->
+              fetchByNameObject nameObj, (err, model) ->
                 models[i] = err ? model
                 queue.fin()
             dash queue, ->
@@ -124,26 +125,26 @@ module.exports = class JName extends Model
       else
         fetchByNameObject name, callback
 
-  fetchModels:(callback)-> @fetchModels this, callback
+  fetchModels:(callback) -> @fetchModels this, callback
 
-  @release = (name, callback=->)->
-    @remove {name}, callback
+  @release = (name, callback = -> ) ->
+    @remove { name }, callback
 
-  @validateName = (candidate)->
+  @validateName = (candidate) ->
     2 < candidate.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test candidate
 
-  @validateEmail = (candidate)->
+  @validateEmail = (candidate) ->
 
     isEmailValid = require './user/emailchecker'
     sanitize     = require './user/emailsanitize'
-    {check}      = require 'validator'
+    { check }    = require 'validator'
 
     candidate = sanitize candidate
 
     return check(candidate).isEmail() and isEmailValid candidate
 
 
-  @claimNames = secure (client, callback=->)->
+  @claimNames = secure (client, callback = -> ) ->
     unless client.connection.delegate.can 'administer names'
       callback new KodingError 'Access denied'
     else
@@ -152,13 +153,13 @@ module.exports = class JName extends Model
         { konstructor: require('./group'), usedAsPath: 'slug' }
       ], callback
 
-  @claim =(fullName, slugs, konstructor, usedAsPath, callback)->
+  @claim = (fullName, slugs, konstructor, usedAsPath, callback) ->
     [callback, usedAsPath] = [usedAsPath, callback]  unless callback
     nameDoc = new this {
       name: fullName
       slugs
     }
-    nameDoc.save (err)->
+    nameDoc.save (err) ->
       if err?.code is 11000
         err = new KodingError "The slug #{fullName} is not available."
         err.code = 11000
@@ -168,23 +169,23 @@ module.exports = class JName extends Model
       else
         callback null, fullName
 
-  @claimAll = (sources, callback=->)->
+  @claimAll = (sources, callback = -> ) ->
     i = 0
     konstructorCount = sources.length
-    sources.forEach ({konstructor, usedAsPath})=>
+    sources.forEach ({ konstructor, usedAsPath }) =>
       fields = {}
       fields[usedAsPath] = 1
       j = 0
-      konstructor.count (err, docCount)=>
+      konstructor.count (err, docCount) =>
         if err then callback err
         else
-          konstructor.someData {}, fields, (err, cursor)=>
+          konstructor.someData {}, fields, (err, cursor) =>
             if err then callback err
             else
-              cursor.each (err, doc)=>
+              cursor.each (err, doc) =>
                 if err then callback err
                 else if doc?
-                  {collectionName} = konstructor.getCollection()
+                  { collectionName } = konstructor.getCollection()
                   name = getAt doc, usedAsPath
                   slug = {
                     collectionName
@@ -192,9 +193,11 @@ module.exports = class JName extends Model
                     constructorName   : konstructor.name
                     slug              : stripTemplate konstructor, name
                   }
-                  @claim name, [slug], konstructor, (err)->
+                  @claim name, [slug], konstructor, (err) ->
                     if err
                       console.log "Couln't claim name #{name}"
                       callback err
                     else if ++j is docCount and ++i is konstructorCount
                       callback null
+
+

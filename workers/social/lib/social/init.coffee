@@ -1,15 +1,15 @@
 { dash } = require 'bongo'
 
-error = (err)->
+error = (err) ->
   console.error err
   if err.errors?
     console.error lilErr  for lilErr in err.errors
 
 
-initKodingGroup2 = (groupData, admins)->
+initKodingGroup2 = (groupData, admins) ->
   JGroup = require './models/group'
   [owner, admins...] = admins
-  JGroup.create null, groupData, owner, (err, { group })->
+  JGroup.create null, groupData, owner, (err, { group }) ->
     console.error err  if err
 
     continuation = -> console.log 'group is created and initialized'
@@ -61,3 +61,5 @@ exports.init = (koding) ->
   #     counter.next (err, seq) ->
   #       throw err  if err
   #       init()
+
+

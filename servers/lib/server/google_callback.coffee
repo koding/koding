@@ -37,7 +37,7 @@ module.exports = (req, res) ->
           token        : access_token
           foreignId    : id
           refreshToken : refresh_token
-          expires      : new Date().getTime()+3600
+          expires      : new Date().getTime() + 3600
           firstName    : given_name
           lastName     : family_name
           profile      : response
@@ -93,3 +93,5 @@ module.exports = (req, res) ->
   r.end()
 
   r.on 'error', (e) -> console.error 'problem with request: ' + e.message
+
+

@@ -1,12 +1,12 @@
-module.exports = (options = {}, callback)->
+module.exports = (options = {}, callback) ->
 
-  {dash}  = require 'bongo'
-  encoder = require 'htmlencode'
-  {argv}  = require 'optimist'
+  { dash }  = require 'bongo'
+  encoder   = require 'htmlencode'
+  { argv }  = require 'optimist'
 
   options.client               or= {}
   options.client.context       or= {}
-  options.client.context.group or= "koding"
+  options.client.context.group or= 'koding'
   options.client.connection    or= {}
 
 
@@ -18,16 +18,16 @@ module.exports = (options = {}, callback)->
   userEnvironmentData = null
   userId              = null
 
-  {bongoModels, client, session} = options
+  { bongoModels, client, session } = options
 
   createHTML = ->
     if client.connection?.delegate?.profile?.nickname
-      {impersonating, sessionToken, connection: {delegate}} = client
-      {profile   : {nickname}, _id} = delegate
+      { impersonating, sessionToken, connection: { delegate } } = client
+      { profile   : { nickname }, _id } = delegate
 
-    replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    {segment, client}    = KONFIG
-    {siftScience}        = client.runtimeOptions
+    replacer             = (k, v) -> if 'string' is typeof v then encoder.XSSEncode v else v
+    { segment, client }  = KONFIG
+    { siftScience }      = client.runtimeOptions
     config               = JSON.stringify client.runtimeOptions
     encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
@@ -37,6 +37,8 @@ module.exports = (options = {}, callback)->
     userEnvironmentData  = JSON.stringify userEnvironmentData
     userId               = JSON.stringify userId
 
+    # coffeelint: disable=space_operators
+    # coffeelint: disable=no_unnecessary_double_quotes
     """
     <script type="text/javascript">
       !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
@@ -84,7 +86,7 @@ module.exports = (options = {}, callback)->
   queue = [
     ->
       socialApiCacheFn = require '../cache/socialapi'
-      socialApiCacheFn options, (err, data)->
+      socialApiCacheFn options, (err, data) ->
         console.error 'could not get prefetched data', err  if err
         socialapidata = data
         queue.fin()
@@ -96,7 +98,7 @@ module.exports = (options = {}, callback)->
       # to 'koding', ie default group in that case
       if groupName is 'undefined' then groupName = 'koding'
 
-      bongoModels.JGroup.one {slug : groupName}, (err, group) ->
+      bongoModels.JGroup.one { slug : groupName }, (err, group) ->
         console.log err  if err
 
         currentGroup = group  if group
@@ -128,3 +130,5 @@ module.exports = (options = {}, callback)->
   ]
 
   dash queue, -> callback null, createHTML(), socialapidata
+
+

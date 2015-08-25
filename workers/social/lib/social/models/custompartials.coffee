@@ -1,8 +1,9 @@
-{Model} = require 'bongo'
+# coffeelint: disable=no_implicit_braces
+{ Model } = require 'bongo'
 
 module.exports = class JCustomPartials extends Model
 
-  {signature, secure} = require 'bongo'
+  { signature, secure } = require 'bongo'
   @share()
 
   @set
@@ -43,34 +44,36 @@ module.exports = class JCustomPartials extends Model
       instance      : []
 
   @create = secure (client, data, callback) ->
-    checkPermission client, (err, res)=>
+    checkPermission client, (err, res) ->
       return callback err if err
       customPartial = new JCustomPartials data
-      customPartial.save (err)->
+      customPartial.save (err) ->
         return callback err if err
         return callback null, customPartial
 
-  checkPermission: checkPermission = (client, callback)->
-    {context:{group}} = client
-    JGroup = require "./group"
-    JGroup.one {slug:group}, (err, group)=>
+  checkPermission: checkPermission = (client, callback) ->
+    { context:{ group } } = client
+    JGroup = require './group'
+    JGroup.one { slug:group }, (err, group) ->
       return callback err if err
-      return callback new Error "group not found" unless group
-      group.canEditGroup client, (err, hasPermission)=>
+      return callback new Error 'group not found' unless group
+      group.canEditGroup client, (err, hasPermission) ->
         return callback err if err
-        return callback new Error "Can not edit group" unless hasPermission
+        return callback new Error 'Can not edit group' unless hasPermission
         return callback null, yes
 
-  update$: secure (client, data, callback)->
-    @checkPermission client, (err, res)=>
+  update$: secure (client, data, callback) ->
+    @checkPermission client, (err, res) =>
       return callback err if err
 
       isPublished      = data.isActive and not @isActive
       data.publishedAt = new Date()  if isPublished
 
-      @update {$set:data}, callback
+      @update { $set:data }, callback
 
-  remove$: secure (client, callback)->
-    @checkPermission client, (err, res)=>
+  remove$: secure (client, callback) ->
+    @checkPermission client, (err, res) =>
       return callback err if err
       @remove callback
+
+

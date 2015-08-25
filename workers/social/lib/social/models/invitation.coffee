@@ -1,8 +1,9 @@
-{argv}      = require 'optimist'
+# coffeelint: disable=no_implicit_braces
+{ argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
-shortid     = require('shortid');
-Bongo       = require "bongo"
+shortid     = require('shortid')
+Bongo       = require 'bongo'
 Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
@@ -18,7 +19,7 @@ module.exports = class JInvitation extends jraphical.Module
   @trait __dirname, '../traits/protected'
 
 
-  {permit} = require './group/permissionset'
+  { permit } = require './group/permissionset'
 
   @share()
 
@@ -102,7 +103,7 @@ module.exports = class JInvitation extends jraphical.Module
   # validTypes holds states that can still redeemable
   validTypes: ['pending']
 
-  isValid:-> @status in @validTypes
+  isValid: -> @status in @validTypes
 
   # remove deletes an invitation from database
   remove$: permit 'send invitations',
@@ -116,7 +117,7 @@ module.exports = class JInvitation extends jraphical.Module
 
       selector or= {}
       selector.groupName = groupName # override group name in any case
-      selector.status  or= "pending"
+      selector.status  or= 'pending'
 
       { limit }       = options
       options.sort  or= createdAt : -1
@@ -130,7 +131,7 @@ module.exports = class JInvitation extends jraphical.Module
   # with regex` around query param
   @search$: permit 'send invitations',
     success: (client, selector, options, callback) ->
-      return callback new KodingError "query is not set"  if query is ""
+      return callback new KodingError 'query is not set'  if query is ''
       # get query from selector and delete it, we need modification for search
       # string
       { query } = selector
@@ -173,7 +174,7 @@ module.exports = class JInvitation extends jraphical.Module
             # before
             return queue.fin()  if invitation
 
-            isAlreadyMember group, email, (err, isMember)->
+            isAlreadyMember group, email, (err, isMember) ->
               return callback new KodingError err  if err
 
               # do not send another invitation if the user is already a member
@@ -206,16 +207,16 @@ module.exports = class JInvitation extends jraphical.Module
 
   # isAlreadyMember checks if the given email is already member of the given
   # group
-  isAlreadyMember = (group, email, callback)->
+  isAlreadyMember = (group, email, callback) ->
     return callback new KodingError 'group is not set'  if not group
     return callback new KodingError 'email is not set'  if not email
 
     JUser = require './user'
-    JUser.one { email }, (err, user)->
+    JUser.one { email }, (err, user) ->
       return callback new KodingError err   if err
       return callback null, no              if not user
 
-      user.fetchOwnAccount (err, account)->
+      user.fetchOwnAccount (err, account) ->
 
         return callback new KodingError err  if err
         return callback null, no             if not account
@@ -225,7 +226,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   # byCode fetches an invitation by its code
   @byCode: (code, callback) ->
-    @one {code}, callback
+    @one { code }, callback
 
   # sendInvitationByCode sends email according to data stored in
   # JInvitation selected by given code
@@ -260,10 +261,12 @@ module.exports = class JInvitation extends jraphical.Module
 
     name = nickname
 
-    if "#{firstName}" is not ""
+    if "#{firstName}" is not ''
       name = firstName
 
-    if "#{lastName}" is not ""
+    if "#{lastName}" is not ''
       name = "#{name} #{lastName}"
 
     return name
+
+

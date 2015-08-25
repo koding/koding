@@ -1,4 +1,6 @@
-jraphical = require 'jraphical'
+# coffeelint: disable=no_implicit_braces
+jraphical   = require 'jraphical'
+KodingError = require '../error'
 
 emailsanitize = require './user/emailsanitize'
 
@@ -25,8 +27,8 @@ module.exports = class JCampaignData extends jraphical.Module
 
   @add: (data, callback) ->
 
-    return callback message: 'Email is missing!'          unless data.email
-    return callback message: 'Campaign info is missing!'  unless data.campaign
+    return callback new KodingError 'Email is missing!'          unless data.email
+    return callback new KodingError 'Campaign info is missing!'  unless data.campaign
 
     { campaign, email } = data
 
@@ -35,7 +37,7 @@ module.exports = class JCampaignData extends jraphical.Module
     JCampaignData.one { campaign, email }, {}, (err, model) ->
 
       return callback err                          if err
-      return callback message: 'Already applied!'  if model
+      return callback new KodingError 'Already applied!'  if model
 
       model = new JCampaignData data
       model.save callback

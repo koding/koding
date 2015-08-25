@@ -27,3 +27,5 @@ module.exports = class JMetric extends ElasticSearch
       documents = [ record ]
 
       ElasticSearch.create @metricsIndex(), documents, callback
+
+

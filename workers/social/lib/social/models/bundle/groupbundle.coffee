@@ -4,7 +4,7 @@ module.exports = class JGroupBundle extends JBundle
 
   KodingError = require '../../error'
 
-  {permit} = require '../group/permissionset'
+  { permit } = require '../group/permissionset'
 
   JPaymentPlan         = require '../payment'
   JPaymentSubscription = require '../payment/subscription'
@@ -23,8 +23,8 @@ module.exports = class JGroupBundle extends JBundle
       'make payments'           : []
       'manage products'         : []
       'change bundle'           : []
-      'request bundle change'   : ['member','moderator']
-      'commission resources'    : ['member','moderator']
+      'request bundle change'   : ['member', 'moderator']
+      'commission resources'    : ['member', 'moderator']
     schema            :
       overagePolicy   :
         type          : String
@@ -38,7 +38,9 @@ module.exports = class JGroupBundle extends JBundle
         default       : no
       paymentPlan     :
         type          : String
-        default       : ""
+        default       : ''
       allocation      :
         type          : Number
         default       : 0
+
+

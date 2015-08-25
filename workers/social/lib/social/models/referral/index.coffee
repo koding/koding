@@ -1,18 +1,19 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 JAccount = require '../account'
 JUser = require '../user'
 
 KodingError = require '../../error'
-{argv}   = require 'optimist'
+{ argv }   = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 
 module.exports = class JReferral extends jraphical.Message
 
-  {Relationship} = jraphical
+  { Relationship } = jraphical
 
-  {race, secure, daisy, dash, signature} = require 'bongo'
+  { race, secure, daisy, dash, signature } = require 'bongo'
 
   @share()
 
@@ -26,7 +27,7 @@ module.exports = class JReferral extends jraphical.Message
       type            : Number
     sourceCampaign    :
       type            : String
-      default         : "register"
+      default         : 'register'
     createdAt         :
       type            : Date
       default         : -> new Date
@@ -54,15 +55,15 @@ module.exports = class JReferral extends jraphical.Message
 
   @getReferralEarningLimits = (type) ->
     switch type
-      when "disk" then return 17408
-      else return console.error "Unknown referral query limit"
+      when 'disk' then return 17408
+      else return console.error 'Unknown referral query limit'
 
   # Simply find the unused referrals
   # me-[:referrer]->JReferral<-[:referred]-JAccount
-  @fetchRedeemableReferrals = secure (client, query, callback)->
+  @fetchRedeemableReferrals = secure (client, query, callback) ->
     # check for type of request
-    allowedTypes = ["disk"]
-    return callback new KodingError "Request is not valid" unless query.type in allowedTypes
+    allowedTypes = ['disk']
+    return callback new KodingError 'Request is not valid' unless query.type in allowedTypes
 
     @fetchOwnReferralsIds client, { type: query.type }, {}, (err, allReferalIds) =>
       return callback err if err
@@ -80,8 +81,8 @@ module.exports = class JReferral extends jraphical.Message
 
         return callback null, [] if unusedRefIds.length < 1
 
-        refSelector = { _id: $in: unusedRefIds }
-        JReferral.some refSelector, {}, (err, unusedReferrals)=>
+        refSelector = { _id: { $in: unusedRefIds } }
+        JReferral.some refSelector, {}, (err, unusedReferrals) =>
           return callback err if err
 
           # find the total used referred disk spacea
@@ -94,7 +95,7 @@ module.exports = class JReferral extends jraphical.Message
           # if user consumed their quota return an error
           # this is a special case for used up quota
           if usableReferralSize <= 0
-            return callback new KodingError "You have used your quota for referral system"
+            return callback new KodingError 'You have used your quota for referral system'
 
           # gather usable referrals
           usableReferrals = []
@@ -107,7 +108,7 @@ module.exports = class JReferral extends jraphical.Message
           callback null, usableReferrals
 
 
-  @fetchUsedReferrals = (allReferalIds, callback)->
+  @fetchUsedReferrals = (allReferalIds, callback) ->
 
     usedReferralsSelector = {
       sourceId    : { $in: allReferalIds },
@@ -116,14 +117,14 @@ module.exports = class JReferral extends jraphical.Message
       as          : 'redeemedOn'
     }
 
-    Relationship.some usedReferralsSelector, {}, (err, usedReferralsRels)=>
+    Relationship.some usedReferralsSelector, {}, (err, usedReferralsRels) ->
       return callback err if err
 
       usedRefIds = usedReferralsRels.map (rel) -> rel.sourceId
 
-      JReferral.some { _id: $in: usedRefIds }, {}, callback
+      JReferral.some { _id: { $in: usedRefIds } }, {}, callback
 
-  @fetchOwnReferralsIds = (client, query, options, callback)->
+  @fetchOwnReferralsIds = (client, query, options, callback) ->
     account = client.connection.delegate
 
     # find user's relationships as referrer to the referral system
@@ -137,17 +138,17 @@ module.exports = class JReferral extends jraphical.Message
     Relationship.count selector, (err, count) =>
       return callback err if err
       options.targetOptions = { selector: query }
-      @fetchOwnReferralsIdsInBatch count, 100, selector, options, (err, relationships)->
+      @fetchOwnReferralsIdsInBatch count, 100, selector, options, (err, relationships) ->
         allReferalIds = relationships.map (rel) -> "#{rel.targetId}"
         callback null, allReferalIds
 
 
-  @fetchOwnReferralsIdsInBatch = (totalCount, batchCount, selector, options, callback)->
+  @fetchOwnReferralsIdsInBatch = (totalCount, batchCount, selector, options, callback) ->
     teasers = []
-    collectRels = race (i, step, fin)->
+    collectRels = race (i, step, fin) ->
       options.skip  = batchCount * (step - 1)
       options.limit = batchCount
-      Relationship.some selector, options, (err, relationships)=>
+      Relationship.some selector, options, (err, relationships) ->
         if err
           callback err
           fin()
@@ -158,60 +159,60 @@ module.exports = class JReferral extends jraphical.Message
           fin()
     , ->
       callback null, teasers
-    totalStep = Math.floor(totalCount/batchCount)
+    totalStep = Math.floor(totalCount / batchCount)
     totalStep = if totalStep <= 0 then 1 else totalStep
     while totalStep
       collectRels totalStep
       totalStep--
 
-  @fetchEarnedSpace$ = secure (client, callback)->
+  @fetchEarnedSpace$ = secure (client, callback) ->
     @fetchEarnedSpace client, callback
 
   @spaceForReferring = 500
 
-  @fetchEarnedSpace = (client, callback)->
-    @fetchReferredAccounts client, {}, {}, (err, accounts)=>
+  @fetchEarnedSpace = (client, callback) ->
+    @fetchReferredAccounts client, {}, {}, (err, accounts) =>
       return callback err  if err
       callback null, accounts.length * @spaceForReferring
 
-  @fetchReferredAccounts$ = secure (client, query, options, callback)->
+  @fetchReferredAccounts$ = secure (client, query, options, callback) ->
     @fetchReferredAccounts client, query, options, callback
 
-  @fetchReferredAccounts = (client, query, options, callback)->
+  @fetchReferredAccounts = (client, query, options, callback) ->
     username = client.connection.delegate.profile.nickname
     JAccount.some { referrerUsername : username }, options, callback
 
-  @redeem = secure (client, data, callback)->
-    callback new KodingError "JReferral::redeem disabled"
+  @redeem = secure (client, data, callback) ->
+    callback new KodingError 'JReferral::redeem disabled'
 
 
   @createUpdateQueryForRedeem = (type, amount) ->
     switch type
-      when "disk" then return 'diskSizeInMB': amount
+      when 'disk' then return { 'diskSizeInMB': amount }
       else
-        return console.error "Invalid type provided"
+        return console.error 'Invalid type provided'
 
 
-  @addExtraReferral: secure (client, options, callback)->
-    {delegate} = client.connection
+  @addExtraReferral: secure (client, options, callback) ->
+    { delegate } = client.connection
     unless delegate.can 'administer accounts'
-      return callback {message: "You can not add extra referral to users"}
+      return callback new KodingError 'You can not add extra referral to users'
 
-    {username} = options
-    return callback {message: "Please set username"}  unless username
+    { username } = options
+    return callback new KodingError 'Please set username'  unless username
 
     referral = new JReferral
       amount         : options.amount         or 256
-      type           : options.type           or "disk"
-      unit           : options.unit           or "MB"
-      sourceCampaign : options.sourceCampaign or "register"
+      type           : options.type           or 'disk'
+      unit           : options.unit           or 'MB'
+      sourceCampaign : options.sourceCampaign or 'register'
 
     referral.save (err) ->
       return callback err if err
-      JAccount.one {'profile.nickname': username}, (err, account)->
+      JAccount.one { 'profile.nickname': username }, (err, account) ->
         return callback err if err
-        return callback {message:"Account not found"} unless account
-        account.addReferrer referral, (err)->
+        return callback new KodingError 'Account not found'  unless account
+        account.addReferrer referral, (err) ->
           return callback err if err
           return callback null, referral
 
@@ -225,31 +226,33 @@ module.exports = class JReferral extends jraphical.Message
   # if you see this part after
   # 22 Feb 2014 feel free to remove completely! ~C.S
 
-  @checkFor1GBStatus = (account, callback)->
-    account.fetchReferrers (err, referrers)=>
+  @checkFor1GBStatus = (account, callback) ->
+    account.fetchReferrers (err, referrers) ->
       return callback err  if err
       for ref in referrers
-        {sourceCampaign} = ref
-        return callback null, yes  if sourceCampaign is "baseVMSizeDecrease"
+        { sourceCampaign } = ref
+        return callback null, yes  if sourceCampaign is 'baseVMSizeDecrease'
       callback err, no
 
-  @add1GBDisk = (delegate, callback)->
+  @add1GBDisk = (delegate, callback) ->
 
-    @checkFor1GBStatus delegate, (err, used) =>
+    @checkFor1GBStatus delegate, (err, used) ->
       return callback err if err
       if used
         console.info "#{delegate.profile.nickname} has already get baseVMSizeDecrease point"
         return callback null, no
 
       referral = new JReferral {
-        type   : "disk"
-        unit   : "MB"
+        type   : 'disk'
+        unit   : 'MB'
         amount : 1024
-        sourceCampaign : "baseVMSizeDecrease"
+        sourceCampaign : 'baseVMSizeDecrease'
       }
       referral.save (err) ->
         return callback err if err
         #add referrer as referrer to the referral system
-        delegate.addReferrer referral, (err)->
+        delegate.addReferrer referral, (err) ->
           return callback err if err
           return callback null, yes
+
+

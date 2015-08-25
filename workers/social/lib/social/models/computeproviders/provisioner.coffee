@@ -10,10 +10,10 @@ module.exports = class JProvisioner extends jraphical.Module
 
   KodingError        = require '../../error'
 
-  {secure, ObjectId, signature, daisy} = require 'bongo'
-  {Relationship}     = jraphical
-  {permit}           = require '../group/permissionset'
-  Validators         = require '../group/validators'
+  { secure, ObjectId, signature, daisy } = require 'bongo'
+  { Relationship }     = jraphical
+  { permit }           = require '../group/permissionset'
+  Validators           = require '../group/validators'
 
   @trait __dirname, '../../traits/protected'
 
@@ -71,28 +71,28 @@ module.exports = class JProvisioner extends jraphical.Module
 
       type            :
         type          : String
-        enum          : ["Wrong type specified!", [
+        enum          : ['Wrong type specified!', [
 
           # Provisioner types which supported by packer.io and kloud
           #
-          "shell"     # Shell script
+          'shell'     # Shell script
 
         ]]
 
-        default       : -> "shell"
+        default       : -> 'shell'
 
       contentSum      : String
 
       content         :
         type          : Object
-        default       : -> { }
+        default       : -> {}
 
       accessLevel     :
         type          : String
-        enum          : ["Wrong access level specified!",
-          ["private", "group", "public"]
+        enum          : ['Wrong access level specified!',
+          ['private', 'group', 'public']
         ]
-        default       : "private"
+        default       : 'private'
 
       originId        :
         type          : ObjectId
@@ -103,19 +103,19 @@ module.exports = class JProvisioner extends jraphical.Module
       meta            : require 'bongo/bundles/meta'
 
 
-  checkContent = (type, content)->
+  checkContent = (type, content) ->
 
-    contentSum = "%SUM%"
+    contentSum = '%SUM%'
 
     if not type?
-      err = "Type missing."
+      err = 'Type missing.'
     else if not content?
-      err = "Content missing."
+      err = 'Content missing.'
     else
       switch type
-        when "shell"
+        when 'shell'
           unless content.script?
-            err = "Type shell requires a `script`"
+            err = 'Type shell requires a `script`'
           else
 
             contentSum = crypto.createHash 'sha1'
@@ -125,15 +125,15 @@ module.exports = class JProvisioner extends jraphical.Module
             content = { script: content.script }
 
         else
-          err = "Type is not supported for now."
+          err = 'Type is not supported for now.'
 
     err = new KodingError err  if err?
     return [err, content, contentSum]
 
 
-  checkSlug = (slug, callback)->
+  checkSlug = (slug, callback) ->
 
-    JProvisioner.count { slug }, (err, res)->
+    JProvisioner.count { slug }, (err, res) ->
       return callback err  if err?
       if not res? or res > 0
       then callback new KodingError \
@@ -141,9 +141,9 @@ module.exports = class JProvisioner extends jraphical.Module
       else callback null
 
 
-  checkData = (delegate, data, callback)->
+  checkData = (delegate, data, callback) ->
 
-    {type, content, slug, label, accessLevel} = data
+    { type, content, slug, label, accessLevel } = data
 
     [err, content, contentSum] = checkContent type, content
     if err? then return callback err
@@ -153,7 +153,7 @@ module.exports = class JProvisioner extends jraphical.Module
     slug ?= (require 'hat') 32
     slug  = "#{delegate.profile.nickname}/#{slug}"
 
-    checkSlug slug, (err)->
+    checkSlug slug, (err) ->
       return callback err  if err?
       callback null, {
         type, slug, label, content, contentSum
@@ -163,24 +163,24 @@ module.exports = class JProvisioner extends jraphical.Module
 
   @create = permit 'create provisioner',
 
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
 
-      {delegate} = client.connection
+      { delegate } = client.connection
 
-      checkData delegate, data, (err, data)->
+      checkData delegate, data, (err, data) ->
 
         if err? then return callback err
 
         data.group = client.context.group
 
         provisioner = new JProvisioner data
-        provisioner.save (err)->
+        provisioner.save (err) ->
 
           return callback err  if err
           callback null, provisioner
 
 
-  someHelper = (client, selector, options, callback)->
+  someHelper = (client, selector, options, callback) ->
 
     [options, callback] = [callback, options]  unless callback
     options ?= {}
@@ -188,7 +188,7 @@ module.exports = class JProvisioner extends jraphical.Module
     { delegate } = client.connection
 
     unless typeof selector is 'object'
-      return callback new KodingError "Invalid query"
+      return callback new KodingError 'Invalid query'
 
     selector.$and ?= []
     selector.$and.push
@@ -203,20 +203,21 @@ module.exports = class JProvisioner extends jraphical.Module
         }
       ]
 
-    JProvisioner.some selector, options, (err, templates)->
+    JProvisioner.some selector, options, (err, templates) ->
       callback err, templates
 
 
-  @some$ = permit 'list provisioners', success: someHelper
+  @some$ = permit 'list provisioners', { success: someHelper }
 
   @one$  = permit 'list provisioners',
 
-    success: (client, selector, callback)->
+    success: (client, selector, callback) ->
 
-      someHelper client, selector, limit: 1, (err, provisioners)->
+      someHelper client, selector, { limit: 1 }, (err, provisioners) ->
         callback err, (provisioners[0]  if provisioners?)
 
-
+  # due to a bug in coffeelint 1.10.1
+  # coffeelint: disable=no_implicit_braces
   delete: permit
 
     advanced: [
@@ -224,7 +225,7 @@ module.exports = class JProvisioner extends jraphical.Module
       # { permission: 'delete provisioner' }
     ]
 
-    success: (client, callback)-> @remove callback
+    success: (client, callback) -> @remove callback
 
 
   setAccess: permit
@@ -234,7 +235,7 @@ module.exports = class JProvisioner extends jraphical.Module
       # { permission: 'update provisioner' }
     ]
 
-    success: (client, accessLevel, callback)->
+    success: (client, accessLevel, callback) ->
 
       @update $set: { accessLevel }, callback
 
@@ -246,14 +247,14 @@ module.exports = class JProvisioner extends jraphical.Module
       # { permission: 'update provisioner' }
     ]
 
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
 
-      {content, slug, label, type} = data
+      { content, slug, label, type } = data
 
       unless content or label or slug
-        return callback new KodingError "Nothing to update"
+        return callback new KodingError 'Nothing to update'
 
-      fieldsToUpdate = { "meta.modifiedAt" : new Date }
+      fieldsToUpdate = { 'meta.modifiedAt' : new Date }
 
       if content?
 
@@ -268,7 +269,7 @@ module.exports = class JProvisioner extends jraphical.Module
         slug  = "#{delegate.profile.nickname}/#{slug}"
         fieldsToUpdate.slug = slug
 
-      @update $set : fieldsToUpdate, (err)->
+      @update $set : fieldsToUpdate, (err) ->
 
         if slug and err and err.name is 'MongoError' and err.code is 11001
           return callback new KodingError \
@@ -277,3 +278,5 @@ module.exports = class JProvisioner extends jraphical.Module
         return callback err  if err?
 
         callback null
+
+

@@ -1,17 +1,17 @@
-putSplash = (name, section, model)->
+putSplash = (name, section, model) ->
   name = if model?.title then model.title else section
-  body = if model?.body  then model.body  else ""
+  body = if model?.body  then model.body  else ''
 
   title  = if model?.bongo_?.constructorName
     switch model.bongo_.constructorName
-      when "JNewStatusUpdate"  then "loading a status update"
-      when "JCodeSnip"      then "loading a code snippet"
-      when "JDiscussion"    then "loading a discussion"
-      when "JBlogPost"      then "loading a blog post"
-      when "JTutorial"      then "loading a tutorial"
-      when "JTag"           then "loading a topic"
-      else "loading something."
-  else "launching an application"
+      when 'JNewStatusUpdate'  then 'loading a status update'
+      when 'JCodeSnip'      then 'loading a code snippet'
+      when 'JDiscussion'    then 'loading a discussion'
+      when 'JBlogPost'      then 'loading a blog post'
+      when 'JTutorial'      then 'loading a tutorial'
+      when 'JTag'           then 'loading a topic'
+      else 'loading something.'
+  else 'launching an application'
 
   content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
   if name
@@ -19,22 +19,22 @@ putSplash = (name, section, model)->
 
   return content
 
-generateShareUrl = (model, uri)->
+generateShareUrl = (model, uri) ->
   slug = if model?.bongo_?.constructorName and model?.slug
     switch model.bongo_.constructorName
-      when "SocialMessage"
-        "/Activity/" + model.slug
-      else ""
+      when 'SocialMessage'
+        '/Activity/' + model.slug
+      else ''
 
-  url = if uri?.address then uri.address else "https://koding.com"
+  url = if uri?.address then uri.address else 'https://koding.com'
   shareUrl = url + slug
   shareUrl
 
-module.exports = (options, callback)->
-  {argv} = require 'optimist'
-  {uri} = require('koding-config-manager').load("main.#{argv.c}")
+module.exports = (options, callback) ->
+  { argv } = require 'optimist'
+  { uri } = require('koding-config-manager').load("main.#{argv.c}")
 
-  {name, section, models, bongoModels, client} = options
+  { name, section, models, bongoModels, client } = options
 
   getStyles    = require './../styleblock'
   getGraphMeta = require './../graphmeta'
@@ -47,14 +47,14 @@ module.exports = (options, callback)->
 
   shareUrl = generateShareUrl model, uri
 
-  prepareHTML  = (scripts, title, shareUrl)->
+  prepareHTML  = (scripts, title, shareUrl) ->
     """
     <!doctype html>
     <html lang="en">
     <head>
       #{getTitle()}
       #{getStyles()}
-      #{getGraphMeta title: title, shareUrl: shareUrl, body: body}
+      #{getGraphMeta { title: title, shareUrl: shareUrl, body: body }}
     </head>
     <body class='koding'>
 
@@ -80,5 +80,7 @@ module.exports = (options, callback)->
     </html>
     """
 
-  fetchScripts {bongoModels, client}, (err, scripts)->
+  fetchScripts { bongoModels, client }, (err, scripts) ->
     callback null, prepareHTML scripts, title, shareUrl
+
+

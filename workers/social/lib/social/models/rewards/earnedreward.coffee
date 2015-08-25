@@ -29,12 +29,14 @@ module.exports = class JEarnedReward extends Module
 
       type            :
         type          : String
-        default       : -> "disk"
+        default       : -> 'disk'
 
       unit            :
         type          : String
-        default       : -> "MB"
+        default       : -> 'MB'
 
       amount          :
         type          : Number
         default       : -> 0
+
+

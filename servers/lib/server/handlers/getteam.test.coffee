@@ -4,14 +4,11 @@ koding                              = require './../bongo'
 { daisy }                           = Bongo
 { expect }                          = require 'chai'
 { Relationship }                    = require 'jraphical'
-{ TeamHandlerHelper
-  generateRandomEmail
-  generateRandomString
-  RegisterHandlerHelper }           = require '../../../testhelper'
+{ generateRandomEmail
+  generateRandomString }           = require '../../../testhelper'
 
 { generateGetTeamRequestParams
-  generateJoinTeamRequestParams
-  generateCreateTeamRequestParams } = TeamHandlerHelper
+  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 request                             = require 'request'
 querystring                         = require 'querystring'

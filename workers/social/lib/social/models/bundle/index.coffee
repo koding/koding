@@ -1,10 +1,12 @@
-{Module} = require 'jraphical'
+# due to a bug in coffeelint 1.10.1
+# coffeelint: disable=no_implicit_braces
+{ Module } = require 'jraphical'
 
 module.exports = class JBundle extends Module
 
-  {dash} = require 'bongo'
+  { dash } = require 'bongo'
 
-  {extend} = require 'underscore'
+  { extend } = require 'underscore'
 
   # @create = ()
 
@@ -49,7 +51,7 @@ module.exports = class JBundle extends Module
           limitOptions = extend { title: limitName }, defaultOptions, limitOptions
 
           limit = new JLimit limitOptions
-          limit.save (err)=>
+          limit.save (err) =>
             return next err  if err
             @addLimit limit, limitName, fin
 
@@ -59,16 +61,18 @@ module.exports = class JBundle extends Module
 
         return
 
-  debit: (debits, callback=(->)) ->
+  debit: (debits, callback = ( ->)) ->
     @fetchLimits (err, limits) ->
       return callback err  if err
 
       queue = limits.map (limit) -> ->
-        {title} = limit
+        { title } = limit
         console.log title
         if title of debits and limit.getValue() >= debits[title]
-          limit.update { $inc: usage: debits[title] }, fin
+          limit.update { $inc: { usage: debits[title] } }, fin
 
       dash queue, callback
 
       fin = queue.fin.bind queue
+
+

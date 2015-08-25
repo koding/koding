@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{ Model } = require 'bongo'
 
 module.exports = class JSecretName extends Model
 
@@ -15,3 +15,5 @@ module.exports = class JSecretName extends Model
       type        : String
       default     : require 'hat'
     oldSecretName : String
+
+
