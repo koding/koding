@@ -72,8 +72,10 @@ module.exports = class DefineStackView extends KDView
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
-      then @saveButton.enable()
-      else @saveButton.disable()
+        @saveButton.enable()
+        @tabView.showPaneByIndex 0
+      else
+        @saveButton.disable()
 
 
   createMainButtons: ->
