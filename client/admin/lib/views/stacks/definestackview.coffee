@@ -53,46 +53,44 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.showPaneByIndex 0
 
-    @inputTitle            = new kd.FormViewWithFields fields:
-      title                :
-        cssClass           : 'template-title'
-        label              : 'Stack Template Title'
-        defaultValue       : title
-        nextElement        :
-          credentialStatus :
-            cssClass       : 'credential-status'
-            itemClass      : CredentialStatusView
-            stackTemplate  : stackTemplate
+    @createMainButtons()
 
-    { @credentialStatus } = @inputTitle.inputs
+    @providersView.on 'ItemSelected', (credential) =>
 
-    @editorView      = new StackEditorView { delegate: this, content }
+      # After adding credential, we are sharing it with the current
+      # group, so anyone in this group can use this credential ~ GG
+      { slug } = kd.singletons.groupsController.getCurrentGroup()
 
-    @outputView      = new OutputView
+      credential.shareWith { target: slug }, (err) =>
+        console.warn 'Failed to share credential:', err  if err
+        @stackTemplate.credentialStatus.setCredential credential
 
-    @outputView.add 'Welcome to Stack Template Editor'
 
-    @editorView.addSubView new kd.ButtonView
-      title    : 'Logs'
-      cssClass : 'solid compact showlogs-link'
-      callback : @outputView.bound 'raise'
+    # TODO getrid off from these css properties ~ GG
+    @previewButton.setCss      'right', '110px'
+    @setAsDefaultButton.setCss 'right', '265px'
 
-    # FIXME Not liked this ~ GG
-    @editorView.on 'click', @outputView.bound 'fall'
+    @stackTemplateView.on 'CredentialStatusChanged', (status) =>
+      if status is 'verified'
+      then @saveButton.enable()
+      else @saveButton.disable()
 
-    @cancelButton    = new kd.ButtonView
+
+  createMainButtons: ->
+
+    @addSubView @cancelButton  = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
-    @saveButton      = new kd.ButtonView
+    @addSubView @saveButton    = new KDButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       disabled       : yes
       loader         : yes
       callback       : @bound 'handleSave'
 
-    @previewButton   = new kd.ButtonView
+    @addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
       cssClass       : 'solid compact light-gray nav next'
       loader         : yes
@@ -101,21 +99,11 @@ module.exports = class DefineStackView extends KDView
         title        : "Generates a preview of this template
                         with your own account information."
 
-    @setAsDefaultButton = new kd.ButtonView
+    @addSubView @setAsDefaultButton = new KDButtonView
       title          : 'Set as Default for Team'
       cssClass       : 'solid compact nav next hidden'
       loader         : yes
       callback       : @bound 'handleSetDefaultTemplate'
-
-    # TODO getrid off from these css properties ~ GG
-    @previewButton.setCss      'right', '110px'
-    @setAsDefaultButton.setCss 'right', '265px'
-
-
-    @credentialStatus.on 'StatusChanged', (status) =>
-      if status is 'verified'
-      then @saveButton.enable()
-      else @saveButton.disable()
 
 
   handleSave: ->
