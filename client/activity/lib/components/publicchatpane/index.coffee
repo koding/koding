@@ -13,18 +13,6 @@ module.exports = class PublicChatPane extends React.Component
     padded   : no
 
 
-  componentDidMount: ->
-
-    @createModalContainer()
-
-
-  createModalContainer: ->
-
-    ModalContainer = document.createElement 'div'
-    ModalContainer.setAttribute 'class', 'PublicChatPane-ModalContainer hidden'
-    document.body.appendChild ModalContainer
-
-
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
