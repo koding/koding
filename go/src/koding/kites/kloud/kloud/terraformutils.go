@@ -323,7 +323,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 // 	return "", nil
 // }
 //
-func injectKodingData(ctx context.Context, content, username string, creds *terraformData) (*buildData, error) {
+func injectKodingData(ctx context.Context, content, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -331,7 +331,7 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 
 	awsOutput := &AwsBootstrapOutput{}
 
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		if cred.Provider != "aws" {
 			continue
 		}
@@ -345,18 +345,18 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
 	}
 
-	var data *terraformTemplate
-	if err := json.Unmarshal([]byte(content), &data); err != nil {
+	var template *terraformTemplate
+	if err := json.Unmarshal([]byte(content), &template); err != nil {
 		return nil, err
 	}
 
-	if len(data.Resource.Aws_Instance) == 0 {
-		return nil, fmt.Errorf("instance is empty: %v", data.Resource.Aws_Instance)
+	if len(template.Resource.Aws_Instance) == 0 {
+		return nil, fmt.Errorf("instance is empty: %v", template.Resource.Aws_Instance)
 	}
 
 	kiteIds := make(map[string]string)
 
-	for resourceName, instance := range data.Resource.Aws_Instance {
+	for resourceName, instance := range template.Resource.Aws_Instance {
 		instance["key_name"] = awsOutput.KeyPair
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
@@ -439,14 +439,14 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 			countKeys[strconv.Itoa(i)] = kiteKey
 		}
 
-		data.Variable["kitekeys"] = map[string]interface{}{
+		template.Variable["kitekeys"] = map[string]interface{}{
 			"default": countKeys,
 		}
 
-		data.Resource.Aws_Instance[resourceName] = instance
+		template.Resource.Aws_Instance[resourceName] = instance
 	}
 
-	out, err := json.MarshalIndent(data, "", "  ")
+	out, err := json.MarshalIndent(template, "", "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -454,7 +454,7 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 	b := &buildData{
 		Template: string(out),
 		KiteIds:  kiteIds,
-		Region:   data.Provider.Aws.Region,
+		Region:   template.Provider.Aws.Region,
 	}
 
 	return b, nil
