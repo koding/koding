@@ -51,8 +51,7 @@ module.exports = class DefineStackView extends KDView
     providers.addSubView @providersView = new ProvidersView
       selectedCredentials: @credentials
 
-    title   = stackTemplate?.title or 'Default stack template'
-    content = stackTemplate?.template?.content
+    @tabView.showPaneByIndex 0
 
     @inputTitle            = new kd.FormViewWithFields fields:
       title                :
