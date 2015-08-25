@@ -47,9 +47,9 @@ type buildData struct {
 
 type terraformData struct {
 	Creds   []*terraformCredential
-	Account *models.Account
-	Group   *models.Group
-	User    *models.User
+	Account *models.Account `structs:"account"`
+	Group   *models.Group   `structs:"group"`
+	User    *models.User    `structs:"user"`
 }
 
 type terraformCredential struct {
@@ -294,34 +294,47 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-// func injectKodingVariables(ctx context.Context, content string, data *terraformData) (string, error) {
-// 	sess, ok := session.FromContext(ctx)
-// 	if !ok {
-// 		return "", errors.New("session context is not passed")
-// 	}
-//
-// 	var data *terraformTemplate
-// 	if err := json.Unmarshal([]byte(content), &data); err != nil {
-// 		return "", err
-// 	}
-//
-// 	var allowedProps = []struct {
-// 		collection string
-// 		fields     []string
-// 	}{
-// 		{"jUsers", []string{"username", "email"}},
-// 		{"jAccounts", []string{"profile"}},
-// 		{"jGroups", []string{"title", "slug"}},
-// 	}
-//
-// 	// if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-// 	// 	return c.Find(bson.M{"_id": bson.M{"$in": mongodbIds}}).All(&machines)
-// 	// }); err != nil {
-// 	// 	return nil, err
-// 	// }
-//
-// 	return "", nil
-// }
+func (t *terraformTemplate) injectKodingData(data *terraformData) {
+	var properties = []struct {
+		collection string
+		fieldToAdd map[string]bool
+	}{
+		{"user",
+			map[string]bool{
+				"username": true,
+				"email":    true,
+			},
+		},
+		{"account",
+			map[string]bool{
+				"profile": true,
+			},
+		},
+		{"group",
+			map[string]bool{
+				"title": true,
+				"slug":  true,
+			},
+		},
+	}
+
+	for _, p := range properties {
+		model, ok := structs.New(data).FieldOk(p.collection)
+		if !ok {
+			continue
+		}
+
+		for _, field := range model.Fields() {
+			fieldName := strings.ToLower(field.Name())
+			if p.fieldToAdd[fieldName] {
+				varName := "koding_" + p.collection + "_" + fieldName
+				t.Variable[varName] = map[string]interface{}{
+					"default": field.Value(),
+				}
+			}
+		}
+	}
+}
 
 func injectKodingData(ctx context.Context, content, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
@@ -330,7 +343,6 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 	}
 
 	awsOutput := &AwsBootstrapOutput{}
-
 	for _, cred := range data.Creds {
 		if cred.Provider != "aws" {
 			continue
@@ -349,6 +361,8 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 	if err := json.Unmarshal([]byte(content), &template); err != nil {
 		return nil, err
 	}
+
+	template.injectKodingData(data)
 
 	if len(template.Resource.Aws_Instance) == 0 {
 		return nil, fmt.Errorf("instance is empty: %v", template.Resource.Aws_Instance)
