@@ -168,6 +168,7 @@ module.exports = class OnboardingView extends JView
       return new kd.NotificationView 'Unable to update stack template preview'
 
     @createStackPreviewFromYaml content
+    @stackTemplate = JSON.stringify stackTemplate
 
 
   createStackPreviewFromYaml: (content) ->
@@ -191,8 +192,6 @@ module.exports = class OnboardingView extends JView
         #{content}
         ```
       """
-
-    @stackTemplate = content
 
 
   pistachio: ->
