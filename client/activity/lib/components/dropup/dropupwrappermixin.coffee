@@ -23,8 +23,8 @@ module.exports =
 
   componentDidUpdate: (prevProps, prevState) ->
 
-    { selectedItem, keyboardScroll } = @props
-    return  if prevProps.selectedItem is selectedItem or not selectedItem or not keyboardScroll
+    { selectedItem } = @props
+    return  if prevProps.selectedItem is selectedItem or not selectedItem
 
     containerElement = @refs.dropup.getMainElement()
     itemElement      = React.findDOMNode @refs[@getItemKey selectedItem]

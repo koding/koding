@@ -20,10 +20,12 @@ module.exports = class EmojiDropup extends React.Component
     items          : immutable.List()
     selectedIndex  : 0
     selectedItem   : null
-    keyboardScroll : no
 
 
   formatSelectedValue: -> formatEmojiName @props.selectedItem
+
+
+  getItemKey: (item) -> item
 
 
   close: -> ActivityFlux.actions.emoji.unsetFilteredListQuery()
@@ -80,7 +82,8 @@ module.exports = class EmojiDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = item
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 
@@ -89,16 +92,19 @@ module.exports = class EmojiDropup extends React.Component
     { query } = @props
 
     <Dropup
-      className      = "EmojiDropup"
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
+      className    = "EmojiDropup"
+      visible      = { @isActive() }
+      onOuterClick = { @bound 'close' }
+      ref          = 'dropup'
     >
-      <div className="Dropup-header">
-        Emojis matching <strong>:{query}</strong>
-      </div>
-      <div className="EmojiDropup-list">
-        {@renderList()}
-        <div className="clearfix" />
+      <div className="Dropup-innerContainer">
+        <div className="Dropup-header">
+          Emojis matching <strong>:{query}</strong>
+        </div>
+        <div className="EmojiDropup-list">
+          {@renderList()}
+          <div className="clearfix" />
+        </div>
       </div>
     </Dropup>
 
