@@ -120,7 +120,7 @@ module.exports = class DefineStackView extends KDView
 
   handleSave: ->
 
-    @outputView.clear().raise()
+    @stackTemplateView.outputView.clear().raise()
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
@@ -128,28 +128,28 @@ module.exports = class DefineStackView extends KDView
     @checkAndBootstrapCredentials (err, credentials) =>
       return  @saveButton.hideLoader()  if err
 
-      @outputView
+      @stackTemplateView.outputView
         .add 'Credentials are ready!'
         .add 'Saving current template content...'
 
       @saveTemplate (err, stackTemplate) =>
 
-        if @outputView.handleError err
+        if @stackTemplateView.outputView.handleError err
           @saveButton.hideLoader()
           return
 
-        @outputView.add 'Template content saved now processing the template...'
+        @stackTemplateView.outputView.add 'Template content saved now processing the template...'
 
         @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
           @saveButton.hideLoader()
 
           if err
-            @outputView.add "Parsing failed, please check your
+            @stackTemplateView.outputView.add "Parsing failed, please check your
                              template and try again"
             return
 
-          @outputView.add "You can now close this window, or set this
+          @stackTemplateView.outputView.add "You can now close this window, or set this
                            template as default for your team members."
 
           @cancelButton.setTitle 'Close'
@@ -162,33 +162,33 @@ module.exports = class DefineStackView extends KDView
     [credential]      = credentialsData
 
     failed = (err) =>
-      @outputView.handleError err
+      @stackTemplateView.outputView.handleError err
       callback err
 
     showCredentialContent = (credential) =>
       credential.fetchData (err, data) =>
         return failed err  if err
-        @outputView.add JSON.stringify data.meta, null, 2
+        @stackTemplateView.outputView.add JSON.stringify data.meta, null, 2
         callback null, [credential]
 
-    @outputView
+    @stackTemplateView.outputView
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
 
     credential.isBootstrapped (err, state) =>
+
       return failed err  if err
 
       if state
 
-        @outputView.add 'Already bootstrapped, fetching data...'
+        @stackTemplateView.outputView.add 'Already bootstrapped, fetching data...'
         showCredentialContent credential
 
       else
 
-        @outputView.add 'Bootstrap required, initiating to bootstrap...'
+        @stackTemplateView.outputView.add 'Bootstrap required, initiating to bootstrap...'
 
-        identifiers = [credential.identifier]
-
+        identifiers           = [credential.identifier]
         { computeController } = kd.singletons
 
         computeController.getKloud()
@@ -198,10 +198,10 @@ module.exports = class DefineStackView extends KDView
           .then (response) =>
 
             if response
-              @outputView.add 'Bootstrap completed successfully'
+              @stackTemplateView.outputView.add 'Bootstrap completed successfully'
               showCredentialContent credential
             else
-              @outputView.add 'Bootstrapping completed but something went wrong.'
+              @stackTemplateView.outputView.add 'Bootstrapping completed but something went wrong.'
               callback null
 
             console.log '[KLOUD:Bootstrap]', response
@@ -224,7 +224,7 @@ module.exports = class DefineStackView extends KDView
         console.log '[KLOUD:checkTemplate]', err, response
 
         if err or not response
-          @outputView
+          @stackTemplateView.outputView
             .add 'Something went wrong with the template:'
             .add err?.message or 'No response from Kloud'
 
@@ -234,7 +234,7 @@ module.exports = class DefineStackView extends KDView
 
           machines = parseTerraformOutput response
 
-          @outputView
+          @stackTemplateView.outputView
             .add 'Template check complete succesfully'
             .add 'Following machines will be created:'
             .add JSON.stringify machines, null, 2
@@ -256,20 +256,20 @@ module.exports = class DefineStackView extends KDView
     # and call them in here ~ GG
 
     # Parsing credential requirements
-    @outputView.add 'Parsing template for credential requirements...'
+    @stackTemplateView.outputView.add 'Parsing template for credential requirements...'
 
     requiredProviders = providersParser templateContent
 
-    @outputView
+    @stackTemplateView.outputView
       .add 'Following credentials are required:'
       .add '-', requiredProviders
 
     # Parsing additional requirements, like user/group authentications
-    @outputView.add 'Parsing template for additional requirements...'
+    @stackTemplateView.outputView.add 'Parsing template for additional requirements...'
 
     requiredData = requirementsParser templateContent
 
-    @outputView
+    @stackTemplateView.outputView
       .add 'Following extra information will be requested from members:'
       .add requiredData
 
@@ -323,7 +323,7 @@ module.exports = class DefineStackView extends KDView
 
   handlePreview: ->
 
-    template      = @editorView.getValue()
+    template      = @stackTemplateView.editorView.getValue()
 
     group         = kd.singletons.groupsController.getCurrentGroup()
     account       = whoami()
@@ -399,10 +399,10 @@ module.exports = class DefineStackView extends KDView
       return new kd.NotificationView
         title: 'Setting stack template for koding is disabled'
 
-    @outputView.add 'Setting this as default group stack template...'
+    @stackTemplateView.outputView.add 'Setting this as default group stack template...'
 
     currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-      return if @outputView.handleError err
+      return if @stackTemplateView.outputView.handleError err
 
       new kd.NotificationView
         title : "Group (#{slug}) stack has been saved!"
