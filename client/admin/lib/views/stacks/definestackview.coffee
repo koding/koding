@@ -1,26 +1,30 @@
 kd                   = require 'kd'
 jspath               = require 'jspath'
 
-JView                = require 'app/jview'
+KDView               = kd.View
+KDTabView            = kd.TabView
+KDModalView          = kd.ModalView
+KDButtonView         = kd.ButtonView
+KDTabPaneView        = kd.TabPaneView
+
+
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
-showError            = require 'app/util/showError'
-applyMarkdown         = require 'app/util/applyMarkdown'
-
-{yamlToJson}         = require './yamlutils'
+applyMarkdown        = require 'app/util/applyMarkdown'
+{ yamlToJson }       = require './yamlutils'
 providersParser      = require './providersparser'
-requirementsParser   = require './requirementsparser'
 
-OutputView           = require './outputview'
-StackEditorView      = require './stackeditorview'
+requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
 parseTerraformOutput = require './parseterraformoutput'
-CredentialStatusView = require './credentialstatusview'
+
+ProvidersView        = require './providersview'
+VariablesView        = require './variablesview'
+StackTemplateView    = require './stacktemplateview'
 
 
-module.exports = class DefineStackView extends kd.View
+module.exports = class DefineStackView extends KDView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -393,16 +397,3 @@ module.exports = class DefineStackView extends kd.View
 
       @emit 'Reload'
       @emit 'Completed', stackTemplate
-
-
-  pistachio: ->
-    """
-      <div class='text header'>Create new Stack</div>
-      {{> @inputTitle}}
-      {{> @editorView}}
-      {{> @outputView}}
-      {{> @cancelButton}}
-      {{> @setAsDefaultButton}}
-      {{> @previewButton}}
-      {{> @saveButton}}
-    """
