@@ -590,18 +590,20 @@ runTests = -> describe 'server.handlers.createteam', ->
       done()
 
 
-  it 'should send HTTP 400 when teamAccessCode non-existent', (done) ->
+  describe 'when teamAccessCode is provided', ->
 
-    expectedBody            = 'Team Invitation is not found'
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body             :
-        teamAccessCode : 'someNonExistentTeamAccessCode'
+    it 'should send HTTP 400 if teamAccessCode non-existent', (done) ->
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal expectedBody
-      done()
+      expectedBody            = 'Team Invitation is not found'
+      createTeamRequestParams = generateCreateTeamRequestParams
+        body             :
+          teamAccessCode : 'someNonExistentTeamAccessCode'
+
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal expectedBody
+        done()
 
 
 runTests()
