@@ -51,7 +51,7 @@ module.exports = helpers =
       err = mesage: "Machine not found."
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
-    dataProvider.fetchMachineByUId machineUId, (m, workspaces) =>
+    dataProvider.fetchMachineByUId machineUId, (m, workspaces) ->
       workspace = w for w in workspaces when w.rootPath is rootPath
 
       handleRoute = (machine, workspace) ->
@@ -60,7 +60,7 @@ module.exports = helpers =
 
       return handleRoute(machine, workspace) if workspace
 
-      remote.api.JWorkspace.create data, (err, workspace) =>
+      remote.api.JWorkspace.create data, (err, workspace) ->
         return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
         folderOptions  =
@@ -69,7 +69,7 @@ module.exports = helpers =
           recursive    : yes
           samePathOnly : yes
 
-        machine.fs.create folderOptions, (err, folder) =>
+        machine.fs.create folderOptions, (err, folder) ->
           return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
           filePath   = "#{workspace.rootPath}/README.md"
@@ -77,14 +77,14 @@ module.exports = helpers =
           kite = machine.getBaseKite()
 
           kite.init()
-            .then =>
+            .then ->
 
-              kite.fsUniquePath path: "#{filePath}"
-                .then (actualPath) =>
+              kite.fsUniquePath path: filePath
+                .then (actualPath) ->
 
                   readMeFile = FSHelper.createFileInstance { path: actualPath, machine }
 
-                  readMeFile.save WORKSPACE_WELCOME_TXT, (err) =>
+                  readMeFile.save WORKSPACE_WELCOME_TXT, (err) ->
                     return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
                     eventObj.emit 'WorkspaceCreated', workspace
