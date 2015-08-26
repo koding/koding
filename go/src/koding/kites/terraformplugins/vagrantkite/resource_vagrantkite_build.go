@@ -32,7 +32,7 @@ func resourceVagrantKiteBuild() *schema.Resource {
 	}
 }
 
-var klientFuncName = "vagrant.build"
+const klientFuncName = "vagrant.build"
 
 type vagrantKiteReq struct {
 	VagrantFile string
