@@ -71,10 +71,6 @@ module.exports = class DefineStackView extends KDView
         @stackTemplateView.credentialStatus.setCredential credential
 
 
-    # TODO getrid off from these css properties ~ GG
-    @previewButton.setCss      'right', '110px'
-    @setAsDefaultButton.setCss 'right', '265px'
-
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
         @saveButton.enable()
@@ -108,7 +104,7 @@ module.exports = class DefineStackView extends KDView
 
     @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
-      cssClass       : 'solid compact light-gray nav next'
+      cssClass       : 'solid compact light-gray nav next prev-button'
       loader         : yes
       callback       : @bound 'handlePreview'
       tooltip        :
@@ -117,7 +113,7 @@ module.exports = class DefineStackView extends KDView
 
     @buttons.addSubView @setAsDefaultButton = new KDButtonView
       title          : 'Set as Default for Team'
-      cssClass       : 'solid compact nav next hidden'
+      cssClass       : 'solid compact nav next hidden setasdefault-button'
       loader         : yes
       callback       : @bound 'handleSetDefaultTemplate'
 
