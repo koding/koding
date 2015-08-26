@@ -68,7 +68,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.Identifiers)
+	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, args.Identifiers)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	defer tfKite.Close()
 
 	k.Log.Debug("Iterating over credentials")
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
