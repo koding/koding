@@ -34,6 +34,33 @@ EOF
 fi
 
 
+which screen > /dev/null
+err=$?; if [ "$err" -ne 0 ]; then
+    # If apt-get is not available, inform the user to install screen
+    # themselves.
+    which apt-get > /dev/null
+    err=$?; if [ "$err" -ne 0 ]; then
+        cat << EOF
+Error: The Unix command 'screen' must be installed prior to installing
+the Koding Service connector. Please install it, and retry this
+installation.
+EOF
+        exit 1
+    fi
+
+    echo "Installing Screen..."
+
+    # The `<&-` is used because .. i think, apt-get is swallowing
+    # stdin for some odd reason. Which would then cause the pipe to break
+    # and the entire rest of the script would just be printed.
+    #
+    # The only way i even figured it out, was
+    # via: http://unix.stackexchange.com/a/182625
+    # Unfortunately i have no more information on that.
+    sudo apt-get install -qq -y screen <&-
+fi
+
+
 sudo route del -host 169.254.169.254 reject 2> /dev/null
 routeErr=$?
 awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document --max-time 5 2> /dev/null`
