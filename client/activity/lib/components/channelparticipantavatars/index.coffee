@@ -14,6 +14,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     @state = { addNewParticipantMode: no, showAllParticipants: no }
 
+
   PREVIEW_COUNT = 0
   MAX_PREVIEW_COUNT = 4
 
@@ -29,7 +30,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     diff = participants.size is MAX_PREVIEW_COUNT
 
     PREVIEW_COUNT = switch
-      when diff = 0 then MAX_PREVIEW_COUNT
+      when diff is 0 then MAX_PREVIEW_COUNT
       when diff < 0 then participants.size
       else MAX_PREVIEW_COUNT - 1
 
@@ -56,9 +57,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     PREVIEW_COUNT = @getPreviewCount()
 
-    participants = participants.slice(0, PREVIEW_COUNT)
+    participants = participants.slice 0, PREVIEW_COUNT
 
-    @renderAvatars(participants, no)
+    @renderAvatars participants, no
 
 
   renderNickname: (participant, isNicknameVisible)->
@@ -72,15 +73,15 @@ module.exports = class ChannelParticipantAvatars extends React.Component
   renderAvatars: (participants, isNicknameVisible) ->
 
     participants.toList().map (participant) =>
-      <div key={participant.get 'id'} className="ChannelParticipantAvatars-singleBox">
+      <div key={participant.get 'id'} className='ChannelParticipantAvatars-singleBox'>
         <ProfileLinkContainer account={participant.toJS()}>
           <div>
             <Avatar
-              className="ChannelParticipantAvatars-avatar"
+              className='ChannelParticipantAvatars-avatar'
               width={30}
               account={participant.toJS()}
               height={30} />
-            {@renderNickname(participant, isNicknameVisible)}
+            {@renderNickname participant, isNicknameVisible }
           </div>
         </ProfileLinkContainer>
       </div>
@@ -96,8 +97,8 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     moreCount = Math.min moreCount, 99
 
-    <div className="ChannelParticipantAvatars-singleBox">
-      <div className="ChannelParticipantAvatars-moreCount" onClick={@bound "onShowMoreParticipantButtonClick"}>
+    <div className='ChannelParticipantAvatars-singleBox'>
+      <div className='ChannelParticipantAvatars-moreCount' onClick={@bound 'onShowMoreParticipantButtonClick'}>
         {moreCount}+
       </div>
     </div>
@@ -110,9 +111,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    <div className="ChannelParticipantAvatars-allParticipantsMenu">
-      <div className="ChannelParticipantAvatars-allParticipantsMenuContainer">
-        <div className="ChannelParticipantAvatars-allParticipantsMenuTitle">Other participants</div>
+    <div className='ChannelParticipantAvatars-allParticipantsMenu'>
+      <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
+        <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
         {@renderAvatars(participants, yes)}
       </div>
     </div>
@@ -125,7 +126,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
   renderNewParticipantButton: ->
 
-    <div className="ChannelParticipantAvatars-singleBox" onClick={@bound "onNewParticipantButtonClick"}>
+    <div className='ChannelParticipantAvatars-singleBox' onClick={@bound 'onNewParticipantButtonClick'}>
       <div className={@getAddNewParticipantButtonClassNames()}></div>
     </div>
 
@@ -138,12 +139,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
-      <input placeholder="type a @username and hit enter" />
+      <input placeholder='type a @username and hit enter' />
     </div>
 
 
   render: ->
-    <div className="ChannelParticipantAvatars">
+    <div className='ChannelParticipantAvatars'>
       {@renderPreviewAvatars()}
       {@renderMoreCount()}
       {@renderNewParticipantButton()}
