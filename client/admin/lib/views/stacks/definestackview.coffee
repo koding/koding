@@ -40,20 +40,19 @@ module.exports = class DefineStackView extends KDView
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @tabView.addPane stackTemplate = new KDTabPaneView name: 'Stack Template'
+    @tabView.addPane stackTemplatePane = new KDTabPaneView name: 'Stack Template'
 
     # Close for now.
-    #@tabView.addPane variables     = new KDTabPaneView name: 'Variables'
+    #@tabView.addPane variables        = new KDTabPaneView name: 'Variables'
     #variables.addSubView @variablesView         = new VariablesView
 
-    @tabView.addPane providers     = new KDTabPaneView name: 'Providers'
+    @tabView.addPane providersPane     = new KDTabPaneView name: 'Providers'
 
-    stackTemplate.addSubView @stackTemplateView = new StackTemplateView options, data
+    stackTemplatePane.addSubView @stackTemplateView = new StackTemplateView options, data
 
-    { @credentials } = stackTemplate or {}
+    { @credentials } = @stackTemplateView.credentialStatus or {}
 
-    providers.addSubView @providersView = new ProvidersView
-      selectedCredentials: @credentials
+    providersPane.addSubView @providersView = new ProvidersView
       stackTemplate       : stackTemplate
       selectedCredentials : @credentials
 
@@ -83,10 +82,10 @@ module.exports = class DefineStackView extends KDView
       else
         @saveButton.disable()
 
-    stackTemplate.on 'PaneDidShow', =>
+    stackTemplatePane.on 'PaneDidShow', =>
       @buttons.show()
 
-    providers.on 'PaneDidShow', =>
+    providersPane.on 'PaneDidShow', =>
       @buttons.hide()
 
 
