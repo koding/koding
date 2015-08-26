@@ -36,7 +36,7 @@ fi
 
 sudo route del -host 169.254.169.254 reject 2> /dev/null
 routeErr=$?
-awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document 2> /dev/null`
+awsApiResponse=`curl http://169.254.169.254/latest/dynamic/instance-identity/document --max-time 5 2> /dev/null`
 if [ "$routeErr" -eq 0 ]; then
     sudo route add -host 169.254.169.254 reject 2> /dev/null
 fi
