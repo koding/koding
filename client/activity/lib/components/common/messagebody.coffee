@@ -1,7 +1,6 @@
 React         = require 'kd-react'
+emojify       = require 'emojify.js'
 formatContent = require 'app/util/formatContent'
-emojify               = require 'emojify.js'
-
 
 module.exports = class MessageBody extends React.Component
 

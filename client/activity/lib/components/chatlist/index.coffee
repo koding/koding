@@ -9,7 +9,6 @@ module.exports = class ChatList extends React.Component
   @defaultProps =
     messages: immutable.List()
 
-
   renderChildren: ->
 
     lastMessageId = null
