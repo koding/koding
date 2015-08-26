@@ -15,7 +15,7 @@ func Provider() terraform.ResourceProvider {
 		// ConfigureFunc: providerConfigure
 
 		ResourcesMap: map[string]*schema.Resource{
-			"vagnratkite_build": resourceVagrantKiteBuild(),
+			"vagrantkite_build": resourceVagrantKiteBuild(),
 		},
 	}
 }
