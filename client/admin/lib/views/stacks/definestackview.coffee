@@ -284,6 +284,23 @@ module.exports = class DefineStackView extends kd.View
       callback err, stackTemplate
 
 
+  createReportFor = (data, type) ->
+
+    if data.length > 0
+      console.warn "#{type.capitalize()} for preview requirements: ", data
+
+      issueList = ''
+      for issue in data
+        issueList += " - #{issue}\n"
+
+      issues = "> Following #{type} found while generating
+                preview for this template: \n#{issueList}"
+    else
+      issues = ''
+
+    return issues
+
+
   handlePreview: ->
 
     template      = @editorView.getValue()
@@ -297,26 +314,6 @@ module.exports = class DefineStackView extends kd.View
     warnings      = []
 
     fetchUserData = (callback) ->
-      account.fetchFromUser requiredData.user, (err, data) ->
-        kd.warn err  if err
-        callback data ? {}
-
-    process = (data, type) ->
-
-      if data.length > 0
-        console.warn "#{type.capitalize()} for preview requirements: ", data
-
-        issueList = ''
-        for issue in data
-          issueList += " - #{issue}\n"
-
-        issues = "> Following #{type} found while generating
-                  preview for this template: \n#{issueList}"
-      else
-        issues = ''
-
-      return issues
-
 
     generatePreview = =>
 
@@ -334,33 +331,40 @@ module.exports = class DefineStackView extends kd.View
           else
             errors.push "Variable `#{field}` not found in `#{type}` data."
 
-      errors   = process errors, 'errors'
-      warnings = process warnings, 'warnings'
-
-      new kd.ModalView
-        title          : 'Template Preview'
-        subtitle       : 'Generated from your account data'
-        cssClass       : 'has-markdown content-modal'
-        height         : 500
-        overlay        : yes
-        overlayOptions : cssClass : 'second-overlay'
-        content        : applyMarkdown """
-          #{errors}
-
-          #{warnings}
-          ```coffee
-          #{template}
-          ```
-        """
+      @createPreviewModal { errors, warnings, template }
 
       @previewButton.hideLoader()
 
+
     if requiredData.user?
-      fetchUserData (data) =>
-        availableData.user = data
+      account.fetchFromUser requiredData.user, (err, data) ->
+        kd.warn err  if err
+        availableData.user = data or {}
         generatePreview()
     else
       generatePreview()
+
+
+  createPreviewModal: ({ errors, warnings, template }) ->
+
+    errors   = createReportFor errors,   'errors'
+    warnings = createReportFor warnings, 'warnings'
+
+    new kd.ModalView
+      title          : 'Template Preview'
+      subtitle       : 'Generated from your account data'
+      cssClass       : 'has-markdown content-modal'
+      height         : 500
+      overlay        : yes
+      overlayOptions : cssClass : 'second-overlay'
+      content        : applyMarkdown """
+        #{errors}
+
+        #{warnings}
+        ```coffee
+        #{template}
+        ```
+      """
 
 
   handleSetDefaultTemplate: ->
