@@ -93,13 +93,15 @@ channelThreads = [
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
-      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
-        message = messages.get messageId
-        if message.has('__editedBody')
-          message = message.set 'body', message.get '__editedBody'
-          message = message.set 'payload', message.get '__editedPayload'
+      thread.update 'messages', (msgs) ->
+        msgs.map (messageId) ->
+          message = messages.get messageId
+          if message.has('__editedBody')
+            message = message.set 'body', message.get '__editedBody'
+            message = message.set 'payload', message.get '__editedPayload'
+          return message
+        .sortBy (m) -> m.get 'createdAt'
 
-        return message
 ]
 
 channelPopularMessages = [
@@ -196,7 +198,11 @@ messageThreads = [
       thread = thread.set 'flags', messageFlags.get messageId
       # replace messageIds in list with message instances.
       thread.update 'comments', (comments) ->
-        comments.map (id) -> messages.get id
+        comments
+          # get the SocialMessage instance of comments list
+          .map (id) -> messages.get id
+          # then sort them by their creation date
+          .sortBy (c) -> c.get 'createdAt'
 ]
 
 selectedMessageThread = [
