@@ -26,3 +26,4 @@ describe 'CommonEmojiListVisibilityStore', ->
       visible = @reactor.evaluate ['commonEmojiListVisibility']
 
       expect(visible).to.be.false
+

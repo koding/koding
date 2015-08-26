@@ -46,3 +46,4 @@ describe 'ChatInputSearchQueryStore', ->
       query = @reactor.evaluate ['chatInputSearchQuery']
 
       expect(query).to.be.null
+

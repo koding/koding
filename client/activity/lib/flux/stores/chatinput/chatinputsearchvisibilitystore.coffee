@@ -26,3 +26,4 @@ module.exports = class ChatInputSearchVisibilityStore extends KodingFluxStore
    * @return {bool} nextState
   ###
   setVisibility: (currentState, { visible }) -> visible
+

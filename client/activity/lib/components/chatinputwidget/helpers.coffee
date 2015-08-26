@@ -45,3 +45,4 @@ module.exports = helpers =
     newValue          = textBeforeCursor + value.substring endReplaceIndex
 
     return { value : newValue, cursorPosition }
+

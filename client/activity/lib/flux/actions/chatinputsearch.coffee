@@ -132,3 +132,4 @@ module.exports = {
   setVisibility
   resetData
 }
+

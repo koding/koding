@@ -13,3 +13,4 @@ module.exports = class ChatInputSearchQueryStore extends QueryStore
     @bindActions
       setQuery   : actions.SET_CHAT_INPUT_SEARCH_QUERY
       unsetQuery : actions.UNSET_CHAT_INPUT_SEARCH_QUERY
+

@@ -26,3 +26,4 @@ describe 'ChatInputSearchVisibilityStore', ->
       visible = @reactor.evaluate ['chatInputSearchVisibility']
 
       expect(visible).to.be.false
+

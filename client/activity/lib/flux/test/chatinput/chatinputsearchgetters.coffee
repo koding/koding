@@ -115,3 +115,4 @@ describe 'ChatInputSearchGetters', ->
 
       selectedItem = @reactor.evaluateToJS getters.chatInputSearchSelectedItem
       expect(selectedItem.id).to.equal items[index].id
+

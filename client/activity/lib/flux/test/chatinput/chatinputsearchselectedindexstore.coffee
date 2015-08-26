@@ -76,3 +76,4 @@ describe 'ChatInputSearchSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['chatInputSearchSelectedIndex']
 
       expect(selectedIndex).to.equal 0
+

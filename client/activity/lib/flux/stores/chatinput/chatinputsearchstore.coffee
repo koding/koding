@@ -41,3 +41,4 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
    * @return {Immutable.List} empty immutable list
   ###
   handleReset: (items) -> immutable.List()
+

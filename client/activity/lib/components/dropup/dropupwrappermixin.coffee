@@ -30,3 +30,4 @@ module.exports =
     itemElement      = React.findDOMNode @refs[@getItemKey selectedItem]
 
     scrollToTarget containerElement, itemElement
+

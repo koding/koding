@@ -67,3 +67,4 @@ describe 'ChatInputSearchStore', ->
       searchItems = @reactor.evaluate ['chatInputSearchItems']
 
       expect(searchItems.size).to.equal 0
+

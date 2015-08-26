@@ -63,3 +63,4 @@ module.exports = class SearchDropupItem extends React.Component
 
       comments = message.get 'repliesCount'
       formatPlural comments, 'Comment'
+

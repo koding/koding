@@ -351,3 +351,4 @@ module.exports = {
   resetChatInputChannelsSelectedIndex
   setChatInputChannelsVisibility
 }
+
