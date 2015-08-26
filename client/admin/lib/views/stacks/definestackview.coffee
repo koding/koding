@@ -33,16 +33,18 @@ module.exports = class DefineStackView extends kd.View
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
 
-    @inputTitle            = new kd.FormViewWithFields fields:
-      title                :
-        cssClass           : 'template-title'
-        label              : 'Stack Template Title'
-        defaultValue       : title
-        nextElement        :
-          credentialStatus :
-            cssClass       : 'credential-status'
-            itemClass      : CredentialStatusView
-            stackTemplate  : stackTemplate
+    @inputTitle = new kd.FormViewWithFields
+      cssClass               : 'template-title-form'
+      fields                 :
+        title                :
+          cssClass           : 'template-title'
+          label              : 'Stack Template Title'
+          defaultValue       : title
+          nextElement        :
+            credentialStatus :
+              cssClass       : 'credential-status'
+              itemClass      : CredentialStatusView
+              stackTemplate  : stackTemplate
 
     { @credentialStatus } = @inputTitle.inputs
 
@@ -397,7 +399,8 @@ module.exports = class DefineStackView extends kd.View
 
   pistachio: ->
     """
-      <div class='text header'>Create new Stack</div>
+      <div class='header title'>Here’s your stack configuration</div>
+      <p class="description">You can make advanced changes like modifying your VM, installing packages, and running shell commands.</p>
       {{> @inputTitle}}
       {{> @editorView}}
       {{> @outputView}}

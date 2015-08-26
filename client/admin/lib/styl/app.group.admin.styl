@@ -1159,8 +1159,8 @@ Admin main styles
 
   .step-define-stack
     height                  calc(100% \- 100px)
+
     .editor-view
-      border-radius         4px
       height                calc(100% \- 100px)
 
   .steps-view
@@ -1258,7 +1258,6 @@ Admin main styles
       .credential-list
         display             none
 
-
   .step-define-stack
     height                  100%
 
@@ -1266,7 +1265,7 @@ Admin main styles
       z-index               14
 
     .editor-view
-      height                calc(100% \- 140px)
+      height                calc(100% \- 230px)
 
     .showlogs-link
       z-index               13
@@ -1276,7 +1275,7 @@ Admin main styles
 
   .kdview.credential-status
     width                   200px
-    line-height             38px
+    line-height             49px
     font-size               13px
     text-align              right
     right                   10px
@@ -1319,6 +1318,19 @@ Admin main styles
 
     pre.output-view
       height                auto
+
+  .template-title-form
+    height                  49px
+    bg                      color, #EFEFEF
+    border-bottom           1px solid #979797
+
+    .kdlabel
+      line-height           49px
+      text-indent           17px
+      margin                0
+
+  .template-title
+    margin-top              5px !important
 
 
 .AppModal--admin .members
@@ -1580,6 +1592,7 @@ Admin main styles
 
 // stack onboarding styling
 .stack-onboarding
+.step-define-stack
 
   .header
     text-align              center
@@ -1587,14 +1600,18 @@ Admin main styles
   .title
     font-size               24px
     color                   #00B057
-    margin                  43px 0 18px 0
+    margin-bottom           18px
 
   .description
     font-size               18px
     color                   #565656
     font-weight             300
-    width                   400px
+    width                   450px
     margin                  0 auto 53px
+
+
+// stack onboarding styling
+.stack-onboarding
 
   .kdbutton
     &.green
@@ -1604,7 +1621,74 @@ Admin main styles
       height                50px
       padding               0 35px
 
-  &.get-started
+  .footer
+    text-align              center
+    margin-left             42px
+
+    .kdbutton
+      width                 120px
+
+    .outline
+      border                1px solid #A8A1A1
+
+      &.back
+        margin-right        8px
+
+      span
+        color               #A8A1A1
+
+  .skip-setup
+    color                   #A8A1A1
+    font-size               16px
+    line-height             22px
+    margin-top              16px
+    text-align              center
+    font-weight             300
+    pointer()
+
+  .box-wrapper
+    width                   525px
+    overflow                hidden
+    margin                  57px 0 0 123px !important
+
+  .box
+    size                    256px, 112px
+    rounded                 4px
+    border                  1px solid #E7E7E7
+    background              #fff
+    borderBox()
+    fl()
+    pointer()
+
+    img
+      margin                23px 0 0 49px
+
+    &:nth-child(2n -1)
+      margin-right          11px
+
+    .label
+      font-size             16px
+      text-align            center
+      font-weight           300
+      margin-top            13px
+
+  .coming-soon
+    cursor                  not-allowed
+    background              transparent
+
+    img
+      opacity               .4
+
+    .label
+      color                 #9E9E9E
+
+  .box.selected
+    border                  3px solid #00B057
+
+  .get-started
+
+    .description
+      width                 400px
 
     .item
       width                 290px
@@ -1639,3 +1723,271 @@ Admin main styles
       margin                0 auto 40px
       rel()
       left                  -8px
+
+  .provider-selection
+
+    height                  auto
+
+    .providers
+      height                396px
+
+    .provider
+      &.koding
+        img
+          margin            21px 0 0 55px
+
+        .label
+          margin-top        9px
+
+      &.engineyard
+        rel()
+        top                 -9px
+
+        img
+          margin            16px 0 0 38px
+
+        .label
+          margin-top        4px
+
+      &.digitalocean
+        rel()
+        top                 -9px
+
+        img
+          margin            29px 0 0 36px
+
+        .label
+          margin-top        13px
+
+      &.googlecloud
+        rel()
+        top                 -17px
+
+        img
+          margin            32px 0 0 34px
+
+      &.rackspace
+        rel()
+        top                 -17px
+
+        img
+          margin            27px 0 0 50px
+
+  .code-setup
+
+    height                  auto
+
+    .description
+      width                 350px
+
+    .box-wrapper
+      rel()
+      top                   1px
+      left                  -10px
+      height                240px
+
+    .github
+      img
+        margin              35px 0 0 67px
+
+    .bitbucket
+      img
+        margin              26px 0 0 51px
+
+      .label
+        margin-top          6px
+
+    .gitlab
+      top                   11px
+      rel()
+
+      img
+        margin              4px 0 0 56px
+
+      .label
+        margin-top          17px
+
+    .owngitserver
+      top                   11px
+      rel()
+
+      img
+        margin              11px 0 0 113px
+
+      .label
+        margin              15px 0 0 -3px
+
+    + .footer
+      margin                40px 0 0 18px
+
+  .configuration
+
+    height                  auto
+
+    .footer
+      margin-left           22px
+
+    .description
+      width                 350px
+      margin-bottom         31px
+
+    .kdtabview
+      border                1px solid #D8D8D8
+      size                  523px, 258px
+      margin                0 auto 54px
+      rounded               0 0 6px 6px
+      bg                    color, #fff
+      top                   10px
+      left                  11px
+      rel()
+
+    .kdtabhandle
+      height                70px
+      box-shadow            none !important
+      width                 153px
+      max-width             153px !important
+      bg                    color, #fff !important
+      border                1px solid #D8D8D8
+      margin-right          3px
+      rounded               6px 6px 0 0
+
+      b
+        size                auto, 22px
+        line-height         22px
+        font-size           16px
+        color               #2B2A49
+        top                 12px
+        left                45px
+        abs()
+
+      .kdselectbox
+        border              none
+        top                 15px
+        left                15px
+        rel()
+
+        .title
+          margin            0
+          padding           0 25px 0 10px
+
+        .arrows
+          height            6px
+          vendor            transform, rotate(180deg)
+          margin-top        4px
+
+      &.active
+        bg                  color, #fff !important
+        border-bottom       1px solid #fff
+
+      &.plus
+        border-left         1px solid #D8D8D8
+        width               153px
+
+        span
+          display           inline-block !important
+          margin            25px 10px 0 20px !important
+          opacity           .3
+
+        &:after
+          content           'Add another'
+          font-size         16px
+          line-height       18px
+          font-weight       300
+          color             #BBBBC4
+          top               -6px
+          left              -3px
+          rel()
+
+    .kdtabhandlecontainer
+      box-shadow            none
+      size                  526px, 70px
+      margin                0 auto
+      rel()
+      top                   11px
+      left                  11px
+
+  .server-configuration
+
+    section
+      fl()
+      width                 150px
+      margin-top            38px
+
+      &:first-child
+        margin-left         59px
+
+      p
+        color               #434343
+        font-size           16px
+        line-height         22px
+        margin-bottom       16px
+        font-weight         bold
+
+    .row
+      overflow              hidden
+      margin-bottom         10px
+
+      .koding-on-off
+        fl()
+
+      .label
+        fl()
+        margin-left         8px
+        font-size           16px
+        line-height         22px
+        color               #434343
+        font-weight         100
+        top                 -3px
+        pointer()
+        rel()
+
+  .stack-preview
+
+    width                   526px
+    min-height              320px
+    padding-bottom          20px
+    margin                  0 auto
+    bg                      color, #EFEFEF
+    rounded                 4px 4px 0 0
+    line-height             24px
+    font-size               15px
+    color                   #474747
+    margin-top              27px
+    left                    11px
+    rel()
+
+    .header
+      line-height           45px
+      height                45px
+      font-size             14px
+      color                 #BCBCBC
+      text-align            left
+      border-bottom         1px solid #DEDEDE
+      text-indent           16px
+
+    .lines
+      color                 #C5C5C5
+      width                 28px
+      text-align            right
+      margin-right          15px
+      font-size             12px
+      margin-top            10px
+      line-height           18px
+      fl()
+
+    .has-markdown
+      pre
+        padding             0
+
+      code
+        bg                  color, transparent
+        border              none
+        line-height         18px
+        padding             10px
+
+
+  &.main-content.get-started
+    .footer
+    .stack-preview
+      hidden()
+
