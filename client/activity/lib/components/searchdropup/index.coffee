@@ -38,7 +38,7 @@ module.exports = class SearchDropup extends React.Component
 
     return no  if keyInfo.isRightArrow
 
-    ActivityFlux.actions.chatInputSearch.moveToNextIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.chatInputSearch.moveToNextIndex()  unless @hasSingleItem()
     return yes
 
 
@@ -46,7 +46,7 @@ module.exports = class SearchDropup extends React.Component
 
     return no  if keyInfo.isLeftArrow
 
-    ActivityFlux.actions.chatInputSearch.moveToPrevIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.chatInputSearch.moveToPrevIndex()  unless @hasSingleItem()
     return yes
 
 
@@ -55,11 +55,12 @@ module.exports = class SearchDropup extends React.Component
     { value } = textData
 
     matchResult = value.match /\/s (.+)/
-    if matchResult
-      query = matchResult[1]
-      ActivityFlux.actions.chatInputSearch.setQuery query
-      ActivityFlux.actions.chatInputSearch.setVisibility yes
-      return yes
+    return no  unless matchResult
+
+    query = matchResult[1]
+    ActivityFlux.actions.chatInputSearch.setQuery query
+    ActivityFlux.actions.chatInputSearch.setVisibility yes
+    return yes
 
 
   onItemSelected: (index) ->

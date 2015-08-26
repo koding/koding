@@ -11,7 +11,7 @@ module.exports =
     return items.size > 0 and visible
 
 
-  hasOnlyItem: -> @props.items.size is 1
+  hasSingleItem: -> @props.items.size is 1
 
 
   confirmSelectedItem: ->

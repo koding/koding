@@ -30,34 +30,35 @@ module.exports = class EmojiDropup extends React.Component
 
   moveToNextPosition: (keyInfo) ->
 
-    if @hasOnlyItem() and keyInfo.isRightArrow
+    if @hasSingleItem() and keyInfo.isRightArrow
       @close()
       return no
 
-    ActivityFlux.actions.emoji.moveToNextFilteredListIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.emoji.moveToNextFilteredListIndex()  unless @hasSingleItem()
     return yes
 
 
   moveToPrevPosition: (keyInfo) ->
 
-    if @hasOnlyItem() and keyInfo.isLeftArrow
+    if @hasSingleItem() and keyInfo.isLeftArrow
       @close()
       return no
 
-    ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()  unless @hasSingleItem()
     return yes
 
 
   checkTextForQuery: (textData) ->
 
     { currentWord } = textData
+    return no  unless currentWord
 
-    matchResult = currentWord?.match /^\:(.+)/
-    query = matchResult?[1]
+    matchResult = currentWord.match /^\:(.+)/
+    return no  unless matchResult
 
-    if query
-      ActivityFlux.actions.emoji.setFilteredListQuery query
-      return yes
+    query = matchResult[1]
+    ActivityFlux.actions.emoji.setFilteredListQuery query
+    return yes
 
 
   onItemSelected: (index) ->

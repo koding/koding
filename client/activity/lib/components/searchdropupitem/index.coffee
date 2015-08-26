@@ -19,7 +19,7 @@ module.exports = class SearchDropupItem extends React.Component
 
   render: ->
 
-    { item }    = @props
+    { item }        = @props
     message         = item.get 'message'
     highlightResult = item.get 'highlightResult'
     messageBody     = highlightResult?.getIn(['body', 'value']) ? message.get('body')

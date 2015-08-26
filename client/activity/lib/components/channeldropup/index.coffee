@@ -36,7 +36,7 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()  unless @hasSingleItem()
     return yes
 
 
@@ -46,20 +46,22 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()  unless @hasSingleItem()
     return yes
 
 
   checkTextForQuery: (textData) ->
 
     { currentWord } = textData
+    return no  unless currentWord
 
-    matchResult = currentWord?.match /^#(.*)/
-    if matchResult
-      query = matchResult[1]
-      ActivityFlux.actions.channel.setChatInputChannelsQuery query
-      ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
-      return yes
+    matchResult = currentWord.match /^#(.*)/
+    return no  unless matchResult
+
+    query = matchResult[1]
+    ActivityFlux.actions.channel.setChatInputChannelsQuery query
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
+    return yes
 
 
   onItemSelected: (index) ->

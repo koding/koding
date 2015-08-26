@@ -36,7 +36,7 @@ module.exports = class UserDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.user.moveToNextChatInputUsersIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.user.moveToNextChatInputUsersIndex()  unless @hasSingleItem()
     return yes
 
 
@@ -46,20 +46,22 @@ module.exports = class UserDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()  unless @hasOnlyItem()
+    ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()  unless @hasSingleItem()
     return yes
 
 
   checkTextForQuery: (textData) ->
 
     { currentWord } = textData
+    return no  unless currentWord
 
-    matchResult = currentWord?.match /^@(.*)/
-    if matchResult
-      query = matchResult[1]
-      ActivityFlux.actions.user.setChatInputUsersQuery query
-      ActivityFlux.actions.user.setChatInputUsersVisibility yes
-      return yes
+    matchResult = currentWord.match /^@(.*)/
+    return no  unless matchResult
+
+    query = matchResult[1]
+    ActivityFlux.actions.user.setChatInputUsersQuery query
+    ActivityFlux.actions.user.setChatInputUsersVisibility yes
+    return yes
 
 
   onItemSelected: (index) ->
