@@ -1,7 +1,9 @@
+$              = require 'jquery'
 kd             = require 'kd'
 React          = require 'kd-react'
 dateFormat     = require 'dateformat'
 Tooltip        = require 'app/components/tooltip'
+Portal         = require 'react-portal'
 
 module.exports = class MessageTime extends React.Component
 
@@ -16,6 +18,15 @@ module.exports = class MessageTime extends React.Component
 
     dateFormat date, timeFormat
 
+
+  setTooltipPosition: (e) ->
+
+    MessageDateDOMNode = @refs.MessageDate.getDOMNode()
+    offset = $(MessageDateDOMNode).offset()
+
+    @setState
+      tooltipY      : offset.top
+      tooltipX      : offset.left + MessageDateDOMNode.offsetWidth / 2
 
   getTooltipTitle: (data, timeFormat) ->
 
