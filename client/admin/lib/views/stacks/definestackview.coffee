@@ -40,10 +40,13 @@ module.exports = class DefineStackView extends KDView
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
     @tabView.addPane stackTemplate = new KDTabPaneView name: 'Stack Template'
-    @tabView.addPane variables     = new KDTabPaneView name: 'Variables'
+
+    # Close for now.
+    #@tabView.addPane variables     = new KDTabPaneView name: 'Variables'
+    #variables.addSubView @variablesView         = new VariablesView
+
     @tabView.addPane providers     = new KDTabPaneView name: 'Providers'
 
-    variables.addSubView @variablesView         = new VariablesView
     stackTemplate.addSubView @stackTemplateView = new StackTemplateView options, data
 
     { @credentials } = stackTemplate or {}
