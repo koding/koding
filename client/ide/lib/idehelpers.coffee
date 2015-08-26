@@ -73,14 +73,23 @@ module.exports = helpers =
           return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
           filePath   = "#{workspace.rootPath}/README.md"
-          readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-          readMeFile.save WORKSPACE_WELCOME_TXT, (err) =>
-            return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+          kite = machine.getBaseKite()
 
-            eventObj.emit 'WorkspaceCreated', workspace
+          kite.init()
+            .then =>
 
-            handleRoute(machine, workspace)
+              kite.fsUniquePath path: "#{filePath}"
+                .then (actualPath) =>
+
+                  readMeFile = FSHelper.createFileInstance { path: actualPath, machine }
+
+                  readMeFile.save WORKSPACE_WELCOME_TXT, (err) =>
+                    return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+
+                    eventObj.emit 'WorkspaceCreated', workspace
+
+                    handleRoute(machine, workspace)
 
 
   handleWorkspaceCreateError_: (eventObj, error) ->
