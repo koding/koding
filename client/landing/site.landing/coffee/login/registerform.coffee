@@ -82,9 +82,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
       @button.hideLoader()
 
-    @tfcode = @create2FAInput()
-    @tfcode.hide()
-
     @bind2FAEvents()
 
     KD.singletons.router.on 'RouteInfoHandled', =>
@@ -101,15 +98,54 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         attributes    :
           testpath    : 'register-form-tfcode'
         keydown       : (event) =>
-          @button.click event  if event.which is ENTER
+          @submit2FACode()  if event.which is ENTER
 
 
   bind2FAEvents: ->
 
     @on 'TwoFactorEnabled', =>
-      @button.hideLoader()
-      @tfcode.show()
+      modal = new KDModalView
+        title     : 'Two-Factor Authentication <a href="http://learn.koding.com/guides/2-factor-auth/" target="_blank">What is 2FA?</a>'
+        width     : 400
+        overlay   : yes
+        cssClass  : 'two-factor-code-modal'
+
+      modal.addSubView form = new KDFormView
+      form.addSubView @tfcode = @create2FAInput()
+      form.addSubView @createPost2FACodeButton()
+
       @tfcode.setFocus()
+
+
+  createPost2FACodeButton: ->
+
+    return @post2FACodeButton = new KDButtonView
+      title         : 'SIGN IN'
+      type          : 'submit'
+      style         : 'solid green medium'
+      attributes    :
+        testpath    : 'signup-button'
+      loader        : yes
+      callback      : @bound 'submit2FACode'
+
+
+  submit2FACode: ->
+
+    data =
+      email     : @email.input.getValue()
+      password  : @password.input.getValue()
+      tfcode    : @tfcode.input.getValue()
+
+    if data.tfcode then KD.utils.validateEmail data,
+      success : (res) ->
+        return location.replace '/'  if res is 'User is logged in!'
+
+      error   : ({responseText}) =>
+        @post2FACodeButton.hideLoader()
+        title = if /Bad Request/i.test responseText then 'Access Denied!' else responseText
+        new KDNotificationView { title }
+    else
+       @post2FACodeButton.hideLoader()
 
 
   reset: ->
@@ -189,7 +225,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>
       <div class='password'>{{> @password}}</div>
-      <div class='tfcode'>{{> @tfcode}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:
