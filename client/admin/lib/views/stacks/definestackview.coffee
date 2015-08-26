@@ -50,9 +50,8 @@ module.exports = class DefineStackView extends kd.View
 
     { @credentialStatus } = @inputTitle.inputs
 
-    @editorView      = new StackEditorView { delegate: this, content }
-
-    @outputView      = new OutputView
+    @editorView = new StackEditorView { delegate: this, content }
+    @outputView = new OutputView
 
     @outputView.add 'Welcome to Stack Template Editor'
 
