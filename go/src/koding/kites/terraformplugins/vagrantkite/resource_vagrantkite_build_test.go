@@ -2,52 +2,14 @@ package vagrantkite
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 	"testing"
 
 	"github.com/koding/kite"
 
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
-	"github.com/kr/pretty"
 )
-
-func TestAccGithubAddUser_Basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testVagrantResourceProviders,
-		CheckDestroy: testAccCheckGithubAddUserDestroy,
-		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testVagrantKiteBuildConfig,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"vagrantkite_build.myfirstvm",
-						"kiteURL",
-						"////////test",
-					),
-				),
-			},
-		},
-	})
-}
-
-func testAccCheckGithubAddUserDestroy(s *terraform.State) error {
-	// client := testVagrantProvider.Meta().(*Clients).OrgClient
-
-	// for _, rs := range s.RootModule().Resources {
-	// 	if rs.Type != "vagrantkite_build" {
-	// 		continue
-	// 	}
-
-	// 	_, err := client.Organizations.RemoveMember(rs.Primary.Attributes["organization"], rs.Primary.Attributes["username"])
-
-	// 	if err != nil {
-	// 		fmt.Println("something wrong with removing member from organization %v", err.Error())
-	// 	}
-	// }
-
-	return nil
-}
 
 const (
 	testVagrantKiteBuildConfig = `
@@ -70,16 +32,36 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 end
 `
+	vagrantFilePath = "/home/etc"
 )
 
+func TestAccGithubAddUser_Basic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		// PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testVagrantResourceProviders,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testVagrantKiteBuildConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"vagrantkite_build.myfirstvm",
+						"kiteURL",
+						"////////test",
+					),
+				),
+			},
+		},
+	})
+}
+
 var mockHandler = func(r *kite.Request) (interface{}, error) {
-	vagrantFile, err := r.Args.String()
+	var req []vagrantKiteReq // why slice?
+	err := r.Args.Unmarshal(&req)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("vagrantFile %# v", pretty.Formatter(vagrantFile))
-	return nil, nil
+	return req, nil
 }
 
 func withClient(t *testing.T, f func(c *Client) error) {
@@ -88,46 +70,59 @@ func withClient(t *testing.T, f func(c *Client) error) {
 		t.Errorf(err.Error())
 	}
 
-	k := client.Kite
-	k.HandleFunc(klientFuncName, mockHandler)
-	k.Config.DisableAuthentication = true
-	go k.Run()
-	<-k.ServerReadyNotify()
+	client.Kite.Config.DisableAuthentication = true
+	client.Kite.Config.Port = 5000
+	client.Kite.HandleFunc(klientFuncName, mockHandler)
+
+	go client.Kite.Run()
+	<-client.Kite.ServerReadyNotify()
 
 	err = f(client)
-	k.Close()
+	client.Kite.Close()
 	if err != nil {
 		t.Errorf("failed with %s", err.Error())
 	}
 }
 
-func TestApplyAndDestroy(t *testing.T) {
+func TestSendingCommand(t *testing.T) {
 	local := kite.New("testing", "1.0.0")
-	go local.Run()
-	<-local.ServerReadyNotify()
-
 	withClient(t, func(c *Client) error {
-		k := c.Kite
-		// Connect to our terraformer kite
-		tfr := local.NewClient(k.RegisterURL(true).String())
+
+		kiteURL := &url.URL{
+			Scheme: "http",
+			Host:   "localhost:" + strconv.Itoa(c.Kite.Port()),
+			Path:   "/kite",
+		}
+
+		tfr := local.NewClient(kiteURL.String())
 		defer tfr.Close()
 
 		tfr.Dial()
 
-		response, err := tfr.Tell(klientFuncName, vagrantFile)
-		fmt.Printf("err %# v", pretty.Formatter(err))
+		args := &vagrantKiteReq{
+			VagrantFile: vagrantFile,
+			FilePath:    vagrantFilePath,
+		}
+
+		response, err := tfr.Tell(klientFuncName, args)
 		if err != nil {
 			return err
 		}
 
-		res, err := response.String()
-		fmt.Printf("err %# v", pretty.Formatter(err))
-		if err != nil {
+		var res []vagrantKiteReq // another slice??
+
+		if err := response.Unmarshal(&res); err != nil {
 			return err
 		}
 
-		fmt.Printf("res %# v", pretty.Formatter(res))
+		if res[0].FilePath != vagrantFilePath {
+			return fmt.Errorf("filePath is %+v, expected %+v", res[0].FilePath, vagrantFilePath)
+		}
+
+		if res[0].VagrantFile != vagrantFile {
+			return fmt.Errorf("vagrantFile is %+v, expected %+v", res[0].VagrantFile, vagrantFile)
+		}
+
 		return nil
 	})
-
 }

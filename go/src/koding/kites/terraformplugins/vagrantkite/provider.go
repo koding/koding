@@ -5,14 +5,17 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-// Provider
+// Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
+		// we dont require a schema right now
+		// Schema: map[string]*schema.Schema{},
+
+		// we dont require configuration per run
+		// ConfigureFunc: providerConfigure
+
 		ResourcesMap: map[string]*schema.Resource{
 			"vagnratkite_build": resourceVagrantKiteBuild(),
 		},
-
-		// we dont need ConfigureFunc
-		// ConfigureFunc: providerConfigure,
 	}
 }

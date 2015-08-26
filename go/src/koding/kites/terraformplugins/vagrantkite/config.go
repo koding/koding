@@ -36,7 +36,6 @@ func NewClient() (*Client, error) {
 	// k.Config.Port = 9876
 	k.Config.Environment = environment
 	k.Config.Region = region
-
 	return &Client{
 		Kite: k,
 		Log:  common.NewLogger(name, false),
