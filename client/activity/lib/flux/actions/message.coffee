@@ -228,6 +228,7 @@ loadComments = (messageId, options = {}) ->
   { socialapi } = kd.singletons
   { LOAD_COMMENTS_BEGIN
     LOAD_COMMENTS_FAIL
+    LOAD_COMMENTS_SUCCESS
     LOAD_COMMENT_SUCCESS } = actionTypes
 
   _options = _.assign {}, options, { messageId }
@@ -239,6 +240,8 @@ loadComments = (messageId, options = {}) ->
       dispatchData = _.assign {}, { err }, options
       dispatch LOAD_COMMENTS_FAIL, dispatchData
       return
+
+    dispatch LOAD_COMMENTS_SUCCESS, { messageId }
 
     kd.singletons.reactor.batch ->
       comments.forEach (comment) ->
