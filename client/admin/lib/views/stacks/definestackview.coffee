@@ -54,6 +54,8 @@ module.exports = class DefineStackView extends KDView
 
     providers.addSubView @providersView = new ProvidersView
       selectedCredentials: @credentials
+      stackTemplate       : stackTemplate
+      selectedCredentials : @credentials
 
     @tabView.showPaneByIndex 0
 
