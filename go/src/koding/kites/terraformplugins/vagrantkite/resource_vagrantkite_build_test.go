@@ -121,7 +121,7 @@ func TestSendingCommandFailure(t *testing.T) {
 	withClient(t, func(c *Client) error {
 
 		args := &vagrantKiteReq{
-			VagrantFile: vagrantFile + "1",
+			VagrantFile: vagrantFile + "some random dude to make test fail",
 			FilePath:    vagrantFilePath,
 		}
 
