@@ -1,7 +1,6 @@
 kd                      = require 'kd'
 KDView                  = kd.View
 curryIn                 = require 'app/util/curryIn'
-OutputView              = require './outputview'
 KDButtonView            = kd.ButtonView
 
 KDCustomHTMLView        = kd.CustomHTMLView
@@ -40,22 +39,20 @@ module.exports = class StackTemplateView extends KDView
             stackTemplate  : stackTemplate
 
     { @credentialStatus } = @inputTitle.inputs
+    delegate              = @getDelegate()
 
-    @credentialStatus.link.on 'click', =>
-      @getDelegate()?.tabView.showPaneByName 'Providers'
+    @credentialStatus.link.on 'click', ->
+      delegate.tabView.showPaneByName 'Providers'
 
     @addSubView @editorView = new StackTemplateEditorView { delegate: this, content }
-    @addSubView @outputView = new OutputView
-
-    @outputView.add 'Welcome to Stack Template Editor'
 
     @editorView.addSubView new KDButtonView
       title    : 'Logs'
       cssClass : 'solid compact showlogs-link'
-      callback : @outputView.bound 'raise'
+      callback : delegate.outputView.bound 'raise'
 
     # FIXME Not liked this ~ GG
-    @editorView.on 'click', @outputView.bound 'fall'
+    @editorView.on 'click', delegate.outputView.bound 'fall'
 
     @credentialStatus.on 'StatusChanged', (status) =>
       @emit 'CredentialStatusChanged', status

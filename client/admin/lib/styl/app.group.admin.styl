@@ -911,6 +911,12 @@ Admin main styles
       .text.header
         margin-bottom       25px
 
+    .buttons
+      abs()
+      right                 0
+      bottom                0
+      z-index               16
+
     .kdbutton
       z-index               13
 
@@ -1321,10 +1327,10 @@ Admin main styles
   .kdview.output
     top                     100%
     vendor                  transition, top .2s ease
-    height                  calc(50% - 135px)
+    height                  calc(50% - 50px)
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
-    z-index                 13
+    z-index                 15
     abs()
 
     &.raise

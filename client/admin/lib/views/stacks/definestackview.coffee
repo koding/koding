@@ -8,7 +8,6 @@ KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
 KDCustomHTMLView     = kd.CustomHTMLView
 
-
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
@@ -19,6 +18,7 @@ requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
 parseTerraformOutput = require './parseterraformoutput'
 
+OutputView           = require './outputview'
 ProvidersView        = require './providersview'
 VariablesView        = require './variablesview'
 StackTemplateView    = require './stacktemplateview'
@@ -35,8 +35,9 @@ module.exports = class DefineStackView extends KDView
 
     { stackTemplate } = @getData()
 
-    # I'm not sure about this usage.
     options.delegate = this
+
+    @createOutputView()
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
@@ -82,12 +83,20 @@ module.exports = class DefineStackView extends KDView
       @buttons.show()
 
     providersPane.on 'PaneDidShow', =>
+      @outputView.fall()
       @buttons.hide()
+
+
+  createOutputView: ->
+
+    @addSubView @outputView = new OutputView
+
+    @outputView.add 'Welcome to Stack Template Editor'
 
 
   createMainButtons: ->
 
-    @addSubView @buttons = new KDCustomHTMLView
+    @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
 
 
     @buttons.addSubView @cancelButton  = new KDButtonView
@@ -122,7 +131,7 @@ module.exports = class DefineStackView extends KDView
 
     # Show default first pane.
     @tabView.showPaneByIndex 0
-    @stackTemplateView.outputView.clear().raise()
+    @outputView.clear().raise()
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
@@ -130,28 +139,28 @@ module.exports = class DefineStackView extends KDView
     @checkAndBootstrapCredentials (err, credentials) =>
       return  @saveButton.hideLoader()  if err
 
-      @stackTemplateView.outputView
+      @outputView
         .add 'Credentials are ready!'
         .add 'Saving current template content...'
 
       @saveTemplate (err, stackTemplate) =>
 
-        if @stackTemplateView.outputView.handleError err
+        if @outputView.handleError err
           @saveButton.hideLoader()
           return
 
-        @stackTemplateView.outputView.add 'Template content saved now processing the template...'
+        @outputView.add 'Template content saved now processing the template...'
 
         @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
           @saveButton.hideLoader()
 
           if err
-            @stackTemplateView.outputView.add "Parsing failed, please check your
+            @outputView.add "Parsing failed, please check your
                              template and try again"
             return
 
-          @stackTemplateView.outputView.add "You can now close this window, or set this
+          @outputView.add "You can now close this window, or set this
                            template as default for your team members."
 
           @cancelButton.setTitle 'Close'
@@ -164,16 +173,16 @@ module.exports = class DefineStackView extends KDView
     [credential]        = credentialsData
 
     failed = (err) =>
-      @stackTemplateView.outputView.handleError err
+      @outputView.handleError err
       callback err
 
     showCredentialContent = (credential) =>
       credential.fetchData (err, data) =>
         return failed err  if err
-        @stackTemplateView.outputView.add JSON.stringify data.meta, null, 2
+        @outputView.add JSON.stringify data.meta, null, 2
         callback null, [credential]
 
-    @stackTemplateView.outputView
+    @outputView
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
 
@@ -183,12 +192,12 @@ module.exports = class DefineStackView extends KDView
 
       if state
 
-        @stackTemplateView.outputView.add 'Already bootstrapped, fetching data...'
+        @outputView.add 'Already bootstrapped, fetching data...'
         showCredentialContent credential
 
       else
 
-        @stackTemplateView.outputView.add 'Bootstrap required, initiating to bootstrap...'
+        @outputView.add 'Bootstrap required, initiating to bootstrap...'
 
         identifiers           = [credential.identifier]
         { computeController } = kd.singletons
@@ -200,10 +209,10 @@ module.exports = class DefineStackView extends KDView
           .then (response) =>
 
             if response
-              @stackTemplateView.outputView.add 'Bootstrap completed successfully'
+              @outputView.add 'Bootstrap completed successfully'
               showCredentialContent credential
             else
-              @stackTemplateView.outputView.add 'Bootstrapping completed but something went wrong.'
+              @outputView.add 'Bootstrapping completed but something went wrong.'
               callback null
 
             console.log '[KLOUD:Bootstrap]', response
@@ -226,7 +235,7 @@ module.exports = class DefineStackView extends KDView
         console.log '[KLOUD:checkTemplate]', err, response
 
         if err or not response
-          @stackTemplateView.outputView
+          @outputView
             .add 'Something went wrong with the template:'
             .add err?.message or 'No response from Kloud'
 
@@ -236,7 +245,7 @@ module.exports = class DefineStackView extends KDView
 
           machines = parseTerraformOutput response
 
-          @stackTemplateView.outputView
+          @outputView
             .add 'Template check complete succesfully'
             .add 'Following machines will be created:'
             .add JSON.stringify machines, null, 2
@@ -258,20 +267,20 @@ module.exports = class DefineStackView extends KDView
     # and call them in here ~ GG
 
     # Parsing credential requirements
-    @stackTemplateView.outputView.add 'Parsing template for credential requirements...'
+    @outputView.add 'Parsing template for credential requirements...'
 
     requiredProviders = providersParser templateContent
 
-    @stackTemplateView.outputView
+    @outputView
       .add 'Following credentials are required:'
       .add '-', requiredProviders
 
     # Parsing additional requirements, like user/group authentications
-    @stackTemplateView.outputView.add 'Parsing template for additional requirements...'
+    @outputView.add 'Parsing template for additional requirements...'
 
     requiredData = requirementsParser templateContent
 
-    @stackTemplateView.outputView
+    @outputView
       .add 'Following extra information will be requested from members:'
       .add requiredData
 
@@ -401,10 +410,10 @@ module.exports = class DefineStackView extends KDView
       return new kd.NotificationView
         title: 'Setting stack template for koding is disabled'
 
-    @stackTemplateView.outputView.add 'Setting this as default group stack template...'
+    @outputView.add 'Setting this as default group stack template...'
 
     currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-      return if @stackTemplateView.outputView.handleError err
+      return if @outputView.handleError err
 
       new kd.NotificationView
         title : "Group (#{slug}) stack has been saved!"
