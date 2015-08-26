@@ -32,7 +32,8 @@ module.exports = class PostPane extends React.Component
     return  if @props.thread.getIn ['flags', 'isMessagesLoading']
 
     from = @props.messages.first().get('createdAt')
-    ActivityFlux.actions.message.loadComments @message('id'), { from }
+    kd.utils.defer =>
+      ActivityFlux.actions.message.loadComments @message('id'), { from }
 
 
   render: ->
