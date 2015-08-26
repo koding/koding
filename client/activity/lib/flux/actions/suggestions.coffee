@@ -1,7 +1,13 @@
 kd          = require 'kd'
 actionTypes = require '../actions/actiontypes'
 getGroup    = require 'app/util/getGroup'
-Constants   = require './suggestionconstants'
+Constants   = require './searchconstants'
+
+
+MIN_QUERY_LENGTH      = 10
+MAX_QUERY_LENGTH      = 500
+NUMBER_OF_SUGGESTIONS = 5
+
 
 ###*
  * Action to set current query for activity suggestions.
@@ -55,7 +61,6 @@ setVisibility = (visible) ->
 ###
 fetchData = (query) ->
 
-  { MIN_QUERY_LENGTH, MAX_QUERY_LENGTH, NUMBER_OF_SUGGESTIONS } = Constants
   { HIGHLIGHT_PRE_MARKER, HIGHLIGHT_POST_MARKER } = Constants
   
   canSearch = MIN_QUERY_LENGTH <= query.length <= MAX_QUERY_LENGTH
@@ -141,3 +146,4 @@ module.exports = {
   moveToPrevIndex
   resetSelectedIndex
 }
+

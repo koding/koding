@@ -42,6 +42,11 @@ ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
 ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
 ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
 ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
+ChatInputSearchQueryStore           = ['ChatInputSearchQueryStore']
+ChatInputSearchSelectedIndexStore   = ['ChatInputSearchSelectedIndexStore']
+ChatInputSearchVisibilityStore      = ['ChatInputSearchVisibilityStore']
+ChatInputSearchStore                = ['ChatInputSearchStore']
+
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -218,6 +223,34 @@ selectedChannelParticipants = [
     participants.get selectedId
 ]
 
+
+# Helper function to calculate a value
+# of list selected index getter.
+# It gets the list and list stored index
+# and reduce index to the value which is >= 0
+# and < list.size
+calculateListSelectedIndex = (list, currentIndex) ->
+
+  { size } = list
+  return -1  unless size > 0
+
+  index = currentIndex
+  unless 0 <= index < size
+    index = index % size
+    index += size  if index < 0
+
+  return index
+
+
+# Helper function to calculate a value
+# of list selected item getter.
+# It gets the list and its selected index
+# and returns item taken from the list by the index
+getListSelectedItem = (list, selectedIndex) ->
+  return  unless list.size > 0
+  return list.get selectedIndex
+
+
 # Aliases for providing consistent getter names for suggestion stores
 currentSuggestionsQuery         = SuggestionsQueryStore
 currentSuggestions              = SuggestionsStore
@@ -225,22 +258,12 @@ currentSuggestionsFlags         = SuggestionsFlagsStore
 currentSuggestionsSelectedIndex = [
   SuggestionsStore
   SuggestionsSelectedIndexStore
-  (suggestions, index) ->
-    { size } = suggestions
-    return -1  unless size > 0
-
-    unless 0 <= index < size
-      index = index % suggestions.size
-      index += size  if index < 0
-
-    return index
+  calculateListSelectedIndex
 ]
 currentSuggestionsSelectedItem  = [
   SuggestionsStore
   currentSuggestionsSelectedIndex
-  (suggestions, index) ->
-    return  unless suggestions.size > 0
-    return suggestions.get index
+  getListSelectedItem
 ]
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
@@ -335,6 +358,20 @@ chatInputUsersSelectedItem = [
 ]
 chatInputUsersVisibility = ChatInputUsersVisibilityStore
 
+chatInputSearchItems         = ChatInputSearchStore
+chatInputSearchQuery         = ChatInputSearchQueryStore
+chatInputSearchSelectedIndex = [
+  chatInputSearchItems
+  ChatInputSearchSelectedIndexStore
+  calculateListSelectedIndex
+]
+chatInputSearchSelectedItem  = [
+  chatInputSearchItems
+  chatInputSearchSelectedIndex
+  getListSelectedItem
+]
+chatInputSearchVisibility    = ChatInputSearchVisibilityStore
+
 module.exports = {
   followedPublicChannelThreads
   followedPrivateChannelThreads
@@ -378,4 +415,11 @@ module.exports = {
   chatInputUsersSelectedIndex
   chatInputUsersSelectedItem
   chatInputUsersVisibility
+
+  chatInputSearchItems
+  chatInputSearchQuery
+  chatInputSearchSelectedIndex
+  chatInputSearchSelectedItem
+  chatInputSearchVisibility
 }
+

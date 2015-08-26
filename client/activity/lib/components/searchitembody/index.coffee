@@ -1,13 +1,13 @@
 $             = require 'jquery'
 React         = require 'kd-react'
-Constants     = require 'activity/flux/actions/suggestionconstants'
+Constants     = require 'activity/flux/actions/searchconstants'
 formatContent = require 'app/util/formatContent'
 emojify       = require 'emojify.js'
 
-module.exports = class SuggestionMessageBody extends React.Component
+module.exports = class SearchItemBody extends React.Component
 
   ###*
-   * Renders suggestion body
+   * Renders search item body
   ###
   render: ->
 
@@ -15,11 +15,11 @@ module.exports = class SuggestionMessageBody extends React.Component
 
 
   ###*
-   * Processes suggestion body, converts markdown markup to html and highlights
+   * Processes body markup, converts markdown markup to html and highlights
    * matched words.
    * Algolia wraps matched words in pre and post markers (HIGHLIGHT_PRE_MARKER
    * and HIGHLIGHT_POST_MARKER) so we need to replace them with <span>
-   * with proper css class to highlight words in suggestion.
+   * with proper css class to highlight words in body.
    * Markdown markup can contain links and images and Angolia can find
    * matched words in their urls and titles. In such cases we should ignore
    * Algolia suggestions and remove markers from links and images attributes.
@@ -28,7 +28,7 @@ module.exports = class SuggestionMessageBody extends React.Component
   ###
   formatSource: ->
 
-    startTag = '<span class="SuggestionMessageBody-matchedWord">'
+    startTag = '<span class="SearchItemBody-matchedWord">'
     endTag   = '</span>'
 
     content = formatContent @props.source, { highlight : no }
@@ -102,3 +102,4 @@ module.exports = class SuggestionMessageBody extends React.Component
         .replace(helper.postRegexp, postValue)
 
       return content
+

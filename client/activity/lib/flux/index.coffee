@@ -1,12 +1,13 @@
 module.exports =
   getters   : require './getters'
   actions   :
-    message     : require './actions/message'
-    thread      : require './actions/thread'
-    channel     : require './actions/channel'
-    suggestions : require './actions/suggestions'
-    emoji       : require './actions/emoji'
-    user        : require './actions/user'
+    message         : require './actions/message'
+    thread          : require './actions/thread'
+    channel         : require './actions/channel'
+    suggestions     : require './actions/suggestions'
+    emoji           : require './actions/emoji'
+    user            : require './actions/user'
+    chatInputSearch : require './actions/chatinputsearch'
   stores    : [
     require './stores/messagesstore'
     require './stores/channelsstore'
@@ -37,5 +38,9 @@ module.exports =
     require './stores/chatinput/chatinputusersselectedindexstore'
     require './stores/chatinput/chatinputusersquerystore'
     require './stores/chatinput/chatinputusersvisibilitystore'
+    require './stores/chatinput/chatinputsearchselectedindexstore'
+    require './stores/chatinput/chatinputsearchquerystore'
+    require './stores/chatinput/chatinputsearchvisibilitystore'
+    require './stores/chatinput/chatinputsearchstore'
   ]
 

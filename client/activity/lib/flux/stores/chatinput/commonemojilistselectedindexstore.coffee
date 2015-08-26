@@ -13,3 +13,4 @@ module.exports = class CommonEmojiListSelectedIndexStore extends SelectedIndexSt
     @bindActions
       setIndex        : actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX
       resetIndex      : actions.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
+

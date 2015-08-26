@@ -59,3 +59,4 @@ module.exports = class ChatInputSelectedIndexStore extends KodingFluxStore
    * @return {number} nextState
   ###
   resetIndex: (currentState) -> 0
+

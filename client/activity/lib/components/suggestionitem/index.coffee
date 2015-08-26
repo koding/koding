@@ -2,7 +2,7 @@ kd                    = require 'kd'
 immutable             = require 'immutable'
 React                 = require 'kd-react'
 Avatar                = require 'app/components/profile/avatar'
-SuggestionMessageBody = require 'activity/components/suggestionmessagebody'
+SearchItemBody        = require 'activity/components/searchitembody'
 ProfileText           = require 'app/components/profile/profiletext'
 ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
 formatPlural          = kd.utils.formatPlural
@@ -34,7 +34,7 @@ module.exports = class SuggestionItem extends React.Component
         {makeAvatar message.get('account')}
       </div>
       <div className="ActivitySuggestionItem-messageBody">
-        <SuggestionMessageBody source={messageBody} />
+        <SearchItemBody source={messageBody} />
       </div>
       <div>
         <span className="ActivitySuggestionItem-info ActivitySuggestionItem-profileLink">
@@ -70,3 +70,4 @@ module.exports = class SuggestionItem extends React.Component
 
 
     makeInfoText: (count, noun) -> formatPlural count, noun
+

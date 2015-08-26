@@ -46,3 +46,4 @@ describe 'FilteredEmojiListQueryStore', ->
       query = @reactor.evaluate ['filteredEmojiListQuery']
 
       expect(query).to.be.null
+
