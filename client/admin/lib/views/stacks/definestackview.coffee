@@ -124,6 +124,8 @@ module.exports = class DefineStackView extends KDView
 
   handleSave: ->
 
+    # Show default first pane.
+    @tabView.showPaneByIndex 0
     @stackTemplateView.outputView.clear().raise()
 
     @cancelButton.setTitle 'Cancel'
