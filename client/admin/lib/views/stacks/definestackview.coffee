@@ -37,6 +37,11 @@ module.exports = class DefineStackView extends KDView
 
     options.delegate = this
 
+    @setClass 'edit-mode'  if @getOption 'inEditMode'
+
+    title   = stackTemplate?.title or 'Default stack template'
+    content = stackTemplate?.template?.content
+
     @createOutputView()
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
