@@ -6,6 +6,7 @@ KDTabView            = kd.TabView
 KDModalView          = kd.ModalView
 KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
+KDCustomHTMLView     = kd.CustomHTMLView
 
 
 whoami               = require 'app/util/whoami'
@@ -80,22 +81,31 @@ module.exports = class DefineStackView extends KDView
       else
         @saveButton.disable()
 
+    stackTemplate.on 'PaneDidShow', =>
+      @buttons.show()
+
+    providers.on 'PaneDidShow', =>
+      @buttons.hide()
+
 
   createMainButtons: ->
 
-    @addSubView @cancelButton  = new KDButtonView
+    @addSubView @buttons = new KDCustomHTMLView
+
+
+    @buttons.addSubView @cancelButton  = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
-    @addSubView @saveButton    = new KDButtonView
+    @buttons.addSubView @saveButton    = new KDButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       disabled       : yes
       loader         : yes
       callback       : @bound 'handleSave'
 
-    @addSubView @previewButton = new KDButtonView
+    @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
       cssClass       : 'solid compact light-gray nav next'
       loader         : yes
@@ -104,7 +114,7 @@ module.exports = class DefineStackView extends KDView
         title        : "Generates a preview of this template
                         with your own account information."
 
-    @addSubView @setAsDefaultButton = new KDButtonView
+    @buttons.addSubView @setAsDefaultButton = new KDButtonView
       title          : 'Set as Default for Team'
       cssClass       : 'solid compact nav next hidden'
       loader         : yes
