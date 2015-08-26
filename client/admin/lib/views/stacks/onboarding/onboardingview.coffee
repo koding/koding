@@ -73,6 +73,14 @@ module.exports = class OnboardingView extends JView
 
     @getStartedView.emit 'NextPageRequested'  if @getOption 'skipOnboarding'
 
+    @providerSelectionView.on 'StackTemplateNeedsToBeUpdated', (isSelected) =>
+      if isSelected
+        @nextButton.enable()
+        @stackPreview.show()
+      else
+        @nextButton.disable()
+        @stackPreview.hide()
+
 
   createFooter: ->
 
@@ -84,9 +92,8 @@ module.exports = class OnboardingView extends JView
     @nextButton = new kd.ButtonView
       cssClass  : 'solid green medium next'
       title     : 'Next'
-      callback  : =>
-        @validatePageInteraction =>
-          @emit 'PageNavigationRequested', 'next'
+      disabled  : yes
+      callback  : => @emit 'PageNavigationRequested', 'next'
 
     @skipLink   = new kd.CustomHTMLView
       cssClass  : 'skip-setup'
@@ -94,19 +101,6 @@ module.exports = class OnboardingView extends JView
       click     : =>
         @destroy()
         @emit 'StackOnboardingCompleted'
-
-
-  validatePageInteraction: (callback) ->
-
-    isCompleted = yes
-
-    switch @currentPage
-      when @providerSelectionView
-        unless @providerSelectionView.selected
-          new kd.NotificationView title: 'Please select a provider'
-          isCompleted = no
-
-    callback()  if isCompleted
 
 
   createStackPreview: ->
