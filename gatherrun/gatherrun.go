@@ -14,8 +14,6 @@ var (
 	abuseInterval     = time.Minute * 5
 	analyticsInterval = time.Hour * 24
 	envVarName        = "GATHER"
-	awsAccessKey      = ""
-	awsSecretKey      = ""
 )
 
 type GatherRun struct {
@@ -29,8 +27,6 @@ type GatherRun struct {
 
 func Run(env, username string) {
 	fetcher := &S3Fetcher{
-		AccessKey:  awsAccessKey,
-		SecretKey:  awsSecretKey,
 		BucketName: "koding-gather",
 		FileName:   "koding-kernel.tar",
 		Region:     "us-east-1",

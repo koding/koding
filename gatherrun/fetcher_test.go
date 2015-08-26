@@ -16,8 +16,6 @@ var (
 
 func newTestFetcher() *S3Fetcher {
 	return &S3Fetcher{
-		AccessKey:  "AKIAIQSSLZMKXSDMPA4A",
-		SecretKey:  "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",
 		BucketName: bucketName,
 		FileName:   binaryTar,
 		Region:     "us-east-1",
