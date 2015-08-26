@@ -15,9 +15,13 @@ import (
 const (
 	testVagrantKiteBuildConfig = `
 resource "vagrantkite_build" "myfirstvm" {
-    kiteURL = "////////test"
+	filePath = ` + vagrantFilePath + `
+    queryString = ` + queryString + `
+    vagrantFile = ` + vagrantFile + `
 }
 `
+	queryString = "///////8c396fd6-c91c-4454-45c2-5c461ad32645"
+
 	vagrantFile = `# -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -33,7 +37,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 end
 `
-	vagrantFilePath = "/home/etc"
+	vagrantFilePath = "/home/etc/Vagrantfile"
 )
 
 func TestAccGithubAddUser_Basic(t *testing.T) {
@@ -46,8 +50,18 @@ func TestAccGithubAddUser_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"vagrantkite_build.myfirstvm",
-						"kiteURL",
-						"////////test",
+						"filePath",
+						vagrantFilePath,
+					),
+					resource.TestCheckResourceAttr(
+						"vagrantkite_build.myfirstvm",
+						"queryString",
+						queryString,
+					),
+					resource.TestCheckResourceAttr(
+						"vagrantkite_build.myfirstvm",
+						"vagrantFile",
+						vagrantFile,
 					),
 				),
 			},
@@ -68,13 +82,13 @@ func withClient(t *testing.T, f func(c *Client) error) {
 	go client.Kite.Run()
 	<-client.Kite.ServerReadyNotify()
 
-	kiteURL := &url.URL{
+	queryString := &url.URL{
 		Scheme: "http",
 		Host:   "localhost:" + strconv.Itoa(client.Kite.Port()),
 		Path:   "/kite",
 	}
 
-	if _, err := client.Kite.Register(kiteURL); err != nil {
+	if _, err := client.Kite.Register(queryString); err != nil {
 		t.Errorf("couldnt register to kontrol %s", err.Error())
 	}
 
