@@ -35,7 +35,7 @@ module.exports = class CodeSetupView extends JView
           <div class="label">#{label}</div>
         """
         click: =>
-          return if extraClass is 'coming-soon'
+          return  if extraClass is 'coming-soon'
 
           serviceView.setClass  'selected'
           @selected?.unsetClass 'selected'

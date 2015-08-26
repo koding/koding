@@ -6,6 +6,14 @@ applyMarkdown         = require 'app/util/applyMarkdown'
 GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
+CLONE_REPO_TEMPLATES  =
+  github              : 'git clone git@github.com/username/reponame.git'
+  owngitserver        : 'git clone git@yourgitserver.com/reponame.git'
+PROVIDER_TEMPLATES    =
+  aws                 :
+    aws               :
+      access_key      : '${var.aws_access_key}'
+      secret_key      : '${var.aws_secret_key}'
 
 
 module.exports = class OnboardingView extends JView
@@ -20,8 +28,6 @@ module.exports = class OnboardingView extends JView
     @createFooter()
     @createStackPreview()
 
-    @pages = [ @getStartedView, @providerSelectionView, @configurationView, @codeSetupView ]
-
     @bindPageEvents()
 
 
@@ -32,8 +38,10 @@ module.exports = class OnboardingView extends JView
     @configurationView     = new ConfigurationView      cssClass: 'hidden'
     @providerSelectionView = new ProviderSelectionView  cssClass: 'hidden'
 
-    @setClass 'get-started'
+    @pages       = [ @getStartedView, @providerSelectionView, @configurationView, @codeSetupView ]
     @currentPage = @getStartedView
+
+    @setClass 'get-started'
 
 
   bindPageEvents: ->
@@ -119,15 +127,6 @@ module.exports = class OnboardingView extends JView
     selectedCodeService = @codeSetupView.selected?.getOption 'service'
     serverConfigPanes   = @configurationView.tabView.panes
     selectedInstances   = {}
-    cloneRepoTemplates  =
-      github            : 'git clone git@github.com/username/reponame.git'
-      owngitserver      : 'git clone git@yourgitserver.com/reponame.git'
-    providerTemplates   =
-      aws               :
-        aws             :
-          access_key    : '${var.aws_access_key}'
-          secret_key    : '${var.aws_secret_key}'
-
 
     serverConfigPanes.forEach (pane, index) ->
 
@@ -146,12 +145,12 @@ module.exports = class OnboardingView extends JView
         serverConfig.user_data = "apt-get -y install #{selectedServices.join ' '}"
 
     stackTemplate    =
-      provider       : providerTemplates[selectedProvider]
+      provider       : PROVIDER_TEMPLATES[selectedProvider]
       resource       :
         aws_instance : selectedInstances
 
     if selectedCodeService
-      cloneText = cloneRepoTemplates[selectedCodeService]
+      cloneText = CLONE_REPO_TEMPLATES[selectedCodeService]
 
       for serverName, serverConfig of stackTemplate.resources.aws_instance
         { user_data } = serverConfig
