@@ -1,6 +1,7 @@
 package vagrantkite
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -54,16 +55,6 @@ func TestAccGithubAddUser_Basic(t *testing.T) {
 	})
 }
 
-var mockHandler = func(r *kite.Request) (interface{}, error) {
-	var req []vagrantKiteReq // why slice?
-	err := r.Args.Unmarshal(&req)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func withClient(t *testing.T, f func(c *Client) error) {
 	client, err := NewClient()
 	if err != nil {
@@ -77,6 +68,16 @@ func withClient(t *testing.T, f func(c *Client) error) {
 	go client.Kite.Run()
 	<-client.Kite.ServerReadyNotify()
 
+	kiteURL := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:" + strconv.Itoa(client.Kite.Port()),
+		Path:   "/kite",
+	}
+
+	if _, err := client.Kite.Register(kiteURL); err != nil {
+		t.Errorf("couldnt register to kontrol %s", err.Error())
+	}
+
 	err = f(client)
 	client.Kite.Close()
 	if err != nil {
@@ -84,45 +85,55 @@ func withClient(t *testing.T, f func(c *Client) error) {
 	}
 }
 
-func TestSendingCommand(t *testing.T) {
-	local := kite.New("testing", "1.0.0")
+func TestSendingCommandSuccess(t *testing.T) {
 	withClient(t, func(c *Client) error {
-
-		kiteURL := &url.URL{
-			Scheme: "http",
-			Host:   "localhost:" + strconv.Itoa(c.Kite.Port()),
-			Path:   "/kite",
-		}
-
-		tfr := local.NewClient(kiteURL.String())
-		defer tfr.Close()
-
-		tfr.Dial()
 
 		args := &vagrantKiteReq{
 			VagrantFile: vagrantFile,
 			FilePath:    vagrantFilePath,
 		}
 
-		response, err := tfr.Tell(klientFuncName, args)
-		if err != nil {
+		queryString := c.Kite.Kite().String()
+
+		if err := sendCommand(klientFuncName, queryString, args); err != nil {
 			return err
-		}
-
-		var res []vagrantKiteReq // another slice??
-
-		if err := response.Unmarshal(&res); err != nil {
-			return err
-		}
-
-		if res[0].FilePath != vagrantFilePath {
-			return fmt.Errorf("filePath is %+v, expected %+v", res[0].FilePath, vagrantFilePath)
-		}
-
-		if res[0].VagrantFile != vagrantFile {
-			return fmt.Errorf("vagrantFile is %+v, expected %+v", res[0].VagrantFile, vagrantFile)
 		}
 
 		return nil
 	})
+}
+
+func TestSendingCommandFailure(t *testing.T) {
+	withClient(t, func(c *Client) error {
+
+		args := &vagrantKiteReq{
+			VagrantFile: vagrantFile + "1",
+			FilePath:    vagrantFilePath,
+		}
+
+		queryString := c.Kite.Kite().String()
+
+		if err := sendCommand(klientFuncName, queryString, args); err != nil {
+			return nil
+		}
+
+		return errors.New("failure should happen")
+	})
+}
+
+var mockHandler = func(r *kite.Request) (interface{}, error) {
+	var res []vagrantKiteReq // another slice??
+	if err := r.Args.Unmarshal(&res); err != nil {
+		return nil, fmt.Errorf("err while unmarshalling: %s", err.Error())
+	}
+
+	if res[0].FilePath != vagrantFilePath {
+		return nil, fmt.Errorf("filePath is %+v, expected %+v", res[0].FilePath, vagrantFilePath)
+	}
+
+	if res[0].VagrantFile != vagrantFile {
+		return nil, fmt.Errorf("vagrantFile is %+v, expected %+v", res[0].VagrantFile, vagrantFile)
+	}
+
+	return res, nil
 }
