@@ -37,16 +37,15 @@ module.exports = (req, res, next) ->
   alreadyMember       = alreadyMember is 'true'
 
   queue = [
+
     ->
       { teamAccessCode } = body
       # if we dont have teamaccesscode just continue
       return queue.next() if not teamAccessCode
 
-      JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
-        return res.status(400).send err.message
-        return res.status(400).send 'Team Invitation is not found'  if not invitation
-        return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
-        return queue.next()
+      validateTeamInvitation = generateValidateTeamInvitationKallback res, queue
+      JTeamInvitation.byCode teamAccessCode, validateTeamInvitation
+
     ->
       koding.fetchClient clientId, context, (client_) ->
 
@@ -98,6 +97,15 @@ module.exports = (req, res, next) ->
   ]
 
   daisy queue
+
+
+generateValidateTeamInvitationKallback = (res, queue) ->
+
+  return (err, invitation) ->
+    return res.status(400).send err.message                     if err
+    return res.status(400).send 'Team Invitation is not found'  if not invitation
+    return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
+    return queue.next()
 
 
 generateCreateGroupKallback = (client, req, res, body) ->
