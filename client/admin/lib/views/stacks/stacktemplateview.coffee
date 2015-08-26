@@ -42,7 +42,7 @@ module.exports = class StackTemplateView extends KDView
     { @credentialStatus } = @inputTitle.inputs
 
     @credentialStatus.link.on 'click', =>
-      @getDelegate()?.tabView.showPaneByIndex 2
+      @getDelegate()?.tabView.showPaneByName 'Providers'
 
     @addSubView @editorView = new StackTemplateEditorView { delegate: this, content }
     @addSubView @outputView = new OutputView
