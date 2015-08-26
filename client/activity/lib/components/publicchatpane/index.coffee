@@ -26,15 +26,6 @@ module.exports = class PublicChatPane extends React.Component
 
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
-    @moveScrollToBottom()
-
-
-  moveScrollToBottom: ->
-
-    ChatPaneWrapper = @refs.ChatPaneWrapper.getDOMNode()
-    InfiniteScroll = ChatPaneWrapper.querySelector '.InfiniteScroll'
-    InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
-
 
   onLoadMore: ->
 
