@@ -895,6 +895,39 @@ Admin main styles
     .kdloader canvas
       margin-top            5px
 
+  .define-stack-view
+
+    .kdtabhandlecontainer
+      margin-bottom         25px
+
+    .kdtabhandle-tabs
+      width                 100%
+
+      .kdtabhandle
+        max-width           250px !important
+        margin-top          0
+
+    .providers
+      .text.header
+        margin-bottom       25px
+
+    .buttons
+      abs()
+      width                 100%
+      left                  0
+      bottom                0
+      z-index               16
+      text-align            right
+
+      .kdbutton
+        z-index             1
+
+      .prev-button
+        right               110px !important
+
+      .setasdefault-button
+        right               265px !important
+
 
 .AppModal--admin .invitations
 
@@ -1048,16 +1081,6 @@ Admin main styles
     -webkit-flex-flow       row wrap
     margin                  20px 0 30px
 
-    button
-      size                  200px, 100px
-      border                3px solid #ccc
-      border-radius         4px
-      background            none
-      margin                20px
-      text-shadow           none !important
-      font-size             12px
-      background-repeat     no-repeat !important
-
       .button-title
         display             none
 
@@ -1135,11 +1158,6 @@ Admin main styles
       line-height           39px
       min-width             160px
       fl()
-
-    .button-field
-      bottom                0
-      right                 0
-      abs()
 
   .step-creds
     height                  100%
@@ -1251,13 +1269,16 @@ Admin main styles
 
   .step-creds
     .form-view
-      height                calc(100% \- 110px)
+      height                calc(100% \- 200px)
       border-bottom         1px solid #EEE
 
     &.form-open
       .credential-list
         display             none
 
+  .variables
+    .editor-view
+      height                calc(100% \- 170px)
 
   .step-define-stack
     height                  100%
@@ -1266,7 +1287,7 @@ Admin main styles
       z-index               14
 
     .editor-view
-      height                calc(100% \- 140px)
+      height                calc(100% \- 235px)
 
     .showlogs-link
       z-index               13
@@ -1308,14 +1329,14 @@ Admin main styles
   .kdview.output
     top                     100%
     vendor                  transition, top .2s ease
-    height                  calc(50% - 33px)
+    height                  calc(50% - 50px)
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
-    z-index                 13
+    z-index                 15
     abs()
 
     &.raise
-      top                   50%
+      top                   51%
 
     pre.output-view
       height                auto
