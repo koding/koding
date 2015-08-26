@@ -34,15 +34,16 @@ module.exports = class GroupStackSettings extends kd.View
 
     @initialView = @scrollView.wrapper.addSubView new InitialView
 
-    @initialView.on 'EditStack', @bound 'showEditor'
+    @initialView.on 'EditStack', (template) => @showEditor template, yes
     @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
 
 
-  showEditor: (stackTemplate) ->
+  showEditor: (stackTemplate, inEditMode) ->
 
     @initialView.hide()
 
-    defineStackView = @scrollView.wrapper.addSubView new DefineStackView {}, { stackTemplate }
+    defineStackView = new DefineStackView { inEditMode }, { stackTemplate }
+    @scrollView.wrapper.addSubView defineStackView
 
     defineStackView.on 'Reload', => @initialView.reload()
 

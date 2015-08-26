@@ -28,7 +28,9 @@ module.exports = class DefineStackView extends kd.View
 
     super options, data ? {}
 
-    {credential, stackTemplate, template} = @getData()
+    { credential, stackTemplate, template } = @getData()
+
+    @setClass 'edit-mode'  if @getOption 'inEditMode'
 
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
