@@ -1,10 +1,11 @@
-remote = require('app/remote').getInstance()
-showError = require 'app/util/showError'
-kd = require 'kd'
-globals = require 'globals'
-FSHelper = require 'app/util/fs/fshelper'
-FilePermissionsModal = require './views/modals/filepermissionsmodal'
-dataProvider = require 'app/userenvironmentdataprovider'
+kd                    = require 'kd'
+remote                = require('app/remote').getInstance()
+globals               = require 'globals'
+FSHelper              = require 'app/util/fs/fshelper'
+showError             = require 'app/util/showError'
+dataProvider          = require 'app/userenvironmentdataprovider'
+FilePermissionsModal  = require './views/modals/filepermissionsmodal'
+
 
 WORKSPACE_WELCOME_TXT = """
   # Awesome, you've just made a new workspace!
