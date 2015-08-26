@@ -72,7 +72,6 @@ app.all  '/-/profile/:email'                     , require './handlers/getprofil
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/video-chat/session'                 , require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
-app.get  '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handlers/kitesubscription'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
 app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
