@@ -2,14 +2,19 @@ $ = require 'jquery'
 
 module.exports = isScrollThresholdReached = (options) ->
 
-  { el, scrollDirection, isDataLoading, scrollOffset } = options
+  { el, scrollDirection, isDataLoading, scrollOffset, scrollMoveTo } = options
 
   $el = $(el)
   scrollHeight = $el.prop('scrollHeight')
   scrollTop    = $el.scrollTop()
   innerHeight  = $el.innerHeight()
 
-  if scrollTop < scrollOffset and scrollDirection is 'up' and isDataLoading is no
+  return no  if isDataLoading
+
+  if scrollDirection is 'up' and scrollMoveTo is 'up' and scrollTop < scrollOffset
     return yes
+  else if scrollDirection is 'down' and scrollMoveTo is 'down' and (scrollOffset > scrollHeight - scrollTop - innerHeight)
+    return yes
+
   return no
 

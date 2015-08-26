@@ -37,6 +37,7 @@ module.exports = class ChatListItem extends React.Component
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
 
+
   constructor: (props) ->
 
     super props
