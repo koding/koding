@@ -576,6 +576,66 @@ computeproviders.styl
         margin              10px 10px 0 0
 
 
+.kdview.stacks.step-creds
+
+  .kdformview
+    height                calc(100% \- 210px)
+    overflow              auto
+
+    .advanced-field
+      display             none
+
+    &.in-advanced-mode
+      .advanced-field
+        display           block
+
+  form
+    .formline
+      padding               0 17px 0 0
+      margin                0 0 16px
+      borderBox()
+
+      .input-wrapper
+        margin              0
+
+      &.button-field
+        clear               both
+        border              none
+        margin-top          6px
+
+  .kdlabel
+    font-size               14px
+    color                   #8D8D8D
+    margin                  0 0 7px
+    font-weight             200
+    line-height             39px
+    min-width               160px
+    fl()
+
+  .kdinput.text
+    rounded                 3px
+    background              #fff
+    border                  1px solid #C9C9C9
+    padding                 8px 13px 10px
+    font-size               14px
+    line-height             19px
+    color                   #4C4C4C
+    font-weight             600
+    opacity                 .99
+    margin                  0 20px 0 0
+
+    &.validation-error
+      border-color          #f13a18
+
+  .form-view
+    height                calc(100% \- 200px)
+    border-bottom         1px solid #EEE
+
+  &.form-open
+    .credential-list
+      display             none
+
+
 .kdlistview.credential-list
 .kdlistview.stack-template-list
 
