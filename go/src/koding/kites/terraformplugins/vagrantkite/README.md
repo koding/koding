@@ -11,8 +11,10 @@ Following fields should be passed to use this plugin.
 
 # Example
 
+```
 resource "vagrantkite_build" "myfirstvm" {
     filePath = "/home/etc/Vagrantfile"
     queryString = "///////8c396fd6-c91c-4454-45c2-5c461ad32645"
     vagrantFile = "foobar"
 }
+```
