@@ -48,11 +48,14 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.domains'
 
+
   openAdvancedSettings: (browser, vmName) ->
 
     @openVmSettingsModal browser, vmName, '.advanced'
 
+
   openSnapshotsSettings: (browser,vmName) ->
+
 
     @openVmSettingsModal browser, vmName, '.snapshots'
 
@@ -67,6 +70,7 @@ module.exports =
       .click                 buttonSelector
 
   nameSnapshot: (browser) ->
+
     name            = helpers.getFakeText().split(' ')[0]
     inputSelector   = '.snapshots .text.hitenterview'
 
@@ -147,6 +151,7 @@ module.exports =
       .waitForElementVisible confirmSelector, 20000
       .click                 confirmSelector
 
+
   openResizeVmModal: (browser) ->
 
     resizeSelector  = ".disk-usage-info .footline .resize"
@@ -156,7 +161,6 @@ module.exports =
     browser
       .waitForElementVisible resizeSelector, 20000
       .click                 resizeSelector
-
 
 
   clickAddVMButton: (browser) ->
@@ -234,6 +238,7 @@ module.exports =
       .waitForElementNotVisible '.env-modal.paid-plan', 250000
       .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 25000
       .end()
+
 
   nameVM: (browser, name) ->
 
