@@ -23,6 +23,15 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     participants  : null
 
 
+
+  isNodeInContainer: (el, container) ->
+    while el
+      if el == container
+        return true
+      el = el.parentNode
+    false
+
+
   getPreviewCount: ->
 
     { participants } = @props
