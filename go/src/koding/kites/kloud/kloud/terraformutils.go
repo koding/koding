@@ -73,6 +73,15 @@ type terraformTemplate struct {
 	Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 }
 
+func newTerraformTemplate(content string) (*terraformTemplate, error) {
+	var template *terraformTemplate
+	if err := json.Unmarshal([]byte(content), &template); err != nil {
+		return nil, err
+	}
+
+	return template, nil
+}
+
 func (m *Machines) AppendRegion(region string) {
 	for i, machine := range m.Machines {
 		machine.Region = region
@@ -395,8 +404,8 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
 	}
 
-	var template *terraformTemplate
-	if err := json.Unmarshal([]byte(content), &template); err != nil {
+	template, err := newTerraformTemplate(content)
+	if err != nil {
 		return nil, err
 	}
 
