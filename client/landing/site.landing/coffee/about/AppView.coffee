@@ -59,7 +59,7 @@ module.exports = class AboutView extends JView
       <h3>Where we are?</h3>
       <address>358 Brannan Street, San Francisco, CA 94107</address>
       <div class='map-container'>
-        <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q=Koding%2C%20Brannan%20Street%2C%20San%20Francisco%2C%20CA%2C%20United%20States&key=AIzaSyAr4ZF8XJqh1ru1Fvw8f5e27KleSYDcRGs"></iframe>
+        <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q=Koding%2C%20Brannan%20Street%2C%20San%20Francisco%2C%20CA%2C%20United%20States&key=#{KD.config.google.apiKey}"></iframe>
       </div>
     </section>
     <section class='assets'>
