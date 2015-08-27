@@ -17,11 +17,15 @@ var (
 )
 
 type Client struct {
+	// Kite is used for remote communication
 	Kite *kite.Kite
-	Log  logging.Logger
+
+	// Logger is used internally
+	Log logging.Logger
 }
 
-// NewClient returns client for accessing remote klient.
+// NewClient returns client with required properties for accessing remote
+// klient.
 func NewClient() (*Client, error) {
 	// init kite here
 	k := kite.New(Name, Version)
@@ -44,6 +48,7 @@ func NewClient() (*Client, error) {
 
 }
 
+// Close closes the underlying properties
 func (c *Client) Close() error {
 	c.Kite.Close()
 	return nil
