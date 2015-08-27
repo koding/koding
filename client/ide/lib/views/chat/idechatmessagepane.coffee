@@ -165,7 +165,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   createParticipantHeads: ->
 
-    @participantHeads = new IDEChatParticipantHeads delegate : this
+    @participantHeads = new IDEChatParticipantHeads
 
     @forwardEvent @participantHeads, 'ParticipantSelected'
 
