@@ -13,7 +13,9 @@ var LoggedOutHome = `
 
   <body class='home'>
     <script>
-      window._recaptchaSettings = {{.Runtime.Recaptcha}}
+      window._runtimeOptions = {
+        recaptcha : {{.Runtime.Recaptcha}}
+      };
     </script>
 
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->

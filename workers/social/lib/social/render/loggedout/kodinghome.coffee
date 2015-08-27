@@ -38,7 +38,9 @@ module.exports = (options, callback) ->
       </script>
 
       <script>
-        window._recaptchaSettings = #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha}
+        window._runtimeOptions = {
+          recaptcha : #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha}
+        }
       </script>
 
       #{addSiteScripts site}
