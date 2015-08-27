@@ -41,6 +41,7 @@ do ->
   KD.config.hasTeamAccess = kookies.get('team-access')?
   KD.config.groupName     = groupName = KD.utils.getGroupNameFromLocation()
   KD.config.recaptcha     = window._runtimeOptions.recaptcha
+  KD.config.google        = window._runtimeOptions.google
 
   if groupName is 'koding'
   then setGroup()
