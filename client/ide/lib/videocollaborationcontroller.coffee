@@ -204,6 +204,7 @@ module.exports = VideoCollaborationController =
         participantsCount = @participants.asArray().length
 
         if participantsCount > limit or (participantsCount is 2 and isVideoActive)
+          @emit 'UserCouldNotStartVideo'
           return new LimitedVideoCollaborationModal plan: planTitle
 
         callback()
