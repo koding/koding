@@ -47,9 +47,10 @@ module.exports = class OnboardingView extends JView
   bindPageEvents: ->
 
     @pages.forEach (page) =>
-      page.on 'UpdateStackTemplate', =>
+      page.on 'UpdateStackTemplate', (scrollToBottom) =>
         @stackPreview.show()
         @updateStackTemplate()
+        @emit 'ScrollTo', 'bottom'  if scrollToBottom
 
     @on 'PageNavigationRequested', (direction) =>
       pageIndex  = @pages.indexOf @currentPage
@@ -61,6 +62,7 @@ module.exports = class OnboardingView extends JView
         targetPage.show()
         @setClass 'get-started'  if targetPage is @getStartedView
         @currentPage = targetPage
+        @emit 'ScrollTo', 'top'
       else
         @hide()
         @emit 'StackOnboardingCompleted', { template: content: @stackTemplate }
@@ -70,6 +72,8 @@ module.exports = class OnboardingView extends JView
       @unsetClass 'get-started'
       @emit 'PageNavigationRequested', 'next'
 
+    @configurationView.once 'UpdateStackTemplate', => @emit 'ScrollTo', 'bottom'
+    @codeSetupView.once 'UpdateStackTemplate', => @emit 'ScrollTo', 'bottom'
 
     @getStartedView.emit 'NextPageRequested'  if @getOption 'skipOnboarding'
 
@@ -77,6 +81,7 @@ module.exports = class OnboardingView extends JView
       if isSelected
         @nextButton.enable()
         @stackPreview.show()
+        @emit 'ScrollTo', 'bottom'
       else
         @nextButton.disable()
         @stackPreview.hide()

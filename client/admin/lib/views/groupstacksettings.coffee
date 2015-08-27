@@ -29,6 +29,9 @@ module.exports = class GroupStackSettings extends kd.View
       onboardingView.destroy()
       @showEditor template
 
+    onboardingView.on 'ScrollTo', (direction = 'top') =>
+      @scrollView["scrollTo#{direction.capitalize()}"] 500
+
 
   createInitialView: ->
 

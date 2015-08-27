@@ -55,7 +55,7 @@ module.exports = class ConfigurationView extends JView
         { title: 't2.small',  value: 't2.small'  }
         { title: 't2.medium', value: 't2.medium' }
       ]
-      callback: => @emit 'UpdateStackTemplate'
+      callback: => @emit 'UpdateStackTemplate', yes
 
     configView.on 'UpdateStackTemplate', =>
       @emit 'UpdateStackTemplate'
@@ -63,7 +63,7 @@ module.exports = class ConfigurationView extends JView
     @tabView.on 'PaneRemoved', =>
       @emit 'UpdateStackTemplate'
 
-    @emit 'UpdateStackTemplate'
+    @emit 'UpdateStackTemplate', yes
 
 
   pistachio: ->
