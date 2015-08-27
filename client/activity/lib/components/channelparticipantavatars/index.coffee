@@ -28,6 +28,20 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     document.addEventListener 'mousedown', @handleOutsideMouseClick
 
 
+  handleOutsideMouseClick: (e) =>
+
+    return  unless @refs.AllParticipantsMenu
+
+    target             = e.target
+    moreButtonEl       = @refs.showMoreButton.getDOMNode()
+    participantsMenuEl = @refs.AllParticipantsMenu.getDOMNode()
+
+    if ((@isNodeInContainer target, moreButtonEl) or (@isNodeInContainer target, participantsMenuEl))
+      return
+
+    e.stopPropagation()
+    @setState showAllParticipants: no
+
 
   isNodeInContainer: (el, container) ->
     while el
@@ -56,8 +70,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     else @setState addNewParticipantMode: yes
 
 
-  onShowMoreParticipantButtonClick: ->
+  onShowMoreParticipantButtonClick: (e) ->
 
+    e.stopPropagation()
     if @state.showAllParticipants is yes
     then @setState showAllParticipants: no
     else @setState showAllParticipants: yes
@@ -112,7 +127,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     moreCount = Math.min moreCount, 99
 
     <div className='ChannelParticipantAvatars-singleBox'>
-      <div className='ChannelParticipantAvatars-moreCount' onClick={@bound 'onShowMoreParticipantButtonClick'}>
+      <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
         {moreCount}+
       </div>
     </div>
@@ -125,7 +140,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    <div className='ChannelParticipantAvatars-allParticipantsMenu'>
+    <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
         <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
         {@renderAvatars(participants, yes)}
