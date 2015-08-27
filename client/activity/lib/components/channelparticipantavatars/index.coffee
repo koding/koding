@@ -23,6 +23,11 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     participants  : null
 
 
+  componentDidMount: ->
+
+    document.addEventListener 'mousedown', @handleOutsideMouseClick
+
+
 
   isNodeInContainer: (el, container) ->
     while el
