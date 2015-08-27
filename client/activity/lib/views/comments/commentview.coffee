@@ -6,6 +6,7 @@ CommentListViewController = require './commentlistviewcontroller'
 showError = require 'app/util/showError'
 generateDummyMessage = require 'app/util/generateDummyMessage'
 isElementInViewport = require 'app/util/isElementInViewport'
+Encoder = require 'htmlencode'
 
 
 module.exports = class CommentView extends KDView
@@ -87,6 +88,8 @@ module.exports = class CommentView extends KDView
   handleEnter: (value, clientRequestId) ->
 
     return  unless value
+
+    value = Encoder.XSSEncode value
 
     @input.reset yes
 

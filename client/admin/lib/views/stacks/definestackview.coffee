@@ -37,6 +37,11 @@ module.exports = class DefineStackView extends KDView
 
     options.delegate = this
 
+    @setClass 'edit-mode'  if @getOption 'inEditMode'
+
+    title   = stackTemplate?.title or 'Default stack template'
+    content = stackTemplate?.template?.content
+
     @createOutputView()
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
@@ -58,6 +63,8 @@ module.exports = class DefineStackView extends KDView
       selectedCredentials : @credentials
 
     @tabView.showPaneByIndex 0
+
+    @createFooter()
 
     @createMainButtons()
 
@@ -81,11 +88,34 @@ module.exports = class DefineStackView extends KDView
 
     stackTemplatePane.on 'PaneDidShow', =>
       @buttons.show()
+      @footer.show()
 
     providersPane.on 'PaneDidShow', =>
       @outputView.fall()
       @buttons.hide()
+      @footer.hide()
 
+
+  createFooter: ->
+
+    @addSubView @footer = new kd.CustomHTMLView
+      cssClass : 'stack-editor-footer'
+      partial  : """
+        <div class="section">
+          <span class="icon"></span>
+          <div class="text">
+            <p>Need some help?</p>
+            <a href="/Admin/Invitations">Invite a teammate</a>
+          </div>
+        </div>
+        <div class="section">
+          <span class="icon"></span>
+          <div class="text">
+            <p>To learn about stack files</p>
+            <a href="#">Check out our docs</a>
+          </div>
+        </div>
+      """
 
   createOutputView: ->
 
