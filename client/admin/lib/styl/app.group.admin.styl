@@ -912,12 +912,10 @@ Admin main styles
         margin-bottom       25px
 
     .buttons
-      abs()
-      width                 100%
-      left                  0
-      bottom                0
+      size                  100%, 30px
       z-index               16
       text-align            right
+      rel()
 
       .kdbutton
         z-index             1
@@ -1176,13 +1174,60 @@ Admin main styles
 
 
   .step-define-stack
-    height                  calc(100% \- 100px)
+    height                  calc(100% \- 270px)
 
     .editor-view
-      height                calc(100% \- 100px)
+      height                calc(100% \- 37px)
+
+  .kdcustomscrollview main .define-stack-view
+    height                  calc(100% \- 150px)
 
   .kdtabpaneview.stack-template
-    height                  calc(100% \- 100px)
+    height                  calc(100% \- 87px)
+
+  .edit-mode
+    .step-define-stack .editor-view
+      height                calc(100% \- -100px)
+
+
+  .stack-editor-footer
+    height                  90px
+    border-top              1px solid #D9D7D7
+    background              #EFEFEF
+    margin-bottom           25px
+
+    .section
+      size                  50%, 90px
+      overflow              hidden
+      fl()
+      borderBox()
+
+      &:last-child
+
+        border-left         1px solid #D9D7D7
+
+        .icon
+          r-sprite          'admin', 'manual'
+
+      .icon
+        r-sprite            'admin', 'invite'
+        display             inline-block
+        margin              30px 30px 0 30px
+        fl()
+
+      .text
+        fl()
+        margin-top          23px
+
+      p, a
+        font-size           16px
+        color               #A8A1A1
+        line-height         23px
+        font-weight         300
+
+      a
+        text-decoration     underline
+
 
   .edit-mode
 
@@ -1237,14 +1282,6 @@ Admin main styles
         .title
           color             #02A74D
 
-  .step-view
-  .output-container
-    height                  calc(100% \- 80px)
-
-  pre.output-view
-    height                  calc(100% \- 80px)
-    overflow                auto
-
   .repo-listview
     margin-top              20px
     height                  calc(100% \- 60px)
@@ -1292,13 +1329,11 @@ Admin main styles
       height                calc(100% \- 170px)
 
   .step-define-stack
-    height                  100%
 
     > .kdbutton
       z-index               14
 
     .editor-view
-      height                calc(100% \- 235px)
       background            #222222 !important
 
     .showlogs-link
@@ -1339,7 +1374,7 @@ Admin main styles
         r-sprite            account, 'check-8'
 
   .kdview.output
-    bottom                  55px
+    bottom                  -90px
     vendor                  transition, height .2s ease
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
