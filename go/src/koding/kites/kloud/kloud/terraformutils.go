@@ -637,10 +637,6 @@ func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identif
 		if !ok {
 			return nil, fmt.Errorf("provider is not found for identifer: %s", c.Identifier)
 		}
-		// for now we only support aws
-		if provider != "aws" {
-			continue
-		}
 
 		cred := &terraformCredential{
 			Provider:   provider,
