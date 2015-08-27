@@ -8,125 +8,125 @@ closeFileSelector   = "#{paneSelector} span.close-tab"
 module.exports =
 
 
-  # openFile: (browser) ->
+  openFile: (browser) ->
 
-  #   user = helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   helpers.openFolderContextMenu(browser, user, 'Web')
+    helpers.openFolderContextMenu(browser, user, 'Web')
 
-  #   webPath       = '/home/' + user.username + '/Web'
-  #   indexSelector = "span[title='" + webPath + '/index.html' + "']"
+    webPath       = '/home/' + user.username + '/Web'
+    indexSelector = "span[title='" + webPath + '/index.html' + "']"
 
-  #   browser
-  #     .waitForElementVisible   'li.expand', 15000
-  #     .click                   'li.expand'
-  #     .waitForElementVisible   indexSelector, 15000
-  #     .click                   indexSelector
-  #     .click                   indexSelector + ' + .chevron'
-  #     .waitForElementVisible   'li.open-file', 20000
-  #     .click                   'li.open-file'
-  #     .waitForElementVisible   '.pane-wrapper .kdsplitview-panel .indexhtml', 20000 # Assertion
-  #     .waitForElementVisible   '.kdtabpaneview.indexhtml', 20000 # Assertion
-  #     .assert.containsText     '.kdtabpaneview.indexhtml', 'Hello World from HTML by Koding' # Assertion
-  #     .end()
-
-
-  # createFileFromContextMenu: (browser) ->
-
-  #   user = helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
-  #   helpers.createFile(browser, user)
-  #   browser.end()
+    browser
+      .waitForElementVisible   'li.expand', 15000
+      .click                   'li.expand'
+      .waitForElementVisible   indexSelector, 15000
+      .click                   indexSelector
+      .click                   indexSelector + ' + .chevron'
+      .waitForElementVisible   'li.open-file', 20000
+      .click                   'li.open-file'
+      .waitForElementVisible   '.pane-wrapper .kdsplitview-panel .indexhtml', 20000 # Assertion
+      .waitForElementVisible   '.kdtabpaneview.indexhtml', 20000 # Assertion
+      .assert.containsText     '.kdtabpaneview.indexhtml', 'Hello World from HTML by Koding' # Assertion
+      .end()
 
 
-  # createFileFromMachineHeader: (browser) ->
+  createFileFromContextMenu: (browser) ->
 
-  #   user = helpers.beginTest(browser)
-
-  #   helpers.waitForVMRunning(browser)
-
-  #   helpers.createFileFromMachineHeader(browser, user)
-  #   browser.end()
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    helpers.createFile(browser, user)
+    browser.end()
 
 
-  # deleteFile: (browser) ->
+  createFileFromMachineHeader: (browser) ->
 
-  #   user = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
 
-  #   helpers.waitForVMRunning(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   filename     = helpers.createFile(browser, user)
-  #   webPath      = '/home/' + user.username + '/Web'
-  #   fileSelector = "span[title='" + webPath + '/' + filename + "']"
-
-  #   helpers.deleteFile(browser, fileSelector)
-  #   browser.end()
+    helpers.createFileFromMachineHeader(browser, user)
+    browser.end()
 
 
-  # renameFile: (browser) ->
+  deleteFile: (browser) ->
 
-  #   user = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
 
-  #   helpers.waitForVMRunning(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   filename     = helpers.createFile(browser, user)
-  #   webPath      = '/home/' + user.username + '/Web'
-  #   fileSelector = "span[title='" + webPath + '/' + filename + "']"
+    filename     = helpers.createFile(browser, user)
+    webPath      = '/home/' + user.username + '/Web'
+    fileSelector = "span[title='" + webPath + '/' + filename + "']"
 
-  #   paragraph        = helpers.getFakeText()
-  #   newFileName      = paragraph.split(' ')[0] + '.txt'
-  #   newFileSelector  = "span[title='" + webPath + '/' + newFileName + "']"
-
-  #   browser
-  #     .waitForElementPresent     fileSelector, 20000
-  #     .click                     fileSelector
-  #     .click                     fileSelector + ' + .chevron'
-  #     .waitForElementVisible     'li.rename', 20000
-  #     .click                     'li.rename'
-  #     .waitForElementVisible     'li.selected .rename-container .hitenterview', 20000
-  #     .clearValue                'li.selected .rename-container .hitenterview'
-  #     .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
-  #     .waitForElementPresent     newFileSelector, 20000 # Assertion
-  #     .end()
+    helpers.deleteFile(browser, fileSelector)
+    browser.end()
 
 
-  # duplicateFile: (browser) ->
+  renameFile: (browser) ->
 
-  #   user = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
 
-  #   helpers.waitForVMRunning(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   filename      = helpers.createFile(browser, user)
-  #   newFileName   = filename.split('.txt').join('_1.txt')
-  #   webPath       = '/home/' + user.username + '/Web'
-  #   fileSelector  = "span[title='" + webPath + '/' + filename + "']"
-  #   newFile       = "span[title='" + webPath + '/' + newFileName + "']"
+    filename     = helpers.createFile(browser, user)
+    webPath      = '/home/' + user.username + '/Web'
+    fileSelector = "span[title='" + webPath + '/' + filename + "']"
 
-  #   browser
-  #     .waitForElementPresent     fileSelector, 20000
-  #     .click                     fileSelector
-  #     .click                     fileSelector + ' + .chevron'
-  #     .waitForElementPresent     'li.duplicate', 20000
-  #     .click                     'li.duplicate'
-  #     .pause                     2000
-  #     .waitForElementPresent     newFile, 20000 # Assertion
+    paragraph        = helpers.getFakeText()
+    newFileName      = paragraph.split(' ')[0] + '.txt'
+    newFileSelector  = "span[title='" + webPath + '/' + newFileName + "']"
 
-  #   helpers.deleteFile(browser, fileSelector)
-  #   helpers.deleteFile(browser, newFile)
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.rename', 20000
+      .click                     'li.rename'
+      .waitForElementVisible     'li.selected .rename-container .hitenterview', 20000
+      .clearValue                'li.selected .rename-container .hitenterview'
+      .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
+      .waitForElementPresent     newFileSelector, 20000 # Assertion
+      .end()
 
-  #   browser.end()
+
+  duplicateFile: (browser) ->
+
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
+    filename      = helpers.createFile(browser, user)
+    newFileName   = filename.split('.txt').join('_1.txt')
+    webPath       = '/home/' + user.username + '/Web'
+    fileSelector  = "span[title='" + webPath + '/' + filename + "']"
+    newFile       = "span[title='" + webPath + '/' + newFileName + "']"
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementPresent     'li.duplicate', 20000
+      .click                     'li.duplicate'
+      .pause                     2000
+      .waitForElementPresent     newFile, 20000 # Assertion
+
+    helpers.deleteFile(browser, fileSelector)
+    helpers.deleteFile(browser, newFile)
+
+    browser.end()
 
 
-  # createFileAndOpen: (browser) ->
+  createFileAndOpen: (browser) ->
 
-  #   user = helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-  #   fileName = helpers.createFile(browser, user)
-  #   ideHelpers.openFile(browser, user, fileName)
+    fileName = helpers.createFile(browser, user)
+    ideHelpers.openFile(browser, user, fileName)
 
-  #   browser.end()
+    browser.end()
 
   cancelSaveFile: (browser) ->
 
