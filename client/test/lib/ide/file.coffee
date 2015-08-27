@@ -186,13 +186,9 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     ideHelpers.closeAllTabs(browser)
-    ideHelpers.openNewFile(browser)
-    ideHelpers.setTextToEditor(browser, dummyText)
+    ideHelpers.openFileSetTextClose(browser, user, yes, '', dummyText, no)
 
     browser
-      .moveToElement              paneSelector, 60, 15
-      .waitForElementVisible      closeFileSelector, 20000
-      .click                      closeFileSelector
       .waitForElementVisible      saveCloseSelector, 20000
       .assert.containsText        saveCloseSelector + ' span.button-title', 'SAVE AND CLOSE'
       .click                      saveCloseSelector

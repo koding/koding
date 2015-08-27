@@ -113,7 +113,7 @@ module.exports =
       .waitForElementNotPresent saveIconSelector, 20000 # Assertion
 
 
-  closeFile: (browser, fileName) ->
+  closeFile: (browser, fileName, shouldAssert = yes) ->
 
     closeFileSelector = "#{tabHandleSelector} span.close-tab"
 
@@ -121,7 +121,11 @@ module.exports =
       .moveToElement             tabHandleSelector, 60, 15
       .waitForElementVisible     closeFileSelector, 20000
       .click                     closeFileSelector
-      .waitForElementNotPresent  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
+
+    if shouldAssert
+      browser
+        .pause 600
+        .waitForElementNotPresent  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
 
 
   openAnExistingFile: (browser, user, fileName, text) ->
@@ -166,8 +170,13 @@ module.exports =
     helpers.clickVMHeaderButton(browser)
     browser.click ".context-list-wrapper #{selector}"
 
-  openFileSetTextClose: (browser, user, fileName, dummyText) ->
+  openFileSetTextClose: (browser, user, newFile = no, fileName, dummyText, shouldAssert = yes) ->
 
-    @openFile(browser, user, fileName)
-    @setTextToEditor(browser, dummyText)
-    @closeFile(browser, fileName)
+    if newFile
+      @openNewFile(browser)
+      @setTextToEditor(browser, dummyText)
+      @closeFile(browser, fileName, shouldAssert)
+    else
+      @openFile(browser, user, fileName)
+      @setTextToEditor(browser, dummyText)
+      @closeFile(browser, fileName, shouldAssert)
