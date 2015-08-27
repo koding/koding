@@ -152,8 +152,8 @@ module.exports =
       .waitForElementVisible  teamSettingsLinkItem, 20000
       .click                  teamSettingsLinkItem
       .waitForElementVisible  teamDashboard, 20000 # Assertion
-      .pause                  200 # Wait for team dashboard
-      .assert.containsText    teamDashboard, 'Team Dashboard' # Assertion
+      .pause                  200 # Wait for team settings
+      .assert.containsText    teamDashboard, 'Team Settings' # Assertion
 
 
   seeTeamNameOnsideBar: (browser, name) ->
