@@ -3,6 +3,7 @@ React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
 ChatInputWidget = require 'activity/components/chatinputwidget'
 Scroller        = require 'app/components/scroller'
+ActivityFlux    = require 'activity/flux'
 
 
 module.exports = class ChatPane extends React.Component
