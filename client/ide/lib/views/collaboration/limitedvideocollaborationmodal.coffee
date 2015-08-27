@@ -18,6 +18,7 @@ module.exports = class LimitedVideoCollaborationModal extends KDModalView
     options.cssClass = 'free-plan computeplan-modal env-modal'
     options.width   ?= 336
     options.overlay ?= yes
+    options.plan   or= 'free'
 
     super options, data
 
