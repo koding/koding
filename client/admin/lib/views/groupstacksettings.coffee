@@ -3,6 +3,7 @@ curryIn         = require 'app/util/curryIn'
 
 InitialView     = require './stacks/initialview'
 DefineStackView = require './stacks/definestackview'
+OnboardingView  = require './stacks/onboarding/onboardingview'
 
 
 module.exports = class GroupStackSettings extends kd.View
@@ -13,25 +14,42 @@ module.exports = class GroupStackSettings extends kd.View
 
     super options, data
 
+    @scrollView = new kd.ScrollView
+    @addSubView @scrollView
 
-  viewAppended: ->
-
-    @initialView = @addSubView new InitialView
-
-    @initialView.on [
-      'NoTemplatesFound', 'CreateNewStack', 'EditStack'
-    ], @bound 'showEditor'
+    @createInitialView()
 
 
-  showEditor: (stackTemplate) ->
+  createOnboardingView: (options = {}) ->
+
+    @initialView.hide()
+    @scrollView.addSubView onboardingView = new OnboardingView options
+
+    onboardingView.on 'StackOnboardingCompleted', (template) =>
+      onboardingView.destroy()
+      @showEditor template
+
+    onboardingView.on 'ScrollTo', (direction = 'top') =>
+      @scrollView["scrollTo#{direction.capitalize()}"] 500
+
+
+  createInitialView: ->
+
+    @initialView = @scrollView.addSubView new InitialView
+
+    @initialView.on 'EditStack', (template) => @showEditor template, yes
+    @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
+
+
+  showEditor: (stackTemplate, inEditMode) ->
 
     @initialView.hide()
 
-    defineStackView = @addSubView new DefineStackView {}, { stackTemplate }
+    defineStackView = new DefineStackView { inEditMode }, { stackTemplate }
+    @scrollView.addSubView defineStackView
 
     defineStackView.on 'Reload', => @initialView.reload()
 
-    defineStackView.on ['Cancel', 'Completed'], =>
+    defineStackView.on [ 'Cancel', 'Completed' ], =>
       @initialView.show()
       defineStackView.destroy()
-

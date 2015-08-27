@@ -28,6 +28,7 @@ module.exports = class OutputView extends kd.ScrollView
 
 
   raise : -> @setClass   'raise'
+
   fall  : -> @unsetClass 'raise'
 
   clear : ->
