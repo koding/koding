@@ -1,13 +1,12 @@
 kd             = require 'kd'
+KDView         = kd.View
 JView          = require 'app/jview'
 remote         = require('app/remote').getInstance()
-
 curryIn        = require 'app/util/curryIn'
 showError      = require 'app/util/showError'
 
-CredentialSelectorModal = require './credentialselectormodal'
 
-module.exports = class CredentialStatusView extends kd.View
+module.exports = class CredentialStatusView extends KDView
 
   JView.mixin @prototype
 
@@ -21,17 +20,18 @@ module.exports = class CredentialStatusView extends kd.View
     @credentials   or= {}
 
     # Waiting state view
-    @waitingView = new kd.View
+    @waitingView = new KDView
 
     @waitingView.addSubView @loader  = new kd.LoaderView
       showLoader : yes
       size       : width : 16
+
     @waitingView.addSubView @message = new kd.CustomHTMLView
       cssClass   : 'message'
       partial    : 'Checking credentials...'
 
     # Stalled state view
-    @stalledView = new kd.View
+    @stalledView = new KDView
       cssClass   : 'hidden'
 
     @stalledView.addSubView @icon = new kd.CustomHTMLView
@@ -40,21 +40,6 @@ module.exports = class CredentialStatusView extends kd.View
     @stalledView.addSubView @link = new kd.CustomHTMLView
       cssClass   : 'link'
       partial    : 'Credentials are not set'
-      click      : =>
-
-        modal = new CredentialSelectorModal
-          selectedCredentials: @credentials
-
-        modal.on 'ItemSelected', (credential) =>
-
-          # After adding credential, we are sharing it with the current
-          # group, so anyone in this group can use this credential ~ GG
-          {slug} = kd.singletons.groupsController.getCurrentGroup()
-          credential.shareWith {target: slug}, (err) =>
-            console.warn 'Failed to share credential:', err  if err
-            @setCredential credential
-            modal.destroy()
-
 
     creds = Object.keys @credentials
 
@@ -74,10 +59,10 @@ module.exports = class CredentialStatusView extends kd.View
 
     return @setNotVerified()  unless credential
 
-    creds             = {}
-    @credentialsData  = [credential]
-    @credentials      = creds[credential.provider] = [credential.identifier]
-    {provider, title} = credential
+    creds               = {}
+    @credentialsData    = [credential]
+    @credentials        = creds[credential.provider] = [credential.identifier]
+    { provider, title } = credential
     @setVerified "
       A credential titled as '#{title}' for #{provider} provider is selected.
     "

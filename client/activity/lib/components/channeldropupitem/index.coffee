@@ -18,3 +18,4 @@ module.exports = class ChannelDropupItem extends React.Component
       <span className="ChannelDropupItem-hash"># </span>
       {item.get 'name'}
     </DropupItem>
+

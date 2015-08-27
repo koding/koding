@@ -56,3 +56,4 @@ module.exports = class SuggestionsStore extends KodingFluxStore
    * @return {Immutable.List} empty immutable list
   ###
   handleReset: (results) -> immutable.List()
+

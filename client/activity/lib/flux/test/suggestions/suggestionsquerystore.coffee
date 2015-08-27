@@ -30,4 +30,3 @@ describe 'SuggestionsQueryStore', ->
 
       expect(query).to.equal query2
 
-
