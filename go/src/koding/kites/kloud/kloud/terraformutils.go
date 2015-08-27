@@ -295,7 +295,19 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-func (t *terraformTemplate) injectKodingData(data *terraformData) {
+func (t *terraformTemplate) injectCustomVariables(data *terraformData) {
+	for _, cred := range data.Creds {
+		prefix := cred.Provider
+		for key, val := range cred.Data {
+			varName := fmt.Sprintf("%s_%s_%s", prefix, cred, key)
+			t.Variable[varName] = map[string]interface{}{
+				"default": val,
+			}
+		}
+	}
+}
+
+func (t *terraformTemplate) injectKodingVariables(data *terraformData) {
 	var properties = []struct {
 		collection string
 		fieldToAdd map[string]bool
@@ -389,7 +401,7 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 	}
 
 	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
-	template.injectKodingData(data)
+	template.injectKodingVariables(data)
 
 	if len(template.Resource.Aws_Instance) == 0 {
 		return nil, fmt.Errorf("instance is empty: %v", template.Resource.Aws_Instance)
