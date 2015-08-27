@@ -1181,10 +1181,16 @@ Admin main styles
     .editor-view
       height                calc(100% \- 100px)
 
-    &.edit-mode
-      .header.title
-      .description
-        hidden()
+  .kdtabpaneview.stack-template
+    height                  calc(100% \- 100px)
+
+  .edit-mode
+
+    .step-define-stack
+      margin-top            -20px
+
+    .header.title, .description
+      hidden()
 
   .steps-view
     display                 flex
@@ -1293,6 +1299,7 @@ Admin main styles
 
     .editor-view
       height                calc(100% \- 235px)
+      background            #222222 !important
 
     .showlogs-link
       z-index               13
@@ -1332,7 +1339,7 @@ Admin main styles
         r-sprite            account, 'check-8'
 
   .kdview.output
-    bottom                  0
+    bottom                  55px
     vendor                  transition, height .2s ease
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
@@ -1628,6 +1635,7 @@ Admin main styles
     text-align              center
 
   .title
+  .header.title.text
     font-size               24px
     color                   #00B057
     margin-bottom           18px
