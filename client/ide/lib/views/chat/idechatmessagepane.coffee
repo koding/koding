@@ -10,18 +10,21 @@ isMyChannel          = require 'app/util/isMyChannel'
 isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
-IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
-IDEChatParticipantHeads = require './idechatparticipantheads'
+IDEChatMessageParticipantAvatar       = require './idechatmessageparticipantavatar'
+IDEChatParticipantHeads               = require './idechatparticipantheads'
+IDEChatParticipantSearchController    = require './idechatparticipantsearchcontroller'
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
-    options.cssClass = 'privatemessage'
+    options.cssClass                = 'privatemessage'
 
     # this is backwards compatibility related. ~Umut
-    options.type        = 'privatemessage'
-    options.channelType = 'collaboration'
+    options.type                    = 'privatemessage'
+    options.channelType             = 'collaboration'
+
+    options.autoCompleteController  = IDEChatParticipantSearchController
 
     super options, data
 
