@@ -26,13 +26,12 @@ module.exports = class IDEContentSearchResultView extends KDView
       @scrollView.wrapper.addSubView fileItem = new KDCustomHTMLView
         partial     : "<span>#{fileName}</span>"
         cssClass    : 'filename'
+        dblclick    : ->
+          target = @getElement()
+          @emit 'OpenFile', target  if target
 
       fileItem.on 'OpenFile', @bound 'openFile'
       fileItem.setAttribute 'data-file-path', fileName
-
-      fileItem.on 'dblclick', ->
-        [target] = @getDomElement()
-        @emit 'OpenFile', target  if target
 
       previousLine = null
 
