@@ -21,15 +21,33 @@ type terraformTemplate struct {
 		} `json:"aws"`
 	} `json:"provider"`
 	Variable map[string]map[string]interface{} `json:"variable,omitempty"`
+	Output   map[string]map[string]interface{} `json:"output,omitempty"`
+
+	h *hcl.Object `json:"-"`
 }
 
 func newTerraformTemplate(content string) (*terraformTemplate, error) {
 	var template *terraformTemplate
-	if err := json.Unmarshal([]byte(content), &template); err != nil {
+	err := json.Unmarshal([]byte(content), &template)
+	if err != nil {
+		return nil, err
+	}
+
+	template.h, err = hcljson.Parse(content)
+	if err != nil {
 		return nil, err
 	}
 
 	return template, nil
+}
+
+func (t *terraformTemplate) String() string {
+	out, err := t.jsonOutput()
+	if err != nil {
+		return "<ERROR>"
+	}
+
+	return out
 }
 
 // jsonOutput returns a JSON formatted output of the template
@@ -42,14 +60,11 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 	return string(out), nil
 }
 
-func (t *terraformTemplate) injectCustomVariables(data *terraformData) {
-	for _, cred := range data.Creds {
-		prefix := cred.Provider
-		for key, val := range cred.Data {
-			varName := fmt.Sprintf("%s_%s_%s", prefix, cred, key)
-			t.Variable[varName] = map[string]interface{}{
-				"default": val,
-			}
+func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string]string) {
+	for key, val := range data {
+		varName := fmt.Sprintf("%s_%s", prefix, key)
+		t.Variable[varName] = map[string]interface{}{
+			"default": val,
 		}
 	}
 }
