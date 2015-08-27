@@ -178,23 +178,23 @@ module.exports =
     browser.end()
 
 
-  # This test depends on createSnapshot
-  deleteSnapshot: (browser) ->
+  # # This test depends on createSnapshot
+  # deleteSnapshot: (browser) ->
 
-    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+  #   confirmSelector = ".kdmodal .kdmodal-buttons .red"
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    environmentHelpers.openSnapshotsSettings(browser)
+  #   helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
+  #   environmentHelpers.openSnapshotsSettings(browser)
 
-    environmentHelpers.createSnapshotIfNotFound browser, (name)->
+  #   environmentHelpers.createSnapshotIfNotFound browser, (name)->
 
-      environmentHelpers.deleteSnapshot(browser)
+  #     environmentHelpers.deleteSnapshot(browser)
 
-      browser
-        .waitForElementNotPresent confirmSelector, 20000
-        .pause                    1000 #Deleted snapshots take a little time to disappear.
+  #     browser
+  #       .waitForElementNotPresent confirmSelector, 20000
+  #       .pause                    1000 #Deleted snapshots take a little time to disappear.
 
-      environmentHelpers.assertSnapshotPresent browser, name, true
+  #     environmentHelpers.assertSnapshotPresent browser, name, true
 
-      browser.end()
+  #     browser.end()
