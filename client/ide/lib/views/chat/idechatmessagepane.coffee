@@ -43,6 +43,10 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
 
+    ideApp = kd.singletons.appManager.get 'IDE'
+    ideApp.on 'UserCouldNotStartVideo', =>
+      @autoComplete?.hideDropdown()
+
 
   createVideoActionButton: (action) ->
 
