@@ -188,7 +188,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     if channel.lastMessage.payload?
       { systemType } = channel.lastMessage.payload
       systemType   or= channel.lastMessage.payload['system-message']
-    
+
     isAlreadyUsed   = systemType not in [ 'initiate', 'start' ]
     hasParticipants = channel.participantCount > 1
 
@@ -314,3 +314,15 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @onboarding?.destroy()
     @onboarding = null
+
+
+  addParticipant: (options, participant) ->
+
+    return super options, participant  unless @videoActive
+
+    appManager = kd.getSingleton 'appManager'
+
+    appManager.tell 'IDE', 'canUserStartVideo', =>
+      super options, participant
+    , @videoActive
+

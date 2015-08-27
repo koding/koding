@@ -1,6 +1,10 @@
-VideoCollaborationModel = require 'app/videocollaboration/model'
-socialHelpers           = require './collaboration/helpers/social'
-isVideoFeatureEnabled   = require 'app/util/isVideoFeatureEnabled'
+kd                              = require 'kd'
+VideoCollaborationModel         = require 'app/videocollaboration/model'
+socialHelpers                   = require './collaboration/helpers/social'
+isVideoFeatureEnabled           = require 'app/util/isVideoFeatureEnabled'
+showError                       = require 'app/util/showError'
+LimitedVideoCollaborationModal  = require './views/collaboration/limitedvideocollaborationmodal'
+
 
 generatePayloadFromModel = (model) ->
   return {
@@ -9,7 +13,15 @@ generatePayloadFromModel = (model) ->
     participants        : model.getParticipants()
   }
 
+
+# If you want to limit {X} plan, you can add here and `LimitedVideoCollaborationModal.coffee`
+PLAN_PARTICIPANT_LIMITS = {
+  free : 2
+}
+
+
 module.exports = VideoCollaborationController =
+
 
   prepareVideoCollaboration: ->
 
@@ -55,7 +67,10 @@ module.exports = VideoCollaborationController =
     callback @videoModel.getParticipants()
 
 
-  startVideoCollaboration: -> @videoModel.start()
+  startVideoCollaboration: ->
+
+    @canUserStartVideo =>
+      @videoModel.start()
 
 
   endVideoCollaboration: -> @videoModel.end()
@@ -170,3 +185,25 @@ module.exports = VideoCollaborationController =
     @chat?.emit args...
 
 
+  canUserStartVideo: (callback = kd.noop, isVideoActive = no) ->
+
+    { paymentController } = kd.singletons
+
+    @whenRealtimeReady =>
+
+      paymentController.subscriptions (err, plan) =>
+
+        return showError err  if err
+
+        { planTitle }     = plan
+
+        # If there isn't any limit according to current plan.
+        return callback()  unless PLAN_PARTICIPANT_LIMITS[planTitle]
+
+        limit             = PLAN_PARTICIPANT_LIMITS[planTitle]
+        participantsCount = @participants.asArray().length
+
+        if participantsCount > limit or (participantsCount is 2 and isVideoActive)
+          return new LimitedVideoCollaborationModal plan: planTitle
+
+        callback()
