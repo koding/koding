@@ -40,3 +40,4 @@ describe 'CommonEmojiListSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal 0
+

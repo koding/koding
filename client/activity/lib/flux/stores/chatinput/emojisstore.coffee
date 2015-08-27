@@ -34,3 +34,4 @@ module.exports = class EmojisStore extends KodingFluxStore
       return SKIPPED_EMOJIES.indexOf(emoji) is -1
 
     toImmutable emojiList
+

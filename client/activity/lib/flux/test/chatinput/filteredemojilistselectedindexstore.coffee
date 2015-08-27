@@ -76,3 +76,4 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['filteredEmojiListSelectedIndex']
 
       expect(selectedIndex).to.equal 0
+

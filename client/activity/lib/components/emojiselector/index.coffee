@@ -111,3 +111,4 @@ module.exports = class EmojiSelector extends React.Component
         <div className="clearfix" />
       </div>
     </Dropup>
+

@@ -7,65 +7,58 @@ formatEmojiName      = require 'activity/util/formatEmojiName'
 ActivityFlux         = require 'activity/flux'
 Dropup               = require 'activity/components/dropup'
 EmojiDropupItem      = require 'activity/components/emojidropupitem'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class EmojiDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    selectedItem : null
+    items          : immutable.List()
+    selectedItem   : null
+    keyboardScroll : no
 
 
-  isActive: -> @props.items.size > 0
+  formatSelectedValue: -> formatEmojiName @props.selectedItem
 
 
-  hasOnlyItem: -> @props.items.size is 1
+  close: -> ActivityFlux.actions.emoji.unsetFilteredListQuery()
 
 
-  confirmSelectedItem: ->
+  moveToNextPosition: (keyInfo) ->
 
-    { selectedItem } = @props
-
-    @props.onItemConfirmed? formatEmojiName selectedItem
-    @close()
-
-
-  close: ->
-
-    ActivityFlux.actions.emoji.unsetFilteredListQuery()
-
-
-  moveToNextPosition: ->
-
-    if @hasOnlyItem()
+    if @hasSingleItem() and keyInfo.isRightArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
-      return yes
+
+    ActivityFlux.actions.emoji.moveToNextFilteredListIndex()  unless @hasSingleItem()
+    return yes
 
 
-  moveToPrevPosition: ->
+  moveToPrevPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if @hasSingleItem() and keyInfo.isLeftArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
-      return yes
+
+    ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()  unless @hasSingleItem()
+    return yes
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^\:(.+)/
-    query = matchResult?[1]
+    { currentWord } = textData
+    return no  unless currentWord
 
-    if @isActive() or query
-      ActivityFlux.actions.emoji.setFilteredListQuery query
+    matchResult = currentWord.match /^\:(.+)/
+    return no  unless matchResult
+
+    query = matchResult[1]
+    ActivityFlux.actions.emoji.setFilteredListQuery query
+    return yes
 
 
   onItemSelected: (index) ->
@@ -107,3 +100,4 @@ module.exports = class EmojiDropup extends React.Component
         <div className="clearfix" />
       </div>
     </Dropup>
+

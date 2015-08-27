@@ -9,6 +9,7 @@ module.exports = class ChatList extends React.Component
   @defaultProps =
     messages: immutable.List()
 
+
   renderChildren: ->
 
     lastMessageId = null
@@ -22,7 +23,7 @@ module.exports = class ChatList extends React.Component
 
 
   render: ->
-    <div className={kd.utils.curry 'ChatList padded', @props.className}>
+    <div className={kd.utils.curry 'ChatList', @props.className}>
       {@renderChildren().toList()}
     </div>
 

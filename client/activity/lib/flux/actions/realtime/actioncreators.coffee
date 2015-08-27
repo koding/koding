@@ -3,7 +3,13 @@ actions = require '../actiontypes'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
+_cache = channel: {}, message: {}
+
 bindChannelEvents = (channel) ->
+
+  return  if _cache.channel[channel.id]
+
+  _cache.channel[channel.id] = yes
 
   kd.singletons.socialapi.onChannelReady channel, ->
 
@@ -19,6 +25,10 @@ bindMessageEvents = (message) ->
 
   messageId = message.id
   { initialChannelId: channelId } = message
+
+  return  if _cache.message[messageId]
+
+  _cache.message[messageId] = yes
 
   message.on 'LikeAdded', ({ accountId: userId }) ->
     dispatch actions.LIKE_MESSAGE_SUCCESS, { userId, messageId }

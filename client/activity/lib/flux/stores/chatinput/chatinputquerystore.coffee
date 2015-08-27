@@ -38,3 +38,4 @@ module.exports = class ChatInputQueryStore extends KodingFluxStore
    * @return {string} nextState
   ###
   unsetQuery: (currentState) -> null
+

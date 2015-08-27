@@ -26,3 +26,4 @@ describe 'ChatInputChannelsVisibilityStore', ->
       visible = @reactor.evaluate ['chatInputChannelsVisibility']
 
       expect(visible).to.be.false
+
