@@ -107,6 +107,9 @@
   "no_unnecessary_double_quotes": {
     "level": "error"
   },
+  "no_private_function_fat_arrows": {
+    "level": "error"
+  },
   "no_unnecessary_fat_arrows": {
     "level": "error"
   },
