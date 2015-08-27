@@ -166,7 +166,7 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	creds, err := fetchTerraformData(username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := fetchTerraformData(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -178,14 +178,14 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		stack.Template, err = cred.appendAWSVariable(stack.Template)
 		if err != nil {
 			return err
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
+	buildData, err := injectKodingData(ctx, stack.Template, username, data)
 	if err != nil {
 		return err
 	}
