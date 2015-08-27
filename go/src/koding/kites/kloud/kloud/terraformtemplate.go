@@ -7,12 +7,15 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
+	"github.com/hashicorp/hcl/hcl"
+	hcljson "github.com/hashicorp/hcl/json"
 )
 
 type terraformTemplate struct {
 	Resource struct {
 		Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
-	} `json:"resource"`
+	} `json:"resource,omitempty"`
+	// Provider map[string]map[string]interface{} `json:"provider,omitempty"`
 	Provider struct {
 		Aws struct {
 			Region    string `json:"region"`
@@ -39,6 +42,16 @@ func newTerraformTemplate(content string) (*terraformTemplate, error) {
 	}
 
 	return template, nil
+}
+
+func (t *terraformTemplate) get(key string) string {
+	o := t.h.Get("resource", true)
+	fmt.Printf("o = %+v\n", o)
+
+	var data struct {
+	}
+
+	return ""
 }
 
 func (t *terraformTemplate) String() string {

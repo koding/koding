@@ -35,10 +35,32 @@ func TestTerraformTemplate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := template.jsonOutput()
+	fmt.Println(template)
+}
+
+func TestTerraformTemplateInjectCustomVariable(t *testing.T) {
+	template, err := newTerraformTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Println(out)
+	prefix := "custom"
+	data := map[string]string{
+		"foo": "1",
+		"bar": "example@example.com",
+		"qaz": "hello",
+	}
+
+	template.injectCustomVariables(prefix, data)
+	fmt.Println(template)
+}
+
+func TestTerraformTemplateGet(t *testing.T) {
+	template, err := newTerraformTemplate(testTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	template.get("foo")
+
 }
