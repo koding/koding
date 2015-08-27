@@ -28,27 +28,26 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     document.addEventListener 'mousedown', @handleOutsideMouseClick
 
 
-  handleOutsideMouseClick: (e) =>
+  handleOutsideMouseClick: (event) =>
 
     return  unless @refs.AllParticipantsMenu
 
-    target             = e.target
+    target             = event.target
     moreButtonEl       = @refs.showMoreButton.getDOMNode()
     participantsMenuEl = @refs.AllParticipantsMenu.getDOMNode()
 
     if ((@isNodeInContainer target, moreButtonEl) or (@isNodeInContainer target, participantsMenuEl))
       return
 
-    e.stopPropagation()
+    event.stopPropagation()
     @setState showAllParticipants: no
 
 
   isNodeInContainer: (el, container) ->
     while el
-      if el == container
-        return true
+      return yes  if el is container
       el = el.parentNode
-    false
+    no
 
 
   getPreviewCount: ->
