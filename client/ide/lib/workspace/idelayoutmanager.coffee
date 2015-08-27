@@ -13,6 +13,14 @@ KDSplitViewPanel = kd.SplitViewPanel
 module.exports = class IDELayoutManager extends KDObject
 
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @isRestored = no
+    @snapshot   = null
+
+
   ###*
    * Create layout data.
    *
@@ -181,7 +189,7 @@ module.exports = class IDELayoutManager extends KDObject
       @resurrectPanes_ item.views, ideView.tabView, silent
 
     ideApp.recalculateHandles()
-    ideApp.isLocalSnapshotRestored = yes
+    @isRestored = yes
 
 
   ###*
@@ -307,3 +315,21 @@ module.exports = class IDELayoutManager extends KDObject
     ideApp.writeSnapshot()  if save
 
     return panes
+
+
+  isSnapshotRestored: -> @isRestored
+
+
+  setSnapshot: (snapshot) -> @snapshot = snapshot
+
+
+  getSnapshot: -> @snapshot
+
+
+  restoreSnapshot: ->
+
+    return  unless snapshot = @getSnapshot()
+
+    @clearLayout()
+    kd.utils.defer => @resurrectSnapshot snapshot
+
