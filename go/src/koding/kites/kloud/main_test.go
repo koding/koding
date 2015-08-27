@@ -132,8 +132,7 @@ type singleUser struct {
 	PrivateKey      string
 	PublicKey       string
 	AccountId       bson.ObjectId
-	CredentialId    bson.ObjectId
-	Identifier      string
+	Identifiers     []string
 	Remote          *kite.Client
 }
 
@@ -244,7 +243,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.AuthenticateRequest{
-		Identifiers: []string{userData.Identifier},
+		Identifiers: userData.Identifiers,
 		GroupName:   groupname,
 	}
 
@@ -265,7 +264,7 @@ func TestTerraformBootstrap(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformBootstrapRequest{
-		Identifiers: []string{userData.Identifier},
+		Identifiers: userData.Identifiers,
 		GroupName:   groupname,
 	}
 
@@ -300,7 +299,7 @@ func TestTerraformStack(t *testing.T) {
 	remote := userData.Remote
 
 	args := &kloud.TerraformBootstrapRequest{
-		Identifiers: []string{userData.Identifier},
+		Identifiers: userData.Identifiers,
 		GroupName:   groupname,
 	}
 
@@ -737,51 +736,76 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 	}
 
 	// jCredentials and jCredentialData
-	credentialId := bson.NewObjectId()
-	identifier := randomID(24)
-	credProvider := "aws"
-	credential := &models.Credential{
-		Id:         credentialId,
-		Provider:   credProvider,
-		Identifier: identifier,
-		OriginId:   accountId,
+	credentials := map[string][]string{}
+
+	addCredential := func(credProvider string, data map[string]interface{}) error {
+		credentialId := bson.NewObjectId()
+		identifier := randomID(24)
+		credential := &models.Credential{
+			Id:         credentialId,
+			Provider:   credProvider,
+			Identifier: identifier,
+			OriginId:   accountId,
+		}
+
+		if err := provider.DB.Run("jCredentials", func(c *mgo.Collection) error {
+			return c.Insert(&credential)
+		}); err != nil {
+			return err
+		}
+
+		credentialDataId := bson.NewObjectId()
+		credentialData := &models.CredentialData{
+			Id:         credentialDataId,
+			Identifier: identifier,
+			OriginId:   accountId,
+			Meta:       data,
+		}
+
+		if err := provider.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
+			return c.Insert(&credentialData)
+		}); err != nil {
+			return err
+		}
+
+		credRelationship := &models.Relationship{
+			Id:         bson.NewObjectId(),
+			TargetId:   credentialId,
+			TargetName: "JCredential",
+			SourceId:   accountId,
+			SourceName: "JAccount",
+			As:         "owner",
+		}
+
+		if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
+			return c.Insert(&credRelationship)
+		}); err != nil {
+			return err
+		}
+
+		credentials[credProvider] = []string{identifier}
+		return nil
 	}
 
-	if err := provider.DB.Run("jCredentials", func(c *mgo.Collection) error {
-		return c.Insert(&credential)
-	}); err != nil {
+	err = addCredential("aws", map[string]interface{}{
+		"access_key": os.Getenv("KLOUD_TESTACCOUNT_ACCESSKEY"),
+		"secret_key": os.Getenv("KLOUD_TESTACCOUNT_SECRETKEY"),
+		"region":     region,
+	})
+	if err != nil {
 		return nil, err
 	}
 
-	credentialDataId := bson.NewObjectId()
-	credentialData := &models.CredentialData{
-		Id:         credentialDataId,
-		Identifier: identifier,
-		OriginId:   accountId,
-		Meta: bson.M{
-			"access_key": os.Getenv("KLOUD_TESTACCOUNT_ACCESSKEY"),
-			"secret_key": os.Getenv("KLOUD_TESTACCOUNT_SECRETKEY"),
-			"region":     region,
-		},
+	// jComputeStack and jStackTemplates
+	stackTemplateId := bson.NewObjectId()
+	stackTemplate := &models.StackTemplate{
+		Id:          stackTemplateId,
+		Credentials: credentials,
 	}
+	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
 
-	if err := provider.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Insert(&credentialData)
-	}); err != nil {
-		return nil, err
-	}
-
-	credRelationship := &models.Relationship{
-		Id:         bson.NewObjectId(),
-		TargetId:   credentialId,
-		TargetName: "JCredential",
-		SourceId:   accountId,
-		SourceName: "JAccount",
-		As:         "owner",
-	}
-
-	if err := provider.DB.Run("relationships", func(c *mgo.Collection) error {
-		return c.Insert(&credRelationship)
+	if err := provider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
+		return c.Insert(&stackTemplate)
 	}); err != nil {
 		return nil, err
 	}
@@ -831,22 +855,6 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		}
 	}
 
-	// jComputeStack and jStackTemplates
-	stackTemplateId := bson.NewObjectId()
-	stackTemplate := &models.StackTemplate{
-		Id: stackTemplateId,
-		Credentials: map[string][]string{
-			credProvider: []string{identifier},
-		},
-	}
-	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
-
-	if err := provider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
-		return c.Insert(&stackTemplate)
-	}); err != nil {
-		return nil, err
-	}
-
 	computeStackId := bson.NewObjectId()
 	computeStack := &models.ComputeStack{
 		Id:          computeStackId,
@@ -882,6 +890,11 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		log.Fatal(err)
 	}
 
+	identifiers := []string{}
+	for _, i := range credentials {
+		identifiers = append(identifiers, i...)
+	}
+
 	return &singleUser{
 		MachineIds:      machineIds,
 		MachineLabels:   machineLabels,
@@ -890,8 +903,7 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		PrivateKey:      privateKey,
 		PublicKey:       publicKey,
 		AccountId:       accountId,
-		CredentialId:    credentialId,
-		Identifier:      identifier,
+		Identifiers:     identifiers,
 		Remote:          remote,
 	}, nil
 }
