@@ -146,7 +146,7 @@ module.exports = class OnboardingView extends JView
     if selectedCodeService
       cloneText = CLONE_REPO_TEMPLATES[selectedCodeService]
 
-      for serverName, serverConfig of stackTemplate.resources.aws_instance
+      for serverName, serverConfig of stackTemplate.resource.aws_instance
         { user_data } = serverConfig
 
         if user_data
