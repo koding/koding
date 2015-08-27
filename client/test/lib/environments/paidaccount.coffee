@@ -56,7 +56,7 @@ module.exports =
     helpers.waitForVMRunning(browser)
     environmentHelpers.attemptCreateSnapshot(browser)
 
-    browser.element 'css selector', '.snapshots .snapshot', (result) =>
+    browser.element 'css selector', '.snapshots .add-view', (result) =>
       if result.status is 0
         browser.end()
       else
