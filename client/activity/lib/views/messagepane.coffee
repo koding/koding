@@ -13,6 +13,7 @@ isMyPost = require 'app/util/isMyPost'
 showError = require 'app/util/showError'
 Promise = require 'bluebird'
 TopicFollowButton = require 'app/commonviews/topicfollowbutton'
+Encoder = require 'htmlencode'
 
 module.exports = class MessagePane extends KDTabPaneView
 
@@ -142,6 +143,8 @@ module.exports = class MessagePane extends KDTabPaneView
   handleEnter: (value, clientRequestId) ->
 
     return  unless value
+
+    value = Encoder.XSSEncode value
 
     @input.reset yes
 
