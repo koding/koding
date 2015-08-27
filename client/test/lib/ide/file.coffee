@@ -125,7 +125,6 @@ module.exports =
 
     fileName = helpers.createFile(browser, user)
     ideHelpers.openFile(browser, user, fileName)
-    ideHelpers.closeFile(browser, fileName)
 
     browser.end()
 
@@ -136,16 +135,13 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
+    ideHelpers.closeAllTabs(browser)
+
     fileName = helpers.createFile(browser, user)
 
-    ideHelpers.closeAllTabs(browser)
-    ideHelpers.openFile(browser, user, fileName)
-    ideHelpers.setTextToEditor(browser, dummyText)
+    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText)
 
     browser
-      .moveToElement              paneSelector, 60, 15
-      .waitForElementVisible      closeFileSelector, 20000
-      .click                      closeFileSelector
       .waitForElementVisible      cancelSelector, 20000
       .assert.containsText        cancelSelector + ' span.button-title', 'CANCEL'
       .click                      cancelSelector
@@ -162,16 +158,13 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
+    ideHelpers.closeAllTabs(browser)
+
     fileName = helpers.createFile(browser, user)
 
-    ideHelpers.closeAllTabs(browser)
-    ideHelpers.openFile(browser, user, fileName)
-    ideHelpers.setTextToEditor(browser, dummyText)
+    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText)
 
     browser
-      .moveToElement              paneSelector, 60, 15
-      .waitForElementVisible      closeFileSelector, 20000
-      .click                      closeFileSelector
       .waitForElementVisible      dontSaveSelector, 20000
       .assert.containsText        dontSaveSelector + ' span.button-title', 'DON\'T SAVE'
       .click                      dontSaveSelector
@@ -184,6 +177,7 @@ module.exports =
     filesTabSelector    = '.ide-files-tab .file-container'
     saveAsModalSelector = '.save-as-dialog'
     saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
+    untitledName = "Untitled.txt"
     newName             = helpers.getFakeText().split(' ')[0] + '.txt'
 
     saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
@@ -207,10 +201,7 @@ module.exports =
       .clearValue                 saveAsInputSelector
       .setValue                   saveAsInputSelector, newName
       .click                      saveButtonSelector
-      .waitForElementVisible      filesTabSelector, 20000
-      .pause                      20000
-      .assert.containsText        filesTabSelector, newName # Assertion
-
-    ideHelpers.openAnExistingFile(browser, user, newName, dummyText)
-
-    browser.end()
+      .waitForElementNotPresent   saveAsModalSelector, 20000
+      .waitForElementNotPresent   "#{paneSelector} div[title='#{untitledName}']", 20000 # Assertion
+      .waitForElementVisible      "#{filesTabSelector} span[title='/home/#{user.username}/#{newName}']", 20000 # Assertion
+      .end()
