@@ -24,19 +24,25 @@ module.exports = class StackTemplateView extends KDView
     content = stackTemplate?.template?.content
 
     @addSubView new KDCustomHTMLView
-      cssClass  : 'text header'
-      partial   : 'Create new Stack'
+      cssClass  : 'text header title'
+      partial   : 'Here is your stack preview'
 
-    @addSubView @inputTitle = new KDFormViewWithFields fields:
-      title                :
-        cssClass           : 'template-title'
-        label              : 'Stack Template Title'
-        defaultValue       : title
-        nextElement        :
-          credentialStatus :
-            cssClass       : 'credential-status'
-            itemClass      : CredentialStatusView
-            stackTemplate  : stackTemplate
+    @addSubView new KDCustomHTMLView
+      cssClass  : 'description'
+      partial   : 'You can make advanced changes like modifying your VM, installing packages, and running shell commands.'
+
+    @addSubView @inputTitle  = new KDFormViewWithFields
+      cssClass               : 'template-title-form'
+      fields                 :
+        title                :
+          cssClass           : 'template-title'
+          label              : 'Stack Template Title'
+          defaultValue       : title
+          nextElement        :
+            credentialStatus :
+              cssClass       : 'credential-status'
+              itemClass      : CredentialStatusView
+              stackTemplate  : stackTemplate
 
     { @credentialStatus } = @inputTitle.inputs
     delegate              = @getDelegate()
