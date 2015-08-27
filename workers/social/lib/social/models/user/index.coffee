@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
 request          = require 'request'
@@ -1002,7 +1001,7 @@ module.exports = class JUser extends jraphical.Module
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
     email = emailsanitize email
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     emailFrequencyDefaults = {
       global         : on
@@ -1201,8 +1200,10 @@ module.exports = class JUser extends jraphical.Module
   createGroupStack = (account, groupName, callback) ->
 
     _client =
-      connection : delegate : account
-      context    : group    : groupName
+      connection :
+        delegate : account
+      context    :
+        group    : groupName
 
     ComputeProvider.createGroupStack _client, (err) ->
       if err?
@@ -1602,7 +1603,7 @@ module.exports = class JUser extends jraphical.Module
       if not session or not session.username
         return callback noUserError
 
-      JUser.one username: session.username, (err, user) ->
+      JUser.one { username: session.username }, (err, user) ->
 
         if err or not user
           console.log '[JUser::fetchUser]', err  if err?
@@ -1661,7 +1662,7 @@ module.exports = class JUser extends jraphical.Module
     unless typeof email is 'string'
       return callback new KodingError 'Not a valid email!'
 
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     @count { sanitizedEmail }, (err, count) ->
       callback err, count is 0
@@ -1696,10 +1697,11 @@ module.exports = class JUser extends jraphical.Module
   setPassword: (password, callback) ->
 
     salt = createSalt()
-    @update $set: {
-      salt
-      password       : hashPassword password, salt
-      passwordStatus : 'valid'
+    @update {
+      $set             :
+        salt           : salt
+        password       : hashPassword password, salt
+        passwordStatus : 'valid'
     }, callback
 
 
@@ -1722,10 +1724,10 @@ module.exports = class JUser extends jraphical.Module
     { email, pin } = options
 
     email = options.email = emailsanitize email
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     if account.type is 'unregistered'
-      @update $set: { email, sanitizedEmail }, (err) ->
+      @update { $set: { email }, sanitizedEmail }, (err) ->
         return callback err  if err
 
         callback null
@@ -1832,7 +1834,7 @@ module.exports = class JUser extends jraphical.Module
 
   unlinkOAuths: (callback) ->
 
-    @update $unset: { foreignAuth:1, foreignAuthType:1 }, (err) =>
+    @update { $unset: { foreignAuth:1 }, foreignAuthType:1 }, (err) =>
       return callback err  if err
 
       @fetchOwnAccount (err, account) ->

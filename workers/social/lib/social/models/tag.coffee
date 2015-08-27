@@ -251,7 +251,7 @@ module.exports = class JTag extends jraphical.Module
 
   checkTagExistence = (tag, callback) ->
     { title, category } = tag
-    @one { title, category }, (err, tag) ->
+    JTag.one { title, category }, (err, tag) ->
       return callback err if err
       found = yes if tag
       callback null, found
