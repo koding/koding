@@ -124,7 +124,6 @@ module.exports =
 
     if shouldAssert
       browser
-        .pause 600
         .waitForElementNotPresent  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
 
 
