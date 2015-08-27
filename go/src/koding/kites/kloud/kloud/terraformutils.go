@@ -345,7 +345,12 @@ func (t *terraformTemplate) injectKodingData(data *terraformData) {
 				// nested structs, call again
 				if field.Kind() == reflect.Struct {
 					for _, f := range field.Fields() {
-						newName := varName + "_" + strings.ToLower(f.Name())
+						fieldName := strings.ToLower(f.Name())
+						// check if the user set a field tag
+						if f.Tag("bson") != "" {
+							fieldName = f.Tag("bson")
+						}
+						newName := varName + "_" + fieldName
 						addVariable(f, newName, true)
 					}
 					return
