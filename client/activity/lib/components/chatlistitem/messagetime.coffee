@@ -35,7 +35,7 @@ module.exports = class MessageTime extends React.Component
     dateFormat date, timeFormat
 
 
-  setTooltipPosition: (e) ->
+  setTooltipPosition: ->
 
     MessageDateDOMNode = @refs.MessageDate.getDOMNode()
     offset = $(MessageDateDOMNode).offset()
@@ -53,7 +53,7 @@ module.exports = class MessageTime extends React.Component
 
 
   getItemProps: ->
-    onMouseEnter: (e)=>
+    onMouseEnter: =>
       @tooltipShouldBeVisible = yes
       @setTooltipOpenState(300)
     onMouseLeave: =>
