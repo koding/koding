@@ -1,10 +1,11 @@
-remote = require('app/remote').getInstance()
-showError = require 'app/util/showError'
-kd = require 'kd'
-globals = require 'globals'
-FSHelper = require 'app/util/fs/fshelper'
-FilePermissionsModal = require './views/modals/filepermissionsmodal'
-dataProvider = require 'app/userenvironmentdataprovider'
+kd                    = require 'kd'
+remote                = require('app/remote').getInstance()
+globals               = require 'globals'
+FSHelper              = require 'app/util/fs/fshelper'
+showError             = require 'app/util/showError'
+dataProvider          = require 'app/userenvironmentdataprovider'
+FilePermissionsModal  = require './views/modals/filepermissionsmodal'
+
 
 WORKSPACE_WELCOME_TXT = """
   # Awesome, you've just made a new workspace!
@@ -50,7 +51,7 @@ module.exports = helpers =
       err = mesage: "Machine not found."
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
-    dataProvider.fetchMachineByUId machineUId, (m, workspaces) =>
+    dataProvider.fetchMachineByUId machineUId, (m, workspaces) ->
       workspace = w for w in workspaces when w.rootPath is rootPath
 
       handleRoute = (machine, workspace) ->
@@ -59,7 +60,7 @@ module.exports = helpers =
 
       return handleRoute(machine, workspace) if workspace
 
-      remote.api.JWorkspace.create data, (err, workspace) =>
+      remote.api.JWorkspace.create data, (err, workspace) ->
         return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
         folderOptions  =
@@ -68,18 +69,27 @@ module.exports = helpers =
           recursive    : yes
           samePathOnly : yes
 
-        machine.fs.create folderOptions, (err, folder) =>
+        machine.fs.create folderOptions, (err, folder) ->
           return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
           filePath   = "#{workspace.rootPath}/README.md"
-          readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-          readMeFile.save WORKSPACE_WELCOME_TXT, (err) =>
-            return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+          kite = machine.getBaseKite()
 
-            eventObj.emit 'WorkspaceCreated', workspace
+          kite.init().then ->
 
-            handleRoute(machine, workspace)
+            kite.fsUniquePath path: filePath
+
+          .then (actualPath) ->
+
+            readMeFile = FSHelper.createFileInstance { path: actualPath, machine }
+
+            readMeFile.save WORKSPACE_WELCOME_TXT, (err) ->
+              return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+
+              eventObj.emit 'WorkspaceCreated', workspace
+
+              handleRoute(machine, workspace)
 
 
   handleWorkspaceCreateError_: (eventObj, error) ->
