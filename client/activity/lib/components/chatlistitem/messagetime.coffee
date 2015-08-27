@@ -28,6 +28,15 @@ module.exports = class MessageTime extends React.Component
       tooltipY      : offset.top
       tooltipX      : offset.left + MessageDateDOMNode.offsetWidth / 2
 
+  getItemProps: ->
+    onMouseEnter: (e)=>
+      @tooltipShouldBeVisible = yes
+      @setTooltipOpenState(300)
+    onMouseLeave: =>
+      @tooltipShouldBeVisible = no
+      @setTooltipOpenState(100)
+
+
   getTooltipTitle: (data, timeFormat) ->
 
     relativeDates  = ["Today", "Yesterday"]
