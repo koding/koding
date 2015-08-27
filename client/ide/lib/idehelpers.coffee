@@ -76,20 +76,20 @@ module.exports = helpers =
 
           kite = machine.getBaseKite()
 
-          kite.init()
-            .then ->
+          kite.init().then ->
 
-              kite.fsUniquePath path: filePath
-                .then (actualPath) ->
+            kite.fsUniquePath path: filePath
 
-                  readMeFile = FSHelper.createFileInstance { path: actualPath, machine }
+          .then (actualPath) ->
 
-                  readMeFile.save WORKSPACE_WELCOME_TXT, (err) ->
-                    return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+            readMeFile = FSHelper.createFileInstance { path: actualPath, machine }
 
-                    eventObj.emit 'WorkspaceCreated', workspace
+            readMeFile.save WORKSPACE_WELCOME_TXT, (err) ->
+              return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
-                    handleRoute(machine, workspace)
+              eventObj.emit 'WorkspaceCreated', workspace
+
+              handleRoute(machine, workspace)
 
 
   handleWorkspaceCreateError_: (eventObj, error) ->
