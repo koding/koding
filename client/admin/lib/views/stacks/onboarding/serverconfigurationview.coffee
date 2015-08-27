@@ -30,14 +30,14 @@ module.exports = class ServerConfigurationView extends kd.View
             package      : config.package
             command      : config.command
             defaultValue : no
-            callback     : => @emit 'StackTemplateNeedsToBeUpdated'
+            callback     : => @emit 'UpdateStackTemplate'
 
           row.addSubView new kd.CustomHTMLView
             partial  : config.title
             cssClass : 'label'
             click    : =>
               if kdSwitch.getValue() then kdSwitch.setOff() else kdSwitch.setOn()
-              @emit 'StackTemplateNeedsToBeUpdated'
+              @emit 'UpdateStackTemplate'
 
           @configurationToggles.push kdSwitch
           section.addSubView row

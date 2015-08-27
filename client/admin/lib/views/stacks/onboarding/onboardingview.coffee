@@ -47,7 +47,7 @@ module.exports = class OnboardingView extends JView
   bindPageEvents: ->
 
     @pages.forEach (page) =>
-      page.on 'StackTemplateNeedsToBeUpdated', =>
+      page.on 'UpdateStackTemplate', =>
         @stackPreview.show()
         @updateStackTemplate()
 
@@ -73,7 +73,7 @@ module.exports = class OnboardingView extends JView
 
     @getStartedView.emit 'NextPageRequested'  if @getOption 'skipOnboarding'
 
-    @providerSelectionView.on 'StackTemplateNeedsToBeUpdated', (isSelected) =>
+    @providerSelectionView.on 'UpdateStackTemplate', (isSelected) =>
       if isSelected
         @nextButton.enable()
         @stackPreview.show()
