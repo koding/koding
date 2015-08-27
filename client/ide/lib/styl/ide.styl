@@ -871,20 +871,23 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     margin                  30px 0 20px 20px
     font-size               14px
 
-  pre
-    font-family             Menlo, Monaco, Consolas, monospace
-    margin-left             20px
-    color                   #d4cfc9
-    width                   auto
-    font-size               14px
-    line-height             20px
-    overflow                hidden
+    > span
+      display               block
+      margin-bottom         10px
 
-    span
-      fl()
+    pre
+      font-family           Menlo, Monaco, Consolas, monospace
+      color                 #d4cfc9
+      width                 auto
+      font-size             14px
+      line-height           20px
+      overflow              hidden
 
-      &.line-number
-        width               30px
+      span
+        fl()
+
+        &.line-number
+          width             30px
 
   .separator
     color                   #d4cfc9
