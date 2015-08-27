@@ -10,9 +10,25 @@ module.exports = class MessageTime extends React.Component
   @propTypes =
     date : React.PropTypes.string.isRequired
 
+  @defaultProps =
+    tooltipY: 0
+    tooltipX: 0
+    isTooltipOpen: no
+
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      tooltipY      : @props.tooltipY
+      tooltipX      : @props.tooltipX
+      isTooltipOpen : @props.isTooltipOpen
+
+    @tooltipShouldBeVisible = no
 
   timeFormat            = 'h:MM TT'
   timeWithSecondsFormat = 'h:MM:ss TT'
+
 
   getTime: (date) ->
 
@@ -27,6 +43,14 @@ module.exports = class MessageTime extends React.Component
     @setState
       tooltipY      : offset.top
       tooltipX      : offset.left + MessageDateDOMNode.offsetWidth / 2
+
+
+  setTooltipOpenState: (delay) ->
+
+    kd.utils.wait delay, =>
+      @setTooltipPosition()
+      @setState isTooltipOpen: @tooltipShouldBeVisible
+
 
   getItemProps: ->
     onMouseEnter: (e)=>
