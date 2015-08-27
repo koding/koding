@@ -6,20 +6,25 @@ welcome.styl
 }
 
 body.welcome
-  size                      100% 100%
-  bg                        color #f0f0f0
+  bg                        color #f6f6f6
 
   #main-panel-wrapper
     bg                      color, transparent !important
 
 .content-page.welcome
-  overflow                  hidden
+  margin-top                -1px
+  padding-top               1px
   max-width                 1000px
+  height                    auto
+  min-height                100%
+  bg                        color #f0f0f0
+
 
   > section
     width                   451px
     text-align              center
     margin                  50px auto 0
+    padding-bottom          15px
 
     .artboard
       r-sprite              'welcome' 'congrats'
@@ -41,7 +46,7 @@ body.welcome
 
     ul
       text-align            left
-      margin                0 auto 15px
+      margin                0 auto
 
       li
         height              80px
@@ -53,6 +58,8 @@ body.welcome
           content           ''
           r-sprite          'welcome' 'app-arrow'
           abs               33px 20px 0 0
+      & + ul
+        margin-top          45px
 
     a
       display               block
