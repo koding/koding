@@ -1,5 +1,4 @@
 kd = require 'kd'
-kookies = require 'kookies'
 KDNotificationView = kd.NotificationView
 lazyrouter = require 'app/lazyrouter'
 
@@ -28,6 +27,3 @@ module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
       ctx.clear()
     when 'referrer' then kd.singletons.router.handleRoute '/'
     when 'section' then handle info, path
-    when 'recover'
-      kookies.expire 'clientId'
-      global.location.href = '/Recover'

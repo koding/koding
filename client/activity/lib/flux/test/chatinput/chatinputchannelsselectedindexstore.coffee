@@ -76,3 +76,4 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['chatInputChannelsSelectedIndex']
 
       expect(selectedIndex).to.equal 0
+

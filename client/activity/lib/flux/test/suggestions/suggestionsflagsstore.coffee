@@ -41,3 +41,4 @@ describe 'SuggestionsFlagsStore', ->
       flags = @reactor.evaluate ['currentSuggestionsFlags']
 
       expect(flags.get('accessible')).to.equal no
+

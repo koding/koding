@@ -1,5 +1,14 @@
 jsyaml = require 'js-yaml'
 
+sanitize = (content) ->
+
+  newContent = ''
+  for line in content.split '\n'
+    newContent += "#{line.trimRight()}\n"
+
+  return newContent
+
+
 module.exports = {
 
   jsonToYaml: (content) ->
@@ -23,6 +32,7 @@ module.exports = {
     contentType     = 'yaml'
 
     try
+      content       = sanitize content
       contentObject = jsyaml.safeLoad content
 
       content       = JSON.stringify contentObject

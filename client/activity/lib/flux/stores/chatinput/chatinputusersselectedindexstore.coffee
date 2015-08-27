@@ -15,3 +15,4 @@ module.exports = class ChatInputUsersSelectedIndexStore extends SelectedIndexSto
       moveToNextIndex : actions.MOVE_TO_NEXT_CHAT_INPUT_USERS_INDEX
       moveToPrevIndex : actions.MOVE_TO_PREV_CHAT_INPUT_USERS_INDEX
       resetIndex      : actions.RESET_CHAT_INPUT_USERS_SELECTED_INDEX
+

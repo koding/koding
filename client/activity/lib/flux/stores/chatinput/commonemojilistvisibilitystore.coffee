@@ -27,3 +27,4 @@ module.exports = class CommonEmojiListVisibilityStore extends KodingFluxStore
    * @return {bool} nextState
   ###
   setVisibility: (currentState, { visible }) -> visible
+
