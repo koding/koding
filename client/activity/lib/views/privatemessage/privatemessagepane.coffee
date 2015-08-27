@@ -418,6 +418,7 @@ module.exports = class PrivateMessagePane extends MessagePane
       listWrapperCssClass : 'private-message hidden'
       submitValuesAsText  : yes
       dataSource          : @bound 'fetchAccounts'
+      delegate            : this
 
     @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
 
