@@ -14,7 +14,7 @@ module.exports = class GroupStackSettings extends kd.View
 
     super options, data
 
-    @scrollView = new kd.CustomScrollView
+    @scrollView = new kd.ScrollView
     @addSubView @scrollView
 
     @createInitialView()
@@ -23,7 +23,7 @@ module.exports = class GroupStackSettings extends kd.View
   createOnboardingView: (options = {}) ->
 
     @initialView.hide()
-    @scrollView.wrapper.addSubView onboardingView = new OnboardingView options
+    @scrollView.addSubView onboardingView = new OnboardingView options
 
     onboardingView.on 'StackOnboardingCompleted', (template) =>
       onboardingView.destroy()
@@ -32,7 +32,7 @@ module.exports = class GroupStackSettings extends kd.View
 
   createInitialView: ->
 
-    @initialView = @scrollView.wrapper.addSubView new InitialView
+    @initialView = @scrollView.addSubView new InitialView
 
     @initialView.on 'EditStack', (template) => @showEditor template, yes
     @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
@@ -43,7 +43,7 @@ module.exports = class GroupStackSettings extends kd.View
     @initialView.hide()
 
     defineStackView = new DefineStackView { inEditMode }, { stackTemplate }
-    @scrollView.wrapper.addSubView defineStackView
+    @scrollView.addSubView defineStackView
 
     defineStackView.on 'Reload', => @initialView.reload()
 

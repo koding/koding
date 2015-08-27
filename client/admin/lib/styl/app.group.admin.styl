@@ -1172,12 +1172,14 @@ Admin main styles
           display           block
 
 
+  .kdscrollview > .define-stack-view
+    height                  calc(100% \- 160px)
 
   .step-define-stack
     height                  calc(100% \- 270px)
 
     .editor-view
-      height                calc(100% \- 37px)
+      height                calc(100% + 83px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
@@ -1187,7 +1189,7 @@ Admin main styles
 
   .edit-mode
     .step-define-stack .editor-view
-      height                calc(100% \- -100px)
+      height                calc(100% + 220px)
 
 
   .stack-editor-footer
@@ -1195,6 +1197,7 @@ Admin main styles
     border-top              1px solid #D9D7D7
     background              #EFEFEF
     margin-bottom           25px
+    rounded                 0 0 4px 4px
 
     .section
       size                  50%, 90px
@@ -1334,7 +1337,8 @@ Admin main styles
       z-index               14
 
     .editor-view
-      background            #222222 !important
+      background            #222 !important
+      rounded               4px 4px 0 0
 
     .showlogs-link
       z-index               13
@@ -1390,8 +1394,8 @@ Admin main styles
 
   .template-title-form
     height                  49px
-    bg                      color, #EFEFEF
-    border-bottom           1px solid #979797
+    // bg                      color, #EFEFEF
+    // border-bottom           1px solid #979797
 
     .kdlabel
       line-height           49px
