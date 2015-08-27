@@ -378,9 +378,24 @@ func fetchStack(stackId string) (*Stack, error) {
 		machineIds[i] = m.Hex()
 	}
 
+	credentials := make(map[string][]string, 0)
+
+	// first copy admin/group based credentials
+	for k, v := range stackTemplate.Credentials {
+		credentials[k] = v
+	}
+
+	// copy user based credentials
+	for k, v := range computeStack.Credentials {
+		// however don't override anything the admin already added
+		if _, ok := credentials[k]; !ok {
+			credentials[k] = v
+		}
+	}
+
 	return &Stack{
 		Machines:    machineIds,
-		Credentials: stackTemplate.Credentials,
+		Credentials: credentials,
 		Template:    stackTemplate.Template.Content,
 	}, nil
 }
