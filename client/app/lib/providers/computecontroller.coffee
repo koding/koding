@@ -36,6 +36,8 @@ module.exports = class ComputeController extends KDController
 
     { mainController, router } = kd.singletons
 
+    @ui = ComputeController_UI
+
     do @reset
 
     mainController.ready =>
@@ -469,7 +471,7 @@ module.exports = class ComputeController extends KDController
 
     return destroy machine  if force or @_force
 
-    ComputeController_UI.askFor 'destroy', {machine, force}, =>
+    @ui.askFor 'destroy', {machine, force}, =>
       destroy machine
 
 
@@ -503,7 +505,7 @@ module.exports = class ComputeController extends KDController
 
     # A shorthand for ComputeController_UI Askfor
     askFor = (action, callback = kd.noop) =>
-      ComputeController_UI.askFor action, {machine, force: @_force},
+      @ui.askFor action, {machine, force: @_force},
         callback
 
     { JSnapshot }     = remote.api
@@ -537,7 +539,7 @@ module.exports = class ComputeController extends KDController
 
     return if methodNotSupportedBy machine
 
-    ComputeController_UI.askFor 'resize', {
+    @ui.askFor 'resize', {
       machine, force: @_force, resizeTo
     }, =>
 

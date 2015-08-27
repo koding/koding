@@ -22,6 +22,7 @@ module.exports = class CredentialListView extends kd.View
       selectedCredentials
     }
 
+
     @listController = new AccountCredentialListController
       view          : @list
       wrapper       : no

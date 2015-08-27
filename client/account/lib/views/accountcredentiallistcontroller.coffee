@@ -7,7 +7,6 @@ KDFormViewWithFields        = kd.FormViewWithFields
 KDAutoCompleteController    = kd.AutoCompleteController
 
 KodingSwitch                = require 'app/commonviews/kodingswitch'
-ComputeController_UI        = require 'app/providers/computecontroller.ui'
 AccountListViewController   = require 'account/controllers/accountlistviewcontroller'
 MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
 MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
@@ -189,7 +188,8 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     view.setClass "form-open"
 
-    view.form = ComputeController_UI.generateAddCredentialFormFor provider
+    { ui }    = kd.singletons.computeController
+    view.form = ui.generateAddCredentialFormFor provider
     view.form.on "Cancel", ->
       view.unsetClass "form-open"
       view.form.destroy()

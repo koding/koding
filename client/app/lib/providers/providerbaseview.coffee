@@ -9,7 +9,6 @@ KDNotificationView = kd.NotificationView
 KDTabPaneView = kd.TabPaneView
 showError = require 'app/util/showError'
 CloudInstanceItemView = './cloudinstanceitemview'
-ComputeController_UI = require 'app/providers/computecontroller.ui'
 
 
 module.exports = class ProviderBaseView extends KDTabPaneView
