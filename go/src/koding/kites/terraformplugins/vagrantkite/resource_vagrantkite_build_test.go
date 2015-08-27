@@ -40,9 +40,8 @@ end
 	vagrantFilePath = "/home/etc/Vagrantfile"
 )
 
-func TestAccGithubAddUser_Basic(t *testing.T) {
+func TestVagrantKiteProviderConfig(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		// PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testVagrantResourceProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
@@ -67,36 +66,6 @@ func TestAccGithubAddUser_Basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func withClient(t *testing.T, f func(c *Client) error) {
-	client, err := NewClient()
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	client.Kite.Config.DisableAuthentication = true
-	client.Kite.Config.Port = 5000
-	client.Kite.HandleFunc(klientFuncName, mockHandler)
-
-	go client.Kite.Run()
-	<-client.Kite.ServerReadyNotify()
-
-	queryString := &url.URL{
-		Scheme: "http",
-		Host:   "localhost:" + strconv.Itoa(client.Kite.Port()),
-		Path:   "/kite",
-	}
-
-	if _, err := client.Kite.Register(queryString); err != nil {
-		t.Errorf("couldnt register to kontrol %s", err.Error())
-	}
-
-	err = f(client)
-	client.Kite.Close()
-	if err != nil {
-		t.Errorf("failed with %s", err.Error())
-	}
 }
 
 func TestSendingCommandSuccess(t *testing.T) {
@@ -133,6 +102,35 @@ func TestSendingCommandFailure(t *testing.T) {
 
 		return errors.New("failure should happen")
 	})
+}
+
+func withClient(t *testing.T, f func(c *Client) error) {
+	client, err := NewClient()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	defer client.Close()
+
+	client.Kite.Config.DisableAuthentication = true
+	client.Kite.Config.Port = 5000
+	client.Kite.HandleFunc(klientFuncName, mockHandler)
+
+	go client.Kite.Run()
+	<-client.Kite.ServerReadyNotify()
+
+	queryString := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:" + strconv.Itoa(client.Kite.Port()),
+		Path:   "/kite",
+	}
+
+	if _, err := client.Kite.Register(queryString); err != nil {
+		t.Errorf("couldnt register to kontrol %s", err.Error())
+	}
+
+	if err := f(client); err != nil {
+		t.Errorf("failed with %s", err.Error())
+	}
 }
 
 var mockHandler = func(r *kite.Request) (interface{}, error) {

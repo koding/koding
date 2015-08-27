@@ -8,6 +8,13 @@ import (
 	"github.com/koding/kite"
 )
 
+const klientFuncName = "vagrant.build"
+
+type vagrantKiteReq struct {
+	VagrantFile string
+	FilePath    string
+}
+
 func resourceVagrantKiteBuild() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMachineCreate,
@@ -16,27 +23,24 @@ func resourceVagrantKiteBuild() *schema.Resource {
 		Delete: resourceMachineNoop,
 
 		Schema: map[string]*schema.Schema{
+			// Full path of the file for Vagrantfile
 			"queryString": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Kite Query string for finding which klient to send the commands",
 			},
 			"vagrantFile": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Content of the Vagrantfile that will be used while creating the vagrant machine",
 			},
 			"filePath": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Full path of the file for Vagrantfile",
 			},
 		},
 	}
-}
-
-const klientFuncName = "vagrant.build"
-
-type vagrantKiteReq struct {
-	VagrantFile string
-	FilePath    string
 }
 
 // resourceMachineCreate creates a new vagrant machine in remote klient host
@@ -58,6 +62,8 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
+// sendCommand sends given command with given args to the kite is specified with
+// queryString, each command timeouts in 10 seconds
 func sendCommand(command string, queryString string, args interface{}) error {
 	c, err := NewClient()
 	if err != nil {

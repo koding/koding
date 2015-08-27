@@ -1,3 +1,5 @@
+// Package vagrantkite provides communication layer between terraform and remote
+// klient
 package vagrantkite
 
 import (
@@ -15,6 +17,8 @@ func Provider() terraform.ResourceProvider {
 		// ConfigureFunc: providerConfigure
 
 		ResourcesMap: map[string]*schema.Resource{
+			// vagrantkite_build builds a new vagrant machine on the remote
+			// klient
 			"vagrantkite_build": resourceVagrantKiteBuild(),
 		},
 	}
