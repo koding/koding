@@ -147,17 +147,11 @@ module.exports =
 
   createSnapshot: (browser) ->
 
-    labelSelector   = '.kdlistitemview-snapshot .info .label'
-
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    name = environmentHelpers.createSnapshot(browser)
-
-    browser
-      .waitForElementVisible labelSelector, 300000
-      .assert.containsText   labelSelector, name #Assertion
-      .end()
+    environmentHelpers.createSnapshot(browser)
+    browser.end()
 
 
   renameSnapshot: (browser) ->

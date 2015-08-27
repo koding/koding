@@ -78,25 +78,36 @@ module.exports =
     return name
 
 
-  createSnapshot: (browser) ->
+  createSnapshot: (browser, openSettings = yes) ->
 
-    upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
+    upgradeSelector  = '.kdmodal.computeplan-modal .custom-link-view'
+    labelSelector    = '.kdlistitemview-snapshot .info .label'
+    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
 
-    @attemptCreateSnapshot(browser)
+    if openSettings
+      @attemptCreateSnapshot(browser)
 
-    browser.pause 6000 #Wait for the modal for upgrading to be displayed or not
+    browser.element 'css selector',snapshotSelector , (result) =>
+      if result.status is 0
+        console.log '✔ Snapshot exits. Ending test...'
+      else
+        browser.pause 3000 #Wait for the modal for upgrading to be displayed or not
 
-    browser.isVisible upgradeSelector, (result) ->
+        browser.element 'css selector', upgradeSelector, (result) =>
 
-      if result.value
-         browser.click(upgradeSelector)
-         helpers.selectPlan(browser)
-         helpers.fillPaymentForm(browser)
-         browser.url helpers.getUrl() + '/IDE'
+          if result.status is 0 # upgrade account then create snapshot
+            browser.click(upgradeSelector)
+            helpers.selectPlan(browser)
+            helpers.fillPaymentForm(browser)
+            browser.url helpers.getUrl() + '/IDE'
+            @attemptCreateSnapshot(browser)
 
-    @attemptCreateSnapshot(browser)
+          name = @nameSnapshot(browser)
 
-    return @nameSnapshot(browser)
+          browser
+            .waitForElementVisible labelSelector, 300000
+            .assert.containsText   labelSelector, name #Assertion
+
 
   assertSnapshotPresent: (browser, name, reverse=false) ->
 
