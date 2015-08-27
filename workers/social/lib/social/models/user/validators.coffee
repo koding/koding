@@ -24,9 +24,9 @@ module.exports = class Validators
     message: if 'string' is typeof err then err else err.message
 
 
-  required = (field) =>
+  required = (field) ->
 
-    this::[field] = (userData, callback) ->
+    Validators::[field] = (userData, callback) ->
 
       callback \
         unless userData[field]?
