@@ -267,7 +267,6 @@ currentSuggestionsSelectedItem  = [
 ]
 
 filteredEmojiListQuery         = FilteredEmojiListQueryStore
-filteredEmojiListSelectedIndex = FilteredEmojiListSelectedIndexStore
 # Returns a list of emojis filtered by current query
 filteredEmojiList              = [
   EmojisStore
@@ -276,16 +275,15 @@ filteredEmojiList              = [
     return immutable.List()  unless query
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
-# Returns emoji from emoji list by current selected index
+filteredEmojiListSelectedIndex = [
+  filteredEmojiList
+  FilteredEmojiListSelectedIndexStore
+  calculateListSelectedIndex
+]
 filteredEmojiListSelectedItem  = [
   filteredEmojiList
   filteredEmojiListSelectedIndex
-  (emojis, index) ->
-    return  unless emojis.size > 0
-
-    index = index % emojis.size  if index >= emojis.size
-    index = emojis.size + index  if index < 0
-    return emojis.get index
+  getListSelectedItem
 ]
 
 commonEmojiList              = EmojisStore
@@ -295,11 +293,10 @@ commonEmojiListVisibility    = CommonEmojiListVisibilityStore
 commonEmojiListSelectedItem  = [
   commonEmojiList
   commonEmojiListSelectedIndex
-  (emojis, index) -> emojis.get index
+  getListSelectedItem
 ]
 
 chatInputChannelsQuery         = ChatInputChannelsQueryStore
-chatInputChannelsSelectedIndex = ChatInputChannelsSelectedIndexStore
 # Returns a list of channels depending on the current query
 # If query if empty, returns popular channels
 # Otherwise, returns channels filtered by query
@@ -315,21 +312,19 @@ chatInputChannels              = [
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
-# Returns a channel from channel list by current selected index
+chatInputChannelsSelectedIndex = [
+  chatInputChannels
+  ChatInputChannelsSelectedIndexStore
+  calculateListSelectedIndex
+]
 chatInputChannelsSelectedItem = [
   chatInputChannels
   chatInputChannelsSelectedIndex
-  (channels, index) ->
-    return  unless channels.size > 0
-
-    index = index % channels.size  if index >= channels.size
-    index = channels.size + index  if index < 0
-    return channels.get index
+  getListSelectedItem
 ]
 chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
 
 chatInputUsersQuery         = ChatInputUsersQueryStore
-chatInputUsersSelectedIndex = ChatInputUsersSelectedIndexStore
 # Returns a list of users depending on the current query
 # If query is empty, returns selected channel participants
 # Otherwise, returns users filtered by query
@@ -345,16 +340,15 @@ chatInputUsers              = [
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
-# Returns a user from user list by current selected index
+chatInputUsersSelectedIndex = [
+  chatInputUsers
+  ChatInputUsersSelectedIndexStore
+  calculateListSelectedIndex
+]
 chatInputUsersSelectedItem = [
   chatInputUsers
   chatInputUsersSelectedIndex
-  (users, index) ->
-    return  unless users.size > 0
-
-    index = index % users.size  if index >= users.size
-    index = users.size + index  if index < 0
-    return users.get index
+  getListSelectedItem
 ]
 chatInputUsersVisibility = ChatInputUsersVisibilityStore
 

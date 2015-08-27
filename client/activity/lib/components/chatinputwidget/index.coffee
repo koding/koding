@@ -38,12 +38,14 @@ module.exports = class ChatInputWidget extends React.Component
 
     return {
       filteredEmojiList              : getters.filteredEmojiList
+      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem
       filteredEmojiListQuery         : getters.filteredEmojiListQuery
       commonEmojiList                : getters.commonEmojiList
       commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem
       commonEmojiListVisibility      : getters.commonEmojiListVisibility
       channels                       : getters.chatInputChannels
+      channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem
       channelsQuery                  : getters.chatInputChannelsQuery
       channelsVisibility             : getters.chatInputChannelsVisibility
@@ -178,10 +180,11 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderEmojiDropup: ->
 
-    { filteredEmojiList, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
+    { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
 
     <EmojiDropup
       items           = { filteredEmojiList }
+      selectedIndex   = { filteredEmojiListSelectedIndex }
       selectedItem    = { filteredEmojiListSelectedItem }
       query           = { filteredEmojiListQuery }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
@@ -203,10 +206,11 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderChannelDropup: ->
 
-    { channels, channelsSelectedItem, channelsQuery, channelsVisibility } = @state
+    { channels, channelsSelectedItem, channelsSelectedIndex, channelsQuery, channelsVisibility } = @state
 
     <ChannelDropup
       items           = { channels }
+      selectedIndex   = { channelsSelectedIndex }
       selectedItem    = { channelsSelectedItem }
       query           = { channelsQuery }
       visible         = { channelsVisibility }
@@ -217,10 +221,11 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderUserDropup: ->
 
-    { users, usersSelectedItem, usersQuery, usersVisibility } = @state
+    { users, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
 
     <UserDropup
       items           = { users }
+      selectedIndex   = { userSelectedIndex }
       selectedItem    = { usersSelectedItem }
       query           = { usersQuery }
       visible         = { usersVisibility }
