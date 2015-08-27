@@ -193,7 +193,7 @@ module.exports = VideoCollaborationController =
 
       paymentController.subscriptions (err, plan) =>
 
-        return showError err if err?
+        return showError err  if err
 
         { planTitle }     = plan
 
