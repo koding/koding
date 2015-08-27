@@ -7,6 +7,7 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 module.exports =
 
+
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -156,15 +157,25 @@ module.exports =
 
   renameSnapshot: (browser) ->
 
+    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
-    environmentHelpers.createSnapshotIfNotFound browser, (name)->
-      environmentHelpers.attemptCreateSnapshot(browser)
-      renamed = environmentHelpers.nameSnapshot(browser)
-      environmentHelpers.assertSnapshotPresent browser, renamed, false
-      browser.end()
+    browser.element 'css selector', snapshotSelector, (result) =>
+      if result.status is 0
+        renamed = environmentHelpers.renameSnapshot(browser)
+        environmentHelpers.assertSnapshotPresent browser, renamed, false
+
+      else
+        browser.pause 3000
+        environmentHelpers.addSnapsButton(browser)
+        environmentHelpers.createSnapshot(browser, no)
+        renamed = environmentHelpers.renameSnapshot(browser)
+        environmentHelpers.assertSnapshotPresent browser, renamed, false
+
+    browser.end()
 
 
   # This test depends on createSnapshot

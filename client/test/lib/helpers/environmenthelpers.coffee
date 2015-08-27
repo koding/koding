@@ -59,15 +59,46 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.snapshots'
 
-  attemptCreateSnapshot: (browser) ->
+
+  attemptCreateSnapshot: (browser, openSettings = yes) ->
 
     buttonSelector   = '.snapshots .add-button'
 
-    @openSnapshotsSettings(browser)
+    if openSettings
+      @openSnapshotsSettings(browser)
 
     browser
       .waitForElementVisible buttonSelector, 20000
       .click                 buttonSelector
+
+
+  addSnapsButton: (browser) ->
+
+    buttonSelector   = '.snapshots .add-button'
+
+    browser
+      .waitForElementVisible buttonSelector, 20000
+      .click                 buttonSelector
+
+
+  renameSnapshot: (browser  ) ->
+
+    name                  = helpers.getFakeText().split(' ')[0]
+    inputSelector         = '.snapshots input[type=text].label'
+    snapshotSelector      = '.snapshots .kdlistitemview-snapshot:first-child'
+    renameButtonSelector  = '.snapshots .info .buttons button.rename'
+
+    browser
+      .waitForElementVisible snapshotSelector, 20000
+      .moveToElement         snapshotSelector, 200, 20
+      .waitForElementVisible renameButtonSelector, 20000
+      .click                 renameButtonSelector
+      .waitForElementVisible inputSelector, 20000
+      .clearValue            inputSelector
+      .setValue              inputSelector, [name, browser.Keys.RETURN]
+
+    return name
+
 
   nameSnapshot: (browser) ->
 
