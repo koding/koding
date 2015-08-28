@@ -209,9 +209,6 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		return nil, err
 	}
 
-	// // inject all other variables from credentials
-	// template.injectCustomVariables(data)
-
 	var resource struct {
 		AwsInstance map[string]map[string]interface{} `json:"aws_instance"`
 	}
