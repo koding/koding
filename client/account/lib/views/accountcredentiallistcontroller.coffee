@@ -21,7 +21,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText ?= "You have no credentials."
+    options.noItemFoundText ?= "You have no data to list."
     super options, data
 
     @loadItems()
@@ -32,14 +32,20 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     @removeAllItems()
     @showLazyLoader()
 
+    { query, provider, requiredFields } = @getOptions()
+
+    query          ?=  {}
+    query.provider ?= provider        if provider
+    query.fields   ?= requiredFields  if requiredFields
+
     { JCredential } = remote.api
 
-    JCredential.some {}, { limit: 30 }, (err, credentials) =>
+    JCredential.some query, { limit: 30 }, (err, credentials) =>
 
       @hideLazyLoader()
 
       return if showError err, \
-        KodingError : "Failed to fetch credentials, try again later."
+        KodingError : "Failed to fetch data, try again later."
 
       @instantiateListItems credentials
 
@@ -54,8 +60,21 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       @removeItem item
       @noItemView.show()  if @listView.items.length is 0
 
-    {provider} = @getOptions()
-    @createAddCredentialMenu()  if not provider?
+    {provider, requiredFields} = @getOptions()
+
+    if provider is 'custom' and requiredFields?.length
+      @createAddDataButton()
+    else
+      @createAddCredentialMenu()  if not provider
+
+
+  createAddDataButton: ->
+
+    @getView().parent.prepend addButton = new KDButtonView
+      cssClass  : 'add-big-btn'
+      title     : 'Create New'
+      icon      : yes
+      callback  : @lazyBound 'showAddCredentialFormFor', 'custom'
 
 
   createAddCredentialMenu: ->
@@ -85,6 +104,35 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
         , providerList
 
         @_addButtonMenu.setCss 'z-index': 10002
+
+
+  showAddCredentialFormFor: (provider) ->
+
+    { requiredFields, defaultTitle } = @getOptions()
+
+    view = @getView().parent
+    view.form?.destroy()
+
+    view.setClass "form-open"
+
+    options   = { provider }
+    options.defaultTitle   = defaultTitle    if defaultTitle?
+    options.requiredFields = requiredFields  if requiredFields?
+
+    { ui }    = kd.singletons.computeController
+    view.form = ui.generateAddCredentialFormFor options
+
+    view.form.on "Cancel", ->
+      view.unsetClass "form-open"
+      view.form.destroy()
+
+    view.form.on "CredentialAdded", (credential) =>
+      view.unsetClass "form-open"
+      credential.owner = yes
+      view.form.destroy()
+      @addItem credential
+
+    view.addSubView view.form
 
 
   showShareCredentialFormFor: (credential) ->
@@ -177,28 +225,5 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     # fields.username.addSubView userRequestLineEdit = @userController.getView()
     # @userController.on "ItemListChanged", (count) ->
     #   userRequestLineEdit[if count is 0 then 'show' else 'hide']()
-
-    view.addSubView view.form
-
-
-  showAddCredentialFormFor: (provider) ->
-
-    view = @getView().parent
-    view.form?.destroy()
-
-    view.setClass "form-open"
-
-    { ui }    = kd.singletons.computeController
-    view.form = ui.generateAddCredentialFormFor provider
-    view.form.on "Cancel", ->
-      view.unsetClass "form-open"
-      view.form.destroy()
-
-
-    view.form.on "CredentialAdded", (credential) =>
-      view.unsetClass "form-open"
-      credential.owner = yes
-      view.form.destroy()
-      @addItem credential
 
     view.addSubView view.form
