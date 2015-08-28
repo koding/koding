@@ -13,19 +13,10 @@ import (
 )
 
 type terraformTemplate struct {
-	Resource struct {
-		Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
-	} `json:"resource,omitempty"`
-	// Provider map[string]map[string]interface{} `json:"provider,omitempty"`
-	Provider struct {
-		Aws struct {
-			Region    string `json:"region"`
-			AccessKey string `json:"access_key"`
-			SecretKey string `json:"secret_key"`
-		} `json:"aws"`
-	} `json:"provider"`
-	Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	Output   map[string]map[string]interface{} `json:"output,omitempty"`
+	Resource map[string]interface{} `json:"resource,omitempty"`
+	Provider map[string]interface{} `json:"provider,omitempty"`
+	Variable map[string]interface{} `json:"variable,omitempty"`
+	Output   map[string]interface{} `json:"output,omitempty"`
 
 	h *hcl.Object `json:"-"`
 }
@@ -114,7 +105,7 @@ func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string
 	return t.hclUpdate()
 }
 
-func (t *terraformTemplate) injectKodingVariables(data *terraformData) error {
+func (t *terraformTemplate) injectKodingVariables(data *kodingData) error {
 	var properties = []struct {
 		collection string
 		fieldToAdd map[string]bool
@@ -164,7 +155,13 @@ func (t *terraformTemplate) injectKodingVariables(data *terraformData) error {
 				// nested structs, call again
 				if field.Kind() == reflect.Struct {
 					for _, f := range field.Fields() {
-						newName := varName + "_" + strings.ToLower(f.Name())
+						fieldName := strings.ToLower(f.Name())
+						// check if the user set a field tag
+						if f.Tag("bson") != "" {
+							fieldName = f.Tag("bson")
+						}
+
+						newName := varName + "_" + fieldName
 						addVariable(f, newName, true)
 					}
 					return

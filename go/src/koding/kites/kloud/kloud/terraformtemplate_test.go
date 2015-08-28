@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"fmt"
+	"koding/db/models"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -31,6 +32,76 @@ const testTemplate = `{
         }
     }
 }`
+
+func TestTerraformTemplate_InjectKodingData(t *testing.T) {
+	template, err := newTerraformTemplate(testTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data := &kodingData{
+		Account: &models.Account{
+			Profile: models.AccountProfile{
+				Nickname:  "fatih",
+				FirstName: "Fatih",
+				LastName:  "Arslan",
+				Hash:      "124",
+			},
+		},
+		Group: &models.Group{
+			Title: "MyGroup",
+			Slug:  "my_group",
+		},
+		User: &models.User{
+			Name:  "Fatih",
+			Email: "fatih@koding.com",
+		},
+	}
+
+	if err := template.injectKodingVariables(data); err != nil {
+		t.Fatal(err)
+	}
+
+	var variable struct {
+		KodingAccountProfileFirstName struct {
+			Default string
+		} `hcl:"koding_account_profile_firstName"`
+		KodingAccountProfileHash struct {
+			Default string
+		} `hcl:"koding_account_profile_hash"`
+		KodingAccountProfileLastName struct {
+			Default string
+		} `hcl:"koding_account_profile_lastName"`
+		KodingAccountProfileNickname struct {
+			Default string
+		} `hcl:"koding_account_profile_nickname"`
+		KodingGroupSlug struct {
+			Default string
+		} `hcl:"koding_group_slug"`
+		KodingGroupTitle struct {
+			Default string
+		} `hcl:"koding_group_title"`
+		KodingUserEmail struct {
+			Default string
+		} `hcl:"koding_user_email"`
+		KodingUserUsername struct {
+			Default string
+		} `hcl:"koding_user_username"`
+	}
+
+	if err := template.DecodeVariable(&variable); err != nil {
+		t.Fatal(err)
+	}
+
+	equals(t, "Fatih", variable.KodingAccountProfileFirstName.Default)
+	equals(t, "124", variable.KodingAccountProfileHash.Default)
+	equals(t, "Arslan", variable.KodingAccountProfileLastName.Default)
+	equals(t, "fatih", variable.KodingAccountProfileNickname.Default)
+	equals(t, "my_group", variable.KodingGroupSlug.Default)
+	equals(t, "MyGroup", variable.KodingGroupTitle.Default)
+	equals(t, "Fatih", variable.KodingUserUsername.Default)
+	equals(t, "fatih@koding.com", variable.KodingUserEmail.Default)
+}
 
 func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 	template, err := newTerraformTemplate(testTemplate)

@@ -45,11 +45,15 @@ type buildData struct {
 	KiteIds  map[string]string
 }
 
-type terraformData struct {
-	Creds   []*terraformCredential
+type kodingData struct {
 	Account *models.Account `structs:"account"`
 	Group   *models.Group   `structs:"group"`
 	User    *models.User    `structs:"user"`
+}
+
+type terraformData struct {
+	Creds      []*terraformCredential
+	KodingData *kodingData
 }
 
 type terraformCredential struct {
@@ -307,18 +311,28 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 	}
 
 	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
-	template.injectKodingVariables(data)
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
+		return nil, err
+	}
 
 	// // inject all other variables from credentials
 	// template.injectCustomVariables(data)
 
-	if len(template.Resource.Aws_Instance) == 0 {
-		return nil, fmt.Errorf("instance is empty: %v", template.Resource.Aws_Instance)
+	var resource struct {
+		Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
+	}
+
+	if err := template.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.Aws_Instance) == 0 {
+		return nil, fmt.Errorf("instance is empty: %v", resource.Aws_Instance)
 	}
 
 	kiteIds := make(map[string]string)
 
-	for resourceName, instance := range template.Resource.Aws_Instance {
+	for resourceName, instance := range resource.Aws_Instance {
 		instance["key_name"] = awsOutput.KeyPair
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
@@ -405,7 +419,19 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 			"default": countKeys,
 		}
 
-		template.Resource.Aws_Instance[resourceName] = instance
+		resource.Aws_Instance[resourceName] = instance
+	}
+
+	template.Resource["aws_instance"] = resource.Aws_Instance
+
+	var provider struct {
+		Aws struct {
+			Region string
+		}
+	}
+
+	if err := template.DecodeProvider(&provider); err != nil {
+		return nil, err
 	}
 
 	out, err := template.jsonOutput()
@@ -416,7 +442,7 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 	b := &buildData{
 		Template: out,
 		KiteIds:  kiteIds,
-		Region:   template.Provider.Aws.Region,
+		Region:   provider.Aws.Region,
 	}
 
 	return b, nil
@@ -547,10 +573,12 @@ func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identif
 
 	// 5- return list of keys. We only support aws for now
 	data := &terraformData{
-		Account: account,
-		Group:   group,
-		User:    user,
-		Creds:   make([]*terraformCredential, 0),
+		KodingData: &kodingData{
+			Account: account,
+			Group:   group,
+			User:    user,
+		},
+		Creds: make([]*terraformCredential, 0),
 	}
 
 	for _, c := range credentialData {
