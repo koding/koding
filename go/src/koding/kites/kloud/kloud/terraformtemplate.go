@@ -30,6 +30,8 @@ type terraformTemplate struct {
 	h *hcl.Object `json:"-"`
 }
 
+// newTerraformTemplate parses the content and returns a terraformTemplate
+// instance
 func newTerraformTemplate(content string) (*terraformTemplate, error) {
 	var template *terraformTemplate
 	err := json.Unmarshal([]byte(content), &template)
@@ -37,17 +39,44 @@ func newTerraformTemplate(content string) (*terraformTemplate, error) {
 		return nil, err
 	}
 
-	template.h, err = hcljson.Parse(content)
-	if err != nil {
+	if err := template.hclParse(content); err != nil {
 		return nil, err
 	}
 
 	return template, nil
 }
 
+// hclParse parses the given JSON input and updates the internal hcl object
+// representation
+func (t *terraformTemplate) hclParse(jsonIn string) error {
+	var err error
+	t.h, err = hcljson.Parse(jsonIn)
+	return err
+}
+
+// hclUpdate update the internal hcl object
+func (t *terraformTemplate) hclUpdate() error {
+	out, err := t.jsonOutput()
+	if err != nil {
+		return err
+	}
+
+	return t.hclParse(out)
+}
+
 // DecodeProvider decodes the provider block to the given out struct
 func (t *terraformTemplate) DecodeProvider(out interface{}) error {
 	return t.decode("provider", out)
+}
+
+// DecodeResource decodes the resource block to the given out struct
+func (t *terraformTemplate) DecodeResource(out interface{}) error {
+	return t.decode("resource", out)
+}
+
+// DecodeVariable decodes the resource block to the given out struct
+func (t *terraformTemplate) DecodeVariable(out interface{}) error {
+	return t.decode("variable", out)
 }
 
 func (t *terraformTemplate) decode(resource string, out interface{}) error {
@@ -74,16 +103,18 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 	return string(out), nil
 }
 
-func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string]string) {
+func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string]string) error {
 	for key, val := range data {
 		varName := fmt.Sprintf("%s_%s", prefix, key)
 		t.Variable[varName] = map[string]interface{}{
 			"default": val,
 		}
 	}
+
+	return t.hclUpdate()
 }
 
-func (t *terraformTemplate) injectKodingVariables(data *terraformData) {
+func (t *terraformTemplate) injectKodingVariables(data *terraformData) error {
 	var properties = []struct {
 		collection string
 		fieldToAdd map[string]bool
@@ -148,4 +179,6 @@ func (t *terraformTemplate) injectKodingVariables(data *terraformData) {
 			addVariable(field, varName, exists)
 		}
 	}
+
+	return t.hclUpdate()
 }

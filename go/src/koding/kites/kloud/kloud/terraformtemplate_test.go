@@ -32,15 +32,6 @@ const testTemplate = `{
     }
 }`
 
-func TestTerraformTemplate(t *testing.T) {
-	template, err := newTerraformTemplate(testTemplate)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fmt.Println(template)
-}
-
 func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 	template, err := newTerraformTemplate(testTemplate)
 	if err != nil {
@@ -54,8 +45,33 @@ func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 		"qaz": "hello",
 	}
 
-	template.injectCustomVariables(prefix, data)
-	fmt.Println(template)
+	if err := template.injectCustomVariables(prefix, data); err != nil {
+		t.Fatal(err)
+	}
+
+	var variable struct {
+		CustomBar struct {
+			Default string
+		} `hcl:"custom_bar"`
+		CustomFoo struct {
+			Default string
+		} `hcl:"custom_foo"`
+		CustomQaz struct {
+			Default string
+		} `hcl:"custom_qaz"`
+		Username struct {
+			Default string
+		} `hcl:"username"`
+	}
+
+	if err := template.DecodeVariable(&variable); err != nil {
+		t.Fatal(err)
+	}
+
+	equals(t, "example@example.com", variable.CustomBar.Default)
+	equals(t, "1", variable.CustomFoo.Default)
+	equals(t, "hello", variable.CustomQaz.Default)
+	equals(t, "fatih", variable.Username.Default)
 }
 
 func TestTerraformTemplate_DecodeProvider(t *testing.T) {
