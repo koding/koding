@@ -87,29 +87,35 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		k.Log.Debug("Appending variables for %s", cred.Identifier)
-		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
+		k.Log.Debug("parsing the template")
+		template, err := newTerraformTemplate(awsBootstrap)
 		if err != nil {
 			return nil, err
 		}
 
-		// fetch accountID to create a unique contentID for Terraform
-		region, err := cred.region()
-		if err != nil {
+		k.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return nil, err
 		}
 
-		accesKey, secretKey, err := cred.awsCredentials()
-		if err != nil {
+		var provider struct {
+			Aws struct {
+				Region    string
+				AccessKey string `hcl:"access_key"`
+				SecretKey string `hcl:"secret_key"`
+			}
+		}
+
+		if err := template.DecodeProvider(&provider); err != nil {
 			return nil, err
 		}
 
 		iamClient := iam.New(
 			aws.Auth{
-				AccessKey: accesKey,
-				SecretKey: secretKey,
+				AccessKey: provider.Aws.AccessKey,
+				SecretKey: provider.Aws.SecretKey,
 			},
-			aws.Regions[region],
+			aws.Regions[provider.Aws.Region],
 		)
 
 		k.Log.Debug("Fetching the AWS user information to get the account ID")
@@ -123,10 +129,15 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, region)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, provider.Aws.Region)
 		k.Log.Debug("Going to use the contentID: %s", contentID)
 
 		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+
+		finalBootstrap, err := template.jsonOutput()
+		if err != nil {
+			return nil, err
+		}
 
 		finalBootstrap, err = appendAWSTemplateData(finalBootstrap, &awsTemplateData{
 			KeyPairName:     keyName,

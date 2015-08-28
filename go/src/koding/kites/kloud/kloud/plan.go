@@ -70,8 +70,11 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		}
 
 		k.Log.Debug("Appending AWS variable for\n%s", stackTemplate.Template.Content)
-		stackTemplate.Template.Content, err = cred.appendAWSVariable(stackTemplate.Template.Content)
+		template, err := newTerraformTemplate(stackTemplate.Template.Content)
 		if err != nil {
+			return nil, err
+		}
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return nil, err
 		}
 	}

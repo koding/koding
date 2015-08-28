@@ -178,9 +178,15 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	}
 	defer tfKite.Close()
 
+	sess.Log.Debug("Parsing the template")
+	template, err := newTerraformTemplate(stack.Template)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 	for _, cred := range data.Creds {
-		stack.Template, err = cred.appendAWSVariable(stack.Template)
-		if err != nil {
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
 	}
@@ -264,9 +270,15 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	}
 	defer tfKite.Close()
 
+	sess.Log.Debug("Parsing the template")
+	template, err := newTerraformTemplate(stack.Template)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 	for _, cred := range data.Creds {
-		stack.Template, err = cred.appendAWSVariable(stack.Template)
-		if err != nil {
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
 	}
