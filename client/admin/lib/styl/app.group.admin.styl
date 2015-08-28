@@ -1161,11 +1161,26 @@ Admin main styles
   .step-creds
     height                  100%
 
+    .kdformview
+      height                calc(100% \- 50px)
+      overflow              auto
+
+      .advanced-field
+        display             none
+
+      &.in-advanced-mode
+        .advanced-field
+          display           block
+
+
+  .kdscrollview > .define-stack-view
+    height                  calc(100% \- 160px)
+
   .step-define-stack
     height                  calc(100% \- 270px)
 
     .editor-view
-      height                calc(100% + 83px)
+      height                calc(100% \+ 116px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
@@ -1175,7 +1190,7 @@ Admin main styles
 
   .edit-mode
     .step-define-stack .editor-view
-      height                calc(100% + 220px)
+      height                calc(100% \+ 220px)
 
 
   .stack-editor-footer
@@ -1306,7 +1321,7 @@ Admin main styles
 
   .variables
     .editor-view
-      height                calc(100% \- 170px)
+      height                calc(100% \- 120px)
 
   .step-define-stack
 
@@ -1661,7 +1676,7 @@ Admin main styles
     color                   #565656
     font-weight             300
     width                   450px
-    margin                  0 auto 53px
+    margin                  0 auto
 
 
 // stack onboarding styling

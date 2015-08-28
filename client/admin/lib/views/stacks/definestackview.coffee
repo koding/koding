@@ -52,7 +52,7 @@ module.exports = class DefineStackView extends KDView
       view : @stackTemplateView
 
     @variablesView                     = new VariablesView delegate: this
-    @tabView.addPane variables         = new KDTabPaneView
+    @tabView.addPane variablesPane     = new KDTabPaneView
       name : 'Variables'
       view : @variablesView
 
@@ -81,7 +81,6 @@ module.exports = class DefineStackView extends KDView
         console.warn 'Failed to share credential:', err  if err
         @stackTemplateView.credentialStatus.setCredential credential
 
-
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
         @saveButton.enable()
@@ -89,14 +88,20 @@ module.exports = class DefineStackView extends KDView
       else
         @saveButton.disable()
 
+    variablesPane.on 'PaneDidShow', =>
+      @setFooterVisibility 'show'
+
     stackTemplatePane.on 'PaneDidShow', =>
-      @buttons.show()
-      @footer.show()
+      @setFooterVisibility 'show'
 
     providersPane.on 'PaneDidShow', =>
       @outputView.fall()
-      @buttons.hide()
-      @footer.hide()
+      @setFooterVisibility 'hide'
+
+
+  setFooterVisibility: (state) ->
+    @buttons[state]()
+    @footer[state]()
 
 
   createFooter: ->
