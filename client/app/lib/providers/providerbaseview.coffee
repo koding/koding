@@ -119,7 +119,8 @@ module.exports = class ProviderBaseView extends KDTabPaneView
 
   createNewInstanceForm:->
 
-    @createInstanceForm = ComputeController_UI.generateCreateInstanceForm()
+    { ui }              = kd.singletons.computeController
+    @createInstanceForm = ui.generateCreateInstanceForm()
 
     @createInstanceForm.on "Cancel", =>
       @createInstanceForm.unsetClass 'in'
@@ -134,8 +135,9 @@ module.exports = class ProviderBaseView extends KDTabPaneView
 
     @addCredentialForm?.destroy()
 
+    { ui } = kd.singletons.computeController
     return unless @addCredentialForm = \
-      ComputeController_UI.generateAddCredentialFormFor provider
+      ui.generateAddCredentialFormFor provider
 
     @addCredentialForm.on "Cancel", =>
       @addCredentialForm.unsetClass 'in'
