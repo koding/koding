@@ -142,7 +142,7 @@ module.exports =
     ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText)
 
     browser
-      .waitForElementVisible      cancelSelector, 20000
+      .waitForElementVisible      cancelSelector, 15000
       .assert.containsText        cancelSelector + ' span.button-title', 'CANCEL'
       .click                      cancelSelector
 
@@ -165,7 +165,7 @@ module.exports =
     ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText)
 
     browser
-      .waitForElementVisible      dontSaveSelector, 20000
+      .waitForElementVisible      dontSaveSelector, 15000
       .assert.containsText        dontSaveSelector + ' span.button-title', 'DON\'T SAVE'
       .click                      dontSaveSelector
       .end()
@@ -189,7 +189,7 @@ module.exports =
     ideHelpers.openFileSetTextClose(browser, user, '', dummyText, yes, no)
 
     browser
-      .waitForElementVisible      saveCloseSelector, 20000
+      .waitForElementVisible      saveCloseSelector, 15000
       .assert.containsText        saveCloseSelector + ' span.button-title', 'SAVE AND CLOSE'
       .click                      saveCloseSelector
       .waitForElementVisible      saveAsModalSelector, 20000
