@@ -254,7 +254,7 @@ var awsBootstrap = `{
         "aws": {
             "access_key": "${var.aws_access_key}",
             "secret_key": "${var.aws_secret_key}",
-            "region": "${var.region}"
+            "region": "${var.aws_region}"
         }
     },
     "output": {
@@ -280,7 +280,7 @@ var awsBootstrap = `{
             "value": "${aws_security_group.allow_all.id}"
         },
         "ami": {
-            "value": "${lookup(var.aws_amis, var.region)}"
+            "value": "${lookup(var.aws_amis, var.aws_region)}"
         },
         "key_pair": {
             "value": "${aws_key_pair.koding_key_pair.key_name}"
@@ -305,7 +305,7 @@ var awsBootstrap = `{
         },
         "aws_subnet": {
             "main_koding_subnet": {
-                "availability_zone": "${lookup(var.aws_availability_zones, var.region)}",
+                "availability_zone": "${lookup(var.aws_availability_zones, var.aws_region)}",
                 "cidr_block": "${var.cidr_block}",
                 "map_public_ip_on_launch": true,
                 "tags": {
