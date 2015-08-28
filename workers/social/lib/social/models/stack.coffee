@@ -8,8 +8,11 @@ module.exports = class JComputeStack extends jraphical.Module
 
   { secure, ObjectId, signature, daisy } = require 'bongo'
   { Relationship }   = jraphical
+  { uniq }           = require 'underscore'
   { permit }         = require './group/permissionset'
   Validators         = require './group/validators'
+  { PROVIDERS }      = require './computeproviders/computeutils'
+
 
   @trait __dirname, '../traits/protected'
 
@@ -291,6 +294,7 @@ module.exports = class JComputeStack extends jraphical.Module
         @remove callback
 
 
+  SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']
 
   modify: permit
 
@@ -300,15 +304,27 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, options, callback) ->
 
-      { title, config } = options
+      { title, config, credentials } = options
 
-      unless title or config
+      unless title or config or credentials
         return callback new KodingError 'Nothing to update'
 
-      title  ?= @title
-      config ?= @config
+      dataToUpdate        = {}
+      dataToUpdate.title  = title   if title?
+      dataToUpdate.config = config  if config?
 
-      @update $set : { title, config }, (err) ->
+      if credentials?
+        unless typeof credentials is 'object'
+          return callback new KodingError 'Credential should be an Object'
+
+        sanitized = {}
+        for key, value of credentials
+          if key in SUPPORTED_CREDS
+            sanitized[key] = uniq value
+
+        dataToUpdate.credentials = sanitized
+
+      @update $set : dataToUpdate, (err) ->
         return callback err  if err?
         callback null
 
