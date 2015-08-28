@@ -63,6 +63,7 @@ module.exports = class JCredential extends jraphical.Module
 
     indexes           :
       identifier      : 'unique'
+      fields          : 'sparse'
 
     schema            :
 
@@ -83,6 +84,10 @@ module.exports = class JCredential extends jraphical.Module
         required      : yes
 
       meta            : require 'bongo/bundles/meta'
+
+      fields          :
+        type          : [String]
+        default       : -> []
 
       verified        :
         type          : Boolean
@@ -122,8 +127,14 @@ module.exports = class JCredential extends jraphical.Module
       credData.save (err) ->
         return  if failed err, callback
 
-        { identifier } = credData
-        credential = new JCredential { provider, title, identifier, originId }
+        { identifier }   = credData
+        _data            = { provider, title, identifier, originId }
+
+        if provider is 'custom'
+          _data.fields   = (Object.keys meta) or []
+          _data.verified = yes
+
+        credential = new JCredential _data
 
         credential.save (err) ->
           return  if failed err, callback, credData
