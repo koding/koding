@@ -809,10 +809,11 @@ module.exports = class ComputeController extends KDController
 
       stack.checkRevision (error, data) =>
 
+        data ?= {}
         { status, machineCount } = data
         stack._revisionStatus = { error, status }
 
-        console.info "Revision info for stack #{stack.title}", status
+        # console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
 
         if stack.machines.length isnt machineCount
@@ -820,8 +821,6 @@ module.exports = class ComputeController extends KDController
 
 
   verifyStackRequirements: (stack) ->
-
-    console.log 'STACK TO VERIFY', stack
 
     unless stack
       kd.warn 'Stack not provided:', stack
@@ -834,16 +833,14 @@ module.exports = class ComputeController extends KDController
     for provider in requiredProviders when provider isnt 'koding'
       missings.push provider  unless provided[provider]?
 
-    console.log 'MISSING DATA:', missings
-
     if 'userInput' in missings
       fields = requiredData.userInput
-      console.log "ASK FOR THESE:", fields
-
-      @ui.requestMissingData
-        defaultTitle   : "#{stack.title} required data"
+      @ui.requestMissingData {
         requiredFields : fields
-      , (credential) ->
-        console.log 'Selected Credential: ', credential
+        stack
+      }, ({ stack, credential }) =>
+        @emit 'StackRequirementsProvided', { stack, credential }
 
-    return no
+      return no
+
+    return yes
