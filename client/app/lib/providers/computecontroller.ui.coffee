@@ -16,6 +16,8 @@ applyMarkdown        = require 'app/util/applyMarkdown'
 ProviderView         = require './providerview'
 TerminalModal        = require '../terminal/terminalmodal'
 
+MissingDataView      = require './missingdataview'
+
 
 module.exports = class ComputeController_UI
 
@@ -292,6 +294,19 @@ module.exports = class ComputeController_UI
     modal.setClass 'has-markdown'
 
     return modal
+
+
+  @requestMissingData = (options, callback) ->
+
+    modal = new kd.ModalView
+      cssClass       : 'AppModal AppModal--admin'
+      title          : 'Some data is required'
+      overlay        : yes
+      view           : new MissingDataView options
+      overlayOptions :
+        cssClass     : 'second-overlay'
+      width          : 630
+      height         : '100%'
 
 
   showInlineInformation = do ->
