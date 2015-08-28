@@ -48,9 +48,6 @@ func (t *terraformTemplate) get(key string) string {
 	o := t.h.Get("resource", true)
 	fmt.Printf("o = %+v\n", o)
 
-	var data struct {
-	}
-
 	return ""
 }
 
