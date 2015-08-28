@@ -114,7 +114,7 @@ module.exports = class JCredential extends jraphical.Module
       { provider, title, meta } = data
       originId = delegate.getId()
 
-      if not PROVIDERS[provider]?
+      if provider isnt 'custom' and not PROVIDERS[provider]?
         callback new KodingError 'Provider is not supported'
         return
 
