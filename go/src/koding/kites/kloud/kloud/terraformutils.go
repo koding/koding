@@ -213,20 +213,20 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 	// template.injectCustomVariables(data)
 
 	var resource struct {
-		Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
+		AwsInstance map[string]map[string]interface{} `json:"aws_instance"`
 	}
 
 	if err := template.DecodeResource(&resource); err != nil {
 		return nil, err
 	}
 
-	if len(resource.Aws_Instance) == 0 {
-		return nil, fmt.Errorf("instance is empty: %v", resource.Aws_Instance)
+	if len(resource.AwsInstance) == 0 {
+		return nil, fmt.Errorf("instance is empty: %v", resource.AwsInstance)
 	}
 
 	kiteIds := make(map[string]string)
 
-	for resourceName, instance := range resource.Aws_Instance {
+	for resourceName, instance := range resource.AwsInstance {
 		instance["key_name"] = awsOutput.KeyPair
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
@@ -313,10 +313,10 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 			"default": countKeys,
 		}
 
-		resource.Aws_Instance[resourceName] = instance
+		resource.AwsInstance[resourceName] = instance
 	}
 
-	template.Resource["aws_instance"] = resource.Aws_Instance
+	template.Resource["aws_instance"] = resource.AwsInstance
 
 	var provider struct {
 		Aws struct {
