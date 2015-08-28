@@ -62,9 +62,9 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 		accessKey := cred.Data["access_key"]
 		secretKey := cred.Data["secret_key"]
-		authRegion, err := cred.region()
-		if err != nil {
-			return nil, err
+		authRegion, ok := cred.Data["region"]
+		if !ok {
+			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
 		svc := ec2.New(&aws.Config{
