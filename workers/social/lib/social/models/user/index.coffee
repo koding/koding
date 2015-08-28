@@ -296,7 +296,7 @@ module.exports = class JUser extends jraphical.Module
 
                 Payment.deleteAccount deletedClient, (err) =>
 
-                  account.leaveFromAllGroups client, ->
+                  account.leaveFromAllGroups client, =>
 
                     @logout deletedClient, callback
 
