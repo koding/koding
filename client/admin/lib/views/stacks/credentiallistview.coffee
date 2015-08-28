@@ -14,7 +14,7 @@ module.exports = class CredentialListView extends kd.View
 
     super options, data
 
-    { stackTemplate, selectedCredentials } = @getOptions()
+    { stackTemplate, selectedCredentials, provider } = @getOptions()
 
     @list           = new AccountCredentialList {
       itemClass     : CredentialListItem
@@ -22,11 +22,12 @@ module.exports = class CredentialListView extends kd.View
       selectedCredentials
     }
 
-
-    @listController = new AccountCredentialListController
+    @listController = new AccountCredentialListController {
       view          : @list
       wrapper       : no
       scrollView    : no
+      provider
+    }
 
     @listView = @listController.getView()
 
