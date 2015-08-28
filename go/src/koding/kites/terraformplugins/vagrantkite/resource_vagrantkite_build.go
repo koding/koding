@@ -36,7 +36,7 @@ func resourceVagrantKiteBuild() *schema.Resource {
 			},
 			"filePath": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Full path of the file for Vagrantfile",
 			},
 		},
