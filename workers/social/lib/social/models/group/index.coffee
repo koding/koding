@@ -171,6 +171,11 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchMembersWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -703,6 +708,14 @@ module.exports = class JGroup extends Module
         cursor.toArray callback
 
   fetchMembers$: permit 'list members',
+    success:(client, rest...) ->
+      # when max limit is over 20 it starts giving "call stack exceeded" error
+      [selector, options, callback] = Module.limitEdges 10, 19, rest
+      # delete options.targetOptions
+      options.client = client
+      @fetchMembers selector, options, callback
+
+  fetchMembersWithEmail$: permit 'grant permissions',
     success:(client, rest...) ->
       # when max limit is over 20 it starts giving "call stack exceeded" error
       [selector, options, callback] = Module.limitEdges 10, 19, rest
