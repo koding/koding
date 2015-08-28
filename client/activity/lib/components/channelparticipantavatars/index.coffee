@@ -25,10 +25,15 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
   componentDidMount: ->
 
-    document.addEventListener 'mousedown', @handleOutsideMouseClick
+    document.addEventListener 'mousedown', @bound 'handleOutsideMouseClick'
 
 
-  handleOutsideMouseClick: (event) =>
+  componentWillUnmount: ->
+
+    document.removeEventListener 'mousedown', @bound 'handleOutsideMouseClick'
+
+
+  handleOutsideMouseClick: (event) ->
 
     return  unless @refs.AllParticipantsMenu
 
@@ -69,9 +74,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     else @setState addNewParticipantMode: yes
 
 
-  onShowMoreParticipantButtonClick: (e) ->
+  onShowMoreParticipantButtonClick: (event) ->
 
-    e.stopPropagation()
+    event.stopPropagation()
     if @state.showAllParticipants is yes
     then @setState showAllParticipants: no
     else @setState showAllParticipants: yes
