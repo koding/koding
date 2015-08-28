@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
+	hclmain "github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl"
 	hcljson "github.com/hashicorp/hcl/json"
 )
@@ -44,11 +45,14 @@ func newTerraformTemplate(content string) (*terraformTemplate, error) {
 	return template, nil
 }
 
-func (t *terraformTemplate) get(key string) string {
-	o := t.h.Get("resource", true)
-	fmt.Printf("o = %+v\n", o)
+// DecodeProvider decodes the provider block to the given out struct
+func (t *terraformTemplate) DecodeProvider(out interface{}) error {
+	return t.decode("provider", out)
+}
 
-	return ""
+func (t *terraformTemplate) decode(resource string, out interface{}) error {
+	obj := t.h.Get(resource, true)
+	return hclmain.DecodeObject(out, obj)
 }
 
 func (t *terraformTemplate) String() string {

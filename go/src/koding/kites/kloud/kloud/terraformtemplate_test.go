@@ -2,6 +2,9 @@ package kloud
 
 import (
 	"fmt"
+	"path/filepath"
+	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -38,7 +41,7 @@ func TestTerraformTemplate(t *testing.T) {
 	fmt.Println(template)
 }
 
-func TestTerraformTemplateInjectCustomVariable(t *testing.T) {
+func TestTerraformTemplate_InjectCustomVariable(t *testing.T) {
 	template, err := newTerraformTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
@@ -55,12 +58,34 @@ func TestTerraformTemplateInjectCustomVariable(t *testing.T) {
 	fmt.Println(template)
 }
 
-func TestTerraformTemplateGet(t *testing.T) {
+func TestTerraformTemplate_DecodeProvider(t *testing.T) {
 	template, err := newTerraformTemplate(testTemplate)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	template.get("foo")
+	var provider struct {
+		Aws struct {
+			Region    string
+			AccessKey string `hcl:"access_key"`
+			SecretKey string `hcl:"secret_key"`
+		}
+	}
 
+	if err := template.DecodeProvider(&provider); err != nil {
+		t.Fatal(err)
+	}
+
+	equals(t, "${var.aws_access_key}", provider.Aws.AccessKey)
+	equals(t, "${var.aws_secret_key}", provider.Aws.SecretKey)
+	equals(t, "${var.aws_region}", provider.Aws.Region)
+}
+
+// equals fails the test if exp is not equal to act.
+func equals(tb testing.TB, exp, act interface{}) {
+	if !reflect.DeepEqual(exp, act) {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
+		tb.FailNow()
+	}
 }

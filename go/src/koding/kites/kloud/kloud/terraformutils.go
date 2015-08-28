@@ -279,6 +279,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 
 	return provider, label, nil
 }
+
 func injectKodingData(ctx context.Context, content, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
