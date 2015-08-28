@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 _                    = require 'underscore'
+
 KDModalView          = kd.ModalView
 KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
@@ -40,19 +41,32 @@ module.exports = class ComputeController_UI
       overlay  : yes
 
 
-  @generateAddCredentialFormFor = (provider)->
+  @generateAddCredentialFormFor = (options) ->
 
-    fields          =
-      title         :
-        label       : "Title"
-        placeholder : "title for this credential"
+    { provider, requiredFields, defaultTitle } = options
 
-    Providers        = globals.config.providers
-    currentProvider  = Providers[provider]
-    credentialFields = Object.keys currentProvider.credentialFields
+    fields           =
+      title          :
+        label        : "Title"
+        placeholder  : "title for this credential"
+        defaultValue : defaultTitle or ''
 
-    unless credentialFields.length
-      return
+    if provider is 'custom' and requiredFields
+      credentialFields = {}
+
+      for field in requiredFields
+        credentialFields[field] =
+          label : field.capitalize()
+
+      currentProvider  = { credentialFields }
+
+    else
+      Providers        = globals.config.providers
+      currentProvider  = Providers[provider]
+
+    credentialFields   = Object.keys currentProvider.credentialFields
+
+    return  unless credentialFields.length
 
     selectOptions = []
 
@@ -69,7 +83,7 @@ module.exports = class ComputeController_UI
 
     buttons      =
       Save       :
-        title    : "Add credential"
+        title    : "Save"
         type     : "submit"
         style    : "solid green medium"
         loader   : color : "#444444"
