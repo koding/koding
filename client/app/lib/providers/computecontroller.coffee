@@ -598,6 +598,8 @@ module.exports = class ComputeController extends KDController
 
   buildStack: (stack) ->
 
+    return  unless @verifyStackRequirements stack
+
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 
@@ -817,3 +819,31 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  verifyStackRequirements: (stack) ->
+
+    console.log 'STACK TO VERIFY', stack
+
+    unless stack
+      kd.warn 'Stack not provided:', stack
+      return no
+
+    { requiredProviders, requiredData } = stack.config
+    provided = stack.credentials
+    missings = []
+
+    for provider in requiredProviders when provider isnt 'koding'
+      missings.push provider  unless provided[provider]?
+
+    console.log 'MISSING DATA:', missings
+
+    if 'userInput' in missings
+      fields = requiredData.userInput
+      console.log "ASK FOR THESE:", fields
+
+      @ui.requestMissingData
+        defaultTitle   : "#{stack.title} required data"
+        requiredFields : fields
+      , (credential) ->
+        console.log 'Selected Credential: ', credential
+
+    return no
