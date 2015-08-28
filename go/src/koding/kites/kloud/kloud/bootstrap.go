@@ -98,24 +98,24 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		var provider struct {
-			Aws struct {
-				Region    string
-				AccessKey string `hcl:"access_key"`
-				SecretKey string `hcl:"secret_key"`
-			}
+		var awsCred struct {
+			Region    string `mapstructure:"region"`
+			AccessKey string `mapstructure:"access_key"`
+			SecretKey string `mapstructure:"secret_key"`
 		}
 
-		if err := template.DecodeProvider(&provider); err != nil {
+		if err := mapstructure.Decode(cred.Data, &awsCred); err != nil {
 			return nil, err
 		}
 
+		fmt.Printf("aws = %+v\n", awsCred)
+
 		iamClient := iam.New(
 			aws.Auth{
-				AccessKey: provider.Aws.AccessKey,
-				SecretKey: provider.Aws.SecretKey,
+				AccessKey: awsCred.AccessKey,
+				SecretKey: awsCred.SecretKey,
 			},
-			aws.Regions[provider.Aws.Region],
+			aws.Regions[awsCred.Region],
 		)
 
 		k.Log.Debug("Fetching the AWS user information to get the account ID")
@@ -129,7 +129,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, provider.Aws.Region)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, awsCred.Region)
 		k.Log.Debug("Going to use the contentID: %s", contentID)
 
 		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
