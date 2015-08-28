@@ -210,7 +210,7 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 	}
 
 	var resource struct {
-		AwsInstance map[string]map[string]interface{} `json:"aws_instance"`
+		AwsInstance map[string]map[string]interface{} `hcl:"aws_instance"`
 	}
 
 	if err := template.DecodeResource(&resource); err != nil {
@@ -246,11 +246,10 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		// kite id.
 		var count int = 1
 		if c, ok := instance["count"]; ok {
-			// we receive it as float64
-			if cFloat, ok := c.(float64); !ok {
-				return nil, fmt.Errorf("count statement should be an integer, got: %+v", c)
-			} else {
-				count = int(cFloat)
+			// we receive it as int
+			count, ok = c.(int)
+			if !ok {
+				return nil, fmt.Errorf("count statement should be an integer, got: %+v, %T", c, c)
 			}
 		}
 

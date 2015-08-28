@@ -82,6 +82,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	sess.Log.Debug("Plan: stack template before injecting Koding data")
+	sess.Log.Debug("%v", template)
 	buildData, err := injectKodingData(ctx, template, r.Username, data)
 	if err != nil {
 		return nil, err

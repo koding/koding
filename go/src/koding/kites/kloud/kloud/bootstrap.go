@@ -108,8 +108,6 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		fmt.Printf("aws = %+v\n", awsCred)
-
 		iamClient := iam.New(
 			aws.Auth{
 				AccessKey: awsCred.AccessKey,
