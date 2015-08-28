@@ -169,7 +169,7 @@ module.exports =
     helpers.clickVMHeaderButton(browser)
     browser.click ".context-list-wrapper #{selector}"
 
-  openFileSetTextClose: (browser, user, fileName, dummyText, newFile = no, shouldAssert = yes) ->
+  openFileSetTextClose: (browser, user, fileName, dummyText, newFile = no, shouldAssert) ->
 
     if newFile
       @openNewFile(browser)

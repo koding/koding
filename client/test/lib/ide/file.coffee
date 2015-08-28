@@ -139,7 +139,7 @@ module.exports =
 
     fileName = helpers.createFile(browser, user)
 
-    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText)
+    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText, no, no)
 
     browser
       .waitForElementVisible      cancelSelector, 15000
@@ -162,7 +162,7 @@ module.exports =
 
     fileName = helpers.createFile(browser, user)
 
-    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText)
+    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText, no, no)
 
     browser
       .waitForElementVisible      dontSaveSelector, 15000
