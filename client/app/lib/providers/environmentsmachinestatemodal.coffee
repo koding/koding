@@ -675,11 +675,14 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     target     = @machine
     stack      = computeController.findStackFromMachineId @machine._id
 
-    unless isKoding()
-      if stack and @state is NotInitialized and \
-         @machine.jMachine.generatedFrom?.templateId?
-        action   = 'buildStack'
-        target   = stack
+    if not isKoding() and stack
+
+      if @state is NotInitialized
+        action = 'buildStack'
+        target = stack
+
+      if @machine.jMachine.generatedFrom?.templateId?
+        return  unless computeController.verifyStackRequirements stack
 
     computeController.off  "error-#{target._id}"
 
