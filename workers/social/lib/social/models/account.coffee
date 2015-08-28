@@ -342,7 +342,7 @@ module.exports = class JAccount extends jraphical.Module
   leaveFromAllGroups: secure (client, callback) ->
     { delegate } = client.connection
 
-    @fetchAllParticipatedGroups client, (err, groups)->
+    @fetchAllParticipatedGroups client, (err, groups) ->
       return callback err   if err
       return callback null  if not groups
 
@@ -354,7 +354,7 @@ module.exports = class JAccount extends jraphical.Module
 
       dash queue, callback
 
-  fetchAllParticipatedGroups: secure (client, callback)->
+  fetchAllParticipatedGroups: secure (client, callback) ->
 
     { delegate } = client.connection
 
@@ -374,7 +374,7 @@ module.exports = class JAccount extends jraphical.Module
         { uniq, map } = require 'underscore'
 
         # just get the unique group ids from relationship response
-        groupIds = uniq map(arr, (rel)-> rel.sourceId)
+        groupIds = uniq map(arr, (rel) -> rel.sourceId)
 
         JGroup = require './group'
         JGroup.some { _id : { $in : groupIds } }, {}, callback

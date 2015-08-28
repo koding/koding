@@ -424,9 +424,9 @@ runTests = -> describe 'workers.social.user.account', ->
 
       it 'admin should have more than one group', (done) ->
 
-        adminAccount.fetchAllParticipatedGroups adminClient, (err, groups)->
+        adminAccount.fetchAllParticipatedGroups adminClient, (err, groups) ->
           expect(err).to.not.exist
-          expect(groups).to.have.length.above(1);
+          expect(groups).to.have.length.above(1)
           done()
 
       it 'standart user should be able to leave from all groups', (done) ->
@@ -460,20 +460,20 @@ runTests = -> describe 'workers.social.user.account', ->
               queue.next()
 
           ->
-            account.fetchAllParticipatedGroups client, (err, groups)->
+            account.fetchAllParticipatedGroups client, (err, groups) ->
               expect(err).to.not.exist
-              expect(groups).to.have.length.above(1);
+              expect(groups).to.have.length.above(1)
               queue.next()
 
           ->
-            account.leaveFromAllGroups client, (err)->
+            account.leaveFromAllGroups client, (err) ->
               expect(err).to.not.exist
               queue.next()
 
           ->
-            account.fetchAllParticipatedGroups client, (err, groups)->
+            account.fetchAllParticipatedGroups client, (err, groups) ->
               expect(err).to.not.exist
-              expect(groups).to.have.length(1);
+              expect(groups).to.have.length(1)
               queue.next()
 
           ->
