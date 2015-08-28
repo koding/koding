@@ -191,7 +191,7 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, stack.Template, username, data)
+	buildData, err := injectKodingData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}
@@ -284,9 +284,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	}
 
 	sess.Log.Debug("Stack template before injecting Koding data:")
-	sess.Log.Debug(stack.Template)
+	sess.Log.Debug("%s", template)
 
-	buildData, err := injectKodingData(ctx, stack.Template, username, data)
+	buildData, err := injectKodingData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}

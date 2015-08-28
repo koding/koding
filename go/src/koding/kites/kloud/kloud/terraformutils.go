@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
@@ -86,106 +85,6 @@ func (m *Machines) WithLabel(label string) (TerraformMachine, error) {
 	}
 
 	return TerraformMachine{}, fmt.Errorf("couldn't find machine with label '%s", label)
-}
-
-// region returns the region from the credential data
-func (t *terraformCredential) region() (string, error) {
-	// for now we support only aws
-	if t.Provider != "aws" {
-		return "", fmt.Errorf("provider '%s' is not supported", t.Provider)
-	}
-
-	region := t.Data["region"]
-	if region == "" {
-		return "", fmt.Errorf("region for identifer '%s' is not set", t.Identifier)
-	}
-
-	return region, nil
-}
-
-func (t *terraformCredential) awsCredentials() (string, string, error) {
-	if t.Provider != "aws" {
-		return "", "", fmt.Errorf("provider '%s' is not supported", t.Provider)
-	}
-
-	// we do not check for key existency here because the key might exists but
-	// with an empty value, so just checking for the emptiness of the value is
-	// better
-	accessKey := t.Data["access_key"]
-	if accessKey == "" {
-		return "", "", fmt.Errorf("accessKey for identifier '%s' is not set", t.Identifier)
-	}
-
-	secretKey := t.Data["secret_key"]
-	if secretKey == "" {
-		return "", "", fmt.Errorf("secretKey for identifier '%s' is not set", t.Identifier)
-	}
-
-	return accessKey, secretKey, nil
-}
-
-// appendAWSVariable appends the credentials aws data to the given template and
-// returns it back.
-func (t *terraformCredential) appendAWSVariable(template string) (string, error) {
-	var data struct {
-		Output   map[string]map[string]interface{} `json:"output,omitempty"`
-		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
-		Provider struct {
-			Aws struct {
-				Region    string `json:"region"`
-				AccessKey string `json:"access_key"`
-				SecretKey string `json:"secret_key"`
-			} `json:"aws"`
-		} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
-
-	if err := json.Unmarshal([]byte(template), &data); err != nil {
-		return "", err
-	}
-
-	credRegion := t.Data["region"]
-	if credRegion == "" {
-		return "", fmt.Errorf("region for identifier '%s' is not set", t.Identifier)
-	}
-
-	// if region is not added, add it via credRegion
-	region := data.Provider.Aws.Region
-	if region == "" {
-		data.Provider.Aws.Region = credRegion
-	} else if !isVariable(region) && region != credRegion {
-		// compare with the provider block's region. Don't allow if they are
-		// different.
-		return "", fmt.Errorf("region in the provider block doesn't match the region in credential data. Provider block: '%s'. Credential data: '%s'", region, credRegion)
-	}
-
-	if data.Variable == nil {
-		data.Variable = make(map[string]map[string]interface{})
-	}
-
-	accessKey, secretKey, err := t.awsCredentials()
-	if err != nil {
-		return "", err
-	}
-
-	data.Variable["aws_access_key"] = map[string]interface{}{
-		"default": accessKey,
-	}
-
-	data.Variable["aws_secret_key"] = map[string]interface{}{
-		"default": secretKey,
-	}
-
-	data.Variable["region"] = map[string]interface{}{
-		"default": credRegion,
-	}
-
-	out, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
 }
 
 func machinesFromState(state *terraform.State) (*Machines, error) {
@@ -284,7 +183,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-func injectKodingData(ctx context.Context, content, username string, data *terraformData) (*buildData, error) {
+func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -303,11 +202,6 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 
 	if structs.HasZero(awsOutput) {
 		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
-	}
-
-	template, err := newTerraformTemplate(content)
-	if err != nil {
-		return nil, err
 	}
 
 	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..

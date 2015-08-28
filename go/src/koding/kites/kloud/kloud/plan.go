@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"errors"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
@@ -62,25 +63,26 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
+	template, err := newTerraformTemplate(stackTemplate.Template.Content)
+	if err != nil {
+		return nil, err
+	}
+
 	var region string
 	for _, cred := range data.Creds {
-		region, err = cred.region()
-		if err != nil {
-			return nil, err
+		region, ok = cred.Data["region"]
+		if !ok {
+			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
 		k.Log.Debug("Appending AWS variable for\n%s", stackTemplate.Template.Content)
-		template, err := newTerraformTemplate(stackTemplate.Template.Content)
-		if err != nil {
-			return nil, err
-		}
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return nil, err
 		}
 	}
 
 	sess.Log.Debug("Plan: stack template before injecting Koding data")
-	buildData, err := injectKodingData(ctx, stackTemplate.Template.Content, r.Username, data)
+	buildData, err := injectKodingData(ctx, template, r.Username, data)
 	if err != nil {
 		return nil, err
 	}
