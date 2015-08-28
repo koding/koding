@@ -21,7 +21,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText ?= "You have no data to list."
+    options.noItemFoundText ?= "You don't have any credentials"
     super options, data
 
     @loadItems()
@@ -41,6 +41,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     { JCredential } = remote.api
 
     JCredential.some query, { limit: 30 }, (err, credentials) =>
+
+      if provider? and credentials?.length is 0
+        @showAddCredentialFormFor provider
 
       @hideLazyLoader()
 
@@ -62,10 +65,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     {provider, requiredFields} = @getOptions()
 
-    if provider is 'custom' and requiredFields?.length
-      @createAddDataButton()
-    else
-      @createAddCredentialMenu()  if not provider
+    if provider
+    then @createAddDataButton()
+    else @createAddCredentialMenu()
 
 
   createAddDataButton: ->
@@ -74,7 +76,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       cssClass  : 'add-big-btn'
       title     : 'Create New'
       icon      : yes
-      callback  : @lazyBound 'showAddCredentialFormFor', 'custom'
+      callback  : @lazyBound 'showAddCredentialFormFor', @getOption 'provider'
 
 
   createAddCredentialMenu: ->
@@ -84,6 +86,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     Object.keys(Providers).forEach (provider) =>
 
+      return  if provider is 'custom'
       return  if Object.keys(Providers[provider].credentialFields).length is 0
 
       providerList[Providers[provider].title] =

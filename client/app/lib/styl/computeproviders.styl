@@ -578,20 +578,21 @@ computeproviders.styl
 
 .kdview.stacks.step-creds
 
+  font-size                 14px
+
   .kdformview
-    height                calc(100% \- 210px)
-    overflow              auto
+    height                  calc(100% \- 210px)
+    overflow                auto
 
     .advanced-field
-      display             none
+      display               none
 
     &.in-advanced-mode
       .advanced-field
-        display           block
+        display             block
 
   form
     .formline
-      padding               0 17px 0 0
       margin                0 0 16px
       borderBox()
 
@@ -628,13 +629,27 @@ computeproviders.styl
       border-color          #f13a18
 
   .form-view
-    height                calc(100% \- 200px)
-    border-bottom         1px solid #EEE
+    height                  calc(100% \- 200px)
+    border-bottom           1px solid #EEE
+
+.kdlistview
+  .no-item-found
+    color                   #878787
+    font-size               14px
+    padding                 24px 0
+    text-align              center
+
+.missingdata-view
+  .stacks
+    padding-top             10px
 
 .stacks
+
   .form-open
     .credential-list
-      display             none
+      display               none
+    .add-big-btn
+      display               none
 
 
 .kdlistview.credential-list
@@ -725,6 +740,30 @@ computeproviders.styl
         background-color    #01A84E
         &[disabled]
           opacity           .5
+
+  .customdata-item
+
+    &:hover
+      .credential-info
+        .fields
+          width             300px
+
+    .credential-info
+      padding               0
+
+      .fields
+        vendor              transition, width .3s .3s ease
+        clear               left
+        opacity             .6
+        font-style          italic
+        font-size           13px
+        width               490px
+        text-overflow       ellipsis
+        overflow            hidden
+        white-space         nowrap
+
+        strong
+          font-weight       bold
 
 
 .kdlistview.repo-user-list
