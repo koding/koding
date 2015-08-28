@@ -1,7 +1,7 @@
 kd                              = require 'kd'
 curryIn                         = require 'app/util/curryIn'
 
-CredentialListItem              = require 'app/stacks/credentiallistitem'
+CustomDataListItem              = require 'app/stacks/customdatalistitem'
 AccountCredentialList           = require 'account/accountcredentiallist'
 AccountCredentialListController = require 'account/views/accountcredentiallistcontroller'
 
@@ -10,24 +10,23 @@ module.exports = class MissingDataView extends kd.View
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'stacks step-creds'
+    curryIn options, cssClass: 'stacks step-creds missingdata-view'
 
     super options, data
 
 
   viewAppended: ->
 
-    { stackTemplate, selectedCredentials } = @getOptions()
+    { stack, requiredFields, defaultTitle } = @getOptions()
 
-    @list           = new AccountCredentialList {
-      itemClass     : CredentialListItem
-      itemOptions   : { stackTemplate }
-      selectedCredentials
-    }
+    defaultTitle     ?= "#{stack.title} build requirements"
 
-    { requiredFields, defaultTitle } = @getOptions()
+    @list             = new AccountCredentialList
+      itemClass       : CustomDataListItem
 
     @listController   = new AccountCredentialListController {
+      noItemFoundText : "You don't have a proper data document for
+                         this stack. Please create a new one."
       view            : @list
       wrapper         : no
       scrollView      : no
@@ -38,7 +37,23 @@ module.exports = class MissingDataView extends kd.View
 
     @credentialList = @listController.getView()
 
-    @forwardEvent @credentialList, 'ItemSelected'
+    @credentialList.on 'ItemSelected', (credential) =>
+
+      { credentials } = stack
+      credentials.userInput ?= []
+      credentials.userInput.push credential.identifier
+
+      stack.modify { credentials }, (err) =>
+        kd.warn err  if err
+
+        stack.credentials = credentials
+        @emit 'RequirementsProvided', { stack, credential }
+
+
+    @addSubView new kd.View
+      partial: "Based on the Stack Template which this Stack generated,
+                you first need to provide some information to build
+                this stack properly."
 
     mainView = @addSubView new kd.View
       cssClass: 'stacks stacks-v2'
