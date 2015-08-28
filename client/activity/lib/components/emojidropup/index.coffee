@@ -18,6 +18,7 @@ module.exports = class EmojiDropup extends React.Component
 
   @defaultProps =
     items          : immutable.List()
+    selectedIndex  : 0
     selectedItem   : null
     keyboardScroll : no
 
@@ -68,10 +69,10 @@ module.exports = class EmojiDropup extends React.Component
 
   renderList: ->
 
-    { items, selectedItem } = @props
+    { items, selectedIndex } = @props
 
     items.map (item, index) =>
-      isSelected = item is selectedItem
+      isSelected = index is selectedIndex
 
       <EmojiDropupItem
         isSelected  = { isSelected }
