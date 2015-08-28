@@ -708,7 +708,11 @@ module.exports = class JGroup extends Module
       [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchMembers selector, options, callback
+      @fetchMembers selector, options, (err, members) ->
+        return callback err, []  if err or not members
+
+        helper.mergeAccountsWithEmail members, (err, accounts) ->
+          return callback err, accounts
 
   fetchAdmins$: permit 'list members',
     success:(client, rest...) ->
@@ -716,7 +720,11 @@ module.exports = class JGroup extends Module
       [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchAdmins selector, options, callback
+      @fetchAdmins selector, options, (err, admins) ->
+        return callback err, []  if err or not admins
+
+        helper.mergeAccountsWithEmail admins, (err, accounts) ->
+          return callback err, accounts
 
   fetchModerators$: permit 'list members',
     success:(client, rest...) ->
@@ -724,7 +732,11 @@ module.exports = class JGroup extends Module
       [selector, options, callback] = Module.limitEdges 10, 19, rest
       # delete options.targetOptions
       options.client = client
-      @fetchModerators selector, options, callback
+      @fetchModerators selector, options, (err, moderators) ->
+        return callback err, []  if err or not moderators
+
+        helper.mergeAccountsWithEmail moderators, (err, accounts) ->
+          return callback err, accounts
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
   # It is a workaround, and will be changed after elasticsearch implementation. CtF
@@ -1277,3 +1289,21 @@ module.exports = class JGroup extends Module
         return callback err if err
         return callback null, channel.id
 
+
+  helper =
+
+    mergeAccountsWithEmail: (accounts, callback) ->
+
+      JUser     = require '../user'
+      usernames = accounts.map (account) -> account.profile.nickname
+
+      JUser.some { username: { $in: usernames } }, {}, (err, users) ->
+
+        return callback err, []  if err or not users
+
+        for account in accounts
+          for user in users
+            if account.profile.nickname is user.username
+              account.profile.email = user.email
+
+        return callback null, accounts
