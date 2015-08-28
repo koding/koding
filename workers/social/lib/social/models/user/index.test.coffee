@@ -7,6 +7,7 @@ KONFIG                        = require('koding-config-manager').load("main.#{ar
 JLog                          = require '../log/index'
 Bongo                         = require 'bongo'
 JUser                         = require './index'
+JName                         = require '../name'
 mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 JAccount                      = require '../account'
 JSession                      = require '../session'
@@ -709,6 +710,156 @@ runTests = -> describe 'workers.social.user.index', ->
       ]
 
       daisy queue
+
+
+  describe '#unregister()', ->
+
+    describe 'when user is not registered', ->
+
+      it 'should return err', (done) ->
+
+        client = {}
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            # username won't matter, only client's account will be checked
+            JUser.unregister client, generateRandomUsername(), (err) ->
+              expect(err?.message).to.be.equal 'You are not registered!'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+    describe 'when user is registered', ->
+
+      it 'should return error if requester doesnt have right to unregister', (done) ->
+
+        client       = {}
+        userFormData = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+
+              # set credentials
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
+
+          ->
+            # username won't matter, only client's account will be checked
+            JUser.unregister client, generateRandomUsername(), (err) ->
+              expect(err?.message).to.be.equal 'You must confirm this action!'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'user should be updated if requester has the right to unregister', (done) ->
+
+        client              = {}
+        userFormData        = generateDummyUserFormData()
+        { email, username } = userFormData
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            # registering user
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+
+              # set credentials
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
+
+          ->
+            # expecting user to exist before unregister
+            JUser.one { username }, (err, user) ->
+              expect(err)           .to.not.exist
+              expect(user)          .to.exist
+              expect(user.email)    .to.be.equal email
+              expect(user.username) .to.be.equal username
+              queue.next()
+
+          ->
+            # expecting name to exist before unregister
+            JName.one { name : username }, (err, name) ->
+              expect(err)  .to.not.exist
+              expect(name) .to.exist
+              queue.next()
+
+          ->
+            # expecting user account to exist before unregister
+            JAccount.one { 'profile.nickname' : username }, (err, account) ->
+              expect(err)                  .to.not.exist
+              expect(account)              .to.exist
+              expect(account.type)         .to.be.equal 'registered'
+              expect(account.onlineStatus) .to.be.equal 'online'
+              queue.next()
+
+          ->
+            # expecting successful unregister
+            JUser.unregister client, username, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            # expecting user to be deleted after unregister
+            JUser.one { username }, (err, user) ->
+              expect(err)   .to.not.exist
+              expect(user)  .to.not.exist
+              queue.next()
+
+          ->
+            # expecting name to be deleted
+            JName.one { name : username }, (err, name) ->
+              expect(err)  .to.not.exist
+              expect(name) .to.not.exist
+              queue.next()
+          ->
+            # expecting user account to be deleted after unregister
+            JAccount.one { 'profile.nickname' : username }, (err, account) ->
+              expect(err)     .to.not.exist
+              expect(account) .to.not.exist
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
 
 
   describe '#verifyRecaptcha()', ->
