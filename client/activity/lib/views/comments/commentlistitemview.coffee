@@ -74,7 +74,9 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
     @formWrapper.addSubView @editInput
     @formWrapper.show()
 
-    kd.utils.defer => @editInput.input.resize()
+    kd.utils.defer =>
+      @editInput.input.resize()
+      @editInput.input.sendCursorToEnd()
 
     @editInput
       .once 'SubmitStarted', @bound 'hideEditForm'
