@@ -298,15 +298,20 @@ module.exports = class ComputeController_UI
 
   @requestMissingData = (options, callback) ->
 
+    missingDataView = new MissingDataView options
+
     modal = new kd.ModalView
       cssClass       : 'AppModal AppModal--admin'
-      title          : 'Some data is required'
+      title          : 'Build Requirements'
       overlay        : yes
-      view           : new MissingDataView options
+      view           : missingDataView
       overlayOptions :
         cssClass     : 'second-overlay'
       width          : 630
-      height         : '100%'
+
+    missingDataView.on 'RequirementsProvided', ({ stack, credential }) ->
+      callback { stack, credential }
+      modal.destroy()
 
 
   showInlineInformation = do ->
