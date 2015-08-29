@@ -223,14 +223,13 @@ module.exports = class JUser extends jraphical.Module
     username = "#{username}-rm"
 
     email = "#{username}@koding.com"
-    @one { username: toBeDeletedUsername }, (err, user) =>
+    @one { username: toBeDeletedUsername }, (err, user) ->
       return callback err  if err?
 
       unless user
         return callback new KodingError \
           "User not found #{toBeDeletedUsername}"
 
-      oldEmail = user.email
 
       userValues = {
         email           : email
@@ -248,57 +247,10 @@ module.exports = class JUser extends jraphical.Module
       }
       modifier = { $set: userValues, $unset: { oldUsername: 1 } }
       # update the user with empty data
-      user.update modifier, (err, docs) =>
-        return callback err  if err?
 
-        accountValues = {
-          type                      : 'deleted'
-          skillTags                 : []
-          ircNickame                : ''
-          globalFlags               : ['deleted']
-          locationTags              : []
-          onlineStatus              : 'offline'
-          'profile.about'           : ''
-          'profile.hash'            : getHash createId()
-          'profile.avatar'          : ''
-          'profile.nickname'        : username
-          'profile.lastName'        : 'koding user'
-          'profile.firstName'       : 'a former'
-          'profile.experience'      : ''
-          'profile.experiencePoints': 0
-          'profile.lastStatusUpdate': ''
-        }
-
-        params = { 'profile.nickname' : toBeDeletedUsername }
-        JAccount.one params, (err, account) =>
-          return callback err  if err?
-
-          unless account
-            return callback new KodingError \
-              "Account not found #{toBeDeletedUsername}"
-
-          # update the account to be deleted with empty data
-          account.update { $set: accountValues }, (err) =>
-            return callback err  if err?
-            JName.release toBeDeletedUsername, (err) =>
-              return callback err  if err?
-              JAccount.emit 'UsernameChanged', {
-                oldUsername    : toBeDeletedUsername
-                isRegistration : false
-                username
-              }
-
-              user.unlinkOAuths =>
-
-                Payment = require '../payment'
-
-                deletedClient = { connection: { delegate: account } }
-
-                Payment.deleteAccount deletedClient, (err) =>
-
-                  account.leaveFromAllGroups client, =>
-
-                    @logout deletedClient, callback
+      user.update modifier, updateUnregisteredUserAccount({
+        user, username, toBeDeletedUsername
+      }, callback)
 
 
   @isRegistrationEnabled = (callback) ->
@@ -677,6 +629,63 @@ module.exports = class JUser extends jraphical.Module
       return callback new Error 'User not found'  unless user
 
       user.verifyByPin options, callback
+
+
+  updateUnregisteredUserAccount = (options, callback) ->
+
+    { username : usernameAfterDelete, toBeDeletedUsername, user } = options
+
+    return (err, docs) =>
+      return callback err  if err?
+
+      accountValues = {
+        type                      : 'deleted'
+        skillTags                 : []
+        ircNickame                : ''
+        globalFlags               : ['deleted']
+        locationTags              : []
+        onlineStatus              : 'offline'
+        'profile.about'           : ''
+        'profile.hash'            : getHash createId()
+        'profile.avatar'          : ''
+        'profile.nickname'        : usernameAfterDelete
+        'profile.lastName'        : 'koding user'
+        'profile.firstName'       : 'a former'
+        'profile.experience'      : ''
+        'profile.experiencePoints': 0
+        'profile.lastStatusUpdate': ''
+      }
+
+      params = { 'profile.nickname' : toBeDeletedUsername }
+      JAccount.one params, (err, account) =>
+        return callback err  if err?
+
+        unless account
+          return callback new KodingError \
+            "Account not found #{toBeDeletedUsername}"
+
+        # update the account to be deleted with empty data
+        account.update { $set: accountValues }, (err) =>
+          return callback err  if err?
+          JName.release toBeDeletedUsername, (err) =>
+            return callback err  if err?
+            JAccount.emit 'UsernameChanged', {
+              oldUsername    : toBeDeletedUsername
+              isRegistration : false
+              username       : usernameAfterDelete
+            }
+
+            user.unlinkOAuths =>
+
+              Payment = require '../payment'
+
+              deletedClient = { connection: { delegate: account } }
+
+              Payment.deleteAccount deletedClient, (err) =>
+
+                account.leaveFromAllGroups client, =>
+
+                  JUser.logout deletedClient, callback
 
 
   validateConvertInput = (userFormData, client) ->
