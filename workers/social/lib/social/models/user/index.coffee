@@ -635,7 +635,7 @@ module.exports = class JUser extends jraphical.Module
 
     { username : usernameAfterDelete, toBeDeletedUsername, user } = options
 
-    return (err, docs) =>
+    return (err, docs) ->
       return callback err  if err?
 
       accountValues = {
@@ -657,7 +657,7 @@ module.exports = class JUser extends jraphical.Module
       }
 
       params = { 'profile.nickname' : toBeDeletedUsername }
-      JAccount.one params, (err, account) =>
+      JAccount.one params, (err, account) ->
         return callback err  if err?
 
         unless account
@@ -665,9 +665,9 @@ module.exports = class JUser extends jraphical.Module
             "Account not found #{toBeDeletedUsername}"
 
         # update the account to be deleted with empty data
-        account.update { $set: accountValues }, (err) =>
+        account.update { $set: accountValues }, (err) ->
           return callback err  if err?
-          JName.release toBeDeletedUsername, (err) =>
+          JName.release toBeDeletedUsername, (err) ->
             return callback err  if err?
             JAccount.emit 'UsernameChanged', {
               oldUsername    : toBeDeletedUsername
@@ -675,13 +675,13 @@ module.exports = class JUser extends jraphical.Module
               username       : usernameAfterDelete
             }
 
-            user.unlinkOAuths =>
+            user.unlinkOAuths ->
 
               Payment = require '../payment'
 
               deletedClient = { connection: { delegate: account } }
 
-              Payment.deleteAccount deletedClient, (err) =>
+              Payment.deleteAccount deletedClient, (err) ->
 
                 account.leaveFromAllGroups client, =>
 
