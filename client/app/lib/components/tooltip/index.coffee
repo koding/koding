@@ -16,9 +16,9 @@ module.exports = class Tooltip extends React.Component
   componentDidMount: ->
 
     TooltipWrapperDOMNode                  = @refs.TooltipWrapper.getDOMNode()
-    TooltipWrapperDOMNode.style.top        = @props.tooltipY + "px"
-    TooltipWrapperDOMNode.style.left       = @props.tooltipX + "px"
-    TooltipWrapperDOMNode.style.marginLeft = "#{ -TooltipWrapperDOMNode.offsetWidth / 2 }px"
+    TooltipWrapperDOMNode.style.top        = "#{@props.tooltipY}px"
+    TooltipWrapperDOMNode.style.left       = "#{@props.tooltipX}px"
+    TooltipWrapperDOMNode.style.marginLeft = "#{-TooltipWrapperDOMNode.offsetWidth / 2}px"
 
 
   render: ->
