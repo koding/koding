@@ -46,21 +46,24 @@ module.exports = class DefineStackView extends KDView
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @tabView.addPane stackTemplatePane = new KDTabPaneView name: 'Stack Template'
+    @stackTemplateView                 = new StackTemplateView options, data
+    @tabView.addPane stackTemplatePane = new KDTabPaneView
+      name : 'Stack Template'
+      view : @stackTemplateView
 
-    # Close for now.
-    #@tabView.addPane variables        = new KDTabPaneView name: 'Variables'
-    #variables.addSubView @variablesView         = new VariablesView
+    @variablesView                     = new VariablesView delegate: this
+    @tabView.addPane variablesPane     = new KDTabPaneView
+      name : 'Variables'
+      view : @variablesView
 
-    @tabView.addPane providersPane     = new KDTabPaneView name: 'Providers'
-
-    stackTemplatePane.addSubView @stackTemplateView = new StackTemplateView options, data
+    @providersView                     = new ProvidersView {
+      stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
+    }
+    @tabView.addPane providersPane     = new KDTabPaneView
+      name : 'Providers'
+      view : @providersView
 
     { @credentials } = @stackTemplateView.credentialStatus or {}
-
-    providersPane.addSubView @providersView = new ProvidersView
-      stackTemplate       : stackTemplate
-      selectedCredentials : @credentials
 
     @tabView.showPaneByIndex 0
 
@@ -78,7 +81,6 @@ module.exports = class DefineStackView extends KDView
         console.warn 'Failed to share credential:', err  if err
         @stackTemplateView.credentialStatus.setCredential credential
 
-
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
         @saveButton.enable()
@@ -86,14 +88,20 @@ module.exports = class DefineStackView extends KDView
       else
         @saveButton.disable()
 
+    variablesPane.on 'PaneDidShow', =>
+      @setFooterVisibility 'show'
+
     stackTemplatePane.on 'PaneDidShow', =>
-      @buttons.show()
-      @footer.show()
+      @setFooterVisibility 'show'
 
     providersPane.on 'PaneDidShow', =>
       @outputView.fall()
-      @buttons.hide()
-      @footer.hide()
+      @setFooterVisibility 'hide'
+
+
+  setFooterVisibility: (state) ->
+    @buttons[state]()
+    @footer[state]()
 
 
   createFooter: ->
