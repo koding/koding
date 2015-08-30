@@ -53,6 +53,46 @@ dispatchLoadMessageSuccess = (channelId, message) ->
   dispatch actionTypes.LOAD_MESSAGE_SUCCESS, { channelId, channel, message }
 
 
+###*
+ * An empty promise resolver. It's being used for default cases that returns
+ * promise to keep API consistent.
+###
+emptyPromise = new Promise (resolve) -> resolve()
+
+
+###*
+ * Loads the message with given message id. It doesn't fetch if there is a
+ * fetch going on with given messageId.
+ *
+ * @param {string} messageId
+###
+loadMessage = do (fetchingMap = {}) -> (messageId) ->
+
+  return emptyPromise  unless messageId
+
+  # if there is already a fetch going on for that message just return an empty
+  # Promise.
+  return emptyPromise  if fetchingMap[messageId]
+
+  # mark this message id as being fetched.
+  fetchingMap[messageId] = yes
+
+  { socialapi } = kd.singletons
+  { LOAD_MESSAGE_BEGIN
+    LOAD_MESSAGE_FAIL } = actionTypes
+
+  dispatch LOAD_MESSAGE_BEGIN, { messageId }
+
+  socialapi.message.byId { id: messageId }, (err, message) ->
+    if err
+      dispatch LOAD_MESSAGE_FAIL, { err, messageId }
+      return
+
+    dispatchLoadMessageSuccess message.initialChannelId, message
+    # unmark this message for being fetched.
+    loadComments message.id
+    fetchingMap[messageId] = no
+
 
 ###*
  * Action to load message with given slug.
