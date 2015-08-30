@@ -130,6 +130,11 @@ selectedChannelThread = [
   (threads, channel) ->
     return null  unless channel
     thread = threads.get channel.get('id')
+    thread = thread.update 'messages', (messages) ->
+      messages.map (msg) ->
+        msg.update 'body', (body) ->
+          # don't show channel name on post body.
+          body.replace ///\##{channel.get('name')}///, ''
     return thread.set 'channel', channel
 ]
 
