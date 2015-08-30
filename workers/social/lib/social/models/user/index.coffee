@@ -297,54 +297,7 @@ module.exports = class JUser extends jraphical.Module
       else
 
         # So we have a session, let's check it out if its a valid one
-        { username } = session
-
-        unless username?
-
-          # A session without a username is nothing, let's kill it
-          # and logout the user, this is also a rare condition
-          logout 'no username found', clientId, callback
-
-          return
-
-        # If we are dealing with a guest session we know that we need to
-        # use fake guest user
-
-        if /^guest-/.test username
-          JUser.fetchGuestUser (err, response) ->
-            return logout 'error fetching guest account'  if err
-
-            { account } = response
-            return logout 'guest account not found'  if not response?.account
-
-            return callback null, { account, session }
-
-          return
-
-        JUser.one { username }, (err, user) ->
-
-          if err?
-
-            logout 'error finding user with username', clientId, callback
-
-          else unless user?
-
-            logout "no user found with #{username} and sessionId", clientId, callback
-
-          else
-
-            context = { group: session?.groupName ? 'koding' }
-
-            user.fetchAccount context, (err, account) ->
-
-              if err?
-                logout 'error fetching account', clientId, callback
-
-              else
-
-                # A valid session, a valid user attached to
-                # it voila, scenario #2
-                callback null, { session, account }
+        checkSessionValidity { session, logout, clientId }, callback
 
 
   @getHash = getHash = (value) ->
@@ -629,6 +582,59 @@ module.exports = class JUser extends jraphical.Module
       return callback new Error 'User not found'  unless user
 
       user.verifyByPin options, callback
+
+
+  checkSessionValidity = (options, callback) ->
+
+    { session, logout, clientId } = options
+    { username } = session
+
+    unless username?
+
+      # A session without a username is nothing, let's kill it
+      # and logout the user, this is also a rare condition
+      logout 'no username found', clientId, callback
+
+      return
+
+    # If we are dealing with a guest session we know that we need to
+    # use fake guest user
+
+    if /^guest-/.test username
+      JUser.fetchGuestUser (err, response) ->
+        return logout 'error fetching guest account'  if err
+
+        { account } = response
+        return logout 'guest account not found'  if not response?.account
+
+        return callback null, { account, session }
+
+      return
+
+    JUser.one { username }, (err, user) ->
+
+      if err?
+
+        logout 'error finding user with username', clientId, callback
+
+      else unless user?
+
+        logout "no user found with #{username} and sessionId", clientId, callback
+
+      else
+
+        context = { group: session?.groupName ? 'koding' }
+
+        user.fetchAccount context, (err, account) ->
+
+          if err?
+            logout 'error fetching account', clientId, callback
+
+          else
+
+            # A valid session, a valid user attached to
+            # it voila, scenario #2
+            callback null, { session, account }
 
 
   updateUnregisteredUserAccount = (options, callback) ->
