@@ -903,6 +903,154 @@ runTests = -> describe 'workers.social.user.index', ->
         done()
 
 
+  describe '#authenticateClient()', ->
+
+    describe 'when there is no session for the given clientId', ->
+
+      it 'should create a new session', (done) ->
+
+        JUser.authenticateClient 'someInvalidClientId', (err, data) ->
+          expect(err).to.not.exist
+          expect(data.session).to.be.an 'object'
+          expect(data.session).to.have.property 'clientId'
+          expect(data.session).to.have.property 'username'
+          expect(data.account).to.be.an 'object'
+          expect(data.account).to.have.property 'socialApiId'
+          expect(data.account).to.have.property 'profile'
+          done()
+
+
+    describe 'when there is a session for the given clientId', ->
+
+      it 'should return error if username doesnt exist in session', (done) ->
+
+        sessionToken = null
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            selector = { clientId : sessionToken }
+            modifier = { $unset : { username : 1 } }
+            JSession.update selector, modifier, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err?.message).to.be.equal 'no username found'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should be handle guest user if username starts with guest-', (done) ->
+
+        guestUsername = "guest-#{generateRandomString 10}"
+        sessionToken  = null
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            selector = { clientId : sessionToken }
+            modifier = { $set : { username : guestUsername } }
+            JSession.update selector, modifier, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err).to.not.exist
+              expect(data.session).to.be.an 'object'
+              expect(data.account).to.be.an 'object'
+              expect(data.account.profile.nickname).not.to.be.equal guestUsername
+              expect(data.account.type).to.be.equal 'unregistered'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should return error if username doesnt match any user', (done) ->
+
+        sessionToken    = null
+        invalidUsername = 'someInvalidUsername'
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            selector = { clientId : sessionToken }
+            modifier = { $set : { username : invalidUsername} }
+            JSession.update selector, modifier, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err?.message).to.be.equal "no user found with
+                                  #{invalidUsername} and sessionId"
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should return session and account if session is valid', (done) ->
+
+        sessionToken = null
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err).to.not.exist
+              expect(data.session).to.be.an 'object'
+              expect(data.session).to.have.property 'clientId'
+              expect(data.session).to.have.property 'username'
+              expect(data.account).to.be.an 'object'
+              expect(data.account).to.have.property 'socialApiId'
+              expect(data.account).to.have.property 'profile'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
 beforeTests()
 
 runTests()
