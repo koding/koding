@@ -56,9 +56,7 @@ module.exports = class ChatPane extends React.Component
     </section>
 
 
-  onFollowChannelButtonClick: ->
-
-    ActivityFlux.actions.channel.followChannel @props.thread.getIn ['channel', 'id']
+  onFollowChannelButtonClick: -> @props.onFollowChannelButtonClick()
 
 
   renderFollowChannel: ->
