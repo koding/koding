@@ -37,6 +37,11 @@ module.exports = class PostPane extends React.Component
       ActivityFlux.actions.message.loadComments @message('id'), { from }
 
 
+  onFollowChannel: ->
+
+    ActivityFlux.actions.channel.followChannel @channel 'id'
+
+
   render: ->
     <Modal isOpen={yes}>
       <ChatPane
@@ -46,6 +51,7 @@ module.exports = class PostPane extends React.Component
         onSubmit={@bound 'onSubmit'}
         onLoadMore={@bound 'onLoadMore'}
         isParticipant={@channel 'isParticipant'}
+        onFollowChannelButtonClick={@bound 'onFollowChannel'}
       />
     </Modal>
 
