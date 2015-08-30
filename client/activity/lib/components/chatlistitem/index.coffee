@@ -86,27 +86,29 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
 
-    key       : @props.message.get 'id'
-    className : classnames
-      'ChatItem': yes
-      'mouse-enter': @state.hover
-      'is-menuOpen': @state.isMenuOpen
-    onMouseEnter: =>
-      @setState hover: yes
-    onMouseLeave: =>
-      @setState hover: no
+    key               : @props.message.get 'id'
+    className         : classnames
+      'ChatItem'      : yes
+      'mouse-enter'   : @state.hover
+      'is-menuOpen'   : @state.isMenuOpen
+    onMouseEnter      : =>
+      @setState hover : yes
+    onMouseLeave      : =>
+      @setState hover : no
 
 
   getMenuItems: ->
 
-    if checkFlag('super-admin') then @getAdminMenuItems() else @getDefaultMenuItems()
+    if checkFlag('super-admin')
+    then @getAdminMenuItems()
+    else @getDefaultMenuItems()
 
 
   getDefaultMenuItems: ->
 
     return [
-      {title: 'Edit Post',          key: 'editpost',              onClick: @bound 'editPost'}
-      {title: 'Delete Post',        key: 'showdeletepostprompt',  onClick: @bound 'showDeletePostPromptModal'}
+      {title: 'Edit Post'   , key: 'editpost'             , onClick: @bound 'editPost'}
+      {title: 'Delete Post' , key: 'showdeletepostprompt' , onClick: @bound 'showDeletePostPromptModal'}
     ]
 
 
@@ -124,8 +126,16 @@ module.exports = class ChatListItem extends React.Component
 
     adminMenuItems = [
       markUserMenuItem
-      {title: 'Block User',         key: 'blockuser',   onClick: @bound 'showBlockUserPromptModal'}
-      {title: 'Impersonate User',   key: 'impersonateuser', onClick: @bound 'impersonateUser'}
+      {
+        title   : 'Block User'
+        key     : 'blockuser'
+        onClick : @bound 'showBlockUserPromptModal'
+      }
+      {
+        title   : 'Impersonate User'
+        key     : 'impersonateuser'
+        onClick : @bound 'impersonateUser'
+      }
     ]
 
     return @getDefaultMenuItems().concat adminMenuItems

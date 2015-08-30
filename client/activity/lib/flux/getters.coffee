@@ -206,6 +206,7 @@ messageThreads = [
   (threads, messages, messageFlags) ->
     threads.map (thread) ->
       messageId = thread.get 'messageId'
+      thread = thread.set 'message', messages.get messageId
       thread = thread.set 'flags', messageFlags.get messageId
       # replace messageIds in list with message instances.
       thread.update 'comments', (comments) ->
