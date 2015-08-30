@@ -424,26 +424,13 @@ module.exports = class JUser extends jraphical.Module
         # # user is member, check validity
         # # user is not member, and trying to access with invitationToken
         # both should succeed
-
-        # if we dont have an invitation code, do not continue
-        return queue.next()  unless invitationToken
-
-        JInvitation = require '../invitation'
-        JInvitation.byCode invitationToken, (err, invitation_) ->
-          return callback err  if err
-          return callback new KodingError 'invitation is not valid'  unless invitation_
+        fetchInvitationByCode invitationToken, queue, callback, (invitation_) ->
           invitation = invitation_
-          queue.next()
 
       ->
-        # check if user has pending invitation
-        return queue.next()  if invitationToken
-
-        JInvitation = require '../invitation'
-        options = { email: user.email, groupName }
-        JInvitation.one options, {}, (err, invitation_) ->
-          invitation = invitation_ if invitation_
-          queue.next()
+        fetchInvitationByData {
+          user, groupName, invitationToken
+        }, queue, callback, (invitation_) -> invitation = invitation_
 
       =>
         return queue.next()  if groupIsBeingCreated
@@ -555,6 +542,32 @@ module.exports = class JUser extends jraphical.Module
       return callback new Error 'User not found'  unless user
 
       user.verifyByPin options, callback
+
+
+  fetchInvitationByCode = (invitationToken, queue, callback, fetchData) ->
+
+    # if we dont have an invitation code, do not continue
+    return queue.next()  unless invitationToken
+
+    JInvitation = require '../invitation'
+    JInvitation.byCode invitationToken, (err, invitation) ->
+      return callback err  if err
+      return callback new KodingError 'invitation is not valid'  unless invitation
+      fetchData invitation
+      queue.next()
+
+
+  fetchInvitationByData = (options, queue, callback, fetchData) ->
+
+    { user, groupName, invitationToken } = options
+    # check if user has pending invitation
+    return queue.next()  if invitationToken
+
+    selector = { email: user.email, groupName }
+    JInvitation = require '../invitation'
+    JInvitation.one selector, {}, (err, invitation) ->
+      fetchData invitation  if invitation
+      queue.next()
 
 
   validateLoginCredentials = (options, queue, callback, fetchData) ->
