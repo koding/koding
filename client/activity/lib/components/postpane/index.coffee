@@ -42,8 +42,11 @@ module.exports = class PostPane extends React.Component
     ActivityFlux.actions.channel.followChannel @channel 'id'
 
 
+  onClose: -> kd.singletons.router.handleRoute "/Channels/#{@channel 'name'}"
+
+
   render: ->
-    <Modal isOpen={yes}>
+    <Modal isOpen={yes} onClose={@bound 'onClose'}>
       <ChatPane
         thread={@props.thread}
         className="PostPane"
