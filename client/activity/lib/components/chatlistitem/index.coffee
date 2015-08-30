@@ -40,7 +40,7 @@ module.exports = class ChatListItem extends React.Component
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
-
+    showItemMenu                  : yes
 
 
   constructor: (props) ->
@@ -291,6 +291,8 @@ module.exports = class ChatListItem extends React.Component
 
 
   renderChatItemMenu: ->
+
+    return null  unless @props.showItemMenu
 
     { message } = @props
     if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')

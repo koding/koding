@@ -52,6 +52,7 @@ module.exports = class PostPane extends React.Component
         onLoadMore={@bound 'onLoadMore'}
         isParticipant={@channel 'isParticipant'}
         onFollowChannelButtonClick={@bound 'onFollowChannel'}
+        showItemMenu={no}
       />
     </Modal>
 
