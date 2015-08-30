@@ -5,8 +5,11 @@ Portal = require 'react-portal'
 
 class ModalOverlay extends React.Component
 
+  @defaultProps =
+    onClick: kd.noop
+
   render: ->
-    <div className="ModalOverlay" />
+    <div className="ModalOverlay" onClick={@props.onClick} />
 
 
 module.exports = class Modal extends React.Component
@@ -30,11 +33,14 @@ module.exports = class Modal extends React.Component
 
     return null  unless @props.isOpen
 
-    <Portal {...@getPortalProps()}>
+    <Portal {...@getPortalProps()} ref="modal">
       <div className={kd.utils.curry 'Reactivity Modal', @props.className}>
         {@props.children}
       </div>
     </Portal>
+
+
+  closePortal: -> @props.onClose?()
 
 
   renderOverlay: ->
@@ -42,7 +48,7 @@ module.exports = class Modal extends React.Component
     return null  unless @props.isOpen and @props.hasOverlay
 
     return \
-      <Portal isOpened={@props.isOpen}>
+      <Portal ref="overlay" isOpened={@props.isOpen} onClick={@bound 'closePortal'}>
         <ModalOverlay />
       </Portal>
 
