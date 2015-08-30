@@ -45,8 +45,6 @@ module.exports = class ChatPane extends React.Component
   renderBody: ->
     return null  unless @props.messages
 
-    messages = @props.messages.sortBy (m) -> m?.get 'createdAt'
-
     <section className="ChatPane-body" ref="ChatPaneBody">
       <Scroller
         onTopThresholdReached={@bound 'onTopThresholdReached'}
