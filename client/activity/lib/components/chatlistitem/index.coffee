@@ -24,6 +24,7 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
+MessageLink           = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -324,7 +325,9 @@ module.exports = class ChatListItem extends React.Component
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
             </span>
-            <MessageTime date={message.get 'createdAt'}/>
+            <MessageLink message={message} absolute={yes}>
+              <MessageTime date={message.get 'createdAt'}/>
+            </MessageLink>
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
