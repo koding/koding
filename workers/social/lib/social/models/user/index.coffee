@@ -427,21 +427,9 @@ module.exports = class JUser extends jraphical.Module
         }, queue, callback, (invitation_) -> invitation = invitation_
 
       =>
-        return queue.next()  if groupIsBeingCreated
-        # check for membership
-        JGroup.one { slug: groupName }, (err, group) =>
-
-          return callback new KodingError err                   if err
-          return callback new KodingError 'group doesnt exist'  if not group
-
-          group.isMember account, (err , isMember) =>
-            return callback err  if err
-            return queue.next()  if isMember # if user is already member, we can continue
-
-            # addGroup will check all prerequistes about joining to a group
-            @addToGroup account, groupName, user.email, invitation, (err) ->
-              return callback err  if err
-              return queue.next()
+        @addToGroupByInvitation {
+          groupName, groupIsBeingCreated, account, user, invitation
+        }, queue, callback
 
       ->
         return queue.next()  if groupIsBeingCreated
@@ -536,6 +524,27 @@ module.exports = class JUser extends jraphical.Module
       return callback new Error 'User not found'  unless user
 
       user.verifyByPin options, callback
+
+
+  @addToGroupByInvitation = (options, queue, callback) ->
+
+    { groupName, groupIsBeingCreated, account, user, invitation } = options
+
+    return queue.next()  if groupIsBeingCreated
+    # check for membership
+    JGroup.one { slug: groupName }, (err, group) ->
+
+      return callback new KodingError err                   if err
+      return callback new KodingError 'group doesnt exist'  if not group
+
+      group.isMember account, (err, isMember) ->
+        return callback err  if err
+        return queue.next()  if isMember # if user is already member, we can continue
+
+        # addGroup will check all prerequistes about joining to a group
+        JUser.addToGroup account, groupName, user.email, invitation, (err) ->
+          return callback err  if err
+          return queue.next()
 
 
   fetchSession = (options, queue, callback, fetchData) ->
