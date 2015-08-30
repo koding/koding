@@ -128,7 +128,7 @@ module.exports = class SocialApiController extends KDController
 
     if cachedItem
       if invalidateCache
-        unbindMessageListeners
+        unbindMessageListeners cachedItem
       else
         return cachedItem
 
