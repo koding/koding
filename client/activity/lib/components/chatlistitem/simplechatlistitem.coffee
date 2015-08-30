@@ -33,7 +33,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
           </MessageLink>
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">
-            <MessageBody source={message.get 'body'} />
+            <MessageBody message={message} />
           </div>
         </div>
         {@renderEditMode()}

@@ -343,7 +343,7 @@ module.exports = class ChatListItem extends React.Component
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
-            <MessageBody source={message.get 'body'} />
+            <MessageBody message={message} />
           </div>
         </div>
         {@renderEditMode()}
