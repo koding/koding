@@ -381,20 +381,14 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # fetch session of the current requester
-        JSession.fetchSession clientId, (err, { session: fetchedSession }) ->
-          return callback err  if err
-
-          session = fetchedSession
-          unless session
-            console.error "login: session not found #{username}"
-            return callback new KodingError 'Couldn\'t restore your session!'
+        fetchSession {
+          clientId, username
+        }, queue, callback, (session_) ->
+          session = session_
 
           bruteForceControlData =
             ip        : session.clientIP
             username  : username
-
-          queue.next()
 
       ->
         # todo add alert support(mail, log etc)
@@ -543,6 +537,23 @@ module.exports = class JUser extends jraphical.Module
 
       user.verifyByPin options, callback
 
+
+  fetchSession = (options, queue, callback, fetchData) ->
+
+    { clientId, username } = options
+
+    # fetch session of the current requester
+    JSession.fetchSession clientId, (err, { session: fetchedSession }) ->
+      return callback err  if err
+
+      session = fetchedSession
+      unless session
+        console.error "login: session not found #{username}"
+        return callback new KodingError 'Couldn\'t restore your session!'
+
+      fetchData session
+
+      queue.next()
 
   fetchInvitationByCode = (invitationToken, queue, callback, fetchData) ->
 
