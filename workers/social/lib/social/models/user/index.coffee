@@ -547,6 +547,20 @@ module.exports = class JUser extends jraphical.Module
           return queue.next()
 
 
+  # check if user's email domain is in allowed domains
+  checkWithDomain = (groupName, email, callback) ->
+    JGroup.one { slug: groupName }, (err, group) ->
+      return callback err  if err
+      # yes weird, but we are creating user before creating group
+      return callback null, { isEligible: yes } if not group
+
+      isAllowed = group.isInAllowedDomain email
+      return callback new KodingError 'Your email domain is not in allowed \
+        domains for this group'  unless isAllowed
+
+      return callback null, { isEligible: yes }
+
+
   fetchSession = (options, queue, callback, fetchData) ->
 
     { clientId, username } = options
@@ -902,19 +916,6 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
       unless prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
-
-      # check if user's email domain is in allowed domains
-      checkWithDomain = (groupName, email, callback) ->
-        JGroup.one { slug: groupName }, (err, group) ->
-          return callback err  if err
-          # yes weird, but we are creating user before creating group
-          return callback null, { isEligible: yes } if not group
-
-          isAllowed = group.isInAllowedDomain email
-          return callback new KodingError 'Your email domain is not in allowed \
-            domains for this group'  unless isAllowed
-
-          return callback null, { isEligible: yes }
 
       # check if email domain is in allowed domains
       return checkWithDomain groupName, email, callback  if not invitationToken
