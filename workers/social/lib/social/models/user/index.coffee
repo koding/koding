@@ -547,6 +547,18 @@ module.exports = class JUser extends jraphical.Module
           return queue.next()
 
 
+  redeemInvitation = (options, callback) ->
+
+    { account, invitation, slug, email } = options
+
+    return invitation.accept account, callback  if invitation
+
+    JInvitation.one { email, groupName : slug }, (err, invitation) ->
+      # if we got error or invitation doesnt exist, just return
+      return callback null if err or not invitation
+      return invitation.accept account, callback
+
+
   # check if user's email domain is in allowed domains
   checkWithDomain = (groupName, email, callback) ->
     JGroup.one { slug: groupName }, (err, group) ->
@@ -952,12 +964,9 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err
 
           # do not forget to redeem invitation
-          return invitation.accept account, callback  if invitation
-
-          JInvitation.one { email, groupName : slug }, (err, invitation) ->
-            # if we got error or invitation doesnt exist, just return
-            return callback null if err or not invitation
-            return invitation.accept account, callback
+          redeemInvitation {
+            account, invitation, slug, email
+          }, callback
 
 
   @addToGroups = (account, slugs, email, invitation, callback) ->
