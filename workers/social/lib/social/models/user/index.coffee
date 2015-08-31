@@ -547,6 +547,27 @@ module.exports = class JUser extends jraphical.Module
           return queue.next()
 
 
+  createDefaultStackForKodingGroup = (options, queue) ->
+
+    { account } = options
+
+    # create default stack for koding group, when a user joins this is only
+    # required for koding group, not neeed for other teams
+    _client =
+      connection : delegate : account
+      context    : group    : 'koding'
+
+    ComputeProvider.createGroupStack _client, (err) ->
+      if err?
+        console.warn "Failed to create group stack
+                      for #{account.profile.nickname}:#{err}"
+
+      # We are not returning error here on purpose, even stack template
+      # not created for a user we don't want to break registration process
+      # at all ~ GG
+      queue.next()
+
+
   updateUserInfo = (options, queue, callback, fetchData) ->
 
     { user, ip, country, region, username, client, account, clientId } = options
@@ -1500,21 +1521,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # create default stack for koding group, when a user joins this is only
-        # required for koding group, not neeed for other teams
-        _client =
-          connection : delegate : account
-          context    : group    : 'koding'
-
-        ComputeProvider.createGroupStack _client, (err) ->
-          if err?
-            console.warn "Failed to create group stack
-                          for #{account.profile.nickname}:#{err}"
-
-          # We are not returning error here on purpose, even stack template
-          # not created for a user we don't want to break registration process
-          # at all ~ GG
-          queue.next()
+        createDefaultStackForKodingGroup { account }, queue
 
       ->
         user.setPassword password, (err) ->
@@ -1556,6 +1563,7 @@ module.exports = class JUser extends jraphical.Module
     ]
 
     daisy queue
+
 
   @createJWT: (data) ->
     { secret, confirmExpiresInMinutes } = KONFIG.jwt
