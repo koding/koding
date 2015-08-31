@@ -719,47 +719,71 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchMembers selector, options, callback
+      @baseFetcherOfGroupStaff {
+        method : @fetchMembers
+        client
+        rest
+      }
 
   fetchMembersWithEmail$: permit 'grant permissions',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchMembers selector, options, (err, members) ->
-        return callback err, []  if err or not members
-
-        helper.mergeAccountsWithEmail members, (err, accounts) ->
-          return callback err, accounts
+      @baseFetcherOfGroupStaff {
+        method      : @fetchMembers
+        fetchEmail  : yes
+        client
+        rest
+      }
 
   fetchAdmins$: permit 'list members',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchAdmins selector, options, (err, admins) ->
-        return callback err, []  if err or not admins
+      @baseFetcherOfGroupStaff {
+        method: @fetchAdmins
+        client
+        rest
+      }
 
-        helper.mergeAccountsWithEmail admins, (err, accounts) ->
-          return callback err, accounts
+  fetchAdminsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchAdmins
+        fetchEmail  : yes
+        client
+        rest
+      }
 
   fetchModerators$: permit 'list members',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchModerators selector, options, (err, moderators) ->
-        return callback err, []  if err or not moderators
+      @baseFetcherOfGroupStaff {
+        method: @fetchModerators
+        client
+        rest
+      }
 
-        helper.mergeAccountsWithEmail moderators, (err, accounts) ->
-          return callback err, accounts
+  fetchModeratorsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchModerators
+        fetchEmail  : yes
+        client
+        rest
+      }
+
+  baseFetcherOfGroupStaff: (options) ->
+
+    { method, client, rest, fetchEmail }  = options
+
+    # when max limit is over 20 it starts giving "call stack exceeded" error
+    [selector, options, callback] = Module.limitEdges 10, 19, rest
+
+    # delete options.targetOptions
+    options.client                = client
+
+    method.call this, selector, options, (err, records = []) ->
+      return callback err, records  if err or not records or not fetchEmail
+
+      helper.mergeAccountsWithEmail records, (err, accounts) ->
+        return callback err, accounts
+
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
   # It is a workaround, and will be changed after elasticsearch implementation. CtF
