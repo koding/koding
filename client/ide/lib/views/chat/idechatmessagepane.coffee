@@ -18,13 +18,12 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
-    options.cssClass                = 'privatemessage'
+    options.cssClass           = 'privatemessage'
 
     # this is backwards compatibility related. ~Umut
-    options.type                    = 'privatemessage'
-    options.channelType             = 'collaboration'
-
-    options.autoCompleteController  = IDEChatParticipantSearchController
+    options.type               = 'privatemessage'
+    options.channelType        = 'collaboration'
+    options.autoCompleteClass  = IDEChatParticipantSearchController
 
     super options, data
 
