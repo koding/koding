@@ -10,6 +10,8 @@ import (
 	hclmain "github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl"
 	hcljson "github.com/hashicorp/hcl/json"
+	"github.com/hashicorp/terraform/config"
+	"github.com/hashicorp/terraform/config/lang"
 )
 
 type terraformTemplate struct {
@@ -98,6 +100,71 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 	}
 
 	return string(out), nil
+}
+
+// detectUserVariables parses the template for any ${var.foo}, ${var.bar},
+// etc.. user variables. It returns a list of found variables with, example:
+// []string{"foo", "bar"}. The returned list only contains unique names, so any
+// user variable which declared multiple times is neglected, only the last
+// occurence is being added.
+func (t *terraformTemplate) detectUserVariables() ([]string, error) {
+	out, err := t.jsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	// get AST first, it's capable of parsing json
+	a, err := lang.Parse(out)
+	if err != nil {
+		return nil, err
+	}
+
+	// read the variables from the given AST. This is basically just iterating
+	// over the AST node and does the heavy lifting for us
+	vars, err := config.DetectVariables(a)
+	if err != nil {
+		return nil, err
+	}
+
+	// filter out duplicates
+	set := make(map[string]bool, 0)
+	for _, v := range vars {
+		// be sure we only get userVariables, as there is many ways of
+		// declaring variables
+		u, ok := v.(*config.UserVariable)
+		if !ok {
+			continue
+		}
+
+		if !set[u.Name] {
+			set[u.Name] = true
+		}
+	}
+
+	userVars := []string{}
+	for u := range set {
+		userVars = append(userVars, u)
+	}
+
+	return userVars, nil
+}
+
+// fillVariables finds variables declared with the given prefix and fills the
+// template with empty variables.
+func (t *terraformTemplate) fillVariables(prefix string) error {
+	vars, err := t.detectUserVariables()
+	if err != nil {
+		return err
+	}
+
+	fillVarData := make(map[string]string, 0)
+	for _, v := range vars {
+		if strings.HasPrefix(v, prefix) {
+			fillVarData[strings.TrimPrefix(v, prefix+"_")] = ""
+		}
+	}
+
+	return t.injectCustomVariables(prefix, fillVarData)
 }
 
 func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string]string) error {
