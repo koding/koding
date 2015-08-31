@@ -636,6 +636,29 @@ module.exports = class JUser extends jraphical.Module
 
     daisy _queue
 
+
+  verifyEnrollmentEligibility = (options, queue, callback, fetchData) ->
+
+    { email, client, invitationToken } = options
+
+    # check if user can register to regarding group
+    _options =
+      email           : email
+      groupName       : client.context.group
+      invitationToken : invitationToken
+
+    JUser.verifyEnrollmentEligibility _options, (err, res) ->
+      return callback err  if err
+
+      { isEligible, invitation } = res
+
+      if not isEligible
+        return callback new Error "you can not register to #{client.context.group}"
+
+      fetchData invitation
+      queue.next()
+
+
   createUser = (options, queue, callback, fetchData) ->
 
     { userInfo } = options
@@ -1015,13 +1038,13 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
     else
-      options_ =
+      _options =
         email    : email
         action   : 'verify-account'
         username : username
 
       JVerificationToken = require '../verificationtoken'
-      JVerificationToken.createNewPin options_, (err, confirmation) ->
+      JVerificationToken.createNewPin _options, (err, confirmation) ->
         if err
           console.warn 'Failed to send verification token:', err
         else
@@ -1389,21 +1412,6 @@ module.exports = class JUser extends jraphical.Module
 
           queue.next()
 
-
-      =>
-        # check if user can register to regarding group
-        options =
-          email           : email
-          groupName       : client.context.group
-          invitationToken : invitationToken
-
-        @verifyEnrollmentEligibility options, (err, res) ->
-          return callback err  if err
-
-          { isEligible, invitation: invitation_ } = res
-
-          if not isEligible
-            return callback new Error "you can not register to #{client.context.group}"
       ->
         verifyUser {
           slug
@@ -1413,8 +1421,12 @@ module.exports = class JUser extends jraphical.Module
           foreignAuthType
         }, queue, callback
 
-          invitation = invitation_
-          queue.next()
+      ->
+        verifyEnrollmentEligibility {
+          email
+          client
+          invitationToken
+        }, queue, callback, (invitation_) -> invitation = invitation_
 
       ->
         userInfo =
