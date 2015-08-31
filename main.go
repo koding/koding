@@ -15,6 +15,10 @@ func main() {
 	conf := new(FuseConfig)
 	multiconfig.New().MustLoad(conf)
 
+	if conf.Debug {
+		shouldDebug = true
+	}
+
 	t, err := NewKlientTransport(conf.KlientIP)
 	if err != nil {
 		log.Fatal(err)

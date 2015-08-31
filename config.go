@@ -13,4 +13,7 @@ type FuseConfig struct {
 
 	// MountName is identifier for mount.
 	MountName string `default:"fuseproto"`
+
+	// Debug determines if debug logs should be shown to user.
+	Debug bool `default:false`
 }

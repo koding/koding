@@ -19,7 +19,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
     mkdir -p <fullpath>/local
 
     # Start daemon:
-    fuseproto --klientip=52.7.78.76 --externalpath=/home/sent-hil/fusemount --internalpath=<fullpath>/local
+    fuseproto --klientip=52.7.78.76 --externalpath=/home/sent-hil/fusemount --internalpath=<fullpath>/local --debug=true
 
     # In another terminal:
     cd local
