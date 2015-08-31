@@ -54,7 +54,7 @@ func unmountOnExit(folder string) {
 
 	_, err := exec.Command("diskutil", "unmount", "force", folder).CombinedOutput()
 	if err != nil {
-		fmt.Println("Unmount failed. Please do `diskutil unmount force <folder>`.")
+		fmt.Printf("Unmount failed. Please do `diskutil unmount force %s`.\n", folder)
 	}
 
 	os.Exit(0)
