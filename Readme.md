@@ -1,6 +1,6 @@
 # fuseproto
 
-Prototype for getting [Fuse](https://github.com/bazil/fuse) to work with [Klient](https://github.com/koding/klient).
+Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). NOTE: this Readme represents finished prototype, not current stage of code.
 
 ## WARNING
 
