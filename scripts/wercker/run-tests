@@ -76,6 +76,11 @@ runTest = (job, next) ->
 
       job.end = Date.now() - start
 
+      console.log 'STDOUT', job.test
+      process.stdout.write stdout
+      console.log 'STDERR', job.test
+      process.stdoud.write stderr
+
       if error and ++job.lap is RETRY_COUNT
         error.job    = job
         error.stdout = stdout
