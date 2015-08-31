@@ -23,6 +23,38 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     participants  : null
 
 
+  componentDidMount: ->
+
+    document.addEventListener 'mousedown', @bound 'handleOutsideMouseClick'
+
+
+  componentWillUnmount: ->
+
+    document.removeEventListener 'mousedown', @bound 'handleOutsideMouseClick'
+
+
+  handleOutsideMouseClick: (event) ->
+
+    return  unless @refs.AllParticipantsMenu
+
+    target             = event.target
+    moreButtonEl       = @refs.showMoreButton.getDOMNode()
+    participantsMenuEl = @refs.AllParticipantsMenu.getDOMNode()
+
+    if ((@isNodeInContainer target, moreButtonEl) or (@isNodeInContainer target, participantsMenuEl))
+      return
+
+    event.stopPropagation()
+    @setState showAllParticipants: no
+
+
+  isNodeInContainer: (el, container) ->
+    while el
+      return yes  if el is container
+      el = el.parentNode
+    no
+
+
   getPreviewCount: ->
 
     { participants } = @props
@@ -42,8 +74,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     else @setState addNewParticipantMode: yes
 
 
-  onShowMoreParticipantButtonClick: ->
+  onShowMoreParticipantButtonClick: (event) ->
 
+    event.stopPropagation()
     if @state.showAllParticipants is yes
     then @setState showAllParticipants: no
     else @setState showAllParticipants: yes
@@ -98,7 +131,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     moreCount = Math.min moreCount, 99
 
     <div className='ChannelParticipantAvatars-singleBox'>
-      <div className='ChannelParticipantAvatars-moreCount' onClick={@bound 'onShowMoreParticipantButtonClick'}>
+      <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
         {moreCount}+
       </div>
     </div>
@@ -111,7 +144,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    <div className='ChannelParticipantAvatars-allParticipantsMenu'>
+    <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
         <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
         {@renderAvatars(participants, yes)}
