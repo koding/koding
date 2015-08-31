@@ -72,6 +72,9 @@ func (p *Pagerduty) Configure(req *http.Request) (helpers.ConfigureResponse, err
 	return nil, nil
 }
 
+// ReadAndParse is written for incoming json data from outside integration server
+// mainly, gets the parameter as body and model struct & parse the body into struct
+// after parsing, closes the body..
 func ReadAndParse(body io.ReadCloser, model interface{}) error {
 	defer func() {
 		if body != nil {
