@@ -568,10 +568,10 @@ module.exports = class JUser extends jraphical.Module
 
     return invitation.accept account, callback  if invitation
 
-    JInvitation.one { email, groupName : slug }, (err, invitation) ->
+    JInvitation.one { email, groupName : slug }, (err, invitation_) ->
       # if we got error or invitation doesnt exist, just return
-      return callback null if err or not invitation
-      return invitation.accept account, callback
+      return callback null if err or not invitation_
+      return invitation_.accept account, callback
 
 
   # check if user's email domain is in allowed domains
