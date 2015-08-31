@@ -161,7 +161,17 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchAdminsWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         fetchModerators: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchModeratorsWithEmail: [
           (signature Function)
           (signature Object, Function)
           (signature Object, Object, Function)
