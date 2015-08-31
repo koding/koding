@@ -32,7 +32,7 @@ module.exports = class PrivateMessagePane extends MessagePane
     options.channelType       or= 'privatemessage'
 
     options.initialParticipantStatus  = 'active'
-    options.autoCompleteController  or= ParticipantSearchController
+    options.autoCompleteClass or= ParticipantSearchController
 
     super options, data
 
@@ -401,7 +401,7 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   createAddParticipantForm: ->
 
-    { autoCompleteController } = @getOptions()
+    { autoCompleteClass } = @getOptions()
 
     @autoCompleteForm = new KDFormViewWithFields
       title              : 'START A CHAT WITH:'
@@ -411,7 +411,7 @@ module.exports = class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-    @autoComplete = new autoCompleteController
+    @autoComplete = new autoCompleteClass
       name                : 'userController'
       placeholder         : 'Type a username...'
       itemClass           : ActivityAutoCompleteUserItemView
