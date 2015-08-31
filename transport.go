@@ -53,8 +53,23 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 }
 
 // Trip is a generic method for communication. It accepts `req` to pass args
-// to Klient and `resp` to store unmarshalled response from Klient.
-func (k *KlientTransport) Trip(methodName string, req interface{}, resp interface{}) error {
+// to Klient and `res` to store unmarshalled response from Klient.
+func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
+	switch methodName {
+	case "fs.readDirectory":
+	default:
+		return fmt.Errorf("'%s' is not implemented.")
+	}
+
+	raw, err := k.client.Tell(methodName, req)
+	if err != nil {
+		return err
+	}
+
+	if err := raw.Unmarshal(&res); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -62,11 +77,11 @@ func (k *KlientTransport) Trip(methodName string, req interface{}, resp interfac
 // Responses
 //----------------------------------------------------------
 
-type fsReadDirectoryResp struct {
-	Files []fsGetInfoResp `json:"files"`
+type fsReadDirectoryRes struct {
+	Files []fsGetInfoRes `json:"files"`
 }
 
-type fsGetInfoResp struct {
+type fsGetInfoRes struct {
 	Exists   bool   `json:"exists"`
 	FullPath string `json:"fullPath"`
 	IsBroken bool   `json:"isBroken"`

@@ -13,7 +13,7 @@ type fakeTransport struct {
 	TripResponse   interface{}
 }
 
-func (f *fakeTransport) Trip(methodName string, req interface{}, resp interface{}) error {
+func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}) error {
 	if f.TripMethodName != methodName {
 		return fmt.Errorf("Expected '%s' as methodName, got '%s'", f.TripMethodName, methodName)
 	}
@@ -23,7 +23,7 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, resp interface{
 		return err
 	}
 
-	if err := json.Unmarshal(bytes, &resp); err != nil {
+	if err := json.Unmarshal(bytes, &res); err != nil {
 		return err
 	}
 
@@ -41,7 +41,7 @@ func TestFakeTransportStub(t *testing.T) {
 	Convey("Given fake transport", t, func() {
 		ft := &fakeTransport{
 			TripMethodName: "test",
-			TripResponse:   struct{ Name string }{"resp"},
+			TripResponse:   struct{ Name string }{"res"},
 		}
 
 		Convey("It should return error if method names don't match", func() {
@@ -49,10 +49,10 @@ func TestFakeTransportStub(t *testing.T) {
 		})
 
 		Convey("It should return unmarshal mock into response", func() {
-			resp := struct{ Name string }{}
+			res := struct{ Name string }{}
 
-			So(ft.Trip("test", "", &resp), ShouldBeNil)
-			So(resp.Name, ShouldEqual, "resp")
+			So(ft.Trip("test", "", &res), ShouldBeNil)
+			So(res.Name, ShouldEqual, "res")
 		})
 	})
 }
