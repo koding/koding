@@ -403,8 +403,7 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 	bq.AddScope(models.SortedByCreatedAt)
 	bq.AddScope(models.RemoveTrollContent(c, query.ShowExempt))
 	bq.AddScope(models.ExcludeFields(query.Exclude))
-	bq.AddScope(models.StartFrom(query.From))
-	bq.AddScope(models.TillTo(query.To))
+	bq.AddScope(models.TillTo(query.From))
 
 	bqq := bongo.B.BuildQuery(models.NewChannelMessage(), bq)
 	var messages []int64
@@ -431,6 +430,10 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 		if cmc.Message.TypeConstant == models.ChannelMessage_TYPE_REPLY {
 			replyIds = append(replyIds, cmc.Message.Id)
 		}
+	}
+
+	if len(replyIds) == 0 {
+		return response.NewOK(cmcs)
 	}
 
 	// select replies

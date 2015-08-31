@@ -15,5 +15,5 @@ module.exports = class VariablesView extends KDView
       cssClass  : 'text header'
       partial   : 'Write custom variables here'
 
-    @addSubView @editorView = new VariablesEditorView
+    @addSubView @editorView = new VariablesEditorView options
 

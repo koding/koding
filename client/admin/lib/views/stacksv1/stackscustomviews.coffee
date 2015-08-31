@@ -16,7 +16,6 @@ applyMarkdown                   = require 'app/util/applyMarkdown'
 GitHub                          = require 'app/extras/github/github'
 CustomViews                     = require 'app/commonviews/customviews'
 IDEEditorPane                   = require 'ide/workspace/panes/ideeditorpane'
-ComputeController_UI            = require 'app/providers/computecontroller.ui'
 
 CredentialListItem              = require 'app/stacks/credentiallistitem'
 AccountCredentialList           = require 'account/accountcredentiallist'

@@ -50,7 +50,9 @@ module.exports = class StackTemplateView extends KDView
     @credentialStatus.link.on 'click', ->
       delegate.tabView.showPaneByName 'Providers'
 
-    @addSubView @editorView = new StackTemplateEditorView { delegate: this, content }
+    @addSubView @editorView = new StackTemplateEditorView {
+      delegate: this, content
+    }
 
     @editorView.addSubView new KDButtonView
       title    : 'Logs'
