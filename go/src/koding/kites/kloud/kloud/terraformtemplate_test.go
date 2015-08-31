@@ -33,6 +33,29 @@ const testTemplate = `{
     }
 }`
 
+func TestTerraformTemplate_NewNil(t *testing.T) {
+	template, err := newTerraformTemplate(testTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if template.Variable == nil {
+		t.Error("Variable field should be not nil")
+	}
+
+	if template.Output == nil {
+		t.Error("Output field should be not nil")
+	}
+
+	if template.Provider == nil {
+		t.Error("Provider field should be not nil")
+	}
+
+	if template.Resource == nil {
+		t.Error("Resource field should be not nil")
+	}
+}
+
 func TestTerraformTemplate_InjectKodingData(t *testing.T) {
 	template, err := newTerraformTemplate(testTemplate)
 	if err != nil {

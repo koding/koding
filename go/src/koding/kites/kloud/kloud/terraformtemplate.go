@@ -24,7 +24,13 @@ type terraformTemplate struct {
 // newTerraformTemplate parses the content and returns a terraformTemplate
 // instance
 func newTerraformTemplate(content string) (*terraformTemplate, error) {
-	var template *terraformTemplate
+	template := &terraformTemplate{
+		Resource: make(map[string]interface{}),
+		Provider: make(map[string]interface{}),
+		Variable: make(map[string]interface{}),
+		Output:   make(map[string]interface{}),
+	}
+
 	err := json.Unmarshal([]byte(content), &template)
 	if err != nil {
 		return nil, err
