@@ -13,7 +13,6 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 
-ProviderView         = require './providerview'
 TerminalModal        = require '../terminal/terminalmodal'
 
 MissingDataView      = require './missingdataview'
@@ -28,19 +27,6 @@ module.exports = class ComputeController_UI
         title: message
 
     fn args...
-
-
-  @showProvidersModal = requiresLogin
-    message: "You need to login to create a new VM."
-  , (stack)->
-
-    new KDModalView
-      title    : 'Add Virtual Machine'
-      cssClass : 'provider-modal'
-      view     : new ProviderView {stack}
-      width    : 800
-      height   : 600
-      overlay  : yes
 
 
   @generateAddCredentialFormFor = (options) ->
