@@ -202,7 +202,30 @@ func TestTerraformTemplate_DetectUserVariables(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("vars = %+v\n", vars)
+	has := func(v string) bool {
+		mustHave := []string{
+			"aws_access_key",
+			"aws_secret_key",
+			"aws_region",
+			"userInput_foo",
+			"userInput_count",
+			"username",
+		}
+
+		for _, m := range mustHave {
+			if m == v {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	for _, v := range vars {
+		if !has(v) {
+			t.Errorf("Variable '%s' should exist in the template", v)
+		}
+	}
 }
 
 // equals fails the test if exp is not equal to act.
