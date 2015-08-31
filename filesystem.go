@@ -1,6 +1,9 @@
 package main
 
 import (
+	"path"
+	"time"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 )
@@ -22,8 +25,10 @@ type FileSystem struct {
 
 // Root returns root for FileSystem. Required by Fuse.
 func (f *FileSystem) Root() (fs.Node, error) {
+	defer debug(time.Now())
+
 	n := NewNode(f.Transport)
-	n.Name = f.MountName
+	n.Name = path.Base(f.InternalMountPath)
 	n.InternalPath = f.InternalMountPath
 	n.ExternalPath = f.ExternalMountPath
 
