@@ -68,6 +68,10 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if err := template.fillVariables("userInput"); err != nil {
+		return nil, err
+	}
+
 	var region string
 	for _, cred := range data.Creds {
 		region, ok = cred.Data["region"]
