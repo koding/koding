@@ -594,6 +594,50 @@ module.exports = class JUser extends jraphical.Module
     daisy _queue
 
 
+  updateAccountInfo = (options, queue, callback) ->
+
+    { account, referrer, username } = options
+
+    _queue = [
+
+      ->
+        account.update { $set: { type: 'registered' } }, (err) ->
+          return callback err  if err?
+          _queue.next()
+
+      ->
+        account.createSocialApiId (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        # setting referrer
+        return _queue.next()  unless referrer
+
+        if username is referrer
+          console.error "User (#{username}) tried to refer themself."
+          return _queue.next()
+
+        JUser.count { username: referrer }, (err, count) ->
+          if err? or count < 1
+            console.error 'Provided referrer not valid:', err
+            return _queue.next()
+
+          account.update { $set: { referrerUsername: referrer } }, (err) ->
+
+            if err?
+            then console.error err
+            else console.log "#{referrer} referred #{username}"
+
+            _queue.next()
+
+      -> queue.next()
+
+    ]
+
+    daisy _queue
+
+
   verifyUser = (options, queue, callback) ->
 
     { slug
@@ -1446,14 +1490,7 @@ module.exports = class JUser extends jraphical.Module
         }, queue, callback, (newToken_) -> newToken = newToken_
 
       ->
-        account.update { $set: { type: 'registered' } }, (err) ->
-          return callback err  if err?
-          queue.next()
-
-      ->
-        account.createSocialApiId (err) ->
-          return callback err  if err
-          queue.next()
+        updateAccountInfo { account, referrer, username }, queue, callback
 
       =>
         groupNames = [client.context.group, 'koding']
@@ -1478,26 +1515,6 @@ module.exports = class JUser extends jraphical.Module
           # not created for a user we don't want to break registration process
           # at all ~ GG
           queue.next()
-
-      ->
-        return queue.next()  unless referrer
-
-        if username is referrer
-          console.error "User (#{username}) tried to refer themself."
-          return queue.next()
-
-        JUser.count { username: referrer }, (err, count) ->
-          if err? or count < 1
-            console.error 'Provided referrer not valid:', err
-            return queue.next()
-
-          account.update { $set: { referrerUsername: referrer } }, (err) ->
-
-            if err?
-            then console.error err
-            else console.log "#{referrer} referred #{username}"
-
-            queue.next()
 
       ->
         user.setPassword password, (err) ->
