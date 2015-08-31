@@ -1004,7 +1004,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
           ->
             selector = { clientId : sessionToken }
-            modifier = { $set : { username : invalidUsername} }
+            modifier = { $set : { username : invalidUsername } }
             JSession.update selector, modifier, (err) ->
               expect(err).to.not.exist
               queue.next()
