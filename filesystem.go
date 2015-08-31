@@ -23,7 +23,12 @@ type FileSystem struct {
 
 // Root returns root for FileSystem. Required by Fuse.
 func (f *FileSystem) Root() (fs.Node, error) {
-	return nil, nil
+	n := NewNode(f.Transport)
+	n.Name = f.MountName
+	n.InternalPath = f.InternalMountPath
+	n.ExternalPath = f.ExternalMountPath
+
+	return &Dir{n}, nil
 }
 
 // Statfs returns metadata for FileSystem. Required by Fuse.

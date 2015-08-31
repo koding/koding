@@ -13,17 +13,27 @@ type Node struct {
 	Transport
 	sync.RWMutex
 
-	// Path is the location of file/dir on FileSystem.
-	Path string
+	// Parent is the parent of node, ie folder that holds this node.
+	Parent *Node
 
 	// Name is the identifier.
 	Name string
 
-	// FullPath is Path and Name.
-	FullPath string
+	// FullInternalPath is full path on mounted folder.
+	InternalPath string
+
+	// FullExternalPath is full path on user VM.
+	ExternalPath string
 
 	// attr is metadata.
 	attr *fuse.Attr
+}
+
+func NewNode(t Transport) *Node {
+	return &Node{
+		Transport: t,
+		RWMutex:   sync.RWMutex{},
+	}
 }
 
 // Attr returns metadata. Required by Fuse.
