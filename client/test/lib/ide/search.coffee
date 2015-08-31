@@ -44,9 +44,8 @@ module.exports =
           .waitForElementVisible     matchedWordSelector, 20000
           .click                     matchedWordSelector
           .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
-          .waitForElementVisible     tabHandleSelector, 20000
           .waitForElementVisible     editorSelector, 20000
-          .pause                     5000 # wait for content
+          .pause                     3000 # wait for content
           .assert.containsText       editorSelector, 'Hello World from Python by Koding'
           .end()
 
