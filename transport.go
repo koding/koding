@@ -1,15 +1,55 @@
 package main
 
-import "github.com/koding/kite"
+import (
+	"fmt"
+	"time"
+
+	"github.com/koding/kite"
+	kiteConfig "github.com/koding/kite/config"
+)
 
 // Transport defines communication between this package and user VM.
 type Transport interface {
 	Trip(string, interface{}, interface{}) error
 }
 
+//----------------------------------------------------------
+// KlientTransport
+//----------------------------------------------------------
+
+const (
+	kiteName    = "fuseproto"
+	kiteVersion = "0.0.1"
+	kiteTimeout = 10 * time.Second
+)
+
 // KlientTransport is a Transport using Klient on user VM.
 type KlientTransport struct {
 	client *kite.Client
+}
+
+// NewKlientTransport initializes KlientTransport with Klient connection.
+func NewKlientTransport(klientIP string) (*KlientTransport, error) {
+	config, err := kiteConfig.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	k := kite.New(kiteName, kiteVersion)
+	k.Config = config
+
+	// TODO: will Klient always be running on 56789?
+	kiteClient := k.NewClient(fmt.Sprintf("http://%s:56789/kite", klientIP))
+
+	// TODO: add authentication
+	kiteClient.Auth = &kite.Auth{}
+	kiteClient.Reconnect = true
+
+	if err := kiteClient.DialTimeout(kiteTimeout); err != nil {
+		return nil, err
+	}
+
+	return &KlientTransport{client: kiteClient}, nil
 }
 
 // Trip is a generic method for communication. It accepts `req` to pass args
