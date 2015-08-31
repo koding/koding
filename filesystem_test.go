@@ -6,12 +6,22 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var (
+	// TODO: remove hardcoded fullpath
+	internalPath = "/Users/senthil/work/fuse/prototype/internalPath/fuseproto"
+	externalPath = "/fuseproto"
+)
+
 func TestFileSystem(t *testing.T) {
 	Convey("Given filesystem", t, func() {
-		var fs = FileSystem{Transport: &fakeTransport{}}
+		f := FileSystem{
+			MountName:         "test",
+			InternalMountPath: internalPath,
+			ExternalMountPath: externalPath,
+		}
 
 		Convey("It should return root", func() {
-			_, err := fs.Root()
+			_, err := f.Root()
 			So(err, ShouldBeNil)
 		})
 	})

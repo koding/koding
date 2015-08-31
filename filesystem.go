@@ -3,7 +3,6 @@ package main
 import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"golang.org/x/net/context"
 )
 
 // FileSystem is equivalent to fuse.FS, ie filesystem to be mounted. FileSystem
@@ -32,9 +31,10 @@ func (f *FileSystem) Root() (fs.Node, error) {
 }
 
 // Statfs returns metadata for FileSystem. Required by Fuse.
-func (f *FileSystem) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
-	return nil
-}
+// TODO: requires Klient to implement required attrs.
+// func (f *FileSystem) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
+//   return nil
+// }
 
 // Mount mounts folder on user VM as a volume.
 func (f *FileSystem) Mount() error {
