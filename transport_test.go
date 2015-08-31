@@ -39,17 +39,20 @@ func TestTransportImplementations(t *testing.T) {
 
 func TestFakeTransportStub(t *testing.T) {
 	Convey("Given fake transport", t, func() {
-		var ft = &fakeTransport{TripMethodName: "test", TripResponse: struct{ Name string }{"resp"}}
+		ft := &fakeTransport{
+			TripMethodName: "test",
+			TripResponse:   struct{ Name string }{"resp"},
+		}
 
 		Convey("It should return error if method names don't match", func() {
 			So(ft.Trip("badmethodname", "", ""), ShouldNotBeNil)
 		})
 
 		Convey("It should return unmarshal mock into response", func() {
-			var s = struct{ Name string }{}
+			resp := struct{ Name string }{}
 
-			So(ft.Trip("test", "", &s), ShouldBeNil)
-			So(s.Name, ShouldEqual, "resp")
+			So(ft.Trip("test", "", &resp), ShouldBeNil)
+			So(resp.Name, ShouldEqual, "resp")
 		})
 	})
 }
