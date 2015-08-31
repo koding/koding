@@ -33,3 +33,24 @@ func (f *FileSystem) Root() (fs.Node, error) {
 func (f *FileSystem) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
 	return nil
 }
+
+func (f *FileSystem) Mount() error {
+	c, err := fuse.Mount(
+		f.InternalMountPath,
+		fuse.FSName(f.MountName),
+		fuse.Subtype(f.MountName),
+		fuse.VolumeName(f.MountName),
+		fuse.LocalVolume(),
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := fs.Serve(c, f); err != nil {
+		return err
+	}
+
+	<-c.Ready
+
+	return c.MountError
+}

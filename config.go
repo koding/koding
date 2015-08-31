@@ -10,4 +10,7 @@ type FuseConfig struct {
 
 	// InternalPath is path of folder in local to serve as mount point.
 	InternalPath string `required:"true"`
+
+	// MountName is identifier for mount.
+	MountName string `default:"fuseproto"`
 }
