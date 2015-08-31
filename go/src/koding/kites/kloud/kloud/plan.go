@@ -74,13 +74,22 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 
 	var region string
 	for _, cred := range data.Creds {
+		k.Log.Debug("Appending %s provider variables", cred.Provider)
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
+			return nil, err
+		}
+
+		// rest is aws related
+		if cred.Provider != "aws" {
+			continue
+		}
+
 		region, ok = cred.Data["region"]
 		if !ok {
 			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
-		k.Log.Debug("Appending AWS variable for\n%s", stackTemplate.Template.Content)
-		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
+		if err := template.setAwsRegion(region); err != nil {
 			return nil, err
 		}
 	}
