@@ -956,10 +956,10 @@ class IDEAppController extends AppController
     {status} = @statusBar
 
     text = if component is 'editor'
-      {cursor, file} = data
+      { cursor, file } = data
       """
         <p class="line">#{++cursor.row}:#{++cursor.column}</p>
-        <p>#{file.name}</p>
+        <p>#{FSHelper.minimizePath file.path}</p>
       """
 
     else if component is 'terminal' then "Terminal on #{data.machineName}"
