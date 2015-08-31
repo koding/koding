@@ -30,7 +30,7 @@ module.exports = class MissingDataView extends kd.View
       view            : @list
       wrapper         : no
       scrollView      : no
-      provider        : 'custom'
+      provider        : 'userInput'
       requiredFields
       defaultTitle
     }
