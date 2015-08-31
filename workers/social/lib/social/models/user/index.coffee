@@ -1389,28 +1389,6 @@ module.exports = class JUser extends jraphical.Module
 
           queue.next()
 
-      =>
-        # verifying recaptcha if enabled
-        return queue.next()  unless KONFIG.recaptcha.enabled
-
-        @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        @validateAll userFormData, (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        @emailAvailable email, (err, res) ->
-          if err
-            return callback new KodingError 'Something went wrong'
-
-          if res is no
-            return callback new KodingError 'Email is already in use!'
-
-          queue.next()
 
       =>
         # check if user can register to regarding group
@@ -1426,6 +1404,14 @@ module.exports = class JUser extends jraphical.Module
 
           if not isEligible
             return callback new Error "you can not register to #{client.context.group}"
+      ->
+        verifyUser {
+          slug
+          email
+          recaptcha
+          userFormData
+          foreignAuthType
+        }, queue, callback
 
           invitation = invitation_
           queue.next()
