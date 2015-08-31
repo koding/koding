@@ -593,6 +593,49 @@ module.exports = class JUser extends jraphical.Module
 
     daisy _queue
 
+
+  verifyUser = (options, queue, callback) ->
+
+    { slug
+      email
+      recaptcha
+      userFormData
+      foreignAuthType } = options
+
+    invitation = null
+
+    _queue = [
+
+      ->
+        # verifying recaptcha if enabled
+        return _queue.next()  unless KONFIG.recaptcha.enabled
+
+        JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        JUser.validateAll userFormData, (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        JUser.emailAvailable email, (err, res) ->
+          if err
+            return callback new KodingError 'Something went wrong'
+
+          if res is no
+            return callback new KodingError 'Email is already in use!'
+
+          _queue.next()
+
+      ->
+        queue.next()
+
+    ]
+
+    daisy _queue
+
   createUser = (options, queue, callback, fetchData) ->
 
     { userInfo } = options
