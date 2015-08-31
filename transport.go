@@ -57,3 +57,24 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 func (k *KlientTransport) Trip(methodName string, req interface{}, resp interface{}) error {
 	return nil
 }
+
+//----------------------------------------------------------
+// Responses
+//----------------------------------------------------------
+
+type fsReadDirectoryResp struct {
+	Files []fsGetInfoResp `json:"files"`
+}
+
+type fsGetInfoResp struct {
+	Exists   bool   `json:"exists"`
+	FullPath string `json:"fullPath"`
+	IsBroken bool   `json:"isBroken"`
+	IsDir    bool   `json:"isDir"`
+	Mode     int    `json:"mode"`
+	Name     string `json:"name"`
+	Readable bool   `json:"readable"`
+	Size     int    `json:"size"`
+	Time     string `json:"time"`
+	Writable bool   `json:"writable"`
+}
