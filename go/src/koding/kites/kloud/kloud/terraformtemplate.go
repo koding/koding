@@ -149,6 +149,33 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	return userVars, nil
 }
 
+func (t *terraformTemplate) setAwsRegion(region string) error {
+	var provider struct {
+		Aws struct {
+			Region    string
+			AccessKey string `hcl:"access_key"`
+			SecretKey string `hcl:"secret_key"`
+		}
+	}
+
+	if err := t.DecodeProvider(&provider); err != nil {
+		return err
+	}
+
+	if provider.Aws.Region == "" {
+		t.Provider["aws"] = map[string]interface{}{
+			"region":     region,
+			"access_key": provider.Aws.AccessKey,
+			"secret_key": provider.Aws.SecretKey,
+		}
+	} else if provider.Aws.Region != region {
+		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
+			provider.Aws.Region, region)
+	}
+
+	return t.hclUpdate()
+}
+
 // fillVariables finds variables declared with the given prefix and fills the
 // template with empty variables.
 func (t *terraformTemplate) fillVariables(prefix string) error {
