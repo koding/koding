@@ -19,7 +19,7 @@ Prototype for getting [Fuse](https://github.com/bazil/fuse) to work with [Klient
     mkdir fusemount
 
     # Start daemon
-    fuseproto --vm=52.7.78.76 --external=/home/sent-hil/fusemount --internal=./fusemount
+    fuseproto --klientip=52.7.78.76 --externalpath=/home/sent-hil/fusemount --internalpath=./fusemount
 
     # In another terminal:
     cd fusemount
