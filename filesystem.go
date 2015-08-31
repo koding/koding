@@ -19,9 +19,6 @@ type FileSystem struct {
 
 	// MountName is identifier for mount.
 	MountName string
-
-	// MountOptions is slice of options for mounting Fuse.
-	MountOptions []fuse.MountOption
 }
 
 // Root returns root for FileSystem. Required by Fuse.
