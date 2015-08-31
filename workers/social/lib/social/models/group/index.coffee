@@ -393,101 +393,105 @@ module.exports = class JGroup extends Module
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
 
-  @create = do ->
 
-    save_ = (label, model, queue, callback) ->
+  createHelper =
+
+    save_ : (label, model, queue, callback) ->
       model.save (err) ->
         return callback err  if err
         console.log "#{label} is saved"
         queue.next()
 
-    create = (client, groupData, owner, callback) ->
-      JPermissionSet        = require './permissionset'
-      JMembershipPolicy     = require './membershippolicy'
-      JSession              = require '../session'
-      JName                 = require '../name'
-      group                 = new this groupData
-      group.privacy         = 'private'
-      defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
-      { sessionToken }      = client
 
-      queue = [
+  @create = (client, groupData, owner, callback) ->
 
-        ->
-          group.useSlug group.slug, (err, slug) ->
-            return callback err  if err
-            return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+    JPermissionSet        = require './permissionset'
+    JMembershipPolicy     = require './membershippolicy'
+    JSession              = require '../session'
+    JName                 = require '../name'
+    group                 = new this groupData
+    group.privacy         = 'private'
+    defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
+    { sessionToken }      = client
 
-            console.log "created a slug #{slug.slug}"
-            group.slug  = slug.slug
-            group.slug_ = slug.slug
+    queue = [
+
+      ->
+        group.useSlug group.slug, (err, slug) ->
+          return callback err  if err
+          return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+
+          console.log "created a slug #{slug.slug}"
+          group.slug  = slug.slug
+          group.slug_ = slug.slug
+          queue.next()
+
+      ->
+        createHelper.save_ 'group', group, queue, (err) ->
+          if err
+            JName.release group.slug, -> callback err
+          else
             queue.next()
 
-        ->
-          save_ 'group', group, queue, (err) ->
-            if err
-              JName.release group.slug, -> callback err
-            else
-              queue.next()
+      ->
+        selector = { clientId : sessionToken }
+        params   = { $set : { groupName : group.slug } }
 
-        ->
-          selector = { clientId : sessionToken }
-          params   = { $set : { groupName : group.slug } }
+        JSession.update selector, params, (err) ->
+         return callback err  if err
+         queue.next()
 
-          JSession.update selector, params, (err) ->
-           return callback err  if err
-           queue.next()
+      ->
+        group.addMember owner, (err) ->
+          return callback err  if err
+          console.log 'member is added'
+          queue.next()
 
-        ->
-          group.addMember owner, (err) ->
-            return callback err  if err
-            console.log 'member is added'
-            queue.next()
+      ->
+        group.addAdmin owner, (err) ->
+          return callback err  if err
+          console.log 'admin is added'
+          queue.next()
 
-        ->
-          group.addAdmin owner, (err) ->
-            return callback err  if err
-            console.log 'admin is added'
-            queue.next()
+      ->
+        group.addOwner owner, (err) ->
+          return callback err  if err
+          console.log 'owner is added'
+          queue.next()
 
-        ->
-          group.addOwner owner, (err) ->
-            return callback err  if err
-            console.log 'owner is added'
-            queue.next()
+      ->
+        createHelper.save_ 'default permission set', defaultPermissionSet, queue, callback
 
-        ->
-          save_ 'default permission set', defaultPermissionSet, queue, callback
+      ->
+        group.addDefaultPermissionSet defaultPermissionSet, (err) ->
+          return callback err  if err
+          console.log 'permissionSet is added'
+          queue.next()
 
-        ->
-          group.addDefaultPermissionSet defaultPermissionSet, (err) ->
-            return callback err  if err
-            console.log 'permissionSet is added'
-            queue.next()
+      ->
+        group.addDefaultRoles (err) ->
+          return callback err  if err
+          console.log 'roles are added'
+          queue.next()
 
-        ->
-          group.addDefaultRoles (err) ->
-            return callback err  if err
-            console.log 'roles are added'
-            queue.next()
+      ->
+        group.createSocialApiChannels client, (err) ->
+          console.error err  if err
+          console.log 'created socialApiId ids'
+          queue.next()
 
-        ->
-          group.createSocialApiChannels client, (err) ->
-            console.error err  if err
-            console.log 'created socialApiId ids'
-            queue.next()
+    ]
 
-      ]
+    if 'private' is group.privacy
+      queue.push ->
+        group.createMembershipPolicy groupData.requestType, -> queue.next()
 
-      if 'private' is group.privacy
-        queue.push ->
-          group.createMembershipPolicy groupData.requestType, -> queue.next()
+    queue.push =>
+      @emit 'GroupCreated', { group, creator: owner }
+      callback null, group
 
-      queue.push =>
-        @emit 'GroupCreated', { group, creator: owner }
-        callback null, group
+    daisy queue
 
-      daisy queue
 
   @create$ = secure (client, formData, callback) ->
     { delegate } = client.connection
