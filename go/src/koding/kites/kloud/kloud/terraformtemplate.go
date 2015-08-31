@@ -10,6 +10,8 @@ import (
 	hclmain "github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl"
 	hcljson "github.com/hashicorp/hcl/json"
+	"github.com/hashicorp/terraform/config"
+	"github.com/hashicorp/terraform/config/lang"
 )
 
 type terraformTemplate struct {
@@ -53,6 +55,53 @@ func (t *terraformTemplate) hclUpdate() error {
 	}
 
 	return t.hclParse(out)
+}
+
+// detectUserVariables parses the template for any ${var.foo}, ${var.bar},
+// etc.. user variables. It returns a list of found variables with, example:
+// []string{"foo", "bar"}. The returned list only contains unique names, so any
+// user variable which declared multiple times is neglected, only the last
+// occurence is being added.
+func (t *terraformTemplate) detectUserVariables() ([]string, error) {
+	out, err := t.jsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	// get AST first, is capable of parsing json
+	a, err := lang.Parse(out)
+	if err != nil {
+		return nil, err
+	}
+
+	// read the variables from the given AST. This is basically just iterating
+	// over the AST node and does the heavy lifting for us
+	vars, err := config.DetectVariables(a)
+	if err != nil {
+		return nil, err
+	}
+
+	// filter out duplicates
+	set := make(map[string]bool, 0)
+	for _, v := range vars {
+		// be sure we only get userVariables, as there is many ways of
+		// declaring variables
+		u, ok := v.(*config.UserVariable)
+		if !ok {
+			continue
+		}
+
+		if !set[u.Name] {
+			set[u.Name] = true
+		}
+	}
+
+	userVars := []string{}
+	for u := range set {
+		userVars = append(userVars, u)
+	}
+
+	return userVars, nil
 }
 
 // DecodeProvider decodes the provider block to the given out struct

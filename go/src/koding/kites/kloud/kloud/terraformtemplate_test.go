@@ -168,6 +168,43 @@ func TestTerraformTemplate_DecodeProvider(t *testing.T) {
 	equals(t, "${var.aws_region}", provider.Aws.Region)
 }
 
+func TestTerraformTemplate_DetectUserVariables(t *testing.T) {
+	userTestTemplate := `{
+    "variable": {
+        "username": {
+            "default": "fatih"
+        }
+    },
+    "provider": {
+        "aws": {
+            "access_key": "${var.aws_access_key}",
+            "secret_key": "${var.aws_secret_key}",
+            "region": "${var.aws_region}"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+                "count": "${var.userInput_count}",
+                "instance_type": "t2.micro",
+                "user_data": "sudo apt-get install ${var.userInput_foo} -y\ntouch /tmp/${var.username}.txt"
+            }
+        }
+    }
+}`
+	template, err := newTerraformTemplate(userTestTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	vars, err := template.detectUserVariables()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("vars = %+v\n", vars)
+}
+
 // equals fails the test if exp is not equal to act.
 func equals(tb testing.TB, exp, act interface{}) {
 	if !reflect.DeepEqual(exp, act) {
