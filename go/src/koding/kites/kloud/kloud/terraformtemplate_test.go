@@ -302,6 +302,56 @@ func TestTerraformTemplate_FillVariables(t *testing.T) {
 	equals(t, "", variable.UserInputFoo.Default)
 }
 
+func TestTerraformTemplate_SetAWSRegion(t *testing.T) {
+	missingRegionTemplate := `{
+    "variable": {
+        "username": {
+            "default": "fatih"
+        }
+    },
+    "provider": {
+        "aws": {
+            "access_key": "${var.aws_access_key}",
+            "secret_key": "${var.aws_secret_key}"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+                "count": "${var.userInput_count}",
+                "instance_type": "t2.micro",
+                "user_data": "sudo apt-get install ${var.userInput_foo} -y\ntouch /tmp/${var.username}.txt"
+            }
+        }
+    }
+}`
+
+	template, err := newTerraformTemplate(missingRegionTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := template.setAwsRegion("us-east-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	var provider struct {
+		Aws struct {
+			Region    string
+			AccessKey string `hcl:"access_key"`
+			SecretKey string `hcl:"secret_key"`
+		}
+	}
+
+	if err := template.DecodeProvider(&provider); err != nil {
+		t.Fatal(err)
+	}
+
+	equals(t, "${var.aws_access_key}", provider.Aws.AccessKey)
+	equals(t, "${var.aws_secret_key}", provider.Aws.SecretKey)
+	equals(t, "us-east-1", provider.Aws.Region)
+}
+
 // equals fails the test if exp is not equal to act.
 func equals(tb testing.TB, exp, act interface{}) {
 	if !reflect.DeepEqual(exp, act) {
