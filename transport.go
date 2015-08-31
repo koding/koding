@@ -55,12 +55,6 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 // Trip is a generic method for communication. It accepts `req` to pass args
 // to Klient and `res` to store unmarshalled response from Klient.
 func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
-	switch methodName {
-	case "fs.readDirectory":
-	default:
-		return fmt.Errorf("'%s' is not implemented.")
-	}
-
 	raw, err := k.client.Tell(methodName, req)
 	if err != nil {
 		return err
