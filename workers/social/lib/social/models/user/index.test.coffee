@@ -639,10 +639,10 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # sending a different email address, username will remain same(duplicate)
-          userFormData.email = 'kodingtestuser@koding.com'
+          userFormData.email = generateRandomEmail()
 
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
+            expect(err.message).to.be.equal 'Errors were encountered during validation'
             queue.next()
 
         -> done()
@@ -663,10 +663,10 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # sending a different username, email address will remain same(duplicate)
-          userFormData.username = 'kodingtestuser'
+          userFormData.username = generateRandomUsername()
 
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
+            expect(err?.message).to.be.equal 'Email is already in use!'
             queue.next()
 
         -> done()
