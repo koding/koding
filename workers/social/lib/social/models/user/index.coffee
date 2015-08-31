@@ -547,6 +547,21 @@ module.exports = class JUser extends jraphical.Module
           return queue.next()
 
 
+  createUser = (options, queue, callback, fetchData) ->
+
+    { userInfo } = options
+
+    # creating a new user
+    JUser.createUser userInfo, (err, user_, account_) ->
+      return callback err  if err
+
+      unless user_? and account_?
+        return callback new KodingError 'Failed to create user!'
+
+      fetchData account_, user_
+      queue.next()
+
+
   redeemInvitation = (options, callback) ->
 
     { account, invitation, slug, email } = options
@@ -899,6 +914,31 @@ module.exports = class JUser extends jraphical.Module
     ]
 
     daisy queue
+
+
+  confirmDevAccount = (options, queue, callback) ->
+
+    { user, email, username } = options
+
+    if KONFIG.autoConfirmAccounts
+      user.confirmEmail (err) ->
+        console.warn err  if err?
+        queue.next()
+
+    else
+      options_ =
+        email    : email
+        action   : 'verify-account'
+        username : username
+
+      JVerificationToken = require '../verificationtoken'
+      JVerificationToken.createNewPin options_, (err, confirmation) ->
+        if err
+          console.warn 'Failed to send verification token:', err
+        else
+          pin = confirmation.pin
+
+        queue.next()
 
 
   @logout = secure (client, callback) ->
@@ -1301,8 +1341,7 @@ module.exports = class JUser extends jraphical.Module
           invitation = invitation_
           queue.next()
 
-      =>
-        # creating a new user
+      ->
         userInfo =
           email          : email
           username       : username
@@ -1311,14 +1350,8 @@ module.exports = class JUser extends jraphical.Module
           firstName      : firstName
           emailFrequency : emailFrequency
 
-        @createUser userInfo, (err, user_, account_) ->
-          return callback err  if err
-
-          unless user_? and account_?
-            return callback new KodingError 'Failed to create user!'
-
+        createUser { userInfo }, queue, callback, (account_, user_) ->
           [account, user] = [account_, user_]
-          queue.next()
 
       ->
         # updating user's location related info
@@ -1419,25 +1452,9 @@ module.exports = class JUser extends jraphical.Module
       ->
         # Auto confirm accounts for development environment
         # This config should be no for production! ~ GG
-        if KONFIG.autoConfirmAccounts
-          user.confirmEmail (err) ->
-            console.warn err  if err?
-            queue.next()
-
-        else
-          options =
-            email    : email
-            action   : 'verify-account'
-            username : username
-
-          JVerificationToken = require '../verificationtoken'
-          JVerificationToken.createNewPin options, (err, confirmation) ->
-            if err
-              console.warn 'Failed to send verification token:', err
-            else
-              pin = confirmation.pin
-
-            queue.next()
+        confirmDevAccount {
+          user, email, username
+        }, queue, callback
 
       ->
         # don't block register
