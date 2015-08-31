@@ -36,6 +36,7 @@ func (f *FileSystem) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *
 	return nil
 }
 
+// Mount mounts folder on user VM as a volume.
 func (f *FileSystem) Mount() error {
 	c, err := fuse.Mount(
 		f.InternalMountPath,

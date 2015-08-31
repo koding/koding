@@ -40,6 +40,8 @@ func main() {
 	}
 }
 
+// unmountOnExit un mounts Fuse mounted folder. Mount exists separate to
+// lifecycle of this program and needs to be cleaned up when this exists.
 func unmountOnExit(folder string) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
