@@ -1354,37 +1354,9 @@ module.exports = class JUser extends jraphical.Module
           [account, user] = [account_, user_]
 
       ->
-        # updating user's location related info
-        return queue.next()  unless ip? and country? and region?
-
-        locationModifier =
-          $set                       :
-            'registeredFrom.ip'      : ip
-            'registeredFrom.region'  : region
-            'registeredFrom.country' : country
-
-        user.update locationModifier, ->
-          queue.next()
-
-      =>
-        @persistOauthInfo username, client.sessionToken, (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        return queue.next()  unless username?
-
-        options =
-          account        : account
-          username       : username
-          clientId       : clientId
-          groupName      : client.context.group
-          isRegistration : yes
-
-        @changeUsernameByAccount options, (err, newToken_) ->
-          return callback err  if err
-          newToken = newToken_
-          queue.next()
+        updateUserInfo {
+          user, ip, country, region, username, client, account, clientId
+        }, queue, callback, (newToken_) -> newToken = newToken_
 
       ->
         account.update { $set: { type: 'registered' } }, (err) ->
