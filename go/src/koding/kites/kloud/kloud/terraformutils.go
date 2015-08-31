@@ -247,9 +247,11 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		var count int = 1
 		if c, ok := instance["count"]; ok {
 			// we receive it as int
-			count, ok = c.(int)
+			cn, ok := c.(int)
 			if !ok {
 				return nil, fmt.Errorf("count statement should be an integer, got: %+v, %T", c, c)
+			} else {
+				count = cn
 			}
 		}
 
