@@ -42,7 +42,7 @@ func NewNode(t Transport) *Node {
 // Attr returns metadata. Required by Fuse.
 func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 	n.RLock()
-	defer n.RLock()
+	defer n.RUnlock()
 
 	// TODO: how to deal with resource files
 	if strings.HasPrefix(n.Name, "._") {
