@@ -30,15 +30,19 @@ module.exports = class SearchDropup extends React.Component
 
   close: ->
 
-    ActivityFlux.actions.chatInputSearch.setVisibility no
-    ActivityFlux.actions.chatInputSearch.resetData()
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.chatInputSearch.setVisibility actionInitiatorId, no
+    ActivityFlux.actions.chatInputSearch.resetData actionInitiatorId
 
 
   moveToNextPosition: (keyInfo) ->
 
     return no  if keyInfo.isRightArrow
 
-    ActivityFlux.actions.chatInputSearch.moveToNextIndex()  unless @hasSingleItem()
+    { actionInitiatorId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.chatInputSearch.moveToNextIndex actionInitiatorId
+
     return yes
 
 
@@ -46,7 +50,10 @@ module.exports = class SearchDropup extends React.Component
 
     return no  if keyInfo.isLeftArrow
 
-    ActivityFlux.actions.chatInputSearch.moveToPrevIndex()  unless @hasSingleItem()
+    { actionInitiatorId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.chatInputSearch.moveToPrevIndex actionInitiatorId
+
     return yes
 
 
@@ -58,14 +65,17 @@ module.exports = class SearchDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.chatInputSearch.setQuery query
-    ActivityFlux.actions.chatInputSearch.setVisibility yes
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.chatInputSearch.setQuery actionInitiatorId, query
+    ActivityFlux.actions.chatInputSearch.setVisibility actionInitiatorId, yes
+
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.chatInputSearch.setSelectedIndex index
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.chatInputSearch.setSelectedIndex actionInitiatorId, index
 
 
   renderList: ->

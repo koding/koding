@@ -28,7 +28,10 @@ module.exports = class UserDropup extends React.Component
   getItemKey: (item) -> item.get '_id'
 
 
-  close: -> ActivityFlux.actions.user.setChatInputUsersVisibility no
+  close: ->
+
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.user.setChatInputUsersVisibility actionInitiatorId, no
 
 
   moveToNextPosition: (keyInfo) ->
@@ -37,7 +40,10 @@ module.exports = class UserDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.user.moveToNextChatInputUsersIndex()  unless @hasSingleItem()
+    { actionInitiatorId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.user.moveToNextChatInputUsersIndex actionInitiatorId
+
     return yes
 
 
@@ -47,7 +53,10 @@ module.exports = class UserDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()  unless @hasSingleItem()
+    { actionInitiatorId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.user.moveToPrevChatInputUsersIndex actionInitiatorId
+
     return yes
 
 
@@ -60,14 +69,17 @@ module.exports = class UserDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.user.setChatInputUsersQuery query
-    ActivityFlux.actions.user.setChatInputUsersVisibility yes
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.user.setChatInputUsersQuery actionInitiatorId, query
+    ActivityFlux.actions.user.setChatInputUsersVisibility actionInitiatorId, yes
+
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.user.setChatInputUsersSelectedIndex index
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.user.setChatInputUsersSelectedIndex actionInitiatorId, index
 
 
   renderList: ->

@@ -1,12 +1,13 @@
 KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
+immutable       = require 'immutable'
 
 ###*
- * Base class to store and manage selected index of list
+ * Base class to store and manage list selected indexes
 ###
 module.exports = class ChatInputSelectedIndexStore extends KodingFluxStore
 
-  getInitialState: -> 0
+  getInitialState: -> immutable.Map()
 
 
   ###*
@@ -24,39 +25,53 @@ module.exports = class ChatInputSelectedIndexStore extends KodingFluxStore
 
 
   ###*
-   * It updates current selected index with a given value
+   * It updates selected index for a given action initiator
    *
-   * @param {number} currentState
+   * @param {immutable.Map} currentState
    * @param {object} payload
+   * @param {string} payload.initiatorId
    * @param {number} payload.index
-   * @return {number} nextState
+   * @return {immutable.Map} nextState
   ###
-  setIndex: (currentState, { index }) -> index
+  setIndex: (currentState, { initiatorId, index }) ->
+
+    currentState.set initiatorId, index
 
 
   ###*
-   * It increments current selected index
+   * It increments selected index for a given action initiator
    *
-   * @param {number} currentState
-   * @return {number} nextState
+   * @param {object} payload
+   * @param {string} payload.initiatorId
+   * @return {immutable.Map} nextState
   ###
-  moveToNextIndex: (currentState) -> currentState + 1
+  moveToNextIndex: (currentState, { initiatorId }) ->
+
+    index = currentState.get(initiatorId) ? 0
+    currentState.set initiatorId, index + 1
 
 
   ###*
-   * It decrements current selected index
+   * It decrements selected index for a given action initiator
    *
-   * @param {number} currentState
-   * @return {number} nextState
+   * @param {object} payload
+   * @param {string} payload.initiatorId
+   * @return {immutable.Map} nextState
   ###
-  moveToPrevIndex: (currentState) -> currentState - 1
+  moveToPrevIndex: (currentState, { initiatorId }) ->
+
+    index = currentState.get(initiatorId) ? 0
+    currentState.set initiatorId, index - 1
 
 
   ###*
-   * It resets current selected index to initial value
+   * It deleted selected index for a given action initiator
    *
    * @param {number} currentState
+   * @param {string} payload.initiatorId
    * @return {number} nextState
   ###
-  resetIndex: (currentState) -> 0
+  resetIndex: (currentState, { initiatorId }) ->
+
+    currentState.delete initiatorId
 

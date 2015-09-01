@@ -11,7 +11,7 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
 
   @getterPath = 'ChatInputSearchStore'
 
-  getInitialState: -> immutable.List()
+  getInitialState: -> immutable.Map()
 
 
   initialize: ->
@@ -23,22 +23,30 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
 
   ###*
    * Handler for CHAT_INPUT_SEARCH_SUCCESS action.
-   * It replaces current items list with successfully fetched items
+   * It replaces items list with successfully fetched items
+   * for a given action initiator
    *
-   * @param {Immutable.List} currentItems
+   * @param {Immutable.Map} currentState
    * @param {object} payload
+   * @param {string} payload.initiatorId
    * @param {array} payload.items
-   * @return {Immutable.List} new items
+   * @return {Immutable.Map} nextState
   ###
-  handleSuccess: (currentItems, { items }) -> toImmutable items
+  handleSuccess: (currentState, { initiatorId, items }) ->
+
+    currentState.set initiatorId, toImmutable items
 
 
   ###*
    * Handler for CHAT_INPUT_SEARCH_RESET and CHAT_INPUT_SEARCH_FAIL actions.
-   * It sets current items to empty immutable list
+   * It deletes items for a given action initiator
    *
-   * @param {Immutable.List} items
-   * @return {Immutable.List} empty immutable list
+   * @param {Immutable.Map} currentState
+   * @param {object} payload
+   * @param {string} payload.initiatorId
+   * @return {Immutable.Map} nextState
   ###
-  handleReset: (items) -> immutable.List()
+  handleReset: (currentState, { initiatorId }) ->
+
+    currentState.delete initiatorId
 

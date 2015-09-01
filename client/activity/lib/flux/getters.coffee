@@ -231,10 +231,11 @@ selectedChannelParticipants = [
 # and < list.size
 calculateListSelectedIndex = (list, currentIndex) ->
 
-  { size } = list
-  return -1  unless size > 0
+  return -1  unless list and list.size > 0
 
-  index = currentIndex
+  { size } = list
+
+  index = currentIndex ? 0
   unless 0 <= index < size
     index = index % size
     index += size  if index < 0
@@ -247,7 +248,7 @@ calculateListSelectedIndex = (list, currentIndex) ->
 # It gets the list and its selected index
 # and returns item taken from the list by the index
 getListSelectedItem = (list, selectedIndex) ->
-  return  unless list.size > 0
+  return  unless list and list.size > 0
   return list.get selectedIndex
 
 
@@ -266,44 +267,60 @@ currentSuggestionsSelectedItem  = [
   getListSelectedItem
 ]
 
-filteredEmojiListQuery         = FilteredEmojiListQueryStore
+filteredEmojiListQuery         = (storeKey) -> [
+  FilteredEmojiListQueryStore
+  (queries) -> queries.get storeKey
+]
 # Returns a list of emojis filtered by current query
-filteredEmojiList              = [
+filteredEmojiList              = (storeKey) -> [
   EmojisStore
-  filteredEmojiListQuery
+  filteredEmojiListQuery storeKey
   (emojis, query) ->
     return immutable.List()  unless query
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
-filteredEmojiListSelectedIndex = [
-  filteredEmojiList
+filteredEmojiListRawIndex = (storeKey) -> [
   FilteredEmojiListSelectedIndexStore
+  (indexes) -> indexes.get storeKey
+]
+filteredEmojiListSelectedIndex = (storeKey) -> [
+  filteredEmojiList storeKey
+  filteredEmojiListRawIndex storeKey
   calculateListSelectedIndex
 ]
-filteredEmojiListSelectedItem  = [
-  filteredEmojiList
-  filteredEmojiListSelectedIndex
+filteredEmojiListSelectedItem  = (storeKey) -> [
+  filteredEmojiList storeKey
+  filteredEmojiListSelectedIndex storeKey
   getListSelectedItem
 ]
 
 commonEmojiList              = EmojisStore
-commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
-commonEmojiListVisibility    = CommonEmojiListVisibilityStore
+commonEmojiListSelectedIndex = (storeKey) -> [
+  CommonEmojiListSelectedIndexStore
+  (indexes) -> indexes.get storeKey
+]
+commonEmojiListVisibility    = (storeKey) -> [
+  CommonEmojiListVisibilityStore
+  (visibilities) -> visibilities.get storeKey
+]
 # Returns emoji from emoji list by current selected index
-commonEmojiListSelectedItem  = [
+commonEmojiListSelectedItem  = (storeKey) -> [
   commonEmojiList
-  commonEmojiListSelectedIndex
+  commonEmojiListSelectedIndex storeKey
   getListSelectedItem
 ]
 
-chatInputChannelsQuery         = ChatInputChannelsQueryStore
+chatInputChannelsQuery         = (storeKey) -> [
+  ChatInputChannelsQueryStore
+  (queries) -> queries.get storeKey
+]
 # Returns a list of channels depending on the current query
 # If query if empty, returns popular channels
 # Otherwise, returns channels filtered by query
-chatInputChannels              = [
+chatInputChannels              = (storeKey) -> [
   ChannelsStore
   popularChannels
-  chatInputChannelsQuery
+  chatInputChannelsQuery storeKey
   (channels, popularChannels, query) ->
     return popularChannels.toList()  unless query
 
@@ -312,26 +329,36 @@ chatInputChannels              = [
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
-chatInputChannelsSelectedIndex = [
-  chatInputChannels
+chatInputChannelsRawIndex      = (storeKey) -> [
   ChatInputChannelsSelectedIndexStore
+  (indexes) -> indexes.get storeKey
+]
+chatInputChannelsSelectedIndex = (storeKey) -> [
+  chatInputChannels storeKey
+  chatInputChannelsRawIndex storeKey
   calculateListSelectedIndex
 ]
-chatInputChannelsSelectedItem = [
-  chatInputChannels
-  chatInputChannelsSelectedIndex
+chatInputChannelsSelectedItem = (storeKey) -> [
+  chatInputChannels storeKey
+  chatInputChannelsSelectedIndex storeKey
   getListSelectedItem
 ]
-chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
+chatInputChannelsVisibility = (storeKey) -> [
+  ChatInputChannelsVisibilityStore
+  (visibilities) -> visibilities.get storeKey
+]
 
-chatInputUsersQuery         = ChatInputUsersQueryStore
+chatInputUsersQuery         = (storeKey) -> [
+  ChatInputUsersQueryStore
+  (queries) -> queries.get storeKey
+]
 # Returns a list of users depending on the current query
 # If query is empty, returns selected channel participants
 # Otherwise, returns users filtered by query
-chatInputUsers              = [
+chatInputUsers              = (storeKey) -> [
   UsersStore
   selectedChannelParticipants
-  chatInputUsersQuery
+  chatInputUsersQuery storeKey
   (users, participants, query) ->
     return participants?.toList() ? immutable.List()  unless query
 
@@ -340,31 +367,51 @@ chatInputUsers              = [
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
-chatInputUsersSelectedIndex = [
-  chatInputUsers
+chatInputUsersRawIndex      = (storeKey) -> [
   ChatInputUsersSelectedIndexStore
+  (indexes) -> indexes.get storeKey
+]
+chatInputUsersSelectedIndex = (storeKey) -> [
+  chatInputUsers storeKey
+  chatInputUsersRawIndex storeKey
   calculateListSelectedIndex
 ]
-chatInputUsersSelectedItem = [
-  chatInputUsers
-  chatInputUsersSelectedIndex
+chatInputUsersSelectedItem = (storeKey) -> [
+  chatInputUsers storeKey
+  chatInputUsersSelectedIndex storeKey
   getListSelectedItem
 ]
-chatInputUsersVisibility = ChatInputUsersVisibilityStore
+chatInputUsersVisibility = (storeKey) -> [
+  ChatInputUsersVisibilityStore
+  (visibilities) -> visibilities.get storeKey
+]
 
-chatInputSearchItems         = ChatInputSearchStore
-chatInputSearchQuery         = ChatInputSearchQueryStore
-chatInputSearchSelectedIndex = [
-  chatInputSearchItems
+chatInputSearchItems         = (storeKey) -> [
+  ChatInputSearchStore
+  (searchStore) -> searchStore.get storeKey
+]
+chatInputSearchQuery         = (storeKey) -> [
+  ChatInputSearchQueryStore
+  (queries) -> queries.get storeKey
+]
+chatInputSearchRawIndex      = (storeKey) -> [
   ChatInputSearchSelectedIndexStore
+  (indexes) -> indexes.get storeKey
+]
+chatInputSearchSelectedIndex = (storeKey) -> [
+  chatInputSearchItems storeKey
+  chatInputSearchRawIndex storeKey
   calculateListSelectedIndex
 ]
-chatInputSearchSelectedItem  = [
-  chatInputSearchItems
-  chatInputSearchSelectedIndex
+chatInputSearchSelectedItem  = (storeKey) -> [
+  chatInputSearchItems storeKey
+  chatInputSearchSelectedIndex storeKey
   getListSelectedItem
 ]
-chatInputSearchVisibility    = ChatInputSearchVisibilityStore
+chatInputSearchVisibility    = (storeKey) -> [
+  ChatInputSearchVisibilityStore
+  (visibilities) -> visibilities.get storeKey
+]
 
 module.exports = {
   followedPublicChannelThreads
