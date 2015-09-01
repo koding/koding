@@ -204,6 +204,27 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     @getParticipantsDropdown().close()
 
+
+  onNextPosition: (event, keyInfo) ->
+
+    dropdown = @getParticipantsDropdown()
+
+    if dropdown.isActive()
+
+      stopEvent = dropdown.moveToNextPosition keyInfo
+      kd.utils.stopDOMEvent event  if stopEvent
+
+
+  onPrevPosition: (event, keyInfo) ->
+
+    dropdown = @getParticipantsDropdown()
+
+    if dropdown.isActive()
+
+      stopEvent = dropdown.moveToPrevPosition keyInfo
+      kd.utils.stopDOMEvent event  if stopEvent
+
+
   onKeyDown: (event) ->
 
     switch event.which
