@@ -8,10 +8,15 @@ import (
 
 func TestFile(t *testing.T) {
 	Convey("Given file", t, func() {
-		var f = File{Node: &Node{Transport: &fakeTransport{}}}
+		ft := &fakeTransport{
+			TripMethodName: "fs.readFile",
+			TripResponse:   fsReadFileRes{},
+		}
+
+		fl := File{Node: &Node{Transport: ft}}
 
 		Convey("It should return contents", func() {
-			contents, err := f.ReadAll(nil)
+			contents, err := fl.ReadAll(nil)
 			So(err, ShouldBeNil)
 			So(contents, ShouldBeEmpty)
 		})

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -86,4 +88,24 @@ type fsGetInfoRes struct {
 	Size     int    `json:"size"`
 	Time     string `json:"time"`
 	Writable bool   `json:"writable"`
+}
+
+type fsReadFileRes struct {
+	Content []byte
+}
+
+func (f *fsReadFileRes) UnmarshalJSON(b []byte) error {
+	var m map[string]string
+	if err := json.Unmarshal(b, &m); err != nil {
+		return err
+	}
+
+	data, err := base64.StdEncoding.DecodeString(m["content"])
+	if err != nil {
+		return err
+	}
+
+	f.Content = data
+
+	return nil
 }
