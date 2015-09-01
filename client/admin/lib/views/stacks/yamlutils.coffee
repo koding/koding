@@ -15,6 +15,9 @@ module.exports = {
 
     contentType     = 'json'
 
+    unless typeof content is 'string'
+      content       = JSON.stringify content
+
     try
       contentObject = JSON.parse content
 
