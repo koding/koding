@@ -2,6 +2,7 @@
 
 
 
+
 @css {
 /*
 Admin main styles
@@ -1314,8 +1315,48 @@ Admin main styles
 .AppModal--admin .stacks-v2
 
   .variables
+
+    .indicator
+      top                   66px
+      right                 2px
+
+      width                 auto
+      height                14px
+
+      color                 white
+      background-color      orange
+
+      font-size             11px
+      line-height           12px
+      font-weight           200
+
+      padding               1px 4px 0px 3px
+      border-radius         2px
+
+      vendor                transition, top .2s ease
+      abs()
+
+      &.in
+        top                 24px
+
+      &.red
+        background-color    darkred
+
+    .message-view
+      font-size             14px
+      height                50px
+
+      pre
+        display             inline
+        background-color    #eee
+        font-size           12px
+        padding             2px 3px
+        border              1px solid #ddd
+        border-radius       2px
+
     .editor-view
-      height                calc(100% \- 120px)
+      height                calc(100% \- 170px)
+      rounded               4px 4px 0 0
 
   .step-define-stack
 
@@ -1323,7 +1364,6 @@ Admin main styles
       z-index               14
 
     .editor-view
-      background            #222 !important
       rounded               4px 4px 0 0
 
     .showlogs-link
@@ -1752,6 +1792,7 @@ Admin main styles
 
     .description
       width                 400px
+      margin-bottom         30px
 
     .item
       width                 290px
