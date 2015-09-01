@@ -5,6 +5,7 @@ isKoding                = require 'app/util/isKoding'
 getGroup                = require 'app/util/getGroup'
 MessageActions          = require './message'
 realtimeActionCreators  = require './realtime/actioncreators'
+showErrorNotification   = require 'app/util/showErrorNotification'
 { actions: appActions } = require 'app/flux'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -253,10 +254,33 @@ unfollowChannel = (channelId) ->
     dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId }
 
 
+addParticipants = (options = {}) ->
+
+  { channel } = kd.singletons.socialapi
+
+  { ADD_PARTICIPANTS_TO_CHANNEL_BEGIN
+    ADD_PARTICIPANTS_TO_CHANNEL_FAIL
+    ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS } = actionTypes
+
+  dispatch ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, options
+
+  console.log 'waiting for backend for addparticipant to channel action'
+
+  return
+
+  channel.addParticipants options, (err, result) =>
+    if err
+      dispatch ADD_PARTICIPANTS_TO_CHANNEL_FAIL, options
+      showErrorNotification err.description
+      return
+
+    dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, options
+
 
 module.exports = {
   followChannel
   unfollowChannel
+  addParticipants
   loadChannelByName
   loadChannelById
   loadFollowedPrivateChannels
