@@ -19,7 +19,6 @@ module.exports = class UserDropup extends React.Component
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
-    keyboardScroll : yes
 
 
   formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"

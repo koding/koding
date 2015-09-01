@@ -19,7 +19,6 @@ module.exports = class ChannelDropup extends React.Component
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
-    keyboardScroll : yes
 
 
   formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"

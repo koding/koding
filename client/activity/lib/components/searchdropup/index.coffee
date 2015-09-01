@@ -19,7 +19,6 @@ module.exports = class SearchDropup extends React.Component
     visible        : no
     selectedItem   : null
     selectedIndex  : 0
-    keyboardScroll : yes
 
 
   formatSelectedValue: -> @props.selectedItem.get('message').toJS()
