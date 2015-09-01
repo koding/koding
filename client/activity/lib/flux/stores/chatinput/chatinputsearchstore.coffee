@@ -24,29 +24,29 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
   ###*
    * Handler for CHAT_INPUT_SEARCH_SUCCESS action.
    * It replaces items list with successfully fetched items
-   * for a given action initiator
+   * for a given stateId
    *
    * @param {Immutable.Map} currentState
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @param {array} payload.items
    * @return {Immutable.Map} nextState
   ###
-  handleSuccess: (currentState, { initiatorId, items }) ->
+  handleSuccess: (currentState, { stateId, items }) ->
 
-    currentState.set initiatorId, toImmutable items
+    currentState.set stateId, toImmutable items
 
 
   ###*
    * Handler for CHAT_INPUT_SEARCH_RESET and CHAT_INPUT_SEARCH_FAIL actions.
-   * It deletes items for a given action initiator
+   * It deletes items for a given stateId
    *
    * @param {Immutable.Map} currentState
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @return {Immutable.Map} nextState
   ###
-  handleReset: (currentState, { initiatorId }) ->
+  handleReset: (currentState, { stateId }) ->
 
-    currentState.delete initiatorId
+    currentState.delete stateId
 

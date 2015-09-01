@@ -18,10 +18,10 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
     it 'sets selected index', ->
 
       index = 3
-      initiatorId = 'test'
+      stateId = 'test'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { initiatorId, index }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
@@ -32,15 +32,15 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
 
       index = 3
       nextIndex = index + 1
-      initiatorId = 'test'
+      stateId = 'test'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index, initiatorId }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index, stateId }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actions.MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX, { initiatorId }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal nextIndex
 
@@ -51,15 +51,15 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
 
       index = 3
       prevIndex = index - 1
-      initiatorId = 'test'
+      stateId = 'test'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index, initiatorId }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index, stateId }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actions.MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX, { initiatorId }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal prevIndex
 
@@ -69,15 +69,15 @@ describe 'ChatInputChannelsSelectedIndexStore', ->
     it 'resets selected index', ->
 
       index = 3
-      initiatorId = 'test'
+      stateId = 'test'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index, initiatorId }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index, stateId }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actions.RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { initiatorId }
-      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['chatInputChannelsSelectedIndex']).get stateId
 
       expect(selectedIndex).to.be.undefined
 

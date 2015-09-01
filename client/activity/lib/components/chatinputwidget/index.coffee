@@ -175,7 +175,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility @id, yes
+    ActivityFlux.actions.emoji.setCommonListVisibility @stateId, yes
 
 
   renderEmojiDropup: ->
@@ -183,13 +183,13 @@ module.exports = class ChatInputWidget extends React.Component
     { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
 
     <EmojiDropup
-      items             = { filteredEmojiList }
-      selectedIndex     = { filteredEmojiListSelectedIndex }
-      selectedItem      = { filteredEmojiListSelectedItem }
-      query             = { filteredEmojiListQuery }
-      onItemConfirmed   = { @bound 'onDropupItemConfirmed' }
-      ref               = 'emojiDropup'
-      actionInitiatorId = { @id }
+      items           = { filteredEmojiList }
+      selectedIndex   = { filteredEmojiListSelectedIndex }
+      selectedItem    = { filteredEmojiListSelectedItem }
+      query           = { filteredEmojiListQuery }
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'emojiDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -198,11 +198,11 @@ module.exports = class ChatInputWidget extends React.Component
     { commonEmojiList, commonEmojiListVisibility, commonEmojiListSelectedItem } = @state
 
     <EmojiSelector
-      items             = { commonEmojiList }
-      visible           = { commonEmojiListVisibility }
-      selectedItem      = { commonEmojiListSelectedItem }
-      onItemConfirmed   = { @bound 'onSelectorItemConfirmed' }
-      actionInitiatorId = { @id }
+      items           = { commonEmojiList }
+      visible         = { commonEmojiListVisibility }
+      selectedItem    = { commonEmojiListSelectedItem }
+      onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
+      stateId         = { @stateId }
     />
 
 
@@ -211,14 +211,14 @@ module.exports = class ChatInputWidget extends React.Component
     { channels, channelsSelectedItem, channelsSelectedIndex, channelsQuery, channelsVisibility } = @state
 
     <ChannelDropup
-      items             = { channels }
-      selectedIndex     = { channelsSelectedIndex }
-      selectedItem      = { channelsSelectedItem }
-      query             = { channelsQuery }
-      visible           = { channelsVisibility }
-      onItemConfirmed   = { @bound 'onDropupItemConfirmed' }
-      ref               = 'channelDropup'
-      actionInitiatorId = { @id }
+      items           = { channels }
+      selectedIndex   = { channelsSelectedIndex }
+      selectedItem    = { channelsSelectedItem }
+      query           = { channelsQuery }
+      visible         = { channelsVisibility }
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'channelDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -227,14 +227,14 @@ module.exports = class ChatInputWidget extends React.Component
     { users, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
 
     <UserDropup
-      items             = { users }
-      selectedIndex     = { userSelectedIndex }
-      selectedItem      = { usersSelectedItem }
-      query             = { usersQuery }
-      visible           = { usersVisibility }
-      onItemConfirmed   = { @bound 'onDropupItemConfirmed' }
-      ref               = 'userDropup'
-      actionInitiatorId = { @id }
+      items           = { users }
+      selectedIndex   = { userSelectedIndex }
+      selectedItem    = { usersSelectedItem }
+      query           = { usersQuery }
+      visible         = { usersVisibility }
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'userDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -243,14 +243,14 @@ module.exports = class ChatInputWidget extends React.Component
     { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
 
     <SearchDropup
-      items             = { searchItems }
-      selectedIndex     = { searchSelectedIndex }
-      selectedItem      = { searchSelectedItem }
-      query             = { searchQuery }
-      visible           = { searchVisibility }
-      onItemConfirmed   = { @bound 'onSearchItemConfirmed' }
-      ref               = 'searchDropup'
-      actionInitiatorId = { @id }
+      items           = { searchItems }
+      selectedIndex   = { searchSelectedIndex }
+      selectedItem    = { searchSelectedItem }
+      query           = { searchQuery }
+      visible         = { searchVisibility }
+      onItemConfirmed = { @bound 'onSearchItemConfirmed' }
+      ref             = 'searchDropup'
+      stateId         = { @stateId }
     />
 
 

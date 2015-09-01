@@ -25,53 +25,53 @@ module.exports = class ChatInputSelectedIndexStore extends KodingFluxStore
 
 
   ###*
-   * It updates selected index for a given action initiator
+   * It updates selected index for a given stateId
    *
    * @param {immutable.Map} currentState
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @param {number} payload.index
    * @return {immutable.Map} nextState
   ###
-  setIndex: (currentState, { initiatorId, index }) ->
+  setIndex: (currentState, { stateId, index }) ->
 
-    currentState.set initiatorId, index
+    currentState.set stateId, index
 
 
   ###*
-   * It increments selected index for a given action initiator
+   * It increments selected index for a given stateId
    *
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @return {immutable.Map} nextState
   ###
-  moveToNextIndex: (currentState, { initiatorId }) ->
+  moveToNextIndex: (currentState, { stateId }) ->
 
-    index = currentState.get(initiatorId) ? 0
-    currentState.set initiatorId, index + 1
+    index = currentState.get(stateId) ? 0
+    currentState.set stateId, index + 1
 
 
   ###*
-   * It decrements selected index for a given action initiator
+   * It decrements selected index for a given stateId
    *
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @return {immutable.Map} nextState
   ###
-  moveToPrevIndex: (currentState, { initiatorId }) ->
+  moveToPrevIndex: (currentState, { stateId }) ->
 
-    index = currentState.get(initiatorId) ? 0
-    currentState.set initiatorId, index - 1
+    index = currentState.get(stateId) ? 0
+    currentState.set stateId, index - 1
 
 
   ###*
-   * It deleted selected index for a given action initiator
+   * It deleted selected index for a given stateId
    *
    * @param {number} currentState
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @return {number} nextState
   ###
-  resetIndex: (currentState, { initiatorId }) ->
+  resetIndex: (currentState, { stateId }) ->
 
-    currentState.delete initiatorId
+    currentState.delete stateId
 

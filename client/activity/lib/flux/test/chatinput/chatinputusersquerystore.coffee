@@ -19,15 +19,15 @@ describe 'ChatInputUsersQueryStore', ->
 
       query1 = 'ben'
       query2 = 'john'
-      initiatorId = '123'
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, { initiatorId, query : query1 }
-      query = @reactor.evaluate(['chatInputUsersQuery']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, { stateId, query : query1 }
+      query = @reactor.evaluate(['chatInputUsersQuery']).get stateId
 
       expect(query).to.equal query1
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, { initiatorId, query: query2 }
-      query = @reactor.evaluate(['chatInputUsersQuery']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, { stateId, query: query2 }
+      query = @reactor.evaluate(['chatInputUsersQuery']).get stateId
 
       expect(query).to.equal query2
 
@@ -37,15 +37,15 @@ describe 'ChatInputUsersQueryStore', ->
     it 'clears current query', ->
 
       testQuery = 'alex'
-      initiatorId = '123'
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, { initiatorId, query : testQuery }
-      query = @reactor.evaluate(['chatInputUsersQuery']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_QUERY, { stateId, query : testQuery }
+      query = @reactor.evaluate(['chatInputUsersQuery']).get stateId
 
       expect(query).to.equal testQuery
 
-      @reactor.dispatch actions.UNSET_CHAT_INPUT_USERS_QUERY, { initiatorId }
-      query = @reactor.evaluate(['chatInputUsersQuery']).get initiatorId
+      @reactor.dispatch actions.UNSET_CHAT_INPUT_USERS_QUERY, { stateId }
+      query = @reactor.evaluate(['chatInputUsersQuery']).get stateId
 
       expect(query).to.be.undefined
 

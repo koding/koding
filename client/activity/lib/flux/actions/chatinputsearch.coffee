@@ -13,11 +13,11 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###*
  * Action to search items by query
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {string} query
 ###
 
-fetchData = (initiatorId, query) ->
+fetchData = (stateId, query) ->
 
   { HIGHLIGHT_PRE_MARKER, HIGHLIGHT_POST_MARKER } = SearchConstants
   
@@ -34,17 +34,17 @@ fetchData = (initiatorId, query) ->
   dispatch actionTypes.CHAT_INPUT_SEARCH_BEGIN
   kd.singletons.search.searchChannelWithHighlighting query, socialApiChannelId, options
     .then (items) ->
-      dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
     .catch (err) ->
-      dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { initiatorId, err }
+      dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { stateId, err }
 
 
 ###*
  * Action to clear stored search items
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-resetData = (initiatorId) -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { initiatorId }
+resetData = (stateId) -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { stateId }
 
 
 ###*
@@ -52,89 +52,90 @@ resetData = (initiatorId) -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { ini
  * Also, it resets search items selected index and loads items
  * filtered by query if query is not empty
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {string} query
 ###
-setQuery = (initiatorId, query) ->
+setQuery = (stateId, query) ->
 
   if query
     { SET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
-    dispatch SET_CHAT_INPUT_SEARCH_QUERY, { initiatorId, query }
-    resetSelectedIndex initiatorId
-    fetchData initiatorId, query
+    dispatch SET_CHAT_INPUT_SEARCH_QUERY, { stateId, query }
+    resetSelectedIndex stateId
+    fetchData stateId, query
   else
-    unsetQuery initiatorId
+    unsetQuery stateId
 
 
 ###*
  * Action to unset current search query.
  * Also, it resets search items selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-unsetQuery = (initiatorId) ->
+unsetQuery = (stateId) ->
 
   { UNSET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
-  dispatch UNSET_CHAT_INPUT_SEARCH_QUERY, { initiatorId }
+  dispatch UNSET_CHAT_INPUT_SEARCH_QUERY, { stateId }
 
-  resetSelectedIndex initiatorId
-  resetData initiatorId
+  resetSelectedIndex stateId
+  resetData stateId
 
 
 ###*
  * Action to set search items selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {number} index
 ###
-setSelectedIndex = (initiatorId, index) ->
+setSelectedIndex = (stateId, index) ->
 
   { SET_CHAT_INPUT_SEARCH_SELECTED_INDEX } = actionTypes
-  dispatch SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
+  dispatch SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
 
 ###*
  * Action to increment search items selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-moveToNextIndex = (initiatorId) ->
+moveToNextIndex = (stateId) ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX } = actionTypes
-  dispatch MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX, { initiatorId }
+  dispatch MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX, { stateId }
 
 
 ###*
  * Action to decrement search items selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-moveToPrevIndex = (initiatorId) ->
+moveToPrevIndex = (stateId) ->
 
   { MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX } = actionTypes
-  dispatch MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX, { initiatorId }
+  dispatch MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX, { stateId }
 
 
 ###*
  * Action to reset search items selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-resetSelectedIndex = (initiatorId) ->
+resetSelectedIndex = (stateId) ->
 
   { RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX } = actionTypes
-  dispatch RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId }
+  dispatch RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId }
 
 
 ###*
  * Action to set visibility of search items
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
+ * @param {bool} visible
 ###
-setVisibility = (initiatorId, visible) ->
+setVisibility = (stateId, visible) ->
 
   { SET_CHAT_INPUT_SEARCH_VISIBILITY } = actionTypes
-  dispatch SET_CHAT_INPUT_SEARCH_VISIBILITY, { initiatorId, visible }
+  dispatch SET_CHAT_INPUT_SEARCH_VISIBILITY, { stateId, visible }
 
 
 module.exports = {

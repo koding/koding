@@ -17,15 +17,15 @@ describe 'CommonEmojiListVisibilityStore', ->
 
     it 'sets visibility', ->
 
-      initiatorId = '123'
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { initiatorId, visible : yes }
-      visible = @reactor.evaluate(['commonEmojiListVisibility']).get initiatorId
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { stateId, visible : yes }
+      visible = @reactor.evaluate(['commonEmojiListVisibility']).get stateId
 
       expect(visible).to.be.true
 
-      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { initiatorId, visible : no }
-      visible = @reactor.evaluate(['commonEmojiListVisibility']).get initiatorId
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_VISIBILITY, { stateId, visible : no }
+      visible = @reactor.evaluate(['commonEmojiListVisibility']).get stateId
 
       expect(visible).to.be.false
 
