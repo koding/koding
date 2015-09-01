@@ -175,7 +175,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility yes
+    ActivityFlux.actions.emoji.setCommonListVisibility @stateId, yes
 
 
   renderEmojiDropup: ->
@@ -189,6 +189,7 @@ module.exports = class ChatInputWidget extends React.Component
       query           = { filteredEmojiListQuery }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
       ref             = 'emojiDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -201,6 +202,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { commonEmojiListVisibility }
       selectedItem    = { commonEmojiListSelectedItem }
       onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
+      stateId         = { @stateId }
     />
 
 
@@ -216,6 +218,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { channelsVisibility }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
       ref             = 'channelDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -231,6 +234,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { usersVisibility }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
       ref             = 'userDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -246,6 +250,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { searchVisibility }
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropup'
+      stateId         = { @stateId }
     />
 
 

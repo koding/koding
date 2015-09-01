@@ -18,9 +18,10 @@ describe 'ChatInputUsersSelectedIndexStore', ->
     it 'sets selected index', ->
 
       index = 1
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { index }
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
@@ -30,15 +31,16 @@ describe 'ChatInputUsersSelectedIndexStore', ->
   	it 'moves to next index', ->
 
       index = 1
+      stateId = '123'
       nextIndex = index + 1
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { index }
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actions.MOVE_TO_NEXT_CHAT_INPUT_USERS_INDEX
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.MOVE_TO_NEXT_CHAT_INPUT_USERS_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal nextIndex
 
@@ -48,15 +50,16 @@ describe 'ChatInputUsersSelectedIndexStore', ->
     it 'moves to prev index', ->
 
       index = 1
+      stateId = '123'
       prevIndex = index - 1
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { index }
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actions.MOVE_TO_PREV_CHAT_INPUT_USERS_INDEX
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.MOVE_TO_PREV_CHAT_INPUT_USERS_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal prevIndex
 
@@ -66,14 +69,15 @@ describe 'ChatInputUsersSelectedIndexStore', ->
     it 'resets selected index', ->
 
       index = 1
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { index }
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.SET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actions.RESET_CHAT_INPUT_USERS_SELECTED_INDEX
-      selectedIndex = @reactor.evaluate ['chatInputUsersSelectedIndex']
+      @reactor.dispatch actions.RESET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['chatInputUsersSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal 0
+      expect(selectedIndex).to.be.undefined
 
