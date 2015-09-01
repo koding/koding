@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"bazil.org/fuse"
@@ -17,10 +18,15 @@ type Dir struct {
 
 // Lookup returns file or dir if exists; fuse.EEXIST if not. Required by Fuse.
 func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	defer debug(time.Now(), "Lookup="+name)
-
 	d.RLock()
 	defer d.RUnlock()
+
+	// TODO: how to deal with resource files
+	if strings.HasPrefix(name, "._") {
+		return NewNode(d.Transport), nil
+	}
+
+	defer debug(time.Now(), "Lookup="+name)
 
 	n := NewNode(d.Transport)
 	n.Name = name
