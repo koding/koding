@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juju/ratelimit"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/juju/ratelimit"
 )
 
 // MethodHandling defines how to handle chaining of kite.Handler middlewares.
