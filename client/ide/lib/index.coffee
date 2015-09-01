@@ -1103,21 +1103,20 @@ class IDEAppController extends AppController
         @removeFakeViews()
         @fakeViewsDestroyed = yes
 
-      # Just resurrect snapshot for the host with/without a session.
-      if snapshot and @amIHost
+      unless @layoutManager.isSnapshotRestored()
 
-        if @getActiveInstance().isActive
-          @layoutManager.resurrectSnapshot snapshot
+        # Just resurrect snapshot for the host with/without a session.
+        if snapshot and @amIHost
+          if @getActiveInstance().isActive
+          then @layoutManager.resurrectSnapshot snapshot
+          else @layoutManager.setSnapshot snapshot
         else
-          @layoutManager.setSnapshot snapshot
-
-      else
-        @addInitialViews()  unless @initialViewsReady
+          @addInitialViews()  unless @initialViewsReady
 
 
-      { mainView } = kd.singletons
+      { mainView }  = kd.singletons
+      data          = { machine, workspace: @workspaceData }
 
-      data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
 
       @emit 'IDEReady'
