@@ -97,6 +97,17 @@ setVisibility = (stateId, visible) ->
   dispatch SET_CHAT_INPUT_USERS_VISIBILITY, { stateId, visible }
 
 
+setChannelParticipantsInputQuery = (query) ->
+
+  if query
+    { SET_PARTICIPANT_USERS_QUERY } = actionTypes
+    dispatch SET_PARTICIPANT_USERS_QUERY, { query }
+    resetChannelParticipantsSelectedIndex()
+    appActions.user.searchAccounts query
+
+  else
+    unsetChannelParticipantsInputQuery()
+
 ###*
  * Action to increment users selected index
 ###
@@ -123,6 +134,7 @@ module.exports = {
   moveToPrevIndex
   resetSelectedIndex
   setVisibility
+  setChannelParticipantsInputQuery
   moveToNextChannelParticipantIndex
   moveToPrevChannelParticipantIndex
 }
