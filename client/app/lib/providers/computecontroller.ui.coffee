@@ -196,7 +196,7 @@ module.exports = class ComputeController_UI
           title   : "Reinitialize VM?"
           message : "
             If you choose to proceed, this VM will be reset to default state.
-            You will lose all your files, workspaces and data but your VM
+            You will lose all your files, workspaces, collaboration sessions and data but your VM
             settings (VM aliases, sub-domains etc.) will not be lost.
           "
           button  : "Proceed"
@@ -231,6 +231,7 @@ module.exports = class ComputeController_UI
               <li> running services </li>
               <li> settings </li>
               <li> custom domains (if any) </li>
+              <li> collaboration sessions </li>
               <br/>
             <p>This action cannot be reversed!
             Are you sure you want to proceed?</p>

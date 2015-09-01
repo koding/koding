@@ -423,6 +423,8 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
+      @stopCollaborationSession()
+
       baseKite = machine.getBaseKite( createIfNotExists = no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
       then baseKite.klientDisable().finally -> baseKite.disconnect()
@@ -480,6 +482,9 @@ module.exports = class ComputeController extends KDController
     return if methodNotSupportedBy machine
 
     startReinit = =>
+
+      @stopCollaborationSession()
+
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
@@ -844,3 +849,12 @@ module.exports = class ComputeController extends KDController
       return no
 
     return yes
+
+
+  ###*
+   * Automatically kill active collaboration sessions if any
+  ###
+  stopCollaborationSession: ->
+
+    kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
+
