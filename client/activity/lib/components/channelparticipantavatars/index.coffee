@@ -208,6 +208,21 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     user.setChannelParticipantsInputQuery query
     channel.setChannelParticipantsDropdownVisibility yes
+
+
+  onEnter: (event) ->
+
+    return  if event.shiftKey
+
+    kd.utils.stopDOMEvent event
+
+    dropdown = @getParticipantsDropdown()
+
+    if dropdown.isActive()
+
+      dropdown.confirmSelectedItem()
+
+
   onEsc: (event) ->
 
     @getParticipantsDropdown().close()
@@ -288,3 +303,5 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       {@renderAddNewChannelParticipantsDropdown()}
     </div>
 
+
+React.Component.include.call ChannelParticipantAvatars, [KDReactorMixin]
