@@ -97,6 +97,24 @@ setVisibility = (stateId, visible) ->
   dispatch SET_CHAT_INPUT_USERS_VISIBILITY, { stateId, visible }
 
 
+###*
+ * Action to increment users selected index
+###
+moveToNextChannelParticipantIndex = ->
+
+  { MOVE_TO_NEXT_CHANNEL_PARTICIPANT_INDEX } = actionTypes
+  dispatch MOVE_TO_NEXT_CHANNEL_PARTICIPANT_INDEX
+
+
+###*
+ * Action to decrement users selected index
+###
+moveToPrevChannelParticipantIndex = ->
+
+  { MOVE_TO_PREV_CHANNEL_PARTICIPANT_INDEX } = actionTypes
+  dispatch MOVE_TO_PREV_CHANNEL_PARTICIPANT_INDEX
+
+
 module.exports = {
   setQuery
   unsetQuery
@@ -105,5 +123,7 @@ module.exports = {
   moveToPrevIndex
   resetSelectedIndex
   setVisibility
+  moveToNextChannelParticipantIndex
+  moveToPrevChannelParticipantIndex
 }
 
