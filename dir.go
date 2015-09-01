@@ -66,6 +66,8 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	n.attr.Size = uint64(res.Size)
 	n.attr.Mode = os.FileMode(res.Mode)
 
+	// TODO: set node in Dir#EntriesList?
+
 	if res.IsDir {
 		return NewDir(n), nil
 	}
@@ -77,8 +79,8 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer debug(time.Now(), "ReadDirAll="+d.Name)
 
-	d.RLock()
-	defer d.RUnlock()
+	d.Lock()
+	defer d.Unlock()
 
 	if len(d.FuseEntries) != 0 {
 		return d.FuseEntries, nil
