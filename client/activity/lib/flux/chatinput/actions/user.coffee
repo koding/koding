@@ -100,8 +100,8 @@ setVisibility = (stateId, visible) ->
 setChannelParticipantsInputQuery = (query) ->
 
   if query
-    { SET_PARTICIPANT_USERS_QUERY } = actionTypes
-    dispatch SET_PARTICIPANT_USERS_QUERY, { query }
+    { SET_CHANNEL_PARTICIPANTS_USERS_QUERY } = actionTypes
+    dispatch SET_CHANNEL_PARTICIPANTS_USERS_QUERY, { query }
     resetChannelParticipantsSelectedIndex()
     appActions.user.searchAccounts query
 
