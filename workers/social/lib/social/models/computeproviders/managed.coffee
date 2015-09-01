@@ -105,6 +105,18 @@ module.exports = class Managed extends ProviderInterface
       else machine.destroy client, callback
 
 
+  updateHelper =
+
+    _update : (selector, fieldsToUpdate, callback) ->
+      JMachine.one selector, (err, machine) ->
+
+        if err? or not machine?
+          return callback err or new KodingError 'Machine object not found.'
+
+        machine.update { $set: fieldsToUpdate }, (err) ->
+          callback err
+
+
   @update = (client, options, callback) ->
 
     { machineId, queryString, ipAddress, storage, managedProvider } = options
@@ -130,13 +142,8 @@ module.exports = class Managed extends ProviderInterface
     JMachine = require './machine'
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
     selector.provider = @providerSlug
+    updateHelper._update selector, fieldsToUpdate, callback
 
-    JMachine.one selector, (err, machine) ->
 
-      if err? or not machine?
-        return callback err or new KodingError 'Machine object not found.'
-
-      machine.update { $set: fieldsToUpdate }, (err) ->
-        callback err
 
 

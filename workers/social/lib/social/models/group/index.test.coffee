@@ -523,14 +523,15 @@ runTests = -> describe 'workers.social.group.index', ->
       client            = {}
       account           = {}
       groupSlug         = generateRandomString()
-      userFormData      = generateDummyUserFormData
-        email : generateRandomEmail 'gmail.com'
+      userFormData      = generateDummyUserFormData()
 
       groupData         =
         slug           : groupSlug
         title          : generateRandomString()
         visibility     : 'visible'
         allowedDomains : ['gmail.com']
+
+      allowedDomainEmail = generateRandomEmail groupData.allowedDomains[0]
 
       queue = [
 
@@ -552,7 +553,7 @@ runTests = -> describe 'workers.social.group.index', ->
           # expecting to return false when there are no allowedDomains
           JGroup.create client, groupData, account, (err, group) ->
             expect(err).to.not.exist
-            expect(group.isInAllowedDomain userFormData.email).to.be.ok
+            expect(group.isInAllowedDomain allowedDomainEmail).to.be.ok
             queue.next()
 
         -> done()

@@ -95,6 +95,33 @@ module.exports = class Koding extends ProviderInterface
       JWorkspace.createDefault client, machine.uid, callback
 
 
+  updateHelper =
+
+    validateResizeByUserPlan : (resize, userPlan, callback) ->
+      if isNaN resize
+        return callback new KodingError \
+        'Requested new size is not valid.', 'WrongParameter'
+      else if resize > userPlan.storage
+        return callback new KodingError \
+        """Requested new size exceeds allowed
+           limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+      else if resize < 3
+        return callback new KodingError \
+        """New size can't be less than 3GB.""", 'WrongParameter'
+
+    validateResizeByMachine : (options, callback) ->
+      { resize, storageSize, usage, userPlan, machine } = options
+
+      if (resize - storageSize) + usage.storage > userPlan.storage
+        return callback new KodingError \
+        """Requested new size exceeds allowed
+           limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+      else if resize is machine.getAt 'meta.storage_size'
+        return callback new KodingError \
+        """Requested new size is same with current
+           storage size (#{resize}GB).""", 'SameValueForResize'
+
+
   @update = (client, options, callback) ->
 
     { machineId, alwaysOn, resize } = options
@@ -126,16 +153,7 @@ module.exports = class Koding extends ProviderInterface
         if resize?
           resize = +resize
 
-          if isNaN resize
-            return callback new KodingError \
-            'Requested new size is not valid.', 'WrongParameter'
-          else if resize > userPlan.storage
-            return callback new KodingError \
-            """Requested new size exceeds allowed
-               limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
-          else if resize < 3
-            return callback new KodingError \
-            """New size can't be less than 3GB.""", 'WrongParameter'
+          updateHelper.validateResizeByUserPlan resize, userPlan, callback
 
         { ObjectId } = require 'bongo'
 
@@ -168,14 +186,9 @@ module.exports = class Koding extends ProviderInterface
 
             storageSize = machine.meta?.storage_size ? 3
 
-            if (resize - storageSize) + usage.storage > userPlan.storage
-              return callback new KodingError \
-              """Requested new size exceeds allowed
-                 limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
-            else if resize is machine.getAt 'meta.storage_size'
-              return callback new KodingError \
-              """Requested new size is same with current
-                 storage size (#{resize}GB).""", 'SameValueForResize'
+            updateHelper.validateResizeByMachine {
+              resize, storageSize, usage, userPlan, machine
+            }, callback
 
             fieldsToUpdate['meta.storage_size'] = resize
 
