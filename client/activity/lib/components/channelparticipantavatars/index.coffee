@@ -1,12 +1,28 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-Avatar               = require 'app/components/profile/avatar'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-
+kd                          = require 'kd'
+whoami                      = require 'app/util/whoami'
+React                       = require 'kd-react'
+Avatar                      = require 'app/components/profile/avatar'
+KDReactorMixin              = require 'app/flux/reactormixin'
+immutable                   = require 'immutable'
+classnames                  = require 'classnames'
+AppFlux                     = require 'app/flux'
+ActivityFlux                = require 'activity/flux'
+ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
+ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
 
 module.exports = class ChannelParticipantAvatars extends React.Component
+
+  TAB               = 9
+  ESC               = 27
+  ENTER             = 13
+  UP_ARROW          = 38
+  DOWN_ARROW        = 40
+  PREVIEW_COUNT     = 0
+  MAX_PREVIEW_COUNT = 4
+
+  @defaultProps =
+    channelThread : null
+    participants  : null
 
   constructor: (props) ->
 
@@ -184,6 +200,16 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     user.setChannelParticipantsInputQuery query
     channel.setChannelParticipantsDropdownVisibility yes
+  onKeyDown: (event) ->
+
+    switch event.which
+      when ENTER       then @onEnter event
+      when ESC         then @onEsc event
+      when TAB         then @onNextPosition event, { isTab : yes }
+      when DOWN_ARROW  then @onNextPosition event, { isDownArrow : yes }
+      when UP_ARROW    then @onPrevPosition event, { isUpArrow : yes }
+
+
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
