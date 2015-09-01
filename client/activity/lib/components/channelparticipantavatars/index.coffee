@@ -242,6 +242,20 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     </div>
 
 
+  renderAddNewChannelParticipantsDropdown: ->
+
+    <ChannelParticipantsDropdown
+      ref             = 'channelParticipantsDropdown'
+      query           = { @state.query }
+      value           = { @state.value }
+      visible         = { @state.dropdownVisibility }
+      items           = { @state.dropdownUsers }
+      selectedItem    = { @state.selectedItem }
+      selectedIndex   = { @state.selectedIndex }
+      onItemConfirmed = { @bound 'onDropdownItemConfirmed' }
+    />
+
+
   render: ->
     <div className='ChannelParticipantAvatars'>
       {@renderPreviewAvatars()}
@@ -249,5 +263,6 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       {@renderNewParticipantButton()}
       {@renderAddNewParticipantInput()}
       {@renderAllParticipantsMenu()}
+      {@renderAddNewChannelParticipantsDropdown()}
     </div>
 
