@@ -261,7 +261,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
-      <input placeholder='type a @username and hit enter' />
+      <input ref='ChannelParticipantsInput'
+        onKeyDown   = { @bound 'onKeyDown' }
+        onChange    = { @bound 'onChange' }
+        placeholder = 'type a @username and hit enter'
+        value       = { @state.value }
+        ref         = 'textInput'
+      />
     </div>
 
 
