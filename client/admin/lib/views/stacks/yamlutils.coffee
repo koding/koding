@@ -27,8 +27,9 @@ module.exports = {
     catch err
       console.error '[JsonToYaml]', err  unless silent
 
-    return { content, contentType, err }
+    contentObject or= {}
 
+    return { content, contentType, contentObject, err }
 
 
   yamlToJson: (content, silent = no) ->
@@ -44,6 +45,8 @@ module.exports = {
     catch err
       console.error '[YamlToJson]', err  unless silent
 
-    return { content, contentType, err }
+    contentObject or= {}
+
+    return { content, contentType, contentObject, err }
 
 }
