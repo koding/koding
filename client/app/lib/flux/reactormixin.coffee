@@ -9,8 +9,8 @@ module.exports =
 
   getInitialState: ->
 
-    @id = kd.utils.getUniqueId()  unless @id
-    getState kd.singletons.reactor, @getDataBindings(), @id
+    @stateId = kd.utils.getUniqueId()  unless @stateId
+    getState kd.singletons.reactor, @getDataBindings(), @stateId
 
 
   componentDidMount: ->
@@ -19,13 +19,13 @@ module.exports =
     { reactor } = kd.singletons
 
     bindings = component.getDataBindings()
-    id       = component.id
+    stateId  = component.stateId
 
-    state = _.assign component.state, getState(reactor, bindings, id)
+    state = _.assign component.state, getState(reactor, bindings, stateId)
     component.__unwatchFns = []
 
     _.each bindings, (getter, key) ->
-      getter = processGetter getter, id
+      getter = processGetter getter, stateId
       unwatchFn = reactor.observe getter, (val) ->
         newState = {}
         newState[key] = val
@@ -44,13 +44,13 @@ module.exports =
  * Returns a mapping of the getDataBinding keys to
  * the reactor values
 ###
-getState = (reactor, data, id) ->
+getState = (reactor, data, stateId) ->
 
-  return _.mapValues data, (value) -> reactor.evaluate processGetter(value, id)
+  return _.mapValues data, (value) -> reactor.evaluate processGetter(value, stateId)
 
 
-processGetter = (getter, id) ->
+processGetter = (getter, stateId) ->
 
   if typeof getter is 'function'
-    return getter id
+    return getter stateId
   return getter

@@ -19,15 +19,15 @@ module.exports = class ChatInputChannelsVisibilityStore extends KodingFluxStore
 
 
   ###*
-   * It updates visibility flag for a given action initiator
+   * It updates visibility flag for a given stateId
    *
    * @param {immutable.Map} currentState
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @param {bool} payload.visible
    * @return {immutable.Map} nextState
   ###
-  setVisibility: (currentState, { initiatorId, visible }) ->
+  setVisibility: (currentState, { stateId, visible }) ->
 
-    currentState.set initiatorId, visible
+    currentState.set stateId, visible
 

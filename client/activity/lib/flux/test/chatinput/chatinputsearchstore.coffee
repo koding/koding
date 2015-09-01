@@ -24,10 +24,10 @@ describe 'ChatInputSearchStore', ->
         { id : '1', body : message1 }
         { id : '2', body : message2 }
       ]
-      initiatorId = '123'
+      stateId = '123'
 
-      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
-      searchItems = @reactor.evaluate(['chatInputSearchItems']).get initiatorId
+      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
       expect(searchItems.size).to.equal items.length
       expect(searchItems.get(0).get('body')).to.equal message1
@@ -36,8 +36,8 @@ describe 'ChatInputSearchStore', ->
       items = [
         { id : '3', body : message3 }
       ]
-      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
-      searchItems = @reactor.evaluate(['chatInputSearchItems']).get initiatorId
+      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
       expect(searchItems.size).to.equal items.length
       expect(searchItems.get(0).get('body')).to.equal message3
@@ -51,23 +51,23 @@ describe 'ChatInputSearchStore', ->
       { id : '1', body : message1 }
       { id : '2', body : message2 }
     ]
-    initiatorId = '123'
+    stateId = '123'
 
     it 'resets store data', ->
 
-      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
 
-      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { initiatorId }
-      searchItems = @reactor.evaluate(['chatInputSearchItems']).get initiatorId
+      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { stateId }
+      searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
       expect(searchItems).to.be.undefined
 
     it 'handles fetch data failure', ->
 
-      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
 
-      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { initiatorId }
-      searchItems = @reactor.evaluate(['chatInputSearchItems']).get initiatorId
+      @reactor.dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { stateId }
+      searchItems = @reactor.evaluate(['chatInputSearchItems']).get stateId
 
       expect(searchItems).to.be.undefined
 

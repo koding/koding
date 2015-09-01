@@ -47,8 +47,8 @@ module.exports = class EmojiSelector extends React.Component
 
   onItemSelected: (index) ->
 
-    { actionInitiatorId } = @props
-    ActivityFlux.actions.emoji.setCommonListSelectedIndex actionInitiatorId, index
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setCommonListSelectedIndex stateId, index
 
 
   onItemConfirmed: ->
@@ -60,8 +60,8 @@ module.exports = class EmojiSelector extends React.Component
 
   close: ->
 
-    { actionInitiatorId } = @props
-    ActivityFlux.actions.emoji.setCommonListVisibility actionInitiatorId, no
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setCommonListVisibility stateId, no
 
 
   handleKeyDown: (event) ->

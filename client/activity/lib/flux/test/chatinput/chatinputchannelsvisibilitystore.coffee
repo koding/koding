@@ -17,15 +17,15 @@ describe 'ChatInputChannelsVisibilityStore', ->
 
     it 'sets visibility', ->
 
-      initiatorId = '123'
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_VISIBILITY, { initiatorId, visible : yes }
-      visibility = @reactor.evaluate(['chatInputChannelsVisibility']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_VISIBILITY, { stateId, visible : yes }
+      visibility = @reactor.evaluate(['chatInputChannelsVisibility']).get stateId
 
       expect(visibility).to.be.true
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_VISIBILITY, { initiatorId, visible : no }
-      visibility = @reactor.evaluate(['chatInputChannelsVisibility']).get initiatorId
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_VISIBILITY, { stateId, visible : no }
+      visibility = @reactor.evaluate(['chatInputChannelsVisibility']).get stateId
 
       expect(visibility).to.be.false
 

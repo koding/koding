@@ -18,10 +18,10 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
     it 'sets selected index', ->
 
       index = 5
-      initiatorId = 'qwerty'
+      stateId = 'qwerty'
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId, index }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
@@ -31,16 +31,16 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
   	it 'moves to next index', ->
 
       index = 5
-      initiatorId = 'qwerty'
+      stateId = 'qwerty'
       nextIndex = index + 1
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId, index }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actions.MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX, { initiatorId }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal nextIndex
 
@@ -50,16 +50,16 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
     it 'moves to prev index', ->
 
       index = 5
-      initiatorId = 'qwerty'
+      stateId = 'qwerty'
       prevIndex = index - 1
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId, index }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
       
-      @reactor.dispatch actions.MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX, { initiatorId }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal prevIndex
 
@@ -69,15 +69,15 @@ describe 'FilteredEmojiListSelectedIndexStore', ->
     it 'resets selected index', ->
 
       index = 5
-      initiatorId = 'qwerty'
+      stateId = 'qwerty'
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId, index }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actions.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId }
-      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get initiatorId
+      @reactor.dispatch actions.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['filteredEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.be.undefined
 

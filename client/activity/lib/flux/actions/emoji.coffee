@@ -8,114 +8,114 @@ actionTypes = require '../actions/actiontypes'
  * Once the query is set, current selected index of
  * filtered emoji list should be reset
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {string} query
 ###
-setFilteredListQuery = (initiatorId, query) ->
+setFilteredListQuery = (stateId, query) ->
 
   if query
     { SET_FILTERED_EMOJI_LIST_QUERY } = actionTypes
-    dispatch SET_FILTERED_EMOJI_LIST_QUERY, { initiatorId, query }
-    resetFilteredListSelectedIndex initiatorId
+    dispatch SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query }
+    resetFilteredListSelectedIndex stateId
   else
-    unsetFilteredListQuery initiatorId
+    unsetFilteredListQuery stateId
 
 
 ###*
  * Action to unset current query of filtered emoji list
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-unsetFilteredListQuery = (initiatorId) ->
+unsetFilteredListQuery = (stateId) ->
 
   { UNSET_FILTERED_EMOJI_LIST_QUERY } = actionTypes
-  dispatch UNSET_FILTERED_EMOJI_LIST_QUERY, { initiatorId }
+  dispatch UNSET_FILTERED_EMOJI_LIST_QUERY, { stateId }
 
-  resetFilteredListSelectedIndex { initiatorId }
+  resetFilteredListSelectedIndex { stateId }
 
 
 ###*
  * Action to set selected index of filtered emoji list
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {number} index
 ###
-setFilteredListSelectedIndex = (initiatorId, index) ->
+setFilteredListSelectedIndex = (stateId, index) ->
 
   { SET_FILTERED_EMOJI_LIST_SELECTED_INDEX } = actionTypes
-  dispatch SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId, index }
+  dispatch SET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
 
 
 ###*
  * Action to move selected index of filtered emoji list
  * to the next position
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-moveToNextFilteredListIndex = (initiatorId) ->
+moveToNextFilteredListIndex = (stateId) ->
 
   { MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX } = actionTypes
-  dispatch MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX, { initiatorId }
+  dispatch MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX, { stateId }
 
 
 ###*
  * Action to move selected index of filtered emoji list
  * to the previous position
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-moveToPrevFilteredListIndex = (initiatorId) ->
+moveToPrevFilteredListIndex = (stateId) ->
 
   { MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX } = actionTypes
-  dispatch MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX, { initiatorId }
+  dispatch MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX, { stateId }
 
 
 ###*
  * Action to reset selected index of filtered emoji list
  * to initial value
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-resetFilteredListSelectedIndex = (initiatorId) ->
+resetFilteredListSelectedIndex = (stateId) ->
 
   { RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX } = actionTypes
-  dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { initiatorId }
+  dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId }
 
 
 ###*
  * Action to set selected index of common emoji list
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {number} index
 ###
-setCommonListSelectedIndex = (initiatorId, index) ->
+setCommonListSelectedIndex = (stateId, index) ->
 
   { SET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
-  dispatch SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { initiatorId, index }
+  dispatch SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
 
 
 ###*
  * Action to reset selected index of common emoji list
  * to initial value
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-resetCommonListSelectedIndex = (initiatorId) ->
+resetCommonListSelectedIndex = (stateId) ->
 
   { RESET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
-  dispatch RESET_COMMON_EMOJI_LIST_SELECTED_INDEX, { initiatorId }
+  dispatch RESET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId }
 
 
 ###*
  * Action to set visibility flag of common emoji list
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {bool} visible
 ###
-setCommonListVisibility = (initiatorId, visible) ->
+setCommonListVisibility = (stateId, visible) ->
 
   { SET_COMMON_EMOJI_LIST_VISIBILITY } = actionTypes
-  dispatch SET_COMMON_EMOJI_LIST_VISIBILITY, { initiatorId, visible }
+  dispatch SET_COMMON_EMOJI_LIST_VISIBILITY, { stateId, visible }
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...

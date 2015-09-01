@@ -22,28 +22,28 @@ module.exports = class ChatInputQueryStore extends KodingFluxStore
 
 
   ###*
-   * It updates query for a given action initiator
+   * It updates query for a given stateId
    *
    * @param {immutable.Map} currentState
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @param {string} payload.query
    * @return {immutable.Map} nextState
   ###
-  setQuery: (currentState, { initiatorId, query }) ->
+  setQuery: (currentState, { stateId, query }) ->
 
-    currentState.set initiatorId, query
+    currentState.set stateId, query
 
 
   ###*
-   * It deletes query for a given action initiator
+   * It deletes query for a given stateId
    *
    * @param {immutable.Map} currentState
    * @param {object} payload
-   * @param {string} payload.initiatorId
+   * @param {string} payload.stateId
    * @return {immutable.Map} nextState
   ###
-  unsetQuery: (currentState, { initiatorId }) ->
+  unsetQuery: (currentState, { stateId }) ->
 
-    currentState.delete initiatorId
+    currentState.delete stateId
 

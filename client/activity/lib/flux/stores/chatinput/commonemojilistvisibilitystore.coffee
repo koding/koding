@@ -20,15 +20,15 @@ module.exports = class CommonEmojiListVisibilityStore extends KodingFluxStore
 
   ###*
    * Handler of SET_COMMON_EMOJI_LIST_VISIBILITY action
-   * It updates visible flag for a given action initiator
+   * It updates visible flag for a given stateId
    *
    * @param {Immutable.Map} currentState
    * @param {object} payload
-   * @param {bool} payload.initiatorId
+   * @param {bool} payload.stateId
    * @param {bool} payload.visible
    * @return {Immutable.Map} nextState
   ###
-  setVisibility: (currentState, { initiatorId, visible }) ->
+  setVisibility: (currentState, { stateId, visible }) ->
 
-    currentState.set initiatorId, visible
+    currentState.set stateId, visible
 

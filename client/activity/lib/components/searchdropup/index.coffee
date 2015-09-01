@@ -29,18 +29,18 @@ module.exports = class SearchDropup extends React.Component
 
   close: ->
 
-    { actionInitiatorId } = @props
-    ActivityFlux.actions.chatInputSearch.setVisibility actionInitiatorId, no
-    ActivityFlux.actions.chatInputSearch.resetData actionInitiatorId
+    { stateId } = @props
+    ActivityFlux.actions.chatInputSearch.setVisibility stateId, no
+    ActivityFlux.actions.chatInputSearch.resetData stateId
 
 
   moveToNextPosition: (keyInfo) ->
 
     return no  if keyInfo.isRightArrow
 
-    { actionInitiatorId } = @props
+    { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.chatInputSearch.moveToNextIndex actionInitiatorId
+      ActivityFlux.actions.chatInputSearch.moveToNextIndex stateId
 
     return yes
 
@@ -49,9 +49,9 @@ module.exports = class SearchDropup extends React.Component
 
     return no  if keyInfo.isLeftArrow
 
-    { actionInitiatorId } = @props
+    { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.chatInputSearch.moveToPrevIndex actionInitiatorId
+      ActivityFlux.actions.chatInputSearch.moveToPrevIndex stateId
 
     return yes
 
@@ -64,17 +64,17 @@ module.exports = class SearchDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    { actionInitiatorId } = @props
-    ActivityFlux.actions.chatInputSearch.setQuery actionInitiatorId, query
-    ActivityFlux.actions.chatInputSearch.setVisibility actionInitiatorId, yes
+    { stateId } = @props
+    ActivityFlux.actions.chatInputSearch.setQuery stateId, query
+    ActivityFlux.actions.chatInputSearch.setVisibility stateId, yes
 
     return yes
 
 
   onItemSelected: (index) ->
 
-    { actionInitiatorId } = @props
-    ActivityFlux.actions.chatInputSearch.setSelectedIndex actionInitiatorId, index
+    { stateId } = @props
+    ActivityFlux.actions.chatInputSearch.setSelectedIndex stateId, index
 
 
   renderList: ->

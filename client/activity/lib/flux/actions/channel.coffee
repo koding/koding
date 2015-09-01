@@ -222,18 +222,18 @@ loadChannelsByQuery = (query, options = {}) ->
  * - if query is empty, it loads popular channels
  * - otherwise, it loads channels filtered by query
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {string} query
 ###
-setChatInputChannelsQuery = (initiatorId, query) ->
+setChatInputChannelsQuery = (stateId, query) ->
 
   if query
     { SET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
-    dispatch SET_CHAT_INPUT_CHANNELS_QUERY, { initiatorId, query }
-    resetChatInputChannelsSelectedIndex initiatorId
+    dispatch SET_CHAT_INPUT_CHANNELS_QUERY, { stateId, query }
+    resetChatInputChannelsSelectedIndex stateId
     loadChannelsByQuery query
   else
-    unsetChatInputChannelsQuery initiatorId
+    unsetChatInputChannelsQuery stateId
     loadPopularChannels()
 
 
@@ -241,70 +241,71 @@ setChatInputChannelsQuery = (initiatorId, query) ->
  * Action to unset current query of chat input channels.
  * Also, it resets channels selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-unsetChatInputChannelsQuery = (initiatorId) ->
+unsetChatInputChannelsQuery = (stateId) ->
 
   { UNSET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
-  dispatch UNSET_CHAT_INPUT_CHANNELS_QUERY, { initiatorId }
+  dispatch UNSET_CHAT_INPUT_CHANNELS_QUERY, { stateId }
 
-  resetChatInputChannelsSelectedIndex initiatorId
+  resetChatInputChannelsSelectedIndex stateId
 
 
 ###*
  * Action to set selected index of chat input channels
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
  * @param {number} index
 ###
-setChatInputChannelsSelectedIndex = (initiatorId, index) ->
+setChatInputChannelsSelectedIndex = (stateId, index) ->
 
   { SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
-  dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { initiatorId, index }
+  dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { stateId, index }
 
 
 ###*
  * Action to increment channels selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-moveToNextChatInputChannelsIndex = (initiatorId) ->
+moveToNextChatInputChannelsIndex = (stateId) ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
-  dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX, { initiatorId }
+  dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX, { stateId }
 
 
 ###*
  * Action to decrement channels selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-moveToPrevChatInputChannelsIndex = (initiatorId) ->
+moveToPrevChatInputChannelsIndex = (stateId) ->
 
   { MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
-  dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX, { initiatorId }
+  dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX, { stateId }
 
 
 ###*
  * Action to reset channels selected index
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
 ###
-resetChatInputChannelsSelectedIndex = (initiatorId) ->
+resetChatInputChannelsSelectedIndex = (stateId) ->
 
   { RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
-  dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { initiatorId }
+  dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { stateId }
 
 
 ###*
  * Action to set visibility of chat input channels
  *
- * @param {string} initiatorId - id of initiated action component
+ * @param {string} stateId
+ * @param {bool} visible
 ###
-setChatInputChannelsVisibility = (initiatorId, visible) ->
+setChatInputChannelsVisibility = (stateId, visible) ->
 
   { SET_CHAT_INPUT_CHANNELS_VISIBILITY } = actionTypes
-  dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { initiatorId, visible }
+  dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { stateId, visible }
 
 
 ###*
