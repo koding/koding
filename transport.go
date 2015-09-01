@@ -62,11 +62,7 @@ func (k *KlientTransport) Trip(methodName string, req interface{}, res interface
 		return err
 	}
 
-	if err := raw.Unmarshal(&res); err != nil {
-		return err
-	}
-
-	return nil
+	return raw.Unmarshal(&res)
 }
 
 //----------------------------------------------------------
