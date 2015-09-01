@@ -957,7 +957,7 @@ module.exports = CollaborationController =
   createChatPaneView: (channel) ->
     return throwError 'RealtimeManager is not set'  unless @rtm
 
-    @chat = new IDEChatView { @rtm, @isInSession }, channel
+    @chat = new IDEChatView { @rtm, @isInSession, @mountedMachineUId }, channel
     @getView().addSubView @chat
 
 

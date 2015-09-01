@@ -8,20 +8,23 @@ ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
 isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
+envDataProvider       = require 'app/userenvironmentdataprovider'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
-IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
-IDEChatParticipantHeads = require './idechatparticipantheads'
+IDEChatMessageParticipantAvatar       = require './idechatmessageparticipantavatar'
+IDEChatParticipantHeads               = require './idechatparticipantheads'
+IDEChatParticipantSearchController    = require './idechatparticipantsearchcontroller'
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
-    options.cssClass = 'privatemessage'
+    options.cssClass           = 'privatemessage'
 
     # this is backwards compatibility related. ~Umut
-    options.type        = 'privatemessage'
-    options.channelType = 'collaboration'
+    options.type               = 'privatemessage'
+    options.channelType        = 'collaboration'
+    options.autoCompleteClass  = IDEChatParticipantSearchController
 
     super options, data
 
@@ -39,6 +42,10 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
+
+    ideApp = envDataProvider.getIDEFromUId @getOption 'mountedMachineUId'
+    ideApp.on 'UserReachedVideoLimit', =>
+      @autoComplete?.hideDropdown()
 
 
   createVideoActionButton: (action) ->
@@ -314,15 +321,4 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @onboarding?.destroy()
     @onboarding = null
-
-
-  addParticipant: (options, participant) ->
-
-    return super options, participant  unless @videoActive
-
-    appManager = kd.getSingleton 'appManager'
-
-    appManager.tell 'IDE', 'canUserStartVideo', =>
-      super options, participant
-    , @videoActive
 

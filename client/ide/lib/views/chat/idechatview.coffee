@@ -21,7 +21,7 @@ module.exports = class IDEChatView extends KDTabView
 
     @visible = no
 
-    {@rtm, @isInSession} = options
+    { @rtm, @isInSession, @mountedMachineUId } = options
 
     @unsetClass 'kdscrollview'
 
@@ -196,7 +196,7 @@ module.exports = class IDEChatView extends KDTabView
     type            = channel.typeConstant
     channelId       = channel.id
     name            = 'collaboration'
-    chatOptions     = { name, type, channelId, @isInSession }
+    chatOptions     = { name, type, channelId, @isInSession, @mountedMachineUId }
     settingsOptions = { @rtm, @isInSession }
 
     @createChatVideoView()
