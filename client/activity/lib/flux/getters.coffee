@@ -369,6 +369,13 @@ channelParticipantsSelectedIndex      = ChannelParticipantsSelectedIndexStore
 
 channelParticipantsDropdownVisibility = ChannelParticipantsDropdownVisibilityStore
 
+channelParticipantsSelectedItem = [
+  channelParticipantsInputUsers
+  channelParticipantsSelectedIndex
+  getListSelectedItem
+]
+
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -393,10 +400,30 @@ module.exports = {
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
 
+  chatInputChannels
+  chatInputChannelsQuery
+  chatInputChannelsSelectedIndex
+  chatInputChannelsSelectedItem
+  chatInputChannelsVisibility
+
+  chatInputUsers
+  chatInputUsersQuery
+  chatInputUsersSelectedIndex
+  chatInputUsersSelectedItem
+  chatInputUsersVisibility
+
+  chatInputSearchItems
+  chatInputSearchQuery
+  chatInputSearchSelectedIndex
+  chatInputSearchSelectedItem
+  chatInputSearchVisibility
+
   channelParticipantsSearchQuery
   channelParticipantsInputUsers
+  channelParticipantsSelectedItem
   channelParticipantsSelectedIndex
   channelParticipantsDropdownVisibility
+
 
   allUsers
 }
