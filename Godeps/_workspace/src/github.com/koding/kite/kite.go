@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/dgrijalva/jwt-go"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/gorilla/mux"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/protocol"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/nu7hatch/gouuid"
