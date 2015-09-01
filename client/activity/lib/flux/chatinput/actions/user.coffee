@@ -128,6 +128,18 @@ resetChannelParticipantsSelectedIndex = ->
   { RESET_CHANNEL_PARTICIPANTS_SELECTED_INDEX } = actionTypes
   dispatch RESET_CHANNEL_PARTICIPANTS_SELECTED_INDEX
 
+
+###*
+ * Action to set selected index of chat input users
+ *
+ * @param {number} index
+###
+setChannelParticipantsSelectedIndex = (index) ->
+
+  { SET_CHANNEL_PARTICIPANTS_SELECTED_INDEX } = actionTypes
+  dispatch SET_CHANNEL_PARTICIPANTS_SELECTED_INDEX, { index }
+
+
 ###*
  * Action to increment users selected index
 ###
@@ -157,6 +169,7 @@ module.exports = {
   setChannelParticipantsInputQuery
   unsetChannelParticipantsInputQuery
   resetChannelParticipantsSelectedIndex
+  setChannelParticipantsSelectedIndex
   moveToNextChannelParticipantIndex
   moveToPrevChannelParticipantIndex
 }
