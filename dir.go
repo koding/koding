@@ -52,7 +52,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 			return NewDir(n), nil
 		}
 
-		return &File{n}, nil
+		return &File{Parent: d, Node: n}, nil
 	}
 
 	req := struct{ Path string }{n.ExternalPath}
@@ -72,10 +72,11 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return NewDir(n), nil
 	}
 
-	return &File{n}, nil
+	return &File{Parent: d, Node: n}, nil
 }
 
 // ReadDirAll returns metadata for files and directories. Required by Fuse.
+// TODO: this method seems to be called way too many times in short period.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer debug(time.Now(), "ReadDirAll="+d.Name)
 
@@ -114,8 +115,21 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	}
 
 	// cache entries to save on repeated calls
-	// TODO: this method seems to be called way too many times in short period
 	d.FuseEntries = dirents
 
 	return dirents, nil
+}
+
+// invalidateCache removes cache, which will trigger lookup in Klient on next
+// request to be used on write operations; to be used in write operations.
+//
+// TODO: be smarter about invalidating cache, ie delete entry and do lookup.
+func (d *Dir) invalidateCache(entry string) error {
+	d.Lock()
+	defer d.Unlock()
+
+	d.EntriesList = map[string]*Node{}
+	d.FuseEntries = []fuse.Dirent{}
+
+	return nil
 }

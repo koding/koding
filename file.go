@@ -1,12 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"time"
+
+	"bazil.org/fuse"
 
 	"golang.org/x/net/context"
 )
 
-type File struct{ *Node }
+type File struct {
+	Parent *Dir
+	*Node
+}
 
 // ReadAll returns the entire file. Required by Fuse.
 func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
@@ -23,4 +29,31 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	}
 
 	return res.Content, nil
+}
+
+// Write writes data to file. Klient by default will overwrite the entire file.
+// Required by Fuse.
+func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
+	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("ContentLength=%v", len(req.Data)))
+
+	f.Lock()
+	defer f.Unlock()
+
+	treq := struct {
+		Path    string
+		Content []byte
+	}{
+		Path:    f.ExternalPath,
+		Content: req.Data,
+	}
+
+	tres := fsWriteFileRes{}
+
+	if err := f.Transport.Trip("fs.writeFile", treq, &tres); err != nil {
+		return err
+	}
+
+	resp.Size = tres.Written
+
+	return f.Parent.invalidateCache(f.Name)
 }
