@@ -1,8 +1,10 @@
-kd = require 'kd'
+kd                = require 'kd'
 ActivityInputView = require '../activityinputview'
+helpers           = require 'activity/components/chatinputwidget/helpers'
 
 
 module.exports = class CommentInputView extends ActivityInputView
+
 
   constructor: (options = {}, data) ->
 
@@ -12,4 +14,9 @@ module.exports = class CommentInputView extends ActivityInputView
     options.attributes.testpath = "CommentInputView"
 
     super options, data
+
+
+  sendCursorToEnd: ->
+
+    helpers.setCursorPosition @getElement(), @getValue().length
 

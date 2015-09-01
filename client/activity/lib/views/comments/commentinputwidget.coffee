@@ -1,15 +1,15 @@
-_  = require 'lodash'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-ActivityInputWidget = require '../activityinputwidget'
-CommentInputView = require './commentinputview'
-EmbedBoxWidget = require '../embedboxwidget'
-showError = require 'app/util/showError'
-trackEvent = require 'app/util/trackEvent'
-whoami = require 'app/util/whoami'
-generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
-AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
+_                       = require 'lodash'
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDCustomHTMLView        = kd.CustomHTMLView
+ActivityInputWidget     = require '../activityinputwidget'
+CommentInputView        = require './commentinputview'
+EmbedBoxWidget          = require '../embedboxwidget'
+showError               = require 'app/util/showError'
+trackEvent              = require 'app/util/trackEvent'
+whoami                  = require 'app/util/whoami'
+generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
+AvatarStaticView        = require 'app/commonviews/avatarviews/avatarstaticview'
 
 
 module.exports = class CommentInputWidget extends ActivityInputWidget

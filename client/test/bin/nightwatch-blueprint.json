@@ -28,7 +28,15 @@
       }
     },
 
-    "chrome" : {
+    "host": {
+      "desiredCapabilities": {
+        "browserName": "chrome",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true
+      }
+    },
+
+    "participant": {
       "desiredCapabilities": {
         "browserName": "chrome",
         "javascriptEnabled": true,

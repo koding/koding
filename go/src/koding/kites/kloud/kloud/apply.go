@@ -276,15 +276,30 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return err
 	}
 
+	sess.Log.Debug("Stack template before injecting Koding data:")
+	sess.Log.Debug("%s", template)
+
 	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 	for _, cred := range data.Creds {
+		sess.Log.Debug("Appending %s provider variables", cred.Provider)
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
-	}
 
-	sess.Log.Debug("Stack template before injecting Koding data:")
-	sess.Log.Debug("%s", template)
+		// rest is aws related
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		region, ok := cred.Data["region"]
+		if !ok {
+			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
+		}
+
+		if err := template.setAwsRegion(region); err != nil {
+			return err
+		}
+	}
 
 	buildData, err := injectKodingData(ctx, template, username, data)
 	if err != nil {

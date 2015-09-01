@@ -27,9 +27,9 @@ module.exports = class AdminMembersView extends KDView
     tabView.addPane admins = new KDTabPaneView name: 'Admins'
     tabView.addPane mods   = new KDTabPaneView name: 'Moderators'
 
-    all.addSubView    @allView    = new TeamMembersCommonView { fetcherMethod: 'fetchMembers'    }, data
-    admins.addSubView @adminsView = new TeamMembersCommonView { fetcherMethod: 'fetchAdmins'     }, data
-    mods.addSubView   @modsView   = new TeamMembersCommonView { fetcherMethod: 'fetchModerators' }, data
+    all.addSubView    @allView    = new TeamMembersCommonView { fetcherMethod: 'fetchMembersWithEmail'    }, data
+    admins.addSubView @adminsView = new TeamMembersCommonView { fetcherMethod: 'fetchAdminsWithEmail'     }, data
+    mods.addSubView   @modsView   = new TeamMembersCommonView { fetcherMethod: 'fetchModeratorsWithEmail' }, data
 
     if isKoding()
       tabView.addPane blockedMembersPane = new KDTabPaneView name: 'Blocked'
