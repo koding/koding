@@ -330,7 +330,11 @@ module.exports = class DefineStackView extends KDView
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credential      = @stackTemplateView.credentialStatus.credentialsData.first
+    credData      = @stackTemplateView.credentialStatus.credentialsData
+    awsIdentifier = credData.first.identifier
+    credentials   =
+      aws         : [ awsIdentifier ]
+
 
     if 'yaml' is @stackTemplateView.editorView.getOption 'contentType'
       convertedDoc = yamlToJson templateContent
@@ -343,7 +347,7 @@ module.exports = class DefineStackView extends KDView
 
     updateStackTemplate {
       template: templateContent, templateDetails
-      credential, stackTemplate, title, config
+      credentials, stackTemplate, title, config
     }, (err, stackTemplate) =>
 
       if not err and stackTemplate
