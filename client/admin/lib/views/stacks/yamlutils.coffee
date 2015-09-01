@@ -11,7 +11,7 @@ sanitize = (content) ->
 
 module.exports = {
 
-  jsonToYaml: (content) ->
+  jsonToYaml: (content, silent = no) ->
 
     contentType     = 'json'
 
@@ -25,12 +25,13 @@ module.exports = {
       contentType   = 'yaml'
 
     catch err
-      console.error '[JsonToYaml]', err
+      console.error '[JsonToYaml]', err  unless silent
 
     return { content, contentType, err }
 
 
-  yamlToJson: (content) ->
+
+  yamlToJson: (content, silent = no) ->
 
     contentType     = 'yaml'
 
@@ -41,7 +42,7 @@ module.exports = {
       content       = JSON.stringify contentObject
       contentType   = 'json'
     catch err
-      console.error '[YamlToJson]', err
+      console.error '[YamlToJson]', err  unless silent
 
     return { content, contentType, err }
 
