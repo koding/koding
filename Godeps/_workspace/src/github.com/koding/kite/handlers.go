@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go.crypto/ssh/terminal"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/gorilla/websocket"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/sockjsclient"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/systeminfo"
+	"github.com/koding/klient/Godeps/_workspace/src/golang.org/x/crypto/ssh/terminal"
 )
 
 func (k *Kite) addDefaultHandlers() {
