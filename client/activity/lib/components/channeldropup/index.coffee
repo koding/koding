@@ -27,7 +27,10 @@ module.exports = class ChannelDropup extends React.Component
   getItemKey: (item) -> item.get 'id'
 
 
-  close: -> ActivityFlux.actions.channel.setChatInputChannelsVisibility no
+  close: ->
+
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility actionInitiatorId, no
 
 
   moveToNextPosition: (keyInfo) ->
@@ -36,7 +39,10 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()  unless @hasSingleItem()
+    { actionInitiatorId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex actionInitiatorId
+
     return yes
 
 
@@ -46,7 +52,10 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()  unless @hasSingleItem()
+    { actionInitiatorId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex actionInitiatorId
+
     return yes
 
 
@@ -59,14 +68,16 @@ module.exports = class ChannelDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.channel.setChatInputChannelsQuery query
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsQuery actionInitiatorId, query
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility actionInitiatorId, yes
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex index
+    { actionInitiatorId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex actionInitiatorId, index
 
 
   renderList: ->
