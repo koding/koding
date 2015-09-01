@@ -32,7 +32,7 @@ func (f *FileSystem) Root() (fs.Node, error) {
 	n.InternalPath = f.InternalMountPath
 	n.ExternalPath = f.ExternalMountPath
 
-	return &Dir{n}, nil
+	return NewDir(n), nil
 }
 
 // Statfs returns metadata for FileSystem. Required by Fuse.

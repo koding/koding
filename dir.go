@@ -14,6 +14,17 @@ import (
 
 type Dir struct {
 	*Node
+
+	// Entries contains list of files and directories belong to this Dir.
+	Entries []*Node
+
+	// fuseEntries contains cache for `fs.ReadDirAll` request to Klient.
+	// TODO: need a better name
+	fuseEntries []fuse.Dirent
+}
+
+func NewDir(n *Node) *Dir {
+	return &Dir{Node: n, Entries: []*Node{}}
 }
 
 // Lookup returns file or dir if exists; fuse.EEXIST if not. Required by Fuse.
@@ -46,10 +57,10 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	n.attr.Mode = os.FileMode(res.Mode)
 
 	if res.IsDir {
-		return &Dir{n}, nil
+		return NewDir(n), nil
 	}
 
-	return &File{n}, nil
+	return NewDir(n), nil
 }
 
 // ReadDirAll returns metadata for files and directories. Required by Fuse.
@@ -58,6 +69,10 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	d.RLock()
 	defer d.RUnlock()
+
+	if len(d.fuseEntries) != 0 {
+		return d.fuseEntries, nil
+	}
 
 	req := struct{ Path string }{d.ExternalPath}
 	res := fsReadDirectoryRes{}
@@ -75,6 +90,8 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		}
 		dirents = append(dirents, ent)
 	}
+
+	d.fuseEntries = dirents
 
 	return dirents, nil
 }
