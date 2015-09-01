@@ -8,6 +8,7 @@ ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
 isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
+envDataProvider       = require 'app/userenvironmentdataprovider'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatMessageParticipantAvatar       = require './idechatmessageparticipantavatar'
@@ -42,8 +43,8 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
 
-    ideApp = kd.singletons.appManager.get 'IDE'
-    ideApp.on 'UserCouldNotStartVideo', =>
+    ideApp = envDataProvider.getIDEFromUId @getOption 'mountedMachineUId'
+    ideApp.on 'UserReachedVideoLimit', =>
       @autoComplete?.hideDropdown()
 
 
