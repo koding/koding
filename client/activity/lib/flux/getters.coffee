@@ -261,18 +261,18 @@ currentSuggestionsSelectedIndex = [
   SuggestionsSelectedIndexStore
   calculateListSelectedIndex
 ]
-currentSuggestionsSelectedItem  = [
+currentSuggestionsSelectedItem = [
   SuggestionsStore
   currentSuggestionsSelectedIndex
   getListSelectedItem
 ]
 
-filteredEmojiListQuery         = (stateId) -> [
+filteredEmojiListQuery = (stateId) -> [
   FilteredEmojiListQueryStore
   (queries) -> queries.get stateId
 ]
 # Returns a list of emojis filtered by current query
-filteredEmojiList              = (stateId) -> [
+filteredEmojiList = (stateId) -> [
   EmojisStore
   filteredEmojiListQuery stateId
   (emojis, query) ->
@@ -288,7 +288,7 @@ filteredEmojiListSelectedIndex = (stateId) -> [
   filteredEmojiListRawIndex stateId
   calculateListSelectedIndex
 ]
-filteredEmojiListSelectedItem  = (stateId) -> [
+filteredEmojiListSelectedItem = (stateId) -> [
   filteredEmojiList stateId
   filteredEmojiListSelectedIndex stateId
   getListSelectedItem
@@ -299,25 +299,25 @@ commonEmojiListSelectedIndex = (stateId) -> [
   CommonEmojiListSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
-commonEmojiListVisibility    = (stateId) -> [
+commonEmojiListVisibility = (stateId) -> [
   CommonEmojiListVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 # Returns emoji from emoji list by current selected index
-commonEmojiListSelectedItem  = (stateId) -> [
+commonEmojiListSelectedItem = (stateId) -> [
   commonEmojiList
   commonEmojiListSelectedIndex stateId
   getListSelectedItem
 ]
 
-chatInputChannelsQuery         = (stateId) -> [
+chatInputChannelsQuery = (stateId) -> [
   ChatInputChannelsQueryStore
   (queries) -> queries.get stateId
 ]
 # Returns a list of channels depending on the current query
 # If query if empty, returns popular channels
 # Otherwise, returns channels filtered by query
-chatInputChannels              = (stateId) -> [
+chatInputChannels = (stateId) -> [
   ChannelsStore
   popularChannels
   chatInputChannelsQuery stateId
@@ -329,7 +329,7 @@ chatInputChannels              = (stateId) -> [
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
-chatInputChannelsRawIndex      = (stateId) -> [
+chatInputChannelsRawIndex = (stateId) -> [
   ChatInputChannelsSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
@@ -348,14 +348,14 @@ chatInputChannelsVisibility = (stateId) -> [
   (visibilities) -> visibilities.get stateId
 ]
 
-chatInputUsersQuery         = (stateId) -> [
+chatInputUsersQuery = (stateId) -> [
   ChatInputUsersQueryStore
   (queries) -> queries.get stateId
 ]
 # Returns a list of users depending on the current query
 # If query is empty, returns selected channel participants
 # Otherwise, returns users filtered by query
-chatInputUsers              = (stateId) -> [
+chatInputUsers = (stateId) -> [
   UsersStore
   selectedChannelParticipants
   chatInputUsersQuery stateId
@@ -367,7 +367,7 @@ chatInputUsers              = (stateId) -> [
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
-chatInputUsersRawIndex      = (stateId) -> [
+chatInputUsersRawIndex = (stateId) -> [
   ChatInputUsersSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
@@ -386,15 +386,15 @@ chatInputUsersVisibility = (stateId) -> [
   (visibilities) -> visibilities.get stateId
 ]
 
-chatInputSearchItems         = (stateId) -> [
+chatInputSearchItems = (stateId) -> [
   ChatInputSearchStore
   (searchStore) -> searchStore.get stateId
 ]
-chatInputSearchQuery         = (stateId) -> [
+chatInputSearchQuery = (stateId) -> [
   ChatInputSearchQueryStore
   (queries) -> queries.get stateId
 ]
-chatInputSearchRawIndex      = (stateId) -> [
+chatInputSearchRawIndex = (stateId) -> [
   ChatInputSearchSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
@@ -403,12 +403,12 @@ chatInputSearchSelectedIndex = (stateId) -> [
   chatInputSearchRawIndex stateId
   calculateListSelectedIndex
 ]
-chatInputSearchSelectedItem  = (stateId) -> [
+chatInputSearchSelectedItem = (stateId) -> [
   chatInputSearchItems stateId
   chatInputSearchSelectedIndex stateId
   getListSelectedItem
 ]
-chatInputSearchVisibility    = (stateId) -> [
+chatInputSearchVisibility = (stateId) -> [
   ChatInputSearchVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
