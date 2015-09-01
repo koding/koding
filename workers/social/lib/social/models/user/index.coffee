@@ -249,7 +249,7 @@ module.exports = class JUser extends jraphical.Module
       # update the user with empty data
 
       user.update modifier, updateUnregisteredUserAccount({
-        user, username, toBeDeletedUsername
+        user, username, toBeDeletedUsername, client
       }, callback)
 
 
@@ -707,7 +707,7 @@ module.exports = class JUser extends jraphical.Module
 
   updateUnregisteredUserAccount = (options, callback) ->
 
-    { username : usernameAfterDelete, toBeDeletedUsername, user } = options
+    { username : usernameAfterDelete, toBeDeletedUsername, user, client } = options
 
     return (err, docs) ->
       return callback err  if err?
