@@ -21,17 +21,17 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	d.RLock()
 	defer d.RUnlock()
 
-	// TODO: how to deal with resource files
-	if strings.HasPrefix(name, "._") {
-		return NewNode(d.Transport), nil
-	}
-
-	defer debug(time.Now(), "Lookup="+name)
-
 	n := NewNode(d.Transport)
 	n.Name = name
 	n.InternalPath = filepath.Join(d.InternalPath, name)
 	n.ExternalPath = filepath.Join(d.ExternalPath, name)
+
+	// TODO: how to deal with resource files
+	if strings.HasPrefix(name, "._") {
+		return n, nil
+	}
+
+	defer debug(time.Now(), "Lookup="+name)
 
 	req := struct{ Path string }{n.ExternalPath}
 	res := fsGetInfoRes{}
