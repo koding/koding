@@ -778,10 +778,10 @@ module.exports = class JGroup extends Module
     # delete options.targetOptions
     options.client                = client
 
-    method.call this, selector, options, (err, records = []) ->
+    method.call this, selector, options, (err, records = []) =>
       return callback err, records  if err or not records or not fetchEmail
 
-      helper.mergeAccountsWithEmail records, (err, accounts) ->
+      @mergeAccountsWithEmail records, (err, accounts) ->
         return callback err, accounts
 
 
@@ -1337,20 +1337,18 @@ module.exports = class JGroup extends Module
         return callback null, channel.id
 
 
-  helper =
+  mergeAccountsWithEmail: (accounts, callback) ->
 
-    mergeAccountsWithEmail: (accounts, callback) ->
+    JUser     = require '../user'
+    usernames = accounts.map (account) -> account.profile.nickname
 
-      JUser     = require '../user'
-      usernames = accounts.map (account) -> account.profile.nickname
+    JUser.some { username: { $in: usernames } }, {}, (err, users) ->
 
-      JUser.some { username: { $in: usernames } }, {}, (err, users) ->
+      return callback err, []  if err or not users
 
-        return callback err, []  if err or not users
+      for account in accounts
+        for user in users
+          if account.profile.nickname is user.username
+            account.profile.email = user.email
 
-        for account in accounts
-          for user in users
-            if account.profile.nickname is user.username
-              account.profile.email = user.email
-
-        return callback null, accounts
+      return callback null, accounts
