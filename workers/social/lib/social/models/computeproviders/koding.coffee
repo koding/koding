@@ -97,27 +97,27 @@ module.exports = class Koding extends ProviderInterface
 
   updateHelper =
 
-    validateResizeByUserPlan : (resize, userPlan, callback) ->
+    validateResizeByUserPlan : (resize, userPlan) ->
       if isNaN resize
-        return callback new KodingError \
+        return new KodingError \
         'Requested new size is not valid.', 'WrongParameter'
       else if resize > userPlan.storage
-        return callback new KodingError \
+        return new KodingError \
         """Requested new size exceeds allowed
            limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
       else if resize < 3
-        return callback new KodingError \
+        return new KodingError \
         """New size can't be less than 3GB.""", 'WrongParameter'
 
-    validateResizeByMachine : (options, callback) ->
+    validateResizeByMachine : (options) ->
       { resize, storageSize, usage, userPlan, machine } = options
 
       if (resize - storageSize) + usage.storage > userPlan.storage
-        return callback new KodingError \
+        return new KodingError \
         """Requested new size exceeds allowed
            limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
       else if resize is machine.getAt 'meta.storage_size'
-        return callback new KodingError \
+        return new KodingError \
         """Requested new size is same with current
            storage size (#{resize}GB).""", 'SameValueForResize'
 
@@ -153,7 +153,8 @@ module.exports = class Koding extends ProviderInterface
         if resize?
           resize = +resize
 
-          updateHelper.validateResizeByUserPlan resize, userPlan, callback
+          if err = updateHelper.validateResizeByUserPlan resize, userPlan
+            return callback err
 
         { ObjectId } = require 'bongo'
 
@@ -171,32 +172,39 @@ module.exports = class Koding extends ProviderInterface
             $elemMatch :
               id       : group.getId()
 
-        JMachine.one selector, (err, machine) ->
+        JMachine.one selector, update { alwaysOn, resize, usage, userPlan }
 
-          if err? or not machine?
-            err ?= new KodingError 'Machine object not found.'
-            return callback err
 
-          fieldsToUpdate = {}
+  update = (options, callback) ->
 
-          if alwaysOn?
-            fieldsToUpdate['meta.alwaysOn'] = alwaysOn
+    { alwaysOn, resize, usage, userPlan }
 
-          if resize?
+    return (err, machine) ->
+      if err? or not machine?
+        err ?= new KodingError 'Machine object not found.'
+        return callback err
 
-            storageSize = machine.meta?.storage_size ? 3
+      fieldsToUpdate = {}
 
-            updateHelper.validateResizeByMachine {
-              resize, storageSize, usage, userPlan, machine
-            }, callback
+      if alwaysOn?
+        fieldsToUpdate['meta.alwaysOn'] = alwaysOn
 
-            fieldsToUpdate['meta.storage_size'] = resize
+      if resize?
 
-          machine.update
+        storageSize = machine.meta?.storage_size ? 3
 
-            $set: fieldsToUpdate
+        if err = updateHelper.validateResizeByMachine {
+          resize, storageSize, usage, userPlan, machine
+        }
+          return callback err
 
-          , (err) -> callback err
+        fieldsToUpdate['meta.storage_size'] = resize
+
+      machine.update
+
+        $set: fieldsToUpdate
+
+      , (err) -> callback err
 
 
   @fetchAvailable = (client, options, callback) ->
