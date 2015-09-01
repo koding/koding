@@ -105,18 +105,3 @@ func (f *fsReadFileRes) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
-
-type fsWriteFileRes struct {
-	Written int
-}
-
-func (f *fsWriteFileRes) UnmarshalJSON(b []byte) error {
-	var written int
-	if err := json.Unmarshal(b, &written); err != nil {
-		return err
-	}
-
-	f.Written = written
-
-	return nil
-}

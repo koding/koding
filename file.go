@@ -10,8 +10,9 @@ import (
 )
 
 type File struct {
-	Parent *Dir
 	*Node
+
+	Parent *Dir
 }
 
 // ReadAll returns the entire file. Required by Fuse.
@@ -47,13 +48,13 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 		Content: req.Data,
 	}
 
-	tres := fsWriteFileRes{}
+	var tres int
 
 	if err := f.Transport.Trip("fs.writeFile", treq, &tres); err != nil {
 		return err
 	}
 
-	resp.Size = tres.Written
+	resp.Size = tres
 
 	return f.Parent.invalidateCache(f.Name)
 }

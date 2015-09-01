@@ -83,7 +83,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 // ReadDirAll returns metadata for files and directories. Required by Fuse.
 // TODO: this method seems to be called way too many times in short period.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	defer debug(time.Now(), "ReadDirAll="+d.Name)
+	defer debug(time.Now(), "Dir="+d.Name)
 
 	d.Lock()
 	defer d.Unlock()
@@ -123,6 +123,40 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	d.FuseEntries = dirents
 
 	return dirents, nil
+}
+
+// Mkdir creates new directory under inside Dir. Required by Fuse.
+func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
+	defer debug(time.Now(), "Dir="+req.Name)
+
+	d.Lock()
+	defer d.Unlock()
+
+	path := filepath.Join(d.ExternalPath, req.Name)
+	treq := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      path,
+		Recursive: true,
+	}
+	var tres bool
+
+	if err := d.Trip("fs.createDirectory", treq, &tres); err != nil {
+		return nil, err
+	}
+
+	if err := d.invalidateCache(req.Name); err != nil {
+		return nil, err
+	}
+
+	n := NewNode(d.Transport)
+	n.Name = req.Name
+	n.InternalPath = filepath.Join(d.InternalPath, req.Name)
+	n.ExternalPath = path
+	n.attr.Mode = req.Mode
+
+	return &Dir{Parent: d, Node: n}, nil
 }
 
 // invalidateCache removes cache, which will trigger lookup in Klient on next
