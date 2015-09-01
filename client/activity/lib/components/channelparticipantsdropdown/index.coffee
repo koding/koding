@@ -21,6 +21,9 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     keyboardScroll : no
 
 
+  componentDidUpdate: ->
+
+
   formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
 
 
