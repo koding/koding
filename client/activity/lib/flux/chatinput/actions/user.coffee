@@ -118,6 +118,16 @@ unsetChannelParticipantsInputQuery = ->
   { UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY } = actionTypes
   dispatch UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY
   resetChannelParticipantsSelectedIndex()
+
+
+###*
+ * Action to reset users selected index to initial value
+###
+resetChannelParticipantsSelectedIndex = ->
+
+  { RESET_CHANNEL_PARTICIPANTS_SELECTED_INDEX } = actionTypes
+  dispatch RESET_CHANNEL_PARTICIPANTS_SELECTED_INDEX
+
 ###*
  * Action to increment users selected index
 ###
@@ -146,6 +156,7 @@ module.exports = {
   setVisibility
   setChannelParticipantsInputQuery
   unsetChannelParticipantsInputQuery
+  resetChannelParticipantsSelectedIndex
   moveToNextChannelParticipantIndex
   moveToPrevChannelParticipantIndex
 }
