@@ -127,7 +127,7 @@ getPage = (query) ->
   page   or = 1
 
 
-handleError = (err, content) ->
+handleError = (err, res, content) ->
   if err
     console.error err
 
@@ -159,11 +159,11 @@ module.exports =
     { models } = bongo
     { generateFakeClient }   = require '../server/client'
     generateFakeClient req, res, (err, client) ->
-      return handleError err  if err or not client
+      return handleError err, res  if err or not client
 
       { query } = req
       page = getPage query
       options = { section, entrySlug, client, page, isProfile, name }
       fetchContent models, options, (err, content) ->
-        return handleError err, content  if err or not content
+        return handleError err, res, content  if err or not content
         return res.status(200).send content
