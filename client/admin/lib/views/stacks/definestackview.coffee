@@ -7,6 +7,7 @@ KDModalView          = kd.ModalView
 KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
 KDCustomHTMLView     = kd.CustomHTMLView
+KDNotificationView   = kd.NotificationView
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
@@ -16,6 +17,7 @@ providersParser      = require './providersparser'
 
 requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
+updateCustomVariable = require './updatecustomvariable'
 parseTerraformOutput = require './parseterraformoutput'
 
 OutputView           = require './outputview'
@@ -51,7 +53,10 @@ module.exports = class DefineStackView extends KDView
       name : 'Stack Template'
       view : @stackTemplateView
 
-    @variablesView                     = new VariablesView delegate: this
+    @variablesView                     = new VariablesView {
+      delegate: this
+      stackTemplate
+    }
     @tabView.addPane variablesPane     = new KDTabPaneView
       name : 'Variables'
       view : @variablesView
@@ -167,6 +172,23 @@ module.exports = class DefineStackView extends KDView
 
   handleSave: ->
 
+    unless @variablesView.isPassed()
+
+      # Warn user if one is trying to save without
+      # variables passed while in variables tab
+      if @tabView.getActivePaneIndex() is 1
+        new KDNotificationView title: 'Please check variables'
+
+      # Switch to Variables tab
+      @tabView.showPaneByIndex 1
+      @saveButton.hideLoader()
+      return
+
+    @saveAndTestStackTemplate()
+
+
+  saveAndTestStackTemplate: ->
+
     # Show default first pane.
     @tabView.showPaneByIndex 0
     @outputView.clear().raise()
@@ -175,7 +197,7 @@ module.exports = class DefineStackView extends KDView
     @setAsDefaultButton.hide()
 
     @checkAndBootstrapCredentials (err, credentials) =>
-      return  @saveButton.hideLoader()  if err
+      return @saveButton.hideLoader()  if err
 
       @outputView
         .add 'Credentials are ready!'
@@ -187,22 +209,38 @@ module.exports = class DefineStackView extends KDView
           @saveButton.hideLoader()
           return
 
-        @outputView.add 'Template content saved now processing the template...'
+        @outputView
+          .add 'Template content saved.'
+          .add 'Setting up custom variables...'
 
-        @handleCheckTemplate { stackTemplate }, (err, machines) =>
+        meta = @variablesView._providedData
 
-          @saveButton.hideLoader()
+        updateCustomVariable { stackTemplate, meta }, (err, _stackTemplate) =>
 
-          if err
-            @outputView.add "Parsing failed, please check your
-                             template and try again"
+          if @outputView.handleError err
+            @saveButton.hideLoader()
             return
 
-          @outputView.add "You can now close this window, or set this
-                           template as default for your team members."
+          stackTemplate = _stackTemplate
 
-          @cancelButton.setTitle 'Close'
-          @setAsDefaultButton.show()
+          @outputView
+            .add 'Custom variables are set.'
+            .add 'Starting to process the template...'
+
+          @handleCheckTemplate { stackTemplate }, (err, machines) =>
+
+            @saveButton.hideLoader()
+
+            if err
+              @outputView.add "Parsing failed, please check your
+                               template and try again"
+              return
+
+            @outputView.add "You can now close this window, or set this
+                             template as default for your team members."
+
+            @cancelButton.setTitle 'Close'
+            @setAsDefaultButton.show()
 
 
   checkAndBootstrapCredentials: (callback) ->
@@ -335,6 +373,9 @@ module.exports = class DefineStackView extends KDView
     credentials   =
       aws         : [ awsIdentifier ]
 
+    # Add Custom Variables if exists
+    if variablesCredential = @variablesView._activeCredential
+      credentials.custom   = [variablesCredential.identifier]
 
     if 'yaml' is @stackTemplateView.editorView.getOption 'contentType'
       convertedDoc = yamlToJson templateContent
@@ -380,7 +421,8 @@ module.exports = class DefineStackView extends KDView
 
     group         = kd.singletons.groupsController.getCurrentGroup()
     account       = whoami()
-    availableData = { group, account }
+    custom        = @variablesView._providedData
+    availableData = { group, account, custom }
 
     requiredData  = requirementsParser template
     errors        = []
@@ -399,7 +441,9 @@ module.exports = class DefineStackView extends KDView
             continue
 
           if content = jspath.getAt availableData[type], field
-            search   = ///\${var.koding_#{type}_#{field}}///g
+            search   = if type is 'custom'  \
+              then ///\${var.#{type}_#{field}}///g
+              else ///\${var.koding_#{type}_#{field}}///g
             template = template.replace search, content
           else
             errors.push "Variable `#{field}` not found in `#{type}` data."
