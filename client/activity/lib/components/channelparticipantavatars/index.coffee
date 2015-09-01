@@ -200,9 +200,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     matchResult = value.match /^@(.*)/
 
-    return no  unless matchResult
-
-    query = matchResult[1]
+    if matchResult then query = matchResult[1] else query = value
 
     { channel, user  } = ActivityFlux.actions
 
