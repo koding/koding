@@ -19,7 +19,7 @@ func TestDir(t *testing.T) {
 			dr := NewDir(&Node{Transport: tr})
 
 			_, err := dr.Lookup(nil, "file")
-			So(err, ShouldBeNil)
+			So(err, ShouldNotBeNil)
 		})
 
 		Convey("It should return metadata for files and dirs", func() {

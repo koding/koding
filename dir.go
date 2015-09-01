@@ -15,6 +15,8 @@ import (
 type Dir struct {
 	*Node
 
+	Parent *Dir
+
 	// EntriesList contains list of files and directories belong to this Dir.
 	EntriesList map[string]*Node
 
@@ -28,7 +30,6 @@ func NewDir(n *Node) *Dir {
 }
 
 // Lookup returns file or dir if exists; fuse.EEXIST if not. Required by Fuse.
-// TODO: return fuse.EEXIST if entry doesn't exist in user VM.
 func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	d.RLock()
 	defer d.RUnlock()
@@ -60,6 +61,10 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {
 		return nil, err
+	}
+
+	if !res.Exists {
+		return nil, fuse.ENOENT
 	}
 
 	n.Name = path.Base(n.ExternalPath)
