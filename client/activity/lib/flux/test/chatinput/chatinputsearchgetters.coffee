@@ -20,14 +20,16 @@ describe 'ChatInputSearchGetters', ->
 
   describe '#chatInputSearchSelectedIndex', ->
 
+    initiatorId = 'test'
+
     it 'gets -1 when search items are empty', ->
 
       { getters } = ActivityFlux
       items = []
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex initiatorId
       expect(selectedIndex).to.equal -1
 
 
@@ -41,10 +43,10 @@ describe 'ChatInputSearchGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex initiatorId
       expect(selectedIndex).to.equal index
 
 
@@ -60,17 +62,17 @@ describe 'ChatInputSearchGetters', ->
         { id : '5' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex initiatorId
       expect(selectedIndex).to.equal (index % items.length) + items.length
 
       index = -9
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex initiatorId
       expect(selectedIndex).to.equal (index % items.length) + items.length
 
 
@@ -84,21 +86,23 @@ describe 'ChatInputSearchGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex initiatorId
       expect(selectedIndex).to.equal index % items.length
 
       index = 8
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex initiatorId
       expect(selectedIndex).to.equal index % items.length
 
 
   describe '#chatInputSelectedItem', ->
+
+    initiatorId = 'test'
 
     it 'gets item by specified selected index', ->
 
@@ -110,9 +114,9 @@ describe 'ChatInputSearchGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { initiatorId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { initiatorId, index }
 
-      selectedItem = @reactor.evaluateToJS getters.chatInputSearchSelectedItem
+      selectedItem = @reactor.evaluateToJS getters.chatInputSearchSelectedItem initiatorId
       expect(selectedItem.id).to.equal items[index].id
 
