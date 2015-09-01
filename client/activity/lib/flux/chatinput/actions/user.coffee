@@ -108,6 +108,16 @@ setChannelParticipantsInputQuery = (query) ->
   else
     unsetChannelParticipantsInputQuery()
 
+
+###*
+ * Action to unset current query of chat input users.
+ * Also, it resets users selected index
+###
+unsetChannelParticipantsInputQuery = ->
+
+  { UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY } = actionTypes
+  dispatch UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY
+  resetChannelParticipantsSelectedIndex()
 ###*
  * Action to increment users selected index
 ###
@@ -135,6 +145,7 @@ module.exports = {
   resetSelectedIndex
   setVisibility
   setChannelParticipantsInputQuery
+  unsetChannelParticipantsInputQuery
   moveToNextChannelParticipantIndex
   moveToPrevChannelParticipantIndex
 }
