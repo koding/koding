@@ -28,6 +28,7 @@ require './chatinput/chatinputsearchselectedindexstore'
 require './chatinput/chatinputsearchvisibilitystore'
 require './chatinput/chatinputsearchstore'
 require './chatinput/chatinputsearchgetters'
+require './channelparticipants/channelparticipantsselectedindexstore'
 require './channelparticipants/channelparticipantsdropdownvisibilitystore'
 # module tests
 require 'activity/flux/chatinput/tests'
