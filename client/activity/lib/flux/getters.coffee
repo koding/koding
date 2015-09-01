@@ -38,6 +38,7 @@ allChannels = ChannelsStore
 allUsers    = UsersStore
 
 ChannelParticipantsSearchQueryStore        = ['ChannelParticipantsSearchQueryStore']
+ChannelParticipantsSelectedIndexStore      = ['ChannelParticipantsSelectedIndexStore']
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -363,6 +364,8 @@ channelParticipantsInputUsers = [
       return userName.indexOf(query) is 0
 ]
 
+channelParticipantsSelectedIndex      = ChannelParticipantsSelectedIndexStore
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -389,6 +392,7 @@ module.exports = {
 
   channelParticipantsSearchQuery
   channelParticipantsInputUsers
+  channelParticipantsSelectedIndex
 
   allUsers
 }
