@@ -1,6 +1,6 @@
 # fuseproto
 
-Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). NOTE: this Readme represents finished prototype, not current stage of code.
+Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient).
 
 ## WARNING
 
@@ -34,3 +34,26 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 ## Tips:
 
   * Use fullpath in arguments.
+
+## Milestones:
+
+    * 0.1 - DONE Aug 31
+        read operations
+        move code from old prototype to new fuseproto
+    * 0.2
+        klient authentication
+    * 0.3
+        write operations
+        lock resources in VM on open or write operations
+    * 0.4
+        integration into klient
+            merge fuseproto into klient
+        klient method to send events to invalidate cache on file changes
+    * 0.5
+        klient ps - return list of user VMs to mount
+    * 0.6
+        kd ... - run entire command on VM, return results
+            similar to watch
+            mainly for find, grep etc. recursive operations
+    * 0.7
+        remaining FUSE operations
