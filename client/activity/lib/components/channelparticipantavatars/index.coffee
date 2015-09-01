@@ -169,6 +169,21 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     'slide-down': @state.addNewParticipantMode
 
 
+  onChange: (event) ->
+
+    { value } = event.target
+    @setState { value }
+
+    matchResult = value.match /^@(.*)/
+
+    return no  unless matchResult
+
+    query = matchResult[1]
+
+    { channel, user  } = ActivityFlux.actions
+
+    user.setChannelParticipantsInputQuery query
+    channel.setChannelParticipantsDropdownVisibility yes
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
