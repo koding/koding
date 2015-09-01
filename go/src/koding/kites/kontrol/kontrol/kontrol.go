@@ -93,9 +93,9 @@ func throttledHandler(h http.HandlerFunc) http.Handler {
 	}
 
 	// Based on datadog metrics, kloud.info is called on average 200
-	// req/seconds.
+	// req/minute.
 	quota := throttled.RateQuota{
-		MaxRate:  throttled.PerSec(200),
+		MaxRate:  throttled.PerMin(200),
 		MaxBurst: 300,
 	}
 
