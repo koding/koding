@@ -44,6 +44,8 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     }
 
 
+  getParticipantsDropdown: -> @refs.channelParticipantsDropdown
+
 
   componentDidMount: ->
 
