@@ -242,6 +242,20 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     </div>
 
 
+  onDropdownItemConfirmed: (item) ->
+
+    channelId   = @props.channelThread.get 'channelId'
+    participant = @state.selectedItem
+
+    options =
+      userId            : participant.get '_id'
+      channelId         : @props.channelThread.get 'channelId'
+      accountIds        : [ whoami().socialApiId, participant.get 'socialApiId' ]
+
+    { channel } = ActivityFlux.actions
+    channel.addParticipants options
+
+
   renderAddNewChannelParticipantsDropdown: ->
 
     <ChannelParticipantsDropdown
