@@ -16,7 +16,7 @@ func TestDir(t *testing.T) {
 				TripResponse:   fsGetInfoRes{},
 			}
 
-			dr := Dir{Node: &Node{Transport: tr}}
+			dr := NewDir(&Node{Transport: tr})
 
 			_, err := dr.Lookup(nil, "file")
 			So(err, ShouldBeNil)
@@ -32,7 +32,7 @@ func TestDir(t *testing.T) {
 				},
 			}
 
-			dr := Dir{Node: &Node{Transport: tr}}
+			dr := NewDir(&Node{Transport: tr})
 
 			dirents, err := dr.ReadDirAll(nil)
 			So(err, ShouldBeNil)

@@ -16,6 +16,9 @@ type Node struct {
 	Transport
 	sync.RWMutex
 
+	// DirentType stores type of entry, ie fuse.DT_Dir or fuse.DT_File
+	DirentType fuse.DirentType
+
 	// Parent is the parent of node, ie folder that holds this node.
 	Parent *Node
 
@@ -46,12 +49,21 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 		return nil
 	}
 
+	// debug should almost be the first statement, but to prevent spamming of
+	// resource file lookups, this call is moved here
 	defer debug(time.Now(), "Name="+n.Name, "ExternalPath="+n.ExternalPath)
 
+	a.Size = n.attr.Size
+	a.Mode = n.attr.Mode
+
+	return nil
+}
+
+// getInfo gets Node info from Klient. This method should almost never be called.
+func (n *Node) getInfo(a *fuse.Attr) error {
 	req := struct{ Path string }{n.ExternalPath}
 	res := fsGetInfoRes{}
 
-	// TODO: this should be set by Dir#ReadAllDir
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {
 		return err
 	}

@@ -14,14 +14,20 @@ var (
 
 func TestFileSystem(t *testing.T) {
 	Convey("Given filesystem", t, func() {
-		f := FileSystem{
+		ft := &fakeTransport{
+			TripMethodName: "fs.getInfo",
+			TripResponse:   fsGetInfoRes{},
+		}
+
+		fl := FileSystem{
+			Transport:         ft,
 			MountName:         "test",
 			InternalMountPath: internalPath,
 			ExternalMountPath: externalPath,
 		}
 
 		Convey("It should return root", func() {
-			_, err := f.Root()
+			_, err := fl.Root()
 			So(err, ShouldBeNil)
 		})
 	})

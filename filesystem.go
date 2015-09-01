@@ -32,11 +32,19 @@ func (f *FileSystem) Root() (fs.Node, error) {
 	n.InternalPath = f.InternalMountPath
 	n.ExternalPath = f.ExternalMountPath
 
+	// TODO: use FileSystem#Statfs when it's implemented
+	a := &fuse.Attr{}
+	if err := n.getInfo(a); err != nil {
+		return nil, err
+	}
+
+	n.attr = a
+
 	return NewDir(n), nil
 }
 
 // Statfs returns metadata for FileSystem. Required by Fuse.
-// TODO: requires Klient to implement required attrs.
+// TODO: requires Klient to implement a method that returns disk level info.
 // func (f *FileSystem) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
 //   return nil
 // }
