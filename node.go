@@ -61,6 +61,8 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 
 // getInfo gets Node info from Klient. This method should almost never be called.
 func (n *Node) getInfo(a *fuse.Attr) error {
+	defer debug(time.Now(), "Name="+n.Name, "ExternalPath="+n.ExternalPath)
+
 	req := struct{ Path string }{n.ExternalPath}
 	res := fsGetInfoRes{}
 

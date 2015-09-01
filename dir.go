@@ -109,9 +109,12 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		n.attr.Size = uint64(file.Size)
 		n.attr.Mode = os.FileMode(file.Mode)
 
+		// cache entries to save on Node#Attr requests
 		d.EntriesList[file.Name] = n
 	}
 
+	// cache entries to save on repeated calls
+	// TODO: this method seems to be called way too many times in short period
 	d.FuseEntries = dirents
 
 	return dirents, nil

@@ -50,6 +50,7 @@ func (f *FileSystem) Root() (fs.Node, error) {
 // }
 
 // Mount mounts folder on user VM as a volume.
+// TODO: check if f.ExternalMountPath exist on use VM before mounting.
 func (f *FileSystem) Mount() error {
 	c, err := fuse.Mount(
 		f.InternalMountPath,

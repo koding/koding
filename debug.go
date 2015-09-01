@@ -8,6 +8,7 @@ import (
 
 var shouldDebug = false
 
+// TODO: allow filtering via flags: --debug-filter=/Attr/
 func debug(t time.Time, keys ...string) {
 	if !shouldDebug {
 		return

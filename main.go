@@ -32,6 +32,7 @@ func main() {
 	}
 
 	// create mount point if it doesn't exist
+	// TODO: don't allow ~  in conf.InternalPath since Go doesn't expand it
 	if err := os.MkdirAll(conf.InternalPath, 0755); err != nil {
 		log.Fatal(err)
 	}
@@ -44,13 +45,17 @@ func main() {
 	}
 }
 
-// unmountOnExit un mounts Fuse mounted folder. Mount exists separate to
+// unmountOnExit unmounts Fuse mounted local folder. Mount exists separate to
 // lifecycle of this program and needs to be cleaned up when this exists.
+//
+// TODO: close Transport and implement FileSystem#Destroy.
 func unmountOnExit(folder string) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 
 	<-signals
+
+	fmt.Println("Cleaning up...")
 
 	_, err := exec.Command("diskutil", "unmount", "force", folder).CombinedOutput()
 	if err != nil {
