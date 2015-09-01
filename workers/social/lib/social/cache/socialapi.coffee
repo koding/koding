@@ -85,7 +85,7 @@ module.exports = (options = {}, callback) ->
   handleQueue fetchActivitiesForNavigatedURL, reqs, params, callback
 
 
-handleQueue = (fetchActivitiesForNavigatedURL, reqs, params) ->
+handleQueue = (fetchActivitiesForNavigatedURL, reqs, params, callback) ->
 
   queue = reqs.map (req) -> ->
     req.fn (err, data) ->
