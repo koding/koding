@@ -161,7 +161,7 @@ module.exports = class MemberItemView extends KDListItemView
     data     = @getData()
     fullname = getFullnameFromAccount data
     nickname = data.profile.nickname
-    email    = "#{nickname}@koding.com"
+    email    = data.profile.email
 
     return """
       <div class="details">
