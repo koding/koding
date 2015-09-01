@@ -26,6 +26,9 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
   componentDidUpdate: ->
 
 
+  componentDidUpdate: ->
+
+
   formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
 
 
