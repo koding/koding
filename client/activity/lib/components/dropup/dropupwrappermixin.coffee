@@ -24,6 +24,7 @@ module.exports =
   componentDidUpdate: (prevProps, prevState) ->
 
     { selectedItem } = @props
+
     return  if prevProps.selectedItem is selectedItem or not selectedItem
 
     containerElement = @refs.dropup.getMainElement()

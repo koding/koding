@@ -14,10 +14,7 @@ module.exports = class EmojiDropupItem extends React.Component
     index      : 0
 
 
-  componentDidMount: ->
-
-    icon = React.findDOMNode this.refs.icon
-    emojify.run icon
+  componentDidMount: -> emojify.run React.findDOMNode this.refs.icon
 
 
   render: ->
