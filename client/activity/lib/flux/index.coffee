@@ -28,6 +28,21 @@ module.exports =
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
     require './stores/messageflagsstore'
+
+    require './stores/chatinput/chatinputchannelsselectedindexstore'
+    require './stores/chatinput/chatinputchannelsquerystore'
+    require './stores/chatinput/chatinputchannelsvisibilitystore'
+    require './stores/chatinput/chatinputusersselectedindexstore'
+    require './stores/chatinput/chatinputusersquerystore'
+    require './stores/chatinput/chatinputusersvisibilitystore'
+    require './stores/chatinput/chatinputsearchselectedindexstore'
+    require './stores/chatinput/chatinputsearchquerystore'
+    require './stores/chatinput/chatinputsearchvisibilitystore'
+    require './stores/chatinput/chatinputsearchstore'
+    require './stores/channelparticipants/channelparticipantssearchquerystore'
+    require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
+    require './stores/channelparticipants/channelparticipantsselectedindexstore'
+
   ]
   # module stores
   .concat ChatInputModule.stores
