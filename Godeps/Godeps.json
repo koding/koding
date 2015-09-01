@@ -158,7 +158,7 @@
 		},
 		{
 			"ImportPath": "github.com/koding/kite",
-			"Rev": "eae05a24fcde797befffdf6b2571840630639a0b"
+			"Rev": "79b4a84c5d469997f79dbefd5c38c76416c73edc"
 		},
 		{
 			"ImportPath": "github.com/koding/logging",
@@ -228,6 +228,18 @@
 		{
 			"ImportPath": "gopkg.in/tomb.v1",
 			"Rev": "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "ee1815431e497d3850809578c93ab6705f1a19f7"
+		},
+		{
+			"ImportPath": "github.com/juju/ratelimit",
+			"Rev": "772f5c38e468398c4511514f4f6aa9a4185bc0a0"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
 		}
 	]
 }

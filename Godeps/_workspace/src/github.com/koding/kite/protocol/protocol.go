@@ -140,6 +140,9 @@ type RegisterResult struct {
 	URL               string `json:"url"`
 	HeartbeatInterval int64  `json:"heartbeatInterval"`
 	Error             string `json:"err,omitempty"`
+	// PublicKey is only available if the public Key of the request is
+	// invalid
+	PublicKey string `json:"publicKey,omitempty"`
 }
 
 type GetKitesArgs struct {
@@ -159,6 +162,7 @@ type GetKitesResult struct {
 type KiteWithToken struct {
 	Kite  Kite   `json:"kite"`
 	URL   string `json:"url"`
+	KeyID string `json:"keyId,omitempty"`
 	Token string `json:"token"`
 }
 

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/kitectl/command"
+
 	"github.com/mitchellh/cli"
 )
 
