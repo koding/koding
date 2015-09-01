@@ -277,6 +277,15 @@ addParticipants = (options = {}) ->
     dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, options
 
 
+###*
+ * Action to set visibility of chat input channels
+###
+setChannelParticipantsDropdownVisibility = (visible) ->
+
+  { SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY } = actionTypes
+  dispatch SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY, { visible }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -289,5 +298,13 @@ module.exports = {
   loadPopularMessages
   loadPopularChannels
   loadChannelsByQuery
+  setChatInputChannelsQuery
+  unsetChatInputChannelsQuery
+  setChatInputChannelsSelectedIndex
+  moveToNextChatInputChannelsIndex
+  moveToPrevChatInputChannelsIndex
+  resetChatInputChannelsSelectedIndex
+  setChatInputChannelsVisibility
+  setChannelParticipantsDropdownVisibility
 }
 
