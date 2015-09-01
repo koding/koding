@@ -348,7 +348,6 @@ chatInputSearchVisibility = (stateId) -> [
 
 
 channelParticipantsSearchQuery  = ChannelParticipantsSearchQueryStore
-
 # Returns a list of users depending on the current query
 # If query is empty, returns selected channel participants
 # Otherwise, returns users filtered by query
