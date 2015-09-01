@@ -200,6 +200,10 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     user.setChannelParticipantsInputQuery query
     channel.setChannelParticipantsDropdownVisibility yes
+  onEsc: (event) ->
+
+    @getParticipantsDropdown().close()
+
   onKeyDown: (event) ->
 
     switch event.which
