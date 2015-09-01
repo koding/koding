@@ -28,15 +28,21 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     super
 
-    @state = { addNewParticipantMode: no, showAllParticipants: no }
+    @state = { addNewParticipantMode: no, showAllParticipants: no, value: '' }
 
 
-  PREVIEW_COUNT = 0
-  MAX_PREVIEW_COUNT = 4
+  getDataBindings: ->
 
-  @defaultProps =
-    channelThread : null
-    participants  : null
+    { getters } = ActivityFlux
+
+    return {
+      query              : getters.channelParticipantsSearchQuery
+      dropdownUsers      : getters.channelParticipantsInputUsers
+      selectedItem       : getters.channelParticipantsSelectedItem
+      selectedIndex      : getters.channelParticipantsSelectedIndex
+      dropdownVisibility : getters.channelParticipantsDropdownVisibility
+    }
+
 
 
   componentDidMount: ->
