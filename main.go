@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 
@@ -37,30 +35,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go unmountOnExit(conf.InternalPath)
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+
+		<-signals
+
+		unmount(conf.InternalPath)
+	}()
 
 	// blocking
 	if err := f.Mount(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// unmountOnExit unmounts Fuse mounted local folder. Mount exists separate to
-// lifecycle of this program and needs to be cleaned up when this exists.
-//
-// TODO: close Transport and implement FileSystem#Destroy.
-func unmountOnExit(folder string) {
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
-
-	<-signals
-
-	fmt.Println("Cleaning up...")
-
-	_, err := exec.Command("diskutil", "unmount", "force", folder).CombinedOutput()
-	if err != nil {
-		fmt.Printf("Unmount failed. Please do `diskutil unmount force %s`.\n", folder)
-	}
-
-	os.Exit(0)
 }
