@@ -54,6 +54,9 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 		return err
 	}
 
+	f.attr.Size = uint64(tres)
+	f.attr.Mtime = time.Now()
+
 	resp.Size = tres
 
 	return f.Parent.invalidateCache(f.Name)
