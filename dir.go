@@ -174,6 +174,8 @@ func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
 		return nil, err
 	}
 
+	d.EntriesList = map[string]*Node{}
+
 	var dirents []fuse.Dirent
 	for _, file := range res.Files {
 		ent := fuse.Dirent{Name: file.Name, Type: fuse.DT_File}
