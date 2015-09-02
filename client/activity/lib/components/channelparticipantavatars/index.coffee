@@ -7,16 +7,14 @@ immutable                   = require 'immutable'
 classnames                  = require 'classnames'
 AppFlux                     = require 'app/flux'
 ActivityFlux                = require 'activity/flux'
+KeyboardKeys                = require 'app/util/keyboardKeys'
 ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
-  TAB               = 9
-  ESC               = 27
-  ENTER             = 13
-  UP_ARROW          = 38
-  DOWN_ARROW        = 40
+  { TAB, ESC, ENTER, UP_ARROW, DOWN_ARROW } = KeyboardKeys
+
   PREVIEW_COUNT     = 0
   MAX_PREVIEW_COUNT = 4
 
