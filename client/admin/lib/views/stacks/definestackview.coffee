@@ -214,33 +214,37 @@ module.exports = class DefineStackView extends KDView
           .add 'Setting up custom variables...'
 
         meta = @variablesView._providedData
+        data = { stackTemplate, meta }
 
-        updateCustomVariable { stackTemplate, meta }, (err, _stackTemplate) =>
+        updateCustomVariable data, (err, _stackTemplate) =>
 
           if @outputView.handleError err
             @saveButton.hideLoader()
             return
 
-          stackTemplate = _stackTemplate
-
           @outputView
             .add 'Custom variables are set.'
             .add 'Starting to process the template...'
 
-          @handleCheckTemplate { stackTemplate }, (err, machines) =>
+          @processTemplate _stackTemplate
 
-            @saveButton.hideLoader()
 
-            if err
-              @outputView.add "Parsing failed, please check your
-                               template and try again"
-              return
+  processTemplate: (stackTemplate) ->
 
-            @outputView.add "You can now close this window, or set this
-                             template as default for your team members."
+    @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
-            @cancelButton.setTitle 'Close'
-            @setAsDefaultButton.show()
+      @saveButton.hideLoader()
+
+      if err
+        @outputView.add "Parsing failed, please check your
+                         template and try again"
+        return
+
+      @outputView.add "You can now close this window, or set this
+                       template as default for your team members."
+
+      @cancelButton.setTitle 'Close'
+      @setAsDefaultButton.show()
 
 
   checkAndBootstrapCredentials: (callback) ->
@@ -356,9 +360,15 @@ module.exports = class DefineStackView extends KDView
 
     requiredData = requirementsParser templateContent
 
-    @outputView
-      .add 'Following extra information will be requested from members:'
-      .add requiredData
+    if requiredData.userInput?
+      @outputView
+        .add 'Following extra information will be requested from members:'
+        .add requiredData.userInput
+
+    if requiredData.custom?
+      @outputView
+        .add 'Following information will be fetched from variables section:'
+        .add requiredData.custom
 
     # Generate config data from parsed values
     config = { requiredData, requiredProviders }
@@ -400,15 +410,17 @@ module.exports = class DefineStackView extends KDView
 
   createReportFor = (data, type) ->
 
-    if data.length > 0
+    if (Object.keys data).length > 0
       console.warn "#{type.capitalize()} for preview requirements: ", data
 
-      issueList = ''
-      for issue in data
-        issueList += " - #{issue}\n"
-
-      issues = "> Following #{type} found while generating
-                preview for this template: \n#{issueList}"
+      issues = ''
+      for issue of data
+        if issue is 'userInput'
+          issues += " - These variables: `#{data[issue]}`
+                        will be requested from user.\n"
+        else
+          issues += " - These variables: `#{data[issue]}`
+                        couldn't find in `#{issue}` data.\n"
     else
       issues = ''
 
@@ -425,8 +437,8 @@ module.exports = class DefineStackView extends KDView
     availableData = { group, account, custom }
 
     requiredData  = requirementsParser template
-    errors        = []
-    warnings      = []
+    errors        = {}
+    warnings      = {}
 
     fetchUserData = (callback) ->
 
@@ -437,7 +449,8 @@ module.exports = class DefineStackView extends KDView
         for field in data
 
           if type is 'userInput'
-            warnings.push "Variable `#{field}` will be requested from user."
+            warnings.userInput ?= []
+            warnings.userInput.push field
             continue
 
           if content = jspath.getAt availableData[type], field
@@ -446,7 +459,8 @@ module.exports = class DefineStackView extends KDView
               else ///\${var.koding_#{type}_#{field}}///g
             template = template.replace search, content
           else
-            errors.push "Variable `#{field}` not found in `#{type}` data."
+            errors[type] ?= []
+            errors[type].push field
 
       @createPreviewModal { errors, warnings, template }
 
