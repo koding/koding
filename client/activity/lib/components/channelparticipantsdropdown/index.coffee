@@ -19,6 +19,10 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     selectedItem   : null
 
 
+  # this method overrides DropupWrapperMixin-componentDidUpdate handler.
+  # In this component, we use dropdown keyword. In DropupWrapperMixin/componentDidUpdate handler
+  # expects dropup component so it occurs an error. Also this component doesn't need any action when
+  # componentDidUpdate event fired.
   componentDidUpdate: ->
 
 
