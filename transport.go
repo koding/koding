@@ -4,10 +4,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os/user"
+	"strings"
 	"time"
 
 	"github.com/koding/kite"
-	kiteConfig "github.com/koding/kite/config"
 )
 
 // Transport defines communication between this package and user VM.
@@ -32,19 +34,37 @@ type KlientTransport struct {
 
 // NewKlientTransport initializes KlientTransport with Klient connection.
 func NewKlientTransport(klientIP string) (*KlientTransport, error) {
-	config, err := kiteConfig.Get()
+	// TODO: Remove the config reference if it is, indeed, not needed.
+	//config, err := kiteConfig.Get()
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	k := kite.New(kiteName, kiteVersion)
+	//k.Config = config
+
+	kiteClient := k.NewClient(fmt.Sprintf("http://%s:56789/kite", klientIP))
+
+	// os/user has issues with cross compiling, so we may want to use
+	// the following library instead:
+	//
+	// 	https://github.com/mitchellh/go-homedir
+	usr, err := user.Current()
 	if err != nil {
 		return nil, err
 	}
 
-	k := kite.New(kiteName, kiteVersion)
-	k.Config = config
+	data, err := ioutil.ReadFile(fmt.Sprintf(
+		"%s/.fuseproto/keys/%s.kite.key", usr.HomeDir, klientIP,
+	))
+	if err != nil {
+		return nil, err
+	}
 
-	// TODO: will Klient always be running on 56789?
-	kiteClient := k.NewClient(fmt.Sprintf("http://%s:62193/kite", klientIP))
-
-	// TODO: add authentication
-	kiteClient.Auth = &kite.Auth{}
+	kiteClient.Auth = &kite.Auth{
+		Type: "kiteKey",
+		Key:  strings.TrimSpace(string(data)),
+	}
 	kiteClient.Reconnect = true
 
 	if err := kiteClient.DialTimeout(kiteTimeout); err != nil {
