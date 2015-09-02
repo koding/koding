@@ -214,33 +214,37 @@ module.exports = class DefineStackView extends KDView
           .add 'Setting up custom variables...'
 
         meta = @variablesView._providedData
+        data = { stackTemplate, meta }
 
-        updateCustomVariable { stackTemplate, meta }, (err, _stackTemplate) =>
+        updateCustomVariable data, (err, _stackTemplate) =>
 
           if @outputView.handleError err
             @saveButton.hideLoader()
             return
 
-          stackTemplate = _stackTemplate
-
           @outputView
             .add 'Custom variables are set.'
             .add 'Starting to process the template...'
 
-          @handleCheckTemplate { stackTemplate }, (err, machines) =>
+          @processTemplate _stackTemplate
 
-            @saveButton.hideLoader()
 
-            if err
-              @outputView.add "Parsing failed, please check your
-                               template and try again"
-              return
+  processTemplate: (stackTemplate) ->
 
-            @outputView.add "You can now close this window, or set this
-                             template as default for your team members."
+    @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
-            @cancelButton.setTitle 'Close'
-            @setAsDefaultButton.show()
+      @saveButton.hideLoader()
+
+      if err
+        @outputView.add "Parsing failed, please check your
+                         template and try again"
+        return
+
+      @outputView.add "You can now close this window, or set this
+                       template as default for your team members."
+
+      @cancelButton.setTitle 'Close'
+      @setAsDefaultButton.show()
 
 
   checkAndBootstrapCredentials: (callback) ->
