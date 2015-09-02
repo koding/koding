@@ -20,14 +20,16 @@ describe 'ChatInputSearchGetters', ->
 
   describe '#chatInputSearchSelectedIndex', ->
 
+    stateId = 'test'
+
     it 'gets -1 when search items are empty', ->
 
       { getters } = ActivityFlux
       items = []
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex stateId
       expect(selectedIndex).to.equal -1
 
 
@@ -41,10 +43,10 @@ describe 'ChatInputSearchGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex stateId
       expect(selectedIndex).to.equal index
 
 
@@ -60,17 +62,17 @@ describe 'ChatInputSearchGetters', ->
         { id : '5' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex stateId
       expect(selectedIndex).to.equal (index % items.length) + items.length
 
       index = -9
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex stateId
       expect(selectedIndex).to.equal (index % items.length) + items.length
 
 
@@ -84,21 +86,23 @@ describe 'ChatInputSearchGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex stateId
       expect(selectedIndex).to.equal index % items.length
 
       index = 8
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
-      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex
+      selectedIndex = @reactor.evaluate getters.chatInputSearchSelectedIndex stateId
       expect(selectedIndex).to.equal index % items.length
 
 
   describe '#chatInputSelectedItem', ->
+
+    stateId = 'test'
 
     it 'gets item by specified selected index', ->
 
@@ -110,9 +114,9 @@ describe 'ChatInputSearchGetters', ->
         { id : '3' }
       ]
 
-      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { items }
-      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+      @reactor.dispatch actions.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+      @reactor.dispatch actions.SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
-      selectedItem = @reactor.evaluateToJS getters.chatInputSearchSelectedItem
+      selectedItem = @reactor.evaluateToJS getters.chatInputSearchSelectedItem stateId
       expect(selectedItem.id).to.equal items[index].id
 
