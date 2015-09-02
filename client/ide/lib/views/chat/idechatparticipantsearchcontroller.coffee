@@ -7,10 +7,14 @@ module.exports = class IDEChatParticipantSearchController extends ParticipantSea
 
   submitAutoComplete: (item, data) ->
 
-    appManager      = kd.getSingleton 'appManager'
-    { videoActive } = @getDelegate()
+    appManager = kd.getSingleton 'appManager'
 
-    appManager.tell 'IDE', 'canUserStartVideo', =>
-      ParticipantSearchController::submitAutoComplete.call this, item, data
-    , videoActive
+    @once 'VideoStateReceived', (videoState) =>
+
+      appManager.tell 'IDE', 'canUserStartVideo', =>
+        # I think this usage is more explanatory than `super item, data`
+        ParticipantSearchController::submitAutoComplete.call this, item, data
+      , videoState
+
+    @emit 'VideoStateRequested'
 
