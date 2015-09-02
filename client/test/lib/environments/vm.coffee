@@ -46,8 +46,12 @@ module.exports =
       .waitForElementVisible   diskUsageSelector, 20000
       .click                   diskUsageSelector
       .waitForElementVisible   circularBar, 20000
-      .assert.containsText     circularBar + ' span.percentage', '53%' # Assertion
-      .end()
+      .getText circularBar + ' span.percentage', (result) ->
+        percentage = parseInt result.value.replace('%', '')
+        assert.ok percentage > 40 # Assertion
+
+        browser.end()
+
 
   updateVMNickname: (browser) ->
 
