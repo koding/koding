@@ -200,7 +200,11 @@ module.exports           = class MainController extends KDController
     unless account instanceof remote.api.JAccount
       account = remote.revive account
 
-    if checkGuestUser account
+    clientExpirationValidators = [
+      checkGuestUser.bind null, account
+    ]
+
+    for validator in clientExpirationValidators when validator()
       return expireClientId()
 
     globals.userAccount = account
