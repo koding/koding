@@ -139,7 +139,6 @@ module.exports = class JStackTemplate extends Module
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
 
-  # coffeelint: disable=no_implicit_braces
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -198,7 +197,7 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, accessLevel, callback) ->
 
-      @update $set: { accessLevel }, callback
+      @update { $set: { accessLevel } }, callback
 
 
   update$: permit
@@ -223,7 +222,7 @@ module.exports = class JStackTemplate extends Module
         if not templateDetails?
           data.template.details = @getAt 'template.details'
 
-      @update $set: data, (err) -> callback err
+      @update { $set: data }, (err) -> callback err
 
 
 # Base StackTemplate example for koding group

@@ -1,5 +1,4 @@
 # coffeelint: disable=indentation
-# coffeelint: disable=no_implicit_braces
 isEmailValid = require './emailchecker'
 
 module.exports = class Validators

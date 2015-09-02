@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 emailsanitize = require './user/emailsanitize'
