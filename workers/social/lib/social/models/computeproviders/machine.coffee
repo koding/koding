@@ -567,7 +567,7 @@ module.exports = class JMachine extends Module
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @update { $set: { slug }, label }, (err) -> kallback err, slug
+          @update { $set: { slug , label } }, (err) -> kallback err, slug
       else
         @update { $set: { label } }, (err) -> kallback err, slug
 
