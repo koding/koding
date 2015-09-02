@@ -111,8 +111,15 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 		return nil, err
 	}
 
+	// TODO: make `fs.createDirectory` to return folder info in creation
 	n := NewNode(d, req.Name)
-	n.attr.Mode = req.Mode
+	res, err := n.getInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	n.attr.Size = uint64(res.Size)
+	n.attr.Mode = os.FileMode(res.Mode)
 
 	return &Dir{Parent: d, Node: n}, nil
 }
