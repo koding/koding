@@ -79,7 +79,7 @@ module.exports = class JMail extends Model
       return callback { message: 'Unrecognized SMTP id' }  unless mail?
 
       operation =
-        $set  :
+        $set              :
           status          : 'delivered'
           dateDelivered   : status.timestamp * 1000 # milliseconds
 

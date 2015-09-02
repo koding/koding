@@ -219,10 +219,10 @@ module.exports = class AuthWorker extends EventEmitter
         if err then callback err
         else if hasPermission
           client =
-            context   :
-              group   : group.slug
-            connection:
-              delegate: account
+            context    :
+              group    : group.slug
+            connection :
+              delegate : account
 
           reqOptions =
             type: options.apiChannelType

@@ -1008,8 +1008,8 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchInvitationByGroupSlug:(slug, callback) ->
     options =
-      targetOptions:
-        selector   : { status: 'sent', group: slug }
+      targetOptions :
+        selector    : { status: 'sent', group: slug }
     @fetchInvitations {}, options, (err, [invite]) ->
       return callback err                          if err
       return callback 'could not find invitation'  unless invite
