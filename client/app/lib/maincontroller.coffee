@@ -13,6 +13,7 @@ isLoggedIn               = require './util/isLoggedIn'
 whoami                   = require './util/whoami'
 checkFlag                = require './util/checkFlag'
 setVersionCookie         = require './util/setVersionCookie'
+expireClientId           = require './util/expireClientId'
 ActivityController       = require './activitycontroller'
 AppStorageController     = require './appstoragecontroller'
 ApplicationManager       = require './applicationmanager'
@@ -200,9 +201,7 @@ module.exports           = class MainController extends KDController
 
     # this is last guard that we can take for guestuser issue ~ GG
     if account.profile?.nickname is "guestuser"
-      kookies.expire 'clientId'
-      global.location.href = '/'
-      return
+      return expireClientId()
 
     globals.userAccount = account
     connectedState.connected = yes
