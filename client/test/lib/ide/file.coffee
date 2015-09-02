@@ -125,3 +125,59 @@ module.exports =
     ideHelpers.openFile(browser, user, fileName)
 
     browser.end()
+
+
+  compressFileZip: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    fileName        = helpers.createFile(browser, user)
+    webPath         = '/home/' + user.username + '/Web'
+    fileSelector    = "span[title='" + webPath + '/' + fileName + "']"
+    submenuSelector = 'li.as-zip'
+    newFile         = "span[title='" + webPath + '/' + fileName + ".zip']"
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.compress', 20000
+      .click                     'li.compress'
+      .waitForElementVisible     submenuSelector, 20000
+      .click                     submenuSelector
+      .pause                     2000
+      .waitForElementPresent     newFile, 20000 # Assertion
+
+    helpers.deleteFile(browser, fileSelector)
+    helpers.deleteFile(browser, newFile)
+
+    browser.end()
+
+
+  compressFileTarGz: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    fileName        = helpers.createFile(browser, user)
+    webPath         = '/home/' + user.username + '/Web'
+    fileSelector    = "span[title='" + webPath + '/' + fileName + "']"
+    submenuSelector = 'li.as-targz'
+    newFile         = "span[title='" + webPath + '/' + fileName + ".tar.gz']"
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.compress', 20000
+      .click                     'li.compress'
+      .waitForElementVisible     submenuSelector, 20000
+      .click                     submenuSelector
+      .pause                     2000
+      .waitForElementPresent     newFile, 20000 # Assertion
+
+    helpers.deleteFile(browser, fileSelector)
+    helpers.deleteFile(browser, newFile)
+
+    browser.end()
