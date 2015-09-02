@@ -77,8 +77,12 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer debug(time.Now(), "Dir="+d.Name)
 
-	if len(d.FuseEntries) != 0 {
-		return d.FuseEntries, nil
+	d.RLock()
+	entries := d.FuseEntries
+	d.RUnlock()
+
+	if len(entries) != 0 {
+		return entries, nil
 	}
 
 	return d.readDirAll()
