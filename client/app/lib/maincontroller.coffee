@@ -8,7 +8,6 @@ globals                  = require 'globals'
 remote                   = require('./remote').getInstance()
 getGroup                 = require './util/getGroup'
 setPreferredDomain       = require './util/setPreferredDomain'
-logout                   = require './util/logout'
 logToExternalWithTime    = require './util/logToExternalWithTime'
 isLoggedIn               = require './util/isLoggedIn'
 whoami                   = require './util/whoami'
@@ -245,7 +244,8 @@ module.exports           = class MainController extends KDController
 
     mainView = kd.getSingleton 'mainView'
 
-    logout()
+    @isLoggingIn on
+    delete globals.userAccount
 
     storage = new LocalStorage 'Koding', '1.0'
 
