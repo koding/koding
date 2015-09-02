@@ -360,9 +360,15 @@ module.exports = class DefineStackView extends KDView
 
     requiredData = requirementsParser templateContent
 
-    @outputView
-      .add 'Following extra information will be requested from members:'
-      .add requiredData
+    if requiredData.userInput?
+      @outputView
+        .add 'Following extra information will be requested from members:'
+        .add requiredData.userInput
+
+    if requiredData.custom?
+      @outputView
+        .add 'Following information will be fetched from variables section:'
+        .add requiredData.custom
 
     # Generate config data from parsed values
     config = { requiredData, requiredProviders }
