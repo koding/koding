@@ -12,6 +12,8 @@ import (
 type File struct {
 	*Node
 
+	// Parent is pointer to Dir that holds this Dir. Each File/Dir has single
+	// parent; a parent can have multiple children.
 	Parent *Dir
 }
 
@@ -32,8 +34,7 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	return res.Content, nil
 }
 
-// Write writes data to file. Klient by default will overwrite the entire file.
-// Required by Fuse.
+// Write rewrites all data to file. Required by Fuse.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
 	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("ContentLength=%v", len(req.Data)))
 

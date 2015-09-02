@@ -14,19 +14,36 @@ var (
 
 func TestFileSystem(t *testing.T) {
 	Convey("Given filesystem", t, func() {
-		ft := &fakeTransport{
-			TripMethodName: "fs.getInfo",
-			TripResponse:   fsGetInfoRes{},
-		}
+		Convey("It should return error if external foler doesn't exist", func() {
+			ft := &fakeTransport{
+				TripMethodName: "fs.getInfo",
+				TripResponse:   fsGetInfoRes{Exists: false},
+			}
 
-		fl := FileSystem{
-			Transport:         ft,
-			MountName:         "test",
-			InternalMountPath: internalPath,
-			ExternalMountPath: externalPath,
-		}
+			fl := FileSystem{
+				Transport:         ft,
+				MountName:         "test",
+				InternalMountPath: internalPath,
+				ExternalMountPath: externalPath,
+			}
+
+			_, err := fl.Root()
+			So(err, ShouldNotBeNil)
+		})
 
 		Convey("It should return root", func() {
+			ft := &fakeTransport{
+				TripMethodName: "fs.getInfo",
+				TripResponse:   fsGetInfoRes{Exists: true},
+			}
+
+			fl := FileSystem{
+				Transport:         ft,
+				MountName:         "test",
+				InternalMountPath: internalPath,
+				ExternalMountPath: externalPath,
+			}
+
 			_, err := fl.Root()
 			So(err, ShouldBeNil)
 		})

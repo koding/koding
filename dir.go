@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,12 +14,14 @@ import (
 type Dir struct {
 	*Node
 
+	// Parent is pointer to Dir that holds this Dir. Each File/Dir has single
+	// parent; a parent can have multiple children.
 	Parent *Dir
 
 	// EntriesList contains list of files and directories belong to this Dir.
 	EntriesList map[string]*Node
 
-	// fuseEntries contains cache for `fs.ReadDirAll` request to Klient.
+	// fuseEntries contains cache for `fs.ReadDirAll` request to Transport.
 	// TODO: need a better name
 	FuseEntries []fuse.Dirent
 }
@@ -34,10 +35,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	d.RLock()
 	defer d.RUnlock()
 
-	n := NewNode(d.Transport)
-	n.Name = name
-	n.InternalPath = filepath.Join(d.InternalPath, name)
-	n.ExternalPath = filepath.Join(d.ExternalPath, name)
+	n := NewNode(d, name)
 
 	// TODO: how to deal with resource files
 	if strings.HasPrefix(name, "._") {
@@ -48,6 +46,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	// resource file lookups, this call is moved here
 	defer debug(time.Now(), "Lookup="+name)
 
+	// get entry from cache, return if it exists
 	if n, ok := d.EntriesList[name]; ok {
 		if n.DirentType == fuse.DT_Dir {
 			return NewDir(n), nil
@@ -56,22 +55,15 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return &File{Parent: d, Node: n}, nil
 	}
 
-	req := struct{ Path string }{n.ExternalPath}
-	res := fsGetInfoRes{}
-
-	if err := n.Trip("fs.getInfo", req, &res); err != nil {
+	res, err := n.getInfo()
+	if err != nil {
 		return nil, err
 	}
 
-	if !res.Exists {
-		return nil, fuse.ENOENT
-	}
-
-	n.Name = path.Base(n.ExternalPath)
 	n.attr.Size = uint64(res.Size)
 	n.attr.Mode = os.FileMode(res.Mode)
 
-	// TODO: set node in Dir#EntriesList?
+	// TODO: set node in Dir#EntriesList and Dir#fuseEntries?
 
 	if res.IsDir {
 		return NewDir(n), nil
@@ -107,10 +99,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		}
 		dirents = append(dirents, ent)
 
-		n := NewNode(d.Transport)
-		n.Name = file.Name
-		n.InternalPath = filepath.Join(d.InternalPath, file.Name)
-		n.ExternalPath = filepath.Join(d.ExternalPath, file.Name)
+		n := NewNode(d, file.Name)
 		n.DirentType = ent.Type
 		n.attr.Size = uint64(file.Size)
 		n.attr.Mode = os.FileMode(file.Mode)
@@ -150,16 +139,13 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 		return nil, err
 	}
 
-	n := NewNode(d.Transport)
-	n.Name = req.Name
-	n.InternalPath = filepath.Join(d.InternalPath, req.Name)
-	n.ExternalPath = path
+	n := NewNode(d, req.Name)
 	n.attr.Mode = req.Mode
 
 	return &Dir{Parent: d, Node: n}, nil
 }
 
-// invalidateCache removes cache, which will trigger lookup in Klient on next
+// invalidateCache removes cache, which will trigger lookup in Transport on next
 // request to be used on write operations; to be used in write operations.
 //
 // TODO: be smarter about invalidating cache, ie delete entry and do lookup.

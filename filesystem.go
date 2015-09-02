@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path"
 	"time"
 
@@ -27,18 +28,19 @@ type FileSystem struct {
 func (f *FileSystem) Root() (fs.Node, error) {
 	defer debug(time.Now())
 
-	n := NewNode(f.Transport)
+	n := NewNodeWithInitial(f.Transport)
 	n.Name = path.Base(f.InternalMountPath)
 	n.InternalPath = f.InternalMountPath
 	n.ExternalPath = f.ExternalMountPath
 
 	// TODO: use FileSystem#Statfs when it's implemented
-	a := &fuse.Attr{}
-	if err := n.getInfo(a); err != nil {
+	res, err := n.getInfo()
+	if err != nil {
 		return nil, err
 	}
 
-	n.attr = a
+	n.attr.Size = uint64(res.Size)
+	n.attr.Mode = os.FileMode(res.Mode)
 
 	return NewDir(n), nil
 }
@@ -50,7 +52,6 @@ func (f *FileSystem) Root() (fs.Node, error) {
 // }
 
 // Mount mounts folder on user VM as a volume.
-// TODO: check if f.ExternalMountPath exist on use VM before mounting.
 func (f *FileSystem) Mount() error {
 	c, err := fuse.Mount(
 		f.InternalMountPath,

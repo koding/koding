@@ -1,10 +1,9 @@
 package main
 
 import (
-	"os"
+	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"bazil.org/fuse"
 	"golang.org/x/net/context"
@@ -16,26 +15,37 @@ type Node struct {
 	Transport
 	sync.RWMutex
 
-	// DirentType stores type of entry, ie fuse.DT_Dir or fuse.DT_File
+	// DirentType stores type of entry, ie fuse.DT_Dir or fuse.DT_File.
 	DirentType fuse.DirentType
 
 	// Parent is the parent of node, ie folder that holds this node.
 	Parent *Node
 
-	// Name is the identifier.
+	// Name is the identifier of file or directory.
 	Name string
 
-	// FullInternalPath is full path on mounted folder.
+	// FullInternalPath is full path on locally mounted folder.
 	InternalPath string
 
 	// FullExternalPath is full path on user VM.
 	ExternalPath string
 
-	// attr is metadata.
+	// attr is metadata for Fuse.
 	attr *fuse.Attr
 }
 
-func NewNode(t Transport) *Node {
+func NewNode(d *Dir, name string) *Node {
+	return &Node{
+		Transport:    d.Transport,
+		RWMutex:      sync.RWMutex{},
+		Name:         name,
+		InternalPath: filepath.Join(d.InternalPath, name),
+		ExternalPath: filepath.Join(d.ExternalPath, name),
+		attr:         &fuse.Attr{},
+	}
+}
+
+func NewNodeWithInitial(t Transport) *Node {
 	return &Node{Transport: t, RWMutex: sync.RWMutex{}, attr: &fuse.Attr{}}
 }
 
@@ -49,29 +59,24 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 		return nil
 	}
 
-	// debug should almost be the first statement, but to prevent spamming of
-	// resource file lookups, this call is moved here
-	defer debug(time.Now(), "Name="+n.Name, "ExternalPath="+n.ExternalPath)
-
 	a.Size = n.attr.Size
 	a.Mode = n.attr.Mode
 
 	return nil
 }
 
-// getInfo gets Node info from Klient. This method should almost never be called.
-func (n *Node) getInfo(a *fuse.Attr) error {
-	defer debug(time.Now(), "Name="+n.Name, "ExternalPath="+n.ExternalPath)
-
+// getInfo gets metadata from Transport.
+func (n *Node) getInfo() (*fsGetInfoRes, error) {
 	req := struct{ Path string }{n.ExternalPath}
 	res := fsGetInfoRes{}
 
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {
-		return err
+		return nil, err
 	}
 
-	a.Size = uint64(res.Size)
-	a.Mode = os.FileMode(res.Mode)
+	if !res.Exists {
+		return nil, fuse.ENOENT
+	}
 
-	return nil
+	return &res, nil
 }
