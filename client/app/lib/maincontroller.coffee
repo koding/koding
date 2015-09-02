@@ -200,11 +200,9 @@ module.exports           = class MainController extends KDController
     unless account instanceof remote.api.JAccount
       account = remote.revive account
 
-    clientExpirationValidators = [
-      checkGuestUser.bind null, account
-    ]
+    clientExpirationValidators = [checkGuestUser, checkLoggedOut]
 
-    for validator in clientExpirationValidators when validator()
+    for validator in clientExpirationValidators when validator account
       return expireClientId()
 
     globals.userAccount = account
@@ -437,3 +435,13 @@ module.exports           = class MainController extends KDController
 
     fluxModules.forEach (fluxModule) ->
       kd.singletons.reactor.registerStores fluxModule.stores
+
+
+# This function compares type of given account with global user
+# account to determine whether user is logged out or not.
+checkLoggedOut = (account) ->
+  return no  unless globals.userAccount
+
+  if globals.userAccount.type is 'registered'
+    if account.type is 'unregistered'
+      return yes
