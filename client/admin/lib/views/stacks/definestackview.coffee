@@ -400,15 +400,17 @@ module.exports = class DefineStackView extends KDView
 
   createReportFor = (data, type) ->
 
-    if data.length > 0
+    if (Object.keys data).length > 0
       console.warn "#{type.capitalize()} for preview requirements: ", data
 
-      issueList = ''
-      for issue in data
-        issueList += " - #{issue}\n"
-
-      issues = "> Following #{type} found while generating
-                preview for this template: \n#{issueList}"
+      issues = ''
+      for issue of data
+        if issue is 'userInput'
+          issues += " - These variables: `#{data[issue]}`
+                        will be requested from user.\n"
+        else
+          issues += " - These variables: `#{data[issue]}`
+                        couldn't find in `#{issue}` data.\n"
     else
       issues = ''
 
@@ -425,8 +427,8 @@ module.exports = class DefineStackView extends KDView
     availableData = { group, account, custom }
 
     requiredData  = requirementsParser template
-    errors        = []
-    warnings      = []
+    errors        = {}
+    warnings      = {}
 
     fetchUserData = (callback) ->
 
@@ -437,7 +439,8 @@ module.exports = class DefineStackView extends KDView
         for field in data
 
           if type is 'userInput'
-            warnings.push "Variable `#{field}` will be requested from user."
+            warnings.userInput ?= []
+            warnings.userInput.push field
             continue
 
           if content = jspath.getAt availableData[type], field
@@ -446,7 +449,8 @@ module.exports = class DefineStackView extends KDView
               else ///\${var.koding_#{type}_#{field}}///g
             template = template.replace search, content
           else
-            errors.push "Variable `#{field}` not found in `#{type}` data."
+            errors[type] ?= []
+            errors[type].push field
 
       @createPreviewModal { errors, warnings, template }
 
