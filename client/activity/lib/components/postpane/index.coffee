@@ -1,8 +1,9 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-immutable       = require 'immutable'
-ActivityFlux    = require 'activity/flux'
-ChatPane = require 'activity/components/chatpane'
+kd           = require 'kd'
+React        = require 'kd-react'
+immutable    = require 'immutable'
+ActivityFlux = require 'activity/flux'
+ChatPane     = require 'activity/components/chatpane'
+Modal        = require 'app/components/modal'
 
 
 module.exports = class PostPane extends React.Component
@@ -36,14 +37,26 @@ module.exports = class PostPane extends React.Component
       ActivityFlux.actions.message.loadComments @message('id'), { from }
 
 
+  onFollowChannel: ->
+
+    ActivityFlux.actions.channel.followChannel @channel 'id'
+
+
+  onClose: -> kd.singletons.router.handleRoute "/Channels/#{@channel 'name'}"
+
+
   render: ->
-    <ChatPane
-      thread={@props.thread}
-      className="PostPane"
-      messages={@props.messages}
-      onSubmit={@bound 'onSubmit'}
-      onLoadMore={@bound 'onLoadMore'}
-      isParticipant={@channel 'isParticipant'}
-    />
+    <Modal isOpen={yes} onClose={@bound 'onClose'}>
+      <ChatPane
+        thread={@props.thread}
+        className="PostPane"
+        messages={@props.messages}
+        onSubmit={@bound 'onSubmit'}
+        onLoadMore={@bound 'onLoadMore'}
+        isParticipant={@channel 'isParticipant'}
+        onFollowChannelButtonClick={@bound 'onFollowChannel'}
+        showItemMenu={no}
+      />
+    </Modal>
 
 

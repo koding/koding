@@ -24,13 +24,13 @@ module.exports =
     path: ':channelName/summary/:postSlug'
     components:
       feed: PublicFeedPane
-      chat: null
+      chat: PublicChatPane
       post: PostPane
   ,
     path: ':channelName/:postSlug'
     components:
       feed: null
-      chat: null
+      chat: PublicChatPane
       post: PostPane
   ]
 

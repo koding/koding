@@ -10,6 +10,7 @@ MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
 BlockUserModal       = require 'app/components/blockusermodal'
 ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
+MessageLink          = require 'activity/components/messagelink'
 
 
 module.exports = class SimpleChatListItem extends ChatListItem
@@ -27,10 +28,12 @@ module.exports = class SimpleChatListItem extends ChatListItem
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
         <div className={@getMediaObjectClassNames()}>
-          <MessageTime date={message.get 'createdAt'}/>
+          <MessageLink message={message} absolute={yes}>
+            <MessageTime date={message.get 'createdAt'}/>
+          </MessageLink>
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">
-            <MessageBody source={message.get 'body'} />
+            <MessageBody message={message} />
           </div>
         </div>
         {@renderEditMode()}

@@ -93,13 +93,21 @@ channelThreads = [
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
-      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
-        message = messages.get messageId
-        if message.has('__editedBody')
-          message = message.set 'body', message.get '__editedBody'
-          message = message.set 'payload', message.get '__editedPayload'
-
-        return message
+      thread.update 'messages', (msgs) ->
+        msgs.map (messageId) ->
+          message = messages.get messageId
+          if parentId = message.get 'parentId'
+            # FIXME: this string comparison shouldn't be here, but somehow
+            # undefined `parentId` s are returning as empty immutable lists,
+            # this needs to be investigated. ~Umut
+            if 'string' is typeof parentId
+              parent = messages.get parentId
+              message = message.set 'parent', parent
+          if message.has('__editedBody')
+            message = message.set 'body', message.get '__editedBody'
+            message = message.set 'payload', message.get '__editedPayload'
+          return message
+        .sortBy (m) -> m.get 'createdAt'
 ]
 
 channelPopularMessages = [
@@ -128,6 +136,11 @@ selectedChannelThread = [
   (threads, channel) ->
     return null  unless channel
     thread = threads.get channel.get('id')
+    thread = thread.update 'messages', (messages) ->
+      messages.map (msg) ->
+        msg.update 'body', (body) ->
+          # don't show channel name on post body.
+          body.replace ///\##{channel.get('name')}///, ''
     return thread.set 'channel', channel
 ]
 
@@ -193,10 +206,15 @@ messageThreads = [
   (threads, messages, messageFlags) ->
     threads.map (thread) ->
       messageId = thread.get 'messageId'
+      thread = thread.set 'message', messages.get messageId
       thread = thread.set 'flags', messageFlags.get messageId
       # replace messageIds in list with message instances.
       thread.update 'comments', (comments) ->
-        comments.map (id) -> messages.get id
+        comments
+          # get the SocialMessage instance of comments list
+          .map (id) -> messages.get id
+          # then sort them by their creation date
+          .sortBy (c) -> c.get 'createdAt'
 ]
 
 selectedMessageThread = [

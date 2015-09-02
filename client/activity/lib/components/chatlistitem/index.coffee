@@ -24,6 +24,7 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
+MessageLink           = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -39,7 +40,7 @@ module.exports = class ChatListItem extends React.Component
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
-
+    showItemMenu                  : yes
 
 
   constructor: (props) ->
@@ -85,27 +86,29 @@ module.exports = class ChatListItem extends React.Component
 
   getItemProps: ->
 
-    key       : @props.message.get 'id'
-    className : classnames
-      'ChatItem': yes
-      'mouse-enter': @state.hover
-      'is-menuOpen': @state.isMenuOpen
-    onMouseEnter: =>
-      @setState hover: yes
-    onMouseLeave: =>
-      @setState hover: no
+    key               : @props.message.get 'id'
+    className         : classnames
+      'ChatItem'      : yes
+      'mouse-enter'   : @state.hover
+      'is-menuOpen'   : @state.isMenuOpen
+    onMouseEnter      : =>
+      @setState hover : yes
+    onMouseLeave      : =>
+      @setState hover : no
 
 
   getMenuItems: ->
 
-    if checkFlag('super-admin') then @getAdminMenuItems() else @getDefaultMenuItems()
+    if checkFlag('super-admin')
+    then @getAdminMenuItems()
+    else @getDefaultMenuItems()
 
 
   getDefaultMenuItems: ->
 
     return [
-      {title: 'Edit Post',          key: 'editpost',              onClick: @bound 'editPost'}
-      {title: 'Delete Post',        key: 'showdeletepostprompt',  onClick: @bound 'showDeletePostPromptModal'}
+      {title: 'Edit Post'   , key: 'editpost'             , onClick: @bound 'editPost'}
+      {title: 'Delete Post' , key: 'showdeletepostprompt' , onClick: @bound 'showDeletePostPromptModal'}
     ]
 
 
@@ -123,8 +126,16 @@ module.exports = class ChatListItem extends React.Component
 
     adminMenuItems = [
       markUserMenuItem
-      {title: 'Block User',         key: 'blockuser',   onClick: @bound 'showBlockUserPromptModal'}
-      {title: 'Impersonate User',   key: 'impersonateuser', onClick: @bound 'impersonateUser'}
+      {
+        title   : 'Block User'
+        key     : 'blockuser'
+        onClick : @bound 'showBlockUserPromptModal'
+      }
+      {
+        title   : 'Impersonate User'
+        key     : 'impersonateuser'
+        onClick : @bound 'impersonateUser'
+      }
     ]
 
     return @getDefaultMenuItems().concat adminMenuItems
@@ -291,6 +302,8 @@ module.exports = class ChatListItem extends React.Component
 
   renderChatItemMenu: ->
 
+    return null  unless @props.showItemMenu
+
     { message } = @props
     if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
       <ButtonWithMenu
@@ -324,11 +337,13 @@ module.exports = class ChatListItem extends React.Component
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
             </span>
-            <MessageTime date={message.get 'createdAt'}/>
+            <MessageLink message={message} absolute={yes}>
+              <MessageTime date={message.get 'createdAt'}/>
+            </MessageLink>
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
-            <MessageBody source={message.get 'body'} />
+            <MessageBody message={message} />
           </div>
         </div>
         {@renderEditMode()}
