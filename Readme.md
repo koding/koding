@@ -31,10 +31,6 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
     # If you get `mount point <folder> is itself on a OSXFUSE volume`:
     diskutil unmount force <folder>
 
-## Tips:
-
-  * Use fullpath in arguments.
-
 ## Milestones:
 
     * 0.1 - DONE Aug 31
@@ -42,13 +38,13 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
         move code from old prototype to new fuseproto
     * 0.2
         klient authentication
-    * 0.3
+    * 0.3 - DONE Sept 2
         write operations
-        lock resources in VM on open or write operations
     * 0.4
         integration into klient
             merge fuseproto into klient
         klient method to send events to invalidate cache on file changes
+        lock resources in VM on open or write operations
     * 0.5
         klient ps - return list of user VMs to mount
     * 0.6
@@ -57,3 +53,8 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
             mainly for find, grep etc. recursive operations
     * 0.7
         remaining FUSE operations
+
+## Notes:
+
+  * Use fullpath in arguments.
+  * Mounting on an existing folder won't overwrite contents, but they won't be visible while fuseproto is running.
