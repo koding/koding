@@ -7,7 +7,7 @@ ActivityItemMenuItem = require 'activity/views/activityitemmenuitem'
 ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
-envDataProvider       = require 'app/userenvironmentdataprovider'
+envDataProvider      = require 'app/userenvironmentdataprovider'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
 IDEChatParticipantHeads               = require './idechatparticipantheads'
@@ -41,6 +41,9 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
     @once 'NewParticipantButtonClicked', @bound 'removeOnboarding'
+
+    @autoComplete.on 'VideoStateRequested', =>
+      @autoComplete.emit 'VideoStateReceived', @videoActive
 
     ideApp = envDataProvider.getIDEFromUId @getOption 'mountedMachineUId'
     ideApp.on 'UserReachedVideoLimit', =>
