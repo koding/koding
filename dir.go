@@ -144,6 +144,45 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	return &Dir{Parent: d, Node: n}, nil
 }
 
+// Remove deletes File or Dir. Required by Fuse.
+func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
+	var err error
+	defer debug(time.Now(), err, "Dir="+req.Name)
+
+	treq := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      filepath.Join(d.ExternalPath, req.Name),
+		Recursive: true,
+	}
+	var tres bool
+
+	if err = d.Trip("fs.remove", treq, &tres); err != nil {
+		return err
+	}
+
+	return d.invalidateCache(req.Name)
+}
+
+// Rename changes name of File or Dir. Required by Fuse.
+func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
+	var err error
+	defer debug(time.Now(), err, "OldPath="+req.OldName, "NewPath="+req.NewName)
+
+	treq := struct{ OldPath, NewPath string }{
+		OldPath: filepath.Join(d.ExternalPath, req.OldName),
+		NewPath: filepath.Join(d.ExternalPath, req.NewName),
+	}
+	var tres bool
+
+	if err = d.Trip("fs.rename", treq, &tres); err != nil {
+		return err
+	}
+
+	return d.invalidateCache(req.OldName)
+}
+
 // invalidateCache removes cache, which will trigger lookup in Transport on next
 // request to be used on write operations; to be used in write operations.
 //
