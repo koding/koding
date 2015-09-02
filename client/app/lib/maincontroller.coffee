@@ -434,5 +434,3 @@ module.exports           = class MainController extends KDController
 
     fluxModules.forEach (fluxModule) ->
       kd.singletons.reactor.registerStores fluxModule.stores
-
-
