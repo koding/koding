@@ -5,7 +5,6 @@ classnames                      = require 'classnames'
 ActivityFlux                    = require 'activity/flux'
 Dropup                          = require 'activity/components/dropup'
 DropupWrapperMixin              = require 'activity/components/dropup/dropupwrappermixin'
-ImmutableRenderMixin            = require 'react-immutable-render-mixin'
 ChannelParticipantsDropdownItem = require 'activity/components/channelparticipantsdropdownitem'
 
 
@@ -18,7 +17,6 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
-    keyboardScroll : no
 
 
   componentDidUpdate: ->
