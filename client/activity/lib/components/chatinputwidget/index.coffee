@@ -180,6 +180,18 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleSearchButtonClick: (event) ->
 
+    searchMarker = '/s '
+    { value }    = @state
+
+    if value.indexOf(searchMarker) is -1
+      value = searchMarker + value
+      @setState { value }
+
+    textInput = React.findDOMNode this.refs.textInput
+    textInput.focus()
+
+    @refs.searchDropup.checkTextForQuery { value }
+
 
   renderEmojiDropup: ->
 
