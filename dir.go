@@ -120,9 +120,6 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	var err error
 	defer debug(time.Now(), err, "Dir="+req.Name)
 
-	d.Lock()
-	defer d.Unlock()
-
 	path := filepath.Join(d.ExternalPath, req.Name)
 	treq := struct {
 		Path      string
