@@ -2,7 +2,7 @@ module.exports = {
   getters : require './getters'
 
   actions :
-  	emoji : require './actions/emoji'
+    emoji : require './actions/emoji'
 
   stores  : [
     require './stores/emoji/emojisstore'
