@@ -178,6 +178,21 @@ module.exports = class ChatInputWidget extends React.Component
     ActivityFlux.actions.emoji.setCommonListVisibility yes
 
 
+  handleSearchButtonClick: (event) ->
+
+    searchMarker = '/s '
+    { value }    = @state
+
+    if value.indexOf(searchMarker) is -1
+      value = searchMarker + value
+      @setState { value }
+
+    textInput = React.findDOMNode @refs.textInput
+    textInput.focus()
+
+    @refs.searchDropup.checkTextForQuery { value }
+
+
   renderEmojiDropup: ->
 
     { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
@@ -266,6 +281,10 @@ module.exports = class ChatInputWidget extends React.Component
       <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }
+      />
+      <Link
+        className = "ChatInputWidget-searchButton"
+        onClick   = { @bound 'handleSearchButtonClick' }
       />
     </div>
 
