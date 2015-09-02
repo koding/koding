@@ -44,7 +44,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 
 	// debug should almost be the first statement, but to prevent spamming of
 	// resource file lookups, this call is moved here
-	defer debug(time.Now(), "Lookup="+name)
+	defer debug(time.Now(), nil, "Lookup="+name)
 
 	// get entry from cache, return if it exists
 	if n, ok := d.EntriesList[name]; ok {
@@ -75,7 +75,8 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 // ReadDirAll returns metadata for files and directories. Required by Fuse.
 // TODO: this method seems to be called way too many times in short period.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	defer debug(time.Now(), "Dir="+d.Name)
+	var err error
+	defer debug(time.Now(), err, "Dir="+d.Name)
 
 	d.Lock()
 	defer d.Unlock()
@@ -87,7 +88,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	req := struct{ Path string }{d.ExternalPath}
 	res := fsReadDirectoryRes{}
 
-	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
+	if err = d.Trip("fs.readDirectory", req, &res); err != nil {
 		return nil, err
 	}
 
@@ -116,7 +117,8 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 // Mkdir creates new directory under inside Dir. Required by Fuse.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
-	defer debug(time.Now(), "Dir="+req.Name)
+	var err error
+	defer debug(time.Now(), err, "Dir="+req.Name)
 
 	d.Lock()
 	defer d.Unlock()
@@ -131,7 +133,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	}
 	var tres bool
 
-	if err := d.Trip("fs.createDirectory", treq, &tres); err != nil {
+	if err = d.Trip("fs.createDirectory", treq, &tres); err != nil {
 		return nil, err
 	}
 

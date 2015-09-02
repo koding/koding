@@ -26,7 +26,7 @@ type FileSystem struct {
 
 // Root returns root for FileSystem. Required by Fuse.
 func (f *FileSystem) Root() (fs.Node, error) {
-	defer debug(time.Now())
+	defer debug(time.Now(), nil)
 
 	n := NewNodeWithInitial(f.Transport)
 	n.Name = path.Base(f.InternalMountPath)
