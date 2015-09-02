@@ -17,6 +17,7 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
+<<<<<<< HEAD
 
 
   # this method overrides DropupWrapperMixin-componentDidUpdate handler.
@@ -24,6 +25,8 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
   # expects dropup component so it occurs an error. Also this component doesn't need any action when
   # componentDidUpdate event fired.
   componentDidUpdate: ->
+=======
+>>>>>>> Client: Activity: Deleted unnecessary lines
 
 
   componentDidUpdate: ->
