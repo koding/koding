@@ -41,7 +41,7 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 	k.Config = config
 
 	// TODO: will Klient always be running on 56789?
-	kiteClient := k.NewClient(fmt.Sprintf("http://%s:56789/kite", klientIP))
+	kiteClient := k.NewClient(fmt.Sprintf("http://%s:62193/kite", klientIP))
 
 	// TODO: add authentication
 	kiteClient.Auth = &kite.Auth{}
