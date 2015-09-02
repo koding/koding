@@ -1,8 +1,3 @@
-
-
-
-
-
 @css {
 /*
 Admin main styles
@@ -1317,30 +1312,27 @@ Admin main styles
   .variables
 
     .indicator
-      top                   66px
-      right                 2px
-
       width                 auto
       height                14px
 
       color                 white
-      background-color      orange
+      bg                    color, orange
 
       font-size             11px
       line-height           12px
       font-weight           200
 
       padding               1px 4px 0px 3px
-      border-radius         2px
+      rounded               2px
 
       vendor                transition, top .2s ease
-      abs()
+      abs                   66px 2px 0 0
 
       &.in
         top                 24px
 
       &.red
-        background-color    darkred
+        bg                  color, darkred
 
     .message-view
       font-size             14px
@@ -1352,7 +1344,7 @@ Admin main styles
         font-size           12px
         padding             2px 3px
         border              1px solid #ddd
-        border-radius       2px
+        rounded             2px
 
     .editor-view
       height                calc(100% \- 170px)
@@ -2094,4 +2086,3 @@ Admin main styles
     .footer
     .stack-preview
       hidden()
-
