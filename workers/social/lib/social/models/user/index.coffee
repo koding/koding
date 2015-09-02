@@ -1727,7 +1727,7 @@ module.exports = class JUser extends jraphical.Module
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     if account.type is 'unregistered'
-      @update { $set: { email }, sanitizedEmail }, (err) ->
+      @update { $set: { email , sanitizedEmail } }, (err) ->
         return callback err  if err
 
         callback null
@@ -1834,7 +1834,7 @@ module.exports = class JUser extends jraphical.Module
 
   unlinkOAuths: (callback) ->
 
-    @update { $unset: { foreignAuth:1 }, foreignAuthType:1 }, (err) =>
+    @update { $unset: { foreignAuth:1 , foreignAuthType:1 } }, (err) =>
       return callback err  if err
 
       @fetchOwnAccount (err, account) ->
