@@ -1,5 +1,6 @@
-actions            = require 'activity/flux/actions/actiontypes'
-SelectedIndexStore = require './chatinputselectedindexstore'
+actions            = require 'activity/flux/modules/chatinput/actions/actiontypes'
+SelectedIndexStore = require 'activity/flux/modules/chatinput/stores/chatinputselectedindexstore'
+
 
 ###*
  * Store to contain filtered emoji list selected index

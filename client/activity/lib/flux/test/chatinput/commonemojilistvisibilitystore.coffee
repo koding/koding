@@ -2,8 +2,8 @@
 
 Reactor = require 'app/flux/reactor'
 
-CommonEmojiListVisibilityStore = require 'activity/flux/stores/chatinput/commonemojilistvisibilitystore'
-actions = require 'activity/flux/actions/actiontypes'
+CommonEmojiListVisibilityStore = require 'activity/flux/modules/chatinput/stores/emoji/commonemojilistvisibilitystore'
+actions = require 'activity/flux/modules/chatinput/actions/actiontypes'
 
 describe 'CommonEmojiListVisibilityStore', ->
 

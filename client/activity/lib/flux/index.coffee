@@ -1,13 +1,23 @@
+_               = require 'underscore'
+ChatInputModule = require './modules/chatinput'
+
 module.exports =
-  getters   : require './getters'
+  getters   : _.extend {
+      # module getters
+      chatInput : ChatInputModule.getters
+    },
+    require './getters'
+
   actions   :
     message         : require './actions/message'
     thread          : require './actions/thread'
     channel         : require './actions/channel'
     suggestions     : require './actions/suggestions'
-    emoji           : require './actions/emoji'
     user            : require './actions/user'
     chatInputSearch : require './actions/chatinputsearch'
+    # module actions
+    chatInput       : ChatInputModule.actions
+
   stores    : [
     require './stores/messagesstore'
     require './stores/channelsstore'
@@ -27,11 +37,6 @@ module.exports =
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
     require './stores/messageflagsstore'
-    require './stores/chatinput/emojisstore'
-    require './stores/chatinput/filteredemojilistquerystore'
-    require './stores/chatinput/filteredemojilistselectedindexstore'
-    require './stores/chatinput/commonemojilistselectedindexstore'
-    require './stores/chatinput/commonemojilistvisibilitystore'
     require './stores/chatinput/chatinputchannelsselectedindexstore'
     require './stores/chatinput/chatinputchannelsquerystore'
     require './stores/chatinput/chatinputchannelsvisibilitystore'
@@ -43,4 +48,6 @@ module.exports =
     require './stores/chatinput/chatinputsearchvisibilitystore'
     require './stores/chatinput/chatinputsearchstore'
   ]
+  # module stores
+  .concat ChatInputModule.stores
 

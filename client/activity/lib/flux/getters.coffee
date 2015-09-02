@@ -285,48 +285,6 @@ currentSuggestionsSelectedItem = [
   getListSelectedItem
 ]
 
-filteredEmojiListQuery = (stateId) -> [
-  FilteredEmojiListQueryStore
-  (queries) -> queries.get stateId
-]
-# Returns a list of emojis filtered by current query
-filteredEmojiList = (stateId) -> [
-  EmojisStore
-  filteredEmojiListQuery stateId
-  (emojis, query) ->
-    return immutable.List()  unless query
-    emojis.filter (emoji) -> emoji.indexOf(query) is 0
-]
-filteredEmojiListRawIndex = (stateId) -> [
-  FilteredEmojiListSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-filteredEmojiListSelectedIndex = (stateId) -> [
-  filteredEmojiList stateId
-  filteredEmojiListRawIndex stateId
-  calculateListSelectedIndex
-]
-filteredEmojiListSelectedItem = (stateId) -> [
-  filteredEmojiList stateId
-  filteredEmojiListSelectedIndex stateId
-  getListSelectedItem
-]
-
-commonEmojiList              = EmojisStore
-commonEmojiListSelectedIndex = (stateId) -> [
-  CommonEmojiListSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-commonEmojiListVisibility = (stateId) -> [
-  CommonEmojiListVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-# Returns emoji from emoji list by current selected index
-commonEmojiListSelectedItem = (stateId) -> [
-  commonEmojiList
-  commonEmojiListSelectedIndex stateId
-  getListSelectedItem
-]
 
 chatInputChannelsQuery = (stateId) -> [
   ChatInputChannelsQueryStore
@@ -452,16 +410,6 @@ module.exports = {
   currentSuggestionsFlags
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
-
-  filteredEmojiList
-  filteredEmojiListQuery
-  filteredEmojiListSelectedItem
-  filteredEmojiListSelectedIndex
-
-  commonEmojiList
-  commonEmojiListSelectedIndex
-  commonEmojiListVisibility
-  commonEmojiListSelectedItem
 
   chatInputChannels
   chatInputChannelsQuery

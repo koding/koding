@@ -2,8 +2,8 @@
 
 Reactor = require 'app/flux/reactor'
 
-FilteredEmojiListSelectedIndexStore = require 'activity/flux/stores/chatinput/filteredemojilistselectedindexstore'
-actions = require 'activity/flux/actions/actiontypes'
+FilteredEmojiListSelectedIndexStore = require 'activity/flux/modules/chatinput/stores/emoji/filteredemojilistselectedindexstore'
+actions = require 'activity/flux/modules/chatinput/actions/actiontypes'
 
 describe 'FilteredEmojiListSelectedIndexStore', ->
 

@@ -31,7 +31,7 @@ module.exports = class EmojiDropup extends React.Component
   close: ->
 
     { stateId } = @props
-    ActivityFlux.actions.emoji.unsetFilteredListQuery stateId
+    ActivityFlux.actions.chatInput.emoji.unsetFilteredListQuery stateId
 
 
   moveToNextPosition: (keyInfo) ->
@@ -42,7 +42,7 @@ module.exports = class EmojiDropup extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.emoji.moveToNextFilteredListIndex stateId
+      ActivityFlux.actions.chatInput.emoji.moveToNextFilteredListIndex stateId
 
     return yes
 
@@ -55,7 +55,7 @@ module.exports = class EmojiDropup extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex stateId
+      ActivityFlux.actions.chatInput.emoji.moveToPrevFilteredListIndex stateId
 
     return yes
 
@@ -70,14 +70,14 @@ module.exports = class EmojiDropup extends React.Component
 
     query = matchResult[1]
     { stateId } = @props
-    ActivityFlux.actions.emoji.setFilteredListQuery stateId, query
+    ActivityFlux.actions.chatInput.emoji.setFilteredListQuery stateId, query
     return yes
 
 
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ActivityFlux.actions.emoji.setFilteredListSelectedIndex stateId, index
+    ActivityFlux.actions.chatInput.emoji.setFilteredListSelectedIndex stateId, index
 
 
   renderList: ->

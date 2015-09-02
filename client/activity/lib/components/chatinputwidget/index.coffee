@@ -37,13 +37,13 @@ module.exports = class ChatInputWidget extends React.Component
     { getters } = ActivityFlux
 
     return {
-      filteredEmojiList              : getters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      commonEmojiList                : getters.commonEmojiList
-      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      filteredEmojiList              : getters.chatInput.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : getters.chatInput.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : getters.chatInput.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : getters.chatInput.filteredEmojiListQuery @stateId
+      commonEmojiList                : getters.chatInput.commonEmojiList
+      commonEmojiListSelectedItem    : getters.chatInput.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : getters.chatInput.commonEmojiListVisibility @stateId
       channels                       : getters.chatInputChannels @stateId
       channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
@@ -175,7 +175,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility @stateId, yes
+    ActivityFlux.actions.chatInput.emoji.setCommonListVisibility @stateId, yes
 
 
   handleSearchButtonClick: (event) ->
