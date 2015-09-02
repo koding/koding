@@ -89,31 +89,44 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 }
 
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
+	d.RLock()
 	n := NewNode(d, req.Name)
-
-	_, err := n.getInfo()
-	if err != nil && err != fuse.ENOENT {
-		return nil, nil, err
-	}
+	d.RUnlock()
 
 	f := &File{Parent: d, Node: n}
 
-	if err == fuse.ENOENT {
-		err = f.write([]byte{})
+	var err error
+	if _, err = n.getInfo(); err != nil && err != fuse.ENOENT {
+		return nil, nil, err
 	}
 
-	return f, f, err
+	// only write if file doesn't already exist
+	if err == fuse.ENOENT {
+		if err := f.write([]byte{}); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if err := d.invalidateCache(req.Name); err != nil {
+		return nil, nil, err
+	}
+
+	return f, f, nil
 }
 
 // Mkdir creates new directory under inside Dir. Required by Fuse.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
 	defer debug(time.Now(), "Dir="+req.Name)
 
+	d.RLock()
+	path := filepath.Join(d.ExternalPath, req.Name)
+	d.RUnlock()
+
 	treq := struct {
 		Path      string
 		Recursive bool
 	}{
-		Path:      filepath.Join(d.ExternalPath, req.Name),
+		Path:      path,
 		Recursive: true,
 	}
 	var tres bool
@@ -143,11 +156,15 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	defer debug(time.Now(), "Dir="+req.Name)
 
+	d.RLock()
+	path := filepath.Join(d.ExternalPath, req.Name)
+	d.RUnlock()
+
 	treq := struct {
 		Path      string
 		Recursive bool
 	}{
-		Path:      filepath.Join(d.ExternalPath, req.Name),
+		Path:      path,
 		Recursive: true,
 	}
 	var tres bool
@@ -163,9 +180,13 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
 	defer debug(time.Now(), "OldPath="+req.OldName, "NewPath="+req.NewName)
 
+	d.RLock()
+	path := d.ExternalPath
+	d.RUnlock()
+
 	treq := struct{ OldPath, NewPath string }{
-		OldPath: filepath.Join(d.ExternalPath, req.OldName),
-		NewPath: filepath.Join(d.ExternalPath, req.NewName),
+		OldPath: filepath.Join(path, req.OldName),
+		NewPath: filepath.Join(path, req.NewName),
 	}
 	var tres bool
 
