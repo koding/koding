@@ -364,7 +364,11 @@ channelParticipantsInputUsers = [
       return userName.indexOf(query) is 0
 ]
 
-channelParticipantsSelectedIndex      = ChannelParticipantsSelectedIndexStore
+channelParticipantsSelectedIndex = [
+  channelParticipantsInputUsers
+  ChannelParticipantsSelectedIndexStore
+  calculateListSelectedIndex
+]
 
 channelParticipantsDropdownVisibility = ChannelParticipantsDropdownVisibilityStore
 
@@ -422,7 +426,6 @@ module.exports = {
   channelParticipantsSelectedItem
   channelParticipantsSelectedIndex
   channelParticipantsDropdownVisibility
-
 
   allUsers
 }
