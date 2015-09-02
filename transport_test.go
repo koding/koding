@@ -23,11 +23,7 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}
 		return err
 	}
 
-	if err := json.Unmarshal(bytes, &res); err != nil {
-		return err
-	}
-
-	return nil
+	return json.Unmarshal(bytes, &res)
 }
 
 func TestTransportImplementations(t *testing.T) {
