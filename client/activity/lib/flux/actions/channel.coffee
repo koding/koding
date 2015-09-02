@@ -278,7 +278,7 @@ addParticipants = (options = {}) ->
 
 
 ###*
- * Action to set visibility of chat input channels
+ * Action to set visibility of channels participants dropdown visibility
 ###
 setChannelParticipantsDropdownVisibility = (visible) ->
 

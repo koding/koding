@@ -2,7 +2,7 @@ actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 
 ###*
- * Store to handle channels visibility flag
+ * Store to handle channel participants dropdown visibility flag
 ###
 module.exports = class ChannelParticipantsDropdownVisibilityStore extends KodingFluxStore
 
