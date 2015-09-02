@@ -389,7 +389,7 @@ module.exports = class JAccount extends jraphical.Module
     createAccount { id: @getId(), nickname: @profile.nickname }, (err, account) =>
       return callback new ApiError err  if err
       return callback new KodingError 'Account is not set, malformed response from social api'  unless account?.id
-      @update { $set: { socialApiId: account.id } }, { isExempt: account.isTroll }, (err) ->
+      @update { $set: { socialApiId: account.id, isExempt: account.isTroll } }, (err) ->
         # check for error
         if err
           console.error 'Error while creating account on social api', err
