@@ -76,43 +76,16 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 // TODO: this method seems to be called way too many times in short period.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	var err error
-	defer debug(time.Now(), err, "Dir="+d.Name)
+	var entries []fuse.Dirent
 
-	d.Lock()
-	defer d.Unlock()
+	defer debug(time.Now(), err, "Dir="+d.Name)
 
 	if len(d.FuseEntries) != 0 {
 		return d.FuseEntries, nil
 	}
 
-	req := struct{ Path string }{d.ExternalPath}
-	res := fsReadDirectoryRes{}
-
-	if err = d.Trip("fs.readDirectory", req, &res); err != nil {
-		return nil, err
-	}
-
-	var dirents []fuse.Dirent
-	for _, file := range res.Files {
-		ent := fuse.Dirent{Name: file.Name, Type: fuse.DT_File}
-		if file.IsDir {
-			ent.Type = fuse.DT_Dir
-		}
-		dirents = append(dirents, ent)
-
-		n := NewNode(d, file.Name)
-		n.DirentType = ent.Type
-		n.attr.Size = uint64(file.Size)
-		n.attr.Mode = os.FileMode(file.Mode)
-
-		// cache entries to save on Node#Attr requests
-		d.EntriesList[file.Name] = n
-	}
-
-	// cache entries to save on repeated calls
-	d.FuseEntries = dirents
-
-	return dirents, nil
+	entries, err = d.readDirAll()
+	return entries, err
 }
 
 // Mkdir creates new directory under inside Dir. Required by Fuse.
@@ -183,16 +156,45 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	return d.invalidateCache(req.OldName)
 }
 
+func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
+	d.Lock()
+	defer d.Unlock()
+
+	req := struct{ Path string }{d.ExternalPath}
+	res := fsReadDirectoryRes{}
+
+	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
+		return nil, err
+	}
+
+	var dirents []fuse.Dirent
+	for _, file := range res.Files {
+		ent := fuse.Dirent{Name: file.Name, Type: fuse.DT_File}
+		if file.IsDir {
+			ent.Type = fuse.DT_Dir
+		}
+		dirents = append(dirents, ent)
+
+		n := NewNode(d, file.Name)
+		n.DirentType = ent.Type
+		n.attr.Size = uint64(file.Size)
+		n.attr.Mode = os.FileMode(file.Mode)
+
+		// cache entries to save on Node#Attr requests
+		d.EntriesList[file.Name] = n
+	}
+
+	// cache entries to save on repeated calls
+	d.FuseEntries = dirents
+
+	return dirents, nil
+}
+
 // invalidateCache removes cache, which will trigger lookup in Transport on next
 // request to be used on write operations; to be used in write operations.
 //
 // TODO: be smarter about invalidating cache, ie delete entry and do lookup.
 func (d *Dir) invalidateCache(entry string) error {
-	d.Lock()
-	defer d.Unlock()
-
-	d.EntriesList = map[string]*Node{}
-	d.FuseEntries = []fuse.Dirent{}
-
-	return nil
+	_, err := d.readDirAll()
+	return err
 }
