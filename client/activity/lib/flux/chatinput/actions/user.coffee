@@ -97,11 +97,18 @@ setVisibility = (stateId, visible) ->
   dispatch SET_CHAT_INPUT_USERS_VISIBILITY, { stateId, visible }
 
 
+###*
+ * Action to set current query of channel participants.
+ * Also, it resets users selected index and loads users
+ * filtered by query if query is not empty
+ *
+ * @param {string} query
+###
 setChannelParticipantsInputQuery = (query) ->
 
   if query
-    { SET_CHANNEL_PARTICIPANTS_USERS_QUERY } = actionTypes
-    dispatch SET_CHANNEL_PARTICIPANTS_USERS_QUERY, { query }
+    { SET_CHANNEL_PARTICIPANTS_QUERY } = actionTypes
+    dispatch SET_CHANNEL_PARTICIPANTS_QUERY, { query }
     resetChannelParticipantsSelectedIndex()
     appActions.user.searchAccounts query
 
@@ -110,13 +117,13 @@ setChannelParticipantsInputQuery = (query) ->
 
 
 ###*
- * Action to unset current query of chat input users.
+ * Action to unset current query of channel participants.
  * Also, it resets users selected index
 ###
 unsetChannelParticipantsInputQuery = ->
 
-  { UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY } = actionTypes
-  dispatch UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY
+  { UNSET_CHANNEL_PARTICIPANTS_QUERY } = actionTypes
+  dispatch UNSET_CHANNEL_PARTICIPANTS_QUERY
   resetChannelParticipantsSelectedIndex()
 
 
@@ -130,7 +137,7 @@ resetChannelParticipantsSelectedIndex = ->
 
 
 ###*
- * Action to set selected index of chat input users
+ * Action to set selected index of channel participants.
  *
  * @param {number} index
 ###

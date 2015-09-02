@@ -12,8 +12,8 @@ module.exports = class ChannelParticipantsSearchQueryStore extends KodingFluxSto
 
   initialize: ->
 
-    @on actions.SET_CHANNEL_PARTICIPANTS_USERS_QUERY,   @setQuery
-    @on actions.UNSET_CHANNEL_PARTICIPANTS_USERS_QUERY, @unsetQuery
+    @on actions.SET_CHANNEL_PARTICIPANTS_QUERY,   @setQuery
+    @on actions.UNSET_CHANNEL_PARTICIPANTS_QUERY, @unsetQuery
 
 
   ###*
