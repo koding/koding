@@ -12,3 +12,4 @@ module.exports = {
     require './stores/emoji/commonemojilistvisibilitystore'
   ]
 }
+
