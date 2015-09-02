@@ -19,8 +19,7 @@ type File struct {
 
 // ReadAll returns the entire file. Required by Fuse.
 func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
-	var err error
-	defer debug(time.Now(), err, "File="+f.Name)
+	defer debug(time.Now(), "File="+f.Name)
 
 	f.RLock()
 	defer f.RUnlock()
@@ -28,7 +27,7 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	req := struct{ Path string }{f.ExternalPath}
 	res := fsReadFileRes{}
 
-	if err = f.Trip("fs.readFile", req, &res); err != nil {
+	if err := f.Trip("fs.readFile", req, &res); err != nil {
 		return []byte{}, err
 	}
 
@@ -37,8 +36,7 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 
 // Write rewrites all data to file. Required by Fuse.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
-	var err error
-	defer debug(time.Now(), err, "File="+f.Name, fmt.Sprintf("ContentLength=%v", len(req.Data)))
+	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("ContentLength=%v", len(req.Data)))
 
 	f.Lock()
 	defer f.Unlock()
@@ -52,8 +50,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	}
 
 	var tres int
-
-	if err = f.Transport.Trip("fs.writeFile", treq, &tres); err != nil {
+	if err := f.Transport.Trip("fs.writeFile", treq, &tres); err != nil {
 		return err
 	}
 

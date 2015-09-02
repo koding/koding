@@ -44,7 +44,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 
 	// debug should almost be the first statement, but to prevent spamming of
 	// resource file lookups, this call is moved here
-	defer debug(time.Now(), nil, "Lookup="+name)
+	defer debug(time.Now(), "Lookup="+name)
 
 	// get entry from cache, return if it exists
 	if n, ok := d.EntriesList[name]; ok {
@@ -75,23 +75,18 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 // ReadDirAll returns metadata for files and directories. Required by Fuse.
 // TODO: this method seems to be called way too many times in short period.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	var err error
-	var entries []fuse.Dirent
-
-	defer debug(time.Now(), err, "Dir="+d.Name)
+	defer debug(time.Now(), "Dir="+d.Name)
 
 	if len(d.FuseEntries) != 0 {
 		return d.FuseEntries, nil
 	}
 
-	entries, err = d.readDirAll()
-	return entries, err
+	return d.readDirAll()
 }
 
 // Mkdir creates new directory under inside Dir. Required by Fuse.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
-	var err error
-	defer debug(time.Now(), err, "Dir="+req.Name)
+	defer debug(time.Now(), "Dir="+req.Name)
 
 	path := filepath.Join(d.ExternalPath, req.Name)
 	treq := struct {
@@ -103,7 +98,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 	}
 	var tres bool
 
-	if err = d.Trip("fs.createDirectory", treq, &tres); err != nil {
+	if err := d.Trip("fs.createDirectory", treq, &tres); err != nil {
 		return nil, err
 	}
 
@@ -126,8 +121,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 
 // Remove deletes File or Dir. Required by Fuse.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
-	var err error
-	defer debug(time.Now(), err, "Dir="+req.Name)
+	defer debug(time.Now(), "Dir="+req.Name)
 
 	treq := struct {
 		Path      string
@@ -138,7 +132,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	}
 	var tres bool
 
-	if err = d.Trip("fs.remove", treq, &tres); err != nil {
+	if err := d.Trip("fs.remove", treq, &tres); err != nil {
 		return err
 	}
 
@@ -147,8 +141,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 
 // Rename changes name of File or Dir. Required by Fuse.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
-	var err error
-	defer debug(time.Now(), err, "OldPath="+req.OldName, "NewPath="+req.NewName)
+	defer debug(time.Now(), "OldPath="+req.OldName, "NewPath="+req.NewName)
 
 	treq := struct{ OldPath, NewPath string }{
 		OldPath: filepath.Join(d.ExternalPath, req.OldName),
@@ -156,7 +149,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	}
 	var tres bool
 
-	if err = d.Trip("fs.rename", treq, &tres); err != nil {
+	if err := d.Trip("fs.rename", treq, &tres); err != nil {
 		return err
 	}
 
