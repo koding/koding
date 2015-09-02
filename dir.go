@@ -88,16 +88,32 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	return d.readDirAll()
 }
 
+func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
+	n := NewNode(d, req.Name)
+
+	_, err := n.getInfo()
+	if err != nil && err != fuse.ENOENT {
+		return nil, nil, err
+	}
+
+	f := &File{Parent: d, Node: n}
+
+	if err == fuse.ENOENT {
+		err = f.write([]byte{})
+	}
+
+	return f, f, err
+}
+
 // Mkdir creates new directory under inside Dir. Required by Fuse.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
 	defer debug(time.Now(), "Dir="+req.Name)
 
-	path := filepath.Join(d.ExternalPath, req.Name)
 	treq := struct {
 		Path      string
 		Recursive bool
 	}{
-		Path:      path,
+		Path:      filepath.Join(d.ExternalPath, req.Name),
 		Recursive: true,
 	}
 	var tres bool

@@ -38,6 +38,18 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
 	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("ContentLength=%v", len(req.Data)))
 
+	if err := f.write(req.Data); err != nil {
+		return err
+	}
+
+	f.RLock()
+	resp.Size = int(f.attr.Size)
+	f.RUnlock()
+
+	return nil
+}
+
+func (f *File) write(data []byte) error {
 	f.Lock()
 	defer f.Unlock()
 
@@ -46,7 +58,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 		Content []byte
 	}{
 		Path:    f.ExternalPath,
-		Content: req.Data,
+		Content: data,
 	}
 
 	var tres int
@@ -56,8 +68,6 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 
 	f.attr.Size = uint64(tres)
 	f.attr.Mtime = time.Now()
-
-	resp.Size = tres
 
 	return f.Parent.invalidateCache(f.Name)
 }
