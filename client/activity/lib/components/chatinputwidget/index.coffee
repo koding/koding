@@ -187,7 +187,7 @@ module.exports = class ChatInputWidget extends React.Component
       value = searchMarker + value
       @setState { value }
 
-    textInput = React.findDOMNode this.refs.textInput
+    textInput = React.findDOMNode @refs.textInput
     textInput.focus()
 
     @refs.searchDropup.checkTextForQuery { value }
