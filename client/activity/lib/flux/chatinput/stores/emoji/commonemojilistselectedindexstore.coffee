@@ -1,5 +1,5 @@
-actions            = require 'activity/flux/modules/chatinput/actions/actiontypes'
-SelectedIndexStore = require 'activity/flux/modules/chatinput/stores/chatinputselectedindexstore'
+actions            = require 'activity/flux/chatinput/actions/actiontypes'
+SelectedIndexStore = require 'activity/flux/chatinput/stores/chatinputselectedindexstore'
 
 ###*
  * Store to contain common emoji list selected index

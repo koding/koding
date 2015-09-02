@@ -1,4 +1,4 @@
-actions         = require 'activity/flux/modules/chatinput/actions/actiontypes'
+actions         = require 'activity/flux/chatinput/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
 immutable       = require 'immutable'

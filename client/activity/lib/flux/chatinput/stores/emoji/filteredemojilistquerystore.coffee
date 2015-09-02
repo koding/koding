@@ -1,5 +1,5 @@
-actions    = require 'activity/flux/modules/chatinput/actions/actiontypes'
-QueryStore = require 'activity/flux/modules/chatinput/stores/chatinputquerystore'
+actions    = require 'activity/flux/chatinput/actions/actiontypes'
+QueryStore = require 'activity/flux/chatinput/stores/chatinputquerystore'
 
 
 ###*

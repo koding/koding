@@ -2,7 +2,7 @@
 
 Reactor = require 'app/flux/reactor'
 
-EmojisStore = require 'activity/flux/modules/chatinput/stores/emoji/emojisstore'
+EmojisStore = require 'activity/flux/chatinput/stores/emoji/emojisstore'
 
 describe 'EmojisStore', ->
 

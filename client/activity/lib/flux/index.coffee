@@ -1,12 +1,7 @@
-_               = require 'underscore'
-ChatInputModule = require './modules/chatinput'
+ChatInputModule = require './chatinput'
 
 module.exports =
-  getters   : _.extend {
-      # module getters
-      chatInput : ChatInputModule.getters
-    },
-    require './getters'
+  getters   : require './getters'
 
   actions   :
     message         : require './actions/message'
@@ -15,8 +10,6 @@ module.exports =
     suggestions     : require './actions/suggestions'
     user            : require './actions/user'
     chatInputSearch : require './actions/chatinputsearch'
-    # module actions
-    chatInput       : ChatInputModule.actions
 
   stores    : [
     require './stores/messagesstore'

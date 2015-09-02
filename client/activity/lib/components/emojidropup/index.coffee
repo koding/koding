@@ -4,7 +4,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 formatEmojiName      = require 'activity/util/formatEmojiName'
-ActivityFlux         = require 'activity/flux'
+ChatInputFlux        = require 'activity/flux/chatinput'
 Dropup               = require 'activity/components/dropup'
 EmojiDropupItem      = require 'activity/components/emojidropupitem'
 DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
@@ -31,7 +31,7 @@ module.exports = class EmojiDropup extends React.Component
   close: ->
 
     { stateId } = @props
-    ActivityFlux.actions.chatInput.emoji.unsetFilteredListQuery stateId
+    ChatInputFlux.actions.emoji.unsetFilteredListQuery stateId
 
 
   moveToNextPosition: (keyInfo) ->
@@ -42,7 +42,7 @@ module.exports = class EmojiDropup extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.chatInput.emoji.moveToNextFilteredListIndex stateId
+      ChatInputFlux.actions.emoji.moveToNextFilteredListIndex stateId
 
     return yes
 
@@ -55,7 +55,7 @@ module.exports = class EmojiDropup extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.chatInput.emoji.moveToPrevFilteredListIndex stateId
+      ChatInputFlux.actions.emoji.moveToPrevFilteredListIndex stateId
 
     return yes
 
@@ -70,14 +70,14 @@ module.exports = class EmojiDropup extends React.Component
 
     query = matchResult[1]
     { stateId } = @props
-    ActivityFlux.actions.chatInput.emoji.setFilteredListQuery stateId, query
+    ChatInputFlux.actions.emoji.setFilteredListQuery stateId, query
     return yes
 
 
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ActivityFlux.actions.chatInput.emoji.setFilteredListSelectedIndex stateId, index
+    ChatInputFlux.actions.emoji.setFilteredListSelectedIndex stateId, index
 
 
   renderList: ->
