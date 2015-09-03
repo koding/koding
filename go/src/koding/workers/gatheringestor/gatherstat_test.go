@@ -2,46 +2,123 @@ package main
 
 import (
 	"bytes"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
+	"github.com/koding/redis"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGatherStat(t *testing.T) {
-	Convey("It should save stats", t, func() {
+	Convey("", t, func() {
 		dogclient, err := metrics.NewDogStatsD(WorkerName)
 		So(err, ShouldBeNil)
 
+		defer dogclient.Close()
+
+		redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis.URL})
+		So(err, ShouldBeNil)
+
+		defer redisConn.Close()
+
+		redisConn.SetPrefix(WorkerName)
+
 		log := logging.NewLogger(WorkerName)
 
+		g := &GatherStat{dog: dogclient, log: log, redis: redisConn}
+
 		mux := http.NewServeMux()
-		mux.Handle("/", &GatherStat{dog: dogclient, log: log})
+		mux.Handle("/", g)
 
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		reqBuf := bytes.NewBuffer([]byte(`{"username":"indianajones"}`))
+		Convey("It should save stats", func() {
+			reqBuf := bytes.NewBuffer([]byte(`{"username":"indianajones"}`))
 
-		res, err := http.Post(server.URL, "application/json", reqBuf)
-		So(err, ShouldBeNil)
+			res, err := http.Post(server.URL, "application/json", reqBuf)
+			So(err, ShouldBeNil)
 
-		defer res.Body.Close()
+			defer res.Body.Close()
 
-		So(res.StatusCode, ShouldEqual, 200)
+			So(res.StatusCode, ShouldEqual, 200)
 
-		docs, err := modeltesthelper.GetGatherStatsForUser("indianajones")
-		So(err, ShouldBeNil)
+			docs, err := modeltesthelper.GetGatherStatsForUser("indianajones")
+			So(err, ShouldBeNil)
 
-		So(len(docs), ShouldEqual, 1)
-		So(docs[0].Username, ShouldEqual, "indianajones")
+			So(len(docs), ShouldEqual, 1)
+			So(docs[0].Username, ShouldEqual, "indianajones")
 
-		Reset(func() {
-			modeltesthelper.DeleteGatherStatsForUser("indianajones")
+			Reset(func() {
+				modeltesthelper.DeleteGatherStatsForUser("indianajones")
+			})
+		})
+
+		Convey("It should return status of global stop", func() {
+			_, err := g.redis.Del(GlobalDisableKey)
+			So(err, ShouldBeNil)
+
+			So(g.globalBlockEnabled(), ShouldBeTrue)
+
+			So(g.redis.Set(GlobalDisableKey, "true"), ShouldBeNil)
+			So(g.globalBlockEnabled(), ShouldBeFalse)
+
+			defer g.redis.Del(GlobalDisableKey)
+		})
+
+		Convey("It should exempt if user is Koding employee", func() {
+			acc1 := &models.Account{
+				Id:          bson.NewObjectId(),
+				Profile:     models.AccountProfile{Nickname: "indianajones"},
+				GlobalFlags: []string{models.AccountFlagStaff},
+			}
+			err := modeltesthelper.CreateAccount(acc1)
+			So(err, ShouldBeNil)
+
+			defer modeltesthelper.DeleteUsersByUsername(acc1.Profile.Nickname)
+
+			isExempt, err := g.isUserExempt(acc1.Profile.Nickname)
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeTrue)
+
+			acc2 := &models.Account{
+				Id:      bson.NewObjectId(),
+				Profile: models.AccountProfile{Nickname: "genghiskhan"},
+			}
+			err = modeltesthelper.CreateAccount(acc2)
+			So(err, ShouldBeNil)
+
+			defer modeltesthelper.DeleteUsersByUsername(acc2.Profile.Nickname)
+
+			isExempt, err = g.isUserExempt(acc2.Profile.Nickname)
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeFalse)
+		})
+
+		Convey("It should return status of exempt", func() {
+			acc1 := &models.Account{
+				Id:      bson.NewObjectId(),
+				Profile: models.AccountProfile{Nickname: "indianajones"},
+			}
+			err := modeltesthelper.CreateAccount(acc1)
+			So(err, ShouldBeNil)
+
+			defer modeltesthelper.DeleteUsersByUsername(acc1.Profile.Nickname)
+
+			s := models.NewGatherStat()
+			s.Username = "indianajones"
+			s.Type = models.GatherStatAnalytics
+
+			isExempt, err := g.shouldBlock(s)
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeFalse)
 		})
 	})
 }

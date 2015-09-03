@@ -8,6 +8,13 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const (
+	MachinesColl           = "jMachines"
+	MachineConstructorName = "JMachine"
+	MachineStateRunning    = "Running"
+	MachineProviderKoding  = "koding"
+)
+
 type Bongo struct {
 	ConstructorName string `json:"constructorName"`
 	InstanceId      string `json:"instanceId"`
@@ -18,11 +25,6 @@ type MachineContainer struct {
 	Data  *models.Machine `json:"data"`
 	*models.Machine
 }
-
-var (
-	MachinesColl           = "jMachines"
-	MachineConstructorName = "JMachine"
-)
 
 func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	machines := []*models.Machine{}
@@ -51,13 +53,9 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	return containers, nil
 }
 
-var (
-	MachineStateRunning = "Running"
-)
-
 func GetRunningVms(provider string) ([]*models.Machine, error) {
 	query := bson.M{"status.state": MachineStateRunning, "provider": provider}
-	return findMachine(query)
+	return findMachines(query)
 }
 
 func GetMachinesByUsernameAndProvider(username, provider string) ([]*models.Machine, error) {
@@ -73,7 +71,7 @@ func GetMachinesByUsernameAndProvider(username, provider string) ([]*models.Mach
 		},
 	}
 
-	return findMachine(query)
+	return findMachines(query)
 }
 
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
@@ -86,7 +84,22 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 		"$elemMatch": bson.M{"id": user.ObjectId, "owner": true},
 	}}
 
-	return findMachine(query)
+	return findMachines(query)
+}
+
+func GetKodingRunningVMs(username string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.M{"users": bson.M{
+		"status.state": MachineStateRunning,
+		"provider":     MachineProviderKoding,
+		"$elemMatch":   bson.M{"id": user.ObjectId, "owner": true},
+	}}
+
+	return findMachines(query)
 }
 
 func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
@@ -94,7 +107,7 @@ func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 		"$elemMatch": bson.M{"id": userId, "owner": true},
 	}}
 
-	return findMachineContainers(query)
+	return findMachinesContainers(query)
 }
 
 func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
@@ -102,7 +115,7 @@ func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": true},
 	}}
 
-	return findMachineContainers(query)
+	return findMachinesContainers(query)
 }
 
 func GetCollabMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
@@ -111,11 +124,11 @@ func GetCollabMachines(userId bson.ObjectId, group *models.Group) ([]*MachineCon
 		"groups": bson.M{"$elemMatch": bson.M{"id": group.Id}},
 	}
 
-	return findMachineContainers(query)
+	return findMachinesContainers(query)
 }
 
-func findMachineContainers(query bson.M) ([]*MachineContainer, error) {
-	machines, err := findMachine(query)
+func findMachinesContainers(query bson.M) ([]*MachineContainer, error) {
+	machines, err := findMachines(query)
 	if err != nil {
 		return nil, err
 	}
@@ -137,18 +150,7 @@ func findMachineContainers(query bson.M) ([]*MachineContainer, error) {
 
 // GetMachineByUid returns the machine by its uid field
 func GetMachineByUid(uid string) (*models.Machine, error) {
-	machine := &models.Machine{}
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"uid": uid}).One(machine)
-	}
-
-	err := Mongo.Run(MachinesColl, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return machine, nil
+	return findMachine(bson.M{"uid": uid})
 }
 
 // UnshareMachineByUid unshares the machine from all other users except the
@@ -214,30 +216,6 @@ func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
 	return Mongo.Run(MachinesColl, query)
 }
 
-func findMachine(query bson.M) ([]*models.Machine, error) {
-	machines := []*models.Machine{}
-
-	queryFn := func(c *mgo.Collection) error {
-		iter := c.Find(query).Iter()
-
-		var machine models.Machine
-		for iter.Next(&machine) {
-			var newMachine models.Machine
-			newMachine = machine
-
-			machines = append(machines, &newMachine)
-		}
-
-		return iter.Close()
-	}
-
-	if err := Mongo.Run(MachinesColl, queryFn); err != nil {
-		return nil, err
-	}
-
-	return machines, nil
-}
-
 func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
@@ -298,4 +276,50 @@ func RemoveAllMachinesForUser(userId bson.ObjectId) error {
 	}
 
 	return Mongo.Run(MachinesColl, query)
+}
+
+func GetMachine(id bson.ObjectId) (*models.Machine, error) {
+	return findMachine(bson.M{"_id": id})
+}
+
+//----------------------------------------------------------
+// Private
+//----------------------------------------------------------
+
+func findMachine(query bson.M) (*models.Machine, error) {
+	machine := &models.Machine{}
+
+	queryFn := func(c *mgo.Collection) error {
+		return c.Find(query).One(machine)
+	}
+
+	if err := Mongo.Run(MachinesColl, queryFn); err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
+
+func findMachines(query bson.M) ([]*models.Machine, error) {
+	machines := []*models.Machine{}
+
+	queryFn := func(c *mgo.Collection) error {
+		iter := c.Find(query).Iter()
+
+		var machine models.Machine
+		for iter.Next(&machine) {
+			var newMachine models.Machine
+			newMachine = machine
+
+			machines = append(machines, &newMachine)
+		}
+
+		return iter.Close()
+	}
+
+	if err := Mongo.Run(MachinesColl, queryFn); err != nil {
+		return nil, err
+	}
+
+	return machines, nil
 }

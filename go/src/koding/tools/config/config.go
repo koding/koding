@@ -175,7 +175,10 @@ type Config struct {
 	}
 	Segment        string
 	GatherIngestor struct {
-		Port int
+		Port           int
+		KloudSecretKey string
+		KloudAddr      string
+		ConnectToKloud bool
 	}
 }
 

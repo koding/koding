@@ -103,6 +103,7 @@ type Config struct {
 	JanitorSecretKey        string
 	VmwatcherSecretKey      string
 	PaymentwebhookSecretKey string
+	GatheringestorSecretKey string
 }
 
 func main() {
@@ -213,6 +214,7 @@ func newKite(conf *Config) *kite.Kite {
 		"janitor":        conf.JanitorSecretKey,
 		"vmwatcher":      conf.VmwatcherSecretKey,
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
+		"gatheringestor": conf.GatheringestorSecretKey,
 	}
 
 	/// KODING PROVIDER ///

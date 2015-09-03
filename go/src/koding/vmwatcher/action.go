@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kodingutils"
 	"strings"
 	"time"
 
@@ -39,11 +39,6 @@ func stopVMIfRunning(machineId, username, reason string) error {
 		return nil
 	}
 
-	if machine.Status.State != "Running" {
-		Log.Info("Machine: '%s' has status: '%s'...skipping", machineId, machine.Status.State)
-		return nil
-	}
-
 	Log.Info("Starting to stop machine: '%s' for username: '%s'", machineId, username)
 
 	_, err := controller.KiteClient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
@@ -63,25 +58,5 @@ func stopVMIfRunning(machineId, username, reason string) error {
 }
 
 func blockUserAndDestroyVm(machineId, username, reason string) error {
-	err := modelhelper.BlockUser(username, DefaultReason, BlockDuration)
-	if err != nil {
-		return err
-	}
-
-	machines, err := modelhelper.GetMachinesByUsernameAndProvider(username, KodingProvider)
-	if err != nil {
-		return err
-	}
-
-	for _, machine := range machines {
-		err := stopVMIfRunning(machine.ObjectId.Hex(), username, reason)
-		if err != nil {
-			Log.Error(fmt.Sprintf(
-				"Error stopping machine: %s of user: %s: %s", machine.ObjectId,
-				username, err.Error(),
-			))
-		}
-	}
-
-	return nil
+	return kodingutils.BlockUser(controller.KiteClient, username, DefaultReason, BlockDuration)
 }

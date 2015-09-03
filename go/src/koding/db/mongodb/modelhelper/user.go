@@ -5,13 +5,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"koding/db/models"
-	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
-var (
+const (
 	UserColl              = "jUsers"
 	UserStatusConfirmed   = "confirmed"
 	UserStatusUnConfirmed = "unconfirmed"
@@ -124,21 +123,6 @@ func FetchUserByEmail(email string) (*models.User, error) {
 		return c.Find(bson.M{"email": email}).One(&user)
 	}
 	return user, Mongo.Run(UserColl, query)
-}
-
-func BlockUser(username, reason string, duration time.Duration) error {
-	selector := bson.M{"username": username}
-	updateQuery := bson.M{"$set": bson.M{
-		"status":        UserStatusBlocked,
-		"blockedReason": reason, "blockedUntil": time.Now().UTC().Add(duration),
-	}}
-
-	query := func(c *mgo.Collection) error {
-		err := c.Update(selector, updateQuery)
-		return err
-	}
-
-	return Mongo.Run(UserColl, query)
 }
 
 func RemoveUser(username string) error {

@@ -6,6 +6,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const MachineKodingProvider = "koding"
+
 type MachineGroup struct {
 	Id bson.ObjectId `bson:"id" json:"id"`
 }

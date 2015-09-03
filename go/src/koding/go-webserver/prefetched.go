@@ -24,7 +24,7 @@ func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
 	showExempt := "false"
 	// show troll content if only user is admin or requester is marked as troll
 	if userInfo.Account != nil &&
-		(userInfo.Account.HasFlag(models.SUPER_ADMIN_FLAG) || userInfo.Account.IsExempt) {
+		(userInfo.Account.HasFlag(models.AccountSuperAdminFlag) || userInfo.Account.IsExempt) {
 		showExempt = "true"
 	}
 

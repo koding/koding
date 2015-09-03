@@ -1,51 +1,67 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/artifact"
-	"koding/common"
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
+	"koding/tools/utils"
+	"log"
 	"net"
 	"net/http"
-	"runtime"
+	"socialapi/config"
+	"time"
+
+	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/runner"
 
 	"github.com/PuerkitoBio/throttled"
 	"github.com/PuerkitoBio/throttled/store"
+	"github.com/cenkalti/backoff"
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/redis"
 )
 
 var (
-	WorkerName = "ingestor"
-	flagConfig = flag.String("c", "dev", "Configuration profile from file")
+	WorkerName       = "gatheringestor"
+	WorkerVersion    = "0.0.1"
+	GlobalDisableKey = "globalStopDisabled"
+	ExemptUsersKey   = "exemptUsers"
+	DefaultReason    = "Abuse was found in VM by Gather"
+	BlockDuration    = time.Hour * 24 * 365
 )
 
-func initializeConf() *config.Config {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	flag.Parse()
-	if *flagConfig == "" {
-		panic("Please define config file with -c")
+func initialize() (*runner.Runner, *config.Config) {
+	r := runner.New(WorkerName)
+	if err := r.Init(); err != nil {
+		panic(fmt.Sprintf("Error starting runner: %s", err))
 	}
 
-	return config.MustConfig(*flagConfig)
+	go r.Listen()
+	r.ShutdownHandler = func() { r.Kite.Close() }
+
+	conf := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(conf.Mongo)
+
+	return r, conf
 }
 
 func main() {
-	log := common.CreateLogger(WorkerName, false)
-
-	conf := initializeConf()
-	modelhelper.Initialize(conf.Mongo)
-
+	r, conf := initialize()
 	defer modelhelper.Close()
 
-	redisConn, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	log := r.Log
+
+	redisConn, err := redis.NewRedisSession(&redis.RedisConf{
+		Server: conf.Redis.URL,
+		DB:     conf.Redis.DB,
+	})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	redisConn.SetPrefix(WorkerName)
 
 	defer redisConn.Close()
 
@@ -54,14 +70,29 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	stathandler := &GatherStat{log: log, dog: dogclient}
+	var kiteClient *kite.Client
+	if conf.GatherIngestor.ConnectToKloud {
+		kiteClient = initializeKiteClient(conf)
+	}
+
+	stathandler := &GatherStat{
+		log:        log,
+		dog:        dogclient,
+		redis:      redisConn,
+		kiteClient: kiteClient,
+	}
 	errhandler := &GatherError{log: log, dog: dogclient}
 
 	mux := http.NewServeMux()
 
 	th := throttled.RateLimit(
-		throttled.PerHour(10),
-		&throttled.VaryBy{RemoteAddr: true, Path: false},
+		throttled.PerHour(50),
+		&throttled.VaryBy{
+			Path: false,
+			Custom: func(r *http.Request) string {
+				return utils.GetIpAddress(r)
+			},
+		},
 		store.NewRedisStore(redisConn.Pool(), WorkerName, 0),
 	)
 
@@ -74,7 +105,7 @@ func main() {
 	mux.HandleFunc("/version", artifact.VersionHandler())
 	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
-	port := fmt.Sprintf("%v", conf.GatherIngestor.Port)
+	port := conf.GatherIngestor.Port
 
 	log.Info("Listening on server: %s", port)
 
@@ -88,6 +119,34 @@ func main() {
 	if err = http.Serve(listener, mux); err != nil {
 		log.Fatal(err.Error())
 	}
+}
+
+func initializeKiteClient(conf *config.Config) *kite.Client {
+	config, err := kiteConfig.Get()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	k := kite.New(WorkerName, WorkerVersion)
+	k.Config = config
+
+	kiteClient := k.NewClient(conf.GatherIngestor.KloudAddr)
+	kiteClient.Auth = &kite.Auth{
+		Type: WorkerName,
+		Key:  conf.GatherIngestor.KloudSecretKey,
+	}
+	kiteClient.Reconnect = true
+
+	operation := func() error {
+		return kiteClient.DialTimeout(time.Second * 10)
+	}
+
+	err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+	if err != nil {
+		log.Fatal("%s. Is kloud/kontrol running?", err)
+	}
+
+	return kiteClient
 }
 
 func write500Err(log logging.Logger, err error, w http.ResponseWriter) {

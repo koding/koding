@@ -7,6 +7,11 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const (
+	AccountFlagStaff      = "staff"
+	AccountSuperAdminFlag = "super-admin"
+)
+
 type Account struct {
 	Id          bson.ObjectId  `bson:"_id" json:"_id"`
 	GlobalFlags []string       `bson:"globalFlags" json:"globalFlags"`
@@ -41,8 +46,6 @@ func (a *Account) GetSocialApiId() (int64, error) {
 
 	return strconv.ParseInt(a.SocialApiId, 10, 64)
 }
-
-const SUPER_ADMIN_FLAG = "super-admin"
 
 // HasFlag checks if the user has given flag
 func (a *Account) HasFlag(flag string) bool {
