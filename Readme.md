@@ -1,4 +1,4 @@
-# fuseproto
+# fuseklient
 
 Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient).
 

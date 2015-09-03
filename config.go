@@ -12,7 +12,7 @@ type FuseConfig struct {
 	InternalPath string `required:"true"`
 
 	// MountName is identifier for mount.
-	MountName string `default:"fuseproto"`
+	MountName string `default:"fuseklient"`
 
 	// Debug determines if debug logs should be shown to user.
 	Debug bool `default:false`

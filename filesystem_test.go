@@ -8,8 +8,8 @@ import (
 
 var (
 	// TODO: remove hardcoded fullpath
-	internalPath = "/Users/senthil/work/fuse/prototype/internalPath/fuseproto"
-	externalPath = "/fuseproto"
+	internalPath = "/Users/senthil/work/fuse/fuseklient/mount"
+	externalPath = "/fusemount"
 )
 
 func TestFileSystem(t *testing.T) {

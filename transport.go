@@ -20,7 +20,7 @@ type Transport interface {
 //----------------------------------------------------------
 
 const (
-	kiteName    = "fuseproto"
+	kiteName    = "fuseklient"
 	kiteVersion = "0.0.1"
 	kiteTimeout = 10 * time.Second
 )
