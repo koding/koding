@@ -34,14 +34,7 @@ type KlientTransport struct {
 
 // NewKlientTransport initializes KlientTransport with Klient connection.
 func NewKlientTransport(klientIP string) (*KlientTransport, error) {
-	// TODO: Remove the config reference if it is, indeed, not needed.
-	//config, err := kiteConfig.Get()
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	k := kite.New(kiteName, kiteVersion)
-	//k.Config = config
 
 	kiteClient := k.NewClient(fmt.Sprintf("http://%s:56789/kite", klientIP))
 
