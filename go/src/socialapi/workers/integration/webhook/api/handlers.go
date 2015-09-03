@@ -17,14 +17,14 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	}
 
 	quota := throttled.RateQuota{
-		MaxRate:  throttled.PerMin(100),
-		MaxBurst: 110,
+		MaxRate:  throttled.PerSec(100),
+		MaxBurst: 100,
 	}
 
 	rateLimiter, err := throttled.NewGCRARateLimiter(redisStore, quota)
 	if err != nil {
-		// we exit because this is code error and must be handled exits only if
-		// the values of quota doesn't make sense at all, so it's ok
+		// we exit because this is code error and must be handled. Exits only
+		// if the values of quota doesn't make sense at all, so it's ok
 		log.Fatalln(err)
 	}
 
