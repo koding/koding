@@ -12,20 +12,24 @@ startSession = (browser, firstUser, secondUser) ->
   helpers.beginTest browser, firstUser
   helpers.waitForVMRunning browser
 
-  collaborationHelpers.startSession browser
-  collaborationHelpers.inviteUser   browser, secondUserName
+  collaborationHelpers.isSessionActive browser, (isActive) ->
 
-  browser
-    .waitForElementVisible secondUserAvatar, 60000
-    .waitForElementVisible secondUserOnlineAvatar, 20000
-    .end()
+    if isActive then browser.end()
+    else
+      collaborationHelpers.startSession browser
+      collaborationHelpers.inviteUser   browser, secondUserName
+
+      browser
+        .waitForElementVisible secondUserAvatar, 60000
+        .waitForElementVisible secondUserOnlineAvatar, 20000
+        .end()
 
 
 joinSession = (browser, firstUser, secondUser) ->
 
   firstUserName    = firstUser.username
   secondUserName   = secondUser.username
-  sharedMachineBox = '[testpath=main-sidebar] .shared-machines'
+  sharedMachineBox = '[testpath=main-sidebar] .shared-machines:not(.hidden)'
   shareModal       = '.share-modal'
   fullName         = shareModal + ' .user-details .fullname'
   acceptButton     = shareModal + ' .kdbutton.green'
@@ -40,24 +44,29 @@ joinSession = (browser, firstUser, secondUser) ->
 
   helpers.beginTest browser, secondUser
 
-  browser
-    .waitForElementVisible     shareModal, 200000 # wait for vm turn on for host
-    .waitForElementVisible     fullName, 20000
-    .assert.containsText       shareModal, firstUserName
-    .waitForElementVisible     acceptButton, 20000
-    .waitForElementVisible     rejectButton, 20000
-    .click                     acceptButton
-    .waitForElementVisible     loadingButton, 20000
-    .waitForElementNotPresent  shareModal, 20000
-    .waitForElementVisible     selectedMachine, 20000
-    .waitForElementVisible     chatBox, 20000
-    .waitForElementVisible     chatUsers, 20000
-    .waitForElementVisible     message, 20000
-    .assert.containsText       chatBox, firstUserName
-    .assert.containsText       chatBox, secondUserName
-    .assert.containsText       filetree, firstUserName
-    .waitForElementVisible     userAvatar, 20000
-    .end()
+  browser.element 'css selector', sharedMachineBox, (result) =>
+
+    if result.status is 0
+      browser.end()
+    else
+      browser
+        .waitForElementVisible     shareModal, 200000 # wait for vm turn on for host
+        .waitForElementVisible     fullName, 20000
+        .assert.containsText       shareModal, firstUserName
+        .waitForElementVisible     acceptButton, 20000
+        .waitForElementVisible     rejectButton, 20000
+        .click                     acceptButton
+        .waitForElementVisible     loadingButton, 20000
+        .waitForElementNotPresent  shareModal, 20000
+        .waitForElementVisible     selectedMachine, 20000
+        .waitForElementVisible     chatBox, 20000
+        .waitForElementVisible     chatUsers, 20000
+        .waitForElementVisible     message, 20000
+        .assert.containsText       chatBox, firstUserName
+        .assert.containsText       chatBox, secondUserName
+        .assert.containsText       filetree, firstUserName
+        .waitForElementVisible     userAvatar, 20000
+        .end()
 
 
 module.exports =

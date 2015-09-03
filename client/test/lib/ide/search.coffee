@@ -16,7 +16,7 @@ module.exports =
     matchedWordSelector         = '.content-search-result pre p.match'
     activeUntitledFileSelector  = "#{paneSelector} .untitledtxt.active"
     activeEditorSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .kdtabpaneview.active .ace_content'
-    fileNameSelector            = '.content-search-result .filename:first-child'
+    fileNameSelector            = '.content-search-result .filename:first-child > span'
 
     ideHelpers.openNewFile(browser)
     ideHelpers.openContextMenu(browser)
@@ -25,7 +25,7 @@ module.exports =
       .waitForElementVisible     findInFilesSelector, 20000
       .click                     findInFilesSelector
       .waitForElementVisible     contentSearchModalSelector, 20000
-      .setValue                  contentSearchModalSelector + ' input[name=findInput]', 'from'
+      .setValue                  contentSearchModalSelector + ' input[name=findInput]', 'Hello World from Python by Koding'
       .click                     contentSearchModalSelector + ' button.search'
       .waitForElementVisible     paneSelector + ' .search-result', 20000 # Assertion
       .waitForElementNotPresent  activeUntitledFileSelector, 20000 # Assertion
@@ -37,15 +37,15 @@ module.exports =
 
         return browser.end() unless lowercase
 
-        tabHandleSelector = ".panel-1 div[title='/home/#{user.username}/Web/#{fileName}']"
+        tabHandleSelector = ".panel-1 div[data-file-path='/home/#{user.username}/Web/#{fileName}']"
         editorSelector    = ".panel-1 .kdtabpaneview.active.#{lowercase} .ace_content"
 
         browser
           .waitForElementVisible     matchedWordSelector, 20000
           .click                     matchedWordSelector
           .waitForElementNotPresent  paneSelector + '.search-result .active', 20000 # Assertion
-          .waitForElementVisible     tabHandleSelector, 20000
           .waitForElementVisible     editorSelector, 20000
+          .pause                     3000 # wait for content
           .assert.containsText       editorSelector, 'Hello World from Python by Koding'
           .end()
 
