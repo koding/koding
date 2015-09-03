@@ -3,7 +3,8 @@
 if [ -z $1 ]; then
   cat << EOF
 Please provide the host that you want to connect Fuse to. Note that
-you must have proper authentication for the provided user and host.
+you must have your ssh pubkey in the ~/.ssh/authorized_keys for the
+provided user and host.
 EOF
   exit 1
 fi
