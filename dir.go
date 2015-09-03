@@ -19,12 +19,11 @@ type Dir struct {
 	Parent *Dir
 
 	// EntriesList contains list of files and directories belong to this Dir.
+	// This is used to speed up individual entry lookups.
 	EntriesList map[string]*Node
 
-	// fuseEntries contains cache for `fs.ReadDirAll` request to Transport.
-	//
-	// TODO: need a better name
-	FuseEntries []fuse.Dirent
+	// EntriesList contains list of files and directories belong to this Dir.
+	Entries []fuse.Dirent
 }
 
 func NewDir(n *Node) *Dir {
@@ -80,7 +79,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer debug(time.Now(), "Dir="+d.Name)
 
 	d.RLock()
-	entries := d.FuseEntries
+	entries := d.Entries
 	d.RUnlock()
 
 	if len(entries) != 0 {
@@ -223,12 +222,10 @@ func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
 		n.attr.Size = uint64(file.Size)
 		n.attr.Mode = os.FileMode(file.Mode)
 
-		// cache entries to save on Node#Attr requests
 		d.EntriesList[file.Name] = n
 	}
 
-	// cache entries to save on repeated calls
-	d.FuseEntries = dirents
+	d.Entries = dirents
 
 	return dirents, nil
 }
