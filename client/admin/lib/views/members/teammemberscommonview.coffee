@@ -15,7 +15,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     options.cssClass                 = 'members-commonview'
     options.itemLimit               ?= 10
-    options.fetcherMethod          or= 'fetchMembers'
+    options.fetcherMethod          or= 'fetchMembersWithEmail'
     options.noItemFoundWidget      or= new KDCustomHTMLView
     options.listViewItemClass      or= MemberItemView
     options.listViewItemOptions    or= {}

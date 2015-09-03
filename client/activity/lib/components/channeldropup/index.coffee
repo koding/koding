@@ -19,7 +19,6 @@ module.exports = class ChannelDropup extends React.Component
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
-    keyboardScroll : yes
 
 
   formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"
@@ -28,7 +27,10 @@ module.exports = class ChannelDropup extends React.Component
   getItemKey: (item) -> item.get 'id'
 
 
-  close: -> ActivityFlux.actions.channel.setChatInputChannelsVisibility no
+  close: ->
+
+    { stateId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility stateId, no
 
 
   moveToNextPosition: (keyInfo) ->
@@ -37,7 +39,10 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex stateId
+
     return yes
 
 
@@ -47,7 +52,10 @@ module.exports = class ChannelDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex stateId
+
     return yes
 
 
@@ -60,14 +68,16 @@ module.exports = class ChannelDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.channel.setChatInputChannelsQuery query
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
+    { stateId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsQuery stateId, query
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility stateId, yes
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex stateId, index
 
 
   renderList: ->

@@ -22,69 +22,73 @@
 module.exports = [
 
   [
-    'register'
-    'login'
-    'logout'
-    'activity likeunlike'
+    { name: 'register' }
+    { name: 'login' }
+    { name: 'logout' }
+    { name: 'activity likeunlike' }
   ]
 
   [
-    'pricing payment'
-    'activity post'
-    'staticpages loggedout'
+    { name: 'pricing payment' }
+    { name: 'activity post' }
+    { name: 'staticpages loggedout' }
   ]
 
   [
-    'messages privatemessage'
-    'account accountsettings'
-    'activity postwith'
+    { name: 'messages privatemessage' }
+    { name: 'account accountsettings' }
+    { name: 'activity postwith' }
   ]
 
   [
-    'activity edit'
-    'activity delete'
+    { name : 'activity edit' }
+    { name : 'activity delete' }
   ]
 
   [
-    'unittests'
-    'activity others'
-    'account accountpage'
+    { name : 'unittests' }
+    { name : 'activity others' }
+    { name : 'account accountpage' }
   ]
 
   [
-    'ide file'
-    'ide folder'
+    { name : 'ide file' }
+    { name : 'ide folder' }
   ]
 
   [
-    'ide search'
-    'ide workspace'
+    { name : 'ide search' }
+    { name : 'ide workspace' }
   ]
 
   [
-    'ide terminal'
+    { name : 'ide terminal' }
   ]
 
   [
-    'ide general'
-    'ide layout'
+    { name : 'ide general' }
+    { name : 'ide layout' }
   ]
 
   [
-    'collaboration collaboration'
+    { name : 'collaboration collaboration' }
   ]
 
   [
-    'environments vm'
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    'environments paidaccount'
+    { name : 'environments vm' }
   ]
 
   [
-    'environments domain'
-    'teams teams'
+    { name : 'environments paidaccount' }
+  ]
+
+  [
+    { name : 'environments domain' }
+    { name : 'teams teams' }
   ]
 
 ]

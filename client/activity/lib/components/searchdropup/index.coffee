@@ -19,7 +19,6 @@ module.exports = class SearchDropup extends React.Component
     visible        : no
     selectedItem   : null
     selectedIndex  : 0
-    keyboardScroll : yes
 
 
   formatSelectedValue: -> @props.selectedItem.get('message').toJS()
@@ -30,15 +29,19 @@ module.exports = class SearchDropup extends React.Component
 
   close: ->
 
-    ActivityFlux.actions.chatInputSearch.setVisibility no
-    ActivityFlux.actions.chatInputSearch.resetData()
+    { stateId } = @props
+    ActivityFlux.actions.chatInputSearch.setVisibility stateId, no
+    ActivityFlux.actions.chatInputSearch.resetData stateId
 
 
   moveToNextPosition: (keyInfo) ->
 
     return no  if keyInfo.isRightArrow
 
-    ActivityFlux.actions.chatInputSearch.moveToNextIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.chatInputSearch.moveToNextIndex stateId
+
     return yes
 
 
@@ -46,7 +49,10 @@ module.exports = class SearchDropup extends React.Component
 
     return no  if keyInfo.isLeftArrow
 
-    ActivityFlux.actions.chatInputSearch.moveToPrevIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.chatInputSearch.moveToPrevIndex stateId
+
     return yes
 
 
@@ -58,14 +64,17 @@ module.exports = class SearchDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.chatInputSearch.setQuery query
-    ActivityFlux.actions.chatInputSearch.setVisibility yes
+    { stateId } = @props
+    ActivityFlux.actions.chatInputSearch.setQuery stateId, query
+    ActivityFlux.actions.chatInputSearch.setVisibility stateId, yes
+
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.chatInputSearch.setSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.chatInputSearch.setSelectedIndex stateId, index
 
 
   renderList: ->

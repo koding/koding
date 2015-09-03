@@ -10,6 +10,8 @@ import (
 	hclmain "github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl"
 	hcljson "github.com/hashicorp/hcl/json"
+	"github.com/hashicorp/terraform/config"
+	"github.com/hashicorp/terraform/config/lang"
 )
 
 type terraformTemplate struct {
@@ -24,7 +26,13 @@ type terraformTemplate struct {
 // newTerraformTemplate parses the content and returns a terraformTemplate
 // instance
 func newTerraformTemplate(content string) (*terraformTemplate, error) {
-	var template *terraformTemplate
+	template := &terraformTemplate{
+		Resource: make(map[string]interface{}),
+		Provider: make(map[string]interface{}),
+		Variable: make(map[string]interface{}),
+		Output:   make(map[string]interface{}),
+	}
+
 	err := json.Unmarshal([]byte(content), &template)
 	if err != nil {
 		return nil, err
@@ -92,6 +100,98 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 	}
 
 	return string(out), nil
+}
+
+// detectUserVariables parses the template for any ${var.foo}, ${var.bar},
+// etc.. user variables. It returns a list of found variables with, example:
+// []string{"foo", "bar"}. The returned list only contains unique names, so any
+// user variable which declared multiple times is neglected, only the last
+// occurence is being added.
+func (t *terraformTemplate) detectUserVariables() ([]string, error) {
+	out, err := t.jsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	// get AST first, it's capable of parsing json
+	a, err := lang.Parse(out)
+	if err != nil {
+		return nil, err
+	}
+
+	// read the variables from the given AST. This is basically just iterating
+	// over the AST node and does the heavy lifting for us
+	vars, err := config.DetectVariables(a)
+	if err != nil {
+		return nil, err
+	}
+
+	// filter out duplicates
+	set := make(map[string]bool, 0)
+	for _, v := range vars {
+		// be sure we only get userVariables, as there is many ways of
+		// declaring variables
+		u, ok := v.(*config.UserVariable)
+		if !ok {
+			continue
+		}
+
+		if !set[u.Name] {
+			set[u.Name] = true
+		}
+	}
+
+	userVars := []string{}
+	for u := range set {
+		userVars = append(userVars, u)
+	}
+
+	return userVars, nil
+}
+
+func (t *terraformTemplate) setAwsRegion(region string) error {
+	var provider struct {
+		Aws struct {
+			Region    string
+			AccessKey string `hcl:"access_key"`
+			SecretKey string `hcl:"secret_key"`
+		}
+	}
+
+	if err := t.DecodeProvider(&provider); err != nil {
+		return err
+	}
+
+	if provider.Aws.Region == "" {
+		t.Provider["aws"] = map[string]interface{}{
+			"region":     region,
+			"access_key": provider.Aws.AccessKey,
+			"secret_key": provider.Aws.SecretKey,
+		}
+	} else if provider.Aws.Region != region {
+		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
+			provider.Aws.Region, region)
+	}
+
+	return t.hclUpdate()
+}
+
+// fillVariables finds variables declared with the given prefix and fills the
+// template with empty variables.
+func (t *terraformTemplate) fillVariables(prefix string) error {
+	vars, err := t.detectUserVariables()
+	if err != nil {
+		return err
+	}
+
+	fillVarData := make(map[string]string, 0)
+	for _, v := range vars {
+		if strings.HasPrefix(v, prefix) {
+			fillVarData[strings.TrimPrefix(v, prefix+"_")] = ""
+		}
+	}
+
+	return t.injectCustomVariables(prefix, fillVarData)
 }
 
 func (t *terraformTemplate) injectCustomVariables(prefix string, data map[string]string) error {

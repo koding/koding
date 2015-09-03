@@ -20,13 +20,18 @@ module.exports = class EmojiDropup extends React.Component
     items          : immutable.List()
     selectedIndex  : 0
     selectedItem   : null
-    keyboardScroll : no
 
 
   formatSelectedValue: -> formatEmojiName @props.selectedItem
 
 
-  close: -> ActivityFlux.actions.emoji.unsetFilteredListQuery()
+  getItemKey: (item) -> item
+
+
+  close: ->
+
+    { stateId } = @props
+    ActivityFlux.actions.emoji.unsetFilteredListQuery stateId
 
 
   moveToNextPosition: (keyInfo) ->
@@ -35,7 +40,10 @@ module.exports = class EmojiDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.emoji.moveToNextFilteredListIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.emoji.moveToNextFilteredListIndex stateId
+
     return yes
 
 
@@ -45,7 +53,10 @@ module.exports = class EmojiDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex stateId
+
     return yes
 
 
@@ -58,13 +69,15 @@ module.exports = class EmojiDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.emoji.setFilteredListQuery query
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setFilteredListQuery stateId, query
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.emoji.setFilteredListSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setFilteredListSelectedIndex stateId, index
 
 
   renderList: ->
@@ -80,7 +93,8 @@ module.exports = class EmojiDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = item
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 
@@ -89,16 +103,19 @@ module.exports = class EmojiDropup extends React.Component
     { query } = @props
 
     <Dropup
-      className      = "EmojiDropup"
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
+      className    = "EmojiDropup"
+      visible      = { @isActive() }
+      onOuterClick = { @bound 'close' }
+      ref          = 'dropup'
     >
-      <div className="Dropup-header">
-        Emojis matching <strong>:{query}</strong>
-      </div>
-      <div className="EmojiDropup-list">
-        {@renderList()}
-        <div className="clearfix" />
+      <div className="Dropup-innerContainer">
+        <div className="Dropup-header">
+          Emojis matching <strong>:{query}</strong>
+        </div>
+        <div className="EmojiDropup-list">
+          {@renderList()}
+          <div className="clearfix" />
+        </div>
       </div>
     </Dropup>
 

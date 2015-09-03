@@ -12,9 +12,6 @@ module.exports =
     chatViewSelector    = '.chat-view.onboarding'
     startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
     browser
       .waitForElementVisible   shareButtonSelector, 20000
       .pause   4000
@@ -30,7 +27,7 @@ module.exports =
             console.log ' ✔ Session is active'
 
       browser
-        .waitForElementVisible  messagePane, 20000 # Assertion
+        .waitForElementVisible  messagePane, 200000 # Assertion
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
 
 
@@ -81,3 +78,25 @@ module.exports =
       .click                  messagePane + ' .general-header'
       .waitForElementVisible  chatSettingsIcon, 20000
       .click                  chatSettingsIcon
+
+
+  inviteUser: (browser, username) ->
+
+    chatSelecor = "span.profile[href='/#{username}']"
+
+    browser
+      .waitForElementVisible   '.ParticipantHeads-button--new', 20000
+      .click                   '.ParticipantHeads-button--new'
+      .waitForElementVisible   '.kdautocompletewrapper input', 20000
+      .setValue                '.kdautocompletewrapper input', username
+      .pause                   5000
+      .element                 'css selector', chatSelecor, (result) ->
+        if result.status is 0
+          browser.click        chatSelecor
+        else
+          browser
+            .click             '.ParticipantHeads-button--new'
+            .pause             500
+            .click             '.ParticipantHeads-button--new'
+            .pause             500
+            .click             chatSelecor

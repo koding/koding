@@ -119,7 +119,7 @@ module.exports = class JCredential extends jraphical.Module
       { provider, title, meta } = data
       originId = delegate.getId()
 
-      if provider isnt 'custom' and not PROVIDERS[provider]?
+      if provider not in ['custom', 'userInput'] and not PROVIDERS[provider]?
         callback new KodingError 'Provider is not supported'
         return
 
@@ -130,7 +130,7 @@ module.exports = class JCredential extends jraphical.Module
         { identifier }   = credData
         _data            = { provider, title, identifier, originId }
 
-        if provider is 'custom'
+        if provider in ['custom', 'userInput']
           _data.fields   = (Object.keys meta) or []
           _data.verified = yes
 
@@ -163,6 +163,14 @@ module.exports = class JCredential extends jraphical.Module
       { group } = client.context
       JGroup.one { slug: group }, (err, group) ->
         return callback err  if err?
+
+        # FIXME Dunno why but `options` variable is overriding by fetcher
+        # in bongo above, so I had to re-set it here. When we fix the
+        # fetcher issue in bongo this won't be needed anymore, thanks JS ~ GG
+        options =
+          limit         : 1
+          targetOptions :
+            selector    : { identifier }
 
         group.fetchCredential {}, options, (err, res) ->
           callback err, res
