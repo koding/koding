@@ -37,6 +37,8 @@ run() {
   fi
 }
 
+make compile
+
 run $1 $2
 
 CODE=$?
