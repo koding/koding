@@ -1,15 +1,18 @@
-htmlencode = require 'htmlencode'
+Encoder = require 'htmlencode'
 
 module.exports = (text = '') ->
 
-  text = htmlencode.htmlDecode text
+  input = Encoder.htmlDecode text
 
-  return text  unless (/^>/gm).test text
+  return text  unless (/^>/gm).test input
 
   val = ''
 
-  for line in text.split '\n'
-    line += '\n'  if line[0] is '>'
+  for line in input.split '\n'
+    line = if line[0] is '>'
+    then ">#{Encoder.XSSEncode line.substring 1}"
+    else Encoder.XSSEncode line
+
     val  += "#{line}\n"
 
   return val

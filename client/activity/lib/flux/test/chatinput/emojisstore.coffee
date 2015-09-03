@@ -21,3 +21,4 @@ describe 'EmojisStore', ->
 
       expect(emojis.indexOf emoji1).to.be.above -1
       expect(emojis.indexOf emoji2).to.be.above -1
+

@@ -365,6 +365,124 @@ runTests = -> describe 'workers.social.user.account', ->
 
           daisy queue
 
+  describe '#leaveFromAllGroups()', ->
+
+    describe 'when group does exists', ->
+
+      group             = {}
+      groupSlug         = generateRandomString()
+      adminClient       = {}
+      adminAccount      = {}
+
+      groupData         =
+        slug           : groupSlug
+        title          : generateRandomString()
+        visibility     : 'visible'
+        allowedDomains : [ 'koding.com' ]
+
+      # before running test cases creating a group
+      before (done) ->
+
+        adminUserFormData = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            # generating admin client to create group
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              adminClient = client_
+              queue.next()
+
+          ->
+            # registering admin client
+            JUser.convert adminClient, adminUserFormData, (err, data) ->
+              expect(err).to.not.exist
+              { account, newToken } = data
+
+              # set credentials
+              adminClient.sessionToken        = newToken
+              adminClient.connection.delegate = account
+              adminClient.context.group       = groupSlug
+              adminAccount                    = account
+              queue.next()
+
+          ->
+            JGroup = require './group'
+            # creating a new group
+            JGroup.create adminClient, groupData, adminAccount, (err, group_) ->
+              expect(err).to.not.exist
+              group = group_
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'admin should have more than one group', (done) ->
+
+        adminAccount.fetchAllParticipatedGroups adminClient, (err, groups) ->
+          expect(err).to.not.exist
+          expect(groups).to.have.length.above(1)
+          done()
+
+      it 'standart user should be able to leave from all groups', (done) ->
+        client       = null
+        account      = null
+        userFormData = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            # registering admin client
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+              { account, newToken } = data
+
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              client.context.group       = 'koding'
+              queue.next()
+
+          ->
+            JUser = require './user'
+            JUser.addToGroup account, group.slug, userFormData.email, null, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            account.fetchAllParticipatedGroups client, (err, groups) ->
+              expect(err).to.not.exist
+              expect(groups).to.have.length.above(1)
+              queue.next()
+
+          ->
+            account.leaveFromAllGroups client, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            account.fetchAllParticipatedGroups client, (err, groups) ->
+              expect(err).to.not.exist
+              expect(groups).to.have.length(1)
+              queue.next()
+
+          ->
+            done()
+
+        ]
+
+        daisy queue
+
 beforeTests()
 
 runTests()

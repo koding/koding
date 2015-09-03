@@ -6,31 +6,37 @@ notStartedButtonSelector = '.status-bar a.share.not-started'
 
 module.exports =
 
+  isSessionActive: (browser, callback) ->
+
+    shareButtonSelector = '.status-bar a.share:not(.loading)'
+
+    browser
+      .waitForElementVisible   shareButtonSelector, 20000
+      .pause   4000
+      .element 'css selector', notStartedButtonSelector, (result) =>
+        isActive = if result.status is 0 then no else yes
+        callback(isActive)
+
+
   startSession: (browser) ->
 
     shareButtonSelector = '.status-bar a.share:not(.loading)'
     chatViewSelector    = '.chat-view.onboarding'
     startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    browser
-      .waitForElementVisible   shareButtonSelector, 20000
-      .pause   4000
-      .element 'css selector', notStartedButtonSelector, (result) =>
-          if result.status is 0
-            console.log ' ✔ Session is not started'
-            browser
-              .click                  shareButtonSelector
-              .waitForElementVisible  chatViewSelector, 20000
-              .waitForElementVisible  startButtonSelector, 20000
-              .click                  startButtonSelector
-          else
-            console.log ' ✔ Session is active'
+    @isSessionActive browser, (isActive) ->
+      if isActive
+        console.log ' ✔ Session is active'
+      else
+        console.log ' ✔ Session is not started'
+        browser
+          .click                  shareButtonSelector
+          .waitForElementVisible  chatViewSelector, 20000
+          .waitForElementVisible  startButtonSelector, 20000
+          .click                  startButtonSelector
 
       browser
-        .waitForElementVisible  messagePane, 20000 # Assertion
+        .waitForElementVisible  messagePane, 200000 # Assertion
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
 
 
@@ -81,3 +87,25 @@ module.exports =
       .click                  messagePane + ' .general-header'
       .waitForElementVisible  chatSettingsIcon, 20000
       .click                  chatSettingsIcon
+
+
+  inviteUser: (browser, username) ->
+
+    chatSelecor = "span.profile[href='/#{username}']"
+
+    browser
+      .waitForElementVisible   '.ParticipantHeads-button--new', 20000
+      .click                   '.ParticipantHeads-button--new'
+      .waitForElementVisible   '.kdautocompletewrapper input', 20000
+      .setValue                '.kdautocompletewrapper input', username
+      .pause                   5000
+      .element                 'css selector', chatSelecor, (result) ->
+        if result.status is 0
+          browser.click        chatSelecor
+        else
+          browser
+            .click             '.ParticipantHeads-button--new'
+            .pause             500
+            .click             '.ParticipantHeads-button--new'
+            .pause             500
+            .click             chatSelecor

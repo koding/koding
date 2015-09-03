@@ -24,3 +24,4 @@ module.exports = class EmojiSelectorItem extends React.Component
     <DropupItem {...@props} className={className}>
       {formatEmojiName item}
     </DropupItem>
+

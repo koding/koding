@@ -76,3 +76,4 @@ describe 'SuggestionsSelectedIndexStore', ->
       selectedIndex = @reactor.evaluate ['suggestionsSelectedIndex']
 
       expect(selectedIndex).to.equal 0
+

@@ -1,112 +1,203 @@
 kd                   = require 'kd'
 jspath               = require 'jspath'
 
-JView                = require 'app/jview'
+KDView               = kd.View
+KDTabView            = kd.TabView
+KDModalView          = kd.ModalView
+KDButtonView         = kd.ButtonView
+KDTabPaneView        = kd.TabPaneView
+KDCustomHTMLView     = kd.CustomHTMLView
+KDNotificationView   = kd.NotificationView
+
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
-showError            = require 'app/util/showError'
-applyMarkdown         = require 'app/util/applyMarkdown'
-
-{yamlToJson}         = require './yamlutils'
+applyMarkdown        = require 'app/util/applyMarkdown'
+{ yamlToJson }       = require './yamlutils'
 providersParser      = require './providersparser'
+
 requirementsParser   = require './requirementsparser'
+updateStackTemplate  = require './updatestacktemplate'
+updateCustomVariable = require './updatecustomvariable'
+parseTerraformOutput = require './parseterraformoutput'
 
 OutputView           = require './outputview'
-StackEditorView      = require './stackeditorview'
-updateStackTemplate  = require './updatestacktemplate'
-parseTerraformOutput = require './parseterraformoutput'
-CredentialStatusView = require './credentialstatusview'
+ProvidersView        = require './providersview'
+VariablesView        = require './variablesview'
+StackTemplateView    = require './stacktemplateview'
 
 
-module.exports = class DefineStackView extends kd.View
+module.exports = class DefineStackView extends KDView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
-    curryIn options, cssClass: 'step-define-stack'
+    options.cssClass = kd.utils.curry 'define-stack-view', options.cssClass
 
-    super options, data ? {}
+    super options, data
 
-    {credential, stackTemplate, template} = @getData()
+    { stackTemplate } = @getData()
+
+    options.delegate = this
+
+    @setClass 'edit-mode'  if @getOption 'inEditMode'
 
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
 
-    @inputTitle            = new kd.FormViewWithFields fields:
-      title                :
-        cssClass           : 'template-title'
-        label              : 'Stack Template Title'
-        defaultValue       : title
-        nextElement        :
-          credentialStatus :
-            cssClass       : 'credential-status'
-            itemClass      : CredentialStatusView
-            stackTemplate  : stackTemplate
+    @createOutputView()
 
-    { @credentialStatus } = @inputTitle.inputs
+    @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
-    @editorView      = new StackEditorView { delegate: this, content }
+    @stackTemplateView                 = new StackTemplateView options, data
+    @tabView.addPane stackTemplatePane = new KDTabPaneView
+      name : 'Stack Template'
+      view : @stackTemplateView
 
-    @outputView      = new OutputView
+    @variablesView                     = new VariablesView {
+      delegate: this
+      stackTemplate
+    }
+    @tabView.addPane variablesPane     = new KDTabPaneView
+      name : 'Variables'
+      view : @variablesView
+
+    @providersView                     = new ProvidersView {
+      stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
+    }
+    @tabView.addPane providersPane     = new KDTabPaneView
+      name : 'Providers'
+      view : @providersView
+
+    { @credentials } = @stackTemplateView.credentialStatus or {}
+
+    @tabView.showPaneByIndex 0
+
+    @createFooter()
+
+    @createMainButtons()
+
+    @providersView.on 'ItemSelected', (credential) =>
+
+      # After adding credential, we are sharing it with the current
+      # group, so anyone in this group can use this credential ~ GG
+      { slug } = kd.singletons.groupsController.getCurrentGroup()
+
+      credential.shareWith { target: slug }, (err) =>
+        console.warn 'Failed to share credential:', err  if err
+        @stackTemplateView.credentialStatus.setCredential credential
+
+    @stackTemplateView.on 'CredentialStatusChanged', (status) =>
+      if status is 'verified'
+        @saveButton.enable()
+        @tabView.showPaneByIndex 0
+      else
+        @saveButton.disable()
+
+    variablesPane.on 'PaneDidShow', =>
+      @setFooterVisibility 'show'
+
+    stackTemplatePane.on 'PaneDidShow', =>
+      @setFooterVisibility 'show'
+
+    providersPane.on 'PaneDidShow', =>
+      @outputView.fall()
+      @setFooterVisibility 'hide'
+
+
+  setFooterVisibility: (state) ->
+    @buttons[state]()
+    @footer[state]()
+
+
+  createFooter: ->
+
+    @addSubView @footer = new kd.CustomHTMLView
+      cssClass : 'stack-editor-footer'
+      partial  : """
+        <div class="section">
+          <span class="icon"></span>
+          <div class="text">
+            <p>Need some help?</p>
+            <a href="/Admin/Invitations">Invite a teammate</a>
+          </div>
+        </div>
+        <div class="section">
+          <span class="icon"></span>
+          <div class="text">
+            <p>To learn about stack files</p>
+            <a href="#">Check out our docs</a>
+          </div>
+        </div>
+      """
+
+  createOutputView: ->
+
+    @addSubView @outputView = new OutputView
 
     @outputView.add 'Welcome to Stack Template Editor'
 
-    @editorView.addSubView new kd.ButtonView
-      title    : 'Logs'
-      cssClass : 'solid compact showlogs-link'
-      callback : @outputView.bound 'raise'
 
-    # FIXME Not liked this ~ GG
-    @editorView.on 'click', @outputView.bound 'fall'
+  createMainButtons: ->
 
-    @cancelButton    = new kd.ButtonView
+    @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
+
+
+    @buttons.addSubView @cancelButton  = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
-    @saveButton      = new kd.ButtonView
+    @buttons.addSubView @saveButton    = new KDButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       disabled       : yes
       loader         : yes
       callback       : @bound 'handleSave'
 
-    @previewButton   = new kd.ButtonView
+    @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
-      cssClass       : 'solid compact light-gray nav next'
+      cssClass       : 'solid compact light-gray nav next prev-button'
       loader         : yes
       callback       : @bound 'handlePreview'
       tooltip        :
         title        : "Generates a preview of this template
                         with your own account information."
 
-    @setAsDefaultButton = new kd.ButtonView
+    @buttons.addSubView @setAsDefaultButton = new KDButtonView
       title          : 'Set as Default for Team'
-      cssClass       : 'solid compact nav next hidden'
+      cssClass       : 'solid compact nav next hidden setasdefault-button'
       loader         : yes
       callback       : @bound 'handleSetDefaultTemplate'
-
-    # TODO getrid off from these css properties ~ GG
-    @previewButton.setCss      'right', '110px'
-    @setAsDefaultButton.setCss 'right', '265px'
-
-
-    @credentialStatus.on 'StatusChanged', (status) =>
-      if status is 'verified'
-      then @saveButton.enable()
-      else @saveButton.disable()
 
 
   handleSave: ->
 
+    unless @variablesView.isPassed()
+
+      # Warn user if one is trying to save without
+      # variables passed while in variables tab
+      if @tabView.getActivePaneIndex() is 1
+        new KDNotificationView title: 'Please check variables'
+
+      # Switch to Variables tab
+      @tabView.showPaneByIndex 1
+      @saveButton.hideLoader()
+      return
+
+    @saveAndTestStackTemplate()
+
+
+  saveAndTestStackTemplate: ->
+
+    # Show default first pane.
+    @tabView.showPaneByIndex 0
     @outputView.clear().raise()
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
 
     @checkAndBootstrapCredentials (err, credentials) =>
-      return  @saveButton.hideLoader()  if err
+      return @saveButton.hideLoader()  if err
 
       @outputView
         .add 'Credentials are ready!'
@@ -118,30 +209,50 @@ module.exports = class DefineStackView extends kd.View
           @saveButton.hideLoader()
           return
 
-        @outputView.add 'Template content saved now processing the template...'
+        @outputView
+          .add 'Template content saved.'
+          .add 'Setting up custom variables...'
 
-        @handleCheckTemplate { stackTemplate }, (err, machines) =>
+        meta = @variablesView._providedData
+        data = { stackTemplate, meta }
 
-          @saveButton.hideLoader()
+        updateCustomVariable data, (err, _stackTemplate) =>
 
-          if err
-            @outputView.add "Parsing failed, please check your
-                             template and try again"
+          if @outputView.handleError err
+            @saveButton.hideLoader()
             return
 
-          @outputView.add "You can now close this window, or set this
-                           template as default for your team members."
+          @outputView
+            .add 'Custom variables are set.'
+            .add 'Starting to process the template...'
 
-          @cancelButton.setTitle 'Close'
-          @setAsDefaultButton.show()
+          @processTemplate _stackTemplate
+
+
+  processTemplate: (stackTemplate) ->
+
+    @handleCheckTemplate { stackTemplate }, (err, machines) =>
+
+      @saveButton.hideLoader()
+
+      if err
+        @outputView.add "Parsing failed, please check your
+                         template and try again"
+        return
+
+      @outputView.add "You can now close this window, or set this
+                       template as default for your team members."
+
+      @cancelButton.setTitle 'Close'
+      @setAsDefaultButton.show()
 
 
   checkAndBootstrapCredentials: (callback) ->
 
-    {credentialsData} = @credentialStatus
-    [credential]      = credentialsData
+    { credentialsData } = @stackTemplateView.credentialStatus
+    [credential]        = credentialsData
 
-    failed = (err) ->
+    failed = (err) =>
       @outputView.handleError err
       callback err
 
@@ -156,6 +267,7 @@ module.exports = class DefineStackView extends kd.View
       .add 'Bootstrap check initiated for credentials...'
 
     credential.isBootstrapped (err, state) =>
+
       return failed err  if err
 
       if state
@@ -167,8 +279,7 @@ module.exports = class DefineStackView extends kd.View
 
         @outputView.add 'Bootstrap required, initiating to bootstrap...'
 
-        identifiers = [credential.identifier]
-
+        identifiers           = [credential.identifier]
         { computeController } = kd.singletons
 
         computeController.getKloud()
@@ -194,7 +305,7 @@ module.exports = class DefineStackView extends kd.View
 
   handleCheckTemplate: (options, callback) ->
 
-    { stackTemplate } = options
+    { stackTemplate }     = options
     { computeController } = kd.singletons
 
     computeController.getKloud()
@@ -227,10 +338,10 @@ module.exports = class DefineStackView extends kd.View
 
   saveTemplate: (callback) ->
 
-    {stackTemplate} = @getData()
+    { stackTemplate } = @getData()
 
-    {title}         = @inputTitle.getData()
-    templateContent = @editorView.getValue()
+    { title }         = @stackTemplateView.inputTitle.getData()
+    templateContent   = @stackTemplateView.editorView.getValue()
 
     # TODO split following into their own helper methods
     # and call them in here ~ GG
@@ -249,9 +360,15 @@ module.exports = class DefineStackView extends kd.View
 
     requiredData = requirementsParser templateContent
 
-    @outputView
-      .add 'Following extra information will be requested from members:'
-      .add requiredData
+    if requiredData.userInput?
+      @outputView
+        .add 'Following extra information will be requested from members:'
+        .add requiredData.userInput
+
+    if requiredData.custom?
+      @outputView
+        .add 'Following information will be fetched from variables section:'
+        .add requiredData.custom
 
     # Generate config data from parsed values
     config = { requiredData, requiredProviders }
@@ -261,9 +378,16 @@ module.exports = class DefineStackView extends kd.View
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credential      = @credentialStatus.credentialsData.first
+    credData      = @stackTemplateView.credentialStatus.credentialsData
+    awsIdentifier = credData.first.identifier
+    credentials   =
+      aws         : [ awsIdentifier ]
 
-    if 'yaml' is @editorView.getOption 'contentType'
+    # Add Custom Variables if exists
+    if variablesCredential = @variablesView._activeCredential
+      credentials.custom   = [variablesCredential.identifier]
+
+    if 'yaml' is @stackTemplateView.editorView.getOption 'contentType'
       convertedDoc = yamlToJson templateContent
 
       if convertedDoc.err
@@ -274,7 +398,7 @@ module.exports = class DefineStackView extends kd.View
 
     updateStackTemplate {
       template: templateContent, templateDetails
-      credential, stackTemplate, title, config
+      credentials, stackTemplate, title, config
     }, (err, stackTemplate) =>
 
       if not err and stackTemplate
@@ -284,68 +408,99 @@ module.exports = class DefineStackView extends kd.View
       callback err, stackTemplate
 
 
+  createReportFor = (data, type) ->
+
+    if (Object.keys data).length > 0
+      console.warn "#{type.capitalize()} for preview requirements: ", data
+
+      issues = ''
+      for issue of data
+        if issue is 'userInput'
+          issues += " - These variables: `#{data[issue]}`
+                        will be requested from user.\n"
+        else
+          issues += " - These variables: `#{data[issue]}`
+                        couldn't find in `#{issue}` data.\n"
+    else
+      issues = ''
+
+    return issues
+
+
   handlePreview: ->
 
-    template      = @editorView.getValue()
+    template      = @stackTemplateView.editorView.getValue()
 
     group         = kd.singletons.groupsController.getCurrentGroup()
     account       = whoami()
-    availableData = { group, account }
+    custom        = @variablesView._providedData
+    availableData = { group, account, custom }
 
     requiredData  = requirementsParser template
-    errors        = []
+    errors        = {}
+    warnings      = {}
 
     fetchUserData = (callback) ->
-      account.fetchFromUser requiredData.user, (err, data) ->
-        kd.warn err  if err
-        callback data ? {}
 
     generatePreview = =>
 
       for type, data of requiredData
+
         for field in data
+
+          if type is 'userInput'
+            warnings.userInput ?= []
+            warnings.userInput.push field
+            continue
+
           if content = jspath.getAt availableData[type], field
-            template = template.replace \
-              (new RegExp "{{#{type} #{field}}}", 'g'), content
+            search   = if type is 'custom'  \
+              then ///\${var.#{type}_#{field}}///g
+              else ///\${var.koding_#{type}_#{field}}///g
+            template = template.replace search, content
           else
-            errors.push "Variable `#{field}` not found in `#{type}` data."
+            errors[type] ?= []
+            errors[type].push field
 
-      if errors.length > 0
-        console.warn "Errors for preview requirements: ", errors
-
-        errors = " - #{error}\n" for error in errors
-        errors = "> Following errors found while generating
-                  preview for this template: \n#{errors}"
-      else
-        errors = ''
-
-      new kd.ModalView
-        title          : 'Template Preview'
-        subtitle       : 'Generated from your account data'
-        cssClass       : 'has-markdown content-modal'
-        height         : 500
-        overlay        : yes
-        overlayOptions : cssClass : 'second-overlay'
-        content        : applyMarkdown """
-          #{errors}
-          ```coffee
-          #{template}
-          ```
-        """
+      @createPreviewModal { errors, warnings, template }
 
       @previewButton.hideLoader()
 
+
     if requiredData.user?
-      fetchUserData (data) =>
-        availableData.user = data
+      account.fetchFromUser requiredData.user, (err, data) ->
+        kd.warn err  if err
+        availableData.user = data or {}
         generatePreview()
     else
       generatePreview()
 
 
+  createPreviewModal: ({ errors, warnings, template }) ->
+
+    errors   = createReportFor errors,   'errors'
+    warnings = createReportFor warnings, 'warnings'
+
+    new kd.ModalView
+      title          : 'Template Preview'
+      subtitle       : 'Generated from your account data'
+      cssClass       : 'has-markdown content-modal'
+      height         : 500
+      overlay        : yes
+      overlayOptions : cssClass : 'second-overlay'
+      content        : applyMarkdown """
+        #{errors}
+
+        #{warnings}
+        ```coffee
+        #{template}
+        ```
+      """
+
+
   handleSetDefaultTemplate: ->
 
-    { stackTemplate } = @getData()
+    { stackTemplate }                       = @getData()
     { computeController, groupsController } = kd.singletons
 
     currentGroup = groupsController.getCurrentGroup()
@@ -369,16 +524,3 @@ module.exports = class DefineStackView extends kd.View
 
       @emit 'Reload'
       @emit 'Completed', stackTemplate
-
-
-  pistachio: ->
-    """
-      <div class='text header'>Create new Stack</div>
-      {{> @inputTitle}}
-      {{> @editorView}}
-      {{> @outputView}}
-      {{> @cancelButton}}
-      {{> @setAsDefaultButton}}
-      {{> @previewButton}}
-      {{> @saveButton}}
-    """

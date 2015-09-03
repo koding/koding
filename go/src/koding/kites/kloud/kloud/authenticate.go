@@ -47,14 +47,14 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.Identifiers)
+	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, args.Identifiers)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make(map[string]bool, 0)
 
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
@@ -62,9 +62,9 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 		accessKey := cred.Data["access_key"]
 		secretKey := cred.Data["secret_key"]
-		authRegion, err := cred.region()
-		if err != nil {
-			return nil, err
+		authRegion, ok := cred.Data["region"]
+		if !ok {
+			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
 		svc := ec2.New(&aws.Config{

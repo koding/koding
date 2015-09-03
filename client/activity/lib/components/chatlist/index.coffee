@@ -7,22 +7,30 @@ SimpleChatListItem    = require 'activity/components/chatlistitem/simplechatlist
 module.exports = class ChatList extends React.Component
 
   @defaultProps =
-    messages: immutable.List()
+    messages     : immutable.List()
+    showItemMenu : yes
+
 
   renderChildren: ->
 
     lastMessageId = null
+    { messages, showItemMenu } = @props
 
-    @props.messages.map (message, i) ->
+    messages.map (message, i) ->
+      itemProps =
+        key          : message.get 'id'
+        message      : message
+        showItemMenu : showItemMenu
+
       if lastMessageId and lastMessageId is message.get 'accountId'
-        return <SimpleChatListItem key={message.get 'id'} message={message} />
+        return <SimpleChatListItem {...itemProps} />
       else
         lastMessageId = message.get 'accountId'
-        return <ChatListItem key={message.get 'id'} message={message} />
+        return <ChatListItem {...itemProps} />
 
 
   render: ->
-    <div className={kd.utils.curry 'ChatList padded', @props.className}>
+    <div className={kd.utils.curry 'ChatList', @props.className}>
       {@renderChildren().toList()}
     </div>
 

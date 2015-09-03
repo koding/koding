@@ -15,3 +15,4 @@ module.exports = class FilteredEmojiListSelectedIndexStore extends SelectedIndex
       moveToNextIndex : actions.MOVE_TO_NEXT_FILTERED_EMOJI_LIST_INDEX
       moveToPrevIndex : actions.MOVE_TO_PREV_FILTERED_EMOJI_LIST_INDEX
       resetIndex      : actions.RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX
+

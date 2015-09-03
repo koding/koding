@@ -103,3 +103,4 @@ describe 'SuggestionsGetters', ->
 
       selectedItem = @reactor.evaluateToJS getters.currentSuggestionsSelectedItem
       expect(selectedItem.id).to.equal '2'
+

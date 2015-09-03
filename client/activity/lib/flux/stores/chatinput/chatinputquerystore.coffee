@@ -1,11 +1,12 @@
 KodingFluxStore = require 'app/flux/store'
+immutable       = require 'immutable'
 
 ###*
- * Base class to store and manage a query of list
+ * Base class to store and manage list queries
 ###
 module.exports = class ChatInputQueryStore extends KodingFluxStore
 
-  getInitialState: -> null
+  getInitialState: -> immutable.Map()
 
 
   ###*
@@ -21,20 +22,28 @@ module.exports = class ChatInputQueryStore extends KodingFluxStore
 
 
   ###*
-   * It updates current query with a given value
+   * It updates query for a given stateId
    *
-   * @param {string} currentState
+   * @param {immutable.Map} currentState
    * @param {object} payload
+   * @param {string} payload.stateId
    * @param {string} payload.query
-   * @return {string} nextState
+   * @return {immutable.Map} nextState
   ###
-  setQuery: (currentState, { query }) -> query
+  setQuery: (currentState, { stateId, query }) ->
+
+    currentState.set stateId, query
 
 
   ###*
-   * It resets current query to initial value
+   * It deletes query for a given stateId
    *
-   * @param {string} currentState
-   * @return {string} nextState
+   * @param {immutable.Map} currentState
+   * @param {object} payload
+   * @param {string} payload.stateId
+   * @return {immutable.Map} nextState
   ###
-  unsetQuery: (currentState) -> null
+  unsetQuery: (currentState, { stateId }) ->
+
+    currentState.delete stateId
+

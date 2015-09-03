@@ -1,5 +1,6 @@
 kd              = require 'kd'
 nick            = require 'app/util/nick'
+kookies         = require 'kookies'
 DeleteModalView = require '../deletemodalview'
 
 
@@ -27,4 +28,9 @@ module.exports = class LeaveGroupModal extends DeleteModalView
 
   doAction: ->
 
-    kd.warn 'Group leave action should be handled...'
+    kd.singletons.groupsController.getCurrentGroup().leave (err)->
+      if err
+        return new KDNotificationView title : 'There was a problem, please try again!'
+
+      kookies.expire 'clientId'
+      global.location.replace '/'

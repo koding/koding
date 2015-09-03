@@ -6,7 +6,11 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"log"
+	"net/http"
 	"time"
+
+	"gopkg.in/throttled/throttled.v2"
+	"gopkg.in/throttled/throttled.v2/store/memstore"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -46,6 +50,8 @@ func New(c *Config) *kontrol.Kontrol {
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateMachine
 
+	kon.Kite.HandleHTTP("/register", throttledHandler(kon.HandleRegisterHTTP))
+
 	switch c.Storage {
 	case "etcd":
 		kon.SetStorage(kontrol.NewEtcd(c.Machines, kon.Kite.Log))
@@ -58,7 +64,7 @@ func New(c *Config) *kontrol.Kontrol {
 			DBName:   c.Postgres.DBName,
 		}
 		p := kontrol.NewPostgres(postgresConf, kon.Kite.Log)
-
+		p.DB.SetMaxOpenConns(20)
 		kon.SetStorage(p)
 		kon.SetKeyPairStorage(p)
 		// kon.MachineKeyPicker = newMachineKeyPicker(p)
@@ -73,6 +79,37 @@ func New(c *Config) *kontrol.Kontrol {
 	}
 
 	return kon
+}
+
+func throttledHandler(h http.HandlerFunc) http.Handler {
+	// for now just use an inmemory storage, so per server. In the future we
+	// can change to store the state on a remote DB if we want to distribute
+	// the counts
+	store, err := memstore.New(65536)
+	if err != nil {
+		// panics only if memstore.New() receives an integer number, so this is
+		// OK, this means it's a human error and needs to be fixed
+		log.Fatal(err)
+	}
+
+	// Based on datadog metrics, kloud.info is called on average 200
+	// req/minute.
+	quota := throttled.RateQuota{
+		MaxRate:  throttled.PerMin(200),
+		MaxBurst: 300,
+	}
+
+	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
+	if err != nil {
+		// we exit because this is code error and must be handled
+		log.Fatalln(err)
+	}
+
+	httpRateLimiter := throttled.HTTPRateLimiter{
+		RateLimiter: rateLimiter,
+	}
+
+	return httpRateLimiter.RateLimit(http.HandlerFunc(h))
 }
 
 // func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {

@@ -296,7 +296,9 @@ module.exports = class JUser extends jraphical.Module
 
                 Payment.deleteAccount deletedClient, (err) =>
 
-                  @logout deletedClient, callback
+                  account.leaveFromAllGroups client, =>
+
+                    @logout deletedClient, callback
 
 
   @isRegistrationEnabled = (callback) ->
@@ -1583,7 +1585,7 @@ module.exports = class JUser extends jraphical.Module
 
         oldEmail = @getAt 'email'
 
-        @update { $set: { email }, sanitizedEmail }, (err, res) =>
+        @update { $set: { email, sanitizedEmail } }, (err, res) =>
           return callback err  if err
 
           account.profile.hash = getHash email

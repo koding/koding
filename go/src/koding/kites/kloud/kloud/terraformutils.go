@@ -1,9 +1,11 @@
 package kloud
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/db/models"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
@@ -11,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 
@@ -38,6 +42,23 @@ type buildData struct {
 	Template string
 	Region   string
 	KiteIds  map[string]string
+}
+
+type kodingData struct {
+	Account *models.Account `structs:"account"`
+	Group   *models.Group   `structs:"group"`
+	User    *models.User    `structs:"user"`
+}
+
+type terraformData struct {
+	Creds      []*terraformCredential
+	KodingData *kodingData
+}
+
+type terraformCredential struct {
+	Provider   string
+	Identifier string
+	Data       map[string]string `mapstructure:"data"`
 }
 
 func (m *Machines) AppendRegion(region string) {
@@ -162,15 +183,14 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-func injectKodingData(ctx context.Context, content, username string, creds *terraformCredentials) (*buildData, error) {
+func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
 	}
 
 	awsOutput := &AwsBootstrapOutput{}
-
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		if cred.Provider != "aws" {
 			continue
 		}
@@ -184,31 +204,26 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
 	}
 
-	var data struct {
-		Resource struct {
-			Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
-		} `json:"resource"`
-		Provider struct {
-			Aws struct {
-				Region    string `json:"region"`
-				AccessKey string `json:"access_key"`
-				SecretKey string `json:"secret_key"`
-			} `json:"aws"`
-		} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
-
-	if err := json.Unmarshal([]byte(content), &data); err != nil {
+	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
 		return nil, err
 	}
 
-	if len(data.Resource.Aws_Instance) == 0 {
-		return nil, fmt.Errorf("instance is empty: %v", data.Resource.Aws_Instance)
+	var resource struct {
+		AwsInstance map[string]map[string]interface{} `hcl:"aws_instance"`
+	}
+
+	if err := template.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.AwsInstance) == 0 {
+		return nil, fmt.Errorf("instance is empty: %v", resource.AwsInstance)
 	}
 
 	kiteIds := make(map[string]string)
 
-	for resourceName, instance := range data.Resource.Aws_Instance {
+	for resourceName, instance := range resource.AwsInstance {
 		instance["key_name"] = awsOutput.KeyPair
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
@@ -231,11 +246,12 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 		// kite id.
 		var count int = 1
 		if c, ok := instance["count"]; ok {
-			// we receive it as float64
-			if cFloat, ok := c.(float64); !ok {
-				return nil, fmt.Errorf("count statement should be an integer, got: %+v", c)
+			// we receive it as int
+			cn, ok := c.(int)
+			if !ok {
+				return nil, fmt.Errorf("count statement should be an integer, got: %+v, %T", c, c)
 			} else {
-				count = int(cFloat)
+				count = cn
 			}
 		}
 
@@ -291,28 +307,40 @@ func injectKodingData(ctx context.Context, content, username string, creds *terr
 			countKeys[strconv.Itoa(i)] = kiteKey
 		}
 
-		data.Variable["kitekeys"] = map[string]interface{}{
+		template.Variable["kitekeys"] = map[string]interface{}{
 			"default": countKeys,
 		}
 
-		data.Resource.Aws_Instance[resourceName] = instance
+		resource.AwsInstance[resourceName] = instance
 	}
 
-	out, err := json.MarshalIndent(data, "", "  ")
+	template.Resource["aws_instance"] = resource.AwsInstance
+
+	var provider struct {
+		Aws struct {
+			Region string
+		}
+	}
+
+	if err := template.DecodeProvider(&provider); err != nil {
+		return nil, err
+	}
+
+	out, err := template.jsonOutput()
 	if err != nil {
 		return nil, err
 	}
 
 	b := &buildData{
-		Template: string(out),
+		Template: out,
 		KiteIds:  kiteIds,
-		Region:   data.Provider.Aws.Region,
+		Region:   provider.Aws.Region,
 	}
 
 	return b, nil
 }
 
-func varsFromCredentials(creds *terraformCredentials) map[string]string {
+func varsFromCredentials(creds *terraformData) map[string]string {
 	vars := make(map[string]string, 0)
 	for _, cred := range creds.Creds {
 		for k, v := range cred.Data {
@@ -359,6 +387,111 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	wg.Wait()
 
 	return multiErrors
+}
+
+func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
+	// fetch jaccount from username
+	account, err := modelhelper.GetAccount(username)
+	if err != nil {
+		return nil, err
+	}
+
+	// fetch jGroup from group slug name
+	group, err := modelhelper.GetGroup(groupname)
+	if err != nil {
+		return nil, err
+	}
+
+	// fetch jUser from username
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate if username belongs to groupnam
+	selector := modelhelper.Selector{
+		"targetId": account.Id,
+		"sourceId": group.Id,
+		"as": bson.M{
+			"$in": []string{"member"},
+		},
+	}
+
+	count, err := modelhelper.RelationshipCount(selector)
+	if err != nil || count == 0 {
+		return nil, fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
+	}
+
+	// 2- fetch credential from identifiers via args
+	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3- count relationship with credential id and jaccount id as user or
+	// owner. Any non valid credentials will be discarded
+	validKeys := make(map[string]string, 0)
+
+	for _, cred := range credentials {
+		selector := modelhelper.Selector{
+			"targetId": cred.Id,
+			"sourceId": bson.M{
+				"$in": []bson.ObjectId{account.Id, group.Id},
+			},
+			"as": bson.M{
+				"$in": []string{"owner", "user"},
+			},
+		}
+
+		count, err := modelhelper.RelationshipCount(selector)
+		if err != nil || count == 0 {
+			// we return for any not validated identifier key.
+			return nil, fmt.Errorf("credential with identifier '%s' is not validated", cred.Identifier)
+		}
+
+		validKeys[cred.Identifier] = cred.Provider
+	}
+
+	// 4- fetch credentialdata with identifier
+	validIdentifiers := make([]string, 0)
+	for pKey := range validKeys {
+		validIdentifiers = append(identifiers, pKey)
+	}
+
+	credentialData, err := modelhelper.GetCredentialDatasFromIdentifiers(validIdentifiers...)
+	if err != nil {
+		return nil, err
+	}
+
+	// 5- return list of keys. We only support aws for now
+	data := &terraformData{
+		KodingData: &kodingData{
+			Account: account,
+			Group:   group,
+			User:    user,
+		},
+		Creds: make([]*terraformCredential, 0),
+	}
+
+	for _, c := range credentialData {
+		provider, ok := validKeys[c.Identifier]
+		if !ok {
+			return nil, fmt.Errorf("provider is not found for identifer: %s", c.Identifier)
+		}
+
+		cred := &terraformCredential{
+			Provider:   provider,
+			Identifier: c.Identifier,
+		}
+
+		if err := mapstructure.Decode(c.Meta, &cred.Data); err != nil {
+			return nil, err
+		}
+
+		data.Creds = append(data.Creds, cred)
+	}
+
+	return data, nil
 }
 
 // isVariable checkes whether the given string is a template variable, such as:

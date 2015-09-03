@@ -40,6 +40,28 @@ loadChannelByName = (name) ->
 
 
 ###*
+ * Action to load channel with given id.
+ *
+ * @param {string} id - id of the channel
+###
+loadChannelById = (id) ->
+
+  { LOAD_CHANNEL_BY_ID_BEGIN
+    LOAD_CHANNEL_BY_ID_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
+
+  dispatch LOAD_CHANNEL_BY_ID_BEGIN, { id }
+
+  kd.singletons.socialapi.channel.byId { id }, (err, channel) ->
+    if err
+      dispatch LOAD_CHANNEL_BY_ID_FAIL, { err }
+      return
+
+    realtimeActionCreators.bindChannelEvents channel
+    dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+
+###*
  * Load participants of a channel.
  *
  * @param {string} channelId
@@ -200,77 +222,90 @@ loadChannelsByQuery = (query, options = {}) ->
  * - if query is empty, it loads popular channels
  * - otherwise, it loads channels filtered by query
  *
+ * @param {string} stateId
  * @param {string} query
 ###
-setChatInputChannelsQuery = (query) ->
+setChatInputChannelsQuery = (stateId, query) ->
 
   if query
     { SET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
-    dispatch SET_CHAT_INPUT_CHANNELS_QUERY, { query }
-    resetChatInputChannelsSelectedIndex()
+    dispatch SET_CHAT_INPUT_CHANNELS_QUERY, { stateId, query }
+    resetChatInputChannelsSelectedIndex stateId
     loadChannelsByQuery query
   else
-    unsetChatInputChannelsQuery()
+    unsetChatInputChannelsQuery stateId
     loadPopularChannels()
 
 
 ###*
  * Action to unset current query of chat input channels.
  * Also, it resets channels selected index
+ *
+ * @param {string} stateId
 ###
-unsetChatInputChannelsQuery = ->
+unsetChatInputChannelsQuery = (stateId) ->
 
   { UNSET_CHAT_INPUT_CHANNELS_QUERY } = actionTypes
-  dispatch UNSET_CHAT_INPUT_CHANNELS_QUERY
+  dispatch UNSET_CHAT_INPUT_CHANNELS_QUERY, { stateId }
 
-  resetChatInputChannelsSelectedIndex()
+  resetChatInputChannelsSelectedIndex stateId
 
 
 ###*
  * Action to set selected index of chat input channels
  *
+ * @param {string} stateId
  * @param {number} index
 ###
-setChatInputChannelsSelectedIndex = (index) ->
+setChatInputChannelsSelectedIndex = (stateId, index) ->
 
   { SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
-  dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { index }
+  dispatch SET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { stateId, index }
 
 
 ###*
  * Action to increment channels selected index
+ *
+ * @param {string} stateId
 ###
-moveToNextChatInputChannelsIndex = ->
+moveToNextChatInputChannelsIndex = (stateId) ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
-  dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX
+  dispatch MOVE_TO_NEXT_CHAT_INPUT_CHANNELS_INDEX, { stateId }
 
 
 ###*
  * Action to decrement channels selected index
+ *
+ * @param {string} stateId
 ###
-moveToPrevChatInputChannelsIndex = ->
+moveToPrevChatInputChannelsIndex = (stateId) ->
 
   { MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX } = actionTypes
-  dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX
+  dispatch MOVE_TO_PREV_CHAT_INPUT_CHANNELS_INDEX, { stateId }
 
 
 ###*
- * Action to reset channels selected index to initial value
+ * Action to reset channels selected index
+ *
+ * @param {string} stateId
 ###
-resetChatInputChannelsSelectedIndex = ->
+resetChatInputChannelsSelectedIndex = (stateId) ->
 
   { RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX } = actionTypes
-  dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX
+  dispatch RESET_CHAT_INPUT_CHANNELS_SELECTED_INDEX, { stateId }
 
 
 ###*
  * Action to set visibility of chat input channels
+ *
+ * @param {string} stateId
+ * @param {bool} visible
 ###
-setChatInputChannelsVisibility = (visible) ->
+setChatInputChannelsVisibility = (stateId, visible) ->
 
   { SET_CHAT_INPUT_CHANNELS_VISIBILITY } = actionTypes
-  dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { visible }
+  dispatch SET_CHAT_INPUT_CHANNELS_VISIBILITY, { stateId, visible }
 
 
 ###*
@@ -316,6 +351,7 @@ module.exports = {
   followChannel
   unfollowChannel
   loadChannelByName
+  loadChannelById
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
   loadParticipants
@@ -328,3 +364,4 @@ module.exports = {
   resetChatInputChannelsSelectedIndex
   setChatInputChannelsVisibility
 }
+

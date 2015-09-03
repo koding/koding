@@ -18,9 +18,10 @@ describe 'CommonEmojiListSelectedIndexStore', ->
     it 'sets selected index', ->
 
       index = 5
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
-      selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['commonEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
@@ -30,13 +31,15 @@ describe 'CommonEmojiListSelectedIndexStore', ->
     it 'resets selected index', ->
 
       index = 5
+      stateId = '123'
 
-      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { index }
-      selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
+      @reactor.dispatch actions.SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+      selectedIndex = @reactor.evaluate(['commonEmojiListSelectedIndex']).get stateId
 
       expect(selectedIndex).to.equal index
 
-      @reactor.dispatch actions.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX
-      selectedIndex = @reactor.evaluate ['commonEmojiListSelectedIndex']
+      @reactor.dispatch actions.RESET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId }
+      selectedIndex = @reactor.evaluate(['commonEmojiListSelectedIndex']).get stateId
 
-      expect(selectedIndex).to.equal 0
+      expect(selectedIndex).to.be.undefined
+

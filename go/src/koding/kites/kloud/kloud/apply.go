@@ -166,7 +166,7 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	creds, err := fetchCredentials(username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := fetchTerraformData(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -178,14 +178,20 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	for _, cred := range creds.Creds {
-		stack.Template, err = cred.appendAWSVariable(stack.Template)
-		if err != nil {
+	sess.Log.Debug("Parsing the template")
+	template, err := newTerraformTemplate(stack.Template)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+	for _, cred := range data.Creds {
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
 	}
 
-	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
+	buildData, err := injectKodingData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}
@@ -252,7 +258,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	creds, err := fetchCredentials(username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := fetchTerraformData(username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -264,17 +270,38 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	}
 	defer tfKite.Close()
 
-	for _, cred := range creds.Creds {
-		stack.Template, err = cred.appendAWSVariable(stack.Template)
-		if err != nil {
+	sess.Log.Debug("Parsing the template")
+	template, err := newTerraformTemplate(stack.Template)
+	if err != nil {
+		return err
+	}
+
+	sess.Log.Debug("Stack template before injecting Koding data:")
+	sess.Log.Debug("%s", template)
+
+	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+	for _, cred := range data.Creds {
+		sess.Log.Debug("Appending %s provider variables", cred.Provider)
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
+			return err
+		}
+
+		// rest is aws related
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		region, ok := cred.Data["region"]
+		if !ok {
+			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
+		}
+
+		if err := template.setAwsRegion(region); err != nil {
 			return err
 		}
 	}
 
-	sess.Log.Debug("Stack template before injecting Koding data:")
-	sess.Log.Debug(stack.Template)
-
-	buildData, err := injectKodingData(ctx, stack.Template, username, creds)
+	buildData, err := injectKodingData(ctx, template, username, data)
 	if err != nil {
 		return err
 	}
@@ -378,9 +405,24 @@ func fetchStack(stackId string) (*Stack, error) {
 		machineIds[i] = m.Hex()
 	}
 
+	credentials := make(map[string][]string, 0)
+
+	// first copy admin/group based credentials
+	for k, v := range stackTemplate.Credentials {
+		credentials[k] = v
+	}
+
+	// copy user based credentials
+	for k, v := range computeStack.Credentials {
+		// however don't override anything the admin already added
+		if _, ok := credentials[k]; !ok {
+			credentials[k] = v
+		}
+	}
+
 	return &Stack{
 		Machines:    machineIds,
-		Credentials: stackTemplate.Credentials,
+		Credentials: credentials,
 		Template:    stackTemplate.Template.Content,
 	}, nil
 }

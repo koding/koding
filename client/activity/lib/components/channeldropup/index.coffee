@@ -5,96 +5,87 @@ classnames           = require 'classnames'
 ActivityFlux         = require 'activity/flux'
 Dropup               = require 'activity/components/dropup'
 ChannelDropupItem    = require 'activity/components/channeldropupitem'
-scrollToTarget       = require 'activity/util/scrollToTarget'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class ChannelDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    visible      : no
-    selectedItem : null
+    items          : immutable.List()
+    visible        : no
+    selectedIndex  : 0
+    selectedItem   : null
 
 
-  isActive: ->
-
-    { items, visible } = @props
-    return items.size > 0 and visible
+  formatSelectedValue: -> "##{@props.selectedItem.get 'name'}"
 
 
-  hasOnlyItem: -> @props.items.size is 1
-
-
-  confirmSelectedItem: ->
-
-    { selectedItem } = @props
-    
-    @props.onItemConfirmed? "##{selectedItem.get 'name'}"
-    @close()
+  getItemKey: (item) -> item.get 'id'
 
 
   close: ->
 
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility no
+    { stateId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility stateId, no
 
 
-  moveToNextPosition: ->
+  moveToNextPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if keyInfo.isRightArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex()
-      return yes
+
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex stateId
+
+    return yes
 
 
-  moveToPrevPosition: ->
+  moveToPrevPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if keyInfo.isLeftArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex()
-      return yes
+
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex stateId
+
+    return yes
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^#(.*)/
-    if matchResult
-      query = matchResult[1]
-      ActivityFlux.actions.channel.setChatInputChannelsQuery query
-      ActivityFlux.actions.channel.setChatInputChannelsVisibility yes
-    else if @isActive()
-      @close()
+    { currentWord } = textData
+    return no  unless currentWord
 
+    matchResult = currentWord.match /^#(.*)/
+    return no  unless matchResult
 
-  componentDidUpdate: (prevProps, prevState) ->
-
-    { selectedItem } = @props
-    return  if prevProps.selectedItem is selectedItem or not selectedItem
-
-    containerElement = @refs.dropup.getMainElement()
-    itemElement      = React.findDOMNode @refs[selectedItem.get 'id']
-
-    scrollToTarget containerElement, itemElement
+    query = matchResult[1]
+    { stateId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsQuery stateId, query
+    ActivityFlux.actions.channel.setChatInputChannelsVisibility stateId, yes
+    return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex stateId, index
 
 
   renderList: ->
 
-    { items, selectedItem } = @props
+    { items, selectedIndex } = @props
 
     items.map (item, index) =>
-      isSelected = item is selectedItem
+      isSelected = index is selectedIndex
 
       <ChannelDropupItem
         isSelected  = { isSelected }
@@ -102,8 +93,8 @@ module.exports = class ChannelDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = { item.get 'id' }
-        ref         = { item.get 'id' }
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 
@@ -115,7 +106,7 @@ module.exports = class ChannelDropup extends React.Component
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
     >
-      <div className="ChannelDropup-innerContainer">
+      <div className="Dropup-innerContainer">
         <div className="Dropup-header">
           Channels
         </div>
@@ -124,3 +115,4 @@ module.exports = class ChannelDropup extends React.Component
         </div>
       </div>
     </Dropup>
+

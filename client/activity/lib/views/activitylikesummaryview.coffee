@@ -99,8 +99,7 @@ module.exports = class ActivityLikeSummaryView extends KDView
       @addTextElement partial: @getSeparatorPartial actorsCount, linkCount, i
 
     if (diff = actorsCount - linkCount) > 0
-      @addShowMoreLink actorsCount, linkCount
-      @addTextElement partial: " other#{if diff > 1 then 's' else ''}"
+      @addShowMoreLink diff
 
     @addTextElement partial: ' liked this.'
 
@@ -116,12 +115,14 @@ module.exports = class ActivityLikeSummaryView extends KDView
         ', '
 
 
-  addShowMoreLink: (actorsCount, linkCount) ->
+  addShowMoreLink: (diff) ->
+
+    text = " other#{if diff > 1 then 's' else ''}"
 
     @addSubView new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'profile'
-      partial    : "<strong>#{actorsCount - linkCount}</strong>"
+      partial    : "<strong>#{diff} #{text}</strong>"
       attributes : href: '#'
       click      : @bound 'showLikers'
 

@@ -17,16 +17,17 @@ describe 'ChatInputChannelsQueryStore', ->
 
     it 'sets current query to a given value', ->
 
-      query1 = 'koding'
-      query2 = 'tests'
+      query1      = 'koding'
+      query2      = 'tests'
+      stateId = 'qwerty'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, query : query1
-      query = @reactor.evaluate ['chatInputChannelsQuery']
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, { stateId, query : query1 }
+      query = @reactor.evaluate(['chatInputChannelsQuery']).get stateId
 
       expect(query).to.equal query1
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, query: query2
-      query = @reactor.evaluate ['chatInputChannelsQuery']
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, { stateId, query: query2 }
+      query = @reactor.evaluate(['chatInputChannelsQuery']).get stateId
 
       expect(query).to.equal query2
 
@@ -35,14 +36,16 @@ describe 'ChatInputChannelsQueryStore', ->
 
     it 'clears current query', ->
 
-      testQuery = 'koding'
+      testQuery   = 'koding'
+      stateId = 'qwerty'
 
-      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, query : testQuery
-      query = @reactor.evaluate ['chatInputChannelsQuery']
+      @reactor.dispatch actions.SET_CHAT_INPUT_CHANNELS_QUERY, { stateId, query : testQuery }
+      query = @reactor.evaluate(['chatInputChannelsQuery']).get stateId
 
       expect(query).to.equal testQuery
 
-      @reactor.dispatch actions.UNSET_CHAT_INPUT_CHANNELS_QUERY
-      query = @reactor.evaluate ['chatInputChannelsQuery']
+      @reactor.dispatch actions.UNSET_CHAT_INPUT_CHANNELS_QUERY, { stateId }
+      query = @reactor.evaluate(['chatInputChannelsQuery']).get stateId
 
-      expect(query).to.be.null
+      expect(query).to.be.undefined
+

@@ -6,7 +6,6 @@ MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
 
 ComputeHelpers         = require '../providers/computehelpers'
-ComputeController_UI   = require '../providers/computecontroller.ui'
 
 
 module.exports = class EnvironmentListItem extends kd.ListItemView
@@ -44,7 +43,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
         callback    : =>
-          ComputeController_UI.askFor 'reinitStack', {}, =>
+          { ui }    = kd.singletons.computeController
+          ui.askFor 'reinitStack', {}, =>
             @getDelegate().emit 'StackReinitRequested', @getData()
 
     if isKoding()

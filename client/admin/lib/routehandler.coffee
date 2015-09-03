@@ -29,6 +29,6 @@ module.exports = ->
   lazyrouter.bind 'admin', (type, info, state, path, ctx) ->
     switch type
       when 'home'
-        kd.singletons.router.handleRoute '/Admin/Settings'
+        kd.singletons.router.handleRoute '/Admin/General'
       when 'section', 'action', 'identifier'
         handle info, path

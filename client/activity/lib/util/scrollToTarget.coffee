@@ -26,7 +26,7 @@ module.exports = (container, target) ->
   containerHeight       = container.height()
   containerScrollBottom = containerScrollTop + containerHeight
   targetTop             = target.position().top
-  targetHeight          = target.outerHeight()
+  targetHeight          = target.outerHeight yes
   targetBottom          = targetTop + targetHeight
 
   isBelowVisibleArea = targetBottom > containerScrollBottom

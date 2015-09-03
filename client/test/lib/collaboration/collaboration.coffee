@@ -8,19 +8,31 @@ module.exports =
 
   startSession: (browser) ->
 
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
     collaborationHelpers.startSession(browser)
+
     browser.end()
 
 
   endSessionFromStatusBar: (browser) ->
 
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
     collaborationHelpers.startSession(browser)
     collaborationHelpers.endSessionFromStatusBar(browser)
+
     browser.end()
 
 
   endSessionFromChat: (browser) ->
 
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
     collaborationHelpers.startSession(browser)
     collaborationHelpers.endSessionFromChat(browser)
+
     browser.end()

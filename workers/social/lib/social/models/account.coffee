@@ -338,6 +338,47 @@ module.exports = class JAccount extends jraphical.Module
 
   canDeletePost: permit 'delete posts'
 
+
+  leaveFromAllGroups: secure (client, callback) ->
+    { delegate } = client.connection
+
+    @fetchAllParticipatedGroups client, (err, groups) ->
+      return callback err   if err
+      return callback null  if not groups
+
+      queue = groups.map (group) -> ->
+        if group.slug in ['koding', 'guests'] # just skip koding & guests
+          queue.fin()
+        else
+          group.leave client, queue.fin
+
+      dash queue, callback
+
+  fetchAllParticipatedGroups: secure (client, callback) ->
+
+    { delegate } = client.connection
+
+    selector = {
+      targetId: delegate.getId()
+      as : { $in: [ 'member', 'moderator', 'admin'] }
+    }
+
+    Relationship.someData selector, { sourceId: 1 }, (err, cursor) ->
+      return callback err  if err
+      return callback null, []  if not cursor
+
+      cursor.toArray (err, arr) ->
+        return callback err       if err
+        return callback null, []  if not arr
+
+        { uniq, map } = require 'underscore'
+
+        # just get the unique group ids from relationship response
+        groupIds = uniq map(arr, (rel) -> rel.sourceId)
+
+        JGroup = require './group'
+        JGroup.some { _id : { $in : groupIds } }, {}, callback
+
   createSocialApiId:(callback) ->
     if @type is 'unregistered'
       return callback null, -1
@@ -658,7 +699,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ 'sinan', 'devrim', 'gokmen', 'fatihacet', 'arslan',
                   'sent-hil', 'cihangirsavas', 'leeolayvar', 'stefanbc',
-                  'szkl', 'canthefason', 'nitin', 'usirin', 'kodinglearn' ] # kodinglearn is nitin's impersonation account
+                  'szkl', 'nitin', 'usirin', 'kodinglearn' ] # kodinglearn is nitin's impersonation account
 
 
   isEmailVerified: (callback) ->

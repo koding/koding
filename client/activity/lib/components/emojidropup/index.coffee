@@ -7,78 +7,85 @@ formatEmojiName      = require 'activity/util/formatEmojiName'
 ActivityFlux         = require 'activity/flux'
 Dropup               = require 'activity/components/dropup'
 EmojiDropupItem      = require 'activity/components/emojidropupitem'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class EmojiDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    selectedItem : null
+    items          : immutable.List()
+    selectedIndex  : 0
+    selectedItem   : null
 
 
-  isActive: -> @props.items.size > 0
+  formatSelectedValue: -> formatEmojiName @props.selectedItem
 
 
-  hasOnlyItem: -> @props.items.size is 1
-
-
-  confirmSelectedItem: ->
-
-    { selectedItem } = @props
-
-    @props.onItemConfirmed? formatEmojiName selectedItem
-    @close()
+  getItemKey: (item) -> item
 
 
   close: ->
 
-    ActivityFlux.actions.emoji.unsetFilteredListQuery()
+    { stateId } = @props
+    ActivityFlux.actions.emoji.unsetFilteredListQuery stateId
 
 
-  moveToNextPosition: ->
+  moveToNextPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if @hasSingleItem() and keyInfo.isRightArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.emoji.moveToNextFilteredListIndex()
-      return yes
+
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.emoji.moveToNextFilteredListIndex stateId
+
+    return yes
 
 
-  moveToPrevPosition: ->
+  moveToPrevPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if @hasSingleItem() and keyInfo.isLeftArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()
-      return yes
+
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.emoji.moveToPrevFilteredListIndex stateId
+
+    return yes
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^\:(.+)/
-    query = matchResult?[1]
+    { currentWord } = textData
+    return no  unless currentWord
 
-    if @isActive() or query
-      ActivityFlux.actions.emoji.setFilteredListQuery query
+    matchResult = currentWord.match /^\:(.+)/
+    return no  unless matchResult
+
+    query = matchResult[1]
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setFilteredListQuery stateId, query
+    return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.emoji.setFilteredListSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setFilteredListSelectedIndex stateId, index
 
 
   renderList: ->
 
-    { items, selectedItem } = @props
+    { items, selectedIndex } = @props
 
     items.map (item, index) =>
-      isSelected = item is selectedItem
+      isSelected = index is selectedIndex
 
       <EmojiDropupItem
         isSelected  = { isSelected }
@@ -86,7 +93,8 @@ module.exports = class EmojiDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = item
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 
@@ -95,15 +103,19 @@ module.exports = class EmojiDropup extends React.Component
     { query } = @props
 
     <Dropup
-      className      = "EmojiDropup"
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
+      className    = "EmojiDropup"
+      visible      = { @isActive() }
+      onOuterClick = { @bound 'close' }
+      ref          = 'dropup'
     >
-      <div className="Dropup-header">
-        Emojis matching <strong>:{query}</strong>
-      </div>
-      <div className="EmojiDropup-list">
-        {@renderList()}
-        <div className="clearfix" />
+      <div className="Dropup-innerContainer">
+        <div className="Dropup-header">
+          Emojis matching <strong>:{query}</strong>
+        </div>
+        <div className="EmojiDropup-list">
+          {@renderList()}
+          <div className="clearfix" />
+        </div>
       </div>
     </Dropup>
+

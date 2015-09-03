@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 _                    = require 'underscore'
+
 KDModalView          = kd.ModalView
 KDNotificationView   = kd.NotificationView
 KDFormViewWithFields = kd.FormViewWithFields
@@ -12,8 +13,9 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 
-ProviderView         = require './providerview'
 TerminalModal        = require '../terminal/terminalmodal'
+
+MissingDataView      = require './missingdataview'
 
 
 module.exports = class ComputeController_UI
@@ -27,32 +29,32 @@ module.exports = class ComputeController_UI
     fn args...
 
 
-  @showProvidersModal = requiresLogin
-    message: "You need to login to create a new VM."
-  , (stack)->
+  @generateAddCredentialFormFor = (options) ->
 
-    new KDModalView
-      title    : 'Add Virtual Machine'
-      cssClass : 'provider-modal'
-      view     : new ProviderView {stack}
-      width    : 800
-      height   : 600
-      overlay  : yes
+    { provider, requiredFields, defaultTitle } = options
 
+    fields           =
+      title          :
+        label        : "Title"
+        placeholder  : "title for this credential"
+        defaultValue : defaultTitle or ''
 
-  @generateAddCredentialFormFor = (provider)->
+    if provider in ['custom', 'userInput'] and requiredFields
+      credentialFields = {}
 
-    fields          =
-      title         :
-        label       : "Title"
-        placeholder : "title for this credential"
+      for field in requiredFields
+        credentialFields[field] =
+          label : field.capitalize()
 
-    Providers        = globals.config.providers
-    currentProvider  = Providers[provider]
-    credentialFields = Object.keys currentProvider.credentialFields
+      currentProvider  = { credentialFields }
 
-    unless credentialFields.length
-      return
+    else
+      Providers        = globals.config.providers
+      currentProvider  = Providers[provider]
+
+    credentialFields   = Object.keys currentProvider.credentialFields
+
+    return  unless credentialFields.length
 
     selectOptions = []
 
@@ -69,7 +71,7 @@ module.exports = class ComputeController_UI
 
     buttons      =
       Save       :
-        title    : "Add credential"
+        title    : "Save"
         type     : "submit"
         style    : "solid green medium"
         loader   : color : "#444444"
@@ -194,7 +196,7 @@ module.exports = class ComputeController_UI
           title   : "Reinitialize VM?"
           message : "
             If you choose to proceed, this VM will be reset to default state.
-            You will lose all your files, workspaces and data but your VM
+            You will lose all your files, workspaces, collaboration sessions and data but your VM
             settings (VM aliases, sub-domains etc.) will not be lost.
           "
           button  : "Proceed"
@@ -229,6 +231,7 @@ module.exports = class ComputeController_UI
               <li> running services </li>
               <li> settings </li>
               <li> custom domains (if any) </li>
+              <li> collaboration sessions </li>
               <br/>
             <p>This action cannot be reversed!
             Are you sure you want to proceed?</p>
@@ -278,6 +281,24 @@ module.exports = class ComputeController_UI
     modal.setClass 'has-markdown'
 
     return modal
+
+
+  @requestMissingData = (options, callback) ->
+
+    missingDataView = new MissingDataView options
+
+    modal = new kd.ModalView
+      cssClass       : 'AppModal AppModal--admin'
+      title          : 'Build Requirements'
+      overlay        : yes
+      view           : missingDataView
+      overlayOptions :
+        cssClass     : 'second-overlay'
+      width          : 630
+
+    missingDataView.on 'RequirementsProvided', ({ stack, credential }) ->
+      callback { stack, credential }
+      modal.destroy()
 
 
   showInlineInformation = do ->

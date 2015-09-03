@@ -13,7 +13,7 @@ module.exports = class GetStartedView extends JView
     @getStartedButton = new kd.ButtonView
       cssClass : 'solid medium green'
       title    : 'Get Started!'
-      callback : ->
+      callback : => @emit 'NextPageRequested'
 
 
   pistachio: ->

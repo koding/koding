@@ -161,12 +161,27 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchAdminsWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         fetchModerators: [
           (signature Function)
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchModeratorsWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         fetchMembers: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchMembersWithEmail: [
           (signature Function)
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -704,27 +719,71 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchMembers selector, options, callback
+      @baseFetcherOfGroupStaff {
+        method : @fetchMembers
+        client
+        rest
+      }
+
+  fetchMembersWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchMembers
+        fetchEmail  : yes
+        client
+        rest
+      }
 
   fetchAdmins$: permit 'list members',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchAdmins selector, options, callback
+      @baseFetcherOfGroupStaff {
+        method: @fetchAdmins
+        client
+        rest
+      }
+
+  fetchAdminsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchAdmins
+        fetchEmail  : yes
+        client
+        rest
+      }
 
   fetchModerators$: permit 'list members',
     success:(client, rest...) ->
-      # when max limit is over 20 it starts giving "call stack exceeded" error
-      [selector, options, callback] = Module.limitEdges 10, 19, rest
-      # delete options.targetOptions
-      options.client = client
-      @fetchModerators selector, options, callback
+      @baseFetcherOfGroupStaff {
+        method: @fetchModerators
+        client
+        rest
+      }
+
+  fetchModeratorsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchModerators
+        fetchEmail  : yes
+        client
+        rest
+      }
+
+  baseFetcherOfGroupStaff: (options) ->
+
+    { method, client, rest, fetchEmail }  = options
+
+    # when max limit is over 20 it starts giving "call stack exceeded" error
+    [selector, options, callback] = Module.limitEdges 10, 19, rest
+
+    # delete options.targetOptions
+    options.client                = client
+
+    method.call this, selector, options, (err, records = []) =>
+      return callback err, records  if err or not records or not fetchEmail
+
+      @mergeAccountsWithEmail records, (err, accounts) ->
+        return callback err, accounts
+
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
   # It is a workaround, and will be changed after elasticsearch implementation. CtF
@@ -1277,3 +1336,19 @@ module.exports = class JGroup extends Module
         return callback err if err
         return callback null, channel.id
 
+
+  mergeAccountsWithEmail: (accounts, callback) ->
+
+    JUser     = require '../user'
+    usernames = accounts.map (account) -> account.profile.nickname
+
+    JUser.some { username: { $in: usernames } }, {}, (err, users) ->
+
+      return callback err, []  if err or not users
+
+      for account in accounts
+        for user in users
+          if account.profile.nickname is user.username
+            account.profile.email = user.email
+
+      return callback null, accounts

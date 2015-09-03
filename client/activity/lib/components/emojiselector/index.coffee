@@ -47,7 +47,8 @@ module.exports = class EmojiSelector extends React.Component
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.emoji.setCommonListSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setCommonListSelectedIndex stateId, index
 
 
   onItemConfirmed: ->
@@ -59,7 +60,8 @@ module.exports = class EmojiSelector extends React.Component
 
   close: ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility no
+    { stateId } = @props
+    ActivityFlux.actions.emoji.setCommonListVisibility stateId, no
 
 
   handleKeyDown: (event) ->
@@ -111,3 +113,4 @@ module.exports = class EmojiSelector extends React.Component
         <div className="clearfix" />
       </div>
     </Dropup>
+

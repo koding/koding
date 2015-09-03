@@ -9,4 +9,7 @@ type ComputeStack struct {
 
 	// Points to a document in jStackTemplates
 	BaseStackId bson.ObjectId `bson:"baseStackId"`
+
+	// User injected credentials
+	Credentials map[string][]string `bson:"credentials"`
 }

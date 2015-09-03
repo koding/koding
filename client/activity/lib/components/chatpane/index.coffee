@@ -1,61 +1,61 @@
 kd              = require 'kd'
 React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
-InfiniteScroll  = require 'app/components/infinitescroll'
 ChatInputWidget = require 'activity/components/chatinputwidget'
+Scroller        = require 'app/components/scroller'
 ActivityFlux    = require 'activity/flux'
 
 
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title                    : null
-    messages                 : null
-    isDataLoading            : no
-    onScrollThresholdReached : kd.noop
-    isParticipant            : no
+    title         : null
+    messages      : null
+    isDataLoading : no
+    onLoadMore    : kd.noop
+    isParticipant : no
+    showItemMenu  : yes
+
+
+  componentWillUpdate: ->
+
+    return  unless @refs?.scrollContainer
+
+    { @scrollTop, offsetHeight, @scrollHeight } = React.findDOMNode @refs.scrollContainer
+    @shouldScrollToBottom = @scrollTop + offsetHeight is @scrollHeight
 
 
   componentDidUpdate: ->
 
-    list = React.findDOMNode(@refs.ChatList)
-    body = React.findDOMNode(@refs.ChatPaneBody)
+    return  unless @refs?.scrollContainer
 
-    return  unless list and body
+    element = React.findDOMNode @refs.scrollContainer
 
-    list       = list.firstElementChild
-    listHeight = list.offsetHeight
-    bodyHeight = body.offsetHeight
-
-    if (listHeight > bodyHeight)
-    then list.classList.remove 'padded'
-    else list.classList.add 'padded'
+    if @shouldScrollToBottom
+      element.scrollTop = element.scrollHeight
+    else
+      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
 
 
   onSubmit: (event) -> @props.onSubmit? event
 
 
-  getScrollProps: ->
-    scrollDirection          : 'up'
-    onScrollThresholdReached : @props.onScrollThresholdReached
-    isDataLoading            : @props.thread.getIn ['flags', 'isMessagesLoading']
+  onTopThresholdReached: -> @props.onLoadMore()
 
 
   renderBody: ->
     return null  unless @props.messages
 
-    messages = @props.messages.sortBy (m) -> m?.get 'createdAt'
-
     <section className="ChatPane-body" ref="ChatPaneBody">
-      <InfiniteScroll {...@getScrollProps()} ref="ChatList">
-        <ChatList messages={messages} />
-      </InfiniteScroll>
+      <Scroller
+        onTopThresholdReached={@bound 'onTopThresholdReached'}
+        ref="scrollContainer">
+        <ChatList messages={@props.messages} showItemMenu={@props.showItemMenu} />
+      </Scroller>
     </section>
 
 
-  onFollowChannelButtonClick: ->
-
-    ActivityFlux.actions.channel.followChannel @props.thread.getIn ['channel', 'id']
+  onFollowChannelButtonClick: -> @props.onFollowChannelButtonClick()
 
 
   renderFollowChannel: ->
@@ -68,12 +68,9 @@ module.exports = class ChatPane extends React.Component
 
   renderFooter: ->
 
-    isParticipant = @props.thread?.getIn ['channel', 'isParticipant']
-
-    footerInnerComponent = if isParticipant is yes
-      <ChatInputWidget onSubmit={@bound 'onSubmit'} />
-    else if isParticipant is no
-      @renderFollowChannel()
+    footerInnerComponent = if @props.isParticipant
+    then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
+    else @renderFollowChannel()
 
     <footer className="ChatPane-footer">
       {footerInnerComponent}

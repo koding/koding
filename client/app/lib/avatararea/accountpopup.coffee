@@ -62,7 +62,7 @@ module.exports = class AccountPopup extends AvatarPopup
 
       group.canEditGroup (err, success) ->
         return  unless success
-        dashboardLink.show()
+        dashboardLink.show()  if group.slug is 'koding'
         adminLink.show()
 
 

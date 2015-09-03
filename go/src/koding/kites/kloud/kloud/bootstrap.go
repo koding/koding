@@ -68,7 +68,7 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	creds, err := fetchCredentials(r.Username, args.GroupName, sess.DB, args.Identifiers)
+	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, args.Identifiers)
 	if err != nil {
 		return nil, err
 	}
@@ -81,35 +81,39 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 	defer tfKite.Close()
 
 	k.Log.Debug("Iterating over credentials")
-	for _, cred := range creds.Creds {
+	for _, cred := range data.Creds {
 		// We are going to support more providers in the future, for now only allow aws
 		if cred.Provider != "aws" {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		k.Log.Debug("Appending variables for %s", cred.Identifier)
-		finalBootstrap, err := cred.appendAWSVariable(awsBootstrap)
+		k.Log.Debug("parsing the template")
+		template, err := newTerraformTemplate(awsBootstrap)
 		if err != nil {
 			return nil, err
 		}
 
-		// fetch accountID to create a unique contentID for Terraform
-		region, err := cred.region()
-		if err != nil {
+		k.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return nil, err
 		}
 
-		accesKey, secretKey, err := cred.awsCredentials()
-		if err != nil {
+		var awsCred struct {
+			Region    string `mapstructure:"region"`
+			AccessKey string `mapstructure:"access_key"`
+			SecretKey string `mapstructure:"secret_key"`
+		}
+
+		if err := mapstructure.Decode(cred.Data, &awsCred); err != nil {
 			return nil, err
 		}
 
 		iamClient := iam.New(
 			aws.Auth{
-				AccessKey: accesKey,
-				SecretKey: secretKey,
+				AccessKey: awsCred.AccessKey,
+				SecretKey: awsCred.SecretKey,
 			},
-			aws.Regions[region],
+			aws.Regions[awsCred.Region],
 		)
 
 		k.Log.Debug("Fetching the AWS user information to get the account ID")
@@ -123,10 +127,15 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, region)
+		contentID := fmt.Sprintf("%s-%s-%s", awsAccountID, args.GroupName, awsCred.Region)
 		k.Log.Debug("Going to use the contentID: %s", contentID)
 
 		keyName := "koding-deployment-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+
+		finalBootstrap, err := template.jsonOutput()
+		if err != nil {
+			return nil, err
+		}
 
 		finalBootstrap, err = appendAWSTemplateData(finalBootstrap, &awsTemplateData{
 			KeyPairName:     keyName,
@@ -243,7 +252,7 @@ var awsBootstrap = `{
         "aws": {
             "access_key": "${var.aws_access_key}",
             "secret_key": "${var.aws_secret_key}",
-            "region": "${var.region}"
+            "region": "${var.aws_region}"
         }
     },
     "output": {
@@ -269,7 +278,7 @@ var awsBootstrap = `{
             "value": "${aws_security_group.allow_all.id}"
         },
         "ami": {
-            "value": "${lookup(var.aws_amis, var.region)}"
+            "value": "${lookup(var.aws_amis, var.aws_region)}"
         },
         "key_pair": {
             "value": "${aws_key_pair.koding_key_pair.key_name}"
@@ -294,7 +303,7 @@ var awsBootstrap = `{
         },
         "aws_subnet": {
             "main_koding_subnet": {
-                "availability_zone": "${lookup(var.aws_availability_zones, var.region)}",
+                "availability_zone": "${lookup(var.aws_availability_zones, var.aws_region)}",
                 "cidr_block": "${var.cidr_block}",
                 "map_public_ip_on_launch": true,
                 "tags": {

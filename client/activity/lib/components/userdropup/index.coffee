@@ -5,96 +5,88 @@ classnames           = require 'classnames'
 ActivityFlux         = require 'activity/flux'
 Dropup               = require 'activity/components/dropup'
 UserDropupItem       = require 'activity/components/userdropupitem'
-scrollToTarget       = require 'activity/util/scrollToTarget'
+DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class UserDropup extends React.Component
 
-  @include [ImmutableRenderMixin]
+  @include [ImmutableRenderMixin, DropupWrapperMixin]
 
 
   @defaultProps =
-    items        : immutable.List()
-    visible      : no
-    selectedItem : null
+    items          : immutable.List()
+    visible        : no
+    selectedIndex  : 0
+    selectedItem   : null
 
 
-  isActive: ->
-
-    { items, visible } = @props
-    return items.size > 0 and visible
+  formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
 
 
-  hasOnlyItem: -> @props.items.size is 1
-
-
-  confirmSelectedItem: ->
-
-    { selectedItem } = @props
-
-    @props.onItemConfirmed? "@#{selectedItem.getIn ['profile', 'nickname']}"
-    @close()
+  getItemKey: (item) -> item.get '_id'
 
 
   close: ->
 
-    ActivityFlux.actions.user.setChatInputUsersVisibility no
+    { stateId } = @props
+    ActivityFlux.actions.user.setChatInputUsersVisibility stateId, no
 
 
-  moveToNextPosition: ->
+  moveToNextPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if keyInfo.isRightArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.user.moveToNextChatInputUsersIndex()
-      return yes
+
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.user.moveToNextChatInputUsersIndex stateId
+
+    return yes
 
 
-  moveToPrevPosition: ->
+  moveToPrevPosition: (keyInfo) ->
 
-    if @hasOnlyItem()
+    if keyInfo.isLeftArrow
       @close()
       return no
-    else
-      ActivityFlux.actions.user.moveToPrevChatInputUsersIndex()
-      return yes
+
+    { stateId } = @props
+    unless @hasSingleItem()
+      ActivityFlux.actions.user.moveToPrevChatInputUsersIndex stateId
+
+    return yes
 
 
-  setQuery: (query) ->
+  checkTextForQuery: (textData) ->
 
-    matchResult = query?.match /^@(.*)/
-    if matchResult
-      query = matchResult[1]
-      ActivityFlux.actions.user.setChatInputUsersQuery query
-      ActivityFlux.actions.user.setChatInputUsersVisibility yes
-    else if @isActive()
-      @close()
+    { currentWord } = textData
+    return no  unless currentWord
 
+    matchResult = currentWord.match /^@(.*)/
+    return no  unless matchResult
 
-  componentDidUpdate: (prevProps, prevState) ->
+    query = matchResult[1]
+    { stateId } = @props
+    ActivityFlux.actions.user.setChatInputUsersQuery stateId, query
+    ActivityFlux.actions.user.setChatInputUsersVisibility stateId, yes
 
-    { selectedItem } = @props
-    return  if prevProps.selectedItem is selectedItem or not selectedItem
-
-    containerElement = @refs.dropup.getMainElement()
-    itemElement      = React.findDOMNode @refs[selectedItem.get '_id']
-
-    scrollToTarget containerElement, itemElement
+    return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.user.setChatInputUsersSelectedIndex index
+    { stateId } = @props
+    ActivityFlux.actions.user.setChatInputUsersSelectedIndex stateId, index
 
 
   renderList: ->
 
-    { items, selectedItem } = @props
+    { items, selectedIndex } = @props
 
     items.map (item, index) =>
-      isSelected = item is selectedItem
+      isSelected = index is selectedIndex
 
       <UserDropupItem
         isSelected  = { isSelected }
@@ -102,8 +94,8 @@ module.exports = class UserDropup extends React.Component
         item        = { item }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
-        key         = { item.get '_id' }
-        ref         = { item.get '_id' }
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
       />
 
 
@@ -115,7 +107,7 @@ module.exports = class UserDropup extends React.Component
       onOuterClick   = { @bound 'close' }
       ref            = 'dropup'
     >
-      <div className="UserDropup-innerContainer">
+      <div className="Dropup-innerContainer">
         <div className="Dropup-header">
           People
         </div>
@@ -124,3 +116,4 @@ module.exports = class UserDropup extends React.Component
         </div>
       </div>
     </Dropup>
+

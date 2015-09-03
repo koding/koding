@@ -7,23 +7,10 @@ ChatPane        = require 'activity/components/chatpane'
 
 module.exports = class PublicChatPane extends React.Component
 
-
   @defaultProps =
     thread   : immutable.Map()
     messages : immutable.List()
     padded   : no
-
-
-  componentDidMount: ->
-
-    @createModalContainer()
-
-
-  createModalContainer: ->
-
-    ModalContainer = document.createElement 'div'
-    ModalContainer.setAttribute 'class', 'PublicChatPane-ModalContainer hidden'
-    document.body.appendChild ModalContainer
 
 
   channel: (key) -> @props.thread?.getIn ['channel', key]
@@ -40,8 +27,18 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
 
-  onScrollThresholdReached: ->
-    console.log "load messages"
+  onLoadMore: ->
+
+    return  unless @props.messages.size
+    return  if @props.thread.getIn ['flags', 'isMessagesLoading']
+
+    from = @props.messages.first().get('createdAt')
+    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
+
+
+  onFollowChannel: ->
+
+    ActivityFlux.actions.channel.followChannel @channel 'id'
 
 
   render: ->
@@ -50,7 +47,9 @@ module.exports = class PublicChatPane extends React.Component
       className="PublicChatPane"
       messages={@props.messages}
       onSubmit={@bound 'onSubmit'}
-      onScrollThresholdReached={@bound 'onScrollThresholdReached'}
+      onLoadMore={@bound 'onLoadMore'}
+      isParticipant={@channel 'isParticipant'}
+      onFollowChannelButtonClick={@bound 'onFollowChannel'}
     />
 
 
