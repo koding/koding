@@ -17,7 +17,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	}
 
 	quota := throttled.RateQuota{
-		MaxRate:  throttled.PerSec(100),
+		MaxRate:  throttled.PerMin(100),
 		MaxBurst: 100,
 	}
 
