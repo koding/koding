@@ -49,6 +49,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	return nil
 }
 
+// write tells Transport to overwrite file on user VM with contents.
 func (f *File) write(data []byte) error {
 	f.Lock()
 	defer f.Unlock()

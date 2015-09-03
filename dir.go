@@ -88,6 +88,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	return d.readDirAll()
 }
 
+// Create create new File. Required by Fuse.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
 	d.RLock()
 	n := NewNode(d, req.Name)
@@ -197,6 +198,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 	return d.invalidateCache(req.OldName)
 }
 
+// readDirAll asks Transport for entries and saves them for future lookups.
 func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
 	d.Lock()
 	defer d.Unlock()
