@@ -18,6 +18,10 @@ const (
 
 var (
 	ErrNotSupportConfigure = errors.New("not support configure")
+	ErrMessageEmpty        = errors.New("Message is empty")
+	ErrDataIsEmpty         = errors.New("Data is empty")
+	ErrCouldNotValidate    = errors.New("Validation has error")
+	ErrMoreThanOneMessage  = errors.New("More than one message")
 )
 
 type Pagerduty struct {
@@ -52,6 +56,11 @@ func (p *Pagerduty) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	err := ReadAndParse(req.Body, pm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	if err := pm.validate(); err != nil {
+		p.log.Error("Types are not valid %v", ErrCouldNotValidate)
+		return
 	}
 
 	// message will be created according to incoming data with its incident type
@@ -267,4 +276,20 @@ func (p *PagerdutyActivity) getDescription() string {
 func (p *PagerdutyActivity) getIncidentURL() string {
 
 	return p.Messages[0].Data.Incident.HTMLURL
+}
+
+func (p *PagerdutyActivity) validate() error {
+	if p.Messages == nil {
+		return ErrMessageEmpty
+	}
+
+	if len(p.Messages) > 1 {
+		return ErrMoreThanOneMessage
+	}
+
+	if p.Messages[0].Type == "" {
+		return ErrDataIsEmpty
+	}
+
+	return nil
 }
