@@ -80,6 +80,7 @@ koding = new Bongo {
 
       if err
         console.error 'bongo.fetchClient', { err, sessionToken, context }
+        callback null
 
       else if account instanceof JAccount
 
@@ -94,6 +95,7 @@ koding = new Bongo {
       else
         console.error 'this is not a proper account', { sessionToken }
         console.error 'constructor is JAccount', JAccount is account.constructor
+        callback null
 }
 
 koding.on 'authenticateUser', (client, callback) ->
