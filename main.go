@@ -30,7 +30,7 @@ func main() {
 	}
 
 	// create mount point if it doesn't exist
-	// TODO: don't allow ~  in conf.InternalPath since Go doesn't expand it
+	// TODO: don't allow ~ in conf.InternalPath since Go doesn't expand it
 	if err := os.MkdirAll(conf.InternalPath, 0755); err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +38,6 @@ func main() {
 	go func() {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
-
 		<-signals
 
 		unmount(conf.InternalPath)

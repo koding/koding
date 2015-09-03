@@ -22,6 +22,7 @@ type Dir struct {
 	EntriesList map[string]*Node
 
 	// fuseEntries contains cache for `fs.ReadDirAll` request to Transport.
+	//
 	// TODO: need a better name
 	FuseEntries []fuse.Dirent
 }
@@ -30,7 +31,7 @@ func NewDir(n *Node) *Dir {
 	return &Dir{Node: n, EntriesList: map[string]*Node{}}
 }
 
-// Lookup returns file or dir if exists; fuse.EEXIST if not. Required by Fuse.
+// Lookup returns file or dir if exists. Required by Fuse.
 func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	d.RLock()
 	defer d.RUnlock()
@@ -63,7 +64,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	n.attr.Size = uint64(res.Size)
 	n.attr.Mode = os.FileMode(res.Mode)
 
-	// TODO: set node in Dir#EntriesList and Dir#fuseEntries?
+	// TODO: cache node in Dir#EntriesList and Dir#fuseEntries?
 
 	if res.IsDir {
 		return NewDir(n), nil
@@ -73,7 +74,8 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 }
 
 // ReadDirAll returns metadata for files and directories. Required by Fuse.
-// TODO: this method seems to be called way too many times in short period.
+//
+// TODO: this method is called way too many times in a short interval.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	defer debug(time.Now(), "Dir="+d.Name)
 
@@ -131,7 +133,6 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 		Recursive: true,
 	}
 	var tres bool
-
 	if err := d.Trip("fs.createDirectory", treq, &tres); err != nil {
 		return nil, err
 	}
@@ -169,7 +170,6 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 		Recursive: true,
 	}
 	var tres bool
-
 	if err := d.Trip("fs.remove", treq, &tres); err != nil {
 		return err
 	}
@@ -190,7 +190,6 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Nod
 		NewPath: filepath.Join(path, req.NewName),
 	}
 	var tres bool
-
 	if err := d.Trip("fs.rename", treq, &tres); err != nil {
 		return err
 	}
@@ -205,7 +204,6 @@ func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
 
 	req := struct{ Path string }{d.ExternalPath}
 	res := fsReadDirectoryRes{}
-
 	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
 		return nil, err
 	}

@@ -9,8 +9,8 @@ import (
 	"bazil.org/fuse/fs"
 )
 
-// FileSystem is equivalent to fuse.FS, ie filesystem to be mounted. FileSystem
-// is a bit misleading since Fuse allows even folders to be mounted.
+// FileSystem is equivalent to fuse.FS, ie file system to be mounted. The name
+// file system is misleading since Fuse allows folders to be mounted.
 type FileSystem struct {
 	Transport
 

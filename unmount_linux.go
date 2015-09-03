@@ -11,9 +11,8 @@ import (
 func unmount(folder string) {
 	fmt.Println("Cleaning up...")
 
-	_, err := exec.Command("umount", folder).CombinedOutput()
-	if err != nil {
-		fmt.Printf("Unmount failed. Please do `unmount %s`.\n", folder)
+	if _, err := exec.Command("umount", folder).CombinedOutput(); err != nil {
+		fmt.Printf("Unmounting failed. Please do `unmount %s`.\n", folder)
 	}
 
 	os.Exit(0)

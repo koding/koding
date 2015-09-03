@@ -26,7 +26,6 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 
 	req := struct{ Path string }{f.ExternalPath}
 	res := fsReadFileRes{}
-
 	if err := f.Trip("fs.readFile", req, &res); err != nil {
 		return []byte{}, err
 	}
@@ -61,7 +60,6 @@ func (f *File) write(data []byte) error {
 		Path:    f.ExternalPath,
 		Content: data,
 	}
-
 	var tres int
 	if err := f.Transport.Trip("fs.writeFile", treq, &tres); err != nil {
 		return err
