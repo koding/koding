@@ -31,3 +31,4 @@ require './chatinput/chatinputsearchgetters'
 
 # module tests
 require 'activity/flux/chatinput/tests'
+

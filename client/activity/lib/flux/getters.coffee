@@ -1,6 +1,8 @@
-immutable           = require 'immutable'
-isPublicChatChannel = require 'activity/util/isPublicChatChannel'
-whoami              = require 'app/util/whoami'
+immutable                  = require 'immutable'
+isPublicChatChannel        = require 'activity/util/isPublicChatChannel'
+whoami                     = require 'app/util/whoami'
+calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
+getListSelectedItem        = require 'activity/util/getListSelectedItem'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -235,34 +237,6 @@ selectedChannelParticipants = [
     return null  unless selectedId
     participants.get selectedId
 ]
-
-
-# Helper function to calculate a value
-# of list selected index getter.
-# It gets the list and list stored index
-# and reduce index to the value which is >= 0
-# and < list.size
-calculateListSelectedIndex = (list, currentIndex) ->
-
-  return -1  unless list and list.size > 0
-
-  { size } = list
-
-  index = currentIndex ? 0
-  unless 0 <= index < size
-    index = index % size
-    index += size  if index < 0
-
-  return index
-
-
-# Helper function to calculate a value
-# of list selected item getter.
-# It gets the list and its selected index
-# and returns item taken from the list by the index
-getListSelectedItem = (list, selectedIndex) ->
-  return  unless list and list.size > 0
-  return list.get selectedIndex
 
 
 # Aliases for providing consistent getter names for suggestion stores
