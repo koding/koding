@@ -60,6 +60,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
       secretAccessKey : "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"
 
+    worker_integrationmiddleware:
+      accessKeyId     : "AKIAICPHLY7MAGEVEGYQ"
+      secretAccessKey : "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"
+
+
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "dev.koding.com"
   protocol            = options.protocol       or "http:"
@@ -729,8 +734,8 @@ Configuration = (options={}) ->
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath}"
-          watch         : "make -C #{projectRoot}/go/src/socialapi middlewaredev config=#{socialapi.configFilePath}"
+          run           : "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath} -accesskey #{awsKeys.worker_integrationmiddleware.accessKeyId} -secretkey #{awsKeys.worker_integrationmiddleware.secretAccessKey} -sqsregion us-east-1"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/integration/webhookmiddleware -watch github.com/koding/integration -c #{socialapi.configFilePath} -accesskey #{awsKeys.worker_integrationmiddleware.accessKeyId} -secretkey #{awsKeys.worker_integrationmiddleware.secretAccessKey} -sqsregion us-east-1"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :

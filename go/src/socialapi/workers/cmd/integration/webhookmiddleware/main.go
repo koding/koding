@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/common/mux"
 
 	"github.com/koding/integration"
+	"github.com/koding/integration/helpers"
 	"github.com/koding/integration/services"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
@@ -40,6 +41,18 @@ func main() {
 				appConfig.Integration.Port)
 	}
 
+	// init SQS fallback queue
+	systemName := fmt.Sprintf("%s-%s", Name, r.Conf.Environment)
+	if err := r.InitSQS(systemName); err != nil {
+		r.Log.Warning("Could not init sqs, fallback queue will be disabled: %s", err)
+	} else {
+		// when we encounter with an issue during webhook message push operation
+		// message must be queued in SQS
+		helpers.FallbackFn = r.SQS.Push
+
+		go r.ListenSQS(helpers.FallbackHandler)
+	}
+
 	serviceMap := services.NewServices()
 	RegisterServices(serviceMap, appConfig, conf, r.Log)
 
@@ -50,7 +63,7 @@ func main() {
 	go r.Listen()
 
 	m.Listen()
-	r.ShutdownHandler = m.Close
+	defer m.Close()
 
 	r.Wait()
 }

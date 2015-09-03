@@ -58,6 +58,11 @@ Configuration = (options={}) ->
       accessKeyId     : "AKIAIM3GAPJAIWTFZOJQ"
       secretAccessKey : "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"
 
+    worker_integrationmiddleware:
+      accessKeyId     : "AKIAICPHLY7MAGEVEGYQ"
+      secretAccessKey : "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"
+
+
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
   protocol       = options.protocol            or "https:"
@@ -682,7 +687,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{webhookMiddleware.port}"
       supervisord       :
-        command         : "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/webhookmiddleware -c #{socialapi.configFilePath} -accesskey #{awsKeys.worker_integrationmiddleware.accessKeyId} -secretkey #{awsKeys.worker_integrationmiddleware.secretAccessKey} -sqsregion us-east-1"
       healthCheckURL    : "#{customDomain.local}/api/webhook/healthCheck"
       versionURL        : "#{customDomain.local}/api/webhook/version"
       nginx             :

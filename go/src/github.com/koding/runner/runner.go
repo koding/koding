@@ -30,6 +30,9 @@ var (
 	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
 	flagKiteProxy      = flag.Bool("kite-proxy", false, "Start kite system behind a proxy")
 	flagKiteKontrolURL = flag.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
+	flagAccessKey      = flag.String("accesskey", "", "Get AWS SQS access key")
+	flagSecretKey      = flag.String("secretkey", "", "Get AWS SQS secret key")
+	flagSQSRegion      = flag.String("sqsregion", "", "Get AWS SQS region")
 
 	// for socialAPI worker
 	flagHost = flag.String("host", "0.0.0.0", "listen address")
@@ -45,6 +48,7 @@ type Runner struct {
 	Done            chan error
 	Kite            *kite.Kite
 	Metrics         *metrics.Metrics
+	SQS             *SQS
 }
 
 func New(name string) *Runner {
@@ -111,6 +115,10 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 
 	// set config file path
 	r.Conf.Path = configFile
+
+	r.Conf.SQS.AccessKeyID = *flagAccessKey
+	r.Conf.SQS.SecretAccessKey = *flagSecretKey
+	r.Conf.SQS.Region = *flagSQSRegion
 
 	return nil
 }
@@ -199,6 +207,10 @@ func (r *Runner) Close() error {
 		}
 
 		r.Kite.Close()
+	}
+
+	if r.SQS != nil {
+		r.SQS.Close()
 	}
 
 	return err

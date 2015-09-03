@@ -37,6 +37,8 @@ type (
 
 		// Path holds the config file's path
 		Path string
+
+		SQS SQSConf
 	}
 
 	// Postgres holds Postgresql database related configuration
@@ -61,6 +63,12 @@ type (
 	Redis struct {
 		URL string
 		DB  int
+	}
+
+	SQSConf struct {
+		AccessKeyID     string
+		SecretAccessKey string
+		Region          string
 	}
 )
 
