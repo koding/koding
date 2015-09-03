@@ -91,10 +91,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 // Create create new File. Required by Fuse.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
-	d.RLock()
 	n := NewNode(d, req.Name)
-	d.RUnlock()
-
 	f := &File{Parent: d, Node: n}
 
 	var err error
@@ -120,10 +117,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
 	defer debug(time.Now(), "Dir="+req.Name)
 
-	d.RLock()
 	path := filepath.Join(d.ExternalPath, req.Name)
-	d.RUnlock()
-
 	treq := struct {
 		Path      string
 		Recursive bool
@@ -157,10 +151,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	defer debug(time.Now(), "Dir="+req.Name)
 
-	d.RLock()
 	path := filepath.Join(d.ExternalPath, req.Name)
-	d.RUnlock()
-
 	treq := struct {
 		Path      string
 		Recursive bool
@@ -180,10 +171,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
 	defer debug(time.Now(), "OldPath="+req.OldName, "NewPath="+req.NewName)
 
-	d.RLock()
 	path := d.ExternalPath
-	d.RUnlock()
-
 	treq := struct{ OldPath, NewPath string }{
 		OldPath: filepath.Join(path, req.OldName),
 		NewPath: filepath.Join(path, req.NewName),
