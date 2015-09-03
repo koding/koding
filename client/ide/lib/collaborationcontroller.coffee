@@ -1199,7 +1199,9 @@ module.exports = CollaborationController =
     ,@getCollaborationHost()
 
 
-  handleSnapshotUpdated: -> @mySnapshot.set 'layout', @getWorkspaceSnapshot()
+  handleSnapshotUpdated: ->
+
+    @mySnapshot.set 'layout', @getWorkspaceSnapshot()  if @rtm?.isReady
 
 
   getSnapshotFromDrive: (username = nick(), isFlat = no) ->
