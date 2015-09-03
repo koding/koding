@@ -58,8 +58,8 @@ ssh $IDENT_FLAG "$HOST" echo "" 2>&1 > /dev/null
 err=$?; if [ "$err" -ne 0 ]; then
   cat << EOF
 Error $err: Could not connect to the provided host '$HOST'. Please ensure
-that you have the correct user and that your pubkey is on that user's
-machine.
+that you have the correct user and that your pubkey is in that user's
+~/.ssh/authorized_keys file.
 EOF
   exit $err
 fi
