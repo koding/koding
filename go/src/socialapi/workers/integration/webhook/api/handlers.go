@@ -18,7 +18,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	quota := throttled.RateQuota{
 		MaxRate:  throttled.PerMin(100),
-		MaxBurst: 100,
+		MaxBurst: 0,
 	}
 
 	rateLimiter, err := throttled.NewGCRARateLimiter(redisStore, quota)
