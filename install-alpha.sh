@@ -43,8 +43,8 @@ IP=`echo $HOST | sed 's/^\w*@//'`
 
 
 # The file we want to save the key to
-mkdir -p ~/.fuseproto/keys
-KEYFILE=~/.fuseproto/keys/"$IP.kite.key"
+mkdir -p ~/.fuseklient/keys
+KEYFILE=~/.fuseklient/keys/"$IP.kite.key"
 
 
 # If the IDENT var is not null, add a ident flag to scp/ssh
@@ -87,7 +87,7 @@ fi
 
 cat << EOF
 Success! Please run the following command whenever you want to start
-fuseproto:
+fuseklient:
 
-    ./fuseproto --klientip=$IP --externalpath=/home/your/remote/dir --internalpath=/your/local/dir --debug=true
+    ./fuseklient --klientip=$IP --externalpath=/home/your/remote/dir --internalpath=/your/local/dir --debug=true
 EOF

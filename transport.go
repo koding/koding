@@ -48,7 +48,7 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 	}
 
 	data, err := ioutil.ReadFile(fmt.Sprintf(
-		"%s/.fuseproto/keys/%s.kite.key", usr.HomeDir, klientIP,
+		"%s/.fuseklient/keys/%s.kite.key", usr.HomeDir, klientIP,
 	))
 	if err != nil {
 		return nil, err
