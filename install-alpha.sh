@@ -1,10 +1,10 @@
-
+#!/usr/bin/env bash
 
 if [ -z $1 ]; then
   cat << EOF
-Please provide the host that you want to connect Fuse to. Note that
+Please provide the Koding VM's ip that you want to mount. Note that
 you must have your ssh pubkey in the ~/.ssh/authorized_keys for the
-provided user and host.
+provided user and host. (Note: this step will be removed in 1.0)
 EOF
   exit 1
 fi
@@ -84,10 +84,8 @@ if [ ! -f $KEYFILE ]; then
 fi
 
 
-
 cat << EOF
-Success! Please run the following command whenever you want to start
-fuseklient:
+Success! Please run the following command to begin:
 
-    ./fuseklient --klientip=$IP --externalpath=/home/your/remote/dir --internalpath=/your/local/dir --debug=true
+    ./fuseklient --klientip=$IP --externalpath=/home/your/remote/dir --internalpath=/your/local/dir
 EOF

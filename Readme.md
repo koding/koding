@@ -1,6 +1,6 @@
 # fuseklient
 
-Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient).
+Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). Currently for OSX only.
 
 ## WARNING
 
@@ -8,8 +8,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 
 ## Steps to get started:
 
-    # Install fuseproto to your local gobin:
-    go install git@github.com:koding/fuseproto.git
+    # Download fuseklient from https://github.com/koding/fuseklient/releases
 
     # Get the ip of your VM, along with folder in that VM you want to mount locally
     # Or you can use mine:
@@ -19,7 +18,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
     mkdir -p <fullpath>/local
 
     # Start daemon:
-    fuseproto --klientip=52.7.78.76 --externalpath=/home/sent-hil/fusemount --internalpath=<fullpath>/local --debug=true
+    ./fuseklient --klientip=52.7.78.76 --externalpath=/home/sent-hil/fusemount --internalpath=<fullpath>/local --debug=true
 
     # In another terminal:
     cd local
@@ -52,4 +51,5 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 ## Notes:
 
   * Use fullpath in arguments.
-  * Mounting on an existing folder won't overwrite contents, but they won't be visible while fuseproto is running.
+  * Mounting on an existing folder won't overwrite contents, but they won't be visible while Fuse is running.
+  * Use `tar -cvf fuseklient_OSX.tar fuseklient install-alpha.sh Readme.md` for distribution.
