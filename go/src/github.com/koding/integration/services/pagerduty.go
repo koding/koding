@@ -21,7 +21,7 @@ var (
 	ErrMessageEmpty        = errors.New("Message is empty")
 	ErrDataIsEmpty         = errors.New("Data is empty")
 	ErrCouldNotValidate    = errors.New("Validation has error")
-	ErrMoreThanOneMessage  = errors.New("More than one message")
+	ErrMessageLengthIsZero = errors.New("Length of message less than zero")
 )
 
 type Pagerduty struct {
@@ -283,8 +283,8 @@ func (p *PagerdutyActivity) validate() error {
 		return ErrMessageEmpty
 	}
 
-	if len(p.Messages) > 1 {
-		return ErrMoreThanOneMessage
+	if len(p.Messages) < 1 {
+		return ErrMessageLengthIsZero
 	}
 
 	if p.Messages[0].Type == "" {
