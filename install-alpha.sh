@@ -39,7 +39,7 @@ HOST="$1"
 
 
 # Get the IP by stripping the user from the HOST, if any.
-IP=`echo $HOST | sed 's/^\w*@//'`
+IP=`echo $HOST | perl -pe 's/^[\w-_]*@//'`
 
 
 # The file we want to save the key to
