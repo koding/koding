@@ -80,7 +80,6 @@ koding = new Bongo {
 
       if err
         console.error 'bongo.fetchClient', { err, sessionToken, context }
-        koding.emit 'error', err
 
       else if account instanceof JAccount
 
