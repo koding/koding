@@ -37,28 +37,28 @@ module.exports = class ChatInputWidget extends React.Component
     { getters } = ActivityFlux
 
     return {
-      filteredEmojiList              : getters.filteredEmojiList
-      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex
-      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem
-      filteredEmojiListQuery         : getters.filteredEmojiListQuery
+      filteredEmojiList              : getters.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
       commonEmojiList                : getters.commonEmojiList
-      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem
-      commonEmojiListVisibility      : getters.commonEmojiListVisibility
-      channels                       : getters.chatInputChannels
-      channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex
-      channelsSelectedItem           : getters.chatInputChannelsSelectedItem
-      channelsQuery                  : getters.chatInputChannelsQuery
-      channelsVisibility             : getters.chatInputChannelsVisibility
-      users                          : getters.chatInputUsers
-      usersQuery                     : getters.chatInputUsersQuery
-      userSelectedIndex              : getters.chatInputUsersSelectedIndex
-      usersSelectedItem              : getters.chatInputUsersSelectedItem
-      usersVisibility                : getters.chatInputUsersVisibility
-      searchItems                    : getters.chatInputSearchItems
-      searchQuery                    : getters.chatInputSearchQuery
-      searchSelectedIndex            : getters.chatInputSearchSelectedIndex
-      searchSelectedItem             : getters.chatInputSearchSelectedItem
-      searchVisibility               : getters.chatInputSearchVisibility
+      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      channels                       : getters.chatInputChannels @stateId
+      channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
+      channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
+      channelsQuery                  : getters.chatInputChannelsQuery @stateId
+      channelsVisibility             : getters.chatInputChannelsVisibility @stateId
+      users                          : getters.chatInputUsers @stateId
+      usersQuery                     : getters.chatInputUsersQuery @stateId
+      userSelectedIndex              : getters.chatInputUsersSelectedIndex @stateId
+      usersSelectedItem              : getters.chatInputUsersSelectedItem @stateId
+      usersVisibility                : getters.chatInputUsersVisibility @stateId
+      searchItems                    : getters.chatInputSearchItems @stateId
+      searchQuery                    : getters.chatInputSearchQuery @stateId
+      searchSelectedIndex            : getters.chatInputSearchSelectedIndex @stateId
+      searchSelectedItem             : getters.chatInputSearchSelectedItem @stateId
+      searchVisibility               : getters.chatInputSearchVisibility @stateId
     }
 
 
@@ -175,7 +175,22 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility yes
+    ActivityFlux.actions.emoji.setCommonListVisibility @stateId, yes
+
+
+  handleSearchButtonClick: (event) ->
+
+    searchMarker = '/s '
+    { value }    = @state
+
+    if value.indexOf(searchMarker) is -1
+      value = searchMarker + value
+      @setState { value }
+
+    textInput = React.findDOMNode @refs.textInput
+    textInput.focus()
+
+    @refs.searchDropup.checkTextForQuery { value }
 
 
   renderEmojiDropup: ->
@@ -189,6 +204,7 @@ module.exports = class ChatInputWidget extends React.Component
       query           = { filteredEmojiListQuery }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
       ref             = 'emojiDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -201,6 +217,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { commonEmojiListVisibility }
       selectedItem    = { commonEmojiListSelectedItem }
       onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
+      stateId         = { @stateId }
     />
 
 
@@ -216,6 +233,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { channelsVisibility }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
       ref             = 'channelDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -231,6 +249,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { usersVisibility }
       onItemConfirmed = { @bound 'onDropupItemConfirmed' }
       ref             = 'userDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -246,6 +265,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { searchVisibility }
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropup'
+      stateId         = { @stateId }
     />
 
 
@@ -266,6 +286,10 @@ module.exports = class ChatInputWidget extends React.Component
       <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }
+      />
+      <Link
+        className = "ChatInputWidget-searchButton"
+        onClick   = { @bound 'handleSearchButtonClick' }
       />
     </div>
 

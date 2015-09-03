@@ -93,13 +93,21 @@ channelThreads = [
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
-      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
-        message = messages.get messageId
-        if message.has('__editedBody')
-          message = message.set 'body', message.get '__editedBody'
-          message = message.set 'payload', message.get '__editedPayload'
-
-        return message
+      thread.update 'messages', (msgs) ->
+        msgs.map (messageId) ->
+          message = messages.get messageId
+          if parentId = message.get 'parentId'
+            # FIXME: this string comparison shouldn't be here, but somehow
+            # undefined `parentId` s are returning as empty immutable lists,
+            # this needs to be investigated. ~Umut
+            if 'string' is typeof parentId
+              parent = messages.get parentId
+              message = message.set 'parent', parent
+          if message.has('__editedBody')
+            message = message.set 'body', message.get '__editedBody'
+            message = message.set 'payload', message.get '__editedPayload'
+          return message
+        .sortBy (m) -> m.get 'createdAt'
 ]
 
 channelPopularMessages = [
@@ -128,6 +136,11 @@ selectedChannelThread = [
   (threads, channel) ->
     return null  unless channel
     thread = threads.get channel.get('id')
+    thread = thread.update 'messages', (messages) ->
+      messages.map (msg) ->
+        msg.update 'body', (body) ->
+          # don't show channel name on post body.
+          body.replace ///\##{channel.get('name')}///, ''
     return thread.set 'channel', channel
 ]
 
@@ -193,10 +206,15 @@ messageThreads = [
   (threads, messages, messageFlags) ->
     threads.map (thread) ->
       messageId = thread.get 'messageId'
+      thread = thread.set 'message', messages.get messageId
       thread = thread.set 'flags', messageFlags.get messageId
       # replace messageIds in list with message instances.
       thread.update 'comments', (comments) ->
-        comments.map (id) -> messages.get id
+        comments
+          # get the SocialMessage instance of comments list
+          .map (id) -> messages.get id
+          # then sort them by their creation date
+          .sortBy (c) -> c.get 'createdAt'
 ]
 
 selectedMessageThread = [
@@ -231,10 +249,11 @@ selectedChannelParticipants = [
 # and < list.size
 calculateListSelectedIndex = (list, currentIndex) ->
 
-  { size } = list
-  return -1  unless size > 0
+  return -1  unless list and list.size > 0
 
-  index = currentIndex
+  { size } = list
+
+  index = currentIndex ? 0
   unless 0 <= index < size
     index = index % size
     index += size  if index < 0
@@ -247,7 +266,7 @@ calculateListSelectedIndex = (list, currentIndex) ->
 # It gets the list and its selected index
 # and returns item taken from the list by the index
 getListSelectedItem = (list, selectedIndex) ->
-  return  unless list.size > 0
+  return  unless list and list.size > 0
   return list.get selectedIndex
 
 
@@ -260,50 +279,66 @@ currentSuggestionsSelectedIndex = [
   SuggestionsSelectedIndexStore
   calculateListSelectedIndex
 ]
-currentSuggestionsSelectedItem  = [
+currentSuggestionsSelectedItem = [
   SuggestionsStore
   currentSuggestionsSelectedIndex
   getListSelectedItem
 ]
 
-filteredEmojiListQuery         = FilteredEmojiListQueryStore
+filteredEmojiListQuery = (stateId) -> [
+  FilteredEmojiListQueryStore
+  (queries) -> queries.get stateId
+]
 # Returns a list of emojis filtered by current query
-filteredEmojiList              = [
+filteredEmojiList = (stateId) -> [
   EmojisStore
-  filteredEmojiListQuery
+  filteredEmojiListQuery stateId
   (emojis, query) ->
     return immutable.List()  unless query
     emojis.filter (emoji) -> emoji.indexOf(query) is 0
 ]
-filteredEmojiListSelectedIndex = [
-  filteredEmojiList
+filteredEmojiListRawIndex = (stateId) -> [
   FilteredEmojiListSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+filteredEmojiListSelectedIndex = (stateId) -> [
+  filteredEmojiList stateId
+  filteredEmojiListRawIndex stateId
   calculateListSelectedIndex
 ]
-filteredEmojiListSelectedItem  = [
-  filteredEmojiList
-  filteredEmojiListSelectedIndex
+filteredEmojiListSelectedItem = (stateId) -> [
+  filteredEmojiList stateId
+  filteredEmojiListSelectedIndex stateId
   getListSelectedItem
 ]
 
 commonEmojiList              = EmojisStore
-commonEmojiListSelectedIndex = CommonEmojiListSelectedIndexStore
-commonEmojiListVisibility    = CommonEmojiListVisibilityStore
+commonEmojiListSelectedIndex = (stateId) -> [
+  CommonEmojiListSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+commonEmojiListVisibility = (stateId) -> [
+  CommonEmojiListVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
 # Returns emoji from emoji list by current selected index
-commonEmojiListSelectedItem  = [
+commonEmojiListSelectedItem = (stateId) -> [
   commonEmojiList
-  commonEmojiListSelectedIndex
+  commonEmojiListSelectedIndex stateId
   getListSelectedItem
 ]
 
-chatInputChannelsQuery         = ChatInputChannelsQueryStore
+chatInputChannelsQuery = (stateId) -> [
+  ChatInputChannelsQueryStore
+  (queries) -> queries.get stateId
+]
 # Returns a list of channels depending on the current query
 # If query if empty, returns popular channels
 # Otherwise, returns channels filtered by query
-chatInputChannels              = [
+chatInputChannels = (stateId) -> [
   ChannelsStore
   popularChannels
-  chatInputChannelsQuery
+  chatInputChannelsQuery stateId
   (channels, popularChannels, query) ->
     return popularChannels.toList()  unless query
 
@@ -312,26 +347,36 @@ chatInputChannels              = [
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
-chatInputChannelsSelectedIndex = [
-  chatInputChannels
+chatInputChannelsRawIndex = (stateId) -> [
   ChatInputChannelsSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+chatInputChannelsSelectedIndex = (stateId) -> [
+  chatInputChannels stateId
+  chatInputChannelsRawIndex stateId
   calculateListSelectedIndex
 ]
-chatInputChannelsSelectedItem = [
-  chatInputChannels
-  chatInputChannelsSelectedIndex
+chatInputChannelsSelectedItem = (stateId) -> [
+  chatInputChannels stateId
+  chatInputChannelsSelectedIndex stateId
   getListSelectedItem
 ]
-chatInputChannelsVisibility = ChatInputChannelsVisibilityStore
+chatInputChannelsVisibility = (stateId) -> [
+  ChatInputChannelsVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
 
-chatInputUsersQuery         = ChatInputUsersQueryStore
+chatInputUsersQuery = (stateId) -> [
+  ChatInputUsersQueryStore
+  (queries) -> queries.get stateId
+]
 # Returns a list of users depending on the current query
 # If query is empty, returns selected channel participants
 # Otherwise, returns users filtered by query
-chatInputUsers              = [
+chatInputUsers = (stateId) -> [
   UsersStore
   selectedChannelParticipants
-  chatInputUsersQuery
+  chatInputUsersQuery stateId
   (users, participants, query) ->
     return participants?.toList() ? immutable.List()  unless query
 
@@ -340,31 +385,51 @@ chatInputUsers              = [
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
-chatInputUsersSelectedIndex = [
-  chatInputUsers
+chatInputUsersRawIndex = (stateId) -> [
   ChatInputUsersSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+chatInputUsersSelectedIndex = (stateId) -> [
+  chatInputUsers stateId
+  chatInputUsersRawIndex stateId
   calculateListSelectedIndex
 ]
-chatInputUsersSelectedItem = [
-  chatInputUsers
-  chatInputUsersSelectedIndex
+chatInputUsersSelectedItem = (stateId) -> [
+  chatInputUsers stateId
+  chatInputUsersSelectedIndex stateId
   getListSelectedItem
 ]
-chatInputUsersVisibility = ChatInputUsersVisibilityStore
+chatInputUsersVisibility = (stateId) -> [
+  ChatInputUsersVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
 
-chatInputSearchItems         = ChatInputSearchStore
-chatInputSearchQuery         = ChatInputSearchQueryStore
-chatInputSearchSelectedIndex = [
-  chatInputSearchItems
+chatInputSearchItems = (stateId) -> [
+  ChatInputSearchStore
+  (searchStore) -> searchStore.get stateId
+]
+chatInputSearchQuery = (stateId) -> [
+  ChatInputSearchQueryStore
+  (queries) -> queries.get stateId
+]
+chatInputSearchRawIndex = (stateId) -> [
   ChatInputSearchSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+chatInputSearchSelectedIndex = (stateId) -> [
+  chatInputSearchItems stateId
+  chatInputSearchRawIndex stateId
   calculateListSelectedIndex
 ]
-chatInputSearchSelectedItem  = [
-  chatInputSearchItems
-  chatInputSearchSelectedIndex
+chatInputSearchSelectedItem = (stateId) -> [
+  chatInputSearchItems stateId
+  chatInputSearchSelectedIndex stateId
   getListSelectedItem
 ]
-chatInputSearchVisibility    = ChatInputSearchVisibilityStore
+chatInputSearchVisibility = (stateId) -> [
+  ChatInputSearchVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
 
 module.exports = {
   followedPublicChannelThreads

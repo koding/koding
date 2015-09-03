@@ -9,6 +9,7 @@ module.exports =
 
   getInitialState: ->
 
+    @stateId = kd.utils.getUniqueId()  unless @stateId
     getState kd.singletons.reactor, @getDataBindings()
 
 
@@ -44,4 +45,5 @@ module.exports =
 getState = (reactor, data) ->
 
   return _.mapValues data, (value) -> reactor.evaluate value
+
 

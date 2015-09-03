@@ -36,6 +36,11 @@ module.exports = class PublicChatPane extends React.Component
     kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
+  onFollowChannel: ->
+
+    ActivityFlux.actions.channel.followChannel @channel 'id'
+
+
   render: ->
     <ChatPane
       thread={@props.thread}
@@ -44,6 +49,7 @@ module.exports = class PublicChatPane extends React.Component
       onSubmit={@bound 'onSubmit'}
       onLoadMore={@bound 'onLoadMore'}
       isParticipant={@channel 'isParticipant'}
+      onFollowChannelButtonClick={@bound 'onFollowChannel'}
     />
 
 
