@@ -363,6 +363,8 @@ func (k *Klient) Run() {
 		}()
 	}
 
+	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
+
 	k.kite.Run()
 }
 

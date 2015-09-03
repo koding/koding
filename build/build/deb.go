@@ -37,6 +37,7 @@ type Deb struct {
 
 // Deb is building a new .deb package with the provided tarFile It returns the
 // created filename of the .deb file.
+// Install requirements: sudo apt-get install devscripts dh-make
 func (d *Deb) Build() (string, error) {
 	defer d.cleanDebianBuild()
 
