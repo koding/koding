@@ -158,5 +158,3 @@ do ->
     res.send "Socialworker is running with version: #{KONFIG.version}"
 
   app.listen argv.p
-
-
