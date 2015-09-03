@@ -5,6 +5,14 @@
 .ChatItem
   rel()
 
+  .MessageBody > p
+    dInline()
+
+  .MessageBody .InReplyToLink
+    color                   $gray-17
+    margin-left             3px
+    font-size               $fs-smaller
+
   .ChatItem-authorName
     display                 inline-block
     font-size               12px

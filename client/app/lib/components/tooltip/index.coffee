@@ -8,9 +8,22 @@ module.exports = class Tooltip extends React.Component
     text : React.PropTypes.string.isRequired
 
 
+  @defaultProps =
+    tooltipY: 0
+    tooltipX: 0
+
+
+  componentDidMount: ->
+
+    TooltipWrapperDOMNode                  = @refs.TooltipWrapper.getDOMNode()
+    TooltipWrapperDOMNode.style.top        = "#{@props.tooltipY}px"
+    TooltipWrapperDOMNode.style.left       = "#{@props.tooltipX}px"
+    TooltipWrapperDOMNode.style.marginLeft = "#{-TooltipWrapperDOMNode.offsetWidth / 2}px"
+
+
   render: ->
 
-    <div className="Tooltip-wrapper">
+    <div className='Tooltip-wrapper' ref='TooltipWrapper'>
       <span>{ @props.text }</span>
     </div>
 

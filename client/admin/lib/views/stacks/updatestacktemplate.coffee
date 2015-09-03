@@ -3,14 +3,10 @@ remote = require('app/remote').getInstance()
 
 module.exports = updateStackTemplate = (data, callback) ->
 
-  { template, templateDetails, credential
+  { template, templateDetails, credentials
     title, stackTemplate, machines, config } = data
 
-  title     or= 'Default stack template'
-  credentials = {}
-
-  if credential
-    credentials[credential.provider] = [credential.identifier]
+  title or= 'Default stack template'
 
   if stackTemplate?.update
 

@@ -44,7 +44,11 @@ module.exports = requirementsParser = (content) ->
 
       # And this one for userInputs which will be asked to user when they
       # want to build their stacks which created from the stack template
-      /\$\{var\.(userInput)\_(.*)\}/g
+      /\$\{var\.(userInput)\_(\w+?)\}/g
+
+      # This is for custom data which will be asked from the admin
+      # These variables needed to provide in custom variables section
+      /\$\{var\.(custom)\_(\w+?)\}/g
     ]
 
     requirements = {}

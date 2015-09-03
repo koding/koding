@@ -1,8 +1,7 @@
-kd = require 'kd'
-KDView = kd.View
-ComputePlansModal = require './computeplansmodal'
-CustomLinkView = require '../customlinkview'
-trackEvent = require 'app/util/trackEvent'
+kd                          = require 'kd'
+KDView                      = kd.View
+ComputePlansModal           = require './computeplansmodal'
+ComputePlansModalFooterLink = require './computeplansmodalfooterlink'
 
 
 module.exports = class ComputePlansModalFree extends ComputePlansModal
@@ -22,12 +21,5 @@ module.exports = class ComputePlansModalFree extends ComputePlansModal
         'hobbyist' : "Hobbyist plan is restricted to only one VM. <br/>"
       }[@getOption 'plan']
 
-    @addSubView new CustomLinkView
-      title    : 'Upgrade your account for more VMs RAM and Storage'
-      href     : '/Pricing'
-      click    : ->
-        trackEvent 'Upgrade your account, click',
-          category : 'userInteraction'
-          action   : 'clicks'
-          label    : 'upgradeAccountOverlay'
-          origin   : 'freeModal'
+    @addSubView new ComputePlansModalFooterLink
+      title : 'Upgrade your account for more VMs RAM and Storage'

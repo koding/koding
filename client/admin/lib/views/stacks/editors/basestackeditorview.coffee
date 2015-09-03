@@ -15,11 +15,19 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     curryIn options, cssClass: 'editor-view'
 
-    content = Encoder.htmlDecode options.content or ''
+    if options.content?
+      content = Encoder.htmlDecode options.content or ''
+      { content, contentType, err } = jsonToYaml content
+    else
+      content = """
+        # This is a YAML file which you can define
+        # key-value pairs like;
+        #
+        #   foo: bar
+        #
 
-    { content, contentType, err } = jsonToYaml content
-
-    new KDNotificationView 'Parse error on template'  if err
+      """
+      contentType = 'yaml'
 
     options.content     = content
     options.contentType = contentType

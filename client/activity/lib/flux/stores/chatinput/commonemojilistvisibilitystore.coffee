@@ -1,15 +1,16 @@
 actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
+immutable       = require 'immutable'
 
 ###*
- * Store to contain common emoji list visibility
+ * Store to contain common emoji list visibility flags
 ###
 module.exports = class CommonEmojiListVisibilityStore extends KodingFluxStore
 
   @getterPath = 'CommonEmojiListVisibilityStore'
 
-  getInitialState: -> no
+  getInitialState: -> immutable.Map()
 
 
   initialize: ->
@@ -19,12 +20,15 @@ module.exports = class CommonEmojiListVisibilityStore extends KodingFluxStore
 
   ###*
    * Handler of SET_COMMON_EMOJI_LIST_VISIBILITY action
-   * It updates current visible flag with a given value
+   * It updates visible flag for a given stateId
    *
    * @param {Immutable.Map} currentState
    * @param {object} payload
+   * @param {bool} payload.stateId
    * @param {bool} payload.visible
-   * @return {bool} nextState
+   * @return {Immutable.Map} nextState
   ###
-  setVisibility: (currentState, { visible }) -> visible
+  setVisibility: (currentState, { stateId, visible }) ->
+
+    currentState.set stateId, visible
 

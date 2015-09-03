@@ -163,7 +163,7 @@ module.exports = class OnboardingView extends JView
           serverConfig.user_data = cloneText
 
 
-    { content, err } = jsonToYaml JSON.stringify stackTemplate
+    { content, err } = jsonToYaml stackTemplate
 
     if err
       return new kd.NotificationView 'Unable to update stack template preview'

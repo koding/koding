@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/koding/integration/services"
@@ -25,18 +26,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	name := req.URL.Query().Get("name")
 
 	if err := h.validate(name, token); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		err = fmt.Errorf("could not validate request: %s", err)
+		h.NewBadRequest(w, err)
 		return
 	}
 
 	service, err := h.sf.Get(name)
 	if err == services.ErrServiceNotFound {
+		h.log.Error("Service not found: %s", name)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		err = fmt.Errorf("could not get service: %s", err)
+		h.NewBadRequest(w, err)
 		return
 	}
 

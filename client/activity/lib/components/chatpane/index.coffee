@@ -3,6 +3,7 @@ React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
 ChatInputWidget = require 'activity/components/chatinputwidget'
 Scroller        = require 'app/components/scroller'
+ActivityFlux    = require 'activity/flux'
 
 
 module.exports = class ChatPane extends React.Component
@@ -13,6 +14,7 @@ module.exports = class ChatPane extends React.Component
     isDataLoading : no
     onLoadMore    : kd.noop
     isParticipant : no
+    showItemMenu  : yes
 
 
   componentWillUpdate: ->
@@ -44,20 +46,16 @@ module.exports = class ChatPane extends React.Component
   renderBody: ->
     return null  unless @props.messages
 
-    messages = @props.messages.sortBy (m) -> m?.get 'createdAt'
-
     <section className="ChatPane-body" ref="ChatPaneBody">
       <Scroller
         onTopThresholdReached={@bound 'onTopThresholdReached'}
         ref="scrollContainer">
-        <ChatList messages={messages} />
+        <ChatList messages={@props.messages} showItemMenu={@props.showItemMenu} />
       </Scroller>
     </section>
 
 
-  onFollowChannelButtonClick: ->
-
-    ActivityFlux.actions.channel.followChannel @props.thread.getIn ['channel', 'id']
+  onFollowChannelButtonClick: -> @props.onFollowChannelButtonClick()
 
 
   renderFollowChannel: ->

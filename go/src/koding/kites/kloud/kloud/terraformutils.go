@@ -1,7 +1,6 @@
 package kloud
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
@@ -10,7 +9,6 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/userdata"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -46,31 +44,21 @@ type buildData struct {
 	KiteIds  map[string]string
 }
 
-type terraformData struct {
-	Creds   []*terraformCredential
+type kodingData struct {
 	Account *models.Account `structs:"account"`
 	Group   *models.Group   `structs:"group"`
 	User    *models.User    `structs:"user"`
+}
+
+type terraformData struct {
+	Creds      []*terraformCredential
+	KodingData *kodingData
 }
 
 type terraformCredential struct {
 	Provider   string
 	Identifier string
 	Data       map[string]string `mapstructure:"data"`
-}
-
-type terraformTemplate struct {
-	Resource struct {
-		Aws_Instance map[string]map[string]interface{} `json:"aws_instance"`
-	} `json:"resource"`
-	Provider struct {
-		Aws struct {
-			Region    string `json:"region"`
-			AccessKey string `json:"access_key"`
-			SecretKey string `json:"secret_key"`
-		} `json:"aws"`
-	} `json:"provider"`
-	Variable map[string]map[string]interface{} `json:"variable,omitempty"`
 }
 
 func (m *Machines) AppendRegion(region string) {
@@ -97,106 +85,6 @@ func (m *Machines) WithLabel(label string) (TerraformMachine, error) {
 	}
 
 	return TerraformMachine{}, fmt.Errorf("couldn't find machine with label '%s", label)
-}
-
-// region returns the region from the credential data
-func (t *terraformCredential) region() (string, error) {
-	// for now we support only aws
-	if t.Provider != "aws" {
-		return "", fmt.Errorf("provider '%s' is not supported", t.Provider)
-	}
-
-	region := t.Data["region"]
-	if region == "" {
-		return "", fmt.Errorf("region for identifer '%s' is not set", t.Identifier)
-	}
-
-	return region, nil
-}
-
-func (t *terraformCredential) awsCredentials() (string, string, error) {
-	if t.Provider != "aws" {
-		return "", "", fmt.Errorf("provider '%s' is not supported", t.Provider)
-	}
-
-	// we do not check for key existency here because the key might exists but
-	// with an empty value, so just checking for the emptiness of the value is
-	// better
-	accessKey := t.Data["access_key"]
-	if accessKey == "" {
-		return "", "", fmt.Errorf("accessKey for identifier '%s' is not set", t.Identifier)
-	}
-
-	secretKey := t.Data["secret_key"]
-	if secretKey == "" {
-		return "", "", fmt.Errorf("secretKey for identifier '%s' is not set", t.Identifier)
-	}
-
-	return accessKey, secretKey, nil
-}
-
-// appendAWSVariable appends the credentials aws data to the given template and
-// returns it back.
-func (t *terraformCredential) appendAWSVariable(template string) (string, error) {
-	var data struct {
-		Output   map[string]map[string]interface{} `json:"output,omitempty"`
-		Resource map[string]map[string]interface{} `json:"resource,omitempty"`
-		Provider struct {
-			Aws struct {
-				Region    string `json:"region"`
-				AccessKey string `json:"access_key"`
-				SecretKey string `json:"secret_key"`
-			} `json:"aws"`
-		} `json:"provider"`
-		Variable map[string]map[string]interface{} `json:"variable,omitempty"`
-	}
-
-	if err := json.Unmarshal([]byte(template), &data); err != nil {
-		return "", err
-	}
-
-	credRegion := t.Data["region"]
-	if credRegion == "" {
-		return "", fmt.Errorf("region for identifier '%s' is not set", t.Identifier)
-	}
-
-	// if region is not added, add it via credRegion
-	region := data.Provider.Aws.Region
-	if region == "" {
-		data.Provider.Aws.Region = credRegion
-	} else if !isVariable(region) && region != credRegion {
-		// compare with the provider block's region. Don't allow if they are
-		// different.
-		return "", fmt.Errorf("region in the provider block doesn't match the region in credential data. Provider block: '%s'. Credential data: '%s'", region, credRegion)
-	}
-
-	if data.Variable == nil {
-		data.Variable = make(map[string]map[string]interface{})
-	}
-
-	accessKey, secretKey, err := t.awsCredentials()
-	if err != nil {
-		return "", err
-	}
-
-	data.Variable["aws_access_key"] = map[string]interface{}{
-		"default": accessKey,
-	}
-
-	data.Variable["aws_secret_key"] = map[string]interface{}{
-		"default": secretKey,
-	}
-
-	data.Variable["region"] = map[string]interface{}{
-		"default": credRegion,
-	}
-
-	out, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
 }
 
 func machinesFromState(state *terraform.State) (*Machines, error) {
@@ -295,79 +183,7 @@ func parseProviderAndLabel(resource string) (string, string, error) {
 	return provider, label, nil
 }
 
-func (t *terraformTemplate) injectKodingData(data *terraformData) {
-	var properties = []struct {
-		collection string
-		fieldToAdd map[string]bool
-	}{
-		{"User",
-			map[string]bool{
-				"username": true,
-				"email":    true,
-			},
-		},
-		{"Account",
-			map[string]bool{
-				"profile": true,
-			},
-		},
-		{"Group",
-			map[string]bool{
-				"title": true,
-				"slug":  true,
-			},
-		},
-	}
-
-	for _, p := range properties {
-		model, ok := structs.New(data).FieldOk(p.collection)
-		if !ok {
-			continue
-		}
-
-		for _, field := range model.Fields() {
-			fieldName := strings.ToLower(field.Name())
-			// check if the user set a field tag
-			if field.Tag("bson") != "" {
-				fieldName = field.Tag("bson")
-			}
-
-			exists := p.fieldToAdd[fieldName]
-
-			// we need to declare to call it recursively
-			var addVariable func(*structs.Field, string, bool)
-
-			addVariable = func(field *structs.Field, varName string, allow bool) {
-				if !allow {
-					return
-				}
-
-				// nested structs, call again
-				if field.Kind() == reflect.Struct {
-					for _, f := range field.Fields() {
-						fieldName := strings.ToLower(f.Name())
-						// check if the user set a field tag
-						if f.Tag("bson") != "" {
-							fieldName = f.Tag("bson")
-						}
-						newName := varName + "_" + fieldName
-						addVariable(f, newName, true)
-					}
-					return
-				}
-
-				t.Variable[varName] = map[string]interface{}{
-					"default": field.Value(),
-				}
-			}
-
-			varName := "koding_" + strings.ToLower(p.collection) + "_" + fieldName
-			addVariable(field, varName, exists)
-		}
-	}
-}
-
-func injectKodingData(ctx context.Context, content, username string, data *terraformData) (*buildData, error) {
+func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
 	sess, ok := session.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("session context is not passed")
@@ -388,21 +204,26 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 		return nil, fmt.Errorf("Bootstrap data is incomplete: %v", awsOutput)
 	}
 
-	var template *terraformTemplate
-	if err := json.Unmarshal([]byte(content), &template); err != nil {
+	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
+	if err := template.injectKodingVariables(data.KodingData); err != nil {
 		return nil, err
 	}
 
-	// inject koding variables, in the form of koding_user_foo, koding_group_name, etc..
-	template.injectKodingData(data)
+	var resource struct {
+		AwsInstance map[string]map[string]interface{} `hcl:"aws_instance"`
+	}
 
-	if len(template.Resource.Aws_Instance) == 0 {
-		return nil, fmt.Errorf("instance is empty: %v", template.Resource.Aws_Instance)
+	if err := template.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.AwsInstance) == 0 {
+		return nil, fmt.Errorf("instance is empty: %v", resource.AwsInstance)
 	}
 
 	kiteIds := make(map[string]string)
 
-	for resourceName, instance := range template.Resource.Aws_Instance {
+	for resourceName, instance := range resource.AwsInstance {
 		instance["key_name"] = awsOutput.KeyPair
 
 		// if nothing is provided or the ami is empty use default Ubuntu AMI's
@@ -425,11 +246,12 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 		// kite id.
 		var count int = 1
 		if c, ok := instance["count"]; ok {
-			// we receive it as float64
-			if cFloat, ok := c.(float64); !ok {
-				return nil, fmt.Errorf("count statement should be an integer, got: %+v", c)
+			// we receive it as int
+			cn, ok := c.(int)
+			if !ok {
+				return nil, fmt.Errorf("count statement should be an integer, got: %+v, %T", c, c)
 			} else {
-				count = int(cFloat)
+				count = cn
 			}
 		}
 
@@ -489,18 +311,30 @@ func injectKodingData(ctx context.Context, content, username string, data *terra
 			"default": countKeys,
 		}
 
-		template.Resource.Aws_Instance[resourceName] = instance
+		resource.AwsInstance[resourceName] = instance
 	}
 
-	out, err := json.MarshalIndent(template, "", "  ")
+	template.Resource["aws_instance"] = resource.AwsInstance
+
+	var provider struct {
+		Aws struct {
+			Region string
+		}
+	}
+
+	if err := template.DecodeProvider(&provider); err != nil {
+		return nil, err
+	}
+
+	out, err := template.jsonOutput()
 	if err != nil {
 		return nil, err
 	}
 
 	b := &buildData{
-		Template: string(out),
+		Template: out,
 		KiteIds:  kiteIds,
-		Region:   template.Provider.Aws.Region,
+		Region:   provider.Aws.Region,
 	}
 
 	return b, nil
@@ -631,20 +465,18 @@ func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identif
 
 	// 5- return list of keys. We only support aws for now
 	data := &terraformData{
-		Account: account,
-		Group:   group,
-		User:    user,
-		Creds:   make([]*terraformCredential, 0),
+		KodingData: &kodingData{
+			Account: account,
+			Group:   group,
+			User:    user,
+		},
+		Creds: make([]*terraformCredential, 0),
 	}
 
 	for _, c := range credentialData {
 		provider, ok := validKeys[c.Identifier]
 		if !ok {
 			return nil, fmt.Errorf("provider is not found for identifer: %s", c.Identifier)
-		}
-		// for now we only support aws
-		if provider != "aws" {
-			continue
 		}
 
 		cred := &terraformCredential{

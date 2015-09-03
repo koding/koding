@@ -13,10 +13,11 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###*
  * Action to search items by query
  *
+ * @param {string} stateId
  * @param {string} query
 ###
 
-fetchData = (query) ->
+fetchData = (stateId, query) ->
 
   { HIGHLIGHT_PRE_MARKER, HIGHLIGHT_POST_MARKER } = SearchConstants
   
@@ -33,15 +34,17 @@ fetchData = (query) ->
   dispatch actionTypes.CHAT_INPUT_SEARCH_BEGIN
   kd.singletons.search.searchChannelWithHighlighting query, socialApiChannelId, options
     .then (items) ->
-      dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { items }
+      dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
     .catch (err) ->
-      dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { err }
+      dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { stateId, err }
 
 
 ###*
  * Action to clear stored search items
+ *
+ * @param {string} stateId
 ###
-resetData = -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET
+resetData = (stateId) -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { stateId }
 
 
 ###*
@@ -49,77 +52,90 @@ resetData = -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET
  * Also, it resets search items selected index and loads items
  * filtered by query if query is not empty
  *
+ * @param {string} stateId
  * @param {string} query
 ###
-setQuery = (query) ->
+setQuery = (stateId, query) ->
 
   if query
     { SET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
-    dispatch SET_CHAT_INPUT_SEARCH_QUERY, { query }
-    resetSelectedIndex()
-    fetchData query
+    dispatch SET_CHAT_INPUT_SEARCH_QUERY, { stateId, query }
+    resetSelectedIndex stateId
+    fetchData stateId, query
   else
-    unsetQuery()
+    unsetQuery stateId
 
 
 ###*
  * Action to unset current search query.
  * Also, it resets search items selected index
+ *
+ * @param {string} stateId
 ###
-unsetQuery = ->
+unsetQuery = (stateId) ->
 
   { UNSET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
-  dispatch UNSET_CHAT_INPUT_SEARCH_QUERY
+  dispatch UNSET_CHAT_INPUT_SEARCH_QUERY, { stateId }
 
-  resetSelectedIndex()
-  resetData()
+  resetSelectedIndex stateId
+  resetData stateId
 
 
 ###*
  * Action to set search items selected index
  *
+ * @param {string} stateId
  * @param {number} index
 ###
-setSelectedIndex = (index) ->
+setSelectedIndex = (stateId, index) ->
 
   { SET_CHAT_INPUT_SEARCH_SELECTED_INDEX } = actionTypes
-  dispatch SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { index }
+  dispatch SET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId, index }
 
 
 ###*
  * Action to increment search items selected index
+ *
+ * @param {string} stateId
 ###
-moveToNextIndex = ->
+moveToNextIndex = (stateId) ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX } = actionTypes
-  dispatch MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX
+  dispatch MOVE_TO_NEXT_CHAT_INPUT_SEARCH_INDEX, { stateId }
 
 
 ###*
  * Action to decrement search items selected index
+ *
+ * @param {string} stateId
 ###
-moveToPrevIndex = ->
+moveToPrevIndex = (stateId) ->
 
   { MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX } = actionTypes
-  dispatch MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX
+  dispatch MOVE_TO_PREV_CHAT_INPUT_SEARCH_INDEX, { stateId }
 
 
 ###*
- * Action to reset search items selected index to initial value
+ * Action to reset search items selected index
+ *
+ * @param {string} stateId
 ###
-resetSelectedIndex = ->
+resetSelectedIndex = (stateId) ->
 
   { RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX } = actionTypes
-  dispatch RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX
+  dispatch RESET_CHAT_INPUT_SEARCH_SELECTED_INDEX, { stateId }
 
 
 ###*
  * Action to set visibility of search items
+ *
+ * @param {string} stateId
+ * @param {bool} visible
 ###
-setVisibility = (visible) ->
+setVisibility = (stateId, visible) ->
 
   { SET_CHAT_INPUT_SEARCH_VISIBILITY } = actionTypes
-  dispatch SET_CHAT_INPUT_SEARCH_VISIBILITY, { visible }
+  dispatch SET_CHAT_INPUT_SEARCH_VISIBILITY, { stateId, visible }
 
 
 module.exports = {

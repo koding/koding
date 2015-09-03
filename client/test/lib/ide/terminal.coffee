@@ -60,7 +60,7 @@ terminateAll = (browser) ->
 
 
 module.exports =
-  
+
   terminateAll: (browser) ->
 
     user = helpers.beginTest(browser)
@@ -137,11 +137,11 @@ module.exports =
   renameTerminalTab: (browser) ->
 
     name            = helpers.getFakeText().split(' ')[0]
-    tabSelector     = ".kdtabhandle.terminal"
-    optionsSelector = tabSelector + " .options"
+    tabSelector     = "#{paneSelector} .kdtabhandle.terminal"
+    optionsSelector = "#{tabSelector} .options"
     renameSelector  = ".kdcontextmenu.terminal-context-menu .rename"
-    editSelector    = tabSelector + ".edit-mode .hitenterview.tab-handle-input"
-    tabNameSelector = tabSelector + " .tab-handle-text"
+    editSelector    = "#{tabSelector}.edit-mode .hitenterview.tab-handle-input"
+    tabNameSelector = "#{tabSelector} .tab-handle-text"
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -155,6 +155,7 @@ module.exports =
       .waitForElementVisible    renameSelector, 20000
       .click                    renameSelector
       .waitForElementPresent    editSelector, 20000
+      .clearValue               editSelector
       .setValue                 editSelector, [name,browser.Keys.RETURN]
       .waitForElementNotPresent editSelector, 20000
       .assert.containsText      tabNameSelector, name #Assertion

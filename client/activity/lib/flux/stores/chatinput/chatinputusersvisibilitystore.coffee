@@ -1,15 +1,16 @@
 actions         = require 'activity/flux/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
+immutable       = require 'immutable'
 
 ###*
- * Store to handle users visibility flag
+ * Store to handle users visibility flags
 ###
 module.exports = class ChatInputUsersVisibilityStore extends KodingFluxStore
 
   @getterPath = 'ChatInputUsersVisibilityStore'
 
 
-  getInitialState: -> no
+  getInitialState: -> immutable.Map()
 
 
   initialize: ->
@@ -18,12 +19,15 @@ module.exports = class ChatInputUsersVisibilityStore extends KodingFluxStore
 
 
   ###*
-   * It updates current visibility flag with a given value
+   * It updates visibility flag for a given stateId
    *
-   * @param {number} currentState
+   * @param {immutable.Map} currentState
    * @param {object} payload
+   * @param {string} payload.stateId
    * @param {bool} payload.visible
-   * @return {bool} nextState
+   * @return {immutable.Map} nextState
   ###
-  setVisibility: (currentState, { visible }) -> visible
+  setVisibility: (currentState, { stateId, visible }) ->
+
+    currentState.set stateId, visible
 

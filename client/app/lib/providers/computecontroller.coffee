@@ -36,6 +36,8 @@ module.exports = class ComputeController extends KDController
 
     { mainController, router } = kd.singletons
 
+    @ui = ComputeController_UI
+
     do @reset
 
     mainController.ready =>
@@ -421,6 +423,8 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
+      @stopCollaborationSession()
+
       baseKite = machine.getBaseKite( createIfNotExists = no )
       if machine?.provider is 'managed' and baseKite.klientDisable?
       then baseKite.klientDisable().finally -> baseKite.disconnect()
@@ -469,7 +473,7 @@ module.exports = class ComputeController extends KDController
 
     return destroy machine  if force or @_force
 
-    ComputeController_UI.askFor 'destroy', {machine, force}, =>
+    @ui.askFor 'destroy', {machine, force}, =>
       destroy machine
 
 
@@ -478,6 +482,9 @@ module.exports = class ComputeController extends KDController
     return if methodNotSupportedBy machine
 
     startReinit = =>
+
+      @stopCollaborationSession()
+
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
@@ -503,7 +510,7 @@ module.exports = class ComputeController extends KDController
 
     # A shorthand for ComputeController_UI Askfor
     askFor = (action, callback = kd.noop) =>
-      ComputeController_UI.askFor action, {machine, force: @_force},
+      @ui.askFor action, {machine, force: @_force},
         callback
 
     { JSnapshot }     = remote.api
@@ -537,7 +544,7 @@ module.exports = class ComputeController extends KDController
 
     return if methodNotSupportedBy machine
 
-    ComputeController_UI.askFor 'resize', {
+    @ui.askFor 'resize', {
       machine, force: @_force, resizeTo
     }, =>
 
@@ -595,6 +602,8 @@ module.exports = class ComputeController extends KDController
 
 
   buildStack: (stack) ->
+
+    return  unless @verifyStackRequirements stack
 
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
@@ -805,13 +814,47 @@ module.exports = class ComputeController extends KDController
 
       stack.checkRevision (error, data) =>
 
+        data ?= {}
         { status, machineCount } = data
         stack._revisionStatus = { error, status }
 
-        console.info "Revision info for stack #{stack.title}", status
+        # console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack
 
+
+  verifyStackRequirements: (stack) ->
+
+    unless stack
+      kd.warn 'Stack not provided:', stack
+      return no
+
+    { requiredProviders, requiredData } = stack.config
+    provided = stack.credentials
+    missings = []
+
+    for provider in requiredProviders when provider isnt 'koding'
+      missings.push provider  unless provided[provider]?
+
+    if 'userInput' in missings
+      fields = requiredData.userInput
+      @ui.requestMissingData {
+        requiredFields : fields
+        stack
+      }, ({ stack, credential }) =>
+        @emit 'StackRequirementsProvided', { stack, credential }
+
+      return no
+
+    return yes
+
+
+  ###*
+   * Automatically kill active collaboration sessions if any
+  ###
+  stopCollaborationSession: ->
+
+    kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
 

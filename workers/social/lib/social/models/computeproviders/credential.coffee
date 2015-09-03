@@ -63,6 +63,7 @@ module.exports = class JCredential extends jraphical.Module
 
     indexes           :
       identifier      : 'unique'
+      fields          : 'sparse'
 
     schema            :
 
@@ -83,6 +84,10 @@ module.exports = class JCredential extends jraphical.Module
         required      : yes
 
       meta            : require 'bongo/bundles/meta'
+
+      fields          :
+        type          : [String]
+        default       : -> []
 
       verified        :
         type          : Boolean
@@ -114,7 +119,7 @@ module.exports = class JCredential extends jraphical.Module
       { provider, title, meta } = data
       originId = delegate.getId()
 
-      if not PROVIDERS[provider]?
+      if provider not in ['custom', 'userInput'] and not PROVIDERS[provider]?
         callback new KodingError 'Provider is not supported'
         return
 
@@ -122,8 +127,14 @@ module.exports = class JCredential extends jraphical.Module
       credData.save (err) ->
         return  if failed err, callback
 
-        { identifier } = credData
-        credential = new JCredential { provider, title, identifier, originId }
+        { identifier }   = credData
+        _data            = { provider, title, identifier, originId }
+
+        if provider in ['custom', 'userInput']
+          _data.fields   = (Object.keys meta) or []
+          _data.verified = yes
+
+        credential = new JCredential _data
 
         credential.save (err) ->
           return  if failed err, callback, credData
@@ -152,6 +163,14 @@ module.exports = class JCredential extends jraphical.Module
       { group } = client.context
       JGroup.one { slug: group }, (err, group) ->
         return callback err  if err?
+
+        # FIXME Dunno why but `options` variable is overriding by fetcher
+        # in bongo above, so I had to re-set it here. When we fix the
+        # fetcher issue in bongo this won't be needed anymore, thanks JS ~ GG
+        options =
+          limit         : 1
+          targetOptions :
+            selector    : { identifier }
 
         group.fetchCredential {}, options, (err, res) ->
           callback err, res

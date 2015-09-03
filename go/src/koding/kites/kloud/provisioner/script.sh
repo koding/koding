@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt-get update
-sudo apt-get install -y ubuntu-standard ubuntu-minimal htop git net-tools aptitude apache2 php5 libapache2-mod-php5 php5-cgi ruby screen fish sudo mc iotop iftop software-properties-common python-fcgi ruby-fcgi
+sudo apt-get install -y ubuntu-standard ubuntu-minimal htop git net-tools aptitude apache2 php5 libapache2-mod-php5 php5-cgi ruby screen fish sudo mc iotop iftop software-properties-common python-fcgi ruby-fcgi silversearcher-ag
 wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv
 
 sudo apt-get install -y ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go
@@ -22,6 +22,9 @@ sudo groupadd docker
 
 # remove installed packages to free up space
 sudo apt-get clean
+
+# update and rebuild index for locate command
+sudo updatedb
 
 # install kpm
 cd /usr/local/bin

@@ -19,14 +19,15 @@ describe 'FilteredEmojiListQueryStore', ->
 
       query1 = 'smile'
       query2 = '+1'
+      stateId = 'qwerty'
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, query : query1
-      query = @reactor.evaluate ['filteredEmojiListQuery']
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query : query1 }
+      query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
       expect(query).to.equal query1
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, query: query2
-      query = @reactor.evaluate ['filteredEmojiListQuery']
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query: query2 }
+      query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
       expect(query).to.equal query2
 
@@ -36,14 +37,15 @@ describe 'FilteredEmojiListQueryStore', ->
     it 'clears current query', ->
 
       testQuery = 'smile'
+      stateId = 'qwerty'
 
-      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, query : testQuery
-      query = @reactor.evaluate ['filteredEmojiListQuery']
+      @reactor.dispatch actions.SET_FILTERED_EMOJI_LIST_QUERY, { stateId, query : testQuery }
+      query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
       expect(query).to.equal testQuery
 
-      @reactor.dispatch actions.UNSET_FILTERED_EMOJI_LIST_QUERY
-      query = @reactor.evaluate ['filteredEmojiListQuery']
+      @reactor.dispatch actions.UNSET_FILTERED_EMOJI_LIST_QUERY, { stateId }
+      query = @reactor.evaluate(['filteredEmojiListQuery']).get stateId
 
-      expect(query).to.be.null
+      expect(query).to.be.undefined
 
