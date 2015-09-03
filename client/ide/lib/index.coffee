@@ -957,9 +957,11 @@ class IDEAppController extends AppController
 
     text = if component is 'editor'
       { cursor, file } = data
+      filePath = if file.isDummyFile() then file.name else file.path
+
       """
         <p class="line">#{++cursor.row}:#{++cursor.column}</p>
-        <p>#{FSHelper.minimizePath file.path}</p>
+        <p>#{FSHelper.minimizePath filePath}</p>
       """
 
     else if component is 'terminal' then "Terminal on #{data.machineName}"
