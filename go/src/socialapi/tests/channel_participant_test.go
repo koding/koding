@@ -254,6 +254,19 @@ func TestChannelParticipantOperations(t *testing.T) {
 
 					_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
 					So(err, ShouldBeNil)
+
+					Convey("adding same user again should success", func() {
+						_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
+						So(err, ShouldBeNil)
+					})
+
+					_, err = rest.DeleteChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
+					So(err, ShouldBeNil)
+
+					Convey("removing same user again should success", func() {
+						_, err = rest.DeleteChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
+						So(err, ShouldBeNil)
+					})
 				})
 			})
 		})
