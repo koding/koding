@@ -1,5 +1,5 @@
 kd          = require 'kd'
-actionTypes = require '../actions/actiontypes'
+actionTypes = require './actiontypes'
 
 ###*
  * Action to set a query of filtered emoji list.
@@ -133,3 +133,4 @@ module.exports = {
   resetCommonListSelectedIndex
   setCommonListVisibility
 }
+

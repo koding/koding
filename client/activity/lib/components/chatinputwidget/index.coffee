@@ -7,6 +7,7 @@ UserDropup      = require 'activity/components/userdropup'
 EmojiSelector   = require 'activity/components/emojiselector'
 SearchDropup    = require 'activity/components/searchdropup'
 ActivityFlux    = require 'activity/flux'
+ChatInputFlux   = require 'activity/flux/chatinput'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
 Link            = require 'app/components/common/link'
@@ -34,16 +35,17 @@ module.exports = class ChatInputWidget extends React.Component
 
   getDataBindings: ->
 
-    { getters } = ActivityFlux
+    { getters }      = ActivityFlux
+    chatInputGetters = ChatInputFlux.getters
 
     return {
-      filteredEmojiList              : getters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      commonEmojiList                : getters.commonEmojiList
-      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      filteredEmojiList              : chatInputGetters.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : chatInputGetters.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : chatInputGetters.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : chatInputGetters.filteredEmojiListQuery @stateId
+      commonEmojiList                : chatInputGetters.commonEmojiList
+      commonEmojiListSelectedItem    : chatInputGetters.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : chatInputGetters.commonEmojiListVisibility @stateId
       channels                       : getters.chatInputChannels @stateId
       channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
@@ -175,7 +177,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility @stateId, yes
+    ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
 
 
   handleSearchButtonClick: (event) ->
