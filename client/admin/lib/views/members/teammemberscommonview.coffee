@@ -53,6 +53,15 @@ module.exports = class TeamMembersCommonView extends KDView
       placeholder : @getOptions().searchInputPlaceholder
       callback    : @bound 'search'
 
+    @searchContainer.addSubView @searchClear = new KDCustomHTMLView
+      tagName     : 'span'
+      partial     : 'clear'
+      cssClass    : 'clear-search hidden'
+      click       : =>
+        @searchInput.setValue ''
+        @search()
+        @searchClear.hide()
+
 
   createListController: ->
 
@@ -165,7 +174,6 @@ module.exports = class TeamMembersCommonView extends KDView
 
     query = @searchInput.getValue()
 
-
     if query is ''
       @page = 0
       @skip = 0
@@ -175,6 +183,7 @@ module.exports = class TeamMembersCommonView extends KDView
     @page      = 0  if query isnt @lastQuery
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
+    @searchClear.show()
 
     kd.singletons.search.searchAccounts query, options
       .then (accounts) =>
