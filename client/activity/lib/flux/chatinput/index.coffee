@@ -5,6 +5,7 @@ module.exports = {
     emoji   : require './actions/emoji'
     channel : require './actions/channel'
     user    : require './actions/user'
+    search  : require './actions/search'
 
   stores  : [
     require './stores/emoji/emojisstore'
@@ -18,6 +19,10 @@ module.exports = {
     require './stores/user/chatinputusersquerystore'
     require './stores/user/chatinputusersselectedindexstore'
     require './stores/user/chatinputusersvisibilitystore'
+    require './stores/search/chatinputsearchselectedindexstore'
+    require './stores/search/chatinputsearchquerystore'
+    require './stores/search/chatinputsearchvisibilitystore'
+    require './stores/search/chatinputsearchstore'
   ]
 }
 

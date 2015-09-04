@@ -33,11 +33,6 @@ SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
-ChatInputSearchQueryStore           = ['ChatInputSearchQueryStore']
-ChatInputSearchSelectedIndexStore   = ['ChatInputSearchSelectedIndexStore']
-ChatInputSearchVisibilityStore      = ['ChatInputSearchVisibilityStore']
-ChatInputSearchStore                = ['ChatInputSearchStore']
-
 
 allChannels = ChannelsStore
 allUsers    = UsersStore
@@ -244,33 +239,6 @@ currentSuggestionsSelectedItem = [
 ]
 
 
-chatInputSearchItems = (stateId) -> [
-  ChatInputSearchStore
-  (searchStore) -> searchStore.get stateId
-]
-chatInputSearchQuery = (stateId) -> [
-  ChatInputSearchQueryStore
-  (queries) -> queries.get stateId
-]
-chatInputSearchRawIndex = (stateId) -> [
-  ChatInputSearchSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-chatInputSearchSelectedIndex = (stateId) -> [
-  chatInputSearchItems stateId
-  chatInputSearchRawIndex stateId
-  calculateListSelectedIndex
-]
-chatInputSearchSelectedItem = (stateId) -> [
-  chatInputSearchItems stateId
-  chatInputSearchSelectedIndex stateId
-  getListSelectedItem
-]
-chatInputSearchVisibility = (stateId) -> [
-  ChatInputSearchVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -296,11 +264,5 @@ module.exports = {
   currentSuggestionsSelectedItem
 
   allUsers
-
-  chatInputSearchItems
-  chatInputSearchQuery
-  chatInputSearchSelectedIndex
-  chatInputSearchSelectedItem
-  chatInputSearchVisibility
 }
 

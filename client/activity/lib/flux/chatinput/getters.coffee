@@ -19,6 +19,10 @@ ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], wit
 UsersQueryStore                     = [['ChatInputUsersQueryStore'], withEmptyMap]
 UsersSelectedIndexStore             = [['ChatInputUsersSelectedIndexStore'], withEmptyMap]
 UsersVisibilityStore                = [['ChatInputUsersVisibilityStore'], withEmptyMap]
+SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyMap]
+SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
+SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
+SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -178,6 +182,44 @@ usersVisibility = (stateId) -> [
 ]
 
 
+searchItems = (stateId) -> [
+  SearchStore
+  (searchStore) -> searchStore.get stateId
+]
+
+
+searchQuery = (stateId) -> [
+  SearchQueryStore
+  (queries) -> queries.get stateId
+]
+
+
+searchRawIndex = (stateId) -> [
+  SearchSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+
+
+searchSelectedIndex = (stateId) -> [
+  searchItems stateId
+  searchRawIndex stateId
+  calculateListSelectedIndex
+]
+
+
+searchSelectedItem = (stateId) -> [
+  searchItems stateId
+  searchSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+searchVisibility = (stateId) -> [
+  SearchVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -202,5 +244,11 @@ module.exports = {
   usersSelectedIndex
   usersSelectedItem
   usersVisibility
+
+  searchItems
+  searchQuery
+  searchSelectedIndex
+  searchSelectedItem
+  searchVisibility
 }
 

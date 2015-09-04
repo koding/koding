@@ -12,7 +12,7 @@ KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
 Link            = require 'app/components/common/link'
 helpers         = require './helpers'
-groupifyLink   = require 'app/util/groupifyLink'
+groupifyLink    = require 'app/util/groupifyLink'
 
 
 module.exports = class ChatInputWidget extends React.Component
@@ -35,32 +35,31 @@ module.exports = class ChatInputWidget extends React.Component
 
   getDataBindings: ->
 
-    { getters }      = ActivityFlux
-    chatInputGetters = ChatInputFlux.getters
+    { getters } = ChatInputFlux
 
     return {
-      filteredEmojiList              : chatInputGetters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : chatInputGetters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : chatInputGetters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : chatInputGetters.filteredEmojiListQuery @stateId
-      commonEmojiList                : chatInputGetters.commonEmojiList
-      commonEmojiListSelectedItem    : chatInputGetters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : chatInputGetters.commonEmojiListVisibility @stateId
-      channels                       : chatInputGetters.channels @stateId
-      channelsSelectedIndex          : chatInputGetters.channelsSelectedIndex @stateId
-      channelsSelectedItem           : chatInputGetters.channelsSelectedItem @stateId
-      channelsQuery                  : chatInputGetters.channelsQuery @stateId
-      channelsVisibility             : chatInputGetters.channelsVisibility @stateId
-      users                          : chatInputGetters.users @stateId
-      usersQuery                     : chatInputGetters.usersQuery @stateId
-      userSelectedIndex              : chatInputGetters.usersSelectedIndex @stateId
-      usersSelectedItem              : chatInputGetters.usersSelectedItem @stateId
-      usersVisibility                : chatInputGetters.usersVisibility @stateId
-      searchItems                    : getters.chatInputSearchItems @stateId
-      searchQuery                    : getters.chatInputSearchQuery @stateId
-      searchSelectedIndex            : getters.chatInputSearchSelectedIndex @stateId
-      searchSelectedItem             : getters.chatInputSearchSelectedItem @stateId
-      searchVisibility               : getters.chatInputSearchVisibility @stateId
+      filteredEmojiList              : getters.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
+      commonEmojiList                : getters.commonEmojiList
+      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      channels                       : getters.channels @stateId
+      channelsSelectedIndex          : getters.channelsSelectedIndex @stateId
+      channelsSelectedItem           : getters.channelsSelectedItem @stateId
+      channelsQuery                  : getters.channelsQuery @stateId
+      channelsVisibility             : getters.channelsVisibility @stateId
+      users                          : getters.users @stateId
+      usersQuery                     : getters.usersQuery @stateId
+      userSelectedIndex              : getters.usersSelectedIndex @stateId
+      usersSelectedItem              : getters.usersSelectedItem @stateId
+      usersVisibility                : getters.usersVisibility @stateId
+      searchItems                    : getters.searchItems @stateId
+      searchQuery                    : getters.searchQuery @stateId
+      searchSelectedIndex            : getters.searchSelectedIndex @stateId
+      searchSelectedItem             : getters.searchSelectedItem @stateId
+      searchVisibility               : getters.searchVisibility @stateId
     }
 
 

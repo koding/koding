@@ -17,11 +17,6 @@ require './suggestions/suggestionsstore'
 require './suggestions/suggestionsselectedindexstore'
 require './suggestions/suggestionsgetters'
 require './messagelikersstore'
-require './chatinput/chatinputsearchquerystore'
-require './chatinput/chatinputsearchselectedindexstore'
-require './chatinput/chatinputsearchvisibilitystore'
-require './chatinput/chatinputsearchstore'
-require './chatinput/chatinputsearchgetters'
 
 # module tests
 require 'activity/flux/chatinput/tests'
