@@ -170,7 +170,7 @@ module.exports =
 
     webPath         = '/home/' + user.username + '/Web'
     fileSelector    = "span[title='" + webPath + '/' + file + "']"
-    submenuSelector = 'li.as-#{type}'
+    submenuSelector = "li.as-#{type}"
     extension = '.zip'
 
     if type is 'targz'
