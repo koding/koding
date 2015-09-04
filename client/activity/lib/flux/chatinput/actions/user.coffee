@@ -106,3 +106,4 @@ module.exports = {
   resetSelectedIndex
   setVisibility
 }
+
