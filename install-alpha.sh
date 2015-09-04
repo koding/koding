@@ -35,28 +35,17 @@ if [ -n "$IDENT" ]; then
 fi
 
 
-# Test the ssh credentials
-echo "Testing your ssh credentials..."
-ssh $IDENT_FLAG "$HOST" echo "" 2>&1 > /dev/null
-err=$?; if [ "$err" -ne 0 ]; then
-  cat << EOF
-Error $err: Could not connect to the provided host '$HOST'. Please ensure
-that you have the correct user and that your pubkey is in that user's
-~/.ssh/authorized_keys file.
-EOF
-  exit $err
-fi
-
-
 # TODO: SSH into the machine here, download a custom klient, and
 # install it.
 
 
 # Now scp into the machine to copy its kite key
-scp $IDENT_FLAG "$HOST:/etc/kite/kite.key" "$KEYFILE"
+scp "$HOST:/etc/kite/kite.key" "$KEYFILE"
 err=$?; if [ "$err" -ne 0 ]; then
-  echo "Error $err: There was an error SCPing to the remote machine"
-  exit $err
+  echo ""
+  echo "Please ensure that you have the correct user and that your pubkey is in that user's ~/.ssh/authorized_keys file and /etc/kite/kite.key exists in VM."
+  echo ""
+  exit 1
 fi
 
 
