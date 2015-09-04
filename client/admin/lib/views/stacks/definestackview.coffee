@@ -1,29 +1,30 @@
-kd                   = require 'kd'
-jspath               = require 'jspath'
+kd                    = require 'kd'
+jspath                = require 'jspath'
 
-KDView               = kd.View
-KDTabView            = kd.TabView
-KDModalView          = kd.ModalView
-KDButtonView         = kd.ButtonView
-KDTabPaneView        = kd.TabPaneView
-KDCustomHTMLView     = kd.CustomHTMLView
-KDNotificationView   = kd.NotificationView
+KDView                = kd.View
+KDTabView             = kd.TabView
+KDModalView           = kd.ModalView
+KDButtonView          = kd.ButtonView
+KDTabPaneView         = kd.TabPaneView
+KDCustomHTMLView      = kd.CustomHTMLView
+KDNotificationView    = kd.NotificationView
 
-whoami               = require 'app/util/whoami'
-curryIn              = require 'app/util/curryIn'
-applyMarkdown        = require 'app/util/applyMarkdown'
-{ yamlToJson }       = require './yamlutils'
-providersParser      = require './providersparser'
+whoami                = require 'app/util/whoami'
+curryIn               = require 'app/util/curryIn'
+applyMarkdown         = require 'app/util/applyMarkdown'
+{ yamlToJson }        = require './yamlutils'
+providersParser       = require './providersparser'
 
-requirementsParser   = require './requirementsparser'
-updateStackTemplate  = require './updatestacktemplate'
-updateCustomVariable = require './updatecustomvariable'
-parseTerraformOutput = require './parseterraformoutput'
+requirementsParser    = require './requirementsparser'
+updateStackTemplate   = require './updatestacktemplate'
+updateCustomVariable  = require './updatecustomvariable'
+parseTerraformOutput  = require './parseterraformoutput'
 
-OutputView           = require './outputview'
-ProvidersView        = require './providersview'
-VariablesView        = require './variablesview'
-StackTemplateView    = require './stacktemplateview'
+OutputView            = require './outputview'
+ProvidersView         = require './providersview'
+VariablesView         = require './variablesview'
+StackTemplateView     = require './stacktemplateview'
+StackEditorFooterView = require './stackeditorfooterview'
 
 
 module.exports = class DefineStackView extends KDView
@@ -111,24 +112,8 @@ module.exports = class DefineStackView extends KDView
 
   createFooter: ->
 
-    @addSubView @footer = new kd.CustomHTMLView
-      cssClass : 'stack-editor-footer'
-      partial  : """
-        <div class="section">
-          <span class="icon"></span>
-          <div class="text">
-            <p>Need some help?</p>
-            <a href="/Admin/Invitations">Invite a teammate</a>
-          </div>
-        </div>
-        <div class="section">
-          <span class="icon"></span>
-          <div class="text">
-            <p>To learn about stack files</p>
-            <a href="#">Check out our docs</a>
-          </div>
-        </div>
-      """
+    @addSubView @footer = new StackEditorFooterView
+
 
   createOutputView: ->
 
