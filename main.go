@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/koding/fuseklient/auth"
+	"github.com/koding/fuseklient/lock"
 	"github.com/koding/fuseklient/transport"
 	"github.com/koding/fuseklient/unmount"
 	"github.com/koding/fuseklient/vmfs"
@@ -40,12 +41,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := lock.Lock(conf.LocalPath); err != nil {
+		log.Fatal(err)
+	}
+
 	go func() {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 		<-signals
 
 		unmount.Unmount(conf.LocalPath)
+		lock.Unlock(conf.LocalPath)
 	}()
 
 	// blocking
