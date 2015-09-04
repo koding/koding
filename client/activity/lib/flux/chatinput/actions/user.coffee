@@ -15,15 +15,15 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  * @param {string} stateId
  * @param {string} query
 ###
-setChatInputUsersQuery = (stateId, query) ->
+setQuery = (stateId, query) ->
 
   if query
     { SET_CHAT_INPUT_USERS_QUERY } = actionTypes
     dispatch SET_CHAT_INPUT_USERS_QUERY, { stateId, query }
-    resetChatInputUsersSelectedIndex stateId
+    resetSelectedIndex stateId
     appActions.user.searchAccounts query
   else
-    unsetChatInputUsersQuery stateId
+    unsetQuery stateId
 
 
 ###*
@@ -32,12 +32,12 @@ setChatInputUsersQuery = (stateId, query) ->
  *
  * @param {string} stateId
 ###
-unsetChatInputUsersQuery = (stateId) ->
+unsetQuery = (stateId) ->
 
   { UNSET_CHAT_INPUT_USERS_QUERY } = actionTypes
   dispatch UNSET_CHAT_INPUT_USERS_QUERY, { stateId }
 
-  resetChatInputUsersSelectedIndex stateId
+  resetSelectedIndex stateId
 
 
 ###*
@@ -46,7 +46,7 @@ unsetChatInputUsersQuery = (stateId) ->
  * @param {string} stateId
  * @param {number} index
 ###
-setChatInputUsersSelectedIndex = (stateId, index) ->
+setSelectedIndex = (stateId, index) ->
 
   { SET_CHAT_INPUT_USERS_SELECTED_INDEX } = actionTypes
   dispatch SET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId, index }
@@ -57,7 +57,7 @@ setChatInputUsersSelectedIndex = (stateId, index) ->
  *
  * @param {string} stateId
 ###
-moveToNextChatInputUsersIndex = (stateId) ->
+moveToNextIndex = (stateId) ->
 
   { MOVE_TO_NEXT_CHAT_INPUT_USERS_INDEX } = actionTypes
   dispatch MOVE_TO_NEXT_CHAT_INPUT_USERS_INDEX, { stateId }
@@ -68,7 +68,7 @@ moveToNextChatInputUsersIndex = (stateId) ->
  *
  * @param {string} stateId
 ###
-moveToPrevChatInputUsersIndex = (stateId) ->
+moveToPrevIndex = (stateId) ->
 
   { MOVE_TO_PREV_CHAT_INPUT_USERS_INDEX } = actionTypes
   dispatch MOVE_TO_PREV_CHAT_INPUT_USERS_INDEX, { stateId }
@@ -79,7 +79,7 @@ moveToPrevChatInputUsersIndex = (stateId) ->
  *
  * @param {string} stateId
 ###
-resetChatInputUsersSelectedIndex = (stateId) ->
+resetSelectedIndex = (stateId) ->
 
   { RESET_CHAT_INPUT_USERS_SELECTED_INDEX } = actionTypes
   dispatch RESET_CHAT_INPUT_USERS_SELECTED_INDEX, { stateId }
@@ -91,18 +91,18 @@ resetChatInputUsersSelectedIndex = (stateId) ->
  * @param {string} stateId
  * @param {bool} visible
 ###
-setChatInputUsersVisibility = (stateId, visible) ->
+setVisibility = (stateId, visible) ->
 
   { SET_CHAT_INPUT_USERS_VISIBILITY } = actionTypes
   dispatch SET_CHAT_INPUT_USERS_VISIBILITY, { stateId, visible }
 
 
 module.exports = {
-  setChatInputUsersQuery
-  unsetChatInputUsersQuery
-  setChatInputUsersSelectedIndex
-  moveToNextChatInputUsersIndex
-  moveToPrevChatInputUsersIndex
-  resetChatInputUsersSelectedIndex
-  setChatInputUsersVisibility
+  setQuery
+  unsetQuery
+  setSelectedIndex
+  moveToNextIndex
+  moveToPrevIndex
+  resetSelectedIndex
+  setVisibility
 }

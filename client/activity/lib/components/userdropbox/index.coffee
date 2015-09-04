@@ -2,10 +2,10 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
 Dropbox              = require 'activity/components/dropbox'
 UserDropboxItem      = require 'activity/components/userdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
+ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
@@ -30,7 +30,7 @@ module.exports = class UserDropbox extends React.Component
   close: ->
 
     { stateId } = @props
-    ActivityFlux.actions.user.setChatInputUsersVisibility stateId, no
+    ChatInputFlux.actions.user.setVisibility stateId, no
 
 
   moveToNextPosition: (keyInfo) ->
@@ -41,7 +41,7 @@ module.exports = class UserDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.user.moveToNextChatInputUsersIndex stateId
+      ChatInputFlux.actions.user.moveToNextIndex stateId
 
     return yes
 
@@ -54,7 +54,7 @@ module.exports = class UserDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.user.moveToPrevChatInputUsersIndex stateId
+      ChatInputFlux.actions.user.moveToPrevIndex stateId
 
     return yes
 
@@ -69,8 +69,8 @@ module.exports = class UserDropbox extends React.Component
 
     query = matchResult[1]
     { stateId } = @props
-    ActivityFlux.actions.user.setChatInputUsersQuery stateId, query
-    ActivityFlux.actions.user.setChatInputUsersVisibility stateId, yes
+    ChatInputFlux.actions.user.setQuery stateId, query
+    ChatInputFlux.actions.user.setVisibility stateId, yes
 
     return yes
 
@@ -78,7 +78,7 @@ module.exports = class UserDropbox extends React.Component
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ActivityFlux.actions.user.setChatInputUsersSelectedIndex stateId, index
+    ChatInputFlux.actions.user.setSelectedIndex stateId, index
 
 
   renderList: ->

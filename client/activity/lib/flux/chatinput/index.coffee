@@ -4,6 +4,7 @@ module.exports = {
   actions :
     emoji   : require './actions/emoji'
     channel : require './actions/channel'
+    user    : require './actions/user'
 
   stores  : [
     require './stores/emoji/emojisstore'
@@ -14,6 +15,9 @@ module.exports = {
     require './stores/channel/chatinputchannelsquerystore'
     require './stores/channel/chatinputchannelsselectedindexstore'
     require './stores/channel/chatinputchannelsvisibilitystore'
+    require './stores/user/chatinputusersquerystore'
+    require './stores/user/chatinputusersselectedindexstore'
+    require './stores/user/chatinputusersvisibilitystore'
   ]
 }
 

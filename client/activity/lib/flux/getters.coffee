@@ -33,9 +33,6 @@ SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
-ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
-ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
-ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
 ChatInputSearchQueryStore           = ['ChatInputSearchQueryStore']
 ChatInputSearchSelectedIndexStore   = ['ChatInputSearchSelectedIndexStore']
 ChatInputSearchVisibilityStore      = ['ChatInputSearchVisibilityStore']
@@ -43,6 +40,7 @@ ChatInputSearchStore                = ['ChatInputSearchStore']
 
 
 allChannels = ChannelsStore
+allUsers    = UsersStore
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -70,7 +68,7 @@ popularChannels = [
 
 channelParticipants = [
   ChannelParticipantIdsStore
-  UsersStore
+  allUsers
   (channelIds, users) ->
     channelIds.map (participantIds) ->
       participantIds.reduce (result, id) ->
@@ -159,7 +157,7 @@ followedPrivateChannelThreads = [
 selectedChannelThreadMessages = [
   selectedChannelThread
   MessageLikersStore
-  UsersStore
+  allUsers
   (thread, likers, users) ->
     return null  unless thread
     thread.get('messages').map (message) ->
@@ -246,44 +244,6 @@ currentSuggestionsSelectedItem = [
 ]
 
 
-chatInputUsersQuery = (stateId) -> [
-  ChatInputUsersQueryStore
-  (queries) -> queries.get stateId
-]
-# Returns a list of users depending on the current query
-# If query is empty, returns selected channel participants
-# Otherwise, returns users filtered by query
-chatInputUsers = (stateId) -> [
-  UsersStore
-  selectedChannelParticipants
-  chatInputUsersQuery stateId
-  (users, participants, query) ->
-    return participants?.toList() ? immutable.List()  unless query
-
-    query = query.toLowerCase()
-    users.toList().filter (user) ->
-      userName = user.getIn(['profile', 'nickname']).toLowerCase()
-      return userName.indexOf(query) is 0
-]
-chatInputUsersRawIndex = (stateId) -> [
-  ChatInputUsersSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-chatInputUsersSelectedIndex = (stateId) -> [
-  chatInputUsers stateId
-  chatInputUsersRawIndex stateId
-  calculateListSelectedIndex
-]
-chatInputUsersSelectedItem = (stateId) -> [
-  chatInputUsers stateId
-  chatInputUsersSelectedIndex stateId
-  getListSelectedItem
-]
-chatInputUsersVisibility = (stateId) -> [
-  ChatInputUsersVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
 chatInputSearchItems = (stateId) -> [
   ChatInputSearchStore
   (searchStore) -> searchStore.get stateId
@@ -335,11 +295,7 @@ module.exports = {
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
 
-  chatInputUsers
-  chatInputUsersQuery
-  chatInputUsersSelectedIndex
-  chatInputUsersSelectedItem
-  chatInputUsersVisibility
+  allUsers
 
   chatInputSearchItems
   chatInputSearchQuery

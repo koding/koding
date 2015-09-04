@@ -51,11 +51,11 @@ module.exports = class ChatInputWidget extends React.Component
       channelsSelectedItem           : chatInputGetters.channelsSelectedItem @stateId
       channelsQuery                  : chatInputGetters.channelsQuery @stateId
       channelsVisibility             : chatInputGetters.channelsVisibility @stateId
-      users                          : getters.chatInputUsers @stateId
-      usersQuery                     : getters.chatInputUsersQuery @stateId
-      userSelectedIndex              : getters.chatInputUsersSelectedIndex @stateId
-      usersSelectedItem              : getters.chatInputUsersSelectedItem @stateId
-      usersVisibility                : getters.chatInputUsersVisibility @stateId
+      users                          : chatInputGetters.users @stateId
+      usersQuery                     : chatInputGetters.usersQuery @stateId
+      userSelectedIndex              : chatInputGetters.usersSelectedIndex @stateId
+      usersSelectedItem              : chatInputGetters.usersSelectedItem @stateId
+      usersVisibility                : chatInputGetters.usersVisibility @stateId
       searchItems                    : getters.chatInputSearchItems @stateId
       searchQuery                    : getters.chatInputSearchQuery @stateId
       searchSelectedIndex            : getters.chatInputSearchSelectedIndex @stateId

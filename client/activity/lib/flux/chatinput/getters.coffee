@@ -9,13 +9,16 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 
 
 EmojisStore                         = [['EmojisStore'], withEmptyList]
-FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
-FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
-CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
-CommonEmojiListVisibilityStore      = ['CommonEmojiListVisibilityStore']
-ChannelsQueryStore                  = ['ChatInputChannelsQueryStore']
-ChannelsSelectedIndexStore          = ['ChatInputChannelsSelectedIndexStore']
-ChannelsVisibilityStore             = ['ChatInputChannelsVisibilityStore']
+FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
+FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
+CommonEmojiListSelectedIndexStore   = [['CommonEmojiListSelectedIndexStore'], withEmptyMap]
+CommonEmojiListVisibilityStore      = [['CommonEmojiListVisibilityStore'], withEmptyMap]
+ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
+ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
+ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
+UsersQueryStore                     = [['ChatInputUsersQueryStore'], withEmptyMap]
+UsersSelectedIndexStore             = [['ChatInputUsersSelectedIndexStore'], withEmptyMap]
+UsersVisibilityStore                = [['ChatInputUsersVisibilityStore'], withEmptyMap]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -90,11 +93,11 @@ channels = (stateId) -> [
   ActivityFluxGetters.allChannels
   ActivityFluxGetters.popularChannels
   channelsQuery stateId
-  (channels, popularChannels, query) ->
+  (allChannels, popularChannels, query) ->
     return popularChannels.toList()  unless query
 
     query = query.toLowerCase()
-    channels.toList().filter (channel) ->
+    allChannels.toList().filter (channel) ->
       channelName = channel.get('name').toLowerCase()
       return channelName.indexOf(query) is 0
 ]
@@ -126,6 +129,55 @@ channelsVisibility = (stateId) -> [
 ]
 
 
+usersQuery = (stateId) -> [
+  UsersQueryStore
+  (queries) -> queries.get stateId
+]
+
+
+# Returns a list of users depending on the current query
+# If query is empty, returns selected channel participants
+# Otherwise, returns users filtered by query
+users = (stateId) -> [
+  ActivityFluxGetters.allUsers
+  ActivityFluxGetters.selectedChannelParticipants
+  usersQuery stateId
+  (allUsers, participants, query) ->
+    return participants?.toList() ? immutable.List()  unless query
+
+    query = query.toLowerCase()
+    allUsers.toList().filter (user) ->
+      userName = user.getIn(['profile', 'nickname']).toLowerCase()
+      return userName.indexOf(query) is 0
+]
+
+
+usersRawIndex = (stateId) -> [
+  UsersSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+
+
+usersSelectedIndex = (stateId) -> [
+  users stateId
+  usersRawIndex stateId
+  calculateListSelectedIndex
+]
+
+
+usersSelectedItem = (stateId) -> [
+  users stateId
+  usersSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+usersVisibility = (stateId) -> [
+  UsersVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -143,5 +195,12 @@ module.exports = {
   channelsSelectedIndex
   channelsSelectedItem
   channelsVisibility
+
+  usersQuery
+  users
+  usersRawIndex
+  usersSelectedIndex
+  usersSelectedItem
+  usersVisibility
 }
 

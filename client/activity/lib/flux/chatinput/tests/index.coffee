@@ -6,4 +6,7 @@ require './commonemojilistvisibilitystore'
 require './chatinputchannelsquerystore'
 require './chatinputchannelsselectedindexstore'
 require './chatinputchannelsvisibilitystore'
+require './chatinputusersquerystore'
+require './chatinputusersselectedindexstore'
+require './chatinputusersvisibilitystore'
 
