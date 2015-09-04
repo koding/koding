@@ -2,8 +2,8 @@
 
 Reactor = require 'app/flux/reactor'
 
-ChatInputChannelsQueryStore = require 'activity/flux/stores/chatinput/chatinputchannelsquerystore'
-actions = require 'activity/flux/actions/actiontypes'
+ChatInputChannelsQueryStore = require 'activity/flux/chatinput/stores/channel/chatinputchannelsquerystore'
+actions = require 'activity/flux/chatinput/actions/actiontypes'
 
 describe 'ChatInputChannelsQueryStore', ->
 

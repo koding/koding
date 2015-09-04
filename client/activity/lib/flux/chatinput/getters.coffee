@@ -1,4 +1,5 @@
 immutable                  = require 'immutable'
+ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 
@@ -12,6 +13,9 @@ FilteredEmojiListQueryStore         = ['FilteredEmojiListQueryStore']
 FilteredEmojiListSelectedIndexStore = ['FilteredEmojiListSelectedIndexStore']
 CommonEmojiListSelectedIndexStore   = ['CommonEmojiListSelectedIndexStore']
 CommonEmojiListVisibilityStore      = ['CommonEmojiListVisibilityStore']
+ChannelsQueryStore                  = ['ChatInputChannelsQueryStore']
+ChannelsSelectedIndexStore          = ['ChatInputChannelsSelectedIndexStore']
+ChannelsVisibilityStore             = ['ChatInputChannelsVisibilityStore']
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -73,6 +77,55 @@ commonEmojiListSelectedItem = (stateId) -> [
 ]
 
 
+channelsQuery = (stateId) -> [
+  ChannelsQueryStore
+  (queries) -> queries.get stateId
+]
+
+
+# Returns a list of channels depending on the current query
+# If query if empty, returns popular channels
+# Otherwise, returns channels filtered by query
+channels = (stateId) -> [
+  ActivityFluxGetters.allChannels
+  ActivityFluxGetters.popularChannels
+  channelsQuery stateId
+  (channels, popularChannels, query) ->
+    return popularChannels.toList()  unless query
+
+    query = query.toLowerCase()
+    channels.toList().filter (channel) ->
+      channelName = channel.get('name').toLowerCase()
+      return channelName.indexOf(query) is 0
+]
+
+
+channelsRawIndex = (stateId) -> [
+  ChannelsSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+
+
+channelsSelectedIndex = (stateId) -> [
+  channels stateId
+  channelsRawIndex stateId
+  calculateListSelectedIndex
+]
+
+
+channelsSelectedItem = (stateId) -> [
+  channels stateId
+  channelsSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+channelsVisibility = (stateId) -> [
+  ChannelsVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -83,5 +136,12 @@ module.exports = {
   commonEmojiListSelectedIndex
   commonEmojiListVisibility
   commonEmojiListSelectedItem
+
+  channelsQuery
+  channels
+  channelsRawIndex
+  channelsSelectedIndex
+  channelsSelectedItem
+  channelsVisibility
 }
 

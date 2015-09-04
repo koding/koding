@@ -46,11 +46,11 @@ module.exports = class ChatInputWidget extends React.Component
       commonEmojiList                : chatInputGetters.commonEmojiList
       commonEmojiListSelectedItem    : chatInputGetters.commonEmojiListSelectedItem @stateId
       commonEmojiListVisibility      : chatInputGetters.commonEmojiListVisibility @stateId
-      channels                       : getters.chatInputChannels @stateId
-      channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
-      channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
-      channelsQuery                  : getters.chatInputChannelsQuery @stateId
-      channelsVisibility             : getters.chatInputChannelsVisibility @stateId
+      channels                       : chatInputGetters.channels @stateId
+      channelsSelectedIndex          : chatInputGetters.channelsSelectedIndex @stateId
+      channelsSelectedItem           : chatInputGetters.channelsSelectedItem @stateId
+      channelsQuery                  : chatInputGetters.channelsQuery @stateId
+      channelsVisibility             : chatInputGetters.channelsVisibility @stateId
       users                          : getters.chatInputUsers @stateId
       usersQuery                     : getters.chatInputUsersQuery @stateId
       userSelectedIndex              : getters.chatInputUsersSelectedIndex @stateId
