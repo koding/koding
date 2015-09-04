@@ -518,15 +518,18 @@ module.exports = class DefineStackView extends KDView
 
     @outputView.add 'Setting this as default group stack template...'
 
-    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-      return if @outputView.handleError err
+    stackTemplate.setAccess 'group', (err) =>
+      return  if @outputView.handleError err
 
-      new kd.NotificationView
-        title : "Group (#{slug}) stack has been saved!"
-        type  : 'mini'
+      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
+        return  if @outputView.handleError err
 
-      computeController.createDefaultStack yes
-      computeController.checkStackRevisions()
+        new kd.NotificationView
+          title : "Group (#{slug}) stack has been saved!"
+          type  : 'mini'
 
-      @emit 'Reload'
-      @emit 'Completed', stackTemplate
+        computeController.createDefaultStack yes
+        computeController.checkStackRevisions()
+
+        @emit 'Reload'
+        @emit 'Completed', stackTemplate
