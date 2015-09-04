@@ -118,15 +118,7 @@ module.exports = class JReward extends jraphical.Message
       return callback null # User doesn't have any referrer
 
     # get referrer
-    JAccount.one { 'profile.nickname': referrerUsername }, (err, referrer) ->
-
-      return callback err  if err
-
-      unless referrer
-        # if referrer not fonud then do nothing and return
-        return callback null # Referrer couldn't found
-
-      callback null, referrer
+    JAccount.one { 'profile.nickname': referrerUsername }, callback
 
 
   confirmRewards = (source, target, callback) ->
