@@ -35,14 +35,12 @@ type Node struct {
 }
 
 func NewNode(d *Dir, name string) *Node {
-	return &Node{
-		Transport:    d.Transport,
-		RWMutex:      sync.RWMutex{},
-		Name:         name,
-		InternalPath: filepath.Join(d.InternalPath, name),
-		ExternalPath: filepath.Join(d.ExternalPath, name),
-		attr:         &fuse.Attr{},
-	}
+	n := NewNodeWithInitial(d.Transport)
+	n.Name = name
+	n.InternalPath = filepath.Join(d.InternalPath, name)
+	n.ExternalPath = filepath.Join(d.ExternalPath, name)
+
+	return n
 }
 
 func NewNodeWithInitial(t Transport) *Node {
