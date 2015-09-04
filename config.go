@@ -16,4 +16,9 @@ type FuseConfig struct {
 
 	// Debug determines if debug logs should be shown to user.
 	Debug bool `default:false`
+
+	// SshUser is the optional ssh username to use when running
+	// install-alpha.sh and gaining klient credentials. Whether or not this
+	// is required.
+	SshUser string
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -z $1 ]; then
+if [ -z "$SSHHOST" ]; then
   cat << EOF
 Please provide the Koding VM's ip that you want to mount. Note that
 you must have your ssh pubkey in the ~/.ssh/authorized_keys for the
@@ -10,41 +10,23 @@ EOF
 fi
 
 
-if [ "$1" == "-h" ]; then
-  cat << EOF
-Usage:
-
-    ./install-alpha.sh [-h] [user@]host
-
-Examples:
-
-    ./install-alpha.sh 192.168.0.100
-    ./install-alpha.sh root@192.168.0.100
-
-
-Custom ssh ident:
-
-A custom ssh key can be specified by using the IDENT env var. On Bash,
-this would look like:
-
-    IDENT=~/.ssh/custom_rsa.pub ./install-alpha user@host
-
-On Fish, it would look like:
-
-    env IDENT=~/.ssh/custom_rsa.pub ./install-alpha user@host
-EOF
-  exit 0
-fi
-HOST="$1"
-
-
-# Get the IP by stripping the user from the HOST, if any.
-IP=`echo $HOST | perl -pe 's/^[\w-_]*@//'`
-
-
 # The file we want to save the key to
 mkdir -p ~/.fuseklient/keys
-KEYFILE=~/.fuseklient/keys/"$IP.kite.key"
+KEYFILE=~/.fuseklient/keys/"$SSHHOST".kite.key
+
+
+# If the key already exists, this script doesn't need to do anything.
+if [ -f $KEYFILE ]; then
+  exit 0
+fi
+
+
+HOST="$SSHHOST"
+
+
+if [ -n "$SSHUSER" ]; then
+  HOST="$SSHUSER@$HOST"
+fi
 
 
 # If the IDENT var is not null, add a ident flag to scp/ssh
@@ -82,10 +64,3 @@ if [ ! -f $KEYFILE ]; then
   echo "Error 200: kite.key at $KEYFILE was not copied correctly"
   exit 200
 fi
-
-
-cat << EOF
-Success! Please run the following command to begin:
-
-    ./fuseklient --klientip=$IP --externalpath=/home/your/remote/dir --internalpath=/your/local/dir
-EOF
