@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) AddHandlers(m *mux.Mux) {
-	redisStore, err := redigostore.New(h.redis.Pool(), "throttle", 0)
+	redisStore, err := redigostore.New(h.redis.Pool(), "throttle:", 0)
 	if err != nil {
 		// the implementation returns a nil, so it's impossible to get here
 		log.Fatal(err.Error())
