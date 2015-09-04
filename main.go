@@ -18,8 +18,7 @@ func main() {
 	}
 
 	// TODO: Remove when bundling fuseklient with klient
-	err := runInstallAlpha(conf.SshUser, conf.KlientIP)
-	if err != nil {
+	if err := runInstallAlpha(conf.SshUser, conf.KlientIP); err != nil {
 		log.Fatal(err)
 	}
 
