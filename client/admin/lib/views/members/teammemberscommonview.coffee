@@ -7,6 +7,7 @@ MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
+remote               = require('app/remote').getInstance()
 
 
 module.exports = class TeamMembersCommonView extends KDView
@@ -186,13 +187,31 @@ module.exports = class TeamMembersCommonView extends KDView
     @searchClear.show()
 
     kd.singletons.search.searchAccounts query, options
-      .then (accounts) =>
-        @resetListItems no  if @page is 0
-        @listMembers accounts
-        @isFetching = no
+      .then (accounts) => @handleSearchResult accounts
       .catch (err) =>
         @page = 0
         @handleError err
+
+
+  handleSearchResult: (accounts) ->
+
+    usernames = []
+
+    for account in accounts
+      usernames.push account.profile.nickname
+
+    # Send a request to back-end for user emails.
+    remote.api.JAccount.fetchEmailsByUsername usernames, (err, emails) =>
+
+      @resetListItems no  if err
+
+      for account in accounts
+        { profile }   = account
+        profile.email = emails[profile.nickname]
+
+      @resetListItems no  if @page is 0
+      @listMembers accounts
+      @isFetching = no
 
 
   resetListItems: (showLoader = yes) ->
