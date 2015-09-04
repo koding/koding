@@ -31,7 +31,8 @@ module.exports = class PrivateMessagePane extends MessagePane
     options.itemClass         or= PrivateMessageListItemView
     options.channelType       or= 'privatemessage'
 
-    options.initialParticipantStatus = 'active'
+    options.initialParticipantStatus  = 'active'
+    options.autoCompleteClass or= ParticipantSearchController
 
     super options, data
 
@@ -400,6 +401,8 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   createAddParticipantForm: ->
 
+    { autoCompleteClass } = @getOptions()
+
     @autoCompleteForm = new KDFormViewWithFields
       title              : 'START A CHAT WITH:'
       cssClass           : 'new-message-form inline'
@@ -408,7 +411,7 @@ module.exports = class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-    @autoComplete = new ParticipantSearchController
+    @autoComplete = new autoCompleteClass
       name                : 'userController'
       placeholder         : 'Type a username...'
       itemClass           : ActivityAutoCompleteUserItemView
@@ -432,14 +435,19 @@ module.exports = class PrivateMessagePane extends MessagePane
         accountIds        : [participant.socialApiId]
         participantStatus : @getOptions().initialParticipantStatus
 
-      {channel} = kd.singleton 'socialapi'
-      channel.addParticipants options, (err, result) =>
-        if err
-          showError err
-          @autoComplete.reset()
-          return
+      @addParticipant options, participant
 
-        @emit 'AddedParticipant', participant
+
+  addParticipant: (options, participant) ->
+
+    {channel} = kd.singleton 'socialapi'
+    channel.addParticipants options, (err, result) =>
+      if err
+        showError err
+        @autoComplete.reset()
+        return
+
+      @emit 'AddedParticipant', participant
 
 
   viewAppended: ->

@@ -124,11 +124,15 @@ module.exports = class SocialApiController extends KDController
     {accountOldId, replies, interactions}           = data
     {createdAt, deletedAt, updatedAt, typeConstant} = plain
 
+    parentId = if typeConstant is 'reply' and data.parentId
+    then data.parentId
+    else null
+
     cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
     if cachedItem
       if invalidateCache
-        unbindMessageListeners
+        unbindMessageListeners cachedItem
       else
         return cachedItem
 
@@ -138,6 +142,8 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
+
+    m.parentId = parentId
 
     # since node.js(realtime) and golang(regular fetch) is returning different
     # timestamps, these are to unify all timestamp values. ~Umut
@@ -666,6 +672,26 @@ module.exports = class SocialApiController extends KDController
       err = {message: "An error occurred"}
 
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
+      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+        return callback err  if err
+
+        return callback null, mapActivities response
+
+
+    ###*
+     * Temporary method for activating POC, this endpoint is working for only
+     * group channels right now.
+    ###
+    fetchActivitiesWithComments : (options = {}, callback = kd.noop)->
+
+      # show exempt content if only requester is admin or exempt herself
+      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
+
+      options.showExempt or= showExempt
+
+      err = {message: "An error occurred"}
+
+      endPoint = "/api/social/channel/#{options.id}/list?#{serialize(options)}"
       doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
         return callback err  if err
 

@@ -4,7 +4,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 formatEmojiName      = require 'activity/util/formatEmojiName'
-ActivityFlux         = require 'activity/flux'
+ChatInputFlux        = require 'activity/flux/chatinput'
 Dropup               = require 'activity/components/dropup'
 EmojiDropupItem      = require 'activity/components/emojidropupitem'
 DropupWrapperMixin   = require 'activity/components/dropup/dropupwrappermixin'
@@ -28,7 +28,10 @@ module.exports = class EmojiDropup extends React.Component
   getItemKey: (item) -> item
 
 
-  close: -> ActivityFlux.actions.emoji.unsetFilteredListQuery()
+  close: ->
+
+    { stateId } = @props
+    ChatInputFlux.actions.emoji.unsetFilteredListQuery stateId
 
 
   moveToNextPosition: (keyInfo) ->
@@ -37,7 +40,10 @@ module.exports = class EmojiDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.emoji.moveToNextFilteredListIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ChatInputFlux.actions.emoji.moveToNextFilteredListIndex stateId
+
     return yes
 
 
@@ -47,7 +53,10 @@ module.exports = class EmojiDropup extends React.Component
       @close()
       return no
 
-    ActivityFlux.actions.emoji.moveToPrevFilteredListIndex()  unless @hasSingleItem()
+    { stateId } = @props
+    unless @hasSingleItem()
+      ChatInputFlux.actions.emoji.moveToPrevFilteredListIndex stateId
+
     return yes
 
 
@@ -60,13 +69,15 @@ module.exports = class EmojiDropup extends React.Component
     return no  unless matchResult
 
     query = matchResult[1]
-    ActivityFlux.actions.emoji.setFilteredListQuery query
+    { stateId } = @props
+    ChatInputFlux.actions.emoji.setFilteredListQuery stateId, query
     return yes
 
 
   onItemSelected: (index) ->
 
-    ActivityFlux.actions.emoji.setFilteredListSelectedIndex index
+    { stateId } = @props
+    ChatInputFlux.actions.emoji.setFilteredListSelectedIndex stateId, index
 
 
   renderList: ->

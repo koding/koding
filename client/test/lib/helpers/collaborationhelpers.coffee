@@ -6,25 +6,34 @@ notStartedButtonSelector = '.status-bar a.share.not-started'
 
 module.exports =
 
+  isSessionActive: (browser, callback) ->
+
+    shareButtonSelector = '.status-bar a.share:not(.loading)'
+
+    browser
+      .waitForElementVisible   shareButtonSelector, 20000
+      .pause   4000
+      .element 'css selector', notStartedButtonSelector, (result) =>
+        isActive = if result.status is 0 then no else yes
+        callback(isActive)
+
+
   startSession: (browser) ->
 
     shareButtonSelector = '.status-bar a.share:not(.loading)'
     chatViewSelector    = '.chat-view.onboarding'
     startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
 
-    browser
-      .waitForElementVisible   shareButtonSelector, 20000
-      .pause   4000
-      .element 'css selector', notStartedButtonSelector, (result) =>
-          if result.status is 0
-            console.log ' ✔ Session is not started'
-            browser
-              .click                  shareButtonSelector
-              .waitForElementVisible  chatViewSelector, 20000
-              .waitForElementVisible  startButtonSelector, 20000
-              .click                  startButtonSelector
-          else
-            console.log ' ✔ Session is active'
+    @isSessionActive browser, (isActive) ->
+      if isActive
+        console.log ' ✔ Session is active'
+      else
+        console.log ' ✔ Session is not started'
+        browser
+          .click                  shareButtonSelector
+          .waitForElementVisible  chatViewSelector, 20000
+          .waitForElementVisible  startButtonSelector, 20000
+          .click                  startButtonSelector
 
       browser
         .waitForElementVisible  messagePane, 200000 # Assertion
