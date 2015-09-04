@@ -14,8 +14,9 @@ saveOauthAndRedirect = (resp, res, clientId, req) ->
     redirectOauth err, req, res, options
 
 
-fetchUserEmail = (req, res, clientId, userEmailResp, originalResp) ->
-  rawResp = ''
+fetchUserEmail = (req, res,  userEmailResp, originalResp) ->
+  { clientId }  = req.cookies
+  rawResp       = ''
   userEmailResp.on 'data', (chunk) -> rawResp += chunk
   userEmailResp.on 'end', ->
     try
@@ -105,7 +106,7 @@ module.exports = (req, res) ->
           method  : 'GET'
           headers : headers
         r = http.request options, (newResp) ->
-          fetchUserEmail req, res, clientId, newResp, resp
+          fetchUserEmail req, res,  newResp, resp
         r.end()
       else
         saveOauthAndRedirect resp, res, clientId, req
