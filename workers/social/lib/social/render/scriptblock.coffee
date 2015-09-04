@@ -105,7 +105,7 @@ module.exports = (options = {}, callback) ->
 
         queue.fin()
     ->
-      bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+      bongoModels.JWorkspace.fetchByMachines$ client, (err, workspaces) ->
         console.log err  if err
         userWorkspaces = workspaces or []
         queue.fin()
