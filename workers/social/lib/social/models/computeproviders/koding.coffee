@@ -133,8 +133,6 @@ module.exports = class Koding extends ProviderInterface
 
     provider = @providerSlug
 
-    JMachine = require './machine'
-
     { fetchUserPlan, fetchUsage } = require './computeutils'
 
     fetchUserPlan client, (err, userPlan) ->
@@ -172,14 +170,15 @@ module.exports = class Koding extends ProviderInterface
             $elemMatch :
               id       : group.getId()
 
-        JMachine.one selector, update { alwaysOn, resize, usage, userPlan }
+        updateMachine { selector, alwaysOn, resize, usage, userPlan }, callback
 
 
-  update = (options, callback) ->
+  updateMachine = (options, callback) ->
 
-    { alwaysOn, resize, usage, userPlan }
+    JMachine = require './machine'
+    { selector, alwaysOn, resize, usage, userPlan } = options
 
-    return (err, machine) ->
+    JMachine.one selector, (err, machine) ->
       if err? or not machine?
         err ?= new KodingError 'Machine object not found.'
         return callback err
