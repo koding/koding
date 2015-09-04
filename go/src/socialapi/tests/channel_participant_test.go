@@ -235,6 +235,26 @@ func TestChannelParticipantOperations(t *testing.T) {
 					_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
 					So(strings.Contains(err.Error(), "can not add participants for bot channel"), ShouldBeTrue)
 				})
+
+				Convey("Users should be able to add/remove users to/from topic channels", func() {
+					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+					participant := models.NewAccount()
+					participant.OldId = AccountOldId.Hex()
+					participant, err = rest.CreateAccount(participant)
+					So(err, ShouldBeNil)
+					So(participant, ShouldNotBeNil)
+
+					ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					So(err, ShouldBeNil)
+
+					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_TOPIC, ses.ClientId)
+					So(err, ShouldBeNil)
+					So(ch, ShouldNotBeNil)
+
+					_, err = rest.AddChannelParticipant(ch.Id, ownerAccount.Id, participant.Id)
+					So(err, ShouldBeNil)
+				})
 			})
 		})
 	})
