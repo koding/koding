@@ -2,7 +2,7 @@
 
 Reactor = require 'app/flux/reactor'
 
-ChatInputSearchStore = require 'activity/flux/chatinput/stores/search/chatinputsearchstore'
+ChatInputSearchStore = require 'activity/flux/chatinput/stores/search/searchstore'
 actionTypes = require 'activity/flux/chatinput/actions/actiontypes'
 
 describe 'ChatInputSearchStore', ->

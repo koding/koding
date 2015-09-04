@@ -2,7 +2,7 @@
 
 Reactor = require 'app/flux/reactor'
 
-ChatInputUsersSelectedIndexStore = require 'activity/flux/chatinput/stores/user/chatinputusersselectedindexstore'
+ChatInputUsersSelectedIndexStore = require 'activity/flux/chatinput/stores/user/selectedindexstore'
 actions = require 'activity/flux/chatinput/actions/actiontypes'
 
 describe 'ChatInputUsersSelectedIndexStore', ->

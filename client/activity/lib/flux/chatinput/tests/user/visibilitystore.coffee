@@ -2,7 +2,7 @@
 
 Reactor = require 'app/flux/reactor'
 
-ChatInputUsersVisibilityStore = require 'activity/flux/chatinput/stores/user/chatinputusersvisibilitystore'
+ChatInputUsersVisibilityStore = require 'activity/flux/chatinput/stores/user/visibilitystore'
 actions = require 'activity/flux/chatinput/actions/actiontypes'
 
 describe 'ChatInputUsersVisibilityStore', ->

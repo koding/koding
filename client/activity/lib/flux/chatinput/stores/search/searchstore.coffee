@@ -3,7 +3,6 @@ actions         = require 'activity/flux/chatinput/actions/actiontypes'
 KodingFluxStore = require 'app/flux/store'
 toImmutable     = require 'app/util/toImmutable'
 
-
 ###*
  * Store to handle chat input search items
 ###
