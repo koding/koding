@@ -178,23 +178,20 @@ module.exports =
     browser.end()
 
 
-  # # This test depends on createSnapshot
-  # deleteSnapshot: (browser) ->
+  deleteSnapshot: (browser) ->
 
-  #   confirmSelector = ".kdmodal .kdmodal-buttons .red"
+    snapshotSelector = '.snapshots .listview-wrapper'
 
-  #   helpers.beginTest(browser)
-  #   helpers.waitForVMRunning(browser)
-  #   environmentHelpers.openSnapshotsSettings(browser)
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.openSnapshotsSettings(browser)
 
-  #   environmentHelpers.createSnapshotIfNotFound browser, (name)->
+    snapshotName = environmentHelpers.createSnapshot(browser)
 
-  #     environmentHelpers.deleteSnapshot(browser)
+    environmentHelpers.deleteSnapshot(browser)
 
-  #     browser
-  #       .waitForElementNotPresent confirmSelector, 20000
-  #       .pause                    1000 #Deleted snapshots take a little time to disappear.
-
-  #     environmentHelpers.assertSnapshotPresent browser, name, true
-
-  #     browser.end()
+    browser
+      .pause 3000
+      .waitForElementVisible     snapshotSelector, 20000
+      .waitForElementNotPresent  "#{snapshotSelector} .info .label.#{snapshotName}", 20000
+      .end()
