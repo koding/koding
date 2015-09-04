@@ -8,39 +8,49 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 
 ## Steps to get started:
 
+    # ----- Following commands are run on your VM -----
+
     # Add your ssh key to `~/.ssh/authorized_keys` in a NEW Koding VM. This
     # will let us authenticate against Klient on that machine.
-    # (Note: this step will be removed in 1.0).
+    # (Note: this step will be removed eventually.)
 
-    # Download latest fuseklient from https://github.com/koding/fuseklient/releases.
+    # Get the IP of your VM from your VM. (Note: this step will be removed in eventually.)
+    sent-hil: ~ $ curl ifconfig.co
+    54.152.21.37
 
-    # Get the IP of your VM and folder in that VM you want to mount locally.
+    # ----- Following commands are run on your local ----
+
+    # Install osxfuse on your local via brew (requires working XCode).
+    # (TODO: this step will be automated eventually.)
+    brew install osxfuse
+
+    # Download latest release from https://github.com/koding/fuseklient/releases to your local.
 
     # Create a NEW folder in local to use as mount point:
-    mkdir -p <fullpath>/local
+    mkdir -p /path/to/local
 
     # Start daemon:
-    ./fuseklient --klientip=<ip> --externalpath=/path/to/external --internalpath=/path/to/local --user=<koding username> --debug=true
+    ./fuseklient --klientip=<ip> --externalpath=/home/<koding username>/Web --internalpath=/path/to/local --sshuser=<koding username> --debug=true
 
-    # Mounted folder is now available:
+    # Mounted folder is now available. Open a terminal:
     ls -alh /path/to/local
 
-## Following commands work on a mounted folder.
+## Following commands work on a mounted folder:
 
   * ls -alh folder/ file
   * cd folder/
   * mkdir -p folder/nested
   * mv folder/nested/ nested/
   * rm -rf folder/ file
-  * cat file
   * touch file
   * echo 1 >> file
+  * cat file
   * find ... # recursive search will be slow
   * grep ... # recursive search will be slow
 
 ## Milestones:
 
-    * ALPHA
+    * ALPHA - DONE Sept 3
         read operations
         klient authentication
         write operations
@@ -50,7 +60,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
           `klient mount --vm`
         invalidate local cache on file changes in user VM
         kd ... - run entire command on VM, return results
-        shell hooks: fish, bash
+          shell hooks: fish, bash
     * 1.0
         klient ps - return list of user VMs to mount
         lock resources in VM on open or write operations
@@ -58,9 +68,10 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 
 ## Notes:
 
-  * Use fullpath in arguments.
+  * Use fullpath in arguments, without ~.
   * Mounting on an existing folder won't overwrite contents, but they won't be visible while Fuse is running.
   * Do `go generate` if you make changes to `install-alpha.sh`
-  * Use `tar -cvf fuseklient_OSX.tar fuseklient Readme.md` for distribution.
+  * Use `tar -cvf fuseklient_OSX.tar fuseklient Readme.md` and upload to Github releases for distribution.
   * If you get `Device not configured` when trying to access mount when daemon is not running: do `diskutil unmount force <folder>`.
   * If you get `mount point <folder> is itself on a OSXFUSE volume`, do `diskutil unmount force <folder>`.
+  * Not tested on Linux yet, will be supported by 1.0.
