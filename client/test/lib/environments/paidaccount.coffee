@@ -128,7 +128,7 @@ module.exports =
 
     browser.element  'css selector', '.AppModal-form.with-fields .alwayson .koding-on-off.on', (result) =>
       if result.status is 0
-        console.log 'VM is already always on, ending test...'
+        console.log ' ✔ VM is already always on, ending test...'
         browser.end()
 
       else
@@ -157,25 +157,31 @@ module.exports =
 
   renameSnapshot: (browser) ->
 
+    contentSelector  = '.snapshots.AppModal-content'
     snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
-    browser.element 'css selector', snapshotSelector, (result) =>
-      if result.status is 0
-        renamed = environmentHelpers.renameSnapshot(browser)
-        environmentHelpers.assertSnapshotPresent browser, renamed, false
-
+    browser.getText contentSelector, (result) ->
+      if result.value.indexOf('renamed-snapshot') > -1
+        console.log ' ✔ Snapshot is already renamed. Ending test...'
+        browser.end()
       else
-        browser.pause 3000
-        environmentHelpers.addSnapsButton(browser)
-        environmentHelpers.createSnapshot(browser, no)
-        renamed = environmentHelpers.renameSnapshot(browser)
-        environmentHelpers.assertSnapshotPresent browser, renamed, false
+        browser.element 'css selector', snapshotSelector, (result) ->
+          if result.status is 0
+            renamed = environmentHelpers.renameSnapshot(browser)
+            environmentHelpers.assertSnapshotPresent browser, renamed, false
 
-    browser.end()
+          else
+            browser.pause 3000
+            environmentHelpers.addSnapsButton(browser)
+            environmentHelpers.createSnapshot(browser, no)
+            renamed = environmentHelpers.renameSnapshot(browser)
+            environmentHelpers.assertSnapshotPresent browser, renamed, false
+
+        browser.end()
 
 
   deleteSnapshot: (browser) ->

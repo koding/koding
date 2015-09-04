@@ -81,9 +81,9 @@ module.exports =
       .click                 buttonSelector
 
 
-  renameSnapshot: (browser  ) ->
+  renameSnapshot: (browser) ->
 
-    name                  = helpers.getFakeText().split(' ')[0]
+    name                  = 'renamed-snapshot'
     inputSelector         = '.snapshots input[type=text].label'
     snapshotSelector      = '.snapshots .kdlistitemview-snapshot:first-child'
     renameButtonSelector  = '.snapshots .info .buttons button.rename'
