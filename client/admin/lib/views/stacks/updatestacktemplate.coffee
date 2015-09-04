@@ -3,7 +3,7 @@ remote = require('app/remote').getInstance()
 
 module.exports = updateStackTemplate = (data, callback) ->
 
-  { template, templateDetails, credentials
+  { template, templateDetails, credentials, description
     title, stackTemplate, machines, config } = data
 
   title or= 'Default stack template'
@@ -12,7 +12,8 @@ module.exports = updateStackTemplate = (data, callback) ->
 
     dataToUpdate = if machines \
       then { machines } else {
-        title, template, credentials, templateDetails, config
+        title, template, credentials
+        templateDetails, config, description
       }
 
     stackTemplate.update dataToUpdate, (err) ->
@@ -21,6 +22,7 @@ module.exports = updateStackTemplate = (data, callback) ->
   else
 
     remote.api.JStackTemplate.create {
-      title, template, credentials, templateDetails, config
+      title, template, credentials
+      templateDetails, config, description
     }, callback
 

@@ -10,7 +10,7 @@ module.exports = class WelcomeAppView extends kd.View
       tagName : 'section'
       partial : """
         <div class="artboard"></div>
-        <h2>Welcome! let's get started.</h2>
+        <h2>Welcome! Let's get started.</h2>
         <p>
           Koding lets your team collaborate and
           work faster, with a development

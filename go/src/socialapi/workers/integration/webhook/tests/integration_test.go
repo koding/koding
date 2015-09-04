@@ -2,7 +2,6 @@ package tests
 
 import (
 	"errors"
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
@@ -173,29 +172,4 @@ func TestWebhook(t *testing.T) {
 		}
 
 	})
-
-	Convey("We should not be able to send more than 100 requests per minute", t, func() {
-		channelIntegration, _ := webhook.CreateTestChannelIntegration(t)
-
-		account, err := models.CreateAccountInBothDbsWithNick("sinan")
-		So(err, ShouldBeNil)
-
-		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, channelIntegration.GroupName)
-		_, err = channel.AddParticipant(account.Id)
-		So(err, ShouldBeNil)
-
-		name := models.RandomName()
-		for i := 0; i < 100; i++ {
-			err = rest.DoPushRequest(newPushRequest(name), channelIntegration.Token)
-			if err != nil {
-				fmt.Println("i ver", i)
-			}
-			So(err, ShouldBeNil)
-		}
-
-		err = rest.DoPushRequest(newPushRequest(name), channelIntegration.Token)
-		So(err, ShouldNotBeNil)
-
-	})
-
 }
