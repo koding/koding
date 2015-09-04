@@ -5,7 +5,7 @@ import (
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 
-	"gopkg.in/throttled/throttled.v2"
+	throttled "gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/redigostore"
 )
 
@@ -17,8 +17,8 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	}
 
 	quota := throttled.RateQuota{
-		MaxRate:  throttled.PerMin(100),
-		MaxBurst: 0,
+		MaxRate:  throttled.PerSec(1),
+		MaxBurst: 1,
 	}
 
 	rateLimiter, err := throttled.NewGCRARateLimiter(redisStore, quota)
