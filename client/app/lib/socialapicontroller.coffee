@@ -124,10 +124,6 @@ module.exports = class SocialApiController extends KDController
     {accountOldId, replies, interactions}           = data
     {createdAt, deletedAt, updatedAt, typeConstant} = plain
 
-    parentId = if typeConstant is 'reply' and data.parentId
-    then data.parentId
-    else null
-
     cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
     if cachedItem
@@ -142,8 +138,6 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
-
-    m.parentId = parentId
 
     # since node.js(realtime) and golang(regular fetch) is returning different
     # timestamps, these are to unify all timestamp values. ~Umut
