@@ -24,11 +24,11 @@ type Node struct {
 	// Name is the identifier of file or directory.
 	Name string
 
-	// FullInternalPath is full path on locally mounted folder.
-	InternalPath string
+	// LocalPath is full path on locally mounted folder.
+	LocalPath string
 
-	// FullExternalPath is full path on user VM.
-	ExternalPath string
+	// RemotePath is full path on user VM.
+	RemotePath string
 
 	// attr is metadata for Fuse.
 	attr *fuse.Attr
@@ -37,8 +37,8 @@ type Node struct {
 func NewNode(d *Dir, name string) *Node {
 	n := NewNodeWithInitial(d.Transport)
 	n.Name = name
-	n.InternalPath = filepath.Join(d.InternalPath, name)
-	n.ExternalPath = filepath.Join(d.ExternalPath, name)
+	n.RemotePath = filepath.Join(d.RemotePath, name)
+	n.LocalPath = filepath.Join(d.LocalPath, name)
 
 	return n
 }
@@ -66,7 +66,7 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 // getInfo gets metadata from Transport. Returns fuse.EEXIST if node doesn't
 // exist. Required by Fuse.
 func (n *Node) getInfo() (*fsGetInfoRes, error) {
-	req := struct{ Path string }{n.ExternalPath}
+	req := struct{ Path string }{n.RemotePath}
 	res := fsGetInfoRes{}
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {
 		return nil, err

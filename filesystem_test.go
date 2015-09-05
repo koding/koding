@@ -8,23 +8,23 @@ import (
 
 var (
 	// TODO: remove hardcoded fullpath
-	internalPath = "/Users/senthil/work/fuse/fuseklient/mount"
-	externalPath = "/fusemount"
+	remotePath = "/fusemount"
+	localPath  = "/Users/senthil/work/fuse/fuseklient/mount"
 )
 
 func TestFileSystem(t *testing.T) {
 	Convey("Given filesystem", t, func() {
-		Convey("It should return error if external foler doesn't exist", func() {
+		Convey("It should return error if remote foler doesn't exist", func() {
 			ft := &fakeTransport{
 				TripMethodName: "fs.getInfo",
 				TripResponse:   fsGetInfoRes{Exists: false},
 			}
 
 			fl := FileSystem{
-				Transport:         ft,
-				MountName:         "test",
-				InternalMountPath: internalPath,
-				ExternalMountPath: externalPath,
+				Transport:  ft,
+				MountName:  "test",
+				LocalPath:  localPath,
+				RemotePath: remotePath,
 			}
 
 			_, err := fl.Root()
@@ -38,10 +38,10 @@ func TestFileSystem(t *testing.T) {
 			}
 
 			fl := FileSystem{
-				Transport:         ft,
-				MountName:         "test",
-				InternalMountPath: internalPath,
-				ExternalMountPath: externalPath,
+				Transport:  ft,
+				MountName:  "test",
+				LocalPath:  localPath,
+				RemotePath: remotePath,
 			}
 
 			_, err := fl.Root()

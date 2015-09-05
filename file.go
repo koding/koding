@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kr/pretty"
+
 	"bazil.org/fuse"
 
 	"golang.org/x/net/context"
@@ -21,7 +23,7 @@ type File struct {
 func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	defer debug(time.Now(), "File="+f.Name)
 
-	req := struct{ Path string }{f.ExternalPath}
+	req := struct{ Path string }{f.RemotePath}
 	res := fsReadFileRes{}
 	if err := f.Trip("fs.readFile", req, &res); err != nil {
 		return []byte{}, err
@@ -32,7 +34,16 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 
 // Write rewrites all data to file. Required by Fuse.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
-	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("ContentLength=%v", len(req.Data)))
+	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("OldContentLength=%v", f.attr.Size), fmt.Sprintf("NewContentLength=%v", len(req.Data)))
+
+	pretty.Println(req.Offset)
+
+	j, err := req.MarshalJSON()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(j))
 
 	if err := f.write(req.Data); err != nil {
 		return err
@@ -45,6 +56,11 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.Wri
 	return nil
 }
 
+func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) error {
+	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("OldContentLength=%v", f.attr.Size))
+	return nil
+}
+
 // write tells Transport to overwrite file on user VM with contents.
 func (f *File) write(data []byte) error {
 	f.Lock()
@@ -54,7 +70,7 @@ func (f *File) write(data []byte) error {
 		Path    string
 		Content []byte
 	}{
-		Path:    f.ExternalPath,
+		Path:    f.RemotePath,
 		Content: data,
 	}
 	var tres int

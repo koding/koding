@@ -117,7 +117,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error) {
 	defer debug(time.Now(), "Dir="+req.Name)
 
-	path := filepath.Join(d.ExternalPath, req.Name)
+	path := filepath.Join(d.RemotePath, req.Name)
 	treq := struct {
 		Path      string
 		Recursive bool
@@ -151,7 +151,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	defer debug(time.Now(), "Dir="+req.Name)
 
-	path := filepath.Join(d.ExternalPath, req.Name)
+	path := filepath.Join(d.RemotePath, req.Name)
 	treq := struct {
 		Path      string
 		Recursive bool
@@ -171,7 +171,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest, newDir fs.Node) error {
 	defer debug(time.Now(), "OldPath="+req.OldName, "NewPath="+req.NewName)
 
-	path := d.ExternalPath
+	path := d.RemotePath
 	treq := struct{ OldPath, NewPath string }{
 		OldPath: filepath.Join(path, req.OldName),
 		NewPath: filepath.Join(path, req.NewName),
@@ -189,7 +189,7 @@ func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
 	d.Lock()
 	defer d.Unlock()
 
-	req := struct{ Path string }{d.ExternalPath}
+	req := struct{ Path string }{d.RemotePath}
 	res := fsReadDirectoryRes{}
 	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
 		return nil, err

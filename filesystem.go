@@ -14,11 +14,11 @@ import (
 type FileSystem struct {
 	Transport
 
-	// ExternalMountPath is path of folder in user VM to be mounted locally.
-	ExternalMountPath string
+	// RemotePath is path to folder in user VM to be mounted locally.
+	RemotePath string
 
-	// InternalMountPath is path of folder in local to serve as mount point.
-	InternalMountPath string
+	// LocalPath is path to folder in local to serve as mount point.
+	LocalPath string
 
 	// MountName is identifier for mount.
 	MountName string
@@ -29,9 +29,9 @@ func (f *FileSystem) Root() (fs.Node, error) {
 	defer debug(time.Now())
 
 	n := NewNodeWithInitial(f.Transport)
-	n.Name = path.Base(f.InternalMountPath)
-	n.InternalPath = f.InternalMountPath
-	n.ExternalPath = f.ExternalMountPath
+	n.Name = path.Base(f.LocalPath)
+	n.LocalPath = f.LocalPath
+	n.RemotePath = f.RemotePath
 
 	// TODO: use FileSystem#Statfs when it's implemented
 	res, err := n.getInfo()
@@ -54,7 +54,7 @@ func (f *FileSystem) Root() (fs.Node, error) {
 // Mount mounts folder on user VM as a volume.
 func (f *FileSystem) Mount() error {
 	c, err := fuse.Mount(
-		f.InternalMountPath,
+		f.LocalPath,
 		fuse.FSName(f.MountName),
 		fuse.Subtype(f.MountName),
 		fuse.VolumeName(f.MountName),

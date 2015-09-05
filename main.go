@@ -18,25 +18,25 @@ func main() {
 	}
 
 	// TODO: Remove when bundling fuseklient with klient
-	if err := runInstallAlpha(conf.SshUser, conf.KlientIP); err != nil {
+	if err := runInstallAlpha(conf.SshUser, conf.IP); err != nil {
 		log.Fatal(err)
 	}
 
-	t, err := NewKlientTransport(conf.KlientIP)
+	t, err := NewKlientTransport(conf.IP)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	f := &FileSystem{
-		Transport:         t,
-		ExternalMountPath: conf.ExternalPath,
-		InternalMountPath: conf.InternalPath,
-		MountName:         conf.MountName,
+		Transport:  t,
+		RemotePath: conf.RemotePath,
+		LocalPath:  conf.LocalPath,
+		MountName:  conf.MountName,
 	}
 
 	// create mount point if it doesn't exist
-	// TODO: don't allow ~ in conf.InternalPath since Go doesn't expand it
-	if err := os.MkdirAll(conf.InternalPath, 0755); err != nil {
+	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
+	if err := os.MkdirAll(conf.LocalPath, 0755); err != nil {
 		log.Fatal(err)
 	}
 
@@ -45,7 +45,7 @@ func main() {
 		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 		<-signals
 
-		unmount(conf.InternalPath)
+		unmount(conf.LocalPath)
 	}()
 
 	// blocking

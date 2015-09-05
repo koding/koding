@@ -83,7 +83,7 @@ func installAlphaSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "install-alpha.sh", size: 1197, mode: os.FileMode(493), modTime: time.Unix(1441334274, 0)}
+	info := bindataFileInfo{name: "install-alpha.sh", size: 1197, mode: os.FileMode(493), modTime: time.Unix(1441354286, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
