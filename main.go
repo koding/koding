@@ -8,6 +8,7 @@ import (
 
 	"github.com/koding/fuseklient/auth"
 	"github.com/koding/fuseklient/transport"
+	"github.com/koding/fuseklient/unmount"
 	"github.com/koding/fuseklient/vmfs"
 	"github.com/koding/multiconfig"
 )
@@ -44,7 +45,7 @@ func main() {
 		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 		<-signals
 
-		unmount(conf.LocalPath)
+		unmount.Unmount(conf.LocalPath)
 	}()
 
 	// blocking
