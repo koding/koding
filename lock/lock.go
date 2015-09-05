@@ -27,6 +27,8 @@ func Lock(path string) error {
 		return fmt.Errorf("Lock file: '%s' exists. Please remove to continue.", lockFile)
 	}
 
+	fmt.Printf("Creating lock file: '%s'\n\n", lockFile)
+
 	_, err = os.Create(lockFile)
 	return err
 }
@@ -37,6 +39,8 @@ func Unlock(path string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("\nDeleting lock file: '%s'\n", lockFile)
 
 	return os.Remove(lockFile)
 }

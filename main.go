@@ -50,8 +50,8 @@ func main() {
 		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 		<-signals
 
-		unmount.Unmount(conf.LocalPath)
 		lock.Unlock(conf.LocalPath)
+		unmount.Unmount(conf.LocalPath)
 	}()
 
 	// blocking
