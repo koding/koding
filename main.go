@@ -8,16 +8,13 @@ import (
 
 	"github.com/koding/fuseklient/auth"
 	"github.com/koding/fuseklient/transport"
+	"github.com/koding/fuseklient/vmfs"
 	"github.com/koding/multiconfig"
 )
 
 func main() {
 	conf := new(FuseConfig)
 	multiconfig.New().MustLoad(conf)
-
-	if conf.Debug {
-		shouldDebug = true
-	}
 
 	// TODO: Remove when bundling fuseklient with klient.
 	if err := auth.SaveKiteKey(conf.SshUser, conf.IP); err != nil {
@@ -29,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	f := &FileSystem{
+	f := &vmfs.FileSystem{
 		Transport:  t,
 		RemotePath: conf.RemotePath,
 		LocalPath:  conf.LocalPath,

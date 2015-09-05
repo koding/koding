@@ -14,9 +14,6 @@ type FuseConfig struct {
 	// MountName is identifier for mount.
 	MountName string `default:"fuseklient"`
 
-	// Debug determines if debug logs should be outputted to STDOUT.
-	Debug bool `default:false`
-
 	// SshUser is the optional ssh username for user in `install-alpha.sh`.
 	// TODO: remove this after intergrating with Klient.
 	SshUser string
