@@ -1,10 +1,11 @@
-package main
+package vmfs
 
 import (
 	"testing"
 
 	"bazil.org/fuse"
 
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -13,7 +14,7 @@ func TestDir(t *testing.T) {
 		Convey("It should lookup file or dir", func() {
 			tr := &fakeTransport{
 				TripMethodName: "fs.getInfo",
-				TripResponse:   fsGetInfoRes{},
+				TripResponse:   transport.FsGetInfoRes{},
 			}
 
 			dr := NewDir(&Node{Transport: tr})
@@ -25,9 +26,9 @@ func TestDir(t *testing.T) {
 		Convey("It should return metadata for files and dirs", func() {
 			tr := &fakeTransport{
 				TripMethodName: "fs.readDirectory",
-				TripResponse: fsReadDirectoryRes{
-					Files: []fsGetInfoRes{
-						fsGetInfoRes{Exists: true, IsDir: false, Name: "testfile"},
+				TripResponse: transport.FsReadDirectoryRes{
+					Files: []transport.FsGetInfoRes{
+						transport.FsGetInfoRes{Exists: true, IsDir: false, Name: "testfile"},
 					},
 				},
 			}

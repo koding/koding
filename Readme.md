@@ -30,7 +30,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
     mkdir -p /path/to/local
 
     # Start daemon:
-    ./fuseklient --klientip=<ip> --externalpath=/home/<koding username>/Web --internalpath=/path/to/local --sshuser=<koding username> --debug=true
+    ./fuseklient --ip=<ip> --remotepath=/home/<koding username>/Web --localpath=/path/to/local --sshuser=<koding username>
 
     # Mounted folder is now available. Open a terminal:
     ls -alh /path/to/local

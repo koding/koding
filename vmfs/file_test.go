@@ -1,8 +1,9 @@
-package main
+package vmfs
 
 import (
 	"testing"
 
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -10,7 +11,7 @@ func TestFile(t *testing.T) {
 	Convey("Given file", t, func() {
 		ft := &fakeTransport{
 			TripMethodName: "fs.readFile",
-			TripResponse:   fsReadFileRes{},
+			TripResponse:   transport.FsReadFileRes{},
 		}
 
 		fl := File{Node: &Node{Transport: ft}}

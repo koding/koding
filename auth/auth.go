@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"bytes"
@@ -7,13 +7,12 @@ import (
 	"os/exec"
 )
 
-//go:generate go-bindata install-alpha.sh
+//go:generate go-bindata -pkg auth save-kite-key.sh
 
-// runInstallAlpha is a temporary prototype file which will run the
-// bundled install-alpha.sh file, to get credentials for the given
-// vm host.
-func runInstallAlpha(user, host string) error {
-	installBytes, err := Asset("install-alpha.sh")
+// SaveKiteKey is a temporary method which runs the bundled `save-kite-key.sh`
+// script to get credentials for the given VM.
+func SaveKiteKey(user, host string) error {
+	installBytes, err := Asset("save-kite-key.sh")
 	if err != nil {
 		return err
 	}

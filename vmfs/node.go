@@ -1,9 +1,11 @@
-package main
+package vmfs
 
 import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/koding/fuseklient/transport"
 
 	"bazil.org/fuse"
 	"golang.org/x/net/context"
@@ -12,7 +14,7 @@ import (
 // Node is a generic name for File or Dir. It contains common fields and
 // implements common methods between the two.
 type Node struct {
-	Transport
+	transport.Transport
 	sync.RWMutex
 
 	// DirentType stores type of entry, ie fuse.DT_Dir or fuse.DT_File.
@@ -24,28 +26,26 @@ type Node struct {
 	// Name is the identifier of file or directory.
 	Name string
 
-	// FullInternalPath is full path on locally mounted folder.
-	InternalPath string
+	// LocalPath is full path on locally mounted folder.
+	LocalPath string
 
-	// FullExternalPath is full path on user VM.
-	ExternalPath string
+	// RemotePath is full path on user VM.
+	RemotePath string
 
 	// attr is metadata for Fuse.
 	attr *fuse.Attr
 }
 
 func NewNode(d *Dir, name string) *Node {
-	return &Node{
-		Transport:    d.Transport,
-		RWMutex:      sync.RWMutex{},
-		Name:         name,
-		InternalPath: filepath.Join(d.InternalPath, name),
-		ExternalPath: filepath.Join(d.ExternalPath, name),
-		attr:         &fuse.Attr{},
-	}
+	n := NewNodeWithInitial(d.Transport)
+	n.Name = name
+	n.RemotePath = filepath.Join(d.RemotePath, name)
+	n.LocalPath = filepath.Join(d.LocalPath, name)
+
+	return n
 }
 
-func NewNodeWithInitial(t Transport) *Node {
+func NewNodeWithInitial(t transport.Transport) *Node {
 	return &Node{Transport: t, RWMutex: sync.RWMutex{}, attr: &fuse.Attr{}}
 }
 
@@ -67,9 +67,9 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 
 // getInfo gets metadata from Transport. Returns fuse.EEXIST if node doesn't
 // exist. Required by Fuse.
-func (n *Node) getInfo() (*fsGetInfoRes, error) {
-	req := struct{ Path string }{n.ExternalPath}
-	res := fsGetInfoRes{}
+func (n *Node) getInfo() (*transport.FsGetInfoRes, error) {
+	req := struct{ Path string }{n.RemotePath}
+	res := transport.FsGetInfoRes{}
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {
 		return nil, err
 	}
