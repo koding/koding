@@ -108,6 +108,16 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		}
 	}
 
+	// get newly created file's metadata
+	res, err := n.getRemoteAttr()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	n.attr.Size = uint64(res.Size)
+	n.attr.Mode = os.FileMode(res.Mode)
+	n.DirentType = fuse.DT_File
+
 	if err := d.invalidateCache(req.Name); err != nil {
 		return nil, nil, err
 	}
