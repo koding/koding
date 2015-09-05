@@ -65,9 +65,9 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 	return nil
 }
 
-// getInfo gets metadata from Transport. Returns fuse.EEXIST if node doesn't
-// exist. Required by Fuse.
-func (n *Node) getInfo() (*transport.FsGetInfoRes, error) {
+// getRemoteAttr gets metadata from Transport. Returns fuse.EEXIST if node
+// doesn't exist.
+func (n *Node) getRemoteAttr() (*transport.FsGetInfoRes, error) {
 	req := struct{ Path string }{n.RemotePath}
 	res := transport.FsGetInfoRes{}
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {

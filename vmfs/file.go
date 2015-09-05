@@ -36,13 +36,6 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
 	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("OldContentLength=%v", f.attr.Size), fmt.Sprintf("NewContentLength=%v", len(req.Data)))
 
-	j, err := req.MarshalJSON()
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(j))
-
 	if err := f.write(req.Data); err != nil {
 		return err
 	}

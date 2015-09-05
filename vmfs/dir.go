@@ -57,7 +57,7 @@ func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return &File{Parent: d, Node: n}, nil
 	}
 
-	res, err := n.getInfo()
+	res, err := n.getRemoteAttr()
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	f := &File{Parent: d, Node: n}
 
 	var err error
-	if _, err = n.getInfo(); err != nil && err != fuse.ENOENT {
+	if _, err = n.getRemoteAttr(); err != nil && err != fuse.ENOENT {
 		return nil, nil, err
 	}
 
@@ -107,6 +107,16 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 			return nil, nil, err
 		}
 	}
+
+	// get newly created file's metadata
+	res, err := n.getRemoteAttr()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	n.attr.Size = uint64(res.Size)
+	n.attr.Mode = os.FileMode(res.Mode)
+	n.DirentType = fuse.DT_File
 
 	if err := d.invalidateCache(req.Name); err != nil {
 		return nil, nil, err
@@ -138,7 +148,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (fs.Node, error
 
 	// TODO: make `fs.createDirectory` to return folder info in creation
 	n := NewNode(d, req.Name)
-	res, err := n.getInfo()
+	res, err := n.getRemoteAttr()
 	if err != nil {
 		return nil, err
 	}

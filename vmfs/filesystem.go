@@ -36,7 +36,7 @@ func (f *FileSystem) Root() (fs.Node, error) {
 	n.RemotePath = f.RemotePath
 
 	// TODO: use FileSystem#Statfs when it's implemented
-	res, err := n.getInfo()
+	res, err := n.getRemoteAttr()
 	if err != nil {
 		return nil, err
 	}
