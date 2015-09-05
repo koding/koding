@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/koding/fuseklient/auth"
 	"github.com/koding/multiconfig"
 )
 
@@ -17,8 +18,8 @@ func main() {
 		shouldDebug = true
 	}
 
-	// TODO: Remove when bundling fuseklient with klient
-	if err := runInstallAlpha(conf.SshUser, conf.IP); err != nil {
+	// TODO: Remove when bundling fuseklient with klient.
+	if err := auth.SaveKiteKey(conf.SshUser, conf.IP); err != nil {
 		log.Fatal(err)
 	}
 
