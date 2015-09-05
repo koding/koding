@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kr/pretty"
+	"github.com/koding/fuseklient/transport"
 
 	"bazil.org/fuse"
 
@@ -24,7 +24,7 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 	defer debug(time.Now(), "File="+f.Name)
 
 	req := struct{ Path string }{f.RemotePath}
-	res := fsReadFileRes{}
+	res := transport.FsReadFileRes{}
 	if err := f.Trip("fs.readFile", req, &res); err != nil {
 		return []byte{}, err
 	}
@@ -35,8 +35,6 @@ func (f *File) ReadAll(ctx context.Context) ([]byte, error) {
 // Write rewrites all data to file. Required by Fuse.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest, resp *fuse.WriteResponse) error {
 	defer debug(time.Now(), "File="+f.Name, fmt.Sprintf("OldContentLength=%v", f.attr.Size), fmt.Sprintf("NewContentLength=%v", len(req.Data)))
-
-	pretty.Println(req.Offset)
 
 	j, err := req.MarshalJSON()
 	if err != nil {

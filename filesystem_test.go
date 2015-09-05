@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,7 +18,7 @@ func TestFileSystem(t *testing.T) {
 		Convey("It should return error if remote foler doesn't exist", func() {
 			ft := &fakeTransport{
 				TripMethodName: "fs.getInfo",
-				TripResponse:   fsGetInfoRes{Exists: false},
+				TripResponse:   transport.FsGetInfoRes{Exists: false},
 			}
 
 			fl := FileSystem{
@@ -34,7 +35,7 @@ func TestFileSystem(t *testing.T) {
 		Convey("It should return root", func() {
 			ft := &fakeTransport{
 				TripMethodName: "fs.getInfo",
-				TripResponse:   fsGetInfoRes{Exists: true},
+				TripResponse:   transport.FsGetInfoRes{Exists: true},
 			}
 
 			fl := FileSystem{

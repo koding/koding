@@ -5,6 +5,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/koding/fuseklient/transport"
+
 	"bazil.org/fuse"
 	"golang.org/x/net/context"
 )
@@ -12,7 +14,7 @@ import (
 // Node is a generic name for File or Dir. It contains common fields and
 // implements common methods between the two.
 type Node struct {
-	Transport
+	transport.Transport
 	sync.RWMutex
 
 	// DirentType stores type of entry, ie fuse.DT_Dir or fuse.DT_File.
@@ -43,7 +45,7 @@ func NewNode(d *Dir, name string) *Node {
 	return n
 }
 
-func NewNodeWithInitial(t Transport) *Node {
+func NewNodeWithInitial(t transport.Transport) *Node {
 	return &Node{Transport: t, RWMutex: sync.RWMutex{}, attr: &fuse.Attr{}}
 }
 
@@ -65,9 +67,9 @@ func (n *Node) Attr(ctx context.Context, a *fuse.Attr) error {
 
 // getInfo gets metadata from Transport. Returns fuse.EEXIST if node doesn't
 // exist. Required by Fuse.
-func (n *Node) getInfo() (*fsGetInfoRes, error) {
+func (n *Node) getInfo() (*transport.FsGetInfoRes, error) {
 	req := struct{ Path string }{n.RemotePath}
-	res := fsGetInfoRes{}
+	res := transport.FsGetInfoRes{}
 	if err := n.Trip("fs.getInfo", req, &res); err != nil {
 		return nil, err
 	}

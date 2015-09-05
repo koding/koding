@@ -5,6 +5,8 @@ import (
 	"path"
 	"time"
 
+	"github.com/koding/fuseklient/transport"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 )
@@ -12,7 +14,7 @@ import (
 // FileSystem is equivalent to fuse.FS, ie file system to be mounted. The name
 // file system is misleading since Fuse allows folders to be mounted.
 type FileSystem struct {
-	Transport
+	transport.Transport
 
 	// RemotePath is path to folder in user VM to be mounted locally.
 	RemotePath string

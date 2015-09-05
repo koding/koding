@@ -9,6 +9,8 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"golang.org/x/net/context"
+
+	"github.com/koding/fuseklient/transport"
 )
 
 type Dir struct {
@@ -190,7 +192,7 @@ func (d *Dir) readDirAll() ([]fuse.Dirent, error) {
 	defer d.Unlock()
 
 	req := struct{ Path string }{d.RemotePath}
-	res := fsReadDirectoryRes{}
+	res := transport.FsReadDirectoryRes{}
 	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
 		return nil, err
 	}

@@ -25,14 +25,6 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}
 
 	return json.Unmarshal(bytes, &res)
 }
-
-func TestTransportImplementations(t *testing.T) {
-	var (
-		_ Transport = (*fakeTransport)(nil)
-		_ Transport = (*KlientTransport)(nil)
-	)
-}
-
 func TestFakeTransportStub(t *testing.T) {
 	Convey("Given fake transport", t, func() {
 		ft := &fakeTransport{

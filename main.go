@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/koding/fuseklient/auth"
+	"github.com/koding/fuseklient/transport"
 	"github.com/koding/multiconfig"
 )
 
@@ -23,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	t, err := NewKlientTransport(conf.IP)
+	t, err := transport.NewKlientTransport(conf.IP)
 	if err != nil {
 		log.Fatal(err)
 	}
