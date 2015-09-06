@@ -50,7 +50,11 @@ module.exports = class ChatPane extends React.Component
       <Scroller
         onTopThresholdReached={@bound 'onTopThresholdReached'}
         ref="scrollContainer">
-        <ChatList messages={@props.messages} showItemMenu={@props.showItemMenu} />
+        <ChatList
+          thread={@props.thread}
+          messages={@props.messages}
+          showItemMenu={@props.showItemMenu}
+        />
       </Scroller>
     </section>
 
