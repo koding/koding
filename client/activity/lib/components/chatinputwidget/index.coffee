@@ -11,6 +11,7 @@ ChatInputFlux   = require 'activity/flux/chatinput'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
 Link            = require 'app/components/common/link'
+whoami          = require 'app/util/whoami'
 helpers         = require './helpers'
 groupifyLink    = require 'app/util/groupifyLink'
 
@@ -137,12 +138,20 @@ module.exports = class ChatInputWidget extends React.Component
 
   onPrevPosition: (event, keyInfo) ->
 
-    for dropbox in @getDropboxes()
-      continue  unless dropbox.isActive()
+    if event.target.value
+      for dropbox in @getDropboxes()
+        continue  unless dropbox.isActive()
 
-      stopEvent = dropbox.moveToPrevPosition keyInfo
-      kd.utils.stopDOMEvent event  if stopEvent
-      break
+        stopEvent = dropbox.moveToPrevPosition keyInfo
+        kd.utils.stopDOMEvent event  if stopEvent
+        break
+    else
+      accountId = whoami()._id
+      ActivityFlux.actions.message.setLastMessageEditMode accountId, yes
+
+      kd.utils.wait 100, ->
+        domNode = document.querySelector('.ChatItem-updateMessageForm.visible textarea')
+        kd.utils.moveCaretToEnd domNode
 
 
   onDropboxItemConfirmed: (item) ->
