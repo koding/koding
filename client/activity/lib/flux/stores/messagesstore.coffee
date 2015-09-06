@@ -41,6 +41,7 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
     @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
     @on actions.SET_LAST_MESSAGE_EDIT_MODE, @handleSetLastMessageEditMode
+    @on actions.UNSET_LAST_MESSAGE_EDIT_MODE, @handleUnsetLastMessageEditMode
 
     @on actions.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
@@ -228,6 +229,21 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     return @setLastMessageEditMode(messages, { accountId, __isEditing: yes })
 
+
+  ###*
+   * It unsets last message editing mode
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @return {IMMessageCollection} nextState
+  ###
+  handleUnsetLastMessageEditMode: (messages, { accountId }) ->
+
+    return @setLastMessageEditMode(messages, { accountId, __isEditing: no })
+
+
+  ###*
    * Handler for `CREATE_COMMENT_SUCCESS` action.
    * It first removes fake comment if it exists, and then pushes given comment
    * from payload.
