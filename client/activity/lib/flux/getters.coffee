@@ -211,6 +211,15 @@ selectedMessageThreadComments = [
   selectedMessageThread
   (thread) ->
     return null  unless thread
+    message = thread.get 'message'
+    messageId = message.get '_id'
+    thread = thread.setIn ['comments', messageId], message
+
+    thread = thread.update 'comments', (comments) ->
+        comments
+          # then sort them by their creation date
+          .sortBy (c) -> c.get 'createdAt'
+
     thread.get 'comments'
 ]
 
