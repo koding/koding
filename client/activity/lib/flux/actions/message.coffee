@@ -361,6 +361,12 @@ unsetMessageEditMode = (messageId) ->
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
 
 
+setLastMessageEditMode = (accountId, __isEditing) ->
+
+  { SET_LAST_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch SET_LAST_MESSAGE_EDIT_MODE, { accountId }
+
+
 module.exports = {
   loadMessages
   loadMessageBySlug
@@ -372,6 +378,9 @@ module.exports = {
   loadComments
   createComment
   changeSelectedMessage
+  setMessageEditMode
+  unsetMessageEditMode
+  setLastMessageEditMode
   changeSelectedMessageBySlug
 }
 
