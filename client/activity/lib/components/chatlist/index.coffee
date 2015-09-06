@@ -9,6 +9,18 @@ module.exports = class ChatList extends React.Component
   @defaultProps =
     messages     : immutable.List()
     showItemMenu : yes
+    thread       : {}
+
+
+  calculateRemainingMessageCount: ->
+
+    repliesCount = @props.thread.getIn ['message', 'repliesCount']
+    messageCount = @props.messages.size - 1
+    count = repliesCount - messageCount
+    count =  if count > 0 then count else 0
+
+    return count
+
 
 
   renderChildren: ->
