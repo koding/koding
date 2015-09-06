@@ -251,3 +251,21 @@ describe 'MessagesStore', ->
       message = storeState.get messageId
       expect(message.get '__isEditing').to.equal yes
 
+
+  describe '#handleUnsetMessageEditMode', ->
+
+    message         = null
+    messageId       = 'unsetEditMode'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
+
+    it 'sets message __isEditing value to no', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+
+      message = storeState.get messageId
+      expect(message.get '__isEditing').to.equal no
+
