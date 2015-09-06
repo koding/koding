@@ -354,6 +354,13 @@ setMessageEditMode = (messageId) ->
   { SET_MESSAGE_EDIT_MODE } = actionTypes
   dispatch SET_MESSAGE_EDIT_MODE, { messageId }
 
+
+unsetMessageEditMode = (messageId) ->
+
+  { UNSET_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+
 module.exports = {
   loadMessages
   loadMessageBySlug
