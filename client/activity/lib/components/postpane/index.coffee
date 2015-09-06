@@ -12,7 +12,6 @@ module.exports = class PostPane extends React.Component
     thread        : immutable.Map()
     messages      : immutable.List()
     channelThread : immutable.Map()
-    firstMessageOnTop : yes
 
 
   channel: (key) -> @props.channelThread?.getIn ['channel', key]
@@ -55,7 +54,6 @@ module.exports = class PostPane extends React.Component
         thread={@props.thread}
         className="PostPane"
         messages={@props.messages}
-        firstMessageOnTop={@props.firstMessageOnTop}
         onSubmit={@bound 'onSubmit'}
         onLoadMore={@bound 'onLoadMore'}
         isParticipant={@channel 'isParticipant'}
