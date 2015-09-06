@@ -22,6 +22,13 @@ module.exports = class ChatList extends React.Component
     return count
 
 
+  renderFirstMessageDate: (count) ->
+
+    if @props.thread?.getIn ['flags', 'isMessagesLoading']
+      <div className='ChatItem-moreCount'>loading...</div>
+    else if count
+      <div className='ChatItem-moreCount'>{count} more</div>
+
 
   renderChildren: ->
 
