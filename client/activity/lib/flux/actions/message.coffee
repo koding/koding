@@ -349,6 +349,11 @@ changeSelectedMessageBySlug = (slug) ->
     dispatch SET_SELECTED_MESSAGE_THREAD, { messageId: message.id }
 
 
+setMessageEditMode = (messageId) ->
+
+  { SET_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch SET_MESSAGE_EDIT_MODE, { messageId }
+
 module.exports = {
   loadMessages
   loadMessageBySlug
