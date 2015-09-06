@@ -107,7 +107,7 @@ func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineC
 		"users": bson.M{
 			"$elemMatch": bson.M{
 				"id":    userId,
-				"owner": false,
+				"owner": true,
 			},
 		},
 		"groups": bson.M{
