@@ -218,6 +218,31 @@ module.exports = class MessagesStore extends KodingFluxStore
 
 
   ###*
+   * It sets last message editing mode by accountId and __isEditing parameter
+   *
+   * @param {IMMessageCollection} messages
+   * @param {object} payload
+   * @param {string} payload.messageId
+   * @param {boolean=} payload.__isEditing
+   * @return {IMMessageCollection} nextState
+  ###
+  setLastMessageEditMode: (messages, { accountId, __isEditing }) ->
+
+    isLastMessageSetFound = no
+
+    messages
+      .sortBy (message) -> message.get 'createdAt'
+      .reverse()
+      .map (message) ->
+        if (message.getIn(['account', '_id']) is accountId) and (isLastMessageSetFound is no)
+          isLastMessageSetFound = yes
+          messageId = message.get 'id'
+          messages = messages.setIn [messageId, '__isEditing'], __isEditing
+
+    return messages
+
+
+  ###*
    * It sets last message editing mode
    *
    * @param {IMMessageCollection} messages
