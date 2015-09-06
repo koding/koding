@@ -14,19 +14,27 @@ module.exports = class ChatList extends React.Component
   renderChildren: ->
 
     lastMessageId = null
-    { messages, showItemMenu } = @props
+    { messages, showItemMenu, thread } = @props
 
-    messages.map (message, i) ->
+    messages.map (message, i) =>
       itemProps =
         key          : message.get 'id'
         message      : message
         showItemMenu : showItemMenu
 
+      count          = @calculateRemainingMessageCount()
+      firstMessageId = thread.getIn ['message', '_id']
+
       if lastMessageId and lastMessageId is message.get 'accountId'
-        return <SimpleChatListItem {...itemProps} />
+        <SimpleChatListItem {...itemProps} />
+      else if firstMessageId is message.get('_id') and count
+        <div className='ChatPane-firstMessage'>
+          <ChatListItem {...itemProps} />
+          {@renderFirstMessageDate(count)}
+        </div>
       else
         lastMessageId = message.get 'accountId'
-        return <ChatListItem {...itemProps} />
+        <ChatListItem {...itemProps} />
 
 
   render: ->
