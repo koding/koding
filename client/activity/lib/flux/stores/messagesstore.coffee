@@ -41,7 +41,6 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
     @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
     @on actions.SET_LAST_MESSAGE_EDIT_MODE, @handleSetLastMessageEditMode
-    @on actions.UNSET_LAST_MESSAGE_EDIT_MODE, @handleUnsetLastMessageEditMode
 
     @on actions.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
@@ -218,15 +217,14 @@ module.exports = class MessagesStore extends KodingFluxStore
 
 
   ###*
-   * It sets last message editing mode by accountId and __isEditing parameter
+   * It sets last message editing mode
    *
    * @param {IMMessageCollection} messages
    * @param {object} payload
-   * @param {string} payload.messageId
-   * @param {boolean=} payload.__isEditing
+   * @param {string} payload.accountId
    * @return {IMMessageCollection} nextState
   ###
-  setLastMessageEditMode: (messages, { accountId, __isEditing }) ->
+  handleSetLastMessageEditMode: (messages, { accountId }) ->
 
     isLastMessageSetFound = no
 
@@ -237,35 +235,9 @@ module.exports = class MessagesStore extends KodingFluxStore
         if (message.getIn(['account', '_id']) is accountId) and (isLastMessageSetFound is no)
           isLastMessageSetFound = yes
           messageId = message.get 'id'
-          messages = messages.setIn [messageId, '__isEditing'], __isEditing
+          messages = messages.setIn [messageId, '__isEditing'], yes
 
     return messages
-
-
-  ###*
-   * It sets last message editing mode
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleSetLastMessageEditMode: (messages, { accountId }) ->
-
-    return @setLastMessageEditMode(messages, { accountId, __isEditing: yes })
-
-
-  ###*
-   * It unsets last message editing mode
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleUnsetLastMessageEditMode: (messages, { accountId }) ->
-
-    return @setLastMessageEditMode(messages, { accountId, __isEditing: no })
 
 
   ###*
