@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	abuseInterval     = time.Minute * 5
+	abuseInterval     = time.Minute * 15
 	analyticsInterval = time.Hour * 24
 	envVarName        = "GATHER"
 )
