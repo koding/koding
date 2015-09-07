@@ -698,6 +698,18 @@ class Ace extends KDView
         targetHandle.unsetClass 'saved'
 
 
+  trimTrailingWhitespaces: ->
+
+    doc   = @editor.getSession().getDocument()
+    lines = doc.getAllLines()
+
+    for line, lineNumber in lines
+      whiteSpaceIndex = line.search /\s+$/
+
+      if whiteSpaceIndex > -1
+        doc.removeInLine lineNumber, whiteSpaceIndex, line.length
+
+
   showGotoLine: ->
 
     unless @gotoLineModal
