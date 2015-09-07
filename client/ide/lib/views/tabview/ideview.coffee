@@ -594,7 +594,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     selector  = '.kdtabhandle:not(.visible-tab-handle)'
     $target   = $(event.originalEvent.target).closest(selector)
-    index     = $target.index()
+    index     = $target?.index()
 
     index = null  if index < 0
 
