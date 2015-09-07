@@ -17,6 +17,7 @@ module.exports = class IDEStatusBar extends KDView
     super options, data
 
     @participantAvatars = {}
+    @avatarTimers       = {}
 
     @on 'ShowAvatars',          @bound 'showAvatars'
     @on 'ParticipantLeft',      @bound 'dimParticipantAvatar'
@@ -129,8 +130,10 @@ module.exports = class IDEStatusBar extends KDView
     avatar = @participantAvatars[nickname]
 
     if avatar
-      avatar.setClass   'offline'
-      avatar.unsetClass 'online'
+      avatar.setClass 'waiting'
+      @avatarTimers[nickname] = kd.utils.wait 15000, =>
+        avatar.unsetClass 'online'
+        avatar.setClass   'offline'
 
 
   removeParticipantAvatar: (nickname) ->
@@ -147,9 +150,15 @@ module.exports = class IDEStatusBar extends KDView
 
     if oldAvatar
       oldAvatar.unsetClass 'offline'
+      oldAvatar.unsetClass 'waiting'
       oldAvatar.setClass   'online'
+
     else
       @createParticipantAvatar nickname, yes
+
+    if timer = @avatarTimers[nickname]
+      kd.utils.killWait timer
+      delete @avatarTimers[nickname]
 
     @avatars.show()
 
