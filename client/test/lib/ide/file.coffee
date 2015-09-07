@@ -1,7 +1,9 @@
 helpers    = require '../helpers/helpers.js'
 ideHelpers = require '../helpers/idehelpers.js'
 
-paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+paneSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+dummyText           = helpers.getFakeText().split(' ')[0]
+closeFileSelector   = "#{paneSelector} span.close-tab"
 
 module.exports =
 
@@ -125,3 +127,77 @@ module.exports =
     ideHelpers.openFile(browser, user, fileName)
 
     browser.end()
+
+  cancelSaveFile: (browser) ->
+
+    cancelSelector    = '.modal-with-text .kdmodal-inner button.light-gray'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    ideHelpers.closeAllTabs(browser)
+
+    fileName = helpers.createFile(browser, user)
+
+    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText, no, no)
+
+    browser
+      .waitForElementVisible      cancelSelector, 15000
+      .assert.containsText        cancelSelector + ' span.button-title', 'CANCEL'
+      .click                      cancelSelector
+
+    ideHelpers.setTextToEditor(browser, '')
+    ideHelpers.closeFile(browser, fileName)
+
+    browser.end()
+
+  dontSaveFile: (browser) ->
+
+    dontSaveSelector  = '.modal-with-text .kdmodal-inner button.red'
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    ideHelpers.closeAllTabs(browser)
+
+    fileName = helpers.createFile(browser, user)
+
+    ideHelpers.openFileSetTextClose(browser, user, fileName, dummyText, no, no)
+
+    browser
+      .waitForElementVisible      dontSaveSelector, 15000
+      .assert.containsText        dontSaveSelector + ' span.button-title', 'DON\'T SAVE'
+      .click                      dontSaveSelector
+      .end()
+
+  saveCloseFile: (browser) ->
+
+    saveCloseSelector   = '.modal-with-text .kdmodal-inner button.green'
+
+    filesTabSelector    = '.ide-files-tab .file-container'
+    saveAsModalSelector = '.save-as-dialog'
+    saveAsInputSelector = "#{saveAsModalSelector} input[type=text]"
+    untitledName = "Untitled.txt"
+    newName             = helpers.getFakeText().split(' ')[0] + '.txt'
+
+    saveButtonSelector  = "#{saveAsModalSelector} .kddialog-buttons span.button-title"
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    ideHelpers.closeAllTabs(browser)
+    ideHelpers.openFileSetTextClose(browser, user, '', dummyText, yes, no)
+
+    browser
+      .waitForElementVisible      saveCloseSelector, 15000
+      .assert.containsText        saveCloseSelector + ' span.button-title', 'SAVE AND CLOSE'
+      .click                      saveCloseSelector
+      .waitForElementVisible      saveAsModalSelector, 20000
+      .waitForElementVisible      saveAsInputSelector, 20000
+      .clearValue                 saveAsInputSelector
+      .setValue                   saveAsInputSelector, newName
+      .click                      saveButtonSelector
+      .waitForElementNotPresent   saveAsModalSelector, 20000
+      .waitForElementNotPresent   "#{paneSelector} div[title='#{untitledName}']", 20000 # Assertion
+      .waitForElementVisible      "#{filesTabSelector} span[title='/home/#{user.username}/#{newName}']", 20000 # Assertion
+      .end()
