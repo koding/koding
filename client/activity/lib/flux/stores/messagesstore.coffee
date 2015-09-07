@@ -84,18 +84,13 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {string} payload.clientRequestId
    * @return {IMMessageCollection} nextState
   ###
-  handleCreateMessageBegin: (messages, { body, clientRequestId, messageId }) ->
+  handleCreateMessageBegin: (messages, { body, clientRequestId }) ->
 
     { createFakeMessage, addMessage } = MessageCollectionHelpers
 
     message = createFakeMessage clientRequestId, body
 
-    _message = toImmutable message
-
-    if messageId
-      _message.set 'parentId', messageId
-
-    return addMessage messages, _message
+    return addMessage messages, toImmutable message
 
 
   ###*
@@ -203,15 +198,12 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {SocialMessage} payload.comment
    * @return {IMMessageCollection} nextState
   ###
-  handleCreateCommentSuccess: (messages, { clientRequestId, comment, messageId }) ->
+  handleCreateCommentSuccess: (messages, { clientRequestId, comment }) ->
 
     { addMessage, removeFakeMessage } = MessageCollectionHelpers
 
     if clientRequestId
       messages = removeFakeMessage messages, clientRequestId
-
-    if messageId
-      comment.parentId = messageId
 
     return addMessage messages, toImmutable comment
 
@@ -224,11 +216,9 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {SocialMessage} payload.comment
    * @param {IMMessageCollection} nextState
   ###
-  handleLoadCommentSuccess: (messages, { messageId, comment }) ->
+  handleLoadCommentSuccess: (messages, { comment }) ->
 
     { addMessage } = MessageCollectionHelpers
-
-    comment.parentId = messageId
 
     return addMessage messages, toImmutable comment
 

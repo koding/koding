@@ -15,19 +15,12 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     curryIn options, cssClass: 'editor-view'
 
-    if options.content?
-      content = Encoder.htmlDecode options.content or ''
-      { content, contentType, err } = jsonToYaml content
-    else
-      content = """
-        # This is a YAML file which you can define
-        # key-value pairs like;
-        #
-        #   foo: bar
-        #
+    { content, contentType } = options
+    contentType             ?= 'json'
 
-      """
-      contentType = 'yaml'
+    if content and contentType is 'json'
+      content = Encoder.htmlDecode content or ''
+      { content, contentType, err } = jsonToYaml content
 
     options.content     = content
     options.contentType = contentType
