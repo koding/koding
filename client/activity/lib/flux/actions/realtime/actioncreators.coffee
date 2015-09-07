@@ -1,6 +1,5 @@
 kd = require 'kd'
 actions = require '../actiontypes'
-getGroup = require 'app/util/getGroup'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -38,9 +37,6 @@ bindMessageEvents = (message) ->
     dispatch actions.UNLIKE_MESSAGE_SUCCESS, { userId, messageId }
 
   message.on 'AddReply', (comment) ->
-    if getGroup().socialApiChannelId is channelId
-      channel = kd.singletons.socialapi.retrieveCachedItemById channelId
-      dispatch actions.LOAD_MESSAGE_SUCCESS, { message: comment, channelId, channel }
     dispatch actions.LOAD_COMMENT_SUCCESS, { messageId, comment }
 
   message.on 'RemoveReply', (comment) ->

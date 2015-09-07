@@ -6,7 +6,7 @@ immutable            = require 'immutable'
 emojify              = require 'emojify.js'
 formatEmojiName      = require 'activity/util/formatEmojiName'
 ChatInputFlux        = require 'activity/flux/chatinput'
-Dropup               = require 'activity/components/dropup'
+Dropbox              = require 'activity/components/dropbox'
 EmojiSelectorItem    = require 'activity/components/emojiselectoritem'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
@@ -95,10 +95,11 @@ module.exports = class EmojiSelector extends React.Component
 
     { visible, selectedItem } = @props
 
-    <Dropup
-      className      = "EmojiSelector"
-      visible        = { visible }
-      onOuterClick   = { @bound 'close' }
+    <Dropbox
+      className    = 'EmojiSelector'
+      visible      = { visible }
+      onOuterClick = { @bound 'close' }
+      direction    = 'up'
     >
       <div className="EmojiSelector-list" ref="list">
         {@renderList()}
@@ -112,5 +113,5 @@ module.exports = class EmojiSelector extends React.Component
         </div>
         <div className="clearfix" />
       </div>
-    </Dropup>
+    </Dropbox>
 

@@ -519,6 +519,11 @@ Admin main styles
   .members-commonview
     overflow                hidden
 
+  .clear-search
+    font-size               13px
+    color                   #8d8d8d
+    pointer()
+
   .search
     margin                  25px 0
 
@@ -1334,21 +1339,31 @@ Admin main styles
       &.red
         bg                  color, darkred
 
-    .message-view
-      font-size             14px
-      height                50px
-
-      pre
-        display             inline
-        background-color    #eee
-        font-size           12px
-        padding             2px 3px
-        border              1px solid #ddd
-        rounded             2px
-
+  .readme
+  .variables
     .editor-view
       height                calc(100% \- 170px)
       rounded               4px 4px 0 0
+
+  .readme
+    .preview-button
+      z-index               13
+      right                 0
+      bottom                0
+      abs()
+
+  .message-view
+    font-size               14px
+    height                  50px
+
+    pre
+      display               inline
+      background-color      #eee
+      font-size             12px
+      padding               2px 3px
+      border                1px solid #ddd
+      rounded               2px
+
 
   .step-define-stack
 
@@ -1844,6 +1859,16 @@ Admin main styles
 
         .label
           margin-top        4px
+
+      &.azure
+        rel()
+        top                 -9px
+
+        img
+          margin            25px 0 0 63px
+
+        .label
+          margin-top        10px
 
       &.digitalocean
         rel()
