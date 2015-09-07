@@ -1975,3 +1975,14 @@ module.exports = class JUser extends jraphical.Module
 
       return callback new KodingError 'Captcha not valid. Please try again.'
 
+
+  ###*
+   * Remove session documents matching selector object.
+   *
+   * @param {Object} [selector={}] - JSession query selector.
+   * @param {Function} - Callback.
+  ###
+  killSessions: (selector = {}, callback) ->
+
+    selector.username = @username
+    JSession.remove selector, callback
