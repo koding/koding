@@ -22,7 +22,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 
     # Install osxfuse on your local via brew (requires working XCode).
     # (TODO: this step will be automated eventually.)
-    brew install osxfuse
+    brew install Caskroom/cask/osxfuse
 
     # Download latest release from https://github.com/koding/fuseklient/releases to your local.
 
