@@ -759,3 +759,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         ideViewHash : ideViewHash
 
     @emitChange targetIdeView, change, 'SplitViewMerged'
+
+
+  dragEnter: (event) ->
+
+    return  if @splitRegions or not event.altKey
+
+    @tabView.addSubView @splitRegions = new SplitRegionView
+
+    @splitRegions.on 'TabDropped', (direction) =>
+      { frontApp }  = kd.singletons.appManager
+      frontApp.handleTabDropToRegion direction, this
