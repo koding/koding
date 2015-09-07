@@ -1137,7 +1137,7 @@ module.exports = class JAccount extends jraphical.Module
           return callback err  if err
 
           data            = {}
-          data[username]  = email  for {username, email} in list
+          data[username]  = email  for { username, email } in list
 
           callback null, data
 
