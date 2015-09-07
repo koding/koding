@@ -525,7 +525,7 @@ module.exports = class DefineStackView extends KDView
         return  if @outputView.handleError err
 
         new kd.NotificationView
-          title : "Group (#{slug}) stack has been saved!"
+          title : "Team (#{slug}) stack has been saved!"
           type  : 'mini'
 
         computeController.createDefaultStack yes
