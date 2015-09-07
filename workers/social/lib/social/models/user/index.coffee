@@ -1393,8 +1393,10 @@ module.exports = class JUser extends jraphical.Module
     # create default stack for koding group, when a user joins this is only
     # required for koding group, not neeed for other teams
     _client =
-      connection : delegate : account
-      context    : group    : 'koding'
+      connection :
+        delegate : account
+      context    :
+        group    : 'koding'
 
     ComputeProvider.createGroupStack _client, (err) ->
       if err?
