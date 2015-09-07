@@ -92,6 +92,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         fetchBlockedUsers:
           (signature Object, Function)
+        fetchEmailsByUsername:
+          (signature Object, Function)
 
       instance:
         modify:
@@ -1120,6 +1122,25 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
+  @fetchEmailsByUsername = permit 'grant permissions',
+    success: (client, usernames = [], callback) ->
+      return callback null, []  unless usernames.length
+
+      selector = { username: { $in: usernames } }
+      options  = { email: 1, username: 1 }
+
+      JUser = require './user'
+      JUser.someData selector, options, (err, cursor) ->
+        return callback err  if err
+
+        cursor.toArray (err, list) ->
+          return callback err  if err
+
+          data            = {}
+          data[username]  = email  for { username, email } in list
+
+          callback null, data
+
   fetchDecoratedPaymentMethods: (callback) ->
     JPaymentMethod = require './payment/method'
     @fetchPaymentMethods (err, paymentMethods) ->
@@ -1385,5 +1406,3 @@ module.exports = class JAccount extends jraphical.Module
 
       user.update $set: twofactorkey: key, (err) ->
         callback err
-
-
