@@ -852,6 +852,23 @@ module.exports = class ComputeController extends KDController
 
 
   ###*
+   * Fetch given stack's README from the stackTemplate which
+   * is generated from.
+  ###
+
+  fetchStackReadme: (stack, callback = kd.noop) ->
+
+    return callback null, ''  unless stack?.baseStackId
+
+    { baseStackId } = stack
+
+    remote.cacheable 'JStackTemplate', baseStackId, (err, templates) ->
+      return callback err  if err
+      [template] = templates
+      return callback null, template.description ? ''
+
+
+  ###*
    * Automatically kill active collaboration sessions if any
   ###
   stopCollaborationSession: ->
