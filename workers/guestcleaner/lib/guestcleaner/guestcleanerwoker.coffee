@@ -116,7 +116,6 @@ module.exports = class GuestCleanerWorker
             ->
               #If we don't delete JNames, we eventually have millions of them.
               JName.remove { name : account.profile.nickname }, (err) ->
-                if err then console.error err
                 queue.next()
             ->
               #Delete JAccount itself

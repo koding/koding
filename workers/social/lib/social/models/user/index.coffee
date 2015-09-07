@@ -223,14 +223,13 @@ module.exports = class JUser extends jraphical.Module
     username = "#{username}-rm"
 
     email = "#{username}@koding.com"
-    @one { username: toBeDeletedUsername }, (err, user) =>
+    @one { username: toBeDeletedUsername }, (err, user) ->
       return callback err  if err?
 
       unless user
         return callback new KodingError \
           "User not found #{toBeDeletedUsername}"
 
-      oldEmail = user.email
 
       userValues = {
         email           : email
@@ -248,57 +247,10 @@ module.exports = class JUser extends jraphical.Module
       }
       modifier = { $set: userValues, $unset: { oldUsername: 1 } }
       # update the user with empty data
-      user.update modifier, (err, docs) =>
-        return callback err  if err?
 
-        accountValues = {
-          type                      : 'deleted'
-          skillTags                 : []
-          ircNickame                : ''
-          globalFlags               : ['deleted']
-          locationTags              : []
-          onlineStatus              : 'offline'
-          'profile.about'           : ''
-          'profile.hash'            : getHash createId()
-          'profile.avatar'          : ''
-          'profile.nickname'        : username
-          'profile.lastName'        : 'koding user'
-          'profile.firstName'       : 'a former'
-          'profile.experience'      : ''
-          'profile.experiencePoints': 0
-          'profile.lastStatusUpdate': ''
-        }
-
-        params = { 'profile.nickname' : toBeDeletedUsername }
-        JAccount.one params, (err, account) =>
-          return callback err  if err?
-
-          unless account
-            return callback new KodingError \
-              "Account not found #{toBeDeletedUsername}"
-
-          # update the account to be deleted with empty data
-          account.update { $set: accountValues }, (err) =>
-            return callback err  if err?
-            JName.release toBeDeletedUsername, (err) =>
-              return callback err  if err?
-              JAccount.emit 'UsernameChanged', {
-                oldUsername    : toBeDeletedUsername
-                isRegistration : false
-                username
-              }
-
-              user.unlinkOAuths =>
-
-                Payment = require '../payment'
-
-                deletedClient = { connection: { delegate: account } }
-
-                Payment.deleteAccount deletedClient, (err) =>
-
-                  account.leaveFromAllGroups client, =>
-
-                    @logout deletedClient, callback
+      user.update modifier, updateUnregisteredUserAccount({
+        user, username, toBeDeletedUsername, client
+      }, callback)
 
 
   @isRegistrationEnabled = (callback) ->
@@ -345,54 +297,7 @@ module.exports = class JUser extends jraphical.Module
       else
 
         # So we have a session, let's check it out if its a valid one
-        { username } = session
-
-        unless username?
-
-          # A session without a username is nothing, let's kill it
-          # and logout the user, this is also a rare condition
-          logout 'no username found', clientId, callback
-
-          return
-
-        # If we are dealing with a guest session we know that we need to
-        # use fake guest user
-
-        if /^guest-/.test username
-          JUser.fetchGuestUser (err, response) ->
-            return logout 'error fetching guest account'  if err
-
-            { account } = response
-            return logout 'guest account not found'  if not response?.account
-
-            return callback null, { account, session }
-
-          return
-
-        JUser.one { username }, (err, user) ->
-
-          if err?
-
-            logout 'error finding user with username', clientId, callback
-
-          else unless user?
-
-            logout "no user found with #{username} and sessionId", clientId, callback
-
-          else
-
-            context = { group: session?.groupName ? 'koding' }
-
-            user.fetchAccount context, (err, account) ->
-
-              if err?
-                logout 'error fetching account', clientId, callback
-
-              else
-
-                # A valid session, a valid user attached to
-                # it voila, scenario #2
-                callback null, { session, account }
+        checkSessionValidity { session, logout, clientId }, callback
 
 
   @getHash = getHash = (value) ->
@@ -454,6 +359,86 @@ module.exports = class JUser extends jraphical.Module
       callback null, response
 
 
+  fetchSession = (options, queue, callback, fetchData) ->
+
+    { clientId, username } = options
+
+    # fetch session of the current requester
+    JSession.fetchSession clientId, (err, { session: fetchedSession }) ->
+      return callback err  if err
+
+      session = fetchedSession
+      unless session
+        console.error "login: session not found #{username}"
+        return callback new KodingError 'Couldn\'t restore your session!'
+
+      fetchData session
+
+      queue.next()
+
+
+  validateLoginCredentials = (options, queue, callback, fetchData) ->
+
+    { username, password, tfcode } = options
+
+    # check credential validity
+    JUser.one { username }, (err, user) ->
+      return logAndReturnLoginError username, err.message, callback if err
+      fetchData user
+
+      # if user not found it means we dont know about given username
+      unless user?
+        return logAndReturnLoginError username, 'Unknown user name', callback
+
+      # if password is autogenerated return error
+      if user.getAt('passwordStatus') is 'needs reset'
+        return logAndReturnLoginError username, \
+          'You should reset your password in order to continue!', callback
+
+      # check if provided password is correct
+      unless user.checkPassword password
+        return logAndReturnLoginError username, 'Access denied!', callback
+
+      # check if user is using 2factor auth and provided key is ok
+      if !!(user.getAt 'twofactorkey')
+
+        unless tfcode
+          return callback new KodingError \
+            'TwoFactor auth Enabled', 'VERIFICATION_CODE_NEEDED'
+
+        unless user.check2FactorAuth tfcode
+          return logAndReturnLoginError username, 'Access denied!', callback
+
+      # if everything is fine, just continue
+      queue.next()
+
+
+  fetchInvitationByCode = (invitationToken, queue, callback, fetchData) ->
+
+    # if we dont have an invitation code, do not continue
+    return queue.next()  unless invitationToken
+
+    JInvitation = require '../invitation'
+    JInvitation.byCode invitationToken, (err, invitation) ->
+      return callback err  if err
+      return callback new KodingError 'invitation is not valid'  unless invitation
+      fetchData invitation
+      queue.next()
+
+
+  fetchInvitationByData = (options, queue, callback, fetchData) ->
+
+    { user, groupName, invitationToken } = options
+    # check if user has pending invitation
+    return queue.next()  if invitationToken
+
+    selector = { email: user.email, groupName }
+    JInvitation = require '../invitation'
+    JInvitation.one selector, {}, (err, invitation) ->
+      fetchData invitation  if invitation
+      queue.next()
+
+
   @login = (clientId, credentials, callback) ->
 
     { username: loginId, password, groupIsBeingCreated
@@ -476,20 +461,14 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # fetch session of the current requester
-        JSession.fetchSession clientId, (err, { session: fetchedSession }) ->
-          return callback err  if err
-
-          session = fetchedSession
-          unless session
-            console.error "login: session not found #{username}"
-            return callback new KodingError 'Couldn\'t restore your session!'
+        fetchSession {
+          clientId, username
+        }, queue, callback, (session_) ->
+          session = session_
 
           bruteForceControlData =
             ip        : session.clientIP
             username  : username
-
-          queue.next()
 
       ->
         # todo add alert support(mail, log etc)
@@ -501,36 +480,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # check credential validity
-        JUser.one { username }, (err, user_) ->
-          return logAndReturnLoginError username, err.message, callback if err
-          user = user_
-
-          # if user not found it means we dont know about given username
-          unless user?
-            return logAndReturnLoginError username, 'Unknown user name', callback
-
-          # if password is autogenerated return error
-          if user.getAt('passwordStatus') is 'needs reset'
-            return logAndReturnLoginError username, \
-              'You should reset your password in order to continue!', callback
-
-          # check if provided password is correct
-          unless user.checkPassword password
-            return logAndReturnLoginError username, 'Access denied!', callback
-
-          # check if user is using 2factor auth and provided key is ok
-          if !!(user.getAt 'twofactorkey')
-
-            unless tfcode
-              return callback new KodingError \
-                'TwoFactor auth Enabled', 'VERIFICATION_CODE_NEEDED'
-
-            unless user.check2FactorAuth tfcode
-              return logAndReturnLoginError username, 'Access denied!', callback
-
-          # if everything is fine, just continue
-          queue.next()
+        validateLoginCredentials {
+          username, password, tfcode
+        }, queue, callback, (user_) -> user = user_
 
       ->
         # fetch account of the user, we will use it later
@@ -546,43 +498,18 @@ module.exports = class JUser extends jraphical.Module
         # # user is member, check validity
         # # user is not member, and trying to access with invitationToken
         # both should succeed
-
-        # if we dont have an invitation code, do not continue
-        return queue.next()  unless invitationToken
-
-        JInvitation = require '../invitation'
-        JInvitation.byCode invitationToken, (err, invitation_) ->
-          return callback err  if err
-          return callback new KodingError 'invitation is not valid'  unless invitation_
+        fetchInvitationByCode invitationToken, queue, callback, (invitation_) ->
           invitation = invitation_
-          queue.next()
 
       ->
-        # check if user has pending invitation
-        return queue.next()  if invitationToken
-
-        JInvitation = require '../invitation'
-        options = { email: user.email, groupName }
-        JInvitation.one options, {}, (err, invitation_) ->
-          invitation = invitation_ if invitation_
-          queue.next()
+        fetchInvitationByData {
+          user, groupName, invitationToken
+        }, queue, callback, (invitation_) -> invitation = invitation_
 
       =>
-        return queue.next()  if groupIsBeingCreated
-        # check for membership
-        JGroup.one { slug: groupName }, (err, group) =>
-
-          return callback new KodingError err                   if err
-          return callback new KodingError 'group doesnt exist'  if not group
-
-          group.isMember account, (err , isMember) =>
-            return callback err  if err
-            return queue.next()  if isMember # if user is already member, we can continue
-
-            # addGroup will check all prerequistes about joining to a group
-            @addToGroup account, groupName, user.email, invitation, (err) ->
-              return callback err  if err
-              return queue.next()
+        @addToGroupByInvitation {
+          groupName, groupIsBeingCreated, account, user, invitation
+        }, queue, callback
 
       ->
         return queue.next()  if groupIsBeingCreated
@@ -677,6 +604,163 @@ module.exports = class JUser extends jraphical.Module
       return callback new Error 'User not found'  unless user
 
       user.verifyByPin options, callback
+
+
+  @addToGroupByInvitation = (options, queue, callback) ->
+
+    { groupName, groupIsBeingCreated, account, user, invitation } = options
+
+    return queue.next()  if groupIsBeingCreated
+    # check for membership
+    JGroup.one { slug: groupName }, (err, group) ->
+
+      return callback new KodingError err                   if err
+      return callback new KodingError 'group doesnt exist'  if not group
+
+      group.isMember account, (err, isMember) ->
+        return callback err  if err
+        return queue.next()  if isMember # if user is already member, we can continue
+
+        # addGroup will check all prerequistes about joining to a group
+        JUser.addToGroup account, groupName, user.email, invitation, (err) ->
+          return callback err  if err
+          return queue.next()
+
+
+  redeemInvitation = (options, callback) ->
+
+    { account, invitation, slug, email } = options
+
+    return invitation.accept account, callback  if invitation
+
+    JInvitation.one { email, groupName : slug }, (err, invitation_) ->
+      # if we got error or invitation doesnt exist, just return
+      return callback null if err or not invitation_
+      return invitation_.accept account, callback
+
+
+  # check if user's email domain is in allowed domains
+  checkWithDomain = (groupName, email, callback) ->
+    JGroup.one { slug: groupName }, (err, group) ->
+      return callback err  if err
+      # yes weird, but we are creating user before creating group
+      return callback null, { isEligible: yes } if not group
+
+      isAllowed = group.isInAllowedDomain email
+      return callback new KodingError 'Your email domain is not in allowed \
+        domains for this group'  unless isAllowed
+
+      return callback null, { isEligible: yes }
+
+
+  checkSessionValidity = (options, callback) ->
+
+    { session, logout, clientId } = options
+    { username } = session
+
+    unless username?
+
+      # A session without a username is nothing, let's kill it
+      # and logout the user, this is also a rare condition
+      logout 'no username found', clientId, callback
+
+      return
+
+    # If we are dealing with a guest session we know that we need to
+    # use fake guest user
+
+    if /^guest-/.test username
+      JUser.fetchGuestUser (err, response) ->
+        return logout 'error fetching guest account'  if err
+
+        { account } = response
+        return logout 'guest account not found'  if not response?.account
+
+        return callback null, { account, session }
+
+      return
+
+    JUser.one { username }, (err, user) ->
+
+      if err?
+
+        logout 'error finding user with username', clientId, callback
+
+      else unless user?
+
+        logout "no user found with #{username} and sessionId", clientId, callback
+
+      else
+
+        context = { group: session?.groupName ? 'koding' }
+
+        user.fetchAccount context, (err, account) ->
+
+          if err?
+            logout 'error fetching account', clientId, callback
+
+          else
+
+            # A valid session, a valid user attached to
+            # it voila, scenario #2
+            callback null, { session, account }
+
+
+  updateUnregisteredUserAccount = (options, callback) ->
+
+    { username : usernameAfterDelete, toBeDeletedUsername, user, client } = options
+
+    return (err, docs) ->
+      return callback err  if err?
+
+      accountValues = {
+        type                      : 'deleted'
+        skillTags                 : []
+        ircNickame                : ''
+        globalFlags               : ['deleted']
+        locationTags              : []
+        onlineStatus              : 'offline'
+        'profile.about'           : ''
+        'profile.hash'            : getHash createId()
+        'profile.avatar'          : ''
+        'profile.nickname'        : usernameAfterDelete
+        'profile.lastName'        : 'koding user'
+        'profile.firstName'       : 'a former'
+        'profile.experience'      : ''
+        'profile.experiencePoints': 0
+        'profile.lastStatusUpdate': ''
+      }
+
+      params = { 'profile.nickname' : toBeDeletedUsername }
+      JAccount.one params, (err, account) ->
+        return callback err  if err?
+
+        unless account
+          return callback new KodingError \
+            "Account not found #{toBeDeletedUsername}"
+
+        # update the account to be deleted with empty data
+        account.update { $set: accountValues }, (err) ->
+          return callback err  if err?
+          JName.release toBeDeletedUsername, (err) ->
+            return callback err  if err?
+            JAccount.emit 'UsernameChanged', {
+              oldUsername    : toBeDeletedUsername
+              isRegistration : false
+              username       : usernameAfterDelete
+            }
+
+            user.unlinkOAuths ->
+
+              Payment = require '../payment'
+
+              deletedClient = { connection: { delegate: account } }
+
+              Payment.deleteAccount deletedClient, (err) ->
+
+                account.leaveFromAllGroups client, ->
+
+                  JUser.logout deletedClient, callback
 
 
   validateConvertInput = (userFormData, client) ->
@@ -846,19 +930,6 @@ module.exports = class JUser extends jraphical.Module
       unless prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
 
-      # check if user's email domain is in allowed domains
-      checkWithDomain = (groupName, email, callback) ->
-        JGroup.one { slug: groupName }, (err, group) ->
-          return callback err  if err
-          # yes weird, but we are creating user before creating group
-          return callback null, { isEligible: yes } if not group
-
-          isAllowed = group.isInAllowedDomain email
-          return callback new KodingError 'Your email domain is not in allowed \
-            domains for this group'  unless isAllowed
-
-          return callback null, { isEligible: yes }
-
       # check if email domain is in allowed domains
       return checkWithDomain groupName, email, callback  if not invitationToken
 
@@ -894,12 +965,9 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err
 
           # do not forget to redeem invitation
-          return invitation.accept account, callback  if invitation
-
-          JInvitation.one { email, groupName : slug }, (err, invitation) ->
-            # if we got error or invitation doesnt exist, just return
-            return callback null if err or not invitation
-            return invitation.accept account, callback
+          redeemInvitation {
+            account, invitation, slug, email
+          }, callback
 
 
   @addToGroups = (account, slugs, email, invitation, callback) ->
@@ -1146,6 +1214,224 @@ module.exports = class JUser extends jraphical.Module
       callback()
 
 
+  verifyUser = (options, queue, callback) ->
+
+    { slug
+      email
+      recaptcha
+      userFormData
+      foreignAuthType } = options
+
+    invitation = null
+
+    _queue = [
+
+      ->
+        # verifying recaptcha if enabled
+        return _queue.next()  unless KONFIG.recaptcha.enabled
+
+        JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        JUser.validateAll userFormData, (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        JUser.emailAvailable email, (err, res) ->
+          if err
+            return callback new KodingError 'Something went wrong'
+
+          if res is no
+            return callback new KodingError 'Email is already in use!'
+
+          _queue.next()
+
+      ->
+        queue.next()
+
+    ]
+
+    daisy _queue
+
+
+  verifyEnrollmentEligibility = (options, queue, callback, fetchData) ->
+
+    { email, client, invitationToken } = options
+
+    # check if user can register to regarding group
+    _options =
+      email           : email
+      groupName       : client.context.group
+      invitationToken : invitationToken
+
+    JUser.verifyEnrollmentEligibility _options, (err, res) ->
+      return callback err  if err
+
+      { isEligible, invitation } = res
+
+      if not isEligible
+        return callback new Error "you can not register to #{client.context.group}"
+
+      fetchData invitation
+      queue.next()
+
+
+  createUser = (options, queue, callback, fetchData) ->
+
+    { userInfo } = options
+
+    # creating a new user
+    JUser.createUser userInfo, (err, user_, account_) ->
+      return callback err  if err
+
+      unless user_? and account_?
+        return callback new KodingError 'Failed to create user!'
+
+      fetchData account_, user_
+      queue.next()
+
+
+  updateUserInfo = (options, queue, callback, fetchData) ->
+
+    { user, ip, country, region, username, client, account, clientId } = options
+
+    _queue = [
+
+      ->
+        # updating user's location related info
+        return _queue.next()  unless ip? and country? and region?
+
+        locationModifier =
+          $set                       :
+            'registeredFrom.ip'      : ip
+            'registeredFrom.region'  : region
+            'registeredFrom.country' : country
+
+        user.update locationModifier, ->
+          _queue.next()
+
+      ->
+        JUser.persistOauthInfo username, client.sessionToken, (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        return _queue.next()  unless username?
+
+        _options =
+          account        : account
+          username       : username
+          clientId       : clientId
+          groupName      : client.context.group
+          isRegistration : yes
+
+        JUser.changeUsernameByAccount _options, (err, newToken_) ->
+          return callback err  if err
+          fetchData newToken_
+          _queue.next()
+
+      ->
+        queue.next()
+
+    ]
+
+    daisy _queue
+
+
+  updateAccountInfo = (options, queue, callback) ->
+
+    { account, referrer, username } = options
+
+    _queue = [
+
+      ->
+        account.update { $set: { type: 'registered' } }, (err) ->
+          return callback err  if err?
+          _queue.next()
+
+      ->
+        account.createSocialApiId (err) ->
+          return callback err  if err
+          _queue.next()
+
+      ->
+        # setting referrer
+        return _queue.next()  unless referrer
+
+        if username is referrer
+          console.error "User (#{username}) tried to refer themself."
+          return _queue.next()
+
+        JUser.count { username: referrer }, (err, count) ->
+          if err? or count < 1
+            console.error 'Provided referrer not valid:', err
+            return _queue.next()
+
+          account.update { $set: { referrerUsername: referrer } }, (err) ->
+
+            if err?
+            then console.error err
+            else console.log "#{referrer} referred #{username}"
+
+            _queue.next()
+
+      -> queue.next()
+
+    ]
+
+    daisy _queue
+
+
+  createDefaultStackForKodingGroup = (options, queue) ->
+
+    { account } = options
+
+    # create default stack for koding group, when a user joins this is only
+    # required for koding group, not neeed for other teams
+    _client =
+      connection : delegate : account
+      context    : group    : 'koding'
+
+    ComputeProvider.createGroupStack _client, (err) ->
+      if err?
+        console.warn "Failed to create group stack
+                      for #{account.profile.nickname}:#{err}"
+
+      # We are not returning error here on purpose, even stack template
+      # not created for a user we don't want to break registration process
+      # at all ~ GG
+      queue.next()
+
+
+  confirmDevAccount = (options, queue, callback) ->
+
+    { user, email, username } = options
+
+    if KONFIG.autoConfirmAccounts
+      user.confirmEmail (err) ->
+        console.warn err  if err?
+        queue.next()
+
+    else
+      _options =
+        email    : email
+        action   : 'verify-account'
+        username : username
+
+      JVerificationToken = require '../verificationtoken'
+      JVerificationToken.createNewPin _options, (err, confirmation) ->
+        if err
+          console.warn 'Failed to send verification token:', err
+        else
+          pin = confirmation.pin
+
+        queue.next()
+
+
+
   @convert = secure (client, userFormData, callback) ->
 
     { slug, email, agree, username, lastName, referrer,
@@ -1193,49 +1479,23 @@ module.exports = class JUser extends jraphical.Module
 
           queue.next()
 
-      =>
-        # verifying recaptcha if enabled
-        return queue.next()  unless KONFIG.recaptcha.enabled
+      ->
+        verifyUser {
+          slug
+          email
+          recaptcha
+          userFormData
+          foreignAuthType
+        }, queue, callback
 
-        @verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
-          return callback err  if err
-          queue.next()
+      ->
+        verifyEnrollmentEligibility {
+          email
+          client
+          invitationToken
+        }, queue, callback, (invitation_) -> invitation = invitation_
 
-      =>
-        @validateAll userFormData, (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        @emailAvailable email, (err, res) ->
-          if err
-            return callback new KodingError 'Something went wrong'
-
-          if res is no
-            return callback new KodingError 'Email is already in use!'
-
-          queue.next()
-
-      =>
-        # check if user can register to regarding group
-        options =
-          email           : email
-          groupName       : client.context.group
-          invitationToken : invitationToken
-
-        @verifyEnrollmentEligibility options, (err, res) ->
-          return callback err  if err
-
-          { isEligible, invitation: invitation_ } = res
-
-          if not isEligible
-            return callback new Error "you can not register to #{client.context.group}"
-
-          invitation = invitation_
-          queue.next()
-
-      =>
-        # creating a new user
+      ->
         userInfo =
           email          : email
           username       : username
@@ -1244,57 +1504,16 @@ module.exports = class JUser extends jraphical.Module
           firstName      : firstName
           emailFrequency : emailFrequency
 
-        @createUser userInfo, (err, user_, account_) ->
-          return callback err  if err
-
-          unless user_? and account_?
-            return callback new KodingError 'Failed to create user!'
-
+        createUser { userInfo }, queue, callback, (account_, user_) ->
           [account, user] = [account_, user_]
-          queue.next()
 
       ->
-        # updating user's location related info
-        return queue.next()  unless ip? and country? and region?
-
-        locationModifier =
-          $set                       :
-            'registeredFrom.ip'      : ip
-            'registeredFrom.region'  : region
-            'registeredFrom.country' : country
-
-        user.update locationModifier, ->
-          queue.next()
-
-      =>
-        @persistOauthInfo username, client.sessionToken, (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        return queue.next()  unless username?
-
-        options =
-          account        : account
-          username       : username
-          clientId       : clientId
-          groupName      : client.context.group
-          isRegistration : yes
-
-        @changeUsernameByAccount options, (err, newToken_) ->
-          return callback err  if err
-          newToken = newToken_
-          queue.next()
+        updateUserInfo {
+          user, ip, country, region, username, client, account, clientId
+        }, queue, callback, (newToken_) -> newToken = newToken_
 
       ->
-        account.update { $set: { type: 'registered' } }, (err) ->
-          return callback err  if err?
-          queue.next()
-
-      ->
-        account.createSocialApiId (err) ->
-          return callback err  if err
-          queue.next()
+        updateAccountInfo { account, referrer, username }, queue, callback
 
       =>
         groupNames = [client.context.group, 'koding']
@@ -1304,41 +1523,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # create default stack for koding group, when a user joins this is only
-        # required for koding group, not neeed for other teams
-        _client =
-          connection : delegate : account
-          context    : group    : 'koding'
-
-        ComputeProvider.createGroupStack _client, (err) ->
-          if err?
-            console.warn "Failed to create group stack
-                          for #{account.profile.nickname}:#{err}"
-
-          # We are not returning error here on purpose, even stack template
-          # not created for a user we don't want to break registration process
-          # at all ~ GG
-          queue.next()
-
-      ->
-        return queue.next()  unless referrer
-
-        if username is referrer
-          console.error "User (#{username}) tried to refer themself."
-          return queue.next()
-
-        JUser.count { username: referrer }, (err, count) ->
-          if err? or count < 1
-            console.error 'Provided referrer not valid:', err
-            return queue.next()
-
-          account.update { $set: { referrerUsername: referrer } }, (err) ->
-
-            if err?
-            then console.error err
-            else console.log "#{referrer} referred #{username}"
-
-            queue.next()
+        createDefaultStackForKodingGroup { account }, queue
 
       ->
         user.setPassword password, (err) ->
@@ -1352,25 +1537,9 @@ module.exports = class JUser extends jraphical.Module
       ->
         # Auto confirm accounts for development environment
         # This config should be no for production! ~ GG
-        if KONFIG.autoConfirmAccounts
-          user.confirmEmail (err) ->
-            console.warn err  if err?
-            queue.next()
-
-        else
-          options =
-            email    : email
-            action   : 'verify-account'
-            username : username
-
-          JVerificationToken = require '../verificationtoken'
-          JVerificationToken.createNewPin options, (err, confirmation) ->
-            if err
-              console.warn 'Failed to send verification token:', err
-            else
-              pin = confirmation.pin
-
-            queue.next()
+        confirmDevAccount {
+          user, email, username
+        }, queue, callback
 
       ->
         # don't block register
@@ -1396,6 +1565,7 @@ module.exports = class JUser extends jraphical.Module
     ]
 
     daisy queue
+
 
   @createJWT: (data) ->
     { secret, confirmExpiresInMinutes } = KONFIG.jwt

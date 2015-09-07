@@ -1,3 +1,4 @@
+# coffeelint: disable=cyclomatic_complexity
 module.exports = (options = {}, callback) ->
 
   { dash }  = require 'bongo'

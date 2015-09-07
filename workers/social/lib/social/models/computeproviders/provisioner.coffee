@@ -240,6 +240,16 @@ module.exports = class JProvisioner extends jraphical.Module
       @update $set: { accessLevel }, callback
 
 
+  updateKallback = (slug, callback) ->
+    return (err) ->
+      if slug and err and err.name is 'MongoError' and err.code is 11001
+        return callback new KodingError \
+          "Slug `#{slug}` in use, provide different one"
+
+      return callback err  if err?
+      callback null
+
+
   update$: permit
 
     advanced: [
@@ -269,14 +279,6 @@ module.exports = class JProvisioner extends jraphical.Module
         slug  = "#{delegate.profile.nickname}/#{slug}"
         fieldsToUpdate.slug = slug
 
-      @update $set : fieldsToUpdate, (err) ->
-
-        if slug and err and err.name is 'MongoError' and err.code is 11001
-          return callback new KodingError \
-            "Slug `#{slug}` in use, provide different one"
-
-        return callback err  if err?
-
-        callback null
+      @update $set : fieldsToUpdate, updateKallback slug, callback
 
 

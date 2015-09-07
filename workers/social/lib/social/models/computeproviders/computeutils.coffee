@@ -1,4 +1,4 @@
-
+# coffeelint: disable=cyclomatic_complexity
 KodingError = require '../../error'
 
 PROVIDERS =
