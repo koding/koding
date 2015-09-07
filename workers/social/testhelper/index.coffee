@@ -1,7 +1,7 @@
 _        = require 'underscore'
 hat      = require 'hat'
-JAccount = require './lib/social/models/account'
-JSession = require './lib/social/models/session'
+JAccount = require '../lib/social/models/account'
+JSession = require '../lib/social/models/session'
 
 
 # returns 20 characters by default
