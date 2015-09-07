@@ -763,7 +763,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   dragEnter: (event) ->
 
-    return  if @splitRegions or not event.altKey
+    return  if @splitRegions
 
     @tabView.addSubView @splitRegions = new SplitRegionView
 
