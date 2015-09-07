@@ -1,7 +1,7 @@
 kd         = require 'kd'
 React      = require 'kd-react'
 immutable  = require 'immutable'
-DropupItem = require 'activity/components/dropupitem'
+DropBoxItem = require 'activity/components/dropboxitem'
 Avatar     = require 'app/components/profile/avatar'
 
 module.exports = class ChannelParticipantsDropdownItem extends React.Component
@@ -15,12 +15,12 @@ module.exports = class ChannelParticipantsDropdownItem extends React.Component
   render: ->
 
     { item } = @props
-    <DropupItem {...@props} className="ChannelParticipantsDropdownItem">
+    <DropBoxItem {...@props} className="ChannelParticipantsDropdownItem">
       <Avatar
         className='ChannelParticipantAvatars-avatar'
         width={30}
         account={item.toJS()}
         height={30} />
       <span>{item.getIn ['profile', 'nickname']}</span>
-    </DropupItem>
+    </DropBoxItem>
 

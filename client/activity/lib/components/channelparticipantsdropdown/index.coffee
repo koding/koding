@@ -3,14 +3,14 @@ React                           = require 'kd-react'
 immutable                       = require 'immutable'
 classnames                      = require 'classnames'
 ActivityFlux                    = require 'activity/flux'
-Dropup                          = require 'activity/components/dropup'
-DropupWrapperMixin              = require 'activity/components/dropup/dropupwrappermixin'
+Dropbox                          = require 'activity/components/dropbox'
+DropboxWrapperMixin              = require 'activity/components/dropbox/dropboxwrappermixin'
 ChannelParticipantsDropdownItem = require 'activity/components/channelparticipantsdropdownitem'
 
 
 module.exports = class ChannelParticipantsDropdown extends React.Component
 
-  @include [DropupWrapperMixin]
+  @include [DropboxWrapperMixin]
 
   @defaultProps =
     items          : immutable.List()
@@ -19,9 +19,9 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     selectedItem   : null
 
 
-  # this method overrides DropupWrapperMixin-componentDidUpdate handler.
-  # In this component, we use dropdown keyword. In DropupWrapperMixin/componentDidUpdate handler
-  # expects dropup component so it occurs an error. Also this component doesn't need any action when
+  # this method overrides DropboxWrapperMixin-componentDidUpdate handler.
+  # In this component, we use dropdown keyword. In DropboxWrapperMixin/componentDidUpdate handler
+  # expects dropbox component so it occurs an error. Also this component doesn't need any action when
   # componentDidUpdate event fired.
   componentDidUpdate: ->
 
@@ -80,11 +80,11 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
 
   render: ->
 
-    <Dropup
+    <Dropbox
       className      = "ChannelParticipantsDropdown"
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
-      ref            = 'dropup'
+      ref            = 'dropbox'
       top            = '100px'
     >
       <div className="Dropdown-innerContainer">
@@ -92,5 +92,5 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
           {@renderList()}
         </div>
       </div>
-    </Dropup>
+    </Dropbox>
 
