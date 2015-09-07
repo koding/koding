@@ -15,7 +15,7 @@ module.exports = class ProviderSelectionView extends JView
 
   createProviders: ->
 
-    providers = [ 'aws', 'koding', 'engineyard', 'digitalocean', 'googlecloud', 'rackspace' ]
+    providers = [ 'aws', 'koding', 'azure', 'digitalocean', 'googlecloud', 'rackspace' ]
 
     @providers = new kd.CustomHTMLView cssClass: 'providers box-wrapper'
 

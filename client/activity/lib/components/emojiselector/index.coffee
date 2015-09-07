@@ -5,8 +5,8 @@ classnames           = require 'classnames'
 immutable            = require 'immutable'
 emojify              = require 'emojify.js'
 formatEmojiName      = require 'activity/util/formatEmojiName'
-ActivityFlux         = require 'activity/flux'
-Dropup               = require 'activity/components/dropup'
+ChatInputFlux        = require 'activity/flux/chatinput'
+Dropbox              = require 'activity/components/dropbox'
 EmojiSelectorItem    = require 'activity/components/emojiselectoritem'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
@@ -48,7 +48,7 @@ module.exports = class EmojiSelector extends React.Component
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ActivityFlux.actions.emoji.setCommonListSelectedIndex stateId, index
+    ChatInputFlux.actions.emoji.setCommonListSelectedIndex stateId, index
 
 
   onItemConfirmed: ->
@@ -61,7 +61,7 @@ module.exports = class EmojiSelector extends React.Component
   close: ->
 
     { stateId } = @props
-    ActivityFlux.actions.emoji.setCommonListVisibility stateId, no
+    ChatInputFlux.actions.emoji.setCommonListVisibility stateId, no
 
 
   handleKeyDown: (event) ->
@@ -95,10 +95,11 @@ module.exports = class EmojiSelector extends React.Component
 
     { visible, selectedItem } = @props
 
-    <Dropup
-      className      = "EmojiSelector"
-      visible        = { visible }
-      onOuterClick   = { @bound 'close' }
+    <Dropbox
+      className    = 'EmojiSelector'
+      visible      = { visible }
+      onOuterClick = { @bound 'close' }
+      direction    = 'up'
     >
       <div className="EmojiSelector-list" ref="list">
         {@renderList()}
@@ -112,5 +113,5 @@ module.exports = class EmojiSelector extends React.Component
         </div>
         <div className="clearfix" />
       </div>
-    </Dropup>
+    </Dropbox>
 

@@ -1,12 +1,13 @@
 kd              = require 'kd'
 React           = require 'kd-react'
 TextArea        = require 'react-autosize-textarea'
-EmojiDropup     = require 'activity/components/emojidropup'
-ChannelDropup   = require 'activity/components/channeldropup'
-UserDropup      = require 'activity/components/userdropup'
+EmojiDropbox    = require 'activity/components/emojidropbox'
+ChannelDropbox  = require 'activity/components/channeldropbox'
+UserDropbox     = require 'activity/components/userdropbox'
 EmojiSelector   = require 'activity/components/emojiselector'
-SearchDropup    = require 'activity/components/searchdropup'
+SearchDropbox   = require 'activity/components/searchdropbox'
 ActivityFlux    = require 'activity/flux'
+ChatInputFlux   = require 'activity/flux/chatinput'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
 Link            = require 'app/components/common/link'
@@ -34,16 +35,17 @@ module.exports = class ChatInputWidget extends React.Component
 
   getDataBindings: ->
 
-    { getters } = ActivityFlux
+    { getters }      = ActivityFlux
+    chatInputGetters = ChatInputFlux.getters
 
     return {
-      filteredEmojiList              : getters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      commonEmojiList                : getters.commonEmojiList
-      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      filteredEmojiList              : chatInputGetters.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : chatInputGetters.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : chatInputGetters.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : chatInputGetters.filteredEmojiListQuery @stateId
+      commonEmojiList                : chatInputGetters.commonEmojiList
+      commonEmojiListSelectedItem    : chatInputGetters.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : chatInputGetters.commonEmojiListVisibility @stateId
       channels                       : getters.chatInputChannels @stateId
       channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
       channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
@@ -62,7 +64,7 @@ module.exports = class ChatInputWidget extends React.Component
     }
 
 
-  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup, @refs.userDropup, @refs.searchDropup ]
+  getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox ]
 
 
   onChange: (event) ->
@@ -75,17 +77,17 @@ module.exports = class ChatInputWidget extends React.Component
       currentWord : helpers.getCurrentWord textInput
       value       : value
 
-    # Let every dropup check entered text.
-    # If any dropup considers text as a query,
-    # stop checking for others and close active dropup
+    # Let every dropbox check entered text.
+    # If any dropbox considers text as a query,
+    # stop checking for others and close active dropbox
     # if it exists
     queryIsSet = no
-    for dropup in @getDropups()
+    for dropbox in @getDropboxes()
       unless queryIsSet
-        queryIsSet = dropup.checkTextForQuery textData
+        queryIsSet = dropbox.checkTextForQuery textData
         continue  if queryIsSet
 
-      dropup.close()  if dropup.isActive()
+      dropbox.close()  if dropbox.isActive()
 
 
   onKeyDown: (event) ->
@@ -106,49 +108,49 @@ module.exports = class ChatInputWidget extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    isDropupEnter = no
-    for dropup in @getDropups()
-      continue  unless dropup.isActive()
+    isDropboxEnter = no
+    for dropbox in @getDropboxes()
+      continue  unless dropbox.isActive()
 
-      dropup.confirmSelectedItem()
-      isDropupEnter = yes
+      dropbox.confirmSelectedItem()
+      isDropboxEnter = yes
       break
 
-    unless isDropupEnter
+    unless isDropboxEnter
       @props.onSubmit? { value: @state.value }
       @setState { value: '' }
 
 
   onEsc: (event) ->
 
-    dropup.close() for dropup in @getDropups()
+    dropbox.close()  for dropbox in @getDropboxes()
 
 
   onNextPosition: (event, keyInfo) ->
 
-    for dropup in @getDropups()
-      continue  unless dropup.isActive()
+    for dropbox in @getDropboxes()
+      continue  unless dropbox.isActive()
 
-      stopEvent = dropup.moveToNextPosition keyInfo
+      stopEvent = dropbox.moveToNextPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
       break
 
 
   onPrevPosition: (event, keyInfo) ->
 
-    for dropup in @getDropups()
-      continue  unless dropup.isActive()
+    for dropbox in @getDropboxes()
+      continue  unless dropbox.isActive()
 
-      stopEvent = dropup.moveToPrevPosition keyInfo
+      stopEvent = dropbox.moveToPrevPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
       break
 
 
-  onDropupItemConfirmed: (item) ->
+  onDropboxItemConfirmed: (item) ->
 
     textInput = React.findDOMNode @refs.textInput
 
-    { value, cursorPosition } = helpers.insertDropupItem textInput, item
+    { value, cursorPosition } = helpers.insertDropboxItem textInput, item
     @setState { value }
 
     kd.utils.defer ->
@@ -175,7 +177,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ActivityFlux.actions.emoji.setCommonListVisibility @stateId, yes
+    ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
 
 
   handleSearchButtonClick: (event) ->
@@ -190,20 +192,20 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = React.findDOMNode @refs.textInput
     textInput.focus()
 
-    @refs.searchDropup.checkTextForQuery { value }
+    @refs.searchDropbox.checkTextForQuery { value }
 
 
-  renderEmojiDropup: ->
+  renderEmojiDropbox: ->
 
     { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
 
-    <EmojiDropup
+    <EmojiDropbox
       items           = { filteredEmojiList }
       selectedIndex   = { filteredEmojiListSelectedIndex }
       selectedItem    = { filteredEmojiListSelectedItem }
       query           = { filteredEmojiListQuery }
-      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
-      ref             = 'emojiDropup'
+      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
+      ref             = 'emojiDropbox'
       stateId         = { @stateId }
     />
 
@@ -221,50 +223,50 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
-  renderChannelDropup: ->
+  renderChannelDropbox: ->
 
     { channels, channelsSelectedItem, channelsSelectedIndex, channelsQuery, channelsVisibility } = @state
 
-    <ChannelDropup
+    <ChannelDropbox
       items           = { channels }
       selectedIndex   = { channelsSelectedIndex }
       selectedItem    = { channelsSelectedItem }
       query           = { channelsQuery }
       visible         = { channelsVisibility }
-      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
-      ref             = 'channelDropup'
+      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
+      ref             = 'channelDropbox'
       stateId         = { @stateId }
     />
 
 
-  renderUserDropup: ->
+  renderUserDropbox: ->
 
     { users, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
 
-    <UserDropup
+    <UserDropbox
       items           = { users }
       selectedIndex   = { userSelectedIndex }
       selectedItem    = { usersSelectedItem }
       query           = { usersQuery }
       visible         = { usersVisibility }
-      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
-      ref             = 'userDropup'
+      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
+      ref             = 'userDropbox'
       stateId         = { @stateId }
     />
 
 
-  renderSearchDropup: ->
+  renderSearchDropbox: ->
 
     { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
 
-    <SearchDropup
+    <SearchDropbox
       items           = { searchItems }
       selectedIndex   = { searchSelectedIndex }
       selectedItem    = { searchSelectedItem }
       query           = { searchQuery }
       visible         = { searchVisibility }
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
-      ref             = 'searchDropup'
+      ref             = 'searchDropbox'
       stateId         = { @stateId }
     />
 
@@ -273,10 +275,10 @@ module.exports = class ChatInputWidget extends React.Component
 
     <div className="ChatInputWidget">
       { @renderEmojiSelector() }
-      { @renderEmojiDropup() }
-      { @renderChannelDropup() }
-      { @renderUserDropup() }
-      { @renderSearchDropup() }
+      { @renderEmojiDropbox() }
+      { @renderChannelDropbox() }
+      { @renderUserDropbox() }
+      { @renderSearchDropbox() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onChange' }

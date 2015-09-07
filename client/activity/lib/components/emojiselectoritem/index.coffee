@@ -3,7 +3,7 @@ React           = require 'kd-react'
 immutable       = require 'immutable'
 classnames      = require 'classnames'
 formatEmojiName = require 'activity/util/formatEmojiName'
-DropupItem      = require 'activity/components/dropupitem'
+DropboxItem     = require 'activity/components/dropboxitem'
 
 module.exports = class EmojiSelectorItem extends React.Component
 
@@ -21,7 +21,7 @@ module.exports = class EmojiSelectorItem extends React.Component
       'EmojiSelectorItem'            : yes
       'EmojiSelectorItem-firstInRow' : isFirstInRow
 
-    <DropupItem {...@props} className={className}>
+    <DropboxItem {...@props} className={className}>
       {formatEmojiName item}
-    </DropupItem>
+    </DropboxItem>
 

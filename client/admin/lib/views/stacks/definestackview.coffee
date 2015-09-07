@@ -23,6 +23,7 @@ parseTerraformOutput = require './parseterraformoutput'
 OutputView           = require './outputview'
 ProvidersView        = require './providersview'
 VariablesView        = require './variablesview'
+ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
 
 
@@ -68,6 +69,11 @@ module.exports = class DefineStackView extends KDView
       name : 'Providers'
       view : @providersView
 
+    @readmeView                        = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane        = new KDTabPaneView
+      name : 'Readme'
+      view : @readmeView
+
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @tabView.showPaneByIndex 0
@@ -93,15 +99,12 @@ module.exports = class DefineStackView extends KDView
       else
         @saveButton.disable()
 
-    variablesPane.on 'PaneDidShow', =>
-      @setFooterVisibility 'show'
-
-    stackTemplatePane.on 'PaneDidShow', =>
-      @setFooterVisibility 'show'
-
-    providersPane.on 'PaneDidShow', =>
-      @outputView.fall()
-      @setFooterVisibility 'hide'
+    @tabView.on 'PaneDidShow', (pane) =>
+      if pane is providersPane
+        @outputView.fall()
+        @setFooterVisibility 'hide'
+      else
+        @setFooterVisibility 'show'
 
 
   setFooterVisibility: (state) ->
@@ -342,6 +345,7 @@ module.exports = class DefineStackView extends KDView
 
     { title }         = @stackTemplateView.inputTitle.getData()
     templateContent   = @stackTemplateView.editorView.getValue()
+    description       = @readmeView.editorView.getValue() # aka readme
 
     # TODO split following into their own helper methods
     # and call them in here ~ GG
@@ -396,8 +400,10 @@ module.exports = class DefineStackView extends KDView
       templateContent = convertedDoc.content
 
 
+    template = templateContent
+
     updateStackTemplate {
-      template: templateContent, templateDetails
+      template, description, templateDetails
       credentials, stackTemplate, title, config
     }, (err, stackTemplate) =>
 

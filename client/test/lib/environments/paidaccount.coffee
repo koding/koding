@@ -7,6 +7,7 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 module.exports =
 
+
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -21,6 +22,7 @@ module.exports =
         browser.end()
       else
         browser
+          .waitForElementVisible '.computeplan-modal.free-plan', 20000
           .waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
           .end()
 
@@ -46,7 +48,26 @@ module.exports =
           .end()
 
 
- addVM: (browser) ->
+  createSnapshotForNonPaidUser: (browser) ->
+
+    messageSelector  = '.kdmodal.computeplan-modal .message'
+    message          = 'The Snapshot feature is only available for paid accounts.'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.attemptCreateSnapshot(browser)
+
+    browser.element 'css selector', '.snapshots .add-view', (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        browser
+          .waitForElementVisible messageSelector, 20000
+          .assert.containsText   messageSelector, message #Assertion
+          .end()
+
+
+  addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
 
@@ -107,7 +128,7 @@ module.exports =
 
     browser.element  'css selector', '.AppModal-form.with-fields .alwayson .koding-on-off.on', (result) =>
       if result.status is 0
-        console.log 'VM is already always on, ending test...'
+        console.log ' ✔ VM is already always on, ending test...'
         browser.end()
 
       else
@@ -125,66 +146,58 @@ module.exports =
               .end()
 
 
-  createSnapshotForNonPaidUser: (browser) ->
-    
-    messageSelector  = '.kdmodal.computeplan-modal .message'
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    environmentHelpers.attemptCreateSnapshot(browser)
-
-    browser
-      .waitForElementVisible messageSelector, 20000
-      .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion
-      .end()
-
-
   createSnapshot: (browser) ->
-   
-    labelSelector   = '.kdlistitemview-snapshot .info .label'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    
-    name = environmentHelpers.createSnapshot(browser)
 
-    browser
-      .waitForElementVisible labelSelector, 300000
-      .assert.containsText   labelSelector, name #Assertion
-      .end()
- 
+    environmentHelpers.createSnapshot(browser)
+    browser.end()
+
 
   renameSnapshot: (browser) ->
-    
+
+    contentSelector  = '.snapshots.AppModal-content'
+    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
+
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
-    environmentHelpers.createSnapshotIfNotFound browser, (name)->
-      environmentHelpers.attemptCreateSnapshot(browser)
-      renamed = environmentHelpers.nameSnapshot(browser)
-      environmentHelpers.assertSnapshotPresent browser, renamed, false
-      browser.end()
-      
+    browser.getText contentSelector, (result) ->
+      if result.value.indexOf('renamed-snapshot') > -1
+        console.log ' ✔ Snapshot is already renamed. Ending test...'
+        browser.end()
+      else
+        browser.element 'css selector', snapshotSelector, (result) ->
+          if result.status is 0
+            renamed = environmentHelpers.renameSnapshot(browser)
+            environmentHelpers.assertSnapshotPresent browser, renamed, false
+
+          else
+            browser.pause 3000
+            environmentHelpers.addSnapsButton(browser)
+            environmentHelpers.createSnapshot(browser, no)
+            renamed = environmentHelpers.renameSnapshot(browser)
+            environmentHelpers.assertSnapshotPresent browser, renamed, false
+
+        browser.end()
 
 
-  #This test depends on createSnapshot
   deleteSnapshot: (browser) ->
 
-    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+    snapshotSelector = '.snapshots .listview-wrapper'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
-    environmentHelpers.createSnapshotIfNotFound browser, (name)->
+    snapshotName = environmentHelpers.createSnapshot(browser)
 
-      environmentHelpers.deleteSnapshot(browser)
+    environmentHelpers.deleteSnapshot(browser)
 
-      browser
-        .waitForElementNotPresent confirmSelector, 20000
-        .pause                    1000 #Deleted snapshots take a little time to disappear.
-      
-      environmentHelpers.assertSnapshotPresent browser, name, true
-
-      browser.end()
+    browser
+      .pause 3000
+      .waitForElementVisible     snapshotSelector, 20000
+      .waitForElementNotPresent  "#{snapshotSelector} .info .label.#{snapshotName}", 20000
+      .end()
