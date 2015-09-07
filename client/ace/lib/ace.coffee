@@ -181,7 +181,7 @@ class Ace extends KDView
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
       @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
 
-      @isTrimWhiteSpaceEnabled = if @appStorage.getValue('trimTrailingWhitespaces') then yes else no
+      @isTrimWhiteSpacesEnabled = if @appStorage.getValue('trimTrailingWhitespaces') then yes else no
 
 
   saveStarted: ->
@@ -334,7 +334,7 @@ class Ace extends KDView
 
   setTrimTrailingWhitespaces: (value) ->
 
-    @isTrimWhiteSpaceEnabled = value
+    @isTrimWhiteSpacesEnabled = value
 
 
   requestSave: ->
@@ -346,7 +346,7 @@ class Ace extends KDView
         @notify 'Nothing to save!'
       return
 
-    if @isTrimWhiteSpaceEnabled
+    if @isTrimWhiteSpacesEnabled
       @trimTrailingWhitespaces()
       contents = @getContents()
 
