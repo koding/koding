@@ -892,8 +892,6 @@ class IDEAppController extends AppController
       if view instanceof Class
         if component is 'editor'
           view.getAce()[method]? value
-          if key is 'trimTrailingWhitespaces'
-            view.getAce().isTrimWhiteSpaceEnabled = value
         else
           view.webtermView.updateSettings()
 
