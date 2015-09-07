@@ -1669,6 +1669,26 @@ class IDEAppController extends AppController
     @targetTabView = null  # Reset
 
 
+  handleTabDropToRegion: (direction, ideView) ->
+
+    ideView.emit 'IDETabDropped'
+
+    if direction is 'right' or direction is 'left'
+      type = 'vertical'
+    else
+      type = 'horizontal'
+
+    @setActiveTabView ideView.tabView
+    @splitTabView { type }
+
+    if direction is 'top' or direction is 'left'
+      target = ideView.parent
+    else
+      target = @activeTabView.parent.parent
+
+    @handleTabDropped null, target, null
+
+
   moveTabToPanel: (tabView, targetPanel, index) ->
 
     return unless tabView.parent?
