@@ -84,7 +84,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
   save: ->
 
-    @getAce().emit 'ace.requests.save', @getContent()
+    @getAce().requestSave()
 
 
   getAce: ->
