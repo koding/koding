@@ -173,9 +173,9 @@ module.exports = class ComputeController extends KDController
   # Fetchers most of these methods has internal
   # caches with in ComputeController
 
-  fetchStacks: do (queue=[])->
+  fetchStacks: do (queue=[]) ->
 
-    (callback = kd.noop)-> kd.singletons.mainController.ready =>
+    (callback = kd.noop) -> kd.singletons.mainController.ready =>
 
       if @stacks.length > 0
         callback null, @stacks
@@ -184,14 +184,14 @@ module.exports = class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      remote.api.JComputeStack.some {}, (err, stacks = [])=>
+      remote.api.JComputeStack.some {}, (err, stacks = []) =>
 
         if err?
           cb err  for cb in queue
           queue = []
           return
 
-        remote.api.JMachine.some {}, (err, _machines = [])=>
+        remote.api.JMachine.some {}, (err, _machines = []) =>
 
           if err?
             cb err  for cb in queue
@@ -849,6 +849,23 @@ module.exports = class ComputeController extends KDController
       return no
 
     return yes
+
+
+  ###*
+   * Fetch given stack's README from the stackTemplate which
+   * is generated from.
+  ###
+
+  fetchStackReadme: (stack, callback = kd.noop) ->
+
+    return callback null, ''  unless stack?.baseStackId
+
+    { baseStackId } = stack
+
+    remote.cacheable 'JStackTemplate', baseStackId, (err, templates) ->
+      return callback err  if err
+      [template] = templates
+      return callback null, template.description ? ''
 
 
   ###*

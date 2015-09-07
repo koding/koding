@@ -32,6 +32,10 @@ module.exports = class JStackTemplate extends Module
       static          :
         create        :
           (signature Object, Function)
+        one           : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         some          : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -163,6 +167,16 @@ module.exports = class JStackTemplate extends Module
 
       @some selector, options, (err, templates) ->
         callback err, templates
+
+
+  @one$: permit 'list stack templates',
+
+    success: (client, selector, options, callback) ->
+
+      options ?= {}
+      options.limit = 1
+
+      @some$ client, selector, options, callback
 
 
   delete: permit

@@ -48,9 +48,8 @@ MarketingController      = require './marketing/marketingcontroller'
 MachineShareManager      = require './machinesharemanager'
 KodingFluxReactor        = require './flux/reactor'
 
-module.exports =
 
-class MainController extends KDController
+module.exports           = class MainController extends KDController
 
   ###
 
