@@ -78,6 +78,15 @@ module.exports = class NotificationController extends KDObject
 
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
+    @on 'SessionHasEnded', ({ clientId }) ->
+
+      return deleteUserCookie()  unless clientId
+
+      # Delete user cookie if current session is not to be preserved.
+      # Session initiated password change procedure is meant to be kept.
+      if clientId isnt kookies.get 'clientId'
+        deleteUserCookie()
+
     @once 'EmailShouldBeConfirmed', ->
       {firstName, nickname} = whoami().profile
       kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
