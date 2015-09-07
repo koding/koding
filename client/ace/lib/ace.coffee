@@ -668,29 +668,7 @@ class Ace extends KDView
 
   removeModifiedFromTab: ->
 
-    aceView      = @parent
-
-    unless aceView
-      # happens when collab is active and when you have tabs open
-      # and when you reload the page - SY
-      kd.warn 'possible race condition, shadowing the error! @acet'
-      return
-
-    { tabView }     = aceView.delegate
-    return  unless tabView
-
-    activeTabHandle = tabView.getActivePane().getHandle()
-
-    { handles }  = tabView
-    targetHandle = null
-
-    for handle in handles when activeTabHandle.id is handle.id
-      targetHandle = handle
-      targetHandle.setClass 'saved'
-
-      kd.utils.wait 500, ->
-        targetHandle.unsetClass 'modified'
-        targetHandle.unsetClass 'saved'
+    @emit 'RemoveModifiedFromTab', @getData().path
 
 
   trimTrailingWhitespaces: ->
