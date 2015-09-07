@@ -394,13 +394,11 @@ module.exports = class JGroup extends Module
       subPage    : require '../../render/loggedout/subpage'
 
 
-  createHelper =
-
-    save_ : (label, model, queue, callback) ->
-      model.save (err) ->
-        return callback err  if err
-        console.log "#{label} is saved"
-        queue.next()
+  save_ = (label, model, queue, callback) ->
+    model.save (err) ->
+      return callback err  if err
+      console.log "#{label} is saved"
+      queue.next()
 
 
   @create = (client, groupData, owner, callback) ->
@@ -427,7 +425,7 @@ module.exports = class JGroup extends Module
           queue.next()
 
       ->
-        createHelper.save_ 'group', group, queue, (err) ->
+        save_ 'group', group, queue, (err) ->
           if err
             JName.release group.slug, -> callback err
           else
@@ -460,7 +458,7 @@ module.exports = class JGroup extends Module
           queue.next()
 
       ->
-        createHelper.save_ 'default permission set', defaultPermissionSet, queue, callback
+        save_ 'default permission set', defaultPermissionSet, queue, callback
 
       ->
         group.addDefaultPermissionSet defaultPermissionSet, (err) ->
