@@ -44,21 +44,25 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     super options, data
 
-    @addSubView @container = new KDCustomHTMLView cssClass: 'content-container'
+    @addSubView @container  = new KDCustomHTMLView
+      cssClass: 'content-container'
+
     @machine = @getData()
 
     return @handleNoMachineFound()  unless @machine
 
-    {jMachine}   = @machine
-    @machineName = jMachine.label
+    { computeController } = kd.singletons
+
+    { jMachine } = @machine
+    { @state }   = @machine.status
+
     @machineId   = jMachine._id
-    {@state}     = @machine.status
-    @isManaged   = @machine.provider is 'managed'
+    @isManaged   = jMachine.provider is 'managed'
+    @templateId  = jMachine.generatedFrom?.templateId ? null
+    @machineName = jMachine.label
 
     @showBusy()
     @show()
-
-    {computeController, marketingController} = kd.singletons
 
     computeController.fetchUserPlan (plan) =>
       @userSubscription = plan
@@ -67,18 +71,22 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       kd.warn err  if err?
 
-      if not verified
-        @buildVerifyView()
-      else
-        kd.singletons.paymentController.subscriptions (err, subscription)=>
-          kd.warn err  if err?
-          if subscription?.state is 'expired'
-          then @buildExpiredView subscription
-          else @buildInitial()
+      return @buildVerifyView()  unless verified
 
+
+      if @stack # Stack build events
+        computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
+
+      kd.singletons.paymentController.subscriptions (err, subscription) =>
+        kd.warn err  if err?
+        if subscription?.state is 'expired'
+        then @buildExpiredView subscription
+        else @buildInitial()
+
+    { marketingController } = kd.singletons
     marketingController.on 'SnippetNeedsToBeShown', @bound 'showMarketingSnippet'
 
-    @on 'MachineTurnOnStarted', (machine)->
+    @on 'MachineTurnOnStarted', (machine) ->
       sendDataDogEvent 'MachineTurnedOn', tags: {label: machine.label}
 
 
@@ -206,10 +214,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
-
-    # Stack build events
-    if stack = computeController.findStackFromMachineId @machine._id
-      computeController.on "apply-#{stack._id}", @bound 'updateStatus'
 
     computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
