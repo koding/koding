@@ -418,9 +418,11 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 			return errors.New("you can not add only one participant into topic channel")
 		}
 
-		if participants[0].AccountId != requesterId {
-			return errors.New("you can not add others into topic channel")
-		}
+		// with the new UI structure, now other users can add others into topic channels
+		//
+		// if participants[0].AccountId != requesterId {
+		// 	return errors.New("you can not add others into topic channel")
+		// }
 	}
 
 	// return early for non private message channels

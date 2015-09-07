@@ -31,7 +31,7 @@ module.exports = helpers =
     return lastWord
 
 
-  insertDropupItem: (textInput, item) ->
+  insertDropboxItem: (textInput, item) ->
 
     textBeforeCursor  = helpers.getTextBeforeCursor textInput
     textToReplace     = helpers.getLastWord textBeforeCursor

@@ -5,7 +5,6 @@ actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
-getGroup = require 'app/util/getGroup'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -15,11 +14,6 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  * @param {string} channelId
 ###
 loadMessages = (channelId, options = {}) ->
-
-  # if given channel is group channel, special case it for fetching activities
-  # with comments.
-  if getGroup().socialApiChannelId is channelId
-    return loadPublicChannelMessages channelId, options
 
   options.limit ?= 25
   { socialapi } = kd.singletons
@@ -40,44 +34,6 @@ loadMessages = (channelId, options = {}) ->
     kd.singletons.reactor.batch ->
       messages.forEach (message) ->
         dispatchLoadMessageSuccess channelId, message
-
-
-###*
- * Loads public/group channel messages, with comments of them.
- *
- * @param {string} channelId
- * @param {object=} options
-###
-loadPublicChannelMessages = (channelId, options = {}) ->
-
-  options.limit ?= 25
-  { socialapi, reactor } = kd.singletons
-  { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
-    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
-
-  dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
-
-  _options = _.assign {}, options, { id: channelId }
-
-  socialapi.channel.fetchActivitiesWithComments _options, (err, messages) ->
-    if err
-      dispatch LOAD_MESSAGES_FAIL, { err, channelId }
-      return
-
-    dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
-
-    kd.singletons.reactor.batch ->
-      messages.forEach (message) ->
-        if message.typeConstant is 'post'
-          return dispatchLoadMessageSuccess channelId, message
-
-        _messages = reactor.evaluate ['MessagesStore']
-        parentMessage = _messages.get message.parentId
-        if parentMessage
-          dispatchLoadMessageSuccess channelId, message
-        else
-          loadMessage(message.parentId).then ->
-            dispatchLoadMessageSuccess channelId, message
 
 
 ###*
@@ -395,7 +351,6 @@ changeSelectedMessageBySlug = (slug) ->
 
 module.exports = {
   loadMessages
-  loadPublicChannelMessages
   loadMessageBySlug
   createMessage
   likeMessage
