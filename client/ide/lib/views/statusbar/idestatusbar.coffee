@@ -131,7 +131,7 @@ module.exports = class IDEStatusBar extends KDView
 
     if avatar
       avatar.setClass 'waiting'
-      @avatarTimers[nickname] = kd.utils.wait 15000, =>
+      @avatarTimers[nickname] = kd.utils.wait 15000, ->
         avatar.unsetClass 'online'
         avatar.setClass   'offline'
 
