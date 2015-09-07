@@ -235,6 +235,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           queue.next()
 
       ->
+        # kill user sessions
+        user.killSessions {}, (err) ->
+          queue.next()
+
+      ->
         # invalidating other active tokens
         JPasswordRecovery.invalidate { username }, (err) ->
           return callback err, username
