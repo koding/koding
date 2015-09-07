@@ -186,18 +186,24 @@ module.exports =
 
   deleteSnapshot: (browser) ->
 
-    snapshotSelector = '.snapshots .listview-wrapper'
+    snapshotListSelector = '.snapshots .listview-wrapper'
+    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
-    snapshotName = environmentHelpers.createSnapshot(browser)
+    browser.element 'css selector', snapshotSelector, (result) ->
+      if result.status is 0
+        browser.getText "#{snapshotSelector} .label", (result) ->
+          snapshotName = result.value
+      else
+        snapshotName = environmentHelpers.createSnapshot(browser)
 
-    environmentHelpers.deleteSnapshot(browser)
+      environmentHelpers.deleteSnapshot(browser)
 
-    browser
-      .pause 3000
-      .waitForElementVisible     snapshotSelector, 20000
-      .waitForElementNotPresent  "#{snapshotSelector} .info .label.#{snapshotName}", 20000
-      .end()
+      browser
+        .pause 3000
+        .waitForElementVisible     snapshotListSelector, 20000
+        .waitForElementNotPresent  "#{snapshotListSelector} .info .label.#{snapshotName}", 20000
+        .end()

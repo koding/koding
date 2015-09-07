@@ -170,8 +170,8 @@ module.exports =
 
   deleteSnapshot: (browser) ->
 
-    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot"
-    deleteSelector  = ".kdlistitemview-snapshot .buttons .delete"
+    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot:first-child"
+    deleteSelector  = "#{elementSelector} .buttons .delete"
     confirmSelector = ".kdmodal .kdmodal-buttons .red"
 
     browser
