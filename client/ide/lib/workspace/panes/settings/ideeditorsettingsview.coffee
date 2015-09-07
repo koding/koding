@@ -52,6 +52,10 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'scrollPastEnd', state
 
+    @trimTrailingWhitespaces = new KodingSwitch
+      cssClass           : 'tiny settings-on-off'
+      callback           : (state) => @emit 'SettingsChanged', 'trimTrailingWhitespaces', state
+
     @enableAutocomplete  = new KodingSwitch
       cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableAutocomplete', state
@@ -102,7 +106,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
-      'keyboardHandler', 'scrollPastEnd', 'openRecentFiles', 'useAutosave'
+      'keyboardHandler', 'scrollPastEnd', 'trimTrailingWhitespaces', 'openRecentFiles', 'useAutosave'
       'enableAutocomplete', 'enableSnippets', 'enableEmmet'
     ]
 
@@ -123,6 +127,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     openRecentFiles         : yes
     enableAutocomplete      : yes
     highlightActiveLine     : yes
+    trimTrailingWhitespaces : no
 
 
   pistachio: ->
@@ -137,6 +142,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       <p>Highlight active line           {{> @highlightActiveLine}}</p>
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
+      <p>Trim whitespaces on save        {{> @trimTrailingWhitespaces}}</p>
       <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
       <p>Enable emmet                    {{> @enableEmmet}}</p>
       <p>Enable snippets                 {{> @enableSnippets}}</p>
