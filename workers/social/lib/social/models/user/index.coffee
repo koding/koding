@@ -1626,14 +1626,12 @@ module.exports = class JUser extends jraphical.Module
         callback err
 
 
-  sendChangedEmail = (username, firstName, to, type, callback) ->
+  sendChangedEmail = (username, firstName, to, type) ->
 
     subject = if type is 'email' then Tracker.types.CHANGED_EMAIL
     else Tracker.types.CHANGED_PASSWORD
 
     Tracker.track username, { to, subject }, { firstName }
-
-    callback null
 
 
   @changeEmail = secure (client, options, callback) ->
@@ -1712,7 +1710,9 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err
 
         { firstName } = account.profile
-        sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password', callback
+        sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password'
+
+        callback null
 
 
   changeEmail: (account, options, callback) ->
@@ -1771,7 +1771,9 @@ module.exports = class JUser extends jraphical.Module
               newEmail: email
             }
 
-            sendChangedEmail @getAt('username'), firstName, oldEmail, 'email', callback
+            sendChangedEmail @getAt('username'), firstName, oldEmail, 'email'
+
+            callback null
 
 
   fetchHomepageView: (options, callback) ->
