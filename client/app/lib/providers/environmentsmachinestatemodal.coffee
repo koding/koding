@@ -7,6 +7,7 @@ KDCustomHTMLView        = kd.CustomHTMLView
 KDProgressBarView       = kd.ProgressBarView
 KDNotificationView      = kd.NotificationView
 KDHitEnterInputView     = kd.HitEnterInputView
+KDCustomScrollView      = kd.CustomScrollView
 
 remote                  = require('../remote').getInstance()
 Machine                 = require './machine'
@@ -20,11 +21,12 @@ EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MarketingSnippetType    = require 'app/marketing/marketingsnippettype'
 MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 
-whoami                  = require '../util/whoami'
+whoami                  = require 'app/util/whoami'
 isKoding                = require 'app/util/isKoding'
-showError               = require '../util/showError'
+showError               = require 'app/util/showError'
 trackEvent              = require 'app/util/trackEvent'
-sendDataDogEvent        = require '../util/sendDataDogEvent'
+applyMarkdown           = require 'app/util/applyMarkdown'
+sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -44,6 +46,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     super options, data
 
+    @addSubView @readmeView = new KDCustomScrollView
+      cssClass: 'content-readme hidden'
     @addSubView @container  = new KDCustomHTMLView
       cssClass: 'content-container'
 
@@ -73,6 +77,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       return @buildVerifyView()  unless verified
 
+      @stack = computeController.findStackFromMachineId @machineId
+      @setReadmeContent()
 
       if @stack # Stack build events
         computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
@@ -783,3 +789,27 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     @container.addSubView @marketingSnippet
     @container.setClass 'marketing-message'
+
+
+  setReadmeContent: ->
+
+    # Show only for custom teams and only for NotInitalized state
+    if isKoding() or not @stack or @state not in [NotInitialized, Building]
+      @readmeView.hide()
+      return
+
+    { computeController } = kd.singletons
+    computeController.fetchStackReadme @stack, (err, readme) =>
+
+      if err or not readme
+        @readmeView.hide()
+        return
+
+      @readmeView.wrapper.destroySubViews()
+
+      readmeContent = new KDCustomHTMLView
+        partial  : applyMarkdown readme
+        cssClass : 'has-markdown'
+
+      @readmeView.wrapper.addSubView readmeContent
+      @readmeView.show()
