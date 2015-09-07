@@ -18,9 +18,6 @@ module.exports = class MessageLink extends React.Component
 
     { message } = @props
 
-    if message.get 'parent'
-      message = message.get 'parent'
-
     if @props.absolute
       channelId = message.get 'initialChannelId'
       channel = kd.singletons.socialapi.retrieveCachedItemById channelId

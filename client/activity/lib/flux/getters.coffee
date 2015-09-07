@@ -90,21 +90,13 @@ channelThreads = [
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
-      thread.update 'messages', (msgs) ->
-        msgs.map (messageId) ->
-          message = messages.get messageId
-          if parentId = message.get 'parentId'
-            # FIXME: this string comparison shouldn't be here, but somehow
-            # undefined `parentId` s are returning as empty immutable lists,
-            # this needs to be investigated. ~Umut
-            if 'string' is typeof parentId
-              parent = messages.get parentId
-              message = message.set 'parent', parent
-          if message.has('__editedBody')
-            message = message.set 'body', message.get '__editedBody'
-            message = message.set 'payload', message.get '__editedPayload'
-          return message
-        .sortBy (m) -> m.get 'createdAt'
+      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
+        message = messages.get messageId
+        if message.has('__editedBody')
+          message = message.set 'body', message.get '__editedBody'
+          message = message.set 'payload', message.get '__editedPayload'
+        return message
+      .sortBy (m) -> m.get 'createdAt'
 ]
 
 channelPopularMessages = [
