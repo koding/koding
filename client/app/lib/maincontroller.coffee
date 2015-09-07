@@ -6,6 +6,7 @@ Promise                  = require 'bluebird'
 kookies                  = require 'kookies'
 globals                  = require 'globals'
 remote                   = require('./remote').getInstance()
+checkGuestUser           = require './util/checkGuestUser'
 getGroup                 = require './util/getGroup'
 setPreferredDomain       = require './util/setPreferredDomain'
 logToExternalWithTime    = require './util/logToExternalWithTime'
@@ -199,8 +200,7 @@ module.exports           = class MainController extends KDController
     unless account instanceof remote.api.JAccount
       account = remote.revive account
 
-    # this is last guard that we can take for guestuser issue ~ GG
-    if account.profile?.nickname is "guestuser"
+    if checkGuestUser account
       return expireClientId()
 
     globals.userAccount = account
