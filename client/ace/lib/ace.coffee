@@ -193,10 +193,6 @@ class Ace extends KDView
 
     @lastSavedContents = @lastContentsSentForSave
     @emit 'FileContentRestored'
-    # unless @askedForSave
-      # log "this file has changed, put a modal and block editing @fatihacet!"
-      # fatihacet - this case works buggy.
-    @askedForSave = no
 
 
   saveAsFinished: (newFile, oldFile) ->
@@ -668,17 +664,6 @@ class Ace extends KDView
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
-
-  #obsolete: Now we are using IDE saveAllFiles method
-  saveAllFiles: ->
-    aceApp = kd.singletons.appManager.get 'Ace'
-    return unless aceApp
-
-    {aceViews} = aceApp.getView()
-
-    for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
-      aceView.ace.requestSave()
-      aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
 
 
   removeModifiedFromTab: ->
