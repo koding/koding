@@ -1,62 +1,63 @@
-kd = require 'kd'
-KDSelectBox = kd.SelectBox
-KodingSwitch = require 'app/commonviews/kodingswitch'
+kd              = require 'kd'
+KDSelectBox     = kd.SelectBox
+KodingSwitch    = require 'app/commonviews/kodingswitch'
+editorSettings  = require './editorsettings'
 IDESettingsView = require './idesettingsview'
-editorSettings = require './editorsettings'
 
 
 module.exports = class IDEEditorSettingsView extends IDESettingsView
 
   constructor: (options = {}, data) ->
-    
+
     options.componentId = 'editor'
+
     super options, data
 
 
   createElements: ->
 
     @useAutosave         = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'useAutosave', state
 
     @useSoftTabs         = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'useSoftTabs', state
 
     @showGutter          = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'showGutter', state
 
     @useWordWrap         = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'useWordWrap', state
 
     @showPrintMargin     = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'showPrintMargin', state
 
     @highlightActiveLine = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'highlightActiveLine', state
 
     @highlightWord       = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'highlightWord', state
 
     @showInvisibles      = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'showInvisibles', state
 
     @scrollPastEnd       = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'scrollPastEnd', state
 
     @enableAutocomplete  = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableAutocomplete', state
 
     @openRecentFiles     = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'openRecentFiles', state
 
     @keyboardHandler     = new KDSelectBox
@@ -85,11 +86,11 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
     @enableSnippets      = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableSnippets', state
 
     @enableEmmet         = new KodingSwitch
-      cssClass           : "tiny settings-on-off"
+      cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableEmmet', state
 
 
@@ -107,21 +108,21 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
 
 
   defaults:
-    useSoftTabs          : yes
-    useAutosave          : no
-    showGutter           : yes
-    highlightActiveLine  : yes
-    scrollPastEnd        : yes
-    enableAutocomplete   : yes
-    openRecentFiles      : yes
-    showInvisibles       : no
-    useWordWrap          : no
-    showPrintMargin      : no
-    fontSize             : 12
-    tabSize              : 4
-    keyboardHandler      : 'default'
-    enableSnippets       : yes
-    enableEmmet          : no
+    tabSize                 : 4
+    fontSize                : 12
+    showGutter              : yes
+    useSoftTabs             : yes
+    useAutosave             : no
+    enableEmmet             : no
+    useWordWrap             : no
+    scrollPastEnd           : yes
+    enableSnippets          : yes
+    showInvisibles          : no
+    showPrintMargin         : no
+    keyboardHandler         : 'default'
+    openRecentFiles         : yes
+    enableAutocomplete      : yes
+    highlightActiveLine     : yes
 
 
   pistachio: ->
