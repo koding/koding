@@ -1623,7 +1623,12 @@ module.exports = class JUser extends jraphical.Module
         return callback new KodingError 'PasswordIsSame'
 
       user.changePassword password, (err) ->
-        callback err
+        return callback err  if err
+
+        account  = client.connection.delegate
+        clientId = client.sessionToken
+
+        account.sendNotification 'SessionHasEnded', { clientId }
 
 
   sendChangedEmail = (username, firstName, to, type) ->
