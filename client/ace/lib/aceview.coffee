@@ -74,7 +74,7 @@ module.exports = class AceView extends JView
 
     { handles, panes } = @getDelegate().tabView
 
-    for pane in panes when pane.getData().path is path
+    for pane in panes when pane.getData()?.path is path
 
       { tabHandle } = pane
       tabHandle.setClass 'saved'
