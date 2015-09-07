@@ -195,10 +195,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
   handleSearchResult: (accounts) ->
 
-    usernames = []
-
-    for account in accounts
-      usernames.push account.profile.nickname
+    usernames = (profile.nickname for { profile: profile } in accounts)
 
     # Send a request to back-end for user emails.
     remote.api.JAccount.fetchEmailsByUsername usernames, (err, emails) =>
