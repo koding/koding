@@ -32,7 +32,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     options.tabViewClass     = IDEApplicationTabView
     options.createNewEditor ?= yes
-    options.bind             = 'dragover drop'
+    options.bind             = 'dragover drop dragenter dragleave'
     options.addSplitHandlers ?= yes
 
     super options, data
