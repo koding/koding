@@ -165,7 +165,6 @@ class Ace extends KDView
     @setShortcuts yes
 
     @appStorage.fetchStorage (storage) =>
-
       @setTheme()
       @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes       , no
       @setShowGutter          @appStorage.getValue('showGutter')          ? yes       , no
@@ -181,6 +180,8 @@ class Ace extends KDView
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
       @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
+
+      @isTrimWhiteSpaceEnabled = if @appStorage.getValue('trimTrailingWhitespaces') then yes else no
 
 
   saveStarted: ->
@@ -331,6 +332,11 @@ class Ace extends KDView
   FS REQUESTS
   ###
 
+  setTrimTrailingWhitespaces: (value) ->
+
+    @isTrimWhiteSpaceEnabled = value
+
+
   requestSave: ->
 
     contents = @getContents()
@@ -339,6 +345,10 @@ class Ace extends KDView
       if @getDelegate().parent.active
         @notify 'Nothing to save!'
       return
+
+    if @isTrimWhiteSpaceEnabled
+      @trimTrailingWhitespaces()
+      contents = @getContents()
 
     @askedForSave = yes
     @emit 'ace.requests.save', contents
