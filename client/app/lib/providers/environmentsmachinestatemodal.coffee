@@ -1,7 +1,6 @@
-$                       = require 'jquery'
+kd                      = require 'kd'
 Encoder                 = require 'htmlencode'
 
-kd                      = require 'kd'
 KDButtonView            = kd.ButtonView
 KDLoaderView            = kd.LoaderView
 KDCustomHTMLView        = kd.CustomHTMLView
@@ -288,9 +287,9 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         <cite>new code</cite>.</p>
       "
 
-      click    : (event)=>
+      click    : (event) =>
 
-        return  unless $(event.target).is 'cite'
+        return  unless event.target.tagName is 'CITE'
 
         remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
 
