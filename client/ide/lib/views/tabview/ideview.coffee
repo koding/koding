@@ -63,6 +63,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       frontApp.splitHorizontally()
       @ensureSplitHandlers()
 
+    @on 'IDETabDropped', =>
+      @splitRegions?.destroy()
+      @splitRegions = null
+
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
