@@ -18,6 +18,7 @@ ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
+SplitRegionView       = require './region/splitregionview'
 
 
 HANDLE_PROXIMITY_DISTANCE   = 100
