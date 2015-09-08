@@ -371,17 +371,6 @@ unsetMessageEditMode = (messageId) ->
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
 
 
-###*
- * Sets last message edit mode
- *
- * @param {string} accountId
-###
-setLastMessageEditMode = (accountId) ->
-
-  { SET_LAST_MESSAGE_EDIT_MODE } = actionTypes
-  dispatch SET_LAST_MESSAGE_EDIT_MODE, { accountId }
-
-
 module.exports = {
   loadMessages
   loadMessageBySlug
@@ -395,7 +384,6 @@ module.exports = {
   changeSelectedMessage
   setMessageEditMode
   unsetMessageEditMode
-  setLastMessageEditMode
   changeSelectedMessageBySlug
 }
 

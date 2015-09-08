@@ -286,6 +286,7 @@ describe 'MessagesStore', ->
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_1 }
       reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_2 }
       reactor.dispatch actionTypes.SET_LAST_MESSAGE_EDIT_MODE, { accountId }
+      reactor.dispatch chatInputActionTypes.SET_LAST_MESSAGE_EDIT_MODE, { accountId }
 
       storeState = reactor.evaluate ['messages']
       message_1 = storeState.get messageId_1

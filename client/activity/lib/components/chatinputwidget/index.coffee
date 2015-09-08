@@ -146,8 +146,6 @@ module.exports = class ChatInputWidget extends React.Component
         kd.utils.stopDOMEvent event  if stopEvent
         break
     else
-      accountId = whoami()._id
-      ActivityFlux.actions.message.setLastMessageEditMode accountId
 
       kd.utils.wait 100, ->
         domNode = document.querySelector('.ChatItem-updateMessageForm.visible textarea')
