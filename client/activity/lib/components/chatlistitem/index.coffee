@@ -41,7 +41,6 @@ module.exports = class ChatListItem extends React.Component
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
 
-
   constructor: (props) ->
 
     super props
@@ -66,6 +65,7 @@ module.exports = class ChatListItem extends React.Component
   componentDidUpdate: ->
 
     @setState editMode: @props.message.get '__isEditing'
+    @focusInputOnEdit()
 
 
   getAccountInfo: ->
@@ -186,15 +186,21 @@ module.exports = class ChatListItem extends React.Component
     @setState isDeleting: no
 
 
+  focusInputOnEdit: ->
+
+    domNode = @refs.EditMessageTextarea.getDOMNode()
+
+    kd.utils.wait 100, ->
+      kd.utils.moveCaretToEnd domNode
+
+
   editPost: ->
 
     messageId = @props.message.get '_id'
 
     ActivityFlux.actions.message.setMessageEditMode messageId
+    @focusInputOnEdit()
 
-    domNode = @refs.EditMessageTextarea.getDOMNode()
-    kd.utils.wait 100, ->
-      kd.utils.moveCaretToEnd domNode
 
 
   showDeletePostPromptModal: ->
