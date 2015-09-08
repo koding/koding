@@ -1327,7 +1327,7 @@ body.ide .kddialogview.save-as-dialog
 
 .application-tabview
   .split-regions
-    position                absolute
+    abs()
     top                     0
     left                    0
     size                    100% 100%
@@ -1342,12 +1342,12 @@ body.ide .kddialogview.save-as-dialog
 
     .region, .representation, .handler
       display               block
-      position              absolute
+      abs()
       size                  100% 100%
       z-index               1
 
       .holder
-        position            absolute
+        abs()
         top                 0
         left                0
         size                100% 100%
@@ -1357,13 +1357,13 @@ body.ide .kddialogview.save-as-dialog
         background-color    rgba(20, 181, 96, .6)
 
         span
-          display           block
+          visible()
 
       span
-        display             none
-        position            relative
+        hidden()
+        rel()
         top                 50%
-        transform           translateY(-50%)
+        vendor              transform, translateY(-50%)
         color               #FFFFFF
         font-size           20px
         font-weight         600
