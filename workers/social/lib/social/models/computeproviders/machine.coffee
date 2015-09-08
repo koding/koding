@@ -257,6 +257,9 @@ module.exports = class JMachine extends Module
     # 3     first letter of `provider`
     # 4..12 32-bit random hex string
 
+    return callback new KodingError 'User is not set!'      unless data.user
+    return callback new KodingError 'Group is not set!'     unless data.group
+    return callback new KodingError 'Provider is not set!'  unless data.provider
     { user, group, provider } = data
 
     data.user  = username  = user.username
