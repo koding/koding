@@ -230,16 +230,15 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     isLastMessageSetFound = no
 
-    messages
+    return messages
       .sortBy (message) -> message.get 'createdAt'
       .reverse()
       .map (message) ->
         if (message.getIn(['account', '_id']) is accountId) and (isLastMessageSetFound is no)
           isLastMessageSetFound = yes
-          messageId = message.get 'id'
-          messages = messages.setIn [messageId, '__isEditing'], yes
-
-    return messages
+          return message.set '__isEditing', yes
+        else
+          return message
 
 
   ###*
