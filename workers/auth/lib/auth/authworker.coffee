@@ -1,3 +1,4 @@
+# coffeelint: disable=cyclomatic_complexity
 { EventEmitter } = require 'microemitter'
 
 module.exports = class AuthWorker extends EventEmitter

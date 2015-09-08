@@ -226,6 +226,22 @@ module.exports = class JMachine extends Module
         account.sendNotification 'MachineListUpdated', { machineUId, action }
 
 
+  validateTarget = (target, user, callback) ->
+    # At least one target is required
+    if not target or target.length is 0
+      return callback new KodingError 'A target required.'
+
+    # Max 9 target can be passed
+    if target.length > 9
+      return callback new KodingError \
+        'It is not allowed to change more than 9 state at once.'
+
+    # Owners cannot unassign them from a machine
+    # Only another owner can unassign any other owner
+    if user.username in target
+      return callback \
+        new KodingError 'You are not allowed to change your own state!'
+
   # Private Methods
   # ---------------
 
@@ -586,20 +602,7 @@ module.exports = class JMachine extends Module
 
       { target, permanent, asUser } = options
 
-      # At least one target is required
-      if not target or target.length is 0
-        return callback new KodingError 'A target required.'
-
-      # Max 9 target can be passed
-      if target.length > 9
-        return callback new KodingError \
-          'It is not allowed to change more than 9 state at once.'
-
-      # Owners cannot unassign them from a machine
-      # Only another owner can unassign any other owner
-      if user.username in target
-        return callback \
-          new KodingError 'You are not allowed to change your own state!'
+      validateTarget target, user, callback
 
       # For Koding provider credential field is username
       # and we don't allow them to be removed from users
