@@ -27,7 +27,6 @@ module.exports = class ChannelsStore extends KodingFluxStore
 
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, @handleAddParticipantsToChannelBegin
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_FAIL, @handleAddParticipantsToChannelFail
-    @on actions.ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, @handleAddParticipantsToChannelSuccess
 
 
   handleLoadChannelSuccess: (channels, { channel }) ->
@@ -78,13 +77,4 @@ removeFakeChannel = (channels, id) ->
     channels = channels.remove id
 
   return channels
-
-
-handleAddParticipantsToChannelBegin = (channels, options) -> channels
-
-
-handleAddParticipantsToChannelFail = (channels, options) -> channels
-
-
-handleAddParticipantsToChannelSuccess = (channels, options) -> channels
 
