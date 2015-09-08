@@ -14,7 +14,7 @@ module.exports = class SplitRegionPartView extends KDCustomHTMLView
 
     @addSubView new KDCustomHTMLView
       tagName   : 'span'
-      partial   : 'Click to move source pane to this split'
+      partial   : 'Drop to move source pane to this split'
 
     @addSubView @holder = new KDCustomHTMLView
 
