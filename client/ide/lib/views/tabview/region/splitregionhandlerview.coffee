@@ -1,13 +1,14 @@
-kd                  = require 'kd'
-SplitRegionPartView = require './splitregionpartview'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
 
 
-module.exports  = class SplitRegionHandlerView extends SplitRegionPartView
+module.exports  = class SplitRegionHandlerView extends KDCustomHTMLView
 
 
   constructor: (options = {}, data) ->
 
-    options.bind = 'dragenter dragleave drop'
+    options.cssClass  = kd.utils.curry 'region', options.direction
+    options.bind      = 'dragenter dragleave drop'
 
     super options, data
 

@@ -1,6 +1,5 @@
 kd                      = require 'kd'
 KDCustomHTMLView        = kd.CustomHTMLView
-SplitRegionPartView     = require './splitregionpartview'
 SplitRegionHandlerView  = require './splitregionhandlerview'
 
 
@@ -13,47 +12,37 @@ module.exports = class SplitRegionView extends KDCustomHTMLView
 
     super options, data
 
-    @createRepresentationLayer()
-    @createHandlerLayer()
+    @createViews()
 
 
-  createRepresentationLayer: ->
+  createViews: ->
 
-    @representation = new KDCustomHTMLView
-      cssClass  : 'representation'
+    directions      = [ 'top', 'right', 'bottom', 'left' ]
 
-    @representation.addSubView @rTop    = new SplitRegionPartView direction : 'top'
-    @representation.addSubView @rRight  = new SplitRegionPartView direction : 'right'
-    @representation.addSubView @rBottom = new SplitRegionPartView direction : 'bottom'
-    @representation.addSubView @rLeft   = new SplitRegionPartView direction : 'left'
+    @addSubView @representation = new KDCustomHTMLView cssClass : 'representation'
+    @addSubView @handler        = new KDCustomHTMLView cssClass : 'handler'
 
-    @addSubView @representation
+    for direction in directions
+      # Create representation view.
+      view = @createRepView direction
+      @representation.addSubView view
 
+      # Create handler view.
+      handlerView = new SplitRegionHandlerView { direction, view }
+      @handler.addSubView handlerView
 
-  createHandlerLayer: ->
-
-    @handler = new KDCustomHTMLView
-      cssClass    : 'handler'
-
-    @handler.addSubView @hTop    = new SplitRegionHandlerView
-      direction   : 'top'
-      view        : @rTop
-
-    @handler.addSubView @hRight  = new SplitRegionHandlerView
-      direction   : 'right'
-      view        : @rRight
-
-    @handler.addSubView @hBottom = new SplitRegionHandlerView
-      direction   : 'bottom'
-      view        : @rBottom
-
-    @handler.addSubView @hLeft   = new SplitRegionHandlerView
-      direction   : 'left'
-      view        : @rLeft
-
-    @addSubView @handler
-
-    for item in @handler.subViews
-      item.on 'TabDropped', (direction) =>
+      handlerView.on 'TabDropped', (direction) =>
         @emit 'TabDropped', direction
+
+
+  ###*
+   * Create representation view
+   * @param {string} direction
+  ###
+  createRepView: (direction) ->
+
+    return new KDCustomHTMLView
+      cssClass  : kd.utils.curry 'region', direction
+      tagName   : 'div'
+      partial   : '<span>Drop to move source pane to this split.</span>'
 
