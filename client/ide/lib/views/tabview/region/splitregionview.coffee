@@ -48,8 +48,8 @@ module.exports = class SplitRegionView extends KDCustomHTMLView
       view        : @rBottom
 
     @handler.addSubView @hLeft   = new SplitRegionHandlerView
-      direction : 'left'
-      view     : @rLeft
+      direction   : 'left'
+      view        : @rLeft
 
     @addSubView @handler
 

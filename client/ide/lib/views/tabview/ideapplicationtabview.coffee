@@ -8,6 +8,7 @@ ApplicationTabView  = require 'app/commonviews/applicationview/applicationtabvie
 
 module.exports = class IDEApplicationTabView extends ApplicationTabView
 
+
   constructor: (options = {}, data) ->
 
     options.sortable        ?= no
@@ -19,7 +20,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
   handleClicked: (event, handle) ->
 
-    {pane} = handle.getOptions()
+    { pane } = handle.getOptions()
 
     if $(event.target).hasClass 'close-tab'
       @emit 'PaneRemovedByUserAction', pane
@@ -33,7 +34,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
     return  unless pane
 
-    {aceView} = pane.getOptions()
+    { aceView } = pane.getOptions()
 
     if quiet or not aceView or not aceView.ace.isContentChanged()
       return @removePane_ pane, shouldDetach
@@ -110,5 +111,6 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
 
   closePaneAndModal: (pane, modal) ->
+
     @removePane_ pane
     modal.destroy()
