@@ -142,7 +142,10 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       <p>Highlight active line           {{> @highlightActiveLine}}</p>
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
-      <p>Trim whitespaces on save        {{> @trimTrailingWhitespaces}}</p>
+      <p>
+        <span title="Trim trailing whitespaces on save">Trim trailing whitespaces...</span>
+        {{> @trimTrailingWhitespaces}}
+      </p>
       <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
       <p>Enable emmet                    {{> @enableEmmet}}</p>
       <p>Enable snippets                 {{> @enableSnippets}}</p>
