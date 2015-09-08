@@ -146,7 +146,7 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 		webhookmodels.NewEvent("deployment_status", "Show deployment statuses"),
 		webhookmodels.NewEvent("create", "Branch or tag created"),
 		webhookmodels.NewEvent("delete", "Branch or tag deleted"),
-		webhookmodels.NewEvent("pull_request_review_comment", "new comment on pull request"),
+		webhookmodels.NewEvent("pull_request_review_comment", "New comment on pull request"),
 	)
 
 	githubInt.AddSettings("authorizable", true)
@@ -165,6 +165,31 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Koding whenever a story activity occurs in Pivotal Tracker."
 
 	if err := pivotalInt.Create(); err != nil {
+		mwc.log.Error("Could not create integration: %s", err)
+	}
+
+	pagerdutyInt := webhookmodels.NewIntegration()
+	pagerdutyInt.Title = "Pagerduty"
+	pagerdutyInt.Name = "pagerduty"
+	pagerdutyInt.Summary = "On-call scheduling, alerting, and incident tracking."
+	pagerdutyInt.IconPath = "https://s3.amazonaws.com/koding-cdn/temp-images/pagerduty.png"
+	pagerdutyInt.Description = "PagerDuty provides IT alert monitoring, on-call scheduling, escalation policies and incident tracking to fix problems in your apps, servers and websites."
+
+
+	pagerdutyInt.Settings = gorm.Hstore{}
+
+	pdEvents := webhookmodels.NewEvents(
+		webhookmodels.NewEvent("incident.trigger", "Newly triggered")
+		webhookmodels.NewEvent("incident.acknowledge", "Acknowledged")
+		webhookmodels.NewEvent("incident.resolve", "Resolved")
+		webhookmodels.NewEvent("incident.assign", "Manually reassigned")
+		webhookmodels.NewEvent("incident.escalate", "Escalated")
+		webhookmodels.NewEvent("incident.unacknowledge", "Unacknowledged due to timeout")
+	)
+
+	pagerdutyInt.AddEvents(pdEvents)
+
+	if err := pagerdutyInt.Create(); err != nil {
 		mwc.log.Error("Could not create integration: %s", err)
 	}
 
