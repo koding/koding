@@ -3,8 +3,8 @@ React                           = require 'kd-react'
 immutable                       = require 'immutable'
 classnames                      = require 'classnames'
 ActivityFlux                    = require 'activity/flux'
-Dropbox                          = require 'activity/components/dropbox'
-DropboxWrapperMixin              = require 'activity/components/dropbox/dropboxwrappermixin'
+Dropbox                         = require 'activity/components/dropbox'
+DropboxWrapperMixin             = require 'activity/components/dropbox/dropboxwrappermixin'
 ChannelParticipantsDropdownItem = require 'activity/components/channelparticipantsdropdownitem'
 
 

@@ -201,7 +201,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     query = value
     query = matchResult[1]  if matchResult
 
-    { channel, user  } = ActivityFlux.actions
+    { channel, user } = ActivityFlux.actions
 
     user.setChannelParticipantsInputQuery query
     channel.setChannelParticipantsDropdownVisibility yes
