@@ -5,6 +5,7 @@ whoami = require 'app/util/whoami'
 
 MessagesStore = require '../stores/messagesstore'
 actionTypes = require '../actions/actiontypes'
+chatInputActionTypes = require '../chatinput/actions/actiontypes'
 
 MessageCollectionHelpers = require '../helpers/messagecollection'
 
@@ -283,9 +284,8 @@ describe 'MessagesStore', ->
 
     it 'sets message __isEditing value to yes', ->
 
-      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_1 }
-      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_2 }
-      reactor.dispatch actionTypes.SET_LAST_MESSAGE_EDIT_MODE, { accountId }
+      reactor.dispatch chatInputActionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_1 }
+      reactor.dispatch chatInputActionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_2 }
       reactor.dispatch chatInputActionTypes.SET_LAST_MESSAGE_EDIT_MODE, { accountId }
 
       storeState = reactor.evaluate ['messages']
