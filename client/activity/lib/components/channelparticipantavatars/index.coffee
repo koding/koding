@@ -297,13 +297,15 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
 
   render: ->
-    <div className='ChannelParticipantAvatars'>
-      {@renderPreviewAvatars()}
-      {@renderMoreCount()}
-      {@renderNewParticipantButton()}
-      {@renderAddNewParticipantInput()}
-      {@renderAllParticipantsMenu()}
-      {@renderAddNewChannelParticipantsDropdown()}
+    <div>
+      <div className='ChannelParticipantAvatars'>
+        {@renderPreviewAvatars()}
+        {@renderMoreCount()}
+        {@renderNewParticipantButton()}
+      </div>
+        {@renderAddNewParticipantInput()}
+        {@renderAllParticipantsMenu()}
+        {@renderAddNewChannelParticipantsDropdown()}
     </div>
 
 
