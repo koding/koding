@@ -164,6 +164,8 @@ module.exports =
     helpers.waitForVMRunning(browser)
     environmentHelpers.openSnapshotsSettings(browser)
 
+    browser.pause 5000 # wait for snapshot to load
+
     browser.getText contentSelector, (result) ->
       if result.value.indexOf('renamed-snapshot') > -1
         console.log ' ✔ Snapshot is already renamed. Ending test...'
