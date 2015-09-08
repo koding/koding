@@ -1,14 +1,16 @@
-Algolia = require 'algoliasearch'
-Promise = require 'bluebird'
-globals = require 'globals'
-kd = require 'kd'
-KDNotificationView = kd.NotificationView
-KDObject = kd.Object
-remote = require('./remote').getInstance()
-backoff = require 'backoff'
-doXhrRequest = require './util/doXhrRequest'
+Algolia             = require 'algoliasearch'
+Promise             = require 'bluebird'
+globals             = require 'globals'
+kd                  = require 'kd'
+KDNotificationView  = kd.NotificationView
+KDObject            = kd.Object
+remote              = require('./remote').getInstance()
+backoff             = require 'backoff'
+doXhrRequest        = require './util/doXhrRequest'
+
 
 module.exports = class SearchController extends KDObject
+
 
   constructor: (options, data) ->
 
@@ -107,13 +109,23 @@ module.exports = class SearchController extends KDObject
 
 
   searchAccountsMongo: (seed) ->
-    val = seed.replace /^@/, ''
 
+    val   = seed.replace /^@/, ''
     query =
       'profile.nickname': val
 
-    remote.api.JAccount.one query
-      .then (it) -> [it]
+    { groupsController } = kd.singletons
+
+    remote.api.JAccount.one(query).then (account) ->
+
+      new Promise (resolve, reject) ->
+
+        if (group = groupsController.getCurrentGroup())
+          return group.isMember account, (err, isMember) ->
+            if err
+            then reject err
+            else resolve if isMember then [account] else []
+
 
   searchAccounts: (seed, options = {}) ->
 
