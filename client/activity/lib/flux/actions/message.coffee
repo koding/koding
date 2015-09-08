@@ -5,6 +5,8 @@ actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
+embedlyHelpers         = require '../helpers/embedly'
+Promise                = require 'bluebird'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -139,7 +141,7 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
-  socialapi.message.post { channelId, clientRequestId, body }, (err, message) ->
+  postPromise = socialapi.message.post { channelId, clientRequestId, body }, (err, message) ->
     if err
       dispatch CREATE_MESSAGE_FAIL, {
         err, channelId, clientRequestId
@@ -152,6 +154,18 @@ createMessage = (channelId, body, payload) ->
     dispatch CREATE_MESSAGE_SUCCESS, {
       message, channelId, clientRequestId, channel
     }
+
+  embedlyUrl = embedlyHelpers.extractUrl body
+  if embedlyUrl
+    embedlyPromise = fetchDataFromEmbedly embedlyUrl
+
+    Promise
+      .all [ postPromise, embedlyPromise ]
+      .then (results) ->
+        { message } = results[0]
+        [ data ]    = results[1]
+
+        updateMessageEmbedData message.id, data
 
 
 ###*
@@ -369,6 +383,29 @@ unsetMessageEditMode = (messageId) ->
 
   { UNSET_MESSAGE_EDIT_MODE } = actionTypes
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+
+fetchDataFromEmbedly = (url) ->
+
+  options = {
+    maxWidth  : 530
+    maxHeight : 200
+    wmode     : 'transparent'
+  }
+
+  { fetchDataFromEmbedly } = kd.singletons.socialapi.message
+
+  fetchDataFromEmbedly url, options
+
+
+updateMessageEmbedData = (messageId, data) ->
+
+  { UPDATE_MESSAGE_EMBED_DATA_BEGIN
+    UPDATE_MESSAGE_EMBED_DATA_SUCCESS
+    UPDATE_MESSAGE_EMBED_DATA_FAIL } = actionTypes
+
+  dispatch UPDATE_MESSAGE_EMBED_DATA_BEGIN, { messageId, data }
+  dispatch UPDATE_MESSAGE_EMBED_DATA_SUCCESS, { messageId, data }
 
 
 module.exports = {
