@@ -353,8 +353,6 @@ module.exports = class JGroup extends Module
       }
 
 
-  # due to a bug in coffeelint 1.10.1
-  # coffeelint: disable=no_implicit_braces
   constructor: ->
     super
 
@@ -517,7 +515,7 @@ module.exports = class JGroup extends Module
     ,
       skip
       limit
-      sort       : 'title' : 1
+      sort       : { 'title' : 1 }
     , callback
 
   # currently groups in a group show global groups, so it does not
@@ -579,7 +577,7 @@ module.exports = class JGroup extends Module
           else remove.push rel._id
 
         if remove.length > 0
-          Relationship.remove _id: $in: remove, (err) -> console.log 'removed'; callback err  if err
+          Relationship.remove { _id: { $in: remove } }, (err) -> console.log 'removed'; callback err  if err
 
         queue = roles.map (role) -> ->
           (new Relationship
@@ -621,7 +619,7 @@ module.exports = class JGroup extends Module
       @fetchPermissionSet (err, permissionSet) =>
         return callback err if err
         if permissionSet
-          permissionSet.update $set:{ permissions }, callback
+          permissionSet.update { $set:{ permissions } }, callback
         else
           permissionSet = new JPermissionSet { permissions, isCustom: true }
           permissionSet.save (err) =>
@@ -704,7 +702,7 @@ module.exports = class JGroup extends Module
           sourceId    : @getId()
           as          : { $in: roleTitles }
         }
-        selector.targetId = $in: ids  if ids
+        selector.targetId = { $in: ids }  if ids
         Relationship.someData selector, { as:1, targetId:1 }, (err, cursor) ->
           if err then callback err
           else
@@ -715,7 +713,7 @@ module.exports = class JGroup extends Module
   fetchUserStatus: permit 'grant permissions',
     success:(client, nicknames, callback) ->
       JUser    = require '../user'
-      JUser.someData username: $in: nicknames, { status:1, username:1 }, (err, cursor) ->
+      JUser.someData { username: { $in: nicknames } }, { status:1, username:1 }, (err, cursor) ->
         return callback err  if err
         cursor.toArray callback
 
@@ -799,9 +797,9 @@ module.exports = class JGroup extends Module
 
       selector =
         $or : [
-            ( 'profile.nickname'  : seed )
-            ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
-            ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
+            ({ 'profile.nickname'  : seed })
+            ({ 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' })
+            ({ 'profile.lastName'  : new RegExp '^'+names.last, 'i' })
           ]
         type    :
           $in   : ['registered', null]
@@ -809,7 +807,7 @@ module.exports = class JGroup extends Module
           # probably jraphical problem, because the query correctly works in mongo
 
       { limit, skip } = options
-      options.sort  = 'meta.createdAt' : -1
+      options.sort  = { 'meta.createdAt' : -1 }
       options.limit = Math.min limit ? 10, 15
       # CtF @fetchMembers first fetches all group-member relationships, and then filters accounts with found targetIds.
       # As a result searching groups with large number of members is very time consuming. For now the only group
@@ -894,7 +892,7 @@ module.exports = class JGroup extends Module
     success: (client, formData, callback) ->
       @fetchMembershipPolicy (err, policy) ->
         if err then callback err
-        else policy.update $set: formData, callback
+        else policy.update { $set: formData }, callback
 
 
   toggleFeature: permit 'grant permissions',
@@ -979,14 +977,15 @@ module.exports = class JGroup extends Module
 
 
   fetchRolesHelper: (account, callback) ->
-    client = connection: delegate : account
+    client = { connection: { delegate : account } }
     @fetchMyRoles client, (err, roles) =>
       if err then callback err
       else if 'member' in roles or 'admin' in roles
         callback null, roles
       else
-        options = targetOptions:
-          selector: { koding: username: account.profile.nickname }
+        options =
+          targetOptions:
+            selector   : { koding: { username: account.profile.nickname } }
         @fetchInvitationRequest {}, options, (err, request) ->
           if err then callback err
           else unless request? then callback null, ['guest']
@@ -1004,7 +1003,7 @@ module.exports = class JGroup extends Module
       sourceId   : @getId()
       sourceName : 'JGroup'
     , (err, count) =>
-      @update ($set: 'counts.members': count), ->
+      @update ({ $set: { 'counts.members': count } }), ->
 
   leave: secure (client, options, callback) ->
 
@@ -1041,7 +1040,7 @@ module.exports = class JGroup extends Module
       if @slug is 'koding'
         return callback new KodingError 'Koding group is mandatory'
 
-      JAccount.one _id:accountId, (err, account) =>
+      JAccount.one { _id:accountId }, (err, account) =>
         return callback err if err
 
         if client.connection.delegate.getId().equals account._id
@@ -1095,7 +1094,7 @@ module.exports = class JGroup extends Module
         return callback err if err
         return callback new KodingError 'You must be the owner to perform this action!' unless owner
 
-        JAccount.one _id:accountId, (err, account) =>
+        JAccount.one { _id:accountId }, (err, account) =>
           return callback err if err
 
           @fetchRolesByAccount account, (err, newOwnersRoles) =>
@@ -1114,7 +1113,7 @@ module.exports = class JGroup extends Module
 
             dash queue, ->
               # transfer ownership
-              owner.update $set: targetId: account.getId(), kallback
+              owner.update { $set: { targetId: account.getId() } }, kallback
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->
     unless callback
@@ -1184,12 +1183,12 @@ module.exports = class JGroup extends Module
         return callback err if err
         return queue.next() if not models or models.length < 1
         ids = (model._id for model in models)
-        klass.remove (_id: $in: ids), (err) ->
+        klass.remove ({ _id: { $in: ids } }), (err) ->
           return callback err if err
           queue.next()
 
       daisy queue = [
-        => JName.one name:@slug, (err, name) ->
+        => JName.one { name:@slug }, (err, name) ->
           removeHelper name, err, callback, queue
 
         => @fetchPermissionSet (err, permSet) ->
@@ -1253,7 +1252,7 @@ module.exports = class JGroup extends Module
   addSubscription$: permit 'edit own groups',
     success: (client, id, callback) ->
       JPaymentSubscription = require '../payment/subscription'
-      JPaymentSubscription.one _id: id, (err, subscription) =>
+      JPaymentSubscription.one { _id: id }, (err, subscription) =>
         @addSubscription subscription, callback
 
   fetchPermissionSetOrDefault : (callback) ->
@@ -1331,7 +1330,7 @@ module.exports = class JGroup extends Module
     doRequest 'createChannel', client, defaultChannel, (err, channel) =>
       return callback err if err
 
-      op = $set:{}
+      op = { $set:{} }
       op.$set[varName] = channel.channel.id
 
       @update op, (err) ->
@@ -1354,3 +1353,5 @@ module.exports = class JGroup extends Module
             account.profile.email = user.email
 
       return callback null, accounts
+
+
