@@ -1459,6 +1459,7 @@ module.exports = class JUser extends jraphical.Module
     user             = null
     error            = null
     newToken         = null
+    jwtToken         = null
     invitation       = null
     foreignAuthType  = null
 
@@ -1555,7 +1556,7 @@ module.exports = class JUser extends jraphical.Module
       ->
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
-        Tracker.track username, { to : email, subject }
+        Tracker.track username, { to : email, subject, jwtToken, pin }
         queue.next()
 
       ->
