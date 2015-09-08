@@ -33,17 +33,9 @@ SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
-ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
-ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
-ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
-ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
-ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
-ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
-ChatInputSearchQueryStore           = ['ChatInputSearchQueryStore']
-ChatInputSearchSelectedIndexStore   = ['ChatInputSearchSelectedIndexStore']
-ChatInputSearchVisibilityStore      = ['ChatInputSearchVisibilityStore']
-ChatInputSearchStore                = ['ChatInputSearchStore']
 
+allChannels = ChannelsStore
+allUsers    = UsersStore
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
@@ -52,26 +44,26 @@ ChatInputSearchStore                = ['ChatInputSearchStore']
 # Maps followed public channel ids with relevant channel instances.
 followedPublicChannels = [
   FollowedPublicChannelIdsStore
-  ChannelsStore
+  allChannels
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
-  ChannelsStore
+  allChannels
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 popularChannels = [
   PopularChannelIdsStore
-  ChannelsStore
+  allChannels
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 channelParticipants = [
   ChannelParticipantIdsStore
-  UsersStore
+  allUsers
   (channelIds, users) ->
     channelIds.map (participantIds) ->
       participantIds.reduce (result, id) ->
@@ -113,7 +105,7 @@ selectedChannelThreadId = SelectedChannelThreadIdStore
 
 # Returns selected channel instance.
 selectedChannel = [
-  ChannelsStore
+  allChannels
   selectedChannelThreadId
   (channels, id) -> if id then channels.get id else null
 ]
@@ -160,7 +152,7 @@ followedPrivateChannelThreads = [
 selectedChannelThreadMessages = [
   selectedChannelThread
   MessageLikersStore
-  UsersStore
+  allUsers
   (thread, likers, users) ->
     return null  unless thread
     thread.get('messages').map (message) ->
@@ -247,112 +239,11 @@ currentSuggestionsSelectedItem = [
 ]
 
 
-chatInputChannelsQuery = (stateId) -> [
-  ChatInputChannelsQueryStore
-  (queries) -> queries.get stateId
-]
-# Returns a list of channels depending on the current query
-# If query if empty, returns popular channels
-# Otherwise, returns channels filtered by query
-chatInputChannels = (stateId) -> [
-  ChannelsStore
-  popularChannels
-  chatInputChannelsQuery stateId
-  (channels, popularChannels, query) ->
-    return popularChannels.toList()  unless query
-
-    query = query.toLowerCase()
-    channels.toList().filter (channel) ->
-      channelName = channel.get('name').toLowerCase()
-      return channelName.indexOf(query) is 0
-]
-chatInputChannelsRawIndex = (stateId) -> [
-  ChatInputChannelsSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-chatInputChannelsSelectedIndex = (stateId) -> [
-  chatInputChannels stateId
-  chatInputChannelsRawIndex stateId
-  calculateListSelectedIndex
-]
-chatInputChannelsSelectedItem = (stateId) -> [
-  chatInputChannels stateId
-  chatInputChannelsSelectedIndex stateId
-  getListSelectedItem
-]
-chatInputChannelsVisibility = (stateId) -> [
-  ChatInputChannelsVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-chatInputUsersQuery = (stateId) -> [
-  ChatInputUsersQueryStore
-  (queries) -> queries.get stateId
-]
-# Returns a list of users depending on the current query
-# If query is empty, returns selected channel participants
-# Otherwise, returns users filtered by query
-chatInputUsers = (stateId) -> [
-  UsersStore
-  selectedChannelParticipants
-  chatInputUsersQuery stateId
-  (users, participants, query) ->
-    return participants?.toList() ? immutable.List()  unless query
-
-    query = query.toLowerCase()
-    users.toList().filter (user) ->
-      userName = user.getIn(['profile', 'nickname']).toLowerCase()
-      return userName.indexOf(query) is 0
-]
-chatInputUsersRawIndex = (stateId) -> [
-  ChatInputUsersSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-chatInputUsersSelectedIndex = (stateId) -> [
-  chatInputUsers stateId
-  chatInputUsersRawIndex stateId
-  calculateListSelectedIndex
-]
-chatInputUsersSelectedItem = (stateId) -> [
-  chatInputUsers stateId
-  chatInputUsersSelectedIndex stateId
-  getListSelectedItem
-]
-chatInputUsersVisibility = (stateId) -> [
-  ChatInputUsersVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
-chatInputSearchItems = (stateId) -> [
-  ChatInputSearchStore
-  (searchStore) -> searchStore.get stateId
-]
-chatInputSearchQuery = (stateId) -> [
-  ChatInputSearchQueryStore
-  (queries) -> queries.get stateId
-]
-chatInputSearchRawIndex = (stateId) -> [
-  ChatInputSearchSelectedIndexStore
-  (indexes) -> indexes.get stateId
-]
-chatInputSearchSelectedIndex = (stateId) -> [
-  chatInputSearchItems stateId
-  chatInputSearchRawIndex stateId
-  calculateListSelectedIndex
-]
-chatInputSearchSelectedItem = (stateId) -> [
-  chatInputSearchItems stateId
-  chatInputSearchSelectedIndex stateId
-  getListSelectedItem
-]
-chatInputSearchVisibility = (stateId) -> [
-  ChatInputSearchVisibilityStore
-  (visibilities) -> visibilities.get stateId
-]
-
 module.exports = {
+  allChannels
   followedPublicChannelThreads
   followedPrivateChannelThreads
+  popularChannels
 
   selectedChannelThreadId
   selectedChannelThread
@@ -372,22 +263,6 @@ module.exports = {
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
 
-  chatInputChannels
-  chatInputChannelsQuery
-  chatInputChannelsSelectedIndex
-  chatInputChannelsSelectedItem
-  chatInputChannelsVisibility
-
-  chatInputUsers
-  chatInputUsersQuery
-  chatInputUsersSelectedIndex
-  chatInputUsersSelectedItem
-  chatInputUsersVisibility
-
-  chatInputSearchItems
-  chatInputSearchQuery
-  chatInputSearchSelectedIndex
-  chatInputSearchSelectedItem
-  chatInputSearchVisibility
+  allUsers
 }
 

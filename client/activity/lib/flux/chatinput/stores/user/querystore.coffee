@@ -1,10 +1,10 @@
-actions    = require 'activity/flux/actions/actiontypes'
-QueryStore = require './chatinputquerystore'
+actions        = require 'activity/flux/chatinput/actions/actiontypes'
+BaseQueryStore = require 'activity/flux/chatinput/stores/basequerystore'
 
 ###*
  * Store to contain users query
 ###
-module.exports = class ChatInputUsersQueryStore extends QueryStore
+module.exports = class ChatInputUsersQueryStore extends BaseQueryStore
 
   @getterPath = 'ChatInputUsersQueryStore'
 
