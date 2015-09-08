@@ -8,6 +8,7 @@ module.exports =
     thread          : require './actions/thread'
     channel         : require './actions/channel'
     suggestions     : require './actions/suggestions'
+    user            : require './actions/user'
 
   stores    : [
     require './stores/messagesstore'
