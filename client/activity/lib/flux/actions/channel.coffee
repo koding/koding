@@ -264,10 +264,6 @@ addParticipants = (options = {}) ->
 
   dispatch ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, options
 
-  console.log 'waiting for backend for addparticipant to channel action'
-
-  return
-
   channel.addParticipants options, (err, result) =>
     if err
       dispatch ADD_PARTICIPANTS_TO_CHANNEL_FAIL, options
