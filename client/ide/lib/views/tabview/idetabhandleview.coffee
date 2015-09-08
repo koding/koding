@@ -14,7 +14,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
   constructor: (options = {}, data) ->
 
     options.draggable ?= yes
-    options.bind       = 'dragstart dblclick'
+    options.bind       = 'dragstart dblclick dragend'
     options.view       = new KDView { tagName : 'span' }
 
     { pane } = options
@@ -72,6 +72,11 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     event.originalEvent.dataTransfer.setData 'text/plain', ' '
 
     kd.singletons.appManager.tell 'IDE', 'setTargetTabView', @getDelegate()
+
+
+  dragEnd: ->
+
+    kd.singletons.appManager.tell 'IDE', 'resetDragState'
 
 
   makeEditable: -> @isEditable = yes

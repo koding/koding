@@ -1666,12 +1666,14 @@ class IDEAppController extends AppController
     @moveTabToPanel @targetTabView, splitView, index  if @targetTabView
 
     @emit 'IDETabDropped'
+
+    @removeAllSplitRegions()
     @targetTabView = null  # Reset
 
 
   handleTabDropToRegion: (direction, ideView) ->
 
-    ideView.emit 'IDETabDropped'
+    @removeAllSplitRegions()
 
     if direction is 'right' or direction is 'left'
       type = 'vertical'
@@ -1687,6 +1689,12 @@ class IDEAppController extends AppController
       target = @activeTabView.parent.parent
 
     @handleTabDropped null, target, null
+
+
+  removeAllSplitRegions: ->
+
+    for item in @ideViews
+      item.emit 'RemoveSplitRegions' # Remove all "splitregions" div elements.
 
 
   moveTabToPanel: (tabView, targetPanel, index) ->
@@ -1780,3 +1788,10 @@ class IDEAppController extends AppController
   isChatInputFocused: ->
 
     return kd.dom.hasClass document.activeElement, 'collab-chat-input'
+
+
+  resetDragState: ->
+
+    @targetTabView = null
+    @removeAllSplitRegions()
+
