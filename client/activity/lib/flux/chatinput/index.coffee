@@ -6,6 +6,7 @@ module.exports = {
     channel : require './actions/channel'
     user    : require './actions/user'
     search  : require './actions/search'
+    message : require './actions/message'
 
   stores  : [
     require './stores/emoji/emojisstore'
