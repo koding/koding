@@ -355,9 +355,9 @@ module.exports = class JMachine extends Module
     for user in targets
       users = addUser users, { user, asOwner, permanent }
 
-    if users.length > 10
+    if users.length > 50
       callback new KodingError \
-        'Machine sharing is limited up to 10 users.'
+        'Machine sharing is limited up to 50 users.'
     else
       @update $set: { users }, (err) =>
         informAccounts targets, @getAt('uid'), 'added'
