@@ -276,7 +276,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     options =
       userId            : participant.get '_id'
       channelId         : @props.channelThread.get 'channelId'
-      accountIds        : [ whoami().socialApiId, participant.get 'socialApiId' ]
+      accountIds        : [ participant.get 'socialApiId' ]
 
     { channel } = ActivityFlux.actions
     channel.addParticipants options
