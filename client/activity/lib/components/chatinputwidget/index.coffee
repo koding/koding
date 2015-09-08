@@ -147,9 +147,10 @@ module.exports = class ChatInputWidget extends React.Component
         break
     else
 
-      kd.utils.wait 100, ->
-        domNode = document.querySelector('.ChatItem-updateMessageForm.visible textarea')
-        kd.utils.moveCaretToEnd domNode
+      return  unless keyInfo.isUpArrow
+
+      accountId = whoami()._id
+      ChatInputFlux.actions.message.setLastMessageEditMode accountId
 
 
   onDropboxItemConfirmed: (item) ->
