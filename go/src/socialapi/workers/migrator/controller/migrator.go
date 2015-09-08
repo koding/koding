@@ -217,6 +217,8 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 }
 
+// TO-DO update integrations on-the-fly
+
 func (mwc *Controller) CreateBotUser() {
 	mwc.log.Notice("Creating bot user")
 	_, err := models.CreateAccountInBothDbsWithNick("bot")
