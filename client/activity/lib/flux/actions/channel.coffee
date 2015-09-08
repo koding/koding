@@ -298,13 +298,6 @@ module.exports = {
   loadPopularMessages
   loadPopularChannels
   loadChannelsByQuery
-  setChatInputChannelsQuery
-  unsetChatInputChannelsQuery
-  setChatInputChannelsSelectedIndex
-  moveToNextChatInputChannelsIndex
-  moveToPrevChatInputChannelsIndex
-  resetChatInputChannelsSelectedIndex
-  setChatInputChannelsVisibility
   setChannelParticipantsDropdownVisibility
 }
 

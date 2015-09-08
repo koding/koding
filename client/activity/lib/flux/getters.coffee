@@ -403,24 +403,6 @@ module.exports = {
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
 
-  chatInputChannels
-  chatInputChannelsQuery
-  chatInputChannelsSelectedIndex
-  chatInputChannelsSelectedItem
-  chatInputChannelsVisibility
-
-  chatInputUsers
-  chatInputUsersQuery
-  chatInputUsersSelectedIndex
-  chatInputUsersSelectedItem
-  chatInputUsersVisibility
-
-  chatInputSearchItems
-  chatInputSearchQuery
-  chatInputSearchSelectedIndex
-  chatInputSearchSelectedItem
-  chatInputSearchVisibility
-
   channelParticipantsSearchQuery
   channelParticipantsInputUsers
   channelParticipantsSelectedItem
