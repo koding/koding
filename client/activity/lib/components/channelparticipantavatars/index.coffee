@@ -279,7 +279,10 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       accountIds        : [ participant.get 'socialApiId' ]
 
     { channel } = ActivityFlux.actions
+
     channel.addParticipants options
+
+    @setState value: ''
 
 
   renderAddNewChannelParticipantsDropdown: ->
