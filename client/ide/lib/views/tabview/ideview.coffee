@@ -18,7 +18,6 @@ ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
 showErrorNotification = require 'app/util/showErrorNotification'
-SplitRegionView       = require './region/splitregionview'
 
 
 HANDLE_PROXIMITY_DISTANCE   = 100
@@ -32,7 +31,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     options.tabViewClass     = IDEApplicationTabView
     options.createNewEditor ?= yes
-    options.bind             = 'dragover drop dragenter dragleave'
+    options.bind             = 'dragover drop'
     options.addSplitHandlers ?= yes
 
     super options, data
@@ -64,9 +63,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       frontApp.splitHorizontally()
       @ensureSplitHandlers()
 
-    @on 'IDETabDropped', =>
-      @splitRegions?.destroy()
-      @splitRegions = null
+    @on 'RemoveSplitRegions', => @tabView.removeSplitRegions()
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
@@ -759,14 +756,3 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         ideViewHash : ideViewHash
 
     @emitChange targetIdeView, change, 'SplitViewMerged'
-
-
-  dragEnter: (event) ->
-
-    return  if @splitRegions
-
-    @tabView.addSubView @splitRegions = new SplitRegionView
-
-    @splitRegions.on 'TabDropped', (direction) =>
-      { frontApp }  = kd.singletons.appManager
-      frontApp.handleTabDropToRegion direction, this
