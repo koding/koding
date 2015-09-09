@@ -194,7 +194,12 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 }
 
-// TO-DO update integrations on-the-fly
+// TO-DO
+// Divide the create integration func, send parameter all integrations in it.
+//Declare these integration out of the function.
+func (mwc *Controller) UpdateIntegrations() {
+
+}
 
 func (mwc *Controller) CreateBotUser() {
 	mwc.log.Notice("Creating bot user")
