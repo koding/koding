@@ -12,7 +12,7 @@ JMachine                      = require './machine'
 { daisy }                     = Bongo
 { createUserAndMachine
   generateMachineParams
-  generateMachineParamsByAccount} = require '../../../../testhelper/models/machinehelper'
+  generateMachineParamsByAccount } = require '../../../../testhelper/models/machinehelper'
 
 { generateUserInfo
   generateDummyClient
@@ -57,7 +57,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             expect(err).to.not.exist
             machineParams = data
             queue.next()
-      
+
         ->
           # sending machineParams.user null and expecting error
           machineParams.user = null
@@ -66,9 +66,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             queue.next()
 
         -> done()
-      
+
       ]
-      
+
       daisy queue
 
 
@@ -94,7 +94,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(err).to.not.exist
               machineParams = data
               queue.next()
-        
+
           ->
             # expecting machine to be craeted
             JMachine.create machineParams, (err, machine) ->
@@ -102,11 +102,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(machine.provider).to.be.equal machineParams.provider
               expect(machine.status.state).to.be.equal 'NotInitialized'
               queue.next()
-        
+
           -> done()
-        
+
         ]
-        
+
         daisy queue
 
 
@@ -157,7 +157,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             machine.destroy _client, (err) ->
               expect(err).to.not.exist
               queue.next()
-        
+
           ->
             # fetching machine instances again expecting machine to be destroyed
             JMachine.fetchByUsername userInfo.username, (err, machines) ->
@@ -166,9 +166,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               queue.next()
 
           -> done()
-        
+
         ]
-        
+
         daisy queue
 
 
@@ -205,9 +205,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               queue.next()
 
           -> done()
-        
+
         ]
-        
+
         daisy queue
 
 
@@ -243,7 +243,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               targets   : [anotherUser]
               asOwner   : yes
               permanent : yes
-            
+
             machine.addUsers params, (err) ->
               expect(err).to.not.exist
               expect(machine.users.length).to.be.equal userCount + 1
@@ -284,7 +284,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             targets   : targets
             asOwner   : yes
             permanent : yes
-          
+
           expectedError = "Machine sharing is limited up to #{limit} users."
           machine.addUsers params, (err) ->
             expect(err?.message).to.be.equal expectedError
@@ -329,7 +329,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             targets   : targets
             asOwner   : yes
             permanent : yes
-          
+
           machine.addUsers params, (err) ->
             expect(err).to.not.exist
             expect(machine.users.length).to.be.equal userCount + addedUserCount
@@ -341,7 +341,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             targets   : targets.slice 0, removedUserCount
             asOwner   : yes
             permanent : yes
-          
+
           expectedUserCount = userCount + addedUserCount - removedUserCount
           machine.removeUsers params, (err) ->
             expect(err).to.not.exist
@@ -369,7 +369,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(err).to.not.exist
               machine = machine_
               queue.next()
-        
+
           ->
             # expecting error when target is not specified
             params = { target : null }
@@ -396,7 +396,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(err).to.not.exist
               machine = machine_
               queue.next()
-        
+
           ->
             # expecting error when target is invalid
             params = { target : ['invalidTarget'] }
@@ -433,7 +433,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(err).to.not.exist
               anotherUser = user_
               queue.next()
-        
+
           ->
             # expecting user to be added when asUser is yes
             params = { target : [anotherUser.username], asUser : yes }
@@ -988,7 +988,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             anotherUser        = user_
             anotherUserAccount = account_
             queue.next()
-      
+
         ->
           # sharing maching with another user
           params = { target : [anotherUser.username], asUser : yes }
@@ -1047,7 +1047,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             anotherUser        = user_
             anotherUserAccount = account_
             queue.next()
-      
+
         ->
           # sharing machine with another user
           params = { target : [anotherUser.username], asUser : yes }
