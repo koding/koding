@@ -412,7 +412,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when data is valid', ->
 
-      it 'should share machine if asUser if truthy', (done) ->
+      it 'should share machine if asUser is truthy', (done) ->
 
         machine       = {}
         userInfo      = generateUserInfo()
@@ -509,7 +509,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             queue.next()
 
         ->
-          # expecting owner to be fecthed
+          # expecting owner to be fetched
           machine.fetchOwner (err, owner) ->
             expect(err).to.not.exist
             expect(owner).to.exist
@@ -559,7 +559,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             queue.next()
 
         ->
-          # expecting machine to fetched by machine id and client
+          # expecting machine to be fetched by machine id and client
           JMachine.one$ client, machine._id + '', (err, machine_) ->
             expect(err).to.not.exist
             expect(machine).to.exist
