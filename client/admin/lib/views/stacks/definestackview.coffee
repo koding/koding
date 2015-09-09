@@ -100,8 +100,8 @@ module.exports = class DefineStackView extends KDView
         @saveButton.disable()
 
     @tabView.on 'PaneDidShow', (pane) =>
+      @outputView.fall()
       if pane is providersPane
-        @outputView.fall()
         @setFooterVisibility 'hide'
       else
         @setFooterVisibility 'show'
