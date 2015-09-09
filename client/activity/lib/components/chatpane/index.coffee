@@ -51,7 +51,8 @@ module.exports = class ChatPane extends React.Component
         onTopThresholdReached={@bound 'onTopThresholdReached'}
         ref="scrollContainer">
         <ChatList
-          thread={@props.thread}
+          isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+          firstPost={@props.thread.get 'message'}
           messages={@props.messages}
           showItemMenu={@props.showItemMenu}
         />
