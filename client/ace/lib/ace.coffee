@@ -193,10 +193,6 @@ class Ace extends KDView
 
     @lastSavedContents = @lastContentsSentForSave
     @emit 'FileContentRestored'
-    # unless @askedForSave
-      # log "this file has changed, put a modal and block editing @fatihacet!"
-      # fatihacet - this case works buggy.
-    @askedForSave = no
 
 
   saveAsFinished: (newFile, oldFile) ->
@@ -669,43 +665,10 @@ class Ace extends KDView
             details.destroy()
 
 
-  #obsolete: Now we are using IDE saveAllFiles method
-  saveAllFiles: ->
-    aceApp = kd.singletons.appManager.get 'Ace'
-    return unless aceApp
-
-    {aceViews} = aceApp.getView()
-
-    for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
-      aceView.ace.requestSave()
-      aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
-
 
   removeModifiedFromTab: ->
 
-    aceView      = @parent
-
-    unless aceView
-      # happens when collab is active and when you have tabs open
-      # and when you reload the page - SY
-      kd.warn 'possible race condition, shadowing the error! @acet'
-      return
-
-    { tabView }     = aceView.delegate
-    return  unless tabView
-
-    activeTabHandle = tabView.getActivePane().getHandle()
-
-    { handles }  = tabView
-    targetHandle = null
-
-    for handle in handles when activeTabHandle.id is handle.id
-      targetHandle = handle
-      targetHandle.setClass 'saved'
-
-      kd.utils.wait 500, ->
-        targetHandle.unsetClass 'modified'
-        targetHandle.unsetClass 'saved'
+    @emit 'RemoveModifiedFromTab', @getData().path
 
 
   trimTrailingWhitespaces: ->
