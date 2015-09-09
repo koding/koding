@@ -192,17 +192,6 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 		mwc.log.Error("Could not create integration: %s", err)
 	}
 
-	travisInt := webhookmodels.NewIntegration()
-	travisInt.Title = "Travis CI"
-	travisInt.Name = "travis"
-	travisInt.Summary = "Hosted software build services."
-	travisInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/travisci.png"
-	travisInt.Description = "Travis CI is a continuous integration platform that takes care of running your software tests and deploying your apps. This integration will allow your team to receive notifications in Koding for normal branch builds, and for pull requests, as well."
-
-	if err := travisInt.Create(); err != nil {
-		mwc.log.Error("Could not create integration: %s", err)
-	}
-
 	i := webhookmodels.NewIntegration()
 	i.Title = "iterable"
 	i.Name = "iterable"
