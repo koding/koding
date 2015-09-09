@@ -102,7 +102,7 @@ module.exports = class OnboardingView extends JView
 
     @skipLink   = new kd.CustomHTMLView
       cssClass  : 'skip-setup'
-      partial   : 'Skip setup guide'
+      partial   : 'I know this already, take me straight to the Stack definition file.'
       click     : =>
         @destroy()
         @emit 'StackOnboardingCompleted'
