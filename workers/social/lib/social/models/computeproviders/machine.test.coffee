@@ -11,8 +11,7 @@ JMachine                      = require './machine'
 
 { daisy }                     = Bongo
 { createUserAndMachine
-  generateMachineParams
-  generateMachineParamsByAccount } = require '../../../../testhelper/models/machinehelper'
+  generateMachineParams }     = require '../../../../testhelper/models/machinehelper'
 
 { generateUserInfo
   generateDummyClient
