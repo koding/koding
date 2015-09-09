@@ -12,6 +12,12 @@ module.exports = class SidebarChannelsSection extends React.Component
     threads    : immutable.Map()
     selectedId : null
 
+  renderMoreLink: ->
+
+    { threads } = @props
+
+    if threads.size > PREVIEW_COUNT
+      <a className='SidebarList-showMore' onClick={@bound 'showFollowedChannelsModal'}>More ...</a>
 
 
   render: ->
