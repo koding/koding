@@ -47,8 +47,13 @@ module.exports = class ProviderSelectionView extends JView
 
     return """
       <div class="header">
-        <p class="title">What provider do you want to use?</p>
-        <p class="description">Koding machines run on your own cloud infrastructure. You can switch providers later at any time.</p>
+        <p class="title">Select your cloud provider</p>
+        <p class="description">
+          Koding allows you to easily use your existing cloud provider accounts!
+          You can even switch providers easily. You will need to provide
+          credentials for your cloud provider.
+          If you don’t have a cloud provider, simply use the Koding Provider option.
+        </p>
       </div>
       {{> @providers}}
     """
