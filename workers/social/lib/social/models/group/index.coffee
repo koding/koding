@@ -945,10 +945,11 @@ module.exports = class JGroup extends Module
 
 
   isMember: (account, callback) ->
+
     return callback new Error 'No account found!'  unless account
     selector =
       sourceId  : @getId()
-      targetId  : account.getId()
+      targetId  : account._id
       as        : 'member'
     Relationship.count selector, (err, count) ->
       if err then callback err
