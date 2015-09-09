@@ -99,6 +99,8 @@ loadParticipants = (channelId, participantsPreview = []) ->
 ###
 loadFollowedPrivateChannels = (options = {}) ->
 
+  options.limit ?= 25
+
   { LOAD_FOLLOWED_PRIVATE_CHANNELS_BEGIN
     LOAD_FOLLOWED_PRIVATE_CHANNELS_FAIL
     LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS } = actionTypes
@@ -122,6 +124,8 @@ loadFollowedPrivateChannels = (options = {}) ->
  * @param {object=} options
 ###
 loadFollowedPublicChannels = (options = {}) ->
+
+  options.limit ?= 25
 
   { LOAD_FOLLOWED_PUBLIC_CHANNELS_BEGIN
     LOAD_FOLLOWED_PUBLIC_CHANNELS_FAIL
