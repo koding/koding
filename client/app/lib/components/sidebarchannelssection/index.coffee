@@ -1,4 +1,3 @@
-kd                      = require 'kd'
 React                   = require 'kd-react'
 immutable               = require 'immutable'
 SidebarList             = require 'app/components/sidebarlist'
