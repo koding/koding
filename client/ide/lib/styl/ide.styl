@@ -1324,3 +1324,67 @@ body.ide .kddialogview.save-as-dialog
 .ide .layout-changed-modal
   .kdmodal-content
     overflow                hidden
+
+.application-tabview
+  .split-regions
+    abs()
+    top                     0
+    left                    0
+    size                    100% 100%
+    z-index                 15
+
+    .handler
+      z-index               2 !important
+
+      .left, .right
+        width               25% !important
+        z-index             2
+
+    .region, .representation, .handler
+      display               block
+      abs()
+      size                  100% 100%
+      z-index               1
+
+      .holder
+        abs()
+        top                 0
+        left                0
+        size                100% 100%
+        z-index             1
+
+      &.show
+        background-color    rgba(20, 181, 96, .6)
+
+        span
+          visible()
+
+      span
+        hidden()
+        rel()
+        top                 50%
+        vendor              transform, translateY(-50%)
+        color               #FFFFFF
+        font-size           20px
+        font-weight         600
+        text-align          center
+        font-size           12px
+        z-index             -1
+
+      &.right
+        size                50% 100%
+        right               0
+
+      &.left
+        size                50% 100%
+        left                0
+
+      &.top
+        size                100% 50%
+        left                0
+        top                 0
+
+      &.bottom
+        size                100% 50%
+        left                0
+        bottom              0

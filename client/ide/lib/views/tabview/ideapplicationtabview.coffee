@@ -4,22 +4,25 @@ KDModalView         = kd.ModalView
 KDTabView           = kd.TabView
 IDETabHandleView    = require './idetabhandleview'
 ApplicationTabView  = require 'app/commonviews/applicationview/applicationtabview'
+SplitRegionView     = require './region/splitregionview'
 
 
 module.exports = class IDEApplicationTabView extends ApplicationTabView
+
 
   constructor: (options = {}, data) ->
 
     options.sortable        ?= no
     options.droppable       ?= yes
     options.tabHandleClass   = IDETabHandleView
+    options.bind             = 'dragenter'
 
     super options, data
 
 
   handleClicked: (event, handle) ->
 
-    {pane} = handle.getOptions()
+    { pane } = handle.getOptions()
 
     if $(event.target).hasClass 'close-tab'
       @emit 'PaneRemovedByUserAction', pane
@@ -33,7 +36,7 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
     return  unless pane
 
-    {aceView} = pane.getOptions()
+    { aceView } = pane.getOptions()
 
     if quiet or not aceView or not aceView.ace.isContentChanged()
       return @removePane_ pane, shouldDetach
@@ -110,5 +113,24 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
 
   closePaneAndModal: (pane, modal) ->
+
     @removePane_ pane
     modal.destroy()
+
+
+  dragEnter: (event) ->
+
+    return  if @splitRegions
+
+    @addSubView @splitRegions = new SplitRegionView
+
+    @splitRegions.on 'TabDropped', (direction) =>
+      { frontApp }  = kd.singletons.appManager
+      frontApp.handleTabDropToRegion direction, @parent
+
+
+  removeSplitRegions: ->
+
+    @splitRegions?.destroy()
+    @splitRegions = null
+

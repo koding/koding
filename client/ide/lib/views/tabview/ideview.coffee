@@ -63,6 +63,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       frontApp.splitHorizontally()
       @ensureSplitHandlers()
 
+    @on 'RemoveSplitRegions', => @tabView.removeSplitRegions()
+
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
@@ -589,7 +591,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     selector  = '.kdtabhandle:not(.visible-tab-handle)'
     $target   = $(event.originalEvent.target).closest(selector)
-    index     = $target.index()
+    index     = $target?.index()
 
     index = null  if index < 0
 
