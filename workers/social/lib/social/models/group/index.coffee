@@ -186,6 +186,16 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchBlockedAccounts: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchBlockedAccountsWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -213,6 +223,8 @@ module.exports = class JGroup extends Module
         isMember:
           (signature Object, Function)
         kickMember:
+          (signature String, Function)
+        unblockMember:
           (signature String, Function)
         transferOwnership:
           (signature String, Function)
