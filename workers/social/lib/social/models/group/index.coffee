@@ -329,6 +329,9 @@ module.exports = class JGroup extends Module
         owner         :
           targetType  : JAccount
           as          : 'owner'
+        blockedAccount:
+          targetType  : JAccount
+          as          : 'blockedAccount'
         subgroup      :
           targetType  : 'JGroup'
           as          : 'parent'
