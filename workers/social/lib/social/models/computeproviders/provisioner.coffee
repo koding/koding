@@ -216,8 +216,6 @@ module.exports = class JProvisioner extends jraphical.Module
       someHelper client, selector, { limit: 1 }, (err, provisioners) ->
         callback err, (provisioners[0]  if provisioners?)
 
-  # due to a bug in coffeelint 1.10.1
-  # coffeelint: disable=no_implicit_braces
   delete: permit
 
     advanced: [
@@ -237,7 +235,7 @@ module.exports = class JProvisioner extends jraphical.Module
 
     success: (client, accessLevel, callback) ->
 
-      @update $set: { accessLevel }, callback
+      @update { $set: { accessLevel } }, callback
 
 
   updateKallback = (slug, callback) ->
@@ -279,6 +277,6 @@ module.exports = class JProvisioner extends jraphical.Module
         slug  = "#{delegate.profile.nickname}/#{slug}"
         fieldsToUpdate.slug = slug
 
-      @update $set : fieldsToUpdate, updateKallback slug, callback
+      @update { $set : fieldsToUpdate }, updateKallback slug, callback
 
 

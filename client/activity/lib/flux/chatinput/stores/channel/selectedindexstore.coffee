@@ -1,10 +1,10 @@
-actions            = require 'activity/flux/actions/actiontypes'
-SelectedIndexStore = require './chatinputselectedindexstore'
+actions                = require 'activity/flux/chatinput/actions/actiontypes'
+BaseSelectedIndexStore = require 'activity/flux/chatinput/stores/baseselectedindexstore'
 
 ###*
  * Store to contain channels selected index
 ###
-module.exports = class ChatInputChannelsSelectedIndexStore extends SelectedIndexStore
+module.exports = class ChatInputChannelsSelectedIndexStore extends BaseSelectedIndexStore
 
   @getterPath = 'ChatInputChannelsSelectedIndexStore'
 

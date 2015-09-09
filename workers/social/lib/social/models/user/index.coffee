@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
 request          = require 'request'
@@ -1002,7 +1001,7 @@ module.exports = class JUser extends jraphical.Module
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
     email = emailsanitize email
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     emailFrequencyDefaults = {
       global         : on
@@ -1133,7 +1132,7 @@ module.exports = class JUser extends jraphical.Module
             }
 
 
-  @validateAll = (userFormData, callback) =>
+  @validateAll = (userFormData, callback) ->
 
     Validator  = require './validators'
     validator  = new Validator
@@ -1201,8 +1200,10 @@ module.exports = class JUser extends jraphical.Module
   createGroupStack = (account, groupName, callback) ->
 
     _client =
-      connection : delegate : account
-      context    : group    : groupName
+      connection :
+        delegate : account
+      context    :
+        group    : groupName
 
     ComputeProvider.createGroupStack _client, (err) ->
       if err?
@@ -1392,8 +1393,10 @@ module.exports = class JUser extends jraphical.Module
     # create default stack for koding group, when a user joins this is only
     # required for koding group, not neeed for other teams
     _client =
-      connection : delegate : account
-      context    : group    : 'koding'
+      connection :
+        delegate : account
+      context    :
+        group    : 'koding'
 
     ComputeProvider.createGroupStack _client, (err) ->
       if err?
@@ -1603,7 +1606,7 @@ module.exports = class JUser extends jraphical.Module
       if not session or not session.username
         return callback noUserError
 
-      JUser.one username: session.username, (err, user) ->
+      JUser.one { username: session.username }, (err, user) ->
 
         if err or not user
           console.log '[JUser::fetchUser]', err  if err?
@@ -1624,17 +1627,24 @@ module.exports = class JUser extends jraphical.Module
         return callback new KodingError 'PasswordIsSame'
 
       user.changePassword password, (err) ->
-        callback err
+        return callback err  if err
+
+        account  = client.connection.delegate
+        clientId = client.sessionToken
+
+        account.sendNotification 'SessionHasEnded', { clientId }
+
+        selector = { clientId: { $ne: client.sessionToken } }
+
+        user.killSessions selector, callback
 
 
-  sendChangedEmail = (username, firstName, to, type, callback) ->
+  sendChangedEmail = (username, firstName, to, type) ->
 
     subject = if type is 'email' then Tracker.types.CHANGED_EMAIL
     else Tracker.types.CHANGED_PASSWORD
 
     Tracker.track username, { to, subject }, { firstName }
-
-    callback null
 
 
   @changeEmail = secure (client, options, callback) ->
@@ -1662,7 +1672,7 @@ module.exports = class JUser extends jraphical.Module
     unless typeof email is 'string'
       return callback new KodingError 'Not a valid email!'
 
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     @count { sanitizedEmail }, (err, count) ->
       callback err, count is 0
@@ -1697,10 +1707,11 @@ module.exports = class JUser extends jraphical.Module
   setPassword: (password, callback) ->
 
     salt = createSalt()
-    @update $set: {
-      salt
-      password       : hashPassword password, salt
-      passwordStatus : 'valid'
+    @update {
+      $set             :
+        salt           : salt
+        password       : hashPassword password, salt
+        passwordStatus : 'valid'
     }, callback
 
 
@@ -1713,7 +1724,9 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err
 
         { firstName } = account.profile
-        sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password', callback
+        sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password'
+
+        callback null
 
 
   changeEmail: (account, options, callback) ->
@@ -1723,10 +1736,10 @@ module.exports = class JUser extends jraphical.Module
     { email, pin } = options
 
     email = options.email = emailsanitize email
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     if account.type is 'unregistered'
-      @update $set: { email, sanitizedEmail }, (err) ->
+      @update { $set: { email , sanitizedEmail } }, (err) ->
         return callback err  if err
 
         callback null
@@ -1772,7 +1785,9 @@ module.exports = class JUser extends jraphical.Module
               newEmail: email
             }
 
-            sendChangedEmail @getAt('username'), firstName, oldEmail, 'email', callback
+            sendChangedEmail @getAt('username'), firstName, oldEmail, 'email'
+
+            callback null
 
 
   fetchHomepageView: (options, callback) ->
@@ -1833,7 +1848,7 @@ module.exports = class JUser extends jraphical.Module
 
   unlinkOAuths: (callback) ->
 
-    @update $unset: { foreignAuth:1, foreignAuthType:1 }, (err) =>
+    @update { $unset: { foreignAuth:1 , foreignAuthType:1 } }, (err) =>
       return callback err  if err
 
       @fetchOwnAccount (err, account) ->
@@ -1969,3 +1984,14 @@ module.exports = class JUser extends jraphical.Module
 
       return callback new KodingError 'Captcha not valid. Please try again.'
 
+
+  ###*
+   * Remove session documents matching selector object.
+   *
+   * @param {Object} [selector={}] - JSession query selector.
+   * @param {Function} - Callback.
+  ###
+  killSessions: (selector = {}, callback) ->
+
+    selector.username = @username
+    JSession.remove selector, callback

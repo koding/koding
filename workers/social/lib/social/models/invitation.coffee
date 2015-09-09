@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
@@ -97,7 +96,7 @@ module.exports = class JInvitation extends jraphical.Module
     @accept delegate, callback
 
   accept: (account, callback) ->
-    operation = $set : { status: 'accepted' }
+    operation = { $set : { status: 'accepted' } }
     @update operation, callback
 
   # validTypes holds states that can still redeemable
@@ -120,7 +119,7 @@ module.exports = class JInvitation extends jraphical.Module
       selector.status  or= 'pending'
 
       { limit }       = options
-      options.sort  or= createdAt : -1
+      options.sort  or= { createdAt : -1 }
       options.limit or= 25
       options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
       options.skip    = 0

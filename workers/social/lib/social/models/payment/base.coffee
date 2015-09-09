@@ -25,7 +25,6 @@ module.exports = class JPaymentBase extends Module
   @removeByCode$ = permit 'manage products',
     success: (client, planCode, callback) -> @removeByCode planCode, callback
 
-  # coffeelint: disable=no_implicit_braces
   remove: (callback) ->
     { planCode } = this
     super (err) ->
@@ -43,7 +42,7 @@ module.exports = class JPaymentBase extends Module
     success: (client, callback) -> @remove callback
 
   modify: (formData, callback) ->
-    @update $set: formData, callback
+    @update { $set: formData }, callback
 
   modify$: permit 'manage products',
     success: (client, formData, callback) -> @modify formData, callback

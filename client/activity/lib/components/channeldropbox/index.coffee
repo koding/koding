@@ -2,10 +2,10 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
 Dropbox              = require 'activity/components/dropbox'
 ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
+ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
@@ -30,7 +30,7 @@ module.exports = class ChannelDropbox extends React.Component
   close: ->
 
     { stateId } = @props
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility stateId, no
+    ChatInputFlux.actions.channel.setVisibility stateId, no
 
 
   moveToNextPosition: (keyInfo) ->
@@ -41,7 +41,7 @@ module.exports = class ChannelDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.channel.moveToNextChatInputChannelsIndex stateId
+      ChatInputFlux.actions.channel.moveToNextIndex stateId
 
     return yes
 
@@ -54,7 +54,7 @@ module.exports = class ChannelDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.channel.moveToPrevChatInputChannelsIndex stateId
+      ChatInputFlux.actions.channel.moveToPrevIndex stateId
 
     return yes
 
@@ -69,15 +69,15 @@ module.exports = class ChannelDropbox extends React.Component
 
     query = matchResult[1]
     { stateId } = @props
-    ActivityFlux.actions.channel.setChatInputChannelsQuery stateId, query
-    ActivityFlux.actions.channel.setChatInputChannelsVisibility stateId, yes
+    ChatInputFlux.actions.channel.setQuery stateId, query
+    ChatInputFlux.actions.channel.setVisibility stateId, yes
     return yes
 
 
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ActivityFlux.actions.channel.setChatInputChannelsSelectedIndex stateId, index
+    ChatInputFlux.actions.channel.setSelectedIndex stateId, index
 
 
   renderList: ->

@@ -1,7 +1,7 @@
 kd              = require 'kd'
 actionTypes     = require './actiontypes'
 getGroup        = require 'app/util/getGroup'
-SearchConstants = require './searchconstants'
+SearchConstants = require 'activity/flux/actions/searchconstants'
 
 MIN_QUERY_LENGTH = 1
 MAX_QUERY_LENGTH = 500

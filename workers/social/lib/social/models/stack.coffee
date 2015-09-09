@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 
@@ -123,7 +122,7 @@ module.exports = class JComputeStack extends jraphical.Module
     # TODO add check for itemToAppend to make sure its just ~ GG
     # including supported fields: [rules, domains, machines, extras]
 
-    @update $addToSet: itemToAppend, (err) -> callback err
+    @update { $addToSet: itemToAppend }, (err) -> callback err
 
 
   ###*
@@ -133,15 +132,17 @@ module.exports = class JComputeStack extends jraphical.Module
    * @param  {Function} callback
    * @return {void}
   ###
-  @create$ = permit 'create stack', success: (client, data, callback) ->
+  @create$ = permit 'create stack',
 
-    data.account   = client.connection.delegate
-    data.groupSlug = client.context.group
+    success: (client, data, callback) ->
 
-    delete data.baseStackId
-    delete data.stackRevision
+      data.account   = client.connection.delegate
+      data.groupSlug = client.context.group
 
-    JComputeStack.create data, callback
+      delete data.baseStackId
+      delete data.stackRevision
+
+      JComputeStack.create data, callback
 
 
   ###*
@@ -324,7 +325,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
         dataToUpdate.credentials = sanitized
 
-      @update $set : dataToUpdate, (err) ->
+      @update { $set : dataToUpdate }, (err) ->
         return callback err  if err?
         callback null
 

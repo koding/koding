@@ -33,7 +33,6 @@ module.exports = class ChatListItem extends React.Component
   @defaultProps =
     hover                         : no
     account                       : null
-    editMode                      : no
     isDeleting                    : no
     isMenuOpen                    : no
     editInputValue                : ''
@@ -42,7 +41,6 @@ module.exports = class ChatListItem extends React.Component
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
 
-
   constructor: (props) ->
 
     super props
@@ -50,7 +48,7 @@ module.exports = class ChatListItem extends React.Component
     @state =
       hover                         : @props.hover
       account                       : @props.account
-      editMode                      : @props.editMode
+      editMode                      : @props.message.get '__isEditing'
       isDeleting                    : @props.isDeleting
       isMenuOpen                    : @props.isMenuOpen
       editInputValue                : @props.message.get 'body'
@@ -62,6 +60,12 @@ module.exports = class ChatListItem extends React.Component
   componentDidMount: ->
 
     @getAccountInfo()
+
+
+  componentDidUpdate: ->
+
+    @setState editMode: @props.message.get '__isEditing'
+    @focusInputOnEdit()
 
 
   getAccountInfo: ->
@@ -182,12 +186,21 @@ module.exports = class ChatListItem extends React.Component
     @setState isDeleting: no
 
 
-  editPost: ->
+  focusInputOnEdit: ->
 
-    @setState editMode: yes
     domNode = @refs.EditMessageTextarea.getDOMNode()
+
     kd.utils.wait 100, ->
       kd.utils.moveCaretToEnd domNode
+
+
+  editPost: ->
+
+    messageId = @props.message.get '_id'
+
+    ActivityFlux.actions.message.setMessageEditMode messageId
+    @focusInputOnEdit()
+
 
 
   showDeletePostPromptModal: ->
@@ -230,7 +243,8 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
-    @setState editMode: no
+    messageId = @props.message.get '_id'
+    ActivityFlux.actions.message.unsetMessageEditMode messageId
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
@@ -241,7 +255,10 @@ module.exports = class ChatListItem extends React.Component
 
   cancelEdit: ->
 
-    @setState editMode: no, editInputValue: @props.message.get('body')
+    messageId = @props.message.get '_id'
+    ActivityFlux.actions.message.unsetMessageEditMode messageId
+
+    @setState editInputValue: @props.message.get('body')
 
 
   onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
@@ -267,6 +284,7 @@ module.exports = class ChatListItem extends React.Component
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
     'hidden' : not @state.editMode
+    'visible' : @state.editMode
 
 
   getMediaObjectClassNames: -> classnames

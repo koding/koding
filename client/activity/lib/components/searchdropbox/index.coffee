@@ -2,10 +2,10 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-ActivityFlux         = require 'activity/flux'
 Dropbox              = require 'activity/components/dropbox'
 SearchDropboxItem    = require 'activity/components/searchdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
+ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
@@ -30,8 +30,8 @@ module.exports = class SearchDropbox extends React.Component
   close: ->
 
     { stateId } = @props
-    ActivityFlux.actions.chatInputSearch.setVisibility stateId, no
-    ActivityFlux.actions.chatInputSearch.resetData stateId
+    ChatInputFlux.actions.search.setVisibility stateId, no
+    ChatInputFlux.actions.search.resetData stateId
 
 
   moveToNextPosition: (keyInfo) ->
@@ -40,7 +40,7 @@ module.exports = class SearchDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.chatInputSearch.moveToNextIndex stateId
+      ChatInputFlux.actions.search.moveToNextIndex stateId
 
     return yes
 
@@ -51,7 +51,7 @@ module.exports = class SearchDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ActivityFlux.actions.chatInputSearch.moveToPrevIndex stateId
+      ChatInputFlux.actions.search.moveToPrevIndex stateId
 
     return yes
 
@@ -65,8 +65,8 @@ module.exports = class SearchDropbox extends React.Component
 
     query = matchResult[1]
     { stateId } = @props
-    ActivityFlux.actions.chatInputSearch.setQuery stateId, query
-    ActivityFlux.actions.chatInputSearch.setVisibility stateId, yes
+    ChatInputFlux.actions.search.setQuery stateId, query
+    ChatInputFlux.actions.search.setVisibility stateId, yes
 
     return yes
 
@@ -74,7 +74,7 @@ module.exports = class SearchDropbox extends React.Component
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ActivityFlux.actions.chatInputSearch.setSelectedIndex stateId, index
+    ChatInputFlux.actions.search.setSelectedIndex stateId, index
 
 
   renderList: ->
