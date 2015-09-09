@@ -9,14 +9,16 @@ module.exports = class ChatList extends React.Component
   @defaultProps =
     messages     : immutable.List()
     showItemMenu : yes
-    thread       : {}
+    firstPost    : null
+    isMessagesLoading: no
 
 
   calculateRemainingMessageCount: ->
 
-    return no  unless @props.thread.message
+    { firstPost } = @props
+    return no  unless firstPost
 
-    repliesCount = @props.thread.getIn ['message', 'repliesCount']
+    repliesCount = firstPost.get 'repliesCount'
     messageCount = @props.messages.size - 1
     count = repliesCount - messageCount
     count =  if count > 0 then count else 0
@@ -26,15 +28,14 @@ module.exports = class ChatList extends React.Component
 
   getFirstMessageId: ->
 
-    if @props.thread.get 'message'
-      return @props.thread.getIn ['message', '_id']
+    { firstPost } = @props
 
-    return no
+    if firstPost then firstPost.get '_id' else no
 
 
   renderFirstMessageDate: (count) ->
 
-    if @props.thread?.getIn ['flags', 'isMessagesLoading']
+    if @props.isMessagesLoading
       <div className='ChatItem-moreCount'>loading...</div>
     else if count
       <div className='ChatItem-moreCount'>{count} more</div>
@@ -45,7 +46,13 @@ module.exports = class ChatList extends React.Component
     lastMessageId = null
     { messages, showItemMenu } = @props
 
+    if @props.firstPost
+
+      firstPostId = @props.firstPost.get '_id'
+      messages = messages.set firstPostId, @props.firstPost
+
     messages.map (message, i) =>
+
       itemProps =
         key          : message.get 'id'
         message      : message
