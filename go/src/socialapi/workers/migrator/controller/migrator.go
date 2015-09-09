@@ -192,42 +192,6 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 		mwc.log.Error("Could not create integration: %s", err)
 	}
 
-	i := webhookmodels.NewIntegration()
-	i.Title = "iterable"
-	i.Name = "iterable"
-	i.Summary = "Email engagement service"
-	i.IsPublished = false
-
-	err := i.Create()
-	if err != nil {
-		mwc.log.Error("Could not create integration: %s", err)
-		return
-	}
-
-	ch := models.NewChannel()
-	if err := ch.FetchPublicChannel("koding"); err != nil {
-		mwc.log.Error("Could not fetch koding channel: %s", err)
-		return
-	}
-
-	acc := models.NewAccount()
-
-	if err := acc.ByNick("devrim"); err != nil {
-		mwc.log.Error("Could not fetch account: %s", err)
-		return
-	}
-
-	ci := webhookmodels.NewChannelIntegration()
-	ci.IntegrationId = i.Id
-	ci.ChannelId = ch.Id
-	ci.CreatorId = acc.Id
-	ci.GroupName = "koding"
-
-	if err := ci.Create(); err != nil {
-		mwc.log.Error("Could not create channel integration: %s", err)
-		return
-	}
-
 }
 
 // TO-DO update integrations on-the-fly
