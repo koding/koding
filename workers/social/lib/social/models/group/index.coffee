@@ -959,17 +959,21 @@ module.exports = class JGroup extends Module
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
 
-    kallback = =>
-      callback()
-      @updateCounts()
-      @emit 'MemberAdded', member  if 'member' in roles
+    @fetchBlockedAccount { targetId: member.getId() }, (err, account_) =>
+      return callback err if err
+      return callback new KodingError 'This account is blocked'  if account_
 
-    queue = roles.map (role) => =>
-      @addMember member, role, queue.fin.bind queue
+      kallback = =>
+        callback()
+        @updateCounts()
+        @emit 'MemberAdded', member  if 'member' in roles
 
-    # We were creating group member VMs here before
-    # I've deleted them, ask me if you need more information ~ GG
-    dash queue, -> kallback()
+      queue = roles.map (role) => =>
+        @addMember member, role, queue.fin.bind queue
+
+      # We were creating group member VMs here before
+      # I've deleted them, ask me if you need more information ~ GG
+      dash queue, -> kallback()
 
   each:(selector, rest...) ->
     selector.visibility = 'visible'
