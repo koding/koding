@@ -478,7 +478,7 @@ class IDEAppController extends AppController
 
             # Just resurrect snapshot for host or without collaboration.
             # Because we need check the `@myWatchMap` and it is not possible here.
-            if snapshot and @amIHost
+            if (snapshot and @amIHost) or @mountedMachine.isPermanent()
               return @layoutManager.resurrectSnapshot snapshot
 
             # Be quiet. Don't write initial views's changes to snapshot.
