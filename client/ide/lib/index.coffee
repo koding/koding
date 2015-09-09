@@ -931,8 +931,6 @@ class IDEAppController extends AppController
   saveAllFiles: ->
 
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
-      {ace} = editorPane.aceView
-      ace.once 'FileContentRestored', -> ace.removeModifiedFromTab()
       editorPane.emit 'SaveRequested'
 
 
