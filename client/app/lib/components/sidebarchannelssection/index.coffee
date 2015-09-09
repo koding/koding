@@ -12,12 +12,18 @@ module.exports = class SidebarChannelsSection extends React.Component
     threads    : immutable.Map()
     selectedId : null
 
-  render: ->
-    <SidebarSection title="Channels" className="SidebarChannelsSection">
-      <SidebarList
-        itemComponent={SidebarChannelsListItem}
-        threads={@props.threads}
-        selectedId={@props.selectedId} />
-    </SidebarSection>
 
+
+  render: ->
+    <div>
+      <SidebarSection title="Channels" onHeaderClick={@bound 'showFollowedChannelsModal'} className="SidebarChannelsSection">
+        <SidebarList
+          previewCount={PREVIEW_COUNT}
+          itemComponent={SidebarChannelsListItem}
+          threads={@props.threads}
+          selectedId={@props.selectedId} />
+          {@renderMoreLink()}
+      </SidebarSection>
+      {@renderFollowedChannelsModal()}
+    </div>
 
