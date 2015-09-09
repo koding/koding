@@ -29,13 +29,15 @@ module.exports = class WelcomeAppController extends KDViewController
         return  kd.warn err  if err
         isAdmin = 'admin' in (roles ? [])
 
-        console.log { isAdmin, providers, variables }
-
         if isAdmin
           appView.putAdminInstructions()
 
-        if providers.length > 0
-          appView.putProviderInstructions providers
+        # Comment-out for now we need to plan this more ~ GG
+        #
+        # console.log { isAdmin, providers, variables }
+        #
+        # if providers.length > 0
+        #   appView.putProviderInstructions providers
 
-        if Object.keys(variables).length > 0
-          appView.putVariableInstructions variables
+        # if Object.keys(variables).length > 0
+        #   appView.putVariableInstructions variables
