@@ -175,16 +175,15 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	pagerdutyInt.IconPath = "https://s3.amazonaws.com/koding-cdn/temp-images/pagerduty.png"
 	pagerdutyInt.Description = "PagerDuty provides IT alert monitoring, on-call scheduling, escalation policies and incident tracking to fix problems in your apps, servers and websites."
 
-
 	pagerdutyInt.Settings = gorm.Hstore{}
 
 	pdEvents := webhookmodels.NewEvents(
-		webhookmodels.NewEvent("incident.trigger", "Newly triggered")
-		webhookmodels.NewEvent("incident.acknowledge", "Acknowledged")
-		webhookmodels.NewEvent("incident.resolve", "Resolved")
-		webhookmodels.NewEvent("incident.assign", "Manually reassigned")
-		webhookmodels.NewEvent("incident.escalate", "Escalated")
-		webhookmodels.NewEvent("incident.unacknowledge", "Unacknowledged due to timeout")
+		webhookmodels.NewEvent("incident.trigger", "Newly triggered"),
+		webhookmodels.NewEvent("incident.acknowledge", "Acknowledged"),
+		webhookmodels.NewEvent("incident.resolve", "Resolved"),
+		webhookmodels.NewEvent("incident.assign", "Manually reassigned"),
+		webhookmodels.NewEvent("incident.escalate", "Escalated"),
+		webhookmodels.NewEvent("incident.unacknowledge", "Unacknowledged due to timeout"),
 	)
 
 	pagerdutyInt.AddEvents(pdEvents)
