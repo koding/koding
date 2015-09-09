@@ -111,9 +111,10 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 	return a.Id, nil
 }
 
-func (mwc *Controller) CreateIntegrations() {
-	mwc.log.Notice("Creating integration channels")
+func (mwc *Controller) describeIntegrations() ([]*webhookmodels.Integration, error) {
+	var integrations []*webhookmodels.Integration
 
+	// Github Creation
 	githubInt := webhookmodels.NewIntegration()
 	githubInt.Title = "GitHub"
 	githubInt.Name = "github"
@@ -153,10 +154,9 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 	githubInt.AddEvents(events)
 
-	if err := githubInt.Create(); err != nil {
-		mwc.log.Error("Could not create integration: %s", err)
-	}
+	integrations = append(integrations, githubInt)
 
+	// Pivotal Creation
 	pivotalInt := webhookmodels.NewIntegration()
 	pivotalInt.Title = "Pivotal Tracker"
 	pivotalInt.Name = "pivotal"
@@ -164,10 +164,9 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	pivotalInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/pivotaltracker.png"
 	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Koding whenever a story activity occurs in Pivotal Tracker."
 
-	if err := pivotalInt.Create(); err != nil {
-		mwc.log.Error("Could not create integration: %s", err)
-	}
+	integrations = append(integrations, pivotalInt)
 
+	// Pagerduty Creation
 	pagerdutyInt := webhookmodels.NewIntegration()
 	pagerdutyInt.Title = "Pagerduty"
 	pagerdutyInt.Name = "pagerduty"
@@ -188,8 +187,24 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 	pagerdutyInt.AddEvents(pdEvents)
 
-	if err := pagerdutyInt.Create(); err != nil {
-		mwc.log.Error("Could not create integration: %s", err)
+	integrations = append(integrations, pagerdutyInt)
+
+	return integrations, nil
+
+}
+
+func (mwc *Controller) CreateIntegrations() {
+	mwc.log.Notice("Creating integration channels")
+
+	integrations, err := mwc.describeIntegrations()
+	if err != nil {
+		mwc.log.Error("Could not get integration: %s", err)
+	}
+
+	for _, integration := range integrations {
+		if err := integration.Create(); err != nil {
+			mwc.log.Error("Could not create integration: %s", err)
+		}
 	}
 
 }
