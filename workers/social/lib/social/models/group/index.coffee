@@ -768,6 +768,23 @@ module.exports = class JGroup extends Module
         rest
       }
 
+  fetchBlockedAccounts$: permit 'list members',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method: @fetchBlockedAccounts
+        client
+        rest
+      }
+
+  fetchBlockedAccountsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchBlockedAccounts
+        fetchEmail  : yes
+        client
+        rest
+      }
+
   baseFetcherOfGroupStaff: (options) ->
 
     { method, client, rest, fetchEmail }  = options
