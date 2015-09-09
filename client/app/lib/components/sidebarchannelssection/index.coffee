@@ -12,6 +12,14 @@ module.exports = class SidebarChannelsSection extends React.Component
     threads    : immutable.Map()
     selectedId : null
 
+  renderFollowedChannelsModal: ->
+
+    title = 'Other Channels you are following:'
+    <Modal className='ChannelList-Modal' isOpen={@state.browseChannels} onClose={@bound 'onClose'}>
+      <ChannelList threads={@props.threads} title={title} />
+    </Modal>
+
+
   renderMoreLink: ->
 
     { threads } = @props
