@@ -111,6 +111,9 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 	return a.Id, nil
 }
 
+// describeIntegrations describe all integrations in this func.
+// firstly, fills all fields for each integrations and assign each integration to the
+// integration array, abd then sends this array to the 'createIntegration' to create in db
 func (mwc *Controller) describeIntegrations() ([]*webhookmodels.Integration, error) {
 	var integrations []*webhookmodels.Integration
 
@@ -193,6 +196,9 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 }
 
+// CreateIntegrations creates the integrations in db
+// integrations are described in 'describeIntegrations' function
+// this function gets the described integrations and creates each of these integrations in db
 func (mwc *Controller) CreateIntegrations() {
 	mwc.log.Notice("Creating integration channels")
 
@@ -213,7 +219,19 @@ func (mwc *Controller) CreateIntegrations() {
 // Divide the create integration func, send parameter all integrations in it.
 //Declare these integration out of the function.
 func (mwc *Controller) UpdateIntegrations() {
+	integrations, err := mwc.describeIntegrations()
+	if err != nil {
+		mwc.log.Error("Could not get integration: %s", err)
+	}
 
+	i := webhookmodels.NewIntegration()
+	for _, integration := range integrations {
+		if err := i.ByName(integration.Name); err != nil {
+			if err = integration.Create(); err != nil {
+				mwc.log.Error("Could not create integration: %s", err)
+			}
+		}
+	}
 }
 
 func (mwc *Controller) CreateBotUser() {
