@@ -14,12 +14,22 @@ module.exports = class ChatList extends React.Component
 
   calculateRemainingMessageCount: ->
 
+    return no  unless @props.thread.message
+
     repliesCount = @props.thread.getIn ['message', 'repliesCount']
     messageCount = @props.messages.size - 1
     count = repliesCount - messageCount
     count =  if count > 0 then count else 0
 
     return count
+
+
+  getFirstMessageId: ->
+
+    if thread.get 'message'
+      return thread.getIn ['message', '_id']
+
+    return no
 
 
   renderFirstMessageDate: (count) ->
@@ -33,7 +43,7 @@ module.exports = class ChatList extends React.Component
   renderChildren: ->
 
     lastMessageId = null
-    { messages, showItemMenu, thread } = @props
+    { messages, showItemMenu } = @props
 
     messages.map (message, i) =>
       itemProps =
@@ -42,7 +52,7 @@ module.exports = class ChatList extends React.Component
         showItemMenu : showItemMenu
 
       count          = @calculateRemainingMessageCount()
-      firstMessageId = thread.getIn ['message', '_id']
+      firstMessageId = @getFirstMessageId()
 
       if lastMessageId and lastMessageId is message.get 'accountId'
         <SimpleChatListItem {...itemProps} />
