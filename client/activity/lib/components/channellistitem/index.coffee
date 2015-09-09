@@ -5,8 +5,7 @@ React                 = require 'kd-react'
 module.exports = class ChannelListItem extends React.Component
 
   @defaultProps =
-    channel       : null
-    channelId     : null
+    channel  : null
 
 
   unfollowChannel: ->
