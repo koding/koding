@@ -26,8 +26,8 @@ module.exports = class ChatList extends React.Component
 
   getFirstMessageId: ->
 
-    if thread.get 'message'
-      return thread.getIn ['message', '_id']
+    if @props.thread.get 'message'
+      return @props.thread.getIn ['message', '_id']
 
     return no
 
