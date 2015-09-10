@@ -118,10 +118,12 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			k.Log.New(args.StackId).Error("%s error: %s", r.Method, err)
 
 			finalEvent.Error = err.Error()
+			k.Log.New(args.StackId).Error("======> %s finished with error (time: %s): '%s' <======",
+				strings.ToUpper(r.Method), time.Since(start), err.Error())
+		} else {
+			k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
+				strings.ToUpper(r.Method), time.Since(start))
 		}
-
-		k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
-			strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 	}()

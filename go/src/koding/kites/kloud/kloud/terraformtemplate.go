@@ -168,7 +168,7 @@ func (t *terraformTemplate) setAwsRegion(region string) error {
 			"access_key": provider.Aws.AccessKey,
 			"secret_key": provider.Aws.SecretKey,
 		}
-	} else if provider.Aws.Region != region {
+	} else if !isVariable(provider.Aws.Region) && provider.Aws.Region != region {
 		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
 			provider.Aws.Region, region)
 	}
