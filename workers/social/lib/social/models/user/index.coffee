@@ -1256,7 +1256,7 @@ module.exports = class JUser extends jraphical.Module
     daisy queue
 
 
-  verifyEnrollmentEligibility = (options, queue, callback, fetchData) ->
+  verifyEnrollmentEligibility = (options, callback) ->
 
     { email, client, invitationToken } = options
 
@@ -1274,8 +1274,7 @@ module.exports = class JUser extends jraphical.Module
       if not isEligible
         return callback new Error "you can not register to #{client.context.group}"
 
-      fetchData invitation
-      queue.next()
+      callback null, invitation
 
 
   createUser = (options, callback) ->
@@ -1475,16 +1474,17 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        verifyUser { slug, email, recaptcha, userFormData, foreignAuthType }, (err) ->
+        params = { slug, email, recaptcha, userFormData, foreignAuthType }
+        verifyUser params, (err) ->
           return callback err  if err
           queue.next()
 
       ->
-        verifyEnrollmentEligibility {
-          email
-          client
-          invitationToken
-        }, queue, callback, (invitation_) -> invitation = invitation_
+        params = { email, client, invitationToken }
+        verifyEnrollmentEligibility params, (err, invitation_) ->
+          return callback err  if err
+          invitation = invitation_
+          queue.next()
 
       ->
         userInfo =
