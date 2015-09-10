@@ -61,6 +61,14 @@ type terraformCredential struct {
 	Data       map[string]string `mapstructure:"data"`
 }
 
+func (m *Machines) String() string {
+	var txt string
+	for i, machine := range m.Machines {
+		txt += fmt.Sprintf("[%d] %+v\n", i, machine)
+	}
+	return txt
+}
+
 func (m *Machines) AppendRegion(region string) {
 	for i, machine := range m.Machines {
 		machine.Region = region
@@ -169,12 +177,11 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 
 func parseProviderAndLabel(resource string) (string, string, error) {
 	// resource is in the form of "aws_instance.foo.bar"
-	splitted := strings.Split(resource, "_")
+	splitted := strings.SplitN(resource, "_", 2)
 	if len(splitted) < 2 {
 		return "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
 	}
 
-	// splitted[1]: instance.foo.bar
 	resourceSplitted := strings.SplitN(splitted[1], ".", 2)
 
 	provider := splitted[0]      // aws
