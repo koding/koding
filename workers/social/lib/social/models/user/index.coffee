@@ -1334,34 +1334,34 @@ module.exports = class JUser extends jraphical.Module
     daisy queue
 
 
-  updateAccountInfo = (options, queue, callback) ->
+  updateAccountInfo = (options, callback) ->
 
     { account, referrer, username } = options
 
-    _queue = [
+    queue = [
 
       ->
         account.update { $set: { type: 'registered' } }, (err) ->
           return callback err  if err?
-          _queue.next()
+          queue.next()
 
       ->
         account.createSocialApiId (err) ->
           return callback err  if err
-          _queue.next()
+          queue.next()
 
       ->
         # setting referrer
-        return _queue.next()  unless referrer
+        return queue.next()  unless referrer
 
         if username is referrer
           console.error "User (#{username}) tried to refer themself."
-          return _queue.next()
+          return queue.next()
 
         JUser.count { username: referrer }, (err, count) ->
           if err? or count < 1
             console.error 'Provided referrer not valid:', err
-            return _queue.next()
+            return queue.next()
 
           account.update { $set: { referrerUsername: referrer } }, (err) ->
 
@@ -1369,16 +1369,17 @@ module.exports = class JUser extends jraphical.Module
             then console.error err
             else console.log "#{referrer} referred #{username}"
 
-            _queue.next()
+            queue.next()
 
-      -> queue.next()
+      ->
+        return callback null
 
     ]
 
-    daisy _queue
+    daisy queue
 
 
-  createDefaultStackForKodingGroup = (options, queue) ->
+  createDefaultStackForKodingGroup = (options, callback) ->
 
     { account } = options
 
@@ -1398,7 +1399,7 @@ module.exports = class JUser extends jraphical.Module
       # We are not returning error here on purpose, even stack template
       # not created for a user we don't want to break registration process
       # at all ~ GG
-      queue.next()
+      callback null
 
 
   confirmAccountIfNeeded = (options, callback) ->
@@ -1501,7 +1502,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        updateAccountInfo { account, referrer, username }, queue, callback
+        updateAccountInfo { account, referrer, username }, (err) ->
+          return callback err  if err
+          queue.next()
 
       =>
         groupNames = [client.context.group, 'koding']
@@ -1511,7 +1514,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        createDefaultStackForKodingGroup { account }, queue
+        createDefaultStackForKodingGroup { account }, (err) ->
+          return callback err  if err
+          queue.next()
 
       ->
         user.setPassword password, (err) ->
