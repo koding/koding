@@ -1329,7 +1329,7 @@ module.exports = class JUser extends jraphical.Module
 
         JUser.changeUsernameByAccount _options, (err, newToken_) ->
           return callback err  if err
-          newToken = newToken
+          newToken = newToken_
           queue.next()
 
       ->
