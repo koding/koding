@@ -1291,15 +1291,15 @@ module.exports = class JUser extends jraphical.Module
       callback null, { user, account }
 
 
-  updateUserInfo = (options, queue, callback, fetchData) ->
+  updateUserInfo = (options, callback) ->
 
     { user, ip, country, region, username, client, account, clientId } = options
 
-    _queue = [
+    queue = [
 
       ->
         # updating user's location related info
-        return _queue.next()  unless ip? and country? and region?
+        return queue.next()  unless ip? and country? and region?
 
         locationModifier =
           $set                       :
@@ -1308,15 +1308,15 @@ module.exports = class JUser extends jraphical.Module
             'registeredFrom.country' : country
 
         user.update locationModifier, ->
-          _queue.next()
+          queue.next()
 
       ->
         JUser.persistOauthInfo username, client.sessionToken, (err) ->
           return callback err  if err
-          _queue.next()
+          queue.next()
 
       ->
-        return _queue.next()  unless username?
+        return queue.next()  unless username?
 
         _options =
           account        : account
@@ -1327,15 +1327,11 @@ module.exports = class JUser extends jraphical.Module
 
         JUser.changeUsernameByAccount _options, (err, newToken_) ->
           return callback err  if err
-          fetchData newToken_
-          _queue.next()
-
-      ->
-        queue.next()
+          return callback null, newToken_
 
     ]
 
-    daisy _queue
+    daisy queue
 
 
   updateAccountInfo = (options, queue, callback) ->
@@ -1487,18 +1483,22 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        userInfo =
-          { email, username, password, lastName, firstName, emailFrequency }
-
+        userInfo = {
+          email, username, password, lastName, firstName, emailFrequency
+        }
         createUser { userInfo }, (err, data) ->
           return callback err  if err
           { user, account } = data
           queue.next()
 
       ->
-        updateUserInfo {
+        params = {
           user, ip, country, region, username, client, account, clientId
-        }, queue, callback, (newToken_) -> newToken = newToken_
+        }
+        updateUserInfo params, (err, newToken_) ->
+          return callback err  if err
+          newToken = newToken_
+          queue.next()
 
       ->
         updateAccountInfo { account, referrer, username }, queue, callback
