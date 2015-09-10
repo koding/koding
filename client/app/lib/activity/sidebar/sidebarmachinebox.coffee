@@ -45,7 +45,9 @@ module.exports = class SidebarMachineBox extends KDView
 
   handleStateChanged: (state) ->
 
-    @machineItem.settingsIcon.show()  if state is Machine.State.Running
+    if state is Machine.State.Running
+      kd.singletons.mainView.emit 'ShowCloseHandle'
+      @machineItem.settingsIcon.show()
 
 
   createMachineItem: ->
