@@ -1435,6 +1435,36 @@ module.exports = class JUser extends jraphical.Module
         callback err, confirmation.pin
 
 
+  validateConvert = (options, callback) ->
+
+    { slug, email, client, invitationToken,
+      recaptcha, userFormData, foreignAuthType } = options
+
+    invitation = null
+
+    queue = [
+
+      ->
+        params = { slug, email, recaptcha, userFormData, foreignAuthType }
+        verifyUser params, (err) ->
+          return callback err  if err
+          queue.next()
+
+      ->
+        params = { email, client, invitationToken }
+        verifyEnrollmentEligibility params, (err, invitation_) ->
+          return callback err  if err
+          invitation = invitation_
+          queue.next()
+
+
+      -> callback null, { invitation }
+
+    ]
+
+    daisy queue
+
+
   @convert = secure (client, userFormData, callback) ->
 
     { slug, email, agree, username, lastName, referrer,
@@ -1483,16 +1513,13 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        params = { slug, email, recaptcha, userFormData, foreignAuthType }
-        verifyUser params, (err) ->
+        params = {
+          slug, email, client, invitationToken,
+          recaptcha, userFormData, foreignAuthType
+        }
+        validateConvert params, (err, data) ->
           return callback err  if err
-          queue.next()
-
-      ->
-        params = { email, client, invitationToken }
-        verifyEnrollmentEligibility params, (err, invitation_) ->
-          return callback err  if err
-          invitation = invitation_
+          { invitation } = data
           queue.next()
 
       ->
