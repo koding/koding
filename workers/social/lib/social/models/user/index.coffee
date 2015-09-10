@@ -1414,7 +1414,7 @@ module.exports = class JUser extends jraphical.Module
     if KONFIG.autoConfirmAccounts or group isnt 'koding'
       user.confirmEmail (err) ->
         console.warn err  if err?
-        queue.next()
+        return callback err
 
     else
       _options =
@@ -1527,10 +1527,9 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        # Auto confirm accounts for development environment
-        # This config should be no for production! ~ GG
-        group = client.context.group
-        confirmAccountIfNeeded { user, email, username, group }, (err, pin_) ->
+        # Auto confirm accounts for development environment or Teams ~ GG
+        options = { group : client.context.group, user, email, username }
+        confirmAccountIfNeeded options, (err, pin_) ->
           return callback err  if err
           pin = pin_
           queue.next()
