@@ -210,11 +210,13 @@ module.exports =
   clickAddKodingVMButton: (browser) ->
 
     modalSelector  = '.environments-modal'
-    buttonSelector = modalSelector + ' .kdbutton.add-vm-button'
+    itemSelector   = "#{modalSelector} .machines-item:not(.header)"
+    buttonSelector = "#{modalSelector} .kdbutton.add-vm-button"
 
     browser
-      .waitForElementVisible   modalSelector, 20000 # Assertion
-      .waitForElementVisible   buttonSelector, 20000 # Assertion
+      .waitForElementVisible   modalSelector,  50000 # Assertion
+      .waitForElementVisible   itemSelector,   50000 # Assertion
+      .waitForElementVisible   buttonSelector, 50000 # Assertion
       .click                   buttonSelector
 
 
@@ -264,11 +266,10 @@ module.exports =
   clickCreateVMButton: (browser) ->
 
     browser
-      .waitForElementVisible    '.env-modal.paid-plan', 25000
+      .waitForElementVisible    '.env-modal.paid-plan', 50000
       .click                    '.env-modal.paid-plan button'
-      .waitForElementNotVisible '.env-modal.paid-plan', 250000
-      .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 25000
-      .end()
+      .waitForElementNotVisible '.env-modal.paid-plan', 50000
+      .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 50000
 
 
   nameVM: (browser, name) ->
