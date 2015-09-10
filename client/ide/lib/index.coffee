@@ -8,6 +8,7 @@ KDView                        = kd.View
 whoami                        = require 'app/util/whoami'
 globals                       = require 'globals'
 kookies                       = require 'kookies'
+Encoder                       = require 'htmlencode'
 Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
@@ -959,7 +960,7 @@ class IDEAppController extends AppController
 
       """
         <p class="line">#{++cursor.row}:#{++cursor.column}</p>
-        <p>#{FSHelper.minimizePath filePath}</p>
+        <p>#{Encoder.XSSEncode FSHelper.minimizePath filePath}</p>
       """
 
     else if component is 'terminal' then "Terminal on #{data.machineName}"
@@ -1792,4 +1793,3 @@ class IDEAppController extends AppController
 
     @targetTabView = null
     @removeAllSplitRegions()
-
