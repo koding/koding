@@ -133,7 +133,7 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     fileName = helpers.createFile(browser, user)
-    ideHelpers.compressFileFolder(browser, user, fileName, 'zip')
+    ideHelpers.compressFileFolder(browser, user, 'file', fileName, 'zip')
 
     browser.end()
 
@@ -144,6 +144,6 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     fileName = helpers.createFile(browser, user)
-    ideHelpers.compressFileFolder(browser, user, fileName, 'targz')
+    ideHelpers.compressFileFolder(browser, user, 'file', fileName, 'targz')
 
     browser.end()
