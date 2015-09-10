@@ -1278,19 +1278,18 @@ module.exports = class JUser extends jraphical.Module
       queue.next()
 
 
-  createUser = (options, queue, callback, fetchData) ->
+  createUser = (options, callback) ->
 
     { userInfo } = options
 
     # creating a new user
-    JUser.createUser userInfo, (err, user_, account_) ->
+    JUser.createUser userInfo, (err, user, account) ->
       return callback err  if err
 
-      unless user_? and account_?
+      unless user? and account?
         return callback new KodingError 'Failed to create user!'
 
-      fetchData account_, user_
-      queue.next()
+      callback null, { user, account }
 
 
   updateUserInfo = (options, queue, callback, fetchData) ->
@@ -1489,15 +1488,12 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         userInfo =
-          email          : email
-          username       : username
-          password       : password
-          lastName       : lastName
-          firstName      : firstName
-          emailFrequency : emailFrequency
+          { email, username, password, lastName, firstName, emailFrequency }
 
-        createUser { userInfo }, queue, callback, (account_, user_) ->
-          [account, user] = [account_, user_]
+        createUser { userInfo }, (err, data) ->
+          return callback err  if err
+          { user, account } = data
+          queue.next()
 
       ->
         updateUserInfo {
