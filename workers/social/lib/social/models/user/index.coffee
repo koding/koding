@@ -1465,6 +1465,63 @@ module.exports = class JUser extends jraphical.Module
     daisy queue
 
 
+  processConvert = (options, callback) ->
+
+    { user, ip, country, region, clientId, account, client, referrer,
+    email, username, password, lastName, firstName, emailFrequency
+    invitation } = options
+
+    user     = null
+    error    = null
+    account  = null
+    newToken = null
+
+    queue = [
+
+      ->
+        userInfo = {
+          email, username, password, lastName, firstName, emailFrequency
+        }
+        createUser { userInfo }, (err, data) ->
+          return callback err  if err
+          { user, account } = data
+          queue.next()
+
+      ->
+        params = {
+          user, ip, country, region, username
+          password, clientId, account, client
+        }
+        updateUserInfo params, (err, newToken_) ->
+          return callback err  if err
+          newToken = newToken_
+          queue.next()
+
+      ->
+        updateAccountInfo { account, referrer, username }, (err) ->
+          return callback err  if err
+          queue.next()
+
+      ->
+        groupNames = [client.context.group, 'koding']
+
+        JUser.addToGroups account, groupNames, user.email, invitation, (err) ->
+          error = err
+          queue.next()
+
+      ->
+        createDefaultStackForKodingGroup { account }, (err) ->
+          return callback err  if err
+          queue.next()
+
+      -> callback null, { error, newToken, user, account }
+
+    ]
+
+    daisy queue
+
+
+
   @convert = secure (client, userFormData, callback) ->
 
     { slug, email, agree, username, lastName, referrer,
@@ -1523,39 +1580,14 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        userInfo = {
-          email, username, password, lastName, firstName, emailFrequency
-        }
-        createUser { userInfo }, (err, data) ->
-          return callback err  if err
-          { user, account } = data
-          queue.next()
-
-      ->
         params = {
-          user, ip, country, region, username
-          password, clientId, account, client
+          user, ip, country, region, clientId, account, client, referrer,
+          email, username, password, lastName, firstName, emailFrequency
+          invitation
         }
-        updateUserInfo params, (err, newToken_) ->
+        processConvert params, (err, data) ->
           return callback err  if err
-          newToken = newToken_
-          queue.next()
-
-      ->
-        updateAccountInfo { account, referrer, username }, (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        groupNames = [client.context.group, 'koding']
-
-        @addToGroups account, groupNames, user.email, invitation, (err) ->
-          error = err
-          queue.next()
-
-      ->
-        createDefaultStackForKodingGroup { account }, (err) ->
-          return callback err  if err
+          { error, newToken, user, account } = data
           queue.next()
 
       ->
@@ -2020,3 +2052,5 @@ module.exports = class JUser extends jraphical.Module
 
     selector.username = @username
     JSession.remove selector, callback
+
+
