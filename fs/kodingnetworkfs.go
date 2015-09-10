@@ -3,16 +3,20 @@ package fs
 import (
 	"log"
 	"os"
+	"sync"
+
+	"golang.org/x/net/context"
 
 	"github.com/jacobsa/fuse"
+	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/config"
 	"github.com/koding/fuseklient/transport"
 )
 
-// FileSystem implements fuse.FileSystem to let users mount folders on their
-// Koding VMs to their local.
-type FileSystem struct {
+// KodingNetworkFS, ie Koding Network File System, implements `fuse.FileSystem` to let
+// users mount folders on their VMs to their local.
+type KodingNetworkFS struct {
 	// Transport is two way communication layer with user VM.
 	transport.Transport
 
@@ -33,10 +37,19 @@ type FileSystem struct {
 
 	// MountConfig is optional config sent to `fuse.Mount`.
 	MountConfig *fuse.MountConfig
+
+	// Ctx is the context used in joining filesystem.
+	Ctx context.Context
+
+	// RWMutex protects the fields below.
+	sync.RWMutex
+
+	// liveNodes is collection of inodes in use by Kernel.
+	liveNodes map[fuseops.InodeID]*Node
 }
 
-// NewFileSystemServer is the required initializer for FileSystem.
-func NewFileSystem(t transport.Transport, c *config.FuseConfig) *FileSystem {
+// NewKNFS is the required initializer for KodingNetworkFS.
+func NewKNFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
 	mountConfig := &fuse.MountConfig{
 		FSName: c.MountName,
 
@@ -62,25 +75,66 @@ func NewFileSystem(t transport.Transport, c *config.FuseConfig) *FileSystem {
 		mountConfig.DebugLogger = log.New(os.Stdout, "fk_debug: ", log.Lshortfile)
 	}
 
-	return &FileSystem{
+	nodes := map[fuseops.InodeID]*Node{
+		fuseops.RootInodeID: &Node{
+			Attrs: fuseops.InodeAttributes{Mode: 0700 | os.ModeDir},
+		},
+	}
+
+	return &KodingNetworkFS{
 		Transport:   t,
 		RemotePath:  c.RemotePath,
 		LocalPath:   c.LocalPath,
 		MountConfig: mountConfig,
+		RWMutex:     sync.RWMutex{},
+		liveNodes:   nodes,
 	}
 }
 
 // Mount mounts an specified folder on user VM using Fuse in the specificed
 // local path.
-func (f *FileSystem) Mount() error {
-	server := fuseutil.NewFileSystemServer(f)
-	_, err := fuse.Mount(f.LocalPath, server, f.MountConfig)
+func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
+	server := fuseutil.NewFileSystemServer(k)
+	return fuse.Mount(k.LocalPath, server, k.MountConfig)
+}
 
-	return err
+// Join mounts and blocks till it's unmounted.
+func (k *KodingNetworkFS) Join() error {
+	mountedFS, err := k.Mount()
+	if err != nil {
+		return err
+	}
+
+	// TODO: what context to use?
+	k.Ctx = context.TODO()
+
+	return mountedFS.Join(k.Ctx)
 }
 
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
-func (f *FileSystem) Unmount() error {
-	return unmount(f.LocalPath)
+func (k *KodingNetworkFS) Unmount() error {
+	return unmount(k.LocalPath)
+}
+
+// GetInodeAttributesOp returns list attributes of a specified Inode. It
+// returns `fuse.ENOENT` if inode doesn't exist in internal map.
+//
+// Required by Fuse.
+func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
+	k.RLock()
+	node, ok := k.liveNodes[op.Inode]
+	k.RUnlock()
+
+	if !ok {
+		return fuse.ENOENT
+	}
+
+	op.Attributes = node.Attrs
+
+	return nil
+}
+
+func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
+	return nil
 }
