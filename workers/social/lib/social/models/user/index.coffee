@@ -1434,8 +1434,8 @@ module.exports = class JUser extends jraphical.Module
 
   validateConvert = (options, callback) ->
 
-    { slug, email, client, invitationToken,
-      recaptcha, userFormData, foreignAuthType } = options
+    { client, userFormData, foreignAuthType } = options
+    { slug, email, invitationToken, recaptcha } = userFormData
 
     invitation = null
 
@@ -1464,9 +1464,10 @@ module.exports = class JUser extends jraphical.Module
 
   processConvert = (options, callback) ->
 
-    { user, ip, country, region, clientId, account, client, referrer,
-    email, username, password, lastName, firstName, emailFrequency
-    invitation } = options
+    { ip, country, region, client, invitation, userFormData } = options
+    { sessionToken : clientId } = client
+    { referrer, email, username, password,
+    emailFrequency, firstName, lastName } = userFormData
 
     user     = null
     error    = null
@@ -1528,11 +1529,10 @@ module.exports = class JUser extends jraphical.Module
     { clientIP, connection }    = client
     { delegate : account }      = connection
     { nickname : oldUsername }  = account.profile
-    { sessionToken : clientId } = client
 
     # if firstname is not received use username as firstname
-    firstName = username  if not firstName or firstName is ''
-    lastName  = ''        if not lastName
+    userFormData.firstName = username  if not firstName or firstName is ''
+    userFormData.lastName  = ''        if not lastName
 
     email = userFormData.email = emailsanitize email
 
@@ -1567,21 +1567,13 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        params = {
-          slug, email, client, invitationToken,
-          recaptcha, userFormData, foreignAuthType
-        }
-        validateConvert params, (err, data) ->
+        validateConvert { client, userFormData, foreignAuthType }, (err, data) ->
           return callback err  if err
           { invitation } = data
           queue.next()
 
       ->
-        params = {
-          user, ip, country, region, clientId, account, client, referrer,
-          email, username, password, lastName, firstName, emailFrequency
-          invitation
-        }
+        params = { ip, country, region, client, invitation, userFormData }
         processConvert params, (err, data) ->
           return callback err  if err
           { error, newToken, user, account } = data
