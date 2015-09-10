@@ -1248,8 +1248,7 @@ module.exports = class JUser extends jraphical.Module
 
           queue.next()
 
-      ->
-        callback null
+      -> callback null
 
     ]
 
@@ -1338,8 +1337,7 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err
           queue.next()
 
-      ->
-        callback null, newToken
+      -> callback null, newToken
 
     ]
 
@@ -1383,8 +1381,7 @@ module.exports = class JUser extends jraphical.Module
 
             queue.next()
 
-      ->
-        return callback null
+      -> callback null
 
     ]
 
