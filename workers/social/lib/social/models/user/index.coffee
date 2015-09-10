@@ -1215,7 +1215,7 @@ module.exports = class JUser extends jraphical.Module
       callback()
 
 
-  verifyUser = (options, queue, callback) ->
+  verifyUser = (options, callback) ->
 
     { slug
       email
@@ -1223,22 +1223,20 @@ module.exports = class JUser extends jraphical.Module
       userFormData
       foreignAuthType } = options
 
-    invitation = null
-
-    _queue = [
+    queue = [
 
       ->
         # verifying recaptcha if enabled
-        return _queue.next()  unless KONFIG.recaptcha.enabled
+        return queue.next()  unless KONFIG.recaptcha.enabled
 
         JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
           return callback err  if err
-          _queue.next()
+          queue.next()
 
       ->
         JUser.validateAll userFormData, (err) ->
           return callback err  if err
-          _queue.next()
+          queue.next()
 
       ->
         JUser.emailAvailable email, (err, res) ->
@@ -1248,14 +1246,14 @@ module.exports = class JUser extends jraphical.Module
           if res is no
             return callback new KodingError 'Email is already in use!'
 
-          _queue.next()
+          queue.next()
 
       ->
-        queue.next()
+        callback null
 
     ]
 
-    daisy _queue
+    daisy queue
 
 
   verifyEnrollmentEligibility = (options, queue, callback, fetchData) ->
@@ -1478,13 +1476,9 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        verifyUser {
-          slug
-          email
-          recaptcha
-          userFormData
-          foreignAuthType
-        }, queue, callback
+        verifyUser { slug, email, recaptcha, userFormData, foreignAuthType }, (err) ->
+          return callback err  if err
+          queue.next()
 
       ->
         verifyEnrollmentEligibility {
