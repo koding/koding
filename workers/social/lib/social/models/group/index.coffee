@@ -582,19 +582,40 @@ module.exports = class JGroup extends Module
   changeMemberRoles: permit 'grant permissions',
     success:(client, targetId, roles, callback) ->
       remove = []
+      revokedRoles = []
       sourceId = @getId()
       roles.push 'member'  unless 'member' in roles
-      Relationship.some { targetId, sourceId }, {}, (err, rels) ->
+      Relationship.some { targetId, sourceId }, {}, (err, rels) =>
         return callback err  if err
 
         for rel in rels
           if rel.as in roles then roles.splice roles.indexOf(rel.as), 1
-          else remove.push rel._id
+          else
+            remove.push rel._id
+            revokedRoles.push rel.as
 
-        if remove.length > 0
-          Relationship.remove { _id: { $in: remove } }, (err) -> console.log 'removed'; callback err  if err
+        queue = [
+          =>
+            @countAdmins (err, count) ->
+              return callback err  if err
 
-        queue = roles.map (role) -> ->
+              if count > 1 # this means we have more than one admin account
+                queue.next()
+              else
+                # get the diff between revokedRoles and roles, because revoked
+                # roles should not have admin role in this case
+                diff = difference revokedRoles, roles
+
+                # check if the diff has admin role
+                if diff.indexOf('admin') > -1
+                  return callback new KodingError 'There should be at least one admin'
+
+                queue.next()
+
+        ]
+
+        # create new roles
+        queue = queue.concat roles.map (role) -> ->
           (new Relationship
             targetName  : 'JAccount'
             targetId    : targetId
@@ -602,9 +623,23 @@ module.exports = class JGroup extends Module
             sourceId    : sourceId
             as          : role
           ).save (err) ->
-            callback err  if err
-            queue.fin()
-        dash queue, callback
+            return callback err  if err
+            queue.next()
+
+        # remove existing ones
+        queue = queue.concat [
+          ->
+            if remove.length > 0
+              Relationship.remove { _id: { $in: remove } }, (err) ->
+                return callback err  if err
+                queue.next()
+            else
+              queue.next()
+          ->
+            callback null
+        ]
+
+        daisy queue
 
   addDefaultRoles:(callback) ->
     group = this

@@ -1409,7 +1409,7 @@ module.exports = class JUser extends jraphical.Module
       queue.next()
 
 
-  confirmDevAccount = (options, queue, callback) ->
+  confirmDevAccount = (options, queue, callback, fetchData) ->
 
     { user, email, username } = options
 
@@ -1429,7 +1429,7 @@ module.exports = class JUser extends jraphical.Module
         if err
           console.warn 'Failed to send verification token:', err
         else
-          pin = confirmation.pin
+          fetchData confirmation.pin
 
         queue.next()
 
@@ -1543,7 +1543,7 @@ module.exports = class JUser extends jraphical.Module
         # This config should be no for production! ~ GG
         confirmDevAccount {
           user, email, username
-        }, queue, callback
+        }, queue, callback, (pin_) -> pin = pin_
 
       ->
         # don't block register
@@ -1559,7 +1559,7 @@ module.exports = class JUser extends jraphical.Module
       ->
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
-        Tracker.track username, { to : email, subject, jwtToken, pin }
+        Tracker.track username, { to : email, subject }, { jwtToken, pin }
         queue.next()
 
       ->
