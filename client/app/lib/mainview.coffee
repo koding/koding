@@ -190,6 +190,10 @@ module.exports = class MainView extends KDView
     kd.singletons.notificationController.on 'ParticipantUpdated', =>
       @sidebar.updateOffscreenIndicators()
 
+    @sidebar.on 'ShowCloseHandle', =>
+      @aside.setClass 'has-runningMachine'
+
+
   createPanelWrapper:->
 
     @addSubView @panelWrapper = new KDView
