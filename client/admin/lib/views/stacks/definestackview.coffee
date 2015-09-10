@@ -100,8 +100,8 @@ module.exports = class DefineStackView extends KDView
         @saveButton.disable()
 
     @tabView.on 'PaneDidShow', (pane) =>
+      @outputView.fall()
       if pane is providersPane
-        @outputView.fall()
         @setFooterVisibility 'hide'
       else
         @setFooterVisibility 'show'
@@ -170,7 +170,7 @@ module.exports = class DefineStackView extends KDView
       title          : 'Set as Default for Team'
       cssClass       : 'solid compact nav next hidden setasdefault-button'
       loader         : yes
-      callback       : @bound 'handleSetDefaultTemplate'
+      callback       : => @handleSetDefaultTemplate()
 
 
   handleSave: ->
@@ -243,17 +243,25 @@ module.exports = class DefineStackView extends KDView
                          template and try again"
         return
 
-      @outputView.add "You can now close this window, or set this
-                       template as default for your team members."
+      { groupsController } = kd.singletons
 
-      @cancelButton.setTitle 'Close'
-      @setAsDefaultButton.show()
+      currentGroup = groupsController.getCurrentGroup()
+
+      if not currentGroup.stackTemplates?.length
+        @handleSetDefaultTemplate completed = no
+
+      else
+        @outputView.add "You can now close this window, or set this
+                         template as default for your team members."
+
+        @cancelButton.setTitle 'Close'
+        @setAsDefaultButton.show()
 
 
   checkAndBootstrapCredentials: (callback) ->
 
     { credentialsData } = @stackTemplateView.credentialStatus
-    [credential]        = credentialsData
+    [ credential ]      = credentialsData
 
     failed = (err) =>
       @outputView.handleError err
@@ -504,7 +512,7 @@ module.exports = class DefineStackView extends KDView
       """
 
 
-  handleSetDefaultTemplate: ->
+  handleSetDefaultTemplate: (completed = yes) ->
 
     { stackTemplate }                       = @getData()
     { computeController, groupsController } = kd.singletons
@@ -518,15 +526,20 @@ module.exports = class DefineStackView extends KDView
 
     @outputView.add 'Setting this as default group stack template...'
 
-    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-      return if @outputView.handleError err
+    stackTemplate.setAccess 'group', (err) =>
+      return  if @outputView.handleError err
 
-      new kd.NotificationView
-        title : "Group (#{slug}) stack has been saved!"
-        type  : 'mini'
+      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
+        return  if @outputView.handleError err
 
-      computeController.createDefaultStack yes
-      computeController.checkStackRevisions()
+        new kd.NotificationView
+          title : "Team (#{slug}) stack has been saved!"
+          type  : 'mini'
 
-      @emit 'Reload'
-      @emit 'Completed', stackTemplate
+        computeController.createDefaultStack yes
+        computeController.checkStackRevisions()
+
+        @emit 'Reload'
+
+        if completed
+          @emit 'Completed', stackTemplate

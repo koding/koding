@@ -226,6 +226,22 @@ module.exports = class JMachine extends Module
         account.sendNotification 'MachineListUpdated', { machineUId, action }
 
 
+  validateTarget = (target, user, callback) ->
+    # At least one target is required
+    if not target or target.length is 0
+      return callback new KodingError 'A target required.'
+
+    # Max 9 target can be passed
+    if target.length > 9
+      return callback new KodingError \
+        'It is not allowed to change more than 9 state at once.'
+
+    # Owners cannot unassign them from a machine
+    # Only another owner can unassign any other owner
+    if user.username in target
+      return callback \
+        new KodingError 'You are not allowed to change your own state!'
+
   # Private Methods
   # ---------------
 
@@ -316,8 +332,6 @@ module.exports = class JMachine extends Module
 
     return selector
 
-  # due to a bug in coffeelint 1.10.1
-  # coffeelint: disable=no_implicit_braces
   # Instance Methods
 
   destroy: (client, callback) ->
@@ -339,11 +353,11 @@ module.exports = class JMachine extends Module
     for user in targets
       users = addUser users, { user, asOwner, permanent }
 
-    if users.length > 10
+    if users.length > 50
       callback new KodingError \
-        'Machine sharing is limited up to 10 users.'
+        'Machine sharing is limited up to 50 users.'
     else
-      @update $set: { users }, (err) =>
+      @update { $set: { users } }, (err) =>
         informAccounts targets, @getAt('uid'), 'added'
         callback err
 
@@ -357,7 +371,7 @@ module.exports = class JMachine extends Module
     for user in targets
       users = excludeUser { users, user, permanent }
 
-    @update $set: { users }, (err) =>
+    @update { $set: { users } }, (err) =>
       informAccounts targets, @getAt('uid'), 'removed'  if inform
       callback err
 
@@ -402,7 +416,7 @@ module.exports = class JMachine extends Module
     return errCb()  unless owner
 
     JUser = require '../user'
-    JUser.one _id: owner.id, (err, user) ->
+    JUser.one { _id: owner.id }, (err, user) ->
       return errCb()  if err or not user
       user.fetchOwnAccount callback
 
@@ -442,7 +456,7 @@ module.exports = class JMachine extends Module
       selector['users.id']  = user.getId()
       selector['groups.id'] = group.getId()
 
-      JMachine.some selector, limit: 30, (err, machines) ->
+      JMachine.some selector, { limit: 30 }, (err, machines) ->
         callback err, machines
 
 
@@ -459,7 +473,7 @@ module.exports = class JMachine extends Module
         'users.sudo'  : yes
         'users.owner' : yes
 
-      JMachine.some selector, limit: 30, (err, machines) ->
+      JMachine.some selector, { limit: 30 }, (err, machines) ->
         callback err, machines
 
 
@@ -484,7 +498,7 @@ module.exports = class JMachine extends Module
         if err or not provision?
           callback new KodingError 'Provisioner not found'
         else
-          @update $set: provisioners: [ provision.slug ], callback
+          @update { $set: { provisioners: [ provision.slug ] } }, callback
 
 
   reviveUsers: permit 'populate users',
@@ -553,9 +567,9 @@ module.exports = class JMachine extends Module
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, { slug, label }) =>
           return callback err  if err?
-          @update $set: { slug, label }, (err) -> kallback err, slug
+          @update { $set: { slug , label } }, (err) -> kallback err, slug
       else
-        @update $set: { label }, (err) -> kallback err, slug
+        @update { $set: { label } }, (err) -> kallback err, slug
 
 
   # .shareWith can be used like this:
@@ -586,20 +600,7 @@ module.exports = class JMachine extends Module
 
       { target, permanent, asUser } = options
 
-      # At least one target is required
-      if not target or target.length is 0
-        return callback new KodingError 'A target required.'
-
-      # Max 9 target can be passed
-      if target.length > 9
-        return callback new KodingError \
-          'It is not allowed to change more than 9 state at once.'
-
-      # Owners cannot unassign them from a machine
-      # Only another owner can unassign any other owner
-      if user.username in target
-        return callback \
-          new KodingError 'You are not allowed to change your own state!'
+      validateTarget target, user, callback
 
       # For Koding provider credential field is username
       # and we don't allow them to be removed from users
@@ -636,13 +637,13 @@ module.exports = class JMachine extends Module
 
   share: secure (client, users, callback) ->
 
-    options = target: users, asUser: yes
+    options = { target: users, asUser: yes }
     @shareWith$ client, options, callback
 
 
   unshare: secure (client, users, callback) ->
 
-    options = target: users, asUser: no
+    options = { target: users, asUser: no }
 
     { connection:{ delegate } } = client
     { profile:{ nickname } }    = delegate
@@ -678,10 +679,10 @@ module.exports = class JMachine extends Module
     if isOwner user, this
       return callback null
 
-    JMachine.update
+    JMachine.update {
       '_id'      : @getId()
       'users.id' : user._id
-    , $set       : 'users.$.approved' : yes
+    }, { $set : { 'users.$.approved' : yes } }
     , (err) =>
       options = { action: 'approve', @uid }
       client.connection.delegate.sendNotification 'MachineShareActionTaken', options

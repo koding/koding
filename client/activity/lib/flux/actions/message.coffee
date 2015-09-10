@@ -349,6 +349,28 @@ changeSelectedMessageBySlug = (slug) ->
     dispatch SET_SELECTED_MESSAGE_THREAD, { messageId: message.id }
 
 
+###*
+ * Sets message edit mode
+ *
+ * @param {string} messageId
+###
+setMessageEditMode = (messageId) ->
+
+  { SET_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch SET_MESSAGE_EDIT_MODE, { messageId }
+
+
+###*
+ * Unsets message edit mode
+ *
+ * @param {string} messageId
+###
+unsetMessageEditMode = (messageId) ->
+
+  { UNSET_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+
 module.exports = {
   loadMessages
   loadMessageBySlug
@@ -360,6 +382,8 @@ module.exports = {
   loadComments
   createComment
   changeSelectedMessage
+  setMessageEditMode
+  unsetMessageEditMode
   changeSelectedMessageBySlug
 }
 

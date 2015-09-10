@@ -1,4 +1,3 @@
-  # coffeelint: disable=no_implicit_braces
 { Base, signature, JsPath:{ getAt, setAt } } = require 'bongo'
 
 { argv }  = require 'optimist'
@@ -111,66 +110,65 @@ module.exports = class Github extends Base
    *                            	finished with an error as first argument
    *                            	and result data as second argument.
   ###
-  @api = permit 'api access', success: revive
+  @api = permit 'api access',
+    success: revive {
+      shouldReviveProvider : no
+      shouldHaveOauth      : OAUTH_PROVIDER
+    }, (client, _options, callback) ->
 
-    shouldReviveProvider : no
-    shouldHaveOauth      : OAUTH_PROVIDER
+      cbErr = (message) -> callback {
+        message: message or 'Insufficient parameters provided'
+      }
 
-  , (client, _options, callback) ->
+      # Make sure all required parameteres provided
+      { method, options, pluck } = _options
+      return cbErr()  if not method
 
-    cbErr = (message) -> callback {
-      message: message or 'Insufficient parameters provided'
-    }
+      options ?= {}
 
-    # Make sure all required parameteres provided
-    { method, options, pluck } = _options
-    return cbErr()  if not method
+      [ base, method ]    = method.split '.'
+      return cbErr()  if not base or not method
 
-    options ?= {}
+      # Callback wrapper to add some more
+      # functionality to default callback
+      cb = (err, response) ->
 
-    [ base, method ]    = method.split '.'
-    return cbErr()  if not base or not method
+        if err and err.toJSON?
 
-    # Callback wrapper to add some more
-    # functionality to default callback
-    cb = (err, response) ->
+          err = err.toJSON()
 
-      if err and err.toJSON?
+          # Unifying error object, original Error object includes
+          # err.message as another object but stringified, so we are
+          # making it ready for the client side here. If anything
+          # goes wrong it will be send to client as is
+          try
+            err.details = JSON.parse err.message
+            err.message = err.details.message
+            delete err.details.message
 
-        err = err.toJSON()
+        response = pluckProperties response, pluck
 
-        # Unifying error object, original Error object includes
-        # err.message as another object but stringified, so we are
-        # making it ready for the client side here. If anything
-        # goes wrong it will be send to client as is
-        try
-          err.details = JSON.parse err.message
-          err.message = err.details.message
-          delete err.details.message
+        callback err, response
 
-      response = pluckProperties response, pluck
+      # FIXME Forcing `per_page` option to max 10
+      # because of max_call_stack_size issue in Bongo
+      # Requires extensive debugging on Bongo.Base ~ GG
+      # When used with Pluck array we are able to fetch more ~ CtF
+      options.per_page = 10  unless pluck?.length
 
-      callback err, response
+      # Initialize Github api with client object
+      # client object includes required token
+      gh = initGithubFor client
 
-    # FIXME Forcing `per_page` option to max 10
-    # because of max_call_stack_size issue in Bongo
-    # Requires extensive debugging on Bongo.Base ~ GG
-    # When used with Pluck array we are able to fetch more ~ CtF
-    options.per_page = 10  unless pluck?.length
+      # Make sure provided base and method exists
+      unless gh[base]?[method]?
+        return cbErr "No such base:'#{base}' or method:'#{method}'"
 
-    # Initialize Github api with client object
-    # client object includes required token
-    gh = initGithubFor client
-
-    # Make sure provided base and method exists
-    unless gh[base]?[method]?
-      return cbErr "No such base:'#{base}' or method:'#{method}'"
-
-    try
-      # TODO We can add a whitelist of accepted methods/bases
-      # and check them before we try to execute them ~ CS, GG
-      gh[base][method] options, cb
-    catch err
-      cb err
+      try
+        # TODO We can add a whitelist of accepted methods/bases
+        # and check them before we try to execute them ~ CS, GG
+        gh[base][method] options, cb
+      catch err
+        cb err
 
 

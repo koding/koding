@@ -1,6 +1,3 @@
-# coffeelint: disable=space_operators
-# coffeelint: disable=no_implicit_braces
-# coffeelint: disable=no_unnecessary_double_quotes
 jraphical = require 'jraphical'
 KodingError = require '../error'
 
@@ -169,12 +166,12 @@ module.exports = class JTag extends jraphical.Module
     success: (client, formData, callback) ->
       { delegate } = client.connection
       if delegate.checkFlag ['super-admin', 'editor']
-        modifiedTag = { slug: formData.slug.trim(), _id: $ne: @getId() }
+        modifiedTag = { slug: formData.slug.trim(), _id: { $ne: @getId() } }
         JTag.one modifiedTag, (err, tag) =>
           if tag
             callback new KodingError 'Slug already exists!'
           else
-            @update $set: formData, (err) ->
+            @update { $set: formData }, (err) ->
               return callback err if err
               callback null
       else
@@ -184,7 +181,7 @@ module.exports = class JTag extends jraphical.Module
     [callback, selector] = [selector, callback] unless callback
 
     selector or= {}
-    selector['data.flags.isLowQuality'] = $ne: yes
+    selector['data.flags.isLowQuality'] = { $ne: yes }
     selector['status'] = { $ne: 'deleted' }
 
     @fetchContents selector, options, (err, contents) ->
@@ -208,7 +205,7 @@ module.exports = class JTag extends jraphical.Module
       existingTagIds = []
       daisy queue = [
         ->
-          fin = (i) -> if i is tagRefs.length-1 then queue.next()
+          fin = (i) -> if i is tagRefs.length - 1 then queue.next()
           tagRefs.forEach (tagRef, i) ->
             if tagRef?.$suggest?
               { group } = client.context
@@ -231,7 +228,7 @@ module.exports = class JTag extends jraphical.Module
               existingTagIds.push ObjectId tagRef.id
               fin i
         ->
-          JTag.all (_id: $in: existingTagIds), (err, existingTags) ->
+          JTag.all ({ _id: { $in: existingTagIds } }), (err, existingTags) ->
             if err
               callbackForEach err
             else
@@ -249,9 +246,9 @@ module.exports = class JTag extends jraphical.Module
           return callback err  if err
           callback null, tag
 
-  checkTagExistence = (tag, callback) =>
+  checkTagExistence = (tag, callback) ->
     { title, category } = tag
-    @one { title, category }, (err, tag) ->
+    JTag.one { title, category }, (err, tag) ->
       return callback err if err
       found = yes if tag
       callback null, found
@@ -269,7 +266,7 @@ module.exports = class JTag extends jraphical.Module
   addSynonym_ : (tag, callback) ->
     @addSynonym tag, (err) =>
       return callback err if err
-      @update $set: status :'synonym', (err) =>
+      @update { $set: { status :'synonym' } }, (err) =>
         return callback err if err
         @constructor.emit 'TagIsSynonym', this
         callback null
@@ -296,7 +293,7 @@ module.exports = class JTag extends jraphical.Module
   # for preventing synonym links we are checking for existing
   # child topics
   checkChildTopics : (callback) ->
-    Relationship.one 'targetId': @getId(), 'as': 'synonymOf', (err, childTopic) =>
+    Relationship.one { 'targetId': @getId() }, { 'as': 'synonymOf' }, (err, childTopic) =>
       return callback err if err
       if childTopic
         return callback new KodingError "##{@title} have child topics! You must first delete them"
@@ -331,11 +328,11 @@ module.exports = class JTag extends jraphical.Module
     }, {
       skip
       limit
-      sort    : 'title' : 1
+      sort    : { 'title' : 1 }
     }, callback
 
   delete_: (callback) ->
-    @update { $set: status: 'deleted' }, (err) =>
+    @update { $set: { status: 'deleted' } }, (err) =>
       return callback err if err
       @constructor.emit 'TagIsDeleted', this
       callback null
@@ -354,7 +351,7 @@ module.exports = class JTag extends jraphical.Module
         @delete_ => Relationship.remove { sourceId: @getId(), as: 'synonymOf' }, callback
 
       # check child topics and delete all
-      Relationship.all 'targetId': @getId(), 'as': 'synonymOf', (err, childTopicRels) =>
+      Relationship.all { 'targetId': @getId() }, { 'as': 'synonymOf' }, (err, childTopicRels) =>
         return callback err if err
         unless childTopicRels?.length then @delete_ callback
         else
@@ -391,7 +388,7 @@ module.exports = class JTag extends jraphical.Module
     setSelectorStatus client, selector
     @some selector, options, callback
 
-  @some$ = permit 'read tags', success: @_some
+  @some$ = permit 'read tags', { success: @_some }
 
   # fix: having read activity permission here may lead to obscurity - SY
   @fetchCount = permit 'read activity',
@@ -473,7 +470,7 @@ module.exports = class JTag extends jraphical.Module
       daisy queue = rels.map (r) ->
         ->
           JAccount = require './account'
-          JAccount.one _id: r.targetId, (err, acc) ->
+          JAccount.one { _id: r.targetId }, (err, acc) ->
             accounts.push acc  if not err and acc
             queue.next()
 

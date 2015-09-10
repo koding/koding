@@ -11,8 +11,9 @@ ChatInputFlux   = require 'activity/flux/chatinput'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
 Link            = require 'app/components/common/link'
+whoami          = require 'app/util/whoami'
 helpers         = require './helpers'
-groupifyLink   = require 'app/util/groupifyLink'
+groupifyLink    = require 'app/util/groupifyLink'
 
 
 module.exports = class ChatInputWidget extends React.Component
@@ -35,32 +36,31 @@ module.exports = class ChatInputWidget extends React.Component
 
   getDataBindings: ->
 
-    { getters }      = ActivityFlux
-    chatInputGetters = ChatInputFlux.getters
+    { getters } = ChatInputFlux
 
     return {
-      filteredEmojiList              : chatInputGetters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : chatInputGetters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : chatInputGetters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : chatInputGetters.filteredEmojiListQuery @stateId
-      commonEmojiList                : chatInputGetters.commonEmojiList
-      commonEmojiListSelectedItem    : chatInputGetters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : chatInputGetters.commonEmojiListVisibility @stateId
-      channels                       : getters.chatInputChannels @stateId
-      channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
-      channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
-      channelsQuery                  : getters.chatInputChannelsQuery @stateId
-      channelsVisibility             : getters.chatInputChannelsVisibility @stateId
-      users                          : getters.chatInputUsers @stateId
-      usersQuery                     : getters.chatInputUsersQuery @stateId
-      userSelectedIndex              : getters.chatInputUsersSelectedIndex @stateId
-      usersSelectedItem              : getters.chatInputUsersSelectedItem @stateId
-      usersVisibility                : getters.chatInputUsersVisibility @stateId
-      searchItems                    : getters.chatInputSearchItems @stateId
-      searchQuery                    : getters.chatInputSearchQuery @stateId
-      searchSelectedIndex            : getters.chatInputSearchSelectedIndex @stateId
-      searchSelectedItem             : getters.chatInputSearchSelectedItem @stateId
-      searchVisibility               : getters.chatInputSearchVisibility @stateId
+      filteredEmojiList              : getters.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
+      commonEmojiList                : getters.commonEmojiList
+      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      channels                       : getters.channels @stateId
+      channelsSelectedIndex          : getters.channelsSelectedIndex @stateId
+      channelsSelectedItem           : getters.channelsSelectedItem @stateId
+      channelsQuery                  : getters.channelsQuery @stateId
+      channelsVisibility             : getters.channelsVisibility @stateId
+      users                          : getters.users @stateId
+      usersQuery                     : getters.usersQuery @stateId
+      userSelectedIndex              : getters.usersSelectedIndex @stateId
+      usersSelectedItem              : getters.usersSelectedItem @stateId
+      usersVisibility                : getters.usersVisibility @stateId
+      searchItems                    : getters.searchItems @stateId
+      searchQuery                    : getters.searchQuery @stateId
+      searchSelectedIndex            : getters.searchSelectedIndex @stateId
+      searchSelectedItem             : getters.searchSelectedItem @stateId
+      searchVisibility               : getters.searchVisibility @stateId
     }
 
 
@@ -138,12 +138,19 @@ module.exports = class ChatInputWidget extends React.Component
 
   onPrevPosition: (event, keyInfo) ->
 
-    for dropbox in @getDropboxes()
-      continue  unless dropbox.isActive()
+    if event.target.value
+      for dropbox in @getDropboxes()
+        continue  unless dropbox.isActive()
 
-      stopEvent = dropbox.moveToPrevPosition keyInfo
-      kd.utils.stopDOMEvent event  if stopEvent
-      break
+        stopEvent = dropbox.moveToPrevPosition keyInfo
+        kd.utils.stopDOMEvent event  if stopEvent
+        break
+    else
+
+      return  unless keyInfo.isUpArrow
+
+      accountId = whoami()._id
+      ChatInputFlux.actions.message.setLastMessageEditMode accountId
 
 
   onDropboxItemConfirmed: (item) ->

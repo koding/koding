@@ -125,3 +125,25 @@ module.exports =
     ideHelpers.openFile(browser, user, fileName)
 
     browser.end()
+
+
+  compressFileZip: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    fileName = helpers.createFile(browser, user)
+    ideHelpers.compressFileFolder(browser, user, fileName, 'zip')
+
+    browser.end()
+
+
+  compressFileTarGz: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    fileName = helpers.createFile(browser, user)
+    ideHelpers.compressFileFolder(browser, user, fileName, 'targz')
+
+    browser.end()
