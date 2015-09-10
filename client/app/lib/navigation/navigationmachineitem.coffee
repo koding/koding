@@ -51,6 +51,8 @@ module.exports = class NavigationMachineItem extends JView
 
     super options, data
 
+    { computeController } = kd.singletons
+
     { @machine } = @getData()
     labelPartial = machine.label or @alias
 
@@ -70,12 +72,18 @@ module.exports = class NavigationMachineItem extends JView
 
     @createSettingsIcon()
 
-    kd.singletons.computeController
+    computeController
       .on "reconnecting-#{@machine.uid}", =>
         @setState 'reconnecting'
 
-      .on "public-#{@machine._id}", (event)=>
+      .on "public-#{@machine._id}", (event) =>
         @handleMachineEvent event
+
+    computeController.ready =>
+
+      if stack = computeController.findStackFromMachineId @machine._id
+        computeController.on "public-#{stack._id}", (event) =>
+          @handleMachineEvent event
 
     if not @machine.isMine() and not @machine.isApproved()
       @showSharePopup()
@@ -138,7 +146,7 @@ module.exports = class NavigationMachineItem extends JView
 
   handleMachineEvent: (event) ->
 
-    {percentage, status} = event
+    { percentage, status } = event
 
     # switch status
     #   when Machine.State.Terminated then @destroy()
