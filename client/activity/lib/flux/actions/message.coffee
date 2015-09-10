@@ -141,32 +141,31 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
-  postPromise = socialapi.message.post { channelId, clientRequestId, body }, (err, message) ->
-    if err
-      dispatch CREATE_MESSAGE_FAIL, {
-        err, channelId, clientRequestId
-      }
-      return
-
-    channel = socialapi.retrieveCachedItemById channelId
-
-    realtimeActionCreators.bindMessageEvents message
-    dispatch CREATE_MESSAGE_SUCCESS, {
-      message, channelId, clientRequestId, channel
-    }
-
   embedlyUrl = embedlyHelpers.extractUrl body
   if embedlyUrl
     embedlyPromise = fetchDataFromEmbedly embedlyUrl
+  else
+    embedlyPromise = Promise.resolve()
 
-    Promise
-      .all [ postPromise, embedlyPromise ]
-      .then (results) ->
-        { message } = results[0]
-        [ data ]    = results[1]
+  embedlyPromise.nodeify (err, result) ->
 
-        payload = embedlyHelpers.createMessagePayload data
-        editMessage message.id, message.body, payload
+    if result
+      data = result.first
+      payload = embedlyHelpers.createMessagePayload data
+
+    socialapi.message.post { channelId, clientRequestId, body, payload }, (err, message) ->
+      if err
+        dispatch CREATE_MESSAGE_FAIL, {
+          err, channelId, clientRequestId
+        }
+        return
+
+      channel = socialapi.retrieveCachedItemById channelId
+
+      realtimeActionCreators.bindMessageEvents message
+      dispatch CREATE_MESSAGE_SUCCESS, {
+        message, channelId, clientRequestId, channel
+      }
 
 
 ###*
@@ -397,16 +396,6 @@ fetchDataFromEmbedly = (url) ->
   { fetchDataFromEmbedly } = kd.singletons.socialapi.message
 
   fetchDataFromEmbedly url, options
-
-
-updateMessageEmbedData = (messageId, payload) ->
-
-  { UPDATE_MESSAGE_EMBED_DATA_BEGIN
-    UPDATE_MESSAGE_EMBED_DATA_SUCCESS
-    UPDATE_MESSAGE_EMBED_DATA_FAIL } = actionTypes
-
-  dispatch UPDATE_MESSAGE_EMBED_DATA_BEGIN, { messageId, payload }
-  dispatch UPDATE_MESSAGE_EMBED_DATA_SUCCESS, { messageId, payload }
 
 
 module.exports = {

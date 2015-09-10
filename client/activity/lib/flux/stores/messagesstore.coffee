@@ -62,8 +62,6 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.CREATE_COMMENT_SUCCESS, @handleCreateCommentSuccess
     @on actions.CREATE_COMMENT_FAIL, @handleCreateMessageFail
 
-    @on actions.UPDATE_MESSAGE_EMBED_DATA_SUCCESS, @handleUpdateEmbedDataSuccess
-
 
   ###*
    * Handler for message load actions.
@@ -326,14 +324,4 @@ module.exports = class MessagesStore extends KodingFluxStore
     { removeMessage } = MessageCollectionHelpers
 
     return removeMessage messages, messageId
-
-
-  handleUpdateEmbedDataSuccess: (messages, { messageId, payload }) ->
-
-    { addMessage } = MessageCollectionHelpers
-
-    message = messages.get messageId
-    message = message.set 'payload', toImmutable payload
-
-    return addMessage messages, message
 
