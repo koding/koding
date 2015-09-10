@@ -9,6 +9,7 @@ import (
 	realtimemodels "socialapi/workers/realtime/models"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/robfig/cron"
 )
@@ -226,9 +227,12 @@ func (mwc *Controller) UpdateIntegrations() {
 
 	i := webhookmodels.NewIntegration()
 	for _, integration := range integrations {
+		// Get integration from db, if cannot find in db, create it.
 		if err := i.ByName(integration.Name); err != nil {
-			if err = integration.Create(); err != nil {
-				mwc.log.Error("Could not create integration: %s", err)
+			if err == bongo.RecordNotFound {
+				if err = integration.Create(); err != nil {
+					mwc.log.Error("Could not create integration: %s", err)
+				}
 			}
 		}
 	}
