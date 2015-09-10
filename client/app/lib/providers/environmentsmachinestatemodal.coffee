@@ -391,7 +391,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @container.addSubView @actionButton
 
 
-  buildViews: (response)->
+  buildViews: (response) ->
 
     return  if @_busy
 
@@ -479,7 +479,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
                                            # state to show a modal
                                            # for unknown routes.
 
-    stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
+    stackBasedStates =
+      NotInitialized : 'is not build yet.'
+
+    if not isKoding() and @stack
+      stackText = stackBasedStates[@state] or stateTexts[@state]
+
+    stateText = "<strong>#{@machineName or ''}</strong> #{stackText}"
     return "<span class='icon'></span>#{stateText}"
 
 
@@ -534,17 +540,20 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   createStateButton: ->
 
+    # Don't display run button for managed vms
+    return  if @isManaged
+
     if @state in [Terminated, 'NotFound']
       title    = 'Create a new VM'
       callback = 'requestNewMachine'
 
       if not isKoding()
-        {groupsController} = kd.singletons
+        { groupsController } = kd.singletons
         return  unless groupsController.currentGroupHasStack()
 
-    else if @isManaged
-      # Display no button for managed.
-      return
+    else if not isKoding() and @stack
+      title    = 'Build Stack'
+      callback = 'turnOnMachine'
     else
       title    = 'Turn it on'
       callback = 'turnOnMachine'
@@ -680,18 +689,16 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
   turnOnMachine: ->
 
     computeController = kd.getSingleton 'computeController'
+    target            = @machine
 
-    target     = @machine
-    stack      = computeController.findStackFromMachineId @machine._id
-
-    if not isKoding() and stack
+    if not isKoding() and @stack
 
       if @state is NotInitialized
         action = 'buildStack'
-        target = stack
+        target = @stack
 
       if @machine.jMachine.generatedFrom?.templateId?
-        return  unless computeController.verifyStackRequirements stack
+        return  unless computeController.verifyStackRequirements @stack
 
     computeController.off  "error-#{target._id}"
 
