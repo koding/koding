@@ -5,7 +5,7 @@ KDTabHandleView     = kd.TabHandleView
 KDCustomHTMLView    = kd.CustomHTMLView
 IDEEditorPane       = require 'ide/workspace/panes/ideeditorpane'
 FSHelper            = require 'app/util/fs/fshelper'
-
+Encoder             = require 'htmlencode'
 
 module.exports = class IDETabHandleView extends KDTabHandleView
 
@@ -36,7 +36,7 @@ module.exports = class IDETabHandleView extends KDTabHandleView
     @titleText  = new KDView
       tagName  : 'b'
       cssClass : 'tab-handle-text'
-      partial  : title
+      partial  : Encoder.XSSEncode title
 
     view.addSubView @titleText
 
@@ -130,4 +130,3 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       @menu.once 'KDObjectWillBeDestroyed', =>
         @unsetClass 'menu-visible'
         @menu = null
-
