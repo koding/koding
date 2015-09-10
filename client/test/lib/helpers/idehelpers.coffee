@@ -168,21 +168,21 @@ module.exports =
 
   compressFileFolder: (browser, user, type, fileFolderName, compressType) ->
 
-    webPath         = '/home/' + user.username + '/Web'
-    name = fileFolderName
+    webPath     = '/home/' + user.username + '/Web'
+    name        = fileFolderName
 
     if type is 'folder'
-      webPath = '/home/' + user.username
-      name = fileFolderName.name
+      webPath   = '/home/' + user.username
+      name      = fileFolderName.name
 
-    fileFolderSelector    = "span[title='" + webPath + '/' + name + "']"
-    submenuSelector = "li.as-#{compressType}"
-    extension = '.zip'
+    fileFolderSelector  = "span[title='" + webPath + '/' + name + "']"
+    submenuSelector     = "li.as-#{compressType}"
+    extension           = '.zip'
 
     if compressType is 'targz'
       extension = '.tar.gz'
 
-    newFile         = "span[title='" + webPath + '/' + name + extension + "']"
+    newFile = "span[title='" + webPath + '/' + name + extension + "']"
 
     browser
       .waitForElementPresent     fileFolderSelector, 20000
