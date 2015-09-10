@@ -1293,7 +1293,10 @@ module.exports = class JUser extends jraphical.Module
 
   updateUserInfo = (options, callback) ->
 
-    { user, ip, country, region, username, client, account, clientId } = options
+    { user, ip, country, region, username,
+      client, account, clientId, password } = options
+
+    newToken = null
 
     queue = [
 
@@ -1327,7 +1330,16 @@ module.exports = class JUser extends jraphical.Module
 
         JUser.changeUsernameByAccount _options, (err, newToken_) ->
           return callback err  if err
-          return callback null, newToken_
+          newToken = newToken
+          queue.next()
+
+      ->
+        user.setPassword password, (err) ->
+          return callback err  if err
+          queue.next()
+
+      ->
+        callback null, newToken
 
     ]
 
@@ -1494,7 +1506,8 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         params = {
-          user, ip, country, region, username, client, account, clientId
+          user, ip, country, region, username
+          password, clientId, account, client
         }
         updateUserInfo params, (err, newToken_) ->
           return callback err  if err
@@ -1516,11 +1529,6 @@ module.exports = class JUser extends jraphical.Module
       ->
         createDefaultStackForKodingGroup { account }, (err) ->
           return callback err  if err
-          queue.next()
-
-      ->
-        user.setPassword password, (err) ->
-          return callback err  if err?
           queue.next()
 
       ->
