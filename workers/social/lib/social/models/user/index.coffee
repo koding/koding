@@ -1429,7 +1429,7 @@ module.exports = class JUser extends jraphical.Module
       JVerificationToken = require '../verificationtoken'
       JVerificationToken.createNewPin _options, (err, confirmation) ->
         console.warn 'Failed to send verification token:', err  if err
-        callback err, confirmation.pin
+        callback err, confirmation?.pin
 
 
   validateConvert = (options, callback) ->
