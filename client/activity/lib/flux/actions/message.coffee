@@ -165,7 +165,8 @@ createMessage = (channelId, body, payload) ->
         { message } = results[0]
         [ data ]    = results[1]
 
-        updateMessageEmbedData message.id, data
+        payload = embedlyHelpers.createMessagePayload data
+        editMessage message.id, message.body, payload
 
 
 ###*
@@ -398,14 +399,14 @@ fetchDataFromEmbedly = (url) ->
   fetchDataFromEmbedly url, options
 
 
-updateMessageEmbedData = (messageId, data) ->
+updateMessageEmbedData = (messageId, payload) ->
 
   { UPDATE_MESSAGE_EMBED_DATA_BEGIN
     UPDATE_MESSAGE_EMBED_DATA_SUCCESS
     UPDATE_MESSAGE_EMBED_DATA_FAIL } = actionTypes
 
-  dispatch UPDATE_MESSAGE_EMBED_DATA_BEGIN, { messageId, data }
-  dispatch UPDATE_MESSAGE_EMBED_DATA_SUCCESS, { messageId, data }
+  dispatch UPDATE_MESSAGE_EMBED_DATA_BEGIN, { messageId, payload }
+  dispatch UPDATE_MESSAGE_EMBED_DATA_SUCCESS, { messageId, payload }
 
 
 module.exports = {

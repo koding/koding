@@ -328,12 +328,12 @@ module.exports = class MessagesStore extends KodingFluxStore
     return removeMessage messages, messageId
 
 
-  handleUpdateEmbedDataSuccess: (messages, { messageId, data }) ->
+  handleUpdateEmbedDataSuccess: (messages, { messageId, payload }) ->
 
     { addMessage } = MessageCollectionHelpers
 
     message = messages.get messageId
-    message = message.set 'payload', data
+    message = message.set 'payload', toImmutable payload
 
     return addMessage messages, message
 

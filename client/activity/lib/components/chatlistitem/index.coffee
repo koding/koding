@@ -25,6 +25,7 @@ showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 MessageLink           = require 'activity/components/messagelink'
+EmbedBox              = require 'activity/components/embedbox'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -343,6 +344,17 @@ module.exports = class ChatListItem extends React.Component
       'editing': @state.editMode
 
 
+  renderEmbedBox: ->
+
+    { message } = @props
+    embedData   = message.get 'link'
+
+    if embedData
+      <EmbedBox data={embedData.toJS()} />
+    else
+      <span className='hidden' />
+
+
   render: ->
     { message } = @props
     <div {...@getItemProps()}>
@@ -363,6 +375,7 @@ module.exports = class ChatListItem extends React.Component
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}
