@@ -358,6 +358,10 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	if err != nil {
 		return err
 	}
+
+	sess.Log.Debug("Machines from state: %+v", output)
+	sess.Log.Debug("Build data region: %+v", buildData.Region)
+	sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
 	output.AppendRegion(buildData.Region)
 	output.AppendQueryString(buildData.KiteIds)
 
