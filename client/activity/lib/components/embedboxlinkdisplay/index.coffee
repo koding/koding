@@ -22,6 +22,6 @@ module.exports = class EmbedBoxLinkDisplay extends React.Component
 
     <div className={classNames}>
       <EmbedBoxLinkContent data={data} />
-      <EmbedBoxLinkImage data={data} />
+      { <EmbedBoxLinkImage data={data} /> if withImage }
     </div>
 
