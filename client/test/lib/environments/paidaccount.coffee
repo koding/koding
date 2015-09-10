@@ -210,4 +210,3 @@ module.exports =
         .waitForElementNotPresent  "#{snapshotListSelector} .info .label.#{snapshotName}", 20000
         .end()
 
-
