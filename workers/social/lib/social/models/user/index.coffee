@@ -1409,7 +1409,7 @@ module.exports = class JUser extends jraphical.Module
       queue.next()
 
 
-  confirmAccountIfNeeded = (options, queue, callback, fetchData) ->
+  confirmAccountIfNeeded = (options, callback) ->
 
     { user, email, username, group } = options
 
@@ -1426,13 +1426,8 @@ module.exports = class JUser extends jraphical.Module
 
       JVerificationToken = require '../verificationtoken'
       JVerificationToken.createNewPin _options, (err, confirmation) ->
-        if err
-          console.warn 'Failed to send verification token:', err
-        else
-          fetchData confirmation.pin
-
-        queue.next()
-
+        console.warn 'Failed to send verification token:', err  if err
+        callback err, confirmation.pin
 
 
   @convert = secure (client, userFormData, callback) ->
@@ -1538,10 +1533,13 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        # Auto confirm accounts for development environment or Teams ~ GG
-        confirmAccountIfNeeded {
-          user, email, username, group: client.context.group
-        }, queue, callback, (pin_) -> pin = pin_
+        # Auto confirm accounts for development environment
+        # This config should be no for production! ~ GG
+        group = client.context.group
+        confirmAccountIfNeeded { user, email, username, group }, (err, pin_) ->
+          return callback err  if err
+          pin = pin_
+          queue.next()
 
       ->
         # don't block register
