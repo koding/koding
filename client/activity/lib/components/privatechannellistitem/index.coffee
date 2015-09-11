@@ -17,13 +17,13 @@ module.exports = class PrivateChannelListItem extends React.Component
       isDeleting  : no
 
 
-  showDeletePostPromptModal: (event) ->
+  showDeleteChannelPromptModal: (event) ->
 
     kd.utils.stopDOMEvent event
     @setState isDeleting: yes
 
 
-  closeDeletePostModal: ->
+  closeDeleteChannelPromptModal: ->
 
     @setState isDeleting: no
 
@@ -34,14 +34,14 @@ module.exports = class PrivateChannelListItem extends React.Component
     body               : "Are you sure you want to delete this message?"
     buttonConfirmTitle : "DELETE"
     className          : "Modal-DeleteItemPrompt"
-    onConfirm          : @bound "deletePostButtonHandler"
-    onAbort            : @bound "closeDeletePostModal"
-    onClose            : @bound "closeDeletePostModal"
+    onConfirm          : @bound "deleteChannelButtonHandler"
+    onAbort            : @bound "closeDeleteChannelPromptModal"
+    onClose            : @bound "closeDeleteChannelPromptModal"
     className          : 'PrivateChannel-deletePromptModal'
     closeIcon          : no
 
 
-  deletePostButtonHandler: (event) ->
+  deleteChannelButtonHandler: (event) ->
 
     kd.utils.stopDOMEvent event
 
@@ -56,7 +56,7 @@ module.exports = class PrivateChannelListItem extends React.Component
     if @props.channel.get('typeConstant') is 'privatemessage'
       <button
         className="ChannelListItem-delete button"
-        onClick={@bound 'showDeletePostPromptModal'}>DELETE</button>
+        onClick={@bound 'showDeleteChannelPromptModal'}>DELETE</button>
 
 
   render: ->
