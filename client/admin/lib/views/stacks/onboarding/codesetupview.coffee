@@ -34,34 +34,33 @@ module.exports = class CodeSetupView extends JView
     pane.addSubView pane.view = @createServicesView()
     @tabHandleContainer.repositionPlusHandle @tabView.handles
 
+    pane.tabHandle.addSubView pane.instanceTypeLabel = new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'title'
+      partial  : 't2.micro'
+
+    @tabView.showPaneByIndex 0
+
 
   createServicesView: ->
 
     services = [ 'github', 'bitbucket', 'gitlab', 'owngitserver' ]
-
     servicesView = new kd.CustomHTMLView cssClass: 'services box-wrapper'
 
     services.forEach (service) =>
-      extraClass = 'coming-soon'
-      label      = 'Coming Soon'
-
-      if service in [ 'github', 'owngitserver' ]
-        extraClass = ''
-        label      = if service is 'owngitserver' then 'Your Git server' else ''
+      label = if service is 'owngitserver' then 'Your Git server' else ''
 
       servicesView.addSubView serviceView = new kd.CustomHTMLView
-        cssClass: "service box #{extraClass} #{service}"
+        cssClass: "service box #{service}"
         service : service
         partial : """
           <img class="#{service}" src="/a/images/providers/stacks/#{service}.png" />
           <div class="label">#{label}</div>
         """
         click: =>
-          return  if extraClass is 'coming-soon'
-
           serviceView.setClass  'selected'
-          @selected?.unsetClass 'selected'
-          @selected = if @selected is serviceView then null else serviceView
+          servicesView.selected?.unsetClass 'selected'
+          servicesView.selected = if servicesView.selected is serviceView then null else serviceView
           @emit 'UpdateStackTemplate'
 
     return servicesView
