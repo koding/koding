@@ -141,19 +141,8 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
-  embedlyUrl = embedlyHelpers.extractUrl body
-  if embedlyUrl
-    embedlyPromise = fetchEmbedData embedlyUrl
-  else
-    embedlyPromise = Promise.resolve()
-
-  embedlyPromise.nodeify (err, result) ->
-
-    if err
-      kd.log 'Embed.ly error!', err
-    else if result
-      data    = result.first
-      payload = embedlyHelpers.createMessagePayload data
+  fetchEmbedPayload { body, payload }, (embedPayload) ->
+    payload = _.assign {}, payload, embedPayload
 
     socialapi.message.post { channelId, clientRequestId, body, payload }, (err, message) ->
       if err
@@ -262,13 +251,16 @@ editMessage = (messageId, body, payload) ->
 
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-  socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
-    if err
-      dispatch EDIT_MESSAGE_FAIL, { err, messageId }
-      return
+  fetchEmbedPayload { body, payload }, (embedPayload) ->
+    payload = _.assign {}, payload, embedPayload
 
-    realtimeActionCreators.bindMessageEvents message
-    dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
+    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+      if err
+        dispatch EDIT_MESSAGE_FAIL, { err, messageId }
+        return
+
+      realtimeActionCreators.bindMessageEvents message
+      dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
 ###*
@@ -387,7 +379,11 @@ unsetMessageEditMode = (messageId) ->
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
 
 
-fetchEmbedData = (url) ->
+fetchEmbedPayload = (messageData, callback = kd.noop) ->
+
+  url = embedlyHelpers.extractUrl messageData.body
+  return callback()  unless url
+  return callback()  if messageData.payload?.link_url is url
 
   options = {
     maxWidth  : 530
@@ -397,7 +393,15 @@ fetchEmbedData = (url) ->
 
   { fetchDataFromEmbedly } = kd.singletons.socialapi.message
 
-  fetchDataFromEmbedly url, options
+  fetchDataFromEmbedly url, options, (err, result) ->
+
+    if err
+      kd.log 'Embed.ly error!', err
+    else if result
+      data    = result.first
+      payload = embedlyHelpers.createMessagePayload data
+
+    callback payload
 
 
 module.exports = {
