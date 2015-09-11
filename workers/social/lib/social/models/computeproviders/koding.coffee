@@ -95,6 +95,33 @@ module.exports = class Koding extends ProviderInterface
       JWorkspace.createDefault client, machine.uid, callback
 
 
+  updateHelper =
+
+    validateResizeByUserPlan : (resize, userPlan) ->
+      if isNaN resize
+        return new KodingError \
+        'Requested new size is not valid.', 'WrongParameter'
+      else if resize > userPlan.storage
+        return new KodingError \
+        """Requested new size exceeds allowed
+           limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+      else if resize < 3
+        return new KodingError \
+        """New size can't be less than 3GB.""", 'WrongParameter'
+
+    validateResizeByMachine : (options) ->
+      { resize, storageSize, usage, userPlan, machine } = options
+
+      if (resize - storageSize) + usage.storage > userPlan.storage
+        return new KodingError \
+        """Requested new size exceeds allowed
+           limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+      else if resize is machine.getAt 'meta.storage_size'
+        return new KodingError \
+        """Requested new size is same with current
+           storage size (#{resize}GB).""", 'SameValueForResize'
+
+
   @update = (client, options, callback) ->
 
     { machineId, alwaysOn, resize } = options
@@ -105,8 +132,6 @@ module.exports = class Koding extends ProviderInterface
         'A valid machineId and an update option required.', 'WrongParameter'
 
     provider = @providerSlug
-
-    JMachine = require './machine'
 
     { fetchUserPlan, fetchUsage } = require './computeutils'
 
@@ -126,16 +151,8 @@ module.exports = class Koding extends ProviderInterface
         if resize?
           resize = +resize
 
-          if isNaN resize
-            return callback new KodingError \
-            'Requested new size is not valid.', 'WrongParameter'
-          else if resize > userPlan.storage
-            return callback new KodingError \
-            """Requested new size exceeds allowed
-               limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
-          else if resize < 3
-            return callback new KodingError \
-            """New size can't be less than 3GB.""", 'WrongParameter'
+          if err = updateHelper.validateResizeByUserPlan resize, userPlan
+            return callback err
 
         { ObjectId } = require 'bongo'
 
@@ -153,37 +170,40 @@ module.exports = class Koding extends ProviderInterface
             $elemMatch :
               id       : group.getId()
 
-        JMachine.one selector, (err, machine) ->
+        updateMachine { selector, alwaysOn, resize, usage, userPlan }, callback
 
-          if err? or not machine?
-            err ?= new KodingError 'Machine object not found.'
-            return callback err
 
-          fieldsToUpdate = {}
+  updateMachine = (options, callback) ->
 
-          if alwaysOn?
-            fieldsToUpdate['meta.alwaysOn'] = alwaysOn
+    JMachine = require './machine'
+    { selector, alwaysOn, resize, usage, userPlan } = options
 
-          if resize?
+    JMachine.one selector, (err, machine) ->
+      if err? or not machine?
+        err ?= new KodingError 'Machine object not found.'
+        return callback err
 
-            storageSize = machine.meta?.storage_size ? 3
+      fieldsToUpdate = {}
 
-            if (resize - storageSize) + usage.storage > userPlan.storage
-              return callback new KodingError \
-              """Requested new size exceeds allowed
-                 limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
-            else if resize is machine.getAt 'meta.storage_size'
-              return callback new KodingError \
-              """Requested new size is same with current
-                 storage size (#{resize}GB).""", 'SameValueForResize'
+      if alwaysOn?
+        fieldsToUpdate['meta.alwaysOn'] = alwaysOn
 
-            fieldsToUpdate['meta.storage_size'] = resize
+      if resize?
 
-          machine.update
+        storageSize = machine.meta?.storage_size ? 3
 
-            $set: fieldsToUpdate
+        if err = updateHelper.validateResizeByMachine {
+          resize, storageSize, usage, userPlan, machine
+        }
+          return callback err
 
-          , (err) -> callback err
+        fieldsToUpdate['meta.storage_size'] = resize
+
+      machine.update
+
+        $set: fieldsToUpdate
+
+      , (err) -> callback err
 
 
   @fetchAvailable = (client, options, callback) ->

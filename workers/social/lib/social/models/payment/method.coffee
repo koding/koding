@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { Module, Relationship } = require 'jraphical'
 KodingError              = require '../../error'
 
@@ -120,7 +119,7 @@ module.exports = class JPaymentMethod extends Module
         return callback err  if err
         return callback new KodingError 'Access denied!'  unless hasTarget
 
-        JSession.one clientId: client.sessionToken, (err, session) =>
+        JSession.one { clientId: client.sessionToken }, (err, session) =>
           return callback err  if err
 
           ipAddress = session.clientIP or '(Unknown IP address)'

@@ -13,6 +13,23 @@ saveOauthAndRedirect = (resp, res, clientId, req) ->
     options = { provider, returnUrl }
     redirectOauth err, req, res, options
 
+
+fetchUserEmail = (req, res,  userEmailResp, originalResp) ->
+  { clientId }  = req.cookies
+  rawResp       = ''
+  userEmailResp.on 'data', (chunk) -> rawResp += chunk
+  userEmailResp.on 'end', ->
+    try
+      emails = JSON.parse(rawResp)
+    catch e
+      return redirectOauth 'could not parse github response', req, res, { provider }
+
+    for email in emails when email.verified and email.primary
+      originalResp.email = email.email
+
+    saveOauthAndRedirect originalResp, res, clientId, req
+
+
 module.exports = (req, res) ->
   { code, returnUrl } = req.query
   { clientId }        = req.cookies
@@ -88,24 +105,11 @@ module.exports = (req, res) ->
           path    : "/user/emails?access_token=#{access_token}"
           method  : 'GET'
           headers : headers
-        r = http.request options, (newResp) -> fetchUserEmail newResp, resp
+        r = http.request options, (newResp) ->
+          fetchUserEmail req, res,  newResp, resp
         r.end()
       else
         saveOauthAndRedirect resp, res, clientId, req
-
-  fetchUserEmail = (userEmailResp, originalResp) ->
-    rawResp = ''
-    userEmailResp.on 'data', (chunk) -> rawResp += chunk
-    userEmailResp.on 'end', ->
-      try
-        emails = JSON.parse(rawResp)
-      catch e
-        return redirectOauth 'could not parse github response', req, res, { provider }
-
-      for email in emails when email.verified and email.primary
-        originalResp.email = email.email
-
-      saveOauthAndRedirect originalResp, res, clientId, req
 
   path = '/login/oauth/access_token?'
   path += "client_id=#{github.clientId}&"
@@ -119,3 +123,5 @@ module.exports = (req, res) ->
     headers : headers
   r = http.request options, authorizeUser
   r.end()
+
+

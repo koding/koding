@@ -1,11 +1,10 @@
-actions    = require 'activity/flux/chatinput/actions/actiontypes'
-QueryStore = require 'activity/flux/chatinput/stores/chatinputquerystore'
-
+actions        = require 'activity/flux/chatinput/actions/actiontypes'
+BaseQueryStore = require 'activity/flux/chatinput/stores/basequerystore'
 
 ###*
  * Store to contain filtered emoji list query
 ###
-module.exports = class FilteredEmojiListQueryStore extends QueryStore
+module.exports = class FilteredEmojiListQueryStore extends BaseQueryStore
 
   @getterPath = 'FilteredEmojiListQueryStore'
 
