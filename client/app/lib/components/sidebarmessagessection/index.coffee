@@ -32,6 +32,17 @@ module.exports = class SidebarMessagesSection extends React.Component
 
     @setState browsePrivateChannels: yes
 
+
+  renderPrivateChannelsModal: ->
+
+    <Modal
+      className='ChannelList-Modal'
+      isOpen={@state.browsePrivateChannels}
+      closeOnOutsideClick=no
+      onClose={@bound 'onClose'}>
+      <ChannelList
+        title='Other Messages:'
         threads={@props.threads}
-        selectedId={@props.selectedId} />
-    </SidebarSection>
+        itemComponent={PrivateChannelListItem}/>
+    </Modal>
+
