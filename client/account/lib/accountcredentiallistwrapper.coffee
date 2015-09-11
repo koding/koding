@@ -71,9 +71,6 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
     Object.keys(providers).forEach (provider) =>
 
-      return  if provider is 'custom'
-      return  if Object.keys(providers[provider].credentialFields).length is 0
-
       list.push
         key   : provider
         title : providers[provider].title
