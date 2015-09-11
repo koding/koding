@@ -1,8 +1,7 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
 
-
-module.exports = class ChannelListItem extends React.Component
+module.exports = class PublicChannelListItem extends React.Component
 
   @defaultProps =
     channel  : null
