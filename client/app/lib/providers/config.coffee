@@ -17,7 +17,7 @@ module.exports = globals.config.providers =
   aws                      :
     name                   : "Amazon Web Services"
     link                   : "https://aws.amazon.com"
-    title                  : "AWS Credential"
+    title                  : "AWS"
     description            : "Amazon Web Services"
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
@@ -52,21 +52,21 @@ module.exports = globals.config.providers =
   koding                   :
     name                   : "Koding"
     link                   : "https://koding.com"
-    title                  : "Koding Credential"
+    title                  : "Koding"
     description            : "Koding rulez."
     credentialFields       : {}
 
   managed                  :
     name                   : "Managed VMs"
     link                   : "https://koding.com"
-    title                  : "Managed VM Credential"
+    title                  : "Managed VM"
     description            : "Use your power."
     credentialFields       : {}
 
   google                   :
     name                   : "Google Compute Engine"
     link                   : "https://cloud.google.com/products/compute-engine/"
-    title                  : "Google Cloud Credential"
+    title                  : "Google Cloud"
     description            : "Google compute engine"
     credentialFields       :
       projectId            :
@@ -88,7 +88,7 @@ module.exports = globals.config.providers =
   engineyard               :
     name                   : "EngineYard"
     link                   : "https://www.engineyard.com/"
-    title                  : "EngineYard Credential"
+    title                  : "EngineYard"
     description            : "EngineYard"
     credentialFields       :
       accountId            :
@@ -102,7 +102,7 @@ module.exports = globals.config.providers =
   digitalocean             :
     name                   : "Digital Ocean"
     link                   : "https://digitalocean.com"
-    title                  : "Digitalocean Credential"
+    title                  : "Digitalocean"
     description            : "Digitalocean droplets"
     credentialFields       :
       clientId             :
@@ -115,7 +115,7 @@ module.exports = globals.config.providers =
   rackspace                :
     name                   : "Rackspace"
     link                   : "http://www.rackspace.com"
-    title                  : "Rackspace Credential"
+    title                  : "Rackspace"
     description            : "Rackspace machines"
     credentialFields       :
       username             :
