@@ -46,3 +46,10 @@ module.exports = class SidebarMessagesSection extends React.Component
         itemComponent={PrivateChannelListItem}/>
     </Modal>
 
+
+  renderMoreLink: ->
+
+    { threads, previewCount } = @props
+
+    if threads.size > previewCount
+      <a className='SidebarList-showMore' onClick={@bound 'showPrivateChannelsModal'}>More ...</a>
