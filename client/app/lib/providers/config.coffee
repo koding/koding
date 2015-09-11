@@ -85,18 +85,18 @@ module.exports = globals.config.providers =
       #   placeholder        : "google zone"
       #   defaultValue       : "us-central1-a"
 
-  engineyard               :
-    name                   : "EngineYard"
-    link                   : "https://www.engineyard.com/"
-    title                  : "EngineYard"
-    description            : "EngineYard"
+  azure                    :
+    name                   : "Azure"
+    link                   : "https://azure.microsoft.com/"
+    title                  : "Azure"
+    description            : "Azure"
     credentialFields       :
       accountId            :
         label              : "Account Id"
-        placeholder        : "account id in engineyard"
+        placeholder        : "account id in azure"
       secret               :
         label              : "Secret"
-        placeholder        : "engineyard secret"
+        placeholder        : "azure secret"
         type               : "password"
 
   digitalocean             :
