@@ -2,7 +2,6 @@ React                 = require 'kd-react'
 immutable             = require 'immutable'
 ActivityFlux          = require 'activity/flux'
 Scroller              = require 'app/components/scroller'
-ChannelListItem       = require 'activity/components/channellistitem'
 
 module.exports = class ChannelList extends React.Component
 
@@ -67,17 +66,17 @@ module.exports = class ChannelList extends React.Component
 
   renderChildren: ->
 
-    { threads } = @props
+    { itemComponent: Component, threads } = @props
 
     threads.map (thread, i) ->
       itemProps =
         key     : thread.get 'channelId'
         channel : thread.get 'channel'
-
-      <ChannelListItem {...itemProps} />
+      <Component {...itemProps} />
 
 
   renderChannelList: ->
+
     <div className='ChannelList'>
       <Scroller
         onThresholdReached={@bound 'onThresholdReached'}
@@ -88,6 +87,7 @@ module.exports = class ChannelList extends React.Component
 
 
   render: ->
+
     <div className='ChannelListWrapper'>
       {@renderHeader()}
       {@renderChannelList()}
