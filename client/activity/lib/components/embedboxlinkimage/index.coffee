@@ -5,11 +5,11 @@ proxifyUrl = require 'app/util/proxifyUrl'
 module.exports = class EmbedBoxLinkImage extends React.Component
 
   @defaultProps =
-    data       : {}
-    width      : 100
-    height     : 100
-    crop       : yes
-    grow       : yes
+    data   : {}
+    width  : 100
+    height : 100
+    crop   : yes
+    grow   : yes
 
 
   handleError: ->
@@ -21,7 +21,7 @@ module.exports = class EmbedBoxLinkImage extends React.Component
   render: ->
 
     { data, width, height, crop, grow } = @props
-    { link_url, link_embed }           = data
+    { link_url, link_embed }            = data
 
     imageOptions = { width, height, crop, grow }
     srcUrl       = proxifyUrl link_embed.images?[0]?.url, imageOptions

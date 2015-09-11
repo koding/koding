@@ -48,3 +48,4 @@ module.exports = class EmbedBoxLinkContent extends React.Component
       { @renderDescription() }
       { @renderProvider() }
     </div>
+

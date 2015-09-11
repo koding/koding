@@ -36,7 +36,7 @@ module.exports = class EmbedBoxImage extends React.Component
 
     { link_url } = @props.data
 
-    <a href={link_url ? '#'} target='_blank' className='EmbedBoxImage'>
+    <a href={link_url} target='_blank' className='EmbedBoxImage'>
       { @renderImage() }
     </a>
 

@@ -18,7 +18,7 @@ module.exports = class EmbedBoxLinkDisplay extends React.Component
     withImage  = link_embed.images?.length > 0
     classNames = classnames
       'EmbedBoxLinkDisplay' : yes
-      'withImage'       : withImage
+      'withImage'           : withImage
 
     <div className={classNames}>
       <EmbedBoxLinkContent data={data} />

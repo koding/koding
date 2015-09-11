@@ -5,7 +5,7 @@ Encoder    = require 'htmlencode'
 extractUrl = (text) ->
 
   urls = urlGrabber text
-  url = urls.first
+  url  = urls.first
 
   return  unless url
 

@@ -14,6 +14,7 @@ module.exports = class EmbedBox extends React.Component
 
   @defaultProps =
     data : {}
+    type : ''
 
 
   renderEmbedBoxImage: ->
@@ -59,3 +60,4 @@ module.exports = class EmbedBox extends React.Component
     <div className='EmbedBox-container clearfix'>
       { @renderEmbedBoxContent embedType }
     </div>
+
