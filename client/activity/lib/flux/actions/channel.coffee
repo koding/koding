@@ -6,6 +6,7 @@ getGroup                = require 'app/util/getGroup'
 MessageActions          = require './message'
 realtimeActionCreators  = require './realtime/actioncreators'
 showErrorNotification   = require 'app/util/showErrorNotification'
+remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -221,41 +222,47 @@ loadChannelsByQuery = (query, options = {}) ->
 
 
 ###*
- * Action to set visibility of chat input channels
+ * Action to follow channel by given channelId and accountId
+ *
+ * @param {string} channelId
+ * @param {string} accountId
 ###
-followChannel = (channelId) ->
+followChannel = (channelId, accountId) ->
 
   { follow } = kd.singletons.socialapi.channel
   { FOLLOW_CHANNEL_BEGIN, FOLLOW_CHANNEL_SUCCESS, FOLLOW_CHANNEL_FAIL } = actionTypes
 
-  dispatch FOLLOW_CHANNEL_BEGIN, { channelId }
+  dispatch FOLLOW_CHANNEL_BEGIN, { channelId, accountId }
 
   follow { channelId }, (err) ->
 
     if err
-      dispatch FOLLOW_CHANNEL_FAIL, { err, channelId }
+      dispatch FOLLOW_CHANNEL_FAIL, { err, channelId, accountId }
       return
 
-    dispatch FOLLOW_CHANNEL_SUCCESS, { channelId }
+    dispatch FOLLOW_CHANNEL_SUCCESS, { channelId, accountId }
 
 
 ###*
- * Action to set visibility of chat input channels
+ * Action to unfollow channel by given channelId and accountId
+ *
+ * @param {string} channelId
+ * @param {string} accountId
 ###
-unfollowChannel = (channelId) ->
+unfollowChannel = (channelId, accountId) ->
 
   { unfollow } = kd.singletons.socialapi.channel
   { UNFOLLOW_CHANNEL_BEGIN, UNFOLLOW_CHANNEL_SUCCESS, UNFOLLOW_CHANNEL_FAIL } = actionTypes
 
-  dispatch UNFOLLOW_CHANNEL_BEGIN, { channelId }
+  dispatch UNFOLLOW_CHANNEL_BEGIN, { channelId, accountId }
 
   unfollow { channelId }, (err) ->
 
     if err
-      dispatch UNFOLLOW_CHANNEL_FAIL, { err, channelId }
+      dispatch UNFOLLOW_CHANNEL_FAIL, { err, channelId, accountId }
       return
 
-    dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId }
+    dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId, accountId }
 
 
 ###*
