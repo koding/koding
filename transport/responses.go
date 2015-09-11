@@ -3,6 +3,7 @@ package transport
 import (
 	"encoding/base64"
 	"encoding/json"
+	"os"
 )
 
 type FsReadDirectoryRes struct {
@@ -10,16 +11,16 @@ type FsReadDirectoryRes struct {
 }
 
 type FsGetInfoRes struct {
-	Exists   bool   `json:"exists"`
-	FullPath string `json:"fullPath"`
-	IsBroken bool   `json:"isBroken"`
-	IsDir    bool   `json:"isDir"`
-	Mode     int    `json:"mode"`
-	Name     string `json:"name"`
-	Readable bool   `json:"readable"`
-	Size     int    `json:"size"`
-	Time     string `json:"time"`
-	Writable bool   `json:"writable"`
+	Exists   bool        `json:"exists"`
+	FullPath string      `json:"fullPath"`
+	IsBroken bool        `json:"isBroken"`
+	IsDir    bool        `json:"isDir"`
+	Mode     os.FileMode `json:"mode"`
+	Name     string      `json:"name"`
+	Readable bool        `json:"readable"`
+	Size     int         `json:"size"`
+	Time     string      `json:"time"`
+	Writable bool        `json:"writable"`
 }
 
 type FsReadFileRes struct {
