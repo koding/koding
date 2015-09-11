@@ -16,6 +16,22 @@ module.exports = class SidebarMessagesSection extends React.Component
     <SidebarSection title="Messages" className="SidebarMessagesSection">
       <SidebarList
         itemComponent={SidebarMessagesListItem}
+  constructor: (props) ->
+
+    super
+
+    @state = { browsePrivateChannels: no }
+
+
+  onClose: ->
+
+    @setState browsePrivateChannels: no
+
+
+  showPrivateChannelsModal: ->
+
+    @setState browsePrivateChannels: yes
+
         threads={@props.threads}
         selectedId={@props.selectedId} />
     </SidebarSection>
