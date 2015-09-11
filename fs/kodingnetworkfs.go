@@ -3,7 +3,9 @@ package fs
 import (
 	"log"
 	"os"
+	"path"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -14,42 +16,41 @@ import (
 	"github.com/koding/fuseklient/transport"
 )
 
-// KodingNetworkFS, ie Koding Network File System, implements `fuse.FileSystem` to let
-// users mount folders on their VMs to their local.
-type KodingNetworkFS struct {
-	// Transport is two way communication layer with user VM.
-	transport.Transport
+// TODO: what's a good default error to return when things go wrong, ie
+// network errors when talking to user VM?
+var ErrDefault = fuse.EIO
 
+// KodingNetworkFS implements `fuse.FileSystem` to let users mount folders on
+// their Koding VMs to their local machine.
+type KodingNetworkFS struct {
 	// NotImplementedFileSystem is the default implementation for
 	// `fuseutil.FileSystem` interface methods. Any interface methods that are
 	// unimplemented return `fuse.ENOSYS` as error. This lets us implement only
 	// the required methods while satisifying the interface.
 	fuseutil.NotImplementedFileSystem
 
-	// RemotePath is path to folder in user VM to be mounted locally. This path
-	// has to exist on user VM or it returns with an error.
-	RemotePath string
-
-	// LocalPath is path to folder in local to serve as mount point. If this path
+	// MountPath is path to folder in local to serve as mount point. If this path
 	// doesn't exit, it is created. If path exists, its current files and folders
 	// are hidden while mounted.
-	LocalPath string
+	MountPath string
 
 	// MountConfig is optional config sent to `fuse.Mount`.
 	MountConfig *fuse.MountConfig
 
 	// Ctx is the context used in joining filesystem.
+	// TODO: I'm not sure what to do with this yet, saving it for future.
 	Ctx context.Context
 
 	// RWMutex protects the fields below.
 	sync.RWMutex
 
-	// liveNodes is collection of inodes in use by Kernel.
+	// liveNodes is (1 indexed) collection of inodes in use by Kernel. The Node
+	// at index 1 is the root Node.
 	liveNodes map[fuseops.InodeID]*Node
 }
 
-// NewKNFS is the required initializer for KodingNetworkFS.
-func NewKNFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
+// NewKodingNetworkFS is the required initializer for KodingNetworkFS.
+func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
 	mountConfig := &fuse.MountConfig{
 		FSName: c.MountName,
 
@@ -75,19 +76,22 @@ func NewKNFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
 		mountConfig.DebugLogger = log.New(os.Stdout, "fk_debug: ", log.Lshortfile)
 	}
 
-	nodes := map[fuseops.InodeID]*Node{
-		fuseops.RootInodeID: &Node{
-			Attrs: fuseops.InodeAttributes{Mode: 0700 | os.ModeDir},
-		},
-	}
+	idGen := NewNodeIDGen()
+
+	rootNode := NewNode(t, idGen)
+	rootNode.Name = path.Base(c.RemotePath)
+	rootNode.RemotePath = c.RemotePath
+	rootNode.LocalPath = c.LocalPath
+	rootNode.EntryType = fuseutil.DT_Directory
+
+	// TODO: get uid and gid for current process and use that
+	rootNode.Attrs = fuseops.InodeAttributes{Uid: 501, Mode: 0700 | os.ModeDir}
 
 	return &KodingNetworkFS{
-		Transport:   t,
-		RemotePath:  c.RemotePath,
-		LocalPath:   c.LocalPath,
 		MountConfig: mountConfig,
+		MountPath:   c.LocalPath,
 		RWMutex:     sync.RWMutex{},
-		liveNodes:   nodes,
+		liveNodes:   map[fuseops.InodeID]*Node{fuseops.RootInodeID: rootNode},
 	}
 }
 
@@ -95,10 +99,10 @@ func NewKNFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
 // local path.
 func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 	server := fuseutil.NewFileSystemServer(k)
-	return fuse.Mount(k.LocalPath, server, k.MountConfig)
+	return fuse.Mount(k.MountPath, server, k.MountConfig)
 }
 
-// Join mounts and blocks till it's unmounted.
+// Join mounts and blocks till user VM is unmounted.
 func (k *KodingNetworkFS) Join() error {
 	mountedFS, err := k.Mount()
 	if err != nil {
@@ -114,18 +118,17 @@ func (k *KodingNetworkFS) Join() error {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
-	return unmount(k.LocalPath)
+	return unmount(k.MountPath)
 }
 
-// GetInodeAttributesOp returns list attributes of a specified Inode. It
-// returns `fuse.ENOENT` if inode doesn't exist in internal map.
+// GetInodeAttributesOp set attributes for a specified Node. It returns
+// `fuse.ENOENT` if node doesn't exist in internal map.
 //
 // Required by Fuse.
 func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
-	k.RLock()
-	node, ok := k.liveNodes[op.Inode]
-	k.RUnlock()
+	// defer debug(time.Now(), "ID=%d", op.Inode)
 
+	node, ok := k.liveNodes[op.Inode]
 	if !ok {
 		return fuse.ENOENT
 	}
@@ -135,6 +138,138 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 	return nil
 }
 
+// LookUpInode finds node in context of specific parent Node and sets
+// attributes. It assumes parnet node has already been seen, if not it returns
+// `fuse.ENOENT`.
+//
+// TODO: Check if this is called once for each parent in case of nested lookups.
+//
+// Required by Fuse.
+func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
+	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
+
+	parent, ok := k.liveNodes[op.Parent]
+	if !ok {
+		return fuse.ENOENT
+	}
+
+	child, err := parent.FindChild(op.Name)
+	if err != nil {
+		return err
+	}
+
+	k.liveNodes[child.ID] = child
+
+	op.Entry.Child = child.ID
+	op.Entry.Attributes = child.Attrs
+
+	return err
+}
+
+//----------------------------------------------------------
+// Directory related operations
+//----------------------------------------------------------
+
+// TODO: I've no clue what this does or if it's even required.
+//
+// Required by Fuse.
 func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
+	defer debug(time.Now(), "ID=%d, HandleID=%d", op.Inode, op.Handle)
+
+	if _, err := k.getNode(op.Inode); err != nil {
+		return fuse.ENOENT
+	}
+
 	return nil
+}
+
+// ReadDir reads entires in a specific directory Node. It returns `fuse.ENOENT`
+// if directory Node doesn't exist.
+//
+// Required by Fuse.
+func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
+	defer debug(time.Now(), "ID=%d Offset=%d", op.Inode, op.Offset)
+
+	node, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	entries, err := node.ReadDir()
+	if err != nil {
+		return err
+	}
+
+	if op.Offset > fuseops.DirOffset(len(entries)) {
+		return fuse.EIO
+	}
+
+	var bytesRead int
+
+	entries = entries[op.Offset:]
+	for _, ent := range entries {
+		c := fuseutil.WriteDirent(op.Dst[bytesRead:], ent)
+		if c == 0 {
+			break
+		}
+
+		bytesRead += c
+	}
+
+	op.BytesRead = bytesRead
+
+	return nil
+}
+
+// Required by Fuse.
+// func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
+//   defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
+
+//   parent, err := k.getNode(op.Parent)
+//   if err != nil {
+//     return ErrDefault
+//   }
+
+//   if _, err := parent.FindChild(op.Name); err != ErrNodeNotFound {
+//     return fuse.EEXIST
+//   }
+
+//   newFolder, err := parent.Mkdir(op.Name, op.Mode)
+//   if err != nil {
+//     return nil
+//   }
+
+//   newFolder.Attrs.Mode = op.Mode
+
+//   k.liveNodes[newFolder.ID] = newFolder
+
+//   op.Entry.Child = newFolder.ID
+//   op.Entry.Attributes = newFolder.Attrs
+
+//   return nil
+// }
+
+//----------------------------------------------------------
+// Helpers
+//----------------------------------------------------------
+
+// getNode gets Node from KodingNetworkFS#EntriesList.
+func (k *KodingNetworkFS) getNode(nodeId fuseops.InodeID) (*Node, error) {
+	node, ok := k.liveNodes[nodeId]
+	if !ok {
+		return nil, ErrNodeNotFound
+	}
+
+	return node, nil
+}
+
+// initializeChildNode creates new Node in context of parent and adds it to
+// KodingNetworkFS#liveNodes.
+func (k *KodingNetworkFS) initializeChildNode(p *Node, name string) (*Node, error) {
+	nextID := p.NodeIDGen.Next()
+	c := p.InitializeChildNode(name, nextID)
+
+	k.liveNodes[c.ID] = c
+
+	return c, nil
 }

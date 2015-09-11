@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func debug(t time.Time, keys ...string) {
+func debug(t time.Time, format string, values ...interface{}) {
 	p := make([]uintptr, 10)
 	runtime.Callers(2, p)
 
@@ -16,7 +16,11 @@ func debug(t time.Time, keys ...string) {
 
 	var m string
 	m = strings.TrimLeft(f.Name(), "github.com/koding/fuseklient/fs")
-	m = strings.TrimLeft(m, "(*KodingNetworkFS).")
 
-	fmt.Printf("%6v %10s %v\n", d-(d%time.Millisecond), m, keys)
+	format = "%6v %10s " + format + "\n"
+
+	args := []interface{}{(d - (d % time.Millisecond)), m}
+	args = append(args, values...)
+
+	fmt.Printf(format, args...)
 }

@@ -29,7 +29,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 	})
 }
 
-func TestGetInodeAttributes(tt *testing.T) {
+func TestFolder(tt *testing.T) {
 	Convey("Given mounted folder", tt, func() {
 		t := &fakeTransport{}
 		k := newknfs(t)
@@ -38,7 +38,7 @@ func TestGetInodeAttributes(tt *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should return contents when empty", func() {
-			fi, err := os.Stat(k.LocalPath)
+			fi, err := os.Stat(k.MountPath)
 			So(err, ShouldBeNil)
 
 			So(fi.IsDir(), ShouldBeTrue)
@@ -56,14 +56,14 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	c := &config.FuseConfig{LocalPath: mountFolder}
-	return NewKNFS(t, c)
+	return NewKodingNetworkFS(t, c)
 }
 
 func _unmount(k *KodingNetworkFS) error {
 	// ioutil.TempDir creates folders with `/private` prefix, however it
 	// doesn't include it in the return path; without this unmout fails.
-	oldPath := k.LocalPath
-	k.LocalPath = filepath.Join("/private", k.LocalPath)
+	oldPath := k.MountPath
+	k.MountPath = filepath.Join("/private", k.MountPath)
 	if err := k.Unmount(); err != nil {
 		return err
 	}
