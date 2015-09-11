@@ -216,26 +216,58 @@ func (mwc *Controller) CreateIntegrations() {
 
 }
 
-// TO-DO
 // Divide the create integration func, send parameter all integrations in it.
-//Declare these integration out of the function.
+// Declare these integration out of the function.
 func (mwc *Controller) UpdateIntegrations() {
 	integrations, err := mwc.describeIntegrations()
 	if err != nil {
 		mwc.log.Error("Could not get integration: %s", err)
 	}
 
-	i := webhookmodels.NewIntegration()
 	for _, integration := range integrations {
 		// Get integration from db, if cannot find in db, create it.
+		i := webhookmodels.NewIntegration()
 		if err := i.ByName(integration.Name); err != nil {
 			if err == bongo.RecordNotFound {
 				if err = integration.Create(); err != nil {
 					mwc.log.Error("Could not create integration: %s", err)
 				}
 			}
+		} else {
+			if err = i.Update(); err != nil {
+				mwc.log.Error("Could not update integration: %s", err)
+			}
 		}
 	}
+
+	allIntegrations, err := webhookmodels.NewIntegration().GetAllDBIntegration()
+	if err != nil {
+		mwc.log.Error("Could not get integration from db: %s", err)
+	}
+
+	for _, db := range allIntegrations {
+		i := webhookmodels.NewIntegration()
+		for _, in := range integrations {
+			if !isContains(allIntegrations, in.Name) {
+				if err = i.ByName(db); err != nil {
+					mwc.log.Error("Could not get integration: %s", err)
+				}
+				i.IsPublished = false
+				if err = i.Update(); err != nil {
+					mwc.log.Error("Could not update integration: %s", err)
+				}
+			}
+		}
+	}
+}
+
+func isContains(arr []string, name string) bool {
+	for _, a := range arr {
+		if a == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (mwc *Controller) CreateBotUser() {
