@@ -22,6 +22,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
   constructor: (options = {}, data) ->
 
     options.noItemFoundText ?= "You don't have any credentials"
+
     super options, data
 
     @loadItems()
@@ -38,18 +39,43 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     query.provider ?= provider        if provider
     query.fields   ?= requiredFields  if requiredFields
 
-    { JCredential } = remote.api
-
-    JCredential.some query, { limit: 30 }, (err, credentials) =>
+    @fetch query, (err, credentials) =>
 
       if provider? and credentials?.length is 0
         @showAddCredentialFormFor provider
 
       @hideLazyLoader()
+      @instantiateListItems credentials
 
-      return if showError err, \
-        KodingError : "Failed to fetch data, try again later."
 
+  fetch: (query, callback) ->
+
+    { JCredential } = remote.api
+
+    # Don't set any limit or pagination for now.
+    # Wait the reviews.
+    JCredential.some query, {}, (err, credentials) ->
+
+      if err
+        @hideLazyLoader()
+        showError err, \
+          KodingError : "Failed to fetch data, try again later."
+        return
+
+      callback err, credentials
+
+
+  filterByProvider: (value) ->
+
+    @removeAllItems()
+    @showLazyLoader()
+
+    query           = {}
+    query.provider  = value  if value
+
+    @fetch query, (err, credentials) =>
+
+      @hideLazyLoader()
       @instantiateListItems credentials
 
 
