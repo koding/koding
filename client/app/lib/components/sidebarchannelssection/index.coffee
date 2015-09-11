@@ -39,10 +39,10 @@ module.exports = class SidebarChannelsSection extends React.Component
 
   renderMoreLink: ->
 
-    { threads } = @props
+    { threads, previewCount } = @props
 
-    if threads.size > PREVIEW_COUNT
-      <a className='SidebarList-showMore' onClick={@bound 'showFollowedChannelsModal'}>More ...</a>
+    if threads.size > previewCount
+      <a className='SidebarList-showMore' onClick={@bound 'showFollowedPublicChannelsModal'}>More ...</a>
 
 
   render: ->
