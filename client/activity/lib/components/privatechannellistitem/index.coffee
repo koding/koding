@@ -30,8 +30,8 @@ module.exports = class PrivateChannelListItem extends React.Component
 
   getDeleteItemModalProps: ->
 
-    title              : "Delete post"
-    body               : "Are you sure you want to delete this post?"
+    title              : "Delete message"
+    body               : "Are you sure you want to delete this message?"
     buttonConfirmTitle : "DELETE"
     className          : "Modal-DeleteItemPrompt"
     onConfirm          : @bound "deletePostButtonHandler"
