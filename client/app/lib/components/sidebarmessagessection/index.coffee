@@ -3,7 +3,9 @@ immutable               = require 'immutable'
 SidebarList             = require 'app/components/sidebarlist'
 SidebarSection          = require 'app/components/sidebarsection'
 SidebarMessagesListItem = require 'app/components/sidebarmessageslistitem'
-
+Modal                   = require 'app/components/modal'
+ChannelList             = require 'activity/components/channellist'
+PrivateChannelListItem  = require 'activity/components/privatechannellistitem'
 
 module.exports = class SidebarMessagesSection extends React.Component
 
@@ -12,10 +14,6 @@ module.exports = class SidebarMessagesSection extends React.Component
     selectedId : null
 
 
-  render: ->
-    <SidebarSection title="Messages" className="SidebarMessagesSection">
-      <SidebarList
-        itemComponent={SidebarMessagesListItem}
   constructor: (props) ->
 
     super
@@ -53,3 +51,21 @@ module.exports = class SidebarMessagesSection extends React.Component
 
     if threads.size > previewCount
       <a className='SidebarList-showMore' onClick={@bound 'showPrivateChannelsModal'}>More ...</a>
+
+
+  render: ->
+
+    <div>
+      <SidebarSection
+        title="Messages"
+        onHeaderClick={@bound 'showPrivateChannelsModal'}
+        className="SidebarMessagesSection">
+        <SidebarList
+          previewCount={@props.previewCount}
+          itemComponent={SidebarMessagesListItem}
+          threads={@props.threads}
+          selectedId={@props.selectedId} />
+          {@renderMoreLink()}
+      </SidebarSection>
+      {@renderPrivateChannelsModal()}
+    </div>
