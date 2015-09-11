@@ -8,8 +8,6 @@ SidebarChannelsListItem = require 'app/components/sidebarchannelslistitem'
 
 module.exports = class SidebarChannelsSection extends React.Component
 
-  PREVIEW_COUNT = 10
-
   @defaultProps =
     threads    : immutable.Map()
     selectedId : null
@@ -48,10 +46,11 @@ module.exports = class SidebarChannelsSection extends React.Component
 
 
   render: ->
+
     <div>
-      <SidebarSection title="Channels" onHeaderClick={@bound 'showFollowedChannelsModal'} className="SidebarChannelsSection">
+      <SidebarSection title="Channels" onHeaderClick={@bound 'showFollowedPublicChannelsModal'} className="SidebarChannelsSection">
         <SidebarList
-          previewCount={PREVIEW_COUNT}
+          previewCount={@props.previewCount}
           itemComponent={SidebarChannelsListItem}
           threads={@props.threads}
           selectedId={@props.selectedId} />
