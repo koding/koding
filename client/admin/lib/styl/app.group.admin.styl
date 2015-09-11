@@ -912,6 +912,7 @@ Admin main styles
       z-index               16
       text-align            right
       rel()
+      top                   130px
 
       .kdbutton
         z-index             1
@@ -1175,7 +1176,7 @@ Admin main styles
     height                  calc(100% \- 270px)
 
     .editor-view
-      height                calc(100% \+ 116px)
+      height                calc(100% \+ 200px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
@@ -1342,7 +1343,7 @@ Admin main styles
   .readme
   .variables
     .editor-view
-      height                calc(100% \- 170px)
+      height                calc(100% \- 55px)
       rounded               4px 4px 0 0
 
   .readme
@@ -1411,7 +1412,7 @@ Admin main styles
         r-sprite            account, 'check-8'
 
   .kdview.output
-    bottom                  -90px
+    bottom                  -120px
     vendor                  transition, height .2s ease
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
@@ -1420,7 +1421,7 @@ Admin main styles
     abs()
 
     &.raise
-      height                calc(50% - 33px)
+      height                calc(50% - 50px)
 
     pre.output-view
       height                auto
@@ -1713,11 +1714,12 @@ Admin main styles
     margin-bottom           18px
 
   .description
-    font-size               18px
+    font-size               16px
     color                   #565656
     font-weight             300
-    width                   450px
+    width                   100%
     margin                  0 auto
+    line-height             25px
 
 
 // stack onboarding styling
@@ -1755,11 +1757,12 @@ Admin main styles
     text-align              center
     font-weight             300
     pointer()
+    noTextDeco(true)
 
   .box-wrapper
     width                   525px
     overflow                hidden
-    margin                  57px 0 0 123px !important
+    margin                  40px 0 0 123px !important
 
   .box
     size                    256px, 112px
@@ -1798,11 +1801,16 @@ Admin main styles
   .get-started
 
     .description
-      width                 400px
+      width                 600px
       margin-bottom         30px
+      line-height           24px
+
+      a
+        noTextDeco(true)
+        color               #00b057
 
     .item
-      width                 290px
+      width                 300px
       text-align            center
       margin-left           35px
       fl()
@@ -1814,8 +1822,9 @@ Admin main styles
 
       span
         color               #B2B2B2
-        font-size           18px
+        font-size           15px
         font-weight         300
+        line-height         20px
 
       .icon
         r-sprite            'admin', 'document'
@@ -1825,7 +1834,7 @@ Admin main styles
           r-sprite          'admin', 'team'
 
     .artwork
-      margin-top            98px
+      margin-top            50px
       overflow              hidden
       margin-left           12px
 
@@ -1939,7 +1948,7 @@ Admin main styles
         margin              15px 0 0 -3px
 
     + .footer
-      margin                40px 0 0 18px
+      margin                0 0 0 18px
 
   .configuration
 
@@ -1949,8 +1958,9 @@ Admin main styles
       margin-left           22px
 
     .description
-      width                 350px
+      width                 550px
       margin-bottom         31px
+      line-height           24px
 
     .kdtabview
       border                1px solid #D8D8D8
@@ -1990,11 +2000,13 @@ Admin main styles
         .title
           margin            0
           padding           0 25px 0 10px
+          font-weight       600
 
         .arrows
           height            6px
-          vendor            transform, rotate(180deg)
           margin-top        4px
+          r-sprite          'admin', 'bold-select-arrow'
+
 
       &.active
         bg                  color, #fff !important

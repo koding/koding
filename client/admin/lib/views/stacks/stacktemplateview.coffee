@@ -25,11 +25,17 @@ module.exports = class StackTemplateView extends KDView
 
     @addSubView new KDCustomHTMLView
       cssClass  : 'text header title'
-      partial   : 'Here is your stack preview'
+      partial   : 'Preview your Stack'
 
     @addSubView new KDCustomHTMLView
       cssClass  : 'description'
-      partial   : 'You can make advanced changes like modifying your VM, installing packages, and running shell commands.'
+      partial   : """
+        This is a preview of the Stack that you have defined so far. On this
+        screen, you can make advanced edits to the Stack file like adding
+        custom variables, include additional software or ask for user input
+        when the Stack is executed for each team member. Read our Stack file
+          docs for details.
+      """
 
     @addSubView @inputTitle  = new KDFormViewWithFields
       cssClass               : 'template-title-form'

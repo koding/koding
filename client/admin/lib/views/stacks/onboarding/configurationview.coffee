@@ -70,8 +70,13 @@ module.exports = class ConfigurationView extends JView
 
     return """
       <div class="header">
-        <p class="title">What do you want installed?</p>
-        <p class="description">You can configure your services or install new ones.</p>
+        <p class="title">Configure your teams new development environment...</p>
+        <p class="description">Select the number of servers, their type and what
+          is installed by default on each. The list of software items below is
+          not an exhaustive list, it’s simply to show you what’s possible.<br/><br/>
+          In the final step you will be able to edit the Stack file to include
+          any additional software, language or framework.
+        </p>
       </div>
       {{> @tabHandleContainer}}
       {{> @tabView}}

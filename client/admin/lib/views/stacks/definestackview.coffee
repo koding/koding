@@ -78,7 +78,7 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.showPaneByIndex 0
 
-    @createFooter()
+    #@createFooter()
 
     @createMainButtons()
 
@@ -109,7 +109,7 @@ module.exports = class DefineStackView extends KDView
 
   setFooterVisibility: (state) ->
     @buttons[state]()
-    @footer[state]()
+    #@footer[state]()
 
 
   createFooter: ->
