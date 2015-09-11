@@ -31,14 +31,15 @@ module.exports = class AccountCredentialListItem extends KDListItemView
     @editButton = new KDButtonView
       cssClass : "solid compact outline"
       title    : "EDIT"
+      callback : delegate.lazyBound 'editItem', this
 
 
   pistachio:->
     """
-    <div class='credential-info'>
+    <div class="credential-info">
       {div.tag{#(provider)}} {div.title{#(title)}}
     </div>
-    <div class='buttons'>
+    <div class="buttons">
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @editButton}}
     </div>
     """

@@ -80,6 +80,10 @@ module.exports = class AccountCredentialList extends KDListView
         content        : "<pre><code>#{cred}</code></pre>"
 
 
+  editItem: (item) ->
+
+
+
   checkIsBootstrapped: (item) ->
 
     credential = item.getData()
