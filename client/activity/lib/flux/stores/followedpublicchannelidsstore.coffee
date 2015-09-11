@@ -13,6 +13,7 @@ module.exports = class FollowedPublicChannelIdsStore extends KodingFluxStore
 
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.FOLLOW_CHANNEL_SUCCESS, @handleFollowChannelSuccess
+    @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
 
 
   ###*
@@ -37,4 +38,16 @@ module.exports = class FollowedPublicChannelIdsStore extends KodingFluxStore
   handleFollowChannelSuccess: (followedChannelIds, { channelId }) ->
 
     followedChannelIds.set channelId, channelId
+
+
+  ###*
+   * Remove a channel from followedChannelIds by given channelId
+   *
+   * @param {Immutable.Map} followedChannelIds
+   * @param {object} payload
+   * @param {string} payload.channelId
+  ###
+  handleUnfollowChannelSuccess: (followedChannelIds, { channelId }) ->
+
+    followedChannelIds.remove channelId
 
