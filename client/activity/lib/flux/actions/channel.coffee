@@ -258,6 +258,27 @@ unfollowChannel = (channelId) ->
     dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId }
 
 
+###*
+ * Action to delete private channel by given channelId
+ *
+ * @param {string} channelId
+###
+deletePrivateChannel = (channelId) ->
+
+  { SocialChannel } = remote.api
+  { DELETE_PRIVATE_CHANNEL_BEGIN
+    DELETE_PRIVATE_CHANNEL_SUCCESS
+    DELETE_PRIVATE_CHANNEL_FAIL } = actionTypes
+
+  SocialChannel.delete { channelId }
+    .then ->
+      dispatch DELETE_PRIVATE_CHANNEL_SUCCESS, { channelId }
+
+    .catch (err) =>
+      dispatch DELETE_PRIVATE_CHANNEL_FAIL , { channelId }
+      showErrorNotification err, userMessage: err.message
+
+
 addParticipants = (options = {}) ->
 
   { channel } = kd.singletons.socialapi
@@ -299,5 +320,6 @@ module.exports = {
   loadPopularChannels
   loadChannelsByQuery
   setChannelParticipantsDropdownVisibility
+  deletePrivateChannel
 }
 
