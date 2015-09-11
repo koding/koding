@@ -350,7 +350,7 @@ module.exports = class ChatListItem extends React.Component
     embedData   = message.get 'link'
 
     if embedData
-      <EmbedBox data={embedData.toJS()} />
+      <EmbedBox data={embedData.toJS()} type='chat' />
     else
       <span className='hidden' />
 

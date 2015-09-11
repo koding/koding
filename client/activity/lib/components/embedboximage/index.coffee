@@ -6,13 +6,24 @@ module.exports = class EmbedBoxImage extends React.Component
 
   @defaultProps =
     data : {}
+    type : ''
+
+
+  getImageWidth: ->
+
+    { type } = @props
+
+    switch type
+      when 'chat'    then 550
+      when 'comment' then 400
+      else 200
 
 
   renderImage: ->
 
     { link_embed } = @props.data
 
-    srcUrl = proxifyUrl link_embed.images?[0]?.url, { width : 200 }
+    srcUrl = proxifyUrl link_embed.images?[0]?.url, { width : @getImageWidth() }
 
     <img
       src   = { srcUrl }

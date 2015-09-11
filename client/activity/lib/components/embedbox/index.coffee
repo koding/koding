@@ -18,9 +18,9 @@ module.exports = class EmbedBox extends React.Component
 
   renderEmbedBoxImage: ->
 
-    { data } = @props
-    if data.getIn(['link_embed', 'images'])?.length > 0
-      <EmbedBoxImage data={data} />
+    { data, type } = @props
+    if data.link_embed.images?.length > 0
+      <EmbedBoxImage data={data} type={type} />
     else
       <span className='hidden' />
 
@@ -37,9 +37,9 @@ module.exports = class EmbedBox extends React.Component
     <EmbedBoxLinkDisplay data={data} />
 
 
-  renderEmbedBoxContent: (type) ->
+  renderEmbedBoxContent: (embedType) ->
 
-    switch type
+    switch embedType
       when 'image'  then @renderEmbedBoxImage()
       when 'object' then @renderEmbedBoxObject()
       else               @renderEmbedBoxLinkDisplay()
@@ -47,15 +47,15 @@ module.exports = class EmbedBox extends React.Component
 
   render: ->
 
-    { link_embed } = @props.data
+    { data, type } = @props
+    { link_embed } = data
 
-    type = getEmbedType link_embed.type or 'link'
+    embedType = getEmbedType link_embed.type or 'link'
 
-    isInvalidType   = type is 'link' and not link_embed.description
-    isInvalidType or= type in ['video', 'image']
+    isInvalidType   = embedType is 'link' and not link_embed.description
+    isInvalidType or= embedType is 'error'
     return <span className='hidden' />  if isInvalidType
 
     <div className='EmbedBox-container clearfix'>
-      { @renderEmbedBoxContent type }
+      { @renderEmbedBoxContent embedType }
     </div>
-
