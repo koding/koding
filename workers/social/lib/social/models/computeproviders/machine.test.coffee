@@ -1,34 +1,22 @@
-{ argv }                      = require 'optimist'
-{ expect }                    = require 'chai'
-{ env : { MONGO_URL } }       = process
-
-KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
-
-Bongo                         = require 'bongo'
 JUser                         = require '../user/index'
-mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 JMachine                      = require './machine'
 
-{ daisy }                     = Bongo
 { createUserAndMachine
   generateMachineParams }     = require '../../../../testhelper/models/machinehelper'
 
-{ generateUserInfo
+{ daisy
+  expect
+  generateUserInfo
   generateDummyClient
   generateRandomString
+  checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
 
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
 
-  bongo = new Bongo
-    root   : __dirname
-    mongo  : mongo
-    models : ''
-
-  bongo.once 'dbClientReady', ->
-    done()
+  checkBongoConnectivity done
 
 
 # here we have actual tests
