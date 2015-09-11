@@ -1,16 +1,12 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
+kd            = require 'kd'
+React         = require 'kd-react'
+whoami        = require 'app/util/whoami'
+ActivityFlux  = require 'activity/flux'
 
 module.exports = class PublicChannelListItem extends React.Component
 
   @defaultProps =
     channel  : null
-
-
-  unfollowChannel: ->
-
-    console.log 'unfollowChannel clicked'
-
 
   constructor: (props) ->
 
@@ -19,6 +15,14 @@ module.exports = class PublicChannelListItem extends React.Component
     @state =
       channel     : @props.channel
 
+
+  unfollowChannel: (event) ->
+
+    kd.utils.stopDOMEvent event
+    { channel } = ActivityFlux.actions
+    channelId = @props.channel.get '_id'
+
+    channel.unfollowChannel channelId, whoami()._id
 
   render: ->
     { channel } = @props
