@@ -8,68 +8,38 @@ module.exports = class AccountCredentialListItem extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor: (options = {}, data)->
+  constructor: (options = {}, data) ->
+
     options.cssClass = kd.utils.curry "credential-item clearfix", options.cssClass
+
     super options, data
 
     delegate  = @getDelegate()
     { owner } = @getData()
 
     @deleteButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "delete"
-      title    : "delete"
+      cssClass : "solid compact outline red secondary"
+      title    : "DELETE"
       callback : delegate.lazyBound 'deleteItem', this
 
-    @shareButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "share"
-      title    : "share"
-      disabled : !owner
-      callback : delegate.lazyBound 'shareItem', this
-
     @showCredentialButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "show"
-      title    : "show"
+      cssClass : "solid compact outline secondary"
+      title    : "SHOW"
       disabled : !owner
       callback : delegate.lazyBound 'showItemContent', this
 
-    @participantsButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "participants"
-      title    : "participants"
-      disabled : !owner
-      callback : delegate.lazyBound 'showItemParticipants', this
-
-    @isBootstrappedButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "bootstrapped"
-      title    : "is Bootstrapped?"
-      callback : delegate.lazyBound 'checkIsBootstrapped', this
-
-    @bootstrapButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "bootstrap"
-      title    : "bootstrap"
-      callback : delegate.lazyBound 'bootstrap', this
-
-    @verifyButton = new KDButtonView
-      # iconOnly : yes
-      cssClass : "verify"
-      title    : "verify"
-      callback : delegate.lazyBound 'verify', this
+    @editButton = new KDButtonView
+      cssClass : "solid compact outline"
+      title    : "EDIT"
+      #callback : delegate.lazyBound 'deleteItem', this
 
 
   pistachio:->
     """
     <div class='credential-info'>
-      {h4{#(title)}} {p{#(provider)}}
+      {div.tag{#(provider)}} {div.title{#(title)}}
     </div>
     <div class='buttons'>
-      {{> @showCredentialButton}}{{> @deleteButton}}
-      {{> @shareButton}}{{> @participantsButton}}
-      {{> @isBootstrappedButton}}{{> @bootstrapButton}}
-      {{> @verifyButton}}
+      {{> @showCredentialButton}}{{> @deleteButton}}{{> @editButton}}
     </div>
     """
