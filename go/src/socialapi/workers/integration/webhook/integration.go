@@ -138,6 +138,32 @@ func (i *Integration) List(q *request.Query) ([]Integration, error) {
 	return ints, nil
 }
 
+func (i *Integration) GetAllDBIntegration() ([]string, error) {
+	integrations := make([]string, 0)
+
+	query := bongo.B.DB.Table(i.BongoName()).Select("integration.integration.name").Find(i)
+
+	rows, err := query.Rows()
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	if rows == nil {
+		return integrations, nil
+	}
+
+	var integrationName string
+
+	for rows.Next() {
+		rows.Scan(&integrationName)
+		integrations = append(integrations, integrationName)
+	}
+
+	return integrations, nil
+
+}
+
 func (i *Integration) FetchByIds(ids []int64) ([]Integration, error) {
 	var integrations []Integration
 
