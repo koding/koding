@@ -4,6 +4,7 @@ SidebarList             = require 'app/components/sidebarlist'
 SidebarSection          = require 'app/components/sidebarsection'
 Modal                   = require 'app/components/modal'
 ChannelList             = require 'activity/components/channellist'
+PublicChannelListItem   = require 'activity/components/channellistitem'
 SidebarChannelsListItem = require 'app/components/sidebarchannelslistitem'
 
 module.exports = class SidebarChannelsSection extends React.Component
@@ -32,8 +33,11 @@ module.exports = class SidebarChannelsSection extends React.Component
   renderFollowedChannelsModal: ->
 
     title = 'Other Channels you are following:'
-    <Modal className='ChannelList-Modal' isOpen={@state.browseChannels} onClose={@bound 'onClose'}>
-      <ChannelList threads={@props.threads} title={title} />
+    <Modal className='ChannelList-Modal' isOpen={@state.browseFollowedPublicChannels} onClose={@bound 'onClose'}>
+      <ChannelList
+        title={title}
+        threads={@props.threads}
+        itemComponent={PublicChannelListItem}/>
     </Modal>
 
 
