@@ -33,12 +33,26 @@ module.exports = class PublicChannelListItem extends React.Component
 
     channel.unfollowChannel channelId, whoami()._id
 
+
+  renderButton: ->
+
+    { channel } = @props
+
+    return  unless channel.get('typeConstant') is 'topic'
+
+    if channel.get 'isParticipant'
+      <button className="ChannelListItem-unfollow button" onClick={@bound 'unfollowChannel'}>UNFOLLOW</button>
+    else
+      <button className="ChannelListItem-follow button" onClick={@bound 'followChannel'}>FOLLOW</button>
+
+
   render: ->
+
     { channel } = @props
     channelName = channel.get 'name'
 
     <a href="/Channels/#{channelName}" className='ChannelListItem'>
       <span className='ChannelListItem-title'>{channelName}</span>
-      <button className="ChannelListItem-unfollowButton" onClick={@bound 'unfollowChannel'}>UNFOLLOW</button>
+      {@renderButton()}
     </a>
 
