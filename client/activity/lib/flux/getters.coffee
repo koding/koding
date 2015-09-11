@@ -211,6 +211,7 @@ selectedMessageThreadComments = [
   selectedMessageThread
   (thread) ->
     return null  unless thread
+
     thread.get 'comments'
 ]
 
