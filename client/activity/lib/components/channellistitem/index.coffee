@@ -16,6 +16,15 @@ module.exports = class PublicChannelListItem extends React.Component
       channel     : @props.channel
 
 
+  followChannel: (event) ->
+
+    kd.utils.stopDOMEvent event
+    { channel } = ActivityFlux.actions
+    channelId = @props.channel.get '_id'
+
+    channel.followChannel channelId, whoami()._id
+
+
   unfollowChannel: (event) ->
 
     kd.utils.stopDOMEvent event
