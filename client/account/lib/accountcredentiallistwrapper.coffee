@@ -40,7 +40,8 @@ module.exports = class AccountCredentialListWrapper extends KDView
       title : 'Filter by provider type'
 
     selectOptions = [
-      { title : 'All',  value : ''  } # Firstly set default option
+      { title : 'All',        value : ''  } # Firstly set default option
+      { title : 'User Input', value : 'userInput' }
     ]
 
     providers = @getValidProviders()
