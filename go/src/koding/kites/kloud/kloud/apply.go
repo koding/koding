@@ -273,6 +273,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	defer tfKite.Close()
 
 	sess.Log.Debug("Parsing the template")
+	sess.Log.Debug("%s", stack.Template)
 	template, err := newTerraformTemplate(stack.Template)
 	if err != nil {
 		return err
