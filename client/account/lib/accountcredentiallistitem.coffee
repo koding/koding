@@ -31,7 +31,6 @@ module.exports = class AccountCredentialListItem extends KDListItemView
     @editButton = new KDButtonView
       cssClass : "solid compact outline"
       title    : "EDIT"
-      #callback : delegate.lazyBound 'deleteItem', this
 
 
   pistachio:->
