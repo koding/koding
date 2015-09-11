@@ -16,17 +16,17 @@ module.exports = class SidebarChannelsSection extends React.Component
 
     super
 
-    @state = { browseChannels: no }
+    @state = { browseFollowedPublicChannels: no }
 
 
   onClose: ->
 
-    @setState browseChannels: no
+    @setState browseFollowedPublicChannels: no
 
 
-  showFollowedChannelsModal: ->
+  showFollowedPublicChannelsModal: ->
 
-    @setState browseChannels: yes
+    @setState browseFollowedPublicChannels: yes
 
 
   renderFollowedChannelsModal: ->
