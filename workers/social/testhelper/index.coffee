@@ -1,7 +1,26 @@
-_        = require 'underscore'
-hat      = require 'hat'
-JAccount = require '../lib/social/models/account'
-JSession = require '../lib/social/models/session'
+_                       = require 'underscore'
+hat                     = require 'hat'
+JAccount                = require '../lib/social/models/account'
+JSession                = require '../lib/social/models/session'
+Bongo                   = require 'bongo'
+
+{ expect }              = require 'chai'
+{ daisy }               = Bongo
+{ argv }                = require 'optimist'
+{ env : { MONGO_URL } } = process
+KONFIG                  = require('koding-config-manager').load("main.#{argv.c}")
+mongo                   = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
+
+
+checkBongoConnectivity = (callback) ->
+
+  bongo = new Bongo
+    root   : __dirname
+    mongo  : mongo
+    models : ''
+
+  bongo.once 'dbClientReady', ->
+    callback()
 
 
 # returns 20 characters by default
@@ -92,11 +111,14 @@ generateUserInfo = (opts = {}) ->
 
 
 module.exports = {
+  daisy
+  expect
   generateUserInfo
   generateDummyClient
   generateCredentials
   generateRandomEmail
   generateRandomString
+  checkBongoConnectivity
   generateRandomUsername
   generateDummyUserFormData
 }
