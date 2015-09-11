@@ -482,6 +482,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     stackBasedStates =
       NotInitialized : 'is not build yet.'
 
+    stackText = stateTexts[@state]
+
     if not isKoding() and @stack
       stackText = stackBasedStates[@state] or stateTexts[@state]
 
