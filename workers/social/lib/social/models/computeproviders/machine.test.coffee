@@ -88,6 +88,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               expect(err).to.not.exist
               expect(machine.provider).to.be.equal machineParams.provider
               expect(machine.status.state).to.be.equal 'NotInitialized'
+              expect(machine.label).to.exist
+              expect(machine.users.length).to.be.above 0
+              expect(machine.users[0].sudo).to.be.ok
+              expect(machine.users[0].owner).to.be.ok
+              expect(machine.domain).to.exist
+              expect(machine.slug).to.exist
               queue.next()
 
           -> done()
