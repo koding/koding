@@ -37,7 +37,7 @@ module.exports = class AccountCredentialListWrapper extends KDView
       cssClass : 'filter-view'
 
     @filterView.addSubView new KDLabelView
-      title : 'Filter by provider type'
+      title : 'Show'
 
     selectOptions = [
       { title : 'All',        value : ''  } # Firstly set default option
