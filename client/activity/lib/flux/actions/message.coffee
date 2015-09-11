@@ -143,14 +143,16 @@ createMessage = (channelId, body, payload) ->
 
   embedlyUrl = embedlyHelpers.extractUrl body
   if embedlyUrl
-    embedlyPromise = fetchDataFromEmbedly embedlyUrl
+    embedlyPromise = fetchEmbedData embedlyUrl
   else
     embedlyPromise = Promise.resolve()
 
   embedlyPromise.nodeify (err, result) ->
 
-    if result
-      data = result.first
+    if err
+      kd.log 'Embed.ly error!', err
+    else if result
+      data    = result.first
       payload = embedlyHelpers.createMessagePayload data
 
     socialapi.message.post { channelId, clientRequestId, body, payload }, (err, message) ->
@@ -385,7 +387,7 @@ unsetMessageEditMode = (messageId) ->
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
 
 
-fetchDataFromEmbedly = (url) ->
+fetchEmbedData = (url) ->
 
   options = {
     maxWidth  : 530
