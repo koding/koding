@@ -60,5 +60,18 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
     return participantIds.setIn [channelId, userId], userId
 
 
+  ###*
+   * Adds given accountId to channel participants container.
+   *
+   * @param {Immutable.Map} participantIds
+   * @param {object} payload
+   * @param {string} payload.channelId
+   * @param {string} payload.accountId
+   * @return {Immutable.Map} nextState
+  ###
+  handleFollowChannelSuccess: (participantIds, { channelId, accountId }) ->
+
+    return participantIds.setIn [channelId, accountId], accountId
+
 
 
