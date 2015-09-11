@@ -6,6 +6,7 @@ module.exports = globals.config.providers =
     name                   : "Custom"
     link                   : "https://koding.com"
     title                  : "Custom Credential"
+    color                  : "#9177fb"
     description            : """Custom credentials can include meta
                                credentials for any service"""
     credentialFields       :
@@ -18,6 +19,7 @@ module.exports = globals.config.providers =
     name                   : "Amazon Web Services"
     link                   : "https://aws.amazon.com"
     title                  : "AWS"
+    color                  : "#b0f710"
     description            : "Amazon Web Services"
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
@@ -53,6 +55,7 @@ module.exports = globals.config.providers =
     name                   : "Koding"
     link                   : "https://koding.com"
     title                  : "Koding"
+    color                  : "#50c157"
     description            : "Koding rulez."
     credentialFields       : {}
 
@@ -60,6 +63,7 @@ module.exports = globals.config.providers =
     name                   : "Managed VMs"
     link                   : "https://koding.com"
     title                  : "Managed VM"
+    color                  : "#6d119e"
     description            : "Use your power."
     credentialFields       : {}
 
@@ -67,6 +71,7 @@ module.exports = globals.config.providers =
     name                   : "Google Compute Engine"
     link                   : "https://cloud.google.com/products/compute-engine/"
     title                  : "Google Cloud"
+    color                  : "#357e99"
     description            : "Google compute engine"
     credentialFields       :
       projectId            :
@@ -89,6 +94,7 @@ module.exports = globals.config.providers =
     name                   : "Azure"
     link                   : "https://azure.microsoft.com/"
     title                  : "Azure"
+    color                  : "#ec06be"
     description            : "Azure"
     credentialFields       :
       accountId            :
@@ -103,6 +109,7 @@ module.exports = globals.config.providers =
     name                   : "Digital Ocean"
     link                   : "https://digitalocean.com"
     title                  : "Digitalocean"
+    color                  : "#7abad7"
     description            : "Digitalocean droplets"
     credentialFields       :
       clientId             :
@@ -116,6 +123,7 @@ module.exports = globals.config.providers =
     name                   : "Rackspace"
     link                   : "http://www.rackspace.com"
     title                  : "Rackspace"
+    color                  : "#3f6d8e"
     description            : "Rackspace machines"
     credentialFields       :
       username             :

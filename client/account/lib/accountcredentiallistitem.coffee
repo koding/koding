@@ -1,7 +1,9 @@
-kd             = require 'kd'
-KDButtonView   = kd.ButtonView
-KDListItemView = kd.ListItemView
-JView          = require 'app/jview'
+kd                = require 'kd'
+KDButtonView      = kd.ButtonView
+KDListItemView    = kd.ListItemView
+KDCustomHTMLView  = kd.CustomHTMLView
+JView             = require 'app/jview'
+globals           = require 'globals'
 
 
 module.exports = class AccountCredentialListItem extends KDListItemView
@@ -14,8 +16,9 @@ module.exports = class AccountCredentialListItem extends KDListItemView
 
     super options, data
 
-    delegate  = @getDelegate()
-    { owner } = @getData()
+    { providers }       = globals.config
+    delegate            = @getDelegate()
+    { owner, provider } = @getData()
 
     @deleteButton = new KDButtonView
       cssClass : "solid compact outline red secondary"
@@ -33,11 +36,17 @@ module.exports = class AccountCredentialListItem extends KDListItemView
       title    : "EDIT"
       callback : delegate.lazyBound 'editItem', this
 
+    @providerTag = new KDCustomHTMLView
+      cssClass : 'tag'
+      partial  : @getData().provider
+
+    @providerTag.setCss 'background-color', providers[provider].color
+
 
   pistachio:->
     """
     <div class="credential-info">
-      {div.tag{#(provider)}} {div.title{#(title)}}
+      {{> @providerTag}} {div.title{#(title)}}
     </div>
     <div class="buttons">
       {{> @showCredentialButton}}{{> @deleteButton}}{{> @editButton}}
