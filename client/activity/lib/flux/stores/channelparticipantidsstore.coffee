@@ -16,7 +16,7 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
 
     @on actions.LOAD_CHANNEL_PARTICIPANTS_BEGIN, @handleLoadBegin
     @on actions.LOAD_CHANNEL_PARTICIPANT_SUCCESS, @handleLoadSuccess
-
+    @on actions.ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, @handleLoadSuccess
 
   ###*
    * Initializes a new channel participants container for loaded channel.
