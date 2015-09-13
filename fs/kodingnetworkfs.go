@@ -88,7 +88,7 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 	rootNode.EntryType = fuseutil.DT_Directory
 
 	// TODO: get uid and gid for current process and use that
-	rootNode.Attrs = fuseops.InodeAttributes{Uid: 501, Mode: 0700 | os.ModeDir}
+	rootNode.Attrs = fuseops.InodeAttributes{Uid: 501, Gid: 20, Mode: 0700 | os.ModeDir}
 
 	return &KodingNetworkFS{
 		MountConfig: mountConfig,
@@ -158,6 +158,10 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 
 	child, err := parent.FindChild(op.Name)
 	if err != nil {
+		if err == ErrNodeNotFound {
+			return fuse.ENOENT
+		}
+
 		return err
 	}
 
@@ -169,9 +173,7 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 	return err
 }
 
-//----------------------------------------------------------
-// Directory related operations
-//----------------------------------------------------------
+///// Directory related operations
 
 // TODO: I've no clue what this does or if it's even required.
 //
@@ -224,33 +226,34 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 	return nil
 }
 
+// Mkdir creates new directory inside specified parent directory. It returns
+// `fuse.EEXIST` if the parent directory doesn't exist.
+//
 // Required by Fuse.
-// func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
-//   defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
+func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
+	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
 
-//   parent, err := k.getNode(op.Parent)
-//   if err != nil {
-//     return ErrDefault
-//   }
+	parent, err := k.getNode(op.Parent)
+	if err != nil {
+		return fuse.ENOENT
+	}
 
-//   if _, err := parent.FindChild(op.Name); err != ErrNodeNotFound {
-//     return fuse.EEXIST
-//   }
+	if _, err := parent.FindChild(op.Name); err != ErrNodeNotFound {
+		return fuse.EEXIST
+	}
 
-//   newFolder, err := parent.Mkdir(op.Name, op.Mode)
-//   if err != nil {
-//     return nil
-//   }
+	newFolder, err := parent.Mkdir(op.Name, op.Mode)
+	if err != nil {
+		return err
+	}
 
-//   newFolder.Attrs.Mode = op.Mode
+	k.liveNodes[newFolder.ID] = newFolder
 
-//   k.liveNodes[newFolder.ID] = newFolder
+	op.Entry.Child = newFolder.ID
+	op.Entry.Attributes = newFolder.Attrs
 
-//   op.Entry.Child = newFolder.ID
-//   op.Entry.Attributes = newFolder.Attrs
-
-//   return nil
-// }
+	return nil
+}
 
 //----------------------------------------------------------
 // Helpers

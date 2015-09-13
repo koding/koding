@@ -3,6 +3,7 @@ package fs
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -19,7 +20,12 @@ func TestKodingNetworkFS(tt *testing.T) {
 		})
 
 		Convey("It should mount and unmount a folder", func() {
-			k := newknfs(&fakeTransport{})
+			t := &fakeTransport{
+				TripResponses: map[string]interface{}{
+					"fs.readDirectory": transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{}},
+				},
+			}
+			k := newknfs(t)
 
 			_, err := k.Mount()
 			So(err, ShouldBeNil)
@@ -31,7 +37,13 @@ func TestKodingNetworkFS(tt *testing.T) {
 
 func TestFolder(tt *testing.T) {
 	Convey("Given mounted folder", tt, func() {
-		t := &fakeTransport{}
+		t := &fakeTransport{
+			TripResponses: map[string]interface{}{
+				"fs.readDirectory":   transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{}},
+				"fs.createDirectory": true,
+			},
+		}
+
 		k := newknfs(t)
 
 		_, err := k.Mount()
@@ -43,6 +55,47 @@ func TestFolder(tt *testing.T) {
 
 			So(fi.IsDir(), ShouldBeTrue)
 			So(fi.Mode(), ShouldEqual, 0700|os.ModeDir)
+		})
+
+		Convey("It should create folder inside mounted directory", func() {
+			newFolder := path.Join(k.MountPath, "folder")
+
+			err := os.Mkdir(newFolder, 0700)
+			So(err, ShouldBeNil)
+
+			stat := func(folderPath string) {
+				fi, err := os.Stat(folderPath)
+				So(err, ShouldBeNil)
+
+				So(fi.IsDir(), ShouldBeTrue)
+				So(fi.Mode(), ShouldEqual, 0700|os.ModeDir)
+			}
+
+			stat(newFolder)
+
+			Convey("It should create folder inside newly created folder recursively", func() {
+				err := os.MkdirAll(path.Join(newFolder, "1", "2"), 0700)
+				So(err, ShouldBeNil)
+
+				stat(path.Join(newFolder, "1"))
+				stat(path.Join(newFolder, "1", "2"))
+			})
+
+			Convey("It should create with given permissions", func() {
+				folderPath := path.Join(newFolder, "p")
+
+				err := os.MkdirAll(folderPath, 0705)
+				So(err, ShouldBeNil)
+
+				fi, err := os.Stat(folderPath)
+				So(err, ShouldBeNil)
+
+				So(fi.IsDir(), ShouldBeTrue)
+				So(fi.Mode(), ShouldEqual, 0705|os.ModeDir)
+			})
+
+			Convey("It should return err when creating already existing folder", func() {
+			})
 		})
 
 		defer _unmount(k)

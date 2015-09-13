@@ -2,6 +2,7 @@ package fs
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -73,7 +74,7 @@ func NewNode(t transport.Transport, idGen *NodeIDGen) *Node {
 
 // InitializeChildNode creates new Node and adds it to parent Node#EntriesList.
 func (n *Node) InitializeChildNode(name string, nextID fuseops.InodeID) *Node {
-	defer debug(time.Now(), "Name=%s ID=%d", n.Name, nextID)
+	defer debug(time.Now(), "Parent=%s Name=%s ID=%d", n.Name, name, nextID)
 
 	c := NewNode(n.Transport, n.NodeIDGen)
 	c.ID = nextID
@@ -89,13 +90,13 @@ func (n *Node) InitializeChildNode(name string, nextID fuseops.InodeID) *Node {
 }
 
 // FindChild returns Node with specificed name. It calls `ReadDir` to refresh its
-// cache first.
+// cache first if cache is empty.
 func (n *Node) FindChild(name string) (*Node, error) {
-	defer debug(time.Now(), "ID=%d Name=%s", n.ID, name)
-
-	_, err := n.ReadDir()
-	if err != nil {
-		return nil, err
+	if len(n.EntriesList) == 0 {
+		_, err := n.getEntriesFromRemote()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if child, ok := n.EntriesList[name]; ok {
@@ -120,6 +121,34 @@ func (n *Node) ReadDir() ([]fuseutil.Dirent, error) {
 		return n.Entries, nil
 	}
 
+	return n.getEntriesFromRemote()
+}
+
+func (n *Node) Mkdir(name string, mode os.FileMode) (*Node, error) {
+	defer debug(time.Now(), "Name=%s Mode=%s", name, mode)
+
+	treq := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      filepath.Join(n.RemotePath, name),
+		Recursive: true,
+	}
+	var tres bool
+	if err := n.Trip("fs.createDirectory", treq, &tres); err != nil {
+		return nil, err
+	}
+
+	nextID := n.NodeIDGen.Next()
+
+	newFolderNode := n.InitializeChildNode(name, nextID)
+	newFolderNode.Attrs.Mode = mode
+
+	_, err := n.getEntriesFromRemote()
+	return newFolderNode, err
+}
+
+func (n *Node) getEntriesFromRemote() ([]fuseutil.Dirent, error) {
 	req := struct{ Path string }{n.RemotePath}
 	res := transport.FsReadDirectoryRes{}
 	if err := n.Trip("fs.readDirectory", req, &res); err != nil {
@@ -128,22 +157,24 @@ func (n *Node) ReadDir() ([]fuseutil.Dirent, error) {
 
 	var dirents []fuseutil.Dirent
 	for index, file := range res.Files {
+		var fileType fuseutil.DirentType = fuseutil.DT_File
+		if file.IsDir {
+			fileType = fuseutil.DT_Directory
+		}
+
 		nextID := n.NodeIDGen.Next()
 		ent := fuseutil.Dirent{
-			Offset: fuseops.DirOffset(index) + 1, // offest are 1 indexed
+			Offset: fuseops.DirOffset(index) + 1, // offset is 1 indexed
 			Inode:  nextID,
 			Name:   file.Name,
-			Type:   fuseutil.DT_File,
-		}
-		if file.IsDir {
-			ent.Type = fuseutil.DT_Directory
+			Type:   fileType,
 		}
 
 		dirents = append(dirents, ent)
 
 		child := n.InitializeChildNode(file.Name, nextID)
-		child.Attrs = fuseops.InodeAttributes{Mode: file.Mode}
-		child.EntryType = ent.Type
+		child.Attrs.Mode = file.Mode
+		child.EntryType = fileType
 
 		n.EntriesList[file.Name] = child
 	}
@@ -152,25 +183,3 @@ func (n *Node) ReadDir() ([]fuseutil.Dirent, error) {
 
 	return dirents, nil
 }
-
-// func (n *Node) Mkdir(name string, mode os.FileMode) (*Node, error) {
-//   defer debug(time.Now(), "Name=%s"+name)
-
-//   treq := struct {
-//     Path      string
-//     Recursive bool
-//   }{
-//     Path:      filepath.Join(n.RemotePath, name),
-//     Recursive: true,
-//   }
-//   var tres bool
-//   if err := n.Trip("fs.createDirectory", treq, &tres); err != nil {
-//     return nil, err
-//   }
-
-//   nextID := n.NodeIDGen.Next()
-//   node := n.InitializeChildNode(name, nextID)
-//   node.Attrs.Mode = mode
-
-//   return node, nil
-// }
