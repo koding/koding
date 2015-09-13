@@ -18,6 +18,9 @@ type FuseConfig struct {
 	// TODO: remove this after intergrating with Klient.
 	SshUser string
 
-	// Debug determines if debug logs should be shown to user.
+	// Debug determines if application debug logs are turned on.
 	Debug bool `default:true`
+
+	// FuseConfig determines if fuse library debug logs are turned on.
+	FuseDebug bool `default:false`
 }
