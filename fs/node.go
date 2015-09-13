@@ -148,6 +148,21 @@ func (n *Node) Mkdir(name string, mode os.FileMode) (*Node, error) {
 	return newFolderNode, err
 }
 
+func (n *Node) Rename(oldName, newName string) error {
+	treq := struct{ OldPath, NewPath string }{
+		OldPath: filepath.Join(n.RemotePath, oldName),
+		NewPath: filepath.Join(n.RemotePath, newName),
+	}
+	var tres bool
+
+	if err := n.Trip("fs.rename", treq, &tres); err != nil {
+		return err
+	}
+
+	_, err := n.getEntriesFromRemote()
+	return err
+}
+
 func (n *Node) getEntriesFromRemote() ([]fuseutil.Dirent, error) {
 	req := struct{ Path string }{n.RemotePath}
 	res := transport.FsReadDirectoryRes{}

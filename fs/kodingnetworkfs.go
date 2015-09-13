@@ -256,6 +256,17 @@ func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error 
 	return nil
 }
 
+func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) error {
+	defer debug(time.Now(), "Old=%v,%s New=%v,%s", op.OldParent, op.OldName, op.NewParent, op.NewName)
+
+	parent, err := k.getNode(op.OldParent)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	return parent.Rename(op.OldName, op.NewName)
+}
+
 //----------------------------------------------------------
 // Helpers
 //----------------------------------------------------------

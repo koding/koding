@@ -142,4 +142,41 @@ func TestNode(tt *testing.T) {
 			So(len(entries), ShouldEqual, 2)
 		})
 	})
+
+	Convey("Rename", tt, func() {
+		Convey("It should rename folder", func() {
+			t := &fakeTransport{
+				TripResponses: map[string]interface{}{
+					"fs.rename": true,
+					"fs.readDirectory": transport.FsReadDirectoryRes{
+						Files: []transport.FsGetInfoRes{transport.FsGetInfoRes{
+							Exists:   true,
+							FullPath: "/remote/folder",
+							IsDir:    true,
+							Mode:     os.FileMode(0700),
+							Name:     "folder",
+						}},
+					},
+				},
+			}
+
+			node := newNode()
+			node.Transport = t
+
+			So(node.Rename("folder", "folder1"), ShouldBeNil)
+
+			// TODO: how to test cache resetting when it's cached above?
+			// Convey("It should reset cache after renaming directory", func() {
+			//   _, err := node.FindChild("folder")
+			//   So(err, ShouldEqual, ErrNodeNotFound)
+
+			//   c, err := node.FindChild("folder1")
+			//   So(err, ShouldBeNil)
+			//   So(c.Name, ShouldEqual, "folder1")
+			// })
+		})
+
+		Convey("It should rename file", func() {
+		})
+	})
 }

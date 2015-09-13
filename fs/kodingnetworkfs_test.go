@@ -41,6 +41,7 @@ func TestFolder(tt *testing.T) {
 			TripResponses: map[string]interface{}{
 				"fs.readDirectory":   transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{}},
 				"fs.createDirectory": true,
+				"fs.rename":          true,
 			},
 		}
 
@@ -49,52 +50,69 @@ func TestFolder(tt *testing.T) {
 		_, err := k.Mount()
 		So(err, ShouldBeNil)
 
-		Convey("It should return contents when empty", func() {
-			fi, err := os.Stat(k.MountPath)
+		statCheck := func(folderPath string) {
+			fi, err := os.Stat(folderPath)
 			So(err, ShouldBeNil)
 
 			So(fi.IsDir(), ShouldBeTrue)
 			So(fi.Mode(), ShouldEqual, 0700|os.ModeDir)
-		})
+		}
 
-		Convey("It should create folder inside mounted directory", func() {
-			newFolder := path.Join(k.MountPath, "folder")
-
-			err := os.Mkdir(newFolder, 0700)
-			So(err, ShouldBeNil)
-
-			stat := func(folderPath string) {
-				fi, err := os.Stat(folderPath)
+		Convey("ReadDir", func() {
+			Convey("It should return contents when empty", func() {
+				fi, err := os.Stat(k.MountPath)
 				So(err, ShouldBeNil)
 
 				So(fi.IsDir(), ShouldBeTrue)
 				So(fi.Mode(), ShouldEqual, 0700|os.ModeDir)
-			}
+			})
+		})
 
-			stat(newFolder)
+		Convey("Mkdir", func() {
+			Convey("It should create folder inside mounted directory", func() {
+				newFolder := path.Join(k.MountPath, "folder")
 
-			Convey("It should create folder inside newly created folder recursively", func() {
-				err := os.MkdirAll(path.Join(newFolder, "1", "2"), 0700)
-				So(err, ShouldBeNil)
+				So(os.Mkdir(newFolder, 0700), ShouldBeNil)
+				statCheck(newFolder)
 
-				stat(path.Join(newFolder, "1"))
-				stat(path.Join(newFolder, "1", "2"))
+				Convey("It should create folder inside newly created folder recursively", func() {
+					So(os.MkdirAll(path.Join(newFolder, "1", "2"), 0700), ShouldBeNil)
+
+					statCheck(path.Join(newFolder, "1"))
+					statCheck(path.Join(newFolder, "1", "2"))
+				})
+
+				Convey("It should create with given permissions", func() {
+					folderPath := path.Join(newFolder, "p")
+
+					err := os.MkdirAll(folderPath, 0705)
+					So(err, ShouldBeNil)
+
+					fi, err := os.Stat(folderPath)
+					So(err, ShouldBeNil)
+
+					So(fi.IsDir(), ShouldBeTrue)
+					So(fi.Mode(), ShouldEqual, 0705|os.ModeDir)
+				})
+
+				Convey("It should return err when creating already existing folder", func() {
+				})
+			})
+		})
+
+		Convey("Rename", func() {
+			Convey("It should rename folder", func() {
+				oldPath := path.Join(k.MountPath, "oldpath")
+				newPath := path.Join(k.MountPath, "newpath")
+
+				So(os.Mkdir(oldPath, 0700), ShouldBeNil)
+				So(os.Rename(oldPath, newPath), ShouldBeNil)
+
+				// TODO: add newpath to fakeTransport#TripResponses
+				// statCheck(newPath)
 			})
 
-			Convey("It should create with given permissions", func() {
-				folderPath := path.Join(newFolder, "p")
-
-				err := os.MkdirAll(folderPath, 0705)
-				So(err, ShouldBeNil)
-
-				fi, err := os.Stat(folderPath)
-				So(err, ShouldBeNil)
-
-				So(fi.IsDir(), ShouldBeTrue)
-				So(fi.Mode(), ShouldEqual, 0705|os.ModeDir)
-			})
-
-			Convey("It should return err when creating already existing folder", func() {
+			Convey("It should rename file", func() {
 			})
 		})
 
