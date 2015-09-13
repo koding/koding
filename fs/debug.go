@@ -7,7 +7,13 @@ import (
 	"time"
 )
 
+var DebugEnabled = false
+
 func debug(t time.Time, format string, values ...interface{}) {
+	if !DebugEnabled {
+		return
+	}
+
 	p := make([]uintptr, 10)
 	runtime.Callers(2, p)
 

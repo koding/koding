@@ -71,9 +71,12 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 		EnableVnodeCaching: false,
 	}
 
+	if c.FuseDebug {
+		mountConfig.DebugLogger = log.New(os.Stdout, "", 0)
+	}
+
 	if c.Debug {
-		mountConfig.ErrorLogger = log.New(os.Stderr, "fk: ", log.Lshortfile)
-		mountConfig.DebugLogger = log.New(os.Stdout, "fk_debug: ", log.Lshortfile)
+		DebugEnabled = true
 	}
 
 	idGen := NewNodeIDGen()
