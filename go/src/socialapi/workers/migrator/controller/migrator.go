@@ -215,6 +215,7 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 // EnsureIntegrations creates or updates all integrations
 // Declare these integration out of the function.
 func (mwc *Controller) EnsureIntegrations() {
+	mwc.log.Notice("Creating and updating integration channels")
 	integrations, err := mwc.describeIntegrations()
 	if err != nil {
 		mwc.log.Error("Could not get integration: %s", err)
@@ -223,8 +224,9 @@ func (mwc *Controller) EnsureIntegrations() {
 	for _, integration := range integrations {
 		// Get integration from db, if cannot find in db, create it.
 		i := webhookmodels.NewIntegration()
-		if err := i.ByName(integration.Name); err != nil {
-			if err == bongo.RecordNotFound {
+		err := i.ByName(integration.Name)
+		if err != nil {
+			if err == bongo.RecordNotFound || err == webhookmodels.ErrIntegrationNotFound {
 				if err = integration.Create(); err != nil {
 					mwc.log.Error("Could not create integration: %s", err)
 				}
@@ -233,6 +235,7 @@ func (mwc *Controller) EnsureIntegrations() {
 			}
 		} else {
 			integration.Id = i.Id
+			integration.TypeConstant = i.TypeConstant
 			if err = integration.Update(); err != nil {
 				mwc.log.Error("Could not update integration: %s", err)
 			}
