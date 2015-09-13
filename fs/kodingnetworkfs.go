@@ -14,6 +14,7 @@ import (
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/config"
 	"github.com/koding/fuseklient/transport"
+	"github.com/koding/fuseklient/unmount"
 )
 
 // TODO: what's a good default error to return when things go wrong, ie
@@ -121,7 +122,7 @@ func (k *KodingNetworkFS) Join() error {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
-	return unmount(k.MountPath)
+	return unmount.Unmount(k.MountPath)
 }
 
 // GetInodeAttributesOp set attributes for a specified Node. It returns
@@ -149,7 +150,7 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 //
 // Required by Fuse.
 func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
-	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
+	// defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
 
 	parent, ok := k.liveNodes[op.Parent]
 	if !ok {
