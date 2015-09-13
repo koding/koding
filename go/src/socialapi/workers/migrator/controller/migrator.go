@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	webhookmodels "socialapi/workers/integration/webhook"
 	realtimemodels "socialapi/workers/realtime/models"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
@@ -160,6 +161,17 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 	integrations = append(integrations, githubInt)
 
+	// Travis Creation
+	travisInt := webhookmodels.NewIntegration()
+	travisInt.Title = "Travis CI"
+	travisInt.Name = "travis"
+	travisInt.Summary = "Hosted software build services."
+	travisInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/travisci.png"
+	travisInt.Description = "Travis CI is a continuous integration platform that takes care of running your software tests and deploying your apps. This integration will allow your team to receive notifications in Koding for normal branch builds, and for pull requests, as well."
+	travisInt.DeletedAt = time.Now().UTC()
+
+	integrations = append(integrations, travisInt)
+
 	// Pivotal Creation
 	pivotalInt := webhookmodels.NewIntegration()
 	pivotalInt.Title = "Pivotal Tracker"
@@ -232,42 +244,16 @@ func (mwc *Controller) UpdateIntegrations() {
 				if err = integration.Create(); err != nil {
 					mwc.log.Error("Could not create integration: %s", err)
 				}
+			} else {
+				mwc.log.Error("Could not create integration: %s", err)
 			}
 		} else {
-			if err = i.Update(); err != nil {
+			integration.Id = i.Id
+			if err = integration.Update(); err != nil {
 				mwc.log.Error("Could not update integration: %s", err)
 			}
 		}
 	}
-
-	allIntegrations, err := webhookmodels.NewIntegration().GetAllDBIntegration()
-	if err != nil {
-		mwc.log.Error("Could not get integration from db: %s", err)
-	}
-
-	for _, db := range allIntegrations {
-		i := webhookmodels.NewIntegration()
-		for _, in := range integrations {
-			if !isContains(allIntegrations, in.Name) {
-				if err = i.ByName(db); err != nil {
-					mwc.log.Error("Could not get integration: %s", err)
-				}
-				i.IsPublished = false
-				if err = i.Update(); err != nil {
-					mwc.log.Error("Could not update integration: %s", err)
-				}
-			}
-		}
-	}
-}
-
-func isContains(arr []string, name string) bool {
-	for _, a := range arr {
-		if a == name {
-			return true
-		}
-	}
-	return false
 }
 
 func (mwc *Controller) CreateBotUser() {
