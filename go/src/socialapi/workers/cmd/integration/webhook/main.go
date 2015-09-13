@@ -48,7 +48,7 @@ func main() {
 		panic(err)
 	}
 
-	go mwc.UpdateIntegrations()
+	go mwc.EnsureIntegrations()
 
 	h.AddHandlers(m)
 
