@@ -7,7 +7,6 @@ import (
 	"socialapi/models"
 	webhookmodels "socialapi/workers/integration/webhook"
 	realtimemodels "socialapi/workers/realtime/models"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
@@ -79,7 +78,7 @@ func (mwc *Controller) Start() {
 
 	mwc.GrantPublicAccess()
 
-	mwc.CreateIntegrations()
+	mwc.EnsureIntegrations()
 
 	mwc.CreateBotUser()
 
@@ -115,7 +114,11 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 
 // describeIntegrations describe all integrations in this func.
 // firstly, fills all fields for each integrations and assign each integration to the
-// integration array, abd then sends this array to the 'createIntegration' to create in db
+// integration array, and then sends this array to the 'EnsureIntegrations' to create in db
+//
+// DO NOT delete any integration from here. Just edit integration fields.
+// You can update the properties , changes will be updated automatically,
+// if you want to delete any integration, only set 'isPublished' field as 'false'.
 func (mwc *Controller) describeIntegrations() ([]*webhookmodels.Integration, error) {
 	var integrations []*webhookmodels.Integration
 
@@ -168,7 +171,7 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	travisInt.Summary = "Hosted software build services."
 	travisInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/travisci.png"
 	travisInt.Description = "Travis CI is a continuous integration platform that takes care of running your software tests and deploying your apps. This integration will allow your team to receive notifications in Koding for normal branch builds, and for pull requests, as well."
-	travisInt.DeletedAt = time.Now().UTC()
+	travisInt.IsPublished = false
 
 	integrations = append(integrations, travisInt)
 
@@ -209,28 +212,9 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 
 }
 
-// CreateIntegrations creates the integrations in db
-// integrations are described in 'describeIntegrations' function
-// this function gets the described integrations and creates each of these integrations in db
-func (mwc *Controller) CreateIntegrations() {
-	mwc.log.Notice("Creating integration channels")
-
-	integrations, err := mwc.describeIntegrations()
-	if err != nil {
-		mwc.log.Error("Could not get integration: %s", err)
-	}
-
-	for _, integration := range integrations {
-		if err := integration.Create(); err != nil {
-			mwc.log.Error("Could not create integration: %s", err)
-		}
-	}
-
-}
-
-// Divide the create integration func, send parameter all integrations in it.
+// EnsureIntegrations creates or updates all integrations
 // Declare these integration out of the function.
-func (mwc *Controller) UpdateIntegrations() {
+func (mwc *Controller) EnsureIntegrations() {
 	integrations, err := mwc.describeIntegrations()
 	if err != nil {
 		mwc.log.Error("Could not get integration: %s", err)
