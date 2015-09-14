@@ -2,33 +2,16 @@ React                 = require 'kd-react'
 immutable             = require 'immutable'
 ActivityFlux          = require 'activity/flux'
 Scroller              = require 'app/components/scroller'
+ScrollerMixin         = require 'app/components/scroller/scrollermixin'
 
-module.exports = class ChannelList extends React.Component
+module.exports = class SidebarModalList extends React.Component
+
+  @include [ScrollerMixin]
 
   @defaultProps =
     title       : ''
     threads     : immutable.List()
     className   : ''
-
-
-  componentWillUpdate: ->
-
-    return  unless @refs?.scrollContainer
-
-    { @scrollTop, offsetHeight, @scrollHeight } = React.findDOMNode @refs.scrollContainer
-    @shouldScrollToBottom = @scrollTop + offsetHeight is @scrollHeight
-
-
-  componentDidUpdate: ->
-
-    return  unless @refs?.scrollContainer
-
-    element = React.findDOMNode @refs.scrollContainer
-
-    if @shouldScrollToBottom
-      element.scrollTop = element.scrollHeight
-    else
-      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
 
 
   onThresholdReached: ->
@@ -68,11 +51,13 @@ module.exports = class ChannelList extends React.Component
 
     { itemComponent: Component, threads } = @props
 
-    threads.map (thread, i) ->
+    channelItems = threads.map (thread, i) ->
       itemProps =
         key     : thread.get 'channelId'
         channel : thread.get 'channel'
       <Component {...itemProps} />
+
+    return channelItems.toList()
 
 
   renderChannelList: ->
@@ -81,7 +66,7 @@ module.exports = class ChannelList extends React.Component
       <Scroller
         onThresholdReached={@bound 'onThresholdReached'}
         ref="scrollContainer">
-        {@renderChildren().toList()}
+        {@renderChildren()}
       </Scroller>
     </div>
 
