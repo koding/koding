@@ -70,6 +70,7 @@ module.exports =
   addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
+    linkSelector      = "#{freeModalSelector} a.custom-link-view span"
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -79,14 +80,13 @@ module.exports =
         browser.end()
       else
         environmentHelpers.clickAddVMButton(browser)
-        browser.pause 5000 # wait to see the modal
+        browser.pause 10000 # wait to see the modal
 
         browser.element 'css selector', freeModalSelector, (result) =>
           if result.status is 0
             browser
-              .waitForElementVisible   freeModalSelector, 20000
-              .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
-              .click                   freeModalSelector + ' a.custom-link-view span'
+              .waitForElementVisible   linkSelector, 20000
+              .click                   linkSelector
 
             helpers.selectPlan(browser)
             helpers.fillPaymentForm(browser)
@@ -97,11 +97,13 @@ module.exports =
           else
             environmentHelpers.clickCreateVMButton(browser)
 
+          browser.end()
+
 
   # this test depends addVM test.
   turnOnNewPaidVM: (browser) ->
 
-    vmName     = 'koding-vm-1'
+    vmName = 'koding-vm-1'
 
     helpers.beginTest(browser)
 
