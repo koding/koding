@@ -1,6 +1,7 @@
 kd                  = require 'kd'
 KDModalView         = kd.ModalView
 KDCustumScrollView  = kd.CustomScrollView
+KDView              = kd.CustomHTMLView
 KDNotificationView  = kd.NotificationView
 showError           = require 'app/util/showError'
 
@@ -32,11 +33,12 @@ module.exports = class AccountCredentialEditModal extends KDModalView
         unless showError err
           @form.emit 'CredentialUpdated', credential
 
+    @addSubView @wrapper = new KDView cssClass 'stacks step-creds'
 
-    @addSubView @scrollView = new KDCustumScrollView
-    @scrollView.wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
+    @wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
 
     @form.on 'Cancel', @bound 'cancel'
     @form.on 'CredentialUpdated', ->
       new KDNotificationView title : 'Credential was updated.', type: 'mini'
       @emit 'Cancel'
+
