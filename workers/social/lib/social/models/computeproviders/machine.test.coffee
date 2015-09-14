@@ -6,8 +6,8 @@ JMachine                      = require './machine'
 
 { daisy
   expect
+  withDummyClient
   generateUserInfo
-  generateDummyClient
   generateRandomString
   checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
@@ -26,24 +26,18 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     it 'when machine data is not valid should return error', (done) ->
 
-      client        = {}
       machineParams = {}
 
       queue = [
 
         ->
-          # generating a dummy client
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
-            client = client_
-            queue.next()
+          withDummyClient { group : 'koding' }, (client) ->
 
-        ->
-          # generating machineParams to use on machine creation
-          generateMachineParams client, (err, data) ->
-            expect(err).to.not.exist
-            machineParams = data
-            queue.next()
+            # generating machineParams to use on machine creation
+            generateMachineParams client, (err, data) ->
+              expect(err).to.not.exist
+              machineParams = data
+              queue.next()
 
         ->
           # sending machineParams.user null and expecting error
@@ -63,24 +57,18 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       it 'a new machine should be created for revived client', (done) ->
 
-        client        = {}
         machineParams = {}
 
         queue = [
 
           ->
-            # generating a dummy client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+            withDummyClient { group : 'koding' }, (client) ->
 
-          ->
-            # generating machineParams to use on machine creation
-            generateMachineParams client, (err, data) ->
-              expect(err).to.not.exist
-              machineParams = data
-              queue.next()
+              # generating machineParams to use on machine creation
+              generateMachineParams client, (err, data) ->
+                expect(err).to.not.exist
+                machineParams = data
+                queue.next()
 
           ->
             # expecting machine to be craeted
@@ -124,7 +112,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         user          = {}
         machine       = {}
         userInfo      = generateUserInfo()
-        machineCount  = 0
 
         queue = [
 
@@ -134,14 +121,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               user      = user_
               machine   = machine_
               userCount = machine.users.length
-              queue.next()
-
-          ->
-            # fetching user's first machine
-            JMachine.fetchByUsername userInfo.username, (err, machines) ->
-              expect(err).to.not.exist
-              machineCount = machines.length
-              expect(machineCount).to.be.above 0
               queue.next()
 
           ->
@@ -155,7 +134,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             # fetching machine instances again expecting machine to be destroyed
             JMachine.fetchByUsername userInfo.username, (err, machines) ->
               expect(err).to.not.exist
-              expect(machines.length).to.be.equal machineCount - 1
+              expect(machines.length).to.be.equal 0
               queue.next()
 
           -> done()
@@ -529,20 +508,16 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          # generating a dummy client
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
-            client = client_
-            queue.next()
+          withDummyClient { group : 'koding' }, (client_) ->
+            client = client_ 
 
-        ->
-          # registering a new user
-          JUser.convert client, userFormData, (err, data) ->
-            expect(err).to.not.exist
-            { account, newToken }      = data
-            client.sessionToken        = newToken
-            client.connection.delegate = account
-            queue.next()
+            # registering a new user
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
 
         ->
           # fetching machine instance of newly registered user
@@ -581,33 +556,24 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            # generating a dummy client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+            withDummyClient { group : 'koding' }, (client) ->
+
+              # registering a new user
+              JUser.convert client, userFormData, (err, data) ->
+                expect(err).to.not.exist
+                { account, newToken }      = data
+                client.sessionToken        = newToken
+                client.connection.delegate = account
+                queue.next()
 
           ->
-            # registering a new user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
-
-          ->
-            # generating client for another user
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              anotherClient = client_
-              queue.next()
-
-          ->
-            # registering another user
-            JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
-              expect(err).to.not.exist
-              queue.next()
+            withDummyClient { group : 'koding' }, (client) ->
+              anotherClient = client
+              #
+              # registering another user
+              JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
+                expect(err).to.not.exist
+                queue.next()
 
           ->
             # fetching owner user's machine
@@ -641,20 +607,16 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            # generating a dummy client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
+            withDummyClient { group : 'koding' }, (client_) ->
               client = client_
-              queue.next()
 
-          ->
-            # registering a new user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
+              # registering a new user
+              JUser.convert client, userFormData, (err, data) ->
+                expect(err).to.not.exist
+                { account, newToken }      = data
+                client.sessionToken        = newToken
+                client.connection.delegate = account
+                queue.next()
 
           ->
             # fetching machine of owner user
@@ -691,33 +653,25 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            # generating a dummy client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
+            withDummyClient { group : 'koding' }, (client_) ->
               client = client_
-              queue.next()
+
+              # registering a new user
+              JUser.convert client, userFormData, (err, data) ->
+                expect(err).to.not.exist
+                { account, newToken }      = data
+                client.sessionToken        = newToken
+                client.connection.delegate = account
+                queue.next()
 
           ->
-            # registering a new user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
-
-          ->
-            # generating a dummy client for another user
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
+            withDummyClient { group : 'koding' }, (client_) ->
               anotherClient = client_
-              queue.next()
 
-          ->
-            # registering another user
-            JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
-              expect(err).to.not.exist
-              queue.next()
+              # registering another user
+              JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
+                expect(err).to.not.exist
+                queue.next()
 
           ->
             # fetching machine of user
@@ -757,20 +711,16 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            # generating a dummy client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
+            withDummyClient { group : 'koding' }, (client_) ->
               client = client_
-              queue.next()
 
-          ->
-            # registering user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
+              # registering user
+              JUser.convert client, userFormData, (err, data) ->
+                expect(err).to.not.exist
+                { account, newToken }      = data
+                client.sessionToken        = newToken
+                client.connection.delegate = account
+                queue.next()
 
           ->
             # fetching machine of user
@@ -850,20 +800,16 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            # generating a dummy client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
+            withDummyClient { group : 'koding' }, (client_) ->
               client = client_
-              queue.next()
 
-          ->
-            # registering a new user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
+              # registering a new user
+              JUser.convert client, userFormData, (err, data) ->
+                expect(err).to.not.exist
+                { account, newToken }      = data
+                client.sessionToken        = newToken
+                client.connection.delegate = account
+                queue.next()
 
           ->
             # fetching machine of user
@@ -902,36 +848,28 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          # generating a dummy client
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
+          withDummyClient { group : 'koding' }, (client_) ->
             client = client_
-            queue.next()
+
+            # registering a new user
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
 
         ->
-          # registering a new user
-          JUser.convert client, userFormData, (err, data) ->
-            expect(err).to.not.exist
-            { account, newToken }      = data
-            client.sessionToken        = newToken
-            client.connection.delegate = account
-            queue.next()
-
-        ->
-          # generating a dummy client for another user
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
+          withDummyClient { group : 'koding' }, (client_) ->
             anotherClient = client_
-            queue.next()
 
-        ->
-          # registering another user
-          JUser.convert anotherClient, anotherUserFormData, (err, data) ->
-            expect(err).to.not.exist
-            { account, newToken }             = data
-            anotherClient.sessionToken        = newToken
-            anotherClient.connection.delegate = account
-            queue.next()
+            # registering another user
+            JUser.convert anotherClient, anotherUserFormData, (err, data) ->
+              expect(err).to.not.exist
+              { account, newToken }             = data
+              anotherClient.sessionToken        = newToken
+              anotherClient.connection.delegate = account
+              queue.next()
 
         ->
           # fetching machine of user
