@@ -65,9 +65,7 @@ module.exports = class ChatListItem extends React.Component
 
   componentDidUpdate: ->
 
-    isEditing = @props.message.get '__isEditing'
-    @setState editMode: isEditing
-    @focusInputOnEdit()  if isEditing
+    @focusInputOnEdit()
 
 
   getAccountInfo: ->
@@ -282,17 +280,17 @@ module.exports = class ChatListItem extends React.Component
 
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
-    'hidden' : not @state.editMode
-    'visible' : @state.editMode
+    'hidden' : not @props.message.get '__isEditing'
+    'visible' : @props.message.get '__isEditing'
 
 
   getMediaObjectClassNames: -> classnames
-    'hidden' : @state.editMode
+    'hidden' : @props.message.get '__isEditing'
 
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
@@ -328,18 +326,6 @@ module.exports = class ChatListItem extends React.Component
         onMenuOpen  = {=> @onMenuToggle yes}
         onMenuClose = {=> @onMenuToggle no}
       />
-
-
-  getClassNames: ->
-    editForm: classnames
-      'ChatItem-updateMessageForm': yes
-      'hidden': not @state.editMode
-    mediaContent: classnames
-      'hidden': @state.editMode
-    contentWrapper: classnames
-      'ChatItem-contentWrapper': yes
-      'MediaObject': yes
-      'editing': @state.editMode
 
 
   renderEmbedBox: ->
