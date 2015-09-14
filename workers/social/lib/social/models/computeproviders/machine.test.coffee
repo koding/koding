@@ -11,6 +11,7 @@ JMachine                      = require './machine'
   generateUserInfo
   generateRandomString
   checkBongoConnectivity
+  generateRandomUserArray
   generateDummyUserFormData } = require '../../../../testhelper'
 
 
@@ -244,19 +245,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         targets       = []
         machine       = {}
 
-        generateAnotherUser = (targets, queue) -> ->
-          JUser.createUser generateUserInfo(), (err, user_) ->
-            expect(err).to.not.exist
-            targets.push user_
-            queue.next()
-
         queue.push ->
           createUserAndMachine generateUserInfo(), (err, machine_) ->
             machine = machine_
             queue.next()
 
-        for i in [0...limit]
-          queue.push generateAnotherUser targets, queue
+        queue.push ->
+          generateRandomUserArray limit, (userArray) ->
+            targets = userArray
+            queue.next()
 
         queue.push ->
           params =
@@ -287,23 +284,20 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         addedUserCount   = 5
         removedUserCount = 2
 
-        generateAnotherUser = (targets, queue) -> ->
-          JUser.createUser generateUserInfo(), (err, user_) ->
-            expect(err).to.not.exist
-            targets.push user_
-            queue.next()
-
         queue.push ->
           createUserAndMachine generateUserInfo(), (err, machine_) ->
             machine = machine_
             userCount = machine.users.length
             queue.next()
 
-        for i in [0...addedUserCount]
-          queue.push generateAnotherUser targets, queue
+        queue.push ->
+          generateRandomUserArray addedUserCount, (userArray) ->
+            targets = userArray
+            queue.next()
 
         # first adding users
         queue.push ->
+          console.log targets.length
           params =
             targets   : targets
             asOwner   : yes
