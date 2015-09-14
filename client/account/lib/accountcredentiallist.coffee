@@ -5,8 +5,9 @@ KDModalView        = kd.ModalView
 KDOverlayView      = kd.OverlayView
 KDNotificationView = kd.NotificationView
 
-showError                 = require 'app/util/showError'
-AccountCredentialListItem = require './accountcredentiallistitem'
+showError                   = require 'app/util/showError'
+AccountCredentialListItem   = require './accountcredentiallistitem'
+AccountCredentialEditModal  = require './accountcredentialeditmodal'
 
 
 module.exports = class AccountCredentialList extends KDListView
@@ -82,6 +83,15 @@ module.exports = class AccountCredentialList extends KDListView
 
   editItem: (item) ->
 
+    credential    = item.getData()
+    { provider }  = credential
+
+    credential.fetchData (err, data) ->
+      return if showError err
+
+      data.title = credential.title
+
+      new AccountCredentialEditModal { provider }, data
 
 
   checkIsBootstrapped: (item) ->

@@ -47,7 +47,6 @@ module.exports = class AccountCredentialListWrapper extends KDView
     providers = @getValidProviders()
 
     for provider in providers
-
       selectOptions.push
         title : provider.title
         value : provider.key
