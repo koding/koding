@@ -1,5 +1,6 @@
 _                       = require 'underscore'
 hat                     = require 'hat'
+JUser                   = require '../lib/social/models/user'
 JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
@@ -117,6 +118,24 @@ generateUserInfo = (opts = {}) ->
   return userInfo
 
 
+generateRandomUserArray =  (count, callback) ->
+
+  queue     = []
+  userArray = []
+
+  for i in [0...count]
+    queue.push ->
+      JUser.createUser generateUserInfo(), (err, user_) ->
+        expect(err).to.not.exist
+        userArray.push user_
+        queue.next()
+
+  queue.push -> callback userArray
+
+  daisy queue
+
+
+
 module.exports = {
   daisy
   expect
@@ -128,6 +147,7 @@ module.exports = {
   generateRandomString
   checkBongoConnectivity
   generateRandomUsername
+  generateRandomUserArray
   generateDummyUserFormData
 }
 
