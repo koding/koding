@@ -211,3 +211,11 @@ module.exports =
         .waitForElementVisible     snapshotListSelector, 20000
         .waitForElementNotPresent  "#{snapshotListSelector} .info .label.#{snapshotName}", 20000
         .end()
+
+
+
+
+
+
+
+
