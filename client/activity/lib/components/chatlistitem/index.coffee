@@ -65,7 +65,7 @@ module.exports = class ChatListItem extends React.Component
 
   componentDidUpdate: ->
 
-    @focusInputOnEdit()
+    @focusInputOnEdit()  if isEditing
 
 
   getAccountInfo: ->
