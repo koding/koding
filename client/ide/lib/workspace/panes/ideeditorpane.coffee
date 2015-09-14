@@ -77,14 +77,16 @@ module.exports = class IDEEditorPane extends IDEPane
 
   handleAutoSave: ->
 
-    return   if @getFile().path.indexOf('localfile:/') > -1
-    return   if @errorOnSave
-    @save()  if @getAce().isContentChanged()
+    return if @getFile().path.indexOf('localfile:/') > -1
+    return if @errorOnSave
+
+    if @getAce().isContentChanged()
+      @save ignoreActiveLineOnTrim: yes
 
 
-  save: ->
+  save: (options = {}) ->
 
-    @getAce().requestSave()
+    @getAce().requestSave options
 
 
   getAce: ->
