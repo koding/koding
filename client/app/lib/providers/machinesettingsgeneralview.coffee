@@ -1,5 +1,6 @@
 kd                     = require 'kd'
 KDView                 = kd.View
+Encoder                = require 'htmlencode'
 Machine                = require './machine'
 showError              = require 'app/util/showError'
 KodingSwitch           = require '../commonviews/kodingswitch'
@@ -68,7 +69,9 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
       return if showError err
 
-      nickname.updatePartial "<span class='edit'>update</span> #{newLabel}"
+      label = Encoder.XSSEncode newLabel
+
+      nickname.updatePartial "<span class='edit'>update</span> #{label}"
 
       nickEdit.hide()
       nickname.show()
