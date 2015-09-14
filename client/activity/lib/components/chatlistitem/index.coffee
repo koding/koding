@@ -191,8 +191,7 @@ module.exports = class ChatListItem extends React.Component
 
     domNode = @refs.EditMessageTextarea.getDOMNode()
 
-    kd.utils.wait 100, ->
-      kd.utils.moveCaretToEnd domNode
+    kd.utils.moveCaretToEnd domNode
 
 
   editPost: ->
@@ -200,8 +199,6 @@ module.exports = class ChatListItem extends React.Component
     messageId = @props.message.get '_id'
 
     ActivityFlux.actions.message.setMessageEditMode messageId
-    @focusInputOnEdit()
-
 
 
   showDeletePostPromptModal: ->
