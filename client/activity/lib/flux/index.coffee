@@ -8,6 +8,7 @@ module.exports =
     thread          : require './actions/thread'
     channel         : require './actions/channel'
     suggestions     : require './actions/suggestions'
+    user            : require './actions/user'
 
   stores    : [
     require './stores/messagesstore'
@@ -28,6 +29,10 @@ module.exports =
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
     require './stores/messageflagsstore'
+    require './stores/channelparticipants/channelparticipantssearchquerystore'
+    require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
+    require './stores/channelparticipants/channelparticipantsselectedindexstore'
+
   ]
   # module stores
   .concat ChatInputModule.stores

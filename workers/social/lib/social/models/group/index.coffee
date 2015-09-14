@@ -186,6 +186,16 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchBlockedAccounts: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchBlockedAccountsWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -213,6 +223,8 @@ module.exports = class JGroup extends Module
         isMember:
           (signature Object, Function)
         kickMember:
+          (signature String, Function)
+        unblockMember:
           (signature String, Function)
         transferOwnership:
           (signature String, Function)
@@ -317,6 +329,9 @@ module.exports = class JGroup extends Module
         owner         :
           targetType  : JAccount
           as          : 'owner'
+        blockedAccount:
+          targetType  : JAccount
+          as          : 'blockedAccount'
         subgroup      :
           targetType  : 'JGroup'
           as          : 'parent'
@@ -567,19 +582,40 @@ module.exports = class JGroup extends Module
   changeMemberRoles: permit 'grant permissions',
     success:(client, targetId, roles, callback) ->
       remove = []
+      revokedRoles = []
       sourceId = @getId()
       roles.push 'member'  unless 'member' in roles
-      Relationship.some { targetId, sourceId }, {}, (err, rels) ->
+      Relationship.some { targetId, sourceId }, {}, (err, rels) =>
         return callback err  if err
 
         for rel in rels
           if rel.as in roles then roles.splice roles.indexOf(rel.as), 1
-          else remove.push rel._id
+          else
+            remove.push rel._id
+            revokedRoles.push rel.as
 
-        if remove.length > 0
-          Relationship.remove { _id: { $in: remove } }, (err) -> console.log 'removed'; callback err  if err
+        queue = [
+          =>
+            @countAdmins (err, count) ->
+              return callback err  if err
 
-        queue = roles.map (role) -> ->
+              if count > 1 # this means we have more than one admin account
+                queue.next()
+              else
+                # get the diff between revokedRoles and roles, because revoked
+                # roles should not have admin role in this case
+                diff = difference revokedRoles, roles
+
+                # check if the diff has admin role
+                if diff.indexOf('admin') > -1
+                  return callback new KodingError 'There should be at least one admin'
+
+                queue.next()
+
+        ]
+
+        # create new roles
+        queue = queue.concat roles.map (role) -> ->
           (new Relationship
             targetName  : 'JAccount'
             targetId    : targetId
@@ -587,9 +623,23 @@ module.exports = class JGroup extends Module
             sourceId    : sourceId
             as          : role
           ).save (err) ->
-            callback err  if err
-            queue.fin()
-        dash queue, callback
+            return callback err  if err
+            queue.next()
+
+        # remove existing ones
+        queue = queue.concat [
+          ->
+            if remove.length > 0
+              Relationship.remove { _id: { $in: remove } }, (err) ->
+                return callback err  if err
+                queue.next()
+            else
+              queue.next()
+          ->
+            callback null
+        ]
+
+        daisy queue
 
   addDefaultRoles:(callback) ->
     group = this
@@ -763,6 +813,23 @@ module.exports = class JGroup extends Module
     success:(client, rest...) ->
       @baseFetcherOfGroupStaff {
         method      : @fetchModerators
+        fetchEmail  : yes
+        client
+        rest
+      }
+
+  fetchBlockedAccounts$: permit 'list members',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method: @fetchBlockedAccounts
+        client
+        rest
+      }
+
+  fetchBlockedAccountsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchBlockedAccounts
         fetchEmail  : yes
         client
         rest
@@ -945,10 +1012,11 @@ module.exports = class JGroup extends Module
 
 
   isMember: (account, callback) ->
+
     return callback new Error 'No account found!'  unless account
     selector =
       sourceId  : @getId()
-      targetId  : account.getId()
+      targetId  : account._id
       as        : 'member'
     Relationship.count selector, (err, count) ->
       if err then callback err
@@ -959,17 +1027,21 @@ module.exports = class JGroup extends Module
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
 
-    kallback = =>
-      callback()
-      @updateCounts()
-      @emit 'MemberAdded', member  if 'member' in roles
+    @fetchBlockedAccount { targetId: member.getId() }, (err, account_) =>
+      return callback err if err
+      return callback new KodingError 'This account is blocked'  if account_
 
-    queue = roles.map (role) => =>
-      @addMember member, role, queue.fin.bind queue
+      kallback = =>
+        callback()
+        @updateCounts()
+        @emit 'MemberAdded', member  if 'member' in roles
 
-    # We were creating group member VMs here before
-    # I've deleted them, ask me if you need more information ~ GG
-    dash queue, -> kallback()
+      queue = roles.map (role) => =>
+        @addMember member, role, queue.fin.bind queue
+
+      # We were creating group member VMs here before
+      # I've deleted them, ask me if you need more information ~ GG
+      dash queue, -> kallback()
 
   each:(selector, rest...) ->
     selector.visibility = 'visible'
@@ -1076,7 +1148,31 @@ module.exports = class JGroup extends Module
               @cycleChannel()
               queue.fin()
 
+          # add current user into blocked accounts
+          queue.push =>
+
+            # addBlockedAccount is generated by bongo
+            @addBlockedAccount account, (err) ->
+              return callback err  if err
+              queue.fin()
+
+
           dash queue, kallback
+  ###*
+   * UnblockMember removes the blockage on the member for joining to a group.
+   *
+   * @param {Object} client - Session context.
+   * @param {String} accountId - Id of the account for unblocking.
+   * @param {Function} callback - Callback.
+  ###
+  unblockMember: permit 'grant permissions',
+    success: (client, accountId, callback) ->
+      JAccount = require '../account'
+      JAccount.one { _id: accountId }, (err, account) =>
+        return callback err  if err
+
+        # removeBlockedAccount is generated by bongo
+        @removeBlockedAccount account, callback
 
   transferOwnership: permit 'grant permissions',
     success: (client, accountId, callback) ->

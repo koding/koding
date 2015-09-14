@@ -203,7 +203,27 @@ runTests = -> describe 'workers.social.group.index', ->
               expect(data).to.not.exist
               queue.next()
 
-          -> done()
+          ->
+            # we cannot add blocked user to group
+            group.approveMember account, (err) ->
+              expect(err).to.exist
+              expect(err.message).to.be.equal 'This account is blocked'
+              queue.next()
+
+          ->
+            # we should be able to unblock the member
+            group.unblockMember adminClient, account.getId(), (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            # unblocked member can be added again
+            group.approveMember account, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            done()
 
         ]
 

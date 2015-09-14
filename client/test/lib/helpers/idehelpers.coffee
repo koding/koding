@@ -165,3 +165,35 @@ module.exports =
 
     helpers.clickVMHeaderButton(browser)
     browser.click ".context-list-wrapper #{selector}"
+
+  compressFileFolder: (browser, user, type, fileFolderName, compressType) ->
+
+    webPath     = '/home/' + user.username + '/Web'
+    name        = fileFolderName
+
+    if type is 'folder'
+      webPath   = '/home/' + user.username
+      name      = fileFolderName.name
+
+    fileFolderSelector  = "span[title='" + webPath + '/' + name + "']"
+    submenuSelector     = "li.as-#{compressType}"
+    extension           = '.zip'
+
+    if compressType is 'targz'
+      extension = '.tar.gz'
+
+    newFile = "span[title='" + webPath + '/' + name + extension + "']"
+
+    browser
+      .waitForElementPresent     fileFolderSelector, 20000
+      .click                     fileFolderSelector
+      .click                     fileFolderSelector + ' + .chevron'
+      .waitForElementVisible     'li.compress', 20000
+      .click                     'li.compress'
+      .waitForElementVisible     submenuSelector, 20000
+      .click                     submenuSelector
+      .pause                     2000
+      .waitForElementPresent     newFile, 20000 # Assertion
+
+    helpers.deleteFile(browser, fileFolderSelector)
+    helpers.deleteFile(browser, newFile)
