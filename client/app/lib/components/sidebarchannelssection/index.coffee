@@ -17,24 +17,24 @@ module.exports = class SidebarChannelsSection extends React.Component
 
     super
 
-    @state = { browseFollowedPublicChannels: no }
+    @state = { isModalOpen: no }
 
 
   onClose: ->
 
-    @setState browseFollowedPublicChannels: no
+    @setState isModalOpen: no
 
 
   showFollowedPublicChannelsModal: ->
 
-    @setState browseFollowedPublicChannels: yes
+    @setState isModalOpen: yes
 
 
   renderFollowedChannelsModal: ->
 
     title = 'Other Channels you are following:'
-    <Modal className='ChannelList-Modal' isOpen={@state.browseFollowedPublicChannels} onClose={@bound 'onClose'}>
       <ChannelList
+    <Modal className='ChannelList-Modal' isOpen={@state.isModalOpen} onClose={@bound 'onClose'}>
         title={title}
         threads={@props.threads}
         itemComponent={PublicChannelListItem}/>

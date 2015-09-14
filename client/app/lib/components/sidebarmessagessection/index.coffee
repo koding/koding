@@ -18,24 +18,24 @@ module.exports = class SidebarMessagesSection extends React.Component
 
     super
 
-    @state = { browsePrivateChannels: no }
+    @state = { isModalOpen: no }
 
 
   onClose: ->
 
-    @setState browsePrivateChannels: no
+    @setState isModalOpen: no
 
 
   showPrivateChannelsModal: ->
 
-    @setState browsePrivateChannels: yes
+    @setState isModalOpen: yes
 
 
   renderPrivateChannelsModal: ->
 
     <Modal
       className='ChannelList-Modal'
-      isOpen={@state.browsePrivateChannels}
+      isOpen={@state.isModalOpen}
       closeOnOutsideClick=no
       onClose={@bound 'onClose'}>
       <ChannelList
