@@ -252,6 +252,10 @@ editMessage = (messageId, body, payload) ->
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
   fetchEmbedPayload { body, payload }, (embedPayload) ->
+    if payload and not embedPayload
+      # if payload link has been removed, it's necessary
+      # to clear link fields from message payload
+      embedPayload = { link_url : null, link_embed : null }
     payload = _.assign {}, payload, embedPayload
 
     socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
