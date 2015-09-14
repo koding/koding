@@ -33,7 +33,7 @@ module.exports = class AccountCredentialEditModal extends KDModalView
         unless showError err
           @form.emit 'CredentialUpdated', credential
 
-    @addSubView @wrapper = new KDView cssClass 'stacks step-creds'
+    @addSubView @wrapper = new KDView cssClass : 'stacks step-creds'
 
     @wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
 
