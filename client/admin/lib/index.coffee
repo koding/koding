@@ -63,7 +63,7 @@ module.exports = class AdminAppController extends AppController
       title      : 'Team Settings'
       cssClass   : 'AppModal AppModal--admin'
       width      : 1000
-      height     : '100%'
+      height     : '90%'
       overlay    : yes
       tabData    : NAV_ITEMS
     , data
