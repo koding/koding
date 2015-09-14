@@ -33,6 +33,8 @@ module.exports = class ComputeController_UI
 
     { provider, requiredFields, defaultTitle, defaultValues, callback } = options
 
+    defaultValues = []  unless defaultValues
+
     fields           =
       title          :
         label        : "Title"
@@ -63,9 +65,7 @@ module.exports = class ComputeController_UI
       _field = fields[field] = _.clone currentProvider.credentialFields[field]
 
       _field.required     = yes
-      _field.defaultValue = ''
-
-      _field.defaultValue = defaultValues[field]  if defaultValues and defaultValues[field]
+      _field.defaultValue = defaultValues[field] or ''
 
 
       if _field.type is 'selection'
@@ -93,9 +93,10 @@ module.exports = class ComputeController_UI
     if advancedFields = currentProvider.advancedFields
       advancedFields.forEach (field) ->
         fields[field] =
-          label       : field.capitalize()
-          placeholder : field
-          cssClass    : 'advanced-field'
+          label         : field.capitalize()
+          placeholder   : field
+          cssClass      : 'advanced-field'
+          defaultValue  : defaultValues[field]
 
       buttons['Advanced Mode'] =
         style    : "solid medium"
