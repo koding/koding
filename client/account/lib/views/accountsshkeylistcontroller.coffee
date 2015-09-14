@@ -10,7 +10,7 @@ showError = require 'app/util/showError'
 Machine = require 'app/providers/machine'
 SshKey = require 'app/util/sshkey'
 KDModalView = kd.ModalView
-whoami = require 'app/util/whoami'
+nick = require 'app/util/nick'
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
@@ -80,9 +80,8 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
   showDeleteModal: ->
 
-    { nickname } = whoami().profile
-
-    modal = new KDModalView
+    nickname = nick()
+    modal    = new KDModalView
       title          : 'Deleting SSH Key'
       content        : """
         <p>
