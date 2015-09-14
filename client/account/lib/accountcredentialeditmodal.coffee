@@ -1,6 +1,8 @@
 kd                  = require 'kd'
 KDModalView         = kd.ModalView
 KDCustumScrollView  = kd.CustomScrollView
+KDNotificationView  = kd.NotificationView
+showError           = require 'app/util/showError'
 
 
 module.exports = class AccountCredentialEditModal extends KDModalView
@@ -13,14 +15,28 @@ module.exports = class AccountCredentialEditModal extends KDModalView
 
     super options, data
 
-    { ui } = kd.singletons.computeController
+    { ui }                    = kd.singletons.computeController
+    { credential, provider }  = options
 
     formOptions               = {}
-    formOptions.provider      = options.provider
+    formOptions.provider      = provider
     formOptions.defaultValues = data.meta
     formOptions.defaultTitle  = data.title
+    formOptions.callback      = (title, data) =>
+
+      credential.update {
+        provider, title, meta: data
+      }, (err, credential) =>
+        @form.buttons.Save.hideLoader()
+
+        unless showError err
+          @form.emit 'CredentialUpdated', credential
+
 
     @addSubView @scrollView = new KDCustumScrollView
     @scrollView.wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
 
     @form.on 'Cancel', @bound 'cancel'
+    @form.on 'CredentialUpdated', ->
+      new KDNotificationView title : 'Credential was updated.', type: 'mini'
+      @emit 'Cancel'

@@ -91,7 +91,7 @@ module.exports = class AccountCredentialList extends KDListView
 
       data.title = credential.title
 
-      new AccountCredentialEditModal { provider }, data
+      new AccountCredentialEditModal { provider, credential }, data
 
 
   checkIsBootstrapped: (item) ->
