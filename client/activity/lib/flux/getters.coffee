@@ -37,6 +37,10 @@ MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 allChannels = ChannelsStore
 allUsers    = UsersStore
 
+ChannelParticipantsSearchQueryStore        = ['ChannelParticipantsSearchQueryStore']
+ChannelParticipantsSelectedIndexStore      = ['ChannelParticipantsSelectedIndexStore']
+ChannelParticipantsDropdownVisibilityStore = ['ChannelParticipantsDropdownVisibilityStore']
+
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
 # visual components) to use.
@@ -211,6 +215,7 @@ selectedMessageThreadComments = [
   selectedMessageThread
   (thread) ->
     return null  unless thread
+
     thread.get 'comments'
 ]
 
@@ -239,6 +244,38 @@ currentSuggestionsSelectedItem = [
 ]
 
 
+channelParticipantsSearchQuery  = ChannelParticipantsSearchQueryStore
+# Returns a list of users depending on the current query
+# If query is empty, returns selected channel participants
+# Otherwise, returns users filtered by query
+channelParticipantsInputUsers = [
+  UsersStore
+  selectedChannelParticipants
+  channelParticipantsSearchQuery
+  (users, participants, query) ->
+    return participants?.toList() ? immutable.List()  unless query
+
+    query = query.toLowerCase()
+    users.toList().filter (user) ->
+      userName = user.getIn(['profile', 'nickname']).toLowerCase()
+      return userName.indexOf(query) is 0
+]
+
+channelParticipantsSelectedIndex = [
+  channelParticipantsInputUsers
+  ChannelParticipantsSelectedIndexStore
+  calculateListSelectedIndex
+]
+
+channelParticipantsDropdownVisibility = ChannelParticipantsDropdownVisibilityStore
+
+channelParticipantsSelectedItem = [
+  channelParticipantsInputUsers
+  channelParticipantsSelectedIndex
+  getListSelectedItem
+]
+
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -262,6 +299,12 @@ module.exports = {
   currentSuggestionsFlags
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
+
+  channelParticipantsSearchQuery
+  channelParticipantsInputUsers
+  channelParticipantsSelectedItem
+  channelParticipantsSelectedIndex
+  channelParticipantsDropdownVisibility
 
   allUsers
 }

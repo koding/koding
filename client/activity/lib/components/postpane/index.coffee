@@ -32,7 +32,10 @@ module.exports = class PostPane extends React.Component
     return  unless @props.messages.size
     return  if @props.thread.getIn ['flags', 'isMessagesLoading']
 
-    from = @props.messages.first().get('createdAt')
+    firstMessage = @props.messages.first()
+    list = this.props.messages.remove this.props.messages.first().get 'id'
+    from = list.first().get('createdAt')
+
     kd.utils.defer =>
       ActivityFlux.actions.message.loadComments @message('id'), { from }
 
@@ -46,7 +49,7 @@ module.exports = class PostPane extends React.Component
 
 
   render: ->
-    <Modal isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal className='PostPane-modal' isOpen={yes} onClose={@bound 'onClose'}>
       <ChatPane
         thread={@props.thread}
         className="PostPane"

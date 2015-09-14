@@ -17,7 +17,9 @@ require './suggestions/suggestionsstore'
 require './suggestions/suggestionsselectedindexstore'
 require './suggestions/suggestionsgetters'
 require './messagelikersstore'
-
+require './channelparticipants/channelparticipantsselectedindexstore'
+require './channelparticipants/channelparticipantssearchquerystore'
+require './channelparticipants/channelparticipantsdropdownvisibilitystore'
 # module tests
 require 'activity/flux/chatinput/tests'
 
