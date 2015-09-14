@@ -124,7 +124,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
         nickEdit.hide()
         nickname.show()
 
-      nickEdit.setValue @machine.label
+      nickEdit.setValue Encoder.htmlDecode @machine.label
       nickEdit.show()
 
       kd.utils.defer -> nickEdit.setFocus()
