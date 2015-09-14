@@ -1,6 +1,5 @@
 kd           = require 'kd'
 React        = require 'kd-react'
-whoami       = require 'app/util/whoami'
 immutable    = require 'immutable'
 ActivityFlux = require 'activity/flux'
 ChatPane     = require 'activity/components/chatpane'
@@ -43,7 +42,7 @@ module.exports = class PostPane extends React.Component
 
   onFollowChannel: ->
 
-    ActivityFlux.actions.channel.followChannel @channel('id'), whoami()._id
+    ActivityFlux.actions.channel.followChannel @channel('id')
 
 
   onClose: -> kd.singletons.router.handleRoute "/Channels/#{@channel 'name'}"
