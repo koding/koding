@@ -4,7 +4,7 @@ SidebarList             = require 'app/components/sidebarlist'
 SidebarSection          = require 'app/components/sidebarsection'
 SidebarMessagesListItem = require 'app/components/sidebarmessageslistitem'
 Modal                   = require 'app/components/modal'
-ChannelList             = require 'activity/components/channellist'
+SidebarModalList        = require 'activity/components/sidebarmodallist'
 PrivateChannelListItem  = require 'activity/components/privatechannellistitem'
 
 module.exports = class SidebarMessagesSection extends React.Component
@@ -38,7 +38,7 @@ module.exports = class SidebarMessagesSection extends React.Component
       isOpen={@state.isModalOpen}
       closeOnOutsideClick=no
       onClose={@bound 'onClose'}>
-      <ChannelList
+      <SidebarModalList
         title='Other Messages:'
         threads={@props.threads}
         itemComponent={PrivateChannelListItem}/>
