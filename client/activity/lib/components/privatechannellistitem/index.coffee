@@ -1,7 +1,9 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-ActivityFlux          = require 'activity/flux'
-ActivityPromptModal   = require 'app/components/activitypromptmodal'
+kd                  = require 'kd'
+React               = require 'kd-react'
+ActivityFlux        = require 'activity/flux'
+Link                = require 'app/components/common/link'
+Button              = require 'app/components/common/button'
+ActivityPromptModal = require 'app/components/activitypromptmodal'
 
 module.exports = class PrivateChannelListItem extends React.Component
 
@@ -54,9 +56,9 @@ module.exports = class PrivateChannelListItem extends React.Component
   renderDeleteButton: ->
 
     if @props.channel.get('typeConstant') is 'privatemessage'
-      <button
-        className="ChannelListItem-delete button"
-        onClick={@bound 'showDeleteChannelPromptModal'}>DELETE</button>
+      <Button
+        className="ChannelListItem-delete"
+        onClick={@bound 'showDeleteChannelPromptModal'}>DELETE</Button>
 
 
   render: ->
@@ -67,11 +69,11 @@ module.exports = class PrivateChannelListItem extends React.Component
     title        = if typeConstant is 'bot' then 'Bot Koding' else channel.get 'purpose'
     channelName  = channel.get 'name'
 
-    <a href="/Channels/#{channelName}" className='ChannelListItem'>
+    <Link href="/Channels/#{channelName}" className='ChannelListItem'>
       <span className='ChannelListItem-title'>{title}</span>
       {@renderDeleteButton()}
       <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
         Are you sure you want to delete this message?
       </ActivityPromptModal>
-    </a>
+    </Link>
 

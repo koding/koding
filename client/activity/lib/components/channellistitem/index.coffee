@@ -1,6 +1,8 @@
 kd            = require 'kd'
 React         = require 'kd-react'
 ActivityFlux  = require 'activity/flux'
+Link          = require 'app/components/common/link'
+Button        = require 'app/components/common/button'
 
 module.exports = class PublicChannelListItem extends React.Component
 
@@ -40,9 +42,17 @@ module.exports = class PublicChannelListItem extends React.Component
     return  unless channel.get('typeConstant') is 'topic'
 
     if channel.get 'isParticipant'
-      <button className="ChannelListItem-unfollow button" onClick={@bound 'unfollowChannel'}>UNFOLLOW</button>
+      <Button
+        className="ChannelListItem-unfollow"
+        onClick={@bound 'unfollowChannel'}>
+        UNFOLLOW
+      </Button>
     else
-      <button className="ChannelListItem-follow button" onClick={@bound 'followChannel'}>FOLLOW</button>
+      <Button
+        className="ChannelListItem-follow"
+        onClick={@bound 'followChannel'}>
+        FOLLOW
+      </Button>
 
 
   render: ->
@@ -50,8 +60,8 @@ module.exports = class PublicChannelListItem extends React.Component
     { channel } = @props
     channelName = channel.get 'name'
 
-    <a href="/Channels/#{channelName}" className='ChannelListItem'>
+    <Link href="/Channels/#{channelName}" className='ChannelListItem'>
       <span className='ChannelListItem-title'>{channelName}</span>
       {@renderButton()}
-    </a>
+    </Link>
 
