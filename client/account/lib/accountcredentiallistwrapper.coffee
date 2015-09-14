@@ -21,10 +21,11 @@ module.exports = class AccountCredentialListWrapper extends KDView
     view = new AccountCredentialList
 
     @listController = new AccountCredentialListController
-      view                : view
-      limit               : 15
-      useCustomScrollView : yes
-      lazyLoadThreshold   : 15
+      view                    : view
+      limit                   : 15
+      useCustomScrollView     : yes
+      lazyLoadThreshold       : 15
+      dontShowCredentialMenu  : yes
 
     @addSubView @listController.getView()
 
