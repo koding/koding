@@ -22,8 +22,6 @@ module.exports = class EmbedBox extends React.Component
     { data, type } = @props
     if data.link_embed.images?.length > 0
       <EmbedBoxImage data={data} type={type} />
-    else
-      <span className='hidden' />
 
 
   renderEmbedBoxObject: ->

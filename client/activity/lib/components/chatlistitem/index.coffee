@@ -351,8 +351,6 @@ module.exports = class ChatListItem extends React.Component
 
     if embedData
       <EmbedBox data={embedData.toJS()} type='chat' />
-    else
-      <span className='hidden' />
 
 
   render: ->
