@@ -19,6 +19,9 @@ showError                   = require 'app/util/showError'
 module.exports = class AccountCredentialListController extends AccountListViewController
 
 
+  ITEM_PER_PAGE = 15
+
+
   constructor: (options = {}, data) ->
 
     options.noItemFoundText ?= "You don't have any credentials"
@@ -48,13 +51,13 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       @instantiateListItems credentials
 
 
-  fetch: (query, callback) ->
+  fetch: (query, callback, options = {}) ->
 
     { JCredential } = remote.api
 
-    # Don't set any limit or pagination for now.
-    # Wait the reviews.
-    JCredential.some query, {}, (err, credentials) ->
+    options.limit or= ITEM_PER_PAGE
+
+    JCredential.some query, options, (err, credentials) ->
 
       if err
         @hideLazyLoader()
