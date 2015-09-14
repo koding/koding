@@ -31,7 +31,7 @@ module.exports = class ComputeController_UI
 
   @generateAddCredentialFormFor = (options) ->
 
-    { provider, requiredFields, defaultTitle } = options
+    { provider, requiredFields, defaultTitle, defaultValues } = options
 
     fields           =
       title          :
@@ -61,7 +61,12 @@ module.exports = class ComputeController_UI
     credentialFields.forEach (field) ->
 
       _field = fields[field] = _.clone currentProvider.credentialFields[field]
-      _field.required = yes
+
+      _field.required     = yes
+      _field.defaultValue = ''
+
+      _field.defaultValue = defaultValues[field]  if defaultValues and defaultValues[field]
+
 
       if _field.type is 'selection'
         {values}             = _field
