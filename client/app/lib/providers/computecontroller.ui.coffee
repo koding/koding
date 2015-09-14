@@ -65,8 +65,7 @@ module.exports = class ComputeController_UI
       _field = fields[field] = _.clone currentProvider.credentialFields[field]
 
       _field.required     = yes
-      _field.defaultValue = defaultValues[field] or ''
-
+      _field.defaultValue = defaultValues[field]  if defaultValues[field]?
 
       if _field.type is 'selection'
         { values }           = _field
@@ -96,7 +95,9 @@ module.exports = class ComputeController_UI
           label         : field.capitalize()
           placeholder   : field
           cssClass      : 'advanced-field'
-          defaultValue  : defaultValues[field]
+
+        fields[field].defaultValue = defaultValues[field]  if defaultValues[field]?
+
 
       buttons['Advanced Mode'] =
         style    : "solid medium"
