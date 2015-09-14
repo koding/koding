@@ -20,11 +20,13 @@ module.exports = class AccountSshMachineListItem extends KDListItemView
     active = state is Machine.State.Running
 
     @label = new KDLabelView
-      title : label
+      title    : label
     @switcher = new KDCheckBox
       defaultValue : active
       disabled     : not active
       label        : @label
+
+    @setClass 'disabled-ssh-machine-item'  unless active
 
 
   pistachio: ->
