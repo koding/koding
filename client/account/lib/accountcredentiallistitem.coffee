@@ -36,6 +36,9 @@ module.exports = class AccountCredentialListItem extends KDListItemView
       title    : "EDIT"
       callback : delegate.lazyBound 'editItem', this
 
+    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
+    @editButton.hide()  if provider is 'aws'
+
     @providerTag = new KDCustomHTMLView
       cssClass : 'tag'
       partial  : @getData().provider
@@ -43,7 +46,7 @@ module.exports = class AccountCredentialListItem extends KDListItemView
     @providerTag.setCss 'background-color', providers[provider].color
 
 
-  pistachio:->
+  pistachio: ->
     """
     <div class="credential-info">
       {{> @providerTag}} {div.title{#(title)}}

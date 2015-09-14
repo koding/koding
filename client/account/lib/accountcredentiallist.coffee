@@ -86,6 +86,10 @@ module.exports = class AccountCredentialList extends KDListView
     credential    = item.getData()
     { provider }  = credential
 
+    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
+    if provider is 'aws'
+      return showError 'This AWS credential can\'t be edited for now.'
+
     credential.fetchData (err, data) ->
       return if showError err
 
