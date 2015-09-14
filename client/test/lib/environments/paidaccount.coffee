@@ -91,7 +91,10 @@ module.exports =
             helpers.selectPlan(browser)
             helpers.fillPaymentForm(browser)
 
-            browser.url helpers.getUrl() + '/IDE'
+            browser
+              .url helpers.getUrl() + '/IDE'
+              .pause  10000 # wait for sidebar redraw
+
             environmentHelpers.clickAddVMButton(browser)
             environmentHelpers.clickCreateVMButton(browser)
           else
