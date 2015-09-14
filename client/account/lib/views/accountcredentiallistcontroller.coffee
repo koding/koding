@@ -19,16 +19,33 @@ showError                   = require 'app/util/showError'
 module.exports = class AccountCredentialListController extends AccountListViewController
 
 
-  ITEM_PER_PAGE = 15
-
-
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText ?= "You don't have any credentials"
+    options.limit               or= 30
+    options.noItemFoundText      ?= "You don't have any credentials"
 
     super options, data
 
-    @loadItems()
+
+  followLazyLoad: ->
+
+    @skip = 0
+    @busy = no
+
+    @on 'LazyLoadThresholdReached', kd.utils.debounce 300, ->
+
+      return  @hideLazyLoader()  if @busy
+
+      @busy = yes
+      @skip += @getOption 'limit'
+
+      @fetch {}, (err, credentials) =>
+
+        @hideLazyLoader()
+        return  if err or not credentials
+        @instantiateListItems credentials
+        @busy = no
+      , { @skip }
 
 
   loadItems: ->
@@ -55,7 +72,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { JCredential } = remote.api
 
-    options.limit or= ITEM_PER_PAGE
+    options.limit or= @getOption 'limit'
 
     JCredential.some query, options, (err, credentials) ->
 
@@ -69,6 +86,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
 
   filterByProvider: (value) ->
+
+    @skip = 0
+    @busy = no
 
     @removeAllItems()
     @showLazyLoader()
@@ -99,6 +119,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       @createAddDataButton()
     else
       @createAddCredentialMenu()  unless dontShowCredentialMenu
+
+    @loadItems()
+    @followLazyLoad()
 
 
   createAddDataButton: ->

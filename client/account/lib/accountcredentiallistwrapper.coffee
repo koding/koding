@@ -4,7 +4,6 @@ globals                 = require 'globals'
 KDSelectBox             = kd.SelectBox
 KDLabelView             = kd.LabelView
 KDContextMenu           = kd.ContextMenu
-KDCustumScrollView      = kd.CustomScrollView
 
 AccountCredentialList           = require './accountcredentiallist'
 AccountCredentialListController = require './views/accountcredentiallistcontroller'
@@ -19,16 +18,15 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
     @createFilterView()
 
-    @addSubView @scrollView = new KDCustumScrollView
-
-    @scrollView.wrapper.addSubView @listView = new AccountCredentialList
-      delegate    : @getDelegate()
+    view = new AccountCredentialList
 
     @listController = new AccountCredentialListController
-      view                    : @listView
-      wrapper                 : no
-      scrollView              : no
-      dontShowCredentialMenu  : yes
+      view                : view
+      limit               : 15
+      useCustomScrollView : yes
+      lazyLoadThreshold   : 15
+
+    @addSubView @listController.getView()
 
 
   createFilterView: ->
