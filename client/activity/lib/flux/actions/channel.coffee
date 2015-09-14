@@ -1,4 +1,5 @@
 kd                      = require 'kd'
+whoami                  = require 'app/util/whoami'
 actionTypes             = require './actiontypes'
 fetchChatChannels       = require 'activity/util/fetchChatChannels'
 isKoding                = require 'app/util/isKoding'
@@ -222,13 +223,13 @@ loadChannelsByQuery = (query, options = {}) ->
 
 
 ###*
- * Action to follow channel by given channelId and accountId
+ * Action to follow channel by given channelId
  *
  * @param {string} channelId
- * @param {string} accountId
 ###
-followChannel = (channelId, accountId) ->
+followChannel = (channelId) ->
 
+  accountId = whoami()._id
   { follow } = kd.singletons.socialapi.channel
   { FOLLOW_CHANNEL_BEGIN, FOLLOW_CHANNEL_SUCCESS, FOLLOW_CHANNEL_FAIL } = actionTypes
 
@@ -247,10 +248,10 @@ followChannel = (channelId, accountId) ->
  * Action to unfollow channel by given channelId and accountId
  *
  * @param {string} channelId
- * @param {string} accountId
 ###
-unfollowChannel = (channelId, accountId) ->
+unfollowChannel = (channelId) ->
 
+  accountId = whoami()._id
   { unfollow } = kd.singletons.socialapi.channel
   { UNFOLLOW_CHANNEL_BEGIN, UNFOLLOW_CHANNEL_SUCCESS, UNFOLLOW_CHANNEL_FAIL } = actionTypes
 
@@ -281,7 +282,7 @@ deletePrivateChannel = (channelId) ->
     .then ->
       dispatch DELETE_PRIVATE_CHANNEL_SUCCESS, { channelId }
 
-    .catch (err) =>
+    .catch (err) ->
       dispatch DELETE_PRIVATE_CHANNEL_FAIL , { channelId }
       showErrorNotification err, userMessage: err.message
 

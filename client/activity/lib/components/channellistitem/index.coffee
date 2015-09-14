@@ -1,6 +1,5 @@
 kd            = require 'kd'
 React         = require 'kd-react'
-whoami        = require 'app/util/whoami'
 ActivityFlux  = require 'activity/flux'
 
 module.exports = class PublicChannelListItem extends React.Component
@@ -22,7 +21,7 @@ module.exports = class PublicChannelListItem extends React.Component
     { channel } = ActivityFlux.actions
     channelId = @props.channel.get '_id'
 
-    channel.followChannel channelId, whoami()._id
+    channel.followChannel channelId
 
 
   unfollowChannel: (event) ->
@@ -31,7 +30,7 @@ module.exports = class PublicChannelListItem extends React.Component
     { channel } = ActivityFlux.actions
     channelId = @props.channel.get '_id'
 
-    channel.unfollowChannel channelId, whoami()._id
+    channel.unfollowChannel channelId
 
 
   renderButton: ->
