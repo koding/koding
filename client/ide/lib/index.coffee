@@ -943,8 +943,7 @@ class IDEAppController extends AppController
 
     if FSHelper.isPublicPath file.path
       nickname    = @collaborationHost or nick()
-      prefix      = "[#{@mountedMachineUId}]/home/#{nickname}/Web/"
-      [temp, src] = file.path.split prefix
+      [temp, src] = FSHelper.plainPath(file.path).split '/Web'
       @createNewBrowser "#{@mountedMachine.domain}/#{src}"
     else
       @notify 'File needs to be under ~/Web folder to preview.', 'error'
