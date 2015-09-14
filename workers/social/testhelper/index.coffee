@@ -64,6 +64,13 @@ generateDummyClient = (context, callback) ->
       callback 'session error'
 
 
+withDummyClient = (context, callback) ->
+
+  generateDummyClient context, (err, client) ->
+    expect(err).to.not.exist
+    callback client
+
+
 generateDummyUserFormData = (opts = {}) ->
 
   dummyUserFormData =
@@ -113,6 +120,7 @@ generateUserInfo = (opts = {}) ->
 module.exports = {
   daisy
   expect
+  withDummyClient
   generateUserInfo
   generateDummyClient
   generateCredentials
