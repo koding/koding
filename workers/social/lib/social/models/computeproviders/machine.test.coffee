@@ -2,7 +2,8 @@ JUser                         = require '../user/index'
 JMachine                      = require './machine'
 
 { createUserAndMachine
-  generateMachineParams }     = require '../../../../testhelper/models/machinehelper'
+  generateMachineParams
+  fetchMachinesByUsername }   = require '../../../../testhelper/models/machinehelper'
 
 { daisy
   expect
@@ -99,6 +100,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           expect(machine.provider).to.be.equal 'koding'
           expect(machine.status.state).to.be.equal 'NotInitialized'
           expect(machine.users[0].id + '').to.be.equal user.getId() + ''
+          expect(machine.label).to.exist
+          expect(machine.users.length).to.be.above 0
+          expect(machine.users[0].sudo).to.be.ok
+          expect(machine.users[0].owner).to.be.ok
+          expect(machine.domain).to.exist
+          expect(machine.slug).to.exist
 
           done()
 
@@ -107,7 +114,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when user is the owner', ->
 
-      it 'maching should be destroyed', (done) ->
+      it 'machine should be destroyed', (done) ->
 
         user          = {}
         machine       = {}
@@ -501,7 +508,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
       user             = {}
       client           = {}
-      machine          = {}
       account          = {}
       userFormData     = generateDummyUserFormData()
 
@@ -509,7 +515,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         ->
           withDummyClient { group : 'koding' }, (client_) ->
-            client = client_ 
+            client = client_
 
             # registering a new user
             JUser.convert client, userFormData, (err, data) ->
@@ -521,18 +527,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         ->
           # fetching machine instance of newly registered user
-          JMachine.fetchByUsername userFormData.username, (err, machines) ->
-            expect(err).to.not.exist
+          fetchMachinesByUsername userFormData.username, (machines) ->
             machine = machines[0]
-            queue.next()
 
-        ->
-          # expecting machine to be fetched by machine id and client
-          JMachine.one$ client, machine._id + '', (err, machine_) ->
-            expect(err).to.not.exist
-            expect(machine).to.exist
-            expect(machine._id + '').to.be.equal machine_._id + ''
-            queue.next()
+            # expecting machine to be fetched by machine id and client
+            JMachine.one$ client, machine._id + '', (err, machine_) ->
+              expect(err).to.not.exist
+              expect(machine).to.exist
+              expect(machine._id + '').to.be.equal machine_._id + ''
+              queue.next()
 
         -> done()
 
@@ -548,7 +551,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       it 'should return error if user is not owner', (done) ->
 
         client           = {}
-        machine          = {}
         account          = {}
         userFormData     = generateDummyUserFormData()
         anotherClient    = {}
@@ -569,7 +571,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           ->
             withDummyClient { group : 'koding' }, (client) ->
               anotherClient = client
-              #
+
               # registering another user
               JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
                 expect(err).to.not.exist
@@ -577,16 +579,13 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
           ->
             # fetching owner user's machine
-            JMachine.fetchByUsername userFormData.username, (err, machines) ->
-              expect(err).to.not.exist
+            fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
 
-          ->
-            # expecting error when another user attempts to revive users
-            machine.reviveUsers anotherClient, {}, (err) ->
-              expect(err?.message).to.be.equal 'Access denied'
-              queue.next()
+              # expecting error when another user attempts to revive users
+              machine.reviveUsers anotherClient, {}, (err) ->
+                expect(err?.message).to.be.equal 'Access denied'
+                queue.next()
 
           -> done()
 
@@ -600,7 +599,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       it 'should revive users', (done) ->
 
         client           = {}
-        machine          = {}
         account          = {}
         userFormData     = generateDummyUserFormData()
 
@@ -620,16 +618,13 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
           ->
             # fetching machine of owner user
-            JMachine.fetchByUsername userFormData.username, (err, machines) ->
-              expect(err).to.not.exist
+            fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
 
-          ->
-            # expecting to revive users without error
-            machine.reviveUsers client, {}, (err) ->
-              expect(err?.message).to.not.exist
-              queue.next()
+              # expecting to revive users without error
+              machine.reviveUsers client, {}, (err) ->
+                expect(err?.message).to.not.exist
+                queue.next()
 
           -> done()
 
@@ -704,7 +699,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       it 'should be able set label on machine', (done) ->
 
         client           = {}
-        machine          = {}
         account          = {}
         userFormData     = generateDummyUserFormData()
 
@@ -723,19 +717,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
                 queue.next()
 
           ->
-            # fetching machine of user
-            JMachine.fetchByUsername userFormData.username, (err, machines) ->
-              expect(err).to.not.exist
+            fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
 
-          ->
-            # generating random label and expecting machine label to be set to it
-            newLabel = generateRandomString()
-            machine.setLabel client, newLabel, (err) ->
-              expect(err).to.not.exist
-              expect(machine.label).to.be.equal newLabel
-              queue.next()
+              # generating random label and expecting machine label to be set to it
+              newLabel = generateRandomString()
+              machine.setLabel client, newLabel, (err) ->
+                expect(err).to.not.exist
+                expect(machine.label).to.be.equal newLabel
+                queue.next()
 
           -> done()
 
@@ -792,7 +782,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         user             = {}
         client           = {}
-        machine          = {}
         account          = {}
         userFormData     = generateDummyUserFormData()
         provisionerCount = 0
@@ -812,19 +801,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
                 queue.next()
 
           ->
-            # fetching machine of user
-            JMachine.fetchByUsername userFormData.username, (err, machines) ->
-              expect(err).to.not.exist
+            fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
 
-          ->
-            # expecting provisioner to be set on machine
-            machine.setProvisioner client, 'devrim/koding-base', (err) ->
-              expect(err?.message).to.not.exist
-              expect(machine.provisioners).to.exist
-              expect(machine.provisioners.length).to.be.equal provisionerCount + 1
-              queue.next()
+              # expecting provisioner to be set on machine
+              machine.setProvisioner client, 'devrim/koding-base', (err) ->
+                expect(err?.message).to.not.exist
+                expect(machine.provisioners).to.exist
+                expect(machine.provisioners.length).to.be.equal provisionerCount + 1
+                queue.next()
 
           -> done()
 
@@ -838,7 +823,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
     it 'machine should be shared with specified users', (done) ->
 
       client              = {}
-      machine             = {}
       account             = {}
       userCount           = 0
       userFormData        = generateDummyUserFormData()
@@ -872,19 +856,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               queue.next()
 
         ->
-          # fetching machine of user
-          JMachine.fetchByUsername userFormData.username, (err, machines) ->
-            expect(err).to.not.exist
+          fetchMachinesByUsername userFormData.username, (machines) ->
             machine = machines[0]
             userCount = machine.users.length
-            queue.next()
 
-        ->
-          # expecting machine to be shared with anotherUser
-          machine.share client, [anotherUserFormData.username], (err) ->
-            expect(err?.message).to.not.exist
-            expect(machine.users.length).to.be.equal userCount + 1
-            queue.next()
+            # expecting machine to be shared with anotherUser
+            machine.share client, [anotherUserFormData.username], (err) ->
+              expect(err?.message).to.not.exist
+              expect(machine.users.length).to.be.equal userCount + 1
+              queue.next()
 
         -> done()
 
