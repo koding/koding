@@ -109,6 +109,9 @@ selectedChannel = [
 ]
 
 # Maps followed public channel ids with relevant channel instances.
+# If this channel is a public channel, we set current channelId as an item of followedPublicChannels,
+# we set this channelId to list this channel on channel list modal and sidebar channel list.
+# If this channel isn't followed by user, user can follow on channel list modal by follow button.
 followedPublicChannels = [
   FollowedPublicChannelIdsStore
   selectedChannel
