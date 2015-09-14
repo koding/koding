@@ -1,9 +1,10 @@
-_         = require 'underscore'
-hat       = require 'hat'
-{ daisy } = require 'bongo'
+_          = require 'underscore'
+hat        = require 'hat'
+{ daisy }  = require 'bongo'
+{ expect } = require 'chai'
 
-JUser     = require '../../lib/social/models/user/index'
-JMachine  = require '../../lib/social/models/computeproviders/machine'
+JUser      = require '../../lib/social/models/user/index'
+JMachine   = require '../../lib/social/models/computeproviders/machine'
 
 { reviveClient } = require '../../../social/lib/social/models/computeproviders/computeutils'
 
@@ -67,9 +68,17 @@ createUserAndMachine = (userInfo, opts, callback) ->
   daisy queue
 
 
+fetchMachinesByUsername = (username, callback) ->
+
+  JMachine.fetchByUsername username, (err, machines) ->
+    expect(err).to.not.exist
+    callback machines
+
+
 module.exports = {
   createUserAndMachine
   generateMachineParams
+  fetchMachinesByUsername
   generateMachineParamsByAccount
 }
 
