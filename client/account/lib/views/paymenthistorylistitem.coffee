@@ -1,8 +1,12 @@
-kd = require 'kd'
-KDListItemView = kd.ListItemView
-dateFormat = require 'dateformat'
+kd                  = require 'kd'
+KDButtonView        = kd.ButtonView
+KDListItemView      = kd.ListItemView
+dateFormat          = require 'dateformat'
+InvoicePreviewModal = require './invoicepreviewmodal'
+
 
 module.exports = class PaymentHistoryListItem extends KDListItemView
+
 
   constructor: (options = {}, data) ->
 
@@ -26,5 +30,12 @@ module.exports = class PaymentHistoryListItem extends KDListItemView
     """
 
 
+  viewAppended: ->
 
+    super
 
+    @addSubView @showDetail = new KDButtonView
+      cssClass  : 'solid small green show-detail'
+      title     : 'DETAIL'
+      callback  : =>
+        new InvoicePreviewModal {}, @getData()

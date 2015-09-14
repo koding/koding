@@ -802,6 +802,15 @@ app.settings.styl
     margin-top              20px
     font-size               14px
 
+    .kdlistitemview
+      margin                10px 0
+
+      .show-detail
+        display             block
+        abs()
+        top                 -3px
+        right               0
+
   .payment-history-wrapper .no-item-found
     text-align              left
     padding-top             0
@@ -918,3 +927,23 @@ app.settings.styl
         .button-title
           line-height       38px  !important
           color             white !important
+
+.kdmodal.ivoice-preview
+  .billing-info
+    text-align              right
+    font-size               14px
+
+    &:first-child
+      text-align            left
+      margin-bottom         30px
+
+      em
+        float               right
+
+    span
+      text-align            left
+      width                 70px
+      display               inline-block
+
+    em
+      font-weight           600
