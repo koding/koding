@@ -41,9 +41,9 @@ func SetStackState(id, reason string, state stackstate.State) error {
 	query := func(c *mgo.Collection) error {
 		return c.UpdateId(id, bson.M{
 			"$set": bson.M{
-				"status.state":      state.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     reason,
+				"status.state":     state.String(),
+				"status.updatedAt": time.Now().UTC(),
+				"status.reason":    reason,
 			},
 		})
 	}

@@ -19,9 +19,9 @@ type ComputeStack struct {
 	Credentials map[string][]string `bson:"credentials"`
 
 	Status struct {
-		State      string    `bson:"state"`
-		Reason     string    `bson:"reason"`
-		ModifiedAt time.Time `bson:"modifiedAt"`
+		State     string    `bson:"state"`
+		Reason    string    `bson:"reason"`
+		UpdatedAt time.Time `bson:"updatedAt"`
 	} `bson:"status"`
 }
 
