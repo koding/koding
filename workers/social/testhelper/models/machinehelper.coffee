@@ -61,7 +61,7 @@ createUserAndMachine = (userInfo, opts, callback) ->
         machine = machine_
         queue.next()
 
-    -> callback null, machine, user, account
+    -> callback null, { machine, user, account }
 
   ]
 
@@ -72,6 +72,8 @@ fetchMachinesByUsername = (username, callback) ->
 
   JMachine.fetchByUsername username, (err, machines) ->
     expect(err).to.not.exist
+    expect(machines).to.be.an 'array'
+    expect(machines.length).to.be.above 0
     callback machines
 
 
