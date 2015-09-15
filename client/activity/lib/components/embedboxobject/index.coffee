@@ -5,12 +5,15 @@ Encoder = require 'htmlencode'
 module.exports = class EmbedBoxObject extends React.Component
 
   @defaultProps =
-    data : {}
+    data : null
 
 
   render: ->
 
-    { link_embed } = @props.data
+    { data } = @props
+    return null  unless data
+
+    { link_embed } = data
 
     objectHtml = link_embed.object?.html
     <div className='EmbedBoxObject'>

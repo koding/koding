@@ -5,7 +5,7 @@ Encoder = require 'htmlencode'
 module.exports = class EmbedBoxLinkContent extends React.Component
 
   @defaultProps =
-    data : {}
+    data : null
 
 
   renderTitle: ->
@@ -42,6 +42,9 @@ module.exports = class EmbedBoxLinkContent extends React.Component
 
 
   render: ->
+
+    { data } = @props
+    return null  unless data
 
     <div className='EmbedBoxLinkContent'>
       { @renderTitle() }
