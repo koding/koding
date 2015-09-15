@@ -12,10 +12,30 @@ module.exports = class FollowedPrivateChannelIdsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+    @on actions.DELETE_PRIVATE_CHANNEL_SUCCESS, @handleDeletePrivateChannelSuccess
 
-
+  ###*
+   * Adds given channel to privateMessageIds container.
+   *
+   * @param {Immutable.Map} privateMessageIds
+   * @param {object} payload
+   * @param {object} payload.channel
+   * @return {Immutable.Map} nextState
+  ###
   handleLoadChannelSuccess: (privateMessageIds, { channel }) ->
 
     privateMessageIds.set channel.id, channel.id
 
+
+  ###*
+   * Removes given channel from privateMessageIds container.
+   *
+   * @param {Immutable.Map} privateMessageIds
+   * @param {object} payload
+   * @param {string} payload.channelId
+   * @return {Immutable.Map} nextState
+  ###
+  handleDeletePrivateChannelSuccess: (privateMessageIds, { channelId }) ->
+
+    privateMessageIds = privateMessageIds.remove channelId
 

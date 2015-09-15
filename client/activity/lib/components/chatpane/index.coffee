@@ -2,11 +2,15 @@ kd              = require 'kd'
 React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
 ChatInputWidget = require 'activity/components/chatinputwidget'
-Scroller        = require 'app/components/scroller'
 ActivityFlux    = require 'activity/flux'
+Scroller        = require 'app/components/scroller'
+ScrollerMixin   = require 'app/components/scroller/scrollermixin'
+
 
 
 module.exports = class ChatPane extends React.Component
+
+  @include [ScrollerMixin]
 
   @defaultProps =
     title         : null
@@ -15,26 +19,6 @@ module.exports = class ChatPane extends React.Component
     onLoadMore    : kd.noop
     isParticipant : no
     showItemMenu  : yes
-
-
-  componentWillUpdate: ->
-
-    return  unless @refs?.scrollContainer
-
-    { @scrollTop, offsetHeight, @scrollHeight } = React.findDOMNode @refs.scrollContainer
-    @shouldScrollToBottom = @scrollTop + offsetHeight is @scrollHeight
-
-
-  componentDidUpdate: ->
-
-    return  unless @refs?.scrollContainer
-
-    element = React.findDOMNode @refs.scrollContainer
-
-    if @shouldScrollToBottom
-      element.scrollTop = element.scrollHeight
-    else
-      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
 
 
   onSubmit: (event) -> @props.onSubmit? event

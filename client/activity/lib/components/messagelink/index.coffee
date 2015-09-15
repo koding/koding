@@ -22,11 +22,13 @@ module.exports = class MessageLink extends React.Component
       channelId = message.get 'initialChannelId'
       channel = kd.singletons.socialapi.retrieveCachedItemById channelId
 
-      href = "/Channels/#{channel.name.toLowerCase()}"
-      href += '/summary'  if @props.isSummaryActive
-      href += '/'
-
-    href += message.get 'slug'
+      if channel
+        href = "/Channels/#{channel.name.toLowerCase()}"
+        href += '/summary'  if @props.isSummaryActive
+        href += '/'
+        href += message.get 'slug'
+      else
+        href = '/'
 
     return href
 
