@@ -141,6 +141,17 @@ func TestNode(tt *testing.T) {
 			So(err, ShouldBeNil)
 			So(len(entries), ShouldEqual, 2)
 		})
+
+		Convey("It should save attributes for Node", func() {
+			node := newNode()
+
+			_, err := node.ReadDir()
+			So(err, ShouldBeNil)
+
+			folderNode, err := node.FindChild("folder")
+			So(err, ShouldBeNil)
+			So(folderNode.Attrs.Size, ShouldEqual, uint(1))
+		})
 	})
 
 	Convey("Rename", tt, func() {

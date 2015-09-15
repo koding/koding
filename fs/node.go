@@ -188,6 +188,7 @@ func (n *Node) getEntriesFromRemote() ([]fuseutil.Dirent, error) {
 		dirents = append(dirents, ent)
 
 		child := n.InitializeChildNode(file.Name, nextID)
+		child.Attrs.Size = uint64(file.Size)
 		child.Attrs.Mode = file.Mode
 		child.EntryType = fileType
 
