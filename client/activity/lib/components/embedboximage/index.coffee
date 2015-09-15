@@ -5,7 +5,7 @@ proxifyUrl = require 'app/util/proxifyUrl'
 module.exports = class EmbedBoxImage extends React.Component
 
   @defaultProps =
-    data : {}
+    data : null
     type : ''
 
 
@@ -34,7 +34,10 @@ module.exports = class EmbedBoxImage extends React.Component
 
   render: ->
 
-    { link_url } = @props.data
+    { data } = @props
+    return null  unless data
+
+    { link_url } = data
 
     <a href={link_url} target='_blank' className='EmbedBoxImage'>
       { @renderImage() }
