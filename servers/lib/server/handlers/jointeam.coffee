@@ -29,6 +29,8 @@ module.exports = (req, res, next) ->
   body.emailFrequency.marketing = newsletter is 'true'
   # rename variable
   body.invitationToken          = token
+  # required for JUser.login
+  body.groupName                = slug
 
   return handleClientIdNotFound res, req  unless clientId
 
