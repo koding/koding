@@ -13,7 +13,7 @@ module.exports = class EmbedBox extends React.Component
 
 
   @defaultProps =
-    data : {}
+    data : null
     type : ''
 
 
@@ -47,13 +47,15 @@ module.exports = class EmbedBox extends React.Component
   render: ->
 
     { data, type } = @props
+    return null  unless data
+
     { link_embed } = data
 
     embedType = getEmbedType link_embed.type or 'link'
 
     isInvalidType   = embedType is 'link' and not link_embed.description
     isInvalidType or= embedType is 'error'
-    return <span className='hidden' />  if isInvalidType
+    return null  if isInvalidType
 
     <div className='EmbedBox-container clearfix'>
       { @renderEmbedBoxContent embedType }

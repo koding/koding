@@ -7,12 +7,14 @@ EmbedBoxLinkImage       = require 'activity/components/embedboxlinkimage'
 module.exports = class EmbedBoxLinkDisplay extends React.Component
 
   @defaultProps =
-    data : {}
+    data : null
 
 
   render: ->
 
-    { data }       = @props
+    { data } = @props
+    return null  unless data
+
     { link_embed } = data
 
     withImage  = link_embed.images?.length > 0
