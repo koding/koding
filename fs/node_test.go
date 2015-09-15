@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"encoding/base64"
 	"os"
 	"testing"
 
@@ -20,12 +21,14 @@ func newNode() *Node {
 					IsDir:    true,
 					Mode:     os.FileMode(0700),
 					Name:     "folder",
+					Size:     1,
 				}, transport.FsGetInfoRes{
 					Exists:   true,
 					FullPath: "/remote/file",
 					IsDir:    false,
 					Mode:     os.FileMode(0755),
 					Name:     "file",
+					Size:     2,
 				}},
 			},
 		},
@@ -188,6 +191,70 @@ func TestNode(tt *testing.T) {
 		})
 
 		Convey("It should rename file", func() {
+		})
+	})
+
+	Convey("ReadAt", tt, func() {
+		var (
+			sContents = []byte("Hello World!")
+			eContents = base64.StdEncoding.EncodeToString(sContents)
+		)
+
+		t := &fakeTransport{
+			TripResponses: map[string]interface{}{
+				"fs.readFile": map[string]interface{}{"content": eContents},
+			},
+		}
+
+		Convey("It should return error if Node is not a File", func() {
+			node := newNode()
+			node.EntryType = fuseutil.DT_Directory
+
+			_, err := node.ReadAt([]byte{}, 0)
+			So(err, ShouldEqual, ErrNotAFile)
+		})
+
+		Convey("It should fetch contents from remote", func() {
+			node := newNode()
+			node.EntryType = fuseutil.DT_File
+			node.Transport = t
+
+			var dst = make([]byte, len(sContents))
+			bytesRead, err := node.ReadAt(dst, 0)
+
+			So(err, ShouldEqual, nil)
+			So(bytesRead, ShouldEqual, len(sContents))
+			So(string(dst), ShouldEqual, string(sContents))
+		})
+
+		Convey("It should saves contents to cache after fetching them", func() {
+			node := newNode()
+			node.EntryType = fuseutil.DT_File
+			node.Transport = t
+
+			_, err := node.ReadAt([]byte{}, 0)
+			So(err, ShouldBeNil)
+
+			So(string(node.Contents), ShouldEqual, string(sContents))
+		})
+
+		Convey("It should return contents from cache if already fetched", func() {
+			node := newNode()
+			node.EntryType = fuseutil.DT_File
+			node.Transport = t
+
+			_, err := node.ReadAt([]byte{}, 0)
+			So(err, ShouldBeNil)
+
+			// reset Transport so if new remote call is made it will return err
+			node.Transport = &fakeTransport{}
+
+			var dst = make([]byte, len(sContents))
+			bytesRead, err := node.ReadAt(dst, 0)
+
+			So(err, ShouldEqual, nil)
+			So(bytesRead, ShouldEqual, len(sContents))
+			So(string(dst), ShouldEqual, string(sContents))
 		})
 	})
 }

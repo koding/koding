@@ -269,7 +269,7 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 
 ///// File Operations
 
-// OpenFile opens a Node, ie. indicates operations are to be done on this file.
+// OpenFile opens a File, ie. indicates operations are to be done on this file.
 // It returns `fuse.ENOENT` if file doesn't exist.
 //
 // Required by Fuse.
@@ -288,6 +288,22 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 	op.KeepPageCache = false
 
 	return nil
+}
+
+// ReadFile reads contents of a specified file.
+//
+// Required by Fuse.
+func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
+	defer debug(time.Now(), "ID=%v Offset=%s", op.Inode, op.Offset)
+
+	fileNode, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	op.BytesRead, err = fileNode.ReadAt(op.Dst, op.Offset)
+
+	return err
 }
 
 ///// Helpers

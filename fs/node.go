@@ -2,6 +2,7 @@ package fs
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -13,7 +14,10 @@ import (
 	"github.com/koding/fuseklient/transport"
 )
 
-var ErrNodeNotFound = errors.New("node does not exist")
+var (
+	ErrNodeNotFound = errors.New("node does not exist")
+	ErrNotAFile     = errors.New("read call for a non file")
+)
 
 // Node is the generic structure for File and Dir in KodingNetworkFS. It's
 // a tree, see Node#Parent.
@@ -58,6 +62,8 @@ type Node struct {
 	// EntriesList contains list of files and directories that belong to this Node
 	// mapped by entry name for easy lookup. This list of empty if Node is a file.
 	EntriesList map[string]*Node
+
+	Contents []byte
 }
 
 // NewNode is the required initializer for Node. This only should be used when
@@ -161,6 +167,42 @@ func (n *Node) Rename(oldName, newName string) error {
 
 	_, err := n.getEntriesFromRemote()
 	return err
+}
+
+func (n *Node) ReadAt(dst []byte, offset int64) (int, error) {
+	if n.EntryType != fuseutil.DT_File {
+		return 0, ErrNotAFile
+	}
+
+	var contents = n.Contents
+	if len(contents) == 0 {
+		var err error
+		if contents, err = n.getContentsFromRemote(); err != nil {
+			return 0, err
+		}
+	}
+
+	if offset > int64(len(contents)) {
+		return 0, io.EOF
+	}
+
+	bytesRead := copy(dst, contents[offset:])
+
+	return bytesRead, nil
+}
+
+///// Helpers
+
+func (n *Node) getContentsFromRemote() ([]byte, error) {
+	req := struct{ Path string }{n.RemotePath}
+	res := transport.FsReadFileRes{}
+	if err := n.Trip("fs.readFile", req, &res); err != nil {
+		return []byte{}, err
+	}
+
+	n.Contents = res.Content
+
+	return res.Content, nil
 }
 
 func (n *Node) getEntriesFromRemote() ([]fuseutil.Dirent, error) {
