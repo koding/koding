@@ -295,6 +295,7 @@ func newKite(conf *Config) *kite.Kite {
 	// Machine handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
+	k.HandleFunc("status", kld.Status)
 	k.HandleFunc("authenticate", kld.Authenticate)
 	k.HandleFunc("bootstrap", kld.Bootstrap)
 

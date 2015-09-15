@@ -20,6 +20,9 @@ const (
 	// Initialized defines the state where the stack is built and in a functional state
 	Initialized
 
+	// Destroying is in progress of destroying the stack.
+	Destroying
+
 	// Building is in progress of creating the stack. A successfull building
 	// state results in an Initialized state.
 	Building
@@ -29,6 +32,7 @@ var States = map[string]State{
 	"NotInitialized": NotInitialized,
 	"Initialized":    Initialized,
 	"Building":       Building,
+	"Destroying":     Destroying,
 	"Unknown":        Unknown,
 }
 
@@ -70,6 +74,8 @@ func (s State) String() string {
 		return "Initialized"
 	case Building:
 		return "Building"
+	case Destroying:
+		return "Destroying"
 	case Unknown:
 		fallthrough
 	default:

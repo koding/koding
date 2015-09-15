@@ -41,5 +41,5 @@ func (k *Kloud) Status(r *kite.Request) (interface{}, error) {
 		StackId:   args.StackId,
 		Status:    computeStack.Status.State,
 		UpdatedAt: computeStack.Status.UpdatedAt,
-	}
+	}, nil
 }
