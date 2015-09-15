@@ -19,19 +19,19 @@ module.exports = class AccountCredentialEditModal extends KDModalView
     { ui }                    = kd.singletons.computeController
     { credential, provider }  = options
 
-    formOptions               = {}
-    formOptions.provider      = provider
-    formOptions.defaultValues = data.meta
-    formOptions.defaultTitle  = data.title
-    formOptions.callback      = (title, data) =>
+    formOptions     =
+      provider      : provider
+      defaultValues : data.meta
+      defaultTitle  : data.title
+      callback      : (title, data) =>
 
-      credential.update {
-        provider, title, meta: data
-      }, (err, credential) =>
-        @form.buttons.Save.hideLoader()
+        credential.update {
+          provider, title, meta: data
+        }, (err, credential) =>
+          @form.buttons.Save.hideLoader()
 
-        unless showError err
-          @form.emit 'CredentialUpdated', credential
+          unless showError err
+            @form.emit 'CredentialUpdated', credential
 
     @addSubView @wrapper = new KDView cssClass : 'stacks step-creds'
 
