@@ -50,10 +50,22 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     { username, firstName, lastName } = oauthData
 
-    input.setValue oauthData.email
-    @email.placeholder.setClass 'out'
+    if oauthData.email
+      input.setValue oauthData.email
+      @email.placeholder.setClass 'out'
+      @emailIsAvailable = yes
+    else
+      modal = new KDModalView
+        cssClass        : "fbauth-failed-modal"
+        title           : "OAuth authentication failed"
+        content         : "Sorry, but we could not get a valid email address from your OAuth provider. Please select another method to register."
+        buttons         :
+          OK            :
+            cssClass    : "solid green medium"
+            title       : "OK"
+            callback    : -> modal.destroy()
 
-    @emailIsAvailable = yes
+
     @once 'gravatarInfoFetched', (gravatar) =>
       # oath username has more priority over gravatar username
       gravatar.preferredUsername = username  if username
