@@ -32,9 +32,7 @@ generateMachineParamsByAccount = (account, callback) ->
     callback null, data
 
 
-createUserAndMachine = (userInfo, opts, callback) ->
-
-  [opts, callback] = [callback, opts]  unless callback
+createUserAndMachine = (userInfo, callback) ->
 
   user          = {}
   machine       = {}
