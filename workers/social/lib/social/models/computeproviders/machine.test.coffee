@@ -7,6 +7,7 @@ JMachine                      = require './machine'
 
 { daisy
   expect
+  withNewUser
   withDummyClient
   generateUserInfo
   generateRandomString
@@ -506,16 +507,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          withDummyClient { group : 'koding' }, (client_) ->
-            client = client_
-
-            # registering a new user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
+          withNewUser { userFormData }, (data) ->
+            { client } = data
+            queue.next()
 
         ->
           # fetching machine instance of newly registered user
@@ -550,34 +544,22 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withDummyClient { group : 'koding' }, (client) ->
-
-              # registering a new user
-              JUser.convert client, userFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken }      = data
-                client.sessionToken        = newToken
-                client.connection.delegate = account
-                queue.next()
+            withNewUser { userFormData }, (data) ->
+              { client } = data
+              queue.next()
 
           ->
-            withDummyClient { group : 'koding' }, (client) ->
-              anotherClient = client
+            withNewUser {}, (data) ->
+              { client : anotherClient } = data
 
-              # registering another user
-              JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
-                expect(err).to.not.exist
-                queue.next()
+              # fetching owner user's machine
+              fetchMachinesByUsername userFormData.username, (machines) ->
+                machine = machines[0]
 
-          ->
-            # fetching owner user's machine
-            fetchMachinesByUsername userFormData.username, (machines) ->
-              machine = machines[0]
-
-              # expecting error when another user attempts to revive users
-              machine.reviveUsers anotherClient, {}, (err) ->
-                expect(err?.message).to.be.equal 'Access denied'
-                queue.next()
+                # expecting error when another user attempts to revive users
+                machine.reviveUsers anotherClient, {}, (err) ->
+                  expect(err?.message).to.be.equal 'Access denied'
+                  queue.next()
 
           -> done()
 
@@ -597,16 +579,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withDummyClient { group : 'koding' }, (client_) ->
-              client = client_
-
-              # registering a new user
-              JUser.convert client, userFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken }      = data
-                client.sessionToken        = newToken
-                client.connection.delegate = account
-                queue.next()
+            withNewUser { userFormData }, (data) ->
+              { client } = data
+              queue.next()
 
           ->
             # fetching machine of owner user
@@ -640,25 +615,14 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withDummyClient { group : 'koding' }, (client_) ->
-              client = client_
-
-              # registering a new user
-              JUser.convert client, userFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken }      = data
-                client.sessionToken        = newToken
-                client.connection.delegate = account
-                queue.next()
+            withNewUser { userFormData }, (data) ->
+              { client } = data
+              queue.next()
 
           ->
-            withDummyClient { group : 'koding' }, (client_) ->
-              anotherClient = client_
-
-              # registering another user
-              JUser.convert anotherClient, generateDummyUserFormData(), (err, data) ->
-                expect(err).to.not.exist
-                queue.next()
+            withNewUser {}, (data) ->
+              { client : anotherClient } = data
+              queue.next()
 
           ->
             # fetching machine of user
@@ -697,16 +661,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withDummyClient { group : 'koding' }, (client_) ->
-              client = client_
-
-              # registering user
-              JUser.convert client, userFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken }      = data
-                client.sessionToken        = newToken
-                client.connection.delegate = account
-                queue.next()
+            withNewUser { userFormData }, (data) ->
+              { client } = data
+              queue.next()
 
           ->
             fetchMachinesByUsername userFormData.username, (machines) ->
@@ -780,16 +737,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withDummyClient { group : 'koding' }, (client_) ->
-              client = client_
-
-              # registering a new user
-              JUser.convert client, userFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken }      = data
-                client.sessionToken        = newToken
-                client.connection.delegate = account
-                queue.next()
+            withNewUser { userFormData }, (data) ->
+              { client } = data
+              queue.next()
 
           ->
             fetchMachinesByUsername userFormData.username, (machines) ->
@@ -817,34 +767,19 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       account             = {}
       userCount           = 0
       userFormData        = generateDummyUserFormData()
-      anotherClient       = {}
       anotherUserFormData = generateDummyUserFormData()
 
       queue = [
 
         ->
-          withDummyClient { group : 'koding' }, (client_) ->
-            client = client_
-
-            # registering a new user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }      = data
-              client.sessionToken        = newToken
-              client.connection.delegate = account
-              queue.next()
+          withNewUser { userFormData }, (data) ->
+            { client } = data
+            queue.next()
 
         ->
-          withDummyClient { group : 'koding' }, (client_) ->
-            anotherClient = client_
-
-            # registering another user
-            JUser.convert anotherClient, anotherUserFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }             = data
-              anotherClient.sessionToken        = newToken
-              anotherClient.connection.delegate = account
-              queue.next()
+          withNewUser {}, (data) ->
+            { userFormData : anotherUserFormData } = data
+            queue.next()
 
         ->
           fetchMachinesByUsername userFormData.username, (machines) ->
