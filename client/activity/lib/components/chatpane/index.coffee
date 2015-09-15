@@ -21,6 +21,18 @@ module.exports = class ChatPane extends React.Component
     showItemMenu  : yes
 
 
+  componentWillUpdate: (nextProps, nextState) ->
+
+    ScrollerMixin.componentWillUpdate.call this, nextProps, nextState
+
+    return  unless nextProps?.messages
+
+    { messages } = nextProps
+    fakeMessages = messages.filter (message) -> message.get 'isFake'
+    hasNewMessage = fakeMessages.size > 0
+    @shouldScrollToBottom = yes  if hasNewMessage
+
+
   onSubmit: (event) -> @props.onSubmit? event
 
 
