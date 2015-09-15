@@ -190,7 +190,8 @@ module.exports = class ChatListItem extends React.Component
 
     domNode = @refs.EditMessageTextarea.getDOMNode()
 
-    kd.utils.moveCaretToEnd domNode
+    kd.utils.wait 100, ->
+      kd.utils.moveCaretToEnd domNode
 
 
   editPost: ->
