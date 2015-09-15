@@ -18,11 +18,13 @@ type ComputeStack struct {
 	// User injected credentials
 	Credentials map[string][]string `bson:"credentials"`
 
-	Status struct {
-		State     string    `bson:"state"`
-		Reason    string    `bson:"reason"`
-		UpdatedAt time.Time `bson:"updatedAt"`
-	} `bson:"status"`
+	Status *ComputeStackStatus `bson:"status"`
+}
+
+type ComputeStackStatus struct {
+	State     string    `bson:"state"`
+	Reason    string    `bson:"reason"`
+	UpdatedAt time.Time `bson:"updatedAt"`
 }
 
 func (c *ComputeStack) State() stackstate.State {
