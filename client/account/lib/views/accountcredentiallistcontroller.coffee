@@ -74,7 +74,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     options.limit or= @getOption 'limit'
 
-    JCredential.some query, options, (err, credentials) ->
+    JCredential.some query, options, (err, credentials) =>
 
       if err
         @hideLazyLoader()
