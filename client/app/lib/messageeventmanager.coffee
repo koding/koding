@@ -124,4 +124,25 @@ module.exports = class MessageEventManager extends KDObject
     new MongoOp(data).applyTo message
 
     message.body = Encoder.XSSEncode message.body
+
+    ###
+      Every time message is updated, we need to synchronize
+      its payload and link properties which contain embed.ly data.
+      They have the same object structure and data with the only
+      difference that payload.link_embed is string representation
+      of json object while link.link_embed is payload.link_embed
+      parsed to js object.
+      If payload is null or doesn't contain embed.ly data,
+      link should be deleted
+    ###
+    { payload } = message
+    if payload?.link_url
+      message.link =
+        link_url   : payload.link_url
+        link_embed :
+          try JSON.parse Encoder.htmlDecode payload.link_embed
+          catch e then null
+    else
+      delete  message.link
+
     message.emit 'update'

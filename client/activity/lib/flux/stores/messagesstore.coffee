@@ -325,4 +325,3 @@ module.exports = class MessagesStore extends KodingFluxStore
 
     return removeMessage messages, messageId
 
-

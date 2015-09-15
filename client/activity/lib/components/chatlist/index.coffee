@@ -51,7 +51,7 @@ module.exports = class ChatList extends React.Component
       firstPostId = @props.firstPost.get '_id'
       messages = messages.set firstPostId, @props.firstPost
 
-    messages.map (message, i) =>
+    messageItems = messages.map (message, i) =>
 
       itemProps =
         key          : message.get 'id'
@@ -72,10 +72,12 @@ module.exports = class ChatList extends React.Component
         lastMessageId = message.get 'accountId'
         <ChatListItem {...itemProps} />
 
+    return messageItems.toList()
+
 
   render: ->
     <div className={kd.utils.curry 'ChatList', @props.className}>
-      {@renderChildren().toList()}
+      {@renderChildren()}
     </div>
 
 

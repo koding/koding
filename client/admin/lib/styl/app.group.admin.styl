@@ -1761,6 +1761,9 @@ Admin main styles
     overflow                hidden
     margin                  57px 0 0 123px !important
 
+    &.services
+      margin                28px 0 0 39px !important
+
   .box
     size                    256px, 112px
     rounded                 4px
@@ -1781,6 +1784,10 @@ Admin main styles
       text-align            center
       font-weight           300
       margin-top            13px
+
+  .services
+    .box
+      size                  227px, 95px
 
   .coming-soon
     cursor                  not-allowed
@@ -1898,6 +1905,11 @@ Admin main styles
 
     height                  auto
 
+    .kdtabhandle .title
+      position              relative
+      top                   15px
+      left                  22px
+
     .description
       width                 350px
 
@@ -1909,31 +1921,25 @@ Admin main styles
 
     .github
       img
-        margin              35px 0 0 67px
+        margin              31px 0 0 54px
 
     .bitbucket
       img
-        margin              26px 0 0 51px
-
-      .label
-        margin-top          6px
+        margin              27px 0 0 37px
 
     .gitlab
       top                   11px
       rel()
 
       img
-        margin              4px 0 0 56px
-
-      .label
-        margin-top          17px
+        margin              9px 0 0 42px
 
     .owngitserver
       top                   11px
       rel()
 
       img
-        margin              11px 0 0 113px
+        margin              3px 0 0 98px
 
       .label
         margin              15px 0 0 -3px
@@ -1981,15 +1987,19 @@ Admin main styles
         left                45px
         abs()
 
+      .title
+        margin              0
+        padding             0 25px 0 10px
+        font-size           12px
+        font-weight         200
+        color               #606060
+        line-height         34px
+
       .kdselectbox
         border              none
         top                 15px
         left                15px
         rel()
-
-        .title
-          margin            0
-          padding           0 25px 0 10px
 
         .arrows
           height            6px
@@ -2064,7 +2074,7 @@ Admin main styles
 
   .stack-preview
 
-    width                   526px
+    width                   626px
     min-height              320px
     padding-bottom          20px
     margin                  0 auto

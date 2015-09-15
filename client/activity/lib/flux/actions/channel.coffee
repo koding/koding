@@ -1,4 +1,5 @@
 kd                      = require 'kd'
+whoami                  = require 'app/util/whoami'
 actionTypes             = require './actiontypes'
 fetchChatChannels       = require 'activity/util/fetchChatChannels'
 isKoding                = require 'app/util/isKoding'
@@ -6,6 +7,7 @@ getGroup                = require 'app/util/getGroup'
 MessageActions          = require './message'
 realtimeActionCreators  = require './realtime/actioncreators'
 showErrorNotification   = require 'app/util/showErrorNotification'
+remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -99,6 +101,8 @@ loadParticipants = (channelId, participantsPreview = []) ->
 ###
 loadFollowedPrivateChannels = (options = {}) ->
 
+  options.limit ?= 25
+
   { LOAD_FOLLOWED_PRIVATE_CHANNELS_BEGIN
     LOAD_FOLLOWED_PRIVATE_CHANNELS_FAIL
     LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS } = actionTypes
@@ -122,6 +126,8 @@ loadFollowedPrivateChannels = (options = {}) ->
  * @param {object=} options
 ###
 loadFollowedPublicChannels = (options = {}) ->
+
+  options.limit ?= 25
 
   { LOAD_FOLLOWED_PUBLIC_CHANNELS_BEGIN
     LOAD_FOLLOWED_PUBLIC_CHANNELS_FAIL
@@ -217,41 +223,68 @@ loadChannelsByQuery = (query, options = {}) ->
 
 
 ###*
- * Action to set visibility of chat input channels
+ * Action to follow channel by given channelId
+ *
+ * @param {string} channelId
 ###
 followChannel = (channelId) ->
 
+  accountId = whoami()._id
   { follow } = kd.singletons.socialapi.channel
   { FOLLOW_CHANNEL_BEGIN, FOLLOW_CHANNEL_SUCCESS, FOLLOW_CHANNEL_FAIL } = actionTypes
 
-  dispatch FOLLOW_CHANNEL_BEGIN, { channelId }
+  dispatch FOLLOW_CHANNEL_BEGIN, { channelId, accountId }
 
   follow { channelId }, (err) ->
 
     if err
-      dispatch FOLLOW_CHANNEL_FAIL, { err, channelId }
+      dispatch FOLLOW_CHANNEL_FAIL, { err, channelId, accountId }
       return
 
-    dispatch FOLLOW_CHANNEL_SUCCESS, { channelId }
+    dispatch FOLLOW_CHANNEL_SUCCESS, { channelId, accountId }
 
 
 ###*
- * Action to set visibility of chat input channels
+ * Action to unfollow channel by given channelId and accountId
+ *
+ * @param {string} channelId
 ###
 unfollowChannel = (channelId) ->
 
+  accountId = whoami()._id
   { unfollow } = kd.singletons.socialapi.channel
   { UNFOLLOW_CHANNEL_BEGIN, UNFOLLOW_CHANNEL_SUCCESS, UNFOLLOW_CHANNEL_FAIL } = actionTypes
 
-  dispatch UNFOLLOW_CHANNEL_BEGIN, { channelId }
+  dispatch UNFOLLOW_CHANNEL_BEGIN, { channelId, accountId }
 
   unfollow { channelId }, (err) ->
 
     if err
-      dispatch UNFOLLOW_CHANNEL_FAIL, { err, channelId }
+      dispatch UNFOLLOW_CHANNEL_FAIL, { err, channelId, accountId }
       return
 
-    dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId }
+    dispatch UNFOLLOW_CHANNEL_SUCCESS, { channelId, accountId }
+
+
+###*
+ * Action to delete private channel by given channelId
+ *
+ * @param {string} channelId
+###
+deletePrivateChannel = (channelId) ->
+
+  { SocialChannel } = remote.api
+  { DELETE_PRIVATE_CHANNEL_BEGIN
+    DELETE_PRIVATE_CHANNEL_SUCCESS
+    DELETE_PRIVATE_CHANNEL_FAIL } = actionTypes
+
+  SocialChannel.delete { channelId }
+    .then ->
+      dispatch DELETE_PRIVATE_CHANNEL_SUCCESS, { channelId }
+
+    .catch (err) ->
+      dispatch DELETE_PRIVATE_CHANNEL_FAIL , { channelId }
+      showErrorNotification err, userMessage: err.message
 
 
 addParticipants = (options = {}) ->
@@ -295,5 +328,6 @@ module.exports = {
   loadPopularChannels
   loadChannelsByQuery
   setChannelParticipantsDropdownVisibility
+  deletePrivateChannel
 }
 

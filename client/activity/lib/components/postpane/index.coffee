@@ -42,7 +42,7 @@ module.exports = class PostPane extends React.Component
 
   onFollowChannel: ->
 
-    ActivityFlux.actions.channel.followChannel @channel 'id'
+    ActivityFlux.actions.channel.followChannel @channel('id')
 
 
   onClose: -> kd.singletons.router.handleRoute "/Channels/#{@channel 'name'}"

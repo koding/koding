@@ -18,6 +18,9 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
     @on actions.LOAD_CHANNEL_PARTICIPANT_SUCCESS, @handleLoadSuccess
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, @handleLoadSuccess
 
+    @on actions.FOLLOW_CHANNEL_SUCCESS, @handleFollowChannelSuccess
+    @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
+
   ###*
    * Initializes a new channel participants container for loaded channel.
    *
@@ -60,5 +63,36 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
     return participantIds.setIn [channelId, userId], userId
 
 
+  ###*
+   * Adds given accountId to channel participants container.
+   *
+   * @param {Immutable.Map} participantIds
+   * @param {object} payload
+   * @param {string} payload.channelId
+   * @param {string} payload.accountId
+   * @return {Immutable.Map} nextState
+  ###
+  handleFollowChannelSuccess: (participantIds, { channelId, accountId }) ->
 
+    return participantIds.setIn [channelId, accountId], accountId
+
+
+  ###*
+   * Removes given accountId from channel participants container.
+   *
+   * @param {Immutable.Map} participantIds
+   * @param {object} payload
+   * @param {string} payload.channelId
+   * @param {string} payload.accountId
+   * @return {Immutable.Map} nextState
+  ###
+  handleUnfollowChannelSuccess: (participantIds, { channelId, accountId }) ->
+
+    return participantIds  unless participantIds.has channelId
+
+    channel = participantIds.get channelId
+    channel = channel.remove accountId
+    participantIds = participantIds.set channelId, channel
+
+    return participantIds
 

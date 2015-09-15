@@ -865,7 +865,7 @@ module.exports = class ComputeController extends KDController
     remote.cacheable 'JStackTemplate', baseStackId, (err, templates) ->
       return callback err  if err
       [template] = templates
-      return callback null, template.description ? ''
+      return callback null, template?.description ? ''
 
 
   ###*

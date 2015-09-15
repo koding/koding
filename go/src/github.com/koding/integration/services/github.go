@@ -253,6 +253,10 @@ func (g GithubListener) push(e *webhook.PushEvent) (string, error) {
 	compareStr := fmt.Sprintf("[pushed](%s)", e.Compare)
 	commitsStr := ""
 
+	if len(e.Commits) < 1 {
+		return "", nil
+	}
+
 	// limit our commit count
 	commitsLen := len(e.Commits)
 	if commitsLen > 6 {

@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
+	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 	"strconv"
@@ -101,15 +102,23 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 		var err error
 		if args.Destroy {
+			modelhelper.SetStackState(args.StackId, "Stack destroying started", stackstate.Destroying)
+
 			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
+			modelhelper.SetStackState(args.StackId, "Stack building started", stackstate.Building)
+
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
+				modelhelper.SetStackState(args.StackId, "Stack building failed", stackstate.NotInitialized)
 				finalEvent.Status = machinestate.NotInitialized
+			} else {
+				modelhelper.SetStackState(args.StackId, "Stack building finished", stackstate.Initialized)
 			}
+
 		}
 
 		if err != nil {
@@ -211,12 +220,6 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	}
 
 	for _, m := range machines {
-		if err := sess.DNSClient.Delete(m.Domain); err != nil {
-			// if it's already deleted, for example because of a STOP, than we just
-			// log it here instead of returning the error
-			sess.Log.Error("deleting domain during destroying err: %s", err.Error())
-		}
-
 		if err := modelhelper.DeleteMachine(m.Id); err != nil {
 			return err
 		}
@@ -369,7 +372,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	output.AppendQueryString(buildData.KiteIds)
 
 	ev.Push(&eventer.Event{
-		Message:    "Updating domains and machine settings",
+		Message:    "Updating machine settings",
 		Percentage: 80,
 		Status:     machinestate.Building,
 	})
@@ -491,11 +494,6 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 		return errors.New("session context is not passed")
 	}
 
-	req, ok := request.FromContext(ctx)
-	if !ok {
-		return errors.New("request context is not passed")
-	}
-
 	for _, machine := range jMachines {
 		tf, err := data.WithLabel(machine.Label)
 		if err != nil {
@@ -508,17 +506,6 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 		}
 
 		ipAddress := tf.Attributes["public_ip"]
-
-		// create domains
-		for _, m := range jMachines {
-			if err := sess.DNSClient.Validate(m.Domain, req.Username); err != nil {
-				sess.Log.Error("couldn't validate machine domain: %s", err.Error())
-			}
-
-			if err := sess.DNSClient.Upsert(m.Domain, ipAddress); err != nil {
-				sess.Log.Error("couldn't update machine domain: %s", err.Error())
-			}
-		}
 
 		if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
