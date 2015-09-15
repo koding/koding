@@ -157,5 +157,6 @@ module.exports = class VariablesView extends KDView
         return kd.warn err  if err
 
         @_activeCredential = credential
-        content = (jsonToYaml data.meta).content
-        @getAce().setContent content
+
+        if (Object.keys data.meta).length
+          @getAce().setContent (jsonToYaml data.meta).content
