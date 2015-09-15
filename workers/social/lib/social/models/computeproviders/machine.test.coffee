@@ -26,7 +26,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
   describe '#create()', ->
 
-    it 'when machine data is not valid should return error', (done) ->
+    it 'should fail when machine data is not valid', (done) ->
 
       machineParams = {}
 
@@ -96,7 +96,8 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       it 'a new machine should be created for created user', (done) ->
 
         # creating a user and a machine with newly created user
-        createUserAndMachine generateUserInfo(), (err, machine, user) ->
+        createUserAndMachine generateUserInfo(), (err, data) ->
+          { machine, user } = data
           expect(err).to.not.exist
           expect(machine.provider).to.be.equal 'koding'
           expect(machine.status.state).to.be.equal 'NotInitialized'
@@ -124,11 +125,10 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine userInfo, (err, machine_, user_) ->
+            createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
-              user      = user_
-              machine   = machine_
-              userCount = machine.users.length
+              { machine, user } = data
+              userCount         = machine.users.length
               queue.next()
 
           ->
@@ -154,7 +154,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when user is not the owner', ->
 
-      it 'should return error', (done) ->
+      it 'destroy attempt with another user should fail', (done) ->
 
         user          = {}
         machine       = {}
@@ -165,10 +165,10 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine userInfo, (err, machine_) ->
+            createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
-              machine = machine_
-              userCount = machine.users.length
+              { machine } = data
+              userCount   = machine.users.length
               queue.next()
 
           ->
@@ -205,10 +205,10 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine userInfo, (err, machine_) ->
+            createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
-              machine = machine_
-              userCount = machine.users.length
+              { machine } = data
+              userCount   = machine.users.length
               queue.next()
 
           ->
@@ -238,7 +238,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when data is not valid', ->
 
-      it 'should return error if targets.length is greater than limit', (done) ->
+      it 'should fail if targets.length is greater than limit', (done) ->
 
         limit         = 50
         queue         = []
@@ -246,8 +246,8 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         machine       = {}
 
         queue.push ->
-          createUserAndMachine generateUserInfo(), (err, machine_) ->
-            machine = machine_
+          createUserAndMachine generateUserInfo(), (err, data) ->
+            { machine } = data
             queue.next()
 
         queue.push ->
@@ -285,9 +285,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         removedUserCount = 2
 
         queue.push ->
-          createUserAndMachine generateUserInfo(), (err, machine_) ->
-            machine = machine_
-            userCount = machine.users.length
+          createUserAndMachine generateUserInfo(), (err, data) ->
+            { machine } = data
+            userCount   = machine.users.length
             queue.next()
 
         queue.push ->
@@ -297,7 +297,6 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
         # first adding users
         queue.push ->
-          console.log targets.length
           params =
             targets   : targets
             asOwner   : yes
@@ -330,7 +329,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when data is not valid', ->
 
-      it 'should return error if target is not specified', (done) ->
+      it 'should fail if target is not specified', (done) ->
 
         machine       = {}
         userInfo      = generateUserInfo()
@@ -338,9 +337,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine userInfo, (err, machine_) ->
+            createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
-              machine = machine_
+              { machine } = data
               queue.next()
 
           ->
@@ -357,7 +356,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         daisy queue
 
 
-      it 'should return error if target is not an instance of juser', (done) ->
+      it 'should fail if target is not an instance of juser', (done) ->
 
         machine       = {}
         userInfo      = generateUserInfo()
@@ -365,9 +364,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine userInfo, (err, machine_) ->
+            createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
-              machine = machine_
+              { machine } = data
               queue.next()
 
           ->
@@ -395,9 +394,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine userInfo, (err, machine_) ->
+            createUserAndMachine userInfo, (err, data) ->
               expect(err).to.not.exist
-              machine = machine_
+              { machine } = data
               userCount = machine.users.length
               queue.next()
 
@@ -432,7 +431,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
   describe '#fetchOwner()', ->
 
-    it 'should return error when there is no owner', (done) ->
+    it 'should fail when there is no owner', (done) ->
 
       machine       = {}
       userInfo      = generateUserInfo()
@@ -441,9 +440,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          createUserAndMachine userInfo, (err, machine_, user_) ->
+          createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
-            machine = machine_
+            { machine } = data
             queue.next()
 
         ->
@@ -475,10 +474,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          createUserAndMachine userInfo, (err, machine_, user_) ->
+          createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
-            user    = user_
-            machine = machine_
+            { machine, user } = data
             queue.next()
 
         ->
@@ -542,7 +540,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when data is not valid', ->
 
-      it 'should return error if user is not owner', (done) ->
+      it 'should fail if user is not owner', (done) ->
 
         client           = {}
         account          = {}
@@ -631,7 +629,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when data is not valid', ->
 
-      it 'should return error if user is not owner or label is empty', (done) ->
+      it 'should fail if user is not owner or label is empty', (done) ->
 
         client           = {}
         machine          = {}
@@ -732,7 +730,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
 
     describe 'when data is not valid', ->
 
-      it 'should return error when user is not owner', (done) ->
+      it 'should fail when user is not owner', (done) ->
 
         user               = {}
         machine            = {}
@@ -741,10 +739,9 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            createUserAndMachine generateUserInfo(), (err, machine_, user_) ->
+            createUserAndMachine generateUserInfo(), (err, data) ->
               expect(err).to.not.exist
-              user    = user_
-              machine = machine_
+              { machine, user } = data
               queue.next()
 
           ->
@@ -880,11 +877,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          createUserAndMachine userInfo, (err, machine_) ->
+          createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
-            machine   = machine_
-            userCount = machine.users.length
-            machineId = machine._id
+            { machine } = data
+            userCount   = machine.users.length
+            machineId   = machine._id
             queue.next()
 
         ->
@@ -939,11 +936,11 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          createUserAndMachine userInfo, (err, machine_) ->
+          createUserAndMachine userInfo, (err, data) ->
             expect(err).to.not.exist
-            machine   = machine_
-            userCount = machine.users.length
-            machineId = machine._id
+            { machine } = data
+            userCount   = machine.users.length
+            machineId   = machine._id
             queue.next()
 
         ->
