@@ -449,6 +449,84 @@ validationRed = rgba(217, 58, 55, 1)
 
 // .kdmodal.resurrection
 
+.fbauth-failed-modal
+  &.kdmodal
+    bg                    color #FAFAFA
+    rounded               3px
+    shadow                0 12px 19px rgba(0,0,0,.50)
+    border                1px solid #979797
+    position              fixed !important
+    font-family           adelleSans
+
+    .kdmodal-inner
+      background          #fafafa
+      margin              15px 25px 25px
+
+      .close-icon
+        r-sprite          app, "modal-close-icon"
+        top               10px
+        right             10px
+
+        &:hover
+          r-sprite          app, "modal-close-icon"
+
+    .kdmodal-title
+      cursor              move
+      line-height         30px !important
+      font-weight         400
+      color               #00B057 !important
+      margin-bottom       15px !important
+      padding             0 !important
+      background          none !important
+      border              none !important
+
+      .title
+        font-size         20px !important
+
+    .kdmodal-content
+      margin              15px 0 0 0 !important
+      padding             0 !important
+      font-size           16px !important
+      line-height         22px !important
+
+      .modalformline
+        padding           0
+        overflow          visible
+
+        &:last-child
+          border-bottom   1px solid transparent
+
+      .avatarview
+        cite.staff
+          hidden()
+
+
+    .kdmodal-buttons
+    .formline.button-field
+      margin              24px 0 0 0 !important
+      background          none !important
+      border-top          none !important
+      height              auto !important
+
+      .kdbutton
+        height            37px
+        fr()
+
+        .button-title
+          line-height     36px !important
+
+        &.to-left
+          margin-left     0
+          margin-right    12px
+          fl()
+
+  &.kdoverlay
+    fix()
+
+    &.second-overlay
+      z-index             10001
+
+
 .kdmodal
   bg                    color white
   rounded               6px
