@@ -33,6 +33,22 @@ func TestGithubPush(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubPushWithoutCommit(t *testing.T) {
+	whd := &webhook.PushEvent{}
+	err := json.Unmarshal([]byte(pushTestWithoutCommitData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.push(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := ""
+	equals(t, exp, d)
+}
+
 func TestGithubIssueComment(t *testing.T) {
 	whd := &webhook.IssueCommentEvent{}
 	err := json.Unmarshal([]byte(issueCommentTestData), whd)
