@@ -18,10 +18,8 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
     @createFilterView()
 
-    view = new AccountCredentialList
-
     @listController = new AccountCredentialListController
-      view                    : view
+      view                    : new AccountCredentialList
       limit                   : 15
       useCustomScrollView     : yes
       lazyLoadThreshold       : 15
