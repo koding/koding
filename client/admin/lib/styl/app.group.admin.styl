@@ -1167,29 +1167,26 @@ Admin main styles
         .advanced-field
           display           block
 
+    .listview-wrapper
+      .kdscrollview
+        height              calc(100% \- 30px)
+
   &.form-open
     .listview-wrapper
       display               none
 
 
   .kdscrollview > .define-stack-view
-    height                  calc(100% \- 160px)
+    overflow                hidden
 
-  .step-define-stack
-    height                  calc(100% \- 270px)
-
-    .editor-view
-      height                calc(100% \+ 116px)
+    > .kdscrollview
+      height                calc(100% \- 150px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
 
   .kdtabpaneview.stack-template
-    height                  calc(100% \- 87px)
-
-  .edit-mode
-    .step-define-stack .editor-view
-      height                calc(100% \+ 220px)
+    height                  calc(100% \- 135px)
 
 
   .stack-editor-footer
@@ -1420,11 +1417,12 @@ Admin main styles
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
     z-index                 15
-    height                  0
+    height                  0 !important
     abs()
 
     &.raise
-      height                calc(50% - 33px)
+      bottom                35px
+      height                calc(40% - 33px) !important
 
     pre.output-view
       height                auto
