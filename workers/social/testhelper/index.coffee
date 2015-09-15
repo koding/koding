@@ -72,7 +72,7 @@ withDummyClient = (context, callback) ->
     callback client
 
 
-withNewUser = (opts, callback) ->
+withConvertedUser = (opts, callback) ->
 
   { context, userFormData } = opts  if opts
 
@@ -158,9 +158,9 @@ generateRandomUserArray =  (count, callback) ->
 module.exports = {
   daisy
   expect
-  withNewUser
   withDummyClient
   generateUserInfo
+  withConvertedUser
   generateDummyClient
   generateCredentials
   generateRandomEmail

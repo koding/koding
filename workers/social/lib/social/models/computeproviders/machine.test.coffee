@@ -7,9 +7,9 @@ JMachine                      = require './machine'
 
 { daisy
   expect
-  withNewUser
   withDummyClient
   generateUserInfo
+  withConvertedUser
   generateRandomString
   checkBongoConnectivity
   generateRandomUserArray
@@ -507,7 +507,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          withNewUser { userFormData }, (data) ->
+          withConvertedUser { userFormData }, (data) ->
             { client } = data
             queue.next()
 
@@ -544,12 +544,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withNewUser { userFormData }, (data) ->
+            withConvertedUser { userFormData }, (data) ->
               { client } = data
               queue.next()
 
           ->
-            withNewUser {}, (data) ->
+            withConvertedUser {}, (data) ->
               { client : anotherClient } = data
 
               # fetching owner user's machine
@@ -579,7 +579,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withNewUser { userFormData }, (data) ->
+            withConvertedUser { userFormData }, (data) ->
               { client } = data
               queue.next()
 
@@ -615,12 +615,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withNewUser { userFormData }, (data) ->
+            withConvertedUser { userFormData }, (data) ->
               { client } = data
               queue.next()
 
           ->
-            withNewUser {}, (data) ->
+            withConvertedUser {}, (data) ->
               { client : anotherClient } = data
               queue.next()
 
@@ -661,7 +661,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withNewUser { userFormData }, (data) ->
+            withConvertedUser { userFormData }, (data) ->
               { client } = data
               queue.next()
 
@@ -737,7 +737,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withNewUser { userFormData }, (data) ->
+            withConvertedUser { userFormData }, (data) ->
               { client } = data
               queue.next()
 
@@ -772,12 +772,12 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          withNewUser { userFormData }, (data) ->
+          withConvertedUser { userFormData }, (data) ->
             { client } = data
             queue.next()
 
         ->
-          withNewUser {}, (data) ->
+          withConvertedUser {}, (data) ->
             { userFormData : anotherUserFormData } = data
             queue.next()
 
