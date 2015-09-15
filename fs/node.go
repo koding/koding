@@ -89,6 +89,7 @@ func (n *Node) InitializeChildNode(name string, nextID fuseops.InodeID) *Node {
 	c.LocalPath = filepath.Join(n.LocalPath, name)
 	c.EntryType = fuseutil.DT_Directory
 	c.Attrs = fuseops.InodeAttributes{Nlink: 1, Uid: n.Attrs.Uid, Gid: n.Attrs.Gid}
+	c.Parent = n
 
 	n.EntriesList[c.Name] = c
 
@@ -150,11 +151,23 @@ func (n *Node) Mkdir(name string, mode os.FileMode) (*Node, error) {
 	newFolderNode := n.InitializeChildNode(name, nextID)
 	newFolderNode.Attrs.Mode = mode
 
-	_, err := n.getEntriesFromRemote()
-	return newFolderNode, err
+	ent := fuseutil.Dirent{
+		Offset: fuseops.DirOffset(len(n.Entries) + 1),
+		Inode:  n.ID,
+		Name:   name,
+		Type:   fuseutil.DT_Directory,
+	}
+	n.Entries = append(n.Entries, ent)
+
+	return newFolderNode, nil
 }
 
 func (n *Node) Rename(oldName, newName string) error {
+	childNode, err := n.FindChild(oldName)
+	if err != nil {
+		return err
+	}
+
 	treq := struct{ OldPath, NewPath string }{
 		OldPath: filepath.Join(n.RemotePath, oldName),
 		NewPath: filepath.Join(n.RemotePath, newName),
@@ -165,8 +178,9 @@ func (n *Node) Rename(oldName, newName string) error {
 		return err
 	}
 
-	_, err := n.getEntriesFromRemote()
-	return err
+	childNode.Name = newName
+
+	return nil
 }
 
 func (n *Node) ReadAt(dst []byte, offset int64) (int, error) {
@@ -189,6 +203,86 @@ func (n *Node) ReadAt(dst []byte, offset int64) (int, error) {
 	bytesRead := copy(dst, contents[offset:])
 
 	return bytesRead, nil
+}
+
+func (n *Node) CreateFile() error {
+	if _, err := n.WriteAt([]byte{}, 0); err != nil {
+		return err
+	}
+
+	ent := fuseutil.Dirent{
+		Offset: fuseops.DirOffset(len(n.Parent.Entries) + 1),
+		Inode:  n.ID,
+		Name:   n.Name,
+		Type:   n.EntryType,
+	}
+
+	n.Parent.Entries = append(n.Parent.Entries, ent)
+
+	return nil
+}
+
+func (n *Node) WriteAt(data []byte, offset int64) (int, error) {
+	if n.EntryType != fuseutil.DT_File {
+		return 0, ErrNotAFile
+	}
+
+	newLen := int(offset) + len(data)
+	if len(n.Contents) < newLen {
+		padding := make([]byte, newLen-len(n.Contents))
+		n.Contents = append(n.Contents, padding...)
+	}
+
+	bytesWrote := copy(n.Contents[offset:], data)
+
+	if offset == 0 {
+		n.Contents = n.Contents[0:len(data)]
+	}
+
+	n.Attrs.Size = uint64(len(n.Contents))
+	n.Attrs.Mtime = time.Now()
+
+	return bytesWrote, nil
+}
+
+func (n *Node) Flush() error {
+	req := struct {
+		Path    string
+		Content []byte
+	}{
+		Path:    n.RemotePath,
+		Content: n.Contents,
+	}
+	var res int
+	if err := n.Transport.Trip("fs.writeFile", req, &res); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *Node) Delete() error {
+	req := struct {
+		Path      string
+		Recursive bool
+	}{
+		Path:      filepath.Join(n.RemotePath),
+		Recursive: true,
+	}
+	var res bool
+	if err := n.Trip("fs.remove", req, &res); err != nil {
+		return err
+	}
+
+	delete(n.Parent.EntriesList, n.Name)
+
+	for i, nn := range n.Parent.Entries {
+		if nn.Name == n.Name {
+			n.Parent.Entries = append(n.Parent.Entries[:i], n.Parent.Entries[i+1:]...)
+		}
+	}
+
+	return nil
 }
 
 ///// Helpers

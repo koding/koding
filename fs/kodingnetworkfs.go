@@ -89,7 +89,9 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 	rootNode.EntryType = fuseutil.DT_Directory
 
 	// TODO: get uid and gid for current process and use that
-	rootNode.Attrs = fuseops.InodeAttributes{Uid: 501, Gid: 20, Mode: 0700 | os.ModeDir}
+	rootNode.Attrs = fuseops.InodeAttributes{
+		Uid: 501, Gid: 20, Mode: 0700 | os.ModeDir, Size: 10,
+	}
 
 	return &KodingNetworkFS{
 		MountConfig: mountConfig,
@@ -304,6 +306,133 @@ func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) 
 	op.BytesRead, err = fileNode.ReadAt(op.Dst, op.Offset)
 
 	return err
+}
+
+func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
+	defer debug(time.Now(), "ID=%v DataLen=%v Offset=%v", op.Inode, len(op.Data), op.Offset)
+
+	fileNode, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	_, err = fileNode.WriteAt(op.Data, op.Offset)
+
+	return err
+}
+
+func (k *KodingNetworkFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
+	defer debug(time.Now(), "Parent=%v Name=%s Mode=%s", op.Parent, op.Name, op.Mode)
+
+	dirNode, err := k.getNode(op.Parent)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	if _, err := dirNode.FindChild(op.Name); err != ErrNodeNotFound {
+		return fuse.EEXIST
+	}
+
+	fileNode, err := k.initializeChildNode(dirNode, op.Name)
+	if err != nil {
+		return err
+	}
+
+	fileNode.EntryType = fuseutil.DT_File
+	fileNode.Attrs.Mode = op.Mode
+
+	if err := fileNode.CreateFile(); err != nil {
+		return ErrDefault
+	}
+
+	op.Entry.Child = fileNode.ID
+	op.Entry.Attributes = fileNode.Attrs
+
+	return nil
+}
+
+func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
+	defer debug(time.Now(), "ID=%v", op.Inode)
+
+	node, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	if op.Mode != nil {
+		node.Attrs.Mode = *op.Mode
+	}
+
+	if op.Atime != nil {
+		node.Attrs.Atime = *op.Atime
+	}
+
+	if op.Mtime != nil {
+		node.Attrs.Mtime = *op.Mtime
+	}
+
+	if op.Size != nil {
+		node.Attrs.Size = *op.Size
+
+		if *op.Size == 0 {
+			_, err := node.WriteAt([]byte{}, 0)
+			return err
+		}
+	}
+
+	op.Attributes = node.Attrs
+
+	return nil
+}
+
+func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
+	defer debug(time.Now(), "ID=%v", op.Inode)
+
+	fileNode, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	err = fileNode.Flush()
+	return err
+}
+
+func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
+	defer debug(time.Now(), "ID=%v", op.Inode)
+
+	fileNode, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	err = fileNode.Flush()
+	return err
+}
+
+func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
+	defer debug(time.Now(), "Parent=%v Name=%s", op.Parent, op.Name)
+
+	parentDir, err := k.getNode(op.Parent)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	child, err := parentDir.FindChild(op.Name)
+	if err != nil {
+		if err == ErrNodeNotFound {
+			return fuse.ENOENT
+		}
+
+		return err
+	}
+
+	if err = child.Delete(); err != nil {
+		return err
+	}
+
+	delete(k.liveNodes, child.ID)
+
+	return nil
 }
 
 ///// Helpers
