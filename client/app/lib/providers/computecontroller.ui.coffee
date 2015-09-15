@@ -92,9 +92,9 @@ module.exports = class ComputeController_UI
     if advancedFields = currentProvider.advancedFields
       advancedFields.forEach (field) ->
         fields[field] =
-          label         : field.capitalize()
-          placeholder   : field
-          cssClass      : 'advanced-field'
+          label       : field.capitalize()
+          placeholder : field
+          cssClass    : 'advanced-field'
 
         fields[field].defaultValue = defaultValues[field]  if defaultValues[field]?
 
