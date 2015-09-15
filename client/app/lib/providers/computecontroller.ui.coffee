@@ -33,7 +33,7 @@ module.exports = class ComputeController_UI
 
     { provider, requiredFields, defaultTitle, defaultValues, callback } = options
 
-    defaultValues = []  unless defaultValues
+    defaultValues ?= []
 
     fields           =
       title          :
