@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
+	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 	"strconv"
@@ -101,15 +102,23 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 		var err error
 		if args.Destroy {
+			modelhelper.SetStackState(args.StackId, "Stack destroying started", stackstate.Destroying)
+
 			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
+			modelhelper.SetStackState(args.StackId, "Stack building started", stackstate.Building)
+
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
+				modelhelper.SetStackState(args.StackId, "Stack building failed", stackstate.NotInitialized)
 				finalEvent.Status = machinestate.NotInitialized
+			} else {
+				modelhelper.SetStackState(args.StackId, "Stack building finished", stackstate.Initialized)
 			}
+
 		}
 
 		if err != nil {
