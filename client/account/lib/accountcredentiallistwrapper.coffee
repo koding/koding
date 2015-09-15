@@ -66,7 +66,7 @@ module.exports = class AccountCredentialListWrapper extends KDView
     list          = []
     { providers } = globals.config
 
-    Object.keys(providers).forEach (provider) =>
+    Object.keys(providers).forEach (provider) ->
 
       list.push
         key   : provider
