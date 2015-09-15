@@ -125,6 +125,14 @@ module.exports = class MessageEventManager extends KDObject
 
     message.body = Encoder.XSSEncode message.body
 
+    # Every time message is updated, we need to synchronize
+    # its payload and link properties which contain embed.ly data.
+    # They have the same object structure and data with the only
+    # difference that payload.link_embed is string representation
+    # of json object while link.link_embed is payload.link_embed
+    # parsed to js object.
+    # If payload is null or doesn't contain embed.ly data,
+    # link should be deleted
     { payload } = message
     if payload?.link_url
       message.link =
