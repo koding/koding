@@ -174,7 +174,7 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 	return err
 }
 
-///// Directory related operations
+///// Directory Operations
 
 // TODO: I've no clue what this does or if it's even required.
 //
@@ -189,7 +189,7 @@ func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) er
 	return nil
 }
 
-// ReadDir reads entires in a specific directory Node. It returns `fuse.ENOENT`
+// ReadDir reads entries in a specific directory Node. It returns `fuse.ENOENT`
 // if directory Node doesn't exist.
 //
 // Required by Fuse.
@@ -267,9 +267,30 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 	return parent.Rename(op.OldName, op.NewName)
 }
 
-//----------------------------------------------------------
-// Helpers
-//----------------------------------------------------------
+///// File Operations
+
+// OpenFile opens a Node, ie. indicates operations are to be done on this file.
+// It returns `fuse.ENOENT` if file doesn't exist.
+//
+// Required by Fuse.
+func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
+	defer debug(time.Now(), "ID=%v", op.Inode)
+
+	_, err := k.getNode(op.Inode)
+	if err != nil {
+		return fuse.ENOENT
+	}
+
+	// KeepPageCache tells Kernel to cache this file contents or not. Say an user
+	// opens a file on their local and then changes that same file on the VM, by
+	// setting this to be false, the user can close and open the file to see the
+	// changes. See https://goo.gl/vjhjFY.
+	op.KeepPageCache = false
+
+	return nil
+}
+
+///// Helpers
 
 // getNode gets Node from KodingNetworkFS#EntriesList.
 func (k *KodingNetworkFS) getNode(nodeId fuseops.InodeID) (*Node, error) {

@@ -130,6 +130,48 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	return NewKodingNetworkFS(t, c)
 }
 
+func TestFile(tt *testing.T) {
+	Convey("Given mounted folder", tt, func() {
+		t := &fakeTransport{
+			TripResponses: map[string]interface{}{
+				"fs.readDirectory": transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{
+					transport.FsGetInfoRes{
+						Exists:   true,
+						FullPath: "/remote/file",
+						IsDir:    false,
+						Mode:     os.FileMode(0700),
+						Name:     "file",
+					},
+				}},
+			},
+		}
+
+		k := newknfs(t)
+
+		_, err := k.Mount()
+		So(err, ShouldBeNil)
+
+		Convey("It should return err when trying to open nonexistent file", func() {
+			fileName := path.Join(k.MountPath, "nonexistent")
+			_, err := os.OpenFile(fileName, os.O_WRONLY, 0400)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("It should open file", func() {
+			fileName := path.Join(k.MountPath, "file")
+			fi, err := os.OpenFile(fileName, os.O_WRONLY, 0400)
+			So(err, ShouldBeNil)
+
+			st, err := fi.Stat()
+			So(err, ShouldBeNil)
+
+			So(st.IsDir(), ShouldEqual, false)
+		})
+
+		defer _unmount(k)
+	})
+}
+
 func _unmount(k *KodingNetworkFS) error {
 	// ioutil.TempDir creates folders with `/private` prefix, however it
 	// doesn't include it in the return path; without this unmout fails.
