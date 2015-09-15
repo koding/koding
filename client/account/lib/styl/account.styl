@@ -351,67 +351,69 @@ app.settings.styl
       opacity               1
 
   .ssh-key-help
-    padding-top                15px
-    font-size                  14px
-    text-align                 center
+    padding-top             15px
+    font-size               14px
+    text-align              center
 
     a
-      color                    #52a840
+      color                 #52a840
 
   .add-ssh-key-view
 
     .no-machines-text
-      margin-bottom            30px
+      margin-bottom         30px
 
-    .ssh-machine-list
+    .ssh-machine-list-header
+      padding-bottom        8px
+      position              relative
 
-      .ssh-machine-list-header
-        padding-bottom         8px
-        position               relative
+      .ssh-machine-list-tooltip-icon
+        display             inline-block
+        width               15px
+        height              25px
+        r-sprite            account help
+        margin-left         7px
+        vertical-align      text-top
 
-        .ssh-machine-list-tooltip-icon
-          display              inline-block
-          width                15px
-          height               25px
-          r-sprite             account help
-          margin-left          7px
-          vertical-align       text-top
+    .ssh-machine-item
+      width                 30%
+      float                 left
 
-      .ssh-machine-item
-        width                  30%
-        float                  left
+      .checkbox
+        display             inline
+        width               auto
+        position            relative
+        margin              0px
+        vertical-align      middle
 
-        .checkbox
-          display              inline
-          width                auto
-          position             relative
-          margin               0px
-          vertical-align       middle
+      .kdlabel
+        display             inline
 
-        .kdlabel
-          display              inline
+    .disabled-ssh-machine-item
+      .kdlabel
+          color             #a1a1a1
 
-      .ssh-machine-list-footer
-        clear                  left
+    .ssh-machine-list-footer
+      clear                 left
 
 .ssh-machine-list-tooltip
-  line-height                  18px
-  text-align                   left!important
+  line-height               18px
+  text-align                left!important
 
 .delete-ssh-key-modal
 
   .guide-link
-    text-decoration            underline
-    color                      #01b05a
+    text-decoration         underline
+    color                   #01b05a
 
   strong
-    font-weight                bold
+    font-weight             bold
 
   .kdbutton
-    width                      85px!important
+    width                   85px!important
 
 .delete-ssh-key-overlay
-  z-index                      10001
+  z-index                   10001
 
 .AppModal--account-tabSpinner
   display                   block !important
