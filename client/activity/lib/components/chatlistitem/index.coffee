@@ -25,6 +25,7 @@ showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 MessageLink           = require 'activity/components/messagelink'
+EmbedBox              = require 'activity/components/embedbox'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -64,8 +65,7 @@ module.exports = class ChatListItem extends React.Component
 
   componentDidUpdate: ->
 
-    @setState editMode: @props.message.get '__isEditing'
-    @focusInputOnEdit()
+    @focusInputOnEdit()  if @props.message.get '__isEditing'
 
 
   getAccountInfo: ->
@@ -190,8 +190,7 @@ module.exports = class ChatListItem extends React.Component
 
     domNode = @refs.EditMessageTextarea.getDOMNode()
 
-    kd.utils.wait 100, ->
-      kd.utils.moveCaretToEnd domNode
+    kd.utils.moveCaretToEnd domNode
 
 
   editPost: ->
@@ -199,8 +198,6 @@ module.exports = class ChatListItem extends React.Component
     messageId = @props.message.get '_id'
 
     ActivityFlux.actions.message.setMessageEditMode messageId
-    @focusInputOnEdit()
-
 
 
   showDeletePostPromptModal: ->
@@ -283,17 +280,17 @@ module.exports = class ChatListItem extends React.Component
 
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
-    'hidden' : not @state.editMode
-    'visible' : @state.editMode
+    'hidden' : not @props.message.get '__isEditing'
+    'visible' : @props.message.get '__isEditing'
 
 
   getMediaObjectClassNames: -> classnames
-    'hidden' : @state.editMode
+    'hidden' : @props.message.get '__isEditing'
 
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
@@ -331,16 +328,13 @@ module.exports = class ChatListItem extends React.Component
       />
 
 
-  getClassNames: ->
-    editForm: classnames
-      'ChatItem-updateMessageForm': yes
-      'hidden': not @state.editMode
-    mediaContent: classnames
-      'hidden': @state.editMode
-    contentWrapper: classnames
-      'ChatItem-contentWrapper': yes
-      'MediaObject': yes
-      'editing': @state.editMode
+  renderEmbedBox: ->
+
+    { message } = @props
+    embedData   = message.get 'link'
+
+    if embedData
+      <EmbedBox data={embedData.toJS()} type='chat' />
 
 
   render: ->
@@ -363,6 +357,7 @@ module.exports = class ChatListItem extends React.Component
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}

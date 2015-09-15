@@ -8,6 +8,7 @@ SidebarMessagesSection = require 'app/components/sidebarmessagessection'
 
 module.exports = class SidebarSections extends React.Component
 
+  PREVIEW_COUNT = 10
 
   { getters, actions } = ActivityFlux
 
@@ -26,12 +27,14 @@ module.exports = class SidebarSections extends React.Component
 
   renderChannelsSection: ->
     <SidebarChannelsSection
+      previewCount={PREVIEW_COUNT}
       threads={@state.publicChannels}
       selectedId={@state.selectedThreadId} />
 
 
   renderMessagesSection: ->
     <SidebarMessagesSection
+      previewCount={PREVIEW_COUNT}
       threads={@state.privateChannels}
       selectedId={@state.selectedThreadId} />
 

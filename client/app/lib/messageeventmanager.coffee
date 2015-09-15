@@ -124,4 +124,15 @@ module.exports = class MessageEventManager extends KDObject
     new MongoOp(data).applyTo message
 
     message.body = Encoder.XSSEncode message.body
+
+    { payload } = message
+    if payload?.link_url
+      message.link =
+        link_url   : payload.link_url
+        link_embed :
+          try JSON.parse Encoder.htmlDecode payload.link_embed
+          catch e then null
+    else
+      delete  message.link
+
     message.emit 'update'
