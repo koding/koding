@@ -26,26 +26,30 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     super options, data
 
+    @filterStates =
+      skip  : 0
+      busy  : no
+      query : {}
+
 
   followLazyLoad: ->
 
-    @skip = 0
-    @busy = no
+    @on 'LazyLoadThresholdReached', kd.utils.debounce 300, =>
 
-    @on 'LazyLoadThresholdReached', kd.utils.debounce 300, ->
+      return  @hideLazyLoader()  if @filterStates.busy
 
-      return  @hideLazyLoader()  if @busy
+      @filterStates.busy  = yes
+      @filterStates.skip += @getOption 'limit'
 
-      @busy = yes
-      @skip += @getOption 'limit'
-
-      @fetch {}, (err, credentials) =>
-
+      @fetch @filterStates.query, (err, credentials) =>
         @hideLazyLoader()
-        return  if err or not credentials
+
+        if err or not credentials
+          return @filterStates.busy = no
+
         @instantiateListItems credentials
-        @busy = no
-      , { @skip }
+        @filterStates.busy = no
+      , { skip : @filterStates.skip }
 
 
   loadItems: ->
@@ -55,11 +59,10 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { query, provider, requiredFields } = @getOptions()
 
-    query          ?=  {}
-    query.provider ?= provider        if provider
-    query.fields   ?= requiredFields  if requiredFields
+    @filterStates.query.provider ?= provider        if provider
+    @filterStates.query.fields   ?= requiredFields  if requiredFields
 
-    @fetch query, (err, credentials) =>
+    @fetch @filterStates.query, (err, credentials) =>
 
       if provider? and credentials?.length is 0
         @showAddCredentialFormFor provider
@@ -74,7 +77,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     options.limit or= @getOption 'limit'
 
-    JCredential.some query, options, (err, credentials) =>
+    JCredential.some @filterStates.query, options, (err, credentials) =>
 
       if err
         @hideLazyLoader()
@@ -85,18 +88,16 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       callback err, credentials
 
 
-  filterByProvider: (value) ->
+  filterByProvider: (query = {}) ->
 
-    @skip = 0
-    @busy = no
+    @filterStates.skip = 0
 
     @removeAllItems()
     @showLazyLoader()
 
-    query           = {}
-    query.provider  = value  if value
+    @filterStates.query = query
 
-    @fetch query, (err, credentials) =>
+    @fetch @filterStates.query, (err, credentials) =>
 
       @hideLazyLoader()
       @instantiateListItems credentials

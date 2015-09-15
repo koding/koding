@@ -53,7 +53,9 @@ module.exports = class AccountCredentialListWrapper extends KDView
       selectOptions : selectOptions
       defaultValue  : ''
       callback      : (value) =>
-        @listController.filterByProvider value
+        filter = {}
+        filter.provider = value  if value
+        @listController.filterByProvider filter
 
     @addSubView @filterView
 
