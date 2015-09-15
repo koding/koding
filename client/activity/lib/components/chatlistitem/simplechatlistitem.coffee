@@ -18,7 +18,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject SimpleChatListItem': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
