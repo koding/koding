@@ -69,7 +69,7 @@ withDummyClient = (context, callback) ->
 
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
-    callback client
+    callback { client }
 
 
 withConvertedUser = (opts, callback) ->
@@ -79,7 +79,7 @@ withConvertedUser = (opts, callback) ->
   context      ?= { group : 'koding' }
   userFormData ?= generateDummyUserFormData()
 
-  withDummyClient context, (client) ->
+  withDummyClient context, ({ client }) ->
     JUser.convert client, userFormData, (err, data) ->
       expect(err).to.not.exist
       { account, newToken }      = data

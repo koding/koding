@@ -34,7 +34,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       queue = [
 
         ->
-          withDummyClient { group : 'koding' }, (client) ->
+          withDummyClient { group : 'koding' }, ({ client }) ->
 
             # generating machineParams to use on machine creation
             generateMachineParams client, (err, data) ->
@@ -65,7 +65,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         queue = [
 
           ->
-            withDummyClient { group : 'koding' }, (client) ->
+            withDummyClient { group : 'koding' }, ({ client }) ->
 
               # generating machineParams to use on machine creation
               generateMachineParams client, (err, data) ->
