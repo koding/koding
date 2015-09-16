@@ -26,9 +26,15 @@ module.exports = class SidebarModalList extends React.Component
 
   onThresholdReached: ->
 
+    return  if @state.isSearching
+
     { channel } = ActivityFlux.actions
 
-    channel.loadFollowedPublicChannels skip: @props.threads.size
+    channel[@props.onThresholdAction] skip: @props.threads.size
+
+    @setThreads()
+
+
   setThreads: kd.utils.debounce 1000, ->
 
     @setState threads: @props.sidebarModalChannels.followed
