@@ -40,7 +40,11 @@ module.exports = class SidebarModalList extends React.Component
     @setState threads: @props.sidebarModalChannels.followed
 
 
+  resetSearch: ->
 
+    threads = @props.sidebarModalChannels.followed
+    @setState threads: threads
+    @setState noResultText: no  if threads.size
 
 
 
