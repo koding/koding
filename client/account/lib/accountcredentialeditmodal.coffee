@@ -37,8 +37,6 @@ module.exports = class AccountCredentialEditModal extends KDModalView
 
     @wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
 
-    @form.on 'Cancel', @bound 'cancel'
-    @form.on 'CredentialUpdated', ->
+    @form.on 'CredentialUpdated', =>
       new KDNotificationView title : 'Credential was updated.', type: 'mini'
-      @emit 'Cancel'
-
+      @cancel()
