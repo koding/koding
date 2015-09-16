@@ -40,14 +40,10 @@ module.exports = class SidebarModalList extends React.Component
     @setState threads: @props.sidebarModalChannels.followed
 
 
-  onChange: ->
-
-    console.log 'onchange'
 
 
-  onKeyDown: ->
 
-    console.log 'onKeyDown'
+
 
 
   renderHeader: ->
@@ -58,8 +54,6 @@ module.exports = class SidebarModalList extends React.Component
         <input
           className   = 'ChannelList-searchInput'
           placeholder = 'Search'
-          onChange    = { @bound 'onChange' }
-          onKeyDown   = { @bound 'onKeyDown' }
           ref         = 'ChannelSearchInput'
         />
       </div>
