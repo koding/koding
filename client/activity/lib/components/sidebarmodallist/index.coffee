@@ -34,8 +34,8 @@ module.exports = class SidebarModalList extends React.Component
     return  if isSearching
 
     { channel } = ActivityFlux.actions
-
-    channel[@props.onThresholdAction] skip: @props.threads.size
+    loadFollowedChannels = channel[@props.onThresholdAction]
+    loadFollowedChannels skip: @props.threads.size
 
     @setThreads()
 
@@ -82,9 +82,10 @@ module.exports = class SidebarModalList extends React.Component
     isSearching = yes
 
     value = value.slice(1)  if value[0] is '#'
+    loadFollowedChannels = channel[@props.onThresholdAction]
 
     channel.loadChannelsByQuery value
-    channel[@props.onThresholdAction] skip: @props.threads.size
+    loadFollowedChannels skip: @props.threads.size
 
     @filter()
 
@@ -123,7 +124,9 @@ module.exports = class SidebarModalList extends React.Component
 
   renderNoResultText: ->
 
-    <div className={@getNoResultClassNames()}>Sorry, your search did not have any results</div>
+    <div className={@getNoResultClassNames()}>
+      Sorry, your search did not have any results
+    </div>
 
 
   renderChannelList: ->
