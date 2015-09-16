@@ -99,6 +99,12 @@ module.exports = class DefineStackView extends KDView
         @providersView.resetItems()
         credentialItem.inuseView.show()
 
+    @providersView.on 'ItemDeleted', (credential) =>
+
+      { identifier } = credential.getData()
+      if identifier in credentialStatus.credentials
+        credentialStatus.setCredential() # To unset active credential
+                                         # since it's deleted
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
