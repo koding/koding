@@ -6,7 +6,7 @@ module.exports = globals.config.providers =
     name                   : "Custom"
     link                   : "https://koding.com"
     title                  : "Custom Credential"
-    color                  : "#9177fb"
+    color                  : "#b9c0b8"
     description            : """Custom credentials can include meta
                                credentials for any service"""
     listText               : """
@@ -128,7 +128,7 @@ module.exports = globals.config.providers =
     name                   : "Rackspace"
     link                   : "http://www.rackspace.com"
     title                  : "Rackspace"
-    color                  : "#3f6d8e"
+    color                  : "#d8deea"
     description            : "Rackspace machines"
     credentialFields       :
       username             :
