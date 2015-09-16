@@ -5,8 +5,9 @@ KDModalView        = kd.ModalView
 KDOverlayView      = kd.OverlayView
 KDNotificationView = kd.NotificationView
 
-showError                 = require 'app/util/showError'
-AccountCredentialListItem = require './accountcredentiallistitem'
+showError                   = require 'app/util/showError'
+AccountCredentialListItem   = require './accountcredentiallistitem'
+AccountCredentialEditModal  = require './accountcredentialeditmodal'
 
 
 module.exports = class AccountCredentialList extends KDListView
@@ -78,6 +79,23 @@ module.exports = class AccountCredentialList extends KDListView
         overlay        : yes
         overlayOptions : cssClass : 'second-overlay'
         content        : "<pre><code>#{cred}</code></pre>"
+
+
+  editItem: (item) ->
+
+    credential    = item.getData()
+    { provider }  = credential
+
+    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
+    if provider is 'aws'
+      return showError "This AWS credential can't be edited for now."
+
+    credential.fetchData (err, data) ->
+      return if showError err
+
+      data.title = credential.title
+
+      new AccountCredentialEditModal { provider, credential }, data
 
 
   checkIsBootstrapped: (item) ->

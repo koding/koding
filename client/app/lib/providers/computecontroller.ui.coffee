@@ -31,7 +31,9 @@ module.exports = class ComputeController_UI
 
   @generateAddCredentialFormFor = (options) ->
 
-    { provider, requiredFields, defaultTitle } = options
+    { provider, requiredFields, defaultTitle, defaultValues, callback } = options
+
+    defaultValues ?= []
 
     fields           =
       title          :
@@ -61,13 +63,17 @@ module.exports = class ComputeController_UI
     credentialFields.forEach (field) ->
 
       _field = fields[field] = _.clone currentProvider.credentialFields[field]
-      _field.required = yes
+
+      _field.required     = yes
+      _field.defaultValue = defaultValues[field]  if defaultValues[field]?
 
       if _field.type is 'selection'
-        {values}             = _field
+        { values }           = _field
         _field.itemClass     = kd.SelectBox
         _field.defaultValue ?= values.first.value
+
         selectOptions.push { field, values }
+
 
     buttons      =
       Save       :
@@ -90,6 +96,9 @@ module.exports = class ComputeController_UI
           placeholder : field
           cssClass    : 'advanced-field'
 
+        fields[field].defaultValue = defaultValues[field]  if defaultValues[field]?
+
+
       buttons['Advanced Mode'] =
         style    : "solid medium"
         type     : "button"
@@ -101,10 +110,9 @@ module.exports = class ComputeController_UI
       cssClass     : "form-view"
       fields       : fields
       buttons      : buttons
-      callback     : (data)->
+      callback     : (data) ->
 
-        { Save } = @buttons
-        Save.showLoader()
+        @buttons.Save.showLoader()
 
         { title } = data
         delete data.title
@@ -113,14 +121,17 @@ module.exports = class ComputeController_UI
         for field, value of data
           delete data[field]  if value is ''
 
-        remote.api.JCredential.create {
-          provider, title, meta: data
-        }, (err, credential)=>
+        if callback
+          callback title, data
+        else
+          remote.api.JCredential.create {
+            provider, title, meta: data
+          }, (err, credential) =>
+            @buttons.Save.hideLoader()
 
-          Save.hideLoader()
+            unless showError err
+              @emit "CredentialAdded", credential
 
-          unless showError err
-            @emit "CredentialAdded", credential
 
     selectOptions.forEach (select) ->
       { field, values } = select

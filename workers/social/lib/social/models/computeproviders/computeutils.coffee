@@ -6,7 +6,7 @@ PROVIDERS =
   koding       : require './koding'
   rackspace    : require './rackspace'
   digitalocean : require './digitalocean'
-  engineyard   : require './engineyard'
+  azure        : require './azure'
   google       : require './google'
   managed      : require './managed'
 
