@@ -93,7 +93,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     @filterStates.skip = 0
 
     @removeAllItems()
-    @showLazyLoader()
+    @showLazyLoader no
 
     @filterStates.query = query
 
