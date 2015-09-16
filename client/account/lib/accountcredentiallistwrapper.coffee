@@ -63,17 +63,8 @@ module.exports = class AccountCredentialListWrapper extends KDView
     @filterView.addSubView selectBox = new KDSelectBox
       selectOptions : selectOptions
       defaultValue  : ''
-      callback      : (value) =>
-        filter = {}
-        filter.provider = value  if value
-        @listController.filterByProvider filter
+      callback      : @bound 'doFilter'
 
-        if provider = globals.config.providers[value]
-          { listText } = provider
-
-        listText     = DEFAULT_LIST_TEXT unless listText
-
-        @header.updateTitle listText
 
     @addSubView @filterView
 
@@ -93,4 +84,20 @@ module.exports = class AccountCredentialListWrapper extends KDView
         title    : providers[provider].title
 
     return list
+
+
+  doFilter: (value) ->
+
+    { providers } = globals.config
+
+    filter = {}
+    filter.provider = value  if value
+    @listController.filterByProvider filter
+
+    if provider = providers[value]
+      { listText } = provider
+
+    listText = DEFAULT_LIST_TEXT unless listText
+
+    @header.updateTitle listText
 
