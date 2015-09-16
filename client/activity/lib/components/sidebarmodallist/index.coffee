@@ -29,6 +29,9 @@ module.exports = class SidebarModalList extends React.Component
     { channel } = ActivityFlux.actions
 
     channel.loadFollowedPublicChannels skip: @props.threads.size
+  setThreads: kd.utils.debounce 1000, ->
+
+    @setState threads: @props.sidebarModalChannels.followed
 
 
   onChange: ->
