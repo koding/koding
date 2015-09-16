@@ -116,7 +116,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     return  if @_busy
 
-    {status, percentage, error} = event
+    { status, percentage, error } = event
 
     if status is @state
       @updatePercentage percentage  if percentage?
@@ -149,7 +149,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
             "
 
         unless error.code is ComputeController.Error.NotVerified
-          @hasError = yes
+          @lastKnownError = error
 
       if not percentage?
         @switchToIDEIfNeeded()
@@ -211,7 +211,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @createLoading()
 
 
-  buildInitial:->
+  buildInitial: ->
 
     return @buildViews()  if @_initialBuiltOnce
 
@@ -255,17 +255,17 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       kd.getSingleton 'computeController'
         .getKloud().info { @machineId, currentState }
-        .then (response)=>
+        .then (response) =>
 
           kd.info "Initial info result:", response
 
           @buildViews response
 
-        .catch (err)=>
+        .catch (err) =>
 
           unless err?.code is ComputeController.Error.NotVerified
             kd.warn "Failed to fetch initial info:", err
-            @hasError = yes
+            @lastKnownError = err
 
           @buildViews()
 
@@ -645,7 +645,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   createError: ->
 
-    return  unless @hasError
+    return  unless @lastKnownError
 
     sendDataDogEvent "MachineStateFailed"
 
@@ -663,7 +663,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
           new HelpSupportModal
 
     @container.addSubView @errorMessage
-    @hasError = null
+
+    @lastKnownError = null
 
 
   handleNoMachineFound: ->
@@ -716,7 +717,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     computeController.once "error-#{target._id}", ({err})=>
 
       unless err?.code is ComputeController.Error.NotVerified
-        @hasError = yes
+        @lastKnownError = err
 
       @buildViews State: @machine.status.state
 
