@@ -46,7 +46,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
           # sending machineParams.user null and expecting error
           machineParams.user = null
           JMachine.create machineParams, (err, data) ->
-            expect(err?.message).to.be.equal 'User is not set!'
+            expect(err?.message).to.be.equal 'user is not set!'
             queue.next()
 
         -> done()
