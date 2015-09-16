@@ -65,8 +65,19 @@ body.ide
       bg                    color, dark-tab-header-bg
 
       &.application-tab-handle-holder .kdtabhandle .close-tab
-        r-sprite            'ide', 'tab-close'
-        top                 14px
+        bg                  image, none !important
+        size                20px 20px
+        top                 8px
+        right               4px
+
+        span
+          r-sprite          'ide', 'tab-close'
+          display           block
+          left              8px
+          rel()
+          top               50%
+          left              50%
+          vendor            transform, translateX(-50%) translateY(-50%)
 
       .kdtabhandle
         .tab-handle-text
@@ -136,6 +147,7 @@ body.ide .dark
       top                   9px
       right                 20px
       display               none
+      size                  20px 20px
 
     &.plus
       border-left-color     transparent
