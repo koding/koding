@@ -44,6 +44,9 @@ module.exports = class AccountCredentialListWrapper extends KDView
     providers = @getValidProviders()
 
     for provider in providers
+
+      continue  if provider.key is 'custom' or provider.key is 'koding'
+
       selectOptions.push
         title : provider.title
         value : provider.key
