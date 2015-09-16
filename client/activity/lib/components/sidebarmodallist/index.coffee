@@ -10,6 +10,8 @@ module.exports = class SidebarModalList extends React.Component
 
   @include [ScrollerMixin]
 
+  isSearching = no
+
   @defaultProps =
     title             : ''
     threads           : immutable.List()
@@ -21,12 +23,12 @@ module.exports = class SidebarModalList extends React.Component
 
     super
 
-    @state = { threads: @props.sidebarModalChannels.followed, noResultText: no, value: '', isSearching: no }
+    @state = { threads: @props.sidebarModalChannels.followed, noResultText: no, value: '' }
 
 
   onThresholdReached: ->
 
-    return  if @state.isSearching
+    return  if isSearching
 
     { channel } = ActivityFlux.actions
 
@@ -47,7 +49,7 @@ module.exports = class SidebarModalList extends React.Component
     @setState noResultText: no  if threads.size
 
 
-  filter: kd.utils.debounce 1000, ->
+  filter: kd.utils.debounce 800, ->
 
     { sidebarModalChannels } = @props
     { value } = @state
@@ -59,18 +61,21 @@ module.exports = class SidebarModalList extends React.Component
       searchProp = thread.getIn(['channel', @props.searchProp]).toLowerCase()
       return yes  if searchProp.indexOf(value) > -1
 
-    @setState { threads : threads, noResultText : threads.size is 0, isSearching : no }
+    @setState { threads : threads, noResultText : threads.size is 0}
 
+    kd.utils.wait 1000, ->
+      isSearching = no
 
   search: (event) ->
 
     { value }   = event.target
     { channel } = ActivityFlux.actions
 
-    @setState { value, isSearching: yes }
     @setState { value }
 
     if value is '' then return @resetSearch()
+
+    isSearching = yes
 
     value = value.slice(1)  if value[0] is '#'
 
