@@ -603,6 +603,33 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @addMachines_ data, expandedBoxUIds
 
 
+  createStackMachineList: do (inProgress = no) -> (expandedBoxUIds) ->
+
+    return  if inProgress
+
+    inProgress = yes
+
+    { computeController } = kd.singletons
+
+    computeController.ready =>
+
+      computeController.stacks.forEach (stack) =>
+
+        { title } = stack
+
+        environmentMap = {}
+
+        for node in environmentDataProvider.getMyMachines()
+          environmentMap[node.machine._id] = node
+
+        stackEnvironment = stack.machines.map (machine) ->
+          environmentMap[machine._id]
+
+        @createMachineList 'own', { title }, stackEnvironment
+
+        inProgress = no
+
+
   redrawMachineList: ->
 
     expandedBoxUIds = @getExpandedBoxUIds()
