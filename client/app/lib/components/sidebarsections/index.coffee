@@ -17,6 +17,8 @@ module.exports = class SidebarSections extends React.Component
       publicChannels   : getters.followedPublicChannelThreads
       privateChannels  : getters.followedPrivateChannelThreads
       selectedThreadId : getters.selectedChannelThreadId
+      sidebarModalPublicChannels : getters.sidebarModalPublicChannelThreads
+      sidebarModalPrivateChannels : getters.sidebarModalPrivateChannelThreads
     }
 
 
@@ -29,14 +31,16 @@ module.exports = class SidebarSections extends React.Component
     <SidebarChannelsSection
       previewCount={PREVIEW_COUNT}
       threads={@state.publicChannels}
-      selectedId={@state.selectedThreadId} />
+      selectedId={@state.selectedThreadId}
+      sidebarModalChannels={@state.sidebarModalPublicChannels} />
 
 
   renderMessagesSection: ->
     <SidebarMessagesSection
       previewCount={PREVIEW_COUNT}
       threads={@state.privateChannels}
-      selectedId={@state.selectedThreadId} />
+      selectedId={@state.selectedThreadId}
+      sidebarModalChannels={@state.sidebarModalPrivateChannels} />
 
 
   render: ->
