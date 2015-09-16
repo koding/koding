@@ -1,4 +1,5 @@
 kd                      = require 'kd'
+hljs                    = require 'highlight.js'
 Encoder                 = require 'htmlencode'
 
 KDButtonView            = kd.ButtonView
@@ -28,6 +29,8 @@ trackEvent              = require 'app/util/trackEvent'
 applyMarkdown           = require 'app/util/applyMarkdown'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+
+{ jsonToYaml }          = require 'admin/views/stacks/yamlutils'
 
 
 module.exports = class EnvironmentsMachineStateModal extends BaseModalView
@@ -116,7 +119,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     return  if @_busy
 
-    {status, percentage, error} = event
+    { status, percentage, error } = event
 
     if status is @state
       @updatePercentage percentage  if percentage?
@@ -149,7 +152,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
             "
 
         unless error.code is ComputeController.Error.NotVerified
-          @hasError = yes
+          @lastKnownError = error
 
       if not percentage?
         @switchToIDEIfNeeded()
@@ -211,7 +214,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @createLoading()
 
 
-  buildInitial:->
+  buildInitial: ->
 
     return @buildViews()  if @_initialBuiltOnce
 
@@ -255,17 +258,17 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       kd.getSingleton 'computeController'
         .getKloud().info { @machineId, currentState }
-        .then (response)=>
+        .then (response) =>
 
           kd.info "Initial info result:", response
 
           @buildViews response
 
-        .catch (err)=>
+        .catch (err) =>
 
           unless err?.code is ComputeController.Error.NotVerified
             kd.warn "Failed to fetch initial info:", err
-            @hasError = yes
+            @lastKnownError = err
 
           @buildViews()
 
@@ -645,14 +648,20 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   createError: ->
 
-    return  unless @hasError
+    return  unless @lastKnownError
 
     sendDataDogEvent "MachineStateFailed"
+
+    if not isKoding() and typeof @lastKnownError is 'string'
+      @showErrorDetails @lastKnownError
+      errorLink = ", <span class='error-details'>show details</span>"
+    else
+      errorLink = ''
 
     @errorMessage = new KDCustomHTMLView
       cssClass    : 'error-message'
       partial     : @customErrorMessage or """
-        <p>There was an error when initializing your VM.</p>
+        <p>There was an error when initializing your VM#{errorLink}.</p>
         <span>Please try reloading this page or <span
         class="contact-support">contact support</span> for further
         assistance.</span>
@@ -661,9 +670,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if 'contact-support' in event.target.classList
           kd.utils.stopDOMEvent event
           new HelpSupportModal
+        else if 'error-details' in event.target.classList
+          kd.utils.stopDOMEvent event
+          @showErrorDetails()
 
     @container.addSubView @errorMessage
-    @hasError = null
+
+    @lastKnownError = null
 
 
   handleNoMachineFound: ->
@@ -716,7 +729,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     computeController.once "error-#{target._id}", ({err})=>
 
       unless err?.code is ComputeController.Error.NotVerified
-        @hasError = yes
+        @lastKnownError = err
 
       @buildViews State: @machine.status.state
 
@@ -822,3 +835,47 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       @readmeView.wrapper.addSubView readmeContent
       @readmeView.show()
+
+
+  # TODO Move this into it's own class and just create it from here ~ GG
+  showErrorDetails: (errorMessage) ->
+
+    modal = new kd.ModalView
+      title          : "An error occured while building #{@stack.title}"
+      subtitle       : ""
+      draggable      : no
+      height         : 600
+      cssClass       : 'AppModal AppModal--admin env-error-modal has-markdown'
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+
+    modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
+
+    if errorMessage
+      content = (hljs.highlight 'profile', errorMessage).value
+      @lastErrorContent = content
+    else
+      content = @lastErrorContent
+
+    tabView.addPane new kd.TabPaneView
+      name       : 'Error Details'
+      view       : new kd.CustomHTMLView
+        partial  : "<pre><code>#{content}</code></pre>"
+
+    # Fetch stack template, coming from remote.cacheable ~ GG
+    { computeController } = kd.singletons
+    computeController.fetchBaseStackTemplate @stack, (err, template) ->
+
+      return kd.warn err  if err
+
+      {content} = template.template
+      content   = Encoder.htmlDecode content or ''
+      content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
+
+      tabView.addPane new kd.TabPaneView
+        name       : 'Stack Template'
+        view       : new kd.CustomHTMLView
+          partial  : "<pre><code>#{content}</code></pre>"
+
+      tabView.showPaneByIndex 0
