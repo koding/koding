@@ -99,7 +99,7 @@ module.exports = class DefineStackView extends KDView
         @providersView.resetItems()
         credentialItem.inuseView.show()
 
-    @providersView.on 'ItemDeleted', (credential) =>
+    @providersView.on 'ItemDeleted', (credential) ->
 
       { identifier } = credential.getData()
       if identifier in credentialStatus.credentials
