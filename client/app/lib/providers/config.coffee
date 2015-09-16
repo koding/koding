@@ -9,6 +9,11 @@ module.exports = globals.config.providers =
     color                  : "#9177fb"
     description            : """Custom credentials can include meta
                                credentials for any service"""
+    listText               : """
+                              You're currently using these custom datas in your
+                              stack templates, you can change their contents
+                              without touching stack templates.
+                            """
     credentialFields       :
       credential           :
         label              : "Credential"
@@ -132,3 +137,12 @@ module.exports = globals.config.providers =
       apiKey               :
         label              : "API Key"
         placeholder        : "rackspace api key"
+
+  userInput                :
+    name                   : "User Input"
+    title                  : "User Input"
+    listText               : """
+                            These are the input data that you've provided for
+                            your Team's stack requirements. Deleting these
+                            informations can cause some issues on your stacks.
+                            """

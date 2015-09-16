@@ -1,9 +1,10 @@
-kd                      = require 'kd'
-KDView                  = kd.View
-globals                 = require 'globals'
-KDSelectBox             = kd.SelectBox
-KDLabelView             = kd.LabelView
-KDContextMenu           = kd.ContextMenu
+kd             = require 'kd'
+KDView         = kd.View
+globals        = require 'globals'
+KDSelectBox    = kd.SelectBox
+KDLabelView    = kd.LabelView
+KDContextMenu  = kd.ContextMenu
+KDHeaderView   = kd.HeaderView
 
 AccountCredentialList           = require './accountcredentiallist'
 AccountCredentialListController = require './views/accountcredentiallistcontroller'
@@ -12,9 +13,17 @@ AccountCredentialListController = require './views/accountcredentiallistcontroll
 module.exports = class AccountCredentialListWrapper extends KDView
 
 
+  DEFAULT_LIST_TEXT = """
+    List of additional credentials for your account. These are includes generic
+    data for using with 3rd party integrations on your stacks.
+  """
+
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @addSubView @header = new KDHeaderView
+      title : DEFAULT_LIST_TEXT
 
     @createFilterView()
 
@@ -38,14 +47,13 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
     selectOptions = [
       { title : 'All',        value : ''  } # Firstly set default option
-      { title : 'User Input', value : 'userInput' }
     ]
 
     providers = @getValidProviders()
 
     for provider in providers
 
-      continue  if provider.key is 'custom' or provider.key is 'koding'
+      continue  if provider.key is 'managed' or provider.key is 'koding'
 
       selectOptions.push
         title : provider.title
@@ -59,6 +67,13 @@ module.exports = class AccountCredentialListWrapper extends KDView
         filter = {}
         filter.provider = value  if value
         @listController.filterByProvider filter
+
+        if provider = globals.config.providers[value]
+          { listText } = provider
+
+        listText     = DEFAULT_LIST_TEXT unless listText
+
+        @header.updateTitle listText
 
     @addSubView @filterView
 
@@ -74,8 +89,8 @@ module.exports = class AccountCredentialListWrapper extends KDView
     Object.keys(providers).forEach (provider) ->
 
       list.push
-        key   : provider
-        title : providers[provider].title
+        key      : provider
+        title    : providers[provider].title
 
     return list
 
