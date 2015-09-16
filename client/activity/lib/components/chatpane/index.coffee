@@ -28,6 +28,7 @@ module.exports = class ChatPane extends React.Component
 
 
   renderBody: ->
+
     return null  unless @props.messages
 
     <section className="ChatPane-body" ref="ChatPaneBody">
@@ -56,6 +57,8 @@ module.exports = class ChatPane extends React.Component
 
 
   renderFooter: ->
+
+    return null  unless @props.messages
 
     footerInnerComponent = if @props.isParticipant
     then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
