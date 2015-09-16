@@ -76,6 +76,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     { JCredential } = remote.api
 
     options.limit or= @getOption 'limit'
+    options.sort    = "meta.modifiedAt": -1
 
     JCredential.some @filterStates.query, options, (err, credentials) =>
 
