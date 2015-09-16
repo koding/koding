@@ -10,8 +10,6 @@ ScrollerMixin   = require 'app/components/scroller/scrollermixin'
 
 module.exports = class ChatPane extends React.Component
 
-  @include [ScrollerMixin]
-
   @defaultProps =
     title         : null
     messages      : null
@@ -23,14 +21,11 @@ module.exports = class ChatPane extends React.Component
 
   componentWillUpdate: (nextProps, nextState) ->
 
-    ScrollerMixin.componentWillUpdate.call this, nextProps, nextState
+    return  unless nextProps?.thread
 
-    return  unless nextProps?.messages
-
-    { messages } = nextProps
-    fakeMessages = messages.filter (message) -> message.get 'isFake'
-    hasNewMessage = fakeMessages.size > 0
-    @shouldScrollToBottom = yes  if hasNewMessage
+    { thread } = nextProps
+    isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
+    @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
 
   onSubmit: (event) -> @props.onSubmit? event
@@ -86,4 +81,6 @@ module.exports = class ChatPane extends React.Component
       </section>
     </div>
 
+
+React.Component.include.call ChatPane, [ScrollerMixin]
 
