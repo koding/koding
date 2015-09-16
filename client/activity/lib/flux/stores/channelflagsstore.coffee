@@ -22,29 +22,31 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
   handleLoadMessagesBegin: (channelFlags, { channelId }) ->
 
-    channelFlags = @createChannelMapIfNeed channelFlags, channelId
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'isMessagesLoading'], yes
 
 
   handleLoadMessagesSuccess: (channelFlags, { channelId }) ->
 
-    channelFlags = @createChannelMapIfNeed channelFlags, channelId
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'isMessagesLoading'], no
 
 
   handleCreateMessageBegin: (channelFlags, { channelId }) ->
 
-    channelFlags = @createChannelMapIfNeed channelFlags, channelId
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'isMessageBeingSubmitted'], yes
 
 
   handleCreateMessageEnd: (channelFlags, { channelId }) ->
 
-    channelFlags = @createChannelMapIfNeed channelFlags, channelId
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'isMessageBeingSubmitted'], no
 
 
-  createChannelMapIfNeed: (channelFlags, channelId) ->
+helper =
+
+  ensureChannelMap: (channelFlags, channelId) ->
 
     unless channelFlags.has channelId
       return channelFlags.set channelId, immutable.Map()
