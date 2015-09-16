@@ -38,9 +38,9 @@ module.exports = class EnvironmentsModal extends kd.ModalView
     @addSubView controller.getView()
 
     listView.on 'ModalDestroyRequested', @bound 'destroy'
-    listView.on 'StackReinitRequested', (stack) ->
+    listView.on 'StackReinitRequested', (stack) =>
 
-      stack.delete (err) ->
+      stack.delete (err) =>
         return showError err  if err
 
         { computeController, appManager } = kd.singletons
@@ -48,7 +48,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
         computeController
           .reset()
 
-          .once 'RenderStacks', (stacks) ->
+          .once 'RenderStacks', (stacks) =>
 
             new kd.NotificationView
               title : 'Stack reinitialized'
@@ -58,6 +58,6 @@ module.exports = class EnvironmentsModal extends kd.ModalView
             frontApp = appManager.getFrontApp()
             frontApp.quit()  if frontApp?.options.name is 'IDE'
 
-            controller.loadItems stacks
+            @destroy()
 
           .createDefaultStack()

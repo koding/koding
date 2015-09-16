@@ -38,7 +38,6 @@ module.exports = globals.config.providers =
       secret_key           :
         label              : "Secret Key"
         placeholder        : "aws secret key"
-        type               : "password"
       region               :
         label              : 'Region'
         type               : 'selection'
