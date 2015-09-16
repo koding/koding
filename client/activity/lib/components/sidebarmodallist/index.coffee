@@ -23,7 +23,10 @@ module.exports = class SidebarModalList extends React.Component
 
     super
 
-    @state = { threads: @props.sidebarModalChannels.followed, noResultText: no, value: '' }
+    @state =
+      value: ''
+      noResultText: no
+      threads: @props.sidebarModalChannels.followed
 
 
   onThresholdReached: ->
@@ -66,6 +69,7 @@ module.exports = class SidebarModalList extends React.Component
     kd.utils.wait 1000, ->
       isSearching = no
 
+
   search: (event) ->
 
     { value }   = event.target
@@ -73,7 +77,7 @@ module.exports = class SidebarModalList extends React.Component
 
     @setState { value }
 
-    if value is '' then return @resetSearch()
+    return @resetSearch()  if value is ''
 
     isSearching = yes
 
