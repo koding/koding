@@ -251,6 +251,14 @@ app.settings.styl
     r-sprite                'account' 'ext-github'
 
 .AppModal--account .settings-list-wrapper
+
+  .credential-list
+    .credential-item
+      padding               15px 0
+
+  .credential-list
+    margin-bottom           15px
+
   h4.kdheaderview
     font-size               14px
     color                   #787878
@@ -395,6 +403,26 @@ app.settings.styl
 
     .ssh-machine-list-footer
       clear                 left
+
+  &.credentials
+    height                  550px
+    styleScrollBars         rgba(0,0,0,.15)
+
+    .kdheaderview
+      height                auto
+      border-bottom         none
+
+    .kdcustomscrollview
+      fl()
+
+    .filter-view
+      fr()
+      size                  auto, auto
+      font-size             14px
+      margin-bottom         10px
+
+      .kdlabel
+        margin-right        15px
 
 .ssh-machine-list-tooltip
   line-height               18px
@@ -920,3 +948,17 @@ app.settings.styl
         .button-title
           line-height       38px  !important
           color             white !important
+
+
+.kdmodal.credential-edit
+  .kdmodal-content
+
+    .kdformview
+      border-bottom         none
+
+      .advanced-field
+        display             none
+
+      &.in-advanced-mode
+        .advanced-field
+          display           block
