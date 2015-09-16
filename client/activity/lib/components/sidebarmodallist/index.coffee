@@ -64,6 +64,10 @@ module.exports = class SidebarModalList extends React.Component
 
     return channelItems.toList()
 
+  renderNoResultText: ->
+
+    <div className={@getNoResultClassNames()}>Sorry, your search did not have any results</div>
+
 
   renderChannelList: ->
 
@@ -72,6 +76,7 @@ module.exports = class SidebarModalList extends React.Component
         onThresholdReached={@bound 'onThresholdReached'}
         ref="scrollContainer">
         {@renderChildren()}
+        {@renderNoResultText()}
       </Scroller>
     </div>
 
