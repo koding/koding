@@ -1,8 +1,10 @@
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-ActivityFlux          = require 'activity/flux'
-Scroller              = require 'app/components/scroller'
-ScrollerMixin         = require 'app/components/scroller/scrollermixin'
+kd             = require 'kd'
+React          = require 'kd-react'
+immutable      = require 'immutable'
+ActivityFlux   = require 'activity/flux'
+Scroller       = require 'app/components/scroller'
+ScrollerMixin  = require 'app/components/scroller/scrollermixin'
+classnames     = require 'classnames'
 
 module.exports = class SidebarModalList extends React.Component
 
