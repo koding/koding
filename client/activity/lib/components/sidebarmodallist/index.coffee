@@ -56,13 +56,12 @@ module.exports = class SidebarModalList extends React.Component
 
     { itemComponent: Component, threads } = @props
 
-    channelItems = threads.map (thread, i) ->
+    @state.threads.toList().map (thread, i) ->
       itemProps =
         key     : thread.get 'channelId'
         channel : thread.get 'channel'
       <Component {...itemProps} />
 
-    return channelItems.toList()
 
   renderNoResultText: ->
 
