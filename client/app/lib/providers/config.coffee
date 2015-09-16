@@ -24,7 +24,7 @@ module.exports = globals.config.providers =
     name                   : "Amazon Web Services"
     link                   : "https://aws.amazon.com"
     title                  : "AWS"
-    color                  : "#b0f710"
+    color                  : "#F9A900"
     description            : "Amazon Web Services"
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
