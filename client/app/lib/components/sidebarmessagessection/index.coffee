@@ -12,8 +12,6 @@ module.exports = class SidebarMessagesSection extends React.Component
   @defaultProps =
     selectedId : null
     threads    : immutable.Map()
-    sidebarChannelsSection: immutable.Map()
-
 
   constructor: (props) ->
 
