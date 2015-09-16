@@ -47,6 +47,11 @@ module.exports = class SidebarModalList extends React.Component
     </div>
 
 
+  getNoResultClassNames: -> classnames
+    'ChannelList-emptySearch': yes
+    'hidden' : not @state.emptySearchText
+
+
   renderChildren: ->
 
     { itemComponent: Component, threads } = @props
