@@ -21,7 +21,7 @@ module.exports = class SidebarModalList extends React.Component
 
     super
 
-    @state = { threads: @props.sidebarModalChannels.followed, emptySearchText: no, value: '', isSearching: no }
+    @state = { threads: @props.sidebarModalChannels.followed, noResultText: no, value: '', isSearching: no }
 
 
   onThresholdReached: ->
@@ -80,7 +80,7 @@ module.exports = class SidebarModalList extends React.Component
 
   getNoResultClassNames: -> classnames
     'ChannelList-emptySearch': yes
-    'hidden' : not @state.emptySearchText
+    'hidden' : not @state.noResultText
 
 
   renderChildren: ->
