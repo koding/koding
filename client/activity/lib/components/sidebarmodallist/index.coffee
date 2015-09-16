@@ -47,6 +47,20 @@ module.exports = class SidebarModalList extends React.Component
     @setState noResultText: no  if threads.size
 
 
+  filter: kd.utils.debounce 1000, ->
+
+    { sidebarModalChannels } = @props
+    { value } = @state
+
+    threads = sidebarModalChannels.followed.filter (thread) =>
+      typeConstant = thread.getIn ['channel', 'typeConstant']
+      if @props.searchProp is 'purpose' and typeConstant is 'bot'
+        thread = thread.setIn ['channel', 'purpose'], 'Bot Koding'
+      searchProp = thread.getIn(['channel', @props.searchProp]).toLowerCase()
+      return yes  if searchProp.indexOf(value) > -1
+
+    @setState { threads : threads, noResultText : threads.size is 0, isSearching : no }
+
 
   search: (event) ->
 
