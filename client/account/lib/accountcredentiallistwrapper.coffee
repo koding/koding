@@ -22,7 +22,10 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
     super options, data
 
-    @addSubView @header = new KDHeaderView
+    @addSubView @top = new KDView
+      cssClass : 'top'
+
+    @top.addSubView @header = new KDHeaderView
       title : DEFAULT_LIST_TEXT
 
     @createFilterView()
@@ -39,14 +42,14 @@ module.exports = class AccountCredentialListWrapper extends KDView
 
   createFilterView: ->
 
-    @filterView = new KDView
+    @top.addSubView @filterView = new KDView
       cssClass : 'filter-view'
 
     @filterView.addSubView new KDLabelView
       title : 'Show'
 
     selectOptions = [
-      { title : 'All',        value : ''  } # Firstly set default option
+      { title : 'All', value : '' } # Firstly set default option
     ]
 
     providers = @getValidProviders()
@@ -64,9 +67,6 @@ module.exports = class AccountCredentialListWrapper extends KDView
       selectOptions : selectOptions
       defaultValue  : ''
       callback      : @bound 'doFilter'
-
-
-    @addSubView @filterView
 
 
   ###*
