@@ -17,8 +17,8 @@ module.exports = class SidebarSections extends React.Component
       publicChannels   : getters.followedPublicChannelThreads
       privateChannels  : getters.followedPrivateChannelThreads
       selectedThreadId : getters.selectedChannelThreadId
-      sidebarModalPublicChannels : getters.sidebarModalPublicChannelThreads
-      sidebarModalPrivateChannels : getters.sidebarModalPrivateChannelThreads
+      sidebarModalPublicChannels : getters.filteredPublicChannels
+      sidebarModalPrivateChannels : getters.filteredPrivateChannels
     }
 
 

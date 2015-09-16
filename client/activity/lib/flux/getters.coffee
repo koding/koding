@@ -151,8 +151,8 @@ followedPublicChannelThreads = [
       return thread.set 'channel', channel
 ]
 
-# Returns followed public channel threads mapped with relevant channel instances for sidebar modal.
-sidebarModalPublicChannelThreads = [
+# Returns followed public channel threads mapped with relevant channel instances.
+filteredPublicChannels = [
   channelThreads
   followedPublicChannels
   (threads, channels) ->
@@ -163,8 +163,8 @@ sidebarModalPublicChannelThreads = [
     }
 ]
 
-# Returns followed private channel threads mapped with relevant channel instances for sidebar modal.
-sidebarModalPrivateChannelThreads = [
+# Returns followed private channel threads mapped with relevant channel instances.
+filteredPrivateChannels = [
   channelThreads
   followedPrivateChannels
   (threads, channels) ->
@@ -314,8 +314,8 @@ channelParticipantsSelectedItem = [
 module.exports = {
   allChannels
   followedPublicChannelThreads
-  sidebarModalPublicChannelThreads
-  sidebarModalPrivateChannelThreads
+  filteredPublicChannels
+  filteredPrivateChannels
   followedPrivateChannelThreads
   popularChannels
 
