@@ -105,6 +105,7 @@ module.exports = class DefineStackView extends KDView
         @setFooterVisibility 'hide'
       else
         @setFooterVisibility 'show'
+        pane.getMainView().emit 'FocusToEditor'
 
 
   setFooterVisibility: (state) ->
