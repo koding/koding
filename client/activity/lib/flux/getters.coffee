@@ -163,6 +163,18 @@ sidebarModalPublicChannelThreads = [
     }
 ]
 
+# Returns followed private channel threads mapped with relevant channel instances for sidebar modal.
+sidebarModalPrivateChannelThreads = [
+  channelThreads
+  followedPrivateChannels
+  (threads, channels) ->
+    {
+      followed: channels.map (channel) -> threads.get channel.get('id')
+      unfollowed: threads.filterNot (thread) ->
+        channels.includes thread.getIn ['channel', 'id']
+    }
+]
+
 # Returns followed private channel threads mapped with relevant channel
 # instances.
 followedPrivateChannelThreads = [
@@ -302,6 +314,8 @@ channelParticipantsSelectedItem = [
 module.exports = {
   allChannels
   followedPublicChannelThreads
+  sidebarModalPublicChannelThreads
+  sidebarModalPrivateChannelThreads
   followedPrivateChannelThreads
   popularChannels
 
