@@ -82,15 +82,23 @@ module.exports = class DefineStackView extends KDView
 
     @createMainButtons()
 
-    @providersView.on 'ItemSelected', (credential) =>
+    { credentialStatus } = @stackTemplateView
+
+    @providersView.on 'ItemSelected', (credentialItem) =>
 
       # After adding credential, we are sharing it with the current
       # group, so anyone in this group can use this credential ~ GG
       { slug } = kd.singletons.groupsController.getCurrentGroup()
 
+      credential = credentialItem.getData()
+
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        @stackTemplateView.credentialStatus.setCredential credential
+        credentialStatus.setCredential credential
+
+        @providersView.resetItems()
+        credentialItem.inuseView.show()
+
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'

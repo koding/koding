@@ -27,3 +27,6 @@ module.exports = class ProvidersView extends KDView
       cssClass: 'stacks stacks-v2'
 
     mainView.addSubView @credentialList
+
+  resetItems: ->
+    @credentialList.list.emit 'ResetInuseStates'
