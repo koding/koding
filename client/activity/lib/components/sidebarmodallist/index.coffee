@@ -44,6 +44,22 @@ module.exports = class SidebarModalList extends React.Component
 
 
 
+  search: (event) ->
+
+    { value }   = event.target
+    { channel } = ActivityFlux.actions
+
+    @setState { value, isSearching: yes }
+    @setState { value }
+
+    if value is '' then return @resetSearch()
+
+    value = value.slice(1)  if value[0] is '#'
+
+    channel.loadChannelsByQuery value
+    channel[@props.onThresholdAction] skip: @props.threads.size
+
+    @filter()
 
 
   renderHeader: ->
@@ -54,7 +70,9 @@ module.exports = class SidebarModalList extends React.Component
         <input
           className   = 'ChannelList-searchInput'
           placeholder = 'Search'
+          onChange    = { @bound 'search' }
           ref         = 'ChannelSearchInput'
+          value       = { @state.value }
         />
       </div>
     </div>
