@@ -11,9 +11,17 @@ module.exports = class SidebarModalList extends React.Component
   @include [ScrollerMixin]
 
   @defaultProps =
-    title       : ''
-    threads     : immutable.List()
-    className   : ''
+    title             : ''
+    threads           : immutable.List()
+    className         : ''
+    searchProp        : 'name'
+    onThresholdAction : ''
+
+  constructor: (props) ->
+
+    super
+
+    @state = { threads: @props.sidebarModalChannels.followed, emptySearchText: no, value: '', isSearching: no }
 
 
   onThresholdReached: ->
