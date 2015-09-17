@@ -10,8 +10,6 @@ module.exports = class SidebarModalList extends React.Component
 
   @include [ScrollerMixin]
 
-  isSearching = no
-
   @defaultProps =
     title             : ''
     threads           : immutable.List()
@@ -24,14 +22,15 @@ module.exports = class SidebarModalList extends React.Component
     super
 
     @state =
-      value: ''
-      noResultText: no
-      threads: @props.sidebarModalChannels.followed
+      value             : ''
+      noResultText      : no
+      isSearching       : no
+      threads           : @props.threads
 
 
   onThresholdReached: ->
 
-    return  if isSearching
+    return  if @state.isSearching
 
     { channel } = ActivityFlux.actions
     loadFollowedChannels = channel[@props.onThresholdAction]
@@ -42,22 +41,22 @@ module.exports = class SidebarModalList extends React.Component
 
   setThreads: kd.utils.debounce 1000, ->
 
-    @setState threads: @props.sidebarModalChannels.followed
+    @setState threads: @props.threads
 
 
   resetSearch: ->
 
-    threads = @props.sidebarModalChannels.followed
+    threads = @props.threads
     @setState threads: threads
     @setState noResultText: no  if threads.size
 
 
   filter: kd.utils.debounce 800, ->
 
-    { sidebarModalChannels } = @props
+    { threads } = @props
     { value } = @state
 
-    threads = sidebarModalChannels.followed.filter (thread) =>
+    threads = threads.filter (thread) =>
       typeConstant = thread.getIn ['channel', 'typeConstant']
       if @props.searchProp is 'purpose' and typeConstant is 'bot'
         thread = thread.setIn ['channel', 'purpose'], 'Bot Koding'
@@ -66,8 +65,8 @@ module.exports = class SidebarModalList extends React.Component
 
     @setState { threads : threads, noResultText : threads.size is 0}
 
-    kd.utils.wait 1000, ->
-      isSearching = no
+    kd.utils.wait 1000, =>
+      @setState isSearching: no
 
 
   search: (event) ->
@@ -79,7 +78,7 @@ module.exports = class SidebarModalList extends React.Component
 
     return @resetSearch()  if value is ''
 
-    isSearching = yes
+    @setState isSearching: yes
 
     value = value.slice(1)  if value[0] is '#'
     loadFollowedChannels = channel[@props.onThresholdAction]
@@ -113,7 +112,7 @@ module.exports = class SidebarModalList extends React.Component
 
   renderChildren: ->
 
-    { itemComponent: Component, threads } = @props
+    { itemComponent: Component } = @props
 
     @state.threads.toList().map (thread, i) ->
       itemProps =
