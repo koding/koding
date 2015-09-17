@@ -29,10 +29,10 @@ type entry struct {
 
 type Dir struct {
 	// Node is generic structure that contains commonality between File and Dir.
-	*Inode
+	*Entry
 
-	// NodeIDGen is responsible for generating ids for newly created nodes.
-	NodeIDGen *NodeIDGen
+	// IDGen is responsible for generating ids for newly created nodes.
+	IDGen *IDGen
 
 	////// Node#RWLock protects the fields below.
 
@@ -48,10 +48,10 @@ type Dir struct {
 	EntriesList map[string]Node
 }
 
-func NewDir(n *Inode, idGen *NodeIDGen) *Dir {
+func NewDir(e *Entry, idGen *IDGen) *Dir {
 	return &Dir{
-		Inode:       n,
-		NodeIDGen:   idGen,
+		Entry:       e,
+		IDGen:       idGen,
 		Entries:     []fuseutil.Dirent{},
 		EntriesList: map[string]Node{},
 	}
@@ -323,7 +323,7 @@ func (d *Dir) initializeChild(e *entry) (Node, error) {
 		Crtime: t,
 	}
 
-	n := NewInode(d, e.Name)
+	n := NewEntry(d, e.Name)
 	n.Attrs = attrs
 
 	dirEntry := fuseutil.Dirent{
@@ -338,7 +338,7 @@ func (d *Dir) initializeChild(e *entry) (Node, error) {
 	var dt Node
 	switch e.Type {
 	case fuseutil.DT_Directory:
-		dt = NewDir(n, d.NodeIDGen)
+		dt = NewDir(n, d.IDGen)
 	case fuseutil.DT_File:
 		dt = NewFile(n)
 	default:

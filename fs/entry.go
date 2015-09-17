@@ -9,14 +9,14 @@ import (
 	"github.com/koding/fuseklient/transport"
 )
 
-// Inode is the generic structure for File and Dir in KodingNetworkFS. It's
-// a tree, see Inode#Parent.
-type Inode struct {
+// Entry is the generic structure for File and Dir in KodingNetworkFS. It's
+// a tree, see Entry#Parent.
+type Entry struct {
 	// Transport is used for two way communication with user VM.
 	transport.Transport
 
 	// Parent is the parent, ie. folder that holds this file or directory.
-	// This is nil when it's the root Inode. A Inode can only have one parent while
+	// This is nil when it's the root entry. A Entry can only have one parent while
 	// a parent can have multiple children.
 	Parent *Dir
 
@@ -37,19 +37,19 @@ type Inode struct {
 	Name string
 
 	// Forgotten indicates if entry is no longer in use. This is required since
-	// we don't want to change offsets of other Inode in Dir#EntriesList when a
-	// Inode is deleted.
+	// we don't want to change offsets of other Entry in Dir#EntriesList when a
+	// Entry is deleted.
 	Forgotten bool
 
 	// Attrs is the list of attributes.
 	Attrs fuseops.InodeAttributes
 }
 
-// NewRootInode is the required initializer for the root node.
-func NewRootInode(t transport.Transport, remotePath, localPath string) *Inode {
-	return &Inode{
+// NewRootEntry is the required initializer for the root entry.
+func NewRootEntry(t transport.Transport, remotePath, localPath string) *Entry {
+	return &Entry{
 		Transport:  t,
-		Parent:     nil, // root node has no parent
+		Parent:     nil, // root entry has no parent
 		ID:         fuseops.RootInodeID,
 		LocalPath:  localPath,
 		RemotePath: remotePath,
@@ -60,11 +60,11 @@ func NewRootInode(t transport.Transport, remotePath, localPath string) *Inode {
 	}
 }
 
-func NewInode(p *Dir, name string) *Inode {
-	n := &Inode{
+func NewEntry(p *Dir, name string) *Entry {
+	e := &Entry{
 		Transport:  p.Transport,
 		Parent:     p,
-		ID:         p.NodeIDGen.Next(),
+		ID:         p.IDGen.Next(),
 		LocalPath:  path.Join(p.LocalPath, name),
 		RemotePath: path.Join(p.RemotePath, name),
 		RWMutex:    sync.RWMutex{},
@@ -73,83 +73,83 @@ func NewInode(p *Dir, name string) *Inode {
 		Attrs:      p.Attrs,
 	}
 
-	n.Attrs.Nlink = 0
+	e.Attrs.Nlink = 0
 
-	return n
+	return e
 }
 
-func (n *Inode) Open() {
-	n.Lock()
-	n.Attrs.Nlink++
-	n.Unlock()
+func (e *Entry) Open() {
+	e.Lock()
+	e.Attrs.Nlink++
+	e.Unlock()
 }
 
-func (n *Inode) Release() {
-	n.Lock()
-	n.Attrs.Nlink = 0
-	n.Unlock()
+func (e *Entry) Release() {
+	e.Lock()
+	e.Attrs.Nlink = 0
+	e.Unlock()
 }
 
-func (n *Inode) Forget() {
-	n.Lock()
-	n.Forgotten = true
-	n.Unlock()
+func (e *Entry) Forget() {
+	e.Lock()
+	e.Forgotten = true
+	e.Unlock()
 }
 
-func (n *Inode) IsForgotten() bool {
-	n.RLock()
-	defer n.RUnlock()
+func (e *Entry) IsForgotten() bool {
+	e.RLock()
+	defer e.RUnlock()
 
-	return n.Forgotten
+	return e.Forgotten
 }
 
-func (n *Inode) Rename(name string) {
-	n.Lock()
-	n.Name = name
-	n.Unlock()
+func (e *Entry) Rename(name string) {
+	e.Lock()
+	e.Name = name
+	e.Unlock()
 }
 
-func (n *Inode) GetAttrs() fuseops.InodeAttributes {
-	n.RLock()
-	defer n.RUnlock()
+func (e *Entry) GetAttrs() fuseops.InodeAttributes {
+	e.RLock()
+	defer e.RUnlock()
 
-	return n.Attrs
+	return e.Attrs
 }
 
-func (n *Inode) SetAttrs(attrs fuseops.InodeAttributes) {
-	n.Lock()
-	n.Attrs = attrs
-	n.Unlock()
+func (e *Entry) SetAttrs(attrs fuseops.InodeAttributes) {
+	e.Lock()
+	e.Attrs = attrs
+	e.Unlock()
 }
 
-func (n *Inode) GetID() fuseops.InodeID {
-	n.RLock()
-	defer n.RUnlock()
+func (e *Entry) GetID() fuseops.InodeID {
+	e.RLock()
+	defer e.RUnlock()
 
-	return n.ID
+	return e.ID
 }
 
 ///// Helpers
 
-func (n *Inode) updateAttrsFromRemote() error {
-	attrs, err := n.getAttrsFromRemote()
+func (e *Entry) updateAttrsFromRemote() error {
+	attrs, err := e.getAttrsFromRemote()
 	if err != nil {
 		return err
 	}
 
-	n.Lock()
-	n.Attrs = attrs
-	n.Unlock()
+	e.Lock()
+	e.Attrs = attrs
+	e.Unlock()
 
 	return nil
 }
 
-func (n *Inode) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
+func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
 	var attrs fuseops.InodeAttributes
 
-	req := struct{ Path string }{n.RemotePath}
+	req := struct{ Path string }{e.RemotePath}
 	res := transport.FsGetInfoRes{}
-	if err := n.Trip("fs.getInfo", req, &res); err != nil {
+	if err := e.Trip("fs.getInfo", req, &res); err != nil {
 		return attrs, err
 	}
 

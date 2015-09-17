@@ -11,7 +11,7 @@ import (
 func TestFile(tt *testing.T) {
 	Convey("NewFile", tt, func() {
 		Convey("It should initialize new File", func() {
-			i := &Inode{Transport: &fakeTransport{}, RemotePath: "/remote/file"}
+			i := &Entry{Transport: &fakeTransport{}, RemotePath: "/remote/file"}
 			f := NewFile(i)
 
 			Convey("It should initialize content", func() {
@@ -160,13 +160,13 @@ func newFileWithTransport() *File {
 			"fs.writeFile": 1,
 		},
 	}
-	i := &Inode{Transport: t}
+	i := &Entry{Transport: t}
 
 	return NewFile(i)
 }
 
 func newFile() *File {
-	i := &Inode{Transport: &fakeTransport{}, RemotePath: "/remote/file"}
+	i := &Entry{Transport: &fakeTransport{}, RemotePath: "/remote/file"}
 	f := NewFile(i)
 	f.Content = []byte("Hello World!")
 

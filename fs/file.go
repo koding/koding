@@ -8,8 +8,8 @@ import (
 )
 
 type File struct {
-	// Inode is generic structure that contains commonality between File and Dir.
-	*Inode
+	// Entry is generic structure that contains commonality between File and Dir.
+	*Entry
 
 	////// Node#RWLock protects the fields below.
 
@@ -21,8 +21,8 @@ type File struct {
 	Content []byte
 }
 
-func NewFile(n *Inode) *File {
-	return &File{Inode: n, Content: []byte{}}
+func NewFile(n *Entry) *File {
+	return &File{Entry: n, Content: []byte{}}
 }
 
 func (f *File) ReadAt(offset int64) ([]byte, error) {

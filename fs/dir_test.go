@@ -82,7 +82,7 @@ func TestDir(t *testing.T) {
 	Convey("Dir#FindEntry", t, func() {
 		Convey("It should return specified entry if it exists", func() {
 			d := newDir()
-			n := NewInode(d, "file")
+			n := NewEntry(d, "file")
 			d.EntriesList = map[string]Node{"file": NewFile(n)}
 
 			i, err := d.FindEntry("file")
@@ -105,7 +105,7 @@ func TestDir(t *testing.T) {
 	Convey("Dir#FindEntryFile", t, func() {
 		Convey("It should return specified file if it exists", func() {
 			d := newDir()
-			n := NewInode(d, "file")
+			n := NewEntry(d, "file")
 			d.EntriesList = map[string]Node{"file": NewFile(n)}
 
 			child, err := d.FindEntryFile("file")
@@ -122,8 +122,8 @@ func TestDir(t *testing.T) {
 
 		Convey("It should return error if specified entry is not a File", func() {
 			d := newDir()
-			n := NewInode(d, "dir")
-			d.EntriesList = map[string]Node{"dir": NewDir(n, d.NodeIDGen)}
+			n := NewEntry(d, "dir")
+			d.EntriesList = map[string]Node{"dir": NewDir(n, d.IDGen)}
 
 			_, err := d.FindEntryFile("dir")
 			So(err, ShouldEqual, ErrNotAFile)
@@ -133,8 +133,8 @@ func TestDir(t *testing.T) {
 	Convey("Dir#FindEntryDir", t, func() {
 		Convey("It should return specified directory if it exists", func() {
 			d := newDir()
-			n := NewInode(d, "dir")
-			d.EntriesList = map[string]Node{"dir": NewDir(n, d.NodeIDGen)}
+			n := NewEntry(d, "dir")
+			d.EntriesList = map[string]Node{"dir": NewDir(n, d.IDGen)}
 
 			child, err := d.FindEntryDir("dir")
 			So(err, ShouldBeNil)
@@ -150,7 +150,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should return error if specified entry is not a Dir", func() {
 			d := newDir()
-			n := NewInode(d, "file")
+			n := NewEntry(d, "file")
 			d.EntriesList = map[string]Node{"file": NewFile(n)}
 
 			_, err := d.FindEntryDir("file")
@@ -161,7 +161,7 @@ func TestDir(t *testing.T) {
 	Convey("Dir#CreateEntryDir", t, func() {
 		Convey("It should return error if entry already exists", func() {
 			d := newDir()
-			d.EntriesList = map[string]Node{"folder": NewFile(d.Inode)}
+			d.EntriesList = map[string]Node{"folder": NewFile(d.Entry)}
 
 			_, err := d.CreateEntryDir("folder", os.FileMode(0700))
 			So(err, ShouldEqual, fuse.EEXIST)
@@ -197,7 +197,7 @@ func TestDir(t *testing.T) {
 	Convey("Dir#CreateEntryFile", t, func() {
 		Convey("It should return error if entry already exists", func() {
 			d := newDir()
-			d.EntriesList = map[string]Node{"file": NewFile(d.Inode)}
+			d.EntriesList = map[string]Node{"file": NewFile(d.Entry)}
 
 			_, err := d.CreateEntryFile("file", os.FileMode(0700))
 			So(err, ShouldEqual, fuse.EEXIST)
@@ -244,7 +244,7 @@ func TestDir(t *testing.T) {
 			n := newDir()
 
 			o := newDir()
-			o.EntriesList = map[string]Node{"file": NewFile(NewInode(o, "file"))}
+			o.EntriesList = map[string]Node{"file": NewFile(NewEntry(o, "file"))}
 
 			i, err := o.MoveEntry("file", "file1", n)
 			So(err, ShouldBeNil)
@@ -288,13 +288,9 @@ func TestDir(t *testing.T) {
 				So(d.Entries[0].Type, ShouldEqual, fuseutil.DT_Unknown)
 			})
 
-			Convey("It should set file entry to forgotten", func() {
-				i, ok := d.EntriesList["file"]
-				So(ok, ShouldBeTrue)
-
-				file, ok := i.(*File)
-				So(ok, ShouldBeTrue)
-				So(file.Forgotten, ShouldBeTrue)
+			Convey("It should remove entry from entries map", func() {
+				_, ok := d.EntriesList["file"]
+				So(ok, ShouldBeFalse)
 			})
 		})
 	})
@@ -406,7 +402,7 @@ func TestDir(t *testing.T) {
 				So(child.LocalPath, ShouldEqual, "/local/dir")
 			})
 
-			Convey("It should set remote path for child node nested in parent", func() {
+			Convey("It should set remote path for child entry nested in parent", func() {
 				So(child.RemotePath, ShouldEqual, "/remote/dir")
 			})
 
@@ -465,13 +461,9 @@ func TestDir(t *testing.T) {
 				So(d.Entries[0].Type, ShouldEqual, fuseutil.DT_Unknown)
 			})
 
-			Convey("It should set child entry to forgotten", func() {
-				i, ok := d.EntriesList["dir"]
-				So(ok, ShouldBeTrue)
-
-				child, ok := i.(*Dir)
-				So(ok, ShouldBeTrue)
-				So(child.Forgotten, ShouldBeTrue)
+			Convey("It should remove child from entries map", func() {
+				_, ok := d.EntriesList["dir"]
+				So(ok, ShouldBeFalse)
 			})
 		})
 	})
@@ -506,8 +498,8 @@ func newDir() *Dir {
 			},
 		},
 	}
-	n := NewRootInode(t, "/remote", "/local")
-	i := NewNodeIDGen()
+	n := NewRootEntry(t, "/remote", "/local")
+	i := NewIDGen()
 
 	return NewDir(n, i)
 }
