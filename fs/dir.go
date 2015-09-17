@@ -361,6 +361,8 @@ func (d *Dir) removeChild(name string) error {
 
 	listEntry.Forget()
 
+	delete(d.EntriesList, name)
+
 	for index, mapEntry := range d.Entries {
 		if mapEntry.Name == name {
 			mapEntry.Type = fuseutil.DT_Unknown
