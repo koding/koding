@@ -19,7 +19,8 @@ module.exports = class MessageBody extends React.Component
 
   render: ->
 
-    content = formatContent @props.message.get 'body'
+    options = { tags : { useReactivityUrl : yes } }
+    content = formatContent @props.message.get('body'), options
 
     return \
       <article

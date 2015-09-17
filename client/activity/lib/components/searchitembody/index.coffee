@@ -31,7 +31,8 @@ module.exports = class SearchItemBody extends React.Component
     startTag = '<span class="SearchItemBody-matchedWord">'
     endTag   = '</span>'
 
-    content = formatContent @props.source, { highlight : no }
+    options = { markdown : { highlight : no } }
+    content = formatContent @props.source, options
 
     content = helper.cleanUselessMarkers content
     content = helper.replaceMarkers content, startTag, endTag
