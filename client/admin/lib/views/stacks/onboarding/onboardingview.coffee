@@ -145,9 +145,11 @@ module.exports = class OnboardingView extends JView
       { configView, instanceTypeSelectBox } = pane
       { configurationToggles } = configView
 
-      serverConfig = selectedInstances["example_#{++index}"] =
-        instance_type: instanceTypeSelectBox.getValue()
-        ami: ''
+      serverConfig    = selectedInstances["example_#{++index}"] =
+        instance_type : instanceTypeSelectBox.getValue()
+        ami           : ''
+        tags          :
+          Name        : "${var.koding_user_username}-${var.koding_group_slug}"
 
       configurationToggles.forEach (toggle) ->
         selectedServices.push toggle.getOption 'name'  if toggle.getValue()

@@ -1,12 +1,12 @@
 package multiconfig
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fatih/structs"
 )
@@ -135,15 +135,32 @@ func fieldSet(field *structs.Field, v string) error {
 			return err
 		}
 	case reflect.String:
-		field.Set(v)
-	case reflect.Slice:
-		// TODO add other typed slice support
-		if _, ok := field.Value().([]string); !ok {
-			return errors.New("can't set on non string slices")
-		}
-
-		if err := field.Set(strings.Split(v, ",")); err != nil {
+		if err := field.Set(v); err != nil {
 			return err
+		}
+	case reflect.Slice:
+		switch t := field.Value().(type) {
+		case []string:
+			if err := field.Set(strings.Split(v, ",")); err != nil {
+				return err
+			}
+		case []int:
+			var list []int
+			for _, in := range strings.Split(v, ",") {
+				i, err := strconv.Atoi(in)
+				if err != nil {
+					return err
+				}
+
+				list = append(list, i)
+			}
+
+			if err := field.Set(list); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("multiconfig: field '%s' of type slice is unsupported: %s (%T)",
+				field.Name(), field.Kind(), t)
 		}
 	case reflect.Float64:
 		f, err := strconv.ParseFloat(v, 64)
@@ -154,8 +171,32 @@ func fieldSet(field *structs.Field, v string) error {
 		if err := field.Set(f); err != nil {
 			return err
 		}
+	case reflect.Int64:
+		switch t := field.Value().(type) {
+		case time.Duration:
+			d, err := time.ParseDuration(v)
+			if err != nil {
+				return err
+			}
+
+			if err := field.Set(d); err != nil {
+				return err
+			}
+		case int64:
+			p, err := strconv.ParseInt(v, 10, 0)
+			if err != nil {
+				return err
+			}
+
+			if err := field.Set(p); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("multiconfig: field '%s' of type int64 is unsupported: %s (%T)",
+				field.Name(), field.Kind(), t)
+		}
 	default:
-		return fmt.Errorf("multiconfig: not supported type: %s", field.Kind())
+		return fmt.Errorf("multiconfig: field '%s' has unsupported type: %s", field.Name(), field.Kind())
 	}
 
 	return nil

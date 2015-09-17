@@ -1081,40 +1081,49 @@ paymentGrayLighter  = #f8f8f8
 
 .kdmodal.env-modal
   .kdmodal-inner
-    margin              0
+    margin                  0
 
   .content-container
-    text-align          center
+    text-align              center
 
   .kdbutton
-    rounded             4px !important
-    bg                  color, #4EA04C !important
-    height              40px !important
+    rounded                 4px !important
+    bg                      color, #4EA04C !important
+    height                  40px !important
     &:focus
-      vendor            box-shadow, none !important
+      vendor                box-shadow, none !important
 
   .footer
-    bg                  color, #f3f3f3
-    font-size           14px
-    color               #5E5E5E
-    padding             25px 30px
-    rounded             0 0 3px 3px
+    bg                      color, #f3f3f3
+    font-size               14px
+    color                   #5E5E5E
+    padding                 25px 30px
+    rounded                 0 0 3px 3px
+
+
+.kdmodal.env-error-modal
+  left                      50% !important
+  margin-left               -172px
+  overflow                  scroll
+
+  .kdtabhandle
+    max-width               250px !important
 
 
 .kdmodal.env-machine-state
-  left                  50% !important
-  margin-left           -91px
+  left                      50% !important
+  margin-left               -91px
 
   .kdmodal-content
-    overflow            visible
+    overflow                visible
 
   .kdbutton
    &.turn-on
-     padding            0 20px 0 14px
+     padding                0 20px 0 14px
      .icon
-       r-sprite         'ide', 'turn-on'
-       margin           12px 12px 0 0 !important
-       padding          0
+       r-sprite             'ide', 'turn-on'
+       margin               12px 12px 0 0 !important
+       padding              0
 
 
   .content-readme
@@ -1145,6 +1154,7 @@ paymentGrayLighter  = #f8f8f8
         font-size       12px
         line-height     17px
       span.close
+      span.error-details
       span.contact-support
         text-decoration  underline
         cursor           pointer
@@ -2169,3 +2179,43 @@ paymentGrayLighter  = #f8f8f8
 .kdmodal.delete-files-modal
   .kdmodal-content
     max-height              200px
+
+
+// Admin modal specific styling
+.AppModal--admin
+
+  &.kdmodal .kdmodal-inner .kdmodal-content
+    overflow                hidden
+
+  // common tab styling
+  .AppModal-content.kdtabview
+    overflow                hidden
+
+  .kdtabhandlecontainer
+    background              none
+    padding                 0
+    height                  62px
+    line-height             62px
+    box-shadow              inset 0 -3px 0 #f2f2f2
+    border                  none
+
+    .kdtabhandle-tabs
+      size                  auto, auto
+      fl()
+
+    .kdtabhandle
+      padding               0 23px
+      margin                0
+      border                none
+      line-height           inherit
+      height                62px
+      background            none
+      color                 #969696
+      opacity               0.99
+      font-size             14px
+      font-weight           600
+
+      &.active
+        box-shadow          inset 0 -3px 0 #01b05a
+        color               #575757 !important
+        bg                  color, transparent !important
