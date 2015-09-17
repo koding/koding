@@ -236,7 +236,33 @@ func TestDir(t *testing.T) {
 			d := newDir()
 			d.EntriesList = map[string]Node{}
 
-			So(d.MoveEntry("file", "file1", nil), ShouldEqual, fuse.ENOENT)
+			_, err := d.MoveEntry("file", "file1", nil)
+			So(err, ShouldEqual, fuse.ENOENT)
+		})
+
+		Convey("It should move entry from one directory to another", func() {
+			n := newDir()
+
+			o := newDir()
+			o.EntriesList = map[string]Node{"file": NewFile(NewInode(o, "file"))}
+
+			i, err := o.MoveEntry("file", "file1", n)
+			So(err, ShouldBeNil)
+
+			Convey("It should find new entry as same type as old", func() {
+				file, ok := i.(*File)
+				So(ok, ShouldBeTrue)
+				So(file.Name, ShouldEqual, "file1")
+			})
+
+			Convey("It should find new entry in new directory", func() {
+				i, ok := n.EntriesList["file1"]
+				So(ok, ShouldBeTrue)
+
+				file, ok := i.(*File)
+				So(ok, ShouldBeTrue)
+				So(file.Name, ShouldEqual, "file1")
+			})
 		})
 	})
 
