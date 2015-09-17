@@ -171,3 +171,21 @@ module.exports =
 
     helpers.openAvatarAreaModal(browser)
     @openTeamSettingsModal(browser)
+
+
+  startStackCreate: (browser) ->
+
+    welcomePageSelector = '.content-page.welcome'
+    stackSelector       = "#{welcomePageSelector} a[href='/Admin/Stacks']"
+    overlaySelector     = '.AppModal--admin'
+    getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
+    buttonSelector      = "#{getstartedSelector} .header button"
+
+    browser
+      .waitForElementVisible  welcomePageSelector, 20000
+      .waitForElementVisible  stackSelector, 20000
+      .click                  stackSelector
+      .waitForElementVisible  overlaySelector, 20000
+      .waitForElementVisible  getstartedSelector, 20000
+      .waitForElementVisible  buttonSelector, 20000
+      .click                  buttonSelector
