@@ -102,12 +102,10 @@ func (f *File) Sync() error {
 	return f.writeContentToRemote(f.Content)
 }
 
+///// Node interface
+
 func (f *File) GetType() fuseutil.DirentType {
 	return fuseutil.DT_File
-}
-
-func (f *File) IsADir() bool {
-	return false
 }
 
 ///// Helpers
