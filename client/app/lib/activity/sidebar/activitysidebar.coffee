@@ -29,6 +29,7 @@ isChannelCollaborative          = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList          = require './sidebarownmachineslist'
 environmentDataProvider         = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
+SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
 isReactivityEnabled             = require 'app/util/isReactivityEnabled'
@@ -625,8 +626,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         stackEnvironment = stack.machines.map (machine) ->
           environmentMap[machine._id]
 
-        @createMachineList 'own', { title }, stackEnvironment
-
+        @createMachineList 'stack', { title, stack }, stackEnvironment
         inProgress = no
 
 
@@ -686,6 +686,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     MachineListClasses =
       own              : SidebarOwnMachinesList
       shared           : SidebarSharedMachinesList
+      stack            : SidebarStackMachineList
 
     list = new MachineListClasses[type] options, data
 
