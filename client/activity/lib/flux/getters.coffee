@@ -151,7 +151,7 @@ followedPublicChannelThreads = [
       return thread.set 'channel', channel
 ]
 
-# Returns followed public channel threads mapped with relevant channel instances.
+# Returns all public channels with followed/unfollowed filters
 filteredPublicChannels = [
   channelThreads
   followedPublicChannels
@@ -163,7 +163,7 @@ filteredPublicChannels = [
     }
 ]
 
-# Returns followed private channel threads mapped with relevant channel instances.
+# Returns all private channels with followed/unfollowed filters
 filteredPrivateChannels = [
   channelThreads
   followedPrivateChannels
