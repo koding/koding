@@ -242,6 +242,12 @@ module.exports = class JMachine extends Module
       return callback \
         new KodingError 'You are not allowed to change your own state!'
 
+
+  checkFields = (data, required) ->
+    for field in required when not data[field]
+      return new KodingError "#{field} is not set!"
+
+
   # Private Methods
   # ---------------
 
@@ -256,6 +262,8 @@ module.exports = class JMachine extends Module
     # 2     first letter of `group slug`
     # 3     first letter of `provider`
     # 4..12 32-bit random hex string
+
+    return callback err  if err = checkFields data, ['user', 'group', 'provider']
 
     { user, group, provider } = data
 

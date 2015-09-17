@@ -18,7 +18,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject SimpleChatListItem': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
@@ -35,6 +35,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}

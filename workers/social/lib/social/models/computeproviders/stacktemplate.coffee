@@ -18,11 +18,11 @@ module.exports = class JStackTemplate extends Module
 
     permissions       :
 
-      'create stack template'     : []
-      'list stack templates'      : []
+      'create stack template'     : ['member', 'moderator']
+      'list stack templates'      : ['member', 'moderator']
 
-      'delete own stack template' : []
-      'update own stack template' : []
+      'delete own stack template' : ['member', 'moderator']
+      'update own stack template' : ['member', 'moderator']
 
       'delete stack template'     : []
       'update stack template'     : []

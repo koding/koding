@@ -3,6 +3,8 @@ package modelhelper
 import (
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/stackstate"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -30,6 +32,20 @@ func GetComputeStack(id string) (*models.ComputeStack, error) {
 func DeleteComputeStack(id string) error {
 	query := func(c *mgo.Collection) error {
 		return c.RemoveId(bson.ObjectIdHex(id))
+	}
+
+	return Mongo.Run(ComputeStackColl, query)
+}
+
+func SetStackState(id, reason string, state stackstate.State) error {
+	query := func(c *mgo.Collection) error {
+		return c.UpdateId(id, bson.M{
+			"$set": bson.M{
+				"status.state":     state.String(),
+				"status.updatedAt": time.Now().UTC(),
+				"status.reason":    reason,
+			},
+		})
 	}
 
 	return Mongo.Run(ComputeStackColl, query)

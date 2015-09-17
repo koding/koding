@@ -72,6 +72,7 @@ module.exports = [
 
   [
     { name : 'collaboration collaboration' }
+    { name : 'environments snapshot' }
   ]
 
   [
@@ -82,9 +83,9 @@ module.exports = [
     { name : 'environments vm' }
   ]
 
-  # [
-  #   { name : 'environments paidaccount' }
-  # ]
+  [
+    { name : 'environments paidaccount' }
+  ]
 
   [
     { name : 'environments domain' }

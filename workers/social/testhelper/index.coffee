@@ -1,7 +1,27 @@
-_        = require 'underscore'
-hat      = require 'hat'
-JAccount = require './lib/social/models/account'
-JSession = require './lib/social/models/session'
+_                       = require 'underscore'
+hat                     = require 'hat'
+JUser                   = require '../lib/social/models/user'
+JAccount                = require '../lib/social/models/account'
+JSession                = require '../lib/social/models/session'
+Bongo                   = require 'bongo'
+
+{ expect }              = require 'chai'
+{ daisy }               = Bongo
+{ argv }                = require 'optimist'
+{ env : { MONGO_URL } } = process
+KONFIG                  = require('koding-config-manager').load("main.#{argv.c}")
+mongo                   = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
+
+
+checkBongoConnectivity = (callback) ->
+
+  bongo = new Bongo
+    root   : __dirname
+    mongo  : mongo
+    models : ''
+
+  bongo.once 'dbClientReady', ->
+    callback()
 
 
 # returns 20 characters by default
@@ -43,6 +63,32 @@ generateDummyClient = (context, callback) ->
 
     else
       callback 'session error'
+
+
+withDummyClient = (context, callback) ->
+
+  generateDummyClient context, (err, client) ->
+    expect(err).to.not.exist
+    callback { client }
+
+
+withConvertedUser = (opts, callback) ->
+
+  { context, userFormData } = opts  if opts
+
+  context      ?= { group : 'koding' }
+  userFormData ?= generateDummyUserFormData()
+
+  withDummyClient context, ({ client }) ->
+    JUser.convert client, userFormData, (err, data) ->
+      expect(err).to.not.exist
+      { account, newToken }      = data
+      client.sessionToken        = newToken
+      client.connection.delegate = account
+
+      if opts.userFormData?
+      then callback { client, account, sessionToken : newToken }
+      else callback { client, account, sessionToken : newToken, userFormData }
 
 
 generateDummyUserFormData = (opts = {}) ->
@@ -91,13 +137,37 @@ generateUserInfo = (opts = {}) ->
   return userInfo
 
 
+generateRandomUserArray =  (count, callback) ->
+
+  queue     = []
+  userArray = []
+
+  for i in [0...count]
+    queue.push ->
+      JUser.createUser generateUserInfo(), (err, user_) ->
+        expect(err).to.not.exist
+        userArray.push user_
+        queue.next()
+
+  queue.push -> callback userArray
+
+  daisy queue
+
+
+
 module.exports = {
+  daisy
+  expect
+  withDummyClient
   generateUserInfo
+  withConvertedUser
   generateDummyClient
   generateCredentials
   generateRandomEmail
   generateRandomString
+  checkBongoConnectivity
   generateRandomUsername
+  generateRandomUserArray
   generateDummyUserFormData
 }
 

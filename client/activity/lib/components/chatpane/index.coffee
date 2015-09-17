@@ -2,8 +2,10 @@ kd              = require 'kd'
 React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
 ChatInputWidget = require 'activity/components/chatinputwidget'
-Scroller        = require 'app/components/scroller'
 ActivityFlux    = require 'activity/flux'
+Scroller        = require 'app/components/scroller'
+ScrollerMixin   = require 'app/components/scroller/scrollermixin'
+
 
 
 module.exports = class ChatPane extends React.Component
@@ -17,24 +19,13 @@ module.exports = class ChatPane extends React.Component
     showItemMenu  : yes
 
 
-  componentWillUpdate: ->
+  componentWillUpdate: (nextProps, nextState) ->
 
-    return  unless @refs?.scrollContainer
+    return  unless nextProps?.thread
 
-    { @scrollTop, offsetHeight, @scrollHeight } = React.findDOMNode @refs.scrollContainer
-    @shouldScrollToBottom = @scrollTop + offsetHeight is @scrollHeight
-
-
-  componentDidUpdate: ->
-
-    return  unless @refs?.scrollContainer
-
-    element = React.findDOMNode @refs.scrollContainer
-
-    if @shouldScrollToBottom
-      element.scrollTop = element.scrollHeight
-    else
-      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
+    { thread } = nextProps
+    isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
+    @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
 
   onSubmit: (event) -> @props.onSubmit? event
@@ -44,13 +35,19 @@ module.exports = class ChatPane extends React.Component
 
 
   renderBody: ->
+
     return null  unless @props.messages
 
     <section className="ChatPane-body" ref="ChatPaneBody">
       <Scroller
         onTopThresholdReached={@bound 'onTopThresholdReached'}
         ref="scrollContainer">
-        <ChatList messages={@props.messages} showItemMenu={@props.showItemMenu} />
+        <ChatList
+          isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+          firstPost={@props.thread.get 'message'}
+          messages={@props.messages}
+          showItemMenu={@props.showItemMenu}
+        />
       </Scroller>
     </section>
 
@@ -67,6 +64,8 @@ module.exports = class ChatPane extends React.Component
 
 
   renderFooter: ->
+
+    return null  unless @props.messages
 
     footerInnerComponent = if @props.isParticipant
     then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
@@ -85,4 +84,6 @@ module.exports = class ChatPane extends React.Component
       </section>
     </div>
 
+
+React.Component.include.call ChatPane, [ScrollerMixin]
 

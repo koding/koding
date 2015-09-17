@@ -1,6 +1,7 @@
 immutable                  = require 'immutable'
 isPublicChatChannel        = require 'activity/util/isPublicChatChannel'
 whoami                     = require 'app/util/whoami'
+isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 
@@ -37,16 +38,13 @@ MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 allChannels = ChannelsStore
 allUsers    = UsersStore
 
+ChannelParticipantsSearchQueryStore        = ['ChannelParticipantsSearchQueryStore']
+ChannelParticipantsSelectedIndexStore      = ['ChannelParticipantsSelectedIndexStore']
+ChannelParticipantsDropdownVisibilityStore = ['ChannelParticipantsDropdownVisibilityStore']
+
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
 # visual components) to use.
-
-# Maps followed public channel ids with relevant channel instances.
-followedPublicChannels = [
-  FollowedPublicChannelIdsStore
-  allChannels
-  (ids, channels) -> ids.map (id) -> channels.get id
-]
 
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
@@ -108,6 +106,21 @@ selectedChannel = [
   allChannels
   selectedChannelThreadId
   (channels, id) -> if id then channels.get id else null
+]
+
+# Maps followed public channel ids with relevant channel instances.
+# If this channel is a public channel, we set current channelId as an item of followedPublicChannels,
+# we set this channelId to list this channel on channel list modal and sidebar channel list.
+# If this channel isn't followed by user, user can follow on channel list modal by follow button.
+followedPublicChannels = [
+  FollowedPublicChannelIdsStore
+  selectedChannel
+  allChannels
+  (ids, channel, channels) ->
+    if channel
+      channelId = channel.get 'id'
+      ids = ids.set channelId, channelId  if isPublicChannel(channel.toJS())
+    ids.map (id) -> channels.get id
 ]
 
 # Returns the selected thread mapped with selected channel instance.
@@ -211,6 +224,7 @@ selectedMessageThreadComments = [
   selectedMessageThread
   (thread) ->
     return null  unless thread
+
     thread.get 'comments'
 ]
 
@@ -239,6 +253,38 @@ currentSuggestionsSelectedItem = [
 ]
 
 
+channelParticipantsSearchQuery  = ChannelParticipantsSearchQueryStore
+# Returns a list of users depending on the current query
+# If query is empty, returns selected channel participants
+# Otherwise, returns users filtered by query
+channelParticipantsInputUsers = [
+  UsersStore
+  selectedChannelParticipants
+  channelParticipantsSearchQuery
+  (users, participants, query) ->
+    return participants?.toList() ? immutable.List()  unless query
+
+    query = query.toLowerCase()
+    users.toList().filter (user) ->
+      userName = user.getIn(['profile', 'nickname']).toLowerCase()
+      return userName.indexOf(query) is 0
+]
+
+channelParticipantsSelectedIndex = [
+  channelParticipantsInputUsers
+  ChannelParticipantsSelectedIndexStore
+  calculateListSelectedIndex
+]
+
+channelParticipantsDropdownVisibility = ChannelParticipantsDropdownVisibilityStore
+
+channelParticipantsSelectedItem = [
+  channelParticipantsInputUsers
+  channelParticipantsSelectedIndex
+  getListSelectedItem
+]
+
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -262,6 +308,12 @@ module.exports = {
   currentSuggestionsFlags
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
+
+  channelParticipantsSearchQuery
+  channelParticipantsInputUsers
+  channelParticipantsSelectedItem
+  channelParticipantsSelectedIndex
+  channelParticipantsDropdownVisibility
 
   allUsers
 }

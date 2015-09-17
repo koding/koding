@@ -576,7 +576,7 @@ computeproviders.styl
         margin              10px 10px 0 0
 
 
-.kdview.stacks.step-creds
+.stacks.step-creds
 
   font-size                 14px
 
@@ -603,6 +603,7 @@ computeproviders.styl
         clear               both
         border              none
         margin-top          6px
+        margin-bottom       10px !important
 
   .kdlabel
     font-size               14px
@@ -631,6 +632,7 @@ computeproviders.styl
   .form-view
     height                  calc(100% \- 200px)
     border-bottom           1px solid #EEE
+    overflow                hidden
 
 .kdlistview
   .no-item-found
@@ -689,6 +691,18 @@ computeproviders.styl
         pointer-events      auto
 
     .credential-info
+      .tag
+        line-height         16px
+        abs()
+        font-size           10px
+        bottom              15px
+
+      .title
+        rel()
+        top                 -14px
+
+
+    .credential-info
     .stacktemplate-info
       padding               10px 0
 
@@ -713,6 +727,10 @@ computeproviders.styl
         color               #FFFFFF
         cursor              default
         fl()
+
+    .credential-info
+      .inuse-tag
+        margin-top          -10px
 
     .warning-message
       background            #FCFCE9

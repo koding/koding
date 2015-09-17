@@ -286,6 +286,11 @@ class Ace extends KDView
     @editor.commands.addCommand toCommand(model, exec)
 
 
+  getCursor: ->
+
+    return  @editor.getSession().getSelection().getCursor()
+
+
   setEditorListeners: ->
 
     { shortcuts } = kd.singletons
@@ -293,7 +298,7 @@ class Ace extends KDView
 
     @editor.getSession().selection.on 'changeCursor', (cursor) =>
       return if @suppressListeners
-      @emit 'ace.change.cursor', @editor.getSession().getSelection().getCursor()
+      @emit 'ace.change.cursor', @getCursor()
 
     @editor.commands.on 'afterExec', (e) =>
       if e.command.name is 'insertstring' and /^[\w.]$/.test e.args
@@ -333,7 +338,9 @@ class Ace extends KDView
     @isTrimWhiteSpacesEnabled = value
 
 
-  requestSave: ->
+  requestSave: (options = {}) ->
+
+    options.ignoreActiveLineOnTrim ?= no
 
     contents = @getContents()
 
@@ -343,7 +350,7 @@ class Ace extends KDView
       return
 
     if @isTrimWhiteSpacesEnabled
-      @trimTrailingWhitespaces()
+      @trimTrailingWhitespaces options.ignoreActiveLineOnTrim
       contents = @getContents()
 
     @askedForSave = yes
@@ -671,16 +678,21 @@ class Ace extends KDView
     @emit 'RemoveModifiedFromTab', @getData().path
 
 
-  trimTrailingWhitespaces: ->
+  trimTrailingWhitespaces: (ignoreActiveLine) ->
 
-    doc   = @editor.getSession().getDocument()
-    lines = doc.getAllLines()
+    doc       = @editor.getSession().getDocument()
+    lines     = doc.getAllLines()
+    activeRow = @getCursor().row  if ignoreActiveLine
 
     for line, lineNumber in lines
       whiteSpaceIndex = line.search /\s+$/
 
       if whiteSpaceIndex > -1
-        doc.removeInLine lineNumber, whiteSpaceIndex, line.length
+        if activeRow?
+          if activeRow isnt lineNumber
+            doc.removeInLine lineNumber, whiteSpaceIndex, line.length
+        else
+          doc.removeInLine lineNumber, whiteSpaceIndex, line.length
 
 
   showGotoLine: ->

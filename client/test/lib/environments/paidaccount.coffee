@@ -70,6 +70,7 @@ module.exports =
   addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
+    linkSelector      = "#{freeModalSelector} a.custom-link-view span"
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -79,29 +80,33 @@ module.exports =
         browser.end()
       else
         environmentHelpers.clickAddVMButton(browser)
-        browser.pause 5000 # wait to see the modal
+        browser.pause 10000 # wait to see the modal
 
         browser.element 'css selector', freeModalSelector, (result) =>
           if result.status is 0
             browser
-              .waitForElementVisible   freeModalSelector, 20000
-              .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
-              .click                   freeModalSelector + ' a.custom-link-view span'
+              .waitForElementVisible   linkSelector, 20000
+              .click                   linkSelector
 
             helpers.selectPlan(browser)
             helpers.fillPaymentForm(browser)
 
-            browser.url helpers.getUrl() + '/IDE'
+            browser
+              .url helpers.getUrl() + '/IDE'
+              .pause  10000 # wait for sidebar redraw
+
             environmentHelpers.clickAddVMButton(browser)
             environmentHelpers.clickCreateVMButton(browser)
           else
             environmentHelpers.clickCreateVMButton(browser)
 
+          browser.end()
+
 
   # this test depends addVM test.
   turnOnNewPaidVM: (browser) ->
 
-    vmName     = 'koding-vm-1'
+    vmName = 'koding-vm-1'
 
     helpers.beginTest(browser)
 
@@ -145,67 +150,3 @@ module.exports =
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
 
-
-  createSnapshot: (browser) ->
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    environmentHelpers.createSnapshot(browser)
-    browser.end()
-
-
-  renameSnapshot: (browser) ->
-
-    contentSelector  = '.snapshots.AppModal-content'
-    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    environmentHelpers.openSnapshotsSettings(browser)
-
-    browser.pause 5000 # wait for snapshot to load
-
-    browser.getText contentSelector, (result) ->
-      if result.value.indexOf('renamed-snapshot') > -1
-        console.log ' ✔ Snapshot is already renamed. Ending test...'
-        browser.end()
-      else
-        browser.element 'css selector', snapshotSelector, (result) ->
-          if result.status is 0
-            renamed = environmentHelpers.renameSnapshot(browser)
-            environmentHelpers.assertSnapshotPresent browser, renamed, false
-
-          else
-            browser.pause 3000
-            environmentHelpers.addSnapsButton(browser)
-            environmentHelpers.createSnapshot(browser, no)
-            renamed = environmentHelpers.renameSnapshot(browser)
-            environmentHelpers.assertSnapshotPresent browser, renamed, false
-
-        browser.end()
-
-
-  deleteSnapshot: (browser) ->
-
-    snapshotListSelector = '.snapshots .listview-wrapper'
-    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    environmentHelpers.openSnapshotsSettings(browser)
-
-    browser.element 'css selector', snapshotSelector, (result) ->
-      if result.status is 0
-        browser.getText "#{snapshotSelector} .label", (result) ->
-          snapshotName = result.value
-      else
-        snapshotName = environmentHelpers.createSnapshot(browser)
-
-      environmentHelpers.deleteSnapshot(browser)
-
-      browser
-        .pause 3000
-        .waitForElementVisible     snapshotListSelector, 20000
-        .waitForElementNotPresent  "#{snapshotListSelector} .info .label.#{snapshotName}", 20000
-        .end()

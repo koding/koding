@@ -5,6 +5,8 @@ actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
+embedlyHelpers         = require '../helpers/embedly'
+Promise                = require 'bluebird'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -139,19 +141,22 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
-  socialapi.message.post { channelId, clientRequestId, body }, (err, message) ->
-    if err
-      dispatch CREATE_MESSAGE_FAIL, {
-        err, channelId, clientRequestId
+  fetchEmbedPayload { body, payload }, (embedPayload) ->
+    payload = _.assign {}, payload, embedPayload
+
+    socialapi.message.post { channelId, clientRequestId, body, payload }, (err, message) ->
+      if err
+        dispatch CREATE_MESSAGE_FAIL, {
+          err, channelId, clientRequestId
+        }
+        return
+
+      channel = socialapi.retrieveCachedItemById channelId
+
+      realtimeActionCreators.bindMessageEvents message
+      dispatch CREATE_MESSAGE_SUCCESS, {
+        message, channelId, clientRequestId, channel
       }
-      return
-
-    channel = socialapi.retrieveCachedItemById channelId
-
-    realtimeActionCreators.bindMessageEvents message
-    dispatch CREATE_MESSAGE_SUCCESS, {
-      message, channelId, clientRequestId, channel
-    }
 
 
 ###*
@@ -246,13 +251,20 @@ editMessage = (messageId, body, payload) ->
 
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-  socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
-    if err
-      dispatch EDIT_MESSAGE_FAIL, { err, messageId }
-      return
+  fetchEmbedPayload { body, payload }, (embedPayload) ->
+    if payload and not embedPayload
+      # if payload link has been removed, it's necessary
+      # to clear link fields from message payload
+      embedPayload = { link_url : null, link_embed : null }
+    payload = _.assign {}, payload, embedPayload
 
-    realtimeActionCreators.bindMessageEvents message
-    dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
+    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+      if err
+        dispatch EDIT_MESSAGE_FAIL, { err, messageId }
+        return
+
+      realtimeActionCreators.bindMessageEvents message
+      dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
 ###*
@@ -369,6 +381,31 @@ unsetMessageEditMode = (messageId) ->
 
   { UNSET_MESSAGE_EDIT_MODE } = actionTypes
   dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+
+fetchEmbedPayload = (messageData, callback = kd.noop) ->
+
+  url = embedlyHelpers.extractUrl messageData.body
+  return callback()  unless url
+  return callback()  if messageData.payload?.link_url is url
+
+  options = {
+    maxWidth  : 530
+    maxHeight : 200
+    wmode     : 'transparent'
+  }
+
+  { fetchDataFromEmbedly } = kd.singletons.socialapi.message
+
+  fetchDataFromEmbedly url, options, (err, result) ->
+
+    if err
+      kd.log 'Embed.ly error!', err
+    else if result
+      data    = result.first
+      payload = embedlyHelpers.createMessagePayload data
+
+    callback payload
 
 
 module.exports = {

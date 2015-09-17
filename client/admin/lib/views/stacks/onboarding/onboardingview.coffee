@@ -7,7 +7,9 @@ GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
 CLONE_REPO_TEMPLATES  =
-  github              : 'git clone git@github.com/username/reponame.git'
+  github              : 'git clone git@github.com/your-organization/reponame.git'
+  bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
+  gitlab              : 'git clone git@gitlab.com/your-organization/reponame.git'
   owngitserver        : 'git clone git@yourgitserver.com/reponame.git'
 PROVIDER_TEMPLATES    =
   aws                 :
@@ -86,6 +88,16 @@ module.exports = class OnboardingView extends JView
         @nextButton.disable()
         @stackPreview.hide()
 
+    @configurationView.tabView.on 'PaneAdded', => @codeSetupView.addPane()
+
+    @configurationView.tabView.on 'PaneRemoved', =>
+      @codeSetupView.tabView.removePane @codeSetupView.tabView.panes.last
+
+    @configurationView.on 'InstanceTypeChanged', =>
+      for pane, index in @configurationView.tabView.panes
+        label = @codeSetupView.tabView.panes[index]?.instanceTypeLabel
+        label.updatePartial pane.instanceTypeSelectBox.getValue()  if label
+
 
   createFooter: ->
 
@@ -122,10 +134,10 @@ module.exports = class OnboardingView extends JView
 
   updateStackTemplate: ->
 
-    selectedProvider    = @providerSelectionView.selected?.getOption 'provider'
-    selectedCodeService = @codeSetupView.selected?.getOption 'service'
-    serverConfigPanes   = @configurationView.tabView.panes
-    selectedInstances   = {}
+    selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
+    codeSetupPanes    = @codeSetupView.tabView.panes
+    serverConfigPanes = @configurationView.tabView.panes
+    selectedInstances = {}
 
     serverConfigPanes.forEach (pane, index) ->
 
@@ -133,9 +145,11 @@ module.exports = class OnboardingView extends JView
       { configView, instanceTypeSelectBox } = pane
       { configurationToggles } = configView
 
-      serverConfig = selectedInstances["example_#{++index}"] =
-        instance_type: instanceTypeSelectBox.getValue()
-        ami: ''
+      serverConfig    = selectedInstances["example_#{++index}"] =
+        instance_type : instanceTypeSelectBox.getValue()
+        ami           : ''
+        tags          :
+          Name        : "${var.koding_user_username}-${var.koding_group_slug}"
 
       configurationToggles.forEach (toggle) ->
         selectedServices.push toggle.getOption 'name'  if toggle.getValue()
@@ -148,11 +162,16 @@ module.exports = class OnboardingView extends JView
       resource       :
         aws_instance : selectedInstances
 
-    if selectedCodeService
-      cloneText = CLONE_REPO_TEMPLATES[selectedCodeService]
+    codeSetupPanes.forEach (pane, index) ->
+      selectedService = pane.view.selected?.getOption 'service'
+      cloneText       = CLONE_REPO_TEMPLATES[selectedService]
+      serverConfig    = stackTemplate.resource.aws_instance["example_#{++index}"]
+      groupSlug       = kd.singletons.groupsController.getCurrentGroup().slug
+      { user_data }   = serverConfig
 
-      for serverName, serverConfig of stackTemplate.resource.aws_instance
-        { user_data } = serverConfig
+      if cloneText
+
+        cloneText = cloneText.replace 'your-organization', groupSlug
 
         if user_data
           serverConfig.user_data = """

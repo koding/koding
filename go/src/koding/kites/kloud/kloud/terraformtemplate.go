@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -98,6 +99,13 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	// replace escaped brackets and ampersand. the marshal package is encoding
+	// them automtically so it can be safely processed inside HTML scripts, but
+	// we don't need it.
+	out = bytes.Replace(out, []byte("\\u003c"), []byte("<"), -1)
+	out = bytes.Replace(out, []byte("\\u003e"), []byte(">"), -1)
+	out = bytes.Replace(out, []byte("\\u0026"), []byte("&"), -1)
 
 	return string(out), nil
 }

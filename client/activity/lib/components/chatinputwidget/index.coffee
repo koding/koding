@@ -10,6 +10,7 @@ ActivityFlux    = require 'activity/flux'
 ChatInputFlux   = require 'activity/flux/chatinput'
 KDReactorMixin  = require 'app/flux/reactormixin'
 formatEmojiName = require 'activity/util/formatEmojiName'
+KeyboardKeys    = require 'app/util/keyboardKeys'
 Link            = require 'app/components/common/link'
 whoami          = require 'app/util/whoami'
 helpers         = require './helpers'
@@ -18,14 +19,7 @@ groupifyLink    = require 'app/util/groupifyLink'
 
 module.exports = class ChatInputWidget extends React.Component
 
-  TAB         = 9
-  ENTER       = 13
-  ESC         = 27
-  LEFT_ARROW  = 37
-  UP_ARROW    = 38
-  RIGHT_ARROW = 39
-  DOWN_ARROW  = 40
-
+  { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
   constructor: (props) ->
 
@@ -293,12 +287,12 @@ module.exports = class ChatInputWidget extends React.Component
         ref       = 'textInput'
       />
       <Link
-        className = "ChatInputWidget-emojiButton"
-        onClick   = { @bound 'handleEmojiButtonClick' }
-      />
-      <Link
         className = "ChatInputWidget-searchButton"
         onClick   = { @bound 'handleSearchButtonClick' }
+      />
+      <Link
+        className = "ChatInputWidget-emojiButton"
+        onClick   = { @bound 'handleEmojiButtonClick' }
       />
     </div>
 
