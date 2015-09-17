@@ -287,12 +287,12 @@ module.exports = class ChatInputWidget extends React.Component
         ref       = 'textInput'
       />
       <Link
-        className = "ChatInputWidget-emojiButton"
-        onClick   = { @bound 'handleEmojiButtonClick' }
-      />
-      <Link
         className = "ChatInputWidget-searchButton"
         onClick   = { @bound 'handleSearchButtonClick' }
+      />
+      <Link
+        className = "ChatInputWidget-emojiButton"
+        onClick   = { @bound 'handleEmojiButtonClick' }
       />
     </div>
 

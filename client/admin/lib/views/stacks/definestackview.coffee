@@ -82,15 +82,29 @@ module.exports = class DefineStackView extends KDView
 
     @createMainButtons()
 
-    @providersView.on 'ItemSelected', (credential) =>
+    { credentialStatus } = @stackTemplateView
+
+    @providersView.on 'ItemSelected', (credentialItem) =>
 
       # After adding credential, we are sharing it with the current
       # group, so anyone in this group can use this credential ~ GG
       { slug } = kd.singletons.groupsController.getCurrentGroup()
 
+      credential = credentialItem.getData()
+
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        @stackTemplateView.credentialStatus.setCredential credential
+        credentialStatus.setCredential credential
+
+        @providersView.resetItems()
+        credentialItem.inuseView.show()
+
+    @providersView.on 'ItemDeleted', (credential) ->
+
+      { identifier } = credential.getData()
+      if identifier in credentialStatus.credentials
+        credentialStatus.setCredential() # To unset active credential
+                                         # since it's deleted
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
@@ -105,6 +119,7 @@ module.exports = class DefineStackView extends KDView
         @setFooterVisibility 'hide'
       else
         @setFooterVisibility 'show'
+        pane.getMainView().emit 'FocusToEditor'
 
 
   setFooterVisibility: (state) ->

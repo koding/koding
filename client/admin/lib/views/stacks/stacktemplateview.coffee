@@ -1,15 +1,14 @@
 kd                      = require 'kd'
-KDView                  = kd.View
 curryIn                 = require 'app/util/curryIn'
 KDButtonView            = kd.ButtonView
-
+StackBaseEditorTabView  = require './stackbaseeditortabview'
 KDCustomHTMLView        = kd.CustomHTMLView
 KDFormViewWithFields    = kd.FormViewWithFields
 CredentialStatusView    = require './credentialstatusview'
 StackTemplateEditorView = require './editors/stacktemplateeditorview'
 
 
-module.exports = class StackTemplateView extends KDView
+module.exports = class StackTemplateView extends StackBaseEditorTabView
 
 
   constructor: (options = {}, data) ->

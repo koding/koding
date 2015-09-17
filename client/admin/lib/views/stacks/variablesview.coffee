@@ -1,15 +1,14 @@
 kd                         = require 'kd'
 remote                     = require('app/remote').getInstance()
-
 KDView                     = kd.View
 KDCustomHTMLView           = kd.CustomHTMLView
-
+StackBaseEditorTabView     = require './stackbaseeditortabview'
 requirementsParser         = require './requirementsparser'
 VariablesEditorView        = require './editors/variableseditorview'
 { yamlToJson, jsonToYaml } = require './yamlutils'
 
 
-module.exports = class VariablesView extends KDView
+module.exports = class VariablesView extends StackBaseEditorTabView
 
   STATES    =
     INITIAL : "You can define your custom variables,

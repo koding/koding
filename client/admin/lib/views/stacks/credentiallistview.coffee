@@ -23,9 +23,10 @@ module.exports = class CredentialListView extends kd.View
     }
 
     @listController = new AccountCredentialListController {
-      view          : @list
-      wrapper       : no
-      scrollView    : no
+      view                 : @list
+      limit                : 15
+      useCustomScrollView  : yes
+      lazyLoadThreshold    : 15
       provider
     }
 
