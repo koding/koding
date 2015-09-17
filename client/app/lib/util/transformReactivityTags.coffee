@@ -16,7 +16,7 @@ module.exports = (text = '') ->
 
   hashtags = _.uniq twitter.extractHashtags text
   for hashtag in hashtags
-    url  = groupifyLink "/Activity/Topic/#{hashtag}", no
+    url  = groupifyLink "/Channels/#{hashtag}", no
     tag  = "##{hashtag}"
     text = text.replace "#{tag}", (match, offset) ->
       if inSkipRange offset
@@ -24,3 +24,4 @@ module.exports = (text = '') ->
       else "[#{tag}](#{url})"
 
   return text
+

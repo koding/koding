@@ -1,6 +1,6 @@
 transformTagTokens = require './transformTagTokens'
 transformEmails = require './transformEmails'
-transformTags = require './transformTags'
+transformTags = require './transformReactivityTags'
 formatQuotes = require './formatQuotes'
 formatBlockquotes = require './formatBlockquotes'
 applyMarkdown = require './applyMarkdown'

@@ -1,7 +1,7 @@
 $                    = require 'jquery'
 React                = require 'kd-react'
 emojify              = require 'emojify.js'
-formatContent        = require 'app/util/formatContent'
+formatContent        = require 'app/util/formatReactivityContent'
 immutable            = require 'immutable'
 
 
@@ -19,8 +19,7 @@ module.exports = class MessageBody extends React.Component
 
   render: ->
 
-    options = { tags : { useReactivityUrl : yes } }
-    content = formatContent @props.message.get('body'), options
+    content = formatContent @props.message.get 'body'
 
     return \
       <article
