@@ -42,7 +42,6 @@ module.exports = class SidebarMessagesSection extends React.Component
         threads={@props.threads}
         onThresholdAction='loadFollowedPrivateChannels'
         searchProp='purpose'
-        sidebarModalChannels={@props.sidebarModalChannels}
         itemComponent={PrivateChannelListItem}/>
     </Modal>
 

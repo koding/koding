@@ -37,7 +37,6 @@ module.exports = class SidebarChannelsSection extends React.Component
       <SidebarModalList
         title={title}
         searchProp='name'
-        sidebarModalChannels={@props.sidebarModalChannels}
         threads={@props.threads}
         onThresholdAction='loadFollowedPublicChannels'
         itemComponent={PublicChannelListItem}/>
