@@ -1,15 +1,16 @@
-kd = require 'kd'
-KDCustomScrollView = kd.CustomScrollView
-KDViewController = kd.ViewController
-showError = require 'app/util/showError'
-nick = require 'app/util/nick'
-isGuest = require 'app/util/isGuest'
-Machine = require 'app/providers/machine'
-FSHelper = require 'app/util/fs/fshelper'
+kd                           = require 'kd'
+KDViewController             = kd.ViewController
+KDCustomScrollView           = kd.CustomScrollView
+
+nick                         = require 'app/util/nick'
+isGuest                      = require 'app/util/isGuest'
+Machine                      = require 'app/providers/machine'
+FSHelper                     = require 'app/util/fs/fshelper'
+showError                    = require 'app/util/showError'
+
+NFinderItem                  = require '../itemviews/nfinderitem'
+NFinderTreeController        = require './nfindertreecontroller'
 NFinderContextMenuController = require './nfindercontextmenucontroller'
-NFinderItem = require '../itemviews/nfinderitem'
-NFinderTreeController = require './nfindertreecontroller'
-NoMachinesFoundWidget = require '../itemviews/nomachinesfoundwidget'
 
 
 module.exports = class NFinderController extends KDViewController
@@ -61,8 +62,6 @@ module.exports = class NFinderController extends KDViewController
           @unsetRecentFolder path
           @stopWatching path
 
-
-    @noMachineFoundWidget = new NoMachinesFoundWidget
     @cleanup()
 
     if options.bindMachineEvents
@@ -83,7 +82,6 @@ module.exports = class NFinderController extends KDViewController
   loadView: (mainView) ->
 
     mainView.wrapper.addSubView @treeController.getView()
-    mainView.wrapper.addSubView @noMachineFoundWidget
 
     if @getOption 'loadFilesOnInit' then do @reset
 
@@ -107,9 +105,7 @@ module.exports = class NFinderController extends KDViewController
     computeController.fetchMachines (err, machines)=>
 
       unless showError err
-        if machines.length > 0
-        then @mountMachines machines
-        else @noMachineFoundWidget.show()
+        @mountMachines machines  if machines.length > 0
 
 
   mountMachine: (machine, options = {}) ->
@@ -138,8 +134,6 @@ module.exports = class NFinderController extends KDViewController
       machine        : machine
       treeController : @treeController
       parentPath     : 0
-
-    @noMachineFoundWidget.hide()
 
     machineItem = @treeController.addNode @machines.last
 
@@ -176,9 +170,6 @@ module.exports = class NFinderController extends KDViewController
     @treeController.removeNodeView machineItem
     @machines = @machines.filter (vmData)-> vmData isnt machineItem.data
 
-    if @machines.length is 0
-      @noMachineFoundWidget.show()
-      @emit 'EnvironmentsTabRequested'
 
   updateMachineRoot:(uid, path, callback)->
 
