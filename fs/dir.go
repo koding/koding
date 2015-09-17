@@ -36,12 +36,15 @@ type Dir struct {
 
 	////// Node#RWLock protects the fields below.
 
-	// Entries contains list of files and directories that belong to this Node.
-	// This list of empty if Node is a file.
+	// Entries contains list of files and directories that belong to this
+	// directory. Note even if an entry is deleted, it'll still be in this list
+	// however the deleted entry's type will be set to `fuseutil.DT_Unknown` so
+	// requests to return entries can be filtered. This is done so we don't lose
+	// offset positions.
 	Entries []fuseutil.Dirent
 
-	// EntriesList contains list of files and directories that belong to this Node
-	// mapped by entry name for easy lookup. This list of empty if Node is a file.
+	// EntriesList contains list of files and directories that belong to this
+	// directory mapped by entry name for easy lookup.
 	EntriesList map[string]Node
 }
 
@@ -53,6 +56,8 @@ func NewDir(n *Inode, idGen *NodeIDGen) *Dir {
 		EntriesList: map[string]Node{},
 	}
 }
+
+///// Directory operations
 
 func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
 	d.RLock()
@@ -66,10 +71,12 @@ func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
 		entries = d.Entries
 	}
 
+	// return err if offset is greather than list of entries
 	if offset > fuseops.DirOffset(len(entries)) {
 		return nil, fuse.EIO
 	}
 
+	// filter by entries who's type is not to set fuse.DT_Unknown
 	var liveEntries []fuseutil.Dirent
 	for _, e := range entries[offset:] {
 		if e.Type != fuseutil.DT_Unknown {
@@ -78,24 +85,6 @@ func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
 	}
 
 	return liveEntries, nil
-}
-
-func (d *Dir) FindEntry(name string) (Node, error) {
-	return d.findEntry(name)
-}
-
-func (d *Dir) FindEntryFile(name string) (*File, error) {
-	n, err := d.findEntry(name)
-	if err != nil {
-		return nil, err
-	}
-
-	f, ok := n.(*File)
-	if !ok {
-		return nil, ErrNotAFile
-	}
-
-	return f, nil
 }
 
 func (d *Dir) FindEntryDir(name string) (*Dir, error) {
@@ -140,14 +129,26 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, err
 	}
 
-	dir, ok := child.(*Dir)
-	if !ok {
-		return nil, ErrNotADir
-	}
-
+	dir, _ := child.(*Dir)
 	dir.Attrs.Mode = mode
 
 	return dir, nil
+}
+
+///// File operations
+
+func (d *Dir) FindEntryFile(name string) (*File, error) {
+	n, err := d.findEntry(name)
+	if err != nil {
+		return nil, err
+	}
+
+	f, ok := n.(*File)
+	if !ok {
+		return nil, ErrNotAFile
+	}
+
+	return f, nil
 }
 
 func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
@@ -166,11 +167,7 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 		return nil, err
 	}
 
-	file, ok := child.(*File)
-	if !ok {
-		return nil, ErrNotAFile
-	}
-
+	file, _ := child.(*File)
 	file.Attrs.Mode = mode
 
 	if err := file.Create(); err != nil {
@@ -180,14 +177,20 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 	return file, nil
 }
 
-func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) error {
+///// File and Directory operations
+
+func (d *Dir) FindEntry(name string) (Node, error) {
+	return d.findEntry(name)
+}
+
+func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 	child, err := d.findEntry(oldName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := d.removeChild(oldName); err != nil {
-		return err
+		return nil, err
 	}
 
 	req := struct{ OldPath, NewPath string }{
@@ -197,7 +200,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) error {
 	var res bool
 
 	if err := d.Trip("fs.rename", req, res); err != nil {
-		return err
+		return nil, err
 	}
 
 	e := &entry{
@@ -206,9 +209,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) error {
 		Mode: child.GetAttrs().Mode,
 	}
 
-	_, err = newDir.initializeChild(e)
-
-	return err
+	return newDir.initializeChild(e)
 }
 
 func (d *Dir) RemoveEntry(name string) (Node, error) {
@@ -236,12 +237,10 @@ func (d *Dir) RemoveEntry(name string) (Node, error) {
 	return entry, nil
 }
 
+///// Node interface
+
 func (d *Dir) GetType() fuseutil.DirentType {
 	return fuseutil.DT_Directory
-}
-
-func (d *Dir) IsADir() bool {
-	return true
 }
 
 ///// Helpers
