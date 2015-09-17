@@ -14,8 +14,8 @@ import (
 )
 
 func TestKodingNetworkFS(tt *testing.T) {
-	Convey("", tt, func() {
-		Convey("It should implement all fuse.FileSystem methods", func() {
+	Convey("fuse.FileSystem", tt, func() {
+		Convey("It should implement all interface methods", func() {
 			var _ fuseutil.FileSystem = (*KodingNetworkFS)(nil)
 		})
 
@@ -33,15 +33,22 @@ func TestKodingNetworkFS(tt *testing.T) {
 			So(_unmount(k), ShouldBeNil)
 		})
 	})
-}
 
-func TestFolder(tt *testing.T) {
 	Convey("Given mounted folder", tt, func() {
 		t := &fakeTransport{
 			TripResponses: map[string]interface{}{
-				"fs.readDirectory":   transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{}},
 				"fs.createDirectory": true,
 				"fs.rename":          true,
+				"fs.writeFile":       true,
+				"fs.readDirectory": transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{
+					transport.FsGetInfoRes{
+						Exists:   true,
+						FullPath: "/remote/file",
+						IsDir:    false,
+						Mode:     os.FileMode(0700),
+						Name:     "file",
+					},
+				}},
 			},
 		}
 
@@ -116,41 +123,6 @@ func TestFolder(tt *testing.T) {
 			})
 		})
 
-		defer _unmount(k)
-	})
-}
-
-func newknfs(t transport.Transport) *KodingNetworkFS {
-	mountFolder, err := ioutil.TempDir("", "mounttest")
-	if err != nil {
-		panic(err)
-	}
-
-	c := &config.FuseConfig{LocalPath: mountFolder}
-	return NewKodingNetworkFS(t, c)
-}
-
-func TestFile(tt *testing.T) {
-	Convey("Given mounted folder", tt, func() {
-		t := &fakeTransport{
-			TripResponses: map[string]interface{}{
-				"fs.readDirectory": transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{
-					transport.FsGetInfoRes{
-						Exists:   true,
-						FullPath: "/remote/file",
-						IsDir:    false,
-						Mode:     os.FileMode(0700),
-						Name:     "file",
-					},
-				}},
-			},
-		}
-
-		k := newknfs(t)
-
-		_, err := k.Mount()
-		So(err, ShouldBeNil)
-
 		Convey("It should return err when trying to open nonexistent file", func() {
 			fileName := path.Join(k.MountPath, "nonexistent")
 			_, err := os.OpenFile(fileName, os.O_WRONLY, 0400)
@@ -182,4 +154,14 @@ func _unmount(k *KodingNetworkFS) error {
 	}
 
 	return os.RemoveAll(oldPath)
+}
+
+func newknfs(t transport.Transport) *KodingNetworkFS {
+	mountFolder, err := ioutil.TempDir("", "mounttest")
+	if err != nil {
+		panic(err)
+	}
+
+	c := &config.FuseConfig{LocalPath: mountFolder}
+	return NewKodingNetworkFS(t, c)
 }

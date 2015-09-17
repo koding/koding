@@ -8,13 +8,17 @@ import (
 )
 
 func TestNodeIDGen(t *testing.T) {
-	Convey("It should initialize with last id set to root id", t, func() {
-		i := NewNodeIDGen()
-		So(i.LastID, ShouldEqual, fuseops.RootInodeID)
+	Convey("NewNodeIDGen", t, func() {
+		Convey("It should initialize with last id set to root id", func() {
+			i := NewNodeIDGen()
+			So(i.LastID, ShouldEqual, fuseops.RootInodeID)
+		})
 	})
 
-	Convey("It should initialize with last id set to root id", t, func() {
-		i := NewNodeIDGen()
-		So(i.Next(), ShouldEqual, 2)
+	Convey("NodeIDGen#Next", t, func() {
+		Convey("It should generate new unique id", func() {
+			i := NewNodeIDGen()
+			So(i.Next(), ShouldEqual, 2)
+		})
 	})
 }

@@ -7,15 +7,16 @@ import (
 	"syscall"
 
 	"github.com/koding/fuseklient/auth"
+	"github.com/koding/fuseklient/config"
+	"github.com/koding/fuseklient/fs"
 	"github.com/koding/fuseklient/lock"
 	"github.com/koding/fuseklient/transport"
 	"github.com/koding/fuseklient/unmount"
-	"github.com/koding/fuseklient/vmfs"
 	"github.com/koding/multiconfig"
 )
 
 func main() {
-	conf := new(FuseConfig)
+	conf := new(config.FuseConfig)
 	multiconfig.New().MustLoad(conf)
 
 	// TODO: Remove when bundling fuseklient with klient.
@@ -26,13 +27,6 @@ func main() {
 	t, err := transport.NewKlientTransport(conf.IP)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	f := &vmfs.FileSystem{
-		Transport:  t,
-		RemotePath: conf.RemotePath,
-		LocalPath:  conf.LocalPath,
-		MountName:  conf.MountName,
 	}
 
 	// create mount point if it doesn't exist
@@ -54,8 +48,10 @@ func main() {
 		unmount.Unmount(conf.LocalPath)
 	}()
 
+	f := fs.NewKodingNetworkFS(t, conf)
+
 	// blocking
-	if err := f.Mount(); err != nil {
+	if err := f.Join(); err != nil {
 		log.Fatal(err)
 	}
 }

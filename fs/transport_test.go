@@ -30,16 +30,16 @@ func (f *fakeTransport) Trip(methodName string, req interface{}, res interface{}
 }
 
 func TestFakeTransport(t *testing.T) {
-	Convey("Given fake transport", t, func() {
+	Convey("fakeTransport", t, func() {
 		ft := &fakeTransport{
 			TripResponses: map[string]interface{}{"indiana": struct{ Name string }{"jones"}},
 		}
 
-		Convey("It implements Transport", func() {
+		Convey("It should implement Transport interface", func() {
 			var _ transport.Transport = (*fakeTransport)(nil)
 		})
 
-		Convey("It should return unmarshal mock into response for method", func() {
+		Convey("It should return unmarshal mock into response for Trip", func() {
 			res := struct{ Name string }{}
 
 			So(ft.Trip("indiana", "", &res), ShouldBeNil)

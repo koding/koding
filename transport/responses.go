@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"os"
+	"time"
 )
 
 type FsReadDirectoryRes struct {
@@ -18,8 +19,8 @@ type FsGetInfoRes struct {
 	Mode     os.FileMode `json:"mode"`
 	Name     string      `json:"name"`
 	Readable bool        `json:"readable"`
-	Size     int         `json:"size"`
-	Time     string      `json:"time"`
+	Size     uint64      `json:"size"`
+	Time     time.Time   `json:"time"`
 	Writable bool        `json:"writable"`
 }
 

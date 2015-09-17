@@ -1,6 +1,6 @@
 # fuseklient
 
-Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). Currently for OSX only.
+Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). Currently for OSX only. This is an in progress beta version. See https://github.com/koding/fuseklient/tree/alphabranch for alpha release.
 
 ## WARNING
 
@@ -55,24 +55,39 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
         klient authentication
         write operations
     * BETA
+        move to new fuse library
         klient running on OSX
-        integrate fuseklient into klient
-          `klient mount --vm`
+        klient auth
+          ask kontrol for token
+        kd mount (klient.mount method) - mount in goroutine in klient
+          kd unmount
+        kd install - dl os specific library
+          use os specific init daemon to run binary
         invalidate local cache on file changes in user VM
-        kd ... - run entire command on VM, return results
-          shell hooks: fish, bash
-    * 1.0
         klient ps - return list of user VMs to mount
-        lock resources in VM on open or write operations
+        deal with klient crashes
+          unmount folders if it exists before starting
+          handle mounting onto to previously mounted folder
+    * 1.0
+        kd run - run entire command on VM, return results
+          shell hooks: fish, bash
         remaining FUSE operations
+          lock resources in VM on open or write operations
+        klient running on local with tunnel
+        streaming support for kd run
+        windows support
 
 ## Tests:
 
       go test ./..
 
+## Debug:
+
+    Pass `--debug=true` args to turn on application specific logs or `--fusedebug=true` to turn on library specific logs.
+
 ## Releases:
 
-  Latest and previous releases are available at: https://github.com/koding/fuseklient/releases to your local.
+  Latest and previous releases are available at: https://github.com/koding/fuseklient/releases.
 
   For new releases:
 
@@ -86,6 +101,8 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
 
   * Use fullpath in arguments, without ~.
   * Mounting on an existing folder won't overwrite contents, but they won't be visible while Fuse is running.
+  * Use `tar -cvf fuseklient_OSX.tar fuseklient Readme.md` and upload to Github releases for distribution.
   * If you get `Device not configured` when trying to access mount when daemon is not running: do `diskutil unmount force <folder>`.
   * If you get `mount point <folder> is itself on a OSXFUSE volume`, do `diskutil unmount force <folder>`.
   * Not tested on Linux yet, will be supported by 1.0.
+  * See https://github.com/jacobsa/fuse for more information.

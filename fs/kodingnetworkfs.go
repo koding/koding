@@ -47,7 +47,7 @@ type KodingNetworkFS struct {
 
 	// liveNodes is (1 indexed) collection of inodes in use by Kernel. The Node
 	// at index 1 is the root Node.
-	liveNodes map[fuseops.InodeID]*Node
+	liveNodes map[fuseops.InodeID]Node
 }
 
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
@@ -82,22 +82,27 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 
 	idGen := NewNodeIDGen()
 
-	rootNode := NewNode(t, idGen)
-	rootNode.Name = path.Base(c.RemotePath)
-	rootNode.RemotePath = c.RemotePath
-	rootNode.LocalPath = c.LocalPath
-	rootNode.EntryType = fuseutil.DT_Directory
+	rootInode := NewRootInode(t, c.RemotePath, c.LocalPath)
+	rootInode.Name = path.Base(c.RemotePath)
+	rootInode.RemotePath = c.RemotePath
+	rootInode.LocalPath = c.LocalPath
 
 	// TODO: get uid and gid for current process and use that
-	rootNode.Attrs = fuseops.InodeAttributes{
+	rootInode.Attrs = fuseops.InodeAttributes{
 		Uid: 501, Gid: 20, Mode: 0700 | os.ModeDir, Size: 10,
+	}
+
+	rootDir := NewDir(rootInode, idGen)
+	err := rootDir.updateEntriesFromRemote()
+	if err != nil {
+		panic(err.Error())
 	}
 
 	return &KodingNetworkFS{
 		MountConfig: mountConfig,
 		MountPath:   c.LocalPath,
 		RWMutex:     sync.RWMutex{},
-		liveNodes:   map[fuseops.InodeID]*Node{fuseops.RootInodeID: rootNode},
+		liveNodes:   map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir},
 	}
 }
 
@@ -134,46 +139,42 @@ func (k *KodingNetworkFS) Unmount() error {
 func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
 	// defer debug(time.Now(), "ID=%d", op.Inode)
 
-	node, ok := k.liveNodes[op.Inode]
-	if !ok {
+	node, err := k.getNode(op.Inode)
+	if err != nil {
 		return fuse.ENOENT
 	}
 
-	op.Attributes = node.Attrs
+	op.Attributes = node.GetAttrs()
 
 	return nil
 }
 
 // LookUpInode finds node in context of specific parent Node and sets
-// attributes. It assumes parnet node has already been seen, if not it returns
+// attributes. It assumes parent node has already been seen, if not it returns
 // `fuse.ENOENT`.
 //
 // TODO: Check if this is called once for each parent in case of nested lookups.
 //
 // Required by Fuse.
 func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
-	// defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
+	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
 
-	parent, ok := k.liveNodes[op.Parent]
-	if !ok {
-		return fuse.ENOENT
-	}
-
-	child, err := parent.FindChild(op.Name)
+	dir, err := k.getDirNode(op.Parent)
 	if err != nil {
-		if err == ErrNodeNotFound {
-			return fuse.ENOENT
-		}
-
 		return err
 	}
 
-	k.liveNodes[child.ID] = child
+	entry, err := dir.FindEntry(op.Name)
+	if err != nil {
+		return err
+	}
 
-	op.Entry.Child = child.ID
-	op.Entry.Attributes = child.Attrs
+	k.setNode(entry.GetID(), entry)
 
-	return err
+	op.Entry.Child = entry.GetID()
+	op.Entry.Attributes = entry.GetAttrs()
+
+	return nil
 }
 
 ///// Directory Operations
@@ -184,8 +185,8 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
 	defer debug(time.Now(), "ID=%d, HandleID=%d", op.Inode, op.Handle)
 
-	if _, err := k.getNode(op.Inode); err != nil {
-		return fuse.ENOENT
+	if _, err := k.getDirNode(op.Inode); err != nil {
+		return err
 	}
 
 	return nil
@@ -198,25 +199,19 @@ func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) er
 func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
 	defer debug(time.Now(), "ID=%d Offset=%d", op.Inode, op.Offset)
 
-	node, err := k.getNode(op.Inode)
+	dir, err := k.getDirNode(op.Inode)
 	if err != nil {
 		return fuse.ENOENT
 	}
 
-	entries, err := node.ReadDir()
+	entries, err := dir.ReadEntries(op.Offset)
 	if err != nil {
 		return err
 	}
 
-	if op.Offset > fuseops.DirOffset(len(entries)) {
-		return fuse.EIO
-	}
-
 	var bytesRead int
-
-	entries = entries[op.Offset:]
-	for _, ent := range entries {
-		c := fuseutil.WriteDirent(op.Dst[bytesRead:], ent)
+	for _, e := range entries {
+		c := fuseutil.WriteDirent(op.Dst[bytesRead:], e)
 		if c == 0 {
 			break
 		}
@@ -236,24 +231,24 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
 
-	parent, err := k.getNode(op.Parent)
+	dir, err := k.getDirNode(op.Parent)
 	if err != nil {
 		return fuse.ENOENT
 	}
 
-	if _, err := parent.FindChild(op.Name); err != ErrNodeNotFound {
+	if _, err := dir.FindEntry(op.Name); err != fuse.ENOENT {
 		return fuse.EEXIST
 	}
 
-	newFolder, err := parent.Mkdir(op.Name, op.Mode)
+	newDir, err := dir.CreateEntryDir(op.Name, op.Mode)
 	if err != nil {
 		return err
 	}
 
-	k.liveNodes[newFolder.ID] = newFolder
+	k.setNode(newDir.GetID(), newDir)
 
-	op.Entry.Child = newFolder.ID
-	op.Entry.Attributes = newFolder.Attrs
+	op.Entry.Child = newDir.GetID()
+	op.Entry.Attributes = newDir.GetAttrs()
 
 	return nil
 }
@@ -261,12 +256,33 @@ func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error 
 func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	defer debug(time.Now(), "Old=%v,%s New=%v,%s", op.OldParent, op.OldName, op.NewParent, op.NewName)
 
-	parent, err := k.getNode(op.OldParent)
+	dir, err := k.getDirNode(op.OldParent)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
-	return parent.Rename(op.OldName, op.NewName)
+	newDir, err := k.getDirNode(op.NewParent)
+	if err != nil {
+		return err
+	}
+
+	return dir.MoveEntry(op.OldName, op.NewName, newDir)
+}
+
+func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
+	dir, err := k.getDirNode(op.Parent)
+	if err != nil {
+		return err
+	}
+
+	entry, err := dir.RemoveEntry(op.Name)
+	if err != nil {
+		return err
+	}
+
+	k.deleteNode(entry.GetID())
+
+	return err
 }
 
 ///// File Operations
@@ -278,10 +294,12 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
 
-	_, err := k.getNode(op.Inode)
+	file, err := k.getFileNode(op.Inode)
 	if err != nil {
 		return fuse.ENOENT
 	}
+
+	file.Open()
 
 	// KeepPageCache tells Kernel to cache this file contents or not. Say an user
 	// opens a file on their local and then changes that same file on the VM, by
@@ -296,57 +314,53 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 //
 // Required by Fuse.
 func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
-	defer debug(time.Now(), "ID=%v Offset=%s", op.Inode, op.Offset)
+	defer debug(time.Now(), "ID=%v Offset=%v", op.Inode, op.Offset)
 
-	fileNode, err := k.getNode(op.Inode)
+	file, err := k.getFileNode(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
-	op.BytesRead, err = fileNode.ReadAt(op.Dst, op.Offset)
+	bytes, err := file.ReadAt(op.Offset)
+	if err != nil {
+		return err
+	}
 
-	return err
+	op.BytesRead = copy(op.Dst[op.Offset:], bytes)
+
+	return nil
 }
 
 func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
 	defer debug(time.Now(), "ID=%v DataLen=%v Offset=%v", op.Inode, len(op.Data), op.Offset)
 
-	fileNode, err := k.getNode(op.Inode)
+	file, err := k.getFileNode(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
-	_, err = fileNode.WriteAt(op.Data, op.Offset)
+	file.WriteAt(op.Data, op.Offset)
 
-	return err
+	return nil
 }
 
 func (k *KodingNetworkFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
 	defer debug(time.Now(), "Parent=%v Name=%s Mode=%s", op.Parent, op.Name, op.Mode)
 
-	dirNode, err := k.getNode(op.Parent)
-	if err != nil {
-		return fuse.ENOENT
-	}
-
-	if _, err := dirNode.FindChild(op.Name); err != ErrNodeNotFound {
-		return fuse.EEXIST
-	}
-
-	fileNode, err := k.initializeChildNode(dirNode, op.Name)
+	dir, err := k.getDirNode(op.Parent)
 	if err != nil {
 		return err
 	}
 
-	fileNode.EntryType = fuseutil.DT_File
-	fileNode.Attrs.Mode = op.Mode
-
-	if err := fileNode.CreateFile(); err != nil {
-		return ErrDefault
+	file, err := dir.CreateEntryFile(op.Name, op.Mode)
+	if err != nil {
+		return err
 	}
 
-	op.Entry.Child = fileNode.ID
-	op.Entry.Attributes = fileNode.Attrs
+	k.setNode(file.GetID(), file)
+
+	op.Entry.Child = file.GetID()
+	op.Entry.Attributes = file.GetAttrs()
 
 	return nil
 }
@@ -356,31 +370,35 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 
 	node, err := k.getNode(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
+	attrs := node.GetAttrs()
+
 	if op.Mode != nil {
-		node.Attrs.Mode = *op.Mode
+		attrs.Mode = *op.Mode
 	}
 
 	if op.Atime != nil {
-		node.Attrs.Atime = *op.Atime
+		attrs.Atime = *op.Atime
 	}
 
 	if op.Mtime != nil {
-		node.Attrs.Mtime = *op.Mtime
+		attrs.Mtime = *op.Mtime
 	}
 
 	if op.Size != nil {
-		node.Attrs.Size = *op.Size
+		attrs.Size = *op.Size
 
 		if *op.Size == 0 {
-			_, err := node.WriteAt([]byte{}, 0)
-			return err
+			if file, ok := node.(*File); ok {
+				file.WriteAt([]byte{}, 0)
+			}
 		}
 	}
 
-	op.Attributes = node.Attrs
+	node.SetAttrs(attrs)
+	op.Attributes = attrs
 
 	return nil
 }
@@ -388,72 +406,85 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
 
-	fileNode, err := k.getNode(op.Inode)
+	file, err := k.getFileNode(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
-	err = fileNode.Flush()
-	return err
+	return file.Flush()
 }
 
 func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
 
-	fileNode, err := k.getNode(op.Inode)
+	file, err := k.getFileNode(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
-	err = fileNode.Flush()
-	return err
+	return file.Sync()
 }
 
 func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 	defer debug(time.Now(), "Parent=%v Name=%s", op.Parent, op.Name)
 
-	parentDir, err := k.getNode(op.Parent)
+	dir, err := k.getDirNode(op.Parent)
 	if err != nil {
-		return fuse.ENOENT
-	}
-
-	child, err := parentDir.FindChild(op.Name)
-	if err != nil {
-		if err == ErrNodeNotFound {
-			return fuse.ENOENT
-		}
-
 		return err
 	}
 
-	if err = child.Delete(); err != nil {
+	entry, err := dir.RemoveEntry(op.Name)
+	if err != nil {
 		return err
 	}
 
-	delete(k.liveNodes, child.ID)
+	k.deleteNode(entry.GetID())
 
 	return nil
 }
 
-///// Helpers
+// ///// Helpers
+
+func (k *KodingNetworkFS) getDirNode(id fuseops.InodeID) (*Dir, error) {
+	node, err := k.getNode(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if node.GetType() != fuseutil.DT_Directory {
+		return nil, fuse.EIO
+	}
+
+	return node.(*Dir), nil
+}
+
+func (k *KodingNetworkFS) getFileNode(id fuseops.InodeID) (*File, error) {
+	node, err := k.getNode(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if node.GetType() != fuseutil.DT_File {
+		return nil, fuse.EIO
+	}
+
+	return node.(*File), nil
+}
 
 // getNode gets Node from KodingNetworkFS#EntriesList.
-func (k *KodingNetworkFS) getNode(nodeId fuseops.InodeID) (*Node, error) {
-	node, ok := k.liveNodes[nodeId]
+func (k *KodingNetworkFS) getNode(id fuseops.InodeID) (Node, error) {
+	node, ok := k.liveNodes[id]
 	if !ok {
-		return nil, ErrNodeNotFound
+		return nil, fuse.ENOENT
 	}
 
 	return node, nil
 }
 
-// initializeChildNode creates new Node in context of parent and adds it to
-// KodingNetworkFS#liveNodes.
-func (k *KodingNetworkFS) initializeChildNode(p *Node, name string) (*Node, error) {
-	nextID := p.NodeIDGen.Next()
-	c := p.InitializeChildNode(name, nextID)
+func (k *KodingNetworkFS) setNode(id fuseops.InodeID, entry Node) {
+	k.liveNodes[id] = entry
+}
 
-	k.liveNodes[c.ID] = c
-
-	return c, nil
+func (k *KodingNetworkFS) deleteNode(id fuseops.InodeID) {
+	delete(k.liveNodes, id)
 }
