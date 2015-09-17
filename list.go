@@ -44,10 +44,11 @@ func (c *ListCommand) Run(_ []string) int {
 	var infos []kiteInfo
 	res.Unmarshal(&infos)
 
-	w := tabwriter.NewWriter(os.Stdout, 2, 0, 1, ' ', 0)
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	fmt.Fprintf(w, "\tMACHINE IP\tHOSTNAME\n")
 	for i, info := range infos {
 		// TODO: UX: Decide how this should be presented to the user
-		fmt.Fprintf(w, "  %d.\t%s\t[%s]\n", i+1, info.Ip, info.Hostname)
+		fmt.Fprintf(w, "  %d.\t%s\t%s\n", i+1, info.Ip, info.Hostname)
 	}
 	w.Flush()
 
