@@ -477,9 +477,9 @@ module.exports = class ComputeController extends KDController
       destroy machine
 
 
-  reinit: (machine, snapshotId)->
+  reinit: (machine, snapshotId) ->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy(machine) or machine.provider is 'aws'
 
     startReinit = =>
 
