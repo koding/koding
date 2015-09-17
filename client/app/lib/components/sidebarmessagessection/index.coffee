@@ -64,6 +64,7 @@ module.exports = class SidebarMessagesSection extends React.Component
         <SidebarList
           previewCount={@props.previewCount}
           itemComponent={SidebarMessagesListItem}
+          componentProp='SidebarMessagesListItem'
           threads={@props.threads}
           selectedId={@props.selectedId} />
           {@renderMoreLink()}
