@@ -13,8 +13,12 @@ module.exports = class MessageBody extends React.Component
 
   contentDidMount: (content) ->
 
-    contentElement = React.findDOMNode content
+    @content       = content
+    contentElement = React.findDOMNode @content
     emojify.run contentElement  if contentElement
+
+
+  componentDidUpdate: -> @contentDidMount(@content)
 
 
   render: ->
