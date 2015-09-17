@@ -111,7 +111,8 @@ module.exports = class ChatInputWidget extends React.Component
       break
 
     unless isDropboxEnter
-      @props.onSubmit? { value: @state.value }
+      value = @state.value.trim()
+      @props.onSubmit? { value }
       @setState { value: '' }
 
 

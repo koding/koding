@@ -134,7 +134,7 @@ selectedChannelThread = [
       messages.map (msg) ->
         msg.update 'body', (body) ->
           # don't show channel name on post body.
-          body.replace ///\##{channel.get('name')}///, ''
+          body.replace(///\##{channel.get('name')}///, '').trim()
     return thread.set 'channel', channel
 ]
 
