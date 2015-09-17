@@ -17,7 +17,6 @@ ActivitySideView                = require './activitysideview'
 KDCustomHTMLView                = kd.CustomHTMLView
 SidebarTopicItem                = require './sidebartopicitem'
 isFeatureEnabled                = require 'app/util/isFeatureEnabled'
-EnvironmentsModal               = require 'app/environment/environmentsmodal'
 fetchChatChannels               = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem               = require './sidebarpinneditem'
 KDNotificationView              = kd.NotificationView
@@ -105,7 +104,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
       .on 'StacksNotConfigured',       @bound 'addStacksNotConfiguredWarning'
-      .on 'StacksInconsistent',        @bound 'addStacksModifiedWarning'
 
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
@@ -567,21 +565,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   # showStacksNotConfiguredModal: (type) ->
 
   #   new SidebarStacksNotConfiguredPopup
-
-
-  addStacksModifiedWarning: ->
-
-    return  if isKoding()
-    return  @stacksModifiedWarning.show()  if @stacksModifiedWarning?
-
-    @stacksModifiedWarning = new KDCustomHTMLView
-      cssClass : 'stack-warning'
-      partial  : "You have different resources in your stacks.
-                  <a href=#>Click here</a> to re-initialize existing stacks."
-      click    : -> new EnvironmentsModal
-
-    @machinesWrapper.addSubView \
-      @stacksModifiedWarning, null, shouldPrepend = yes
 
 
   addMachineList: (expandedBoxUIds) ->

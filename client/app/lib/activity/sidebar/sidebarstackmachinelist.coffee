@@ -2,6 +2,7 @@ kd = require 'kd'
 
 curryIn = require 'app/util/curryIn'
 
+EnvironmentsModal     = require 'app/environment/environmentsmodal'
 SidebarOwnMachineList = require './sidebarownmachineslist'
 
 
@@ -22,7 +23,11 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
 
     { computeController } = kd.singletons
 
-    computeController.on 'StackRevisionChecked', @bound 'onStackRevisionChecked'
+    computeController.checkStackRevisions()
+
+    computeController
+      .on 'StackRevisionChecked', @bound 'onStackRevisionChecked'
+      .on 'StacksInconsistent',   @bound 'addStackModifiedWarning'
 
 
   onStackRevisionChecked: (stack) ->
@@ -35,3 +40,24 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
 
     if not _revisionStatus?.error? and { status } = _revisionStatus
       @unreadCount.show()  if status?.code > 0
+
+
+  createHeader: ->
+
+    super
+
+    @addSubView @warningWrapper = new kd.CustomHTMLView
+
+
+  addStackModifiedWarning: (stack) ->
+
+    return  if stack.getId() isnt @getOption('stack').getId()
+    return  @stackModifiedWarning.show()  if @stackModifiedWarning?
+
+    @stackModifiedWarning = new kd.CustomHTMLView
+      cssClass : 'stack-warning'
+      partial  : "You have different resources in your stack.
+                  <a href=#>Click here</a> to re-initialize this stack."
+      click    : -> new EnvironmentsModal
+
+    @warningWrapper.addSubView @stackModifiedWarning
