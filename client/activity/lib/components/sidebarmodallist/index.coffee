@@ -23,7 +23,7 @@ module.exports = class SidebarModalList extends React.Component
 
     @state =
       value             : ''
-      noResultText      : no
+      showNoResultText  : no
       isSearching       : no
       threads           : @props.threads
 
@@ -48,7 +48,7 @@ module.exports = class SidebarModalList extends React.Component
 
     threads = @props.threads
     @setState threads: threads
-    @setState noResultText: no  if threads.size
+    @setState showNoResultText: no  if threads.size
 
 
   filter: kd.utils.debounce 800, ->
@@ -63,7 +63,9 @@ module.exports = class SidebarModalList extends React.Component
       searchProp = thread.getIn(['channel', @props.searchProp]).toLowerCase()
       return yes  if searchProp.indexOf(value) > -1
 
-    @setState { threads : threads, noResultText : threads.size is 0}
+    @setState
+      threads : threads,
+      showNoResultText : threads.size is 0
 
     kd.utils.wait 1000, =>
       @setState isSearching: no
@@ -107,7 +109,7 @@ module.exports = class SidebarModalList extends React.Component
 
   getNoResultClassNames: -> classnames
     'ChannelList-emptySearch': yes
-    'hidden' : not @state.noResultText
+    'hidden' : not @state.showNoResultText
 
 
   renderChildren: ->
