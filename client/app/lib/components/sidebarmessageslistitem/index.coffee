@@ -22,6 +22,8 @@ module.exports = class SidebarMessagesListItem extends React.Component
 helper =
   prepareThreadTitle: (thread) ->
 
+    return  unless thread
+
     channel = thread.get 'channel'
     purpose = channel.get 'purpose'
 

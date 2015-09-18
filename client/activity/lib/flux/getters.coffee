@@ -144,9 +144,11 @@ followedPublicChannelThreads = [
   channelThreads
   followedPublicChannels
   (threads, channels) ->
-    channels.map (channel) ->
-      thread = threads.get channel.get('id')
-      return thread.set 'channel', channel
+    channels
+      .sortBy (channel) -> channel.get 'createdAt'
+      .map (channel) ->
+        thread = threads.get channel.get('id')
+        return thread.set 'channel', channel
 ]
 
 # Returns followed private channel threads mapped with relevant channel

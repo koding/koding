@@ -16,11 +16,22 @@ module.exports = class SidebarList extends React.Component
 
     { itemComponent: Component, selectedId, threads, previewCount } = @props
 
+    selectedChannelThread = threads.get selectedId
+    listCount = 0
     threads = threads.slice 0, previewCount
+    isSelectedChannelExistInVisibleThreads = threads.get(selectedId)
 
     threads.map (thread) ->
       id = thread.getIn ['channel', 'id']
-      <Component key={id} active={id is selectedId} thread={thread} />
+      if isSelectedChannelExistInVisibleThreads
+        <Component key={id} active={id is selectedId} thread={thread} />
+      else if listCount is 2 and selectedChannelThread
+        listCount++
+        <Component key={selectedId} active=yes thread={selectedChannelThread} />
+      else
+        listCount++
+        <Component key={id} thread={thread} />
+
 
   render: ->
     <div className={classnames 'SidebarList', @props.className}>
