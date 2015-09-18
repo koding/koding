@@ -14,17 +14,15 @@ func main() {
 	kc, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
 	c.Commands = map[string]cli.CommandFactory{
-		"list":  ListCommandFactory(kc),
-		"mount": MountCommandFactory(kc),
+		"list":    ListCommandFactory(kc),
+		"mount":   MountCommandFactory(kc),
+		"unmount": UnmountCommandFactory(kc),
 	}
 
-	_, err = c.Run()
-	if err != nil {
+	if _, err = c.Run(); err != nil {
 		log.Fatal(err)
-		return
 	}
 }

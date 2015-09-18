@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
@@ -10,9 +9,7 @@ import (
 
 func MountCommandFactory(k *kite.Client) cli.CommandFactory {
 	return func() (cli.Command, error) {
-		return &MountCommand{
-			k: k,
-		}, nil
+		return &MountCommand{k: k}, nil
 	}
 }
 
@@ -28,9 +25,7 @@ func (c *MountCommand) Run(args []string) int {
 		return 1
 	}
 
-	err := c.k.Dial()
-	if err != nil {
-		log.Fatal(err)
+	if err := c.k.Dial(); err != nil {
 		return 1
 	}
 
@@ -45,9 +40,7 @@ func (c *MountCommand) Run(args []string) int {
 	}
 
 	// Don't care about the response currently, since there is none.
-	_, err = c.k.Tell("remote.mountFolder", mountRequest)
-	if err != nil {
-		log.Fatal(err)
+	if _, err := c.k.Tell("remote.mountFolder", mountRequest); err != nil {
 		return 1
 	}
 
