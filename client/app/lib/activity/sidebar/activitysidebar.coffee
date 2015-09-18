@@ -17,7 +17,6 @@ ActivitySideView                = require './activitysideview'
 KDCustomHTMLView                = kd.CustomHTMLView
 SidebarTopicItem                = require './sidebartopicitem'
 isFeatureEnabled                = require 'app/util/isFeatureEnabled'
-EnvironmentsModal               = require 'app/environment/environmentsmodal'
 fetchChatChannels               = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem               = require './sidebarpinneditem'
 KDNotificationView              = kd.NotificationView
@@ -29,6 +28,7 @@ isChannelCollaborative          = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList          = require './sidebarownmachineslist'
 environmentDataProvider         = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
+SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
 isReactivityEnabled             = require 'app/util/isReactivityEnabled'
@@ -104,7 +104,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
       .on 'StacksNotConfigured',       @bound 'addStacksNotConfiguredWarning'
-      .on 'StacksInconsistent',        @bound 'addStacksModifiedWarning'
 
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
@@ -568,21 +567,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   #   new SidebarStacksNotConfiguredPopup
 
 
-  addStacksModifiedWarning: ->
-
-    return  if isKoding()
-    return  @stacksModifiedWarning.show()  if @stacksModifiedWarning?
-
-    @stacksModifiedWarning = new KDCustomHTMLView
-      cssClass : 'stack-warning'
-      partial  : "You have different resources in your stacks.
-                  <a href=#>Click here</a> to re-initialize existing stacks."
-      click    : -> new EnvironmentsModal
-
-    @machinesWrapper.addSubView \
-      @stacksModifiedWarning, null, shouldPrepend = yes
-
-
   addMachineList: (expandedBoxUIds) ->
 
     @machineLists = []
@@ -593,14 +577,45 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         cssClass: 'machines-wrapper'
 
     if isKoding()
-      @createMachineList 'own'
-      @createMachineList 'shared'
+    then @createDefaultMachineList expandedBoxUIds
+    else @createStackMachineList expandedBoxUIds
+
+
+  createDefaultMachineList: (expandedBoxUIds) ->
+    @createMachineList 'own'
+    @createMachineList 'shared'
 
     if environmentDataProvider.hasData()
       @addMachines_ environmentDataProvider.get(), expandedBoxUIds
     else
       environmentDataProvider.fetch (data) =>
         @addMachines_ data, expandedBoxUIds
+
+
+  createStackMachineList: do (inProgress = no) -> (expandedBoxUIds) ->
+
+    return  if inProgress
+
+    inProgress = yes
+
+    { computeController } = kd.singletons
+
+    computeController.ready =>
+
+      computeController.stacks.forEach (stack) =>
+
+        { title } = stack
+
+        environmentMap = {}
+
+        for node in environmentDataProvider.getMyMachines()
+          environmentMap[node.machine._id] = node
+
+        stackEnvironment = stack.machines.map (machine) ->
+          environmentMap[machine._id]
+
+        @createMachineList 'stack', { title, stack }, stackEnvironment
+        inProgress = no
 
 
   redrawMachineList: ->
@@ -659,6 +674,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     MachineListClasses =
       own              : SidebarOwnMachinesList
       shared           : SidebarSharedMachinesList
+      stack            : SidebarStackMachineList
 
     list = new MachineListClasses[type] options, data
 
