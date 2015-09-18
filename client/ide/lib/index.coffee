@@ -403,6 +403,20 @@ class IDEAppController extends AppController
         @openFile { file, contents }
 
 
+  ###*
+   * Watch given file with options
+   *
+   * @param {Object} options
+   * @param {Function=} callback  is optional parameter
+  ###
+  tailFile: (options, callback = kd.noop) ->
+
+    { file, contents, targetTabView } = options
+
+    @setActiveTabView targetTabView  if targetTabView
+    @activeTabView.emit 'FileNeedsToBeTailed', file, contents, callback
+
+
   openMachineTerminal: (machineData) ->
 
     @activeTabView.emit 'MachineTerminalRequested', machineData
