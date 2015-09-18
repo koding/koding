@@ -70,9 +70,18 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     { group, stackRevision, _revisionStatus, machines, title } = @getData()
 
 
-    @title = new kd.CustomHTMLView
+    @header = new kd.CustomHTMLView
       cssClass : 'stack-info clearfix hidden'
-      partial  : "<div class='title'>#{title}</div>"
+      click    : @lazyBound 'toggleClass', 'collapsed'
+
+    @header.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'arrow'
+
+    @header.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'title'
+      partial  : title
 
     @warningIcon = new kd.CustomHTMLView
       cssClass   : 'warning-icon hidden'
@@ -103,7 +112,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   pistachio: ->
     """
-      {{> @title}}
+      {{> @header}}
       {{> @machinesList}}
       <div class="footer">
         <div class="icons">
