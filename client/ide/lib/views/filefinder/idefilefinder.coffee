@@ -89,6 +89,7 @@ class IDEFileFinder extends KDCustomHTMLView
     @listController.getView().on 'ItemWasAdded', (item) =>
       item.once 'viewAppended', =>
         item.child.on 'FileNeedsToBeOpened', @bound 'openFile'
+        item.child.on 'FileNeedsToBeTailed', @bound 'tailFile'
 
     @content.addSubView @listController.getView()
 
@@ -164,6 +165,18 @@ class IDEFileFinder extends KDCustomHTMLView
       @destroy()
 
       kd.getSingleton('appManager').tell 'IDE', 'openFile', { file, contents }
+
+
+  tailFile: (path) ->
+
+    file = FSHelper.createFileInstance { path, @machine }
+
+    file.fetchContents (err, contents) =>
+      return @showWarning 'An error occurred, please try again.'  if err
+
+      @destroy()
+
+      kd.getSingleton('appManager').tell 'IDE', 'tailFile', { file, contents }
 
 
   showWarning: (text) ->
