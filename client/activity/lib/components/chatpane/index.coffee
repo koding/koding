@@ -1,11 +1,9 @@
 kd              = require 'kd'
 React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
-ChatInputWidget = require 'activity/components/chatinputwidget'
 ActivityFlux    = require 'activity/flux'
 Scroller        = require 'app/components/scroller'
 ScrollerMixin   = require 'app/components/scroller/scrollermixin'
-
 
 
 module.exports = class ChatPane extends React.Component
@@ -15,7 +13,6 @@ module.exports = class ChatPane extends React.Component
     messages      : null
     isDataLoading : no
     onLoadMore    : kd.noop
-    isParticipant : no
     showItemMenu  : yes
 
 
@@ -26,9 +23,6 @@ module.exports = class ChatPane extends React.Component
     { thread } = nextProps
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
-
-
-  onSubmit: (event) -> @props.onSubmit? event
 
 
   onTopThresholdReached: -> @props.onLoadMore()
@@ -52,35 +46,11 @@ module.exports = class ChatPane extends React.Component
     </section>
 
 
-  onFollowChannelButtonClick: -> @props.onFollowChannelButtonClick()
-
-
-  renderFollowChannel: ->
-
-    <div className="ChatPane-subscribeContainer">
-      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
-      <button ref="button" className="Button Button-followChannel" onClick={@bound 'onFollowChannelButtonClick'}>FOLLOW CHANNEL</button>
-    </div>
-
-
-  renderFooter: ->
-
-    return null  unless @props.messages
-
-    footerInnerComponent = if @props.isParticipant
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
-    else @renderFollowChannel()
-
-    <footer className="ChatPane-footer">
-      {footerInnerComponent}
-    </footer>
-
-
   render: ->
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
         {@renderBody()}
-        {@renderFooter()}
+        {@props.children}
       </section>
     </div>
 
