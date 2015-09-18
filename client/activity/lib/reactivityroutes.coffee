@@ -31,6 +31,6 @@ module.exports =
     components:
       feed: null
       chat: PublicChatPane
-      post: PostPane
+      post: null
   ]
 
