@@ -28,19 +28,23 @@ type entry struct {
 }
 
 type Dir struct {
+
 	// Node is generic structure that contains commonality between File and Dir.
 	*Entry
 
 	// IDGen is responsible for generating ids for newly created nodes.
 	IDGen *IDGen
 
-	////// Node#RWLock protects the fields below.
+	////// Entry#RWLock protects the fields below.
 
 	// Entries contains list of files and directories that belong to this
-	// directory. Note even if an entry is deleted, it'll still be in this list
-	// however the deleted entry's type will be set to `fuseutil.DT_Unknown` so
-	// requests to return entries can be filtered. This is done so we don't lose
-	// offset positions.
+	// directory.
+	//
+	// Note even if an entry is deleted, it'll still be in this list however
+	// the deleted entry's type will be set to `fuseutil.DT_Unknown`, so requests
+	// to return entries can be filtered. This is done so we set proper offset
+	// position for newly created entries. In other words once an entry is given
+	// an offset position, it should maintain that position throughout.
 	Entries []fuseutil.Dirent
 
 	// EntriesList contains list of files and directories that belong to this
@@ -76,7 +80,7 @@ func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
 		return nil, fuse.EIO
 	}
 
-	// filter by entries who's type is not to set fuse.DT_Unknown
+	// filter by entries whose type is not to set fuse.DT_Unknown
 	var liveEntries []fuseutil.Dirent
 	for _, e := range entries[offset:] {
 		if e.Type != fuseutil.DT_Unknown {

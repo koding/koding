@@ -20,7 +20,16 @@ import (
 
 // KodingNetworkFS implements `fuse.FileSystem` to let users mount folders on
 // their Koding VMs to their local machine.
+//
+// In general the following rules apply:
+//
+// * Implemented `fuse.FileSystem` interface method are public, while all
+//   others are private.
+// * Interface methods return `fuse.ENOENT` if specified entry doesn't exit.
+// * Communication with Kernel and maintaining list of live nodes are the only
+//   operations that should happen here.
 type KodingNetworkFS struct {
+
 	// NotImplementedFileSystem is the default implementation for
 	// `fuseutil.FileSystem` interface methods. Any interface methods that are
 	// unimplemented return `fuse.ENOSYS` as error. This lets us implement only
@@ -50,6 +59,7 @@ type KodingNetworkFS struct {
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
 func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
 	mountConfig := &fuse.MountConfig{
+
 		// Name of mount; required to be non empty or `umount` command will
 		// require root to unmount the folder.
 		FSName: c.MountName,
@@ -105,8 +115,8 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
 	return &KodingNetworkFS{
-		MountConfig: mountConfig,
 		MountPath:   c.LocalPath,
+		MountConfig: mountConfig,
 		RWMutex:     sync.RWMutex{},
 		liveNodes:   liveNodes,
 	}
@@ -138,8 +148,7 @@ func (k *KodingNetworkFS) Unmount() error {
 	return unmount.Unmount(k.MountPath)
 }
 
-// GetInodeAttributesOp set attributes for a specified Node. It returns
-// `fuse.ENOENT` if entry doesn't exist in internal map.
+// GetInodeAttributesOp set attributes for a specified Node.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
@@ -156,8 +165,7 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 }
 
 // LookUpInode finds entry in context of specific parent directory and sets
-// its attributes. It assumes parent directory has already been seen. It returns
-// `fuse.ENOENT` if parent directory or the entry doesn't exist.
+// its attributes. It assumes parent directory has already been seen.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
@@ -184,7 +192,7 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 ///// Directory Operations
 
 // OpenDir opens a directory, ie. indicates operations are to be done on this
-// directory. It returns `fuse.ENOENT` if directory doesn't exist.
+// directory.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
@@ -194,8 +202,7 @@ func (k *KodingNetworkFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) er
 	return err
 }
 
-// ReadDir reads entries in a specific directory. It returns `fuse.ENOENT` if
-// directory doesn't exist.
+// ReadDir reads entries in a specific directory.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
@@ -227,8 +234,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 }
 
 // Mkdir creates new directory inside specified parent directory. It returns
-// `fuse.EEXIST` if the parent directory doesn't exist and `fuse.EEXIST` if
-// a file or directory already exists with specified name.
+// `fuse.EEXIST` if a file or directory already exists with specified name.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
@@ -257,8 +263,7 @@ func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error 
 }
 
 // Rename changes a file or directory from old name and parent to new name and
-// parent. It returns `fuse.ENOENT` if old parent, old entry or new parent
-// doesn't exist.
+// parent.
 //
 // Note if a new name already exists, we still go ahead and rename it. While
 // the old and new entries are the same, we throw out the old one and create
@@ -297,8 +302,7 @@ func (k *KodingNetworkFS) Rename(ctx context.Context, op *fuseops.RenameOp) erro
 	return nil
 }
 
-// RmDir deletes a directory from remote and list of live nodes. It returns
-// `fuse.ENOENT` parent doesn't exist.
+// RmDir deletes a directory from remote and list of live nodes.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
@@ -320,7 +324,6 @@ func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error 
 ///// File Operations
 
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
-// It returns `fuse.ENOENT` if file doesn't exist.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
@@ -343,8 +346,8 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 }
 
 // ReadFile reads contents of a specified file starting from specified offset.
-// It returns `fuse.ENOENT` if file doesn't exist and `io.EIO` if specified
-// offset is larger than the length of contents of the file.
+// It returns `io.EIO` if specified offset is larger than the length of contents
+// of the file.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
@@ -365,8 +368,7 @@ func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) 
 	return nil
 }
 
-// WriteFile write specified contents to specified file at specified offset. It
-// returns `fuse.ENOENT` if file doesn't exist.
+// WriteFile write specified contents to specified file at specified offset.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
@@ -410,8 +412,7 @@ func (k *KodingNetworkFS) CreateFile(ctx context.Context, op *fuseops.CreateFile
 	return nil
 }
 
-// SetInodeAttributes sets specified attributes to file or directory. It
-// returns `fuse.ENOENT` if specified file or directory doesn't exist.
+// SetInodeAttributes sets specified attributes to file or directory.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
@@ -503,8 +504,7 @@ func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) erro
 ///// Helpers
 
 // getDir gets directory entry with specified id from list of live nodes. It
-// returns `fuse.ENOENT` if directory doesn't exist and `fuse.EIO` if the entry
-// is not a directory.
+// returns `fuse.EIO` if the entry is not a directory.
 func (k *KodingNetworkFS) getDir(id fuseops.InodeID) (*Dir, error) {
 	entry, err := k.getEntry(id)
 	if err != nil {
@@ -518,9 +518,8 @@ func (k *KodingNetworkFS) getDir(id fuseops.InodeID) (*Dir, error) {
 	return entry.(*Dir), nil
 }
 
-// getDir gets file entry with specified id from list of live nodes. It
-// returns `fuse.ENOENT` if file doesn't exist and `fuse.EIO` if the entry is
-// not a file.
+// getDir gets file entry with specified id from list of live nodes. It returns
+// `fuse.EIO` if the entry is not a file.
 func (k *KodingNetworkFS) getFile(id fuseops.InodeID) (*File, error) {
 	entry, err := k.getEntry(id)
 	if err != nil {
@@ -534,9 +533,11 @@ func (k *KodingNetworkFS) getFile(id fuseops.InodeID) (*File, error) {
 	return entry.(*File), nil
 }
 
-// getEntry gets an entry with specified id from list of live nodes. It returns
-// `fuse.ENOENT` if entry doesn't exist.
+// getEntry gets an entry with specified id from list of live nodes.
 func (k *KodingNetworkFS) getEntry(id fuseops.InodeID) (Node, error) {
+	k.RLock()
+	defer k.RUnlock()
+
 	entry, ok := k.liveNodes[id]
 	if !ok {
 		return nil, fuse.ENOENT
@@ -547,10 +548,14 @@ func (k *KodingNetworkFS) getEntry(id fuseops.InodeID) (Node, error) {
 
 // setEntry sets entry to list of live nodes map with id as key.
 func (k *KodingNetworkFS) setEntry(id fuseops.InodeID, entry Node) {
+	k.Lock()
 	k.liveNodes[id] = entry
+	k.Unlock()
 }
 
 // deleteEntry removes entry with specified id from list of live nodes.
 func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
+	k.Lock()
 	delete(k.liveNodes, id)
+	k.Unlock()
 }
