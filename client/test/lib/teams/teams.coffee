@@ -122,10 +122,3 @@ module.exports =
       .waitForElementVisible  editorSelector, 20000
       .assert.containsText    editorSelector, 'aws_instance'
       .end()
-
-
-
-
-
-
-
