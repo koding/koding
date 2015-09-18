@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 
 // KlientTransport is a Transport using Klient on user VM.
 type KlientTransport struct {
-	client *kite.Client
+	Client *kite.Client
 }
 
 // NewKlientTransport initializes KlientTransport with Klient connection.
@@ -53,13 +53,13 @@ func NewKlientTransport(klientIP string) (*KlientTransport, error) {
 		return nil, err
 	}
 
-	return &KlientTransport{client: kiteClient}, nil
+	return &KlientTransport{Client: kiteClient}, nil
 }
 
 // Trip is a generic method for communication. It accepts `req` to pass args
 // to Klient and `res` to store unmarshalled response from Klient.
 func (k *KlientTransport) Trip(methodName string, req interface{}, res interface{}) error {
-	raw, err := k.client.Tell(methodName, req)
+	raw, err := k.Client.Tell(methodName, req)
 	if err != nil {
 		return err
 	}
