@@ -77,7 +77,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
     { provider } = data
 
     if provider is 'managed'
-      provider = data.jMachine.meta.managedProvider
+      provider = data.jMachine.meta.managedProvider or 'UnknownProvider'
 
     pData = PROVIDERS[provider]
     logo  = pData.logo or provider.toLowerCase()
