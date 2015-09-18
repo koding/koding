@@ -4,7 +4,7 @@ SidebarList             = require 'app/components/sidebarlist'
 SidebarSection          = require 'app/components/sidebarsection'
 Modal                   = require 'app/components/modal'
 SidebarModalList        = require 'activity/components/sidebarmodallist'
-PublicChannelListItem   = require 'activity/components/channellistitem'
+PublicChannelListItem   = require 'activity/components/publicchannellistitem'
 SidebarChannelsListItem = require 'app/components/sidebarchannelslistitem'
 
 module.exports = class SidebarChannelsSection extends React.Component
