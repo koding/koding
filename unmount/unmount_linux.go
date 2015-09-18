@@ -12,5 +12,5 @@ func Unmount(folder string) error {
 		fmt.Printf("Unmounting failed. Please do `sudo umount %s`.\n", folder)
 	}
 
-	return err
+	return nil
 }
