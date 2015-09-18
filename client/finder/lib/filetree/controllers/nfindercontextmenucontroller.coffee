@@ -59,6 +59,9 @@ module.exports = class NFinderContextMenuController extends KDController
       'Open file'                 :
         separator                 : yes
         action                    : 'openFile'
+      'Watch file'                 :
+        separator                 : yes
+        action                    : 'tailFile'
       # 'Open with...'              :
       #   children                  : @getOpenWithMenuItems fileView
       Delete                      :
@@ -85,6 +88,7 @@ module.exports = class NFinderContextMenuController extends KDController
       #   action                    : 'download'
       #   disabled                  : yes
       # 'Public URL...'             :
+      #
       'New file'                  :
         separator                 : yes
         action                    : 'createFile'
