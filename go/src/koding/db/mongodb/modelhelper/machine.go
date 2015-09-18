@@ -52,7 +52,8 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 }
 
 var (
-	MachineStateRunning = "Running"
+	MachineStateRunning   = "Running"
+	MachineProviderKoding = "koding"
 )
 
 func GetRunningVms(provider string) ([]*models.Machine, error) {
