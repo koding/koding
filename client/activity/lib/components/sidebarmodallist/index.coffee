@@ -28,6 +28,11 @@ module.exports = class SidebarModalList extends React.Component
       threads           : @props.threads
 
 
+  componentWillReceiveProps: (nextProps) ->
+
+    @setState threads: nextProps.threads
+
+
   onThresholdReached: ->
 
     return  if @state.isSearching
@@ -35,13 +40,6 @@ module.exports = class SidebarModalList extends React.Component
     { channel } = ActivityFlux.actions
     loadFollowedChannels = channel[@props.onThresholdAction]
     loadFollowedChannels skip: @props.threads.size
-
-    @setThreads()
-
-
-  setThreads: kd.utils.debounce 1000, ->
-
-    @setState threads: @props.threads
 
 
   resetSearch: ->
