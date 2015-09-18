@@ -38,5 +38,5 @@ module.exports = class EnvironmentListController extends kd.ListViewController
     @instantiateListItems stacks
 
     if stacks.length > 1
-      view.title.show()  for view in @getItemsOrdered()
+      view.header.show()  for view in @getItemsOrdered()
       @getView().setClass 'multi-stack'
