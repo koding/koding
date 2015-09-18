@@ -1,62 +1,29 @@
-kd    = require 'kd'
-React = require 'kd-react'
-Link  = require 'app/components/common/link'
-
+kd                = require 'kd'
+React             = require 'kd-react'
 
 module.exports = class ThreadHeader extends React.Component
 
-  @defaultProps =
-    channelThread: null
-    messageThread: null
-    isSummaryActive: no
+  @defaultProps = { thread: null }
 
 
-  channel: (key) -> @props.channelThread?.getIn ['channel', key]
-
-  message: (key) -> @props.messageThread?.getIn ['message', key]
+  channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
-  renderSummaryToggle: -> null
+  renderChildren: ->
 
+    React.Children.map @props.children, (child) ->
+      <span className="ThreadHeader-navLink">
+        {child}
+      </span>
 
-  renderTitle: ->
-
-    children = []
-    if @props.channelThread
-      href = "/Channels"
-      href += "/#{@channel 'name'}"
-      href += "/summary"  unless @props.isSummaryActive
-      children.push(
-        <span className="ThreadHeader-navLink">
-          <Link href={href}>
-            {@channel 'name'}
-          </Link>
-        </span>
-      )
-
-    if @props.messageThread
-      href = "/Channels"
-      href += "/#{@channel 'name'}"
-      href += "/summary"  unless @props.isSummaryActive
-      href += "/#{@message 'slug'}"
-      children.push(
-        <span className="ThreadHeader-navLink">
-          <Link href={href}>
-            {@message 'slug'}
-          </Link>
-        </span>
-      )
-
-    return (
-      <div className="ThreadHeader-navContainer">
-        {children}
-      </div>
-    )
 
   render: ->
+    return null  unless @props.thread
+
     <div className="ThreadHeader">
-      {@renderSummaryToggle()}
-      {@renderTitle()}
+      <div className="ThreadHeader-navContainer">
+        {@renderChildren()}
+      </div>
     </div>
 
 
