@@ -7,6 +7,7 @@ IDEEditorPane       = require 'ide/workspace/panes/ideeditorpane'
 FSHelper            = require 'app/util/fs/fshelper'
 Encoder             = require 'htmlencode'
 
+
 module.exports = class IDETabHandleView extends KDTabHandleView
 
   MIN_EDIT_WIDTH = 100

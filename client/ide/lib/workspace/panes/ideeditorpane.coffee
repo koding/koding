@@ -27,7 +27,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
     @createEditor()
 
-    file.once 'fs.delete.finished', =>
+    file.once 'fs.delete.finished', ->
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
     @errorOnSave = no
@@ -422,8 +422,6 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
-    super
-
     super
 
 
