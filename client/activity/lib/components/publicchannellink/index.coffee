@@ -8,7 +8,18 @@ module.exports = class PublicChannelLink extends React.Component
   @defaultProps = { to: null }
 
 
-  channel: (key) -> @props.to?.getIn ['channel', key]
+  ###
+   * Allows @props.to to be either a channel thread or a channel itself.
+   *
+   * @param {string} key - key to be read from channel instance.
+   * @return {*} value
+  ###
+  channel: (key) ->
+    return  unless @props.to
+
+    if @props.to.has 'channel'
+    then @props.to?.getIn ['channel', key]
+    else @props.to.get key
 
 
   render: ->
