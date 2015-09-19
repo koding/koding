@@ -23,7 +23,7 @@ module.exports = class EmojiSelector extends React.Component
     items        : immutable.List()
     visible      : no
     itemsPerRow  : 8
-    selectedItem : immutable.Map()
+    selectedItem : ''
 
 
   componentDidMount: ->
@@ -85,7 +85,7 @@ module.exports = class EmojiSelector extends React.Component
         index        = { index }
         isFirstInRow = { isFirstInRow }
         isSelected   = { isSelected }
-        onSelected   = { kd.utils.throttle 300, @bound 'onItemSelected' }
+        onSelected   = { @bound 'onItemSelected' }
         onConfirmed  = { @bound 'onItemConfirmed' }
         key          = { item }
       />
@@ -106,12 +106,11 @@ module.exports = class EmojiSelector extends React.Component
       </div>
       <div className="EmojiSelector-footer">
         <div className="EmojiSelector-selectedItemIcon" ref="selectedItem">
-          {formatEmojiName selectedItem}
+          {formatEmojiName(selectedItem or 'cow')}
         </div>
         <div className="EmojiSelector-selectedItemName">
-          {formatEmojiName selectedItem}
+          {if selectedItem then formatEmojiName selectedItem else 'Choose your emoji!'}
         </div>
         <div className="clearfix" />
       </div>
     </Dropbox>
-
