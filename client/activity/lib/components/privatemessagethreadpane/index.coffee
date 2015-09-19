@@ -1,10 +1,11 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-KDReactorMixin  = require 'app/flux/reactormixin'
-ActivityFlux    = require 'activity/flux'
-immutable       = require 'immutable'
-classnames      = require 'classnames'
-PrivateChatPane = require 'activity/components/privatechatpane' 
+kd                        = require 'kd'
+React                     = require 'kd-react'
+KDReactorMixin            = require 'app/flux/reactormixin'
+ActivityFlux              = require 'activity/flux'
+immutable                 = require 'immutable'
+classnames                = require 'classnames'
+PrivateChatPane           = require 'activity/components/privatechatpane'
+ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -37,6 +38,11 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
 
   renderHeader: ->
+
+    <ChannelParticipantAvatars
+      channelThread = { @state.channelThread }
+      participants  = { @state.channelParticipants }
+    />
 
 
   renderChat: ->
