@@ -8,6 +8,15 @@ module.exports = class SidebarSection extends React.Component
   @defaultProps =
     onHeaderClick: kd.noop
 
+  onClose: ->
+
+    { actions } = CreateChannelFlux
+
+    actions.channel.removeAllParticipants()
+    actions.user.unsetInputQuery()
+    @setState isModalOpen: no
+
+
 
   onHeaderClick: ->
     @props.onHeaderClick()
