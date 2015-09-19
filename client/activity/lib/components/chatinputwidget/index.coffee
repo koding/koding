@@ -182,21 +182,6 @@ module.exports = class ChatInputWidget extends React.Component
     ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
 
 
-  handleSearchButtonClick: (event) ->
-
-    searchMarker = '/s '
-    { value }    = @state
-
-    if value.indexOf(searchMarker) is -1
-      value = searchMarker + value
-      @setState { value }
-
-    textInput = React.findDOMNode @refs.textInput
-    textInput.focus()
-
-    @refs.searchDropbox.checkTextForQuery { value }
-
-
   renderEmojiDropbox: ->
 
     { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
@@ -286,10 +271,6 @@ module.exports = class ChatInputWidget extends React.Component
         onChange  = { @bound 'onChange' }
         onKeyDown = { @bound 'onKeyDown' }
         ref       = 'textInput'
-      />
-      <Link
-        className = "ChatInputWidget-searchButton"
-        onClick   = { @bound 'handleSearchButtonClick' }
       />
       <Link
         className = "ChatInputWidget-emojiButton"
