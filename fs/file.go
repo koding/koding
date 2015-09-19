@@ -76,11 +76,18 @@ func (f *File) TruncateTo(size uint64) error {
 	f.Lock()
 	defer f.Unlock()
 
-	if size > uint64(len(f.Content)) {
-		return io.EOF
+	s := int(size)
+	switch {
+	case s < len(f.Content):
+		// specified size less than size of file, so remove all content over size
+		f.Content = f.Content[:size]
+	case s > len(f.Content):
+		// specified size greater same as size of file, so add empty padding to
+		// existing content
+		f.Content = append(f.Content, make([]byte, s-len(f.Content))...)
+	case s == len(f.Content):
+		// specified size is same as size of file, so nothing to be done
 	}
-
-	f.Content = f.Content[:size]
 
 	return f.writeContentToRemote(f.Content)
 }

@@ -2,6 +2,7 @@ package fs
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -346,6 +347,7 @@ func (d *Dir) initializeChild(e *entry) (Node, error) {
 	case fuseutil.DT_File:
 		dt = NewFile(n)
 	default:
+		return nil, fmt.Errorf("Unknown file type: %v", e.Type)
 	}
 
 	d.EntriesList[e.Name] = dt

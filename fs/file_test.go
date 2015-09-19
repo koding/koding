@@ -106,25 +106,47 @@ func TestFile(tt *testing.T) {
 	})
 
 	Convey("File#TruncateTo", tt, func() {
-		Convey("It should truncate file to size: 0", func() {
+		Convey("It should add extra padding to content if specified size is greater than size of file", func() {
 			f := newFileWithTransport()
 			f.Content = []byte("Hello World!")
 
-			So(f.TruncateTo(0), ShouldBeNil)
+			oldSize := len(f.Content)
 
-			Convey("It should save truncated contents", func() {
-				So(len(f.Content), ShouldEqual, 0)
-			})
+			So(f.TruncateTo(uint64(len(f.Content)+1)), ShouldBeNil)
+			So(len(f.Content), ShouldEqual, oldSize+1)
 		})
 
-		Convey("It should truncate file to size: 1", func() {
+		Convey("It should not change content if specified size is same as size of file", func() {
 			f := newFileWithTransport()
 			f.Content = []byte("Hello World!")
 
-			So(f.TruncateTo(1), ShouldBeNil)
+			size := len(f.Content)
 
-			Convey("It should save truncated contents", func() {
-				So(len(f.Content), ShouldEqual, 1)
+			So(f.TruncateTo(uint64(size)), ShouldBeNil)
+			So(len(f.Content), ShouldEqual, size)
+		})
+
+		Convey("It should remove content at end if specified size is smaller than size of file", func() {
+			Convey("It should truncate file to size: 0", func() {
+				f := newFileWithTransport()
+				f.Content = []byte("Hello World!")
+
+				So(f.TruncateTo(0), ShouldBeNil)
+
+				Convey("It should save truncated contents", func() {
+					So(len(f.Content), ShouldEqual, 0)
+				})
+			})
+
+			Convey("It should truncate file to size: 1", func() {
+				f := newFileWithTransport()
+				f.Content = []byte("Hello World!")
+
+				So(f.TruncateTo(1), ShouldBeNil)
+
+				Convey("It should save truncated contents", func() {
+					So(len(f.Content), ShouldEqual, 1)
+				})
 			})
 		})
 	})
