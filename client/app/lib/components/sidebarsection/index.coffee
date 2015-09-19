@@ -1,12 +1,21 @@
-kd = require 'kd'
-React = require 'kd-react'
-classnames = require 'classnames'
-
+kd                 = require 'kd'
+Link               = require 'app/components/common/link'
+React              = require 'kd-react'
+classnames         = require 'classnames'
+CreateChannelFlux  = require 'activity/flux/createchannel'
+CreateChannelModal = require 'activity/components/createchannelmodal'
 
 module.exports = class SidebarSection extends React.Component
 
   @defaultProps =
     onHeaderClick: kd.noop
+
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @state = { isModalOpen: no }
+
 
   onHeaderClick: -> @props.onHeaderClick()
 
