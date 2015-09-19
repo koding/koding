@@ -363,7 +363,7 @@ func (k *KodingNetworkFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) 
 		return err
 	}
 
-	op.BytesRead = copy(op.Dst[op.Offset:], bytes)
+	op.BytesRead = copy(op.Dst, bytes)
 
 	return nil
 }

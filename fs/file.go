@@ -26,28 +26,25 @@ func NewFile(n *Entry) *File {
 }
 
 func (f *File) ReadAt(offset int64) ([]byte, error) {
-	f.RLock()
-	var content = f.Content
-	f.RUnlock()
-
-	if offset > int64(len(content)) {
-		return nil, io.EOF
-	}
-
 	f.Lock()
 	defer f.Unlock()
 
-	if len(content) == 0 {
-		var err error
-
-		content, err = f.getContentFromRemote()
+	// fetch from remote is no content
+	if len(f.Content) == 0 {
+		content, err := f.getContentFromRemote()
 		if err != nil {
 			return nil, err
 		}
+
 		f.Content = content
 	}
 
-	return f.Content, nil
+	// check offset only after fetching from remote
+	if offset > int64(len(f.Content)) {
+		return nil, io.EOF
+	}
+
+	return f.Content[offset:], nil
 }
 
 func (f *File) Create() error {

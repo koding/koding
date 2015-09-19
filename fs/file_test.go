@@ -21,7 +21,7 @@ func TestFile(tt *testing.T) {
 	})
 
 	Convey("File#ReadAt", tt, func() {
-		Convey("It should return contents of a File at specified offset", func() {
+		Convey("It should return contents at specified offset: 0", func() {
 			f := newFile()
 
 			content, err := f.ReadAt(0)
@@ -29,7 +29,15 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
-		Convey("It should fetch content from remote if content is nil", func() {
+		Convey("It should return contents at specified offset: 1", func() {
+			f := newFile()
+
+			content, err := f.ReadAt(1)
+			So(err, ShouldBeNil)
+			So(string(content), ShouldEqual, "ello World!")
+		})
+
+		Convey("It should fetch content from remote if content is empty", func() {
 			f := newFileWithTransport()
 
 			content, err := f.ReadAt(0)

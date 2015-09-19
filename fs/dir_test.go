@@ -356,7 +356,7 @@ func TestDir(t *testing.T) {
 	})
 
 	Convey("Dir#initializeChild", t, func() {
-		Convey("It should initialize a Dir if specified entry type is a directory", func() {
+		Convey("It should initialize a Dir if specified entry is a directory", func() {
 			d := newDir()
 			e := &entry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
 
@@ -368,7 +368,7 @@ func TestDir(t *testing.T) {
 			So(child, ShouldHaveSameTypeAs, &Dir{})
 		})
 
-		Convey("It should initialize a Dir if specified entry type is a file", func() {
+		Convey("It should initialize a File if specified entry is a file", func() {
 			d := newDir()
 			e := &entry{Name: "file", Type: fuseutil.DT_File, Mode: os.FileMode(0755)}
 
