@@ -34,6 +34,18 @@ module.exports = class SidebarSection extends React.Component
     kd.utils.stopDOMEvent event
     @setState isModalOpen: yes
 
+
+  getCreateChannelModalProps: ->
+
+    isOpen             : @state.isModalOpen
+    account            : @state.account
+    onAbort            : @bound 'onClose'
+    onClose            : @bound 'onClose'
+    title              : @props.modalProps.title
+    className          : @props.modalProps.className
+    buttonConfirmTitle : @props.modalProps.buttonConfirmTitle
+
+
   renderAddChannelModal: ->
 
     <CreateChannelModal {...@getCreateChannelModalProps()} />
