@@ -1,0 +1,91 @@
+.CreateChannel-Modal
+  .Modal-title
+    abs()
+    borderBox()
+    bg                      color, $gray-18
+    width                   100%
+    left                    0
+    top                     0
+    padding                 15px
+    rounded                 4px 4px 0 0
+
+  .Modal-content
+    margin-top              40px
+
+  .CreateChannel-description
+    margin-bottom           20px
+
+    strong
+      dBlock()
+      margin-bottom         5px
+
+    div
+      font-size             13px
+      text-align            justify
+
+  .CreateChannel-createPrivateGroup
+    font-size                 13px
+
+  .Reactivity-formfield
+    &.dropdown
+      cf()
+
+    .Reactivity-label
+      &.channelName
+      &.inviteMembers
+        top                 10px
+
+      &.channelPurpose
+        top                 5px
+
+.CreateChannel-dropbox
+  .Dropbox
+    abs()
+    right                   0px
+    width                   380px
+    top                     auto !important
+
+
+.CreateChannel-participantsWrapper
+  fr()
+  borderBox()
+  rounded                   4px
+  width                     380px
+  border                    2px solid $gray-16
+
+  .CreateChannel-participants
+    padding                 0px 0px 0 5px
+    max-height              75px
+    overflow                auto
+
+  .ChannelParticipantAvatars-singleBox
+    width                   auto
+    margin                  5px 10px 0px 0px
+
+    &.selected
+      span
+        text-decoration     line-through
+        color               $red
+
+    img
+      blockMid()
+      rounded               4px
+      size                  25px !important, 25px !important
+
+    span
+      margin                0 5px
+      color                 $gray-12
+
+  input
+    float                   none !important
+    border                  none !important
+    width                   375px !important
+
+  &.delete-mode
+    input::-webkit-input-placeholder
+      color                 $red
+      font-weight           100
+    input:-moz-input-placeholder
+      color                 $red
+      font-weight           100
+
