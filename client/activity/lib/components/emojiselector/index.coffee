@@ -85,7 +85,7 @@ module.exports = class EmojiSelector extends React.Component
         index        = { index }
         isFirstInRow = { isFirstInRow }
         isSelected   = { isSelected }
-        onSelected   = { kd.utils.throttle 300, @bound 'onItemSelected' }
+        onSelected   = { @bound 'onItemSelected' }
         onConfirmed  = { @bound 'onItemConfirmed' }
         key          = { item }
       />
