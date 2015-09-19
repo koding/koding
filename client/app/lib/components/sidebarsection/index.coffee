@@ -8,6 +8,9 @@ module.exports = class SidebarSection extends React.Component
   @defaultProps =
     onHeaderClick: kd.noop
 
+  onHeaderClick: -> @props.onHeaderClick()
+
+
   onClose: ->
 
     { actions } = CreateChannelFlux
@@ -18,12 +21,18 @@ module.exports = class SidebarSection extends React.Component
 
 
 
-  onHeaderClick: ->
-    @props.onHeaderClick()
 
 
   renderHeader: ->
-    <h4 className="SidebarSection-headerTitle" onClick={@bound 'onHeaderClick'}>{@props.title}</h4>
+
+    <h4 className='SidebarSection-headerTitle' onClick={@bound 'onHeaderClick'}>
+      {@props.title}
+      <Link
+        className = "SidebarSection-addChannelButton"
+        onClick   = { @bound 'handleAddChannelButtonClick' }
+      />
+    </h4>
+
 
   render: ->
     <section className={classnames 'SidebarSection', @props.className}>
