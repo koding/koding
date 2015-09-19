@@ -20,6 +20,10 @@ module.exports = class SidebarSection extends React.Component
     @setState isModalOpen: no
 
 
+  handleAddChannelButtonClick: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState isModalOpen: yes
 
   renderAddChannelModal: ->
 
