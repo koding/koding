@@ -35,6 +35,13 @@ module.exports = class SidebarChannelsSection extends React.Component
     @setState isModalOpen: no
 
 
+  getCreateChannelModalProps: ->
+
+    title              : 'Create a channel'
+    className          : 'CreateChannel-Modal'
+    buttonConfirmTitle : 'Create Channel'
+
+
   renderFollowedChannelsModal: ->
 
     title = 'Other Channels you are following:'
@@ -60,7 +67,11 @@ module.exports = class SidebarChannelsSection extends React.Component
   render: ->
 
     <div>
-      <SidebarSection title="Channels" onHeaderClick={@bound 'showFollowedPublicChannelsModal'} className="SidebarChannelsSection">
+      <SidebarSection
+        title="Channels"
+        modalProps={@getCreateChannelModalProps()}
+        onHeaderClick={@bound 'showFollowedPublicChannelsModal'}
+        className="SidebarChannelsSection">
         <SidebarList
           previewCount={@props.previewCount}
           itemComponent={SidebarChannelsListItem}
