@@ -21,6 +21,9 @@ module.exports = class SidebarSection extends React.Component
 
 
 
+  renderAddChannelModal: ->
+
+    <CreateChannelModal {...@getCreateChannelModalProps()} />
 
 
   renderHeader: ->
@@ -35,11 +38,14 @@ module.exports = class SidebarSection extends React.Component
 
 
   render: ->
+
     <section className={classnames 'SidebarSection', @props.className}>
-      <header className="SidebarSection-header">
+      <header className='SidebarSection-header'>
         {@renderHeader()}
       </header>
-      <div className="SidebarSection-body">
+      <div className='SidebarSection-body'>
         {@props.children}
       </div>
+      {@renderAddChannelModal()}
     </section>
+
