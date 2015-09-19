@@ -15,6 +15,7 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
     'SinglePost'
     'SingleChannelWithSummary'
     'SinglePostWithSummary'
+    'PrivateMessages'
   ]
 
   # since `isReactivityEnabled` flag checks roles from config,
