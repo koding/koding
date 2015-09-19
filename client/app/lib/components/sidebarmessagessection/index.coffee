@@ -35,6 +35,13 @@ module.exports = class SidebarMessagesSection extends React.Component
     @setState isModalOpen: no
 
 
+  getCreateChannelModalProps: ->
+
+    title              : 'Create a private channel'
+    className          : 'CreateChannel-Modal'
+    buttonConfirmTitle : 'Create Private Channel'
+
+
   renderPrivateChannelsModal: ->
 
     <Modal
@@ -65,6 +72,7 @@ module.exports = class SidebarMessagesSection extends React.Component
     <div>
       <SidebarSection
         title="Messages"
+        modalProps={@getCreateChannelModalProps()}
         onHeaderClick={@bound 'showPrivateChannelsModal'}
         className="SidebarMessagesSection">
         <SidebarList
