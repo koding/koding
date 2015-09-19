@@ -28,14 +28,13 @@ module.exports = class EmbedBoxLinkImage extends React.Component
     imageOptions = { width, height, crop, grow }
     srcUrl       = proxifyUrl link_embed.images?[0]?.url, imageOptions
     altText      = link_embed.title
-    altText     += if link_embed.author_name then " by #{link_embed.author_name}" else '' 
+    altText     += if link_embed.author_name then " by #{link_embed.author_name}" else ''
 
     <a href={link_url} target='_blank' className='EmbedBoxLinkImage'>
       <img
         src       = { srcUrl }
         alt       = { altText }
         title     = { altText }
-        className = 'EmbedBoxLinkImage'
         ref       = 'image'
         onError   = { @bound 'handleError' }
       />
