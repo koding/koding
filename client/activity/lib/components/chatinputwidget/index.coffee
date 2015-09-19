@@ -21,6 +21,9 @@ module.exports = class ChatInputWidget extends React.Component
 
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
+  @defaultProps =
+    enableSearch : no
+
   constructor: (props) ->
 
     super props
@@ -76,7 +79,7 @@ module.exports = class ChatInputWidget extends React.Component
     # stop checking for others and close active dropbox
     # if it exists
     queryIsSet = no
-    for dropbox in @getDropboxes()
+    for dropbox in @getDropboxes() when dropbox?
       unless queryIsSet
         queryIsSet = dropbox.checkTextForQuery textData
         continue  if queryIsSet
@@ -103,7 +106,7 @@ module.exports = class ChatInputWidget extends React.Component
     kd.utils.stopDOMEvent event
 
     isDropboxEnter = no
-    for dropbox in @getDropboxes()
+    for dropbox in @getDropboxes() when dropbox?
       continue  unless dropbox.isActive()
 
       dropbox.confirmSelectedItem()
@@ -118,12 +121,12 @@ module.exports = class ChatInputWidget extends React.Component
 
   onEsc: (event) ->
 
-    dropbox.close()  for dropbox in @getDropboxes()
+    dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
   onNextPosition: (event, keyInfo) ->
 
-    for dropbox in @getDropboxes()
+    for dropbox in @getDropboxes() when dropbox?
       continue  unless dropbox.isActive()
 
       stopEvent = dropbox.moveToNextPosition keyInfo
@@ -134,7 +137,7 @@ module.exports = class ChatInputWidget extends React.Component
   onPrevPosition: (event, keyInfo) ->
 
     if event.target.value
-      for dropbox in @getDropboxes()
+      for dropbox in @getDropboxes() when dropbox?
         continue  unless dropbox.isActive()
 
         stopEvent = dropbox.moveToPrevPosition keyInfo
@@ -180,6 +183,21 @@ module.exports = class ChatInputWidget extends React.Component
   handleEmojiButtonClick: (event) ->
 
     ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
+
+
+  handleSearchButtonClick: (event) ->
+
+    searchMarker = '/s '
+    { value }    = @state
+
+    if value.indexOf(searchMarker) is -1
+      value = searchMarker + value
+      @setState { value }
+
+    textInput = React.findDOMNode @refs.textInput
+    textInput.focus()
+
+    @refs.searchDropbox.checkTextForQuery { value }
 
 
   renderEmojiDropbox: ->
@@ -244,6 +262,9 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderSearchDropbox: ->
 
+    { enableSearch } = @props
+    return  unless enableSearch
+
     { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
 
     <SearchDropbox
@@ -255,6 +276,17 @@ module.exports = class ChatInputWidget extends React.Component
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropbox'
       stateId         = { @stateId }
+    />
+
+
+  renderSearchButton: ->
+
+    { enableSearch } = @props
+    return  unless enableSearch
+
+    <Link
+      className = "ChatInputWidget-searchButton"
+      onClick   = { @bound 'handleSearchButtonClick' }
     />
 
 
@@ -272,6 +304,7 @@ module.exports = class ChatInputWidget extends React.Component
         onKeyDown = { @bound 'onKeyDown' }
         ref       = 'textInput'
       />
+      { @renderSearchButton() }
       <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }
