@@ -29,7 +29,6 @@ type entry struct {
 }
 
 type Dir struct {
-
 	// Node is generic structure that contains commonality between File and Dir.
 	*Entry
 
