@@ -51,7 +51,7 @@ func main() {
 	f := fs.NewKodingNetworkFS(t, conf)
 
 	// blocking
-	if err := f.Join(); err != nil {
+	if err := f.JoinBlock(); err != nil {
 		log.Fatal(err)
 	}
 }

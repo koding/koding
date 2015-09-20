@@ -133,6 +133,11 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 
 // Join mounts and blocks till user VM is unmounted.
 func (k *KodingNetworkFS) Join() error {
+	go k.JoinBlock()
+	return nil
+}
+
+func (k *KodingNetworkFS) JoinBlock() error {
 	mountedFS, err := k.Mount()
 	if err != nil {
 		return err
