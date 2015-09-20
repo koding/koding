@@ -76,10 +76,12 @@ channelThreads = [
   ChannelThreadsStore
   MessagesStore
   ChannelFlagsStore
-  (threads, messages, channelFlags) ->
+  ChannelsStore
+  (threads, messages, channelFlags, channels) ->
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
+      thread = thread.set 'channel', channels.get channelId
       thread.update 'messages', (msgs) -> msgs.map (messageId) ->
         message = messages.get messageId
         if message.has('__editedBody')
@@ -147,6 +149,30 @@ followedPublicChannelThreads = [
     channels.map (channel) ->
       thread = threads.get channel.get('id')
       return thread.set 'channel', channel
+]
+
+# Returns all public channels with followed/unfollowed filters
+filteredPublicChannels = [
+  channelThreads
+  followedPublicChannels
+  (threads, channels) ->
+    {
+      followed: channels.map (channel) -> threads.get channel.get('id')
+      unfollowed: threads.filterNot (thread) ->
+        channels.includes thread.getIn ['channel', 'id']
+    }
+]
+
+# Returns all private channels with followed/unfollowed filters
+filteredPrivateChannels = [
+  channelThreads
+  followedPrivateChannels
+  (threads, channels) ->
+    {
+      followed: channels.map (channel) -> threads.get channel.get('id')
+      unfollowed: threads.filterNot (thread) ->
+        channels.includes thread.getIn ['channel', 'id']
+    }
 ]
 
 # Returns followed private channel threads mapped with relevant channel
@@ -288,6 +314,8 @@ channelParticipantsSelectedItem = [
 module.exports = {
   allChannels
   followedPublicChannelThreads
+  filteredPublicChannels
+  filteredPrivateChannels
   followedPrivateChannelThreads
   popularChannels
 

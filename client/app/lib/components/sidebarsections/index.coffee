@@ -14,9 +14,11 @@ module.exports = class SidebarSections extends React.Component
 
   getDataBindings: ->
     return {
-      publicChannels   : getters.followedPublicChannelThreads
-      privateChannels  : getters.followedPrivateChannelThreads
-      selectedThreadId : getters.selectedChannelThreadId
+      publicChannels          : getters.followedPublicChannelThreads
+      privateChannels         : getters.followedPrivateChannelThreads
+      selectedThreadId        : getters.selectedChannelThreadId
+      filteredPublicChannels  : getters.filteredPublicChannels
+      filteredPrivateChannels : getters.filteredPrivateChannels
     }
 
 
@@ -28,15 +30,15 @@ module.exports = class SidebarSections extends React.Component
   renderChannelsSection: ->
     <SidebarChannelsSection
       previewCount={PREVIEW_COUNT}
-      threads={@state.publicChannels}
-      selectedId={@state.selectedThreadId} />
+      selectedId={@state.selectedThreadId}
+      threads={@state.filteredPublicChannels.followed} />
 
 
   renderMessagesSection: ->
     <SidebarMessagesSection
       previewCount={PREVIEW_COUNT}
-      threads={@state.privateChannels}
-      selectedId={@state.selectedThreadId} />
+      selectedId={@state.selectedThreadId}
+      threads={@state.filteredPrivateChannels.followed} />
 
 
   render: ->
