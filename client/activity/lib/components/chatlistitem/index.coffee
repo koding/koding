@@ -42,6 +42,7 @@ module.exports = class ChatListItem extends React.Component
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
+    isSelected                    : no
 
   constructor: (props) ->
 
@@ -96,6 +97,7 @@ module.exports = class ChatListItem extends React.Component
       'ChatItem'      : yes
       'mouse-enter'   : @state.hover
       'is-menuOpen'   : @state.isMenuOpen
+      'is-selected'   : @props.isSelected
     onMouseEnter      : =>
       @setState hover : yes
     onMouseLeave      : =>

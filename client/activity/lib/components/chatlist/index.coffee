@@ -72,6 +72,7 @@ module.exports = class ChatList extends React.Component
         message      : message
         showItemMenu : showItemMenu
         channelName  : channelName
+        isSelected   : selectedMessageId is message.get 'id'
 
       children = children.concat @getMarkers message, prevMessage, i
 
