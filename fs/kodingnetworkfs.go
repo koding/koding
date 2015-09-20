@@ -156,7 +156,7 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 
 	entry, err := k.getEntry(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
 	op.Attributes = entry.GetAttrs()
@@ -210,7 +210,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	dir, err := k.getDir(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
 	entries, err := dir.ReadEntries(op.Offset)
@@ -242,7 +242,7 @@ func (k *KodingNetworkFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) error 
 
 	dir, err := k.getDir(op.Parent)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
 	if _, err := dir.FindEntry(op.Name); err != fuse.ENOENT {
@@ -331,7 +331,7 @@ func (k *KodingNetworkFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) 
 
 	file, err := k.getFile(op.Inode)
 	if err != nil {
-		return fuse.ENOENT
+		return err
 	}
 
 	file.Open()
