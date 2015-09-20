@@ -6,16 +6,31 @@ ChatListItem       = require 'activity/components/chatlistitem'
 SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
 DateMarker         = require 'activity/components/datemarker'
 NewMessageMarker   = require 'activity/components/newmessagemarker'
+KDReactorMixin     = require 'app/flux/reactormixin'
+ActivityFlux       = require 'activity/flux'
 
 
 module.exports = class ChatList extends React.Component
 
   @defaultProps =
-    messages     : immutable.List()
-    showItemMenu : yes
-    channelName  : ''
-    isMessagesLoading: no
-    unreadCount: 0
+    messages          : immutable.List()
+    showItemMenu      : yes
+    channelName       : ''
+    isMessagesLoading : no
+    selectedMessageId : null
+
+
+  constructor: (props) ->
+
+    super props
+
+    @state = { selectedMessageId: @props.selectedMessageId }
+
+
+  getDataBindings: ->
+    return {
+      selectedMessageId: ActivityFlux.getters.selectedMessageThreadId
+    }
 
 
   getMarkers: (currentMessage, prevMessage, index) ->
@@ -78,4 +93,6 @@ module.exports = class ChatList extends React.Component
       {@renderChildren()}
     </div>
 
+
+React.Component.include.call ChatList, [KDReactorMixin]
 
