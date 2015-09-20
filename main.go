@@ -11,15 +11,17 @@ func main() {
 	c := cli.NewCLI(Name, Version)
 	c.Args = os.Args[1:]
 
-	kc, err := CreateKlientClient(NewKlientOptions())
+	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	c.Commands = map[string]cli.CommandFactory{
-		"list":    ListCommandFactory(kc),
-		"mount":   MountCommandFactory(kc),
-		"unmount": UnmountCommandFactory(kc),
+		"install": InstallCommandFactory(k),
+		"list":    ListCommandFactory(k),
+		"mount":   MountCommandFactory(k),
+		"mounts":  MountsCommandFactory(k),
+		"unmount": UnmountCommandFactory(k),
 	}
 
 	if _, err = c.Run(); err != nil {
