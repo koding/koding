@@ -16,7 +16,7 @@ module.exports = class SidebarMessagesListItem extends React.Component
       title={helper.prepareThreadTitle @props.thread}
       unreadCount={@channel 'unreadCount'}
       active={@props.active}
-      href="/Activity/Message/#{@channel 'id'}" />
+      href="/Messages/#{@channel 'id'}" />
 
 
 helper =

@@ -5,14 +5,11 @@ ActivityFlux    = require 'activity/flux'
 ChatPane        = require 'activity/components/chatpane'
 ChatInputWidget = require 'activity/components/chatinputwidget'
 
-
-
-module.exports = class PublicChatPane extends React.Component
+module.exports = class PrivateChatPane extends React.Component
 
   @defaultProps =
     thread   : immutable.Map()
     messages : immutable.List()
-    padded   : no
 
 
   channel: (key) -> @props.thread?.getIn ['channel', key]
@@ -21,10 +18,6 @@ module.exports = class PublicChatPane extends React.Component
   onSubmit: ({ value }) ->
 
     return  unless body = value
-    name = @channel 'name'
-
-    unless body.match ///\##{name}///
-      body += " ##{name} "
 
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
@@ -38,47 +31,18 @@ module.exports = class PublicChatPane extends React.Component
     kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
-  onFollowChannel: ->
-
-    ActivityFlux.actions.channel.followChannel @channel 'id'
-
-
-  renderFollowChannel: ->
-
-    <div className="PublicChatPane-subscribeContainer">
-      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
-      <button
-        ref       = "button"
-        className = "Button Button-followChannel"
-        onClick   = { @bound 'onFollowChannel' }>
-          FOLLOW CHANNEL
-      </button>
-    </div>
-
-
-  renderFooter: ->
-
-    return null  unless @props.messages
-
-    footerInnerComponent = if @channel 'isParticipant'
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
-    else @renderFollowChannel()
-
-    <footer className="PublicChatPane-footer">
-      {footerInnerComponent}
-    </footer>
-
-
   render: ->
 
     <ChatPane
       thread     = { @props.thread }
-      className  = "PublicChatPane"
+      className  = "PrivateChatPane"
       messages   = { @props.messages }
       onSubmit   = { @bound 'onSubmit' }
       onLoadMore = { @bound 'onLoadMore' }
     >
-      {@renderFooter()}
+      <footer className="PrivateChatPane-footer">
+        <ChatInputWidget onSubmit={@bound 'onSubmit'} enableSearch=no />
+      </footer>
     </ChatPane>
 
 
