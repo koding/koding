@@ -71,7 +71,6 @@ func (f *File) WriteAt(content []byte, offset int64) {
 
 func (f *File) TruncateTo(size uint64) error {
 	f.Lock()
-	defer f.Unlock()
 
 	s := int(size)
 	switch {
@@ -86,20 +85,16 @@ func (f *File) TruncateTo(size uint64) error {
 		// specified size is same as size of file, so nothing to be done
 	}
 
+	f.Unlock()
+
 	return f.writeContentToRemote(f.Content)
 }
 
 func (f *File) Flush() error {
-	f.Lock()
-	defer f.Unlock()
-
 	return f.writeContentToRemote(f.Content)
 }
 
 func (f *File) Sync() error {
-	f.Lock()
-	defer f.Unlock()
-
 	return f.writeContentToRemote(f.Content)
 }
 
@@ -112,6 +107,9 @@ func (f *File) GetType() fuseutil.DirentType {
 ///// Helpers
 
 func (f *File) writeContentToRemote(content []byte) error {
+	f.Lock()
+	defer f.Unlock()
+
 	f.IsDirty = false
 
 	req := struct {
