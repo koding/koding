@@ -54,30 +54,12 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderFeed: ->
-    return null  unless @props.feed
-
-    React.cloneElement @props.feed,
-      thread   : @state.channelThread
-      messages : @state.popularMessages
-
-
   renderChat: ->
     return null  unless @props.chat
 
     React.cloneElement @props.chat,
       thread   : @state.channelThread
       messages : @state.channelThreadMessages
-
-
-  renderPost: ->
-
-    return null  unless @props.post
-
-    React.cloneElement @props.post,
-      thread        : @state.messageThread
-      messages      : @state.messageThreadComments
-      channelThread : @state.channelThread
 
 
   renderSidebar: ->
@@ -104,14 +86,8 @@ module.exports = class ChannelThreadPane extends React.Component
           {@renderHeader()}
         </header>
         <div className="ChannelThreadPane-body">
-          <section className="ChannelThreadPane-feedWrapper">
-            {@renderFeed()}
-          </section>
           <section className="ChannelThreadPane-chatWrapper">
             {@renderChat()}
-          </section>
-          <section className="ChannelThreadPane-postWrapper">
-            {@renderPost()}
           </section>
         </div>
       </section>
