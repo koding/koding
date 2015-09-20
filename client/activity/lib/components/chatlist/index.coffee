@@ -72,8 +72,6 @@ module.exports = class ChatList extends React.Component
       return children
     , []
 
-    return children
-
 
   render: ->
     <div className={kd.utils.curry 'ChatList', @props.className}>
