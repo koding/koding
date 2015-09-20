@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"encoding/base64"
 	"os"
 	"testing"
 
@@ -240,19 +241,73 @@ func TestDir(t *testing.T) {
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 
-		Convey("It should move entry from one directory to another", func() {
+		Convey("It should move directory from one directory to another", func() {
+			// create to be moved directory with contents
+			c := newDir()
+			f := NewFile(NewEntry(c, "file"))
+			f.Content = []byte("Hello World!")
+			c.EntriesList = map[string]Node{"file": f}
+			c.Entries = []fuseutil.Dirent{fuseutil.Dirent{}}
+
+			// create directory to hold to be moved directory
+			d := newDir()
+			d.EntriesList = map[string]Node{"dir1": c}
+
+			// move mount/dir1 to mount/dir2
+			i, err := d.MoveEntry("dir1", "dir2", d)
+			So(err, ShouldBeNil)
+
+			Convey("It should remove old directory", func() {
+				_, ok := d.EntriesList["dir1"]
+				So(ok, ShouldBeFalse)
+
+				// check new directory exists
+				_, ok = d.EntriesList["dir2"]
+				So(ok, ShouldBeTrue)
+			})
+
+			Convey("It should find new entry as same type as old", func() {
+				dir, ok := i.(*Dir)
+				So(ok, ShouldBeTrue)
+				So(dir.Name, ShouldEqual, "dir2")
+			})
+
+			Convey("It should find new entry with same entries as old", func() {
+				dir, ok := i.(*Dir)
+				So(ok, ShouldBeTrue)
+				So(len(dir.Entries), ShouldEqual, 1)
+				So(len(dir.EntriesList), ShouldEqual, 1)
+			})
+		})
+
+		Convey("It should move file from one directory to another", func() {
+			// create destination directory
 			n := newDir()
 
+			// create current directory
 			o := newDir()
-			o.EntriesList = map[string]Node{"file": NewFile(NewEntry(o, "file"))}
 
+			f := NewFile(NewEntry(o, "file"))
+			f.Content = []byte("Hello World!")
+
+			o.EntriesList = map[string]Node{"file": f}
+
+			// move mount/file to new/file1
 			i, err := o.MoveEntry("file", "file1", n)
 			So(err, ShouldBeNil)
 
-			Convey("It should find new entry as same type as old", func() {
+			Convey("It should find new entry as same type as old file", func() {
 				file, ok := i.(*File)
 				So(ok, ShouldBeTrue)
 				So(file.Name, ShouldEqual, "file1")
+
+				Convey("It should find new entry with same content as old file", func() {
+					So(string(file.Content), ShouldEqual, "Hello World!")
+				})
+
+				Convey("It should find new entry with same size as old file", func() {
+					So(file.Attrs.Size, ShouldEqual, 12)
+				})
 			})
 
 			Convey("It should find new entry in new directory", func() {
@@ -454,7 +509,7 @@ func TestDir(t *testing.T) {
 			_, err := d.initializeChild(e)
 			So(err, ShouldBeNil)
 
-			err = d.removeChild("dir")
+			_, err = d.removeChild("dir")
 			So(err, ShouldBeNil)
 
 			Convey("It should set child entry type to unknown", func() {
@@ -470,12 +525,14 @@ func TestDir(t *testing.T) {
 }
 
 func newDir() *Dir {
+	c := base64.StdEncoding.EncodeToString([]byte("Hello World!"))
 	t := &fakeTransport{
 		TripResponses: map[string]interface{}{
+			"fs.writeFile":       1,
 			"fs.rename":          true,
 			"fs.createDirectory": true,
-			"fs.writeFile":       1,
 			"fs.remove":          true,
+			"fs.readFile":        map[string]interface{}{"content": c},
 			"fs.readDirectory": transport.FsReadDirectoryRes{
 				Files: []transport.FsGetInfoRes{
 					transport.FsGetInfoRes{

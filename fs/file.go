@@ -31,12 +31,9 @@ func (f *File) ReadAt(offset int64) ([]byte, error) {
 
 	// fetch from remote is no content
 	if len(f.Content) == 0 {
-		content, err := f.getContentFromRemote()
-		if err != nil {
-			return nil, err
+		if err := f.updateContentFromRemote(); err != nil {
+			return nil, nil
 		}
-
-		f.Content = content
 	}
 
 	// check offset only after fetching from remote
@@ -127,6 +124,18 @@ func (f *File) writeContentToRemote(content []byte) error {
 	var res int
 
 	return f.Transport.Trip("fs.writeFile", req, &res)
+}
+
+func (f *File) updateContentFromRemote() error {
+	content, err := f.getContentFromRemote()
+	if err != nil {
+		return err
+	}
+
+	f.Content = content
+	f.Attrs.Size = uint64(len(f.Content))
+
+	return nil
 }
 
 func (f *File) getContentFromRemote() ([]byte, error) {

@@ -194,7 +194,8 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	if err := d.removeChild(oldName); err != nil {
+	removedEntry, err := d.removeChild(oldName)
+	if err != nil {
 		return nil, err
 	}
 
@@ -214,7 +215,26 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		Mode: child.GetAttrs().Mode,
 	}
 
-	return newDir.initializeChild(e)
+	newEntry, err := newDir.initializeChild(e)
+	if err != nil {
+		return nil, err
+	}
+
+	switch child.GetType() {
+	case fuseutil.DT_Directory:
+		dir1 := removedEntry.(*Dir)
+		dir2 := newEntry.(*Dir)
+
+		dir2.Entries = dir1.Entries
+		dir2.EntriesList = dir1.EntriesList
+	case fuseutil.DT_File:
+		file2 := newEntry.(*File)
+		if err := file2.updateContentFromRemote(); err != nil {
+			return nil, nil
+		}
+	}
+
+	return newEntry, nil
 }
 
 func (d *Dir) RemoveEntry(name string) (Node, error) {
@@ -235,7 +255,7 @@ func (d *Dir) RemoveEntry(name string) (Node, error) {
 		return nil, err
 	}
 
-	if err := d.removeChild(name); err != nil {
+	if _, err := d.removeChild(name); err != nil {
 		return nil, err
 	}
 
@@ -355,13 +375,13 @@ func (d *Dir) initializeChild(e *entry) (Node, error) {
 	return dt, nil
 }
 
-func (d *Dir) removeChild(name string) error {
+func (d *Dir) removeChild(name string) (Node, error) {
 	d.Lock()
 	defer d.Unlock()
 
 	listEntry, ok := d.EntriesList[name]
 	if !ok {
-		return fuse.ENOENT
+		return nil, fuse.ENOENT
 	}
 
 	listEntry.Forget()
@@ -375,5 +395,5 @@ func (d *Dir) removeChild(name string) error {
 		}
 	}
 
-	return nil
+	return listEntry, nil
 }

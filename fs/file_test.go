@@ -21,7 +21,7 @@ func TestFile(tt *testing.T) {
 	})
 
 	Convey("File#ReadAt", tt, func() {
-		Convey("It should return contents at specified offset: 0", func() {
+		Convey("It should return content at specified offset: 0", func() {
 			f := newFile()
 
 			content, err := f.ReadAt(0)
@@ -29,7 +29,7 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
-		Convey("It should return contents at specified offset: 1", func() {
+		Convey("It should return content at specified offset: 1", func() {
 			f := newFile()
 
 			content, err := f.ReadAt(1)
@@ -59,7 +59,7 @@ func TestFile(tt *testing.T) {
 			So(string(content), ShouldEqual, "Hello World!")
 		})
 
-		Convey("It should return error if offset is greater than length of contents", func() {
+		Convey("It should return error if offset is greater than length of content", func() {
 			f := newFile()
 
 			_, err := f.ReadAt(int64(len(f.Content) + 1))
@@ -133,7 +133,7 @@ func TestFile(tt *testing.T) {
 
 				So(f.TruncateTo(0), ShouldBeNil)
 
-				Convey("It should save truncated contents", func() {
+				Convey("It should save truncated content", func() {
 					So(len(f.Content), ShouldEqual, 0)
 				})
 			})
@@ -144,7 +144,7 @@ func TestFile(tt *testing.T) {
 
 				So(f.TruncateTo(1), ShouldBeNil)
 
-				Convey("It should save truncated contents", func() {
+				Convey("It should save truncated content", func() {
 					So(len(f.Content), ShouldEqual, 1)
 				})
 			})
@@ -171,8 +171,26 @@ func TestFile(tt *testing.T) {
 		})
 	})
 
+	Convey("File#updateContentFromRemote", tt, func() {
+		Convey("It should update content after fetching them from remote", func() {
+			c := base64.StdEncoding.EncodeToString([]byte("Modified Content"))
+
+			f := newFileWithTransport()
+			f.Content = []byte("Hello World!")
+			f.Transport = &fakeTransport{
+				TripResponses: map[string]interface{}{
+					"fs.readFile": map[string]interface{}{"content": c},
+				},
+			}
+
+			err := f.updateContentFromRemote()
+			So(err, ShouldBeNil)
+			So(string(f.Content), ShouldEqual, "Modified Content")
+		})
+	})
+
 	Convey("File#getContentFromRemote", tt, func() {
-		Convey("It should return contents after fetching them from remote", func() {
+		Convey("It should return content after fetching them from remote", func() {
 			f := newFileWithTransport()
 
 			content, err := f.getContentFromRemote()
