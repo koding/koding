@@ -96,6 +96,30 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     fetchingMap[messageId] = no
 
 
+ensureMessage = (messageId) ->
+
+  message = kd.singletons.reactor.evaluate ['MessagesStore', messageId]
+
+  if message
+    return new Promise (resolve) -> resolve { message: message.toJS() }
+
+  new Promise (resolve) ->
+    loadMessage(messageId).then ({ message }) ->
+      channelId = message.initialChannelId
+      putLoaderMarker channelId, messageId, { position: 'before', autoload: yes }
+      putLoaderMarker channelId, messageId, { position: 'after', autoload: yes }
+      resolve { message }
+
+
+putLoaderMarker = (channelId, messageId, options) ->
+
+  dispatch actionTypes.ACTIVATE_LOADER_MARKER,
+    channelId : channelId
+    messageId : messageId
+    position  : options.position
+    autoload  : options.autoload
+
+
 ###*
  * Action to load message with given slug.
  *
@@ -411,6 +435,7 @@ fetchEmbedPayload = (messageData, callback = kd.noop) ->
 module.exports = {
   loadMessages
   loadMessageBySlug
+  ensureMessage
   createMessage
   likeMessage
   unlikeMessage
