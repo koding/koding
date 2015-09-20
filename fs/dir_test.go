@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jacobsa/fuse"
+	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
@@ -556,6 +557,8 @@ func newDir() *Dir {
 		},
 	}
 	n := NewRootEntry(t, "/remote", "/local")
+	n.ID = fuseops.InodeID(fuseops.RootInodeID + 1)
+
 	i := NewIDGen()
 
 	return NewDir(n, i)

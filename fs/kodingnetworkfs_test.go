@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jacobsa/fuse"
+	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/config"
 	"github.com/koding/fuseklient/transport"
@@ -43,9 +45,9 @@ func TestKodingNetworkFS(tt *testing.T) {
 		c := base64.StdEncoding.EncodeToString(s)
 		t := &fakeTransport{
 			TripResponses: map[string]interface{}{
+				"fs.writeFile":       1,
 				"fs.createDirectory": true,
 				"fs.rename":          true,
-				"fs.writeFile":       1,
 				"fs.remove":          true,
 				"fs.readFile":        map[string]interface{}{"content": c},
 				"fs.readDirectory": transport.FsReadDirectoryRes{
@@ -77,6 +79,14 @@ func TestKodingNetworkFS(tt *testing.T) {
 			So(fi.Mode(), ShouldEqual, 0700|os.ModeDir)
 		}
 
+		statFileCheck := func(filePath string, mode os.FileMode) {
+			fi, err := os.Stat(filePath)
+			So(err, ShouldBeNil)
+
+			So(fi.IsDir(), ShouldBeFalse)
+			So(fi.Mode(), ShouldEqual, mode)
+		}
+
 		readFile := func(filePath string, str string) {
 			bytes, err := ioutil.ReadFile(filePath)
 			So(err, ShouldBeNil)
@@ -92,19 +102,38 @@ func TestKodingNetworkFS(tt *testing.T) {
 			So(n, ShouldEqual, len(str))
 		}
 
-		statFileCheck := func(filePath string, mode os.FileMode) {
-			fi, err := os.Stat(filePath)
-			So(err, ShouldBeNil)
-
-			So(fi.IsDir(), ShouldBeFalse)
-			So(fi.Mode(), ShouldEqual, mode)
-		}
-
 		Convey("GetInodeAttributes", func() {
+			Convey("It should return root directory attributes", func() {
+				statDirectoryCheck(k.MountPath)
+			})
+
+			Convey("It should return existing file attributes", func() {
+				filePath := path.Join(k.MountPath, "file")
+
+				statFileCheck(filePath, 0700)
+			})
+
+			Convey("It should return newly created file attributes", func() {
+				filePath := path.Join(k.MountPath, "newfile")
+
+				err := ioutil.WriteFile(filePath, []byte("Hello World!"), 0700)
+				So(err, ShouldBeNil)
+
+				statFileCheck(filePath, 0700)
+			})
+
+			Convey("It should return newly created nested directory attributes", func() {
+				directoryPath := path.Join(k.MountPath, "1", "2")
+
+				err := os.MkdirAll(directoryPath, 0700)
+				So(err, ShouldBeNil)
+
+				statDirectoryCheck(directoryPath)
+			})
 		})
 
-		Convey("LookUpInode", func() {
-		})
+		// Convey("LookUpInode", func() {
+		// })
 
 		Convey("OpenDir", func() {
 			Convey("It should open root directory", func() {
@@ -208,18 +237,90 @@ func TestKodingNetworkFS(tt *testing.T) {
 		})
 
 		Convey("Rename", func() {
-			Convey("It should rename directory", func() {
+			Convey("It should rename newly created directory", func() {
 				oldPath := path.Join(k.MountPath, "oldpath")
 				newPath := path.Join(k.MountPath, "newpath")
 
-				So(os.Mkdir(oldPath, 0700), ShouldBeNil)
-				So(os.Rename(oldPath, newPath), ShouldBeNil)
+				// create directory mount/oldpath/
+				err := os.Mkdir(oldPath, 0700)
+				So(err, ShouldBeNil)
+
+				// rename mount/oldPath/ to mount/newpath/
+				err = os.Rename(oldPath, newPath)
+				So(err, ShouldBeNil)
+
+				// check mount/oldPath/ doesn't exist
+				_, err = os.Stat(oldPath)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "no such file or directory")
+
+				// check mount/newPath/ exists
+				statDirectoryCheck(newPath)
 
 				// TODO: add newpath to fakeTransport#TripResponses
 				// statDirectoryCheck(newPath)
 			})
 
-			Convey("It should rename file", func() {
+			Convey("It should rename existing file", func() {
+				oldPath := path.Join(k.MountPath, "file")
+				newPath := path.Join(k.MountPath, "renamedfile")
+
+				// rename mount/file to mount/renamedfile
+				err = os.Rename(oldPath, newPath)
+				So(err, ShouldBeNil)
+
+				// check mount/file doesn't exist
+				_, err = os.Stat(oldPath)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "no such file or directory")
+
+				// check mount/renamedfile exists
+				statFileCheck(newPath, 0700)
+
+				Convey("It should set new file size to be same as old file", func() {
+					fi, err := os.Stat(newPath)
+					So(err, ShouldBeNil)
+					So(fi.Size(), ShouldEqual, 12) // size of content
+				})
+
+				Convey("It should new file content to be same as old file", func() {
+					bytes, err := ioutil.ReadFile(newPath)
+					So(err, ShouldBeNil)
+					So(string(bytes), ShouldEqual, "Hello World!")
+				})
+			})
+
+			Convey("It should rename newly created file", func() {
+				oldPath := path.Join(k.MountPath, "oldfile")
+				err := ioutil.WriteFile(oldPath, []byte("Hello World!"), 0700)
+				So(err, ShouldBeNil)
+
+				readFile(oldPath, "Hello World!")
+
+				// rename mount/oldfile to mount/newfile
+				newPath := path.Join(k.MountPath, "newfile")
+				err = os.Rename(oldPath, newPath)
+				So(err, ShouldBeNil)
+
+				// check mount/oldfile doesn't exist
+				_, err = os.Stat(oldPath)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "no such file or directory")
+
+				// check mount/newfile exists with same permissions
+				statFileCheck(newPath, 0700)
+
+				Convey("It should new file size to be same as old file", func() {
+					fi, err := os.Stat(newPath)
+					So(err, ShouldBeNil)
+					So(fi.Size(), ShouldEqual, 12) // size of content
+				})
+
+				Convey("It should new file content to be same as old file", func() {
+					bytes, err := ioutil.ReadFile(newPath)
+					So(err, ShouldBeNil)
+					So(string(bytes), ShouldEqual, "Hello World!")
+				})
 			})
 		})
 
@@ -494,23 +595,92 @@ func TestKodingNetworkFS(tt *testing.T) {
 }
 
 func TestKodingNetworkFSUnit(t *testing.T) {
+	i := fuseops.InodeID(fuseops.RootInodeID + 1)
+	f := &fakeTransport{
+		TripResponses: map[string]interface{}{
+			"fs.readDirectory": transport.FsReadDirectoryRes{},
+		},
+	}
+
 	// Convey("NewKodingNetworkFS", t, func() {
 	// })
 
-	// Convey("KodingNetworkFS#getDir", t, func() {
-	// })
+	Convey("KodingNetworkFS#getDir", t, func() {
+		Convey("It should return error if specified id is not a directory", func() {
+			k := newknfs(f)
+			k.liveNodes[i] = newFile()
 
-	// Convey("KodingNetworkFS#getFile", t, func() {
-	// })
+			_, err := k.getDir(i)
+			So(err, ShouldEqual, fuse.EIO)
+		})
 
-	// Convey("KodingNetworkFS#getEntry", t, func() {
-	// })
+		Convey("It should return directory with specified id", func() {
+			k := newknfs(f)
+			k.liveNodes[i] = newDir()
 
-	// Convey("KodingNetworkFS#setEntry", t, func() {
-	// })
+			dir, err := k.getDir(i)
+			So(err, ShouldBeNil)
+			So(dir, ShouldHaveSameTypeAs, &Dir{})
+		})
+	})
 
-	// Convey("KodingNetworkFS#deleteEntry", t, func() {
-	// })
+	Convey("KodingNetworkFS#getFile", t, func() {
+		Convey("It should return error if specified id is not a file", func() {
+			k := newknfs(f)
+			k.liveNodes[i] = newDir()
+
+			_, err := k.getFile(i)
+			So(err, ShouldEqual, fuse.EIO)
+		})
+
+		Convey("It should return file with specified id", func() {
+			k := newknfs(f)
+			k.liveNodes[i] = newFile()
+
+			file, err := k.getEntry(i)
+			So(err, ShouldBeNil)
+			So(file, ShouldHaveSameTypeAs, &File{})
+		})
+	})
+
+	Convey("KodingNetworkFS#getEntry", t, func() {
+		Convey("It should return error if specified id doesn't exit", func() {
+			k := newknfs(f)
+			_, err := k.getEntry(i)
+			So(err, ShouldEqual, fuse.ENOENT)
+		})
+
+		Convey("It should return entry with specified id", func() {
+			k := newknfs(f)
+			k.liveNodes[i] = newDir()
+
+			_, err := k.getEntry(i)
+			So(err, ShouldBeNil)
+		})
+	})
+
+	Convey("KodingNetworkFS#setEntry", t, func() {
+		k := newknfs(f)
+		d := newDir()
+
+		k.setEntry(d.GetID(), d)
+
+		So(len(k.liveNodes), ShouldEqual, 2)
+		dir, ok := k.liveNodes[i]
+		So(ok, ShouldBeTrue)
+		So(d, ShouldEqual, dir)
+	})
+
+	Convey("KodingNetworkFS#deleteEntry", t, func() {
+		k := newknfs(f)
+		k.liveNodes[i] = newDir()
+
+		k.deleteEntry(i)
+
+		So(len(k.liveNodes), ShouldEqual, 1)
+		_, ok := k.liveNodes[i]
+		So(ok, ShouldBeFalse)
+	})
 }
 
 func _unmount(k *KodingNetworkFS) error {
