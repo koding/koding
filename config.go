@@ -15,5 +15,8 @@ const (
 
 	// A path to the kite key that we will use to authenticate to the given
 	// klient
-	KiteKeyPath = "/etc/kite/kite.key"
+	KiteHome = "/etc/kite"
+
+	// The directory that klient will be downloaded/installed to
+	KlientDirectory = "."
 )

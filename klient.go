@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/koding/kite"
@@ -12,7 +13,7 @@ import (
 func NewKlientOptions() KlientOptions {
 	return KlientOptions{
 		Address:     KlientAddress,
-		KiteKeyPath: KiteKeyPath,
+		KiteKeyPath: filepath.Join(KiteHome, "kite.key"),
 		Name:        Name,
 		Version:     Version,
 	}
