@@ -34,6 +34,8 @@ module.exports =
     require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
     require './stores/channelparticipants/channelparticipantsselectedindexstore'
 
+    require './stores/channelmessageloadermarkersstore'
+
   ]
   # module stores
   .concat ChatInputModule.stores
