@@ -300,6 +300,8 @@ editMessage = (messageId, body, payload) ->
 ###
 loadComments = (messageId, options = {}) ->
 
+  return
+
   options.limit ?= 25
   { socialapi } = kd.singletons
   { LOAD_COMMENTS_BEGIN
