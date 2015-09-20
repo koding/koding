@@ -45,9 +45,15 @@ func Unlock(path string) error {
 	return os.Remove(lockFile)
 }
 
-// getLockFileName returns name of lock file for mounted folder.
+// getLockFileName returns name of lock file for mounted folder. It uses
+// absolute path in lock file name even when relative path is given.
 func getLockFileName(path string) (string, error) {
 	configFolder, err := getOrCreateConfigFolder()
+	if err != nil {
+		return "", err
+	}
+
+	path, err = filepath.Abs(path)
 	if err != nil {
 		return "", err
 	}
