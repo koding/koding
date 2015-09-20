@@ -125,7 +125,7 @@ React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
 reset = (props) ->
 
-  { channelName, postSlug } = props.params
+  { channelName, postId } = props.params
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
   if channelName
@@ -134,13 +134,13 @@ reset = (props) ->
       channelActions.loadPopularMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
 
+      if postId
+        messageActions.ensureMessage(postId).then ({ message }) ->
+          messageActions.changeSelectedMessage message.id
+      else
+        messageActions.changeSelectedMessage null
+
   else
     thread.changeSelectedThread null
-
-  if postSlug
-    messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
-      messageActions.changeSelectedMessage message.id
-  else
-    messageActions.changeSelectedMessage null
 
 
