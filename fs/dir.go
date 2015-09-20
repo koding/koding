@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -12,11 +11,6 @@ import (
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"github.com/koding/fuseklient/transport"
-)
-
-var (
-	ErrNotADir  = errors.New("Node is a not directory.")
-	ErrNotAFile = errors.New("Node is a not file.")
 )
 
 type entry struct {
@@ -99,7 +93,7 @@ func (d *Dir) FindEntryDir(name string) (*Dir, error) {
 
 	d, ok := n.(*Dir)
 	if !ok {
-		return nil, ErrNotADir
+		return nil, fuse.ENOTDIR
 	}
 
 	return d, nil
@@ -149,7 +143,7 @@ func (d *Dir) FindEntryFile(name string) (*File, error) {
 
 	f, ok := n.(*File)
 	if !ok {
-		return nil, ErrNotAFile
+		return nil, fuse.EIO
 	}
 
 	return f, nil

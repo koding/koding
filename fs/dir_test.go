@@ -128,7 +128,7 @@ func TestDir(t *testing.T) {
 			d.EntriesList = map[string]Node{"dir": NewDir(n, d.IDGen)}
 
 			_, err := d.FindEntryFile("dir")
-			So(err, ShouldEqual, ErrNotAFile)
+			So(err, ShouldEqual, fuse.EIO)
 		})
 	})
 
@@ -156,7 +156,7 @@ func TestDir(t *testing.T) {
 			d.EntriesList = map[string]Node{"file": NewFile(n)}
 
 			_, err := d.FindEntryDir("file")
-			So(err, ShouldEqual, ErrNotADir)
+			So(err, ShouldEqual, fuse.ENOTDIR)
 		})
 	})
 
