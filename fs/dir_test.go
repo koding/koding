@@ -271,13 +271,15 @@ func TestDir(t *testing.T) {
 				dir, ok := i.(*Dir)
 				So(ok, ShouldBeTrue)
 				So(dir.Name, ShouldEqual, "dir2")
-			})
 
-			Convey("It should find new entry with same entries as old", func() {
-				dir, ok := i.(*Dir)
-				So(ok, ShouldBeTrue)
-				So(len(dir.Entries), ShouldEqual, 1)
-				So(len(dir.EntriesList), ShouldEqual, 1)
+				Convey("It should find new entry with same entries as old", func() {
+					So(len(dir.Entries), ShouldEqual, 1)
+					So(len(dir.EntriesList), ShouldEqual, 1)
+				})
+
+				Convey("It should find new entry with parent pointing to new directory", func() {
+					So(dir.Parent, ShouldEqual, d)
+				})
 			})
 		})
 
@@ -308,6 +310,10 @@ func TestDir(t *testing.T) {
 
 				Convey("It should find new entry with same size as old file", func() {
 					So(file.Attrs.Size, ShouldEqual, 12)
+				})
+
+				Convey("It should find new entry with parent pointing to new directory", func() {
+					So(file.Parent, ShouldEqual, n)
 				})
 			})
 

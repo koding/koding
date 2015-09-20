@@ -226,8 +226,11 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 
 		dir2.Entries = dir1.Entries
 		dir2.EntriesList = dir1.EntriesList
+		dir2.Entry.Parent = newDir
 	case fuseutil.DT_File:
 		file2 := newEntry.(*File)
+		file2.Entry.Parent = newDir
+
 		if err := file2.updateContentFromRemote(); err != nil {
 			return nil, nil
 		}
