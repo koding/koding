@@ -98,9 +98,11 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 	rootEntry.RemotePath = c.RemotePath
 	rootEntry.LocalPath = c.LocalPath
 
-	// TODO: get uid and gid for current process and use that
+	localUser, locaGroup := getLocalUserInfo()
+
+	// TODO: what size to set for directories
 	rootEntry.Attrs = fuseops.InodeAttributes{
-		Uid: 501, Gid: 20, Mode: 0700 | os.ModeDir, Size: 10,
+		Uid: localUser, Gid: locaGroup, Mode: 0700 | os.ModeDir, Size: 10,
 	}
 
 	// create root directory
