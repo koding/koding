@@ -59,7 +59,7 @@ dispatchLoadMessageSuccess = (channelId, message) ->
  * An empty promise resolver. It's being used for default cases that returns
  * promise to keep API consistent.
 ###
-emptyPromise = new Promise (resolve) -> resolve()
+emptyPromise = new Promise (resolve) -> resolve {}
 
 
 ###*
