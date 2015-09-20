@@ -293,6 +293,7 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMediaObjectClassNames: -> classnames
+    'ChatListItem-itemBodyContainer': yes
     'hidden' : @props.message.get '__isEditing'
 
 
