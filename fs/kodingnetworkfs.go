@@ -442,11 +442,15 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 		attrs.Atime = *op.Atime
 	}
 
-	if op.Mtime != nil {
+	///// optionally update attributes only if entry is a file
+
+	_, isFile := entry.(*File)
+
+	if isFile && op.Mtime != nil {
 		attrs.Mtime = *op.Mtime
 	}
 
-	if op.Size != nil {
+	if isFile && op.Size != nil {
 		attrs.Size = *op.Size
 
 		// if new size is 0 and entry is a file, truncate the file
