@@ -376,13 +376,13 @@ func (d *Dir) initializeChild(e *entry) (Node, error) {
 }
 
 func (d *Dir) removeChild(name string) (Node, error) {
+	listEntry, err := d.findEntry(name)
+	if err != nil {
+		return nil, err
+	}
+
 	d.Lock()
 	defer d.Unlock()
-
-	listEntry, ok := d.EntriesList[name]
-	if !ok {
-		return nil, fuse.ENOENT
-	}
 
 	listEntry.Forget()
 

@@ -412,6 +412,15 @@ func TestDir(t *testing.T) {
 	})
 
 	Convey("Dir#initializeChild", t, func() {
+		Convey("It should return error if specified type is not file or directory", func() {
+			d := newDir()
+			e := &entry{Name: "dir", Type: fuseutil.DT_Unknown}
+
+			_, err := d.initializeChild(e)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "Unknown file type")
+		})
+
 		Convey("It should initialize a Dir if specified entry is a directory", func() {
 			d := newDir()
 			e := &entry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
