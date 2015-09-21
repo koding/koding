@@ -4,6 +4,7 @@ ActivityFlux        = require 'activity/flux'
 Link                = require 'app/components/common/link'
 Button              = require 'app/components/common/button'
 ActivityPromptModal = require 'app/components/activitypromptmodal'
+MessageListItemHelper  = require 'activity/util/messageListItemHelper'
 
 module.exports = class PrivateChannelListItem extends React.Component
 
@@ -66,7 +67,7 @@ module.exports = class PrivateChannelListItem extends React.Component
     { channel } = @props
 
     typeConstant = channel.get 'typeConstant'
-    title        = if typeConstant is 'bot' then 'Bot Koding' else channel.get 'purpose'
+    title        = MessageListItemHelper.prepareThreadTitle channel
     channelName  = channel.get 'name'
 
     <Link href="/Channels/#{channelName}" className='ChannelListItem'>
