@@ -1484,7 +1484,7 @@ class IDEAppController extends AppController
 
     @emit 'IDEWillQuit'
 
-    @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
+    @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
 
     @stopCollaborationSession()
     kd.singletons.appManager.quit this
