@@ -52,6 +52,7 @@ func TestFile(tt *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(content), ShouldEqual, "Hello World!")
 
+			// reset to empty transport, so if this is called, it panics
 			f.Transport = &fakeTransport{}
 
 			content, err = f.ReadAt(0)
@@ -151,23 +152,40 @@ func TestFile(tt *testing.T) {
 		})
 	})
 
-	Convey("File#writeContentToRemote", tt, func() {
-		Convey("It should specificed content to remote", func() {
-			c := []byte("Hello World!")
-
+	Convey("File#writeContentToRemoteIfDirty", tt, func() {
+		Convey("It should not write specified content if not dirty", func() {
 			f := newFileWithTransport()
-			So(f.writeContentToRemote(c), ShouldBeNil)
+
+			// reset to empty transport, so if this is called, it panics
+			f.Transport = &fakeTransport{}
+			f.IsDirty = false
+
+			So(f.syncToRemote(), ShouldBeNil)
 		})
 
-		Convey("It should reset dirty state", func() {
+		Convey("It should write specified content to remove if dirty", func() {
+			f := newFileWithTransport()
+			f.Content = []byte("Hello World!")
+			f.IsDirty = true
+
+			So(f.syncToRemote(), ShouldBeNil)
+
+			Convey("It should set File#IsDirty to false after writing to remote", func() {
+				So(f.IsDirty, ShouldBeFalse)
+			})
+		})
+	})
+
+	Convey("File#writeContentToRemote", tt, func() {
+		Convey("It should write specificed content to remote", func() {
 			c := []byte("Hello World!")
 
 			f := newFileWithTransport()
-			f.IsDirty = true
-
 			So(f.writeContentToRemote(c), ShouldBeNil)
 
-			So(f.IsDirty, ShouldBeFalse)
+			Convey("It should set File#IsDirty to false after writing to remote", func() {
+				So(f.IsDirty, ShouldBeFalse)
+			})
 		})
 	})
 

@@ -91,11 +91,11 @@ func (f *File) TruncateTo(size uint64) error {
 }
 
 func (f *File) Flush() error {
-	return f.writeContentToRemote(f.Content)
+	return f.syncToRemote()
 }
 
 func (f *File) Sync() error {
-	return f.writeContentToRemote(f.Content)
+	return f.syncToRemote()
 }
 
 ///// Node interface
@@ -105,6 +105,18 @@ func (f *File) GetType() fuseutil.DirentType {
 }
 
 ///// Helpers
+
+func (f *File) syncToRemote() error {
+	f.RLock()
+	var isDirty = f.IsDirty
+	f.RUnlock()
+
+	if !isDirty {
+		return nil
+	}
+
+	return f.writeContentToRemote(f.Content)
+}
 
 func (f *File) writeContentToRemote(content []byte) error {
 	f.Lock()
