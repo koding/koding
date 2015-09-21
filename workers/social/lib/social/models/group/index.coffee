@@ -197,9 +197,6 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
-        sendNotification: [
-          (signature Object, Object, Function)
-        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
