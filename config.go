@@ -19,4 +19,6 @@ const (
 
 	// The directory that klient will be downloaded/installed to
 	KlientDirectory = "."
+
+	KontrolUrl = "https://koding.com/kontrol/kite"
 )

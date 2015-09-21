@@ -4,21 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-func StopCommandFactory(k *kite.Client) cli.CommandFactory {
-	return func() (cli.Command, error) {
-		return &StopCommand{
-			k: k,
-		}, nil
-	}
+func StopCommandFactory() (cli.Command, error) {
+	return &StopCommand{}, nil
 }
 
-type StopCommand struct {
-	k *kite.Client
-}
+type StopCommand struct{}
 
 func (c *StopCommand) Run(_ []string) int {
 	s, err := newService()

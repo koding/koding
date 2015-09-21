@@ -4,17 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-func UnmountCommandFactory(k *kite.Client) cli.CommandFactory {
-	return func() (cli.Command, error) { return &UnmountCommand{k: k}, nil }
+func UnmountCommandFactory() (cli.Command, error) {
+	return &UnmountCommand{}, nil
 }
 
-type UnmountCommand struct {
-	k *kite.Client
-}
+type UnmountCommand struct{}
 
 func (c *UnmountCommand) Run(args []string) int {
 	// All of the arguments are required currently, so error if anything
@@ -24,7 +21,12 @@ func (c *UnmountCommand) Run(args []string) int {
 		return 1
 	}
 
-	if err := c.k.Dial(); err != nil {
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := k.Dial(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -33,7 +35,7 @@ func (c *UnmountCommand) Run(args []string) int {
 	}{LocalPath: args[0]}
 
 	// Don't care about the response currently, since there is none.
-	if _, err := c.k.Tell("remote.unmountFolder", mountRequest); err != nil {
+	if _, err := k.Tell("remote.unmountFolder", mountRequest); err != nil {
 		log.Fatal(err)
 	}
 

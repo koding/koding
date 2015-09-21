@@ -3,21 +3,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-func MountsCommandFactory(k *kite.Client) cli.CommandFactory {
-	return func() (cli.Command, error) {
-		return &MountsCommand{
-			k: k,
-		}, nil
-	}
+func MountsCommandFactory() (cli.Command, error) {
+	return &MountsCommand{}, nil
 }
 
-type MountsCommand struct {
-	k *kite.Client
-}
+type MountsCommand struct{}
 
 func (c *MountsCommand) Run(_ []string) int {
 	fmt.Println("Not implemented")

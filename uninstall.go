@@ -4,21 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-func UninstallCommandFactory(k *kite.Client) cli.CommandFactory {
-	return func() (cli.Command, error) {
-		return &UninstallCommand{
-			k: k,
-		}, nil
-	}
+func UninstallCommandFactory() (cli.Command, error) {
+	return &UninstallCommand{}, nil
 }
 
-type UninstallCommand struct {
-	k *kite.Client
-}
+type UninstallCommand struct{}
 
 func (c *UninstallCommand) Run(_ []string) int {
 	s, err := newService()

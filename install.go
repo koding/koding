@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/kardianos/service"
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -37,17 +37,11 @@ func (p *serviceProgram) Stop(s service.Service) error {
 	return nil
 }
 
-func InstallCommandFactory(k *kite.Client) cli.CommandFactory {
-	return func() (cli.Command, error) {
-		return &InstallCommand{
-			k: k,
-		}, nil
-	}
+func InstallCommandFactory() (cli.Command, error) {
+	return &InstallCommand{}, nil
 }
 
-type InstallCommand struct {
-	k *kite.Client
-}
+type InstallCommand struct{}
 
 func (c *InstallCommand) Run(_ []string) int {
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
@@ -99,7 +93,24 @@ KITE_HOME=%s %s
 		return 1
 	}
 
-	// TODO: Register with kontrol here
+	fmt.Printf(`Authenticating you to the %s
+Please provide your Koding Username and Password when prompted..
+
+`, KlientName)
+
+	cmd := exec.Command(klientBinPath, "-register",
+		"--kontrol-url", KontrolUrl)
+	cmd.Env = append(os.Environ(), fmt.Sprintf("KITE_HOME=%s", KiteHome))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err = cmd.Run()
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
 
 	s, err := newService()
 	if err != nil {

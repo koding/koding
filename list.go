@@ -6,30 +6,29 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
-func ListCommandFactory(k *kite.Client) cli.CommandFactory {
-	return func() (cli.Command, error) {
-		return &ListCommand{
-			k: k,
-		}, nil
-	}
+func ListCommandFactory() (cli.Command, error) {
+	return &ListCommand{}, nil
 }
 
 type ListCommand struct {
-	k *kite.Client
 }
 
 func (c *ListCommand) Run(_ []string) int {
-	err := c.k.Dial()
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = k.Dial()
 	if err != nil {
 		log.Fatal(err)
 		return 1
 	}
 
-	res, err := c.k.Tell("remote.list")
+	res, err := k.Tell("remote.list")
 	if err != nil {
 		log.Fatal(err)
 		return 1
