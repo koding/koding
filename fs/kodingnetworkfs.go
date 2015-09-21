@@ -512,6 +512,10 @@ func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) erro
 	return nil
 }
 
+func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
+	return nil
+}
+
 ///// Helpers
 
 // getDir gets directory entry with specified id from list of live nodes. It
