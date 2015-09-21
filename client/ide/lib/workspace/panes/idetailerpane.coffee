@@ -11,10 +11,11 @@ module.exports = class IDETailerPane extends IDEPane
 
     options.cssClass = kd.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'tailer'
-
     { @file }        = options
 
     super options, data
+
+    @hash = @file.paneHash  if @file.paneHash
 
     @createEditor()
 
