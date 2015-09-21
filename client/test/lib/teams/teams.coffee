@@ -124,3 +124,35 @@ module.exports =
       .end()
 
 
+  inviteUser: (browser) ->
+
+    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    inviteButtonSelector     = "#{invitationsModalSelector} button.invite"
+    inviteUserView           = "#{invitationsModalSelector} .invite-view"
+    emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
+    userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
+    inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
+    cancelButton             = "#{invitationsModalSelector} button.cancel"
+    notificationView         = '.kdnotification'
+    pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+
+    teamsHelpers.openInvitationsTab(browser)
+
+    browser
+      .waitForElementVisible  inviteButtonSelector, 20000
+      .click                  inviteButtonSelector
+      .waitForElementVisible  inviteUserView, 20000
+      .waitForElementVisible  emailInputSelector, 20000
+      .setValue               emailInputSelector, userEmail
+      .waitForElementVisible  inviteMemberButton, 20000
+      .click                  inviteMemberButton
+      .waitForElementVisible  notificationView, 20000
+      .assert.containsText    notificationView, 'All invites sent'
+      .waitForElementVisible  cancelButton, 20000
+      .click                  cancelButton
+      .waitForElementVisible  pendingMemberView, 20000
+      .assert.containsText    pendingMemberView, userEmail
+      .end()
