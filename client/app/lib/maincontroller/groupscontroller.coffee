@@ -73,7 +73,7 @@ module.exports = class GroupsController extends KDController
 
   openSocialGroupChannel:(group, callback=->) ->
     {realtime, socialapi} = kd.singletons
-    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) ->
+    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
       return callback  if err
 
       subscriptionData =
@@ -83,7 +83,7 @@ module.exports = class GroupsController extends KDController
         token      : channel.token
         channelId  : group.socialApiChannelId
 
-      realtime.subscribeChannel subscriptionData, (err, groupChan) ->
+      realtime.subscribeChannel subscriptionData, (err, groupChan) =>
         return callback err  if err
 
         @filterXssAndForwardEvents groupChan, [
