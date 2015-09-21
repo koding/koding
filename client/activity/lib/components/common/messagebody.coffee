@@ -11,10 +11,19 @@ module.exports = class MessageBody extends React.Component
     message: immutable.Map()
 
 
+  renderEmojis: ->
+
+    contentElement = React.findDOMNode @content
+    emojify.run contentElement  if contentElement
+
+
   contentDidMount: (content) ->
 
-    contentElement = React.findDOMNode content
-    emojify.run contentElement  if contentElement
+    @content = content
+    @renderEmojis()
+
+
+  componentDidUpdate: -> @renderEmojis()
 
 
   render: ->
