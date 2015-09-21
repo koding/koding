@@ -36,6 +36,7 @@ module.exports = class ChatListItem extends React.Component
     account                       : null
     isDeleting                    : no
     isMenuOpen                    : no
+    channelName                   : ''
     editInputValue                : ''
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
@@ -241,7 +242,13 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
+    name  = @props.channelName
+    value = @state.editInputValue
     messageId = @props.message.get '_id'
+
+    unless value.match ///\##{name}///
+      value += " ##{name} "
+
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
     ActivityFlux.actions.message.editMessage(
