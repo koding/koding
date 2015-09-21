@@ -124,3 +124,10 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     @splitRegions?.destroy()
     @splitRegions = null
 
+
+  handleCloseIcon: (pane) ->
+
+    @emit 'PaneRemovedByUserAction', pane
+
+    super pane
+
