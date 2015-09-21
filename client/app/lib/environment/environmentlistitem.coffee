@@ -7,6 +7,10 @@ MachinesListController = require './machineslistcontroller'
 
 ComputeHelpers         = require '../providers/computehelpers'
 
+showNotification       = require 'app/util/showNotification'
+
+StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
+
 
 module.exports = class EnvironmentListItem extends kd.ListItemView
 
@@ -97,6 +101,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @infoIcon     = new kd.CustomHTMLView
       cssClass    : 'info-icon'
+      click       : @bound 'showStackTemplateContent'
       tooltip     :
         placement : 'right'
         cssClass  : 'info-tooltip'
@@ -108,6 +113,17 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         "
 
     @infoIcon.hide()  if isKoding()
+
+
+  showStackTemplateContent: ->
+
+    { computeController } = kd.singletons
+
+    computeController.fetchBaseStackTemplate @getData(), (err, template) ->
+
+      return showNotification err  if err
+
+      new StackTemplateContentModal {}, template
 
 
   pistachio: ->
