@@ -279,6 +279,15 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 		return false, nil
 	}
 
+	c, err := models.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		return false, err
+	}
+
+	if c.GroupName != models.Channel_KODING_NAME {
+		return false, nil
+	}
+
 	return true, nil
 }
 

@@ -1,7 +1,6 @@
 package topicfeed
 
 import (
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
@@ -49,12 +48,22 @@ func TestIsEligible(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(eligible, ShouldBeFalse)
 
-			Convey("when it is set to Post, should be eligible", func() {
-				c.InitialChannelId = rand.Int63()
+			account := models.CreateAccountWithTest()
+			Convey("if group is koding should be eligible", func() {
+				groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
+				c.InitialChannelId = groupChannel.Id
 				c.TypeConstant = models.ChannelMessage_TYPE_POST
 				eligible, err := isEligible(c)
 				So(err, ShouldBeNil)
 				So(eligible, ShouldBeTrue)
+			})
+			Convey("if group not koding should not be eligible", func() {
+				groupChannel := models.CreateTypedChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
+				c.InitialChannelId = groupChannel.Id
+				c.TypeConstant = models.ChannelMessage_TYPE_POST
+				eligible, err := isEligible(c)
+				So(err, ShouldBeNil)
+				So(eligible, ShouldBeFalse)
 			})
 		})
 	})
@@ -106,7 +115,7 @@ func TestMessageSaved(t *testing.T) {
 			})
 		})
 
-		Convey("newly created channels of non koding group", func() {
+		Convey("non koding groups", func() {
 			account := models.CreateAccountWithTest()
 			groupChannel := models.CreateTypedPublicChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
 
@@ -124,16 +133,14 @@ func TestMessageSaved(t *testing.T) {
 
 			So(controller.MessageSaved(c), ShouldBeNil)
 
-			Convey("should not have moderation flag", func() {
+			Convey("doesnt support multi topic feed", func() {
 				// byname doesnt filter
-				channel, err := models.NewChannel().ByName(&request.Query{
+				_, err := models.NewChannel().ByName(&request.Query{
 					Name:      topicName,
 					GroupName: groupChannel.GroupName,
 					AccountId: account.Id,
 				})
-				So(err, ShouldBeNil)
-				So(channel, ShouldNotBeNil)
-				So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeFalse)
+				So(err, ShouldEqual, bongo.RecordNotFound)
 			})
 		})
 	})
