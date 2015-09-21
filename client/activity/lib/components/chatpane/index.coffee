@@ -30,7 +30,7 @@ module.exports = class ChatPane extends React.Component
 
   renderBody: ->
 
-    return null  unless @props.messages
+    return null  unless @props.messages?.size
 
     <section className="ChatPane-body" ref="ChatPaneBody">
       <Scroller
