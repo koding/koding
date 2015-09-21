@@ -227,7 +227,7 @@ module.exports = class IDELayoutManager extends KDObject
       else
         # Don't use `active tab view` logic for new pane creation.
         # Because `The Editors` (saved editors) are loading async.
-        item.targetTabView = tabView  if item.context.paneType is 'editor'
+        item.targetTabView = tabView  if item.context.paneType in [ 'editor', 'tailer' ]
         ideApp.createPaneFromChange item, yes
 
 
