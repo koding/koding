@@ -49,7 +49,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
     <ThreadHeader thread={thread}>
       <PublicChannelLink to={thread}>
-        {channelName}
+        {"##{channelName}"}
       </PublicChannelLink>
     </ThreadHeader>
 
