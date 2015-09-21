@@ -280,6 +280,19 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       @createPane_ tailerPane, paneOptions, file
 
+      if emitChange
+        change        =
+          context     :
+            file      :
+              content : content
+              path    : file.path
+              machine :
+                uid   : file.machine.uid
+
+      @emitChange tailerPane, change
+
+      return tailerPane
+
 
   createTerminal: (options) ->
 

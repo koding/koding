@@ -1379,10 +1379,9 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ paneType, (pane) =>
 
-      if paneType is 'editor'
-        if pane.getFile()?.path is context.file?.path
+      if paneType in [ 'editor', 'tailer' ]
+        if (pane.getFile()?.path is context.file?.path) and pane.options.paneType is paneType
           targetPane = pane
-
       else
         targetPane = pane  if pane.hash is paneHash
 
@@ -1417,6 +1416,7 @@ class IDEAppController extends AppController
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
       when 'editor'   then @createEditorPaneFromChange change, paneHash
       when 'drawing'  then @createDrawingPaneFromChange change, paneHash
+      when 'tailer'   then @createEditorPaneFromChange change, paneHash, yes
 
 
   createTerminalPaneFromChange: (change, hash) ->
@@ -1429,7 +1429,7 @@ class IDEAppController extends AppController
       fitToWindow   : not @isInSession
 
 
-  createEditorPaneFromChange: (change, hash) ->
+  createEditorPaneFromChange: (change, hash, inTailMode) ->
 
     { context, targetTabView }  = change
     { file, paneType }          = context
@@ -1437,18 +1437,19 @@ class IDEAppController extends AppController
     options                     = { path, machine : @mountedMachine }
     file                        = FSHelper.createFileInstance options
     file.paneHash               = hash
+    method                      = if inTailMode then 'tailFile' else 'openFile'
 
     if @rtm?.realtimeDoc
       contents = @rtm.getFromModel(path)?.getText() or ''
-      @openFile { file, contents, emitChange: no }
+      @[method] { file, contents, emitChange: no }
 
     else if file.isDummyFile()
-      @openFile { file, contents: file.content, emitChange: no }
+      @[method] { file, contents: file.content, emitChange: no }
 
     else
       file.fetchContents (err, contents = '') =>
         return showError err  if err
-        @openFile { file, contents, emitChange: no, targetTabView }
+        @[method] { file, contents, emitChange: no, targetTabView }
 
 
   createDrawingPaneFromChange: (change, hash) ->
