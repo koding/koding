@@ -7,8 +7,9 @@
 
   .ChatItem-authorName
     display                 inline-block
-    font-size               12px
+    font-size               16px
     margin                  4px 10px 2px 0
+    font-weight             bold
 
   time
     color                   #999
@@ -18,7 +19,7 @@
   .ChatItem-likeLink
     abs()
     pointer()
-    top                     12px
+    top                     13px
     display                 none
     vertical-align          text-bottom
     padding                 5px
@@ -52,7 +53,8 @@
         visible()
 
   .emoji
-    size                    16px 16px
+    size                    20px 20px
+    vertical-align          text-bottom
 
   .SettingsMenuWrapper
     abs()
@@ -102,6 +104,11 @@
 
         p
           padding           0 0 2px
+
+        pre
+          max-width         701px
+          max-height        300px
+          overflow          auto
 
 
   &:hover
@@ -153,8 +160,8 @@
     left                      15px
 
   .ChatItem-likeLink
-    top                       0
-    left                      63px
+    top                     2px
+    left                    63px
 
   &:hover
     .ChatItem-messageDate

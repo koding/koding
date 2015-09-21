@@ -1,10 +1,10 @@
-
 { Module }  = require 'jraphical'
 { revive }  = require './computeutils'
 KodingError = require '../../error'
 
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+
 
 module.exports = class JMachine extends Module
 
@@ -210,6 +210,7 @@ module.exports = class JMachine extends Module
     unless inList
       newUsers.push {
         id       : user.getId()
+        username : user.username
         owner    : no
         approved : no
         permanent
@@ -273,10 +274,16 @@ module.exports = class JMachine extends Module
     # Users list can be provided before machine create
     # We also need to make sure that the real owner of the
     # machine is in list. ~ GG
+    userObj    =
+      id       : user.getId()
+      sudo     : yes
+      owner    : yes
+      username : user.username
+
     if Array.isArray(data.users) and data.users.length > 0
-      data.users.push { id: user.getId(), sudo: yes, owner: yes }
+      data.users.push userObj
     else
-      data.users   = [{ id: user.getId(), sudo: yes, owner: yes }]
+      data.users   = [ userObj ]
 
     data.groups    = [{ id: group.getId() }]
 
@@ -734,5 +741,3 @@ module.exports = class JMachine extends Module
       machine.shareWith$ client, options, (err) ->
 
         callback err, machine
-
-

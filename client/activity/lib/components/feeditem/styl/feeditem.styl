@@ -49,9 +49,9 @@ $base-padding               = 18px
   padding                   $base-padding
 
 .FeedItem-summary
-  flex                      6
   dFlex()
-  align-items               center
+  vendor                    flex, 6
+  vendor                    align-items, center
 
 .FeedItem-summaryItem
   cite
@@ -68,6 +68,7 @@ $base-padding               = 18px
   vertical-align            middle
 
 .FeedItem-footerActionContainer
-  flex                      4
   dFlex()
-  justify-content           flex-end
+  vendor                    flex, 4
+  vendor                    justify-content, flex-end
+

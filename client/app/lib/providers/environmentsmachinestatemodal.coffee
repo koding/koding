@@ -99,7 +99,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       sendDataDogEvent 'MachineTurnedOn', tags: {label: machine.label}
 
 
-  triggerEventTimer: (percentage)->
+  triggerEventTimer: (percentage) ->
 
     if percentage isnt @_lastPercentage
       clearTimeout @eventTimer
@@ -171,7 +171,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @createStatusOutput event
 
 
-  switchToIDEIfNeeded: (status = @state)->
+  switchToIDEIfNeeded: (status = @state) ->
 
     return no  unless status is Running
     @prepareIDE()
@@ -179,7 +179,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     return yes
 
 
-  updatePercentage: (percentage)->
+  updatePercentage: (percentage) ->
 
     @triggerEventTimer percentage
 
@@ -192,7 +192,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @label?.updatePartial @getStateLabel()
 
 
-  completeCurrentProcess: (status)->
+  completeCurrentProcess: (status) ->
 
     @clearEventTimer()
 
@@ -304,7 +304,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
         return  unless event.target.tagName is 'CITE'
 
-        remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+        remote.api.JUser.verifyByPin resendIfExists: yes, (err) =>
 
           unless showError err
 
@@ -320,7 +320,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @container.addSubView @button
 
 
-  buildExpiredView: (subscription, nextState)->
+  buildExpiredView: (subscription, nextState) ->
 
     plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
 
@@ -329,13 +329,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     if nextState is "downgrade"
 
       @showBusy "Downgrading..."
-      @downgradePlan (err)=>
+      @downgradePlan (err) =>
 
         if err?
           kd.utils.wait 10000, =>
             @buildExpiredView subscription, "downgrade"
         else
-          ComputeHelpers.handleNewMachineRequest provider: 'koding', (err)->
+          ComputeHelpers.handleNewMachineRequest provider: 'koding', (err) ->
             global.location.reload yes
 
       return
@@ -357,7 +357,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if destroyVMs
 
           @showBusy "Deleting your VM(s)..."
-          ComputeHelpers.destroyExistingResources yes, (err)=>
+          ComputeHelpers.destroyExistingResources yes, (err) =>
             @buildExpiredView subscription, "downgrade"
 
         else
@@ -584,7 +584,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @container.addSubView @loader
 
 
-  createProgressBar: (initial = 10)->
+  createProgressBar: (initial = 10) ->
 
     @progressBar = new KDProgressBarView { initial }
 
@@ -609,7 +609,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     return  unless @state is Stopped
 
     computeController = kd.getSingleton 'computeController'
-    computeController.fetchUserPlan (plan)=>
+    computeController.fetchUserPlan (plan) =>
 
       reason  = @machine.status.reason
       message = null
@@ -726,7 +726,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       methodName = action ? 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{target._id}", ({err})=>
+    computeController.once "error-#{target._id}", ({err}) =>
 
       unless err?.code is ComputeController.Error.NotVerified
         @lastKnownError = err
@@ -766,7 +766,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     unless code then return new KDNotificationView
       title: "Please enter a code"
 
-    remote.api.JUser.verifyByPin pin: code, (err)=>
+    remote.api.JUser.verifyByPin pin: code, (err) =>
 
       @pinIsValid?.destroy()
 
@@ -785,13 +785,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
           label    : 'completedAccountVerification'
 
 
-  downgradePlan: (callback)->
+  downgradePlan: (callback) ->
 
     me = whoami()
-    me.fetchEmail (err, email)->
+    me.fetchEmail (err, email) ->
 
       kd.singletons.paymentController
-        .subscribe "token", "free", "month", { email }, (err, resp)->
+        .subscribe "token", "free", "month", { email }, (err, resp) ->
           return callback err  if err?
           callback null
 

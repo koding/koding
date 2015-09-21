@@ -10,9 +10,8 @@ PrivateChannelListItem  = require 'activity/components/privatechannellistitem'
 module.exports = class SidebarMessagesSection extends React.Component
 
   @defaultProps =
-    threads    : immutable.Map()
     selectedId : null
-
+    threads    : immutable.Map()
 
   constructor: (props) ->
 
@@ -41,6 +40,8 @@ module.exports = class SidebarMessagesSection extends React.Component
       <SidebarModalList
         title='Other Messages:'
         threads={@props.threads}
+        onThresholdAction='loadFollowedPrivateChannels'
+        searchProp='purpose'
         itemComponent={PrivateChannelListItem}/>
     </Modal>
 
@@ -63,6 +64,7 @@ module.exports = class SidebarMessagesSection extends React.Component
         <SidebarList
           previewCount={@props.previewCount}
           itemComponent={SidebarMessagesListItem}
+          componentProp='SidebarMessagesListItem'
           threads={@props.threads}
           selectedId={@props.selectedId} />
           {@renderMoreLink()}

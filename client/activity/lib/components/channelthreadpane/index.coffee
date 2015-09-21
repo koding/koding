@@ -1,11 +1,12 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-KDReactorMixin = require 'app/flux/reactormixin'
-ActivityFlux   = require 'activity/flux'
-immutable      = require 'immutable'
-classnames     = require 'classnames'
-ThreadSidebar  = require 'activity/components/threadsidebar'
-ThreadHeader   = require 'activity/components/threadheader'
+kd                = require 'kd'
+React             = require 'kd-react'
+KDReactorMixin    = require 'app/flux/reactormixin'
+ActivityFlux      = require 'activity/flux'
+immutable         = require 'immutable'
+classnames        = require 'classnames'
+ThreadSidebar     = require 'activity/components/threadsidebar'
+ThreadHeader      = require 'activity/components/threadheader'
+PublicChannelLink = require 'activity/components/publicchannellink'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -42,11 +43,15 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   renderHeader: ->
-    <ThreadHeader
-      channelThread={@state.channelThread}
-      messageThread={@state.messageThread}
-      isSummaryActive={!!@props.feed}
-    />
+    return  unless @state.channelThread
+    thread = @state.channelThread
+    channelName = thread.getIn ['channel', 'name']
+
+    <ThreadHeader thread={thread}>
+      <PublicChannelLink to={thread}>
+        {channelName}
+      </PublicChannelLink>
+    </ThreadHeader>
 
 
   renderFeed: ->
