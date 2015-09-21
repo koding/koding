@@ -9,7 +9,8 @@ MessageListItemHelper = require 'activity/util/messageListItemHelper'
 module.exports = class PrivateChannelListItem extends React.Component
 
   @defaultProps =
-    channel  : null
+    channel     : null
+    onItemClick : kd.noop
 
   constructor: (props) ->
 
