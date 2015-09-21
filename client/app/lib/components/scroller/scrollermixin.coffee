@@ -1,5 +1,4 @@
-React          = require 'kd-react'
-scrollToTarget = require 'activity/util/scrollToTarget'
+React = require 'kd-react'
 
 module.exports = ScrollerMixin =
 
