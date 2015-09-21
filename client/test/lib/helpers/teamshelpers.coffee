@@ -189,3 +189,20 @@ module.exports =
       .waitForElementVisible  getstartedSelector, 20000
       .waitForElementVisible  buttonSelector, 20000
       .click                  buttonSelector
+
+
+  openInvitationsTab: (browser) ->
+
+    tabsSelector              = ".kdmodal-content .kdtabhandle-tabs"
+    invitationsButtonSelector = "#{tabsSelector} .invitations"
+    invitationsPageSelector   = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+
+    browser
+      .waitForElementVisible  tabsSelector, 20000
+      .waitForElementVisible  "#{tabsSelector} .invitations", 20000
+      .waitForElementVisible  invitationsButtonSelector, 20000
+      .click                  invitationsButtonSelector
+      .waitForElementVisible  invitationsPageSelector, 20000 # Assertion
+      .pause                  2000 # wait for page load
+
+
