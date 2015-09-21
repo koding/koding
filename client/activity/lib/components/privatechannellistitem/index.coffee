@@ -69,9 +69,9 @@ module.exports = class PrivateChannelListItem extends React.Component
 
     typeConstant = channel.get 'typeConstant'
     title        = MessageListItemHelper.prepareThreadTitle channel
-    channelName  = channel.get 'name'
+    channelId    = channel.get '_id'
 
-    <Link href="/Channels/#{channelName}" className='ChannelListItem'>
+    <Link href="/Messages/#{channelId}" className='ChannelListItem' onClick={@props.onItemClick}>
       <span className='ChannelListItem-title'>{title}</span>
       {@renderDeleteButton()}
       <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
