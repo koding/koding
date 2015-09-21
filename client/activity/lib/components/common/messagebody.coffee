@@ -1,7 +1,7 @@
 $                    = require 'jquery'
 React                = require 'kd-react'
 emojify              = require 'emojify.js'
-formatContent        = require 'app/util/formatContent'
+formatContent        = require 'app/util/formatReactivityContent'
 immutable            = require 'immutable'
 
 

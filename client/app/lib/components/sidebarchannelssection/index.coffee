@@ -4,14 +4,14 @@ SidebarList             = require 'app/components/sidebarlist'
 SidebarSection          = require 'app/components/sidebarsection'
 Modal                   = require 'app/components/modal'
 SidebarModalList        = require 'activity/components/sidebarmodallist'
-PublicChannelListItem   = require 'activity/components/channellistitem'
+PublicChannelListItem   = require 'activity/components/publicchannellistitem'
 SidebarChannelsListItem = require 'app/components/sidebarchannelslistitem'
 
 module.exports = class SidebarChannelsSection extends React.Component
 
   @defaultProps =
-    threads    : immutable.Map()
     selectedId : null
+    threads    : immutable.Map()
 
   constructor: (props) ->
 
@@ -36,7 +36,9 @@ module.exports = class SidebarChannelsSection extends React.Component
     <Modal className='ChannelList-Modal' isOpen={@state.isModalOpen} onClose={@bound 'onClose'}>
       <SidebarModalList
         title={title}
+        searchProp='name'
         threads={@props.threads}
+        onThresholdAction='loadFollowedPublicChannels'
         itemComponent={PublicChannelListItem}/>
     </Modal>
 
@@ -56,6 +58,7 @@ module.exports = class SidebarChannelsSection extends React.Component
         <SidebarList
           previewCount={@props.previewCount}
           itemComponent={SidebarChannelsListItem}
+          componentProp='SidebarChannelsListItem'
           threads={@props.threads}
           selectedId={@props.selectedId} />
           {@renderMoreLink()}

@@ -1,0 +1,33 @@
+$header-height              = 52px
+
+.PrivateMessageThreadPane
+.PrivateMessageThreadPane-body
+  dFlex()
+  vendor                    flex-direction, row
+
+.PrivateMessageThreadPane-content
+  dFlex()
+  vendor                    flex, 1
+  vendor                    flex-direction, column
+
+.PrivateMessageThreadPane-header
+  padding                   0 20px
+  vendor                    flex, 0 0 52px
+  dFlex()
+  vendor                    align-items, center
+
+  .ChannelParticipantAvatars
+    bg                      color, transparent
+
+.PrivateMessageThreadPane-body
+  vendor                    flex, 1
+
+.PrivateMessageThreadPane-chatWrapper
+  vendor                    flex, .00001
+  vendor                    transition, flex .177s ease
+
+.PrivateMessageThreadPane-sidebar
+  vendor                    flex, 0 0 240px
+  bg                        color, #f5f5f5
+
+
