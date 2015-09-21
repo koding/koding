@@ -1,10 +1,10 @@
-kd                  = require 'kd'
-React               = require 'kd-react'
-ActivityFlux        = require 'activity/flux'
-Link                = require 'app/components/common/link'
-Button              = require 'app/components/common/button'
-ActivityPromptModal = require 'app/components/activitypromptmodal'
-MessageListItemHelper  = require 'activity/util/messageListItemHelper'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+ActivityFlux          = require 'activity/flux'
+Link                  = require 'app/components/common/link'
+Button                = require 'app/components/common/button'
+ActivityPromptModal   = require 'app/components/activitypromptmodal'
+MessageListItemHelper = require 'activity/util/messageListItemHelper'
 
 module.exports = class PrivateChannelListItem extends React.Component
 

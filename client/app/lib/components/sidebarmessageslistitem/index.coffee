@@ -1,12 +1,6 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-whoami               = require 'app/util/whoami'
-isMyPost             = require 'app/util/isMyPost'
-toImmutable          = require 'app/util/toImmutable'
+React                 = require 'kd-react'
+SidebarListItem       = require 'app/components/sidebarlist/sidebarlistitem'
 MessageListItemHelper = require 'activity/util/messageListItemHelper'
-SidebarListItem      = require 'app/components/sidebarlist/sidebarlistitem'
-ProfileTextContainer = require 'app/components/profile/profiletextcontainer'
-
 
 module.exports = class SidebarMessagesListItem extends React.Component
 
