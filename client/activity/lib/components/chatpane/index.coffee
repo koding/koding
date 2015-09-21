@@ -32,25 +32,25 @@ module.exports = class ChatPane extends React.Component
 
     return null  unless @props.messages?.size
 
-    <section className="ChatPane-body" ref="ChatPaneBody">
-      <Scroller
-        onTopThresholdReached={@bound 'onTopThresholdReached'}
-        ref="scrollContainer">
-        <ChatList
-          isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
-          messages={@props.messages}
-          showItemMenu={@props.showItemMenu}
-          channelName={@props.thread.getIn ['channel', 'name']}
-        />
-      </Scroller>
-    </section>
+    <Scroller
+      onTopThresholdReached={@bound 'onTopThresholdReached'}
+      ref="scrollContainer">
+      <ChatList
+        isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+        messages={@props.messages}
+        showItemMenu={@props.showItemMenu}
+        channelName={@props.thread.getIn ['channel', 'name']}
+      />
+    </Scroller>
 
 
   render: ->
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
-        {@renderBody()}
-        {@props.children}
+        <section className="ChatPane-body" ref="ChatPaneBody">
+          {@renderBody()}
+          {@props.children}
+        </section>
       </section>
     </div>
 
