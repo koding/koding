@@ -253,7 +253,7 @@ module.exports = class ChatListItem extends React.Component
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
-      @state.editInputValue
+      value
       @props.message.get('payload').toJS()
     )
 
