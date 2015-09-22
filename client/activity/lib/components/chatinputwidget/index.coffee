@@ -19,7 +19,7 @@ groupifyLink    = require 'app/util/groupifyLink'
 
 module.exports = class ChatInputWidget extends React.Component
 
-  { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
+  { TAB, ESC, ENTER, SPACE, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
   @defaultProps =
     enableSearch : no
@@ -29,6 +29,26 @@ module.exports = class ChatInputWidget extends React.Component
     super props
 
     @state               = { value : '' }
+    { windowController } = kd.singletons
+
+    windowController.on 'keydown', (event) =>
+
+      textInput         = React.findDOMNode this.refs.textInput
+      keyboardElements  = "input,textarea,select,datalist,keygen,[contenteditable='true'],button"
+      { activeElement } = document
+
+      return  unless textInput
+      return  if textInput is activeElement
+      # do not break accessibility
+      return  if event.which in [ ENTER, TAB, SPACE ]
+
+      nothingFocused  = not $(activeElement).is keyboardElements
+      inputInViewport = textInput.offsetParent
+      # temp: until modals are made stateful
+      noActiveModals  = !($('body > .kdmodal').length + $('body > div > .Modal').length)
+
+      textInput.focus()  if nothingFocused and inputInViewport and noActiveModals
+
 
 
   getDataBindings: ->
