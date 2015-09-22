@@ -1,7 +1,7 @@
 helpers    = require '../helpers/helpers.js'
 ideHelpers = require '../helpers/idehelpers.js'
 
-paneSelector        = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 dummyText           = helpers.getFakeText().split(' ')[0]
 closeFileSelector   = "#{paneSelector} span.close-tab"
 
