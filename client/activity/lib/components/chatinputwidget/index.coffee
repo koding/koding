@@ -20,7 +20,7 @@ focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 
 module.exports = class ChatInputWidget extends React.Component
 
-  { TAB, ESC, ENTER, SPACE, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
+  { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
   @defaultProps =
     enableSearch : no
