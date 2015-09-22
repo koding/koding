@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/mitchellh/cli"
 )
@@ -24,7 +26,15 @@ func (c *UninstallCommand) Run(_ []string) int {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Success")
+	// For the ease of reinstallation, remove the user's kite key so that
+	// they're not prompted to replace it next time they auth.
+	err = os.Remove(filepath.Join(KiteHome, "kite.key"))
+	// No need to exit with an error when removing the key, just log it.
+	if err != nil {
+		fmt.Printf("Warning: Failed to remove kite.key. This is not a critical issue.\n")
+	}
+
+	fmt.Printf("Successfully uninstalled the %s\n", KlientName)
 	return 0
 }
 

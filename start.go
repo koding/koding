@@ -24,7 +24,7 @@ func (c *StartCommand) Run(_ []string) int {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Success")
+	fmt.Printf("Successfully started the %s\n", KlientName)
 	return 0
 }
 

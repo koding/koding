@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/kardianos/service"
 	"github.com/mitchellh/cli"
@@ -65,9 +66,9 @@ func (c *InstallCommand) Run(_ []string) int {
 	if err != nil {
 		if os.IsNotExist(err) {
 			klientShFile := []byte(fmt.Sprintf(`#!/bin/sh
-KITE_HOME=%s %s
+KITE_HOME=%s %s --kontrol-url=%s
 `,
-				KiteHome, klientBinPath))
+				KiteHome, klientBinPath, KontrolUrl))
 
 			// perm -rwr-xr-x, same as klient
 			err := ioutil.WriteFile(klientShPath, klientShFile, 0755)
@@ -99,8 +100,7 @@ Please provide your Koding Username and Password when prompted..
 `, KlientName)
 
 	cmd := exec.Command(klientBinPath, "-register",
-		"--kontrol-url", KontrolUrl)
-	cmd.Env = append(os.Environ(), fmt.Sprintf("KITE_HOME=%s", KiteHome))
+		"--kontrol-url", KontrolUrl, "--kite-home", KiteHome)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -112,6 +112,23 @@ Please provide your Koding Username and Password when prompted..
 		return 1
 	}
 
+	// Klient is setting the wrong file permissions when installed by ctl,
+	// so since this is just ctl problem, we'll just fix the permission
+	// here for now.
+	err = os.Chmod(KiteHome, 0755)
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+	err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644)
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	// Create our interface to the OS specific service
 	s, err := newService()
 	if err != nil {
 		// TODO: Print UX friendly err
@@ -119,6 +136,7 @@ Please provide your Koding Username and Password when prompted..
 		return 1
 	}
 
+	// Install the klient binary as a OS service
 	err = s.Install()
 	if err != nil {
 		// TODO: Print UX friendly err
@@ -126,7 +144,49 @@ Please provide your Koding Username and Password when prompted..
 		return 1
 	}
 
-	fmt.Println("Success")
+	// Tell the service to start. Normally it starts automatically, but
+	// if the user told the service to stop (previously), it may not
+	// start automatically.
+	//
+	// Note that the service may error if it is already running, so
+	// we're ignoring any starting errors here. We will verify the
+	// connection below, anyway.
+	s.Start()
+
+	// Create a kite to talk to klient, so we can verify that it installed
+	// properly before telling the user success
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	fmt.Println("Verifying installation...")
+
+	// Try multiple times to connect to Klient, and return the final error
+	// if needed.
+	for i := 0; i < 5; i++ {
+		time.Sleep(1 * time.Second)
+		err = k.Dial()
+
+		if err == nil {
+			break
+		}
+	}
+
+	// After X times, if err != nil we failed to connect to klient.
+	// Inform the user.
+	if err != nil {
+		fmt.Printf(`Error: Failed to verify the installation of the %s.
+
+Reason: %s
+`,
+			KlientName, err.Error())
+		return 1
+	}
+
+	fmt.Printf("\n\nSuccessfully installed the %s!\n", KlientName)
 	return 0
 }
 
