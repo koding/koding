@@ -10,7 +10,6 @@ PrivateChannelLink    = require 'activity/components/privatechannellink'
 module.exports = class PrivateChannelListItem extends React.Component
 
   @defaultProps =
-    channel     : null
     onItemClick : kd.noop
     thread      : null
 
@@ -18,9 +17,7 @@ module.exports = class PrivateChannelListItem extends React.Component
 
     super props
 
-    @state =
-      channel     : @props.channel
-      isDeleting  : no
+    @state = { isDeleting  : no }
 
 
   channel: (key) ->

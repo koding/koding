@@ -1,20 +1,21 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-TextArea        = require 'react-autosize-textarea'
-EmojiDropbox    = require 'activity/components/emojidropbox'
-ChannelDropbox  = require 'activity/components/channeldropbox'
-UserDropbox     = require 'activity/components/userdropbox'
-EmojiSelector   = require 'activity/components/emojiselector'
-SearchDropbox   = require 'activity/components/searchdropbox'
-ActivityFlux    = require 'activity/flux'
-ChatInputFlux   = require 'activity/flux/chatinput'
-KDReactorMixin  = require 'app/flux/reactormixin'
-formatEmojiName = require 'activity/util/formatEmojiName'
-KeyboardKeys    = require 'app/util/keyboardKeys'
-Link            = require 'app/components/common/link'
-whoami          = require 'app/util/whoami'
-helpers         = require './helpers'
-groupifyLink    = require 'app/util/groupifyLink'
+kd                   = require 'kd'
+React                = require 'kd-react'
+TextArea             = require 'react-autosize-textarea'
+EmojiDropbox         = require 'activity/components/emojidropbox'
+ChannelDropbox       = require 'activity/components/channeldropbox'
+UserDropbox          = require 'activity/components/userdropbox'
+EmojiSelector        = require 'activity/components/emojiselector'
+SearchDropbox        = require 'activity/components/searchdropbox'
+ActivityFlux         = require 'activity/flux'
+ChatInputFlux        = require 'activity/flux/chatinput'
+KDReactorMixin       = require 'app/flux/reactormixin'
+formatEmojiName      = require 'activity/util/formatEmojiName'
+KeyboardKeys         = require 'app/util/keyboardKeys'
+Link                 = require 'app/components/common/link'
+whoami               = require 'app/util/whoami'
+helpers              = require './helpers'
+groupifyLink         = require 'app/util/groupifyLink'
+focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 
 
 module.exports = class ChatInputWidget extends React.Component
@@ -59,6 +60,9 @@ module.exports = class ChatInputWidget extends React.Component
       searchSelectedItem             : getters.searchSelectedItem @stateId
       searchVisibility               : getters.searchVisibility @stateId
     }
+
+
+  componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
 
 
   getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox ]
