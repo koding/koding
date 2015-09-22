@@ -411,10 +411,12 @@ class IDEAppController extends AppController
   ###
   tailFile: (options, callback = kd.noop) ->
 
-    { file, contents, targetTabView } = options
+    { file, contents, targetTabView, description } = options
 
     @setActiveTabView targetTabView  if targetTabView
-    @activeTabView.emit 'FileNeedsToBeTailed', file, contents, callback
+    @activeTabView.emit 'FileNeedsToBeTailed', {
+      file, contents, description, callback
+    }
 
 
   openMachineTerminal: (machineData) ->

@@ -80,8 +80,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @closeUntitledFileIfNotChanged()
       @openFile file, contents, callback, emitChange
 
-    @tabView.on 'FileNeedsToBeTailed', (file, contents, callback) =>
-      @tailFile file, contents, callback
+    @tabView.on 'FileNeedsToBeTailed', @bound 'tailFile'
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
@@ -263,7 +262,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return editorPane
 
 
-  createTailer: (file, content, callback = kd.noop, emitChange = yes) ->
+  tailFile: (options) ->
+
+    { file, content, callback, emitChange, description } = options
+
+    callback   ?= kd.noop
+    emitChange ?= yes
 
     file.fetchPermissions (err, result) =>
 
@@ -275,7 +279,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         return callback()
 
       content   or= ''
-      tailerPane  = new IDETailerPane { file, content, delegate: this }
+      tailerPane  = new IDETailerPane {
+        file, content, description, delegate: this
+      }
 
       paneOptions =
         name      : file.name
@@ -461,11 +467,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         callback pane
 
       @createEditor file, content, kallback, emitChange
-
-
-  tailFile: (file, content, callback = kd.noop) ->
-
-    @createTailer file, content, callback
 
 
   switchToEditorTabByFile: (file) ->
