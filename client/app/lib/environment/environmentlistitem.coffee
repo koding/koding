@@ -2,6 +2,8 @@ kd                     = require 'kd'
 JView                  = require 'app/jview'
 isKoding               = require 'app/util/isKoding'
 
+remote                 = require('app/remote').getInstance()
+
 MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
 
@@ -92,8 +94,11 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       cssClass : 'title'
       partial  : title
 
+    @updateNotification = new kd.CustomHTMLView
+      cssClass : 'update-notification hidden'
 
     if _revisionStatus?.status? and _revisionStatus.status.code > 0
+      @showUpdateNotification()
       revisionMessage = ''
     else
       revisionMessage = "You're currently using the latest revision."
@@ -112,6 +117,39 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         "
 
     @infoIcon.hide()  if isKoding()
+
+
+  showUpdateNotification: ->
+
+    @reinitButton.hide()
+
+    @updateNotification.destroySubViews()
+
+    @fetchStackTemplate (err, template) =>
+
+      return showNotification err  if err
+
+      remote.cacheable 'JAccount', template.originId, (err, account) =>
+
+        @updateNotification.addSubView description = new kd.CustomHTMLView
+          tagName  : 'div'
+          cssClass : 'description'
+
+        description.addSubView new kd.CustomHTMLView
+          tagName  : 'span'
+          partial  : "#{account.profile.firstName} has updated this stack"
+
+        description.addSubView new kd.CustomHTMLView
+          tagName  : 'span'
+          partial  : ' (<a href="#">see details</a>).'
+          click    : @bound 'showStackTemplateContent'
+
+        @updateNotification.addSubView new kd.ButtonView
+          title    : 'Update Your Machines'
+          cssClass : 'reinit-stack solid green compact'
+          callback : @bound 'handleStackReinit'
+
+        @updateNotification.show()
 
 
   fetchStackTemplate: (callback) ->
@@ -134,6 +172,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     """
       {{> @header}}
       {{> @machinesList}}
+      {{> @updateNotification}}
       <div class="footer">
         <div class="icons">
           {{> @infoIcon}}
