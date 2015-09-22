@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/kardianos/service"
@@ -70,6 +71,22 @@ func (c *InstallCommand) Run(_ []string) int {
 		return 1
 	}
 
+	// TODO: Accept `kd install --user foo` flag to replace the
+	// environ checking.
+	var sudoCmd string
+	for _, s := range os.Environ() {
+		env := strings.Split(s, "=")
+
+		if len(env) != 2 {
+			continue
+		}
+
+		if env[0] == "SUDO_USER" {
+			sudoCmd = fmt.Sprintf("sudo -u %s ", env[1])
+			break
+		}
+	}
+
 	// TODO: Stop using this klient.sh file.
 	// If the klient.sh file is missing, write it. We can use build tags
 	// for os specific tags, if needed.
@@ -77,9 +94,9 @@ func (c *InstallCommand) Run(_ []string) int {
 	if err != nil {
 		if os.IsNotExist(err) {
 			klientShFile := []byte(fmt.Sprintf(`#!/bin/sh
-KITE_HOME=%s %s --kontrol-url=%s
+%sKITE_HOME=%s %s --kontrol-url=%s
 `,
-				KiteHome, klientBinPath, KontrolUrl))
+				sudoCmd, KiteHome, klientBinPath, KontrolUrl))
 
 			// perm -rwr-xr-x, same as klient
 			err := ioutil.WriteFile(klientShPath, klientShFile, 0755)
