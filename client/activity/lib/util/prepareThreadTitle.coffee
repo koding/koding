@@ -31,7 +31,7 @@ module.exports = prepareThreadTitle = (thread) ->
 
     origins.forEach (origin, index) ->
       children.push makeProfileText origin
-      children.push getSeparatorPartial count, nameCount, index
+      children.push helper.getSeparatorPartial count, nameCount, index
 
     children.push helper.getPlusMorePartial count, nameCount  if count > nameCount + 1
   else
