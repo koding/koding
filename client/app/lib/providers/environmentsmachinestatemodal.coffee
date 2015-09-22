@@ -553,7 +553,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         { groupsController } = kd.singletons
         return  unless groupsController.currentGroupHasStack()
 
-    else if not isKoding() and @stack
+    else if not isKoding() and @stack and @state is NotInitialized
       title    = 'Build Stack'
       callback = 'turnOnMachine'
     else
