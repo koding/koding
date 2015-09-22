@@ -1181,7 +1181,7 @@ class IDEAppController extends AppController
             kd.utils.wait 400, -> # defer was not enough.
               webtermView.triggerFitToWindow()
 
-        when 'editor'
+        when 'editor', 'tailer'
           height = pane.getHeight()
           {ace}  = pane.aceView
 

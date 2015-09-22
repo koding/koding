@@ -22,10 +22,7 @@ module.exports = class IDETailerPane extends IDEPane
 
   handleFileUpdate: (newLine) ->
 
-    content = @getContent()
-    line = (content.split '\n').length
-
-    @setCursor row: line, column: 0
+    @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
 
 
@@ -54,6 +51,8 @@ module.exports = class IDETailerPane extends IDEPane
       kite.tail
         path  : @file.getPath()
         watch : @bound 'handleFileUpdate'
+
+      @resize()
 
 
   getAce: ->
@@ -116,3 +115,22 @@ module.exports = class IDETailerPane extends IDEPane
       hash     : @hash
 
     return data
+
+
+  scrollToBottom: ->
+
+    content = @getContent()
+    line    = (content.split '\n').length
+
+    @setCursor row: line, column: 0
+
+
+  resize: ->
+
+    height = @getHeight()
+    ace    = @getAce()
+
+    ace.setHeight height
+    ace.editor.resize()
+
+    @scrollToBottom()
