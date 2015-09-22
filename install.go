@@ -128,7 +128,7 @@ func (c *InstallCommand) Run(_ []string) int {
 	// TODO: Replace this with an s3 url
 	// Download the bin
 	res, err := http.Get(fmt.Sprintf(
-		"http://dev.leeolayvar.koding.io:3003/klient-%s",
+		"https://koding-kd.s3.amazonaws.com/klient-%s",
 		runtime.GOOS,
 	))
 	if res.Body != nil {
