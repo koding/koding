@@ -4,6 +4,8 @@ Link          = require 'app/components/common/link'
 immutable     = require 'immutable'
 formatContent = require 'app/util/formatContent'
 emojify       = require 'emojify.js'
+MessageLink   = require 'activity/components/publicchannelmessagelink'
+MessageBody   = require 'activity/components/common/messagebody'
 
 module.exports = class ChannelMessagesList extends React.Component
 
@@ -21,8 +23,8 @@ module.exports = class ChannelMessagesList extends React.Component
 
     @props.messages.slice(0, @props.maxCount).map (message) ->
       <li key={message.get 'id'} className="ChannelMessagesList-messageItem">
-        <Link
-          href="/Channels/Public/#{message.get 'slug'}"
+        <MessageLink
+          message={message}
           dangerouslySetInnerHTML={__html: helper.renderBody message}
         />
       </li>
