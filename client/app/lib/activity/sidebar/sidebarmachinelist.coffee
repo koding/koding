@@ -64,8 +64,6 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @machineBoxes.push machineBox
     @machineBoxesByMachineUId[uid] = machineBox
 
-    @show() if @machineBoxes.length is 1
-
     machineBox.once 'KDObjectWillBeDestroyed', =>
       @machineBoxes.splice @machineBoxes.indexOf(machineBox), 1
       delete @machineBoxesByMachineUId[machineBox.machine.uid]
