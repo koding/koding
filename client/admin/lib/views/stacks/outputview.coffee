@@ -4,6 +4,7 @@ dateFormat     = require 'dateformat'
 
 JView          = require 'app/jview'
 curryIn        = require 'app/util/curryIn'
+outputParser   = require './outputparser'
 objectToString = require 'app/util/objectToString'
 
 
@@ -69,6 +70,8 @@ module.exports = class OutputView extends kd.ScrollView
 
     kd.warn '[outputView]', err
     @add 'An error occured:', err.message or err
+
+    outputParser.showUserFriendlyError err.message
 
 
   pistachio: ->
