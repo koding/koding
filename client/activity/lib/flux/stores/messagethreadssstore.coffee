@@ -48,7 +48,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
   ensureThread: (threads, { message }) ->
 
     unless threads.has message.id
-      return initThread threads, message.id
+      return threads = initThread threads, message.id
 
     return threads
 
