@@ -115,11 +115,16 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @infoIcon.hide()  if isKoding()
 
 
-  showStackTemplateContent: ->
+  fetchStackTemplate: (callback) ->
 
     { computeController } = kd.singletons
 
-    computeController.fetchBaseStackTemplate @getData(), (err, template) ->
+    computeController.fetchBaseStackTemplate @getData(), callback
+
+
+  showStackTemplateContent: ->
+
+    @fetchStackTemplate (err, template) ->
 
       return showNotification err  if err
 
