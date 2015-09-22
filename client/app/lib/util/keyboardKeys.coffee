@@ -1,4 +1,5 @@
 module.exports =
+  SPACE       : 32
   TAB         : 9
   ESC         : 27
   ENTER       : 13

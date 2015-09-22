@@ -616,7 +616,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
           environmentMap[machine._id]
 
         @createMachineList 'stack', { title, stack }, stackEnvironment
-        inProgress = no
+
+      inProgress = no
 
 
   redrawMachineList: ->

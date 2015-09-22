@@ -19,11 +19,12 @@ module.exports = class AccountCredentialEditModal extends KDModalView
     { ui }                    = kd.singletons.computeController
     { credential, provider }  = options
 
-    formOptions     =
-      provider      : provider
-      defaultValues : data.meta
-      defaultTitle  : data.title
-      callback      : (title, data) =>
+    formOptions       =
+      provider        : provider
+      defaultValues   : data.meta
+      defaultTitle    : data.title
+      requiredFields  : credential.fields
+      callback        : (title, data) =>
 
         credential.update {
           provider, title, meta: data
@@ -36,6 +37,8 @@ module.exports = class AccountCredentialEditModal extends KDModalView
     @addSubView @wrapper = new KDView cssClass : 'stacks step-creds'
 
     @wrapper.addSubView @form = ui.generateAddCredentialFormFor formOptions
+
+    @form.on 'Cancel', @bound 'cancel'
 
     @form.on 'CredentialUpdated', =>
       new KDNotificationView title : 'Credential was updated.', type: 'mini'

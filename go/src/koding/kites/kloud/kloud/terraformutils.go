@@ -276,8 +276,10 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 			}
 		}
 
+		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
+
 		// will be replaced with the kitekeys we create below
-		userCfg.KiteKey = "${lookup(var.kitekeys, count.index)}"
+		userCfg.KiteKey = fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName)
 
 		userdata, err := sess.Userdata.Create(userCfg)
 		if err != nil {
@@ -314,7 +316,7 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 			countKeys[strconv.Itoa(i)] = kiteKey
 		}
 
-		template.Variable["kitekeys"] = map[string]interface{}{
+		template.Variable[kiteKeyName] = map[string]interface{}{
 			"default": countKeys,
 		}
 
