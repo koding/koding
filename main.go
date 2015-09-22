@@ -48,10 +48,10 @@ func main() {
 		unmount.Unmount(conf.LocalPath)
 	}()
 
-	f := fs.NewKodingNetworkFS(t, conf)
-
-	// blocking
-	if err := f.JoinBlock(); err != nil {
+	f, err := fs.NewKodingNetworkFS(t, conf)
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	f.JoinBlock()
 }

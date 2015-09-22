@@ -57,11 +57,11 @@ type KodingNetworkFS struct {
 }
 
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
-func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
+func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) (*KodingNetworkFS, error) {
 	// create mount point if it doesn't exist
 	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
 	if err := os.MkdirAll(c.LocalPath, 0755); err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	mountConfig := &fuse.MountConfig{
@@ -118,12 +118,12 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 
 	// update info about root directory
 	if err := rootDir.updateAttrsFromRemote(); err != nil {
-		panic(fmt.Errorf("Failed to fetch attributes info for root dir: %s; %v", c.RemotePath, err))
+		return nil, err
 	}
 
 	// update entries for root directory
 	if err := rootDir.updateEntriesFromRemote(); err != nil {
-		panic(fmt.Errorf("Failed to fetch entries for root dir: %s; %v", c.RemotePath, err))
+		return nil, err
 	}
 
 	// save root directory
@@ -134,7 +134,7 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 		MountConfig: mountConfig,
 		RWMutex:     sync.RWMutex{},
 		liveNodes:   liveNodes,
-	}
+	}, nil
 }
 
 // Mount mounts an specified folder on user VM using Fuse in the specificed
@@ -145,9 +145,12 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 }
 
 // Join mounts and blocks till user VM is unmounted.
-func (k *KodingNetworkFS) Join() error {
-	go k.JoinBlock()
-	return nil
+func (k *KodingNetworkFS) Join() {
+	go func() {
+		if err := k.JoinBlock(); err != nil {
+			fmt.Printf("Error mounting: %s\n", err)
+		}
+	}()
 }
 
 func (k *KodingNetworkFS) JoinBlock() error {
