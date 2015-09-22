@@ -98,20 +98,38 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     loadComments message.id
     fetchingMap[messageId] = no
 
+    return { message }
+
 
 ensureMessage = (messageId) ->
 
-  message = kd.singletons.reactor.evaluate ['MessagesStore', messageId]
+  { reactor } = kd.singletons
 
-  if message
-    return new Promise (resolve) -> resolve { message: message.toJS() }
-
-  new Promise (resolve) ->
-    loadMessage(messageId).then ({ message }) ->
+  loadMessage(messageId)
+    .then ({ message }) ->
       channelId = message.initialChannelId
-      putLoaderMarker channelId, messageId, { position: 'before', autoload: yes }
-      putLoaderMarker channelId, messageId, { position: 'after', autoload: yes }
-      resolve { message }
+      loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+        [first, ...] = messages
+        return  unless first
+
+        # check to see if loaded if not put a indicator before that.
+        firstMessage = reactor.evaluate ['MessagesStore', first.id]
+        unless firstMessage
+          putLoaderMarker channelId, first.id, { position: 'before', autoload: no }
+
+        return { message }
+      .then ({ message }) ->
+        channelId = message.initialChannelId
+        loadMessages(channelId, { to: message.createdAt, sort: 'DESC' }).then ({ messages }) ->
+          [..., last] = messages
+
+          return  unless last
+
+          lastMessage = reactor.evaluate ['MessagesStore', last.id]
+          unless lastMessage
+            putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+
+          return { message }
 
 
 putLoaderMarker = (channelId, messageId, options) ->
