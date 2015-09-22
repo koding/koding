@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"text/tabwriter"
 
 	"github.com/mitchellh/cli"
 )
@@ -13,8 +15,50 @@ func MountsCommandFactory() (cli.Command, error) {
 type MountsCommand struct{}
 
 func (c *MountsCommand) Run(_ []string) int {
-	fmt.Println("Not implemented")
-	return 1
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	if err := k.Dial(); err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	res, err := k.Tell("remote.mounts")
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	type kiteMounts struct {
+		Ip         string `json:"ip"`
+		RemotePath string `json:"remotePath"`
+		LocalPath  string `json:"localPath"`
+		MountName  string `json:"mountName"`
+	}
+
+	var mounts []kiteMounts
+	res.Unmarshal(&mounts)
+
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	fmt.Fprintf(w, "\tLOCAL PATH\tREMOTE PATH\tMOUNT NAME\tMACHINE IP\n")
+	for i, mount := range mounts {
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\n",
+			i+1,
+			mount.LocalPath,
+			mount.RemotePath,
+			mount.MountName,
+			mount.Ip,
+		)
+	}
+	w.Flush()
+
+	return 0
 }
 
 func (*MountsCommand) Help() string {
