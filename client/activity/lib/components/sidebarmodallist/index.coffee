@@ -117,9 +117,9 @@ module.exports = class SidebarModalList extends React.Component
 
     @state.threads.toList().map (thread, i) ->
       itemProps =
-        key     : thread.get 'channelId'
-        channel : thread.get 'channel'
-        onItemClick: onItemClick
+        thread      : thread
+        key         : thread.get 'channelId'
+        onItemClick : onItemClick
       <Component {...itemProps} />
 
 
