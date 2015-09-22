@@ -2,6 +2,7 @@ kd                        = require 'kd'
 KDView                    = kd.View
 IDEDrawingPane            = require './panes/idedrawingpane'
 IDEEditorPane             = require './panes/ideeditorpane'
+IDETailerPane             = require './panes/idetailerpane'
 IDEFinderPane             = require './panes/idefinderpane'
 IDEPreviewPane            = require './panes/idepreviewpane'
 IDETerminalPane           = require './panes/ideterminalpane'
@@ -59,6 +60,7 @@ module.exports = class IDEPanel extends KDView
       preview   : IDEPreviewPane
       finder    : IDEFinderPane
       drawing   : IDEDrawingPane
+      tailer    : IDETailerPane
 
     return paneClasses[paneType]
 

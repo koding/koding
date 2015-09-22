@@ -6,6 +6,7 @@ KDView                = kd.View
 FSHelper              = require 'app/util/fs/fshelper'
 IDEHelpers            = require '../../idehelpers'
 IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
+IDETailerPane         = require '../../workspace/panes/idetailerpane'
 KDContextMenu         = kd.ContextMenu
 KDTabPaneView         = kd.TabPaneView
 IDEPreviewPane        = require '../../workspace/panes/idepreviewpane'
@@ -78,6 +79,9 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange) =>
       @closeUntitledFileIfNotChanged()
       @openFile file, contents, callback, emitChange
+
+    @tabView.on 'FileNeedsToBeTailed', (file, contents, callback) =>
+      @tailFile file, contents, callback
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
@@ -254,6 +258,42 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     return editorPane
 
 
+  createTailer: (file, content, callback = kd.noop, emitChange = yes) ->
+
+    file.fetchPermissions (err, result) =>
+
+      return showErrorNotification err  if err
+
+      { readable, writable } = result
+      if not readable
+        IDEHelpers.showFileAccessDeniedError()
+        return callback()
+
+      content   or= ''
+      tailerPane  = new IDETailerPane { file, content, delegate: this }
+
+      paneOptions =
+        name      : file.name
+
+      tailerPane.once 'EditorIsReady', =>
+        callback tailerPane
+
+      @createPane_ tailerPane, paneOptions, file
+
+      if emitChange
+        change        =
+          context     :
+            file      :
+              content : content
+              path    : file.path
+              machine :
+                uid   : file.machine.uid
+
+      @emitChange tailerPane, change
+
+      return tailerPane
+
+
   createTerminal: (options) ->
 
     { appManager }   = kd.singletons
@@ -340,6 +380,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       else if paneType is 'drawing'
         data   = 'Use this panel to draw something'
 
+      else if paneType is 'tailer'
+        { file } = subView.getOptions()
+        data = "Watching changes on #{file.getPath()}"
+
       else if paneType is 'searchResult'
         {stats, searchText} = subView.getOptions()
         data = { stats, searchText }
@@ -412,6 +456,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         callback pane
 
       @createEditor file, content, kallback, emitChange
+
+
+  tailFile: (file, content, callback = kd.noop) ->
+
+    @createTailer file, content, callback
 
 
   switchToEditorTabByFile: (file) ->

@@ -403,6 +403,20 @@ class IDEAppController extends AppController
         @openFile { file, contents }
 
 
+  ###*
+   * Watch given file with options
+   *
+   * @param {Object} options
+   * @param {Function=} callback  is optional parameter
+  ###
+  tailFile: (options, callback = kd.noop) ->
+
+    { file, contents, targetTabView } = options
+
+    @setActiveTabView targetTabView  if targetTabView
+    @activeTabView.emit 'FileNeedsToBeTailed', file, contents, callback
+
+
   openMachineTerminal: (machineData) ->
 
     @activeTabView.emit 'MachineTerminalRequested', machineData
@@ -836,7 +850,10 @@ class IDEAppController extends AppController
     name  = @getWorkspaceSnapshotName nick()
     value = @getWorkspaceSnapshot()
 
-    @mountedMachine.getBaseKite().storageSetQueued name, value
+    # we need to check against kite existence because while a machine
+    # is getting destroyed/stopped/reinitialized we are invalidating it's
+    # kite instance to make sure every call is stopped. ~ GG
+    @mountedMachine.getBaseKite()?.storageSetQueued name, value
     @emit 'SnapshotUpdated'
 
 
@@ -1362,10 +1379,9 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ paneType, (pane) =>
 
-      if paneType is 'editor'
-        if pane.getFile()?.path is context.file?.path
+      if paneType in [ 'editor', 'tailer' ]
+        if (pane.getFile()?.path is context.file?.path) and pane.options.paneType is paneType
           targetPane = pane
-
       else
         targetPane = pane  if pane.hash is paneHash
 
@@ -1400,6 +1416,7 @@ class IDEAppController extends AppController
       when 'terminal' then @createTerminalPaneFromChange change, paneHash
       when 'editor'   then @createEditorPaneFromChange change, paneHash
       when 'drawing'  then @createDrawingPaneFromChange change, paneHash
+      when 'tailer'   then @createEditorPaneFromChange change, paneHash, yes
 
 
   createTerminalPaneFromChange: (change, hash) ->
@@ -1412,7 +1429,7 @@ class IDEAppController extends AppController
       fitToWindow   : not @isInSession
 
 
-  createEditorPaneFromChange: (change, hash) ->
+  createEditorPaneFromChange: (change, hash, inTailMode) ->
 
     { context, targetTabView }  = change
     { file, paneType }          = context
@@ -1420,18 +1437,19 @@ class IDEAppController extends AppController
     options                     = { path, machine : @mountedMachine }
     file                        = FSHelper.createFileInstance options
     file.paneHash               = hash
+    method                      = if inTailMode then 'tailFile' else 'openFile'
 
     if @rtm?.realtimeDoc
       contents = @rtm.getFromModel(path)?.getText() or ''
-      @openFile { file, contents, emitChange: no }
+      @[method] { file, contents, emitChange: no }
 
     else if file.isDummyFile()
-      @openFile { file, contents: file.content, emitChange: no }
+      @[method] { file, contents: file.content, emitChange: no }
 
     else
       file.fetchContents (err, contents = '') =>
         return showError err  if err
-        @openFile { file, contents, emitChange: no, targetTabView }
+        @[method] { file, contents, emitChange: no, targetTabView }
 
 
   createDrawingPaneFromChange: (change, hash) ->
@@ -1466,7 +1484,7 @@ class IDEAppController extends AppController
 
     @emit 'IDEWillQuit'
 
-    @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
+    @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
 
     @stopCollaborationSession()
     kd.singletons.appManager.quit this
