@@ -8,6 +8,7 @@ DateMarker         = require 'activity/components/datemarker'
 NewMessageMarker   = require 'activity/components/newmessagemarker'
 KDReactorMixin     = require 'app/flux/reactormixin'
 ActivityFlux       = require 'activity/flux'
+scrollToElement    = require 'app/util/scrollToElement'
 
 
 module.exports = class ChatList extends React.Component
@@ -58,6 +59,16 @@ module.exports = class ChatList extends React.Component
     return markers
 
 
+  componentDidUpdate: (prevProps, prevState) ->
+
+    prevSelectedId = prevState.selectedMessageId
+    currentSelectedId = @state.selectedMessageId
+
+    if currentSelectedId and currentSelectedId isnt prevSelectedId
+      target = React.findDOMNode @refs.selectedComponent
+      scrollToElement target
+
+
   renderChildren: ->
 
     { messages, showItemMenu, channelName } = @props
@@ -72,7 +83,10 @@ module.exports = class ChatList extends React.Component
         message      : message
         showItemMenu : showItemMenu
         channelName  : channelName
-        isSelected   : selectedMessageId is message.get 'id'
+
+      if selectedMessageId is message.get 'id'
+        itemProps['isSelected'] = yes
+        itemProps['ref'] = 'selectedComponent'
 
       children = children.concat @getMarkers message, prevMessage, i
 
