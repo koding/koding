@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/kardianos/service"
@@ -59,6 +62,14 @@ func (c *InstallCommand) Run(_ []string) int {
 		return 1
 	}
 
+	// Create the installation dir, if needed.
+	err = os.MkdirAll(KlientDirectory, 0755)
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
 	// TODO: Stop using this klient.sh file.
 	// If the klient.sh file is missing, write it. We can use build tags
 	// for os specific tags, if needed.
@@ -86,11 +97,43 @@ KITE_HOME=%s %s --kontrol-url=%s
 		}
 	}
 
-	// TODO: Download klient and write it to the KlientDirectory, here.
-	// For now, we're just requiring that it's already downloaded locally.
-	_, err = os.Stat(klientBinPath)
-	if err != nil && os.IsNotExist(err) {
-		fmt.Println("In this alpha version of kd, you must download klient locally first")
+	klientBinFile, err := os.OpenFile(klientBinPath,
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		if klientBinFile != nil {
+			klientBinFile.Close()
+		}
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	// TODO: Replace this with an s3 url
+	// Download the bin
+	res, err := http.Get(fmt.Sprintf(
+		"http://dev.leeolayvar.koding.io:3003/klient-%s",
+		runtime.GOOS,
+	))
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	_, err = io.Copy(klientBinFile, res.Body)
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
+		return 1
+	}
+
+	err = klientBinFile.Close()
+	if err != nil {
+		// TODO: Print UX friendly err
+		fmt.Println("Error:", err)
 		return 1
 	}
 

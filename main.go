@@ -22,7 +22,10 @@ func main() {
 		"uninstall": UninstallCommandFactory,
 	}
 
-	if _, err := c.Run(); err != nil {
+	i, err := c.Run()
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	os.Exit(i)
 }

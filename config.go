@@ -18,7 +18,7 @@ const (
 	KiteHome = "/etc/kite"
 
 	// The directory that klient will be downloaded/installed to
-	KlientDirectory = "."
+	KlientDirectory = "/opt/kite/klient"
 
-	KontrolUrl = "https://koding.com/kontrol/kite"
+	KontrolUrl = "http://kdonkd.leeolayvar.koding.io:8090/kontrol/kite"
 )
