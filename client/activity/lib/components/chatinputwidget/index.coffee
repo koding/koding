@@ -28,7 +28,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     super props
 
-    @state = { value : '' }
+    @state               = { value : '' }
 
 
   getDataBindings: ->
