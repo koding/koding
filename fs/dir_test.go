@@ -172,7 +172,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should create directory", func() {
 			d := newDir()
-			m := os.FileMode(0700)
+			m := 0700 | os.ModeDir
 
 			_, err := d.CreateEntryDir("folder", m)
 			So(err, ShouldBeNil)
@@ -550,6 +550,13 @@ func newDir() *Dir {
 			"fs.createDirectory": true,
 			"fs.remove":          true,
 			"fs.readFile":        map[string]interface{}{"content": c},
+			"fs.getInfo": transport.FsGetInfoRes{
+				Exists:   true,
+				IsDir:    true,
+				FullPath: "/remote",
+				Name:     "remote",
+				Mode:     0700 | os.ModeDir,
+			},
 			"fs.readDirectory": transport.FsReadDirectoryRes{
 				Files: []transport.FsGetInfoRes{
 					transport.FsGetInfoRes{

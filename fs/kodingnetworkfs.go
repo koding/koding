@@ -92,23 +92,30 @@ func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetw
 		DebugEnabled = true
 	}
 
+	localUser, localGroup := getLocalUserInfo()
+
 	// create root entry
 	rootEntry := NewRootEntry(t, c.RemotePath, c.LocalPath)
 	rootEntry.Name = path.Base(c.RemotePath)
 	rootEntry.RemotePath = c.RemotePath
 	rootEntry.LocalPath = c.LocalPath
-
-	localUser, locaGroup := getLocalUserInfo()
+	rootEntry.Uid = localUser
+	rootEntry.Gid = localGroup
 
 	// TODO: what size to set for directories
 	rootEntry.Attrs = fuseops.InodeAttributes{
-		Uid: localUser, Gid: locaGroup, Mode: 0700 | os.ModeDir, Size: 10,
+		Uid: localUser, Gid: localGroup, Mode: 0700 | os.ModeDir, Size: 10,
 	}
 
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
 
-	// get entries for root directory
+	// update info about root directory
+	if err := rootDir.updateAttrsFromRemote(); err != nil {
+		panic(fmt.Errorf("Failed to fetch attributes info for root dir: %s; %v", c.RemotePath, err))
+	}
+
+	// update entries for root directory
 	if err := rootDir.updateEntriesFromRemote(); err != nil {
 		panic(fmt.Errorf("Failed to fetch entries for root dir: %s; %v", c.RemotePath, err))
 	}

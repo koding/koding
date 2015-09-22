@@ -29,6 +29,12 @@ type Entry struct {
 	// RemotePath is full path on user VM.
 	RemotePath string
 
+	// Uid is the group id that'll always be used in spite of what remote returns.
+	Uid uint32
+
+	// Gid is the group id that'll always be used in spite of what remote returns.
+	Gid uint32
+
 	// RWLock protects the fields below which may change
 	sync.RWMutex
 
@@ -159,6 +165,8 @@ func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
 
 	attrs.Size = uint64(res.Size)
 	attrs.Mode = res.Mode
+	attrs.Uid = e.Uid
+	attrs.Gid = e.Gid
 
 	return attrs, nil
 }

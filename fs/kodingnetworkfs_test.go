@@ -27,6 +27,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 			t := &fakeTransport{
 				TripResponses: map[string]interface{}{
 					"fs.readDirectory": transport.FsReadDirectoryRes{Files: []transport.FsGetInfoRes{}},
+					"fs.getInfo":       transport.FsGetInfoRes{Exists: true},
 				},
 			}
 			k := newknfs(t)
@@ -50,14 +51,22 @@ func TestKodingNetworkFS(tt *testing.T) {
 				"fs.rename":          true,
 				"fs.remove":          true,
 				"fs.readFile":        map[string]interface{}{"content": c},
+				"fs.getInfo": transport.FsGetInfoRes{
+					Exists:   true,
+					IsDir:    true,
+					FullPath: "/remote",
+					Name:     "remote",
+					Mode:     0700 | os.ModeDir,
+					Time:     millenium,
+				},
 				"fs.readDirectory": transport.FsReadDirectoryRes{
 					Files: []transport.FsGetInfoRes{
 						transport.FsGetInfoRes{
 							Exists:   true,
-							FullPath: "/remote/file",
 							IsDir:    false,
-							Mode:     os.FileMode(0700),
+							FullPath: "/remote/file",
 							Name:     "file",
+							Mode:     os.FileMode(0700),
 							Time:     millenium,
 							Size:     uint64(len(s)),
 						},
@@ -599,6 +608,7 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 	f := &fakeTransport{
 		TripResponses: map[string]interface{}{
 			"fs.readDirectory": transport.FsReadDirectoryRes{},
+			"fs.getInfo":       transport.FsGetInfoRes{Exists: true},
 		},
 	}
 
