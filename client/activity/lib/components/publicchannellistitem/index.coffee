@@ -7,7 +7,8 @@ Button        = require 'app/components/common/button'
 module.exports = class PublicChannelListItem extends React.Component
 
   @defaultProps =
-    channel  : null
+    channel     : null
+    onItemClick : kd.noop
 
   constructor: (props) ->
 
@@ -60,7 +61,7 @@ module.exports = class PublicChannelListItem extends React.Component
     { channel } = @props
     channelName = channel.get 'name'
 
-    <Link href="/Channels/#{channelName}" className='ChannelListItem'>
+    <Link href="/Channels/#{channelName}" className='ChannelListItem' onClick={@props.onItemClick}>
       <span className='ChannelListItem-title'>{channelName}</span>
       {@renderButton()}
     </Link>

@@ -16,6 +16,7 @@ module.exports = class SidebarModalList extends React.Component
     className         : ''
     searchProp        : 'name'
     onThresholdAction : ''
+    onItemClick       : kd.noop
 
   constructor: (props) ->
 
@@ -112,12 +113,13 @@ module.exports = class SidebarModalList extends React.Component
 
   renderChildren: ->
 
-    { itemComponent: Component } = @props
+    { itemComponent: Component, onItemClick } = @props
 
     @state.threads.toList().map (thread, i) ->
       itemProps =
         key     : thread.get 'channelId'
         channel : thread.get 'channel'
+        onItemClick: onItemClick
       <Component {...itemProps} />
 
 
