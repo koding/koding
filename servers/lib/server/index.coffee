@@ -10,7 +10,7 @@ koding                = require './bongo'
 express               = require 'express'
 helmet                = require 'helmet'
 bodyParser            = require 'body-parser'
-datadog               = require 'koding-datadog'
+metrics               = require '../../datadog'
 usertracker           = require '../../../workers/usertracker'
 app                   = express()
 webPort               = argv.p ? webserver.port
@@ -43,7 +43,7 @@ do ->
   app.use helmet.ienoopen()
   app.use helmet.contentTypeOptions()
   app.use helmet.hidePoweredBy()
-  app.use datadog.middleware.sendMetrics
+  app.use metrics.send
 
 
 # handle basic auth
