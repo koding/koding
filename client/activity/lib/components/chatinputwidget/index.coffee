@@ -15,6 +15,7 @@ Link            = require 'app/components/common/link'
 whoami          = require 'app/util/whoami'
 helpers         = require './helpers'
 groupifyLink    = require 'app/util/groupifyLink'
+focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 
 
 module.exports = class ChatInputWidget extends React.Component
@@ -28,27 +29,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     super props
 
-    @state               = { value : '' }
-    { windowController } = kd.singletons
-
-    windowController.on 'keydown', (event) =>
-
-      textInput         = React.findDOMNode this.refs.textInput
-      keyboardElements  = "input,textarea,select,datalist,keygen,[contenteditable='true'],button"
-      { activeElement } = document
-
-      return  unless textInput
-      return  if textInput is activeElement
-      # do not break accessibility
-      return  if event.which in [ ENTER, TAB, SPACE ]
-
-      nothingFocused  = not $(activeElement).is keyboardElements
-      inputInViewport = textInput.offsetParent
-      # temp: until modals are made stateful
-      noActiveModals  = !($('body > .kdmodal').length + $('body > div > .Modal').length)
-
-      textInput.focus()  if nothingFocused and inputInViewport and noActiveModals
-
+    @state = { value : '' }
 
 
   getDataBindings: ->
