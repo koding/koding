@@ -22,20 +22,23 @@ loadMessages = (channelId, options = {}) ->
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
 
-  dispatch LOAD_MESSAGES_BEGIN, { channelId }
+  dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
   _options = _.assign {}, options, { id: channelId }
 
-  socialapi.channel.fetchActivities _options, (err, messages) ->
-    if err
-      dispatch LOAD_MESSAGES_FAIL, { err, channelId }
-      return
+  new Promise (resolve, reject) ->
+    socialapi.channel.fetchActivities _options, (err, messages) ->
+      if err
+        dispatch LOAD_MESSAGES_FAIL, { err, channelId }
+        return reject err
 
-    dispatch LOAD_MESSAGES_SUCCESS, { channelId }
+      dispatch LOAD_MESSAGES_SUCCESS, { channelId }
 
-    kd.singletons.reactor.batch ->
-      messages.forEach (message) ->
-        dispatchLoadMessageSuccess channelId, message
+      kd.singletons.reactor.batch ->
+        messages.forEach (message) ->
+          dispatchLoadMessageSuccess channelId, message
+
+      resolve { messages }
 
 
 ###*
