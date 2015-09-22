@@ -92,14 +92,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       cssClass : 'title'
       partial  : title
 
-    @warningIcon = new kd.CustomHTMLView
-      cssClass   : 'warning-icon hidden'
-      tooltip    :
-        title    : """Base stack template has been updated, please
-                      re-init this stack to get latest changes."""
 
     if _revisionStatus?.status? and _revisionStatus.status.code > 0
-      @warningIcon.show()
       revisionMessage = ''
     else
       revisionMessage = "You're currently using the latest revision."
@@ -142,7 +136,6 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       {{> @machinesList}}
       <div class="footer">
         <div class="icons">
-          {{> @warningIcon}}
           {{> @infoIcon}}
         </div>
         <div class="button-container">
