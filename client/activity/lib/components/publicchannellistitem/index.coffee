@@ -1,48 +1,46 @@
-kd            = require 'kd'
-React         = require 'kd-react'
-ActivityFlux  = require 'activity/flux'
-Link          = require 'app/components/common/link'
-Button        = require 'app/components/common/button'
+kd                = require 'kd'
+React             = require 'kd-react'
+ActivityFlux      = require 'activity/flux'
+Link              = require 'app/components/common/link'
+Button            = require 'app/components/common/button'
+PublicChannelLink = require 'activity/components/publicchannellink'
+
 
 module.exports = class PublicChannelListItem extends React.Component
 
   @defaultProps =
-    channel     : null
     onItemClick : kd.noop
+    thread      : null
 
-  constructor: (props) ->
 
-    super props
+  channel: (key) ->
 
-    @state =
-      channel     : @props.channel
+    if key
+    then @props.thread.getIn [ 'channel', key ]
+    else @props.thread.get 'channel'
 
 
   followChannel: (event) ->
 
     kd.utils.stopDOMEvent event
     { channel } = ActivityFlux.actions
-    channelId = @props.channel.get '_id'
 
-    channel.followChannel channelId
+    channel.followChannel @channel '_id'
 
 
   unfollowChannel: (event) ->
 
     kd.utils.stopDOMEvent event
     { channel } = ActivityFlux.actions
-    channelId = @props.channel.get '_id'
 
-    channel.unfollowChannel channelId
+    channel.unfollowChannel @channel '_id'
 
 
   renderButton: ->
 
-    { channel } = @props
+    return  unless @channel('typeConstant') is 'topic'
 
-    return  unless channel.get('typeConstant') is 'topic'
-
-    if channel.get 'isParticipant'
+    if @channel 'isParticipant'
       <Button
         className="ChannelListItem-unfollow"
         onClick={@bound 'unfollowChannel'}>
@@ -58,11 +56,10 @@ module.exports = class PublicChannelListItem extends React.Component
 
   render: ->
 
-    { channel } = @props
-    channelName = channel.get 'name'
+    channelName = @channel 'name'
 
-    <Link href="/Channels/#{channelName}" className='ChannelListItem' onClick={@props.onItemClick}>
+    <PublicChannelLink to={@channel()} className='ChannelListItem' onClick={@props.onItemClick}>
       <span className='ChannelListItem-title'>{channelName}</span>
       {@renderButton()}
-    </Link>
+    </PublicChannelLink>
 

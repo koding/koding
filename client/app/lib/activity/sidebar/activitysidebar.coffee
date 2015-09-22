@@ -86,17 +86,18 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     router
       .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
-    notificationController
-      .on 'AddedToChannel',            @bound 'accountAddedToChannel'
-      .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
-      .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
-      .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
-      .on 'ReplyAdded',                @bound 'replyAdded'
+    if isKoding()
+      notificationController
+        .on 'AddedToChannel',            @bound 'accountAddedToChannel'
+        .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
+        .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
+        .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
+        .on 'ReplyAdded',                @bound 'replyAdded'
 
-      .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
-      .on 'ParticipantUpdated',        @bound 'handleGlanced'
-      # .on 'ReplyRemoved',              (update) -> log update.event, update
-      # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
+        .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
+        .on 'ParticipantUpdated',        @bound 'handleGlanced'
+        # .on 'ReplyRemoved',              (update) -> log update.event, update
+        # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
       .on 'MachineDataModified',       @bound 'updateMachines'

@@ -3,7 +3,7 @@ React = require 'kd-react'
 Link  = require 'app/components/common/link'
 
 
-module.exports = class PublicChannelLink extends React.Component
+module.exports = class PrivateChannelLink extends React.Component
 
   @defaultProps = { to: null }
 
@@ -24,7 +24,7 @@ module.exports = class PublicChannelLink extends React.Component
 
   render: ->
     <Link {...@props}
-      className={kd.utils.curry "PublicChannelLink", @props.className}
-      href="/Channels/#{@channel('name') ? '#'}">
+      className={kd.utils.curry "PrivateChannelLink", @props.className}
+      href="/Messages/#{@channel('_id') ? '#'}">
       {@props.children}
     </Link>

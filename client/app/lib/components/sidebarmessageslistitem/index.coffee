@@ -1,6 +1,8 @@
-React                 = require 'kd-react'
-SidebarListItem       = require 'app/components/sidebarlist/sidebarlistitem'
-MessageListItemHelper = require 'activity/util/messageListItemHelper'
+kd                   = require 'kd'
+React                = require 'kd-react'
+toImmutable          = require 'app/util/toImmutable'
+SidebarListItem      = require 'app/components/sidebarlist/sidebarlistitem'
+prepareThreadTitle   = require 'activity/util/prepareThreadTitle'
 
 module.exports = class SidebarMessagesListItem extends React.Component
 
@@ -8,8 +10,9 @@ module.exports = class SidebarMessagesListItem extends React.Component
 
   render: ->
     <SidebarListItem
-      title={MessageListItemHelper.prepareThreadTitle @props.thread.get 'channel'}
+      title={prepareThreadTitle @props.thread}
       unreadCount={@channel 'unreadCount'}
       active={@props.active}
       href="/Messages/#{@channel 'id'}" />
+
 
