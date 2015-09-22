@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -694,10 +695,14 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 }
 
 func _unmount(k *KodingNetworkFS) error {
-	// ioutil.TempDir creates directories with `/private` prefix, however it
-	// doesn't include it in the return path; without this unmout fails.
 	oldPath := k.MountPath
-	k.MountPath = filepath.Join("/private", k.MountPath)
+
+	// ioutil.TempDir creates directories with `/private` prefix, however it
+	// doesn't include it in the return path; without this unmout fails in OSX.
+	if runtime.GOOS != "darwin" {
+		k.MountPath = filepath.Join("/private", k.MountPath)
+	}
+
 	if err := k.Unmount(); err != nil {
 		return err
 	}
