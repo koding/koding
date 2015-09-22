@@ -89,7 +89,6 @@ class IDEFileFinder extends KDCustomHTMLView
     @listController.getView().on 'ItemWasAdded', (item) =>
       item.once 'viewAppended', =>
         item.child.on 'FileNeedsToBeOpened', @bound 'openFile'
-        item.child.on 'FileNeedsToBeTailed', @bound 'tailFile'
 
     @content.addSubView @listController.getView()
 
