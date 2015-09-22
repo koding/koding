@@ -172,6 +172,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
+    if view instanceof IDETailerPane
+      pane.tabHandle.addSubView new kd.CustomHTMLView
+        tagName  : 'span'
+        cssClass : 'tail-icon'
+
     return pane
 
 

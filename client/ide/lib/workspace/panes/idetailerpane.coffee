@@ -76,6 +76,8 @@ module.exports = class IDETailerPane extends IDEPane
     then ace.focus()
     else ace.blur()
 
+    @parent.tabHandle.unsetClass 'modified'
+
 
   getContent: ->
 
