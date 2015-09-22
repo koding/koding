@@ -102,6 +102,12 @@ module.exports = class NFinderTreeController extends JTreeViewController
     # @appManager.openFile file
     @getDelegate().emit "FileNeedsToBeOpened", file
 
+  tailFile: (nodeView) ->
+
+    return  unless nodeView
+    @getDelegate().emit "FileNeedsToBeTailed", nodeView.getData()
+
+
   previewFile:(nodeView)->
     {vmName, path} = nodeView.getData()
     @appManager.open "Viewer", params: {path, vmName}
@@ -481,6 +487,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
   cmTarball:             (node) -> @compressFiles        node, "tar.gz"
   cmUpload:              (node) -> @uploadFile           node
   cmOpenFile:            (node) -> @openFile             node
+  cmTailFile:            (node) -> @tailFile             node
   cmPreviewFile:         (node) -> @previewFile          node
   cmCompile:             (node) -> @compileApp           node
   cmMakeNewApp:          (node) -> @makeNewApp           node
