@@ -508,6 +508,9 @@ computeproviders.styl
       margin                17px 12px
       fl()
 
+      &:hover
+        cursor              pointer
+
     &.collapsed
 
       margin-bottom         -1px
@@ -888,3 +891,26 @@ computeproviders.styl
 
   .kdmodal-inner > .kdbutton
     abs                     15px, 25px
+
+
+.kdmodal.stack-template-content
+
+  .kdmodal-title
+    margin-bottom           0 !important
+
+  .kdmodal-content
+    margin-top              10px !important
+    overflow                hidden
+
+  .kdscrollview
+    max-height              416px
+
+  styleScrollBars           rgba(0, 0, 0, .15)
+
+  pre
+    padding                 0
+    border                  1px solid #eaeaea
+    rounded                 2px
+
+    code
+      border                none

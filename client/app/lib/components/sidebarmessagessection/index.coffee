@@ -30,6 +30,11 @@ module.exports = class SidebarMessagesSection extends React.Component
     @setState isModalOpen: yes
 
 
+  onItemClick: (event) ->
+
+    @setState isModalOpen: no
+
+
   renderPrivateChannelsModal: ->
 
     <Modal
@@ -39,6 +44,7 @@ module.exports = class SidebarMessagesSection extends React.Component
       onClose={@bound 'onClose'}>
       <SidebarModalList
         title='Other Messages:'
+        onItemClick={@bound 'onItemClick'}
         threads={@props.threads}
         onThresholdAction='loadFollowedPrivateChannels'
         searchProp='purpose'

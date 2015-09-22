@@ -10,6 +10,7 @@ module.exports = class ChatList extends React.Component
     messages     : immutable.List()
     showItemMenu : yes
     firstPost    : null
+    channelName  : ''
     isMessagesLoading: no
 
 
@@ -57,6 +58,7 @@ module.exports = class ChatList extends React.Component
         key          : message.get 'id'
         message      : message
         showItemMenu : showItemMenu
+        channelName  : @props.channelName
 
       count          = @calculateRemainingMessageCount()
       firstMessageId = @getFirstMessageId()

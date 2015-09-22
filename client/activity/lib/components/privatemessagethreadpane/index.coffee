@@ -5,7 +5,9 @@ ActivityFlux              = require 'activity/flux'
 immutable                 = require 'immutable'
 classnames                = require 'classnames'
 PrivateChatPane           = require 'activity/components/privatechatpane'
+ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
 ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
+prepareThreadTitle        = require 'activity/util/prepareThreadTitle'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -39,10 +41,9 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
   renderHeader: ->
 
-    <ChannelParticipantAvatars
-      channelThread = { @state.channelThread }
-      participants  = { @state.channelParticipants }
-    />
+    return  unless @state.channelThread
+
+    prepareThreadTitle @state.channelThread
 
 
   renderChat: ->
@@ -54,6 +55,15 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
 
   renderSidebar: ->
+
+    <div className="ThreadSidebar">
+      <ThreadSidebarContentBox title="Participants">
+        <ChannelParticipantAvatars
+          channelThread = { @state.channelThread }
+          participants  = { @state.channelParticipants }
+        />
+      </ThreadSidebarContentBox>
+    </div>
 
 
   render: ->

@@ -30,6 +30,11 @@ module.exports = class SidebarChannelsSection extends React.Component
     @setState isModalOpen: yes
 
 
+  onItemClick: (event) ->
+
+    @setState isModalOpen: no
+
+
   renderFollowedChannelsModal: ->
 
     title = 'Other Channels you are following:'
@@ -38,6 +43,7 @@ module.exports = class SidebarChannelsSection extends React.Component
         title={title}
         searchProp='name'
         threads={@props.threads}
+        onItemClick={@bound 'onItemClick'}
         onThresholdAction='loadFollowedPublicChannels'
         itemComponent={PublicChannelListItem}/>
     </Modal>

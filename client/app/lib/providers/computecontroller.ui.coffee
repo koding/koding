@@ -1,5 +1,7 @@
 kd                   = require 'kd'
 _                    = require 'underscore'
+hljs                 = require 'highlight.js'
+Encoder              = require 'htmlencode'
 
 KDModalView          = kd.ModalView
 KDNotificationView   = kd.NotificationView
@@ -16,6 +18,8 @@ applyMarkdown        = require 'app/util/applyMarkdown'
 TerminalModal        = require '../terminal/terminalmodal'
 
 MissingDataView      = require './missingdataview'
+
+{ jsonToYaml }       = require 'admin/views/stacks/yamlutils'
 
 
 module.exports = class ComputeController_UI
@@ -380,3 +384,54 @@ module.exports = class ComputeController_UI
                     showInlineInformation provisioner, modal
 
       showInlineInformation provisioner, modal
+
+
+  @showComputeError = (options) ->
+
+    { stack, errorMessage, title, subtitle, cssClass } = options
+    cssClass ?= ''
+
+    modal     = new kd.ModalView
+      title          : title    ? "An error occured"
+      subtitle       : subtitle ? ""
+      draggable      : no
+      height         : 600
+      cssClass       : "AppModal AppModal--admin has-markdown
+                        compute-error-modal #{cssClass}"
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+
+    content      = (hljs.highlight 'profile', errorMessage).value
+    errorDetails = new kd.CustomHTMLView
+      partial  : "<pre><code>#{content}</code></pre>"
+
+    if stack?
+
+      modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
+
+      tabView.addPane new kd.TabPaneView
+        name : 'Error Details'
+        view : errorDetails
+
+      # Fetch stack template, coming from remote.cacheable ~ GG
+      { computeController } = kd.singletons
+      computeController.fetchBaseStackTemplate stack, (err, template) ->
+
+        return kd.warn err  if err
+
+        {content} = template.template
+        content   = Encoder.htmlDecode content or ''
+        content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
+
+        tabView.addPane new kd.TabPaneView
+          name       : 'Stack Template'
+          view       : new kd.CustomHTMLView
+            partial  : "<pre><code>#{content}</code></pre>"
+
+        tabView.showPaneByIndex 0
+
+    else
+
+      modal.addSubView errorDetails
+
