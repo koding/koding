@@ -1,3 +1,4 @@
+whoami   = require 'app/util/whoami'
 isMyPost = require 'app/util/isMyPost'
 
 module.exports = getParticipantOrigins = (channel) ->
