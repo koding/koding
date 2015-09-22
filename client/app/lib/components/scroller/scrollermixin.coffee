@@ -1,15 +1,18 @@
 React          = require 'kd-react'
 scrollToTarget = require 'activity/util/scrollToTarget'
 
-
 module.exports = ScrollerMixin =
 
   componentWillUpdate: ->
 
-    return  unless @refs?.scrollContainer
+    @shouldScrollToBottom = @getScrollToBottomFlag()
 
+
+  getScrollToBottomFlag: ->
+
+    return  unless @refs?.scrollContainer
     { @scrollTop, offsetHeight, @scrollHeight } = React.findDOMNode @refs.scrollContainer
-    @shouldScrollToBottom = @scrollTop + offsetHeight is @scrollHeight
+    @scrollHeight - (@scrollTop + offsetHeight) < 100
 
 
   componentDidUpdate: ->
@@ -18,8 +21,28 @@ module.exports = ScrollerMixin =
 
     element = React.findDOMNode @refs.scrollContainer
 
-    if @shouldScrollToBottom
+    if @shouldScrollToBottom and @isMessageBeingSubmitted
       element.scrollTop = element.scrollHeight
     else
       element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
+
+
+  setScrollPosition: ->
+
+    return  unless @refs?.scrollContainer
+
+    scrollContainer = React.findDOMNode @refs.scrollContainer
+
+    if @getScrollToBottomFlag()
+      scrollContainer.scrollTop = scrollContainer.scrollHeight
+
+
+  componentDidMount: ->
+
+    window.addEventListener "resize", @bound 'setScrollPosition'
+
+
+  componentWillUnmount: ->
+
+    window.removeEventListener "resize", @bound 'setScrollPosition'
 
