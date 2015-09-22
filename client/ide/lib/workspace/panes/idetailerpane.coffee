@@ -28,7 +28,7 @@ module.exports = class IDETailerPane extends IDEPane
 
   createEditor: ->
 
-    { file } = @getOptions()
+    { file, description, descriptionView } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -44,7 +44,27 @@ module.exports = class IDETailerPane extends IDEPane
     { ace } = @aceView
 
     ace.ready =>
-      ace.setReadOnly yes
+
+      ace.setReadOnly      yes
+      ace.setScrollPastEnd no
+
+      { descriptionView, description } = @getOptions()
+      file = @getData()
+
+      ace.descriptionView = descriptionView ? new kd.View
+        partial : description ? "
+          This is a file watcher pane, which allows you to watch all additions
+          on <strong>#{@file.getPath()}</strong>. This view is read-only, you
+          can't change the content of this file from this view, to be able to
+          that please open it in edit-mode.
+        "
+        click : =>
+          ace.descriptionView.destroy()
+          @resize()
+
+      ace.descriptionView.setClass 'description-view'
+      ace.prepend ace.descriptionView
+
       @emit 'EditorIsReady'
 
       kite = @file.machine.getBaseKite()
