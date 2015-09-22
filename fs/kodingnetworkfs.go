@@ -58,6 +58,12 @@ type KodingNetworkFS struct {
 
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
 func NewKodingNetworkFS(t transport.Transport, c *config.FuseConfig) *KodingNetworkFS {
+	// create mount point if it doesn't exist
+	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
+	if err := os.MkdirAll(c.LocalPath, 0755); err != nil {
+		panic(err.Error())
+	}
+
 	mountConfig := &fuse.MountConfig{
 
 		// Name of mount; required to be non empty or `umount` command will
