@@ -46,10 +46,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
-        callback    : =>
-          { ui }    = kd.singletons.computeController
-          ui.askFor 'reinitStack', {}, =>
-            @getDelegate().emit 'StackReinitRequested', @getData()
+        callback    : @bound 'handleStackReinit'
 
     if isKoding()
       @addVMButton = new kd.ButtonView
@@ -61,6 +58,14 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       title           : 'Add Your Own Machine'
       cssClass        : 'add-managed-button solid green compact'
       callback        : => @handleMachineRequest 'managed'
+
+
+  handleStackReinit: ->
+
+    { ui } = kd.singletons.computeController
+
+    ui.askFor 'reinitStack', {}, =>
+      @getDelegate().emit 'StackReinitRequested', @getData()
 
 
   handleMachineRequest: (provider) ->
