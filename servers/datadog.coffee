@@ -1,11 +1,10 @@
-{ argv }  = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-Timer     = require '../timer'
-DogStatsD = require '../dogstatsd'
-onHeaders = require 'on-headers'
+{ argv }             = require 'optimist'
+KONFIG               = require('koding-config-manager').load("main.#{argv.c}")
+onHeaders            = require 'on-headers'
+{ DogStatsD, Timer } = require 'koding-datadog'
 
 
-module.exports = middleware = {
+module.exports = MetricsMiddleware = {
 
   prefix : 'nodejs.webserver'
 
@@ -17,7 +16,7 @@ module.exports = middleware = {
       .replace /[\/-]/g,    '.'     # replace all / with .
       .replace /\.{2,}/g,   '.'     # remove adjacent dots
 
-  generateMetricName : (path) -> @sanitize "#{@prefix}.#{path}"
+  generateName : (path) -> @sanitize "#{@prefix}.#{path}"
 
 
   populateTags : (req, res, tags) ->
@@ -31,15 +30,15 @@ module.exports = middleware = {
     return tags
 
 
-  sendMetrics : (req, res, next) ->
+  send : (req, res, next) ->
 
     Timer.start()
-    metricName      = middleware.generateMetricName(req.path)
+    metricName      = MetricsMiddleware.generateName(req.path)
     elapsedTime     = 0
     dogStatsDClient = DogStatsD.getClient()
 
     onHeaders res, ->
-      tags        = middleware.populateTags req, res
+      tags        = MetricsMiddleware.populateTags req, res
       elapsedTime = Timer.getElapsedTimeInMilliSecs()
       dogStatsDClient.histogram "#{metricName}.response_time", elapsedTime, tags
 
@@ -47,7 +46,8 @@ module.exports = middleware = {
     end = res.end
 
     res.end = ->
-      tags = middleware.populateTags req, res
+      console.log req.path
+      tags = MetricsMiddleware.populateTags req, res
       dogStatsDClient.increment "#{metricName}.page_view", 1, tags
 
       # calling end function in res context

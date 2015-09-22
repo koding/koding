@@ -1,8 +1,8 @@
-{ argv }  = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-DogStatsD = require '../dogstatsd'
+{ argv }      = require 'optimist'
+KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
+{ DogStatsD } = require 'koding-datadog'
 
-module.exports = socialWorker = {
+module.exports = Metrics = {
 
   prefix : 'socialWorker'
 
@@ -15,7 +15,7 @@ module.exports = socialWorker = {
     return tags
 
 
-  generateMetricName : (opts) ->
+  generateName : (opts) ->
 
     { method } = opts
     { constructorName, method, type } = method
@@ -23,10 +23,10 @@ module.exports = socialWorker = {
     return "#{@prefix}.#{constructorName}.#{method}.#{type}"
 
 
-  sendMetrics : (opts) ->
+  send : (opts) ->
 
-    tags                         = socialWorker.populateTags()
-    metricName                   = socialWorker.generateMetricName opts
+    tags                         = Metrics.populateTags()
+    metricName                   = Metrics.generateName opts
     dogStatsDClient              = DogStatsD.getClient()
     { rss, heapTotal, heapUsed } = process.memoryUsage()
 
