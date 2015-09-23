@@ -1,16 +1,23 @@
 .CreateChannel-Modal
-  .Modal-title
-    abs()
-    borderBox()
-    bg                      color, $gray-18
-    width                   100%
-    left                    0
-    top                     0
-    padding                 15px
-    rounded                 4px 4px 0 0
+  padding                   30px
 
-  .Modal-content
-    margin-top              40px
+  .ChannelParticipantsDropdownItem
+    .ProfilePicture
+      size                  23px !important, 23px !important
+      rounded               3px
+
+  .Button--danger
+    bg                      color, $green
+    border                  none
+
+  .Button--secondary
+    bg                      color, transparent
+    border                  none
+    color                   $gray-12
+
+  .Modal-title
+    color                   $green
+    font-weight             normal
 
   .CreateChannel-description
     margin-bottom           20px
@@ -24,34 +31,30 @@
       text-align            justify
 
   .CreateChannel-createPrivateGroup
-    font-size                 13px
+    color                   $green
+    font-size               13px
+    text-decoration         underline
 
   .Reactivity-formfield
     &.dropdown
       cf()
 
-    .Reactivity-label
-      &.channelName
-      &.inviteMembers
-        top                 10px
-
-      &.channelPurpose
-        top                 5px
+      &.invalid
+        .CreateChannel-participantsWrapper
+          border-color      $red
 
 .CreateChannel-dropbox
   .Dropbox
     abs()
+    z-index                 1
     right                   0px
-    width                   380px
     top                     auto !important
-
+    border                  1px solid #DFD69A
 
 .CreateChannel-participantsWrapper
-  fr()
   borderBox()
   rounded                   4px
-  width                     380px
-  border                    2px solid $gray-16
+  border                    1px solid $gray-16
 
   .CreateChannel-participants
     padding                 0px 0px 0 5px
@@ -69,8 +72,8 @@
 
     img
       blockMid()
-      rounded               4px
-      size                  25px !important, 25px !important
+      rounded               3px
+      size                  23px !important, 23px !important
 
     span
       margin                0 5px
@@ -79,7 +82,7 @@
   input
     float                   none !important
     border                  none !important
-    width                   375px !important
+    margin-bottom           0 !important
 
   &.delete-mode
     input::-webkit-input-placeholder
