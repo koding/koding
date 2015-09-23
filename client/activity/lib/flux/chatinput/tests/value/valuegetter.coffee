@@ -25,7 +25,7 @@ describe 'ChatInputValueGetter', ->
     value1       = '12345'
     value2       = 'qwerty'
     emptyChannel = 'channel3'
-    { getters } = ChatInputFlux
+    { getters }  = ChatInputFlux
 
     it 'gets value depending on the current channel id', ->
 
