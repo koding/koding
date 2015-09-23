@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/mitchellh/cli"
@@ -32,19 +33,20 @@ func (c *ListCommand) Run(_ []string) int {
 	}
 
 	type kiteInfo struct {
-		Ip       string
-		VmName   string
-		Hostname string
+		Ip           string
+		VmName       string
+		Hostname     string
+		MountedPaths []string
 	}
 
 	var infos []kiteInfo
 	res.Unmarshal(&infos)
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tNAME\tMACHINE IP\tHOSTNAME\n")
+	fmt.Fprintf(w, "\tNAME\tMACHINE IP\tHOSTNAME\tMOUNTED PATHS\n")
 	for i, info := range infos {
-		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\n",
-			i+1, info.VmName, info.Ip, info.Hostname)
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\n",
+			i+1, info.VmName, info.Ip, info.Hostname, strings.Join(info.MountedPaths, ", "))
 	}
 	w.Flush()
 
