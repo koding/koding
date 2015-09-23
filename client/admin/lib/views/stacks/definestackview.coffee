@@ -271,14 +271,15 @@ module.exports = class DefineStackView extends KDView
       if not currentGroup.stackTemplates?.length
         @handleSetDefaultTemplate completed = no
         @outputView.addAndWarn "
-          Stack template saved and set for your team members.
-          You can now close this window or continue working on
-          your awesome stack template.
+          Your stack script has been successfully saved and applied
+          to all your team members. You can now close this window
+          and continue working with your stack.
         "
 
       else
-        @outputView.add "You can now close this window, or set this
-                         template as default for your team members."
+        @outputView.add "You can now apply your stack changes to all your
+                         team members or close this window and continue to
+                         work on your stack script."
 
         @setAsDefaultButton.show()
         @saveButton.hide()
