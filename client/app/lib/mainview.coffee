@@ -138,7 +138,7 @@ module.exports = class MainView extends KDView
         testpath : 'main-sidebar'
       mouseenter : =>
         if @isSidebarCollapsed
-          kd.utils.wait 100, => @toggleHoverSidebar()
+          kd.utils.wait 200, => @toggleHoverSidebar()
       mouseleave : =>
         @toggleHoverSidebar()  if @hasClass 'hover'
 
