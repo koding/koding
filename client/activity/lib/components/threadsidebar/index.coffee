@@ -16,7 +16,7 @@ module.exports = class ThreadSidebar extends React.Component
 
 
   render: ->
-    <div className="ThreadSidebar">
+    <div className="ThreadSidebar secondary">
       <ThreadSidebarContentBox title="Participants">
         <ChannelParticipantAvatars
           channelThread={@props.channelThread}
