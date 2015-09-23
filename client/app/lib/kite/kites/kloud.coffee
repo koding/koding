@@ -191,7 +191,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
         # at this point we can assume that the machine is Stopped. But on
         # the other hand, Kloud should also mark this machine as Stopped if
         # it couldn't find it in Kontrol registry ~ GG FIXME: FA
-        else if err.message is 'not found'
+        else if err.message is 'not found' and currentState is Machine.State.Running
 
           @resolveRequestingInfos machineId, State: Machine.State.Stopped
           KiteLogger.failed 'kloud', 'info'

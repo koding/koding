@@ -2,6 +2,8 @@ kd                     = require 'kd'
 JView                  = require 'app/jview'
 isKoding               = require 'app/util/isKoding'
 
+remote                 = require('app/remote').getInstance()
+
 MachinesList           = require './machineslist'
 MachinesListController = require './machineslistcontroller'
 
@@ -46,10 +48,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
-        callback    : =>
-          { ui }    = kd.singletons.computeController
-          ui.askFor 'reinitStack', {}, =>
-            @getDelegate().emit 'StackReinitRequested', @getData()
+        callback    : @bound 'handleStackReinit'
 
     if isKoding()
       @addVMButton = new kd.ButtonView
@@ -61,6 +60,14 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       title           : 'Add Your Own Machine'
       cssClass        : 'add-managed-button solid green compact'
       callback        : => @handleMachineRequest 'managed'
+
+
+  handleStackReinit: ->
+
+    { ui } = kd.singletons.computeController
+
+    ui.askFor 'reinitStack', {}, =>
+      @getDelegate().emit 'StackReinitRequested', @getData()
 
 
   handleMachineRequest: (provider) ->
@@ -87,14 +94,11 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       cssClass : 'title'
       partial  : title
 
-    @warningIcon = new kd.CustomHTMLView
-      cssClass   : 'warning-icon hidden'
-      tooltip    :
-        title    : """Base stack template has been updated, please
-                      re-init this stack to get latest changes."""
+    @updateNotification = new kd.CustomHTMLView
+      cssClass : 'update-notification hidden'
 
     if _revisionStatus?.status? and _revisionStatus.status.code > 0
-      @warningIcon.show()
+      @showUpdateNotification()
       revisionMessage = ''
     else
       revisionMessage = "You're currently using the latest revision."
@@ -115,11 +119,49 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @infoIcon.hide()  if isKoding()
 
 
-  showStackTemplateContent: ->
+  showUpdateNotification: ->
+
+    @reinitButton.hide()
+
+    @updateNotification.destroySubViews()
+
+    @fetchStackTemplate (err, template) =>
+
+      return showNotification err  if err
+
+      remote.cacheable 'JAccount', template.originId, (err, account) =>
+
+        @updateNotification.addSubView description = new kd.CustomHTMLView
+          tagName  : 'div'
+          cssClass : 'description'
+
+        description.addSubView new kd.CustomHTMLView
+          tagName  : 'span'
+          partial  : "#{account.profile.firstName} has updated this stack"
+
+        description.addSubView new kd.CustomHTMLView
+          tagName  : 'span'
+          partial  : ' (<a href="#">see details</a>).'
+          click    : @bound 'showStackTemplateContent'
+
+        @updateNotification.addSubView new kd.ButtonView
+          title    : 'Update Your Machines'
+          cssClass : 'reinit-stack solid green compact'
+          callback : @bound 'handleStackReinit'
+
+        @updateNotification.show()
+
+
+  fetchStackTemplate: (callback) ->
 
     { computeController } = kd.singletons
 
-    computeController.fetchBaseStackTemplate @getData(), (err, template) ->
+    computeController.fetchBaseStackTemplate @getData(), callback
+
+
+  showStackTemplateContent: ->
+
+    @fetchStackTemplate (err, template) ->
 
       return showNotification err  if err
 
@@ -130,9 +172,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     """
       {{> @header}}
       {{> @machinesList}}
+      {{> @updateNotification}}
       <div class="footer">
         <div class="icons">
-          {{> @warningIcon}}
           {{> @infoIcon}}
         </div>
         <div class="button-container">

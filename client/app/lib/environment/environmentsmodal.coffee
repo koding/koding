@@ -25,6 +25,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       view       : listView
       wrapper    : no
       scrollView : no
+      selected   : options.selected
 
 
     if checkFlag 'super-admin'
