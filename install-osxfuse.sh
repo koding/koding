@@ -1,11 +1,11 @@
 #!/bin/sh
 
-if [[ ! "$(uname -s)" = "Darwin" ]]; then
+if [ ! "$(uname -s)" = "Darwin" ]; then
   echo "This installer script is only required for Mac OSX. Linux comes with Fuse."
   exit 1
 fi
 
-if [[ -d "/Library/Filesystems/osxfusefs.fs" ]]; then
+if [ -d "/Library/Filesystems/osxfusefs.fs" ]; then
   echo "Fuse already installed...exiting."
   exit 0
 fi
