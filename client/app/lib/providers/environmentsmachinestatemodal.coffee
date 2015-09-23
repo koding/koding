@@ -25,7 +25,6 @@ whoami                  = require 'app/util/whoami'
 isKoding                = require 'app/util/isKoding'
 showError               = require 'app/util/showError'
 trackEvent              = require 'app/util/trackEvent'
-FSHelper                = require 'app/util/fs/fshelper'
 applyMarkdown           = require 'app/util/applyMarkdown'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
@@ -757,18 +756,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
         @emit 'IDEBecameReady', machine
 
-        return  unless initial
-
-        # Path of cloud-init-output log
-        path = '/var/log/cloud-init-output.log'
-        file = FSHelper.createFileInstance { path, machine }
-
-        appManager.tell 'IDE', 'tailFile', {
-          file
-          description:
-            "Your stack build completed successfully, in the following
-             logs you can find details about your custom stack script."
-        }
+        computeController.showBuildLogs machine  if initial
 
 
   verifyAccount: ->
