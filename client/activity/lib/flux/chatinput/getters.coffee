@@ -1,3 +1,4 @@
+kd                         = require 'kd'
 immutable                  = require 'immutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
@@ -23,6 +24,7 @@ SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyM
 SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
+ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -220,6 +222,13 @@ searchVisibility = (stateId) -> [
 ]
 
 
+currentValue = [
+  ValueStore
+  ActivityFluxGetters.selectedChannelThreadId
+  (values, channelId) -> values.get channelId
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -250,5 +259,7 @@ module.exports = {
   searchSelectedIndex
   searchSelectedItem
   searchVisibility
+
+  currentValue
 }
 
