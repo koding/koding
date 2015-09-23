@@ -1,50 +1,36 @@
 .Reactivity-formfield
   margin-bottom             15px
 
+  &.invalid
+    .Reactivity-input
+      border-color          $red
+
   .Reactivity-label
-    fl()
     rel()
     dBlock()
     borderBox()
     color                   $gray-4
-    padding-right           15px
-    text-align              right
-    width                   120px
+    margin-bottom           10px
 
   .Reactivity-input
-    fr()
     borderBox()
     font-size               12px
     padding                 5px
     outline                 none
     rounded                 4px
-    size                    380px, 38px
+    size                    100%, 38px
     line-height             38px
-    border                  2px solid $gray-16
-
-  .Reactivity-textarea
-    fr()
-    borderBox()
-    font-size               12px
-    padding                 5px
-    outline                 none
-    rounded                 4px
-    size                    380px, 80px
-    resize                  none !important
-    line-height             38px
-    border                  2px solid $gray-16
+    border                  1px solid $gray-16
+    margin-bottom           10px
 
   .Reactivity-fieldMessage
     dBlock()
     color                   $gray-12
     clear                   both
     text-align              left
-    padding-left            120px
     font-size               13px
 
   .Reactivity-notRequired
-    dBlock()
     color                   $gray-8
     font-size               14px
-    margin-top              5px
 
