@@ -34,7 +34,7 @@ func tearUp(t *testing.T, f func()) {
 	f()
 }
 
-func TestSendMessage(t *testing.T) {
+func TestSaveMessage(t *testing.T) {
 
 	tearUp(t, func() {
 		Convey("while testing bot", t, func() {
@@ -53,7 +53,7 @@ func TestSendMessage(t *testing.T) {
 				message.Body = "testmessage"
 				message.ChannelId = channel.Id
 				message.ChannelIntegrationId = 13
-				err := bot.SendMessage(message)
+				err := bot.SaveMessage(message)
 				So(err, ShouldBeNil)
 
 				m, err := channel.FetchLastMessage()
