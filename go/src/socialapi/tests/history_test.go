@@ -131,6 +131,10 @@ func TestChannelHistory(t *testing.T) {
 							for i := 0; i < 5; i++ {
 								body := fmt.Sprintf("body%d", i)
 								post, err := rest.CreatePostWithBody(channel.Id, channelParticipant.AccountId, body)
+								// we need to wait while posting messages
+								// if we dont use time sleep, Added_at field of the messages is
+								// gonna be equal and this behavior is not expected situation
+								// Then, tests will not be worked correctly
 								time.Sleep(1000 * time.Millisecond)
 								So(err, ShouldBeNil)
 								So(post, ShouldNotBeNil)
@@ -168,7 +172,6 @@ func TestChannelHistory(t *testing.T) {
 								history, err := rest.GetHistory(
 									channel.Id,
 									&request.Query{
-										// AccountId: account.Id,
 										From:      postMid.CreatedAt,
 										SortOrder: "ASC",
 									},
@@ -190,7 +193,6 @@ func TestChannelHistory(t *testing.T) {
 								history, err := rest.GetHistory(
 									channel.Id,
 									&request.Query{
-										// AccountId: account.Id,
 										From:      postMid.CreatedAt,
 										SortOrder: "DESC",
 									},
@@ -211,7 +213,6 @@ func TestChannelHistory(t *testing.T) {
 								history, err := rest.GetHistory(
 									channel.Id,
 									&request.Query{
-										// AccountId: account.Id,
 										From:      postMid.CreatedAt,
 										SortOrder: "DESC",
 										Limit:     3,
@@ -233,7 +234,6 @@ func TestChannelHistory(t *testing.T) {
 								history, err := rest.GetHistory(
 									channel.Id,
 									&request.Query{
-										// AccountId: account.Id,
 										From:      postMid.CreatedAt,
 										SortOrder: "ASC",
 										Limit:     3,
