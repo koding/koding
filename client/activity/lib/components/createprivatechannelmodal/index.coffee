@@ -6,6 +6,7 @@ Avatar                            = require 'app/components/profile/avatar'
 AppFlux                           = require 'app/flux'
 TextArea                          = require 'react-autosize-textarea'
 classnames                        = require 'classnames'
+KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
 CreateChannelFlux                 = require 'activity/flux/createchannel'
@@ -15,7 +16,7 @@ ProfileLinkContainer              = require 'app/components/profile/profilelinkc
 ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
 CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
 
-module.exports = class CreateChannelModal extends React.Component
+module.exports = class CreatePrivateChannelModal extends React.Component
 
   @include [DropboxInputMixin]
 
@@ -24,11 +25,13 @@ module.exports = class CreateChannelModal extends React.Component
     super
 
     @state =
-      name        : ''
-      purpose     : ''
-      query       : ''
-      placeholder : 'type a @username and hit enter'
-      deleteMode  : no
+      name                : ''
+      purpose             : ''
+      query               : ''
+      deleteMode          : no
+      invalidName         : no
+      invalidParticipants : no
+      placeholder         : 'type a @username and hit enter'
 
 
   getDataBindings: ->
@@ -48,15 +51,80 @@ module.exports = class CreateChannelModal extends React.Component
   getDefaultPlaceholder: -> 'type a @username and hit enter'
 
 
+  setName: (event) ->
+
+    value = event.target.value
+    value = value.toLowerCase()
+    @setState name: value
+    @validateName(value)
+
+
+  setPurpose: (event) ->
+
+    @setState purpose: event.target.value
+
+
+  prepareRecipients: ->
+
+    recipients = []
+
+    @state.participants.map (participant) ->
+
+      recipients.push participant.getIn ['profile', 'nickname']
+
+    return recipients
+
+
+  validateName: (value) ->
+
+    pattern =  /^[a-z0-9]+$/i
+
+    if value and pattern.test value
+      @setState invalidName: no
+      return yes
+    else
+      @setState invalidName: yes
+      return no
+
+
+  validateParticipants: () ->
+
+    recipients = @prepareRecipients()
+
+    if recipients.length
+      @setState invalidParticipants: no
+      return yes
+    else
+      @setState invalidParticipants: yes
+      return no
+
+
+  validateForm : ->
+
+    isValidName         = @validateName(@state.name)
+    isValidParticipants = @validateParticipants()
+
+    if isValidName and isValidParticipants
+      return yes
+    return no
+
+
   createChannel: ->
 
-    console.log 'create channel'
+    return  unless @validateForm()
 
+    recipients = @prepareRecipients()
+    options =
+      body       : ''
+      name       : @state.name
+      purpose    : @state.purpose
+      recipients : recipients
 
-  createPrivateGroup: (event) ->
+    { createPrivateChannel } = CreateChannelFlux.actions.channel
 
-    kd.utils.stopDOMEvent event
-    console.log 'create channel'
+    createPrivateChannel(options).then ({channel}) =>
+
+      @props.isOpen = no
 
 
   onChange: (event) ->
@@ -107,6 +175,8 @@ module.exports = class CreateChannelModal extends React.Component
         deleteMode: yes
         placeholder: "Hit backspace again to remove #{lastParticipant.getIn ['profile', 'nickname']}"
 
+    kd.utils.wait 100, => @validateParticipants()
+
 
   onDropdownItemConfirmed: (item) ->
 
@@ -117,6 +187,22 @@ module.exports = class CreateChannelModal extends React.Component
     channel.addParticipant participant.get '_id'
 
     @setState query: ''
+    @setState invalidParticipants: no
+    @focusOnParticipantsInput()
+
+
+  focusOnParticipantsInput: ->
+
+    element = React.findDOMNode @refs.textInput
+    element.focus()
+
+
+  onInputKeydown: (event) ->
+
+    { ENTER } = KeyboardKeys
+
+    if event.which == ENTER
+      @createChannel()
 
 
   renderNickname: (participant, isNicknameVisible)->
@@ -185,41 +271,52 @@ module.exports = class CreateChannelModal extends React.Component
     />
 
 
+  getNameFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'invalid'              : @state.invalidName
+
+
+  getDropboxFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'dropdown'             : yes
+    'invalid'              : @state.invalidParticipants
+
+
   render: ->
 
     <ActivityModal {...@props} onConfirm={@bound 'createChannel'}>
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
-          <strong>This will create a new public channel that anyone on your team can join. </strong>
-          <div>
-            If you need this conversation to be private, you should
-            <Link className='CreateChannel-createPrivateGroup' onClick={@bound 'createPrivateGroup'}> create a new Private Group instead.</Link>
-          </div>
+          <strong>
+            A private group is only visible to its members,
+            and only members of a private group can read or search its contents.
+          </strong>
+          <div>{@props.extraInformation}</div>
         </div>
-        <div className='Reactivity-formfield'>
+        <div className={@getDropboxFieldClassnames()}>
+          <label className='Reactivity-label inviteMembers'>Invite Members</label>
+          {@renderAddParticipantInput()}
+        </div>
+        <div className={@getNameFieldClassnames()}>
           <label className='Reactivity-label channelName'>Name</label>
-          <input className='Reactivity-input'/>
+          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
-            Names must be 21 characters or less, lower case and cannot contain spaces or periods.
+            This is how this thread is going to appear on your sidebar (optional).
           </span>
         </div>
         <div className='Reactivity-formfield'>
           <label className='Reactivity-label channelPurpose'>
             Purpose
-            <span className='Reactivity-notRequired'>(optional)</span>
+            <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <TextArea className='Reactivity-textarea'/>
+          <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             Give your channel a purpose that describes what it will be used for.
           </span>
-        </div>
-        <div className='Reactivity-formfield dropdown'>
-          <label className='Reactivity-label inviteMembers'>Invite Members</label>
-          {@renderAddParticipantInput()}
         </div>
       </div>
     </ActivityModal>
 
 
-React.Component.include.call CreateChannelModal, [KDReactorMixin]
+React.Component.include.call CreatePrivateChannelModal, [KDReactorMixin]
 
