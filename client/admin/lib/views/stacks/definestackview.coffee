@@ -270,6 +270,11 @@ module.exports = class DefineStackView extends KDView
 
       if not currentGroup.stackTemplates?.length
         @handleSetDefaultTemplate completed = no
+        @outputView.addAndWarn "
+          Stack template saved and set for your team members.
+          You can now close this window or continue working on
+          your awesome stack template.
+        "
 
       else
         @outputView.add "You can now close this window, or set this
