@@ -90,9 +90,6 @@ pre
           hidden()
 
       .sidebar-title
-        ellipsis()
-        vendor              transition, opacity .3s ease
-
       .sidebar-machine-box
         > cite, div
           vendor            transition, opacity .3s ease
@@ -113,6 +110,12 @@ pre
           > .profile
             abs()
             top             0
+
+        .sidebar-title
+          white-space       nowrap
+
+          &:hover
+            white-space     normal
 
       #main-panel-wrapper
         width               calc(100% - 50px)
