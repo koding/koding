@@ -130,11 +130,17 @@ module.exports = class MainView extends KDView
     @setClass 'with-sidebar'
 
     @addSubView @aside = new KDCustomHTMLView
+      bind       : 'mouseenter mouseleave'
       tagName    : 'aside'
       cssClass   : unless isKoding() then 'team' else ''
       domId      : 'main-sidebar'
       attributes :
         testpath : 'main-sidebar'
+      mouseenter : =>
+        if @isSidebarCollapsed
+          kd.utils.wait 100, => @toggleHoverSidebar()
+      mouseleave : =>
+        @toggleHoverSidebar()  if @hasClass 'hover'
 
     entryPoint = globals.config.entryPoint
 
@@ -213,14 +219,29 @@ module.exports = class MainView extends KDView
 
   toggleSidebar: ->
 
-    @toggleClass 'collapsed'
+    if @hasClass 'hover'
+    then @unsetClass 'hover'
+    else @toggleClass 'collapsed'
 
-    @isSidebarCollapsed = !@isSidebarCollapsed
-
-    {appManager, windowController} = kd.singletons
+    @isSidebarCollapsed               = !@isSidebarCollapsed
+    { appManager, windowController }  = kd.singletons
 
     if appManager.getFrontApp().getOption('name') is 'IDE'
       windowController.notifyWindowResizeListeners()
+
+
+  toggleHoverSidebar: ->
+
+    # Just toggle it and don't change the 'isSidebarCollapsed' variable
+    @toggleClass 'collapsed'
+
+    @toggleClass 'hover'
+
+
+  resetSidebar: ->
+
+    @toggleHoverSidebar()
+    @toggleSidebar()
 
 
   glanceChannelWorkspace: (channel) ->
