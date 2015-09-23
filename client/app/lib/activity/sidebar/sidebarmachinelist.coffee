@@ -64,12 +64,16 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @machineBoxes.push box
     @machineBoxesByMachineUId[uid] = box
 
-    box.once 'KDObjectWillBeDestroyed', =>
-      @machineBoxes.splice @machineBoxes.indexOf(box), 1
-      delete @machineBoxesByMachineUId[box.machine.uid]
-      @emit 'MachineBoxDestroyed', box
+    box.once 'KDObjectWillBeDestroyed', @lazyBound 'handleMachineBoxDestroy', box
 
     box.on 'ListStateChanged', => @emit 'ListStateChanged'
+
+
+  handleMachineBoxDestroy: (box) ->
+
+    @machineBoxes.splice @machineBoxes.indexOf(box), 1
+    delete @machineBoxesByMachineUId[box.machine.uid]
+    @emit 'MachineBoxDestroyed', box
 
 
   removeWorkspaceByChannelId: (channelId) ->
