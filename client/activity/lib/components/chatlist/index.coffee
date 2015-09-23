@@ -1,8 +1,11 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-ChatListItem          = require 'activity/components/chatlistitem'
-SimpleChatListItem    = require 'activity/components/chatlistitem/simplechatlistitem'
+kd                 = require 'kd'
+React              = require 'kd-react'
+moment             = require 'moment'
+immutable          = require 'immutable'
+ChatListItem       = require 'activity/components/chatlistitem'
+SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
+DateMarker         = require 'activity/components/datemarker'
+
 
 module.exports = class ChatList extends React.Component
 
@@ -13,12 +16,33 @@ module.exports = class ChatList extends React.Component
     isMessagesLoading: no
 
 
+  getMarkers: (currentMessage, prevMessage, index) ->
+
+    currentMessageMoment = moment currentMessage.get 'createdAt'
+
+    if prevMessage
+      prevMessageMoment = moment prevMessage.get 'createdAt'
+
+    markers = []
+
+    switch
+      when not prevMessage
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+      when not currentMessageMoment.isSame prevMessageMoment, 'day'
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+    return markers
+
+
   renderChildren: ->
 
-    lastMessageId = null
     { messages, showItemMenu, channelName } = @props
 
-    messages.toList().map (message, i) ->
+    lastDifferentOwnerId = null
+    prevMessage = null
+
+    children = messages.toList().reduce (children, message, i) =>
 
       itemProps =
         key          : message.get 'id'
@@ -26,11 +50,21 @@ module.exports = class ChatList extends React.Component
         showItemMenu : showItemMenu
         channelName  : channelName
 
-      if lastMessageId and lastMessageId is message.get 'accountId'
-        <SimpleChatListItem {...itemProps} />
+      children = children.concat @getMarkers message, prevMessage, i
+
+      if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
+        children.push \
+          <SimpleChatListItem {...itemProps } />
       else
-        lastMessageId = message.get 'accountId'
-        <ChatListItem {...itemProps} />
+        lastDifferentOwnerId = message.get 'accountId'
+        children.push \
+          <ChatListItem {...itemProps} />
+
+      prevMessage = message
+      return children
+    , []
+
+    return children
 
 
   render: ->
