@@ -59,17 +59,17 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     return no  if @machineBoxesByMachineUId[uid]
 
-    machineBox = new SidebarMachineBox {}, machineAndWorkspaceData
-    @addSubView machineBox
-    @machineBoxes.push machineBox
-    @machineBoxesByMachineUId[uid] = machineBox
+    box = new SidebarMachineBox {}, machineAndWorkspaceData
+    @addSubView box
+    @machineBoxes.push box
+    @machineBoxesByMachineUId[uid] = box
 
-    machineBox.once 'KDObjectWillBeDestroyed', =>
-      @machineBoxes.splice @machineBoxes.indexOf(machineBox), 1
-      delete @machineBoxesByMachineUId[machineBox.machine.uid]
-      @emit 'MachineBoxDestroyed', machineBox
+    box.once 'KDObjectWillBeDestroyed', =>
+      @machineBoxes.splice @machineBoxes.indexOf(box), 1
+      delete @machineBoxesByMachineUId[box.machine.uid]
+      @emit 'MachineBoxDestroyed', box
 
-    machineBox.on 'ListStateChanged', => @emit 'ListStateChanged'
+    box.on 'ListStateChanged', => @emit 'ListStateChanged'
 
 
   removeWorkspaceByChannelId: (channelId) ->
