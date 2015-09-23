@@ -60,13 +60,14 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     return no  if @machineBoxesByMachineUId[uid]
 
     box = new SidebarMachineBox {}, machineAndWorkspaceData
-    @addSubView box
-    @machineBoxes.push box
-    @machineBoxesByMachineUId[uid] = box
 
     box.once 'KDObjectWillBeDestroyed', @lazyBound 'handleMachineBoxDestroy', box
 
     @forwardEvent box, 'ListStateChanged'
+
+    @addSubView box
+    @machineBoxes.push box
+    @machineBoxesByMachineUId[uid] = box
 
 
   handleMachineBoxDestroy: (box) ->
