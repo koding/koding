@@ -14,11 +14,8 @@ func MountCommandFactory() (cli.Command, error) {
 type MountCommand struct{}
 
 func (c *MountCommand) Run(args []string) int {
-	// All of the arguments are required currently, so error if anything
-	// is missing.
-	if len(args) != 3 {
-		fmt.Printf(c.Help())
-		return 1
+	if len(args) < 2 {
+		log.Fatal(c.Help())
 	}
 
 	k, err := CreateKlientClient(NewKlientOptions())
@@ -35,14 +32,17 @@ func (c *MountCommand) Run(args []string) int {
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
 	}{
-		Name:       args[0],
-		RemotePath: args[1],
-		LocalPath:  args[2],
+		Name:      args[0],
+		LocalPath: args[1],
+	}
+
+	if len(args) > 2 {
+		mountRequest.RemotePath = args[2]
 	}
 
 	// Don't care about the response currently, since there is none.
 	if _, err := k.Tell("remote.mountFolder", mountRequest); err != nil {
-		return 1
+		log.Fatal(err)
 	}
 
 	return 0
@@ -50,7 +50,7 @@ func (c *MountCommand) Run(args []string) int {
 
 func (*MountCommand) Help() string {
 	helpText := `
-Usage: %s mount <machine name> <remote folder> <local folder>
+Usage: %s mount <machine name> <local folder> <remote folder>
 
     Mount a remote folder from the given remote machine, to the specified
     local folder.
