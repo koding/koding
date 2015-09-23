@@ -111,8 +111,7 @@ reset = (props) ->
       channelActions.loadParticipants channel.id, channel.participantsPreview
 
       if postId
-        messageActions.ensureMessage(postId).then ({ message }) ->
-          messageActions.changeSelectedMessage message.id
+        messageActions.changeSelectedMessage postId
       else
         messageActions.changeSelectedMessage null
 

@@ -387,7 +387,11 @@ createComment = (messageId, body, payload) ->
 ###
 changeSelectedMessage = (messageId) ->
 
-  dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
+  unless messageId
+    return dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId: null }
+
+  ensureMessage(messageId).then ({ message }) ->
+    dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
 
 
 ###*
