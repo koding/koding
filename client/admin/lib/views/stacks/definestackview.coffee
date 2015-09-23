@@ -121,6 +121,12 @@ module.exports = class DefineStackView extends KDView
         @setFooterVisibility 'show'
         pane.getMainView().emit 'FocusToEditor'
 
+    { ace } = @stackTemplateView.editorView.aceView
+
+    ace.on 'FileContentChanged', =>
+      @setAsDefaultButton.hide()
+      @saveButton.show()
+
 
   setFooterVisibility: (state) ->
     @buttons[state]()
@@ -269,8 +275,10 @@ module.exports = class DefineStackView extends KDView
         @outputView.add "You can now close this window, or set this
                          template as default for your team members."
 
-        @cancelButton.setTitle 'Close'
         @setAsDefaultButton.show()
+        @saveButton.hide()
+
+      @cancelButton.setTitle 'Close'
 
 
   checkAndBootstrapCredentials: (callback) ->
