@@ -66,7 +66,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     box.once 'KDObjectWillBeDestroyed', @lazyBound 'handleMachineBoxDestroy', box
 
-    box.on 'ListStateChanged', => @emit 'ListStateChanged'
+    @forwardEvent box, 'ListStateChanged'
 
 
   handleMachineBoxDestroy: (box) ->
