@@ -45,11 +45,6 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
         {frontApp} = kd.singletons.appManager
         frontApp.toggleSidebar()
 
-    @tabView.tabHandleContainer.tabs.addSubView @logo = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'kd-logo'
-      click    : -> kd.singletons.mainView.toggleSidebar()
-
 
   createFilesPane: ->
 
