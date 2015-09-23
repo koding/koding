@@ -127,6 +127,7 @@ module.exports = class MainView extends KDView
 
   createSidebar: ->
 
+    timer = null
     @setClass 'with-sidebar'
 
     @addSubView @aside = new KDCustomHTMLView
@@ -138,8 +139,9 @@ module.exports = class MainView extends KDView
         testpath : 'main-sidebar'
       mouseenter : =>
         if @isSidebarCollapsed
-          kd.utils.wait 200, => @toggleHoverSidebar()
+          timer = kd.utils.wait 200, => @toggleHoverSidebar()
       mouseleave : =>
+        kd.utils.killWait timer  if timer
         @toggleHoverSidebar()  if @hasClass 'hover'
 
     entryPoint = globals.config.entryPoint
