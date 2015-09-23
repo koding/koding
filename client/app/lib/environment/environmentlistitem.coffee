@@ -78,8 +78,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createExtraViews: ->
 
-    { group, stackRevision, _revisionStatus, machines, title } = @getData()
-
+    { title } = @getData()
 
     @header = new kd.CustomHTMLView
       cssClass : 'stack-info clearfix hidden'
@@ -96,6 +95,15 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @updateNotification = new kd.CustomHTMLView
       cssClass : 'update-notification hidden'
+
+    if isKoding() or title is 'Managed VMs'
+    then @infoIcon = new kd.CustomHTMLView
+    else @createInfoIcon()
+
+
+  createInfoIcon: ->
+
+    { group, stackRevision, _revisionStatus, machines } = @getData()
 
     if _revisionStatus?.status? and _revisionStatus.status.code > 0
       @showUpdateNotification()
@@ -115,8 +123,6 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           from #{stackRevision[..5]} revision. <br/>
           #{revisionMessage}
         "
-
-    @infoIcon.hide()  if isKoding()
 
 
   showUpdateNotification: ->
