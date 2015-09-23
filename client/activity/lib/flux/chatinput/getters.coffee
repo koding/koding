@@ -225,7 +225,7 @@ searchVisibility = (stateId) -> [
 currentValue = [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
-  (values, channelId) -> values.get channelId
+  (values, channelId) -> values.get channelId, ''
 ]
 
 

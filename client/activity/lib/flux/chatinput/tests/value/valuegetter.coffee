@@ -20,10 +20,11 @@ describe 'ChatInputValueGetter', ->
 
   describe '#currentValue', ->
 
-    channelId1  = 'channel1'
-    channelId2  = 'channel2'
-    value1      = '12345'
-    value2      = 'qwerty'
+    channelId1   = 'channel1'
+    channelId2   = 'channel2'
+    value1       = '12345'
+    value2       = 'qwerty'
+    emptyChannel = 'channel3'
     { getters } = ChatInputFlux
 
     it 'gets value depending on the current channel id', ->
@@ -40,4 +41,9 @@ describe 'ChatInputValueGetter', ->
 
       value = @reactor.evaluate getters.currentValue
       expect(value).to.equal value2
+
+      @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : emptyChannel }
+
+      value = @reactor.evaluate getters.currentValue
+      expect(value).to.equal ''
 

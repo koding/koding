@@ -72,7 +72,7 @@ module.exports = class ChatInputWidget extends React.Component
   resetValue: ->
 
     channelId = @props.thread.get 'channelId'
-    ChatInputFlux.actions.value.setValue channelId
+    ChatInputFlux.actions.value.resetValue channelId
 
 
   onChange: (event) ->
@@ -311,7 +311,7 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderUserDropbox() }
       { @renderSearchDropbox() }
       <TextArea
-        value     = { @state.value ? '' }
+        value     = { @state.value }
         onChange  = { @bound 'onChange' }
         onKeyDown = { @bound 'onKeyDown' }
         ref       = 'textInput'
