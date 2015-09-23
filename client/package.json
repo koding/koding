@@ -36,6 +36,7 @@
     "lodash": "3.6.0",
     "machina": "1.0.0-1",
     "marked": "0.3.2",
+    "moment": "2.10.6",
     "ndpane": "0.1.2",
     "node-uuid": "1.4.2",
     "nuclear-js": "1.1.0",
