@@ -876,12 +876,6 @@ Admin main styles
       .kdbutton
         z-index             1
 
-      .prev-button
-        right               110px !important
-
-      .setasdefault-button
-        right               265px !important
-
 
 .AppModal--admin .invitations
 
@@ -1008,7 +1002,7 @@ Admin main styles
   button.solid.compact.nav
     right                   0
     bottom                  0
-    abs()
+    margin-left             10px
 
     &[disabled]
       opacity               .4
@@ -1019,6 +1013,8 @@ Admin main styles
     &.cancel
       right                 initial
       left                  0
+      margin-left           0
+      abs()
 
   form
     .formline
