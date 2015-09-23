@@ -66,7 +66,7 @@ module.exports = class DefineStackView extends KDView
       stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
     }
     @tabView.addPane providersPane     = new KDTabPaneView
-      name : 'Providers'
+      name : 'Credentials'
       view : @providersView
 
     @readmeView                        = new ReadmeView { stackTemplate }
