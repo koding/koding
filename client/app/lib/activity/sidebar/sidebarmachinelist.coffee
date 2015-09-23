@@ -45,6 +45,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
   headerClickHandler: -> new EnvironmentsModal selected: @getOption 'stack'
 
+
   addMachineBoxes: (boxes) ->
 
     data = boxes or @getData()
