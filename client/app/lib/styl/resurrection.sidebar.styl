@@ -56,6 +56,9 @@ sidebarTextShadow()
       display               block
       r-sprite              app logo-full
       cursor                default
+      rel()
+      left                  5px
+      top                   -1px
 
   .more-items
     size              238px 20px
@@ -115,12 +118,9 @@ sidebarTextShadow()
 
   &.collapsed
     &.with-sidebar
-      #main-panel-wrapper
-        // kalc            width, 100% \- 63px
-        // margin-left     63px
-        // shadow         -8px 0 16px #323232
-        margin-left 0
-        width       100%
+      #main-sidebar
+        width               50px
+
 
     #sidebar-toggle:after
       left               7px
@@ -528,7 +528,6 @@ sidebarTextShadow()
         text-shadow         none
         abs()
 
-
     .profile
       ellipsis()
 
@@ -676,10 +675,11 @@ sidebarTextShadow()
       line-height     28px
 
 .account-area
-  bottom            0
-  left              0
-  size              sidebarWidth 45px
+  bottom                    0
+  left                      0
+  size                      258px 45px
   fix()
+  vendor                    transition, width .3s ease
 
   > div
     display         inline-block
@@ -725,12 +725,12 @@ sidebarTextShadow()
       color           #fff
 
   .acc-dropdown-icon
-    right           50px
+    right                   50px
     &.active
-      border-right  1px solid #323232
+      border-right          1px solid #323232
 
   .acc-dropdown-icon .icon
-    r-sprite        app 'account-arrow'
+    r-sprite                app 'account-arrow'
 
   .avatar-area
     bg                color, #262626
@@ -741,8 +741,10 @@ sidebarTextShadow()
     rel()
 
     .avatarview
-      margin-right    14px
+      margin-right          14px
       fl()
+      rel()
+      left                  3px
 
       cite.staff
         hidden()
@@ -976,8 +978,8 @@ h3.sidebar-title
   font-family               Soleil
 
   a.vm
+    color                   sidebarGray
     borderBox()
-    color                   $gray-14
     display                 block
     font-size               $fs-regular
     line-height             20px
