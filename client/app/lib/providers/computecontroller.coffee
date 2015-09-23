@@ -8,6 +8,7 @@ KDNotificationView   = kd.NotificationView
 
 nick                 = require 'app/util/nick'
 isKoding             = require 'app/util/isKoding'
+FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 
@@ -887,3 +888,16 @@ module.exports = class ComputeController extends KDController
 
     kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
 
+
+  showBuildLogs: (machine) ->
+
+    # Path of cloud-init-output log
+    path = '/var/log/cloud-init-output.log'
+    file = FSHelper.createFileInstance { path, machine }
+
+    kd.singletons.appManager.tell 'IDE', 'tailFile', {
+      file
+      description:
+        "Your stack build completed successfully, in the following
+         logs you can find details about your custom stack script."
+    }
