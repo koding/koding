@@ -1,11 +1,12 @@
-React                   = require 'kd-react'
-immutable               = require 'immutable'
-SidebarList             = require 'app/components/sidebarlist'
-SidebarSection          = require 'app/components/sidebarsection'
-Modal                   = require 'app/components/modal'
-SidebarModalList        = require 'activity/components/sidebarmodallist'
-PublicChannelListItem   = require 'activity/components/publicchannellistitem'
-SidebarChannelsListItem = require 'app/components/sidebarchannelslistitem'
+React                    = require 'kd-react'
+immutable                = require 'immutable'
+SidebarList              = require 'app/components/sidebarlist'
+SidebarSection           = require 'app/components/sidebarsection'
+Modal                    = require 'app/components/modal'
+SidebarModalList         = require 'activity/components/sidebarmodallist'
+PublicChannelListItem    = require 'activity/components/publicchannellistitem'
+SidebarChannelsListItem  = require 'app/components/sidebarchannelslistitem'
+CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
 
 module.exports = class SidebarChannelsSection extends React.Component
 
@@ -37,9 +38,9 @@ module.exports = class SidebarChannelsSection extends React.Component
 
   getCreateChannelModalProps: ->
 
-    title              : 'Create a channel'
-    className          : 'CreateChannel-Modal'
-    buttonConfirmTitle : 'Create Channel'
+    title               : 'Create Channel'
+    className           : 'CreateChannel-Modal'
+    buttonConfirmTitle  : 'CREATE'
 
 
   renderFollowedChannelsModal: ->
@@ -69,6 +70,7 @@ module.exports = class SidebarChannelsSection extends React.Component
     <div>
       <SidebarSection
         title="Channels"
+        itemComponent={CreatePublicChannelModal}
         modalProps={@getCreateChannelModalProps()}
         onHeaderClick={@bound 'showFollowedPublicChannelsModal'}
         className="SidebarChannelsSection">
