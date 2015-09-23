@@ -29,7 +29,7 @@ type Entry struct {
 	// RemotePath is full path on user VM.
 	RemotePath string
 
-	// Uid is the group id that'll always be used in spite of what remote returns.
+	// Uid is the user id that'll always be used in spite of what remote returns.
 	Uid uint32
 
 	// Gid is the group id that'll always be used in spite of what remote returns.
