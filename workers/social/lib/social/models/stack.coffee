@@ -93,18 +93,31 @@ module.exports = class JComputeStack extends jraphical.Module
         default          : -> {}
 
       status             :
-        type             : String
-        enum             : ['Wrong type specified!', [
 
-          # States which description ending with '...' means its an ongoing
-          # proccess which you may get progress info about it
-          #
-          'Initial'         # Initial state
-          'Terminating'     # Stack is getting destroyed...
-          'Terminated'      # Stack is destroyed, not exists anymore
-        ]]
+        updatedAt        : Date
+        reason           : String
 
-        default          : -> 'Initial'
+        state            :
+          type           : String
+          default        : -> 'NotInitialized'
+          enum           : ['Wrong type specified!', [
+            # Unknown is a state that needs to be resolved manually
+            'Unknown'
+
+            # NotInitialzed defines a state where the stack does not exists and was
+            # not built . It's waits to be initialized.
+            'NotInitialized'
+
+            # Initialized defines the state where the stack is built and in a functional state
+            'Initialized'
+
+            # Destroying is in progress of destroying the stack.
+            'Destroying'
+
+            # Building is in progress of creating the stack. A successfull building
+            # state results in an Initialized state.
+            'Building'
+          ]]
 
 
   @getStack = (account, _id, callback) ->
