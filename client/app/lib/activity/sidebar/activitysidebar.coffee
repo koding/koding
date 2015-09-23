@@ -615,7 +615,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         stackEnvironment = stack.machines.map (machine) ->
           environmentMap[machine._id]
 
-        @createMachineList 'stack', { title, stack }, stackEnvironment
+        type = switch
+          when title is 'Managed VMs' then 'own'
+          else 'stack'
+
+        options = { title, stack }
+
+        @createMachineList type, options, stackEnvironment
 
       inProgress = no
 
