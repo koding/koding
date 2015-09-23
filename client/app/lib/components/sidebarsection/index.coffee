@@ -3,7 +3,6 @@ Link               = require 'app/components/common/link'
 React              = require 'kd-react'
 classnames         = require 'classnames'
 CreateChannelFlux  = require 'activity/flux/createchannel'
-CreateChannelModal = require 'activity/components/createchannelmodal'
 
 module.exports = class SidebarSection extends React.Component
 
@@ -37,18 +36,19 @@ module.exports = class SidebarSection extends React.Component
 
   getCreateChannelModalProps: ->
 
-    isOpen             : @state.isModalOpen
-    account            : @state.account
-    onAbort            : @bound 'onClose'
-    onClose            : @bound 'onClose'
-    title              : @props.modalProps.title
-    className          : @props.modalProps.className
-    buttonConfirmTitle : @props.modalProps.buttonConfirmTitle
+    isOpen              : @state.isModalOpen
+    account             : @state.account
+    onAbort             : @bound 'onClose'
+    onClose             : @bound 'onClose'
+    title               : @props.modalProps.title
+    className           : @props.modalProps.className
+    buttonConfirmTitle  : @props.modalProps.buttonConfirmTitle
 
 
   renderAddChannelModal: ->
 
-    <CreateChannelModal {...@getCreateChannelModalProps()} />
+    {itemComponent: Component} = @props
+    <Component {...@getCreateChannelModalProps()} />
 
 
   renderHeader: ->
