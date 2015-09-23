@@ -617,7 +617,24 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
         @createMachineList 'stack', { title, stack }, stackEnvironment
 
+        @bindStackEvents stack
+
       inProgress = no
+
+
+  bindStackEvents: (stack) ->
+
+    stack.on 'update', @lazyBound 'handleStackUpdate', stack
+
+
+  handleStackUpdate: (stack) ->
+
+    stack.machines
+      .map (machine) => @getMachineBoxByMachineUId machine.uid
+      .forEach (box) ->
+        return  unless box
+        visibility = stack.config.sidebar?[box.machine.uid]?.visibility
+        box?.setVisibility visibility ? on
 
 
   redrawMachineList: ->
