@@ -1,7 +1,8 @@
-actions         = require '../actions/actiontypes'
-immutable       = require 'immutable'
-toImmutable     = require 'app/util/toImmutable'
-KodingFluxStore = require 'app/flux/store'
+actions              = require '../actions/actiontypes'
+immutable            = require 'immutable'
+toImmutable          = require 'app/util/toImmutable'
+KodingFluxStore      = require 'app/flux/store'
+createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 module.exports = class FollowedPrivateChannelIdsStore extends KodingFluxStore
 
@@ -13,6 +14,7 @@ module.exports = class FollowedPrivateChannelIdsStore extends KodingFluxStore
 
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on actions.DELETE_PRIVATE_CHANNEL_SUCCESS, @handleDeletePrivateChannelSuccess
+    @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 
   ###*
    * Adds given channel to privateMessageIds container.

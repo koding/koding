@@ -7,13 +7,13 @@ immutable                   = require 'immutable'
 classnames                  = require 'classnames'
 AppFlux                     = require 'app/flux'
 ActivityFlux                = require 'activity/flux'
-KeyboardKeys                = require 'app/util/keyboardKeys'
 ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
+DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
-  { TAB, ESC, ENTER, UP_ARROW, DOWN_ARROW } = KeyboardKeys
+  @include [DropboxInputMixin]
 
   PREVIEW_COUNT     = 0
   MAX_PREVIEW_COUNT = 4
@@ -40,9 +40,6 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       selectedIndex      : getters.channelParticipantsSelectedIndex
       dropdownVisibility : getters.channelParticipantsDropdownVisibility
     }
-
-
-  getParticipantsDropdown: -> @refs.channelParticipantsDropdown
 
 
   componentDidMount: ->
@@ -207,54 +204,6 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     channel.setChannelParticipantsDropdownVisibility yes
 
 
-  onEnter: (event) ->
-
-    return  if event.shiftKey
-
-    kd.utils.stopDOMEvent event
-
-    dropdown = @getParticipantsDropdown()
-
-    if dropdown.isActive()
-
-      dropdown.confirmSelectedItem()
-
-
-  onEsc: (event) ->
-
-    @getParticipantsDropdown().close()
-
-
-  onNextPosition: (event, keyInfo) ->
-
-    dropdown = @getParticipantsDropdown()
-
-    if dropdown.isActive()
-
-      stopEvent = dropdown.moveToNextPosition keyInfo
-      kd.utils.stopDOMEvent event  if stopEvent
-
-
-  onPrevPosition: (event, keyInfo) ->
-
-    dropdown = @getParticipantsDropdown()
-
-    if dropdown.isActive()
-
-      stopEvent = dropdown.moveToPrevPosition keyInfo
-      kd.utils.stopDOMEvent event  if stopEvent
-
-
-  onKeyDown: (event) ->
-
-    switch event.which
-      when ENTER       then @onEnter event
-      when ESC         then @onEsc event
-      when TAB         then @onNextPosition event, { isTab : yes }
-      when DOWN_ARROW  then @onNextPosition event, { isDownArrow : yes }
-      when UP_ARROW    then @onPrevPosition event, { isUpArrow : yes }
-
-
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
@@ -288,7 +237,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
   renderAddNewChannelParticipantsDropdown: ->
 
     <ChannelParticipantsDropdown
-      ref             = 'channelParticipantsDropdown'
+      ref             = 'dropdown'
       query           = { @state.query }
       value           = { @state.value }
       visible         = { @state.dropdownVisibility }

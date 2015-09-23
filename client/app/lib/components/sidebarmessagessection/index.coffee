@@ -1,11 +1,12 @@
-React                   = require 'kd-react'
-immutable               = require 'immutable'
-SidebarList             = require 'app/components/sidebarlist'
-SidebarSection          = require 'app/components/sidebarsection'
-SidebarMessagesListItem = require 'app/components/sidebarmessageslistitem'
-Modal                   = require 'app/components/modal'
-SidebarModalList        = require 'activity/components/sidebarmodallist'
-PrivateChannelListItem  = require 'activity/components/privatechannellistitem'
+React                     = require 'kd-react'
+Modal                     = require 'app/components/modal'
+immutable                 = require 'immutable'
+SidebarList               = require 'app/components/sidebarlist'
+SidebarSection            = require 'app/components/sidebarsection'
+SidebarMessagesListItem   = require 'app/components/sidebarmessageslistitem'
+SidebarModalList          = require 'activity/components/sidebarmodallist'
+PrivateChannelListItem    = require 'activity/components/privatechannellistitem'
+CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
 
 module.exports = class SidebarMessagesSection extends React.Component
 
@@ -33,6 +34,13 @@ module.exports = class SidebarMessagesSection extends React.Component
   onItemClick: (event) ->
 
     @setState isModalOpen: no
+
+
+  getCreateChannelModalProps: ->
+
+    title               : 'Create a Private Group'
+    className           : 'CreateChannel-Modal'
+    buttonConfirmTitle  : 'CREATE'
 
 
   renderPrivateChannelsModal: ->
@@ -65,6 +73,8 @@ module.exports = class SidebarMessagesSection extends React.Component
     <div>
       <SidebarSection
         title="Messages"
+        itemComponent={CreatePrivateChannelModal}
+        modalProps={@getCreateChannelModalProps()}
         onHeaderClick={@bound 'showPrivateChannelsModal'}
         className="SidebarMessagesSection">
         <SidebarList

@@ -1,14 +1,12 @@
-kd                              = require 'kd'
-React                           = require 'kd-react'
-immutable                       = require 'immutable'
-classnames                      = require 'classnames'
-ActivityFlux                    = require 'activity/flux'
-Dropbox                         = require 'activity/components/dropbox'
-DropboxWrapperMixin             = require 'activity/components/dropbox/dropboxwrappermixin'
-ChannelParticipantsDropdownItem = require 'activity/components/channelparticipantsdropdownitem'
+kd                                    = require 'kd'
+React                                 = require 'kd-react'
+immutable                             = require 'immutable'
+Dropbox                               = require 'activity/components/dropbox'
+DropboxWrapperMixin                   = require 'activity/components/dropbox/dropboxwrappermixin'
+CreateChannelFlux                     = require 'activity/flux/createchannel'
+CreateChannelParticipantsDropdownItem = require './createchannelparticipantsdropdownitem'
 
-
-module.exports = class ChannelParticipantsDropdown extends React.Component
+module.exports = class CreateChannelParticipantsDropdown extends React.Component
 
   @include [DropboxWrapperMixin]
 
@@ -22,12 +20,12 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
 
     super
 
-    { user, channel } = ActivityFlux.actions
+    { user } = CreateChannelFlux.actions
 
-    @moveToPrevAction     = user.moveToPrevChannelParticipantIndex
-    @moveToNextAction     = user.moveToNextChannelParticipantIndex
-    @closeAction          = channel.setChannelParticipantsDropdownVisibility
-    @onItemSelectedAction = user.setChannelParticipantsSelectedIndex
+    @moveToPrevAction     = user.moveToPrevIndex
+    @moveToNextAction     = user.moveToNextIndex
+    @closeAction          = user.setDropdownVisibility
+    @onItemSelectedAction = user.setSelectedIndex
 
   # this method overrides DropboxWrapperMixin-componentDidUpdate handler.
   # In this component, we use dropdown keyword. In DropboxWrapperMixin/componentDidUpdate handler
@@ -46,7 +44,7 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     items.map (item, index) =>
       isSelected = index is selectedIndex
 
-      <ChannelParticipantsDropdownItem
+      <CreateChannelParticipantsDropdownItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
@@ -60,7 +58,7 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
   render: ->
 
     <Dropbox
-      className      = "ChannelParticipantsDropdown"
+      className      = "ChannelParticipantsDropdown CreateChannel-dropbox"
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       ref            = 'dropbox'
