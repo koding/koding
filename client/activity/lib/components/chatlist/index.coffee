@@ -5,6 +5,7 @@ immutable          = require 'immutable'
 ChatListItem       = require 'activity/components/chatlistitem'
 SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
 DateMarker         = require 'activity/components/datemarker'
+NewMessageMarker   = require 'activity/components/newmessagemarker'
 
 
 module.exports = class ChatList extends React.Component
@@ -14,11 +15,15 @@ module.exports = class ChatList extends React.Component
     showItemMenu : yes
     channelName  : ''
     isMessagesLoading: no
+    unreadCount: 0
 
 
   getMarkers: (currentMessage, prevMessage, index) ->
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
+
+    { messages, unreadCount } = @props
+    newMessageIndex = messages.size - unreadCount
 
     if prevMessage
       prevMessageMoment = moment prevMessage.get 'createdAt'
@@ -31,6 +36,9 @@ module.exports = class ChatList extends React.Component
 
       when not currentMessageMoment.isSame prevMessageMoment, 'day'
         markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+    if newMessageIndex is index
+      markers.push <NewMessageMarker />
 
     return markers
 
