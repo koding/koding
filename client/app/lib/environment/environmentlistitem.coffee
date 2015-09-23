@@ -44,7 +44,9 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @addVMButton      = new kd.CustomHTMLView cssClass: 'hidden'
     @addManagedButton = new kd.CustomHTMLView cssClass: 'hidden'
 
-    unless isKoding()
+    { title } = @getData()
+
+    unless isKoding() or title is 'Managed VMs'
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
