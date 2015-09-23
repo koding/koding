@@ -35,8 +35,8 @@ func (c *ListCommand) Run(_ []string) int {
 	}
 
 	type kiteInfo struct {
-		// The Ip of the running machine
 		Ip       string
+		VmName   string
 		Hostname string
 	}
 
@@ -44,9 +44,10 @@ func (c *ListCommand) Run(_ []string) int {
 	res.Unmarshal(&infos)
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tMACHINE IP\tHOSTNAME\n")
+	fmt.Fprintf(w, "\tMACHINE IP\tHOSTNAME\tNAME\n")
 	for i, info := range infos {
-		fmt.Fprintf(w, "  %d.\t%s\t%s\n", i+1, info.Ip, info.Hostname)
+		fmt.Fprintf(w, "  %d.\t%s\t%s\n",
+			i+1, info.Ip, info.Hostname, info.VmName)
 	}
 	w.Flush()
 

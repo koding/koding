@@ -32,11 +32,11 @@ func (c *MountCommand) Run(args []string) int {
 	}
 
 	mountRequest := struct {
-		Ip         string `json:"ip"`
+		Name       string `json:"name"`
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
 	}{
-		Ip:         args[0],
+		Name:       args[0],
 		RemotePath: args[1],
 		LocalPath:  args[2],
 	}
@@ -51,7 +51,7 @@ func (c *MountCommand) Run(args []string) int {
 
 func (*MountCommand) Help() string {
 	helpText := `
-Usage: %s mount <machine ip> <remote folder> <local folder>
+Usage: %s mount <machine name> <remote folder> <local folder>
 
     Mount a remote folder from the given remote machine, to the specified
     local folder.
