@@ -98,6 +98,37 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	return c.Pubnub.NotifyUser(nm)
 }
 
+// NotifyGroup sends group broadcast notifications to related group channel
+func (c *Controller) NotifyGroup(bm *models.BroadcastMessage) error {
+	if bm.GroupName == "" {
+		c.logger.Error("group name is not set")
+		return nil
+	}
+
+	groupChannel, err := socialapimodels.Cache.Channel.ByGroupName(bm.GroupName)
+	if err != nil {
+		return err
+	}
+
+	// map socialapi channel to dispatcher channel
+	cc := &models.Channel{}
+	cc.Id = groupChannel.Id
+	cc.Name = groupChannel.Name
+	cc.Type = groupChannel.TypeConstant
+	cc.Group = groupChannel.GroupName
+	cc.Token = groupChannel.Token
+
+	// now generate push message
+	pm := &models.PushMessage{}
+	pm.Channel = cc
+	pm.Id = 0
+	pm.EventName = bm.EventName
+	pm.Body = bm.Body
+	pm.EventId = createEventId()
+
+	return c.Pubnub.UpdateChannel(pm)
+}
+
 func (c *Controller) RevokeChannelAccess(rca *models.RevokeChannelAccess) error {
 	channel := models.Channel{
 		Token: rca.ChannelToken,
