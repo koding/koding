@@ -789,14 +789,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   getMachineBoxByMachineUId: (uid) ->
 
-    box = null
-
     for machineList in @machineLists
       for machineBox in machineList.machineBoxes
         if machineBox.machine.uid is uid
-          box = machineBox
-
-    return box
+          return machineBox
 
 
   machineBuilt: ->
