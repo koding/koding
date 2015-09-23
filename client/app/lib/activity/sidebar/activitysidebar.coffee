@@ -601,9 +601,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     { computeController } = kd.singletons
 
-    computeController.ready =>
+    computeController.fetchStacks (err, stacks) =>
 
-      computeController.stacks.forEach (stack) =>
+      return showError err  if err
+
+      stacks.forEach (stack) =>
 
         { title } = stack
 
