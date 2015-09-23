@@ -22,16 +22,13 @@ func (c *ListCommand) Run(_ []string) int {
 		log.Fatal(err)
 	}
 
-	err = k.Dial()
-	if err != nil {
+	if err = k.Dial(); err != nil {
 		log.Fatal(err)
-		return 1
 	}
 
 	res, err := k.Tell("remote.list")
 	if err != nil {
 		log.Fatal(err)
-		return 1
 	}
 
 	type kiteInfo struct {
@@ -44,10 +41,10 @@ func (c *ListCommand) Run(_ []string) int {
 	res.Unmarshal(&infos)
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tMACHINE IP\tHOSTNAME\tNAME\n")
+	fmt.Fprintf(w, "\tNAME\tMACHINE IP\tHOSTNAME\n")
 	for i, info := range infos {
-		fmt.Fprintf(w, "  %d.\t%s\t%s\n",
-			i+1, info.Ip, info.Hostname, info.VmName)
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\n",
+			i+1, info.VmName, info.Ip, info.Hostname)
 	}
 	w.Flush()
 

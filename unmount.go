@@ -31,8 +31,8 @@ func (c *UnmountCommand) Run(args []string) int {
 	}
 
 	mountRequest := struct {
-		LocalPath string `json:"localPath"`
-	}{LocalPath: args[0]}
+		Name string `json:"name"`
+	}{Name: args[0]}
 
 	// Don't care about the response currently, since there is none.
 	if _, err := k.Tell("remote.unmountFolder", mountRequest); err != nil {

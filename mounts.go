@@ -46,13 +46,13 @@ func (c *MountsCommand) Run(_ []string) int {
 	res.Unmarshal(&mounts)
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tLOCAL PATH\tREMOTE PATH\tMOUNT NAME\tMACHINE IP\n")
+	fmt.Fprintf(w, "\tNAME\tLOCAL PATH\tREMOTE PATH\tMACHINE IP\n")
 	for i, mount := range mounts {
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\n",
 			i+1,
+			mount.MountName,
 			mount.LocalPath,
 			mount.RemotePath,
-			mount.MountName,
 			mount.Ip,
 		)
 	}

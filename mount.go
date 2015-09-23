@@ -28,7 +28,6 @@ func (c *MountCommand) Run(args []string) int {
 
 	if err := k.Dial(); err != nil {
 		log.Fatal(err)
-		return 1
 	}
 
 	mountRequest := struct {
