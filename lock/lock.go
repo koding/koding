@@ -53,11 +53,6 @@ func getLockFileName(path string) (string, error) {
 		return "", err
 	}
 
-	path, err = filepath.Abs(path)
-	if err != nil {
-		return "", err
-	}
-
 	mountName := strings.Replace(path, "/", "_", -1)
 	lockFile := filepath.Join(configFolder, mountName+".lock")
 

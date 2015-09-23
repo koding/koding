@@ -717,5 +717,10 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 	}
 
 	c := &config.FuseConfig{LocalPath: mountDir}
-	return NewKodingNetworkFS(t, c)
+	k, err := NewKodingNetworkFS(t, c)
+	if err != nil {
+		panic(err)
+	}
+
+	return k
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/koding/fuseklient/auth"
@@ -18,6 +19,11 @@ import (
 func main() {
 	conf := new(config.FuseConfig)
 	multiconfig.New().MustLoad(conf)
+
+	fullLocalPath, err := filepath.Abs(conf.LocalPath)
+	if err == nil {
+		conf.LocalPath = fullLocalPath
+	}
 
 	// TODO: Remove when bundling fuseklient with klient.
 	if err := auth.SaveKiteKey(conf.SshUser, conf.IP); err != nil {
