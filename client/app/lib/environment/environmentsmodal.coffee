@@ -12,7 +12,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
-    options.width    = 742
+    options.width    = if isKoding() then 742 else 772
     options.overlay  = yes
 
     options.title = "Your #{if isKoding() then 'Machines' else 'Stacks'}"

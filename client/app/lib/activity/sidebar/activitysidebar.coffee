@@ -617,9 +617,32 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         stackEnvironment = stack.machines.map (machine) ->
           environmentMap[machine._id]
 
-        @createMachineList 'stack', { title, stack }, stackEnvironment
+        type = switch
+          when title is 'Managed VMs' then 'own'
+          else 'stack'
+
+        options = { title, stack }
+
+        @createMachineList type, options, stackEnvironment
+
+        @bindStackEvents stack
 
       inProgress = no
+
+
+  bindStackEvents: (stack) ->
+
+    stack.on 'update', @lazyBound 'handleStackUpdate', stack
+
+
+  handleStackUpdate: (stack) ->
+
+    stack.machines
+      .map (machine) => @getMachineBoxByMachineUId machine.uid
+      .forEach (box) ->
+        return  unless box
+        visibility = stack.config.sidebar?[box.machine.uid]?.visibility
+        box?.setVisibility visibility ? on
 
 
   redrawMachineList: ->
@@ -791,14 +814,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   getMachineBoxByMachineUId: (uid) ->
 
-    box = null
-
     for machineList in @machineLists
       for machineBox in machineList.machineBoxes
         if machineBox.machine.uid is uid
-          box = machineBox
-
-    return box
+          return machineBox
 
 
   machineBuilt: ->

@@ -56,13 +56,12 @@
   input
     rel()
     borderBox()
-    outline               none
-    rounded               4px
-    height                32px
-    width                 190px
-    padding               0 10px
-    margin-bottom         10px
-    border                2px solid $gray-16
+    outline                 none
+    height                  32px
+    width                   190px
+    padding                 0 10px
+    margin-bottom           10px
+    border                  1px solid $gray-16
 
   &.slide-down
     margin-top            10px
@@ -125,4 +124,12 @@
       a
         color             $white
 
+@media only screen and (max-width : 950px)
+  .ChannelParticipantAvatars-singleBox
+    display                 block
+    margin                  0 0 5px
 
+  .ChannelParticipantInput.slide-down
+    rel()
+    width                   190px
+    right                   160px
