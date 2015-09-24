@@ -579,6 +579,26 @@ func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  privatechannel.Init,
+			Name:     "channel-init-with-participants",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/initwithparticipants",
+			Securer:  models.PrivateMessageSecurer,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  privatechannel.Send,
+			Name:     "channel-send-with-participants",
+			Type:     handler.PostRequest,
+			Endpoint: "/channel/sendwithparticipants",
+			Securer:  models.PrivateMessageSecurer,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  privatechannel.Init,
 			Name:     "privatechannel-init",
 			Type:     handler.PostRequest,
 			Endpoint: "/privatechannel/init",

@@ -460,12 +460,12 @@ func addJoinActivity(channelId int64, participant *models.ChannelParticipant, ad
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	pmr := &models.ChannelRequest{AccountId: participant.AccountId}
 	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_INVITE)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_INVITE)
 		addedBy = 0
 	} else {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_JOIN)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_JOIN)
 	}
 
 	return pmr.AddJoinActivity(c, addedBy)
@@ -481,11 +481,11 @@ func addLeaveActivity(channelId, accountId int64, participant *models.ChannelPar
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	pmr := &models.ChannelRequest{AccountId: participant.AccountId}
 	if accountId == participant.AccountId {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_LEAVE)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_LEAVE)
 	} else {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_KICK)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_KICK)
 	}
 
 	return pmr.AddLeaveActivity(c)
