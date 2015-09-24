@@ -39,8 +39,9 @@ module.exports = class ChatPane extends React.Component
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
         messages={@props.messages}
         showItemMenu={@props.showItemMenu}
-        channelName={@props.thread.getIn ['channel', 'name']}
         channelId={@props.thread.getIn ['channel', 'id']}
+        channelName={@props.thread.getIn ['channel', 'name']}
+        unreadCount={@props.thread.getIn ['channel', 'unreadCount']}
       />
     </Scroller>
 
