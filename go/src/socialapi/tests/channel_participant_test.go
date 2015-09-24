@@ -43,7 +43,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
 				tests.ResultedWithNoErrorCheck(ses, err)
 
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 
 				pmr.AccountId = ownerAccount.Id
 
