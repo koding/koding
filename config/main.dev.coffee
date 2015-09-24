@@ -106,7 +106,7 @@ Configuration = (options={}) ->
   algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                   }
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , indexSuffix:        algolia.indexSuffix                     , apiSecretKey:       '682e02a34e2a65dc774f5ec355ceca33'                                                  , apiSearchOnlyKey: "8dc0b0dc39282effe9305981d427fec7" }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapp201506"           , password:        "socialapp201506"                    , dbname:   "social"                  }
-  kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapp201506"          , password:        "kontrolapp201506"                   , dbname:   "social"                  }
+  kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapp201506"          , password:        "kontrolapp201506"                   , dbname:   "social"                    , connecttimeout: 20 }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                               , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
@@ -344,7 +344,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password} -postgres-connecttimeout #{kontrolPostgres.connecttimeout}"
       nginx             :
         websocket       : yes
         locations       : [
