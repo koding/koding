@@ -105,7 +105,7 @@ reset = (props) ->
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
   if channelName
-    channelActions.loadChannelByName(channelName).then ({ channel }) ->
+    channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadPopularMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
