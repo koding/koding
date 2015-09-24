@@ -44,13 +44,13 @@ func (c *UnmountCommand) Run(args []string) int {
 
 func (*UnmountCommand) Help() string {
 	helpText := `
-Usage: %s unmount <local folder>
+Usage: %s unmount <machine name>
 
-    Unmount specified local folder which was previously mounted.
+    Unmount a machine which was previously mounted.
 `
 	return fmt.Sprintf(helpText, Name)
 }
 
 func (*UnmountCommand) Synopsis() string {
-	return fmt.Sprintf("Unmount specified local folder.")
+	return fmt.Sprintf("Unmount specified machine.")
 }

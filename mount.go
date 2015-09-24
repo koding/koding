@@ -50,10 +50,10 @@ func (c *MountCommand) Run(args []string) int {
 
 func (*MountCommand) Help() string {
 	helpText := `
-Usage: %s mount <machine name> <local folder> <remote folder>
+Usage: %s mount <machine name> </fullpath/to/local/folder> </fullpath/to/remote/folder>
 
     Mount a remote folder from the given remote machine, to the specified
-    local folder.
+    local folder. Please use full paths.
 `
 	return fmt.Sprintf(helpText, Name)
 }
