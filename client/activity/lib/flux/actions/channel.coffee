@@ -1,7 +1,9 @@
+_ = require 'lodash'
 kd                      = require 'kd'
 whoami                  = require 'app/util/whoami'
 actionTypes             = require './actiontypes'
 fetchChatChannels       = require 'activity/util/fetchChatChannels'
+getChannelTypeByName    = require 'activity/util/getChannelTypeByName'
 isKoding                = require 'app/util/isKoding'
 getGroup                = require 'app/util/getGroup'
 MessageActions          = require './message'
@@ -62,6 +64,67 @@ loadChannelById = (id) ->
 
     realtimeActionCreators.bindChannelEvents channel
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+
+###*
+ * Helper function to convert 'private' and 'public' types to internally
+ * understandable type names.
+ *
+ * @param {string} type - either 'public' or 'private'
+ * @param {string} id
+ * @param {Array<String,
+###
+sanitizeTypeAndId = (type, id) ->
+
+  { socialApiChannelId, socialApiAnnouncementChannelId } = getGroup()
+  { getPrefetchedData } = kd.singletons.socialapi
+
+  switch type
+    when 'public'
+      switch getChannelTypeByName id
+        when 'group' then ['group', socialApiChannelId]
+        when 'announcement' then ['announcement', socialApiAnnouncementChannelId]
+        else ['topic', id]
+    when 'private'
+      switch id
+        when getPrefetchedData('bot').id then ['bot', id]
+        else ['privatemessage', id]
+
+
+###*
+ * Generic loadChannel action. It reduces the type confusion and handles
+ * internal type conversion itself and loads given channel.
+ *
+ * It works for 2 different types:
+ *  - public: use this type to load a public channel (group, announcement, topic)
+ *  - private: use this type to load a private channel (privatemessage, bot)
+ *
+ * @param {string} type - either 'public' or 'private'
+ * @param {string} id - 'channel name' for public channels,
+ *   'channel id' for private channels.
+ * @return {Promise}
+###
+loadChannel = (type, id) ->
+
+  { LOAD_CHANNEL_BEGIN
+    LOAD_CHANNEL_SUCCESS
+    LOAD_CHANNEL_FAIL } = actionTypes
+
+  [type, id] = sanitizeTypeAndId type, id
+
+  dispatch LOAD_CHANNEL_BEGIN, { type, id }
+
+  new Promise (resolve, reject) -> kd.singletons.mainController.ready ->
+    kd.singletons.socialapi.cacheable type, id, (err, channel) ->
+      if err
+        dispatch LOAD_CHANNEL_FAIL, { type, id }
+        reject err
+        return
+
+      realtimeActionCreators.bindChannelEvents channel
+      dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+      MessageActions.loadMessages channel.id
+      resolve { channel }
 
 
 ###*
@@ -321,6 +384,7 @@ module.exports = {
   addParticipants
   loadChannelByName
   loadChannelById
+  loadChannel
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
   loadParticipants
