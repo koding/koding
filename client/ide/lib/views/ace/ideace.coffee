@@ -9,3 +9,11 @@ module.exports = class IDEAce extends Ace
     return  if kd.singletons.appManager.frontApp.isChatInputFocused?()
 
     super
+
+
+  setHeight: (height) ->
+
+    if @descriptionView?.getHeight
+      height -= @descriptionView.getHeight()
+
+    super height

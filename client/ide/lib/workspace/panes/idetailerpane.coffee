@@ -22,16 +22,13 @@ module.exports = class IDETailerPane extends IDEPane
 
   handleFileUpdate: (newLine) ->
 
-    content = @getContent()
-    line = (content.split '\n').length
-
-    @setCursor row: line, column: 0
+    @scrollToBottom()
     @getEditor().insert "\n#{newLine}"
 
 
   createEditor: ->
 
-    { file } = @getOptions()
+    { file, description, descriptionView } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -47,13 +44,35 @@ module.exports = class IDETailerPane extends IDEPane
     { ace } = @aceView
 
     ace.ready =>
-      ace.setReadOnly yes
+
+      ace.setReadOnly      yes
+      ace.setScrollPastEnd no
+
+      { descriptionView, description } = @getOptions()
+      file = @getData()
+
+      ace.descriptionView = descriptionView ? new kd.View
+        partial : description ? "
+          This is a file watcher, which allows you to watch the additions
+          on <strong>#{@file.getPath()}</strong>. It is a read-only view,
+          that means you can't change the content of this file here. If you
+          want to edit the contents please open it in edit-mode.
+        "
+        click : =>
+          ace.descriptionView.destroy()
+          @resize()
+
+      ace.descriptionView.setClass 'description-view'
+      ace.prepend ace.descriptionView
+
       @emit 'EditorIsReady'
 
       kite = @file.machine.getBaseKite()
       kite.tail
         path  : @file.getPath()
         watch : @bound 'handleFileUpdate'
+
+      @resize()
 
 
   getAce: ->
@@ -116,3 +135,22 @@ module.exports = class IDETailerPane extends IDEPane
       hash     : @hash
 
     return data
+
+
+  scrollToBottom: ->
+
+    content = @getContent()
+    line    = (content.split '\n').length
+
+    @setCursor row: line, column: 0
+
+
+  resize: ->
+
+    height = @getHeight()
+    ace    = @getAce()
+
+    ace.setHeight height
+    ace.editor.resize()
+
+    @scrollToBottom()

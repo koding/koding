@@ -45,8 +45,8 @@ module.exports = class IDEFinderPane extends IDEPane
         mgr.tell 'IDE', 'openFile', { file, contents }
         kd.getSingleton('windowController').setKeyView null
 
-    fc.on 'FileNeedsToBeTailed', (file) ->
-      mgr.tell 'IDE', 'tailFile', { file }
+    fc.on 'FileNeedsToBeTailed', (options) ->
+      mgr.tell 'IDE', 'tailFile', options
       kd.getSingleton('windowController').setKeyView null
 
     tc.on 'TerminalRequested', (machine) ->
