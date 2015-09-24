@@ -578,19 +578,27 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         cssClass: 'machines-wrapper'
 
     if isKoding()
-    then @createDefaultMachineList expandedBoxUIds
-    else @createStackMachineList expandedBoxUIds
+      @createDefaultMachineList expandedBoxUIds
+      @createSharedMachineList()
+    else
+      @createStackMachineList expandedBoxUIds
 
 
   createDefaultMachineList: (expandedBoxUIds) ->
+
     @createMachineList 'own'
-    @createMachineList 'shared'
 
     if environmentDataProvider.hasData()
       @addMachines_ environmentDataProvider.get(), expandedBoxUIds
     else
       environmentDataProvider.fetch (data) =>
         @addMachines_ data, expandedBoxUIds
+
+
+  createSharedMachineList: ->
+
+    machines = environmentDataProvider.getSharedMachines()
+    @createMachineList 'shared', {}, machines
 
 
   createStackMachineList: do (inProgress = no) -> (expandedBoxUIds) ->
@@ -624,7 +632,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         options = { title, stack }
 
         @createMachineList type, options, stackEnvironment
-
+        @createSharedMachineList()
         @bindStackEvents stack
 
       inProgress = no
@@ -669,11 +677,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   addMachines_: (data, expandedBoxUIds = {}) ->
 
-    { shared, collaboration } = data
-    sharedData = shared.concat collaboration
-
-    @addBoxes 'own'    , data.own
-    @addBoxes 'shared' , sharedData
+    @addBoxes 'own', data.own
 
     if Object.keys(expandedBoxUIds).length is 0
       expandedBoxUIds = @localStorageController.getValue('SidebarState') or {}

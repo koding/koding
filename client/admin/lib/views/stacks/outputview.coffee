@@ -39,7 +39,7 @@ module.exports = class OutputView extends kd.ScrollView
 
   stringify = (content) ->
 
-    for item,i in content
+    for item, i in content
       content[i] = if typeof item is 'object' \
                    then objectToString item else item
 
@@ -52,6 +52,26 @@ module.exports = class OutputView extends kd.ScrollView
     content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
     @code.setPartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
+
+    return this
+
+
+  addAndWarn: (content) ->
+
+    @add content
+
+    modal = new kd.ModalView
+      title          : ''
+      content        : content
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+        overlayClick : yes
+      buttons        :
+        close        :
+          title      : 'Close'
+          cssClass   : 'solid medium gray'
+          callback   : -> modal.destroy()
 
     return this
 

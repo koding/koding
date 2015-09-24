@@ -1,80 +1,78 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-ChatListItem          = require 'activity/components/chatlistitem'
-SimpleChatListItem    = require 'activity/components/chatlistitem/simplechatlistitem'
+kd                 = require 'kd'
+React              = require 'kd-react'
+moment             = require 'moment'
+immutable          = require 'immutable'
+ChatListItem       = require 'activity/components/chatlistitem'
+SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
+DateMarker         = require 'activity/components/datemarker'
+NewMessageMarker   = require 'activity/components/newmessagemarker'
+
 
 module.exports = class ChatList extends React.Component
 
   @defaultProps =
     messages     : immutable.List()
     showItemMenu : yes
-    firstPost    : null
     channelName  : ''
     isMessagesLoading: no
+    unreadCount: 0
 
 
-  calculateRemainingMessageCount: ->
+  getMarkers: (currentMessage, prevMessage, index) ->
 
-    { firstPost } = @props
-    return no  unless firstPost
+    currentMessageMoment = moment currentMessage.get 'createdAt'
 
-    repliesCount = firstPost.get 'repliesCount'
-    messageCount = @props.messages.size - 1
-    count = repliesCount - messageCount
-    count =  if count > 0 then count else 0
+    { messages, unreadCount } = @props
+    newMessageIndex = messages.size - unreadCount
 
-    return count
+    if prevMessage
+      prevMessageMoment = moment prevMessage.get 'createdAt'
 
+    markers = []
 
-  getFirstMessageId: ->
+    switch
+      when not prevMessage
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
 
-    { firstPost } = @props
+      when not currentMessageMoment.isSame prevMessageMoment, 'day'
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
 
-    if firstPost then firstPost.get '_id' else no
+    if newMessageIndex is index
+      markers.push <NewMessageMarker />
 
-
-  renderFirstMessageDate: (count) ->
-
-    if @props.isMessagesLoading
-      <div className='ChatItem-moreCount'>loading...</div>
-    else if count
-      <div className='ChatItem-moreCount'>{count} more</div>
+    return markers
 
 
   renderChildren: ->
 
-    lastMessageId = null
-    { messages, showItemMenu } = @props
+    { messages, showItemMenu, channelName } = @props
 
-    if @props.firstPost
+    lastDifferentOwnerId = null
+    prevMessage = null
 
-      firstPostId = @props.firstPost.get '_id'
-      messages = messages.set firstPostId, @props.firstPost
-
-    messageItems = messages.map (message, i) =>
+    children = messages.toList().reduce (children, message, i) =>
 
       itemProps =
         key          : message.get 'id'
         message      : message
         showItemMenu : showItemMenu
-        channelName  : @props.channelName
+        channelName  : channelName
 
-      count          = @calculateRemainingMessageCount()
-      firstMessageId = @getFirstMessageId()
+      children = children.concat @getMarkers message, prevMessage, i
 
-      if lastMessageId and lastMessageId is message.get 'accountId'
-        <SimpleChatListItem {...itemProps} />
-      else if firstMessageId is message.get('_id') and count
-        <div className='ChatPane-firstMessage'>
-          <ChatListItem {...itemProps} />
-          {@renderFirstMessageDate(count)}
-        </div>
+      if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
+        children.push \
+          <SimpleChatListItem {...itemProps } />
       else
-        lastMessageId = message.get 'accountId'
-        <ChatListItem {...itemProps} />
+        lastDifferentOwnerId = message.get 'accountId'
+        children.push \
+          <ChatListItem {...itemProps} />
 
-    return messageItems.toList()
+      prevMessage = message
+      return children
+    , []
+
+    return children
 
 
   render: ->

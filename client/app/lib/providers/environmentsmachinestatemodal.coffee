@@ -168,10 +168,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @createStatusOutput event
 
 
-  switchToIDEIfNeeded: (status = @state) ->
+  switchToIDEIfNeeded: (status = @state, initial = no) ->
 
     return no  unless status is Running
-    @prepareIDE()
+    @prepareIDE initial
     @destroy()
     return yes
 
@@ -193,7 +193,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     @clearEventTimer()
 
-    return  if @switchToIDEIfNeeded status
+    return  if @switchToIDEIfNeeded status, initial = !isKoding()
 
     @progressBar?.updateBar 100
     @progressBar?.show()
@@ -736,7 +736,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @buildViews()
 
 
-  prepareIDE: ->
+  prepareIDE: (initial) ->
 
     {appManager, computeController} = kd.singletons
 
@@ -755,6 +755,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         @setData machine
 
         @emit 'IDEBecameReady', machine
+
+        computeController.showBuildLogs machine  if initial
 
 
   verifyAccount: ->

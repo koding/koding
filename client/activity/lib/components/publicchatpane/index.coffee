@@ -60,8 +60,10 @@ module.exports = class PublicChatPane extends React.Component
 
     return null  unless @props.messages
 
+    { thread } = @props
+
     footerInnerComponent = if @channel 'isParticipant'
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
+    then <ChatInputWidget onSubmit={@bound 'onSubmit'} thread={thread}  />
     else @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">

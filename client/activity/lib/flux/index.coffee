@@ -1,4 +1,5 @@
 ChatInputModule = require './chatinput'
+CreateChannelModule = require './createchannel'
 
 module.exports =
   getters   : require './getters'
@@ -36,4 +37,4 @@ module.exports =
   ]
   # module stores
   .concat ChatInputModule.stores
-
+  .concat CreateChannelModule.stores

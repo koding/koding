@@ -288,10 +288,11 @@ channelParticipantsInputUsers = [
   selectedChannelParticipants
   channelParticipantsSearchQuery
   (users, participants, query) ->
-    return participants?.toList() ? immutable.List()  unless query
+    return immutable.List()  unless query
 
     query = query.toLowerCase()
     users.toList().filter (user) ->
+      return  if participants.get user.get '_id'
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
