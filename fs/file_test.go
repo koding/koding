@@ -68,6 +68,38 @@ func TestFile(tt *testing.T) {
 		})
 	})
 
+	Convey("File#Create", tt, func() {
+		Convey("It should create new file in remote", func() {
+			f := newFile()
+			f.Content = []byte("Hello World!")
+
+			// since transport is empty, if it panics it means it hit remote
+			// and there was no response specified
+			So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
+
+			f = newFileWithTransport()
+			f.Content = []byte("Hello World!")
+
+			err := f.Create()
+			So(err, ShouldBeNil)
+		})
+
+		Convey("It should create file in remote even if content is empty", func() {
+			f := newFile()
+			f.Content = []byte{}
+
+			// since transport is empty, if it panics it means it hit remote
+			// and there was no response specified
+			So(func() { f.Create() }, ShouldPanicWith, "Expected 'fs.writeFile' to be in list of mocked responses.")
+
+			f = newFileWithTransport()
+			f.Content = []byte{}
+
+			err := f.Create()
+			So(err, ShouldBeNil)
+		})
+	})
+
 	Convey("File#WriteAt", tt, func() {
 		Convey("It should write specified content at beginning of file", func() {
 			f := newFile()

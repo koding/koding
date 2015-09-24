@@ -45,7 +45,7 @@ func (f *File) ReadAt(offset int64) ([]byte, error) {
 }
 
 func (f *File) Create() error {
-	return f.Flush()
+	return f.writeContentToRemote(f.Content)
 }
 
 func (f *File) WriteAt(content []byte, offset int64) {
