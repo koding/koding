@@ -13,7 +13,7 @@ module.exports = class IDEAce extends Ace
 
   setHeight: (height) ->
 
-    if @descriptionView?
-      height -= @descriptionView.getHeight?()
+    if @descriptionView?.getHeight
+      height -= @descriptionView.getHeight()
 
     super height
