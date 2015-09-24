@@ -105,7 +105,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
   tailFile: (nodeView) ->
 
     return  unless nodeView
-    @getDelegate().emit "FileNeedsToBeTailed", nodeView.getData()
+    @getDelegate().emit "FileNeedsToBeTailed", { file: nodeView.getData() }
 
 
   previewFile:(nodeView)->
