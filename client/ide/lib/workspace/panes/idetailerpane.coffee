@@ -53,10 +53,10 @@ module.exports = class IDETailerPane extends IDEPane
 
       ace.descriptionView = descriptionView ? new kd.View
         partial : description ? "
-          This is a file watcher pane, which allows you to watch all additions
-          on <strong>#{@file.getPath()}</strong>. This view is read-only, you
-          can't change the content of this file from this view, to be able to
-          that please open it in edit-mode.
+          This is a file watcher, which allows you to watch the additions
+          on <strong>#{@file.getPath()}</strong>. It is a read-only view,
+          that means you can't change the content of this file here. If you
+          want to edit the contents please open it in edit-mode.
         "
         click : =>
           ace.descriptionView.destroy()
