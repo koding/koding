@@ -14,7 +14,6 @@ KeyboardKeys         = require 'app/util/keyboardKeys'
 Link                 = require 'app/components/common/link'
 whoami               = require 'app/util/whoami'
 helpers              = require './helpers'
-groupifyLink         = require 'app/util/groupifyLink'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 
 
@@ -181,7 +180,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     { initialChannelId, slug } = message
     ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
-      kd.singletons.router.handleRoute groupifyLink "/Channels/#{channel.name}/#{slug}"
+      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{slug}"
 
 
   handleEmojiButtonClick: (event) ->
