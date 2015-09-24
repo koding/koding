@@ -6,18 +6,19 @@
   line-height               $body-line-height
 
 .ChatPane-contentWrapper
-  dFlex()
   bg                        color, #fcfcfc
   kalc                      height, 100vh \- 52px
   vendor                    flex-direction, column
+  dFlex()
 
 .ChatPane-body
-  rel()
-  dFlex()
+  padding                   0
+  kalc                      height, 100vh \- 122px
   vendor                    flex, 1
   vendor                    flex-direction, column
-  padding                   10px 0 0
   vendor                    justify-content, flex-end
+  dFlex()
+  rel()
 
 .PublicChatList
   max-width                 100vw
@@ -28,20 +29,4 @@
   &.padded
     height                  auto
     abs                     0 0 0px 0
-
-.ChatPane-firstMessage
-  rel()
-  padding                   0 0 20px
-  border-bottom             1px solid $gray-18
-  margin-bottom             15px
-
-.ChatItem-moreCount
-  abs()
-  left                      50%
-  bottom                    -8px
-  min-width                 80px
-  color                     $gray-16
-  bg                        color, #fcfcfc
-  margin-left               -40px
-  text-align                center
 

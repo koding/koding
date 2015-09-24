@@ -1,4 +1,4 @@
-kd = require 'kd'
+kd    = require 'kd'
 React = require 'kd-react'
 Link  = require 'app/components/common/link'
 

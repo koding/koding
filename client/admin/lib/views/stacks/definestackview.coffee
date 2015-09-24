@@ -66,7 +66,7 @@ module.exports = class DefineStackView extends KDView
       stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
     }
     @tabView.addPane providersPane     = new KDTabPaneView
-      name : 'Providers'
+      name : 'Credentials'
       view : @providersView
 
     @readmeView                        = new ReadmeView { stackTemplate }
@@ -121,6 +121,12 @@ module.exports = class DefineStackView extends KDView
         @setFooterVisibility 'show'
         pane.getMainView().emit 'FocusToEditor'
 
+    { ace } = @stackTemplateView.editorView.aceView
+
+    ace.on 'FileContentChanged', =>
+      @setAsDefaultButton.hide()
+      @saveButton.show()
+
 
   setFooterVisibility: (state) ->
     @buttons[state]()
@@ -160,17 +166,10 @@ module.exports = class DefineStackView extends KDView
     @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
 
 
-    @buttons.addSubView @cancelButton  = new KDButtonView
+    @buttons.addSubView @cancelButton = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
-
-    @buttons.addSubView @saveButton    = new KDButtonView
-      title          : 'Save & Test'
-      cssClass       : 'solid compact green nav next'
-      disabled       : yes
-      loader         : yes
-      callback       : @bound 'handleSave'
 
     @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
@@ -181,9 +180,16 @@ module.exports = class DefineStackView extends KDView
         title        : "Generates a preview of this template
                         with your own account information."
 
+    @buttons.addSubView @saveButton = new KDButtonView
+      title          : 'Save & Test'
+      cssClass       : 'solid compact green nav next'
+      disabled       : yes
+      loader         : yes
+      callback       : @bound 'handleSave'
+
     @buttons.addSubView @setAsDefaultButton = new KDButtonView
       title          : 'Set as Default for Team'
-      cssClass       : 'solid compact nav next hidden setasdefault-button'
+      cssClass       : 'solid compact green nav next hidden'
       loader         : yes
       callback       : => @handleSetDefaultTemplate()
 
@@ -264,13 +270,21 @@ module.exports = class DefineStackView extends KDView
 
       if not currentGroup.stackTemplates?.length
         @handleSetDefaultTemplate completed = no
+        @outputView.addAndWarn "
+          Your stack script has been successfully saved and applied
+          to all your team members. You can now close this window
+          and continue working with your stack.
+        "
 
       else
-        @outputView.add "You can now close this window, or set this
-                         template as default for your team members."
+        @outputView.add "You can now apply your stack changes to all your
+                         team members or close this window and continue to
+                         work on your stack script."
 
-        @cancelButton.setTitle 'Close'
         @setAsDefaultButton.show()
+        @saveButton.hide()
+
+      @cancelButton.setTitle 'Close'
 
 
   checkAndBootstrapCredentials: (callback) ->

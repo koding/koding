@@ -32,3 +32,32 @@ module.exports = DropboxWrapperMixin =
 
     scrollToTarget containerElement, itemElement
 
+
+  moveToPrevPosition: (keyInfo) ->
+
+    if keyInfo.isLeftArrow
+      @close()
+      return no
+
+    @moveToPrevAction()  unless @hasSingleItem()
+    return yes
+
+
+  moveToNextPosition: (keyInfo) ->
+
+    if keyInfo.isRightArrow
+      @close()
+      return no
+
+    @moveToNextAction()  unless @hasSingleItem()
+    return yes
+
+
+  onItemSelected: (index) -> @onItemSelectedAction index
+
+
+  close: -> @closeAction no
+
+
+  getItemKey: (item) -> item.get 'id'
+

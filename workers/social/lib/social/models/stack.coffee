@@ -73,7 +73,7 @@ module.exports = class JComputeStack extends jraphical.Module
       stackRevision      : String
 
       machines           :
-        type             : [ ObjectId ]
+        type             : Object
         default          : -> []
 
       config             : Object
@@ -370,5 +370,3 @@ module.exports = class JComputeStack extends jraphical.Module
             stackRevisionErrors.TEMPLATEDIFFERENT
 
         callback null, { status, machineCount: template.machines.length }
-
-

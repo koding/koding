@@ -1,22 +1,30 @@
-kd                  = require 'kd'
-React               = require 'kd-react'
-ActivityFlux        = require 'activity/flux'
-Link                = require 'app/components/common/link'
-Button              = require 'app/components/common/button'
-ActivityPromptModal = require 'app/components/activitypromptmodal'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+ActivityFlux          = require 'activity/flux'
+Link                  = require 'app/components/common/link'
+Button                = require 'app/components/common/button'
+ActivityPromptModal   = require 'app/components/activitypromptmodal'
+prepareThreadTitle    = require 'activity/util/prepareThreadTitle'
+PrivateChannelLink    = require 'activity/components/privatechannellink'
 
 module.exports = class PrivateChannelListItem extends React.Component
 
   @defaultProps =
-    channel  : null
+    onItemClick : kd.noop
+    thread      : null
 
   constructor: (props) ->
 
     super props
 
-    @state =
-      channel     : @props.channel
-      isDeleting  : no
+    @state = { isDeleting  : no }
+
+
+  channel: (key) ->
+
+    if key
+    then @props.thread.getIn [ 'channel', key ]
+    else @props.thread.get 'channel'
 
 
   showDeleteChannelPromptModal: (event) ->
@@ -48,14 +56,14 @@ module.exports = class PrivateChannelListItem extends React.Component
     kd.utils.stopDOMEvent event
 
     { deletePrivateChannel } = ActivityFlux.actions.channel
-    channelId = @props.channel.get 'id'
+    channelId = @channel 'id'
 
     deletePrivateChannel channelId
 
 
   renderDeleteButton: ->
 
-    if @props.channel.get('typeConstant') is 'privatemessage'
+    if @channel('typeConstant') is 'privatemessage'
       <Button
         className="ChannelListItem-delete"
         onClick={@bound 'showDeleteChannelPromptModal'}>DELETE</Button>
@@ -63,17 +71,15 @@ module.exports = class PrivateChannelListItem extends React.Component
 
   render: ->
 
-    { channel } = @props
+    typeConstant = @channel 'typeConstant'
+    title        = prepareThreadTitle @props.thread
+    channelId    = @channel '_id'
 
-    typeConstant = channel.get 'typeConstant'
-    title        = if typeConstant is 'bot' then 'Bot Koding' else channel.get 'purpose'
-    channelName  = channel.get 'name'
-
-    <Link href="/Channels/#{channelName}" className='ChannelListItem'>
+    <PrivateChannelLink to={@channel()} className='ChannelListItem' onClick={@props.onItemClick}>
       <span className='ChannelListItem-title'>{title}</span>
       {@renderDeleteButton()}
       <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
         Are you sure you want to delete this message?
       </ActivityPromptModal>
-    </Link>
+    </PrivateChannelLink>
 

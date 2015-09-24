@@ -21,6 +21,7 @@ type MachineUser struct {
 	Owner     bool          `bson:"owner" json:"owner"`
 	Permanent bool          `bson:"permanent" json:"permanent"`
 	Approved  bool          `bson:"approved" json:"approved"`
+	Username  string        `bson:"username" json:"username"`
 }
 
 type MachineAssignee struct {

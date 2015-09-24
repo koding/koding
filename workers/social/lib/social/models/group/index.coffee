@@ -110,6 +110,7 @@ module.exports = class JGroup extends Module
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
+        { name: 'messageBusEvent' }
       ]
     sharedMethods   :
       static        :
@@ -575,6 +576,20 @@ module.exports = class JGroup extends Module
           contents    : message
           event       : 'feed-new'
         }
+
+
+  sendNotification: (event, contents, callback) ->
+    message = {
+      groupName: @slug
+      eventName: event
+      body:
+        context  : @slug
+        event    : event
+        contents : contents
+    }
+
+    @emit 'messageBusEvent', { type: 'dispatcher_notify_group', message: message }
+    callback null
 
   broadcast:(message, event) ->
     @constructor.broadcast @slug, message, event

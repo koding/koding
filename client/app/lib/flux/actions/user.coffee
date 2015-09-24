@@ -155,6 +155,25 @@ impersonateUser = (message) ->
     impersonate owner.profile.nickname
 
 
+###*
+ * Action to set delete flag for create channel modal dropdown selected users to delete
+###
+markParticipantMayBeDeleted = (accountId) ->
+
+  { SET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG } = actions
+  dispatch SET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, { accountId }
+
+
+###*
+ * Action to unset delete flag for create channel modal dropdown selected users
+###
+unmarkParticipantMayBeDeleted = (accountId) ->
+
+  { UNSET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG } = actions
+  dispatch UNSET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, { accountId }
+
+
+
 module.exports = {
   loadAccount
   searchAccounts
@@ -162,5 +181,7 @@ module.exports = {
   unmarkUserAsTroll
   blockUser
   impersonateUser
+  markParticipantMayBeDeleted
+  unmarkParticipantMayBeDeleted
 }
 

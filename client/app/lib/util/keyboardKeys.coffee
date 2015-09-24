@@ -1,4 +1,6 @@
 module.exports =
+  SPACE       : 32
+  BACKSPACE   : 8
   TAB         : 9
   ESC         : 27
   ENTER       : 13
@@ -6,3 +8,4 @@ module.exports =
   UP_ARROW    : 38
   RIGHT_ARROW : 39
   DOWN_ARROW  : 40
+

@@ -1,5 +1,4 @@
 kd                      = require 'kd'
-hljs                    = require 'highlight.js'
 Encoder                 = require 'htmlencode'
 
 KDButtonView            = kd.ButtonView
@@ -29,8 +28,6 @@ trackEvent              = require 'app/util/trackEvent'
 applyMarkdown           = require 'app/util/applyMarkdown'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-
-{ jsonToYaml }          = require 'admin/views/stacks/yamlutils'
 
 
 module.exports = class EnvironmentsMachineStateModal extends BaseModalView
@@ -171,10 +168,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @createStatusOutput event
 
 
-  switchToIDEIfNeeded: (status = @state) ->
+  switchToIDEIfNeeded: (status = @state, initial = no) ->
 
     return no  unless status is Running
-    @prepareIDE()
+    @prepareIDE initial
     @destroy()
     return yes
 
@@ -196,7 +193,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     @clearEventTimer()
 
-    return  if @switchToIDEIfNeeded status
+    return  if @switchToIDEIfNeeded status, initial = !isKoding()
 
     @progressBar?.updateBar 100
     @progressBar?.show()
@@ -556,7 +553,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         { groupsController } = kd.singletons
         return  unless groupsController.currentGroupHasStack()
 
-    else if not isKoding() and @stack
+    else if not isKoding() and @stack and @state is NotInitialized
       title    = 'Build Stack'
       callback = 'turnOnMachine'
     else
@@ -739,7 +736,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @buildViews()
 
 
-  prepareIDE: ->
+  prepareIDE: (initial) ->
 
     {appManager, computeController} = kd.singletons
 
@@ -758,6 +755,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         @setData machine
 
         @emit 'IDEBecameReady', machine
+
+        computeController.showBuildLogs machine  if initial
 
 
   verifyAccount: ->
@@ -837,45 +836,12 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @readmeView.show()
 
 
-  # TODO Move this into it's own class and just create it from here ~ GG
   showErrorDetails: (errorMessage) ->
 
-    modal = new kd.ModalView
-      title          : "An error occured while building #{@stack.title}"
-      subtitle       : ""
-      draggable      : no
-      height         : 600
-      cssClass       : 'AppModal AppModal--admin env-error-modal has-markdown'
-      overlay        : yes
-      overlayOptions :
-        cssClass     : 'second-overlay'
+    kd.singletons.computeController.ui.showComputeError
+      title        : "An error occured while building #{@stack.title}"
+      stack        : @stack
+      cssClass     : 'env-ide-error-modal'
+      errorMessage : errorMessage ? @lastErrorMessage
 
-    modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
-
-    if errorMessage
-      content = (hljs.highlight 'profile', errorMessage).value
-      @lastErrorContent = content
-    else
-      content = @lastErrorContent
-
-    tabView.addPane new kd.TabPaneView
-      name       : 'Error Details'
-      view       : new kd.CustomHTMLView
-        partial  : "<pre><code>#{content}</code></pre>"
-
-    # Fetch stack template, coming from remote.cacheable ~ GG
-    { computeController } = kd.singletons
-    computeController.fetchBaseStackTemplate @stack, (err, template) ->
-
-      return kd.warn err  if err
-
-      {content} = template.template
-      content   = Encoder.htmlDecode content or ''
-      content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
-
-      tabView.addPane new kd.TabPaneView
-        name       : 'Stack Template'
-        view       : new kd.CustomHTMLView
-          partial  : "<pre><code>#{content}</code></pre>"
-
-      tabView.showPaneByIndex 0
+    @lastErrorMessage = errorMessage  if errorMessage

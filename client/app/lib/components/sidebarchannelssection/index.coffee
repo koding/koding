@@ -1,11 +1,12 @@
-React                   = require 'kd-react'
-immutable               = require 'immutable'
-SidebarList             = require 'app/components/sidebarlist'
-SidebarSection          = require 'app/components/sidebarsection'
-Modal                   = require 'app/components/modal'
-SidebarModalList        = require 'activity/components/sidebarmodallist'
-PublicChannelListItem   = require 'activity/components/publicchannellistitem'
-SidebarChannelsListItem = require 'app/components/sidebarchannelslistitem'
+React                    = require 'kd-react'
+immutable                = require 'immutable'
+SidebarList              = require 'app/components/sidebarlist'
+SidebarSection           = require 'app/components/sidebarsection'
+Modal                    = require 'app/components/modal'
+SidebarModalList         = require 'activity/components/sidebarmodallist'
+PublicChannelListItem    = require 'activity/components/publicchannellistitem'
+SidebarChannelsListItem  = require 'app/components/sidebarchannelslistitem'
+CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
 
 module.exports = class SidebarChannelsSection extends React.Component
 
@@ -30,6 +31,18 @@ module.exports = class SidebarChannelsSection extends React.Component
     @setState isModalOpen: yes
 
 
+  onItemClick: (event) ->
+
+    @setState isModalOpen: no
+
+
+  getCreateChannelModalProps: ->
+
+    title               : 'Create Channel'
+    className           : 'CreateChannel-Modal'
+    buttonConfirmTitle  : 'CREATE'
+
+
   renderFollowedChannelsModal: ->
 
     title = 'Other Channels you are following:'
@@ -38,6 +51,7 @@ module.exports = class SidebarChannelsSection extends React.Component
         title={title}
         searchProp='name'
         threads={@props.threads}
+        onItemClick={@bound 'onItemClick'}
         onThresholdAction='loadFollowedPublicChannels'
         itemComponent={PublicChannelListItem}/>
     </Modal>
@@ -54,7 +68,12 @@ module.exports = class SidebarChannelsSection extends React.Component
   render: ->
 
     <div>
-      <SidebarSection title="Channels" onHeaderClick={@bound 'showFollowedPublicChannelsModal'} className="SidebarChannelsSection">
+      <SidebarSection
+        title="Channels"
+        itemComponent={CreatePublicChannelModal}
+        modalProps={@getCreateChannelModalProps()}
+        onHeaderClick={@bound 'showFollowedPublicChannelsModal'}
+        className="SidebarChannelsSection">
         <SidebarList
           previewCount={@props.previewCount}
           itemComponent={SidebarChannelsListItem}

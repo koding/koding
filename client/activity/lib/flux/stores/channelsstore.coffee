@@ -1,7 +1,8 @@
-KodingFluxStore = require 'app/flux/store'
-actions         = require '../actions/actiontypes'
-toImmutable     = require 'app/util/toImmutable'
-immutable       = require 'immutable'
+KodingFluxStore      = require 'app/flux/store'
+actions              = require '../actions/actiontypes'
+toImmutable          = require 'app/util/toImmutable'
+immutable            = require 'immutable'
+createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 module.exports = class ChannelsStore extends KodingFluxStore
 
@@ -28,6 +29,8 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, @handleAddParticipantsToChannelBegin
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_FAIL, @handleAddParticipantsToChannelFail
 
+    @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+    @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 
   handleLoadChannelSuccess: (channels, { channel }) ->
 

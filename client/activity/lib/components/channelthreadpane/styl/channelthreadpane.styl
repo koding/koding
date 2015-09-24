@@ -12,9 +12,10 @@ $header-height              = 52px
 
 .ChannelThreadPane-header
   padding                   0 20px
+  bg                        color, #fcfcfc
   vendor                    flex, 0 0 52px
-  dFlex()
   vendor                    align-items, center
+  dFlex()
 
 .ChannelThreadPane-footer
   vendor                    flex, 0 0 1px
@@ -42,3 +43,6 @@ $header-height              = 52px
   bg                        color, #f5f5f5
 
 
+@media only screen and (max-width : 950px)
+  .ChannelThreadPane-sidebar
+    vendor                    flex, 0 0 40px
