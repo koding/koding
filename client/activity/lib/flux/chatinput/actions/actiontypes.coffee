@@ -40,5 +40,6 @@ module.exports = {
 
   'SET_LAST_MESSAGE_EDIT_MODE'
 
+  'SET_CHAT_INPUT_VALUE'
 }
 

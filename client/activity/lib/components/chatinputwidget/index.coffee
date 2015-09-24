@@ -24,18 +24,13 @@ module.exports = class ChatInputWidget extends React.Component
   @defaultProps =
     enableSearch : no
 
-  constructor: (props) ->
-
-    super props
-
-    @state = { value : '' }
-
 
   getDataBindings: ->
 
     { getters } = ChatInputFlux
 
     return {
+      value                          : getters.currentValue
       filteredEmojiList              : getters.filteredEmojiList @stateId
       filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
@@ -67,10 +62,23 @@ module.exports = class ChatInputWidget extends React.Component
   getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox ]
 
 
+  setValue: (value) ->
+
+    channelId = @props.thread.get 'channelId'
+    ChatInputFlux.actions.value.setValue channelId, value
+
+
+  resetValue: ->
+
+    channelId = @props.thread.get 'channelId'
+    ChatInputFlux.actions.value.resetValue channelId
+
+
   onChange: (event) ->
 
     { value } = event.target
-    @setState { value }
+
+    @setValue value
 
     textInput = React.findDOMNode @refs.textInput
     textData  =
@@ -119,7 +127,7 @@ module.exports = class ChatInputWidget extends React.Component
     unless isDropboxEnter
       value = @state.value.trim()
       @props.onSubmit? { value }
-      @setState { value: '' }
+      @resetValue()
 
 
   onEsc: (event) ->
@@ -159,7 +167,7 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = React.findDOMNode @refs.textInput
 
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
-    @setState { value }
+    @setValue value
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
@@ -170,7 +178,7 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = @state
 
     newValue = value + item
-    @setState { value : newValue }
+    @setValue newValue
 
     textInput = React.findDOMNode this.refs.textInput
     textInput.focus()
@@ -195,7 +203,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     if value.indexOf(searchMarker) is -1
       value = searchMarker + value
-      @setState { value }
+      @setValue value
 
     textInput = React.findDOMNode @refs.textInput
     textInput.focus()
