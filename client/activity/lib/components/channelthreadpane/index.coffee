@@ -1,14 +1,17 @@
-kd                = require 'kd'
-React             = require 'kd-react'
-KDReactorMixin    = require 'app/flux/reactormixin'
-ActivityFlux      = require 'activity/flux'
-immutable         = require 'immutable'
-classnames        = require 'classnames'
-ThreadSidebar     = require 'activity/components/threadsidebar'
-ThreadHeader      = require 'activity/components/threadheader'
-PublicChannelLink = require 'activity/components/publicchannellink'
+kd                   = require 'kd'
+React                = require 'kd-react'
+KDReactorMixin       = require 'app/flux/reactormixin'
+ActivityFlux         = require 'activity/flux'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ThreadSidebar        = require 'activity/components/threadsidebar'
+ThreadHeader         = require 'activity/components/threadheader'
+PublicChannelLink    = require 'activity/components/publicchannellink'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class ChannelThreadPane extends React.Component
+
+  @include [ ImmutableRenderMixin ]
 
   { getters } = ActivityFlux
 
