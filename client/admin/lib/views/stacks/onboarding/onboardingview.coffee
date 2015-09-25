@@ -152,7 +152,7 @@ module.exports = class OnboardingView extends JView
           Name        : "${var.koding_user_username}-${var.koding_group_slug}"
 
       configurationToggles.forEach (toggle) ->
-        selectedServices.push toggle.getOption 'name'  if toggle.getValue()
+        selectedServices.push (toggle.getOption 'package' or toggle.getOption 'name')  if toggle.getValue()
 
       if selectedServices.length
         serverConfig.user_data = "apt-get -y install #{selectedServices.join ' '}"
