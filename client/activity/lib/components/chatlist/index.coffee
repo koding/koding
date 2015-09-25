@@ -50,20 +50,12 @@ module.exports = class ChatList extends React.Component
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
 
-    { messages, unreadCount, channelId, isMessagesLoading } = @props
-    newMessageIndex = messages.size - unreadCount
-
     if prevMessage
       prevMessageMoment = moment prevMessage.get 'createdAt'
 
+    { messages, unreadCount, channelId, isMessagesLoading } = @props
+
     markers = []
-
-    switch
-      when not prevMessage
-        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
-
-      when not currentMessageMoment.isSame prevMessageMoment, 'day'
-        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
 
     if loaderMarkers = currentMessage.get 'loaderMarkers'
       if beforeMarker = loaderMarkers.get 'before'
@@ -76,8 +68,30 @@ module.exports = class ChatList extends React.Component
             timestamp={currentMessage.get 'createdAt'}
             isLoading={isMessagesLoading} />
 
+    switch
+      # if this is first message put a date marker no matter what.
+      when not prevMessage
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+      # if day of previous message is not the same with current one, put a date
+      # marker.
+      when not currentMessageMoment.isSame prevMessageMoment, 'day'
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+    # put new message marker on top of other messages if unread count is
+    # greater than currently loaded messages.
+    newMessageIndex = Math.max 0, messages.size - unreadCount
+
     if newMessageIndex is index
       markers.push <NewMessageMarker />
+
+    # put glancer waypoint only if all the unread messages are loaded, and on
+    # the screen. Once it enters to the screen, it will glance the channel.
+    if unreadCount and unreadCount <= messages.size and not isMessagesLoading
+      markers.push \
+        <Waypoint
+          ref={@bound 'glancerDidMount'}
+          onEnter={@bound 'onGlancerEnter'} />
 
     return markers
 
