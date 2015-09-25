@@ -378,6 +378,23 @@ setChannelParticipantsDropdownVisibility = (visible) ->
   dispatch SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY, { visible }
 
 
+emptyPromise = new Promise (resolve) -> resolve()
+
+glance = do (glancingMap = {}) -> (channelId) ->
+
+  return emptyPromise  if glancingMap[channelId]
+
+  glancingMap[channelId] = yes
+
+  { GLANCE_CHANNEL_BEGIN, GLANCE_CHANNEL_SUCCESS } = actionTypes
+
+  dispatch GLANCE_CHANNEL_BEGIN, { channelId }
+
+  kd.singletons.socialapi.channel.updateLastSeenTime { channelId }, (args...) ->
+    glancingMap[channelId] = no
+    dispatch GLANCE_CHANNEL_SUCCESS, { channelId }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -393,5 +410,6 @@ module.exports = {
   loadChannelsByQuery
   setChannelParticipantsDropdownVisibility
   deletePrivateChannel
+  glance
 }
 
