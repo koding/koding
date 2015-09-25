@@ -7,7 +7,7 @@ ChannelDropboxItem   = require 'activity/components/channeldropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
-formatContent        = require 'app/util/formatReactivityContent'
+isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
 
 
 module.exports = class ChannelDropbox extends React.Component
@@ -68,16 +68,7 @@ module.exports = class ChannelDropbox extends React.Component
     matchResult = currentWord.match /^#(.*)/
 
     return no  unless matchResult
-
-    checkMark = 'DROPBOX-CHECK-MARK'
-    position = position - currentWord.length
-    value = value.substring(0, position) + checkMark + value.substring(position)
-    formattedValue = formatContent value
-    formattedValue = formattedValue.replace checkMark, '<span class=dropbox-check-mark></span>'
-    wrapper = document.createElement 'span'
-    wrapper.innerHTML = formattedValue
-    wrapper = wrapper.firstChild
-    return  unless wrapper.querySelector('.dropbox-check-mark').parentNode is wrapper
+    return no  if isWithinCodeBlock value, position
 
     query = matchResult[1]
     { stateId } = @props
