@@ -34,7 +34,7 @@ module.exports = class ChatList extends React.Component
     }
 
 
-  getMarkers: (currentMessage, prevMessage, index) ->
+  getBeforeMarkers: (currentMessage, prevMessage, index) ->
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
 
@@ -89,7 +89,7 @@ module.exports = class ChatList extends React.Component
         itemProps['isSelected'] = yes
         itemProps['ref'] = 'selectedComponent'
 
-      children = children.concat @getMarkers message, prevMessage, i
+      children = children.concat @getBeforeMarkers message, prevMessage, i
 
       if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
         children.push \
