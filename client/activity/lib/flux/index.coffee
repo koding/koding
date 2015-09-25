@@ -44,3 +44,6 @@ module.exports =
   register: (reactor) ->
     reactor.registerStores @stores
 
+    realtimeActionCreators = require './actions/realtime/actioncreators'
+    realtimeActionCreators.bindNotificationEvents()
+

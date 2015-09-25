@@ -46,8 +46,22 @@ bindMessageEvents = (message) ->
     channel = kd.singletons.socialapi.retrieveCachedItemById channelId
     dispatch actions.LOAD_MESSAGE_SUCCESS, { channelId, message, channel }
 
+bindNotificationEvents = ->
+
+  kd.singletons.notificationController
+    .on 'MessageAddedToChannel', ({ unreadCount, channel }) ->
+      dispatch actions.SET_CHANNEL_UNREAD_COUNT, { unreadCount, channelId: channel.id }
+
+    .on 'AddedToChannel', (args...) -> console.log 'AddedToChannel', args...
+    .on 'RemovedFromChannel', (args...) -> console.log 'RemovedFromChannel', args...
+    .on 'MessageRemovedFromChannel', (args...) -> console.log 'MessageRemovedFromChannel', args...
+    .on 'ReplyAdded', (args...) -> console.log 'MessageAddedToChannel', args...
+    .on 'MessageListUpdated', (args...) -> console.log 'MessageListUpdated', args...
+    .on 'ParticipantUpdated', (args...) -> console.log 'ParticipantUpdated', args...
+
 
 module.exports = {
   bindChannelEvents
   bindMessageEvents
+  bindNotificationEvents
 }
