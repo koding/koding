@@ -1,3 +1,4 @@
+_                  = require 'lodash'
 kd                 = require 'kd'
 React              = require 'kd-react'
 moment             = require 'moment'
@@ -10,6 +11,8 @@ LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
 KDReactorMixin     = require 'app/flux/reactormixin'
 ActivityFlux       = require 'activity/flux'
 scrollToElement    = require 'app/util/scrollToElement'
+
+debounce = (delay, options, fn) -> _.debounce fn, delay, options
 
 
 module.exports = class ChatList extends React.Component
@@ -47,6 +50,17 @@ module.exports = class ChatList extends React.Component
 
 
   getBeforeMarkers: (currentMessage, prevMessage, index) ->
+
+
+  glance: debounce 1000, {}, ->
+
+    ActivityFlux.actions.channel.glance @props.channelId
+
+
+  onGlancerEnter: -> @glance()
+
+
+  getMarkers: (currentMessage, prevMessage, index) ->
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
 
