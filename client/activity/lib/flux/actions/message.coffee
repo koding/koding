@@ -132,6 +132,15 @@ ensureMessage = (messageId) ->
           return { message }
 
 
+###*
+ * Action to put a loader marker to a certain position to a channel.
+ *
+ * @param {string} channelId
+ * @param {string} messageId
+ * @param {object} options
+ * @param {string} options.position - either 'before' or 'after'
+ * @param {boolean} options.autoload
+###
 putLoaderMarker = (channelId, messageId, options) ->
 
   dispatch actionTypes.ACTIVATE_LOADER_MARKER,
