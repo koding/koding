@@ -82,8 +82,24 @@ module.exports = class ChatList extends React.Component
     return markers
 
 
+  getAfterMarkers: (currentMessage, prevMessage, index) ->
 
+    { channelId, isMessagesLoading } = @props
 
+    markers = []
+
+    if loaderMarkers = currentMessage.get 'loaderMarkers'
+      if afterMarker = loaderMarkers.get 'after'
+        markers.push \
+          <LoadMoreMessagesMarker
+            channelId={channelId}
+            messageId={currentMessage.get 'id'}
+            position="after"
+            autoload={afterMarker.get 'autoload'}
+            timestamp={currentMessage.get 'createdAt'}
+            isLoading={isMessagesLoading} />
+
+    return markers
 
 
   renderChildren: ->
@@ -115,6 +131,8 @@ module.exports = class ChatList extends React.Component
         lastDifferentOwnerId = message.get 'accountId'
         children.push \
           <ChatListItem {...itemProps} />
+
+      children = children.concat @getAfterMarkers message, prevMessage, i
 
       prevMessage = message
       return children
