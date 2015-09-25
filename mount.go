@@ -57,6 +57,10 @@ func (c *MountCommand) Run(args []string) int {
 		log.Fatal(err)
 	}
 
+	if resp == nil {
+		return 0
+	}
+
 	var warning string
 	if err := resp.Unmarshal(&warning); err != nil {
 		return 0
