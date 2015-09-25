@@ -32,6 +32,8 @@ loadMessages = (channelId, options = {}) ->
         dispatch LOAD_MESSAGES_FAIL, { err, channelId }
         return reject err
 
+      # clean load more markers of given messages first.
+      cleanLoaderMarkers channelId, messages
 
       kd.singletons.reactor.batch ->
         messages.forEach (message) ->
