@@ -32,11 +32,11 @@ loadMessages = (channelId, options = {}) ->
         dispatch LOAD_MESSAGES_FAIL, { err, channelId }
         return reject err
 
-      dispatch LOAD_MESSAGES_SUCCESS, { channelId }
 
       kd.singletons.reactor.batch ->
         messages.forEach (message) ->
           dispatchLoadMessageSuccess channelId, message
+        dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
 
       resolve { messages }
 
