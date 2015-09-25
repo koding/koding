@@ -72,6 +72,7 @@ module.exports = class ChatList extends React.Component
   renderChildren: ->
 
     { messages, showItemMenu, channelName } = @props
+    { selectedMessageId } = @state
 
     lastDifferentOwnerId = null
     prevMessage = null
