@@ -1,5 +1,5 @@
-kd                         = require 'kd'
-{ TAB, ESC, ENTER, SPACE } = require 'app/util/keyboardKeys'
+kd   = require 'kd'
+KEYS = require 'app/util/keyboardKeys'
 
 module.exports = focusOnGlobalKeyDown = (input) ->
 
@@ -7,12 +7,19 @@ module.exports = focusOnGlobalKeyDown = (input) ->
 
   windowController.on 'keydown', (event) =>
 
+    { TAB, ESC, ENTER, SPACE, CTRL, CMD } = KEYS
+
+    key       = event.which
+    # to be able to copy to clipboard anywhere on the page
+    C_KEY     = 67
+    isCopying = key is C_KEY and (event.metaKey or event.ctrlKey)
+
     keyboardElements  = "input,textarea,select,datalist,keygen,[contenteditable='true'],button"
     { activeElement } = document
 
     return  if input is activeElement
     # do not break accessibility
-    return  if event.which in [ ENTER, TAB, SPACE, ESC ]
+    return  if key in [ ENTER, TAB, SPACE, ESC, CTRL, CMD ] or isCopying
 
     nothingFocused  = not $(activeElement).is keyboardElements
     inputInViewport = input.offsetParent
