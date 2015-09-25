@@ -84,6 +84,7 @@ module.exports = class ChatInputWidget extends React.Component
     textData  =
       currentWord : helpers.getCurrentWord textInput
       value       : value
+      position    : helpers.getCursorPosition textInput
 
     # Let every dropbox check entered text.
     # If any dropbox considers text as a query,
