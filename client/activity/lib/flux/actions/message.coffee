@@ -105,32 +105,16 @@ ensureMessage = (messageId) ->
 
   { reactor } = kd.singletons
 
-  loadMessage(messageId)
-    .then ({ message }) ->
-      channelId = message.initialChannelId
-      loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
-        [first, ...] = messages
-        return  unless first
+  loadMessage(messageId).then ({ message }) ->
+    channelId = message.initialChannelId
+    loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+      loadMessages(channelId, { from: message.createdAt, sortOrder: 'ASC' }).then ({ messages }) ->
+        [..., last] = messages
+        return { message }  unless last
 
-        # check to see if loaded if not put a indicator before that.
-        firstMessage = reactor.evaluate ['MessagesStore', first.id]
-        unless firstMessage
-          putLoaderMarker channelId, first.id, { position: 'before', autoload: no }
+        putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
 
         return { message }
-      .then ({ message }) ->
-        channelId = message.initialChannelId
-        loadMessages(channelId, { to: message.createdAt, sort: 'DESC' }).then ({ messages }) ->
-          [..., last] = messages
-
-          return  unless last
-
-          lastMessage = reactor.evaluate ['MessagesStore', last.id]
-          unless lastMessage
-            putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
-
-          return { message }
-
 
 ###*
  * Action to put a loader marker to a certain position to a channel.
