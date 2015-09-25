@@ -151,6 +151,33 @@ putLoaderMarker = (channelId, messageId, options) ->
 
 
 ###*
+ * Removes a message's loader marker in a channel with given options.
+ *
+ * @param {string} channelId
+ * @param {string} messageId
+ * @param {object} options
+ * @param {string} options.position - either 'before' or after
+###
+removeLoaderMarker = (channelId, messageId, options) ->
+
+  dispatch actionTypes.DEACTIVATE_LOADER_MARKER, { channelId, messageId, position: options.position }
+
+
+###*
+ * Removes given messages' loader markers in that channel. Both 'before' and
+ * 'after' markers.
+ *
+ * @param {string} channelId
+ * @param {Array.<SocialMessage>} messages
+###
+cleanLoaderMarkers = (channelId, messages) ->
+
+  messages.forEach (message) ->
+    removeLoaderMarker channelId, message.id, { position: 'before' }
+    removeLoaderMarker channelId, message.id, { position: 'after' }
+
+
+###*
  * Action to load message with given slug.
  *
  * @param {string} slug
@@ -483,5 +510,7 @@ module.exports = {
   setMessageEditMode
   unsetMessageEditMode
   changeSelectedMessageBySlug
+  putLoaderMarker
+  removeLoaderMarker
 }
 
