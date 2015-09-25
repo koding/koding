@@ -40,3 +40,7 @@ module.exports =
   # module stores
   .concat ChatInputModule.stores
   .concat CreateChannelModule.stores
+
+  register: (reactor) ->
+    reactor.registerStores @stores
+
