@@ -66,7 +66,12 @@ func New(c *Config) *kontrol.Kontrol {
 		p := kontrol.NewPostgres(postgresConf, kon.Kite.Log)
 		p.DB.SetMaxOpenConns(20)
 		kon.SetStorage(p)
-		kon.SetKeyPairStorage(p)
+
+		s := kontrol.NewCachedStorage(
+			p,
+			kontrol.NewMemKeyPairStorageTTL(time.Minute*5),
+		)
+		kon.SetKeyPairStorage(s)
 		// kon.MachineKeyPicker = newMachineKeyPicker(p)
 	default:
 		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
