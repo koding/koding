@@ -6,6 +6,7 @@ ChatListItem       = require 'activity/components/chatlistitem'
 SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
 DateMarker         = require 'activity/components/datemarker'
 NewMessageMarker   = require 'activity/components/newmessagemarker'
+LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
 KDReactorMixin     = require 'app/flux/reactormixin'
 ActivityFlux       = require 'activity/flux'
 scrollToElement    = require 'app/util/scrollToElement'
@@ -16,6 +17,7 @@ module.exports = class ChatList extends React.Component
   @defaultProps =
     messages          : immutable.List()
     showItemMenu      : yes
+    channelId         : ''
     channelName       : ''
     isMessagesLoading : no
     selectedMessageId : null
@@ -48,7 +50,7 @@ module.exports = class ChatList extends React.Component
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
 
-    { messages, unreadCount } = @props
+    { messages, unreadCount, channelId, isMessagesLoading } = @props
     newMessageIndex = messages.size - unreadCount
 
     if prevMessage
@@ -62,6 +64,17 @@ module.exports = class ChatList extends React.Component
 
       when not currentMessageMoment.isSame prevMessageMoment, 'day'
         markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+    if loaderMarkers = currentMessage.get 'loaderMarkers'
+      if beforeMarker = loaderMarkers.get 'before'
+        markers.push \
+          <LoadMoreMessagesMarker
+            channelId={channelId}
+            messageId={currentMessage.get 'id'}
+            position="before"
+            autoload={beforeMarker.get 'autoload'}
+            timestamp={currentMessage.get 'createdAt'}
+            isLoading={isMessagesLoading} />
 
     if newMessageIndex is index
       markers.push <NewMessageMarker />
