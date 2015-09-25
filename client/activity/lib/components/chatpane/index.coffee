@@ -21,7 +21,8 @@ module.exports = class ChatPane extends React.Component
     return  unless nextProps?.thread
 
     { thread } = nextProps
-    @isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
+    isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
+    @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
 
 
   onTopThresholdReached: -> @props.onLoadMore()
