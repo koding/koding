@@ -34,6 +34,16 @@ module.exports = class ChatList extends React.Component
     }
 
 
+  componentDidUpdate: (prevProps, prevState) ->
+
+    prevSelectedId = prevState.selectedMessageId
+    currentSelectedId = @state.selectedMessageId
+
+    if currentSelectedId and currentSelectedId isnt prevSelectedId
+      target = React.findDOMNode @refs.selectedComponent
+      scrollToElement target
+
+
   getBeforeMarkers: (currentMessage, prevMessage, index) ->
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
@@ -59,14 +69,8 @@ module.exports = class ChatList extends React.Component
     return markers
 
 
-  componentDidUpdate: (prevProps, prevState) ->
 
-    prevSelectedId = prevState.selectedMessageId
-    currentSelectedId = @state.selectedMessageId
 
-    if currentSelectedId and currentSelectedId isnt prevSelectedId
-      target = React.findDOMNode @refs.selectedComponent
-      scrollToElement target
 
 
   renderChildren: ->
