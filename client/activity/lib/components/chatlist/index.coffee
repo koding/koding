@@ -1,16 +1,18 @@
-_                  = require 'lodash'
-kd                 = require 'kd'
-React              = require 'kd-react'
-moment             = require 'moment'
-immutable          = require 'immutable'
-ChatListItem       = require 'activity/components/chatlistitem'
-SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
-DateMarker         = require 'activity/components/datemarker'
-NewMessageMarker   = require 'activity/components/newmessagemarker'
+_                      = require 'lodash'
+kd                     = require 'kd'
+React                  = require 'kd-react'
+moment                 = require 'moment'
+immutable              = require 'immutable'
+ChatListItem           = require 'activity/components/chatlistitem'
+SimpleChatListItem     = require 'activity/components/chatlistitem/simplechatlistitem'
+DateMarker             = require 'activity/components/datemarker'
+NewMessageMarker       = require 'activity/components/newmessagemarker'
 LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
-KDReactorMixin     = require 'app/flux/reactormixin'
-ActivityFlux       = require 'activity/flux'
-scrollToElement    = require 'app/util/scrollToElement'
+KDReactorMixin         = require 'app/flux/reactormixin'
+ActivityFlux           = require 'activity/flux'
+Waypoint               = require 'react-waypoint'
+scrollToElement        = require 'app/util/scrollToElement'
+ImmutableRenderMixin   = require 'react-immutable-render-mixin'
 
 debounce = (delay, options, fn) -> _.debounce fn, delay, options
 
@@ -22,9 +24,9 @@ module.exports = class ChatList extends React.Component
     showItemMenu      : yes
     channelId         : ''
     channelName       : ''
+    unreadCount       : 0
     isMessagesLoading : no
     selectedMessageId : null
-
 
   constructor: (props) ->
 
@@ -49,9 +51,6 @@ module.exports = class ChatList extends React.Component
       scrollToElement target
 
 
-  getBeforeMarkers: (currentMessage, prevMessage, index) ->
-
-
   glance: debounce 1000, {}, ->
 
     ActivityFlux.actions.channel.glance @props.channelId
@@ -60,7 +59,7 @@ module.exports = class ChatList extends React.Component
   onGlancerEnter: -> @glance()
 
 
-  getMarkers: (currentMessage, prevMessage, index) ->
+  getBeforeMarkers: (currentMessage, prevMessage, index) ->
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
 
