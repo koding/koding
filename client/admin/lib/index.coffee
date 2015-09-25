@@ -32,7 +32,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'General',        title : 'General',           viewClass : GroupGeneralSettingsView }
         { slug : 'Members',        title : 'Members',           viewClass : AdminMembersView         }
         { slug : 'Invitations',    title : 'Invitations',       viewClass : AdminInvitationsView     }
-        { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
+        # { slug : 'Permissions',    title : 'Permissions',       viewClass : GroupPermissionsView     }
         {
           slug      : 'Integrations'
           title     : 'Integrations'
