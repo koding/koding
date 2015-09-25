@@ -40,6 +40,7 @@ module.exports = class ChatPane extends React.Component
         messages={@props.messages}
         showItemMenu={@props.showItemMenu}
         channelName={@props.thread.getIn ['channel', 'name']}
+        channelId={@props.thread.getIn ['channel', 'id']}
       />
     </Scroller>
 
