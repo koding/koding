@@ -15,6 +15,7 @@ app                   = express()
 webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require './humanstxt'
+csrf                  = require './csrf'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -85,7 +86,7 @@ app.post '/-/validate/email'                     , require './handlers/validatee
 app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
 app.post '/:name?/Register'                      , require './handlers/register'
-app.post '/:name?/Login'                         , require './handlers/login'
+app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , require './handlers/impersonate'
 app.post '/:name?/Recover'                       , require './handlers/recover'
 app.post '/:name?/Reset'                         , require './handlers/reset'
