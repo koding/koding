@@ -266,6 +266,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
           cssClass      : if data.authorizable then 'hidden'
+          click         : -> @selectAll()
           nextElement   :
             regenerate  :
               itemClass : KDCustomHTMLView
