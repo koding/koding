@@ -1,5 +1,5 @@
 React          = require 'kd-react'
-scrollToTarget = require 'activity/util/scrollToTarget'
+scrollToTarget = require 'app/util/scrollToTarget'
 
 
 module.exports = DropboxWrapperMixin =

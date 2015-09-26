@@ -11,29 +11,9 @@ module.exports = [
     path: '/Channels'
     component: ChannelThreadPane
     childRoutes: [
-      path: ':channelName'
+      path: ':channelName(/:postId)'
       components:
-        feed: null
         chat: PublicChatPane
-        post: null
-    ,
-      path: ':channelName/summary'
-      components:
-        feed: PublicFeedPane
-        chat: PublicChatPane
-        post: null
-    ,
-      path: ':channelName/summary/:postSlug'
-      components:
-        feed: PublicFeedPane
-        chat: PublicChatPane
-        post: PostPane
-    ,
-      path: ':channelName/:postSlug'
-      components:
-        feed: null
-        chat: PublicChatPane
-        post: null
     ]
   },
   {

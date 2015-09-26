@@ -18,9 +18,9 @@ module.exports = class PublicChannelMessageLink extends React.Component
     channelId = message.get 'initialChannelId'
     channel = kd.singletons.socialapi.retrieveCachedItemById channelId
     return  unless channel
-    slug = message.get 'slug'
+    id = message.get 'id'
 
-    return "/Channels/#{channel.name.toLowerCase()}/#{slug}"
+    return "/Channels/#{channel.name.toLowerCase()}/#{id}"
 
 
   render: ->

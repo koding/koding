@@ -6,23 +6,51 @@ ChatListItem       = require 'activity/components/chatlistitem'
 SimpleChatListItem = require 'activity/components/chatlistitem/simplechatlistitem'
 DateMarker         = require 'activity/components/datemarker'
 NewMessageMarker   = require 'activity/components/newmessagemarker'
+LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
+KDReactorMixin     = require 'app/flux/reactormixin'
+ActivityFlux       = require 'activity/flux'
+scrollToElement    = require 'app/util/scrollToElement'
 
 
 module.exports = class ChatList extends React.Component
 
   @defaultProps =
-    messages     : immutable.List()
-    showItemMenu : yes
-    channelName  : ''
-    isMessagesLoading: no
-    unreadCount: 0
+    messages          : immutable.List()
+    showItemMenu      : yes
+    channelId         : ''
+    channelName       : ''
+    isMessagesLoading : no
+    selectedMessageId : null
 
 
-  getMarkers: (currentMessage, prevMessage, index) ->
+  constructor: (props) ->
+
+    super props
+
+    @state = { selectedMessageId: @props.selectedMessageId }
+
+
+  getDataBindings: ->
+    return {
+      selectedMessageId: ActivityFlux.getters.selectedMessageThreadId
+    }
+
+
+  componentDidUpdate: (prevProps, prevState) ->
+
+    prevSelectedId = prevState.selectedMessageId
+    currentSelectedId = @state.selectedMessageId
+
+    if currentSelectedId and currentSelectedId isnt prevSelectedId
+      target = React.findDOMNode @refs.selectedComponent
+      scrollToElement target
+
+
+  getBeforeMarkers: (currentMessage, prevMessage, index) ->
 
     currentMessageMoment = moment currentMessage.get 'createdAt'
 
-    { messages, unreadCount } = @props
+    { messages, unreadCount, channelId, isMessagesLoading } = @props
     newMessageIndex = messages.size - unreadCount
 
     if prevMessage
@@ -37,8 +65,39 @@ module.exports = class ChatList extends React.Component
       when not currentMessageMoment.isSame prevMessageMoment, 'day'
         markers.push <DateMarker date={currentMessage.get 'createdAt'} />
 
+    if loaderMarkers = currentMessage.get 'loaderMarkers'
+      if beforeMarker = loaderMarkers.get 'before'
+        markers.push \
+          <LoadMoreMessagesMarker
+            channelId={channelId}
+            messageId={currentMessage.get 'id'}
+            position="before"
+            autoload={beforeMarker.get 'autoload'}
+            timestamp={currentMessage.get 'createdAt'}
+            isLoading={isMessagesLoading} />
+
     if newMessageIndex is index
       markers.push <NewMessageMarker />
+
+    return markers
+
+
+  getAfterMarkers: (currentMessage, prevMessage, index) ->
+
+    { channelId, isMessagesLoading } = @props
+
+    markers = []
+
+    if loaderMarkers = currentMessage.get 'loaderMarkers'
+      if afterMarker = loaderMarkers.get 'after'
+        markers.push \
+          <LoadMoreMessagesMarker
+            channelId={channelId}
+            messageId={currentMessage.get 'id'}
+            position="after"
+            autoload={afterMarker.get 'autoload'}
+            timestamp={currentMessage.get 'createdAt'}
+            isLoading={isMessagesLoading} />
 
     return markers
 
@@ -46,6 +105,7 @@ module.exports = class ChatList extends React.Component
   renderChildren: ->
 
     { messages, showItemMenu, channelName } = @props
+    { selectedMessageId } = @state
 
     lastDifferentOwnerId = null
     prevMessage = null
@@ -58,7 +118,11 @@ module.exports = class ChatList extends React.Component
         showItemMenu : showItemMenu
         channelName  : channelName
 
-      children = children.concat @getMarkers message, prevMessage, i
+      if selectedMessageId is message.get 'id'
+        itemProps['isSelected'] = yes
+        itemProps['ref'] = 'selectedComponent'
+
+      children = children.concat @getBeforeMarkers message, prevMessage, i
 
       if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
         children.push \
@@ -68,11 +132,11 @@ module.exports = class ChatList extends React.Component
         children.push \
           <ChatListItem {...itemProps} />
 
+      children = children.concat @getAfterMarkers message, prevMessage, i
+
       prevMessage = message
       return children
     , []
-
-    return children
 
 
   render: ->
@@ -80,4 +144,6 @@ module.exports = class ChatList extends React.Component
       {@renderChildren()}
     </div>
 
+
+React.Component.include.call ChatList, [KDReactorMixin]
 
