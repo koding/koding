@@ -169,12 +169,26 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     view = @getView().parent
     view.form?.destroy()
+    view.intro?.destroy()
 
     view.setClass "form-open"
 
     options   = { provider }
     options.defaultTitle   = defaultTitle    if defaultTitle?
     options.requiredFields = requiredFields  if requiredFields?
+
+    if provider is 'aws'
+      view.addSubView view.intro = new kd.CustomHTMLView
+        cssClass  : 'credential-creation-intro'
+        partial   : '''
+          <p>Here is how you add your AWS keys</a>
+          <ol>
+            <li>Login to <a href='https://console.aws.amazon.com'>AWS console</a></li>
+            <li>Attach the AdministratorAccess policy</li>
+            <li>Add the Access Key ID and Secret here</li>
+          </ol>
+          <p>Need some help? <a href='http://learn.koding.com/aws-provider-setup'>Follow our guide</a>
+          '''
 
     { ui }    = kd.singletons.computeController
     view.form = ui.generateAddCredentialFormFor options
