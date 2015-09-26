@@ -65,9 +65,12 @@ module.exports = class ChatListItem extends React.Component
     @getAccountInfo()
 
 
-  componentDidUpdate: ->
+  componentDidUpdate: (prevProps, prevState) ->
 
-    @focusInputOnEdit()  if @props.message.get '__isEditing'
+    isEditing  = @props.message.get '__isEditing'
+    wasEditing = prevProps.message.get '__isEditing'
+
+    @focusInputOnEdit()  if isEditing and not wasEditing
 
 
   getAccountInfo: ->
