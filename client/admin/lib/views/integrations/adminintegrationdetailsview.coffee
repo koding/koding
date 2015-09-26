@@ -182,8 +182,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     integrationHelpers.update options, (err) =>
       return kd.warn err  if err
-
       @settingsForm.buttons.Save.hideLoader()
+      new kd.NotificationView title : 'Integration is successfully saved!'
+      kd.singletons.router.handleRoute '/Admin/Integrations'
 
 
   regenerateToken: ->
