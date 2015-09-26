@@ -28,6 +28,9 @@ module.exports = class ChatPane extends React.Component
   onTopThresholdReached: -> @props.onLoadMore()
 
 
+  channel: (key) -> @props.thread.getIn ['channel', key]
+
+
   renderBody: ->
 
     return null  unless @props.messages?.size
@@ -39,8 +42,9 @@ module.exports = class ChatPane extends React.Component
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
         messages={@props.messages}
         showItemMenu={@props.showItemMenu}
-        channelName={@props.thread.getIn ['channel', 'name']}
-        channelId={@props.thread.getIn ['channel', 'id']}
+        channelId={@channel 'id'}
+        channelName={@channel 'name'}
+        unreadCount={@channel 'unreadCount'}
       />
     </Scroller>
 
