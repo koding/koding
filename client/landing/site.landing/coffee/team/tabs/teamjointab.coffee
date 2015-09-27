@@ -16,17 +16,13 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     @alreadyMember = teamData.signup?.alreadyMember
     domains        = KD.config.group.allowedDomains
 
-    @addSubView new MainHeaderView
-      cssClass : 'team'
-      navItems : []
+    @addSubView new MainHeaderView { cssClass : 'team', navItems : [] }
+    @addSubView wrapper = new KDCustomHTMLView { cssClass : 'TeamsModal TeamsModal--groupCreation' }
 
-    @addSubView wrapper = new KDCustomHTMLView
-      cssClass : 'TeamsModal TeamsModal--groupCreation'
+    teamTitle  = KD.config.group.title
+    modalTitle = "Join #{KD.utils.createTeamTitlePhrase teamTitle}"
 
-    wrapper.addSubView new KDCustomHTMLView
-      tagName : 'h4'
-      partial : if @alreadyMember then 'Join with your account' else 'Join with your email'
-
+    wrapper.addSubView new KDCustomHTMLView { tagName : 'h4', partial : modalTitle }
 
     desc = if @alreadyMember
       "Please enter your <i>Koding.com</i> password."
@@ -36,7 +32,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     else if domains?.length is 1
       "You must have a #{articlize domains.first} <i>#{domains.first}</i> email address to join"
     else
-      "You are about to join to <i>#{KD.config.group.title}</i> on Koding"
+      "Please choose a username and password for your new Koding account."
 
 
     wrapper.addSubView new KDCustomHTMLView
