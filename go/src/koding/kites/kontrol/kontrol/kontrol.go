@@ -170,6 +170,18 @@ func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) ht
 		); err != nil {
 			// TODO(cihangir) should we log/return error?
 		}
+
+		// Unlike metricKiteHandler, we have to call the count here because
+		// Kite's PreHandlerFunc doesn't exist for HTTP. So with plain HTTP
+		// methods, we have to increase the metric count manually in this func
+		if err := m.Count(
+			"kontrolCallCount", // metric name
+			1,                  // count
+			[]string{"funcName:" + r.Method}, // tags for metric call
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
 	}
 }
 
