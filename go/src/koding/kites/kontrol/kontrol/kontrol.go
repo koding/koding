@@ -161,10 +161,9 @@ func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) ht
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		h(w, r)
-		total := time.Since(start)
 		if err := m.Count(
-			"kontrolHandlerTimes", // metric name
-			int64(total),          // count
+			"kontrolHandlerTimes",    // metric name
+			int64(time.Since(start)), // count
 			// using funcName: for consistency with callCount
 			[]string{"funcName:" + funcName},
 			1.0, // rate
@@ -184,10 +183,9 @@ func metricKiteHandler(m *metrics.DogStatsD, funcName string, h kite.HandlerFunc
 	return func(r *kite.Request) (interface{}, error) {
 		start := time.Now()
 		hRes, hErr := h(r)
-		total := time.Since(start)
 		if err := m.Count(
-			"kontrolHandlerTimes", // metric name
-			int64(total),          // count
+			"kontrolHandlerTimes",    // metric name
+			int64(time.Since(start)), // count
 			// using funcName: for consistency with callCount
 			[]string{"funcName:" + funcName},
 			1.0, // rate
