@@ -18,16 +18,14 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     selectedIndex  : 0
     selectedItem   : null
 
-  constructor: (props) ->
+  moveToPrevAction     : ActivityFlux.actions.user.moveToPrevChannelParticipantIndex
 
-    super
+  moveToNextAction     : ActivityFlux.actions.user.moveToNextChannelParticipantIndex
 
-    { user, channel } = ActivityFlux.actions
+  onItemSelectedAction : ActivityFlux.actions.user.setChannelParticipantsSelectedIndex
 
-    @moveToPrevAction     = user.moveToPrevChannelParticipantIndex
-    @moveToNextAction     = user.moveToNextChannelParticipantIndex
-    @closeAction          = channel.setChannelParticipantsDropdownVisibility
-    @onItemSelectedAction = user.setChannelParticipantsSelectedIndex
+  closeAction          : ActivityFlux.actions.channel.setChannelParticipantsDropdownVisibility
+
 
   # this method overrides DropboxWrapperMixin-componentDidUpdate handler.
   # In this component, we use dropdown keyword. In DropboxWrapperMixin/componentDidUpdate handler
