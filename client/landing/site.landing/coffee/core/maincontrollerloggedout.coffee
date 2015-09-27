@@ -67,6 +67,7 @@ module.exports = class MainControllerLoggedOut extends KDController
     {username, password, tfcode, redirectTo} = formData
 
     groupName = getGroupNameFromLocation()
+    _csrf     = Cookies.get '_csrf'
 
     redirectTo ?= ''
     query       = ''
@@ -80,7 +81,7 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     $.ajax
       url         : '/Login'
-      data        : { username, password, tfcode, groupName }
+      data        : { username, password, tfcode, groupName, _csrf }
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : -> location.replace "/#{redirectTo}#{query}"
