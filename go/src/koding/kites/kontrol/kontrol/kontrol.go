@@ -57,14 +57,23 @@ func New(c *Config) *kontrol.Kontrol {
 	// track every kind of call
 	kon.Kite.PreHandleFunc(createTracker(met))
 
-	kon.Kite.HandleFunc("register", kon.HandleRegister)
-	kon.Kite.HandleFunc("registerMachine", kon.HandleMachine).DisableAuthentication()
-	kon.Kite.HandleFunc("getKites", kon.HandleGetKites)
-	kon.Kite.HandleFunc("getToken", kon.HandleGetToken)
-	kon.Kite.HandleFunc("getKey", kon.HandleGetKey)
+	kon.Kite.HandleFunc("register",
+		metricKiteHandler(met, "HandleRegister", kon.HandleRegister),
+	)
 
-	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
-	kon.MachineAuthenticate = authenticateMachine
+	kon.Kite.HandleFunc("registerMachine",
+		metricKiteHandler(met, "HandleMachine", kon.HandleMachine),
+	).DisableAuthentication()
+
+	kon.Kite.HandleFunc("getKites",
+		metricKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
+	)
+	kon.Kite.HandleFunc("getToken",
+		metricKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
+	)
+	kon.Kite.HandleFunc("getKey",
+		metricKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
+	)
 
 	kon.Kite.HandleHTTPFunc("/heartbeat",
 		metricHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
@@ -73,6 +82,9 @@ func New(c *Config) *kontrol.Kontrol {
 	kon.Kite.HandleHTTP("/register", throttledHandler(
 		metricHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
 	))
+
+	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
+	kon.MachineAuthenticate = authenticateMachine
 
 	switch c.Storage {
 	case "etcd":
@@ -159,6 +171,30 @@ func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) ht
 		); err != nil {
 			// TODO(cihangir) should we log/return error?
 		}
+	}
+}
+
+// metricKiteHandler records the execution time of the given handler on
+// the provided metrics.
+func metricKiteHandler(m *metrics.DogStatsD, funcName string, h kite.HandlerFunc) kite.HandlerFunc {
+	if m == nil {
+		return h
+	}
+
+	return func(r *kite.Request) (interface{}, error) {
+		start := time.Now()
+		hRes, hErr := h(r)
+		total := time.Since(start)
+		if err := m.Count(
+			"kontrolHandlerTimes", // metric name
+			int64(total),          // count
+			// using funcName: for consistency with callCount
+			[]string{"funcName:" + funcName},
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
+		return hRes, hErr
 	}
 }
 
