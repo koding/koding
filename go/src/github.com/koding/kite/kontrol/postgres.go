@@ -262,7 +262,7 @@ func (p *Postgres) Upsert(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 		}
 	}()
 
-	res, err := tx.Exec(`UPDATE kite.kite SET url = $1, updated_at = (now() at time zone 'utc') 
+	res, err := tx.Exec(`UPDATE kite.kite SET url = $1, updated_at = (now() at time zone 'utc')
 	WHERE id = $2`, value.URL, kiteProt.ID)
 	if err != nil {
 		return err
@@ -312,7 +312,7 @@ func (p *Postgres) Update(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 
 	// TODO: also consider just using WHERE id = kiteProt.ID, see how it's
 	// performs out
-	_, err = p.DB.Exec(`UPDATE kite.kite SET url = $1, updated_at = (now() at time zone 'utc') 
+	_, err = p.DB.Exec(`UPDATE kite.kite SET url = $1, updated_at = (now() at time zone 'utc')
 	WHERE id = $2`,
 		value.URL, kiteProt.ID)
 
