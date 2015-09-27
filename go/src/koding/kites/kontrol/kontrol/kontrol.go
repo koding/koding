@@ -270,8 +270,8 @@ func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
 		}
 
 		if err := metrics.Count(
-			"callCount", // metric name
-			1,           // count
+			"kontrolCallCount", // metric name
+			1,                  // count
 			[]string{"funcName:" + r.Method}, // tags for metric call
 			1.0, // rate
 		); err != nil {
