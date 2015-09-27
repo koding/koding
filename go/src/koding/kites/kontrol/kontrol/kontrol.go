@@ -66,10 +66,13 @@ func New(c *Config) *kontrol.Kontrol {
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateMachine
 
-	kon.Kite.HandleHTTPFunc("/heartbeat", kon.HandleHeartbeat)
-	kon.Kite.HandleHTTP("/register",
-		metricAndThrottle(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
+	kon.Kite.HandleHTTPFunc("/heartbeat",
+		metricHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
 	)
+
+	kon.Kite.HandleHTTP("/register", throttledHandler(
+		metricHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
+	))
 
 	switch c.Storage {
 	case "etcd":
@@ -105,10 +108,7 @@ func New(c *Config) *kontrol.Kontrol {
 	return kon
 }
 
-// metricAndThrottle returns a handler that optionally logs metrics, and
-// throttles the given handler calls. The funcName string is used to
-// record the metric tag, and is required if a metric instance is provided
-func metricAndThrottle(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) http.Handler {
+func throttledHandler(h http.HandlerFunc) http.Handler {
 	// for now just use an inmemory storage, so per server. In the future we
 	// can change to store the state on a remote DB if we want to distribute
 	// the counts
@@ -136,26 +136,30 @@ func metricAndThrottle(m *metrics.DogStatsD, funcName string, h http.HandlerFunc
 		RateLimiter: rateLimiter,
 	}
 
-	// If there is no metrics, return the plain rate limited handler
+	return httpRateLimiter.RateLimit(http.HandlerFunc(h))
+}
+
+// metricHandler records the execution time of the given handler on
+// the provided metrics.
+func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) http.HandlerFunc {
 	if m == nil {
-		return httpRateLimiter.RateLimit(http.HandlerFunc(h))
+		return h
 	}
 
-	return httpRateLimiter.RateLimit(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-			h(w, r)
-			total := time.Since(start)
-			if err := m.Count(
-				"kontrolHandlerTimes", // metric name
-				int64(total),          // count
-				// using funcName: for consistency with callCount
-				[]string{"funcName:" + funcName},
-				1.0, // rate
-			); err != nil {
-				// TODO(cihangir) should we log/return error?
-			}
-		}))
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		h(w, r)
+		total := time.Since(start)
+		if err := m.Count(
+			"kontrolHandlerTimes", // metric name
+			int64(total),          // count
+			// using funcName: for consistency with callCount
+			[]string{"funcName:" + funcName},
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
+	}
 }
 
 // func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
