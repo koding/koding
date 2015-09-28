@@ -30,27 +30,32 @@ sidebarTextShadow()
   left            0
   fix()
 
-  > main > div:last-child
-    margin-bottom     60px
-
-  > .kdcustomscrollview
-    width              100%
-    kalc              height, 100% \- 88px
-    styleScrollBars()
+  &.team
+    > .kdcustomscrollview
+      kalc                  height, 100% \- 40px
 
   &.static > .kdcustomscrollview
-    kalc              height, 100% \- 28px
+    kalc                    height, 100% \- 28px
+
+  > main > div:last-child
+    margin-bottom           60px
+
+  > .kdcustomscrollview
+    width                   100%
+    kalc                    height, 100% \- 88px
+    styleScrollBars()
 
   .logo-wrapper
-    size              100% 40px
-    bg                color #262626
-    padding           10px 0 0 12px
+    bg                      color #262626
     borderBox()
-    a
-      margin          0
-      display         block
-      r-sprite        app logo-full
-      cursor          default
+    padding                 10px 0 0 12px
+    size                    100% 40px
+    rel()
+    > a
+      margin                0
+      display               block
+      r-sprite              app logo-full
+      cursor                default
 
   .more-items
     size              238px 20px
@@ -761,6 +766,40 @@ sidebarTextShadow()
 
     &:last-of-type
       margin-right    18px
+// MEGA HACK STARTS
+// this is to put sidebar footer next to the logo
+.logo-wrapper
+
+  .account-area
+    abs                     0px 0px 0 initial
+    size                    60px 100%
+    .avatar-area
+      padding               8px
+      .avatarview
+        abs                 8px 8px 0 0
+        float               none
+        margin-right        0
+        pointer()
+        vendor              filter, grayscale(1)
+        -webkit-transition  -webkit-filter .3s linear
+        transition          filter .3s linear
+
+        &:hover
+          vendor            filter, grayscale(0)
+
+      .acc-notification-icon
+        size                14px 14px
+        abs                 0px 1px initial initial
+        span.count
+          abs               0px 0px initial initial
+          border            2px solid #262626
+          rounded           8px
+
+      .acc-notification-icon span.icon
+      .acc-dropdown-icon
+      .profile
+        hidden()
+// MEGA HACK ENDS
 
 
 h3.sidebar-title

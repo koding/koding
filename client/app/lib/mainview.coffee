@@ -16,6 +16,7 @@ CustomLinkView = require './customlinkview'
 GlobalNotificationView = require './globalnotificationview'
 MainTabView = require './maintabview'
 TopNavigation = require './topnavigation'
+isKoding                = require './util/isKoding'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -130,16 +131,17 @@ module.exports = class MainView extends KDView
 
     @addSubView @aside = new KDCustomHTMLView
       tagName    : 'aside'
+      cssClass   : unless isKoding() then 'team' else ''
       domId      : 'main-sidebar'
       attributes :
         testpath : 'main-sidebar'
 
     entryPoint = globals.config.entryPoint
 
-    logoWrapper = new KDCustomHTMLView
-      cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
+    @logoWrapper = new KDCustomHTMLView
+      cssClass  : unless isKoding() then 'logo-wrapper group' else 'logo-wrapper'
 
-    logoWrapper.addSubView new KDCustomHTMLView
+    @logoWrapper.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
@@ -147,14 +149,14 @@ module.exports = class MainView extends KDView
         kd.utils.stopDOMEvent event
         trackEvent 'Koding Logo, click'
 
-    logoWrapper.addSubView closeHandle = new KDCustomHTMLView
+    @logoWrapper.addSubView closeHandle = new KDCustomHTMLView
       cssClass : "sidebar-close-handle"
       partial  : "<span class='icon'></span>"
       click    : @bound 'toggleSidebar'
 
     closeHandle.hide()
 
-    @aside.addSubView logoWrapper
+    @aside.addSubView @logoWrapper
 
     @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
@@ -225,22 +227,13 @@ module.exports = class MainView extends KDView
 
   createAccountArea:->
 
-    @aside.addSubView @accountArea = new KDCustomHTMLView
-      cssClass : 'account-area'
+    @accountArea = new KDCustomHTMLView { cssClass: 'account-area' }
 
-    if isLoggedIn()
-    then @createLoggedInAccountArea()
-    else
-      mc = kd.getSingleton "mainController"
-      mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
-
-
-  createLoggedInAccountArea:->
-
-    KDView.setElementClass global.document.body, 'add', 'logged-in'
+    if isKoding()
+    then @aside.addSubView @accountArea
+    else @logoWrapper.addSubView @accountArea
 
     @accountArea.destroySubViews()
-
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
 
 
