@@ -60,7 +60,7 @@
     abs()
     hidden()
     top                     0px
-    right                   20px
+    right                   5px
 
     button
       pointer()
@@ -97,10 +97,14 @@
             display         inline
             font-size       11px
             color           #CCC
+    &.MediaObject
+      article
+        padding-left        52px
 
     .ChatItem-contentBody
       article
         margin-top          7px
+        margin-right        24px
 
         p
           padding           0 0 2px
@@ -149,9 +153,15 @@
   .EmbedBox-container
     padding-left              52px
 
+.ChatItem.is-selected
+  .ChatListItem-itemBodyContainer
+    bg                      color, #FFFBD5
+
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
   padding                     0 0 0 86px !important
+  article
+    padding-left            0 !important
 
 
   .ChatItem-messageDate

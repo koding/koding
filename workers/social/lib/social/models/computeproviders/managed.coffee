@@ -106,6 +106,7 @@ module.exports = class Managed extends ProviderInterface
 
 
   updateMachine = (selector, fieldsToUpdate, callback) ->
+    JMachine    = require './machine'
     JMachine.one selector, (err, machine) ->
 
       if err? or not machine?

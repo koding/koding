@@ -8,4 +8,6 @@ module.exports =
   UP_ARROW    : 38
   RIGHT_ARROW : 39
   DOWN_ARROW  : 40
+  CTRL        : 17
+  CMD         : 91
 
