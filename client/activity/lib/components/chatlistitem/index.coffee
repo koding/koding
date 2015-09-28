@@ -42,6 +42,7 @@ module.exports = class ChatListItem extends React.Component
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
+    isSelected                    : no
 
   constructor: (props) ->
 
@@ -64,9 +65,12 @@ module.exports = class ChatListItem extends React.Component
     @getAccountInfo()
 
 
-  componentDidUpdate: ->
+  componentDidUpdate: (prevProps, prevState) ->
 
-    @focusInputOnEdit()  if @props.message.get '__isEditing'
+    isEditing  = @props.message.get '__isEditing'
+    wasEditing = prevProps.message.get '__isEditing'
+
+    @focusInputOnEdit()  if isEditing and not wasEditing
 
 
   getAccountInfo: ->
@@ -96,6 +100,7 @@ module.exports = class ChatListItem extends React.Component
       'ChatItem'      : yes
       'mouse-enter'   : @state.hover
       'is-menuOpen'   : @state.isMenuOpen
+      'is-selected'   : @props.isSelected
     onMouseEnter      : =>
       @setState hover : yes
     onMouseLeave      : =>
@@ -293,6 +298,7 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMediaObjectClassNames: -> classnames
+    'ChatListItem-itemBodyContainer': yes
     'hidden' : @props.message.get '__isEditing'
 
 

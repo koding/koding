@@ -84,6 +84,7 @@ module.exports = class ChatInputWidget extends React.Component
     textData  =
       currentWord : helpers.getCurrentWord textInput
       value       : value
+      position    : helpers.getCursorPosition textInput
 
     # Let every dropbox check entered text.
     # If any dropbox considers text as a query,
@@ -186,9 +187,9 @@ module.exports = class ChatInputWidget extends React.Component
 
   onSearchItemConfirmed: (message) ->
 
-    { initialChannelId, slug } = message
+    { initialChannelId, id } = message
     ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
-      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{slug}"
+      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
 
 
   handleEmojiButtonClick: (event) ->

@@ -147,7 +147,7 @@ module.exports           = class MainController extends KDController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor { debug: yes }
 
-    @registerFluxStores()
+    @registerFluxModules()
 
     shortcuts.addEventListeners()
 
@@ -428,7 +428,7 @@ module.exports           = class MainController extends KDController
         image.src = src
 
 
-  registerFluxStores: ->
+  registerFluxModules: ->
 
     fluxModules = [
       require 'activity/flux'
@@ -436,7 +436,7 @@ module.exports           = class MainController extends KDController
     ]
 
     fluxModules.forEach (fluxModule) ->
-      kd.singletons.reactor.registerStores fluxModule.stores
+      fluxModule.register kd.singletons.reactor
 
 
 # This function compares type of given account with global user

@@ -7,6 +7,7 @@ SearchDropboxItem    = require 'activity/components/searchdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
 
 
 module.exports = class SearchDropbox extends React.Component
@@ -58,10 +59,11 @@ module.exports = class SearchDropbox extends React.Component
 
   checkTextForQuery: (textData) ->
 
-    { value } = textData
+    { currentWord, value, position } = textData
 
     matchResult = value.match /\/s (.+)/
     return no  unless matchResult
+    return no  if isWithinCodeBlock value, position
 
     query = matchResult[1]
     { stateId } = @props

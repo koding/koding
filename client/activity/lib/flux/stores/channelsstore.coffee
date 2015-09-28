@@ -29,6 +29,11 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, @handleAddParticipantsToChannelBegin
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_FAIL, @handleAddParticipantsToChannelFail
 
+    @on actions.SET_CHANNEL_UNREAD_COUNT, @handleSetUnreadCount
+
+    @on actions.GLANCE_CHANNEL_BEGIN, @handleGlanceChannel
+    @on actions.GLANCE_CHANNEL_SUCCESS, @handleGlanceChannel
+
     @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 
@@ -58,6 +63,16 @@ module.exports = class ChannelsStore extends KodingFluxStore
       channels = channels.setIn [channelId, 'isParticipant'], no
 
     return channels
+
+
+  handleSetUnreadCount: (channels, { channelId, unreadCount }) ->
+
+    channels.setIn [channelId, 'unreadCount'], unreadCount
+
+
+  handleGlanceChannel: (channels, { channelId }) ->
+
+    channels.setIn [channelId, 'unreadCount'], 0
 
 
 initChannel = (channels, id) ->

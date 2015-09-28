@@ -95,7 +95,7 @@ reset = (props) ->
     message : messageActions } = ActivityFlux.actions
 
   if privateChannelId
-    channelActions.loadChannelById(privateChannelId).then ({ channel }) ->
+    channelActions.loadChannel('private', privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
       messageActions.loadMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview

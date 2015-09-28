@@ -517,6 +517,15 @@ module.exports = class SocialApiController extends KDController
 
       return callback null, item
 
+    # if type is either group or announcement and we can't find it it means
+    # that it's not loaded at all, and since we know that those are present in
+    # prefetchedData['followedChannels'] so load them and try to retrieve item
+    # after that again.
+    if not item and type in ['group', 'announcement']
+      @getPrefetchedData 'followedChannels'
+      item = @retrieveCachedItem type, id
+      return callback null, item  if item
+
     kallback = (err, data) =>
       return callback err  if err
 

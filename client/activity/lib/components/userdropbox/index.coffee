@@ -7,6 +7,7 @@ UserDropboxItem      = require 'activity/components/userdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
 
 
 module.exports = class UserDropbox extends React.Component
@@ -61,8 +62,9 @@ module.exports = class UserDropbox extends React.Component
 
   checkTextForQuery: (textData) ->
 
-    { currentWord } = textData
+    { currentWord, value, position } = textData
     return no  unless currentWord
+    return no  if isWithinCodeBlock value, position
 
     matchResult = currentWord.match /^@(.*)/
     return no  unless matchResult
