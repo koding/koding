@@ -328,6 +328,7 @@ utils.extend utils,
       pattern    = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
       logo.setCss 'background-image', pattern
       logo.setCss 'background-size', 'inherit'
+      logo.setClass 'hidden'
 
     return logo
 
