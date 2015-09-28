@@ -143,14 +143,14 @@ module.exports =
 
   openTeamSettingsModal: (browser) ->
 
-    avatarareaPopup      = '.avatararea-popup'
-    teamDashboard        = '.AppModal--admin'
-    teamSettingsLinkItem = "#{avatarareaPopup} .content a[href='/Admin']"
+    avatarareaPopup  = '.avatararea-popup.team'
+    teamDashboard    = '.AppModal--admin'
+    teamSettingsLink = "#{avatarareaPopup} .admin a"
 
     browser
       .waitForElementVisible  avatarareaPopup, 20000
-      .waitForElementVisible  teamSettingsLinkItem, 20000
-      .click                  teamSettingsLinkItem
+      .waitForElementVisible  teamSettingsLink, 20000
+      .click                  teamSettingsLink
       .waitForElementVisible  teamDashboard, 20000 # Assertion
       .pause                  200 # Wait for team settings
       .assert.containsText    teamDashboard, 'Team Settings' # Assertion
@@ -169,7 +169,7 @@ module.exports =
 
   clickTeamSettings: (browser) ->
 
-    helpers.openAvatarAreaModal(browser)
+    helpers.openAvatarAreaModal(browser, yes)
     @openTeamSettingsModal(browser)
 
 
