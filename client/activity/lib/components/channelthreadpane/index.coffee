@@ -8,6 +8,7 @@ ThreadSidebar        = require 'activity/components/threadsidebar'
 ThreadHeader         = require 'activity/components/threadheader'
 PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+PublicChatPane       = require 'activity/components/publicchatpane'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -57,14 +58,6 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderChat: ->
-    return null  unless @props.children.chat
-
-    React.cloneElement @props.children.chat,
-      thread   : @state.channelThread
-      messages : @state.channelThreadMessages
-
-
   renderSidebar: ->
     <ThreadSidebar
       channelThread={@state.channelThread}
@@ -81,7 +74,9 @@ module.exports = class ChannelThreadPane extends React.Component
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
-            {@renderChat()}
+            <PublicChatPane
+              thread={@state.channelThread}
+              messages={@state.channelThreadMessages} />
           </section>
         </div>
       </section>
