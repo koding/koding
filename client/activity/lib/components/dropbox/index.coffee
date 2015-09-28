@@ -27,11 +27,11 @@ module.exports = class Dropbox extends React.Component
     return  unless @props.visible
     return  unless @props.direction is 'up'
 
-    element = $ @getMainElement()
+    element = $ React.findDOMNode @refs.dropbox
     element.css top : -element.outerHeight()
 
 
-  getMainElement: -> React.findDOMNode @refs.dropbox
+  getContentElement: -> React.findDOMNode @refs.content
 
 
   handleMouseClick: (event) ->
@@ -57,13 +57,37 @@ module.exports = class Dropbox extends React.Component
     return classnames classes
 
 
+  renderSubtitle: ->
+
+    { subtitle } = @props
+    return  unless subtitle
+
+    <span className="Dropbox-subtitle">{ subtitle }</span>
+
+
+  renderHeader: ->
+
+    { title } = @props
+    return unless title
+
+    <div className='Dropbox-header'>
+      { title }
+      { @renderSubtitle() }
+    </div>
+
+
   render: ->
 
     className = @getClassName()
 
     <div className={className}>
-      <div className="Dropbox" ref="dropbox">
-        {@props.children}
+      <div className='Dropbox' ref='dropbox'>
+        { @renderHeader() }
+        <div className='Dropbox-scrollable' ref='content'>
+          <div className='Dropbox-content'>
+            { @props.children }
+          </div>
+        </div>
       </div>
     </div>
 

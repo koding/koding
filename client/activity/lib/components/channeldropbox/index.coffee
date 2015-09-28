@@ -108,15 +108,9 @@ module.exports = class ChannelDropbox extends React.Component
       visible      = { @isActive() }
       onOuterClick = { @bound 'close' }
       direction    = 'up'
+      title        = 'Channels'
       ref          = 'dropbox'
     >
-      <div className="Dropbox-innerContainer">
-        <div className="Dropbox-header">
-          Channels
-        </div>
-        <div className="ChannelDropbox-list">
-          {@renderList()}
-        </div>
-      </div>
+      {@renderList()}
     </Dropbox>
 

@@ -27,7 +27,7 @@ module.exports = DropboxWrapperMixin =
 
     return  if prevProps.selectedItem is selectedItem or not selectedItem
 
-    containerElement = @refs.dropbox.getMainElement()
+    containerElement = @refs.dropbox.getContentElement()
     itemElement      = React.findDOMNode @refs[@getItemKey selectedItem]
 
     scrollToTarget containerElement, itemElement
