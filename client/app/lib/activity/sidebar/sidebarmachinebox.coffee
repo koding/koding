@@ -43,7 +43,7 @@ module.exports = class SidebarMachineBox extends KDView
     computeController.on "stateChanged-#{@machine._id}", @bound 'handleStateChanged'
 
     if stack = computeController.findStackFromMachineId @machine._id
-      visibility = stack.config.sidebar?[@machine.uid]?.visibility
+      visibility = stack.config?.sidebar?[@machine.uid]?.visibility
 
     @setVisibility visibility ? on
 
