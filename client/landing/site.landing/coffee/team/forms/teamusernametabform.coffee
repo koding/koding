@@ -25,7 +25,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     username    = emailPrefix  if emailPrefix?.length > 3
 
     @username = new KDInputView
-      placeholder      : 'username'
+      placeholder      : 'pick a username'
       name             : 'username'
       defaultValue     : username  if username
       validate         :
@@ -52,7 +52,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     @password = new KDInputView
       type          : 'password'
       name          : 'password'
-      placeholder   : 'password'
+      placeholder   : 'set a password'
       validate      :
         event       : 'blur'
         container   : this
@@ -80,8 +80,14 @@ module.exports = class TeamUsernameTabForm extends KDFormView
           ps.unsetClass strength.join ' '
           ps.setClass strength[report.score]
 
+    @backLink = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'TeamsModal-button-link back'
+      partial  : '← <a href="/Team/Domain">Back</a>'
+
+
     @button = new KDButtonView
-      title      : 'Continue to environment setup'
+      title      : 'Done!'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
       type       : 'submit'
@@ -89,10 +95,12 @@ module.exports = class TeamUsernameTabForm extends KDFormView
 
   pistachio: ->
 
+    # <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
     """
     <div class='login-input-view'><span>Username</span>{{> @username}}</div>
     <div class='login-input-view'><span>Password</span>{{> @password}}{{> @passwordStrength}}</div>
     <p class='dim'></p>
-    <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
+    <div class='TeamsModal-button-separator'></div>
+    {{> @backLink}}
     {{> @button}}
     """

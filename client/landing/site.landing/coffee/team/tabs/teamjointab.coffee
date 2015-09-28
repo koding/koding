@@ -44,12 +44,6 @@ module.exports = class TeamJoinTab extends KDTabPaneView
       @alreadyMember
     }
 
-    @addSubView new KDCustomHTMLView
-      tagName : 'section'
-      partial : """
-        <p>Already a member? You can <a href="/">sign in here</a>.</p>
-        """
-
   joinTeam: (formData) ->
 
     { username } = formData

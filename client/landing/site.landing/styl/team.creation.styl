@@ -19,7 +19,7 @@ team.group.creation.styl
     margin-bottom           100px
 
     .login-input-view
-      margin                0 0 26px
+      margin                0 auto 26px
       rel()
       &.tr
         bg                  color transparent
@@ -28,17 +28,25 @@ team.group.creation.styl
         text-align          left
         bg                  color transparent
         borderBox()
+        &:focus
+          shadow            0 0 5px rgba(0,0,0,.1)
         &.validation-error
           border-color      #FF6B5D
 
       > span
-        bg                  color #EAEAEA
-        line-height         44px
+        abs                 3px 0 0 3px
+        color               #666
+        font-size           15px
+        font-weight         600
+        font-family         openSansFamily
+        line-height         54px
+        padding-left        25px
+        size                127px 54px
+        text-align          left
         z-index             4
+        borderBox()
 
     .TeamsModal-button
-      margin-top            52px
-      width                 90px
       float                 right
 
     .TeamsModal-linkButton.skip
@@ -60,25 +68,30 @@ team.group.creation.styl
         text-align          center
 
     .TeamsModal-button
-      margin-top            19px
-      margin-bottom         19px
+      margin                19px auto
       float                 none
-      width                 100%
+      width                 auto
 
   // DOMAIN TAB STYLE CUSTOMIZATIONS
 
   .kdtabpaneview.domain .TeamsModal
 
     .login-input-view
-
+      width                 100%
       input.kdinput
-        padding-right       149px
+        padding-right       130px
         text-align          right
 
       span
-        abs                 1px 1px 0 0
-        size                130px 42px
-        border-left         1px solid #DBDBDB
+        abs                 3px 3px 0 initial
+        color               #999
+        font-size           20px
+        font-weight         400
+        line-height         52px
+        padding-left        0
+
+    .TeamsModal-button
+      fr()
 
   // ALLOWED DOMAIN TAB STYLE CUSTOMIZATIONS
 
@@ -139,32 +152,37 @@ team.group.creation.styl
   .kdtabpaneview.username .TeamsModal
 
     > h5
-      width                 100%
+      width                 335px
+      &.full
+        width               100%
+
 
     .login-input-view
-      margin-bottom         5px
+      margin-bottom         11px
 
       input.kdinput
-        padding-left        115px
+        padding-left        127px
         text-align          left
 
-      > span
-        abs                 1px 0 0 1px
-        size                99px 42px
-        border-right        1px solid #DBDBDB
-
       .PasswordStrength
-        width               calc(100% - 100px)
-        abs                 0 0 0px 100px
+        rounded             3px
+        width               calc(100% - 134px)
+        abs                 0 0 4px 130px
         z-index             4
 
     p.dim
       margin                25px auto
 
     .TeamsModal-button
-      float                 none
-      width                 100%
       text-transform        none
+
+    .TeamsModal-button-link.back
+      a
+        color               #999
+      // &:before
+      //   content             ''
+      //   bg                  color red
+      //   size                20px 40px
 
   // STACKS TAB STYLE CUSTOMIZATIONS
 

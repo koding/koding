@@ -9,7 +9,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
     { @alreadyMember } = @getOptions()
 
     @button = new KDButtonView
-      title      : "Join #{KD.config.groupName}!"
+      title      : if @alreadyMember then "Join #{KD.config.groupName}" else "Sign up & join"
       style      : 'TeamsModal-button TeamsModal-button--green'
       type       : 'submit'
 
@@ -35,7 +35,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
 
     @email = new KDInputView
       name         : 'email'
-      placeholder  : 'Email address'
+      placeholder  : 'your email address'
       defaultValue : if @alreadyMember then username else email
       validate     :
         rules      :
@@ -43,6 +43,14 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
         messages   :
           email    : 'Please type a valid email address.'
 
+    loginLinkPartial = if @alreadyMember
+    then """Have an account? <a href="/">Log in now</a>"""
+    else """Don't have an account? <a href="/">Sign up now</a>"""
+
+    @loginLink = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'TeamsModal-button-link'
+      partial  : loginLinkPartial
 
 
   pistachio: ->
@@ -51,7 +59,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
       """
       <div class='login-input-view'><span>Password</span>{{> @password}}</div>
       <p class='dim'>Your email address indicates that you're already a Koding user, please type your password to proceed.<br><a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a></p>
-      <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
+      <div class='TeamsModal-button-separator'></div>
       {{> @button}}
       """
     else
@@ -59,7 +67,7 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
       <div class='login-input-view email'><span>Email</span>{{> @email}}</div>
       <div class='login-input-view'><span>Username</span>{{> @username}}</div>
       <div class='login-input-view password'><span>Password</span>{{> @password}}{{> @passwordStrength}}</div>
-      <p class='dim'>Your username is how you will appear to other people on your team. Pick something others will recognize.</p>
-      <div class='login-input-view tr'>{{> @checkbox}}{{> @label}}</div>
+      <div class='TeamsModal-button-separator'></div>
+      {{> @loginLink}}
       {{> @button}}
       """

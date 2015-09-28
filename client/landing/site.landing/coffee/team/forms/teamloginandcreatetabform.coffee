@@ -12,11 +12,22 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
 
     { username, email } = KD.utils.getTeamData().signup
 
-    @addCustomData 'username', email or username
+    @username = new KDInputView
+      placeholder      : 'email or username'
+      name             : 'username'
+      defaultValue     : email or username
+      validate         :
+        rules          :
+          required     : yes
+        messages       :
+          required     : 'Please enter a username.'
+        events         :
+          required     : 'blur'
+
     @password = new KDInputView
       type          : 'password'
       name          : 'password'
-      placeholder   : 'password'
+      placeholder   : 'your password'
       validate      :
         event       : 'blur'
         rules       :
@@ -24,8 +35,14 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
         messages    :
           required  : 'Please enter a password.'
 
+    @backLink = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'TeamsModal-button-link back'
+      partial  : '← <a href="/Team/Domain">Back</a>'
+
+
     @button = new KDButtonView
-      title      : 'Continue to environment setup'
+      title      : 'Sign in'
       style      : 'TeamsModal-button TeamsModal-button--green'
       attributes : testpath : 'register-button'
       type       : 'submit'
@@ -34,6 +51,9 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
   pistachio: ->
 
     """
+    <div class='login-input-view'><span>Username</span>{{> @username}}</div>
     <div class='login-input-view'><span>Password</span>{{> @password}}</div>
+    <div class='TeamsModal-button-separator'></div>
+    {{> @backLink}}
     {{> @button}}
     """
