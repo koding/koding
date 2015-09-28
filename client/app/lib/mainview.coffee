@@ -160,6 +160,9 @@ module.exports = class MainView extends KDView
 
     @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
+      # FW should be checked
+      # this works weird somehow - SY
+      # offscreenIndicatorClassName: if isKoding() then 'unread' else 'SidebarListItem-unreadCount'
 
     @sidebar.addSubView moreItemsAbove = new KDView
       cssClass  : 'more-items above hidden'
