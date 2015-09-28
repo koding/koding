@@ -297,6 +297,7 @@ module.exports = class ChatListItem extends React.Component
   onEditInputBackspace: (event) ->
 
     return yes  if @state.editInputValue
+
     kd.utils.stopDOMEvent event
     @setState isDeleting: yes
 
