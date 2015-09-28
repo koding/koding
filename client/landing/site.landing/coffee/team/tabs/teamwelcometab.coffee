@@ -52,6 +52,9 @@ module.exports = class TeamWelcomeTab extends KDTabPaneView
 
     @decorateTeamMembers()
 
+    # temp
+    @correct.click()
+
 
   decorateTeamMembers: ->
 
