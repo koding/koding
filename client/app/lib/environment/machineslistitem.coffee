@@ -58,7 +58,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
     { computeController } = kd.singletons
 
     stack = computeController.findStackFromMachineId machine._id
-    defaultValue = stack.config.sidebar?[machine.uid]?.visibility
+    defaultValue = stack.config?.sidebar?[machine.uid]?.visibility
     defaultValue ?= on
 
     @sidebarToggle  = new KodingSwitch
@@ -95,7 +95,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     stack = computeController.findStackFromMachineId machine._id
 
-    { config } = stack
+    { config } = stack.config ?= {}
 
     config.sidebar ?= {}
     config.sidebar[machine.uid] = { visibility: state }
