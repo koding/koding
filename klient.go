@@ -36,7 +36,6 @@ type KlientOptions struct {
 }
 
 func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
-
 	k := kite.New("klientctl", opts.Version)
 	c := k.NewClient(opts.Address)
 
