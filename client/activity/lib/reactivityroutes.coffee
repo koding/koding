@@ -5,6 +5,7 @@ PublicFeedPane           = require 'activity/components/publicfeedpane'
 ChannelThreadPane        = require 'activity/components/channelthreadpane'
 PostPane                 = require 'activity/components/postpane'
 PrivateMessageThreadPane = require 'activity/components/privatemessagethreadpane'
+CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
 
 ActivityAppComponent = require 'activity/components/appcomponent'
 
@@ -29,12 +30,12 @@ module.exports = newRoutes = [
   path: '/Channels'
   component: ActivityAppComponent
   childRoutes: [
-    path: ':channelName(/:postId)'
-    components:
-      content: ChannelThreadPane
-      modal: null
-  ,
     path: 'New'
+    components:
+      content: null
+      modal: CreatePublicChannelModal
+  ,
+    path: ':channelName(/:postId)'
     components:
       content: ChannelThreadPane
       modal: null
@@ -43,12 +44,12 @@ module.exports = newRoutes = [
   path: '/Messages'
   component: ActivityAppComponent
   childRoutes: [
-    path: ':privateChannelId'
+    path: 'New'
     components:
       content: PrivateMessageThreadPane
       modal: null
   ,
-    path: 'New'
+    path: ':privateChannelId'
     components:
       content: PrivateMessageThreadPane
       modal: null
