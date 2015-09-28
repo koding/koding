@@ -85,6 +85,9 @@ pre
       z-index               2
       visible()
 
+      .SidebarListItem
+        rel()
+
       .logo-wrapper
         a
           vendor            transition, width .3s ease
@@ -94,6 +97,7 @@ pre
           hidden()
 
       .count
+      .SidebarListItem-unreadCount
         vendor            transition, font-size .3s ease
 
       .sidebar-title
@@ -186,6 +190,7 @@ pre
             opacity         0
 
         .count
+        .SidebarListItem-unreadCount
           right             13px
           top               -2px
           size              8px 8px
@@ -193,6 +198,11 @@ pre
           font-size         0
           padding           0
           border            1px solid #393233
+
+        .SidebarListItem-unreadCount
+          right             -1px
+          top               1px
+          min-width         auto
 
         .account-area
           width             50px
