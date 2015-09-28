@@ -429,12 +429,18 @@ module.exports =
       .waitForElementVisible   '.AppModal--account', 20000
 
 
-  openAvatarAreaModal: (browser) ->
+  openAvatarAreaModal: (browser, forTeams) ->
 
-    browser
-      .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
-      .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
-      .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
+    if forTeams
+      browser
+        .waitForElementVisible   '.avatar-area .avatarview img', 20000
+        .click                   '.avatar-area .avatarview img'
+        .waitForElementVisible   '.avatararea-popup.team', 20000
+    else
+      browser
+        .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
+        .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
+        .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
   fillPaymentForm: (browser, planType = 'developer') ->
