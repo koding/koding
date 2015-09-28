@@ -47,7 +47,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
     delegate              = @getDelegate()
 
     @credentialStatus.link.on 'click', ->
-      delegate.tabView.showPaneByName 'Providers'
+      delegate.tabView.showPaneByName 'Credentials'
 
     @addSubView @editorView = new StackTemplateEditorView {
       delegate: this, content

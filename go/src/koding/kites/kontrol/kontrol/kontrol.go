@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"log"
 	"net/http"
 	"time"
@@ -15,8 +16,10 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
+	"github.com/koding/metrics"
 )
 
+const Name = "kontrol"
 const Version = "0.0.6"
 
 func New(c *Config) *kontrol.Kontrol {
@@ -46,11 +49,42 @@ func New(c *Config) *kontrol.Kontrol {
 		kiteConf.Port = c.Port
 	}
 
-	kon := kontrol.New(kiteConf, Version)
+	// TODO: Move the metrics instance somewhere meaningful
+	met := common.MustInitMetrics(Name)
+
+	kon := kontrol.NewWithoutHandlers(kiteConf, Version)
+
+	// track every kind of call
+	kon.Kite.PreHandleFunc(createTracker(met))
+
+	kon.Kite.HandleFunc("register",
+		metricKiteHandler(met, "HandleRegister", kon.HandleRegister),
+	)
+
+	kon.Kite.HandleFunc("registerMachine",
+		metricKiteHandler(met, "HandleMachine", kon.HandleMachine),
+	).DisableAuthentication()
+
+	kon.Kite.HandleFunc("getKites",
+		metricKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
+	)
+	kon.Kite.HandleFunc("getToken",
+		metricKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
+	)
+	kon.Kite.HandleFunc("getKey",
+		metricKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
+	)
+
+	kon.Kite.HandleHTTPFunc("/heartbeat",
+		metricHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
+	)
+
+	kon.Kite.HandleHTTP("/register", throttledHandler(
+		metricHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
+	))
+
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateMachine
-
-	kon.Kite.HandleHTTP("/register", throttledHandler(kon.HandleRegisterHTTP))
 
 	switch c.Storage {
 	case "etcd":
@@ -66,7 +100,12 @@ func New(c *Config) *kontrol.Kontrol {
 		p := kontrol.NewPostgres(postgresConf, kon.Kite.Log)
 		p.DB.SetMaxOpenConns(20)
 		kon.SetStorage(p)
-		kon.SetKeyPairStorage(p)
+
+		s := kontrol.NewCachedStorage(
+			p,
+			kontrol.NewMemKeyPairStorageTTL(time.Minute*5),
+		)
+		kon.SetKeyPairStorage(s)
 		// kon.MachineKeyPicker = newMachineKeyPicker(p)
 	default:
 		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
@@ -110,6 +149,63 @@ func throttledHandler(h http.HandlerFunc) http.Handler {
 	}
 
 	return httpRateLimiter.RateLimit(http.HandlerFunc(h))
+}
+
+// metricHandler records the execution time of the given handler on
+// the provided metrics.
+func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) http.HandlerFunc {
+	if m == nil {
+		return h
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		h(w, r)
+		if err := m.Gauge(
+			"kontrolHandlerTimes",      // metric name
+			float64(time.Since(start)), // count
+			// using funcName: for consistency with callCount
+			[]string{"funcName:" + funcName},
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
+
+		// Unlike metricKiteHandler, we have to call the count here because
+		// Kite's PreHandlerFunc doesn't exist for HTTP. So with plain HTTP
+		// methods, we have to increase the metric count manually in this func
+		if err := m.Count(
+			"kontrolCallCount", // metric name
+			1,                  // count
+			[]string{"funcName:" + r.Method}, // tags for metric call
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
+	}
+}
+
+// metricKiteHandler records the execution time of the given handler on
+// the provided metrics.
+func metricKiteHandler(m *metrics.DogStatsD, funcName string, h kite.HandlerFunc) kite.HandlerFunc {
+	if m == nil {
+		return h
+	}
+
+	return func(r *kite.Request) (interface{}, error) {
+		start := time.Now()
+		hRes, hErr := h(r)
+		if err := m.Gauge(
+			"kontrolHandlerTimes", // metric name
+			float64(time.Since(start)),
+			// using funcName: for consistency with callCount
+			[]string{"funcName:" + funcName},
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
+		return hRes, hErr
+	}
 }
 
 // func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
@@ -214,4 +310,24 @@ func authenticateMachine(authType string, r *kite.Request) error {
 
 	// everything is ok, succefully validated
 	return nil
+}
+
+func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		// if metrics not set, act as noop
+		if metrics == nil {
+			return true, nil
+		}
+
+		if err := metrics.Count(
+			"kontrolCallCount", // metric name
+			1,                  // count
+			[]string{"funcName:" + r.Method}, // tags for metric call
+			1.0, // rate
+		); err != nil {
+			// TODO(cihangir) should we log/return error?
+		}
+
+		return true, nil
+	}
 }

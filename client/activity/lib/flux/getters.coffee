@@ -77,7 +77,8 @@ channelThreads = [
   MessagesStore
   ChannelFlagsStore
   ChannelsStore
-  (threads, messages, channelFlags, channels) ->
+  ['ChannelMessageLoaderMarkersStore']
+  (threads, messages, channelFlags, channels, loaderMarkers) ->
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
@@ -87,6 +88,8 @@ channelThreads = [
         if message.has('__editedBody')
           message = message.set 'body', message.get '__editedBody'
           message = message.set 'payload', message.get '__editedPayload'
+        if loaderMarkers.hasIn [channelId, messageId]
+          message = message.set 'loaderMarkers', loaderMarkers.getIn [channelId, messageId]
         return message
       .sortBy (m) -> m.get 'createdAt'
 ]
@@ -136,7 +139,7 @@ selectedChannelThread = [
       messages.map (msg) ->
         msg.update 'body', (body) ->
           # don't show channel name on post body.
-          body.replace(///\##{channel.get('name')}///, '').trim()
+          body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
     return thread.set 'channel', channel
 ]
 

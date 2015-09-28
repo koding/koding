@@ -79,7 +79,7 @@ module.exports = class GroupsController extends KDController
       subscriptionData =
         group      : group.slug
         channelType: "group"
-        channelName: group.slug
+        channelName: "public"
         token      : channel.token
         channelId  : group.socialApiChannelId
 

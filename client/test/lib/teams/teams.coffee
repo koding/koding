@@ -80,7 +80,7 @@ module.exports =
     configurationSelector = "#{modalSelector} .configuration .server-configuration"
     inputSelector         = "#{configurationSelector} .Database"
     mysqlSelector         = "#{inputSelector} .mysql input.checkbox + label"
-    redisSelector         = "#{inputSelector} .redis input.checkbox + label"
+    postgresqlSelector    = "#{inputSelector} .postgresql input.checkbox + label"
     server1PageSelector   = "#{modalSelector} .code-setup .server-1"
     githubSelector        = "#{server1PageSelector} .box-wrapper .github"
     bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
@@ -106,10 +106,10 @@ module.exports =
       .waitForElementVisible  mysqlSelector, 20000
       .click                  mysqlSelector
       .pause                  2000 # wait for animation
-      .waitForElementVisible  redisSelector, 20000
-      .click                  redisSelector
+      .waitForElementVisible  postgresqlSelector, 20000
+      .click                  postgresqlSelector
       .waitForElementVisible  stackPreview, 20000
-      .assert.containsText    codeSelector, 'mysql redis'
+      .assert.containsText    codeSelector, 'mysql postgresql'
       .waitForElementVisible  nextButtonSelector, 20000
       .pause                  2000 # wait for animation
       .click                  nextButtonSelector

@@ -22,20 +22,25 @@ loadMessages = (channelId, options = {}) ->
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
 
-  dispatch LOAD_MESSAGES_BEGIN, { channelId }
+  dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
   _options = _.assign {}, options, { id: channelId }
 
-  socialapi.channel.fetchActivities _options, (err, messages) ->
-    if err
-      dispatch LOAD_MESSAGES_FAIL, { err, channelId }
-      return
+  new Promise (resolve, reject) ->
+    socialapi.channel.fetchActivities _options, (err, messages) ->
+      if err
+        dispatch LOAD_MESSAGES_FAIL, { err, channelId }
+        return reject err
 
-    dispatch LOAD_MESSAGES_SUCCESS, { channelId }
+      # clean load more markers of given messages first.
+      cleanLoaderMarkers channelId, messages
 
-    kd.singletons.reactor.batch ->
-      messages.forEach (message) ->
-        dispatchLoadMessageSuccess channelId, message
+      kd.singletons.reactor.batch ->
+        messages.forEach (message) ->
+          dispatchLoadMessageSuccess channelId, message
+        dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+
+      resolve { messages }
 
 
 ###*
@@ -59,7 +64,7 @@ dispatchLoadMessageSuccess = (channelId, message) ->
  * An empty promise resolver. It's being used for default cases that returns
  * promise to keep API consistent.
 ###
-emptyPromise = new Promise (resolve) -> resolve()
+emptyPromise = new Promise (resolve) -> resolve {}
 
 
 ###*
@@ -94,6 +99,68 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     # unmark this message for being fetched.
     loadComments message.id
     fetchingMap[messageId] = no
+
+    return { message }
+
+
+ensureMessage = (messageId) ->
+
+  { reactor } = kd.singletons
+
+  loadMessage(messageId).then ({ message }) ->
+    channelId = message.initialChannelId
+    loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+      loadMessages(channelId, { from: message.createdAt, sortOrder: 'ASC' }).then ({ messages }) ->
+        [..., last] = messages
+        return { message }  unless last
+
+        putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+
+        return { message }
+
+###*
+ * Action to put a loader marker to a certain position to a channel.
+ *
+ * @param {string} channelId
+ * @param {string} messageId
+ * @param {object} options
+ * @param {string} options.position - either 'before' or 'after'
+ * @param {boolean} options.autoload
+###
+putLoaderMarker = (channelId, messageId, options) ->
+
+  dispatch actionTypes.ACTIVATE_LOADER_MARKER,
+    channelId : channelId
+    messageId : messageId
+    position  : options.position
+    autoload  : options.autoload
+
+
+###*
+ * Removes a message's loader marker in a channel with given options.
+ *
+ * @param {string} channelId
+ * @param {string} messageId
+ * @param {object} options
+ * @param {string} options.position - either 'before' or after
+###
+removeLoaderMarker = (channelId, messageId, options) ->
+
+  dispatch actionTypes.DEACTIVATE_LOADER_MARKER, { channelId, messageId, position: options.position }
+
+
+###*
+ * Removes given messages' loader markers in that channel. Both 'before' and
+ * 'after' markers.
+ *
+ * @param {string} channelId
+ * @param {Array.<SocialMessage>} messages
+###
+cleanLoaderMarkers = (channelId, messages) ->
+
+  messages.forEach (message) ->
+    removeLoaderMarker channelId, message.id, { position: 'before' }
+    removeLoaderMarker channelId, message.id, { position: 'after' }
 
 
 ###*
@@ -276,6 +343,8 @@ editMessage = (messageId, body, payload) ->
 ###
 loadComments = (messageId, options = {}) ->
 
+  return
+
   options.limit ?= 25
   { socialapi } = kd.singletons
   { LOAD_COMMENTS_BEGIN
@@ -340,7 +409,11 @@ createComment = (messageId, body, payload) ->
 ###
 changeSelectedMessage = (messageId) ->
 
-  dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
+  unless messageId
+    return dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId: null }
+
+  ensureMessage(messageId).then ({ message }) ->
+    dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
 
 
 ###*
@@ -411,6 +484,7 @@ fetchEmbedPayload = (messageData, callback = kd.noop) ->
 module.exports = {
   loadMessages
   loadMessageBySlug
+  ensureMessage
   createMessage
   likeMessage
   unlikeMessage
@@ -422,5 +496,7 @@ module.exports = {
   setMessageEditMode
   unsetMessageEditMode
   changeSelectedMessageBySlug
+  putLoaderMarker
+  removeLoaderMarker
 }
 
