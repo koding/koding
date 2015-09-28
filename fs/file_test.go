@@ -52,7 +52,7 @@ func TestFile(tt *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(content), ShouldEqual, "Hello World!")
 
-			// reset to empty transport, so if this is called, it panics
+			// reset to empty transport, so if remote call is made, it panics
 			f.Transport = &fakeTransport{}
 
 			content, err = f.ReadAt(0)
@@ -188,7 +188,7 @@ func TestFile(tt *testing.T) {
 		Convey("It should not write specified content if not dirty", func() {
 			f := newFileWithTransport()
 
-			// reset to empty transport, so if this is called, it panics
+			// reset to empty transport, so if remote call is made, it panics
 			f.Transport = &fakeTransport{}
 			f.IsDirty = false
 

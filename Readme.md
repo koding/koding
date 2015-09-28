@@ -54,7 +54,7 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
         read operations
         klient authentication
         write operations
-    * BETA
+    * INTERNAL BETA - Done Sept 23
         move to new fuse library
         klient running on OSX
         klient auth
@@ -63,19 +63,28 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
           kd unmount
         kd install - dl os specific library
           use os specific init daemon to run binary
-        invalidate local cache on file changes in user VM
         klient ps - return list of user VMs to mount
+    * EXTERNAL BETA
+        support flags in cli, ie --remotepath=, --internalpath=
+        `kd update` after phone home to check for updates
+        `kd ssh` that opens ssh connection on VM
+        brew formula for installation
         deal with klient crashes
+          use state ie bolt.db or not state?
           unmount folders if it exists before starting
           handle mounting onto to previously mounted folder
+        invalidate local cache on file changes in user VM
+        invalidate file list on file list changes
+        battle test
+        how to deal with internet connection dropping?
+        `kd remount`
     * 1.0
         kd run - run entire command on VM, return results
-          shell hooks: fish, bash
+            shell hooks: fish, bash
         remaining FUSE operations
-          lock resources in VM on open or write operations
-        klient running on local with tunnel
+        lock resources in VM on open or write operations
         streaming support for kd run
-        windows support
+        klient running on local with tunnel
 
 ## Tests:
 

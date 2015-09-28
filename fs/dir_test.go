@@ -40,7 +40,7 @@ func TestDir(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(len(entries), ShouldEqual, 2)
 
-			// reset to empty transport, so if this is called, it panics
+			// reset to empty transport, so if remote call is made, it panics
 			d.Transport = &fakeTransport{}
 
 			entries, err = d.ReadEntries(0)
