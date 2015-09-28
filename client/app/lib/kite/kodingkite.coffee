@@ -12,7 +12,7 @@ module.exports = class KodingKite extends KDObject
 
   [DISCONNECTED, CONNECTED] = [0, 1]
   MAX_QUEUE_SIZE = 50
-
+  MAX_WAITING_TIME = 60000 # 1 min.
 
   init: ->
 
@@ -78,6 +78,8 @@ module.exports = class KodingKite extends KDObject
         KiteLogger.queued name, rpcMethod
 
         @waitForConnection _args
+
+          .timeout MAX_WAITING_TIME
 
           .then (args)=>
             KiteLogger.started name, rpcMethod
