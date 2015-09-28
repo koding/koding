@@ -1,5 +1,7 @@
-@import "lib/core.fonts"
-@import "lib/core.fn"
+@import 'lib/core.fonts'
+@import 'lib/core.fn'
+@import 'nib'
+@import 'nib/gradients'
 
 modalBackground             = #FAFAFA
 greenLink                   = #27ae60
@@ -25,7 +27,15 @@ team.styl
 
   &:before
     content                 ''
-    bg                      image, url('/a/site.landing/images/unsplash/4.jpg')
+    // bg                      image, url('/a/site.landing/images/unsplash/4.jpg')
+    background              radial-gradient(
+      62% 170%,
+      153% 160%,
+      #FEB1B1 0%,
+      #8E73CF 45%,
+      #705AD5 55%,
+      #172B60 100%
+    )
     size                    100% 100%
     top                     0
     left                    0
@@ -81,52 +91,78 @@ team.styl
 
 .TeamsModal
   width                     60%
-  padding                   31px 44px
-  max-width                 553px
+  padding                   24px
+  max-width                 530px
   margin                    110px auto 0
   bg                        color modalBackground
   top                       0px
   color                     #434343
   z-index                   3
-  rounded                   3px
+  rounded                   5px
   text-align                center
-  shadow                    inset 0 -102px 0 #EFEFEF
   borderBox()
   rel()
 
   .login-input-view
     bg                      color white
-    font-family             adelleSans
+    font-family             openSansFamily
+    width                   85%
 
   .login-input-view input.kdinput
-    rounded                 1px
-    border-color            #DBDBDB
-    font-family             adelleSans
-    font-size               14px
-    padding                 12px 14px 8px
-    margin                  0
+    rounded                 3px
+    border                  3px solid #DAD8D6
+    font-size               20px
+    padding                 12px 14px 14px
+    font-weight             400
+    &::-webkit-input-placeholder
+      font-weight           400
+      padding-top           3px
+
 
   > form
     margin                  30px auto 0
 
+  .TeamsModal-button-link
+    fl()
+    color                   #ADADAD
+    font-size               16px
+    font-weight             300
+    line-height             50px
+    margin-top              21px
+    letter-spacing          .01em
+    a
+      color                 #00b153
+      text-decoration       none
+      &:hover
+        text-decoration     underline
+
+
+  .TeamsModal-button-separator
+    bg                      color, #E8E2DE
+    margin-top              32px
+    size                    100% 1px
+
   .TeamsModal-button
-    margin-top              62px
+    margin-top              21px
 
   > h4
     color                   #00B153
-    font-family             adelle
-    font-size               26px
+    font-family             openSansFamily
+    font-size               24px
     line-height             50px
-    span
-      font-family           adelleSans
-      color                 #7F7F7F
+    font-weight             700
+    // span
+    //   color                 #7F7F7F
 
   > h5
-    font-family             adelleSans
-    font-size               20px
-    line-height             27px
+    font-family             openSansFamily
+    font-size               16px
+    line-height             25px
     width                   361px
     margin                  0 auto
+    color                   #909090
+    &.full
+      width                 100%
 
   p
     width                   361px
@@ -149,13 +185,23 @@ team.styl
     width                   425px
 
     > figure
-      margin                -67px auto 20px
-      size                  64px 64px
       bg                    color #ddd
       bg                    size cover
       bg                    position, 50% 50%
-      rounded               13px
       border                3px solid modalBackground
+      margin                -57px auto 20px
+      rounded               6px
+      size                  64px 64px
+
+    .login-form .login-input-view .placeholder-helper
+      color                 #ccc
+      font-size             20px
+      top                   19px
+      &.out
+        color               #999
+        font-size           12px
+        top                 -15px
+
 
   &.TeamsModal--banned
     > h5
@@ -171,12 +217,15 @@ team.styl
       font-style            italic
 
 .TeamsModal-button
-  font-family               adelleSans
-  rounded                   3px
-  size                      100% 40px
   border                    none
-  font-size                 14px
-  line-height               40px
+  font-family               openSansFamily
+  font-size                 16px
+  font-weight               600
+  letter-spacing            .04em
+  line-height               50px
+  padding                   0 30px
+  rounded                   3px
+  size                      auto 50px
   text-transform            uppercase
   &.compact
     height                  24px
@@ -200,9 +249,7 @@ team.styl
   height                    5px
   line-height               5px
   vertical-align            top
-  border                    1px solid #dbdbdb
   opacity                   .5
-  borderBox()
   rel()
   span
     size                    0% 100%
@@ -210,6 +257,7 @@ team.styl
     display                 inline-block
     vendor                  transition, all .177s ease
     abs                     0px 0 0 0px
+    rounded                 3px
 
   &.bad
   &.weak

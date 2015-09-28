@@ -36,15 +36,13 @@ module.exports = class TeamDomainTab extends KDTabPaneView
             new KDNotificationView { title : error }
 
 
-
-
   pistachio: ->
 
     """
     {{> @header }}
     <div class="TeamsModal TeamsModal--groupCreation">
-      <h4>Team URL</h4>
-      <h5>Pick something short, memorable for your team's web address.</h5>
+      <h4>Your team URL</h4>
+      <h5>Your team will use this to access your Koding Teams account.</h5>
       {{> @form}}
     </div>
     """

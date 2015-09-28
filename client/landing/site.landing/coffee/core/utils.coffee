@@ -328,6 +328,7 @@ utils.extend utils,
       pattern    = geoPattern.generate(group.slug, generator: 'plusSigns').toDataUrl()
       logo.setCss 'background-image', pattern
       logo.setCss 'background-size', 'inherit'
+      logo.setClass 'hidden'
 
     return logo
 
@@ -349,3 +350,8 @@ utils.extend utils,
 
 
   removeLastUsedProvider: -> delete window.localStorage.lastUsedProvider
+
+  createTeamTitlePhrase: (title) ->
+    # doesn't duplicate the word `the` if the title already has it in the beginning
+    # doesn't duplicate the word `team` if the title already has it at the end
+    "#{if title.search(/^the/i) < 0 then 'the' else ''} #{title} #{if title.search(/team$/i) < 0 then 'team' else ''}"

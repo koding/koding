@@ -21,6 +21,12 @@ module.exports = class TeamDomainTab extends KDFormView
       defaultValue : teamName  if teamName
       name         : 'slug'
 
+    @backLink = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'TeamsModal-button-link back'
+      partial  : '← <a href="/Teams">Back</a>'
+
+
     @button = new KDButtonView
       title      : 'NEXT'
       style      : 'TeamsModal-button TeamsModal-button--green'
@@ -30,8 +36,10 @@ module.exports = class TeamDomainTab extends KDFormView
 
   pistachio: ->
 
+    # <p class='dim'>Your team url can only contain lowercase letters numbers and dashes.</p>
     """
     <div class='login-input-view'>{{> @input}}<span>.koding.com</span></div>
-    <p class='dim'>Your team url can only contain lowercase letters numbers and dashes.</p>
+    <div class='TeamsModal-button-separator'></div>
+    {{> @backLink}}
     {{> @button}}
     """

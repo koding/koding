@@ -27,27 +27,26 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
       wrapper.addSubView new KDCustomHTMLView
         tagName : 'h4'
-        partial : "Almost there @#{profile.nickname}"
+        partial : "Sign in"
 
       wrapper.addSubView new KDCustomHTMLView
-        tagName  : 'p'
+        tagName  : 'h5'
         cssClass : 'full'
-        partial  : """
-          Your email indicates that you're already registered at Koding,
-          if you wish you can <a href='/Teams'>go back and continue</a> with a different email.
-        """
+        partial  : 'Almost there! Sign in with your Koding account.'
 
-      wrapper.addSubView @form = new TeamLoginAndCreateTabForm callback : @bound 'createTeam'
+      wrapper.addSubView @form = new TeamLoginAndCreateTabForm
+        callback : (formData) =>
+          @createTeam formData, no
 
     else
 
       wrapper.addSubView new KDCustomHTMLView
         tagName : 'h4'
-        partial : 'Create your account'
+        partial : 'Make an account'
 
       wrapper.addSubView new KDCustomHTMLView
         tagName : 'h5'
-        partial : '...pick a username that others will recognize.'
+        partial : 'Pick a username and a password to log in with. Or use your existing Koding login.'
 
       wrapper.addSubView @form = new TeamUsernameTabForm
         callback    : @bound 'createTeam'
@@ -65,7 +64,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     super
 
 
-  createTeam: (formData) ->
+  createTeam: (formData, checkUsername = yes) ->
 
     { username } = formData
 
@@ -74,24 +73,28 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     if username is slug
       return new KDNotificationView title : "Sorry, your group domain and your username can not be the same!"
 
-    KD.utils.usernameCheck username,
-      success : ->
-        KD.utils.storeNewTeamData 'username', formData
-        KD.utils.createTeam
-          success : (data)->
-            KD.utils.clearTeamData()
-            { protocol, host } = location
-            location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
+    success = ->
+      KD.utils.storeNewTeamData 'username', formData
+      KD.utils.createTeam
+        success : (data)->
+          KD.utils.clearTeamData()
+          { protocol, host } = location
+          location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
 
-      error   : ({responseJSON}) =>
+    unless checkUsername
+    then success()
+    else
+      KD.utils.usernameCheck username,
+        success : success
+        error   : ({responseJSON}) =>
 
-        unless responseJSON
-          return new KDNotificationView
-            title: 'Something went wrong'
+          unless responseJSON
+            return new KDNotificationView
+              title: 'Something went wrong'
 
-        {forbidden, kodingUser} = responseJSON
-        msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
-        else if kodingUser then "Sorry, \"#{username}\" is already taken!"
-        else                    "Sorry, there is a problem with \"#{username}\"!"
+          {forbidden, kodingUser} = responseJSON
+          msg = if forbidden then "Sorry, \"#{username}\" is forbidden to use!"
+          else if kodingUser then "Sorry, \"#{username}\" is already taken!"
+          else                    "Sorry, there is a problem with \"#{username}\"!"
 
-        new KDNotificationView title : msg
+          new KDNotificationView title : msg

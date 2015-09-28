@@ -1,5 +1,6 @@
 gulp       = require 'gulp'
 stylus     = require 'gulp-stylus'
+nib        = require 'nib'
 concat     = require 'gulp-concat'
 rename     = require 'gulp-rename'
 gulpif     = require 'gulp-if'
@@ -14,6 +15,7 @@ module.exports = ->
   gulp.src STYLES_PATH
     .pipe stylus
       compress  : yes
+      use       : nib()
       sourcemap : inline  : yes  if devMode
     .pipe concat 'main.css'
     .pipe rename 'main.css'
