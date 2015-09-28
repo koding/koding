@@ -12,7 +12,7 @@ fi
 # it may be in one upper folder - if you are in go folder
 # it may be in root folder if you are in socialapi folder
 version=$(git rev-parse HEAD || cat ./VERSION || cat ../VERSION || cat ../../../VERSION || echo "0")
-ldflags="-X koding/artifact.VERSION ${version:0:8}"
+ldflags="-X koding/artifact.VERSION=${version:0:8}"
 
 services=(
   koding/broker
@@ -91,7 +91,7 @@ terraformservices=(
 
 )
 
-tldflags="-X main.GitCommit ${version:0:8}"
+tldflags="-X main.GitCommit=${version:0:8}"
 `which go` install -v -ldflags "$tldflags"  "${terraformservices[@]}"
 
 for i in "${terraformservices[@]}"
