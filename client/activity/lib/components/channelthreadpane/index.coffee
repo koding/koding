@@ -72,18 +72,9 @@ module.exports = class ChannelThreadPane extends React.Component
       channelParticipants={@state.channelParticipants}/>
 
 
-  getClassName: ->
-
-    classnames(
-      ChannelThreadPane: yes
-      'is-withFeed': @props.children.feed
-      'is-withChat': @props.children.chat
-      'is-withPost': @props.children.post
-    )
-
 
   render: ->
-    <div className={@getClassName()}>
+    <div className="ChannelThreadPane is-withChat">
       <section className="ChannelThreadPane-content">
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
