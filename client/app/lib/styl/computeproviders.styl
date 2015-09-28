@@ -480,17 +480,20 @@ computeproviders.styl
       box-sizing            border-box
       border-top            1px solid #CCC
 
-      .title
-        padding-top         2px
-        padding-left        11px
-        fl()
+      &:hover
+        cursor              pointer
 
-      &:before
-        size                17px, 17px
+      .arrow
+        fl()
+        margin              8px 5px 0 0
+        border-top          6px solid #969696
+        border-right        4px solid transparent
+        border-left         4px solid transparent
+
+      .title
         display             inline-block
-        float               left
-        border              4px solid #019F40
-        border-radius       5px
+        height              22px
+        vertical-align      middle
 
     .warning-icon
       r-sprite              app, '25-warning'
@@ -504,6 +507,36 @@ computeproviders.styl
       r-sprite              app, '16-info'
       margin                17px 12px
       fl()
+
+      &:hover
+        cursor              pointer
+
+    &.collapsed
+
+      margin-bottom         -1px
+
+      &:last-child
+        margin-bottom       0
+
+      .arrow
+        vendor              transform, rotate(-90deg)
+
+      .machines-list
+      .footer
+        display             none
+
+    .update-notification
+      text-align            center
+      padding               21px 0
+      background-color      #bff4d0
+
+      .description
+        display             inline-block
+        padding             4px
+        margin-right        15px
+
+        a
+          color             black
 
   .machines-item
     height                  66px
@@ -633,6 +666,25 @@ computeproviders.styl
     height                  calc(100% \- 200px)
     border-bottom           1px solid #EEE
     overflow                hidden
+
+  .credential-creation-intro
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
+    margin                  20px auto 40px
+    a
+      color                 $gray-4
+    h2
+      font-weight           $fw-bold
+      color                 $gray-4
+      margin                0 0 10px
+    ol
+      list-style            decimal inside none
+      li
+        color               $gray-12
+        line-height         24px
+    p
+      margin                4px 0
+
 
 .kdlistview
   .no-item-found
@@ -871,3 +923,26 @@ computeproviders.styl
 
   .kdmodal-inner > .kdbutton
     abs                     15px, 25px
+
+
+.kdmodal.stack-template-content
+
+  .kdmodal-title
+    margin-bottom           0 !important
+
+  .kdmodal-content
+    margin-top              10px !important
+    overflow                hidden
+
+  .kdscrollview
+    max-height              416px
+
+  styleScrollBars           rgba(0, 0, 0, .15)
+
+  pre
+    padding                 0
+    border                  1px solid #eaeaea
+    rounded                 2px
+
+    code
+      border                none

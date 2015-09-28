@@ -38,6 +38,10 @@ textarea
 button
   font-family       openSansFamily
 
+input[type=checkbox]:checked + label:after
+  border-right              3px solid #00B057 !important
+  border-top                3px solid #00B057 !important
+
 pre
   font-family       monoFamily
 
@@ -1101,13 +1105,14 @@ paymentGrayLighter  = #f8f8f8
     rounded                 0 0 3px 3px
 
 
-.kdmodal.env-error-modal
+.kdmodal.compute-error-modal
+  .kdtabhandle
+    max-width               250px !important
+
+.kdmodal.env-ide-error-modal
   left                      50% !important
   margin-left               -172px
   overflow                  scroll
-
-  .kdtabhandle
-    max-width               250px !important
 
 
 .kdmodal.env-machine-state

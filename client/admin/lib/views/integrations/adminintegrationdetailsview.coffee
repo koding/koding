@@ -182,8 +182,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     integrationHelpers.update options, (err) =>
       return kd.warn err  if err
-
       @settingsForm.buttons.Save.hideLoader()
+      new kd.NotificationView title : 'Integration is successfully saved!'
+      kd.singletons.router.handleRoute '/Admin/Integrations'
 
 
   regenerateToken: ->
@@ -266,6 +267,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
           cssClass      : if data.authorizable then 'hidden'
+          click         : -> @selectAll()
           nextElement   :
             regenerate  :
               itemClass : KDCustomHTMLView

@@ -76,15 +76,20 @@ channelThreads = [
   ChannelThreadsStore
   MessagesStore
   ChannelFlagsStore
-  (threads, messages, channelFlags) ->
+  ChannelsStore
+  ['ChannelMessageLoaderMarkersStore']
+  (threads, messages, channelFlags, channels, loaderMarkers) ->
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
+      thread = thread.set 'channel', channels.get channelId
       thread.update 'messages', (msgs) -> msgs.map (messageId) ->
         message = messages.get messageId
         if message.has('__editedBody')
           message = message.set 'body', message.get '__editedBody'
           message = message.set 'payload', message.get '__editedPayload'
+        if loaderMarkers.hasIn [channelId, messageId]
+          message = message.set 'loaderMarkers', loaderMarkers.getIn [channelId, messageId]
         return message
       .sortBy (m) -> m.get 'createdAt'
 ]
@@ -134,7 +139,7 @@ selectedChannelThread = [
       messages.map (msg) ->
         msg.update 'body', (body) ->
           # don't show channel name on post body.
-          body.replace ///\##{channel.get('name')}///, ''
+          body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
     return thread.set 'channel', channel
 ]
 
@@ -147,6 +152,30 @@ followedPublicChannelThreads = [
     channels.map (channel) ->
       thread = threads.get channel.get('id')
       return thread.set 'channel', channel
+]
+
+# Returns all public channels with followed/unfollowed filters
+filteredPublicChannels = [
+  channelThreads
+  followedPublicChannels
+  (threads, channels) ->
+    {
+      followed: channels.map (channel) -> threads.get channel.get('id')
+      unfollowed: threads.filterNot (thread) ->
+        channels.includes thread.getIn ['channel', 'id']
+    }
+]
+
+# Returns all private channels with followed/unfollowed filters
+filteredPrivateChannels = [
+  channelThreads
+  followedPrivateChannels
+  (threads, channels) ->
+    {
+      followed: channels.map (channel) -> threads.get channel.get('id')
+      unfollowed: threads.filterNot (thread) ->
+        channels.includes thread.getIn ['channel', 'id']
+    }
 ]
 
 # Returns followed private channel threads mapped with relevant channel
@@ -262,10 +291,11 @@ channelParticipantsInputUsers = [
   selectedChannelParticipants
   channelParticipantsSearchQuery
   (users, participants, query) ->
-    return participants?.toList() ? immutable.List()  unless query
+    return immutable.List()  unless query
 
     query = query.toLowerCase()
     users.toList().filter (user) ->
+      return  if participants.get user.get '_id'
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
@@ -288,6 +318,8 @@ channelParticipantsSelectedItem = [
 module.exports = {
   allChannels
   followedPublicChannelThreads
+  filteredPublicChannels
+  filteredPrivateChannels
   followedPrivateChannelThreads
   popularChannels
 

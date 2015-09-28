@@ -1,8 +1,8 @@
-$                    = require 'jquery'
-React                = require 'kd-react'
-emojify              = require 'emojify.js'
-formatContent        = require 'app/util/formatContent'
-immutable            = require 'immutable'
+$             = require 'jquery'
+React         = require 'kd-react'
+emojify       = require 'emojify.js'
+formatContent = require 'app/util/formatReactivityContent'
+immutable     = require 'immutable'
 
 
 module.exports = class MessageBody extends React.Component
@@ -11,10 +11,19 @@ module.exports = class MessageBody extends React.Component
     message: immutable.Map()
 
 
+  renderEmojis: ->
+
+    contentElement = React.findDOMNode @content
+    emojify.run contentElement  if contentElement
+
+
   contentDidMount: (content) ->
 
-    contentElement = React.findDOMNode content
-    emojify.run contentElement  if contentElement
+    @content = content
+    @renderEmojis()
+
+
+  componentDidUpdate: -> @renderEmojis()
 
 
   render: ->
@@ -26,5 +35,4 @@ module.exports = class MessageBody extends React.Component
         className="MessageBody"
         ref={@bound 'contentDidMount'}
         dangerouslySetInnerHTML={__html: content} />
-
 

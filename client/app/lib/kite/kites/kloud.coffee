@@ -186,6 +186,20 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
           KiteLogger.failed 'kloud', 'info'
 
+        # If kite somehow unregistered from Kontrol and Kloud is failing
+        # to find it in Kontrol registry we are getting this `not found`
+        # at this point we can assume that the machine is Stopped. But on
+        # the other hand, Kloud should also mark this machine as Stopped if
+        # it couldn't find it in Kontrol registry ~ GG FIXME: FA
+        else if err.message is 'not found' and currentState is Machine.State.Running
+
+          @resolveRequestingInfos machineId, State: Machine.State.Stopped
+          KiteLogger.failed 'kloud', 'info'
+
+          kd.warn '[kloud:info] failed, Kite not found in Kontrol registry!', err
+
+          return
+
         kd.warn '[kloud:info] failed, sending current state back:', { currentState, err }
         @resolveRequestingInfos machineId, State: currentState
 

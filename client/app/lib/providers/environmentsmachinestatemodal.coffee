@@ -1,5 +1,4 @@
 kd                      = require 'kd'
-hljs                    = require 'highlight.js'
 Encoder                 = require 'htmlencode'
 
 KDButtonView            = kd.ButtonView
@@ -29,8 +28,6 @@ trackEvent              = require 'app/util/trackEvent'
 applyMarkdown           = require 'app/util/applyMarkdown'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-
-{ jsonToYaml }          = require 'admin/views/stacks/yamlutils'
 
 
 module.exports = class EnvironmentsMachineStateModal extends BaseModalView
@@ -99,7 +96,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       sendDataDogEvent 'MachineTurnedOn', tags: {label: machine.label}
 
 
-  triggerEventTimer: (percentage)->
+  triggerEventTimer: (percentage) ->
 
     if percentage isnt @_lastPercentage
       clearTimeout @eventTimer
@@ -171,15 +168,15 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @createStatusOutput event
 
 
-  switchToIDEIfNeeded: (status = @state)->
+  switchToIDEIfNeeded: (status = @state, initial = no) ->
 
     return no  unless status is Running
-    @prepareIDE()
+    @prepareIDE initial
     @destroy()
     return yes
 
 
-  updatePercentage: (percentage)->
+  updatePercentage: (percentage) ->
 
     @triggerEventTimer percentage
 
@@ -192,11 +189,11 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @label?.updatePartial @getStateLabel()
 
 
-  completeCurrentProcess: (status)->
+  completeCurrentProcess: (status) ->
 
     @clearEventTimer()
 
-    return  if @switchToIDEIfNeeded status
+    return  if @switchToIDEIfNeeded status, initial = !isKoding()
 
     @progressBar?.updateBar 100
     @progressBar?.show()
@@ -304,7 +301,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
         return  unless event.target.tagName is 'CITE'
 
-        remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+        remote.api.JUser.verifyByPin resendIfExists: yes, (err) =>
 
           unless showError err
 
@@ -320,7 +317,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @container.addSubView @button
 
 
-  buildExpiredView: (subscription, nextState)->
+  buildExpiredView: (subscription, nextState) ->
 
     plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
 
@@ -329,13 +326,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     if nextState is "downgrade"
 
       @showBusy "Downgrading..."
-      @downgradePlan (err)=>
+      @downgradePlan (err) =>
 
         if err?
           kd.utils.wait 10000, =>
             @buildExpiredView subscription, "downgrade"
         else
-          ComputeHelpers.handleNewMachineRequest provider: 'koding', (err)->
+          ComputeHelpers.handleNewMachineRequest provider: 'koding', (err) ->
             global.location.reload yes
 
       return
@@ -357,7 +354,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if destroyVMs
 
           @showBusy "Deleting your VM(s)..."
-          ComputeHelpers.destroyExistingResources yes, (err)=>
+          ComputeHelpers.destroyExistingResources yes, (err) =>
             @buildExpiredView subscription, "downgrade"
 
         else
@@ -556,7 +553,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         { groupsController } = kd.singletons
         return  unless groupsController.currentGroupHasStack()
 
-    else if not isKoding() and @stack
+    else if not isKoding() and @stack and @state is NotInitialized
       title    = 'Build Stack'
       callback = 'turnOnMachine'
     else
@@ -584,7 +581,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @container.addSubView @loader
 
 
-  createProgressBar: (initial = 10)->
+  createProgressBar: (initial = 10) ->
 
     @progressBar = new KDProgressBarView { initial }
 
@@ -609,7 +606,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     return  unless @state is Stopped
 
     computeController = kd.getSingleton 'computeController'
-    computeController.fetchUserPlan (plan)=>
+    computeController.fetchUserPlan (plan) =>
 
       reason  = @machine.status.reason
       message = null
@@ -726,7 +723,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       methodName = action ? 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{target._id}", ({err})=>
+    computeController.once "error-#{target._id}", ({err}) =>
 
       unless err?.code is ComputeController.Error.NotVerified
         @lastKnownError = err
@@ -739,7 +736,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @buildViews()
 
 
-  prepareIDE: ->
+  prepareIDE: (initial) ->
 
     {appManager, computeController} = kd.singletons
 
@@ -759,6 +756,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
         @emit 'IDEBecameReady', machine
 
+        computeController.showBuildLogs machine  if initial
+
 
   verifyAccount: ->
 
@@ -766,7 +765,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     unless code then return new KDNotificationView
       title: "Please enter a code"
 
-    remote.api.JUser.verifyByPin pin: code, (err)=>
+    remote.api.JUser.verifyByPin pin: code, (err) =>
 
       @pinIsValid?.destroy()
 
@@ -785,13 +784,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
           label    : 'completedAccountVerification'
 
 
-  downgradePlan: (callback)->
+  downgradePlan: (callback) ->
 
     me = whoami()
-    me.fetchEmail (err, email)->
+    me.fetchEmail (err, email) ->
 
       kd.singletons.paymentController
-        .subscribe "token", "free", "month", { email }, (err, resp)->
+        .subscribe "token", "free", "month", { email }, (err, resp) ->
           return callback err  if err?
           callback null
 
@@ -837,45 +836,12 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @readmeView.show()
 
 
-  # TODO Move this into it's own class and just create it from here ~ GG
   showErrorDetails: (errorMessage) ->
 
-    modal = new kd.ModalView
-      title          : "An error occured while building #{@stack.title}"
-      subtitle       : ""
-      draggable      : no
-      height         : 600
-      cssClass       : 'AppModal AppModal--admin env-error-modal has-markdown'
-      overlay        : yes
-      overlayOptions :
-        cssClass     : 'second-overlay'
+    kd.singletons.computeController.ui.showComputeError
+      title        : "An error occured while building #{@stack.title}"
+      stack        : @stack
+      cssClass     : 'env-ide-error-modal'
+      errorMessage : errorMessage ? @lastErrorMessage
 
-    modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
-
-    if errorMessage
-      content = (hljs.highlight 'profile', errorMessage).value
-      @lastErrorContent = content
-    else
-      content = @lastErrorContent
-
-    tabView.addPane new kd.TabPaneView
-      name       : 'Error Details'
-      view       : new kd.CustomHTMLView
-        partial  : "<pre><code>#{content}</code></pre>"
-
-    # Fetch stack template, coming from remote.cacheable ~ GG
-    { computeController } = kd.singletons
-    computeController.fetchBaseStackTemplate @stack, (err, template) ->
-
-      return kd.warn err  if err
-
-      {content} = template.template
-      content   = Encoder.htmlDecode content or ''
-      content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
-
-      tabView.addPane new kd.TabPaneView
-        name       : 'Stack Template'
-        view       : new kd.CustomHTMLView
-          partial  : "<pre><code>#{content}</code></pre>"
-
-      tabView.showPaneByIndex 0
+    @lastErrorMessage = errorMessage  if errorMessage

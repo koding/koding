@@ -33,10 +33,10 @@ module.exports = globals.config.providers =
                              ]
     credentialFields       :
       access_key           :
-        label              : "Access Key"
+        label              : "Access Key ID"
         placeholder        : "aws access key"
       secret_key           :
-        label              : "Secret Key"
+        label              : "Secret Access Key"
         placeholder        : "aws secret key"
       region               :
         label              : 'Region'

@@ -1,31 +1,28 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-TextArea        = require 'react-autosize-textarea'
-EmojiDropbox    = require 'activity/components/emojidropbox'
-ChannelDropbox  = require 'activity/components/channeldropbox'
-UserDropbox     = require 'activity/components/userdropbox'
-EmojiSelector   = require 'activity/components/emojiselector'
-SearchDropbox   = require 'activity/components/searchdropbox'
-ActivityFlux    = require 'activity/flux'
-ChatInputFlux   = require 'activity/flux/chatinput'
-KDReactorMixin  = require 'app/flux/reactormixin'
-formatEmojiName = require 'activity/util/formatEmojiName'
-KeyboardKeys    = require 'app/util/keyboardKeys'
-Link            = require 'app/components/common/link'
-whoami          = require 'app/util/whoami'
-helpers         = require './helpers'
-groupifyLink    = require 'app/util/groupifyLink'
+kd                   = require 'kd'
+React                = require 'kd-react'
+TextArea             = require 'react-autosize-textarea'
+EmojiDropbox         = require 'activity/components/emojidropbox'
+ChannelDropbox       = require 'activity/components/channeldropbox'
+UserDropbox          = require 'activity/components/userdropbox'
+EmojiSelector        = require 'activity/components/emojiselector'
+SearchDropbox        = require 'activity/components/searchdropbox'
+ActivityFlux         = require 'activity/flux'
+ChatInputFlux        = require 'activity/flux/chatinput'
+KDReactorMixin       = require 'app/flux/reactormixin'
+formatEmojiName      = require 'activity/util/formatEmojiName'
+KeyboardKeys         = require 'app/util/keyboardKeys'
+Link                 = require 'app/components/common/link'
+whoami               = require 'app/util/whoami'
+helpers              = require './helpers'
+focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 
 
 module.exports = class ChatInputWidget extends React.Component
 
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
-  constructor: (props) ->
-
-    super props
-
-    @state = { value : '' }
+  @defaultProps =
+    enableSearch : no
 
 
   getDataBindings: ->
@@ -33,6 +30,7 @@ module.exports = class ChatInputWidget extends React.Component
     { getters } = ChatInputFlux
 
     return {
+      value                          : getters.currentValue
       filteredEmojiList              : getters.filteredEmojiList @stateId
       filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
@@ -58,25 +56,42 @@ module.exports = class ChatInputWidget extends React.Component
     }
 
 
+  componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
+
+
   getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox ]
+
+
+  setValue: (value) ->
+
+    channelId = @props.thread.get 'channelId'
+    ChatInputFlux.actions.value.setValue channelId, value
+
+
+  resetValue: ->
+
+    channelId = @props.thread.get 'channelId'
+    ChatInputFlux.actions.value.resetValue channelId
 
 
   onChange: (event) ->
 
     { value } = event.target
-    @setState { value }
+
+    @setValue value
 
     textInput = React.findDOMNode @refs.textInput
     textData  =
       currentWord : helpers.getCurrentWord textInput
       value       : value
+      position    : helpers.getCursorPosition textInput
 
     # Let every dropbox check entered text.
     # If any dropbox considers text as a query,
     # stop checking for others and close active dropbox
     # if it exists
     queryIsSet = no
-    for dropbox in @getDropboxes()
+    for dropbox in @getDropboxes() when dropbox?
       unless queryIsSet
         queryIsSet = dropbox.checkTextForQuery textData
         continue  if queryIsSet
@@ -103,7 +118,7 @@ module.exports = class ChatInputWidget extends React.Component
     kd.utils.stopDOMEvent event
 
     isDropboxEnter = no
-    for dropbox in @getDropboxes()
+    for dropbox in @getDropboxes() when dropbox?
       continue  unless dropbox.isActive()
 
       dropbox.confirmSelectedItem()
@@ -111,18 +126,19 @@ module.exports = class ChatInputWidget extends React.Component
       break
 
     unless isDropboxEnter
-      @props.onSubmit? { value: @state.value }
-      @setState { value: '' }
+      value = @state.value.trim()
+      @props.onSubmit? { value }
+      @resetValue()
 
 
   onEsc: (event) ->
 
-    dropbox.close()  for dropbox in @getDropboxes()
+    dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
   onNextPosition: (event, keyInfo) ->
 
-    for dropbox in @getDropboxes()
+    for dropbox in @getDropboxes() when dropbox?
       continue  unless dropbox.isActive()
 
       stopEvent = dropbox.moveToNextPosition keyInfo
@@ -133,7 +149,7 @@ module.exports = class ChatInputWidget extends React.Component
   onPrevPosition: (event, keyInfo) ->
 
     if event.target.value
-      for dropbox in @getDropboxes()
+      for dropbox in @getDropboxes() when dropbox?
         continue  unless dropbox.isActive()
 
         stopEvent = dropbox.moveToPrevPosition keyInfo
@@ -152,7 +168,7 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = React.findDOMNode @refs.textInput
 
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
-    @setState { value }
+    @setValue value
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
@@ -163,7 +179,7 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = @state
 
     newValue = value + item
-    @setState { value : newValue }
+    @setValue newValue
 
     textInput = React.findDOMNode this.refs.textInput
     textInput.focus()
@@ -171,9 +187,9 @@ module.exports = class ChatInputWidget extends React.Component
 
   onSearchItemConfirmed: (message) ->
 
-    { initialChannelId, slug } = message
+    { initialChannelId, id } = message
     ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
-      kd.singletons.router.handleRoute groupifyLink "/Channels/#{channel.name}/#{slug}"
+      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
 
 
   handleEmojiButtonClick: (event) ->
@@ -188,7 +204,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     if value.indexOf(searchMarker) is -1
       value = searchMarker + value
-      @setState { value }
+      @setValue value
 
     textInput = React.findDOMNode @refs.textInput
     textInput.focus()
@@ -258,6 +274,9 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderSearchDropbox: ->
 
+    { enableSearch } = @props
+    return  unless enableSearch
+
     { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
 
     <SearchDropbox
@@ -269,6 +288,17 @@ module.exports = class ChatInputWidget extends React.Component
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropbox'
       stateId         = { @stateId }
+    />
+
+
+  renderSearchButton: ->
+
+    { enableSearch } = @props
+    return  unless enableSearch
+
+    <Link
+      className = "ChatInputWidget-searchButton"
+      onClick   = { @bound 'handleSearchButtonClick' }
     />
 
 
@@ -286,10 +316,7 @@ module.exports = class ChatInputWidget extends React.Component
         onKeyDown = { @bound 'onKeyDown' }
         ref       = 'textInput'
       />
-      <Link
-        className = "ChatInputWidget-searchButton"
-        onClick   = { @bound 'handleSearchButtonClick' }
-      />
+      { @renderSearchButton() }
       <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }

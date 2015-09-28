@@ -24,7 +24,7 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-MessageLink           = require 'activity/components/messagelink'
+MessageLink           = require 'activity/components/publicchannelmessagelink'
 EmbedBox              = require 'activity/components/embedbox'
 
 module.exports = class ChatListItem extends React.Component
@@ -36,11 +36,13 @@ module.exports = class ChatListItem extends React.Component
     account                       : null
     isDeleting                    : no
     isMenuOpen                    : no
+    channelName                   : ''
     editInputValue                : ''
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
+    isSelected                    : no
 
   constructor: (props) ->
 
@@ -63,9 +65,12 @@ module.exports = class ChatListItem extends React.Component
     @getAccountInfo()
 
 
-  componentDidUpdate: ->
+  componentDidUpdate: (prevProps, prevState) ->
 
-    @focusInputOnEdit()  if @props.message.get '__isEditing'
+    isEditing  = @props.message.get '__isEditing'
+    wasEditing = prevProps.message.get '__isEditing'
+
+    @focusInputOnEdit()  if isEditing and not wasEditing
 
 
   getAccountInfo: ->
@@ -95,6 +100,7 @@ module.exports = class ChatListItem extends React.Component
       'ChatItem'      : yes
       'mouse-enter'   : @state.hover
       'is-menuOpen'   : @state.isMenuOpen
+      'is-selected'   : @props.isSelected
     onMouseEnter      : =>
       @setState hover : yes
     onMouseLeave      : =>
@@ -241,12 +247,18 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
+    name  = @props.channelName
+    value = @state.editInputValue
     messageId = @props.message.get '_id'
+
+    unless value.match ///\##{name}///
+      value += " ##{name} "
+
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
-      @state.editInputValue
+      value
       @props.message.get('payload').toJS()
     )
 
@@ -286,6 +298,7 @@ module.exports = class ChatListItem extends React.Component
 
 
   getMediaObjectClassNames: -> classnames
+    'ChatListItem-itemBodyContainer': yes
     'hidden' : @props.message.get '__isEditing'
 
 

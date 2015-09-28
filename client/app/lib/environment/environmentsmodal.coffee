@@ -1,4 +1,5 @@
 kd                        = require 'kd'
+isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
 checkFlag                 = require 'app/util/checkFlag'
 StacksModal               = require 'app/stacks/stacksmodal'
@@ -11,9 +12,11 @@ module.exports = class EnvironmentsModal extends kd.ModalView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'environments-modal', options.cssClass
-    options.title    = 'Your Machines'
-    options.width    = 742
+    options.width    = if isKoding() then 742 else 772
     options.overlay  = yes
+
+    options.title = "Your #{if isKoding() then 'Machines' else 'Stacks'}"
+
 
     super options, data
 
@@ -22,6 +25,7 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       view       : listView
       wrapper    : no
       scrollView : no
+      selected   : options.selected
 
 
     if checkFlag 'super-admin'

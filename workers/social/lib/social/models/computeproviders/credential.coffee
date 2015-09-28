@@ -402,10 +402,15 @@ module.exports = class JCredential extends jraphical.Module
       provider = PROVIDERS[@provider]
 
       unless provider
-        callback new KodingError 'Provider is not supported'
-        return
+        return callback null, no
 
       { bootstrapKeys } = provider
+
+      # If bootstrapKeys is not defined in the Provider
+      # it means that this credential is not supporting bootstrap
+      # we can safely return `no` at this point ~ GG
+      if bootstrapKeys.length is 0
+        return callback null, no
 
       @fetchData (err, data) ->
         return callback err  if err

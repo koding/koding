@@ -1409,11 +1409,11 @@ module.exports = class JUser extends jraphical.Module
       queue.next()
 
 
-  confirmDevAccount = (options, queue, callback, fetchData) ->
+  confirmAccountIfNeeded = (options, queue, callback, fetchData) ->
 
-    { user, email, username } = options
+    { user, email, username, group } = options
 
-    if KONFIG.autoConfirmAccounts
+    if KONFIG.autoConfirmAccounts or group isnt 'koding'
       user.confirmEmail (err) ->
         console.warn err  if err?
         queue.next()
@@ -1538,10 +1538,9 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        # Auto confirm accounts for development environment
-        # This config should be no for production! ~ GG
-        confirmDevAccount {
-          user, email, username
+        # Auto confirm accounts for development environment or Teams ~ GG
+        confirmAccountIfNeeded {
+          user, email, username, group: client.context.group
         }, queue, callback, (pin_) -> pin = pin_
 
       ->

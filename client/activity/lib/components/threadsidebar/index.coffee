@@ -22,7 +22,7 @@ module.exports = class ThreadSidebar extends React.Component
           channelThread={@props.channelThread}
           participants={@props.channelParticipants} />
       </ThreadSidebarContentBox>
-      <ThreadSidebarContentBox title="Most Active Threads" titleLink="/Channels/Public/summary">
+      <ThreadSidebarContentBox className="secondary" title="Most Active Threads" titleLink="/Channels/Public/summary">
         <ChannelMessagesList
           channelThread={@props.channelThread}
           messages={@props.popularMessages} />

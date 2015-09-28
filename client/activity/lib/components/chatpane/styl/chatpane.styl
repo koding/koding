@@ -6,18 +6,19 @@
   line-height               $body-line-height
 
 .ChatPane-contentWrapper
-  dFlex()
   bg                        color, #fcfcfc
   kalc                      height, 100vh \- 52px
-  flex-direction            column
+  vendor                    flex-direction, column
+  dFlex()
 
 .ChatPane-body
-  rel()
+  padding                   0
+  kalc                      height, 100vh \- 122px
+  vendor                    flex, 1
+  vendor                    flex-direction, column
+  vendor                    justify-content, flex-end
   dFlex()
-  flex                      1
-  padding                   10px 0
-  flex-direction            column
-  justify-content           flex-end
+  rel()
 
 .PublicChatList
   max-width                 100vw
@@ -28,53 +29,4 @@
   &.padded
     height                  auto
     abs                     0 0 0px 0
-
-.ChatPane .ChatInputWidget
-  borderBox()
-  bg                        color, #FCFCFC
-  border                    none
-  size                      100%, 100%
-  padding                   0 25px 15px 25px
-
-  &:before
-    left                    37px
-
-  > textarea
-    borderBox()
-    padding-left            44px
-    size                    100%, 42px
-    min-height              0
-    border                  1px solid #F2F2F2
-
-.ChatPane-subscribeContainer
-  borderBox()
-  color                     $gray-2
-  bg                        color, $gray-19
-  margin                    0 40px
-  height                    60px
-  padding                   15px 0 0
-  font-size                 14px
-  text-align                center
-  .Button-followChannel
-    border                  none
-    color                   #fff
-    margin-left             20px
-    size                    144px, 33px
-    bg                      color, $indigo-blue
-
-.ChatPane-firstMessage
-  rel()
-  padding                   0 0 20px
-  border-bottom             1px solid $gray-18
-  margin-bottom             15px
-
-.ChatItem-moreCount
-  abs()
-  left                      50%
-  bottom                    -8px
-  min-width                 80px
-  color                     $gray-16
-  bg                        color, #fcfcfc
-  margin-left               -40px
-  text-align                center
 

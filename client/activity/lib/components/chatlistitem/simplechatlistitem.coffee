@@ -10,7 +10,7 @@ MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
 BlockUserModal       = require 'app/components/blockusermodal'
 ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
-MessageLink          = require 'activity/components/messagelink'
+MessageLink          = require 'activity/components/publicchannelmessagelink'
 
 
 module.exports = class SimpleChatListItem extends ChatListItem

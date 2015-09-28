@@ -18,6 +18,14 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
     selectedIndex  : 0
     selectedItem   : null
 
+  moveToPrevAction     : ActivityFlux.actions.user.moveToPrevChannelParticipantIndex
+
+  moveToNextAction     : ActivityFlux.actions.user.moveToNextChannelParticipantIndex
+
+  onItemSelectedAction : ActivityFlux.actions.user.setChannelParticipantsSelectedIndex
+
+  closeAction          : ActivityFlux.actions.channel.setChannelParticipantsDropdownVisibility
+
 
   # this method overrides DropboxWrapperMixin-componentDidUpdate handler.
   # In this component, we use dropdown keyword. In DropboxWrapperMixin/componentDidUpdate handler
@@ -27,37 +35,6 @@ module.exports = class ChannelParticipantsDropdown extends React.Component
 
 
   formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
-
-
-  getItemKey: (item) -> item.get 'id'
-
-
-  close: -> ActivityFlux.actions.channel.setChannelParticipantsDropdownVisibility no
-
-
-  moveToNextPosition: (keyInfo) ->
-
-    if keyInfo.isRightArrow
-      @close()
-      return no
-
-    ActivityFlux.actions.user.moveToNextChannelParticipantIndex()  unless @hasSingleItem()
-    return yes
-
-
-  moveToPrevPosition: (keyInfo) ->
-
-    if keyInfo.isLeftArrow
-      @close()
-      return no
-
-    ActivityFlux.actions.user.moveToPrevChannelParticipantIndex()  unless @hasSingleItem()
-    return yes
-
-
-  onItemSelected: (index) ->
-
-    ActivityFlux.actions.user.setChannelParticipantsSelectedIndex index
 
 
   renderList: ->

@@ -1,13 +1,17 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-KDReactorMixin = require 'app/flux/reactormixin'
-ActivityFlux   = require 'activity/flux'
-immutable      = require 'immutable'
-classnames     = require 'classnames'
-ThreadSidebar  = require 'activity/components/threadsidebar'
-ThreadHeader   = require 'activity/components/threadheader'
+kd                   = require 'kd'
+React                = require 'kd-react'
+KDReactorMixin       = require 'app/flux/reactormixin'
+ActivityFlux         = require 'activity/flux'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ThreadSidebar        = require 'activity/components/threadsidebar'
+ThreadHeader         = require 'activity/components/threadheader'
+PublicChannelLink    = require 'activity/components/publicchannellink'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class ChannelThreadPane extends React.Component
+
+  @include [ ImmutableRenderMixin ]
 
   { getters } = ActivityFlux
 
@@ -42,37 +46,23 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   renderHeader: ->
-    <ThreadHeader
-      channelThread={@state.channelThread}
-      messageThread={@state.messageThread}
-      isSummaryActive={!!@props.feed}
-    />
+    return  unless @state.channelThread
+    thread = @state.channelThread
+    channelName = thread.getIn ['channel', 'name']
 
-
-  renderFeed: ->
-    return null  unless @props.feed
-
-    React.cloneElement @props.feed,
-      thread   : @state.channelThread
-      messages : @state.popularMessages
+    <ThreadHeader thread={thread}>
+      <PublicChannelLink to={thread}>
+        {"##{channelName}"}
+      </PublicChannelLink>
+    </ThreadHeader>
 
 
   renderChat: ->
-    return null  unless @props.chat
+    return null  unless @props.children.chat
 
-    React.cloneElement @props.chat,
+    React.cloneElement @props.children.chat,
       thread   : @state.channelThread
       messages : @state.channelThreadMessages
-
-
-  renderPost: ->
-
-    return null  unless @props.post
-
-    React.cloneElement @props.post,
-      thread        : @state.messageThread
-      messages      : @state.messageThreadComments
-      channelThread : @state.channelThread
 
 
   renderSidebar: ->
@@ -86,9 +76,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
     classnames(
       ChannelThreadPane: yes
-      'is-withFeed': @props.feed
-      'is-withChat': @props.chat
-      'is-withPost': @props.post
+      'is-withFeed': @props.children.feed
+      'is-withChat': @props.children.chat
+      'is-withPost': @props.children.post
     )
 
 
@@ -99,14 +89,8 @@ module.exports = class ChannelThreadPane extends React.Component
           {@renderHeader()}
         </header>
         <div className="ChannelThreadPane-body">
-          <section className="ChannelThreadPane-feedWrapper">
-            {@renderFeed()}
-          </section>
           <section className="ChannelThreadPane-chatWrapper">
             {@renderChat()}
-          </section>
-          <section className="ChannelThreadPane-postWrapper">
-            {@renderPost()}
           </section>
         </div>
       </section>
@@ -120,22 +104,21 @@ React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
 reset = (props) ->
 
-  { channelName, postSlug } = props.params
+  { channelName, postId } = props.params
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
   if channelName
-    channelActions.loadChannelByName(channelName).then ({ channel }) ->
+    channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadPopularMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
 
+      if postId
+        messageActions.changeSelectedMessage postId
+      else
+        messageActions.changeSelectedMessage null
+
   else
     thread.changeSelectedThread null
-
-  if postSlug
-    messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
-      messageActions.changeSelectedMessage message.id
-  else
-    messageActions.changeSelectedMessage null
 
 

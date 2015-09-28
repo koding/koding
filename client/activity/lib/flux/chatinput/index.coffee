@@ -7,6 +7,7 @@ module.exports = {
     user    : require './actions/user'
     search  : require './actions/search'
     message : require './actions/message'
+    value   : require './actions/value'
 
   stores  : [
     require './stores/emoji/emojisstore'
@@ -24,6 +25,7 @@ module.exports = {
     require './stores/search/querystore'
     require './stores/search/visibilitystore'
     require './stores/search/searchstore'
+    require './stores/valuestore'
   ]
 }
 

@@ -1,78 +1,166 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-ChatListItem          = require 'activity/components/chatlistitem'
-SimpleChatListItem    = require 'activity/components/chatlistitem/simplechatlistitem'
+_                      = require 'lodash'
+kd                     = require 'kd'
+React                  = require 'kd-react'
+moment                 = require 'moment'
+immutable              = require 'immutable'
+ChatListItem           = require 'activity/components/chatlistitem'
+SimpleChatListItem     = require 'activity/components/chatlistitem/simplechatlistitem'
+DateMarker             = require 'activity/components/datemarker'
+NewMessageMarker       = require 'activity/components/newmessagemarker'
+LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
+KDReactorMixin         = require 'app/flux/reactormixin'
+ActivityFlux           = require 'activity/flux'
+Waypoint               = require 'react-waypoint'
+scrollToElement        = require 'app/util/scrollToElement'
+ImmutableRenderMixin   = require 'react-immutable-render-mixin'
+
+debounce = (delay, options, fn) -> _.debounce fn, delay, options
+
 
 module.exports = class ChatList extends React.Component
 
   @defaultProps =
-    messages     : immutable.List()
-    showItemMenu : yes
-    firstPost    : null
-    isMessagesLoading: no
+    messages          : immutable.List()
+    showItemMenu      : yes
+    channelId         : ''
+    channelName       : ''
+    unreadCount       : 0
+    isMessagesLoading : no
+    selectedMessageId : null
+
+  constructor: (props) ->
+
+    super props
+
+    @state = { selectedMessageId: @props.selectedMessageId }
 
 
-  calculateRemainingMessageCount: ->
-
-    { firstPost } = @props
-    return no  unless firstPost
-
-    repliesCount = firstPost.get 'repliesCount'
-    messageCount = @props.messages.size - 1
-    count = repliesCount - messageCount
-    count =  if count > 0 then count else 0
-
-    return count
+  getDataBindings: ->
+    return {
+      selectedMessageId: ActivityFlux.getters.selectedMessageThreadId
+    }
 
 
-  getFirstMessageId: ->
+  componentDidUpdate: (prevProps, prevState) ->
 
-    { firstPost } = @props
+    prevSelectedId = prevState.selectedMessageId
+    currentSelectedId = @state.selectedMessageId
 
-    if firstPost then firstPost.get '_id' else no
+    if currentSelectedId and currentSelectedId isnt prevSelectedId
+      target = React.findDOMNode @refs.selectedComponent
+      scrollToElement target
 
 
-  renderFirstMessageDate: (count) ->
+  glance: debounce 1000, {}, ->
 
-    if @props.isMessagesLoading
-      <div className='ChatItem-moreCount'>loading...</div>
-    else if count
-      <div className='ChatItem-moreCount'>{count} more</div>
+    ActivityFlux.actions.channel.glance @props.channelId
+
+
+  onGlancerEnter: -> @glance()
+
+
+  getBeforeMarkers: (currentMessage, prevMessage, index) ->
+
+    currentMessageMoment = moment currentMessage.get 'createdAt'
+
+    if prevMessage
+      prevMessageMoment = moment prevMessage.get 'createdAt'
+
+    { messages, unreadCount, channelId, isMessagesLoading } = @props
+
+    markers = []
+
+    if loaderMarkers = currentMessage.get 'loaderMarkers'
+      if beforeMarker = loaderMarkers.get 'before'
+        markers.push \
+          <LoadMoreMessagesMarker
+            channelId={channelId}
+            messageId={currentMessage.get 'id'}
+            position="before"
+            autoload={beforeMarker.get 'autoload'}
+            timestamp={currentMessage.get 'createdAt'}
+            isLoading={isMessagesLoading} />
+
+    switch
+      # if this is first message put a date marker no matter what.
+      when not prevMessage
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+      # if day of previous message is not the same with current one, put a date
+      # marker.
+      when not currentMessageMoment.isSame prevMessageMoment, 'day'
+        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+
+    # put new message marker on top of other messages if unread count is
+    # greater than currently loaded messages.
+    newMessageIndex = Math.max 0, messages.size - unreadCount
+
+    if newMessageIndex is index
+      markers.push <NewMessageMarker />
+
+    # put glancer waypoint only if all the unread messages are loaded, and on
+    # the screen. Once it enters to the screen, it will glance the channel.
+    if unreadCount and unreadCount <= messages.size and not isMessagesLoading
+      markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} />
+
+    return markers
+
+
+  getAfterMarkers: (currentMessage, prevMessage, index) ->
+
+    { channelId, isMessagesLoading } = @props
+
+    markers = []
+
+    if loaderMarkers = currentMessage.get 'loaderMarkers'
+      if afterMarker = loaderMarkers.get 'after'
+        markers.push \
+          <LoadMoreMessagesMarker
+            channelId={channelId}
+            messageId={currentMessage.get 'id'}
+            position="after"
+            autoload={afterMarker.get 'autoload'}
+            timestamp={currentMessage.get 'createdAt'}
+            isLoading={isMessagesLoading} />
+
+    return markers
 
 
   renderChildren: ->
 
-    lastMessageId = null
-    { messages, showItemMenu } = @props
+    { messages, showItemMenu, channelName } = @props
+    { selectedMessageId } = @state
 
-    if @props.firstPost
+    lastDifferentOwnerId = null
+    prevMessage = null
 
-      firstPostId = @props.firstPost.get '_id'
-      messages = messages.set firstPostId, @props.firstPost
-
-    messageItems = messages.map (message, i) =>
+    children = messages.toList().reduce (children, message, i) =>
 
       itemProps =
         key          : message.get 'id'
         message      : message
         showItemMenu : showItemMenu
+        channelName  : channelName
 
-      count          = @calculateRemainingMessageCount()
-      firstMessageId = @getFirstMessageId()
+      if selectedMessageId is message.get 'id'
+        itemProps['isSelected'] = yes
+        itemProps['ref'] = 'selectedComponent'
 
-      if lastMessageId and lastMessageId is message.get 'accountId'
-        <SimpleChatListItem {...itemProps} />
-      else if firstMessageId is message.get('_id') and count
-        <div className='ChatPane-firstMessage'>
-          <ChatListItem {...itemProps} />
-          {@renderFirstMessageDate(count)}
-        </div>
+      children = children.concat @getBeforeMarkers message, prevMessage, i
+
+      if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
+        children.push \
+          <SimpleChatListItem {...itemProps } />
       else
-        lastMessageId = message.get 'accountId'
-        <ChatListItem {...itemProps} />
+        lastDifferentOwnerId = message.get 'accountId'
+        children.push \
+          <ChatListItem {...itemProps} />
 
-    return messageItems.toList()
+      children = children.concat @getAfterMarkers message, prevMessage, i
+
+      prevMessage = message
+      return children
+    , []
 
 
   render: ->
@@ -80,4 +168,6 @@ module.exports = class ChatList extends React.Component
       {@renderChildren()}
     </div>
 
+
+React.Component.include.call ChatList, [KDReactorMixin]
 

@@ -1,11 +1,9 @@
 kd              = require 'kd'
 React           = require 'kd-react'
 ChatList        = require 'activity/components/chatlist'
-ChatInputWidget = require 'activity/components/chatinputwidget'
 ActivityFlux    = require 'activity/flux'
 Scroller        = require 'app/components/scroller'
 ScrollerMixin   = require 'app/components/scroller/scrollermixin'
-
 
 
 module.exports = class ChatPane extends React.Component
@@ -15,7 +13,6 @@ module.exports = class ChatPane extends React.Component
     messages      : null
     isDataLoading : no
     onLoadMore    : kd.noop
-    isParticipant : no
     showItemMenu  : yes
 
 
@@ -25,62 +22,40 @@ module.exports = class ChatPane extends React.Component
 
     { thread } = nextProps
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
-    @shouldScrollToBottom = yes  if isMessageBeingSubmitted
-
-
-  onSubmit: (event) -> @props.onSubmit? event
+    @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
 
 
   onTopThresholdReached: -> @props.onLoadMore()
 
 
+  channel: (key) -> @props.thread.getIn ['channel', key]
+
+
   renderBody: ->
 
-    return null  unless @props.messages
+    return null  unless @props.messages?.size
 
-    <section className="ChatPane-body" ref="ChatPaneBody">
-      <Scroller
-        onTopThresholdReached={@bound 'onTopThresholdReached'}
-        ref="scrollContainer">
-        <ChatList
-          isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
-          firstPost={@props.thread.get 'message'}
-          messages={@props.messages}
-          showItemMenu={@props.showItemMenu}
-        />
-      </Scroller>
-    </section>
-
-
-  onFollowChannelButtonClick: -> @props.onFollowChannelButtonClick()
-
-
-  renderFollowChannel: ->
-
-    <div className="ChatPane-subscribeContainer">
-      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
-      <button ref="button" className="Button Button-followChannel" onClick={@bound 'onFollowChannelButtonClick'}>FOLLOW CHANNEL</button>
-    </div>
-
-
-  renderFooter: ->
-
-    return null  unless @props.messages
-
-    footerInnerComponent = if @props.isParticipant
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} />
-    else @renderFollowChannel()
-
-    <footer className="ChatPane-footer">
-      {footerInnerComponent}
-    </footer>
+    <Scroller
+      onTopThresholdReached={@bound 'onTopThresholdReached'}
+      ref="scrollContainer">
+      <ChatList
+        isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+        messages={@props.messages}
+        showItemMenu={@props.showItemMenu}
+        channelId={@channel 'id'}
+        channelName={@channel 'name'}
+        unreadCount={@channel 'unreadCount'}
+      />
+    </Scroller>
 
 
   render: ->
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
-        {@renderBody()}
-        {@renderFooter()}
+        <section className="ChatPane-body" ref="ChatPaneBody">
+          {@renderBody()}
+          {@props.children}
+        </section>
       </section>
     </div>
 
