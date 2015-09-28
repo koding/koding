@@ -239,7 +239,6 @@ sidebarTextShadow()
         ellipsis()
         borderBox()
         noTextDeco()
-        sidebarTextShadow()
 
       // copy paste - SY
       // temp fix
@@ -295,7 +294,6 @@ sidebarTextShadow()
       color             sidebarGray
       borderBox()
       noTextDeco()
-      sidebarTextShadow()
       &.add-app
       &.add-vm
         padding         5px 8px
@@ -766,18 +764,19 @@ sidebarTextShadow()
 
 
 h3.sidebar-title
-  position                  relative
-  font-weight               400
-  size                      auto 1em
-  line-height               16px
-  font-size                 12px
-  color                     sidebarSectionHeaderColor
-  text-transform            uppercase
-  word-spacing              .2em
+  color                     $gray-8
+  font-size                 $fs-small
+  font-weight               $fw-regular
+  height                    1em
   letter-spacing            .05em
+  line-height               16px
+  -moz-osx-font-smoothing   grayscale
   padding                   14px 0 16px
-  sidebarTextShadow()
   pointer()
+  position                  relative
+  text-transform            uppercase
+  -webkit-font-smoothing    antialiased
+  word-spacing              .2em
 
   &:hover
     color                   #fff
@@ -797,7 +796,7 @@ h3.sidebar-title
       r-sprite              app , 'plus-16'
 
     &.buy-vm
-      margin-top            2px
+      margin-top            0
 
   cite.count
     top                     11px
@@ -924,19 +923,25 @@ h3.sidebar-title
 
 
 
-// refactored, moved to outher scope
+// refactored, moved to outer scope
 
 .activity-sidebar
+  font-family               Soleil
+
   a.vm
-    padding           0px 8px 0px 19px
-    display           block
-    size              218px 16px
-    margin-bottom     8px
-    opacity           1
-    color             sidebarGray
     borderBox()
+    color                   $gray-14
+    display                 block
+    font-size               $fs-regular
+    line-height             20px
     noTextDeco()
-    sidebarTextShadow()
+    margin-bottom           8px
+    padding                 0px 8px 0px 19px
+    opacity                 1
+    size                    218px 16px
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
+
     &.add-app
     &.add-vm
       padding         5px 8px
@@ -945,22 +950,22 @@ h3.sidebar-title
         opacity       1
 
     > figure
-      display       block
-      width         16px
-      height        16px
-      bg            color #222
-      abs           3px 0 0 3px
+      abs                   3px 0 0 3px
+      display               block
+      width                 16px
+      height                16px
+      bg                    color #222
 
     &.running:hover > div
       width         180px
 
     > div
-      position      relative
-      width         200px
-      vendor        transition, width .1s ease .05s
-      font-size     14px
-      line-height   16px
       ellipsis()
+      font-size             16px
+      line-height           20px
+      vendor                transition, width .1s ease .05s
+      width                 200px
+      rel()
 
     &.social > figure
     &.activity > figure
@@ -973,14 +978,13 @@ h3.sidebar-title
       r-sprite      app new-nav-ide
     &.vm
       > figure
-        // r-sprite    app new-nav-vm
-        display       block
-        width         13px
-        height        13px
-        bg            color, transparent
-        abs           1px 0 0 0px
-        rounded       3px
-        border        3px solid sidebarGray
+        display             block
+        width               13px
+        height              13px
+        bg                  color, transparent
+        abs                 5px 0 0 0px
+        rounded             3px
+        border              3px solid sidebarGray
         borderBox()
       > span
         r-sprite    app vm-settings-icon
@@ -1009,19 +1013,24 @@ h3.sidebar-title
           shadow      none
 
   .workspaces-link
-    display         inline
-    height          16px
-    border-bottom   none
-    font-size       11px
-    color           sidebarSectionHeaderColor
-    padding         2px 0 0 20px
-    margin-bottom   1px
-    text-transform  uppercase
-    sidebarTextShadow()
+    border-bottom           none
+    color                   $gray-8
+    display                 inline
+    font-weight             $fw-regular
+    font-size               $fs-extra-small
+    height                  16px
+    line-height             16px
+    margin-bottom           1px
+    letter-spacing          0.08em
+    padding                 2px 0 0 20px
+    text-transform          uppercase
+    word-spacing            0.2em
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
     pointer()
 
     &:hover
-      color         sidebarActive
+      color                 sidebarActive
 
   .stack-warning
     color                   #777
