@@ -1,21 +1,20 @@
-{ argv }      = require 'optimist'
-KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
-{ DogStatsD } = require 'koding-datadog'
+os              = require 'os'
+{ MetricsBase } = require 'koding-datadog'
 
-module.exports = Metrics = {
+module.exports = class Metrics extends MetricsBase
 
-  prefix : 'socialWorker'
+  @prefix : 'socialWorker'
 
 
-  populateTags : (tags) ->
+  @populateTags : (tags) ->
 
     tags ?= []
-    tags.push "version:#{KONFIG.version}"
+    tags = @populateCommonTags tags
 
     return tags
 
 
-  generateName : (opts) ->
+  @generateName : (opts) ->
 
     { method } = opts
     { constructorName, method, type } = method
@@ -23,16 +22,21 @@ module.exports = Metrics = {
     return "#{@prefix}.#{constructorName}.#{method}.#{type}"
 
 
-  send : (opts) ->
+  @methodMetrics : (opts) ->
 
-    tags                         = Metrics.populateTags()
-    metricName                   = Metrics.generateName opts
-    dogStatsDClient              = DogStatsD.getClient()
-    { rss, heapTotal, heapUsed } = process.memoryUsage()
+    return {
+      increment    :
+        'count'    : 1
+      histogram    :
+        'duration' : opts.duration or 0
+    }
 
-    dogStatsDClient.gauge "#{metricName}.memory.rss",       rss, tags
-    dogStatsDClient.gauge "#{metricName}.memory.heapTotal", heapTotal, tags
-    dogStatsDClient.gauge "#{metricName}.memory.heapUsed",  heapUsed, tags
 
-}
+  @sendMethodMetrics : (opts) ->
+
+    tags       = @populateTags()
+    metricName = @generateName opts
+    @sendMetrics @methodMetrics(opts), metricName, tags
+
+
 

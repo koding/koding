@@ -1,58 +1,57 @@
-{ argv }             = require 'optimist'
-KONFIG               = require('koding-config-manager').load("main.#{argv.c}")
 onHeaders            = require 'on-headers'
-{ DogStatsD, Timer } = require 'koding-datadog'
+{ MetricsBase }      = require 'koding-datadog'
+
+module.exports = class MetricsMiddleware extends MetricsBase
+
+  @prefix : 'nodejs.webserver'
 
 
-module.exports = MetricsMiddleware = {
-
-  prefix : 'nodejs.webserver'
-
-
-  sanitize : (string) ->
+  @sanitizeMetricName : (string) ->
 
     return string
       .replace /\/$/g,      'home'  # replace last / with home
       .replace /[\/-]/g,    '.'     # replace all / with .
       .replace /\.{2,}/g,   '.'     # remove adjacent dots
 
-  generateName : (path) -> @sanitize "#{@prefix}.#{path}"
+
+  @generateName : (req) ->
+
+    path = switch
+      when req.route.path is '*'  then req.path
+      else                             req.route.path
+
+    @sanitizeMetricName "#{@prefix}.#{path}"
 
 
-  populateTags : (req, res, tags) ->
+  @populateTags : (req, res, tags) ->
 
     tags ?= []
-
-    tags.push "version:#{KONFIG.version}"
+    tags  = @populateCommonTags tags
     tags.push "http_method:#{req.method}"
     tags.push "http_response_code:#{res.statusCode}"
 
     return tags
 
 
-  send : (req, res, next) ->
+  @metricsOnHeaders : (opts) ->
 
-    Timer.start()
-    metricName      = MetricsMiddleware.generateName(req.path)
-    elapsedTime     = 0
-    dogStatsDClient = DogStatsD.getClient()
+    return {
+      increment         :
+        'page_view'     : 1
+      histogram         :
+        'response_time' : opts.elapsedTime or 0
+    }
 
-    onHeaders res, ->
-      tags        = MetricsMiddleware.populateTags req, res
-      elapsedTime = Timer.getElapsedTimeInMilliSecs()
-      dogStatsDClient.histogram "#{metricName}.response_time", elapsedTime, tags
 
-    # storing res.end
-    end = res.end
+  @send : (req, res, next) =>
 
-    res.end = ->
-      console.log req.path
-      tags = MetricsMiddleware.populateTags req, res
-      dogStatsDClient.increment "#{metricName}.page_view", 1, tags
+    timer = new @timer
 
-      # calling end function in res context
-      end.apply(res, arguments)
+    onHeaders res, =>
+      metricName  = @generateName(req)
+      tags        = @populateTags req, res
+      elapsedTime = timer.getElapsedTimeInMilliSecs()
+      @sendMetrics @metricsOnHeaders({ elapsedTime }), metricName, tags
 
     next()
 
-}
