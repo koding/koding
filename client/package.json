@@ -20,6 +20,7 @@
     "geopattern": "1.2.3",
     "glob": "5.0.3",
     "highlight.js": "8.4.0",
+    "history": "1.11.1",
     "htmlencode": "0.0.4",
     "immutable": "3.7.4",
     "is-my-json-valid": "2.10.0",
