@@ -1,11 +1,11 @@
-kd                  = require 'kd'
-React               = require 'kd-react'
+kd                        = require 'kd'
+React                     = require 'kd-react'
+createHistory             = require 'history/lib/createHistory'
+createLocation            = require 'history/lib/createLocation'
+handlers                  = require './routehandlers'
+lazyrouter                = require 'app/lazyrouter'
+isReactivityEnabled       = require 'app/util/isReactivityEnabled'
 { RoutingContext, match } = require 'react-router'
-createHistory       = require 'history/lib/createHistory'
-createLocation      = require 'history/lib/createLocation'
-handlers            = require './routehandlers'
-lazyrouter          = require 'app/lazyrouter'
-isReactivityEnabled = require 'app/util/isReactivityEnabled'
 
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
 
