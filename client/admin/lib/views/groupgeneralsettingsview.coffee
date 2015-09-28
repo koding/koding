@@ -204,7 +204,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     formData     = @generalSettingsForm.getFormData()
     jGroup       = @getData()
     # newChannels  = @separateCommas channels
-    newDomains   = @separateCommas domains
+    # newDomains   = @separateCommas domains
     dataToUpdate = {}
 
     unless formData.title is jGroup.title
@@ -213,11 +213,11 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     # unless _.isEqual newChannels, jGroup.defaultChannels
     #   dataToUpdate.defaultChannels = newChannels
 
-    unless _.isEqual newDomains, jGroup.allowedDomains
-      for domain in newDomains when not validator.isURL domain
-        return @notify 'Please check allowed domains again'
+    # unless _.isEqual newDomains, jGroup.allowedDomains
+    #   for domain in newDomains when not validator.isURL domain
+    #     return @notify 'Please check allowed domains again'
 
-      dataToUpdate.allowedDomains = newDomains
+    #   dataToUpdate.allowedDomains = newDomains
 
     return if _.isEmpty dataToUpdate
 
