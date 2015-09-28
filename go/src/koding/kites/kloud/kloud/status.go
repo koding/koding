@@ -21,9 +21,9 @@ type TerraformStatusRequest struct {
 }
 
 type TerraformStatusResponse struct {
-	StackId   string    `json:"stackId"`
-	Status    string    `json:"status"`
-	UpdatedAt time.Time `json:"updateAt"`
+	StackId    string    `json:"stackId"`
+	Status     string    `json:"status"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
 func (k *Kloud) Status(r *kite.Request) (interface{}, error) {
@@ -57,9 +57,9 @@ func (k *Kloud) Status(r *kite.Request) (interface{}, error) {
 		}
 
 		resp = &TerraformStatusResponse{
-			StackId:   args.StackId,
-			Status:    computeStack.Status.State,
-			UpdatedAt: computeStack.Status.UpdatedAt,
+			StackId:    args.StackId,
+			Status:     computeStack.Status.State,
+			ModifiedAt: computeStack.Status.ModifiedAt,
 		}
 
 		stackCache.Set(args.StackId, resp)
