@@ -58,14 +58,6 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderSidebar: ->
-    <ThreadSidebar
-      channelThread={@state.channelThread}
-      popularMessages={@state.popularMessages}
-      channelParticipants={@state.channelParticipants}/>
-
-
-
   render: ->
     <div className="ChannelThreadPane is-withChat">
       <section className="ChannelThreadPane-content">
@@ -81,7 +73,10 @@ module.exports = class ChannelThreadPane extends React.Component
         </div>
       </section>
       <aside className="ChannelThreadPane-sidebar">
-        {@renderSidebar()}
+        <ThreadSidebar
+          channelThread={@state.channelThread}
+          popularMessages={@state.popularMessages}
+          channelParticipants={@state.channelParticipants}/>
       </aside>
     </div>
 
