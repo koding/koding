@@ -167,19 +167,20 @@ module.exports = class OnboardingView extends JView
       cloneText       = CLONE_REPO_TEMPLATES[selectedService]
       serverConfig    = stackTemplate.resource.aws_instance["example_#{++index}"]
       groupSlug       = kd.singletons.groupsController.getCurrentGroup().slug
-      { user_data }   = serverConfig
+      user_data       = serverConfig?.user_data
 
       if cloneText
 
         cloneText = cloneText.replace 'your-organization', groupSlug
 
-        if user_data
-          serverConfig.user_data = """
-            #{user_data}
-            #{cloneText}
-          """
-        else
-          serverConfig.user_data = cloneText
+        if serverConfig
+          if user_data
+            serverConfig.user_data = """
+              #{user_data}
+              #{cloneText}
+            """
+          else
+            serverConfig.user_data = cloneText  if serverConfig
 
 
     { content, err } = jsonToYaml stackTemplate
