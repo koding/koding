@@ -58,9 +58,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   renderChat: ->
-    return null  unless @props.chat
+    return null  unless @props.children.chat
 
-    React.cloneElement @props.chat,
+    React.cloneElement @props.children.chat,
       thread   : @state.channelThread
       messages : @state.channelThreadMessages
 
@@ -76,9 +76,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
     classnames(
       ChannelThreadPane: yes
-      'is-withFeed': @props.feed
-      'is-withChat': @props.chat
-      'is-withPost': @props.post
+      'is-withFeed': @props.children.feed
+      'is-withChat': @props.children.chat
+      'is-withPost': @props.children.post
     )
 
 
