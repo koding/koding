@@ -7,70 +7,31 @@ CreateChannelFlux  = require 'activity/flux/createchannel'
 module.exports = class SidebarSection extends React.Component
 
   @defaultProps =
-    onHeaderClick: kd.noop
-
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    @state = { isModalOpen: no }
-
-
-  onHeaderClick: -> @props.onHeaderClick()
-
-
-  onClose: ->
-
-    { actions } = CreateChannelFlux
-
-    actions.channel.removeAllParticipants()
-    actions.user.unsetInputQuery()
-    @setState isModalOpen: no
-
-
-  handleAddChannelButtonClick: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState isModalOpen: yes
-
-
-  getCreateChannelModalProps: ->
-
-    isOpen              : @state.isModalOpen
-    account             : @state.account
-    onAbort             : @bound 'onClose'
-    onClose             : @bound 'onClose'
-    title               : @props.modalProps.title
-    className           : @props.modalProps.className
-    buttonConfirmTitle  : @props.modalProps.buttonConfirmTitle
-
-
-  renderAddChannelModal: ->
-
-    {itemComponent: Component} = @props
-    <Component {...@getCreateChannelModalProps()} />
+    titleLink     : '#'
+    title         : ''
+    secondaryLink : '#'
 
 
   renderHeader: ->
 
-    <h4 className='SidebarSection-headerTitle' onClick={@bound 'onHeaderClick'}>
-      {@props.title}
+    <header className="SidebarSection-header">
+      <Link href={@props.titleLink}>
+        <h4 className='SidebarSection-headerTitle'>
+          {@props.title}
+        </h4>
+      </Link>
       <Link
-        className = "SidebarSection-addChannelButton"
-        onClick   = { @bound 'handleAddChannelButtonClick' }
-      />
-    </h4>
+        className="SidebarSection-secondaryLink"
+        href={@props.secondaryLink} />
+    </header>
 
 
   render: ->
 
     <section className={classnames 'SidebarSection', @props.className}>
-      <header className='SidebarSection-header'>
-        {@renderHeader()}
-      </header>
+      {@renderHeader()}
       <div className='SidebarSection-body'>
         {@props.children}
       </div>
-      {@renderAddChannelModal()}
     </section>
 

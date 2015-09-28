@@ -1,60 +1,18 @@
+kd                       = require 'kd'
 React                    = require 'kd-react'
 immutable                = require 'immutable'
 SidebarList              = require 'app/components/sidebarlist'
 SidebarSection           = require 'app/components/sidebarsection'
-Modal                    = require 'app/components/modal'
-SidebarModalList         = require 'activity/components/sidebarmodallist'
-PublicChannelListItem    = require 'activity/components/publicchannellistitem'
 SidebarChannelsListItem  = require 'app/components/sidebarchannelslistitem'
-CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
+Link                     = require 'app/components/common/link'
+
 
 module.exports = class SidebarChannelsSection extends React.Component
 
   @defaultProps =
-    selectedId : null
-    threads    : immutable.Map()
-
-  constructor: (props) ->
-
-    super
-
-    @state = { isModalOpen: no }
-
-
-  onClose: ->
-
-    @setState isModalOpen: no
-
-
-  showFollowedPublicChannelsModal: ->
-
-    @setState isModalOpen: yes
-
-
-  onItemClick: (event) ->
-
-    @setState isModalOpen: no
-
-
-  getCreateChannelModalProps: ->
-
-    title               : 'Create Channel'
-    className           : 'CreateChannel-Modal'
-    buttonConfirmTitle  : 'CREATE'
-
-
-  renderFollowedChannelsModal: ->
-
-    title = 'Other Channels you are following:'
-    <Modal className='ChannelList-Modal' isOpen={@state.isModalOpen} onClose={@bound 'onClose'}>
-      <SidebarModalList
-        title={title}
-        searchProp='name'
-        threads={@props.threads}
-        onItemClick={@bound 'onItemClick'}
-        onThresholdAction='loadFollowedPublicChannels'
-        itemComponent={PublicChannelListItem}/>
-    </Modal>
+    selectedId   : null
+    threads      : immutable.Map()
+    previewCount : 0
 
 
   renderMoreLink: ->
@@ -62,7 +20,7 @@ module.exports = class SidebarChannelsSection extends React.Component
     { threads, previewCount } = @props
 
     if threads.size > previewCount
-      <a className='SidebarList-showMore' onClick={@bound 'showFollowedPublicChannelsModal'}>More ...</a>
+      <Link className="SidebarList-showMore" href="/Channels/All">More ...</Link>
 
 
   render: ->
@@ -70,9 +28,8 @@ module.exports = class SidebarChannelsSection extends React.Component
     <div>
       <SidebarSection
         title="Channels"
-        itemComponent={CreatePublicChannelModal}
-        modalProps={@getCreateChannelModalProps()}
-        onHeaderClick={@bound 'showFollowedPublicChannelsModal'}
+        titleLink="/Channels/All"
+        secondaryLink="/Channels/New"
         className="SidebarChannelsSection">
         <SidebarList
           previewCount={@props.previewCount}
@@ -80,8 +37,8 @@ module.exports = class SidebarChannelsSection extends React.Component
           componentProp='SidebarChannelsListItem'
           threads={@props.threads}
           selectedId={@props.selectedId} />
-          {@renderMoreLink()}
+        {@renderMoreLink()}
       </SidebarSection>
-      {@renderFollowedChannelsModal()}
     </div>
+
 
