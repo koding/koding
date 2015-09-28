@@ -43,21 +43,44 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
         done()
 
 
-    it 'should return meta data and credential', (done) ->
+    describe 'when data is not provided', ->
 
-      client = null
+      it 'should create default meta data', (done) ->
 
-      options =
-        region        : 'us-east-1'
-        storage       : 8
-        instanceType : 't2.micro'
+        client  = null
+        options = {}
 
-      Aws.create client, options, (err, data) ->
-        expect(err).to.not.exist
-        expect(data.meta.type)            .to.be.equal Aws.providerSlug
-        expect(data.meta.region)          .to.be.equal options.region
-        expect(data.meta.instance_type)   .to.be.equal options.instanceType
-        done()
+        Aws.create client, options, (err, data) ->
+          expect(err).to.not.exist
+          expect(data.meta.type)            .to.be.equal Aws.providerSlug
+          expect(data.meta.region)          .to.be.equal 'us-east-1'
+          expect(data.meta.instance_type)   .to.be.equal 't2.micro'
+          expect(data.credential)           .to.be.equal options.credential
+          expect(data.meta.source_ami)      .to.not.exist
+          done()
+
+
+    describe 'when data is provided', ->
+
+      it 'should create meta by given data', (done) ->
+
+        client = null
+
+        options =
+          ami           : 'someAmi'
+          region        : 'someRegion'
+          storage       : 2
+          credential    : 'someCredential'
+          instanceType  : 'someInstanceType'
+
+        Aws.create client, options, (err, data) ->
+          expect(err).to.not.exist
+          expect(data.meta.type)            .to.be.equal Aws.providerSlug
+          expect(data.meta.region)          .to.be.equal options.region
+          expect(data.meta.instance_type)   .to.be.equal options.instanceType
+          expect(data.credential)           .to.be.equal options.credential
+          expect(data.meta.source_ami)      .to.be.equal options.ami
+          done()
         
 
   describe '#fetchAvailable()', ->
