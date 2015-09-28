@@ -88,7 +88,7 @@ React.Component.include.call PrivateMessageThreadPane, [KDReactorMixin]
 
 reset = (props) ->
 
-  { privateChannelId } = props.params
+  { privateChannelId } = props.routeParams
   {
     thread : threadActions,
     channel : channelActions,

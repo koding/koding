@@ -85,7 +85,7 @@ React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
 reset = (props) ->
 
-  { channelName, postId } = props.params
+  { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
   if channelName
