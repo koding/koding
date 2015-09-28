@@ -17,8 +17,9 @@ module.exports = class MetricsMiddleware extends MetricsBase
   @generateName : (req) ->
 
     path = switch
-      when req.route.path is '*'  then req.path
-      else                             req.route.path
+      when req?.route?.path is '*'  then req.path
+      when req?.route?              then req.route.path
+      else                               req.path
 
     @sanitizeMetricName "#{@prefix}.#{path}"
 
@@ -48,7 +49,7 @@ module.exports = class MetricsMiddleware extends MetricsBase
     timer = new @timer
 
     onHeaders res, =>
-      metricName  = @generateName(req)
+      metricName  = @generateName req
       tags        = @populateTags req, res
       elapsedTime = timer.getElapsedTimeInMilliSecs()
       @sendMetrics @metricsOnHeaders({ elapsedTime }), metricName, tags
