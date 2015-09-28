@@ -1,7 +1,8 @@
 kd                  = require 'kd'
 React               = require 'kd-react'
-Router              = require 'app/components/router'
-Location            = require 'react-router/lib/Location'
+{ RoutingContext, match } = require 'react-router'
+createHistory       = require 'history/lib/createHistory'
+createLocation      = require 'history/lib/createLocation'
 handlers            = require './routehandlers'
 lazyrouter          = require 'app/lazyrouter'
 isReactivityEnabled = require 'app/util/isReactivityEnabled'
@@ -36,15 +37,15 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
 ###
 handleReactivity = ({ query }, router) ->
 
-  location = new Location router.currentPath, query
   routes = require './reactivityroutes'
 
+  location = createLocation router.currentPath
+
   activityView (view) ->
-    Router.run routes, location, (error, state) ->
+
+    match { routes, location }, (err, redirectLocation, renderProps) ->
       React.render(
-        <Router {...state}>
-          {routes}
-        </Router>
+        <RoutingContext {...renderProps} />
         view.reactivityContainer.getElement()
       )
 
