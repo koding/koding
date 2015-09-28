@@ -97,13 +97,14 @@ module.exports = class KodingKite extends KDObject
                     @transport?.expireToken =>
                       resolve @transport.tell args...
 
-                KiteLogger.failed name, rpcMethod
+                KiteLogger.failed name, rpcMethod, err
                 throw err
 
             )
 
-          .catch =>
-            KiteLogger.failed name, rpcMethod
+          .catch (err) =>
+
+            KiteLogger.failed name, rpcMethod, err
             reject @_kiteInvalidError
 
       unless @_state is CONNECTED
@@ -112,6 +113,8 @@ module.exports = class KodingKite extends KDObject
       promise
 
     else
+
+      console.warn "[KITE][INVALID]", this
 
       KiteLogger.failed name, rpcMethod
       Promise.reject @_kiteInvalidError
