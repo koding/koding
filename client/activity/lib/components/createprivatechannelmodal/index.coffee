@@ -301,7 +301,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           <label className='Reactivity-label channelName'>Name</label>
           <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
-            This is how this thread is going to appear on your sidebar (optional).
+            This is how this thread is going to appear on your sidebar.
           </span>
         </div>
         <div className='Reactivity-formfield'>
