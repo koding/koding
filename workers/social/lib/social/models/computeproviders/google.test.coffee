@@ -1,0 +1,89 @@
+Google = require './google'
+
+{ expect
+  withConvertedUser
+  checkBongoConnectivity
+  generateDummyUserFormData } = require '../../../../testhelper'
+
+
+# this function will be called once before running any test
+beforeTests = -> before (done) ->
+
+  checkBongoConnectivity done
+
+
+# here we have actual tests
+runTests = -> describe 'workers.social.models.computeproviders.google', ->
+
+  describe '#ping()', ->
+
+    it 'should reply to ping request', (done) ->
+
+      userFormData = generateDummyUserFormData()
+
+      withConvertedUser { userFormData }, (data) ->
+
+        { client, account } = data
+
+        Google.ping client, (err, data) ->
+          expect(err?.message).to.not.exist
+          expect(data).to.be.equal "Google. #{account.profile.nickname}!"
+          done()
+
+
+  describe '#create()', ->
+
+    describe 'when no data is provided', ->
+
+      it 'should create default meta data', (done) ->
+
+        client  = null
+        options = { credential : 'someCredential' }
+
+        Google.create client, options, (err, data) ->
+          expect(err).to.not.exist
+          expect(data.meta.type)       .to.be.equal 'google'
+          expect(data.meta.image)      .to.be.equal 'ubuntu-13-10-x64'
+          expect(data.meta.size)       .to.be.equal '512mb'
+          expect(data.meta.region)     .to.be.equal 'sfo1'
+          expect(data.credential)      .to.be.equal options.credential
+          done()
+
+
+    describe 'when data is provided', ->
+
+      it 'should create meta by given data', (done) ->
+
+        client  = null
+
+        options =
+          region       : 'someRegion'
+          credential   : 'someCredential'
+          instanceType : 'someInstanceType'
+
+        Google.create client, options, (err, data) ->
+          expect(err).to.not.exist
+          expect(data.meta.type)       .to.be.equal 'google'
+          expect(data.meta.image)      .to.be.equal 'ubuntu-13-10-x64'
+          expect(data.meta.size)       .to.be.equal options.instanceType
+          expect(data.meta.region)     .to.be.equal options.region
+          expect(data.credential)      .to.be.equal options.credential
+          done()
+
+
+  describe '#fetchAvailable()', ->
+
+    it 'should fetch google pricing', (done) ->
+
+      client = null
+
+      Google.fetchAvailable client, {}, (err, data) ->
+        expect(err).to.not.exist
+        expect(data).to.be.an 'array'
+        done()
+
+
+beforeTests()
+
+runTests()
+
