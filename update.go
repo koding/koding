@@ -91,7 +91,7 @@ func (u *UpdateCommand) Synopsis() string {
 
 func downloadRemoteToLocal(remotePath, destPath string) error {
 	// create the destination dir, if needed.
-	if err := os.MkdirAll(filepath.Base(destPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
 		return err
 	}
 
