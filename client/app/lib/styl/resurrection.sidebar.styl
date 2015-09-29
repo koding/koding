@@ -12,8 +12,8 @@ sidebarGrayPale           = #777
 sidebarActive             = #fff
 sidebarSubtitle           = #979087
 sidebarSelectedBg         = #262626
-sidebarCountBg            = #C14C4C
-sidebarSectionHeaderColor = #626262
+sidebarCountBg            = #e94835
+sidebarSectionHeaderColor = #666666
 
 
 sidebarTextShadow()
@@ -147,16 +147,17 @@ sidebarTextShadow()
   borderBox()
 
   cite.count
-    size            24px 16px
-    line-height     16px
-    color           #fff
-    abs             0px 0px 0 0
-    font-size       9px
-    font-weight     700
-    background      sidebarCountBg
-    rounded         3px
-    text-align      center
-    vendor          transition, all .354s .177s ease
+    size                    24px 19px
+    line-height             16px
+    color                   #fff
+    abs                     0px 0px 0 0
+    font-size               11px
+    font-weight             700
+    background              sidebarCountBg
+    rounded                 3px
+    text-align              center
+    vendor                  transition, all .354s .177s ease
+    padding-top             1px
     fr()
 
   .more-link
@@ -435,6 +436,7 @@ sidebarTextShadow()
         margin-bottom   8px
 
     .kdlistview
+      margin-top      6px
       overflow        visible
 
       .nothing
@@ -459,24 +461,26 @@ sidebarTextShadow()
     color               #fff
 
   .kdlistitemview-sidebar-item
-
-    size              auto 16px
-    padding           0px 15px
-    margin-bottom     8px
-    rounded           4px
-    font-size         14px
-    font-weight       400
-    overflow          visible
-    position          relative
-    display           block
-    color             sidebarGray
-    vendor            transition, margin-top .2s ease-out\,\
+    font-family             Soleil
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
+    size                    auto 16px
+    padding                 0px 15px
+    margin-bottom           8px
+    rounded                 4px
+    font-size               14px
+    font-weight             400
+    overflow                visible
+    position                relative
+    display                 block
+    color                   sidebarGray
+    vendor                  transition, margin-top .2s ease-out\,\
                                   transform .2s ease-out
 
-    .purpose
-    .profile
-    .ttag
-      sidebarTextShadow()
+    // .purpose
+    // .profile
+    // .ttag
+    //   sidebarTextShadow()
 
     &.selected
       color           sidebarActive
@@ -508,19 +512,20 @@ sidebarTextShadow()
       vendor          transform, translateX(-300px)
 
     .ttag
-      display        block
-      line-height    16px
-      font-size      14px
-      margin-left    4px
+      display               block
+      line-height           16px
+      font-size             16px
+      margin-left           6px
+      color                 #b3b3b3
 
       &:before
-        display      block
-        content      '#'
-        font-size    24px
-        color        #6d6d6d
-        top          -2px
-        left         0
-        text-shadow  none
+        display             block
+        content             '#'
+        font-size           20px
+        color               #808080
+        top                 -2px
+        left                0
+        text-shadow         none
         abs()
 
 
@@ -600,19 +605,23 @@ sidebarTextShadow()
       .sidebar-message-text
         > .purpose
         > .profile
-          display     block
-          float       none
-          line-height 16px
-          width       170px
-          margin-left 4px
+          display           block
+          float             none
+          line-height       18px
+          font-size         16px
+          width             170px
+          margin-left       4px
+          rel()
+          top               -2px
           borderBox()
           ellipsis()
+          color             #b3b3b3
 
         &:before
           content       ''
           display       block
           size          10px, 10px
-          bg            color, #6d6d6d
+          bg            color, #808080
           border-radius 100%
           abs           3px 0 0 -14px
 
@@ -702,16 +711,16 @@ sidebarTextShadow()
     &.active .count
       left            27px !important
     .count
-      position        absolute
-      width           14px
-      height          14px
-      font-size       8px
-      line-height     14px
-      background      #E75A5A
-      border-radius   7px
-      text-align      center
-      top             7px
-      left            28px
+      position              absolute
+      width                 14px
+      height                14px
+      font-size             8px
+      line-height           14px
+      background            sidebarCountBg
+      border-radius         7px
+      text-align            center
+      top                   7px
+      left                  28px
     .count cite
       color           #fff
 
@@ -803,22 +812,19 @@ sidebarTextShadow()
 
 
 h3.sidebar-title
-  color                     $gray-8
-  font-size                 $fs-small
-  font-weight               $fw-regular
-  height                    1em
-  letter-spacing            .05em
+  font-weight               400
+  size                      auto 1em
   line-height               16px
+  font-size                 14px
+  color                     sidebarSectionHeaderColor
+  text-transform            uppercase
+  word-spacing              .2em
+  letter-spacing            .05em
   -moz-osx-font-smoothing   grayscale
   padding                   14px 0 16px
   pointer()
   position                  relative
-  text-transform            uppercase
   -webkit-font-smoothing    antialiased
-  word-spacing              .2em
-
-  &:hover
-    color                   #fff
 
   a
     font-size               10px
@@ -835,7 +841,9 @@ h3.sidebar-title
       r-sprite              app , 'plus-16'
 
     &.buy-vm
-      margin-top            0
+      abs()
+      top                   15px
+      right                 0
 
   cite.count
     top                     11px
