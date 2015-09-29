@@ -59,3 +59,4 @@ updateMachine = (options, callback) ->
 
 
 module.exports = { updateMachine, validateResizeByMachine, validateResizeByUserPlan }
+
