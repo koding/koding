@@ -17,17 +17,33 @@ func UpdateCommandFactory() (cli.Command, error) {
 type UpdateCommand struct{}
 
 func (u *UpdateCommand) Run(_ []string) int {
-	s, err := newService()
+	checkUpdate := NewCheckUpdate()
+
+	// by pass random checking to force checking for update
+	checkUpdate.ForceCheck = true
+
+	yesUpdate, err := checkUpdate.IsUpdateAvailable()
 	if err != nil {
-		fmt.Println("Error starting service: '%s'\n", err)
+		fmt.Printf("Error checking if update is available: '%s'\n", err)
 		return 1
 	}
 
-	fmt.Printf("Stopping klient...")
+	if !yesUpdate {
+		fmt.Println("No update available.")
+		return 0
+	}
+
+	s, err := newService()
+	if err != nil {
+		fmt.Printf("Error stopping %s: '%s'\n", KlientName, err)
+		return 1
+	}
+
+	fmt.Printf("Stopping %s...\n", KlientName)
 
 	// stop klient before we update it
 	if err := s.Stop(); err != nil {
-		fmt.Println("Error starting service: '%s'\n", err)
+		fmt.Printf("Error stopping %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -40,18 +56,18 @@ func (u *UpdateCommand) Run(_ []string) int {
 		filepath.Join(KlientctlDirectory, "kd"): S3KlientctlPath,
 	}
 
-	fmt.Printf("Updating...")
+	fmt.Println("Updating...")
 
 	for localPath, remotePath := range dlPaths {
 		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
-			fmt.Println("Error updating %s: '%s'\n", Name, err)
+			fmt.Printf("Error updating %s: '%s'\n", Name, err)
 			return 1
 		}
 	}
 
 	// start klient now that it's done updating
 	if err := s.Start(); err != nil {
-		fmt.Println("Error starting %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
 		return 1
 	}
 

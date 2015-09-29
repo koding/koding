@@ -22,12 +22,12 @@ func (c *MountCommand) Run(args []string) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
@@ -56,7 +56,7 @@ func (c *MountCommand) Run(args []string) int {
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
 	if err != nil {
-		fmt.Println("Error fetching list of mounts from: '%s'\n", KlientName, err)
+		fmt.Printf("Error fetching list of mounts from: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -70,10 +70,10 @@ func (c *MountCommand) Run(args []string) int {
 	}
 
 	if len(warning) > 0 {
-		fmt.Printf("Warning: %s", warning)
+		fmt.Printf("Warning: %s\n", warning)
 	}
 
-	fmt.Println("Successfully mounted: ", localPath)
+	fmt.Println("Successfully mounted:", localPath)
 
 	return 0
 }

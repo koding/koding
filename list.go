@@ -19,18 +19,18 @@ type ListCommand struct {
 func (c *ListCommand) Run(_ []string) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
 	if err = k.Dial(); err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
 	res, err := k.Tell("remote.list")
 	if err != nil {
-		fmt.Println("Error fetching list of VMs from: '%s'\n", KlientName, err)
+		fmt.Printf("Error fetching list of VMs from: '%s'\n", KlientName, err)
 		return 1
 	}
 

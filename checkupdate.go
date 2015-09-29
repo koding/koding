@@ -34,7 +34,7 @@ func CheckUpdateFirstFactory(realFactory func() (cli.Command, error)) func() (cl
 func (c *CheckUpdateFirst) Run(args []string) int {
 	u := NewCheckUpdate()
 	if y, err := u.IsUpdateAvailable(); y && err == nil {
-		fmt.Println("A newer version of kd is available. Please do `sudo kd update`.\n")
+		fmt.Println("A newer version of %s is available. Please do `sudo kd update`.\n", Name)
 	}
 
 	return c.RealCli.Run(args)
@@ -53,6 +53,7 @@ func (c *CheckUpdateFirst) Synopsis() string {
 type CheckUpdate struct {
 	Location           string
 	RandomSeededNumber int
+	ForceCheck         bool
 }
 
 // NewCheckUpdate is the required initializer for CheckUpdate.
@@ -60,6 +61,7 @@ func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
 		Location:           S3UpdateLocation,
 		RandomSeededNumber: rand.Intn(3),
+		ForceCheck:         false,
 	}
 }
 
@@ -68,7 +70,7 @@ func NewCheckUpdate() *CheckUpdate {
 // to local version number. It only checks 1 out of 3 times randomly to
 // avoid checking for update each time.
 func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
-	if c.RandomSeededNumber != 1 {
+	if !c.ForceCheck && c.RandomSeededNumber != 1 {
 		return false, nil
 	}
 

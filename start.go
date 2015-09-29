@@ -15,12 +15,12 @@ type StartCommand struct{}
 func (c *StartCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		fmt.Println("Error starting %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
 	if err := s.Start(); err != nil {
-		fmt.Println("Error starting %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
 		return 1
 	}
 

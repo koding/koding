@@ -17,12 +17,12 @@ type MountsCommand struct{}
 func (c *MountsCommand) Run(_ []string) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 

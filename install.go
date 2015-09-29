@@ -109,7 +109,7 @@ func (c *InstallCommand) Run(_ []string) int {
 	}
 
 	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		fmt.Println("Error donwloading %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error donwloading %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -126,7 +126,7 @@ Please provide your Koding Username and Password when prompted..
 
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println("Error registering %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error registering %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -135,27 +135,27 @@ Please provide your Koding Username and Password when prompted..
 	// here for now.
 	err = os.Chmod(KiteHome, 0755)
 	if err != nil {
-		fmt.Println("Error installing %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error installing %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
 	err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644)
 	if err != nil {
-		fmt.Println("Error installing kite.key: '%s'\n", err)
+		fmt.Printf("Error installing kite.key: '%s'\n", err)
 		return 1
 	}
 
 	// Create our interface to the OS specific service
 	s, err := newService()
 	if err != nil {
-		fmt.Println("Error starting service: '%s'\n", err)
+		fmt.Printf("Error starting service: '%s'\n", err)
 		return 1
 	}
 
 	// Install the klient binary as a OS service
 	err = s.Install()
 	if err != nil {
-		fmt.Println("Error installing service: '%s'\n", err)
+		fmt.Printf("Error installing service: '%s'\n", err)
 		return 1
 	}
 
@@ -172,11 +172,11 @@ Please provide your Koding Username and Password when prompted..
 	// properly before telling the user success
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
-	fmt.Println("Verifying installation...")
+	fmt.Printf("Verifying installation...")
 
 	// Try multiple times to connect to Klient, and return the final error
 	// if needed.

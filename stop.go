@@ -15,12 +15,12 @@ type StopCommand struct{}
 func (c *StopCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		fmt.Println("Error stopping service: '%s'\n", err)
+		fmt.Printf("Error stopping service: '%s'\n", err)
 		return 1
 	}
 
 	if err := s.Stop(); err != nil {
-		fmt.Println("Error stopping service: '%s'\n", err)
+		fmt.Printf("Error stopping service: '%s'\n", err)
 		return 1
 	}
 

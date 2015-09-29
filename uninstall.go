@@ -17,12 +17,12 @@ type UninstallCommand struct{}
 func (c *UninstallCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		fmt.Println("Error uninstalling %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error uninstalling %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
 	if err := s.Uninstall(); err != nil {
-		fmt.Println("Error uninstalling %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error uninstalling %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
