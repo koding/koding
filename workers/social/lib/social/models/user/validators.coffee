@@ -1,5 +1,6 @@
 # coffeelint: disable=indentation
-isEmailValid = require './emailchecker'
+isEmailValid        = require './emailchecker'
+reservedTeamDomains = require './reservedteamdomains'
 
 module.exports = class Validators
 
@@ -15,7 +16,7 @@ module.exports = class Validators
       $                     # end of string
     ///
 
-    return teamDomainPattern.test name
+    return (name not in reservedTeamDomains) and (teamDomainPattern.test name)
 
 
   createKodingError = (err) ->

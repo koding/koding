@@ -1,13 +1,15 @@
-Bongo                               = require 'bongo'
 koding                              = require './../bongo'
 { argv }                            = require 'optimist'
 KONFIG                              = require('koding-config-manager').load "main.#{argv.c}"
 
-{ daisy }                           = Bongo
-{ expect }                          = require 'chai'
 { hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
-{ convertToArray
+{ hat
+  daisy
+  expect
+  request
+  querystring
+  convertToArray
   generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
@@ -15,9 +17,7 @@ KONFIG                              = require('koding-config-manager').load "mai
 { generateCreateTeamRequestBody
   generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
-hat                                 = require 'hat'
-request                             = require 'request'
-querystring                         = require 'querystring'
+reservedTeamDomains = require '../../../../workers/social/lib/social/models/user/reservedteamdomains'
 
 JUser                               = null
 JName                               = null
@@ -388,6 +388,48 @@ runTests = -> describe 'server.handlers.createteam', ->
       done()
 
 
+  it 'should send HTTP 400 when slug is invalid or a reserved one', (done) ->
+
+    invalidTeamDomains = [
+      # testing invalid domains
+      '-'
+      '-domain'
+      'domain-'
+      '(domain'
+      '!domain'
+      '#domain'
+      'domain@'
+      'domain%'
+      'domain?'
+      'domain☺'
+      'domainCamelCase'
+      'domain.with.dots'
+      'domain with whitespaces'
+      # testing some reserved domains
+      reservedTeamDomains[0]
+      reservedTeamDomains[Math.round(reservedTeamDomains.length / 2)]
+      reservedTeamDomains[reservedTeamDomains.length - 1]
+    ]
+
+    queue = []
+
+    invalidTeamDomains.forEach (teamDomain) ->
+      createTeamRequestParams = generateCreateTeamRequestParams
+        body   :
+          slug : teamDomain
+
+      queue.push ->
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 400
+          expect(body)            .to.be.equal 'Invalid group slug.'
+          queue.next()
+
+    queue.push -> done()
+
+    daisy queue
+
+
   it 'should send HTTP 403 when slug is set as koding', (done) ->
 
     createTeamRequestParams = generateCreateTeamRequestParams
@@ -492,8 +534,7 @@ runTests = -> describe 'server.handlers.createteam', ->
       done()
 
 
-  # TODO: this somehow returns 200, needs to be investigated
-  it.skip 'should send HTTP 400 when email is not valid', (done) ->
+  it 'should send HTTP 400 when email is not valid', (done) ->
 
     # setting email as random string
     createTeamRequestParams = generateCreateTeamRequestParams
