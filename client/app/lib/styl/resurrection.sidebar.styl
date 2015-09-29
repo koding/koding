@@ -522,6 +522,10 @@ sidebarTextShadow()
       margin-left           6px
       color                 #b3b3b3
 
+      em
+        rel()
+        top                 -2px
+
       &:before
         display             block
         content             '#'
@@ -612,7 +616,7 @@ sidebarTextShadow()
           float             none
           line-height       18px
           font-size         16px
-          width             170px
+          size              170px 19px
           margin-left       4px
           rel()
           top               -2px
@@ -1017,6 +1021,7 @@ h3.sidebar-title
       ellipsis()
       font-size             16px
       line-height           20px
+      size                  200px 20px
       vendor                transition, width .1s ease .05s
       width                 200px
       abs()
@@ -1037,14 +1042,14 @@ h3.sidebar-title
         width               13px
         height              13px
         bg                  color, transparent
-        abs                 5px 0 0 0px
+        abs                 4px 0 0 0px
         rounded             3px
         border              3px solid sidebarGray
         borderBox()
       > span
         r-sprite    app vm-settings-icon
         right       2px
-        top         2px
+        top         4px
         opacity     0
         vendor      transition, opacity .1s .1s ease
         abs()
