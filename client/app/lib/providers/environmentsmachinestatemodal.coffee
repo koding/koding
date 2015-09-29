@@ -711,7 +711,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         target = @stack
 
       if @machine.jMachine.generatedFrom?.templateId?
-        return  unless computeController.verifyStackRequirements @stack
+        unless computeController.verifyStackRequirements @stack
+          computeController.off  'StackRequirementsProvided'
+          computeController.once 'StackRequirementsProvided', @bound 'turnOnMachine'
+          return
 
     computeController.off  "error-#{target._id}"
 
