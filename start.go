@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mitchellh/cli"
 )
@@ -16,15 +15,17 @@ type StartCommand struct{}
 func (c *StartCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error starting %s: '%s'\n", KlientName, err)
+		return 1
 	}
 
-	err = s.Start()
-	if err != nil {
-		log.Fatal(err)
+	if err := s.Start(); err != nil {
+		fmt.Println("Error starting %s: '%s'\n", KlientName, err)
+		return 1
 	}
 
-	fmt.Printf("Successfully started the %s\n", KlientName)
+	fmt.Printf("Successfully started %s\n", KlientName)
+
 	return 0
 }
 

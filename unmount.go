@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mitchellh/cli"
 )
@@ -23,11 +22,13 @@ func (c *UnmountCommand) Run(args []string) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	mountRequest := struct {
@@ -36,8 +37,11 @@ func (c *UnmountCommand) Run(args []string) int {
 
 	// Don't care about the response currently, since there is none.
 	if _, err := k.Tell("remote.unmountFolder", mountRequest); err != nil {
-		log.Fatal(err)
+		fmt.Printf("Error unmounting %s: '%s'\n", args[0], err)
+		return 1
 	}
+
+	fmt.Println("Successfully unmounted: ", args[0])
 
 	return 0
 }

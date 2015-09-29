@@ -27,6 +27,7 @@ func newService() (service.Service, error) {
 	return service.New(&serviceProgram{}, svcConfig)
 }
 
+// TODO: is this required Lee?
 type serviceProgram struct{}
 
 func (p *serviceProgram) Start(s service.Service) error {

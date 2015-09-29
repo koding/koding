@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -20,15 +19,17 @@ type UpdateCommand struct{}
 func (u *UpdateCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error starting service: '%s'\n", err)
+		return 1
 	}
+
+	fmt.Printf("Stopping klient...")
 
 	// stop klient before we update it
 	if err := s.Stop(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error starting service: '%s'\n", err)
+		return 1
 	}
-
-	fmt.Printf("Stopped klient")
 
 	// download klient and kd to approprite place
 	dlPaths := map[string]string{
@@ -39,18 +40,22 @@ func (u *UpdateCommand) Run(_ []string) int {
 		filepath.Join(KlientctlDirectory, "kd"): S3KlientctlPath,
 	}
 
+	fmt.Printf("Updating...")
+
 	for localPath, remotePath := range dlPaths {
 		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
-			log.Fatal(err)
+			fmt.Println("Error updating %s: '%s'\n", Name, err)
+			return 1
 		}
 	}
 
 	// start klient now that it's done updating
 	if err := s.Start(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error starting %s: '%s'\n", KlientName, err)
+		return 1
 	}
 
-	fmt.Println("Updated to latest version of kd.")
+	fmt.Printf("Successfully updated to latest version of %s.\n", Name)
 
 	return 0
 }
@@ -71,7 +76,7 @@ func (u *UpdateCommand) Synopsis() string {
 func downloadRemoteToLocal(remotePath, destPath string) error {
 	// create the destination dir, if needed.
 	if err := os.MkdirAll(filepath.Base(destPath), 0755); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// open file in specified path to write to
@@ -96,8 +101,6 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 	if _, err := io.Copy(binFile, res.Body); err != nil {
 		return err
 	}
-
-	fmt.Printf("Downloaded %s to %s\n", remotePath, destPath)
 
 	return binFile.Close()
 }

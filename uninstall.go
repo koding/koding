@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -18,12 +17,13 @@ type UninstallCommand struct{}
 func (c *UninstallCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error uninstalling %s: '%s'\n", KlientName, err)
+		return 1
 	}
 
-	err = s.Uninstall()
-	if err != nil {
-		log.Fatal(err)
+	if err := s.Uninstall(); err != nil {
+		fmt.Println("Error uninstalling %s: '%s'\n", KlientName, err)
+		return 1
 	}
 
 	// For the ease of reinstallation, remove the user's kite key so that
@@ -34,7 +34,7 @@ func (c *UninstallCommand) Run(_ []string) int {
 		fmt.Printf("Warning: Failed to remove kite.key. This is not a critical issue.\n")
 	}
 
-	fmt.Printf("Successfully uninstalled the %s\n", KlientName)
+	fmt.Printf("Successfully uninstalled %s\n", KlientName)
 	return 0
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -20,16 +19,19 @@ type ListCommand struct {
 func (c *ListCommand) Run(_ []string) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	if err = k.Dial(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	res, err := k.Tell("remote.list")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error fetching list of VMs from: '%s'\n", KlientName, err)
+		return 1
 	}
 
 	type kiteInfo struct {

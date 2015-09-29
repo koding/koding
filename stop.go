@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mitchellh/cli"
 )
@@ -16,15 +15,17 @@ type StopCommand struct{}
 func (c *StopCommand) Run(_ []string) int {
 	s, err := newService()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error stopping service: '%s'\n", err)
+		return 1
 	}
 
-	err = s.Stop()
-	if err != nil {
-		log.Fatal(err)
+	if err := s.Stop(); err != nil {
+		fmt.Println("Error stopping service: '%s'\n", err)
+		return 1
 	}
 
-	fmt.Printf("Successfully stopped the %s\n", KlientName)
+	fmt.Printf("Successfully stopped %s\n", KlientName)
+
 	return 0
 }
 

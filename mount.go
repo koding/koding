@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -17,16 +16,19 @@ type MountCommand struct{}
 
 func (c *MountCommand) Run(args []string) int {
 	if len(args) < 2 {
-		log.Fatal(c.Help())
+		fmt.Println(c.Help())
+		return 1
 	}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	var localPath = args[1]
@@ -54,7 +56,8 @@ func (c *MountCommand) Run(args []string) int {
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error fetching list of mounts from: '%s'\n", KlientName, err)
+		return 1
 	}
 
 	if resp == nil {
@@ -69,6 +72,8 @@ func (c *MountCommand) Run(args []string) int {
 	if len(warning) > 0 {
 		fmt.Printf("Warning: %s", warning)
 	}
+
+	fmt.Println("Successfully mounted: ", localPath)
 
 	return 0
 }
