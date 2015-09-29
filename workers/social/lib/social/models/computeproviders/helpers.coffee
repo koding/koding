@@ -54,11 +54,8 @@ updateMachine = (options, callback) ->
 
       fieldsToUpdate['meta.storage_size'] = resize
 
-    machine.update {$set: fieldsToUpdate}, (err) ->
+    machine.update { $set: fieldsToUpdate }, (err) ->
       callback err
 
 
-module.exports = {
-  updateMachine, validateResizeByMachine, validateResizeByUserPlan
-}
-
+module.exports = { updateMachine, validateResizeByMachine, validateResizeByUserPlan }
