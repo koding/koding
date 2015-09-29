@@ -34,7 +34,7 @@ func CheckUpdateFirstFactory(realFactory func() (cli.Command, error)) func() (cl
 func (c *CheckUpdateFirst) Run(args []string) int {
 	u := NewCheckUpdate()
 	if y, err := u.IsUpdateAvailable(); y && err == nil {
-		fmt.Println("A newer version of %s is available. Please do `sudo kd update`.\n", Name)
+		fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", Name, Name)
 	}
 
 	return c.RealCli.Run(args)
