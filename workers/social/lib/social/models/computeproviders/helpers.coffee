@@ -47,10 +47,11 @@ updateMachine = (options, callback) ->
 
     if resize?
       storageSize = machine.meta?.storage_size ? 3
-      if err = validateResizeByMachine {
-        resize, storageSize, usage, userPlan, machine
-      }
+
+      _options = { resize, storageSize, usage, userPlan, machine }
+      if err = validateResizeByMachine _options
         return callback err
+
       fieldsToUpdate['meta.storage_size'] = resize
 
     machine.update {$set: fieldsToUpdate}, (err) ->
