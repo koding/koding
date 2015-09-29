@@ -1,6 +1,9 @@
 actions                = require 'activity/flux/chatinput/actions/actiontypes'
 BaseSelectedIndexStore = require 'activity/flux/chatinput/stores/baseselectedindexstore'
 
+###*
+ * Store to contain commands selected index
+###
 module.exports = class ChatInputCommandsSelectedIndexStore extends BaseSelectedIndexStore
 
   @getterPath = 'ChatInputCommandsSelectedIndexStore'
