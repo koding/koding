@@ -1,4 +1,6 @@
 ProviderInterface = require './providerinterface'
+{ updateMachine } = require './helpers'
+
 
 module.exports = class Aws extends ProviderInterface
 
@@ -32,4 +34,20 @@ module.exports = class Aws extends ProviderInterface
       meta.source_ami = ami
 
     callback null, { meta, credential }
+
+
+  @update = (client, options, callback) ->
+
+    { machineId, alwaysOn } = options
+    { r: { group, user, account } } = client
+
+    unless machineId? or alwaysOn?
+      return callback new KodingError \
+        'A valid machineId and an update option required.', 'WrongParameter'
+
+    JMachine = require './machine'
+    selector = JMachine.getSelectorFor client, { machineId, owner: yes }
+    selector.provider = @providerSlug
+
+    updateMachine { selector, alwaysOn }, callback
 
