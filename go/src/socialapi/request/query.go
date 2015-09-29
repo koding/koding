@@ -21,8 +21,6 @@ const (
 	ORDER_DESC          = "DESC"
 )
 
-var MessageLimit int
-
 type Query struct {
 	Id                   int64     `url:"id,omitempty"`
 	Skip                 int       `url:"skip"`
@@ -163,7 +161,9 @@ func (q *Query) SetDefaults() *Query {
 		// no need to do something
 	}
 
-	if q.Limit == 0 || q.Limit < 0 || q.Limit > MAX_LIMIT {
+	// if limit is not defined by client, its assigned to 25 as default
+	// but client can assign any value to the limit between 0 and 50
+	if q.Limit <= 0 || q.Limit > MAX_LIMIT {
 		q.Limit = DEFAULT_LIMIT
 	}
 
