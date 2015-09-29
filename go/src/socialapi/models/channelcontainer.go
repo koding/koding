@@ -13,6 +13,7 @@ type ChannelContainer struct {
 	ParticipantCount    int                      `json:"participantCount"`
 	ParticipantsPreview []string                 `json:"participantsPreview"`
 	LastMessage         *ChannelMessageContainer `json:"lastMessage"`
+	AccountOldId        string                   `json:"accountOldId"`
 	UnreadCount         int                      `json:"unreadCount"`
 	Err                 error                    `json:"-"`
 }
@@ -59,7 +60,8 @@ func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
 	cr.AddParticipantCount().
 		AddParticipantsPreview().
 		AddIsParticipant(accountId).
-		AddLastMessage(accountId)
+		AddLastMessage(accountId).
+		AddAccountOldId()
 
 	return cr.Err
 }
@@ -85,6 +87,22 @@ func withChecks(cc *ChannelContainer, f func(c *ChannelContainer) error) *Channe
 	return cc
 }
 
+func (cr *ChannelContainer) AddAccountOldId() *ChannelContainer {
+	return withChecks(cr, func(c *ChannelContainer) error {
+		if c.AccountOldId != "" {
+			return nil
+		}
+
+		acc, err := Cache.Account.ById(c.Channel.CreatorId)
+		if err != nil {
+			return err
+		}
+
+		c.AccountOldId = acc.OldId
+
+		return nil
+	})
+}
 func (cr *ChannelContainer) AddParticipantCount() *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 		cp := NewChannelParticipant()
