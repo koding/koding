@@ -11,3 +11,4 @@ module.exports = class ErrorDropboxItem extends React.Component
     <DropboxItem className='DropboxItem-separated ErrorDropboxItem'>
       { @props.children }
     </DropboxItem>
+
