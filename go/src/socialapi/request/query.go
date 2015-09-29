@@ -16,9 +16,13 @@ const (
 	DEFAULT_REPLY_LIMIT = 3
 	MAX_REPLY_LIMIT     = 25
 	MAX_LIMIT           = 25
-	ORDER_ASC           = "ASC"
-	ORDER_DESC          = "DESC"
+	// message list limit is only used for getting messages
+	MAX_MESSAGE_LIST_LIMIT = 50
+	ORDER_ASC              = "ASC"
+	ORDER_DESC             = "DESC"
 )
+
+var MessageLimit int
 
 type Query struct {
 	Id                   int64     `url:"id,omitempty"`
@@ -158,6 +162,12 @@ func (q *Query) Clone() *Query {
 func (q *Query) SetDefaults() *Query {
 	if q.Skip == 0 {
 		// no need to do something
+	}
+
+	if q.Limit <= 0 || q.Limit > MAX_MESSAGE_LIST_LIMIT {
+		MessageLimit = MAX_MESSAGE_LIST_LIMIT
+	} else {
+		MessageLimit = q.Limit
 	}
 
 	if q.Limit <= 0 || q.Limit > MAX_LIMIT {
