@@ -2,6 +2,7 @@ kd                     = require 'kd'
 KDView                 = kd.View
 Encoder                = require 'htmlencode'
 Machine                = require './machine'
+isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require '../commonviews/kodingswitch'
 KDLoaderView           = kd.LoaderView
@@ -161,7 +162,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           label         : 'Keep VM always on'
           defaultValue  : @machine.alwaysOn
           itemClass     : KodingSwitch
-          cssClass      : if isManaged then 'statustoggle hidden' else 'statustoggle'
+          cssClass      : if isManaged or not isKoding() then 'statustoggle hidden' else 'statustoggle'
           disabled      : @machine.isPermanent()
           callback      : @bound 'handleAlwaysOnStateChanged'
         nickname        :
