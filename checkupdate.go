@@ -2,26 +2,54 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mitchellh/cli"
 )
 
 func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-var (
-	// Version is the current version of kd. This number needs to be updated
-	// when we release a new version.
-	version = 1
+type CheckUpdateFirst struct {
+	RealCli cli.Command
+}
 
-	// S3UpdateLocation is publically accessible url to check for new updates.
-	S3UpdateLocation = "https://koding-kd.s3.amazonaws.com/latest-version.txt"
-)
+// CheckUpdateFirstFactory wraps others commands to check if there's an
+// update before running the original command.
+func CheckUpdateFirstFactory(realFactory func() (cli.Command, error)) func() (cli.Command, error) {
+	realCli, err := realFactory()
+	if err != nil {
+		panic(err)
+	}
 
+	return func() (cli.Command, error) { return &CheckUpdateFirst{RealCli: realCli}, nil }
+}
+
+func (c *CheckUpdateFirst) Run(args []string) int {
+	u := NewCheckUpdate()
+	if y, err := u.IsUpdateAvailable(); y && err == nil {
+		fmt.Println("A newer version of kd is available. Please do `sudo kd update`.\n")
+	}
+
+	return c.RealCli.Run(args)
+}
+
+func (c *CheckUpdateFirst) Help() string {
+	return c.RealCli.Help()
+}
+
+func (c *CheckUpdateFirst) Synopsis() string {
+	return c.RealCli.Synopsis()
+
+}
+
+// CheckUpdate checks if there an update available based on checking.
 type CheckUpdate struct {
 	Location           string
 	RandomSeededNumber int
@@ -62,5 +90,5 @@ func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 		return false, err
 	}
 
-	return newVersion > version, nil
+	return newVersion > KlientctlVersion, nil
 }

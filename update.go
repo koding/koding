@@ -7,15 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/mitchellh/cli"
-)
-
-var (
-	osName              = runtime.GOOS
-	klientRemotePath    = fmt.Sprintf("https://koding-kd.s3.amazonaws.com/klient-%s", osName)
-	klientctlRemotePath = fmt.Sprintf("https://koding-kd.s3.amazonaws.com/klientctl-%s", osName)
 )
 
 func UpdateCommandFactory() (cli.Command, error) {
@@ -35,24 +28,21 @@ func (u *UpdateCommand) Run(_ []string) int {
 		log.Fatal(err)
 	}
 
-	// download klient to /opt/kite/klient
-	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
-	if err != nil {
-		log.Fatal(err)
+	fmt.Printf("Stopped klient")
+
+	// download klient and kd to approprite place
+	dlPaths := map[string]string{
+		// /opt/kite/klient/klient
+		filepath.Join(KlientDirectory, "klient"): S3KlientPath,
+
+		// /usr/local/bin/kd
+		filepath.Join(KlientctlDirectory, "kd"): S3KlientctlPath,
 	}
 
-	if err := downloadRemoteToLocal(klientRemotePath, klientBinPath); err != nil {
-		log.Fatal(err)
-	}
-
-	// download klientctl to /usr/local/bin/kd
-	klientctlBinPath, err := filepath.Abs(filepath.Join(KlientctlDirectory, "kd"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := downloadRemoteToLocal(klientctlRemotePath, klientctlBinPath); err != nil {
-		log.Fatal(err)
+	for localPath, remotePath := range dlPaths {
+		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// start klient now that it's done updating
@@ -78,8 +68,15 @@ func (u *UpdateCommand) Synopsis() string {
 	return "Update to latest version. sudo required."
 }
 
-func downloadRemoteToLocal(remoteFilePath, localFilePath string) error {
-	binFile, err := os.OpenFile(localFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+func downloadRemoteToLocal(remotePath, destPath string) error {
+	// create the destination dir, if needed.
+	if err := os.MkdirAll(filepath.Base(destPath), 0755); err != nil {
+		log.Fatal(err)
+	}
+
+	// open file in specified path to write to
+	perms := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	binFile, err := os.OpenFile(destPath, perms, 0755)
 	if err != nil {
 		if binFile != nil {
 			binFile.Close()
@@ -88,18 +85,19 @@ func downloadRemoteToLocal(remoteFilePath, localFilePath string) error {
 		return nil
 	}
 
-	res, err := http.Get(remoteFilePath)
+	// get from remote
+	res, err := http.Get(remotePath)
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
+	// copy remote file to destination path
 	if _, err := io.Copy(binFile, res.Body); err != nil {
 		return err
 	}
+
+	fmt.Printf("Downloaded %s to %s\n", remotePath, destPath)
 
 	return binFile.Close()
 }

@@ -2,13 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -51,23 +48,20 @@ type InstallCommand struct{}
 func (c *InstallCommand) Run(_ []string) int {
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Printf("Error getting %s wrapper path: '%s'\n", KlientName, err)
 		return 1
 	}
 
 	klientBinPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient"))
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Printf("Error getting %s path: '%s'\n", KlientName, err)
 		return 1
 	}
 
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Printf("Error creating directory to hold: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -101,8 +95,7 @@ func (c *InstallCommand) Run(_ []string) int {
 			// perm -rwr-xr-x, same as klient
 			err := ioutil.WriteFile(klientShPath, klientShFile, 0755)
 			if err != nil {
-				// TODO: Print UX friendly err
-				fmt.Println("Error:", err)
+				fmt.Printf("Error creating %s wrapper: '%s'\n", KlientName, err)
 				return 1
 			}
 
@@ -114,44 +107,8 @@ func (c *InstallCommand) Run(_ []string) int {
 		}
 	}
 
-	klientBinFile, err := os.OpenFile(klientBinPath,
-		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		if klientBinFile != nil {
-			klientBinFile.Close()
-		}
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
-		return 1
-	}
-
-	// TODO: Replace this with an s3 url
-	// Download the bin
-	res, err := http.Get(fmt.Sprintf(
-		"https://koding-kd.s3.amazonaws.com/klient-%s",
-		runtime.GOOS,
-	))
-	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
-		return 1
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
-	_, err = io.Copy(klientBinFile, res.Body)
-	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
-		return 1
-	}
-
-	err = klientBinFile.Close()
-	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
+		fmt.Println("Error donwloading %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -168,8 +125,7 @@ Please provide your Koding Username and Password when prompted..
 
 	err = cmd.Run()
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Println("Error registering %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
@@ -178,30 +134,27 @@ Please provide your Koding Username and Password when prompted..
 	// here for now.
 	err = os.Chmod(KiteHome, 0755)
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Println("Error installing %s: '%s'\n", KlientName, err)
 		return 1
 	}
+
 	err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644)
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Println("Error installing kite.key: '%s'\n", err)
 		return 1
 	}
 
 	// Create our interface to the OS specific service
 	s, err := newService()
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Println("Error starting service: '%s'\n", err)
 		return 1
 	}
 
 	// Install the klient binary as a OS service
 	err = s.Install()
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Println("Error installing service: '%s'\n", err)
 		return 1
 	}
 
@@ -218,8 +171,7 @@ Please provide your Koding Username and Password when prompted..
 	// properly before telling the user success
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		// TODO: Print UX friendly err
-		fmt.Println("Error:", err)
+		fmt.Println("Error connecting to remote VM: '%s'\n", err)
 		return 1
 	}
 
@@ -239,7 +191,7 @@ Please provide your Koding Username and Password when prompted..
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
 	if err != nil {
-		fmt.Printf(`Error: Failed to verify the installation of the %s.
+		fmt.Printf(`Error: verifying the installation of the %s.
 
 Reason: %s
 `,

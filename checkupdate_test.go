@@ -19,12 +19,12 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := UpdateChecker{Location: server.URL, RandomSeededNumber: 1}
+		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 1}
 
 		yesUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(yesUpdate, ShouldBeTrue)
-		So(version, ShouldBeLessThan, 2)
+		So(KlientctlVersion, ShouldBeLessThan, 2)
 	})
 
 	Convey("It should return false if latest version is less or equal to than current version", t, func() {
@@ -36,16 +36,16 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := UpdateChecker{Location: server.URL, RandomSeededNumber: 1}
+		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 1}
 
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(noUpdate, ShouldBeFalse)
-		So(version, ShouldEqual, 1)
+		So(KlientctlVersion, ShouldEqual, 1)
 	})
 
 	Convey("It shouldn't update if randomly seeded number is not 1", t, func() {
-		u := UpdateChecker{Location: "http://location:9999", RandomSeededNumber: 2}
+		u := CheckUpdate{Location: "http://location:9999", RandomSeededNumber: 2}
 
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
@@ -53,7 +53,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 	})
 
 	Convey("It should return err if unable to check for update", t, func() {
-		u := UpdateChecker{Location: "http://location:9999", RandomSeededNumber: 1}
+		u := CheckUpdate{Location: "http://location:9999", RandomSeededNumber: 1}
 
 		_, err := u.IsUpdateAvailable()
 		So(err, ShouldNotBeNil)
@@ -68,7 +68,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := UpdateChecker{Location: server.URL, RandomSeededNumber: 1}
+		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 1}
 
 		_, err := u.IsUpdateAvailable()
 		So(err, ShouldNotBeNil)
