@@ -34,6 +34,10 @@ sidebarTextShadow()
     > .kdcustomscrollview
       kalc                  height, 100% \- 40px
 
+    .avatar-area
+      .avatarview
+        left                initial
+
   &.static > .kdcustomscrollview
     kalc                    height, 100% \- 28px
 
@@ -990,6 +994,7 @@ h3.sidebar-title
     size                    218px 16px
     -moz-osx-font-smoothing grayscale
     -webkit-font-smoothing  antialiased
+    rel()
 
     &.add-app
     &.add-vm
@@ -1014,7 +1019,8 @@ h3.sidebar-title
       line-height           20px
       vendor                transition, width .1s ease .05s
       width                 200px
-      rel()
+      abs()
+      top                   1px
 
     &.social > figure
     &.activity > figure
@@ -1054,7 +1060,7 @@ h3.sidebar-title
         size        100% 3px
         background  none
         border      none
-        abs         0 0 -8px 0px
+        abs         24px 0 0 0
         rounded     1px
         .bar
           background  #4BA148
