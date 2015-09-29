@@ -616,6 +616,16 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'listLikers'
       validateOptionsWith: ['id']
 
+    createChannelWithParticipants   : messageRequesterFn
+      fnName                        : 'createChannelWithParticipants'
+      validateOptionsWith           : ['body', 'recipients']
+      mapperFn                      : mapPrivateMessages
+
+    sendMessageToChannel : messageRequesterFn
+      fnName             : 'sendMessageToChannel'
+      validateOptionsWith: ['body', 'channelId']
+      mapperFn           : mapPrivateMessages
+
     initPrivateMessage   : messageRequesterFn
       fnName             : 'initPrivateMessage'
       validateOptionsWith: ['body', 'recipients']
