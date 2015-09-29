@@ -211,11 +211,10 @@ deploy:
         name: deploy started
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "<$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH started" "deploying" 5
-    - create-file:
-        name: write version file
-        filename: $WERCKER_ROOT/VERSION
-        content: ${WERCKER_GIT_COMMIT:0:8}
-        overwrite: true
+    - script:
+        name: create version file
+        code: |
+          $WERCKER_ROOT/scripts/create_version.sh
     - script:
         name: setup nvm
         code: |
@@ -246,10 +245,10 @@ deploy:
         secret-key: $S3_KEY_SECRET
         app-name: koding
         env-name: $EB_ENV_NAME
-        version-label: $ARCHIVE
+        version-label: $(cat $WERCKER_ROOT/ARCHIVE_NAME)
         region: $EB_ENV_REGION
         s3-bucket: $S3_EB_DEPLOY-$EB_ENV_REGION
-        s3-key: $ARCHIVE
+        s3-key: $(cat $WERCKER_ROOT/ARCHIVE_NAME)
     - script:
         name: notify-cebeci with eb trigger
         code: |
