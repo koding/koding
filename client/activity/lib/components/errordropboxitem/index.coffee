@@ -8,6 +8,6 @@ module.exports = class ErrorDropboxItem extends React.Component
 
   render: ->
 
-    <DropboxItem className='ErrorDropboxItem'>
+    <DropboxItem className='DropboxItem-separated ErrorDropboxItem'>
       { @props.children }
     </DropboxItem>

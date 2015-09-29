@@ -125,16 +125,11 @@ module.exports = class CommandDropbox extends React.Component
       visible      = { @isActive() }
       onOuterClick = { @bound 'close' }
       direction    = 'up'
+      title        = 'Commands matching'
+      subtitle     = { query }
       ref          = 'dropbox'
     >
-      <div className="Dropbox-innerContainer">
-        <div className="Dropbox-header">
-          Commands matching
-        </div>
-        <div className="CommandDropbox-list">
-          { @renderList()  unless isError }
-          { @renderError()  if isError }
-        </div>
-      </div>
+      { @renderList()  unless isError }
+      { @renderError()  if isError }
     </Dropbox>
 

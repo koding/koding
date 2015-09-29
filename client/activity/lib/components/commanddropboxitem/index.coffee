@@ -15,7 +15,7 @@ module.exports = class CommandDropboxItem extends React.Component
   render: ->
 
     { item } = @props
-    <DropboxItem {...@props} className='CommandDropboxItem'>
+    <DropboxItem {...@props} className='DropboxItem-separated CommandDropboxItem'>
       {item.get 'name'}
       <span className='CommandDropboxItem-description'>{item.get 'description'}</span>
     </DropboxItem>
