@@ -4,6 +4,7 @@ immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox'
 CommandDropboxItem   = require 'activity/components/commanddropboxitem'
+ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
@@ -20,6 +21,9 @@ module.exports = class CommandDropbox extends React.Component
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
+
+
+  isActive: -> @props.visible
 
 
   formatSelectedValue: -> @props.selectedItem.get 'name'
@@ -101,7 +105,20 @@ module.exports = class CommandDropbox extends React.Component
       />
 
 
+  renderError: ->
+
+    { query } = @props
+
+    <ErrorDropboxItem>
+      { query } is not a proper command, sorry
+    </ErrorDropboxItem>
+
+
   render: ->
+
+    { items, query, visible } = @props
+
+    isError = items.size is 0 and query
 
     <Dropbox
       className    = 'CommandDropbox'
@@ -115,7 +132,8 @@ module.exports = class CommandDropbox extends React.Component
           Commands matching
         </div>
         <div className="CommandDropbox-list">
-          {@renderList()}
+          { @renderList()  unless isError }
+          { @renderError()  if isError }
         </div>
       </div>
     </Dropbox>
