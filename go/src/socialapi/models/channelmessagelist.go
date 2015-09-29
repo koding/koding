@@ -116,10 +116,6 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		return nil, ErrChannelIdIsNotSet
 	}
 
-	// max limit is 25 as default,
-	// but we use max limit as 50 in channel message list
-	q.Limit = request.MessageLimit
-
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id": c.ChannelId,
