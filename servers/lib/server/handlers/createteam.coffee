@@ -8,6 +8,7 @@ KONFIG                                  = require('koding-config-manager').load 
 { hostname, environment }               = KONFIG
 { dash, daisy }                         = Bongo
 { getClientId, handleClientIdNotFound } = require './../helpers'
+{ validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
 
 module.exports = (req, res, next) ->
 
@@ -214,6 +215,9 @@ validateGroupDataAndReturnError = (body) ->
 
   unless body.slug
     return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
+
+  unless validateTeamDomain body.slug
+    return { statusCode : 400, errorMessage : 'Invalid group slug.' }
 
   else unless body.companyName
     return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
