@@ -16,7 +16,6 @@ prods=(
 )
 for i in "${prods[@]}"
 do
-    echo $i
     if [ "$EB_ENV_NAME" ==  "$i" ] ; then
         git checkout production-deployment
     fi
