@@ -104,10 +104,9 @@ module.exports = class SearchDropbox extends React.Component
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       direction      = 'up'
+      title          = 'Search'
       ref            = 'dropbox'
     >
-      <div className="Dropbox-innerContainer">
-        {@renderList()}
-      </div>
+      {@renderList()}
     </Dropbox>
 

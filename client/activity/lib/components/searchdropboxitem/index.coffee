@@ -26,7 +26,7 @@ module.exports = class SearchDropboxItem extends React.Component
 
     { renderProfileLink, renderLikesCount, renderCommentsCount } = helper
 
-    <DropboxItem {...@props} className="SearchDropboxItem">
+    <DropboxItem {...@props} className="DropboxItem-separated SearchDropboxItem">
       <SearchItemBody source={messageBody} />
       <div>
         <span className="SearchDropboxItem-info SearchDropboxItem-profileLink">
