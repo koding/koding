@@ -35,7 +35,7 @@ module.exports = class ComputeController extends KDController
 
     super
 
-    { mainController, router } = kd.singletons
+    { mainController, groupsController, router } = kd.singletons
 
     @ui = ComputeController_UI
 
@@ -45,6 +45,8 @@ module.exports = class ComputeController extends KDController
 
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
+
+      groupsController.on 'StackTemplateChanged', @bound 'checkStackRevisions'
 
       @fetchStacks =>
 
