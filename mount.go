@@ -56,21 +56,19 @@ func (c *MountCommand) Run(args []string) int {
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
 	if err != nil {
-		fmt.Printf("Error fetching list of mounts from: '%s'\n", KlientName, err)
+		fmt.Printf("Error mounting folder: '%s'\n", err)
 		return 1
 	}
 
-	if resp == nil {
-		return 0
-	}
+	if resp != nil {
+		var warning string
+		if err := resp.Unmarshal(&warning); err != nil {
+			return 0
+		}
 
-	var warning string
-	if err := resp.Unmarshal(&warning); err != nil {
-		return 0
-	}
-
-	if len(warning) > 0 {
-		fmt.Printf("Warning: %s\n", warning)
+		if len(warning) > 0 {
+			fmt.Printf("Warning: %s\n", warning)
+		}
 	}
 
 	fmt.Println("Successfully mounted:", localPath)
