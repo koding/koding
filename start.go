@@ -30,13 +30,13 @@ func (c *StartCommand) Run(_ []string) int {
 
 func (*StartCommand) Help() string {
 	helpText := `
-Usage: %s stop
+Usage: sudo %s start
 
-	Start the %s.
+	Start the %s. sudo is required.
 `
 	return fmt.Sprintf(helpText, Name, KlientName)
 }
 
 func (*StartCommand) Synopsis() string {
-	return fmt.Sprintf("Start the %s", KlientName)
+	return fmt.Sprintf("Start the %s. sudo required.", KlientName)
 }

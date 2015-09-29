@@ -17,8 +17,11 @@ const (
 	// klient
 	KiteHome = "/etc/kite"
 
-	// The directory that klient will be downloaded/installed to
+	// The directory that klient will be downloaded/installed to.
 	KlientDirectory = "/opt/kite/klient"
+
+	// The directory that klientctl will be downloaded/installed to.
+	KlientctlDirectory = "/usr/local/bin"
 
 	KontrolUrl = "https://koding.com/kontrol/kite"
 )

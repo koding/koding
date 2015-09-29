@@ -16,6 +16,7 @@ func main() {
 		"install":   InstallCommandFactory,
 		"start":     StartCommandFactory,
 		"stop":      StopCommandFactory,
+		"update":    UpdateCommandFactory,
 		"uninstall": UninstallCommandFactory,
 		"list":      CheckUpdateFirstFactory(ListCommandFactory),
 		"mount":     CheckUpdateFirstFactory(MountCommandFactory),
