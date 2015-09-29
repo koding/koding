@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kardianos/service"
+	"github.com/leeola/service"
 	"github.com/mitchellh/cli"
 )
 
@@ -22,6 +22,10 @@ func newService() (service.Service, error) {
 		DisplayName: "klient",
 		Description: "Koding Service Connector",
 		Executable:  filepath.Join(KlientDirectory, "klient.sh"),
+		Option: map[string]interface{}{
+			"LogStderr": true,
+			"LogStdout": true,
+		},
 	}
 
 	return service.New(&serviceProgram{}, svcConfig)
