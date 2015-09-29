@@ -243,11 +243,12 @@ module.exports = class JInvitation extends jraphical.Module
 
   # sendInvitationEmail sends email according to given JInvitation
   @sendInvitationEmail: (client, invitation, callback) ->
-    invitee      = getName client.connection.delegate
+    inviter      = getName client.connection.delegate
 
     properties =
       groupName: invitation.groupName
-      invitee  : invitee
+      inviter  : inviter
+      invitee  : inviter # TODO: this field is deprecated, remove after updating template
       link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
 
     Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
