@@ -927,6 +927,9 @@ module.exports = class ComputeController extends KDController
 
   showBuildLogs: (machine) ->
 
+    # Not supported for Koding Group
+    return  if isKoding()
+
     # Path of cloud-init-output log
     path = '/var/log/cloud-init-output.log'
     file = FSHelper.createFileInstance { path, machine }
