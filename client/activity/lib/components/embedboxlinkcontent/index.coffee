@@ -31,7 +31,7 @@ module.exports = class EmbedBoxLinkContent extends React.Component
 
     description = ''
 
-    if link_embed.description? and typeof link_embed.description is 'string'
+    if typeof link_embed.description is 'string'
       description = "#{@encodeString(link_embed.description).substring 0, 128}..."
 
     <a href={link_url} target='_blank' className='EmbedBoxLinkContent-description'>
