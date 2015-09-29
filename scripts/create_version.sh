@@ -6,13 +6,39 @@
 # if latest, uses the latest-deployment tag's sha
 # if production, uses the latest-deployment tag's sha
 # else: just use the standart git rev
-if [ "$CONFIG" == "latest" ]; then
+
+prods=(
+  koding-proxy-ap-s-e-1
+  koding-proxy-eu-west-1
+  koding-proxy-us-east-1
+  koding-proxy-us-west-2
+  koding-prod
+)
+for i in "${prods[@]}"
+do
+    echo $i
+    if [ "$EB_ENV_NAME" ==  "$i" ] ; then
+        git checkout production-deployment
+    fi
+done
+
+if [ "$EB_ENV_NAME" == "latest" ]; then
     git checkout latest-deployment
 fi
 
-if [ "$CONFIG" == "prod" ]; then
-    git checkout production-deployment
-fi
+
+#
+# "koding-proxy-ap-s-e-1"
+# "koding-proxy-eu-west-1"
+# "koding-proxy-us-east-1"
+# "koding-proxy-us-west-2"
+# "koding-prod"
+#
+# "koding-latest"
+# "koding-sandbox"
+#
+# "koding-proxy-dev-us-e-1"
+#
 
 version=$(git rev-parse HEAD)
 
