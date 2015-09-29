@@ -131,13 +131,14 @@ func (c *InstallCommand) Run(_ []string) int {
 		"https://koding-kd.s3.amazonaws.com/klient-%s",
 		runtime.GOOS,
 	))
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
 	if err != nil {
 		// TODO: Print UX friendly err
 		fmt.Println("Error:", err)
 		return 1
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
 	}
 
 	_, err = io.Copy(klientBinFile, res.Body)
