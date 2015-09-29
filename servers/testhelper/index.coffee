@@ -1,7 +1,11 @@
 _           = require 'underscore'
 hat         = require 'hat'
+Bongo       = require 'bongo'
+request     = require 'request'
 querystring = require 'querystring'
 
+{ daisy }   = Bongo
+{ expect }  = require 'chai'
 
 # returns 20 characters by default
 generateRandomString = (length = 20) -> hat().slice(32 - length)
@@ -112,7 +116,12 @@ convertToArray = (commaSeparatedData = '') ->
 
 
 module.exports = {
+  hat
+  daisy
+  expect
+  request
   generateUrl
+  querystring
   convertToArray
   deepObjectExtend
   generateRandomEmail
