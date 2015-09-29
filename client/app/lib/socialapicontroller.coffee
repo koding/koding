@@ -256,6 +256,7 @@ module.exports = class SocialApiController extends KDController
 
     item._id                 = data.id
     item.isParticipant       = channel.isParticipant
+    item.accountOldId        = channel.accountOldId
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
     item.name                = data.name
