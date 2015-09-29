@@ -9,7 +9,7 @@ setupIdentify = ->
     return  unless isLoggedIn() and account
     kd.utils.defer -> identifyUser account
 
-identifyUser = (account)->
+identifyUser = (account) ->
 
   return  if identified
   identified = true
