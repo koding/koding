@@ -57,6 +57,16 @@ module.exports = class ChatPane extends React.Component
       return @props.createdBy = account  if account
 
 
+  renderProfileLink: ->
+
+    createdAt = @getChannelCreationDate @channel 'createdAt'
+    <span>, created by&nbsp;
+      <ProfileLinkContainer origin={@props.createdBy}>
+        <ProfileText />
+      </ProfileLinkContainer> on {createdAt}. <br/>
+    </span>
+
+
   renderBody: ->
 
     return null  unless @props.messages?.size
