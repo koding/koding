@@ -18,11 +18,13 @@ CreateChannelParticipantsDropdown = require 'activity/components/createchannelpa
 
 module.exports = class CreatePublicChannelModal extends React.Component
 
+
   @include [DropboxInputMixin]
+
 
   constructor: (props) ->
 
-    super
+    super props
 
     @state =
       name                : ''
