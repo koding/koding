@@ -2085,3 +2085,23 @@ Admin main styles
     .footer
     .stack-preview
       hidden()
+
+
+@keyframes hilite
+  0%
+    background              rgba(255, 255, 0, .06)
+  15%
+    background              rgba(255, 255, 0, .18)
+  30%
+    background              rgba(255, 255, 0, .28)
+  50%
+    background              rgba(255, 255, 0, .38)
+  75%
+    background              rgba(255, 255, 0, .18)
+  85%
+    background              rgba(255, 255, 0, .06)
+  100%
+    background              none
+
+.hilite
+  vendor                    animation, hilite 3s
