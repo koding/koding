@@ -28,14 +28,11 @@ ellipsis()
   overflow                  hidden
   white-space               nowrap
 
-vendor(a, b)
-  -webkit-{a}               b
-  -moz-{a}                  b
-  // -khtml-{a}               b
-  // -o-{a}                   b
-  // -icab-{a}                b
-  {a}                       b
-  -ms-{a}                   b
+vendor(prop, rest...)
+  -ms-{prop}                rest
+  -webkit-{prop}            rest
+  -moz-{prop}               rest
+  {prop}                    rest
 
 size()
   width                     arguments[0]
