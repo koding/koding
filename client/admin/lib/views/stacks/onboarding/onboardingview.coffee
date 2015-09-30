@@ -11,7 +11,7 @@ CLONE_REPO_TEMPLATES  =
   github              : 'git clone git@github.com/your-organization/reponame.git'
   bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
   gitlab              : 'git clone git@gitlab.com/your-organization/reponame.git'
-  owngitserver        : 'git clone git@yourgitserver.com/reponame.git'
+  yourgitserver       : 'git clone git@yourgitserver.com/reponame.git'
 PROVIDER_TEMPLATES    =
   aws                 :
     aws               :
