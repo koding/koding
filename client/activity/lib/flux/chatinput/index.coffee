@@ -26,6 +26,7 @@ module.exports = {
     require './stores/search/querystore'
     require './stores/search/visibilitystore'
     require './stores/search/searchstore'
+    require './stores/search/flagsstore'
     require './stores/valuestore'
     require './stores/command/commandsstore'
     require './stores/command/querystore'

@@ -3,6 +3,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox'
+ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 SearchDropboxItem    = require 'activity/components/searchdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
@@ -20,6 +21,13 @@ module.exports = class SearchDropbox extends React.Component
     visible        : no
     selectedItem   : null
     selectedIndex  : 0
+    flags          : immutable.Map()
+
+
+  shouldComponentUpdate: (nextProps, nextState) -> not nextProps.flags?.get 'isLoading'
+
+
+  isActive: -> @props.visible
 
 
   formatSelectedValue: -> @props.selectedItem.get('message').toJS()
@@ -97,7 +105,20 @@ module.exports = class SearchDropbox extends React.Component
       />
 
 
+  renderError: ->
+
+    { query } = @props
+
+    <ErrorDropboxItem>
+      { query } not found
+    </ErrorDropboxItem>
+
+
   render: ->
+
+    { items, query, flags } = @props
+
+    isError = items.size is 0 and query
 
     <Dropbox
       className      = 'SearchDropbox'
@@ -107,6 +128,7 @@ module.exports = class SearchDropbox extends React.Component
       title          = 'Search'
       ref            = 'dropbox'
     >
-      {@renderList()}
+      { @renderList()  unless isError }
+      { @renderError()  if isError }
     </Dropbox>
 
