@@ -1592,11 +1592,6 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        # don't block register
-        callback error, { account, newToken }
-        queue.next()
-
-      ->
         jwtToken = JUser.createJWT { username }
 
         Tracker.identify username, { jwtToken, email, pin }
@@ -1606,6 +1601,11 @@ module.exports = class JUser extends jraphical.Module
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
         Tracker.track username, { to : email, subject }, { pin }
+        queue.next()
+
+      ->
+        # don't block register
+        callback error, { account, newToken }
         queue.next()
 
       ->
