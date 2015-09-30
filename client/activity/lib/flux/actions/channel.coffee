@@ -11,6 +11,7 @@ realtimeActionCreators  = require './realtime/actioncreators'
 showErrorNotification   = require 'app/util/showErrorNotification'
 remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
+getters                 = require 'activity/flux/getters'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -369,6 +370,15 @@ addParticipants = (options = {}) ->
     dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, options
 
 
+addParticipantsByNames = (channelId, names) ->
+
+  users = kd.singletons.reactor.evaluateToJS getters.allUsers
+  participants = (user for userId, user of users when names.indexOf(user.profile.nickname) > -1)
+  accountIds   = (user.socialApiId for user in participants)
+
+  addParticipants { channelId, accountIds }
+
+
 ###*
  * Action to set visibility of channels participants dropdown visibility
 ###
@@ -399,6 +409,7 @@ module.exports = {
   followChannel
   unfollowChannel
   addParticipants
+  addParticipantsByNames
   loadChannelByName
   loadChannelById
   loadChannel

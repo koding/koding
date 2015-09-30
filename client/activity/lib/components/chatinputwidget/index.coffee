@@ -86,6 +86,10 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = event.target
 
     @setValue value
+    @runDropboxChecks value
+
+
+  runDropboxChecks: (value) ->
 
     textInput = React.findDOMNode @refs.textInput
     textData  =
@@ -134,8 +138,16 @@ module.exports = class ChatInputWidget extends React.Component
 
     unless isDropboxEnter
       value = @state.value.trim()
-      @props.onSubmit? { value }
-      @resetValue()
+      channelId = @props.thread.get 'channelId'
+      command = helpers.parseCommand value
+
+      if command
+        success = ChatInputFlux.actions.command.executeCommand command, channelId
+      else
+        @props.onSubmit? { value }
+        success = yes
+
+      @resetValue()  if success
 
 
   onEsc: (event) ->
@@ -170,15 +182,17 @@ module.exports = class ChatInputWidget extends React.Component
       ChatInputFlux.actions.message.setLastMessageEditMode accountId
 
 
-  onDropboxItemConfirmed: (item) ->
+  onDropboxItemConfirmed: (item, addWhitespace = yes, callback = kd.noop) ->
 
     textInput = React.findDOMNode @refs.textInput
 
+    item += ' '  if addWhitespace
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
     @setValue value
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
+      callback value
 
 
   onSelectorItemConfirmed: (item) ->
@@ -197,6 +211,12 @@ module.exports = class ChatInputWidget extends React.Component
     { initialChannelId, id } = message
     ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
       kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
+
+
+  onCommandItemConfirmed: (item) ->
+
+    @onDropboxItemConfirmed item, no, (value) =>
+      @runDropboxChecks value
 
 
   handleEmojiButtonClick: (event) ->
@@ -309,7 +329,7 @@ module.exports = class ChatInputWidget extends React.Component
       selectedItem    = { commandsSelectedItem }
       query           = { commandsQuery }
       visible         = { commandsVisibility }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
+      onItemConfirmed = { @bound 'onCommandItemConfirmed' }
       ref             = 'commandDropbox'
       stateId         = { @stateId }
     />
