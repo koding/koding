@@ -770,9 +770,25 @@ paymentGrayLighter  = #f8f8f8
           opacity       .99
 
     .divider
-      font-size         12px
-      margin            18px auto
-      dividerWithText()
+      font-size             12px
+      margin                18px auto
+      color                 #a8a8a8
+      width                 80%
+      overflow              hidden
+      text-align            center
+      line-height           20px
+
+      &:before, &:after
+        content             ''
+        vertical-align      top
+        display             inline-block
+        width               50%
+        height              10px
+        border-bottom       1px solid #e8e8e8
+        margin              0 2% 0 -55%
+
+      &:after
+        margin              0 -55% 0 2%
 
     .submit-btn.paypal
       bg              color, paymentGrayLighter !important

@@ -250,6 +250,8 @@ module.exports = class ChatListItem extends React.Component
 
     return @deletePostButtonHandler()  if @state.isDeleting
 
+    return @setState isDeleting: yes  unless @state.editInputValue.trim()
+
     name  = @props.channelName
     value = @state.editInputValue
     messageId = @props.message.get '_id'
@@ -286,20 +288,11 @@ module.exports = class ChatListItem extends React.Component
 
   onEditInputKeyDown: (event) ->
 
-    { ESC, ENTER, BACKSPACE } = KeyboardKeys
+    { ESC, ENTER } = KeyboardKeys
 
     switch event.which
       when ESC         then @cancelEdit()
       when ENTER       then @updateMessage()
-      when BACKSPACE   then @onEditInputBackspace event
-
-
-  onEditInputBackspace: (event) ->
-
-    return yes  if @state.editInputValue
-
-    kd.utils.stopDOMEvent event
-    @setState isDeleting: yes
 
 
   getEditModeClassNames: -> classnames

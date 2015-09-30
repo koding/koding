@@ -3,7 +3,7 @@ module.exports = (req, res, next) ->
   { _csrf } = req.cookies
 
   if _csrf isnt getToken req
-    return res.status(403).send "_csrf token is not valid"
+    return res.status(403).send '_csrf token is not valid'
 
   return next()
 
