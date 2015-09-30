@@ -2,7 +2,9 @@
 { PLANS, PROVIDERS, fetchGroupStackTemplate, revive,
   fetchUsage, checkTemplateUsage } = require './computeutils'
 
-{ expect
+{ daisy
+  expect
+  withDummyClient
   withConvertedUser
   checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
@@ -35,12 +37,48 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should be able to ping for the given provider', (done) ->
       
-      client = null
+      withConvertedUser {}, ({ client, account }) ->
+        client.r  = { account }
+        options   = { provider }
+      
+        queue = []
 
-      ComputeProvider.fetchProviders client, (err, providers) ->
-        expect(err).to.not.exist
-        expect(providers).to.deep.equal Object.keys PROVIDERS
-        done()
+        for providerSlug, provider of PROVIDERS
+          queue.push ->
+
+            ComputeProvider.ping client, options, (err, data) ->
+              expect(err).to.not.exist
+              expect(data).to.be.a 'string'
+              queue.next()
+
+        queue.push -> done()
+
+        daisy queue
+
+
+  describe '#ping$()', ->
+
+    it 'should not be able to ping if user doesnt have the right to ping', (done) ->
+
+      withDummyClient { group : 'koding' }, ({ client }) ->
+
+        ComputeProvider.ping$ client, { provider : PROVIDERS.google }, (err, data) ->
+          expect(err?.message).to.be.equal 'Access denied'
+          done()
+
+
+  describe '#create()', ->
+
+    it 'should fail when user is not registered', (done) ->
+
+      withDummyClient { group : 'koding' }, ({ client }) ->
+
+        ComputeProvider.create client, { provider : 'google' }, (err, machineData) ->
+          expect(err?.message).to.be.equal 13
+          done()
+
+
+
 
 
 beforeTests()
