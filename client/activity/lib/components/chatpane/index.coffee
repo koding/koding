@@ -6,6 +6,9 @@ Scroller        = require 'app/components/scroller'
 ScrollerMixin   = require 'app/components/scroller/scrollermixin'
 
 dateFormat           = require 'dateformat'
+remote               = require('app/remote').getInstance()
+ProfileText          = require 'app/components/profile/profiletext'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 module.exports = class ChatPane extends React.Component
 
@@ -15,6 +18,7 @@ module.exports = class ChatPane extends React.Component
     isDataLoading : no
     onLoadMore    : kd.noop
     showItemMenu  : yes
+    createdBy     : null
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -45,6 +49,13 @@ module.exports = class ChatPane extends React.Component
       dateString     = "#{dateString} at #{dateFormat givenDate, timeFormat}"
     else
       dateString     = "#{dateString}th."
+
+
+  getChannelCreatorProfile: (accountId) ->
+
+    remote.cacheable "JAccount", accountId, (err, account)=>
+      return @props.createdBy = account  if account
+
 
   renderBody: ->
 
