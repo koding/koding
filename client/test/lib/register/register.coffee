@@ -15,9 +15,9 @@ module.exports =
   registerWithGravatarEmail: (browser) ->
 
     user =
-      email    : 'kodingtestuser@gmail.com'
-      username : 'kodingtestuser'
-      password : 'passwordfortestuser'
+      email    : 'kodingtester@gmail.com'
+      username : 'kodingqa'
+      password : 'passwordfortestuser' # gmail and gravatar pass is the same
       gravatar : yes
 
     helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
