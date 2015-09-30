@@ -7,7 +7,7 @@ module.exports = class StacksModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'stacks-modal', options.cssClass
+    options.cssClass = kd.utils.curry 'stacks-modal your-stacks', options.cssClass
     options.width    = 742
     options.title    = 'Your Stacks'
     options.overlay  = yes
@@ -27,7 +27,7 @@ module.exports = class StacksModal extends kd.ModalView
 
     createButton = new kd.ButtonView
       title      : 'Create New Stack'
-      cssClass   : 'solid compact green'
+      cssClass   : 'solid compact green create-stack'
       callback   : ->
         new kd.NotificationView title: 'Coming soon.'
 
