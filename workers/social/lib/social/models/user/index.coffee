@@ -1946,8 +1946,10 @@ module.exports = class JUser extends jraphical.Module
 
   unblock: (callback) ->
 
+    status = 'confirmed'
+
     op =
-      $set   : { status: 'confirmed' }
+      $set   : { status }
       $unset : { blockedUntil: yes }
 
     @update op, (err) =>
@@ -1956,6 +1958,8 @@ module.exports = class JUser extends jraphical.Module
 
       JUser.emit 'UserUnblocked', this
       callback()
+
+      Tracker.identify @username, { status }
 
 
   unlinkOAuths: (callback) ->
