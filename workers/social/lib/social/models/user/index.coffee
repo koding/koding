@@ -22,6 +22,7 @@ module.exports = class JUser extends jraphical.Module
   JLog                 = require '../log'
   ComputeProvider      = require '../computeproviders/computeprovider'
   Tracker              = require '../tracker'
+  Payment              = require '../payment'
 
   @bannedUserList = ['abrt', 'amykhailov', 'apache', 'about', 'visa', 'shared-',
                      'cthorn', 'daemon', 'dbus', 'dyasar', 'ec2-user', 'http',
@@ -162,7 +163,10 @@ module.exports = class JUser extends jraphical.Module
           type      : String
           # enum      : ['invalid status',['online','offline','away','busy']]
 
-      sshKeys       : [Object]
+      sshKeys       :
+        type        : Object
+        default     : []
+
       foreignAuth            :
         github               :
           foreignId          : String
@@ -1552,6 +1556,7 @@ module.exports = class JUser extends jraphical.Module
     newToken         = null
     invitation       = null
     foreignAuthType  = null
+    subscription     = null
 
     queue = [
 
@@ -1596,9 +1601,51 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        date = new Date 0
+        subscription =
+          accountId          : account.getId()
+          planTitle          : 'free'
+          planInterval       : 'month'
+          state              : 'active'
+          provider           : 'koding'
+          expiredAt          : date
+          canceledAt         : date
+          currentPeriodStart : date
+          currentPeriodEnd   : date
+
+        queue.next()
+
+      ->
         jwtToken = JUser.createJWT { username }
 
-        Tracker.identify username, { jwtToken, email, pin }
+        { status, lastLoginDate } = user
+        { createdAt } = account.meta
+
+        sshKeysCount = user.sshKeys.length
+
+        emailFrequency =
+          global       : user.emailFrequency.global
+          marketing    : user.emailFrequency.marketing
+
+        traits = {
+          email
+          createdAt
+          lastLoginDate
+          status
+
+          firstName
+          lastName
+
+          subscription
+          sshKeysCount
+          emailFrequency
+
+          pin
+          jwtToken
+        }
+
+        Tracker.identify username, traits
+
         queue.next()
 
       ->
