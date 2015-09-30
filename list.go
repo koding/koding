@@ -13,8 +13,7 @@ func ListCommandFactory() (cli.Command, error) {
 	return &ListCommand{}, nil
 }
 
-type ListCommand struct {
-}
+type ListCommand struct{}
 
 func (c *ListCommand) Run(_ []string) int {
 	k, err := CreateKlientClient(NewKlientOptions())
@@ -32,13 +31,6 @@ func (c *ListCommand) Run(_ []string) int {
 	if err != nil {
 		fmt.Printf("Error fetching list of VMs from: '%s'\n", KlientName, err)
 		return 1
-	}
-
-	type kiteInfo struct {
-		Ip           string
-		VmName       string
-		Hostname     string
-		MountedPaths []string
 	}
 
 	var infos []kiteInfo
@@ -66,4 +58,11 @@ Usage: %s list
 
 func (*ListCommand) Synopsis() string {
 	return fmt.Sprintf("List the available machines")
+}
+
+type kiteInfo struct {
+	Ip           string
+	VmName       string
+	Hostname     string
+	MountedPaths []string
 }

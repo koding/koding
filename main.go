@@ -20,6 +20,7 @@ func main() {
 		"list":      CheckUpdateFirstFactory(ListCommandFactory),
 		"mount":     CheckUpdateFirstFactory(MountCommandFactory),
 		"unmount":   CheckUpdateFirstFactory(UnmountCommandFactory),
+		"ssh":       CheckUpdateFirstFactory(SSHCommandFactory),
 		"mounts":    CheckUpdateFirstFactory(MountsCommandFactory),
 	}
 
