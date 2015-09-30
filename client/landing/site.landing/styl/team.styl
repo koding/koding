@@ -24,32 +24,11 @@ team.styl
   bg                        color #111
 
   &:before
+    bg                      color, #323232
     content                 ''
-    // bg                      image, url('/a/site.landing/images/unsplash/4.jpg')
-    background              radial-gradient(
-      62% 170%,
-      153% 160%,
-      #FEB1B1 0%,
-      #8E73CF 45%,
-      #705AD5 55%,
-      #172B60 100%
-    )
+    fix                     0px 0 0 0px
     size                    100% 100%
-    top                     0
-    left                    0
-    bg                      size cover
-    // opacity                 0.001
     z-index                 0
-    vendor                  transition, opacity .3s ease
-    fix()
-
-  &:after
-    size                    100% 100%
-    z-index                 1
-    top                     0
-    left                    0
-    bg                      color, rgba(0,0,0,.6)
-    fix()
 
 .content-page.Team
   overflow                  auto
