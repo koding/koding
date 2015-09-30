@@ -16,6 +16,7 @@ Link                 = require 'app/components/common/link'
 whoami               = require 'app/util/whoami'
 helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
+parseStringToCommand = require 'activity/util/parseStringToCommand'
 
 
 module.exports = class ChatInputWidget extends React.Component
@@ -139,7 +140,7 @@ module.exports = class ChatInputWidget extends React.Component
     unless isDropboxEnter
       value = @state.value.trim()
       channelId = @props.thread.get 'channelId'
-      command = helpers.parseCommand value
+      command = parseStringToCommand value
 
       if command
         ChatInputFlux.actions.command.executeCommand command, channelId

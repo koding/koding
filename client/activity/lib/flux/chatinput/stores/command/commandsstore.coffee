@@ -18,7 +18,7 @@ module.exports = class ChatInputCommandsStore extends KodingFluxStore
       }
       {
         name        : '/invite'
-        description : 'Invite people'
+        description : 'Invite another member to this channel'
         paramPrefix : '@'
         paramText   : '@user'
       }
