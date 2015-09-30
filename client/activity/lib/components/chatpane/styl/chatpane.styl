@@ -25,6 +25,8 @@
     margin-top              10px
 
     a
+      rel()
+      dIBlock()
       margin-right          20px
 
       &:before
@@ -33,6 +35,16 @@
         top                 2px
         content             ''
         margin-right        5px
+
+      .Tooltip-wrapper
+        hidden()
+        left                50%
+        margin-left         -38px
+        top                 -1px
+
+      &:hover
+        .Tooltip-wrapper
+          visible()
 
     .ChatPane-inviteOthersAction:before
       r-sprite              'activity', 'invite-people'
