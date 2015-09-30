@@ -1,9 +1,11 @@
-Google = require './google'
+Google      = require './google'
+JCredential = require './credential.coffee'
 
 { expect
   withConvertedUser
   checkBongoConnectivity
-  generateDummyUserFormData } = require '../../../../testhelper'
+  generateDummyUserFormData }      = require '../../../../testhelper'
+{ withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders'
 
 
 # this function will be called once before running any test
@@ -33,41 +35,48 @@ runTests = -> describe 'workers.social.models.computeproviders.google', ->
 
   describe '#create()', ->
 
-    describe 'when no data is provided', ->
+    describe 'when credential is provided', ->
 
       it 'should create default meta data', (done) ->
 
+        withConvertedUserAndCredential { provider : 'google' }, (data) ->
+
+          { credential, client } = data
+          { clientSecretsContent, privateKeyContent, projectId } = credential
+
+          Google.create client, data, (err, data) ->
+            expect(err).to.not.exist
+
+            { meta } = data
+            expect(meta.type)                 .to.be.equal 'googlecompute'
+            expect(meta.bucket_name)          .to.be.equal 'my-project-packer-images'
+            expect(meta.client_secrets_file)  .to.be.equal clientSecretsContent
+            expect(meta.private_key_file)     .to.be.equal privateKeyContent
+            expect(meta.project_id)           .to.be.equal projectId
+            expect(meta.source_image)         .to.be.equal 'debian-7-wheezy-v20131014'
+            expect(meta.zone)                 .to.be.equal 'us-central1-a'
+            done()
+
+
+
+    describe 'when credential is not provided', ->
+
+      it 'should set some of the default values', (done) ->
+
         client  = null
-        options = { credential : 'someCredential' }
+        options = {}
 
         Google.create client, options, (err, data) ->
           expect(err).to.not.exist
-          expect(data.meta.type)       .to.be.equal 'google'
-          expect(data.meta.image)      .to.be.equal 'ubuntu-13-10-x64'
-          expect(data.meta.size)       .to.be.equal '512mb'
-          expect(data.meta.region)     .to.be.equal 'sfo1'
-          expect(data.credential)      .to.be.equal options.credential
-          done()
 
-
-    describe 'when data is provided', ->
-
-      it 'should create meta by given data', (done) ->
-
-        client  = null
-
-        options =
-          region       : 'someRegion'
-          credential   : 'someCredential'
-          instanceType : 'someInstanceType'
-
-        Google.create client, options, (err, data) ->
-          expect(err).to.not.exist
-          expect(data.meta.type)       .to.be.equal 'google'
-          expect(data.meta.image)      .to.be.equal 'ubuntu-13-10-x64'
-          expect(data.meta.size)       .to.be.equal options.instanceType
-          expect(data.meta.region)     .to.be.equal options.region
-          expect(data.credential)      .to.be.equal options.credential
+          { meta } = data
+          expect(meta.type)                 .to.be.equal 'googlecompute'
+          expect(meta.bucket_name)          .to.be.equal 'my-project-packer-images'
+          expect(meta.client_secrets_file)  .to.not.exist
+          expect(meta.private_key_file)     .to.not.exist
+          expect(meta.project_id)           .to.not.exist
+          expect(meta.source_image)         .to.be.equal 'debian-7-wheezy-v20131014'
+          expect(meta.zone)                 .to.be.equal 'us-central1-a'
           done()
 
 
