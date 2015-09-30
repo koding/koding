@@ -227,7 +227,13 @@ module.exports = class OnboardingView extends JView
       line.classList.add 'hilite'  for line in lines
 
     else if type is 'line'
-      commonSelector.addClass 'hilite'
+      if tabView = @currentPage.tabView
+        if tabView.getActivePaneIndex() is 1
+          commonSelector.last().addClass 'hilite'
+        else
+          commonSelector.first().addClass 'hilite'
+      else
+        commonSelector.addClass 'hilite'
 
     else if type is 'block'
       commonSelector.prev().nextAll().addClass 'hilite'
