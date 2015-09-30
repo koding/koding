@@ -79,7 +79,9 @@ module.exports = class JStackTemplate extends Module
 
       meta            : require 'bongo/bundles/meta'
 
-      group           : String
+      group           :
+        type          : String
+        required      : yes
 
       template        :
         content       : String
@@ -209,6 +211,8 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, data, callback) ->
 
+      { delegate } = client.connection
+
       # It's not allowed to change a stack template group or owner
       delete data.originId
       delete data.group
@@ -221,6 +225,9 @@ module.exports = class JStackTemplate extends Module
         # Keep the existing template details if not provided
         if not templateDetails?
           data.template.details = @getAt 'template.details'
+
+        # Keep last updater info in the template details
+        data.template.details.lastUpdaterId = delegate.getId()
 
       @update { $set: data }, (err) -> callback err
 
