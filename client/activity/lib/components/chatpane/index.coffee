@@ -9,6 +9,7 @@ dateFormat           = require 'dateformat'
 remote               = require('app/remote').getInstance()
 ProfileText          = require 'app/components/profile/profiletext'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+classnames           = require 'classnames'
 moment               = require 'moment'
 
 module.exports = class ChatPane extends React.Component
@@ -51,6 +52,16 @@ module.exports = class ChatPane extends React.Component
       return @props.createdBy = account  if account
 
 
+  getCollaborationTooltipClassNames: -> classnames
+    'Tooltip-wrapper': yes
+    'visible': @props.showCollaborationTooltip
+
+
+  getIntegrationTooltipClassNames: -> classnames
+    'Tooltip-wrapper': yes
+    'visible': @props.showIntegrationTooltip
+
+
   renderProfileLink: ->
 
     createdAt = @getChannelCreationDate @channel 'createdAt'
@@ -79,11 +90,11 @@ module.exports = class ChatPane extends React.Component
         <div className='ChatPane-actionContainer'>
           <Link className='ChatPane-startCollaborationAction' onClick ={ @props.startCollaboration }>
             Start Collaboration
-            <div className="Tooltip-wrapper"><span>Coming soon</span></div>
+            <div className={@getCollaborationTooltipClassNames()}><span>Coming soon</span></div>
           </Link>
           <Link className='ChatPane-addIntegrationAction' onClick ={ @props.addIntegration }>
             Add integration
-            <div className="Tooltip-wrapper"><span>Coming soon</span></div>
+            <div className={@getIntegrationTooltipClassNames()}><span>Coming soon</span></div>
           </Link>
           <Link className='ChatPane-inviteOthersAction' onClick ={ @props.inviteOthers }>Invite others</Link>
         </div>
