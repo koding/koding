@@ -9,9 +9,10 @@ module.exports = class MetricsMiddleware extends MetricsBase
   @sanitizeMetricName : (string) ->
 
     return string
-      .replace /\/$/g,      'home'  # replace last / with home
-      .replace /[\/-]/g,    '.'     # replace all / with .
-      .replace /\.{2,}/g,   '.'     # remove adjacent dots
+      .replace /\/$/g,                 'home'  # replace last / with home
+      .replace /[\/-]/g,               '.'     # replace all / with .
+      .replace /\.{2,}/g,              '.'     # remove adjacent dots
+      .replace /[^a-zA-Z0-9_\.]/g,     '_'     # replace invalid chars with _
 
 
   @generateName : (req) ->
