@@ -616,6 +616,9 @@ func (c *ChannelMessage) PopulateIntegration() (*ChannelMessage, error) {
 			return c, err
 		}
 		i, err := Cache.Integration.ByChannelIntegrationId(id)
+		if err != nil {
+			return c, err
+		}
 		newCm.SetPayload("integrationTitle", i.Title)
 		newCm.SetPayload("integrationIconPath", i.IconPath)
 
