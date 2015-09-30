@@ -107,7 +107,6 @@ reset = (props, state) ->
   if privateChannelId
     channelActions.loadChannel('private', privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
-      messageActions.loadMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
   else if not channelThread
     threadActions.changeSelectedThread null
