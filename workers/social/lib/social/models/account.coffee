@@ -1,6 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
+Tracker     = require './tracker'
 
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
@@ -862,8 +863,13 @@ module.exports = class JAccount extends jraphical.Module
       op = { $set: fields }
       @update op, (err) =>
         JAccount.sendUpdateInstanceEvent this, op  unless err
-        SocialAccount  = require './socialapi/socialaccount'
 
+        firstName = fields['profile.firstName']
+        lastName  = fields['profile.lastName']
+
+        Tracker.identify @getAt('profile.nickname'), { firstName, lastName }
+
+        SocialAccount = require './socialapi/socialaccount'
         SocialAccount.update {
           id            : @socialApiId
           nick          : @profile.nickname
