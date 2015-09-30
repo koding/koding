@@ -250,7 +250,7 @@ module.exports = class ChatListItem extends React.Component
 
     return @deletePostButtonHandler()  if @state.isDeleting
 
-    return @setState isDeleting: yes  unless @state.editInputValue
+    return @setState isDeleting: yes  unless @state.editInputValue.trim()
 
     name  = @props.channelName
     value = @state.editInputValue
