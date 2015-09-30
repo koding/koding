@@ -3,8 +3,8 @@ React           = require 'kd-react'
 immutable       = require 'immutable'
 ActivityFlux    = require 'activity/flux'
 ChatPane        = require 'activity/components/chatpane'
+ChatInputFlux   = require 'activity/flux/chatinput'
 ChatInputWidget = require 'activity/components/chatinputwidget'
-
 
 
 module.exports = class PublicChatPane extends React.Component
@@ -43,6 +43,24 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.channel.followChannel @channel 'id'
 
 
+  startCollaboration: (event) ->
+
+    kd.utils.stopDOMEvent event
+    console.log 'startCollaboration clicked!'
+
+
+  inviteOthers: (event) ->
+
+    kd.utils.stopDOMEvent event
+    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite '
+
+
+  addIntegration: (event) ->
+
+    kd.utils.stopDOMEvent event
+    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/'
+
+
   renderFollowChannel: ->
 
     <div className="PublicChatPane-subscribeContainer">
@@ -74,11 +92,14 @@ module.exports = class PublicChatPane extends React.Component
   render: ->
 
     <ChatPane
-      thread     = { @props.thread }
-      className  = "PublicChatPane"
-      messages   = { @props.messages }
-      onSubmit   = { @bound 'onSubmit' }
-      onLoadMore = { @bound 'onLoadMore' }
+      thread             = { @props.thread }
+      className          = "PublicChatPane"
+      messages           = { @props.messages }
+      onSubmit           = { @bound 'onSubmit' }
+      onLoadMore         = { @bound 'onLoadMore' }
+      inviteOthers       = { @bound 'inviteOthers' }
+      addIntegration     = { @bound 'addIntegration' }
+      startCollaboration = { @bound 'startCollaboration' }
     >
       {@renderFooter()}
     </ChatPane>
