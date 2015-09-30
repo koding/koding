@@ -8,9 +8,12 @@ PrivateChatPane           = require 'activity/components/privatechatpane'
 ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
 ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
 prepareThreadTitle        = require 'activity/util/prepareThreadTitle'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
+
+  @include [ImmutableRenderMixin]
 
   { getters } = ActivityFlux
 
