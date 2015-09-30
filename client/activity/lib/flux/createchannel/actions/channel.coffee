@@ -56,7 +56,7 @@ createPublicChannel = (options={}) ->
 
   dispatch CREATE_PUBLIC_CHANNEL, options
 
-  kd.singletons.socialapi.channel.initPublicChannel options, (err, channels) ->
+  kd.singletons.socialapi.channel.createChannelWithParticipants options, (err, channels) ->
     if err
       dispatch CREATE_PUBLIC_CHANNEL_FAIL, { err }
       showErrorNotification err, userMessage: err.message
@@ -83,7 +83,7 @@ createPrivateChannel = (options={}) ->
 
   dispatch CREATE_PRIVATE_CHANNEL, options
 
-  kd.singletons.socialapi.message.initPrivateMessage options, (err, channels) ->
+  kd.singletons.socialapi.channel.createChannelWithParticipants options, (err, channels) ->
     if err
       dispatch CREATE_PRIVATE_CHANNEL_FAIL, { err }
       showErrorNotification err, userMessage: err.message

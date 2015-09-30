@@ -25,6 +25,10 @@ SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], wi
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
 ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
+CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList]
+CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
+CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
+CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -229,6 +233,50 @@ currentValue = [
 ]
 
 
+commandsQuery = (stateId) -> [
+  CommandsQueryStore
+  (queries) -> queries.get stateId
+]
+
+
+commands = (stateId) -> [
+  CommandsStore
+  commandsQuery stateId
+  (allCommands, query) ->
+    return allCommands  if query is '/'
+
+    allCommands.filter (command) ->
+      commandName = command.get 'name'
+      return commandName.indexOf(query) is 0
+]
+
+
+commandsRawIndex = (stateId) -> [
+  CommandsSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+
+
+commandsSelectedIndex = (stateId) -> [
+  commands stateId
+  commandsRawIndex stateId
+  calculateListSelectedIndex
+]
+
+
+commandsSelectedItem = (stateId) -> [
+  commands stateId
+  commandsSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+commandsVisibility = (stateId) -> [
+  CommandsVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
+
+
 module.exports = {
   filteredEmojiList
   filteredEmojiListQuery
@@ -261,5 +309,12 @@ module.exports = {
   searchVisibility
 
   currentValue
+
+  commandsQuery
+  commands
+  commandsRawIndex
+  commandsSelectedIndex
+  commandsSelectedItem
+  commandsVisibility
 }
 

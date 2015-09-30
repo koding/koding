@@ -75,6 +75,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         create:
           (signature Object, Function)
+        createChannelWithParticipants:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -205,6 +207,12 @@ module.exports = class SocialChannel extends Base
   @removeParticipants = secureRequest
     fnName  : 'removeParticipants'
     validate: ['channelId']
+
+  createChannelWithParticipantsHelper = (client, data, callback) ->
+    doRequest 'createChannelWithParticipants', client, data, callback
+
+  @createChannelWithParticipants = permit 'send private message',
+    success: createChannelWithParticipantsHelper
 
   @leave = secure (client, data, callback) ->
     return callback new KodingError 'channel id is required for leaving a channel'  unless data.channelId
