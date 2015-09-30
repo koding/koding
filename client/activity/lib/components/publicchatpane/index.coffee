@@ -52,13 +52,16 @@ module.exports = class PublicChatPane extends React.Component
   inviteOthers: (event) ->
 
     kd.utils.stopDOMEvent event
-    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite '
 
+    chatInputWidget = @refs.chatInputWidget
+    textInput = React.findDOMNode chatInputWidget.refs.textInput
+    textInput.focus()
+
+    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite @'
 
   addIntegration: (event) ->
 
     kd.utils.stopDOMEvent event
-    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/'
 
 
   renderFollowChannel: ->
@@ -81,7 +84,7 @@ module.exports = class PublicChatPane extends React.Component
     { thread } = @props
 
     footerInnerComponent = if @channel 'isParticipant'
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} thread= {thread} enableSearch={yes} />
+    then <ChatInputWidget ref='chatInputWidget' onSubmit={@bound 'onSubmit'} thread= {thread} enableSearch={yes} />
     else @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">
