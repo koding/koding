@@ -381,7 +381,15 @@ module.exports = class SocialApiController extends KDController
     channelName = generateChannelName socialApiChannel
 
     if realtimeChannel = socialapi.openedChannels[channelName]
-      return callback null, realtimeChannel
+      # this means, someone tried to open this channel before and it is not
+      # registered yet, so wait until subscription succeed and continue on the
+      # operation
+      if not realtimeChannel.channel
+        return socialapi.on "ChannelRegistered-#{channelName}", (socialApiChannel) ->
+          channelName = generateChannelName socialApiChannel
+          callback null, socialapi.openedChannels[channelName]
+      else
+        return callback null, realtimeChannel
 
     socialapi.cacheItem socialApiChannel
     socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
@@ -399,8 +407,9 @@ module.exports = class SocialApiController extends KDController
 
       return callback err  if err
 
+      registeredChan = {delegate: realtimeChannel, channel: socialApiChannel}
       # add opened channel to the openedChannels list, for later use
-      socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
+      socialapi.openedChannels[channelName] = registeredChan
 
       # start forwarding private channel evetns to the original social channel
       forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
@@ -408,7 +417,7 @@ module.exports = class SocialApiController extends KDController
       # notify listener
       socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
-      return callback null, realtimeChannel
+      return callback null, registeredChan
 
 
   registerAndOpenChannels : registerAndOpenChannels = (socialApiChannels) ->
