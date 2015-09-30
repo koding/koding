@@ -7,6 +7,7 @@ PostPane                 = require 'activity/components/postpane'
 PrivateMessageThreadPane = require 'activity/components/privatemessagethreadpane'
 CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
 CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
+BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsmodal'
 
 ActivityAppComponent = require 'activity/components/appcomponent'
 
@@ -49,6 +50,11 @@ module.exports = newRoutes = [
     components:
       content: PrivateMessageThreadPane
       modal: CreatePrivateChannelModal
+  ,
+    path: 'All'
+    components:
+      content: PrivateMessageThreadPane
+      modal: BrowsePrivateChannelsModal
   ,
     path: ':privateChannelId'
     components:
