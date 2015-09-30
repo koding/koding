@@ -98,8 +98,8 @@ executeCommand = (command, channelId) ->
 
   switch name
     when '/invite'
-      params = (cleanUsername param for param in params)
-      channelActions.addParticipantsByNames channelId, params
+      usernames = (cleanUsername param for param in params)
+      channelActions.addParticipantsByNames channelId, usernames
       return yes
 
   return no
