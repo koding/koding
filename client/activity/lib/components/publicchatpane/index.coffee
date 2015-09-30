@@ -14,6 +14,33 @@ module.exports = class PublicChatPane extends React.Component
     messages : immutable.List()
     padded   : no
 
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      showIntegrationTooltip   : no
+      showCollaborationTooltip : no
+
+
+  componentDidMount: ->
+
+    document.addEventListener 'click', @bound 'setTooltipStates'
+
+
+  setTooltipStates: (event) ->
+
+    className = event.target.parentNode.className
+
+    return @setState showCollaborationTooltip: no  if className is 'ChatPane-addIntegrationAction'
+    return @setState showIntegrationTooltip: no  if className is 'ChatPane-startCollaborationAction'
+
+    kd.utils.stopDOMEvent event
+
+    @setState
+      showIntegrationTooltip   : no
+      showCollaborationTooltip : no
+
 
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
@@ -46,7 +73,8 @@ module.exports = class PublicChatPane extends React.Component
   startCollaboration: (event) ->
 
     kd.utils.stopDOMEvent event
-    console.log 'startCollaboration clicked!'
+    event.stopPropagation()
+    @setState showCollaborationTooltip: not @state.showCollaborationTooltip
 
 
   inviteOthers: (event) ->
@@ -59,9 +87,12 @@ module.exports = class PublicChatPane extends React.Component
 
     ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite @'
 
+
   addIntegration: (event) ->
 
     kd.utils.stopDOMEvent event
+    event.stopPropagation()
+    @setState showIntegrationTooltip: not @state.showIntegrationTooltip
 
 
   renderFollowChannel: ->
@@ -103,6 +134,8 @@ module.exports = class PublicChatPane extends React.Component
       inviteOthers       = { @bound 'inviteOthers' }
       addIntegration     = { @bound 'addIntegration' }
       startCollaboration = { @bound 'startCollaboration' }
+      showIntegrationTooltip = { @state.showIntegrationTooltip }
+      showCollaborationTooltip = { @state.showCollaborationTooltip }
     >
       {@renderFooter()}
     </ChatPane>
