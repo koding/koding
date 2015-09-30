@@ -382,6 +382,15 @@ addParticipantsByNames = (channelId, names) ->
   addParticipants channelId, accountIds, userIds
 
 
+addParticipantsByNames = (channelId, names) ->
+
+  users = kd.singletons.reactor.evaluateToJS getters.allUsers
+  participants = (user for userId, user of users when names.indexOf(user.profile.nickname) > -1)
+  accountIds   = (user.socialApiId for user in participants)
+
+  addParticipants { channelId, accountIds }
+
+
 ###*
  * Action to set visibility of channels participants dropdown visibility
 ###
