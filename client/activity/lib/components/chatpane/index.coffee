@@ -9,6 +9,7 @@ dateFormat           = require 'dateformat'
 remote               = require('app/remote').getInstance()
 ProfileText          = require 'app/components/profile/profiletext'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+moment               = require 'moment'
 
 module.exports = class ChatPane extends React.Component
 
@@ -37,18 +38,11 @@ module.exports = class ChatPane extends React.Component
 
 
   getChannelCreationDate: (givenDate) ->
-
-    timeFormat     = 'h:MM TT'
-
-    relativeDates  = ["Today", "Yesterday"]
-    today          = new Date
-    givenDate      = new Date givenDate
-    dateDifference = today.getDate() - givenDate.getDate()
-    dateString     = relativeDates[dateDifference] or dateFormat givenDate, "mmmm d"
-    if relativeDates[dateDifference]
-      dateString     = "#{dateString} at #{dateFormat givenDate, timeFormat}"
-    else
-      dateString     = "#{dateString}th."
+    dateString = moment(givenDate).calendar null,
+      sameDay  : '[Today]'
+      lastDay  : '[Yesterday]'
+      lastWeek : '[Last] dddd'
+      sameElse : 'MMM D'
 
 
   getChannelCreatorProfile: (accountId) ->
