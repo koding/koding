@@ -133,11 +133,15 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     @updateNotification.destroySubViews()
 
-    @fetchStackTemplate (err, template) =>
+    @fetchStackTemplate (err, stackTemplate) =>
 
       return showNotification err  if err
 
-      remote.cacheable 'JAccount', template.originId, (err, account) =>
+
+      { template: { details } } = stackTemplate
+      lastUpdaterId = details?.lastUpdaterId ? stackTemplate.originId
+
+      remote.cacheable 'JAccount', lastUpdaterId, (err, account) =>
 
         @updateNotification.addSubView description = new kd.CustomHTMLView
           tagName  : 'div'

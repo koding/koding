@@ -38,11 +38,10 @@ module.exports = class ChannelThreadPane extends React.Component
       channelParticipants   : immutable.List()
 
 
+  componentDidMount: -> reset @props, @state
 
-  componentDidMount: -> reset @props
 
-
-  componentWillReceiveProps: (nextProps) -> reset nextProps
+  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
   renderHeader: ->
@@ -81,22 +80,22 @@ module.exports = class ChannelThreadPane extends React.Component
 
 React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
-reset = (props) ->
+reset = (props, state) ->
 
   { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
+
+  # if there is no channel in the url, and there is no selected channelThread,
+  # then load public.
+  unless channelName
+    unless state.channelThread
+      channelName = 'public'
 
   if channelName
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
-
-      if postId
-        messageActions.changeSelectedMessage postId
-      else
-        messageActions.changeSelectedMessage null
-
-  else
+  else if not state.channelThread
     thread.changeSelectedThread null
 
 
