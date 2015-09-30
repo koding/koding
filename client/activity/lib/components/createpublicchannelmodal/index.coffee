@@ -100,7 +100,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
     recipients = @prepareRecipients()
     options =
-      body       : ''
+      type       : 'topic'
       name       : @state.name
       purpose    : @state.purpose
       recipients : recipients

@@ -16,4 +16,7 @@ require './search/searchstore'
 require './search/getters'
 require './value/valuestore'
 require './value/valuegetter'
+require './command/querystore'
+require './command/selectedindexstore'
+require './command/visibilitystore'
 
