@@ -85,11 +85,6 @@ reset = (props, state) ->
   { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
-<<<<<<< HEAD
-  if channelName
-    channelActions.loadChannel('public', channelName).then ({ channel }) ->
-      thread.changeSelectedThread channel.id
-=======
   # if there is no channel in the url, and there is no selected channelThread,
   # then load public.
   unless channelName
@@ -99,20 +94,8 @@ reset = (props, state) ->
   if channelName
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
-      channelActions.loadPopularMessages channel.id
->>>>>>> activity: improve channels route handling
       channelActions.loadParticipants channel.id, channel.participantsPreview
-
-      if postId
-        messageActions.changeSelectedMessage postId
-      else
-        messageActions.changeSelectedMessage null
-<<<<<<< HEAD
-
-  else
-=======
   else if not state.channelThread
->>>>>>> activity: improve channels route handling
     thread.changeSelectedThread null
 
 
