@@ -69,6 +69,15 @@ module.exports = class CreatePublicChannelModal extends React.Component
     'invalid'              : @state.invalidParticipants
 
 
+  getModalProps: ->
+    isOpen             : yes
+    title              : 'Create Channel'
+    className          : 'CreateChannel-Modal'
+    buttonConfirmTitle : 'CREATE'
+    onConfirm          : @bound 'createChannel'
+    onClose            : @bound 'onClose'
+
+
   setName: (event) ->
 
     value = event.target.value
@@ -80,6 +89,15 @@ module.exports = class CreatePublicChannelModal extends React.Component
   setPurpose: (event) ->
 
     @setState purpose: event.target.value
+
+
+  onClose: ->
+
+    return  unless @state.selectedThread
+
+    name = @state.selectedThread.getIn ['channel', 'name']
+
+    kd.singletons.router.handleRoute "/Channels/#{name}"
 
 
   prepareRecipients: ->
@@ -269,7 +287,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   render: ->
 
-    <ActivityModal {...@props} onConfirm={@bound 'createChannel'}>
+    <ActivityModal {...@getModalProps()}>
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
           <strong>This will create a new public channel that anyone on your team can join.</strong>
