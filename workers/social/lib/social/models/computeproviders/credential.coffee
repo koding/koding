@@ -95,7 +95,7 @@ module.exports = class JCredential extends jraphical.Module
     relationships     :
 
       data            :
-        targetType    : 'JCredentialData'
+        targetType    : JCredentialData
         as            : 'data'
 
   @getName = -> 'JCredential'
