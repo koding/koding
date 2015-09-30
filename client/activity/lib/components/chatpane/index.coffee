@@ -5,6 +5,7 @@ ActivityFlux    = require 'activity/flux'
 Scroller        = require 'app/components/scroller'
 ScrollerMixin   = require 'app/components/scroller/scrollermixin'
 
+dateFormat           = require 'dateformat'
 
 module.exports = class ChatPane extends React.Component
 
@@ -30,6 +31,20 @@ module.exports = class ChatPane extends React.Component
 
   channel: (key) -> @props.thread.getIn ['channel', key]
 
+
+  getChannelCreationDate: (givenDate) ->
+
+    timeFormat     = 'h:MM TT'
+
+    relativeDates  = ["Today", "Yesterday"]
+    today          = new Date
+    givenDate      = new Date givenDate
+    dateDifference = today.getDate() - givenDate.getDate()
+    dateString     = relativeDates[dateDifference] or dateFormat givenDate, "mmmm d"
+    if relativeDates[dateDifference]
+      dateString     = "#{dateString} at #{dateFormat givenDate, timeFormat}"
+    else
+      dateString     = "#{dateString}th."
 
   renderBody: ->
 
