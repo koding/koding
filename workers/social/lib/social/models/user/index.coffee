@@ -1941,6 +1941,8 @@ module.exports = class JUser extends jraphical.Module
       # clear all of the cookies of the blocked user
       JSession.remove { username: @username }, callback
 
+      Tracker.identify @username, { status }
+
 
   unblock: (callback) ->
 
