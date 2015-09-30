@@ -20,6 +20,7 @@ const (
 
 type ChannelRequest struct {
 	Body            string      `json:"body"`
+	Name            string      `json:"name"`
 	Payload         gorm.Hstore `json:"payload,omitempty"`
 	GroupName       string      `json:"groupName"`
 	Recipients      []string
@@ -50,6 +51,9 @@ func (p *ChannelRequest) Create() (*ChannelContainer, error) {
 	c.Name = RandomName()
 	c.TypeConstant = p.TypeConstant
 	c.Purpose = p.Purpose
+	if p.Name != "" {
+		c.Name = p.Name
+	}
 
 	// all topic channels under koding, should be public
 	if c.TypeConstant == Channel_TYPE_TOPIC && c.GroupName == Channel_KODING_NAME {
