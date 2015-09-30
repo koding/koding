@@ -110,7 +110,7 @@ module.exports = class CommandDropbox extends React.Component
     { query } = @props
 
     <ErrorDropboxItem>
-      { query } is not a proper command, sorry
+      { query } is not a proper command
     </ErrorDropboxItem>
 
 

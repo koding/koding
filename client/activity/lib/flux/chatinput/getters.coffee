@@ -24,6 +24,7 @@ SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyM
 SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
+SearchFlagsStore                    = [['ChatInputSearchFlagsStore'], withEmptyMap]
 ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
 CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList]
 CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
@@ -226,6 +227,12 @@ searchVisibility = (stateId) -> [
 ]
 
 
+searchFlags = (stateId) -> [
+  SearchFlagsStore
+  (flags) -> flags.get stateId
+]
+
+
 currentValue = [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
@@ -307,6 +314,7 @@ module.exports = {
   searchSelectedIndex
   searchSelectedItem
   searchVisibility
+  searchFlags
 
   currentValue
 

@@ -54,6 +54,7 @@ module.exports = class ChatInputWidget extends React.Component
       searchSelectedIndex            : getters.searchSelectedIndex @stateId
       searchSelectedItem             : getters.searchSelectedItem @stateId
       searchVisibility               : getters.searchVisibility @stateId
+      searchFlags                    : getters.searchFlags @stateId
       commands                       : getters.commands @stateId
       commandsQuery                  : getters.commandsQuery @stateId
       commandsSelectedIndex          : getters.commandsSelectedIndex @stateId
@@ -283,7 +284,7 @@ module.exports = class ChatInputWidget extends React.Component
     { enableSearch } = @props
     return  unless enableSearch
 
-    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
+    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility, searchFlags } = @state
 
     <SearchDropbox
       items           = { searchItems }
@@ -294,6 +295,7 @@ module.exports = class ChatInputWidget extends React.Component
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropbox'
       stateId         = { @stateId }
+      flags           = { searchFlags }
     />
 
 
