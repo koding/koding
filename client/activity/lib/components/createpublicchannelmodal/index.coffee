@@ -53,6 +53,22 @@ module.exports = class CreatePublicChannelModal extends React.Component
   getDefaultPlaceholder: -> 'type a @username and hit enter'
 
 
+  getParticipantsWrapperClassnames: -> classnames
+    'delete-mode'                       : @state.deleteMode
+    'CreateChannel-participantsWrapper' : yes
+
+
+  getNameFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'invalid'              : @state.invalidName
+
+
+  getDropboxFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'dropdown'             : yes
+    'invalid'              : @state.invalidParticipants
+
+
   setName: (event) ->
 
     value = event.target.value
@@ -216,11 +232,6 @@ module.exports = class CreatePublicChannelModal extends React.Component
       </div>
 
 
-  getParticipantsWrapperClassnames: -> classnames
-    'delete-mode'                       : @state.deleteMode
-    'CreateChannel-participantsWrapper' : yes
-
-
   renderAddParticipantInput: ->
 
     <div className={@getParticipantsWrapperClassnames()}>
@@ -254,17 +265,6 @@ module.exports = class CreatePublicChannelModal extends React.Component
       selectedIndex   = { @state.selectedIndex }
       onItemConfirmed = { @bound 'onDropdownItemConfirmed' }
     />
-
-
-  getNameFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'invalid'              : @state.invalidName
-
-
-  getDropboxFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'dropdown'             : yes
-    'invalid'              : @state.invalidParticipants
 
 
   render: ->
