@@ -10,6 +10,7 @@ KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
 KDReactorMixin                    = require 'app/flux/reactormixin'
+isPublicChannel                   = require 'app/util/isPublicChannel'
 DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
 CreateChannelFlux                 = require 'activity/flux/createchannel'
 ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
@@ -45,6 +46,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       selectedItem        : getters.createChannelParticipantsSelectedItem
       selectedIndex       : getters.createChannelParticipantsSelectedIndex
       dropdownVisibility  : getters.createChannelParticipantsDropdownVisibility
+      selectedThread      : ActivityFlux.getters.selectedChannelThread
     }
 
 
@@ -67,6 +69,16 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     'invalid'              : @state.invalidParticipants
 
 
+  getModalProps: ->
+    isOpen             : yes
+    title              : 'Create a Private Group'
+    className          : 'CreateChannel-Modal'
+    buttonConfirmTitle : 'CREATE'
+    onConfirm          : @bound 'createChannel'
+    onClose            : @bound 'onClose'
+    onAbort            : @bound 'onClose'
+
+
   setName: (event) ->
 
     value = event.target.value
@@ -78,6 +90,19 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   setPurpose: (event) ->
 
     @setState purpose: event.target.value
+
+
+  onClose: ->
+
+    return  unless @state.selectedThread
+
+    channel = @state.selectedThread.get('channel').toJS()
+
+    route = if isPublicChannel channel
+    then "/Channels/#{channel.name}"
+    else "/Messages/#{channel.id}"
+
+    kd.singletons.router.handleRoute route
 
 
   prepareRecipients: ->
@@ -283,7 +308,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   render: ->
 
-    <ActivityModal {...@props} onConfirm={@bound 'createChannel'}>
+    <ActivityModal {...@getModalProps()}>
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
           <strong>

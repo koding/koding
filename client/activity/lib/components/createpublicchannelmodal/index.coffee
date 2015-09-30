@@ -10,6 +10,7 @@ KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
 KDReactorMixin                    = require 'app/flux/reactormixin'
+isPublicChannel                   = require 'app/util/isPublicChannel'
 DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
 CreateChannelFlux                 = require 'activity/flux/createchannel'
 ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
@@ -77,6 +78,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
     buttonConfirmTitle : 'CREATE'
     onConfirm          : @bound 'createChannel'
     onClose            : @bound 'onClose'
+    onAbort            : @bound 'onClose'
 
 
   setName: (event) ->
@@ -96,9 +98,13 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
     return  unless @state.selectedThread
 
-    name = @state.selectedThread.getIn ['channel', 'name']
+    channel = @state.selectedThread.get('channel').toJS()
 
-    kd.singletons.router.handleRoute "/Channels/#{name}"
+    route = if isPublicChannel channel
+    then "/Channels/#{channel.name}"
+    else "/Messages/#{channel.id}"
+
+    kd.singletons.router.handleRoute route
 
 
   prepareRecipients: ->
