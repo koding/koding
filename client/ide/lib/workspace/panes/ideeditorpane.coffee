@@ -6,6 +6,7 @@ IDEPane            = require './idepane'
 AceView            = require 'ace/aceview'
 IDEAce             = require '../../views/ace/ideace'
 IDEHelpers         = require '../../idehelpers'
+whoami             = require 'app/util/whoami'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -217,6 +218,7 @@ module.exports = class IDEEditorPane extends IDEPane
   setLineWidgets: (row, col, username) ->
 
     return  unless editor = @getEditor()
+    return  if username is whoami().profile.nickname
 
     oldWidget      = @lineWidgets[username]
     {renderer}     = editor
