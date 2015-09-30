@@ -1927,17 +1927,18 @@ module.exports = class JUser extends jraphical.Module
   block: (blockedUntil, callback) ->
 
     unless blockedUntil then return callback new KodingError 'Blocking date is not defined'
-    @update
-      $set           :
-        status       : 'blocked',
-        blockedUntil : blockedUntil
-    , (err) =>
+
+    status = 'blocked'
+
+    @update { $set: { status, blockedUntil } }, (err) =>
+
       return callback err if err
+
       JUser.emit 'UserBlocked', this
-      # clear all of the cookies of the blocked user
 
       console.log 'JUser#block JSession#remove', { @username, blockedUntil }
 
+      # clear all of the cookies of the blocked user
       JSession.remove { username: @username }, callback
 
 
