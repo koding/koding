@@ -572,7 +572,12 @@ func (c *ChannelMessage) PopulatePayload() (*ChannelMessage, error) {
 		return nil, err
 	}
 
-	return cm.PopulateInitialParticipants()
+	i, err := cm.PopulateIntegration()
+	if err != nil {
+		return nil, err
+	}
+
+	return i.PopulateInitialParticipants()
 }
 
 func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
@@ -598,6 +603,25 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 	newCm.Payload["addedBy"] = addedByData
 
 	return newCm, nil
+}
+
+func (c *ChannelMessage) PopulateIntegration() (*ChannelMessage, error) {
+	newCm := NewChannelMessage()
+	*newCm = *c
+
+	channelIntegration := c.GetPayload(ChannelMessagePayloadKeyIntegration)
+	if channelIntegration != nil && *channelIntegration != "" {
+		id, err := strconv.ParseInt(*channelIntegration, 10, 64)
+		if err != nil {
+			return c, err
+		}
+		i, err := Cache.Integration.ByChannelIntegrationId(id)
+		newCm.SetPayload("integrationTitle", i.Title)
+		newCm.SetPayload("integrationIconPath", i.IconPath)
+
+		return newCm, nil
+	}
+	return c, nil
 }
 
 func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) {
