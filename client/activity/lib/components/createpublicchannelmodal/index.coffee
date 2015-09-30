@@ -41,12 +41,13 @@ module.exports = class CreatePublicChannelModal extends React.Component
     { getters } = CreateChannelFlux
 
     return {
-      participants        : getters.createChannelParticipants
-      query               : getters.createChannelParticipantsSearchQuery
-      dropdownUsers       : getters.createChannelParticipantsInputUsers
-      selectedItem        : getters.createChannelParticipantsSelectedItem
-      selectedIndex       : getters.createChannelParticipantsSelectedIndex
-      dropdownVisibility  : getters.createChannelParticipantsDropdownVisibility
+      participants       : getters.createChannelParticipants
+      query              : getters.createChannelParticipantsSearchQuery
+      dropdownUsers      : getters.createChannelParticipantsInputUsers
+      selectedItem       : getters.createChannelParticipantsSelectedItem
+      selectedIndex      : getters.createChannelParticipantsSelectedIndex
+      dropdownVisibility : getters.createChannelParticipantsDropdownVisibility
+      selectedThread     : ActivityFlux.getters.selectedChannelThread
     }
 
 
