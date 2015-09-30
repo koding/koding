@@ -18,18 +18,26 @@ module.exports = class EmbedBoxLinkContent extends React.Component
     </a>
 
 
+  encodeString: (str) ->
+
+    p = document.createElement "p"
+    p.textContent = str;
+    return p.innerHTML
+
+
   renderDescription: ->
 
     { link_url, link_embed } = @props.data
 
-    description = if link_embed.description?
-    then "#{Encoder.XSSEncode(link_embed.description).substring 0, 128}..."
-    else ''
+    description = ''
+
+    if typeof link_embed.description is 'string'
+      description = "#{@encodeString(link_embed.description).substring 0, 128}..."
 
     <a href={link_url} target='_blank' className='EmbedBoxLinkContent-description'>
       { description }
     </a>
-    
+
 
   renderProvider: ->
 
