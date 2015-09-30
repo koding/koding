@@ -857,12 +857,15 @@ module.exports = class JUser extends jraphical.Module
           $set            :
             username      : username
             clientId      : replacementToken
-            lastLoginDate : new Date
+            lastLoginDate : lastLoginDate = new Date
           $unset          :
             guestId       : 1
 
         session.update sessionUpdateOptions, (err) ->
           return callback err  if err
+
+          Tracker.identify username, { lastLoginDate }
+
           queue.next()
 
       ->
