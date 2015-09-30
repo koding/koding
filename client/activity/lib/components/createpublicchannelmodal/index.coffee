@@ -97,6 +97,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
   onClose: ->
 
     return  unless @state.selectedThread
+    return  if @_isCreating
 
     channel = @state.selectedThread.get('channel').toJS()
 
@@ -149,6 +150,8 @@ module.exports = class CreatePublicChannelModal extends React.Component
       recipients : recipients
 
     { createPublicChannel } = CreateChannelFlux.actions.channel
+
+    @_isCreating = yes
 
     createPublicChannel(options).then ({channel}) =>
 
