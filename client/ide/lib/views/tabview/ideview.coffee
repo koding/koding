@@ -112,8 +112,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'PaneRemoved', ({ pane, handle }) =>
 
+      { frontApp } = kd.singletons.appManager
+
       { options : { paneType } } = pane.view
       handle.off 'RenamingRequested'  if paneType is 'terminal'
+
+      if not handle.getDelegate().panes.length and not frontApp.targetTabView
+        @closeSplitView()
 
 
     # This is a custom event for IDEApplicationTabView
