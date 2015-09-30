@@ -6,6 +6,7 @@ ChannelDropbox       = require 'activity/components/channeldropbox'
 UserDropbox          = require 'activity/components/userdropbox'
 EmojiSelector        = require 'activity/components/emojiselector'
 SearchDropbox        = require 'activity/components/searchdropbox'
+CommandDropbox       = require 'activity/components/commanddropbox'
 ActivityFlux         = require 'activity/flux'
 ChatInputFlux        = require 'activity/flux/chatinput'
 KDReactorMixin       = require 'app/flux/reactormixin'
@@ -53,13 +54,18 @@ module.exports = class ChatInputWidget extends React.Component
       searchSelectedIndex            : getters.searchSelectedIndex @stateId
       searchSelectedItem             : getters.searchSelectedItem @stateId
       searchVisibility               : getters.searchVisibility @stateId
+      commands                       : getters.commands @stateId
+      commandsQuery                  : getters.commandsQuery @stateId
+      commandsSelectedIndex          : getters.commandsSelectedIndex @stateId
+      commandsSelectedItem           : getters.commandsSelectedItem @stateId
+      commandsVisibility             : getters.commandsVisibility @stateId
     }
 
 
   componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
 
 
-  getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox ]
+  getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
 
 
   setValue: (value) ->
@@ -291,6 +297,22 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
+  renderCommandDropbox: ->
+
+    { commands, commandsSelectedItem, commandsSelectedIndex, commandsQuery, commandsVisibility } = @state
+
+    <CommandDropbox
+      items           = { commands }
+      selectedIndex   = { commandsSelectedIndex }
+      selectedItem    = { commandsSelectedItem }
+      query           = { commandsQuery }
+      visible         = { commandsVisibility }
+      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
+      ref             = 'commandDropbox'
+      stateId         = { @stateId }
+    />
+
+
   renderSearchButton: ->
 
     { enableSearch } = @props
@@ -310,6 +332,7 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderChannelDropbox() }
       { @renderUserDropbox() }
       { @renderSearchDropbox() }
+      { @renderCommandDropbox() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onChange' }

@@ -8,6 +8,7 @@ module.exports = {
     search  : require './actions/search'
     message : require './actions/message'
     value   : require './actions/value'
+    command : require './actions/command'
 
   stores  : [
     require './stores/emoji/emojisstore'
@@ -26,6 +27,10 @@ module.exports = {
     require './stores/search/visibilitystore'
     require './stores/search/searchstore'
     require './stores/valuestore'
+    require './stores/command/commandsstore'
+    require './stores/command/querystore'
+    require './stores/command/selectedindexstore'
+    require './stores/command/visibilitystore'
   ]
 }
 
