@@ -93,10 +93,6 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		if !ok {
 			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
-
-		if err := template.setAwsRegion(region); err != nil {
-			return nil, err
-		}
 	}
 
 	sess.Log.Debug("Plan: stack template before injecting Koding data")
