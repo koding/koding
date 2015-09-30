@@ -3,6 +3,9 @@
   padding                   14px 0
   cursor                    pointer
 
+  a
+    text-decoration         none
+
 .SidebarSection-headerTitle
   font-weight               $fw-regular
   font-size                 $fs-small
@@ -15,12 +18,15 @@
   letter-spacing            0.08em
   text-transform            uppercase
 
-  .SidebarSection-addChannelButton
-    fr()
-    hidden()
-    r-sprite                app , 'plus-16'
+.SidebarSection-secondaryLink
+  hidden()
+  margin-top                -8px // icon height is 16px
+  position                  absolute
+  r-sprite                  app , 'plus-16'
+  right                     0
+  top                       50%
 
 .SidebarSection:hover
-  .SidebarSection-addChannelButton
-      visible()
+  .SidebarSection-secondaryLink
+    visible()
 

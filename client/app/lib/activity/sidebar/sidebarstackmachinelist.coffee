@@ -39,7 +39,9 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
     { _revisionStatus } = stack
 
     if not _revisionStatus?.error? and { status } = _revisionStatus
-      @unreadCount.show()  if status?.code > 0
+      if status?.code > 0
+      then @unreadCount.show()
+      else @unreadCount.hide()
 
 
   createHeader: ->
