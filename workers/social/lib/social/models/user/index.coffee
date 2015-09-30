@@ -1892,6 +1892,8 @@ module.exports = class JUser extends jraphical.Module
 
             callback null
 
+            Tracker.identify @username, { email }
+
 
   fetchHomepageView: (options, callback) ->
 
