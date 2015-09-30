@@ -33,7 +33,7 @@ loadMessages = (channelId, options = {}) ->
         return reject err
 
       # clean load more markers of given messages first.
-      cleanLoaderMarkers channelId, messages
+      # kd.utils.defer -> cleanLoaderMarkers channelId, messages
 
       kd.singletons.reactor.batch ->
         messages.forEach (message) ->
@@ -158,9 +158,10 @@ removeLoaderMarker = (channelId, messageId, options) ->
 ###
 cleanLoaderMarkers = (channelId, messages) ->
 
-  messages.forEach (message) ->
-    removeLoaderMarker channelId, message.id, { position: 'before' }
-    removeLoaderMarker channelId, message.id, { position: 'after' }
+  kd.singletons.reactor.batch ->
+    messages.forEach (message) ->
+      removeLoaderMarker channelId, message.id, { position: 'before' }
+      removeLoaderMarker channelId, message.id, { position: 'after' }
 
 
 ###*

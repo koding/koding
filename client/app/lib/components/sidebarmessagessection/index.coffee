@@ -1,63 +1,17 @@
 React                     = require 'kd-react'
-Modal                     = require 'app/components/modal'
 immutable                 = require 'immutable'
 SidebarList               = require 'app/components/sidebarlist'
 SidebarSection            = require 'app/components/sidebarsection'
 SidebarMessagesListItem   = require 'app/components/sidebarmessageslistitem'
-SidebarModalList          = require 'activity/components/sidebarmodallist'
-PrivateChannelListItem    = require 'activity/components/privatechannellistitem'
-CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
+Link                      = require 'app/components/common/link'
+
 
 module.exports = class SidebarMessagesSection extends React.Component
 
   @defaultProps =
-    selectedId : null
-    threads    : immutable.Map()
-
-  constructor: (props) ->
-
-    super
-
-    @state = { isModalOpen: no }
-
-
-  onClose: ->
-
-    @setState isModalOpen: no
-
-
-  showPrivateChannelsModal: ->
-
-    @setState isModalOpen: yes
-
-
-  onItemClick: (event) ->
-
-    @setState isModalOpen: no
-
-
-  getCreateChannelModalProps: ->
-
-    title               : 'Create a Private Group'
-    className           : 'CreateChannel-Modal'
-    buttonConfirmTitle  : 'CREATE'
-
-
-  renderPrivateChannelsModal: ->
-
-    <Modal
-      className='ChannelList-Modal'
-      isOpen={@state.isModalOpen}
-      closeOnOutsideClick=no
-      onClose={@bound 'onClose'}>
-      <SidebarModalList
-        title='Other Messages:'
-        onItemClick={@bound 'onItemClick'}
-        threads={@props.threads}
-        onThresholdAction='loadFollowedPrivateChannels'
-        searchProp='purpose'
-        itemComponent={PrivateChannelListItem}/>
-    </Modal>
+    selectedId   : null
+    threads      : immutable.Map()
+    previewCount : 0
 
 
   renderMoreLink: ->
@@ -65,7 +19,7 @@ module.exports = class SidebarMessagesSection extends React.Component
     { threads, previewCount } = @props
 
     if threads.size > previewCount
-      <a className='SidebarList-showMore' onClick={@bound 'showPrivateChannelsModal'}>More ...</a>
+      <Link className='SidebarList-showMore' href="/Messages/All">More ...</Link>
 
 
   render: ->
@@ -73,9 +27,8 @@ module.exports = class SidebarMessagesSection extends React.Component
     <div>
       <SidebarSection
         title="Messages"
-        itemComponent={CreatePrivateChannelModal}
-        modalProps={@getCreateChannelModalProps()}
-        onHeaderClick={@bound 'showPrivateChannelsModal'}
+        titleLink="/Messages/All"
+        secondaryLink="/Messages/New"
         className="SidebarMessagesSection">
         <SidebarList
           previewCount={@props.previewCount}
@@ -83,7 +36,8 @@ module.exports = class SidebarMessagesSection extends React.Component
           componentProp='SidebarMessagesListItem'
           threads={@props.threads}
           selectedId={@props.selectedId} />
-          {@renderMoreLink()}
+        {@renderMoreLink()}
       </SidebarSection>
-      {@renderPrivateChannelsModal()}
     </div>
+
+
