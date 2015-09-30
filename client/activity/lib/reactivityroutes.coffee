@@ -32,7 +32,7 @@ module.exports = newRoutes = [
   childRoutes: [
     path: 'New'
     components:
-      content: null
+      content: ChannelThreadPane
       modal: CreatePublicChannelModal
   ,
     path: ':channelName(/:postId)'
