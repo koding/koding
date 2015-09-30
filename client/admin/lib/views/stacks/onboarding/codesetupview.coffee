@@ -62,6 +62,7 @@ module.exports = class CodeSetupView extends JView
           servicesView.selected?.unsetClass 'selected'
           servicesView.selected = if servicesView.selected is serviceView then null else serviceView
           @emit 'UpdateStackTemplate'
+          @emit 'HiliteTemplate', 'line', service
 
     return servicesView
 

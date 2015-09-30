@@ -1,3 +1,4 @@
+$                     = require 'jquery'
 kd                    = require 'kd'
 hljs                  = require 'highlight.js'
 JView                 = require 'app/jview'
@@ -55,6 +56,9 @@ module.exports = class OnboardingView extends JView
         @updateStackTemplate()
         @emit 'ScrollTo', 'bottom'  if scrollToBottom
 
+      page.on 'HiliteTemplate', (type, keyword) =>
+        kd.utils.wait 737, => @hiliteTemplate type, keyword
+
     @on 'PageNavigationRequested', (direction) =>
       pageIndex  = @pages.indexOf @currentPage
       nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
@@ -94,10 +98,12 @@ module.exports = class OnboardingView extends JView
     @configurationView.tabView.on 'PaneRemoved', =>
       @codeSetupView.tabView.removePane @codeSetupView.tabView.panes.last
 
-    @configurationView.on 'InstanceTypeChanged', =>
+    @configurationView.on 'InstanceTypeChanged', (type) =>
       for pane, index in @configurationView.tabView.panes
         label = @codeSetupView.tabView.panes[index]?.instanceTypeLabel
         label.updatePartial pane.instanceTypeSelectBox.getValue()  if label
+
+        @hiliteTemplate 'line', type
 
 
   createFooter: ->
@@ -201,7 +207,7 @@ module.exports = class OnboardingView extends JView
 
     @stackContent.destroySubViews()
 
-    for line, index in templateLines
+    for line, index in templateLines when line
       @stackContent.addSubView new kd.CustomHTMLView
         cssClass : 'line'
         partial  : """
@@ -210,6 +216,21 @@ module.exports = class OnboardingView extends JView
         """
 
     hljs.highlightBlock line  for line in document.querySelectorAll '.line code'
+
+
+  hiliteTemplate: (type, keyword) ->
+
+    commonSelector = $ ".stack-preview .line:contains('#{keyword}')"
+
+    if type is 'all'
+      lines = document.querySelectorAll '.stack-preview .line'
+      line.classList.add 'hilite'  for line in lines
+
+    else if type is 'line'
+      commonSelector.addClass 'hilite'
+
+    else if type is 'block'
+      commonSelector.prev().nextAll().addClass 'hilite'
 
 
   pistachio: ->

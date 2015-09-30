@@ -29,7 +29,10 @@ module.exports = class ServerConfigurationView extends kd.View
             package      : config.package
             command      : config.command
             defaultValue : no
-            click        : => @emit 'UpdateStackTemplate'
+            click        : =>
+              @emit 'UpdateStackTemplate'
+              @emit 'HiliteTemplate', 'line', config.package
+
 
           row.addSubView new kd.CustomHTMLView
             partial  : config.title
@@ -37,6 +40,7 @@ module.exports = class ServerConfigurationView extends kd.View
             click    : =>
               if checkbox.getValue() then checkbox.setValue 0 else checkbox.setValue 1
               @emit 'UpdateStackTemplate'
+              @emit 'HiliteTemplate', 'line', config.package
 
           @configurationToggles.push checkbox
           section.addSubView row
