@@ -16,7 +16,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
   @include [DropboxInputMixin]
 
   PREVIEW_COUNT     = 0
-  MAX_PREVIEW_COUNT = 4
+  MAX_PREVIEW_COUNT = 19
 
   @defaultProps =
     channelThread : null

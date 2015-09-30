@@ -39,9 +39,9 @@ type Provider struct {
 }
 
 type Credential struct {
-	Id        bson.ObjectId `bson:"_id" json:"-"`
-	PublicKey string        `bson:"publicKey"`
-	Meta      struct {
+	Id         bson.ObjectId `bson:"_id" json:"-"`
+	Identifier string        `bson:"identifier"`
+	Meta       struct {
 		AccessKey string `bson:"access_key"`
 		SecretKey string `bson:"secret_key"`
 	} `bson:"meta"`
@@ -101,7 +101,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 
 	creds, err := p.credential(machine.Credential)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
 
 	client := ec2.NewWithClient(
@@ -220,11 +220,11 @@ func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) e
 	return fmt.Errorf("permission denied. user not in the list of permitted users")
 }
 
-func (p *Provider) credential(publicKey string) (*Credential, error) {
+func (p *Provider) credential(identifier string) (*Credential, error) {
 	credential := &Credential{}
 	// we neglect errors because credential is optional
 	err := p.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": publicKey}).One(credential)
+		return c.Find(bson.M{"identifier": identifier}).One(credential)
 	})
 	if err != nil {
 		return nil, err

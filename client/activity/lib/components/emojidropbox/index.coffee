@@ -109,16 +109,11 @@ module.exports = class EmojiDropbox extends React.Component
       visible      = { @isActive() }
       onOuterClick = { @bound 'close' }
       direction    = 'up'
+      title        = 'Emojis matching '
+      subtitle     = { ":#{query}" }
       ref          = 'dropbox'
     >
-      <div className="Dropbox-innerContainer">
-        <div className="Dropbox-header">
-          Emojis matching <strong>:{query}</strong>
-        </div>
-        <div className="EmojiDropbox-list">
-          {@renderList()}
-          <div className="clearfix" />
-        </div>
-      </div>
+      {@renderList()}
+      <div className="clearfix" />
     </Dropbox>
 
