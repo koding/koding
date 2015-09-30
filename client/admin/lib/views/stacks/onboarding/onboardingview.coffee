@@ -1,4 +1,5 @@
 kd                    = require 'kd'
+hljs                  = require 'highlight.js'
 JView                 = require 'app/jview'
 CodeSetupView         = require './codesetupview'
 { jsonToYaml }        = require '../yamlutils'
@@ -198,21 +199,17 @@ module.exports = class OnboardingView extends JView
     codeMarkup    = ''
     templateLines = content.split '\n'
 
-    for index in [1...templateLines.length]
-      linesMarkup += "<div>#{index}</div>"
-
     @stackContent.destroySubViews()
-    @stackContent.addSubView new kd.CustomHTMLView
-      cssClass : 'lines'
-      partial  : "#{linesMarkup}"
 
-    @stackContent.addSubView new kd.CustomHTMLView
-      cssClass : 'code'
-      partial  : applyMarkdown """
-        ```coffee
-        #{content}
-        ```
-      """
+    for line, index in templateLines
+      @stackContent.addSubView new kd.CustomHTMLView
+        cssClass : 'line'
+        partial  : """
+          <div class="number">#{++index}</div>
+          <pre><code class="coffee">#{line}</code></pre>
+        """
+
+    hljs.highlightBlock line  for line in document.querySelectorAll '.line code'
 
 
   pistachio: ->
