@@ -115,7 +115,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     recipients = @prepareRecipients()
     options =
-      body       : ''
       name       : @state.name
       purpose    : @state.purpose
       recipients : recipients
