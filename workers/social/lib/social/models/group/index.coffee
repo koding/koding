@@ -243,6 +243,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         toggleFeature:
           (signature Object, Function)
+        sendNotification:
+          (signature String, String, Function)
     schema          :
       title         :
         type        : String
@@ -579,17 +581,25 @@ module.exports = class JGroup extends Module
 
 
   sendNotification: (event, contents, callback) ->
+
     message = {
-      groupName: @slug
-      eventName: event
-      body:
-        context  : @slug
+      groupName  : @slug
+      eventName  : event
+      body       :
         event    : event
+        context  : @slug
         contents : contents
     }
 
-    @emit 'messageBusEvent', { type: 'dispatcher_notify_group', message: message }
+    @emit 'messageBusEvent', { type: 'dispatcher_notify_group', message }
+
     callback null
+
+
+  sendNotification$: permit 'grant permissions',
+    success: (client, event, contents, callback) ->
+      @sendNotification event, contents, callback
+
 
   broadcast:(message, event) ->
     @constructor.broadcast @slug, message, event

@@ -787,7 +787,7 @@ Configuration = (options={}) ->
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
 
   KONFIG.supervisord.memmon =
-    limit : '3072MB'
+    limit : '1536MB'
     email : 'sysops+supervisord-sandbox@koding.com'
 
 

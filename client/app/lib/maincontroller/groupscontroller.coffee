@@ -87,7 +87,7 @@ module.exports = class GroupsController extends KDController
         return callback err  if err
 
         @filterXssAndForwardEvents groupChan, [
-          'test'
+          'StackTemplateChanged'
         ]
 
         callback null

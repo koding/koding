@@ -12,8 +12,8 @@ sidebarGrayPale           = #777
 sidebarActive             = #fff
 sidebarSubtitle           = #979087
 sidebarSelectedBg         = #262626
-sidebarCountBg            = #C14C4C
-sidebarSectionHeaderColor = #626262
+sidebarCountBg            = #e94835
+sidebarSectionHeaderColor = #666666
 
 
 sidebarTextShadow()
@@ -30,27 +30,32 @@ sidebarTextShadow()
   left            0
   fix()
 
-  > main > div:last-child
-    margin-bottom     60px
-
-  > .kdcustomscrollview
-    width              100%
-    kalc              height, 100% \- 88px
-    styleScrollBars()
+  &.team
+    > .kdcustomscrollview
+      kalc                  height, 100% \- 40px
 
   &.static > .kdcustomscrollview
-    kalc              height, 100% \- 28px
+    kalc                    height, 100% \- 28px
+
+  > main > div:last-child
+    margin-bottom           60px
+
+  > .kdcustomscrollview
+    width                   100%
+    kalc                    height, 100% \- 88px
+    styleScrollBars()
 
   .logo-wrapper
-    size              100% 40px
-    bg                color #262626
-    padding           10px 0 0 12px
+    bg                      color #262626
     borderBox()
-    a
-      margin          0
-      display         block
-      r-sprite        app logo-full
-      cursor          default
+    padding                 10px 0 0 12px
+    size                    100% 40px
+    rel()
+    > a
+      margin                0
+      display               block
+      r-sprite              app logo-full
+      cursor                default
 
   .more-items
     size              238px 20px
@@ -142,16 +147,17 @@ sidebarTextShadow()
   borderBox()
 
   cite.count
-    size            24px 16px
-    line-height     16px
-    color           #fff
-    abs             0px 0px 0 0
-    font-size       9px
-    font-weight     700
-    background      sidebarCountBg
-    rounded         3px
-    text-align      center
-    vendor          transition, all .354s .177s ease
+    size                    24px 19px
+    line-height             16px
+    color                   #fff
+    abs                     0px 0px 0 0
+    font-size               11px
+    font-weight             700
+    background              sidebarCountBg
+    rounded                 3px
+    text-align              center
+    vendor                  transition, all .354s .177s ease
+    padding-top             1px
     fr()
 
   .more-link
@@ -239,7 +245,6 @@ sidebarTextShadow()
         ellipsis()
         borderBox()
         noTextDeco()
-        sidebarTextShadow()
 
       // copy paste - SY
       // temp fix
@@ -295,7 +300,6 @@ sidebarTextShadow()
       color             sidebarGray
       borderBox()
       noTextDeco()
-      sidebarTextShadow()
       &.add-app
       &.add-vm
         padding         5px 8px
@@ -432,6 +436,7 @@ sidebarTextShadow()
         margin-bottom   8px
 
     .kdlistview
+      margin-top      6px
       overflow        visible
 
       .nothing
@@ -456,24 +461,26 @@ sidebarTextShadow()
     color               #fff
 
   .kdlistitemview-sidebar-item
-
-    size              auto 16px
-    padding           0px 15px
-    margin-bottom     8px
-    rounded           4px
-    font-size         14px
-    font-weight       400
-    overflow          visible
-    position          relative
-    display           block
-    color             sidebarGray
-    vendor            transition, margin-top .2s ease-out\,\
+    font-family             Soleil
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
+    size                    auto 16px
+    padding                 0px 15px
+    margin-bottom           8px
+    rounded                 4px
+    font-size               14px
+    font-weight             400
+    overflow                visible
+    position                relative
+    display                 block
+    color                   sidebarGray
+    vendor                  transition, margin-top .2s ease-out\,\
                                   transform .2s ease-out
 
-    .purpose
-    .profile
-    .ttag
-      sidebarTextShadow()
+    // .purpose
+    // .profile
+    // .ttag
+    //   sidebarTextShadow()
 
     &.selected
       color           sidebarActive
@@ -505,19 +512,20 @@ sidebarTextShadow()
       vendor          transform, translateX(-300px)
 
     .ttag
-      display        block
-      line-height    16px
-      font-size      14px
-      margin-left    4px
+      display               block
+      line-height           16px
+      font-size             16px
+      margin-left           6px
+      color                 #b3b3b3
 
       &:before
-        display      block
-        content      '#'
-        font-size    24px
-        color        #6d6d6d
-        top          -2px
-        left         0
-        text-shadow  none
+        display             block
+        content             '#'
+        font-size           20px
+        color               #808080
+        top                 -2px
+        left                0
+        text-shadow         none
         abs()
 
 
@@ -597,19 +605,23 @@ sidebarTextShadow()
       .sidebar-message-text
         > .purpose
         > .profile
-          display     block
-          float       none
-          line-height 16px
-          width       170px
-          margin-left 4px
+          display           block
+          float             none
+          line-height       18px
+          font-size         16px
+          width             170px
+          margin-left       4px
+          rel()
+          top               -2px
           borderBox()
           ellipsis()
+          color             #b3b3b3
 
         &:before
           content       ''
           display       block
           size          10px, 10px
-          bg            color, #6d6d6d
+          bg            color, #808080
           border-radius 100%
           abs           3px 0 0 -14px
 
@@ -699,16 +711,16 @@ sidebarTextShadow()
     &.active .count
       left            27px !important
     .count
-      position        absolute
-      width           14px
-      height          14px
-      font-size       8px
-      line-height     14px
-      background      #E75A5A
-      border-radius   7px
-      text-align      center
-      top             7px
-      left            28px
+      position              absolute
+      width                 14px
+      height                14px
+      font-size             8px
+      line-height           14px
+      background            sidebarCountBg
+      border-radius         7px
+      text-align            center
+      top                   7px
+      left                  28px
     .count cite
       color           #fff
 
@@ -763,24 +775,56 @@ sidebarTextShadow()
 
     &:last-of-type
       margin-right    18px
+// MEGA HACK STARTS
+// this is to put sidebar footer next to the logo
+.logo-wrapper
+
+  .account-area
+    abs                     0px 0px 0 initial
+    size                    60px 100%
+    .avatar-area
+      padding               8px
+      .avatarview
+        abs                 8px 8px 0 0
+        float               none
+        margin-right        0
+        pointer()
+        vendor              filter, grayscale(1)
+        -webkit-transition  -webkit-filter .3s linear
+        transition          filter .3s linear
+
+        &:hover
+          vendor            filter, grayscale(0)
+
+      .acc-notification-icon
+        size                14px 14px
+        abs                 0px 1px initial initial
+        span.count
+          abs               0px 0px initial initial
+          border            2px solid #262626
+          rounded           8px
+
+      .acc-notification-icon span.icon
+      .acc-dropdown-icon
+      .profile
+        hidden()
+// MEGA HACK ENDS
 
 
 h3.sidebar-title
-  position                  relative
   font-weight               400
   size                      auto 1em
   line-height               16px
-  font-size                 12px
+  font-size                 14px
   color                     sidebarSectionHeaderColor
   text-transform            uppercase
   word-spacing              .2em
   letter-spacing            .05em
+  -moz-osx-font-smoothing   grayscale
   padding                   14px 0 16px
-  sidebarTextShadow()
   pointer()
-
-  &:hover
-    color                   #fff
+  position                  relative
+  -webkit-font-smoothing    antialiased
 
   a
     font-size               10px
@@ -797,7 +841,9 @@ h3.sidebar-title
       r-sprite              app , 'plus-16'
 
     &.buy-vm
-      margin-top            2px
+      abs()
+      top                   15px
+      right                 0
 
   cite.count
     top                     11px
@@ -924,19 +970,25 @@ h3.sidebar-title
 
 
 
-// refactored, moved to outher scope
+// refactored, moved to outer scope
 
 .activity-sidebar
+  font-family               Soleil
+
   a.vm
-    padding           0px 8px 0px 19px
-    display           block
-    size              218px 16px
-    margin-bottom     8px
-    opacity           1
-    color             sidebarGray
     borderBox()
+    color                   $gray-14
+    display                 block
+    font-size               $fs-regular
+    line-height             20px
     noTextDeco()
-    sidebarTextShadow()
+    margin-bottom           8px
+    padding                 0px 8px 0px 19px
+    opacity                 1
+    size                    218px 16px
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
+
     &.add-app
     &.add-vm
       padding         5px 8px
@@ -945,22 +997,22 @@ h3.sidebar-title
         opacity       1
 
     > figure
-      display       block
-      width         16px
-      height        16px
-      bg            color #222
-      abs           3px 0 0 3px
+      abs                   3px 0 0 3px
+      display               block
+      width                 16px
+      height                16px
+      bg                    color #222
 
     &.running:hover > div
       width         180px
 
     > div
-      position      relative
-      width         200px
-      vendor        transition, width .1s ease .05s
-      font-size     14px
-      line-height   16px
       ellipsis()
+      font-size             16px
+      line-height           20px
+      vendor                transition, width .1s ease .05s
+      width                 200px
+      rel()
 
     &.social > figure
     &.activity > figure
@@ -973,14 +1025,13 @@ h3.sidebar-title
       r-sprite      app new-nav-ide
     &.vm
       > figure
-        // r-sprite    app new-nav-vm
-        display       block
-        width         13px
-        height        13px
-        bg            color, transparent
-        abs           1px 0 0 0px
-        rounded       3px
-        border        3px solid sidebarGray
+        display             block
+        width               13px
+        height              13px
+        bg                  color, transparent
+        abs                 5px 0 0 0px
+        rounded             3px
+        border              3px solid sidebarGray
         borderBox()
       > span
         r-sprite    app vm-settings-icon
@@ -1009,19 +1060,24 @@ h3.sidebar-title
           shadow      none
 
   .workspaces-link
-    display         inline
-    height          16px
-    border-bottom   none
-    font-size       11px
-    color           sidebarSectionHeaderColor
-    padding         2px 0 0 20px
-    margin-bottom   1px
-    text-transform  uppercase
-    sidebarTextShadow()
+    border-bottom           none
+    color                   $gray-8
+    display                 inline
+    font-weight             $fw-regular
+    font-size               $fs-extra-small
+    height                  16px
+    line-height             16px
+    margin-bottom           1px
+    letter-spacing          0.08em
+    padding                 2px 0 0 20px
+    text-transform          uppercase
+    word-spacing            0.2em
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
     pointer()
 
     &:hover
-      color         sidebarActive
+      color                 sidebarActive
 
   .stack-warning
     color                   #777

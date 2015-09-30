@@ -256,6 +256,7 @@ module.exports = class SocialApiController extends KDController
 
     item._id                 = data.id
     item.isParticipant       = channel.isParticipant
+    item.accountOldId        = channel.accountOldId
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
     item.name                = data.name
@@ -615,6 +616,16 @@ module.exports = class SocialApiController extends KDController
     listLikers           : messageRequesterFn
       fnName             : 'listLikers'
       validateOptionsWith: ['id']
+
+    createChannelWithParticipants   : messageRequesterFn
+      fnName                        : 'createChannelWithParticipants'
+      validateOptionsWith           : ['body', 'recipients']
+      mapperFn                      : mapPrivateMessages
+
+    sendMessageToChannel : messageRequesterFn
+      fnName             : 'sendMessageToChannel'
+      validateOptionsWith: ['body', 'channelId']
+      mapperFn           : mapPrivateMessages
 
     initPrivateMessage   : messageRequesterFn
       fnName             : 'initPrivateMessage'

@@ -94,6 +94,39 @@ resurrection.account.dropdown.styl
 
       &:last-child
         border-bottom     none
+  &.team
+    bottom                  initial
+    top                     50px
+    &:after
+      bottom                initial
+      left                  22px
+      top                   -7px
+      vendor                transform, rotate(180deg)
+    ul.popup-settings
+      font-family           openSansFamily
+      border-top            1px solid #ccc
+      display               -webkit-flex
+      display               flex
+      -webkit-flex-direction row
+      flex-direction        row
+      width                 405px
+      li
+        borderBox()
+        border-right        1px solid #ccc
+        font-size           14px
+        line-height         40px
+        padding             0 20px
+        text-align          center
+        -webkit-flex        1 1 auto
+        flex                1 1 auto
+        &:last-child
+          border-right      none
+        a
+          color             #00b153
+          text-decoration   none
+          white-space       nowrap
+          &:hover
+            text-decoration underline
 
 
 .notification-list

@@ -566,9 +566,10 @@ module.exports = class DefineStackView extends KDView
           type  : 'mini'
 
         computeController.createDefaultStack yes
-        computeController.checkStackRevisions()
 
         @emit 'Reload'
+
+        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
         if completed
           @emit 'Completed', stackTemplate

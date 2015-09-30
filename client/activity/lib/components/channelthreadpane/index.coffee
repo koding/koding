@@ -8,6 +8,7 @@ ThreadSidebar        = require 'activity/components/threadsidebar'
 ThreadHeader         = require 'activity/components/threadheader'
 PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+PublicChatPane       = require 'activity/components/publicchatpane'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -57,45 +58,25 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderChat: ->
-    return null  unless @props.children.chat
-
-    React.cloneElement @props.children.chat,
-      thread   : @state.channelThread
-      messages : @state.channelThreadMessages
-
-
-  renderSidebar: ->
-    <ThreadSidebar
-      channelThread={@state.channelThread}
-      popularMessages={@state.popularMessages}
-      channelParticipants={@state.channelParticipants}/>
-
-
-  getClassName: ->
-
-    classnames(
-      ChannelThreadPane: yes
-      'is-withFeed': @props.children.feed
-      'is-withChat': @props.children.chat
-      'is-withPost': @props.children.post
-    )
-
-
   render: ->
-    <div className={@getClassName()}>
+    <div className="ChannelThreadPane is-withChat">
       <section className="ChannelThreadPane-content">
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
-            {@renderChat()}
+            <PublicChatPane
+              thread={@state.channelThread}
+              messages={@state.channelThreadMessages} />
           </section>
         </div>
       </section>
       <aside className="ChannelThreadPane-sidebar">
-        {@renderSidebar()}
+        <ThreadSidebar
+          channelThread={@state.channelThread}
+          popularMessages={@state.popularMessages}
+          channelParticipants={@state.channelParticipants}/>
       </aside>
     </div>
 
@@ -104,7 +85,7 @@ React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
 reset = (props) ->
 
-  { channelName, postId } = props.params
+  { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
   if channelName
