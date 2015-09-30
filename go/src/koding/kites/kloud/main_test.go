@@ -381,6 +381,7 @@ func TestTerraformStack(t *testing.T) {
 	}
 
 	fmt.Printf("===> STARTED to stop the machine with id: %s\n", userData.MachineIds[0].Hex())
+
 	if err := stop(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
 		t.Error(err)
 	} else {
@@ -839,7 +840,7 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 			Id:         machineId,
 			Label:      label,
 			Domain:     username + ".dev.koding.io",
-			Credential: username,
+			Credential: credentials["aws"][0], // just pick one
 			Provider:   "aws",
 			CreatedAt:  time.Now().UTC(),
 			Users:      users,
