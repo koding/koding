@@ -116,7 +116,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     return  if @_busy
 
-    { status, percentage, error } = event
+    { status, percentage, error, message } = event
 
     if status is @state
       @updatePercentage percentage  if percentage?
@@ -155,7 +155,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         @switchToIDEIfNeeded()
 
       else if percentage is 100
-        @completeCurrentProcess status
+        initial = message is 'apply finished'
+        @completeCurrentProcess status, initial
 
       else if task is 'reinit'
         @updatePercentage percentage
@@ -189,11 +190,11 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     @label?.updatePartial @getStateLabel()
 
 
-  completeCurrentProcess: (status) ->
+  completeCurrentProcess: (status, initial) ->
 
     @clearEventTimer()
 
-    return  if @switchToIDEIfNeeded status, initial = !isKoding()
+    return  if @switchToIDEIfNeeded status, initial
 
     @progressBar?.updateBar 100
     @progressBar?.show()
@@ -710,7 +711,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         target = @stack
 
       if @machine.jMachine.generatedFrom?.templateId?
-        return  unless computeController.verifyStackRequirements @stack
+        unless computeController.verifyStackRequirements @stack
+          computeController.off  'StackRequirementsProvided'
+          computeController.once 'StackRequirementsProvided', @bound 'turnOnMachine'
+          return
 
     computeController.off  "error-#{target._id}"
 

@@ -46,7 +46,7 @@ module.exports = class PublicChatPane extends React.Component
   renderFollowChannel: ->
 
     <div className="PublicChatPane-subscribeContainer">
-      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
+      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN THE CONVERSATION
       <button
         ref       = "button"
         className = "Button Button-followChannel"

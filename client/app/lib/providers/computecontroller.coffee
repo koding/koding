@@ -691,14 +691,42 @@ module.exports = class ComputeController extends KDController
     @update machine, alwaysOn: state, callback
 
 
-  update: (machine, options, callback = kd.noop)->
+  update: (machine, options, callback = kd.noop) ->
 
+    updateWith = (options) =>
+      remote.api.ComputeProvider.update options, (err) =>
+        @triggerReviveFor machine._id  unless err?
+        callback err
+
+    { provider }      = machine
     options.machineId = machine._id
-    options.provider  = machine.provider
+    options.provider  = provider
 
-    remote.api.ComputeProvider.update options, (err)=>
-      @triggerReviveFor machine._id  unless err?
-      callback err
+    # For teams context we need to use JMachine.credential field for ongoing
+    # operations with ComputeProvider which will need to verify credential
+    # on each request. There is one user experience issue with that behaivour
+    # which is causing user to reinitialize their stacks if one of the valid
+    # credential has been changed. To prevent that we are taking stack template
+    # credential if it fits with the current JMachine requirements. So user
+    # not requires to re-init their stacks when a credential is changed but not
+    # the template itself. ~ GG
+    unless isKoding()
+
+      stack = @findStackFromMachineId machine._id
+      return updateWith options  unless stack
+
+      @fetchBaseStackTemplate stack, (err, template) ->
+        return updateWith options  if err or not template
+
+        credential = template.credentials[provider]?.first ? machine.credential
+        options.credential = credential
+
+        updateWith options
+
+    else
+
+      updateWith options
+
 
   # Snapshots
   #
@@ -900,6 +928,9 @@ module.exports = class ComputeController extends KDController
 
 
   showBuildLogs: (machine) ->
+
+    # Not supported for Koding Group
+    return  if isKoding()
 
     # Path of cloud-init-output log
     path = '/var/log/cloud-init-output.log'
