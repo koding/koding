@@ -1944,14 +1944,16 @@ module.exports = class JUser extends jraphical.Module
 
   unblock: (callback) ->
 
-    @update
-      $set            :
-        blockedUntil  : new Date()
-    , (err) =>
-      return callback err if err
+    op =
+      $set   : { status: 'confirmed' }
+      $unset : { blockedUntil: yes }
+
+    @update op, (err) =>
+
+      return callback err  if err
 
       JUser.emit 'UserUnblocked', this
-      return callback err
+      callback()
 
 
   unlinkOAuths: (callback) ->
