@@ -12,7 +12,6 @@ module.exports = class ThreadSidebar extends React.Component
     channelThread: immutable.Map()
     messageThread: immutable.Map()
     channelParticipants: immutable.Map()
-    popularMessages: immutable.Map()
 
 
   render: ->
