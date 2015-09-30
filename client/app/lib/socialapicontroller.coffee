@@ -375,39 +375,46 @@ module.exports = class SocialApiController extends KDController
 
     message.isShown = yes
 
-
-  registerAndOpenChannels = (socialApiChannels) ->
-
+  registerAndOpenChannel : registerAndOpenChannel = (group, socialApiChannel, callback) ->
     {socialapi} = kd.singletons
+
+    channelName = generateChannelName socialApiChannel
+
+    if realtimeChannel = socialapi.openedChannels[channelName]
+      return callback null, realtimeChannel
+
+    socialapi.cacheItem socialApiChannel
+    socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
+
+    {name, typeConstant, token, id} = socialApiChannel
+
+    subscriptionData =
+      group      : group.slug
+      channelType: typeConstant
+      channelName: name
+      channelId  : id
+      token      : token
+
+    kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
+
+      return callback err  if err
+
+      # add opened channel to the openedChannels list, for later use
+      socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
+
+      # start forwarding private channel evetns to the original social channel
+      forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
+
+      # notify listener
+      socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
+
+      return callback null, realtimeChannel
+
+
+  registerAndOpenChannels : registerAndOpenChannels = (socialApiChannels) ->
     getCurrentGroup (group)->
       socialApiChannels.forEach (socialApiChannel) ->
-        channelName = generateChannelName socialApiChannel
-        return  if socialapi.openedChannels[channelName]
-        socialapi.cacheItem socialApiChannel
-        socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
-
-        {name, typeConstant, token, id} = socialApiChannel
-
-        subscriptionData =
-          group      : group.slug
-          channelType: typeConstant
-          channelName: name
-          channelId  : id
-          token      : token
-
-        kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
-
-          return kd.warn err  if err
-
-          # add opened channel to the openedChannels list, for later use
-          socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
-
-          # start forwarding private channel evetns to the original social channel
-          forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
-
-          # notify listener
-          socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
-
+        registerAndOpenChannel group, socialApiChannel, kd.noop
 
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
