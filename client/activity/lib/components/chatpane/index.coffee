@@ -1,10 +1,10 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-ChatList        = require 'activity/components/chatlist'
-ActivityFlux    = require 'activity/flux'
-Scroller        = require 'app/components/scroller'
-ScrollerMixin   = require 'app/components/scroller/scrollermixin'
-
+kd                   = require 'kd'
+React                = require 'kd-react'
+ChatList             = require 'activity/components/chatlist'
+ActivityFlux         = require 'activity/flux'
+Scroller             = require 'app/components/scroller'
+ScrollerMixin        = require 'app/components/scroller/scrollermixin'
+Link                 = require 'app/components/common/link'
 dateFormat           = require 'dateformat'
 remote               = require('app/remote').getInstance()
 ProfileText          = require 'app/components/profile/profiletext'
@@ -67,6 +67,29 @@ module.exports = class ChatPane extends React.Component
     </span>
 
 
+  renderChannelInfoContainer: ->
+
+    return null  unless @props.thread
+    @getChannelCreatorProfile @channel 'accountOldId'
+
+    if @props.thread.getIn(['flags', 'reachedFirstMessage']) and @props.createdBy
+      channelName = @channel 'name'
+      <div className='ChatPane-infoContainer'>
+        <div className='ChatPane-channelName'>#{channelName}</div>
+        <div className='ChatPane-channelDescription'>
+          This is the <Link onClick=kd.noop>#{channelName}</Link> channel
+          {@renderProfileLink()}
+          You can start a collaboration session, or drag and drop  VMs and workspaces here from the sidebar to let anyone in this channel access them.
+          (<Link onClick ={ @props.startCollaboration }>Show me how?</Link>)
+        </div>
+        <div className='ChatPane-actionContainer'>
+          <Link className='ChatPane-startCollaborationAction' onClick ={ @props.startCollaboration }>Start Collaboration</Link>
+          <Link className='ChatPane-addIntegrationAction' onClick ={ @props.addIntegration }>Add integration</Link>
+          <Link className='ChatPane-inviteOthersAction' onClick ={ @props.inviteOthers }>Invite others</Link>
+        </div>
+      </div>
+
+
   renderBody: ->
 
     return null  unless @props.messages?.size
@@ -74,6 +97,7 @@ module.exports = class ChatPane extends React.Component
     <Scroller
       onTopThresholdReached={@bound 'onTopThresholdReached'}
       ref="scrollContainer">
+      {@renderChannelInfoContainer()}
       <ChatList
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
         messages={@props.messages}
