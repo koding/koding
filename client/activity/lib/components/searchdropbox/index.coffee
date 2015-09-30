@@ -69,11 +69,11 @@ module.exports = class SearchDropbox extends React.Component
 
     { currentWord, value, position } = textData
 
-    matchResult = value.match /\/s (.+)/
+    matchResult = value.match /^\/s(earch)? (.+)/
     return no  unless matchResult
     return no  if isWithinCodeBlock value, position
 
-    query = matchResult[1]
+    query = matchResult[2]
     { stateId } = @props
     ChatInputFlux.actions.search.setQuery stateId, query
     ChatInputFlux.actions.search.setVisibility stateId, yes
