@@ -23,6 +23,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       channelThread         : getters.selectedChannelThread
       channelThreadMessages : getters.selectedChannelThreadMessages
       channelParticipants   : getters.selectedChannelParticipants
+      followedChannels      : getters.followedPrivateChannelThreads
     }
 
 
@@ -36,10 +37,10 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       channelParticipants   : immutable.List()
 
 
-  componentDidMount: -> reset @props
+  componentDidMount: -> reset @props, @state
 
 
-  componentWillReceiveProps: (nextProps) -> reset nextProps
+  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
   renderHeader: ->
@@ -89,19 +90,25 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
 React.Component.include.call PrivateMessageThreadPane, [KDReactorMixin]
 
-reset = (props) ->
+reset = (props, state) ->
 
+  { followedChannels, channelThread } = state
   { privateChannelId } = props.routeParams
   {
     thread : threadActions,
     channel : channelActions,
     message : messageActions } = ActivityFlux.actions
 
+  unless privateChannelId
+    unless channelThread
+      botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
+      privateChannelId = botChannel.id
+
   if privateChannelId
     channelActions.loadChannel('private', privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
       messageActions.loadMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
-  else
-    thread.changeSelectedThread null
+  else if not channelThread
+    threadActions.changeSelectedThread null
 
