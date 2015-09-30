@@ -83,8 +83,14 @@ module.exports = class ChatPane extends React.Component
           (<Link onClick ={ @props.startCollaboration }>Show me how?</Link>)
         </div>
         <div className='ChatPane-actionContainer'>
-          <Link className='ChatPane-startCollaborationAction' onClick ={ @props.startCollaboration }>Start Collaboration</Link>
-          <Link className='ChatPane-addIntegrationAction' onClick ={ @props.addIntegration }>Add integration</Link>
+          <Link className='ChatPane-startCollaborationAction' onClick ={ @props.startCollaboration }>
+            Start Collaboration
+            <div className="Tooltip-wrapper"><span>Coming soon</span></div>
+          </Link>
+          <Link className='ChatPane-addIntegrationAction' onClick ={ @props.addIntegration }>
+            Add integration
+            <div className="Tooltip-wrapper"><span>Coming soon</span></div>
+          </Link>
           <Link className='ChatPane-inviteOthersAction' onClick ={ @props.inviteOthers }>Invite others</Link>
         </div>
       </div>
