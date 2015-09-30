@@ -1911,11 +1911,15 @@ module.exports = class JUser extends jraphical.Module
       console.log "ALERT: #{username} is trying to confirm '#{status}' email"
       return callback null
 
-    @update { $set: { status: 'confirmed' } }, (err, res) =>
+    modifier = { status: 'confirmed' }
+
+    @update { $set: modifier }, (err, res) =>
       return callback err if err
       JUser.emit 'EmailConfirmed', this
 
       callback null
+
+      Tracker.identify username, modifier
 
       Tracker.track username, { subject : Tracker.types.FINISH_REGISTER }
 
