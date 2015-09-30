@@ -48,6 +48,15 @@ func TestSaveMessage(t *testing.T) {
 
 			channel := models.CreateTypedGroupedChannelWithTest(bot.account.Id, models.Channel_TYPE_TOPIC, groupName)
 
+			i := NewChannelIntegration()
+			i.Id = 13
+			i.GroupName = groupName
+			i.ChannelId = channel.Id
+			i.IntegrationId = 13
+			i.CreatorId = bot.account.Id
+			err = i.Create()
+			So(err, ShouldBeNil)
+
 			Convey("bot should be able to create message", func() {
 				message := &Message{}
 				message.Body = "testmessage"
