@@ -66,8 +66,8 @@ module.exports = class Machine extends KDObject
         computeController.reset yes
 
 
-  updateLocalData:->
-    { @label, @ipAddress, @_id, @provisioners, @provider
+  updateLocalData: ->
+    { @label, @ipAddress, @_id, @provisioners, @provider, @credential
       @status, @uid, @domain, @queryString, @slug } = @jMachine
     @alwaysOn = @jMachine.meta.alwaysOn ? no
 
