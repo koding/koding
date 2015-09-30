@@ -52,7 +52,7 @@ module.exports = class SocialApiController extends KDController
     fn = switch dataPath
       when 'followedChannels' then mapChannels
       when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
-      when 'privateMessages'                   then mapPrivateMessages
+      when 'privateMessages'                   then mapCreatedChannel
       when 'bot' then mapBotChannel
 
     return fn(data) or []
@@ -207,8 +207,8 @@ module.exports = class SocialApiController extends KDController
       callback  kd.getSingleton("groupsController").getCurrentGroup()
 
 
-  mapPrivateMessages: mapPrivateMessages
-  mapPrivateMessages = (messages) ->
+  mapCreatedChannel: mapCreatedChannel
+  mapCreatedChannel = (messages) ->
 
     messages = [].concat(messages)
     return [] unless messages?.length > 0
@@ -617,34 +617,29 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'listLikers'
       validateOptionsWith: ['id']
 
-    createChannelWithParticipants   : messageRequesterFn
-      fnName                        : 'createChannelWithParticipants'
-      validateOptionsWith           : ['body', 'recipients']
-      mapperFn                      : mapPrivateMessages
-
     sendMessageToChannel : messageRequesterFn
       fnName             : 'sendMessageToChannel'
       validateOptionsWith: ['body', 'channelId']
-      mapperFn           : mapPrivateMessages
+      mapperFn           : mapCreatedChannel
 
     initPrivateMessage   : messageRequesterFn
       fnName             : 'initPrivateMessage'
       validateOptionsWith: ['body', 'recipients']
-      mapperFn           : mapPrivateMessages
+      mapperFn           : mapCreatedChannel
 
     sendPrivateMessage   : messageRequesterFn
       fnName             : 'sendPrivateMessage'
       validateOptionsWith: ['body', 'channelId']
-      mapperFn           : mapPrivateMessages
+      mapperFn           : mapCreatedChannel
 
     search               : messageRequesterFn
       fnName             : 'search'
       validateOptionsWith: ['name']
-      mapperFn           : mapPrivateMessages
+      mapperFn           : mapCreatedChannel
 
     fetchPrivateMessages : messageRequesterFn
       fnName             : 'fetchPrivateMessages'
-      mapperFn           : mapPrivateMessages
+      mapperFn           : mapCreatedChannel
 
     create               : channelRequesterFn
       fnName             : 'create'
@@ -675,6 +670,11 @@ module.exports = class SocialApiController extends KDController
     list                 : channelRequesterFn
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
+
+    createChannelWithParticipants   : channelRequesterFn
+      fnName                        : 'createChannelWithParticipants'
+      validateOptionsWith           : ['body', 'recipients']
+      mapperFn                      : mapCreatedChannel
 
     fetchActivities      : (options = {}, callback = kd.noop)->
 
