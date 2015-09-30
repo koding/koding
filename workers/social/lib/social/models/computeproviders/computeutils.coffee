@@ -159,7 +159,6 @@ revive = do -> (
       return callback err       if err
       client.r = revivedClient  if revivedClient?
 
-
       # OAUTH Check
 
       if shouldHaveOauth?

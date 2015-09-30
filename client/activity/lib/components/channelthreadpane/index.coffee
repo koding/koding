@@ -22,7 +22,6 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThreadMessages : getters.selectedChannelThreadMessages
       messageThread         : getters.selectedMessageThread
       messageThreadComments : getters.selectedMessageThreadComments
-      popularMessages       : getters.selectedChannelPopularMessages
       channelParticipants   : getters.selectedChannelParticipants
     }
 
@@ -36,8 +35,8 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
-      popularMessages       : immutable.List()
       channelParticipants   : immutable.List()
+
 
 
   componentDidMount: -> reset @props
@@ -75,7 +74,6 @@ module.exports = class ChannelThreadPane extends React.Component
       <aside className="ChannelThreadPane-sidebar">
         <ThreadSidebar
           channelThread={@state.channelThread}
-          popularMessages={@state.popularMessages}
           channelParticipants={@state.channelParticipants}/>
       </aside>
     </div>
@@ -91,7 +89,6 @@ reset = (props) ->
   if channelName
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
-      channelActions.loadPopularMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
 
       if postId
