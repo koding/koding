@@ -194,9 +194,9 @@ func (w *Warning) ReleaseUser(user *models.User) error {
 	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
 
-// getSleepTime returns how long to sleep between each document based
-// on total number of documents. It defaults to sleeping 1 seconds
-// when calculated time is too short or too long.
+// getSleepTime returns how long to sleep between each document based on total
+// number of documents. It defaults to sleeping 120 seconds when calculated
+// time is too short or too long.
 func (w *Warning) getSleepTime() (time.Duration, error) {
 	count, err := modelhelper.CountUsersByQuery(w.buildSelectQuery())
 	if err != nil || count == 0 {
@@ -208,8 +208,8 @@ func (w *Warning) getSleepTime() (time.Duration, error) {
 	timeToWork := now.Add(23*time.Hour).UnixNano() - now.UnixNano()
 	sleepInSec := timeToWork / int64(count)
 
-	if sleepInSec <= int64(20*time.Second) || sleepInSec >= int64(100*time.Second) {
-		return time.Duration(20 * time.Second), nil
+	if sleepInSec <= int64(120*time.Second) || sleepInSec >= int64(360*time.Second) {
+		return time.Duration(120 * time.Second), nil
 	}
 
 	return time.Duration(sleepInSec), nil
