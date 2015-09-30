@@ -20,7 +20,7 @@ module.exports = class ChatInputCommandsStore extends KodingFluxStore
         name        : '/invite'
         description : 'Invite people'
         paramPrefix : '@'
-        paramText   : '@user [@user2 ...]'
+        paramText   : '@user'
       }
     ]
 

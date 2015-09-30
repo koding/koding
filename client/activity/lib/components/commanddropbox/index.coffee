@@ -29,6 +29,7 @@ module.exports = class CommandDropbox extends React.Component
   formatSelectedValue: ->
 
     { selectedItem } = @props
+    return ''  unless selectedItem
     return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
 
 

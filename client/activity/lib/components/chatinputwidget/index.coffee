@@ -142,12 +142,11 @@ module.exports = class ChatInputWidget extends React.Component
       command = helpers.parseCommand value
 
       if command
-        success = ChatInputFlux.actions.command.executeCommand command, channelId
+        ChatInputFlux.actions.command.executeCommand command, channelId
       else
         @props.onSubmit? { value }
-        success = yes
 
-      @resetValue()  if success
+      @resetValue()
 
 
   onEsc: (event) ->
