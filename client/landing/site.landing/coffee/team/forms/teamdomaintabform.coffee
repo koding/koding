@@ -14,12 +14,20 @@ module.exports = class TeamDomainTab extends KDFormView
     team = KD.utils.getTeamData()
 
     if name = team.signup?.companyName
-      teamName = KD.utils.slugify name
+    then teamName = KD.utils.slugify name
+    else teamName = ''
 
     @input = new KDInputView
       placeholder  : 'your-team'
       defaultValue : teamName  if teamName
+      attributes   : size : teamName.length or 10
       name         : 'slug'
+
+    # Listen text change event in real time
+    @input.on 'input', (event) ->
+      { length }  = @getValue()
+      length      = 8  unless length
+      @setAttribute 'size', length + 2
 
     @suffix = new KDView
       tagName      : 'span'

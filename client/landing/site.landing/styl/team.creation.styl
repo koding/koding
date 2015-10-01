@@ -81,17 +81,26 @@ team.group.creation.styl
 
     .login-input-view
       width                 100%
+      border                3px solid #DAD8D6
+
       input.kdinput
-        padding-right       245px
+        border              none
         text-align          right
+        width               auto
+        max-width           calc(100% \- 120px)
+        padding             12px 0
+        box-shadow          none !important
+        outline             none
 
       span
-        abs                 3px 120px 0 initial
+        rel()
         color               #999
         font-size           20px
         font-weight         400
         line-height         52px
         padding-left        0
+        left                initial
+        top                 0
 
     .TeamsModal-button
       fr()
