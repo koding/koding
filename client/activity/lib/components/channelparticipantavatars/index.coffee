@@ -222,14 +222,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     channelId   = @props.channelThread.get 'channelId'
     participant = @state.selectedItem
 
-    options =
-      userId            : participant.get '_id'
-      channelId         : @props.channelThread.get 'channelId'
-      accountIds        : [ participant.get 'socialApiId' ]
+    userIds     = [ participant.get '_id' ]
+    accountIds  = [ participant.get 'socialApiId' ]
 
     { channel } = ActivityFlux.actions
 
-    channel.addParticipants options
+    channel.addParticipants channelId, accountIds, userIds
 
     @setState value: ''
 

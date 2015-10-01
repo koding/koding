@@ -40,7 +40,7 @@ module.exports = helpers =
 
     value             = textInput.value
     textBeforeCursor  = value.substring(0, startReplaceIndex)
-    textBeforeCursor += item + " "
+    textBeforeCursor += item
     cursorPosition    = textBeforeCursor.length
     newValue          = textBeforeCursor + value.substring endReplaceIndex
 
