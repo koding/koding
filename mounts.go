@@ -51,16 +51,3 @@ func MountsCommand(c *cli.Context) int {
 
 	return 0
 }
-
-//func (*MountsCommand) Help() string {
-//	helpText := `
-//Usage: %s mounts
-//
-//	List the mounted folders on this machine.
-//`
-//	return fmt.Sprintf(helpText, Name, KlientName)
-//}
-//
-//func (*MountsCommand) Synopsis() string {
-//	return fmt.Sprintf("List mounted folders on this machine")
-//}

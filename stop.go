@@ -21,16 +21,3 @@ func StopCommand(c *cli.Context) int {
 	fmt.Printf("Successfully stopped %s\n", KlientName)
 	return 0
 }
-
-//func (*StopCommand) Help() string {
-//	helpText := `
-//Usage: sudo %s stop
-//
-//	Stop the %s. sudo is required.
-//`
-//	return fmt.Sprintf(helpText, Name, KlientName)
-//}
-//
-//func (*StopCommand) Synopsis() string {
-//	return fmt.Sprintf("Stop the %s. sudo required.", KlientName)
-//}

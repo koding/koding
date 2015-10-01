@@ -201,16 +201,3 @@ Reason: %s
 	fmt.Printf("\n\nSuccessfully installed the %s!\n", KlientName)
 	return 0
 }
-
-//func (*InstallCommand) Help() string {
-//	helpText := `
-//Usage: %s stop
-//
-//	Install the %s.
-//`
-//	return fmt.Sprintf(helpText, Name, KlientName)
-//}
-//
-//func (*InstallCommand) Synopsis() string {
-//	return fmt.Sprintf("Install the %s", KlientName)
-//}

@@ -38,16 +38,3 @@ func UnmountCommand(c *cli.Context) int {
 	fmt.Println("Successfully unmounted:", c.Args().First())
 	return 0
 }
-
-//func (*UnmountCommand) Help() string {
-//	helpText := `
-//Usage: %s unmount <machine name>
-//
-//    Unmount a machine which was previously mounted.
-//`
-//	return fmt.Sprintf(helpText, Name)
-//}
-//
-//func (*UnmountCommand) Synopsis() string {
-//	return fmt.Sprintf("Unmount specified machine.")
-//}

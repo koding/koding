@@ -69,19 +69,6 @@ func UpdateCommand(c *cli.Context) int {
 	return 0
 }
 
-//func (u *UpdateCommand) Help() string {
-//	helpText := `
-//Usage: sudo %s update
-//
-//		Update to latest version. sudo is required.
-//`
-//	return fmt.Sprintf(helpText, Name)
-//}
-//
-//func (u *UpdateCommand) Synopsis() string {
-//	return "Update to latest version. sudo required."
-//}
-
 func downloadRemoteToLocal(remotePath, destPath string) error {
 	// create the destination dir, if needed.
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {

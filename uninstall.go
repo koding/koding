@@ -31,16 +31,3 @@ func UninstallCommand(c *cli.Context) int {
 	fmt.Printf("Successfully uninstalled %s\n", KlientName)
 	return 0
 }
-
-//func (*UninstallCommand) Help() string {
-//	helpText := `
-//Usage: %s list
-//
-//	Uninstall the %s.
-//`
-//	return fmt.Sprintf(helpText, Name, KlientName)
-//}
-//
-//func (*UninstallCommand) Synopsis() string {
-//	return fmt.Sprintf("Uninstall the %s", KlientName)
-//}

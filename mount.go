@@ -71,17 +71,3 @@ func MountCommand(c *cli.Context) int {
 
 	return 0
 }
-
-//func (*MountCommand) Help() string {
-//	helpText := `
-//Usage: %s mount <machine name> </path/to/local/folder> </path/to/remote/folder>
-//
-//    Mount a remote folder from the given remote machine, to the specified
-//    local folder.
-//`
-//	return fmt.Sprintf(helpText, Name)
-//}
-//
-//func (*MountCommand) Synopsis() string {
-//	return fmt.Sprintf("Mount a remote folder to a local folder")
-//}

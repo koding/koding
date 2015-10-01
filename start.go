@@ -21,16 +21,3 @@ func StartCommand(c *cli.Context) int {
 	fmt.Printf("Successfully started %s\n", KlientName)
 	return 0
 }
-
-//func (*StartCommand) Help() string {
-//	helpText := `
-//Usage: sudo %s start
-//
-//	Start the %s. sudo is required.
-//`
-//	return fmt.Sprintf(helpText, Name, KlientName)
-//}
-//
-//func (*StartCommand) Synopsis() string {
-//	return fmt.Sprintf("Start the %s. sudo required.", KlientName)
-//}
