@@ -139,11 +139,11 @@ module.exports = class ChatInputWidget extends React.Component
 
     unless isDropboxEnter
       value = @state.value.trim()
-      channelId = @props.thread.get 'channelId'
+      channel = @props.thread.get 'channel'
       command = parseStringToCommand value
 
       if command
-        ChatInputFlux.actions.command.executeCommand command, channelId
+        ChatInputFlux.actions.command.executeCommand command, channel
       else
         @props.onSubmit? { value }
 
