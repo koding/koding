@@ -9,6 +9,9 @@ ThreadHeader         = require 'activity/components/threadheader'
 PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
+Link                 = require 'app/components/common/link'
+Modal                = require 'app/components/modal'
+showNotification     = require 'app/util/showNotification'
 
 
 module.exports = class ChannelThreadPane extends React.Component
@@ -32,6 +35,8 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
+      showDropTarget        : no
+      isComingSoonModalOpen : no
       channelThread         : immutable.Map()
       channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
@@ -43,6 +48,69 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
+
+
+  startVideoCall: ->
+
+    @setState isComingSoonModalOpen: yes
+
+
+  onDragEnter: (event)->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: yes
+
+
+  onDragOver: (event)-> kd.utils.stopDOMEvent event
+
+
+  onDragLeave: (event)->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+
+
+  onDrop: (event)->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+    showNotification 'Coming soon...', type: 'main'
+
+
+  getDropTargetClassNames: -> classnames
+    'ChannelThreadPane-dropContainer': yes
+    'hidden': not @state.showDropTarget
+
+
+  onClose: ->
+
+    @setState isComingSoonModalOpen: no
+
+
+  renderComingSoonModal: ->
+
+    if @state.isComingSoonModalOpen
+      title = 'Coming Soon'
+      <Modal className='ComingSoonModal' isOpen={yes} onClose={@bound 'onClose'}>
+        <div className='ComingSoonModal-header'>
+          <h3>COLLABORATE USING VIDEO CHAT</h3>
+          <span>Coming really soon...</span>
+        </div>
+        <div className='ComingSoonModal-content'>
+          <img src='/a/images/activity/coming-soon-modal-content.png'/>
+        </div>
+      </Modal>
+
+
+  renderDropSection: ->
+
+    <div
+      onDrop={@bound 'onDrop'}
+      onDragOver={@bound 'onDragOver'}
+      onDragLeave={@bound 'onDragLeave'}
+      className={@getDropTargetClassNames()}>
+      <div>Drop VM's here<br/> to start collaborating</div>
+    </div>
 
 
   renderHeader: ->
@@ -57,11 +125,23 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
+  renderVideoCallArea: ->
+
+    <Link className='ChannelThreadPane-videoCall' onClick={@bound 'startVideoCall'}>
+      <span>Start a Video Call</span>
+      <i className='ChannelThreadPane-videoCallIcon'></i>
+    </Link>
+
+
   render: ->
     <div className="ChannelThreadPane is-withChat">
-      <section className="ChannelThreadPane-content">
+      {@renderComingSoonModal()}
+      <section className="ChannelThreadPane-content"
+        onDragEnter={@bound 'onDragEnter'}>
+        {@renderDropSection()}
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
+          {@renderVideoCallArea()}
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
