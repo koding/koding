@@ -655,11 +655,14 @@ module.exports = class JAccount extends jraphical.Module
       state = prefs[granularity]
       current[granularity] = state# then 'instant' else 'never'
 
-    updateUserPref = ->
-      user.update { $set: { emailFrequency: current } }, (err) ->
-        return callback err  if err
+    user.update { $set: { emailFrequency: current } }, (err) ->
+      return callback err  if err
 
-    updateUserPref()
+      emailFrequency =
+        global    : current.global
+        marketing : current.marketing
+
+      Tracker.identify user.username, { emailFrequency }
 
   setEmailPreferences$: secure (client, prefs, callback) ->
     JUser = require './user'
