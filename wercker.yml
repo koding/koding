@@ -21,6 +21,10 @@ build:
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
     - script:
+        name: create version file
+        code: |
+          $WERCKER_ROOT/scripts/create_version.sh
+    - script:
         name: build started
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
@@ -67,7 +71,7 @@ build:
           ./configure --config prod
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
@@ -228,7 +232,7 @@ deploy:
         code: |
           cd $WERCKER_ROOT
 
-          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME
+          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
 
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
