@@ -1893,7 +1893,7 @@ Admin main styles
       img
         margin              9px 0 0 42px
 
-    .owngitserver
+    .yourgitserver
       top                   11px
       rel()
 
@@ -2046,6 +2046,9 @@ Admin main styles
     left                    11px
     rel()
 
+    .line
+      overflow              hidden
+
     .header
       line-height           45px
       height                45px
@@ -2055,28 +2058,50 @@ Admin main styles
       border-bottom         1px solid #DEDEDE
       text-indent           16px
 
-    .lines
+    .number
       color                 #C5C5C5
       width                 28px
       text-align            right
       margin-right          15px
       font-size             12px
-      margin-top            10px
       line-height           18px
       fl()
 
     .has-markdown
       pre
         padding             0
+        font-size           12px
+        line-height         18px
+        fl()
 
       code
         bg                  color, transparent
         border              none
         line-height         18px
-        padding             10px
+        padding             0
 
 
   &.main-content.get-started
     .footer
     .stack-preview
       hidden()
+
+
+@keyframes hilite
+  0%
+    background              rgba(255, 255, 0, .06)
+  15%
+    background              rgba(255, 255, 0, .18)
+  30%
+    background              rgba(255, 255, 0, .28)
+  50%
+    background              rgba(255, 255, 0, .38)
+  75%
+    background              rgba(255, 255, 0, .18)
+  85%
+    background              rgba(255, 255, 0, .06)
+  100%
+    background              none
+
+.hilite
+  vendor                    animation, hilite 3s
