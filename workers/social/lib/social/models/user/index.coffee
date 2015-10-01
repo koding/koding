@@ -1512,6 +1512,8 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err
           queue.next()
 
+      # passing "error" variable to be used as an argument in the callback func.
+      # that is being called after registration process is completed.
       -> callback null, { error, newToken, user, account }
 
     ]
