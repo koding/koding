@@ -86,3 +86,29 @@ describe 'ChannelFlagsStore', ->
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
       expect(storeState.mockChannelFlagsForEndId.isMessageBeingSubmitted).to.eql no
 
+
+  describe 'handleSetAllMessagesLoaded', ->
+
+    it 'sets reachedFirstMessage flags to true', ->
+
+      @reactor.dispatch actionTypes.SET_ALL_MESSAGES_LOADED, {
+        channelId: 'mockChannelFlagsForSuccessId'
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql yes
+
+
+  describe 'handleUnsetAllMessagesLoaded', ->
+
+    it 'sets reachedFirstMessage flags to false', ->
+
+      @reactor.dispatch actionTypes.UNSET_ALL_MESSAGES_LOADED, {
+        channelId: 'mockChannelFlagsForSuccessId'
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql no
+

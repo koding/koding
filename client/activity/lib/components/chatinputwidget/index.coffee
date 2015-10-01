@@ -16,6 +16,7 @@ Link                 = require 'app/components/common/link'
 whoami               = require 'app/util/whoami'
 helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
+parseStringToCommand = require 'activity/util/parseStringToCommand'
 
 
 module.exports = class ChatInputWidget extends React.Component
@@ -54,6 +55,7 @@ module.exports = class ChatInputWidget extends React.Component
       searchSelectedIndex            : getters.searchSelectedIndex @stateId
       searchSelectedItem             : getters.searchSelectedItem @stateId
       searchVisibility               : getters.searchVisibility @stateId
+      searchFlags                    : getters.searchFlags @stateId
       commands                       : getters.commands @stateId
       commandsQuery                  : getters.commandsQuery @stateId
       commandsSelectedIndex          : getters.commandsSelectedIndex @stateId
@@ -85,6 +87,10 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = event.target
 
     @setValue value
+    @runDropboxChecks value
+
+
+  runDropboxChecks: (value) ->
 
     textInput = React.findDOMNode @refs.textInput
     textData  =
@@ -133,7 +139,14 @@ module.exports = class ChatInputWidget extends React.Component
 
     unless isDropboxEnter
       value = @state.value.trim()
-      @props.onSubmit? { value }
+      channelId = @props.thread.get 'channelId'
+      command = parseStringToCommand value
+
+      if command
+        ChatInputFlux.actions.command.executeCommand command, channelId
+      else
+        @props.onSubmit? { value }
+
       @resetValue()
 
 
@@ -169,15 +182,17 @@ module.exports = class ChatInputWidget extends React.Component
       ChatInputFlux.actions.message.setLastMessageEditMode accountId
 
 
-  onDropboxItemConfirmed: (item) ->
+  onDropboxItemConfirmed: (item, addWhitespace = yes, callback = kd.noop) ->
 
     textInput = React.findDOMNode @refs.textInput
 
+    item += ' '  if addWhitespace
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
     @setValue value
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
+      callback value
 
 
   onSelectorItemConfirmed: (item) ->
@@ -196,6 +211,12 @@ module.exports = class ChatInputWidget extends React.Component
     { initialChannelId, id } = message
     ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
       kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
+
+
+  onCommandItemConfirmed: (item) ->
+
+    @onDropboxItemConfirmed item, no, (value) =>
+      @runDropboxChecks value
 
 
   handleEmojiButtonClick: (event) ->
@@ -283,7 +304,7 @@ module.exports = class ChatInputWidget extends React.Component
     { enableSearch } = @props
     return  unless enableSearch
 
-    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
+    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility, searchFlags } = @state
 
     <SearchDropbox
       items           = { searchItems }
@@ -294,6 +315,7 @@ module.exports = class ChatInputWidget extends React.Component
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
       ref             = 'searchDropbox'
       stateId         = { @stateId }
+      flags           = { searchFlags }
     />
 
 
@@ -307,7 +329,7 @@ module.exports = class ChatInputWidget extends React.Component
       selectedItem    = { commandsSelectedItem }
       query           = { commandsQuery }
       visible         = { commandsVisibility }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
+      onItemConfirmed = { @bound 'onCommandItemConfirmed' }
       ref             = 'commandDropbox'
       stateId         = { @stateId }
     />

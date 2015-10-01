@@ -21,7 +21,7 @@ do
     fi
 done
 
-if [ "$EB_ENV_NAME" == "latest" ]; then
+if [ "$EB_ENV_NAME" == "koding-latest" ]; then
     git checkout latest-deployment
 fi
 
