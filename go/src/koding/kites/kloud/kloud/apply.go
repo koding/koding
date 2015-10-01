@@ -312,6 +312,10 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		}
 
 		region = credRegion
+
+		if err := template.setAwsRegion(region); err != nil {
+			return err
+		}
 	}
 
 	buildData, err := injectKodingData(ctx, template, username, data)
