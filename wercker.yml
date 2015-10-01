@@ -234,6 +234,10 @@ deploy:
 
           ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
 
+          ./scripts/install-npm.sh -d client -u
+
+          make -C client dist
+
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $(cat $WERCKER_ROOT/ARCHIVE_NAME) .
