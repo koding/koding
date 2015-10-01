@@ -12,7 +12,16 @@ module.exports = class ChatInputCommandsStore extends KodingFluxStore
   getInitialState: ->
 
     commands = [
-      { name : '/search', description : 'Search in this channel' }
+      {
+        name        : '/s'
+        description : 'Search in this channel'
+      }
+      {
+        name        : '/invite'
+        description : 'Invite another member to this channel'
+        paramPrefix : '@'
+        paramText   : '@user'
+      }
     ]
 
     toImmutable commands

@@ -315,6 +315,15 @@ channelParticipantsSelectedItem = [
 ]
 
 
+notSelectedChannelParticipants = [
+  UsersStore
+  selectedChannelParticipants
+  (users, participants) ->
+    users.toList().filterNot (user) ->
+      return participants.get user.get '_id'
+]
+
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -348,5 +357,6 @@ module.exports = {
   channelParticipantsDropdownVisibility
 
   allUsers
+  notSelectedChannelParticipants
 }
 

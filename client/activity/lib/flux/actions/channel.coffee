@@ -11,6 +11,7 @@ realtimeActionCreators  = require './realtime/actioncreators'
 showErrorNotification   = require 'app/util/showErrorNotification'
 remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
+getters                 = require 'activity/flux/getters'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -350,9 +351,10 @@ deletePrivateChannel = (channelId) ->
       showErrorNotification err, userMessage: err.message
 
 
-addParticipants = (options = {}) ->
+addParticipants = (channelId, accountIds, userIds) ->
 
   { channel } = kd.singletons.socialapi
+  options     = { channelId, accountIds }
 
   { ADD_PARTICIPANTS_TO_CHANNEL_BEGIN
     ADD_PARTICIPANTS_TO_CHANNEL_FAIL
@@ -366,7 +368,18 @@ addParticipants = (options = {}) ->
       showErrorNotification err.description
       return
 
-    dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, options
+    for userId in userIds
+      dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, { channelId, userId }
+
+
+addParticipantsByNames = (channelId, names) ->
+
+  users = kd.singletons.reactor.evaluateToJS getters.allUsers
+  participants = (user for userId, user of users when names.indexOf(user.profile.nickname) > -1)
+  accountIds   = (user.socialApiId for user in participants)
+  userIds      = (user._id for user in participants)
+
+  addParticipants channelId, accountIds, userIds
 
 
 ###*
@@ -399,6 +412,7 @@ module.exports = {
   followChannel
   unfollowChannel
   addParticipants
+  addParticipantsByNames
   loadChannelByName
   loadChannelById
   loadChannel
