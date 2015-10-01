@@ -25,6 +25,7 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.UNFOLLOW_CHANNEL_BEGIN, @handleUnfollowChannelBegin
     @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
     @on actions.UNFOLLOW_CHANNEL_FAIL, @handleUnfollowChannelFail
+    @on actions.LEAVE_PRIVATE_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
 
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, @handleAddParticipantsToChannelBegin
     @on actions.ADD_PARTICIPANTS_TO_CHANNEL_FAIL, @handleAddParticipantsToChannelFail

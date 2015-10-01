@@ -22,6 +22,10 @@ module.exports = class ChatInputCommandsStore extends KodingFluxStore
         paramPrefix : '@'
         paramText   : '@user'
       }
+      {
+        name        : '/leave'
+        description : 'Leave this channel'
+      }
     ]
 
     toImmutable commands
