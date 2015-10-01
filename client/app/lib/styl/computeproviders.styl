@@ -700,7 +700,7 @@ computeproviders.styl
     .credential-list
       .credential-info
         .title
-          top               0
+          top               0 !important
           margin-top        -2px
 
         .fields
@@ -739,6 +739,22 @@ computeproviders.styl
 
       &:hover span
         color               #FFF
+
+  .credential-item
+    .buttons
+      top                   13px !important
+
+      button
+        vendor              transition, opacity .5s ease
+        min-width           80px
+        margin-left         15px
+
+        &.secondary
+          opacity           0
+
+      &:hover button
+        opacity             1
+
 
   .credential-item
   .stacktemplate-item
@@ -798,12 +814,12 @@ computeproviders.styl
     pointer()
 
     .kdbutton
-      size              15px 10px
-      bg                color, transparent
-      border            none
-      padding           0 !important
+      size                  15px 10px
+      bg                    color, transparent
+      border                none
+      padding               0 !important
       pointer()
-      min-width         auto
+      min-width             auto !important
 
     .chevron-separator
       hidden()
