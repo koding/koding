@@ -217,3 +217,4 @@ migrate -url "postgres://[hostname]:[port]/[dbname]?user=[user]&password=[passwo
 ```
 
 We did not automize this process, because it would cause some problems if we apply them automatically. For instance if we apply changes to latest it would broke some other stuff on production.
+
