@@ -20,6 +20,7 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
 
     @on actions.FOLLOW_CHANNEL_SUCCESS, @handleFollowChannelSuccess
     @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
+    @on actions.LEAVE_PRIVATE_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
 
   ###*
    * Initializes a new channel participants container for loaded channel.

@@ -92,17 +92,21 @@ setVisibility = (stateId, visible) ->
 cleanUsername = (name) -> if name.indexOf('@') is 0 then name.substring(1) else name
 
 
-executeCommand = (command, channelId) ->
+executeCommand = (command, channel) ->
 
+  channelId        = channel.get 'id'
   { name, params } = command
 
   switch name
     when '/invite'
       usernames = (cleanUsername param for param in params)
       channelActions.addParticipantsByNames channelId, usernames
-      return yes
-
-  return no
+    when '/leave'
+      if channel.get('typeConstant') is 'privatemessage'
+        channelActions.leavePrivateChannel channelId, (err) ->
+          kd.singletons.router.handleRoute '/Channels/public'  unless err
+      else
+        channelActions.unfollowChannel channelId
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...

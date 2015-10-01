@@ -351,6 +351,26 @@ deletePrivateChannel = (channelId) ->
       showErrorNotification err, userMessage: err.message
 
 
+leavePrivateChannel = (channelId, callback = kd.noop) ->
+
+  accountId   = whoami()._id
+  { channel } = kd.singletons.socialapi
+  { LEAVE_PRIVATE_CHANNEL_BEGIN
+    LEAVE_PRIVATE_CHANNEL_SUCCESS
+    LEAVE_PRIVATE_CHANNEL_FAIL } = actionTypes
+
+  dispatch LEAVE_PRIVATE_CHANNEL_BEGIN, { channelId, accountId }
+
+  channel.leave { channelId }, (err, result) ->
+    if err
+      dispatch LEAVE_PRIVATE_CHANNEL_FAIL , { err, channelId, accountId }
+      showErrorNotification err, userMessage: err.message
+      return callback err
+
+    dispatch LEAVE_PRIVATE_CHANNEL_SUCCESS, { channelId, accountId }
+    callback null, result
+
+
 addParticipants = (channelId, accountIds, userIds) ->
 
   { channel } = kd.singletons.socialapi
@@ -374,7 +394,7 @@ addParticipants = (channelId, accountIds, userIds) ->
 
 addParticipantsByNames = (channelId, names) ->
 
-  users = kd.singletons.reactor.evaluateToJS getters.allUsers
+  users        = kd.singletons.reactor.evaluateToJS getters.allUsers
   participants = (user for userId, user of users when names.indexOf(user.profile.nickname) > -1)
   accountIds   = (user.socialApiId for user in participants)
   userIds      = (user._id for user in participants)
@@ -425,5 +445,6 @@ module.exports = {
   setChannelParticipantsDropdownVisibility
   deletePrivateChannel
   glance
+  leavePrivateChannel
 }
 
