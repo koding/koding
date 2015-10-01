@@ -229,7 +229,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       appManager = kd.getSingleton 'appManager'
 
       if file.isDummyFile()
-        ace.on 'FileContentChanged', => @emit 'UpdateWorkspaceSnapshot'
+        cb = kd.utils.debounce 1200, => @emit 'UpdateWorkspaceSnapshot'
+        ace.on 'FileContentChanged', cb
 
       ace.on 'ace.change.cursor', (cursor) ->
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
