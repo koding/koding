@@ -298,6 +298,7 @@ Configuration = (options={}) ->
     disabledFeatures     : disabledFeatures
     contentRotatorUrl    : 'http://koding.github.io'
     integration          : { url: "#{integration.url}" }
+    webhookMiddleware    : { url: "#{webhookMiddleware.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
     recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
 
