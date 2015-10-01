@@ -44,11 +44,11 @@ module.exports = class CodeSetupView extends JView
 
   createServicesView: ->
 
-    services = [ 'github', 'bitbucket', 'gitlab', 'owngitserver' ]
+    services = [ 'github', 'bitbucket', 'gitlab', 'yourgitserver' ]
     servicesView = new kd.CustomHTMLView cssClass: 'services box-wrapper'
 
     services.forEach (service) =>
-      label = if service is 'owngitserver' then 'Your Git server' else ''
+      label = if service is 'yourgitserver' then 'Your Git server' else ''
 
       servicesView.addSubView serviceView = new kd.CustomHTMLView
         cssClass: "service box #{service}"
@@ -62,6 +62,7 @@ module.exports = class CodeSetupView extends JView
           servicesView.selected?.unsetClass 'selected'
           servicesView.selected = if servicesView.selected is serviceView then null else serviceView
           @emit 'UpdateStackTemplate'
+          @emit 'HiliteTemplate', 'line', service
 
     return servicesView
 

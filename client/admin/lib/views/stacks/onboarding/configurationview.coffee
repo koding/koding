@@ -48,7 +48,7 @@ module.exports = class ConfigurationView extends JView
     pane.addSubView pane.configView = configView = new ServerConfigurationView
     @tabHandleContainer.repositionPlusHandle @tabView.handles
 
-    pane.tabHandle.addSubView pane.instanceTypeSelectBox = new kd.SelectBox
+    pane.tabHandle.addSubView pane.instanceTypeSelectBox = select = new kd.SelectBox
       defaultValue  : 't2.micro'
       selectOptions : [
         { title: 't2.micro',  value: 't2.micro'  }
@@ -57,12 +57,15 @@ module.exports = class ConfigurationView extends JView
       ]
       callback: =>
         @emit 'UpdateStackTemplate', yes
-        @emit 'InstanceTypeChanged'
+        @emit 'InstanceTypeChanged', select.getValue()
 
-    configView.on 'UpdateStackTemplate', => @emit 'UpdateStackTemplate'
     @tabView.on 'PaneRemoved', => @emit 'UpdateStackTemplate'
 
+    configView.on 'UpdateStackTemplate', => @emit 'UpdateStackTemplate'
+    configView.on 'HiliteTemplate', (type, selector) => @emit 'HiliteTemplate', type, selector
+
     @emit 'UpdateStackTemplate', yes
+    @emit 'HiliteTemplate', 'block', 'example_2'  if closable
 
 
   pistachio: ->
