@@ -394,11 +394,12 @@ addParticipants = (channelId, accountIds, userIds) ->
 
 addParticipantsByNames = (channelId, names) ->
 
-  users = kd.singletons.reactor.evaluateToJS getters.allUsers
+  users        = kd.singletons.reactor.evaluateToJS getters.allUsers
   participants = (user for userId, user of users when names.indexOf(user.profile.nickname) > -1)
   accountIds   = (user.socialApiId for user in participants)
+  userIds      = (user._id for user in participants)
 
-  addParticipants { channelId, accountIds }
+  addParticipants channelId, accountIds, userIds
 
 
 ###*
