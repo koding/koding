@@ -22,6 +22,11 @@ module.exports = class PrivateChatPane extends React.Component
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
 
+  onCommand: ({ command }) ->
+
+    ActivityFlux.actions.command.executeCommand command, @props.thread.get 'channel'
+
+
   onLoadMore: ->
 
     return  unless @props.messages.size
@@ -52,8 +57,9 @@ module.exports = class PrivateChatPane extends React.Component
         <ChatInputWidget
           ref          = 'chatInputWidget'
           onSubmit     = { @bound 'onSubmit' }
-          enableSearch = { no }
-          thread       = { @props.thread }
+          onCommand    = { @bound 'onCommand' }
+          enableSearch = no
+          channelId    = { @channel 'id' }
         />
       </footer>
     </ChatPane>

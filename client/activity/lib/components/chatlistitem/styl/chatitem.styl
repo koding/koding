@@ -76,11 +76,9 @@
     overflow                visible
 
     &.editing
-      height                59px
       rounded               3px 3px 0 0
       padding               10px 0 6px 34px
       bg                    color, $light-yellow
-      overflow              hidden
       margin-top            5px !important
 
       > div
@@ -134,24 +132,21 @@
       margin-top            2px
 
     textarea
-      borderBox()
-      outline               none
-      rounded               3px
-      font-size             14px
-      color                 #4C4C4C
-      line-height           26px
-      border                2px solid $gray-18
-      padding               0 6px
-      size                  100%, 30px
       resize                none
       display               block
       margin-top            24px
 
-      &:focus
-        shadow              0 0 3px rgba(125,190,241,.7)
-
   .EmbedBox-container
     padding-left              52px
+
+  .ChatInputWidget
+    padding                 0px !important
+
+  .ChatInputWidget:before
+    left                    21px !important
+
+  .ChatInputWidget-emojiButton
+    right                   21px
 
 .ChatItem.is-selected
   .ChatListItem-itemBodyContainer

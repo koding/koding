@@ -23,9 +23,9 @@ setValue = (channelId, stateId, value) ->
  *
  * @param {string} channelId
 ###
-resetValue = (channelId) ->
+resetValue = (channelId, stateId) ->
 
-  setValue channelId, ''
+  setValue channelId, stateId, ''
 
 
 module.exports = {

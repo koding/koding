@@ -64,7 +64,12 @@ module.exports = class ChatInputWidget extends React.Component
     }
 
 
-  componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
+  componentDidMount: ->
+
+    { value } = @props
+
+    focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
+    @setValue value  if value
 
 
   componentDidUpdate: (oldProps, oldState) ->
@@ -77,14 +82,23 @@ module.exports = class ChatInputWidget extends React.Component
 
   setValue: (value) ->
 
-    channelId = @props.thread.get 'channelId'
+    { channelId } = @props
     ChatInputFlux.actions.value.setValue channelId, @stateId, value
 
 
   resetValue: ->
 
-    channelId = @props.thread.get 'channelId'
+    { channelId } = @props
     ChatInputFlux.actions.value.resetValue channelId, @stateId
+
+
+  getValue: -> @state.value
+
+
+  focus: ->
+
+    textInput = React.findDOMNode @refs.textInput
+    textInput.focus()
 
 
   onChange: (event) ->
@@ -144,11 +158,10 @@ module.exports = class ChatInputWidget extends React.Component
 
     unless isDropboxEnter
       value = @state.value.trim()
-      channel = @props.thread.get 'channel'
       command = parseStringToCommand value
 
       if command
-        ChatInputFlux.actions.command.executeCommand command, channel
+        @props.onCommand? { command }
       else
         @props.onSubmit? { value }
 
@@ -158,6 +171,7 @@ module.exports = class ChatInputWidget extends React.Component
   onEsc: (event) ->
 
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
+    @props.onEsc?()
 
 
   onNextPosition: (event, keyInfo) ->
@@ -238,7 +252,6 @@ module.exports = class ChatInputWidget extends React.Component
       @setValue value
 
     @focus()
-
     @refs.searchDropbox.checkTextForQuery { value }
 
 
