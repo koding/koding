@@ -27,7 +27,7 @@ module.exports = class TeamDomainTab extends KDFormView
     @input.on 'input', (event) ->
       { length }  = @getValue()
       length      = 8  unless length
-      @setAttribute 'size', length + 2
+      @setAttribute 'size', length
 
     @suffix = new KDView
       tagName      : 'span'
