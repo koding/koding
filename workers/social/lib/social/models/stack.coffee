@@ -94,7 +94,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
       status             :
 
-        updatedAt        : Date
+        modifiedAt       : Date
         reason           : String
 
         state            :
