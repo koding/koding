@@ -7,8 +7,37 @@ $header-height              = 52px
 
 .ChannelThreadPane-content
   dFlex()
+  rel()
   vendor                    flex, 1
   vendor                    flex-direction, column
+
+.ChannelThreadPane-dropContainer
+  abs()
+  borderBox()
+  margin                    10px
+  rounded                   6px
+  border                    2px dashed $gray-10
+  top                       0
+  left                      0
+  size                      calc(100% \- 20px), calc(100% \- 20px)
+  bg                        color, rgba(255, 255, 255, 0.9)
+  z-index                   3
+  font-size                 30px
+  text-align                center
+
+  div
+    rel()
+    line-height             40px
+    top                     50%
+    margin-top              -65px
+    color                   $gray-10
+
+    &:before
+      rel()
+      dBlock()
+      margin                0 auto 20px
+      content               ''
+      r-sprite              'activity', 'cloud-icon'
 
 .ChannelThreadPane-header
   padding                   0 20px
@@ -16,6 +45,28 @@ $header-height              = 52px
   vendor                    flex, 0 0 52px
   vendor                    align-items, center
   dFlex()
+  rel()
+
+.ChannelThreadPane-videoCall
+  abs()
+  top                       18px
+  right                     25px
+  color                     #3d3c40 !important
+
+  span:after
+    rel()
+    dIBlock()
+    content                 ''
+    margin-left             10px
+    r-sprite                'activity', 'right-arrow'
+
+.ChannelThreadPane-videoCallIcon
+  rel()
+  dIBlock()
+  content                   ''
+  margin-left               10px
+  top                       2px
+  r-sprite                  'activity', 'video-call'
 
 .ChannelThreadPane-footer
   vendor                    flex, 0 0 1px
@@ -42,7 +93,26 @@ $header-height              = 52px
   vendor                    flex, 0 0 240px
   bg                        color, #f5f5f5
 
+.ComingSoonModal
+  width                     700px
+
+  .ComingSoonModal-header
+    text-align              center
+    color                   $gray-10
+
+    h3
+      margin                20px 0 15px
+      color                 $blue
+
+    span
+      letter-spacing        2px
+
+  .ComingSoonModal-content
+    img
+      width                 100%
+      margin-top            30px
+
 
 @media only screen and (max-width : 950px)
   .ChannelThreadPane-sidebar
-    vendor                    flex, 0 0 40px
+    vendor                  flex, 0 0 40px
