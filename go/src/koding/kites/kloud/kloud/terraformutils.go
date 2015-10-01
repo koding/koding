@@ -110,9 +110,13 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				continue
 			}
 
-			provider, label, err := parseProviderAndLabel(resource)
+			provider, resourceType, label, err := parseResource(resource)
 			if err != nil {
 				return nil, err
+			}
+
+			if resourceType != "instance" {
+				continue
 			}
 
 			attrs := make(map[string]string, len(r.Primary.Attributes))
@@ -159,9 +163,13 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				attrs[name] = a.New
 			}
 
-			provider, label, err := parseProviderAndLabel(providerResource)
+			provider, resourceType, label, err := parseResource(providerResource)
 			if err != nil {
 				return nil, err
+			}
+
+			if resourceType != "instance" {
+				continue
 			}
 
 			out.Machines = append(out.Machines, TerraformMachine{
@@ -175,19 +183,20 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	return out, nil
 }
 
-func parseProviderAndLabel(resource string) (string, string, error) {
+func parseResource(resource string) (string, string, string, error) {
 	// resource is in the form of "aws_instance.foo.bar"
 	splitted := strings.SplitN(resource, "_", 2)
 	if len(splitted) < 2 {
-		return "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
+		return "", "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
 	}
 
 	resourceSplitted := strings.SplitN(splitted[1], ".", 2)
 
-	provider := splitted[0]      // aws
-	label := resourceSplitted[1] // foo.bar
+	provider := splitted[0]             // aws
+	resourceType := resourceSplitted[0] // instance
+	label := resourceSplitted[1]        // foo.bar
 
-	return provider, label, nil
+	return provider, resourceType, label, nil
 }
 
 func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
