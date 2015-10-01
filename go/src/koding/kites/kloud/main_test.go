@@ -380,19 +380,15 @@ func TestTerraformStack(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("===> STARTED to stop the machine with id: %s\n", userData.MachineIds[0].Hex())
+	fmt.Printf("===> STARTED to start/stop the machine with id: %s\n", userData.MachineIds[0].Hex())
 
 	if err := stop(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
 		t.Error(err)
-	} else {
-		fmt.Printf("\n=== Test is stopped for 5 minutes, now is your time to debug FATIH! ===\n\n")
-		time.Sleep(time.Minute * 5)
 	}
 
-	// Stop the machine
-	// Check the state of stopped machine
-	// Start the machine
-	// Check the state of started machine
+	if err := start(userData.MachineIds[0].Hex(), "aws", userData.Remote); err != nil {
+		t.Error(err)
+	}
 
 	destroyArgs := &kloud.TerraformApplyRequest{
 		StackId:   userData.StackId,
@@ -542,11 +538,11 @@ func TestStart(t *testing.T) {
 	}
 
 	log.Println("Starting machine")
-	if err := start(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := start(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
 	}
 
-	if err := start(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
+	if err := start(userData.MachineIds[0].Hex(), "koding", userData.Remote); err == nil {
 		t.Error("`start` method can not be called on `started` machines.")
 	}
 
@@ -984,10 +980,10 @@ func destroy(id string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Terminated, remote)
 }
 
-func start(id string, remote *kite.Client) error {
+func start(id, provider string, remote *kite.Client) error {
 	startArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("start", startArgs)
