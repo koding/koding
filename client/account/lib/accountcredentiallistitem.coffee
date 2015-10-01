@@ -13,13 +13,13 @@ module.exports = class AccountCredentialListItem extends BaseStackTemplateListIt
 
     super options, data
 
-    { providers }       = globals.config
     delegate            = @getDelegate()
+    { providers }       = globals.config
     { owner, provider } = @getData()
 
     @providerTag = new KDCustomHTMLView
       cssClass : 'tag'
-      partial  : @getData().provider
+      partial  : provider
 
     @providerTag.setCss 'background-color', providers[provider].color
 
