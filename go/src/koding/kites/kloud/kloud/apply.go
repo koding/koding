@@ -200,6 +200,20 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
+
+		// rest is aws related
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		region, ok := cred.Data["region"]
+		if !ok {
+			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
+		}
+
+		if err := template.setAwsRegion(region); err != nil {
+			return err
+		}
 	}
 
 	buildData, err := injectKodingData(ctx, template, username, data)
