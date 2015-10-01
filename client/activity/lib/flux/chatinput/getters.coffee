@@ -165,7 +165,7 @@ users = (stateId) -> [
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
   usersQuery stateId
-  currentCommand
+  currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
   (allUsers, participants, query, command, notParticipants) ->
     unless query
@@ -251,15 +251,15 @@ searchFlags = (stateId) -> [
 ]
 
 
-currentValue = [
+currentValue = (stateId) -> [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
-  (values, channelId) -> values.get channelId, ''
+  (values, channelId) -> values.getIn [channelId, stateId], ''
 ]
 
 
-currentCommand = [
-  currentValue
+currentCommand = (stateId) -> [
+  currentValue stateId
   (value) -> parseStringToCommand value
 ]
 

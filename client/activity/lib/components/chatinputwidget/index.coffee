@@ -32,7 +32,7 @@ module.exports = class ChatInputWidget extends React.Component
     { getters } = ChatInputFlux
 
     return {
-      value                          : getters.currentValue
+      value                          : getters.currentValue @stateId
       filteredEmojiList              : getters.filteredEmojiList @stateId
       filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
@@ -78,13 +78,13 @@ module.exports = class ChatInputWidget extends React.Component
   setValue: (value) ->
 
     channelId = @props.thread.get 'channelId'
-    ChatInputFlux.actions.value.setValue channelId, value
+    ChatInputFlux.actions.value.setValue channelId, @stateId, value
 
 
   resetValue: ->
 
     channelId = @props.thread.get 'channelId'
-    ChatInputFlux.actions.value.resetValue channelId
+    ChatInputFlux.actions.value.resetValue channelId, @stateId
 
 
   onChange: (event) ->

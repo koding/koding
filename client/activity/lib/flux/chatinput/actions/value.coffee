@@ -5,15 +5,16 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
 ###*
- * Action to set chat input value for the specified channel.
+ * Action to set chat input value for the specified channel and stateId.
  *
  * @param {string} channelId
+ * @param {string} stateId
  * @param {string} value
 ###
-setValue = (channelId, value) ->
+setValue = (channelId, stateId, value) ->
 
   { SET_CHAT_INPUT_VALUE } = actionTypes
-  dispatch SET_CHAT_INPUT_VALUE, { channelId, value }
+  dispatch SET_CHAT_INPUT_VALUE, { channelId, stateId, value }
 
 
 ###*
