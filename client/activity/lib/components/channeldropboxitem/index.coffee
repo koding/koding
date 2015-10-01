@@ -15,7 +15,7 @@ module.exports = class ChannelDropboxItem extends React.Component
   render: ->
 
     { item } = @props
-    <DropboxItem {...@props} className="DropboxItem-separated ChannelDropboxItem">
+    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated ChannelDropboxItem">
       <span className="ChannelDropboxItem-hash"># </span>
       {item.get 'name'}
     </DropboxItem>
