@@ -26,7 +26,7 @@ module.exports = class TeamDomainTab extends KDFormView
     # Listen text change event in real time
     @input.on 'input', (event) ->
       { length }  = @getValue()
-      length      = 8  unless length
+      length      = 10  unless length
       @setAttribute 'size', length
 
     @suffix = new KDView
