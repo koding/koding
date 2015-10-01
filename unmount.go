@@ -3,22 +3,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func UnmountCommandFactory() (cli.Command, error) {
-	return &UnmountCommand{}, nil
-}
-
-type UnmountCommand struct{}
-
-func (c *UnmountCommand) Run(args []string) int {
-	// All of the arguments are required currently, so error if anything
-	// is missing.
-	if len(args) != 1 {
-		fmt.Printf(c.Help())
-		return 1
-	}
+func UnmountCommand(c *cli.Context) int {
+	//// All of the arguments are required currently, so error if anything
+	//// is missing.
+	//if len(args) != 1 {
+	//	fmt.Printf(c.Help())
+	//	return 1
+	//}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
@@ -33,28 +27,27 @@ func (c *UnmountCommand) Run(args []string) int {
 
 	mountRequest := struct {
 		Name string `json:"name"`
-	}{Name: args[0]}
+	}{Name: c.Args().First()}
 
 	// Don't care about the response currently, since there is none.
 	if _, err := k.Tell("remote.unmountFolder", mountRequest); err != nil {
-		fmt.Printf("Error unmounting %s: '%s'\n", args[0], err)
+		fmt.Printf("Error unmounting %s: '%s'\n", c.Args().First(), err)
 		return 1
 	}
 
-	fmt.Println("Successfully unmounted:", args[0])
-
+	fmt.Println("Successfully unmounted:", c.Args().First())
 	return 0
 }
 
-func (*UnmountCommand) Help() string {
-	helpText := `
-Usage: %s unmount <machine name>
-
-    Unmount a machine which was previously mounted.
-`
-	return fmt.Sprintf(helpText, Name)
-}
-
-func (*UnmountCommand) Synopsis() string {
-	return fmt.Sprintf("Unmount specified machine.")
-}
+//func (*UnmountCommand) Help() string {
+//	helpText := `
+//Usage: %s unmount <machine name>
+//
+//    Unmount a machine which was previously mounted.
+//`
+//	return fmt.Sprintf(helpText, Name)
+//}
+//
+//func (*UnmountCommand) Synopsis() string {
+//	return fmt.Sprintf("Unmount specified machine.")
+//}

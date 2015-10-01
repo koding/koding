@@ -6,17 +6,10 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func ListCommandFactory() (cli.Command, error) {
-	return &ListCommand{}, nil
-}
-
-type ListCommand struct {
-}
-
-func (c *ListCommand) Run(_ []string) int {
+func ListCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
@@ -52,18 +45,5 @@ func (c *ListCommand) Run(_ []string) int {
 	}
 	w.Flush()
 
-	return 1
-}
-
-func (*ListCommand) Help() string {
-	helpText := `
-Usage: %s list
-
-	List the available machines.
-`
-	return fmt.Sprintf(helpText, Name)
-}
-
-func (*ListCommand) Synopsis() string {
-	return fmt.Sprintf("List the available machines")
+	return 0
 }

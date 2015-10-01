@@ -9,44 +9,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
 func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-type CheckUpdateFirst struct {
-	RealCli cli.Command
-}
+func CheckUpdateFirst(f ExitingCommand) ExitingCommand {
+	return func(c *cli.Context) int {
+		u := NewCheckUpdate()
+		if y, err := u.IsUpdateAvailable(); y && err == nil {
+			fmt.Println("A newer version of %s is available. Please do `sudo kd update`.\n", Name)
+		}
 
-// CheckUpdateFirstFactory wraps others commands to check if there's an
-// update before running the original command.
-func CheckUpdateFirstFactory(realFactory func() (cli.Command, error)) func() (cli.Command, error) {
-	realCli, err := realFactory()
-	if err != nil {
-		panic(err)
+		return f(c)
 	}
-
-	return func() (cli.Command, error) { return &CheckUpdateFirst{RealCli: realCli}, nil }
-}
-
-func (c *CheckUpdateFirst) Run(args []string) int {
-	u := NewCheckUpdate()
-	if y, err := u.IsUpdateAvailable(); y && err == nil {
-		fmt.Println("A newer version of %s is available. Please do `sudo kd update`.\n", Name)
-	}
-
-	return c.RealCli.Run(args)
-}
-
-func (c *CheckUpdateFirst) Help() string {
-	return c.RealCli.Help()
-}
-
-func (c *CheckUpdateFirst) Synopsis() string {
-	return c.RealCli.Synopsis()
-
 }
 
 // CheckUpdate checks if there an update available based on checking.

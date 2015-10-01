@@ -3,16 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func StopCommandFactory() (cli.Command, error) {
-	return &StopCommand{}, nil
-}
-
-type StopCommand struct{}
-
-func (c *StopCommand) Run(_ []string) int {
+func StopCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
 		fmt.Printf("Error stopping service: '%s'\n", err)
@@ -25,19 +19,18 @@ func (c *StopCommand) Run(_ []string) int {
 	}
 
 	fmt.Printf("Successfully stopped %s\n", KlientName)
-
 	return 0
 }
 
-func (*StopCommand) Help() string {
-	helpText := `
-Usage: sudo %s stop
-
-	Stop the %s. sudo is required.
-`
-	return fmt.Sprintf(helpText, Name, KlientName)
-}
-
-func (*StopCommand) Synopsis() string {
-	return fmt.Sprintf("Stop the %s. sudo required.", KlientName)
-}
+//func (*StopCommand) Help() string {
+//	helpText := `
+//Usage: sudo %s stop
+//
+//	Stop the %s. sudo is required.
+//`
+//	return fmt.Sprintf(helpText, Name, KlientName)
+//}
+//
+//func (*StopCommand) Synopsis() string {
+//	return fmt.Sprintf("Stop the %s. sudo required.", KlientName)
+//}

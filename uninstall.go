@@ -5,16 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func UninstallCommandFactory() (cli.Command, error) {
-	return &UninstallCommand{}, nil
-}
-
-type UninstallCommand struct{}
-
-func (c *UninstallCommand) Run(_ []string) int {
+func UninstallCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
 		fmt.Printf("Error uninstalling %s: '%s'\n", KlientName, err)
@@ -38,15 +32,15 @@ func (c *UninstallCommand) Run(_ []string) int {
 	return 0
 }
 
-func (*UninstallCommand) Help() string {
-	helpText := `
-Usage: %s list
-
-	Uninstall the %s.
-`
-	return fmt.Sprintf(helpText, Name, KlientName)
-}
-
-func (*UninstallCommand) Synopsis() string {
-	return fmt.Sprintf("Uninstall the %s", KlientName)
-}
+//func (*UninstallCommand) Help() string {
+//	helpText := `
+//Usage: %s list
+//
+//	Uninstall the %s.
+//`
+//	return fmt.Sprintf(helpText, Name, KlientName)
+//}
+//
+//func (*UninstallCommand) Synopsis() string {
+//	return fmt.Sprintf("Uninstall the %s", KlientName)
+//}

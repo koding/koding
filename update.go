@@ -7,16 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func UpdateCommandFactory() (cli.Command, error) {
-	return &UpdateCommand{}, nil
-}
-
-type UpdateCommand struct{}
-
-func (u *UpdateCommand) Run(_ []string) int {
+func UpdateCommand(c *cli.Context) int {
 	checkUpdate := NewCheckUpdate()
 
 	// by pass random checking to force checking for update
@@ -72,22 +66,21 @@ func (u *UpdateCommand) Run(_ []string) int {
 	}
 
 	fmt.Printf("Successfully updated to latest version of %s.\n", Name)
-
 	return 0
 }
 
-func (u *UpdateCommand) Help() string {
-	helpText := `
-Usage: sudo %s update
-
-		Update to latest version. sudo is required.
-`
-	return fmt.Sprintf(helpText, Name)
-}
-
-func (u *UpdateCommand) Synopsis() string {
-	return "Update to latest version. sudo required."
-}
+//func (u *UpdateCommand) Help() string {
+//	helpText := `
+//Usage: sudo %s update
+//
+//		Update to latest version. sudo is required.
+//`
+//	return fmt.Sprintf(helpText, Name)
+//}
+//
+//func (u *UpdateCommand) Synopsis() string {
+//	return "Update to latest version. sudo required."
+//}
 
 func downloadRemoteToLocal(remotePath, destPath string) error {
 	// create the destination dir, if needed.

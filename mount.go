@@ -5,20 +5,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func MountCommandFactory() (cli.Command, error) {
-	return &MountCommand{}, nil
-}
-
-type MountCommand struct{}
-
-func (c *MountCommand) Run(args []string) int {
-	if len(args) < 2 {
-		fmt.Println(c.Help())
-		return 1
-	}
+func MountCommand(c *cli.Context) int {
+	//if len(args) < 2 {
+	//	fmt.Println(c.Help())
+	//	return 1
+	//}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
@@ -31,11 +25,11 @@ func (c *MountCommand) Run(args []string) int {
 		return 1
 	}
 
-	var localPath = args[1]
+	var localPath = c.Args()[1]
 
 	// use absolute path unless empty
-	if strings.TrimSpace(args[1]) != "" {
-		absoluteLocalPath, err := filepath.Abs(args[1])
+	if strings.TrimSpace(c.Args()[1]) != "" {
+		absoluteLocalPath, err := filepath.Abs(c.Args()[1])
 		if err == nil {
 			localPath = absoluteLocalPath
 		}
@@ -46,12 +40,12 @@ func (c *MountCommand) Run(args []string) int {
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
 	}{
-		Name:      args[0],
+		Name:      c.Args()[0],
 		LocalPath: localPath,
 	}
 
-	if len(args) > 2 {
-		mountRequest.RemotePath = args[2]
+	if len(c.Args()) > 2 {
+		mountRequest.RemotePath = c.Args()[2]
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
@@ -78,16 +72,16 @@ func (c *MountCommand) Run(args []string) int {
 	return 0
 }
 
-func (*MountCommand) Help() string {
-	helpText := `
-Usage: %s mount <machine name> </path/to/local/folder> </path/to/remote/folder>
-
-    Mount a remote folder from the given remote machine, to the specified
-    local folder.
-`
-	return fmt.Sprintf(helpText, Name)
-}
-
-func (*MountCommand) Synopsis() string {
-	return fmt.Sprintf("Mount a remote folder to a local folder")
-}
+//func (*MountCommand) Help() string {
+//	helpText := `
+//Usage: %s mount <machine name> </path/to/local/folder> </path/to/remote/folder>
+//
+//    Mount a remote folder from the given remote machine, to the specified
+//    local folder.
+//`
+//	return fmt.Sprintf(helpText, Name)
+//}
+//
+//func (*MountCommand) Synopsis() string {
+//	return fmt.Sprintf("Mount a remote folder to a local folder")
+//}

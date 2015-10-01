@@ -3,16 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func StartCommandFactory() (cli.Command, error) {
-	return &StartCommand{}, nil
-}
-
-type StartCommand struct{}
-
-func (c *StartCommand) Run(_ []string) int {
+func StartCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
 		fmt.Printf("Error starting %s: '%s'\n", KlientName, err)
@@ -25,19 +19,18 @@ func (c *StartCommand) Run(_ []string) int {
 	}
 
 	fmt.Printf("Successfully started %s\n", KlientName)
-
 	return 0
 }
 
-func (*StartCommand) Help() string {
-	helpText := `
-Usage: sudo %s start
-
-	Start the %s. sudo is required.
-`
-	return fmt.Sprintf(helpText, Name, KlientName)
-}
-
-func (*StartCommand) Synopsis() string {
-	return fmt.Sprintf("Start the %s. sudo required.", KlientName)
-}
+//func (*StartCommand) Help() string {
+//	helpText := `
+//Usage: sudo %s start
+//
+//	Start the %s. sudo is required.
+//`
+//	return fmt.Sprintf(helpText, Name, KlientName)
+//}
+//
+//func (*StartCommand) Synopsis() string {
+//	return fmt.Sprintf("Start the %s. sudo required.", KlientName)
+//}

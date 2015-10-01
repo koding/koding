@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codegangsta/cli"
 	"github.com/leeola/service"
-	"github.com/mitchellh/cli"
 )
 
 // newService provides a preconfigured (based on klientctl's config)
@@ -35,22 +35,16 @@ func newService() (service.Service, error) {
 type serviceProgram struct{}
 
 func (p *serviceProgram) Start(s service.Service) error {
-	fmt.Println("serviceProgram Start called o_O")
+	fmt.Println("Error: serviceProgram Start called")
 	return nil
 }
 
 func (p *serviceProgram) Stop(s service.Service) error {
-	fmt.Println("serviceProgram Stop called o_O")
+	fmt.Println("Error: serviceProgram Stop called")
 	return nil
 }
 
-func InstallCommandFactory() (cli.Command, error) {
-	return &InstallCommand{}, nil
-}
-
-type InstallCommand struct{}
-
-func (c *InstallCommand) Run(_ []string) int {
+func InstallCommand(c *cli.Context) int {
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
 	if err != nil {
 		fmt.Printf("Error getting %s wrapper path: '%s'\n", KlientName, err)
@@ -208,15 +202,15 @@ Reason: %s
 	return 0
 }
 
-func (*InstallCommand) Help() string {
-	helpText := `
-Usage: %s stop
-
-	Install the %s.
-`
-	return fmt.Sprintf(helpText, Name, KlientName)
-}
-
-func (*InstallCommand) Synopsis() string {
-	return fmt.Sprintf("Install the %s", KlientName)
-}
+//func (*InstallCommand) Help() string {
+//	helpText := `
+//Usage: %s stop
+//
+//	Install the %s.
+//`
+//	return fmt.Sprintf(helpText, Name, KlientName)
+//}
+//
+//func (*InstallCommand) Synopsis() string {
+//	return fmt.Sprintf("Install the %s", KlientName)
+//}

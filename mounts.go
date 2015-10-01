@@ -5,16 +5,10 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/mitchellh/cli"
+	"github.com/codegangsta/cli"
 )
 
-func MountsCommandFactory() (cli.Command, error) {
-	return &MountsCommand{}, nil
-}
-
-type MountsCommand struct{}
-
-func (c *MountsCommand) Run(_ []string) int {
+func MountsCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
@@ -58,15 +52,15 @@ func (c *MountsCommand) Run(_ []string) int {
 	return 0
 }
 
-func (*MountsCommand) Help() string {
-	helpText := `
-Usage: %s mounts
-
-	List the mounted folders on this machine.
-`
-	return fmt.Sprintf(helpText, Name, KlientName)
-}
-
-func (*MountsCommand) Synopsis() string {
-	return fmt.Sprintf("List mounted folders on this machine")
-}
+//func (*MountsCommand) Help() string {
+//	helpText := `
+//Usage: %s mounts
+//
+//	List the mounted folders on this machine.
+//`
+//	return fmt.Sprintf(helpText, Name, KlientName)
+//}
+//
+//func (*MountsCommand) Synopsis() string {
+//	return fmt.Sprintf("List mounted folders on this machine")
+//}
