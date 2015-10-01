@@ -39,10 +39,10 @@ const (
 	// version on S3 bucket.
 	KlientctlVersion = 1
 
+	osName = runtime.GOOS
+
 	// S3UpdateLocation is publically accessible url to check for new updates.
 	S3UpdateLocation = "https://koding-kd.s3.amazonaws.com/latest-version.txt"
-
-	osName = runtime.GOOS
 
 	// S3KlientctlPath is publically accessible url for latest version of klient.
 	// Each OS has its own version of binary, identifiable by OS suffix.
@@ -51,4 +51,10 @@ const (
 	// S3KlientctlPath is publically accessible url for latest version of
 	// klientctl. Each OS has its own version of binary, identifiable by suffix.
 	S3KlientctlPath = "https://koding-kd.s3.amazonaws.com/klientctl-" + osName
+
+	// SSHDefaultKeyDir is the default directory that stores users ssh key pairs.
+	SSHDefaultKeyDir = ".ssh"
+
+	// SSHDefaultKeyDir is the default name of the ssh key pair.
+	SSHDefaultKeyName = "kd-ssh-key"
 )

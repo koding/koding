@@ -27,13 +27,6 @@ func ListCommand(c *cli.Context) int {
 		return 1
 	}
 
-	type kiteInfo struct {
-		Ip           string
-		VmName       string
-		Hostname     string
-		MountedPaths []string
-	}
-
 	var infos []kiteInfo
 	res.Unmarshal(&infos)
 
@@ -46,4 +39,11 @@ func ListCommand(c *cli.Context) int {
 	w.Flush()
 
 	return 0
+}
+
+type kiteInfo struct {
+	Ip           string
+	VmName       string
+	Hostname     string
+	MountedPaths []string
 }

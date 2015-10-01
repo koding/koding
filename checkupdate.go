@@ -20,7 +20,7 @@ func CheckUpdateFirst(f ExitingCommand) ExitingCommand {
 	return func(c *cli.Context) int {
 		u := NewCheckUpdate()
 		if y, err := u.IsUpdateAvailable(); y && err == nil {
-			fmt.Println("A newer version of %s is available. Please do `sudo kd update`.\n", Name)
+			fmt.Printf("A newer version of %s is available. Please do `sudo %s update`.\n", Name, Name)
 		}
 
 		return f(c)

@@ -44,6 +44,23 @@ func TestIsUpdateAvailable(t *testing.T) {
 		So(KlientctlVersion, ShouldEqual, 1)
 	})
 
+	Convey("It should check for update if ForceCheck is enabled", t, func() {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, "1")
+		})
+
+		server := httptest.NewServer(mux)
+		defer server.Close()
+
+		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 2}
+
+		noUpdate, err := u.IsUpdateAvailable()
+		So(err, ShouldBeNil)
+		So(noUpdate, ShouldBeFalse)
+		So(KlientctlVersion, ShouldEqual, 1)
+	})
+
 	Convey("It shouldn't update if randomly seeded number is not 1", t, func() {
 		u := CheckUpdate{Location: "http://location:9999", RandomSeededNumber: 2}
 

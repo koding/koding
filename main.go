@@ -38,6 +38,12 @@ func main() {
 			Action:      Exit(CheckUpdateFirst(UnmountCommand)),
 		},
 		cli.Command{
+			Name:        "ssh",
+			Usage:       "SSH into the machine.",
+			Description: "SSH into the machine.",
+			Action:      Exit(CheckUpdateFirst(SSHCommandFactory)),
+		},
+		cli.Command{
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s. sudo is required.", KlientName),
 			Description: fmt.Sprintf("Install the %s. sudo is required.", KlientName),
