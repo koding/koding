@@ -108,15 +108,9 @@ module.exports = class UserDropbox extends React.Component
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       direction      = 'up'
+      title          = 'People'
       ref            = 'dropbox'
     >
-      <div className="Dropbox-innerContainer">
-        <div className="Dropbox-header">
-          People
-        </div>
-        <div className="UserDropbox-list">
-          {@renderList()}
-        </div>
-      </div>
+      {@renderList()}
     </Dropbox>
 

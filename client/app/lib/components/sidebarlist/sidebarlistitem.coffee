@@ -25,7 +25,7 @@ module.exports = class SidebarListItem extends React.Component
   render: ->
     <div className={@getClassName()} onClick={@props.onClick}>
       <cite className="SidebarListItem-icon" />
-      <Link className="SidebarListItem-link" href={@props.href}>
+      <Link className="SidebarListItem-link" title={@props.title} href={@props.href}>
         {@props.title}
       </Link>
       {@renderUnreadCount()}

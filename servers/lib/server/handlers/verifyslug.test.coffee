@@ -1,12 +1,11 @@
-Bongo                                     = require 'bongo'
-request                                   = require 'request'
+{ daisy
+  expect
+  request
+  generateRandomString }            = require '../../../testhelper'
+{ generateVerifySlugRequestParams } = require '../../../testhelper/handler/verifyslughelper'
+{ generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
-{ daisy }                                 = Bongo
-{ expect }                                = require 'chai'
-
-{ generateRandomString }                  = require '../../../testhelper'
-{ generateVerifySlugRequestParams }       = require '../../../testhelper/handler/verifyslughelper'
-{ generateCreateTeamRequestParams }       = require '../../../testhelper/handler/teamhelper'
+reservedTeamDomains = require '../../../../workers/social/lib/social/models/user/reservedteamdomains'
 
 
 runTests = -> describe 'server.handlers.verifyslug', ->
@@ -154,6 +153,24 @@ runTests = -> describe 'server.handlers.verifyslug', ->
       ]
 
       daisy queue
+
+
+  describe 'when domain is a reserved one', ->
+
+    it 'should send http 400', (done) ->
+
+      slug = reservedTeamDomains[0]
+
+      verifySlugRequestParams = generateVerifySlugRequestParams
+        body   :
+          name : slug
+
+      # expecting HTTP 400 when domain is taken
+      request.post verifySlugRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal 'Invalid domain!'
+        done()
 
 
 runTests()

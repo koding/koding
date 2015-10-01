@@ -3,6 +3,7 @@ immutable                  = require 'immutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
+parseStringToCommand       = require 'activity/util/parseStringToCommand'
 
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
@@ -24,7 +25,12 @@ SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyM
 SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
+SearchFlagsStore                    = [['ChatInputSearchFlagsStore'], withEmptyMap]
 ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
+CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList]
+CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
+CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
+CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -142,14 +148,22 @@ usersQuery = (stateId) -> [
 
 
 # Returns a list of users depending on the current query
-# If query is empty, returns selected channel participants
-# Otherwise, returns users filtered by query
+# If query is empty, returns:
+# - users who are not participants of selected channel if current input command is /invite
+# - otherwise, selected channel participants
+# If query is not empty, returns users filtered by query
 users = (stateId) -> [
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
   usersQuery stateId
-  (allUsers, participants, query) ->
-    return participants?.toList() ? immutable.List()  unless query
+  currentCommand
+  ActivityFluxGetters.notSelectedChannelParticipants
+  (allUsers, participants, query, command, notParticipants) ->
+    unless query
+      list = if command?.name is '/invite'
+      then notParticipants
+      else participants?.toList()
+      return list ? immutable.List()
 
     query = query.toLowerCase()
     allUsers.toList().filter (user) ->
@@ -222,10 +236,66 @@ searchVisibility = (stateId) -> [
 ]
 
 
+searchFlags = (stateId) -> [
+  SearchFlagsStore
+  (flags) -> flags.get stateId
+]
+
+
 currentValue = [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
   (values, channelId) -> values.get channelId, ''
+]
+
+
+currentCommand = [
+  currentValue
+  (value) -> parseStringToCommand value
+]
+
+
+commandsQuery = (stateId) -> [
+  CommandsQueryStore
+  (queries) -> queries.get stateId
+]
+
+
+commands = (stateId) -> [
+  CommandsStore
+  commandsQuery stateId
+  (allCommands, query) ->
+    return allCommands  if query is '/'
+
+    allCommands.filter (command) ->
+      commandName = command.get 'name'
+      return commandName.indexOf(query) is 0
+]
+
+
+commandsRawIndex = (stateId) -> [
+  CommandsSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+
+
+commandsSelectedIndex = (stateId) -> [
+  commands stateId
+  commandsRawIndex stateId
+  calculateListSelectedIndex
+]
+
+
+commandsSelectedItem = (stateId) -> [
+  commands stateId
+  commandsSelectedIndex stateId
+  getListSelectedItem
+]
+
+
+commandsVisibility = (stateId) -> [
+  CommandsVisibilityStore
+  (visibilities) -> visibilities.get stateId
 ]
 
 
@@ -259,7 +329,15 @@ module.exports = {
   searchSelectedIndex
   searchSelectedItem
   searchVisibility
+  searchFlags
 
   currentValue
+
+  commandsQuery
+  commands
+  commandsRawIndex
+  commandsSelectedIndex
+  commandsSelectedItem
+  commandsVisibility
 }
 

@@ -73,21 +73,19 @@ module.exports = class GroupsController extends KDController
 
   openSocialGroupChannel:(group, callback=->) ->
     {realtime, socialapi} = kd.singletons
+
     socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
-      return callback  if err
+      return callback err  if err
 
-      subscriptionData =
-        group      : group.slug
-        channelType: "group"
-        channelName: "public"
-        token      : channel.token
-        channelId  : group.socialApiChannelId
-
-      realtime.subscribeChannel subscriptionData, (err, groupChan) =>
+      socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
         return callback err  if err
 
-        @filterXssAndForwardEvents groupChan, [
-          'test'
+        realtimeChan = registeredChan?.delegate
+
+        return callback "realtime chan is not set"  unless realtimeChan
+
+        @filterXssAndForwardEvents realtimeChan, [
+          'StackTemplateChanged'
         ]
 
         callback null

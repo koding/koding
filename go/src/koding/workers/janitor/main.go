@@ -69,7 +69,9 @@ func main() {
 		for _, w := range warnings {
 			wg.Add(1)
 
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
+			// sleep random time to avoid all workers starting at the same time;
+			// random time can be anywhere from 0 seconds to 1.38 hour.
+			time.Sleep(time.Second * time.Duration(rand.Intn(5000)))
 
 			go func(warning Warning) {
 				defer wg.Done()

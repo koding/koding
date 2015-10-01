@@ -9,20 +9,23 @@ classnames                        = require 'classnames'
 KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
-CreateChannelFlux                 = require 'activity/flux/createchannel'
 KDReactorMixin                    = require 'app/flux/reactormixin'
+isPublicChannel                   = require 'app/util/isPublicChannel'
 DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
+CreateChannelFlux                 = require 'activity/flux/createchannel'
 ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
 CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
 
 module.exports = class CreatePublicChannelModal extends React.Component
 
+
   @include [DropboxInputMixin]
+
 
   constructor: (props) ->
 
-    super
+    super props
 
     @state =
       name                : ''
@@ -39,16 +42,43 @@ module.exports = class CreatePublicChannelModal extends React.Component
     { getters } = CreateChannelFlux
 
     return {
-      participants        : getters.createChannelParticipants
-      query               : getters.createChannelParticipantsSearchQuery
-      dropdownUsers       : getters.createChannelParticipantsInputUsers
-      selectedItem        : getters.createChannelParticipantsSelectedItem
-      selectedIndex       : getters.createChannelParticipantsSelectedIndex
-      dropdownVisibility  : getters.createChannelParticipantsDropdownVisibility
+      participants       : getters.createChannelParticipants
+      query              : getters.createChannelParticipantsSearchQuery
+      dropdownUsers      : getters.createChannelParticipantsInputUsers
+      selectedItem       : getters.createChannelParticipantsSelectedItem
+      selectedIndex      : getters.createChannelParticipantsSelectedIndex
+      dropdownVisibility : getters.createChannelParticipantsDropdownVisibility
+      selectedThread     : ActivityFlux.getters.selectedChannelThread
     }
 
 
   getDefaultPlaceholder: -> 'type a @username and hit enter'
+
+
+  getParticipantsWrapperClassnames: -> classnames
+    'delete-mode'                       : @state.deleteMode
+    'CreateChannel-participantsWrapper' : yes
+
+
+  getNameFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'invalid'              : @state.invalidName
+
+
+  getDropboxFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'dropdown'             : yes
+    'invalid'              : @state.invalidParticipants
+
+
+  getModalProps: ->
+    isOpen             : yes
+    title              : 'Create Channel'
+    className          : 'CreateChannel-Modal'
+    buttonConfirmTitle : 'CREATE'
+    onConfirm          : @bound 'createChannel'
+    onClose            : @bound 'onClose'
+    onAbort            : @bound 'onClose'
 
 
   setName: (event) ->
@@ -62,6 +92,20 @@ module.exports = class CreatePublicChannelModal extends React.Component
   setPurpose: (event) ->
 
     @setState purpose: event.target.value
+
+
+  onClose: ->
+
+    return  unless @state.selectedThread
+    return  if @_isCreating
+
+    channel = @state.selectedThread.get('channel').toJS()
+
+    route = if isPublicChannel channel
+    then "/Channels/#{channel.name}"
+    else "/Messages/#{channel.id}"
+
+    kd.singletons.router.handleRoute route
 
 
   prepareRecipients: ->
@@ -100,16 +144,18 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
     recipients = @prepareRecipients()
     options =
-      body       : ''
+      type       : 'topic'
       name       : @state.name
       purpose    : @state.purpose
       recipients : recipients
 
     { createPublicChannel } = CreateChannelFlux.actions.channel
 
+    @_isCreating = yes
+
     createPublicChannel(options).then ({channel}) =>
 
-      @props.isOpen = no
+      kd.singletons.router.handleRoute "/Channels/#{channel.name}"
 
 
   onChange: (event) ->
@@ -214,11 +260,6 @@ module.exports = class CreatePublicChannelModal extends React.Component
       </div>
 
 
-  getParticipantsWrapperClassnames: -> classnames
-    'delete-mode'                       : @state.deleteMode
-    'CreateChannel-participantsWrapper' : yes
-
-
   renderAddParticipantInput: ->
 
     <div className={@getParticipantsWrapperClassnames()}>
@@ -254,20 +295,9 @@ module.exports = class CreatePublicChannelModal extends React.Component
     />
 
 
-  getNameFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'invalid'              : @state.invalidName
-
-
-  getDropboxFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'dropdown'             : yes
-    'invalid'              : @state.invalidParticipants
-
-
   render: ->
 
-    <ActivityModal {...@props} onConfirm={@bound 'createChannel'}>
+    <ActivityModal {...@getModalProps()}>
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
           <strong>This will create a new public channel that anyone on your team can join.</strong>

@@ -3,6 +3,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox'
+ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 SearchDropboxItem    = require 'activity/components/searchdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
@@ -20,6 +21,13 @@ module.exports = class SearchDropbox extends React.Component
     visible        : no
     selectedItem   : null
     selectedIndex  : 0
+    flags          : immutable.Map()
+
+
+  shouldComponentUpdate: (nextProps, nextState) -> not nextProps.flags?.get 'isLoading'
+
+
+  isActive: -> @props.visible
 
 
   formatSelectedValue: -> @props.selectedItem.get('message').toJS()
@@ -61,11 +69,11 @@ module.exports = class SearchDropbox extends React.Component
 
     { currentWord, value, position } = textData
 
-    matchResult = value.match /\/s (.+)/
+    matchResult = value.match /^\/s(earch)? (.+)/
     return no  unless matchResult
     return no  if isWithinCodeBlock value, position
 
-    query = matchResult[1]
+    query = matchResult[2]
     { stateId } = @props
     ChatInputFlux.actions.search.setQuery stateId, query
     ChatInputFlux.actions.search.setVisibility stateId, yes
@@ -97,17 +105,30 @@ module.exports = class SearchDropbox extends React.Component
       />
 
 
+  renderError: ->
+
+    { query } = @props
+
+    <ErrorDropboxItem>
+      { query } not found
+    </ErrorDropboxItem>
+
+
   render: ->
+
+    { items, query, flags } = @props
+
+    isError = items.size is 0 and query
 
     <Dropbox
       className      = 'SearchDropbox'
       visible        = { @isActive() }
       onOuterClick   = { @bound 'close' }
       direction      = 'up'
+      title          = 'Search'
       ref            = 'dropbox'
     >
-      <div className="Dropbox-innerContainer">
-        {@renderList()}
-      </div>
+      { @renderList()  unless isError }
+      { @renderError()  if isError }
     </Dropbox>
 

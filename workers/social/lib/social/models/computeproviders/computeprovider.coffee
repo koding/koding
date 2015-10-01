@@ -172,6 +172,7 @@ module.exports = class ComputeProvider extends Base
 
   @update = secure revive
 
+
     shouldReviveClient   : yes
     shouldPassCredential : yes
 

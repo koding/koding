@@ -38,14 +38,22 @@ func DeleteComputeStack(id string) error {
 }
 
 func SetStackState(id, reason string, state stackstate.State) error {
+	if !bson.IsObjectIdHex(id) {
+		return fmt.Errorf("Not valid ObjectIdHex: %q", id)
+	}
+
 	query := func(c *mgo.Collection) error {
-		return c.UpdateId(id, bson.M{
-			"$set": bson.M{
-				"status.state":     state.String(),
-				"status.updatedAt": time.Now().UTC(),
-				"status.reason":    reason,
+		return c.Update(
+			bson.M{
+				"_id": bson.ObjectIdHex(id),
 			},
-		})
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
+				},
+			})
 	}
 
 	return Mongo.Run(ComputeStackColl, query)

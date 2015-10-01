@@ -8,6 +8,7 @@ ThreadSidebar        = require 'activity/components/threadsidebar'
 ThreadHeader         = require 'activity/components/threadheader'
 PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+PublicChatPane       = require 'activity/components/publicchatpane'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -21,7 +22,6 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThreadMessages : getters.selectedChannelThreadMessages
       messageThread         : getters.selectedMessageThread
       messageThreadComments : getters.selectedMessageThreadComments
-      popularMessages       : getters.selectedChannelPopularMessages
       channelParticipants   : getters.selectedChannelParticipants
     }
 
@@ -35,14 +35,13 @@ module.exports = class ChannelThreadPane extends React.Component
       channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
-      popularMessages       : immutable.List()
       channelParticipants   : immutable.List()
 
 
-  componentDidMount: -> reset @props
+  componentDidMount: -> reset @props, @state
 
 
-  componentWillReceiveProps: (nextProps) -> reset nextProps
+  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
   renderHeader: ->
@@ -57,68 +56,46 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderChat: ->
-    return null  unless @props.children.chat
-
-    React.cloneElement @props.children.chat,
-      thread   : @state.channelThread
-      messages : @state.channelThreadMessages
-
-
-  renderSidebar: ->
-    <ThreadSidebar
-      channelThread={@state.channelThread}
-      popularMessages={@state.popularMessages}
-      channelParticipants={@state.channelParticipants}/>
-
-
-  getClassName: ->
-
-    classnames(
-      ChannelThreadPane: yes
-      'is-withFeed': @props.children.feed
-      'is-withChat': @props.children.chat
-      'is-withPost': @props.children.post
-    )
-
-
   render: ->
-    <div className={@getClassName()}>
+    <div className="ChannelThreadPane is-withChat">
       <section className="ChannelThreadPane-content">
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
-            {@renderChat()}
+            <PublicChatPane
+              thread={@state.channelThread}
+              messages={@state.channelThreadMessages} />
           </section>
         </div>
       </section>
       <aside className="ChannelThreadPane-sidebar">
-        {@renderSidebar()}
+        <ThreadSidebar
+          channelThread={@state.channelThread}
+          channelParticipants={@state.channelParticipants}/>
       </aside>
     </div>
 
 
 React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
-reset = (props) ->
+reset = (props, state) ->
 
-  { channelName, postId } = props.params
+  { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
+
+  # if there is no channel in the url, and there is no selected channelThread,
+  # then load public.
+  unless channelName
+    unless state.channelThread
+      channelName = 'public'
 
   if channelName
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
-      channelActions.loadPopularMessages channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
-
-      if postId
-        messageActions.changeSelectedMessage postId
-      else
-        messageActions.changeSelectedMessage null
-
-  else
+  else if not state.channelThread
     thread.changeSelectedThread null
 
 

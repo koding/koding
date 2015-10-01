@@ -12,7 +12,6 @@ module.exports = class ThreadSidebar extends React.Component
     channelThread: immutable.Map()
     messageThread: immutable.Map()
     channelParticipants: immutable.Map()
-    popularMessages: immutable.Map()
 
 
   render: ->
@@ -21,11 +20,6 @@ module.exports = class ThreadSidebar extends React.Component
         <ChannelParticipantAvatars
           channelThread={@props.channelThread}
           participants={@props.channelParticipants} />
-      </ThreadSidebarContentBox>
-      <ThreadSidebarContentBox className="secondary" title="Most Active Threads" titleLink="/Channels/Public/summary">
-        <ChannelMessagesList
-          channelThread={@props.channelThread}
-          messages={@props.popularMessages} />
       </ThreadSidebarContentBox>
     </div>
 

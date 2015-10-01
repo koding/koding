@@ -123,18 +123,14 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     managed    = machine.provider is 'managed'
     klientKite = klient?[machine.uid]
 
-    unless klientKite?
-
-      if machine.status.state is Machine.State.Running or managed
-
+    if machine.status.state is Machine.State.Running or managed
+      unless klientKite?
         klientKite = kontrol.getKite
           name            : 'klient'
           queryString     : machine.queryString
           correlationName : machine.uid
-
-      else
-        return callback null
-
+    else
+      return callback null
 
     klientKite.ping()
 

@@ -3,8 +3,8 @@ React           = require 'kd-react'
 immutable       = require 'immutable'
 ActivityFlux    = require 'activity/flux'
 ChatPane        = require 'activity/components/chatpane'
+ChatInputFlux   = require 'activity/flux/chatinput'
 ChatInputWidget = require 'activity/components/chatinputwidget'
-
 
 
 module.exports = class PublicChatPane extends React.Component
@@ -13,6 +13,33 @@ module.exports = class PublicChatPane extends React.Component
     thread   : immutable.Map()
     messages : immutable.List()
     padded   : no
+
+  constructor: (props) ->
+
+    super props
+
+    @state =
+      showIntegrationTooltip   : no
+      showCollaborationTooltip : no
+
+
+  componentDidMount: ->
+
+    document.addEventListener 'click', @bound 'setTooltipStates'
+
+
+  setTooltipStates: (event) ->
+
+    className = event.target.parentNode.className
+
+    return @setState showCollaborationTooltip: no  if className is 'ChatPane-addIntegrationAction'
+    return @setState showIntegrationTooltip: no  if className is 'ChatPane-startCollaborationAction'
+
+    kd.utils.stopDOMEvent event
+
+    @setState
+      showIntegrationTooltip   : no
+      showCollaborationTooltip : no
 
 
   channel: (key) -> @props.thread?.getIn ['channel', key]
@@ -43,10 +70,35 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.channel.followChannel @channel 'id'
 
 
+  startCollaboration: (event) ->
+
+    kd.utils.stopDOMEvent event
+    event.stopPropagation()
+    @setState showCollaborationTooltip: not @state.showCollaborationTooltip
+
+
+  inviteOthers: (event) ->
+
+    kd.utils.stopDOMEvent event
+
+    chatInputWidget = @refs.chatInputWidget
+    textInput = React.findDOMNode chatInputWidget.refs.textInput
+    textInput.focus()
+
+    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite @'
+
+
+  addIntegration: (event) ->
+
+    kd.utils.stopDOMEvent event
+    event.stopPropagation()
+    @setState showIntegrationTooltip: not @state.showIntegrationTooltip
+
+
   renderFollowChannel: ->
 
     <div className="PublicChatPane-subscribeContainer">
-      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN CONVERSATION
+      YOU NEED TO FOLLOW THIS CHANNEL TO JOIN THE CONVERSATION
       <button
         ref       = "button"
         className = "Button Button-followChannel"
@@ -63,7 +115,7 @@ module.exports = class PublicChatPane extends React.Component
     { thread } = @props
 
     footerInnerComponent = if @channel 'isParticipant'
-    then <ChatInputWidget onSubmit={@bound 'onSubmit'} thread= {thread} enableSearch={yes} />
+    then <ChatInputWidget ref='chatInputWidget' onSubmit={@bound 'onSubmit'} thread= {thread} enableSearch={yes} />
     else @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">
@@ -74,11 +126,16 @@ module.exports = class PublicChatPane extends React.Component
   render: ->
 
     <ChatPane
-      thread     = { @props.thread }
-      className  = "PublicChatPane"
-      messages   = { @props.messages }
-      onSubmit   = { @bound 'onSubmit' }
-      onLoadMore = { @bound 'onLoadMore' }
+      thread             = { @props.thread }
+      className          = "PublicChatPane"
+      messages           = { @props.messages }
+      onSubmit           = { @bound 'onSubmit' }
+      onLoadMore         = { @bound 'onLoadMore' }
+      inviteOthers       = { @bound 'inviteOthers' }
+      addIntegration     = { @bound 'addIntegration' }
+      startCollaboration = { @bound 'startCollaboration' }
+      showIntegrationTooltip = { @state.showIntegrationTooltip }
+      showCollaborationTooltip = { @state.showCollaborationTooltip }
     >
       {@renderFooter()}
     </ChatPane>

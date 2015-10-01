@@ -26,6 +26,7 @@ showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 MessageLink           = require 'activity/components/publicchannelmessagelink'
 EmbedBox              = require 'activity/components/embedbox'
+KeyboardKeys          = require 'app/util/keyboardKeys'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -247,6 +248,10 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
+    return @deletePostButtonHandler()  if @state.isDeleting
+
+    return @setState isDeleting: yes  unless @state.editInputValue.trim()
+
     name  = @props.channelName
     value = @state.editInputValue
     messageId = @props.message.get '_id'
@@ -265,6 +270,8 @@ module.exports = class ChatListItem extends React.Component
 
   cancelEdit: ->
 
+    return @closeDeletePostModal()  if @state.isDeleting
+
     messageId = @props.message.get '_id'
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
@@ -281,14 +288,11 @@ module.exports = class ChatListItem extends React.Component
 
   onEditInputKeyDown: (event) ->
 
-    code = event.which or event.keyCode
-    key  = keycode code
+    { ESC, ENTER } = KeyboardKeys
 
-    switch key
-      when 'esc'
-        @cancelEdit()
-      when 'enter'
-        @updateMessage()
+    switch event.which
+      when ESC         then @cancelEdit()
+      when ENTER       then @updateMessage()
 
 
   getEditModeClassNames: -> classnames

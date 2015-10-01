@@ -27,8 +27,6 @@ module.exports = ScrollerMixin =
 
     if @shouldScrollToBottom
       element.scrollTop = element.scrollHeight
-    else
-      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
 
 
   setScrollPosition: ->
