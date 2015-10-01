@@ -40,7 +40,6 @@ type Machines struct {
 
 type buildData struct {
 	Template string
-	Region   string
 	KiteIds  map[string]string
 }
 
@@ -334,16 +333,6 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 
 	template.Resource["aws_instance"] = resource.AwsInstance
 
-	var provider struct {
-		Aws struct {
-			Region string
-		}
-	}
-
-	if err := template.DecodeProvider(&provider); err != nil {
-		return nil, err
-	}
-
 	out, err := template.jsonOutput()
 	if err != nil {
 		return nil, err
@@ -352,7 +341,6 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 	b := &buildData{
 		Template: out,
 		KiteIds:  kiteIds,
-		Region:   provider.Aws.Region,
 	}
 
 	return b, nil

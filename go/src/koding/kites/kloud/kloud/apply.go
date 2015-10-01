@@ -200,6 +200,20 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
+
+		// rest is aws related
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		region, ok := cred.Data["region"]
+		if !ok {
+			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
+		}
+
+		if err := template.setAwsRegion(region); err != nil {
+			return err
+		}
 	}
 
 	buildData, err := injectKodingData(ctx, template, username, data)
@@ -286,6 +300,8 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess.Log.Debug("%s", template)
 
 	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+
+	var region string
 	for _, cred := range data.Creds {
 		sess.Log.Debug("Appending %s provider variables", cred.Provider)
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
@@ -297,10 +313,19 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 			continue
 		}
 
-		region, ok := cred.Data["region"]
+		credRegion, ok := cred.Data["region"]
 		if !ok {
 			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
+
+		// check if this a second round and it's using a different region, we
+		// shouldn't allow it.
+		if region != "" && region != credRegion {
+			return fmt.Errorf("multiple credentials with multiple regions detected: %s and %s. Aborting",
+				region, credRegion)
+		}
+
+		region = credRegion
 
 		if err := template.setAwsRegion(region); err != nil {
 			return err
@@ -366,9 +391,9 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	}
 
 	sess.Log.Debug("Machines from state: %+v", output)
-	sess.Log.Debug("Build data region: %+v", buildData.Region)
+	sess.Log.Debug("Build region: %+v", region)
 	sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
-	output.AppendRegion(buildData.Region)
+	output.AppendRegion(region)
 	output.AppendQueryString(buildData.KiteIds)
 
 	ev.Push(&eventer.Event{
