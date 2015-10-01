@@ -18,7 +18,8 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageEnd
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageEnd
-
+    @on actions.SET_ALL_MESSAGES_LOADED, @handleSetAllMessagesLoaded
+    @on actions.UNSET_ALL_MESSAGES_LOADED, @handleUnsetAllMessagesLoaded
 
   handleLoadMessagesBegin: (channelFlags, { channelId }) ->
 
@@ -42,6 +43,18 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'isMessageBeingSubmitted'], no
+
+
+  handleSetAllMessagesLoaded: (channelFlags, { channelId }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'reachedFirstMessage'], yes
+
+
+  handleUnsetAllMessagesLoaded: (channelFlags, { channelId }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'reachedFirstMessage'], no
 
 
 helper =
