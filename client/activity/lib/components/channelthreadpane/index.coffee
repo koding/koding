@@ -10,6 +10,7 @@ PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
 
+
 module.exports = class ChannelThreadPane extends React.Component
 
   @include [ ImmutableRenderMixin ]
@@ -92,6 +93,9 @@ reset = (props, state) ->
       channelName = 'public'
 
   if channelName
+    channel = ActivityFlux.getters.channelByName channelName
+    thread.changeSelectedThread channel.id  if channel
+
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
