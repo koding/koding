@@ -486,10 +486,14 @@ sidebarTextShadow()
     //   sidebarTextShadow()
 
     &.selected
-      color           sidebarActive
+      color                 sidebarActive
 
       .ttag:before
-        color         #fff
+        color               sidebarActive
+
+      .ttag
+        color               sidebarActive
+
 
     borderBox()
     &:hover
