@@ -259,8 +259,14 @@ module.exports = class SocialApiController extends KDController
     item.accountOldId        = channel.accountOldId
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
-    item.name                = data.name
-    item.purpose             = data.purpose
+
+    if item.typeConstant is 'privatemessage'
+      item.name = data.purpose
+      item.purpose = item.payload?.description or ''
+    else
+      item.name = data.name
+      item.purpose = data.purpose
+
     item.participantCount    = channel.participantCount
     item.participantsPreview = mapAccounts channel.participantsPreview
     item.unreadCount         = channel.unreadCount
