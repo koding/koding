@@ -28,10 +28,7 @@ loadChannelByName = (name) ->
 
   name = name.toLowerCase()
 
-  type = switch name
-    when 'public'                     then 'group'
-    when 'changelog', getGroup().slug then 'announcement'
-    else 'topic'
+  type = getChannelTypeByName name
 
   dispatch LOAD_CHANNEL_BY_NAME_BEGIN, { name, type }
 

@@ -419,10 +419,14 @@ module.exports = class JGroup extends Module
 
   @create = (client, groupData, owner, callback) ->
 
+    # bongo doesnt set array values as their defaults
+    groupData.defaultChannels or= []
+
     JPermissionSet        = require './permissionset'
     JMembershipPolicy     = require './membershippolicy'
     JSession              = require '../session'
     JName                 = require '../name'
+
     group                 = new this groupData
     group.privacy         = 'private'
     defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }

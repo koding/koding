@@ -1,10 +1,9 @@
-getGroup = require 'app/util/getGroup'
-
 module.exports = getChannelTypeByName = (name) ->
 
-  type = switch name
-    when 'public'                     then 'group'
-    when 'changelog', getGroup().slug then 'announcement'
-    else 'topic'
+  # SocialApiController::cacheable requires a type parameter. But, since we only
+  # have channelName from router, this was the only (probably the easiest) way
+  # that came to my mind to determine a type for a channel by its name. - US
+
+  if name is 'public' then 'group' else 'topic'
 
 
