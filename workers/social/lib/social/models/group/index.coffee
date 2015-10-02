@@ -1410,9 +1410,9 @@ module.exports = class JGroup extends Module
           return callback err if err?
 
           # announcement channel will only be created for koding channel
-          if @slug is "koding"
+          if @slug is 'koding'
 
-            @createAnnouncementChannel client, options, (err, announcementChannelId) =>
+            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
               return callback err if err?
 
               return callback null, {
@@ -1422,7 +1422,7 @@ module.exports = class JGroup extends Module
                 socialApiAnnouncementChannelId : announcementChannelId
               }
           else
-            @createDefaultChannel client, options, (err, defaultChannelId) =>
+            @createDefaultChannel client, options, (err, defaultChannelId) ->
               return callback err if err?
 
               return callback null, {
@@ -1433,9 +1433,9 @@ module.exports = class JGroup extends Module
 
 
   createGroupChannel:(client, options, callback)->
-    options.name = "public"
-    options.varName = "socialApiChannelId"
-    options.typeConstant = "group"
+    options.name = 'public'
+    options.varName = 'socialApiChannelId'
+    options.typeConstant = 'group'
 
     return @createSocialAPIChannel client, options, callback
 
@@ -1472,7 +1472,7 @@ module.exports = class JGroup extends Module
 
       op = { $set: {}, $push: {} }
       op.$set[varName] = channel.channel.id
-      op.$push["defaultChannels"] = channel.channel.id
+      op.$push['defaultChannels'] = channel.channel.id
 
       @update op, (err) ->
         return callback err if err
