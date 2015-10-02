@@ -159,12 +159,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     return null  unless @state.showAllParticipants
     return null  unless @props.participants
 
-    { participants } = @props
+    { participants }  = @props
+    otherParticipants = participants.slice @getPreviewCount()
 
     <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
+      <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
-        <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
-        {@renderAvatars(participants, yes)}
+        {@renderAvatars(otherParticipants, yes)}
       </div>
     </div>
 
