@@ -1446,7 +1446,7 @@ class IDEAppController extends AppController
       @[method] { file, contents, emitChange: no }
 
     else if file.isDummyFile()
-      @[method] { file, contents: file.content, emitChange: no }
+      @[method] { file, contents: context.file.content, emitChange: no }
 
     else
       file.fetchContents (err, contents = '') =>

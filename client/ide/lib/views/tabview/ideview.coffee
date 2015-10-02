@@ -78,6 +78,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange) =>
       @closeUntitledFileIfNotChanged()
+      file.initialContents = contents
       @openFile file, contents, callback, emitChange
 
     @tabView.on 'FileNeedsToBeTailed', @bound 'tailFile'
@@ -229,7 +230,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       appManager = kd.getSingleton 'appManager'
 
       if file.isDummyFile()
-        ace.on 'FileContentChanged', => @emit 'UpdateWorkspaceSnapshot'
+        cb = kd.utils.debounce 1200, => @emit 'UpdateWorkspaceSnapshot'
+        ace.on 'FileContentChanged', cb
 
       ace.on 'ace.change.cursor', (cursor) ->
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
@@ -527,10 +529,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       return unless isFsFile
 
-      isLocal  = pane.data.path.indexOf('localfile:/') > -1
-      isEmpty  = pane.view.getEditor()?.getSession()?.getValue() is '' # intentional `?` checks
+      isLocal    = pane.data.path.indexOf('localfile:/') > -1
+      isEmpty    = pane.view.getEditor()?.getSession()?.getValue() is '' # intentional `?` checks
+      hasContent = pane.data.initialContents
 
-      @tabView.removePane pane  if isLocal and isEmpty
+      @tabView.removePane pane  if isLocal and isEmpty and not hasContent
 
 
   getPlusMenuItems: ->
