@@ -532,14 +532,24 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       if 'admin' in (roles ? [])
         partial = """
-          <header class='SidebarSection-header'><h4 class='SidebarSection-headerTitle'>STACKS</h4></header>
+          <header class='SidebarSection-header'>
+            <h4 class='SidebarSection-headerTitle'>STACKS</h4>
+          </header>
           <label>No stacks</label>
           <a href='/Admin/Stacks'>Create a stack</a>
           """
       else
-        partial = "Your team page has not been<br/>
-                      fully configured yet please<br/>
-                      contact your team admin.</a>"
+        partial = """
+          <header class='SidebarSection-header'>
+            <h4 class='SidebarSection-headerTitle'>STACKS</h4>
+          </header>
+          <p>
+            Your team page has not been<br/>
+            fully configured yet please<br/>
+            contact your team admin.
+          </p>
+          <a href='/Messages/New'>Message admin</a>
+          """
 
       cssClass = 'stack-warning hidden'
       view     = new KDCustomHTMLView { cssClass, partial }
