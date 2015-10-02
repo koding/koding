@@ -48,7 +48,7 @@ removeAllParticipants = ->
  * @param {string} payload.purpose
  * @param {array} payload.recipients
 ###
-createPublicChannel = (options={}) ->
+createPublicChannel = (options = {}) ->
 
   { CREATE_PUBLIC_CHANNEL
     CREATE_PUBLIC_CHANNEL_FAIL
@@ -75,7 +75,7 @@ createPublicChannel = (options={}) ->
  * @param {string} payload.purpose
  * @param {array}  payload.recipients
 ###
-createPrivateChannel = (options={}) ->
+createPrivateChannel = (options = {}) ->
 
   { CREATE_PRIVATE_CHANNEL
     CREATE_PRIVATE_CHANNEL_FAIL
