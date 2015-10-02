@@ -697,6 +697,16 @@ computeproviders.styl
   .stacks
     padding-top             10px
 
+    .credential-list
+      .credential-info
+        .title
+          top               0 !important
+          margin-top        -2px
+
+        .fields
+          rel()
+          top               -2px
+
 .stacks
 
   .form-open
@@ -731,11 +741,30 @@ computeproviders.styl
         color               #FFF
 
   .credential-item
+    .buttons
+      top                   13px !important
+
+      button
+        vendor              transition, opacity .5s ease
+        min-width           80px
+        margin-left         15px
+
+        &.secondary
+          opacity           0
+
+      &:hover button
+        opacity             1
+
+
+  .credential-item
   .stacktemplate-item
     padding                 10px 0
     font-size               14px
     border-bottom           1px solid #ddd
     borderBox()
+
+    .buttons
+      abs                   27px 0px 0 0
 
     &:hover
       .buttons button.secondary
@@ -752,7 +781,6 @@ computeproviders.styl
       .title
         rel()
         top                 -14px
-
 
     .credential-info
     .stacktemplate-info
@@ -779,6 +807,25 @@ computeproviders.styl
         color               #FFFFFF
         cursor              default
         fl()
+
+  .stack-settings-menu
+    size                15px 10px
+    padding             0
+    pointer()
+
+    .kdbutton
+      size                  15px 10px
+      bg                    color, transparent
+      border                none
+      padding               0 !important
+      pointer()
+      min-width             auto !important
+
+    .chevron-separator
+      hidden()
+
+    .chevron
+      r-sprite              activity comment-chevron-icon
 
     .credential-info
       .inuse-tag

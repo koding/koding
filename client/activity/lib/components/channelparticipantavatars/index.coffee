@@ -107,9 +107,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    PREVIEW_COUNT = @getPreviewCount()
-
-    participants = participants.slice 0, PREVIEW_COUNT
+    participants = participants.slice 0, @getPreviewCount()
 
     @renderAvatars participants, no
 
@@ -151,7 +149,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     <div className='ChannelParticipantAvatars-singleBox'>
       <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
-        {moreCount}+
+        +{moreCount}
       </div>
     </div>
 
@@ -161,12 +159,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     return null  unless @state.showAllParticipants
     return null  unless @props.participants
 
-    { participants } = @props
+    { participants }  = @props
+    otherParticipants = participants.slice @getPreviewCount()
 
     <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
+      <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
-        <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
-        {@renderAvatars(participants, yes)}
+        {@renderAvatars(otherParticipants, yes)}
       </div>
     </div>
 
