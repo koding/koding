@@ -308,11 +308,12 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
       <ChatInputWidget
-        channelId = { @props.channelId }
-        value     = { message.get 'body' }
-        onSubmit  = { @bound 'updateMessage' }
-        onEsc     = { @bound 'cancelEdit' }
-        ref       = 'editInput'
+        channelId        = { @props.channelId }
+        value            = { message.get 'body' }
+        onSubmit         = { @bound 'updateMessage' }
+        onEsc            = { @bound 'cancelEdit' }
+        ref              = 'editInput'
+        disabledFeatures = { ['commands'] }
       />
       <div className='clearfix'></div>
     </div>

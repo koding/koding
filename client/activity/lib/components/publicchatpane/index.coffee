@@ -88,7 +88,6 @@ module.exports = class PublicChatPane extends React.Component
            onSubmit     = { @bound 'onSubmit' }
            onCommand    = { @bound 'onCommand' }
            channelId    = { @channel 'id' }
-           enableSearch = { yes }
          />
     else @renderFollowChannel()
 

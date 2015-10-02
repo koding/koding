@@ -24,12 +24,13 @@ module.exports = class ChatInputWidget extends React.Component
   { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
 
   @defaultProps =
-    enableSearch : no
+    disabledFeatures : []
 
 
   getDataBindings: ->
 
-    { getters } = ChatInputFlux
+    { getters }          = ChatInputFlux
+    { disabledFeatures } = @props
 
     return {
       value                          : getters.currentValue @stateId
@@ -56,10 +57,10 @@ module.exports = class ChatInputWidget extends React.Component
       searchSelectedItem             : getters.searchSelectedItem @stateId
       searchVisibility               : getters.searchVisibility @stateId
       searchFlags                    : getters.searchFlags @stateId
-      commands                       : getters.commands @stateId
+      commands                       : getters.commands @stateId, disabledFeatures
       commandsQuery                  : getters.commandsQuery @stateId
-      commandsSelectedIndex          : getters.commandsSelectedIndex @stateId
-      commandsSelectedItem           : getters.commandsSelectedItem @stateId
+      commandsSelectedIndex          : getters.commandsSelectedIndex @stateId, disabledFeatures
+      commandsSelectedItem           : getters.commandsSelectedItem @stateId, disabledFeatures
       commandsVisibility             : getters.commandsVisibility @stateId
     }
 
@@ -75,6 +76,9 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidUpdate: (oldProps, oldState) ->
 
     @focus()  if oldState.value isnt @state.value
+
+
+  isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
 
 
   getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
@@ -93,12 +97,6 @@ module.exports = class ChatInputWidget extends React.Component
 
 
   getValue: -> @state.value
-
-
-  focus: ->
-
-    textInput = React.findDOMNode @refs.textInput
-    textInput.focus()
 
 
   onChange: (event) ->
@@ -242,19 +240,6 @@ module.exports = class ChatInputWidget extends React.Component
     ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
 
 
-  handleSearchButtonClick: (event) ->
-
-    searchMarker = '/s '
-    { value }    = @state
-
-    if value.indexOf(searchMarker) is -1
-      value = searchMarker + value
-      @setValue value
-
-    @focus()
-    @refs.searchDropbox.checkTextForQuery { value }
-
-
   focus: ->
 
     textInput = React.findDOMNode @refs.textInput
@@ -323,8 +308,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderSearchDropbox: ->
 
-    { enableSearch } = @props
-    return  unless enableSearch
+    return  if @isFeatureDisabled('search') or @isFeatureDisabled('commands')
 
     { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility, searchFlags } = @state
 
@@ -343,6 +327,8 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderCommandDropbox: ->
 
+    return  if @isFeatureDisabled 'commands'
+
     { commands, commandsSelectedItem, commandsSelectedIndex, commandsQuery, commandsVisibility } = @state
 
     <CommandDropbox
@@ -354,17 +340,6 @@ module.exports = class ChatInputWidget extends React.Component
       onItemConfirmed = { @bound 'onCommandItemConfirmed' }
       ref             = 'commandDropbox'
       stateId         = { @stateId }
-    />
-
-
-  renderSearchButton: ->
-
-    { enableSearch } = @props
-    return  unless enableSearch
-
-    <Link
-      className = "ChatInputWidget-searchButton"
-      onClick   = { @bound 'handleSearchButtonClick' }
     />
 
 
@@ -383,7 +358,6 @@ module.exports = class ChatInputWidget extends React.Component
         onKeyDown = { @bound 'onKeyDown' }
         ref       = 'textInput'
       />
-      { @renderSearchButton() }
       <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }

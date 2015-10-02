@@ -55,11 +55,11 @@ module.exports = class PrivateChatPane extends React.Component
     >
       <footer className='PrivateChatPane-footer'>
         <ChatInputWidget
-          ref          = 'chatInputWidget'
-          onSubmit     = { @bound 'onSubmit' }
-          onCommand    = { @bound 'onCommand' }
-          enableSearch = no
-          channelId    = { @channel 'id' }
+          onSubmit         = { @bound 'onSubmit' }
+          onCommand        = { @bound 'onCommand' }
+          enableSearch     = no
+          channelId        = { @channel 'id' }
+          disabledFeatures = { ['search'] }
         />
       </footer>
     </ChatPane>
