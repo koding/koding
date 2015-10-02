@@ -27,7 +27,7 @@ func MountCommand(c *cli.Context) int {
 
 	var localPath = c.Args()[1]
 
-	// use absolute path unless empty
+	// send absolute path to klient unless local path is empty
 	if strings.TrimSpace(c.Args()[1]) != "" {
 		absoluteLocalPath, err := filepath.Abs(c.Args()[1])
 		if err == nil {
@@ -44,6 +44,7 @@ func MountCommand(c *cli.Context) int {
 		LocalPath: localPath,
 	}
 
+	// `RemotePath` is optional; klient defaults to user VM's home directory
 	if len(c.Args()) > 2 {
 		mountRequest.RemotePath = c.Args()[2]
 	}
@@ -54,6 +55,7 @@ func MountCommand(c *cli.Context) int {
 		return 1
 	}
 
+	// response can be nil even when there's no err
 	if resp != nil {
 		var warning string
 		if err := resp.Unmarshal(&warning); err != nil {
