@@ -80,18 +80,36 @@ team.group.creation.styl
   .kdtabpaneview.domain .TeamsModal
 
     .login-input-view
+      overflow              hidden
       width                 100%
+      border                3px solid #DAD8D6
+
       input.kdinput
-        padding-right       245px
+        border              none
         text-align          right
+        width               auto
+        max-width           calc(100% \- 120px)
+        padding             12px 0
+        box-shadow          none !important
+        outline             none
+        font-size           20px
 
       span
-        abs                 3px 120px 0 initial
+        rel()
         color               #999
-        font-size           20px
+        font-size           20px !important // If you want to change this property, you must update font-size of "fake-view"
         font-weight         400
         line-height         52px
         padding-left        0
+        left                initial
+        top                 0
+
+      .fake-view
+        font-family         adelleSans
+        font-size           21px // Set +1 value to leave a bit margin
+        font-weight         400
+        max-width           none
+        abs()
 
     .TeamsModal-button
       fr()
