@@ -1,18 +1,18 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-KDReactorMixin       = require 'app/flux/reactormixin'
-ActivityFlux         = require 'activity/flux'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-ThreadSidebar        = require 'activity/components/threadsidebar'
-ThreadHeader         = require 'activity/components/threadheader'
-PublicChannelLink    = require 'activity/components/publicchannellink'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-PublicChatPane       = require 'activity/components/publicchatpane'
-Link                 = require 'app/components/common/link'
-Modal                = require 'app/components/modal'
-showNotification     = require 'app/util/showNotification'
-
+kd                           = require 'kd'
+React                        = require 'kd-react'
+KDReactorMixin               = require 'app/flux/reactormixin'
+ActivityFlux                 = require 'activity/flux'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+ThreadSidebar                = require 'activity/components/threadsidebar'
+ThreadHeader                 = require 'activity/components/threadheader'
+PublicChannelLink            = require 'activity/components/publicchannellink'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+PublicChatPane               = require 'activity/components/publicchatpane'
+Link                         = require 'app/components/common/link'
+Modal                        = require 'app/components/modal'
+showNotification             = require 'app/util/showNotification'
+CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -55,22 +55,22 @@ module.exports = class ChannelThreadPane extends React.Component
     @setState isComingSoonModalOpen: yes
 
 
-  onDragEnter: (event)->
+  onDragEnter: (event) ->
 
     kd.utils.stopDOMEvent event
     @setState showDropTarget: yes
 
 
-  onDragOver: (event)-> kd.utils.stopDOMEvent event
+  onDragOver: (event) -> kd.utils.stopDOMEvent event
 
 
-  onDragLeave: (event)->
+  onDragLeave: (event) ->
 
     kd.utils.stopDOMEvent event
     @setState showDropTarget: no
 
 
-  onDrop: (event)->
+  onDrop: (event) ->
 
     kd.utils.stopDOMEvent event
     @setState showDropTarget: no
@@ -87,21 +87,6 @@ module.exports = class ChannelThreadPane extends React.Component
     @setState isComingSoonModalOpen: no
 
 
-  renderComingSoonModal: ->
-
-    if @state.isComingSoonModalOpen
-      title = 'Coming Soon'
-      <Modal className='ComingSoonModal' isOpen={yes} onClose={@bound 'onClose'}>
-        <div className='ComingSoonModal-header'>
-          <h3>COLLABORATE USING VIDEO CHAT</h3>
-          <span>Coming really soon...</span>
-        </div>
-        <div className='ComingSoonModal-content'>
-          <img src='/a/images/activity/coming-soon-modal-content.png'/>
-        </div>
-      </Modal>
-
-
   renderDropSection: ->
 
     <div
@@ -109,7 +94,7 @@ module.exports = class ChannelThreadPane extends React.Component
       onDragOver={@bound 'onDragOver'}
       onDragLeave={@bound 'onDragLeave'}
       className={@getDropTargetClassNames()}>
-      <div>Drop VM's here<br/> to start collaborating</div>
+      <div className='ChannelThreadPane-dropContainerContent'>Drop VM's here<br/> to start collaborating</div>
     </div>
 
 
@@ -135,7 +120,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
   render: ->
     <div className="ChannelThreadPane is-withChat">
-      {@renderComingSoonModal()}
+      <CollaborationComingSoonModal
+        onClose={@bound 'onClose'}
+        isOpen={@state.isComingSoonModalOpen}/>
       <section className="ChannelThreadPane-content"
         onDragEnter={@bound 'onDragEnter'}>
         {@renderDropSection()}
