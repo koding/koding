@@ -68,8 +68,29 @@ module.exports = class ChatPane extends React.Component
     <span>, created by&nbsp;
       <ProfileLinkContainer origin={@props.createdBy}>
         <ProfileText />
-      </ProfileLinkContainer> on {createdAt}. <br/>
+      </ProfileLinkContainer> {createdAt}. <br/>
     </span>
+
+  renderChannelName: ->
+
+    channelName = @channel 'name'
+
+    if @channel('typeConstant') is 'privatemessage'
+      <div className='ChatPane-channelName'>
+        This is a <strong>private</strong> conversation.
+      </div>
+
+    else
+      return <div className='ChatPane-channelName'>#{channelName}</div>
+
+
+  renderChannelIntro: ->
+
+    channelName = @channel 'name'
+
+    return null  if @channel('typeConstant') is 'privatemessage'
+    return [ "This is the ", <Link onClick=kd.noop>#{channelName}</Link>, " channel", @renderProfileLink() ]
+
 
 
   renderChannelInfoContainer: ->
@@ -80,10 +101,9 @@ module.exports = class ChatPane extends React.Component
     if @props.thread.getIn(['flags', 'reachedFirstMessage']) and @props.createdBy
       channelName = @channel 'name'
       <div className='ChatPane-infoContainer'>
-        <div className='ChatPane-channelName'>#{channelName}</div>
+        {@renderChannelName()}
         <div className='ChatPane-channelDescription'>
-          This is the <Link onClick=kd.noop>#{channelName}</Link> channel
-          {@renderProfileLink()}
+          {@renderChannelIntro()}
           You can start a collaboration session, or drag and drop  VMs and workspaces here from the sidebar to let anyone in this channel access them.
           (<Link onClick ={ @props.startCollaboration }>Show me how?</Link>)
         </div>
