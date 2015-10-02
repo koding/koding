@@ -234,7 +234,7 @@ func newKite(conf *Config) *kite.Kite {
 		AuthorizedUsers: authorizedUsers,
 	}
 
-	go kodingProvider.RunChecker(checkInterval)
+	go kodingProvider.RunCheckers(checkInterval)
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	/// AWS PROVIDER ///

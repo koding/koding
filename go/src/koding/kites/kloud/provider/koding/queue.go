@@ -16,36 +16,38 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// RunChecker runs the checker every given interval time. It fetches a single
-// document.
-func (p *Provider) RunChecker(interval time.Duration) {
+// RunChecker runs the checker for Koding and AWS providers every given
+// interval time. It fetches a single document.
+func (p *Provider) RunCheckers(interval time.Duration) {
 	for _ = range time.Tick(interval) {
 		// do not block the next tick
-		go func() {
-			machine, err := p.FetchOne()
-			if err != nil {
-				// do not show an error if the query didn't find anything, that
-				// means there is no such a document, which we don't care
-				if err != mgo.ErrNotFound {
-					p.Log.Warning("FetchOne err: %v", err)
-				}
+		go p.CheckKoding()
+	}
+}
 
-				// move one with the next one
-				return
-			}
+func (p *Provider) CheckKoding() {
+	machine, err := p.FetchOne()
+	if err != nil {
+		// do not show an error if the query didn't find anything, that
+		// means there is no such a document, which we don't care
+		if err != mgo.ErrNotFound {
+			p.Log.Warning("FetchOne err: %v", err)
+		}
 
-			if err := p.CheckUsage(machine); err != nil {
-				// only log if it's something else
-				switch err {
-				case kite.ErrNoKitesAvailable,
-					kontrol.ErrQueryFieldsEmpty,
-					klient.ErrDialingFailed:
-				default:
-					p.Log.Debug("[%s] check usage of klient kite [%s] err: %v",
-						machine.Id.Hex(), machine.IpAddress, err)
-				}
-			}
-		}()
+		// move one with the next one
+		return
+	}
+
+	if err := p.CheckUsage(machine); err != nil {
+		// only log if it's something else
+		switch err {
+		case kite.ErrNoKitesAvailable,
+			kontrol.ErrQueryFieldsEmpty,
+			klient.ErrDialingFailed:
+		default:
+			p.Log.Debug("[%s] check usage of klient kite [%s] err: %v",
+				machine.Id.Hex(), machine.IpAddress, err)
+		}
 	}
 }
 
