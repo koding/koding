@@ -1439,6 +1439,13 @@ module.exports = class JGroup extends Module
 
     return @createSocialAPIChannel client, options, callback
 
+  createDefaultChannel:(client, options, callback) ->
+    options.name = @slug
+    options.varName = 'socialApiDefaultChannelId'
+    options.typeConstant = 'topic'
+
+    return @createSocialAPIChannel client, options, callback
+
 
   createSocialAPIChannel:(client, options, callback) ->
     { varName, name, typeConstant, creatorId, privacyConstant } = options
