@@ -21,6 +21,8 @@ module.exports = class ThreadSidebar extends React.Component
           channelThread={@props.channelThread}
           participants={@props.channelParticipants} />
       </ThreadSidebarContentBox>
+      <ThreadSidebarContentBox title="SHARED VMs & COLLABORATION">
+      </ThreadSidebarContentBox>
     </div>
 
 
