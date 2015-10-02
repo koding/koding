@@ -71,7 +71,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   getModalProps: ->
     isOpen             : yes
-    title              : 'Create a Private Group'
+    title              : 'Create a Private Conversation'
     className          : 'CreateChannel-Modal'
     buttonConfirmTitle : 'CREATE'
     onConfirm          : @bound 'createChannel'
@@ -320,8 +320,8 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
           <strong>
-            A private group is only visible to its members,
-            and only members of a private group can read or search its contents.
+            A private conversation is only visible to its members,
+            and only those members can read or search its contents.
           </strong>
           <div>{@props.extraInformation}</div>
         </div>
@@ -336,7 +336,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           </label>
           <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
-            This is how this thread is going to appear on your sidebar.
+            This is how this conversation is going to appear on your sidebar.
           </span>
         </div>
         <div className='Reactivity-formfield'>
@@ -346,7 +346,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           </label>
           <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
-            Give your channel a purpose that describes what it will be used for.
+            Set a purpose to your conversation that describes what it will be used for.
           </span>
         </div>
       </div>
