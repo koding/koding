@@ -453,7 +453,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 	switch len(channels) {
 	case 1:
 		// we can have one result if group doesnt have announcement channel
-		channelIds[0] = channel.Id
+		channelIds[0] = channels[0].Id
 	case 2:
 		for _, channel := range channels {
 			if channel.TypeConstant == Channel_TYPE_GROUP {
