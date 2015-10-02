@@ -419,10 +419,14 @@ module.exports = class JGroup extends Module
 
   @create = (client, groupData, owner, callback) ->
 
+    # bongo doesnt set array values as their defaults
+    groupData.defaultChannels or= []
+
     JPermissionSet        = require './permissionset'
     JMembershipPolicy     = require './membershippolicy'
     JSession              = require '../session'
     JName                 = require '../name'
+
     group                 = new this groupData
     group.privacy         = 'private'
     defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
@@ -1409,27 +1413,15 @@ module.exports = class JGroup extends Module
         @createGroupChannel client, options, (err, groupChannelId) =>
           return callback err if err?
 
-          # announcement channel will only be created for koding channel
-          if @slug is 'koding'
+          @createAnnouncementChannel client, options, (err, announcementChannelId) ->
+            return callback err if err?
 
-            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                # channel id for #public - used as group channel
-                socialApiChannelId             : groupChannelId,
-                # channel id for #koding - used for announcements
-                socialApiAnnouncementChannelId : announcementChannelId
-              }
-          else
-            @createDefaultChannel client, options, (err, defaultChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                socialApiChannelId: groupChannelId
-                socialApiDefaultChannelId: defaultChannelId
-              }
-
+            return callback null, {
+              # channel id for #public - used as group channel
+              socialApiChannelId             : groupChannelId,
+              # channel id for #koding - used for announcements
+              socialApiAnnouncementChannelId : announcementChannelId
+            }
 
 
   createGroupChannel:(client, options, callback) ->
@@ -1440,16 +1432,9 @@ module.exports = class JGroup extends Module
     return @createSocialAPIChannel client, options, callback
 
   createAnnouncementChannel:(client, options, callback) ->
-    options.name = 'changelog'
+    options.name = if @slug is 'koding' then 'changelog' else @slug
     options.varName = 'socialApiAnnouncementChannelId'
     options.typeConstant = 'announcement'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createDefaultChannel:(client, options, callback) ->
-    options.name = @slug
-    options.varName = 'socialApiDefaultChannelId'
-    options.typeConstant = 'topic'
 
     return @createSocialAPIChannel client, options, callback
 
@@ -1470,9 +1455,8 @@ module.exports = class JGroup extends Module
     doRequest 'createChannel', client, defaultChannel, (err, channel) =>
       return callback err if err
 
-      op = { $set: {}, $push: {} }
+      op = { $set:{} }
       op.$set[varName] = channel.channel.id
-      op.$push['defaultChannels'] = channel.channel.id
 
       @update op, (err) ->
         return callback err if err
