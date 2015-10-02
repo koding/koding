@@ -47,9 +47,14 @@ filteredEmojiList = (stateId) -> [
     return immutable.List()  unless query
 
     isBeginningMatch = query.length < 3
-    emojis.filter (emoji) ->
-      index = emoji.indexOf(query)
-      if isBeginningMatch then index is 0 else index > -1
+    emojis
+      .filter (emoji) ->
+        index = emoji.indexOf(query)
+        if isBeginningMatch then index is 0 else index > -1
+      .sort (emoji1, emoji2) ->
+        return -1  if emoji1.indexOf(query) is 0
+        return 1  if emoji2.indexOf(query) is 0
+        return 0
 ]
 
 
