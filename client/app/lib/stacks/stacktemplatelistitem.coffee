@@ -1,33 +1,17 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd                        = require 'kd'
+KDButtonViewWithMenu      = kd.ButtonViewWithMenu
+ActivityItemMenuItem      = require 'activity/views/activityitemmenuitem'
+BaseStackTemplateListItem = require './basestacktemplatelistitem'
 
 
-module.exports = class StackTemplateListItem extends kd.ListItemView
-
-  JView.mixin @prototype
+module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    delegate         = @getDelegate()
-    { title, inuse } = @getData()
-
-    @deleteButton = new kd.ButtonView
-      cssClass : 'solid compact outline red secondary'
-      title    : 'DELETE'
-      callback : delegate.lazyBound 'deleteItem', this
-
-    @showButton = new kd.ButtonView
-      cssClass : 'solid compact outline secondary'
-      title    : 'SHOW'
-      callback : delegate.lazyBound 'showItemContent', this
-
-    @updateButton = new kd.ButtonView
-      cssClass : 'solid compact outline'
-      title    : 'EDIT'
-      callback : @bound 'updateStackTemplate'
+    { inuse } = @getData()
 
     @inuseView = new kd.CustomHTMLView
       cssClass : 'inuse-tag'
@@ -47,7 +31,5 @@ module.exports = class StackTemplateListItem extends kd.ListItemView
     <div class='stacktemplate-info clearfix'>
       {div.title{#(title)}} {{> @inuseView}}
     </div>
-    <div class='buttons'>
-      {{> @showButton}}{{> @deleteButton}}{{> @updateButton}}
-    </div>
+    <div class='buttons'>{{> @settings}}</div>
     """

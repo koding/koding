@@ -1,14 +1,11 @@
-kd                = require 'kd'
-KDButtonView      = kd.ButtonView
-KDListItemView    = kd.ListItemView
-KDCustomHTMLView  = kd.CustomHTMLView
-JView             = require 'app/jview'
-globals           = require 'globals'
+kd                        = require 'kd'
+KDButtonView              = kd.ButtonView
+KDCustomHTMLView          = kd.CustomHTMLView
+globals                   = require 'globals'
+BaseStackTemplateListItem = require 'app/stacks/basestacktemplatelistitem'
 
 
-module.exports = class AccountCredentialListItem extends KDListItemView
-
-  JView.mixin @prototype
+module.exports = class AccountCredentialListItem extends BaseStackTemplateListItem
 
   constructor: (options = {}, data) ->
 
@@ -16,34 +13,31 @@ module.exports = class AccountCredentialListItem extends KDListItemView
 
     super options, data
 
-    { providers }       = globals.config
     delegate            = @getDelegate()
+    { providers }       = globals.config
     { owner, provider } = @getData()
-
-    @deleteButton = new KDButtonView
-      cssClass : "solid compact outline red secondary"
-      title    : "DELETE"
-      callback : delegate.lazyBound 'deleteItem', this
-
-    @showCredentialButton = new KDButtonView
-      cssClass : "solid compact outline secondary"
-      title    : "SHOW"
-      disabled : !owner
-      callback : delegate.lazyBound 'showItemContent', this
-
-    @editButton = new KDButtonView
-      cssClass : "solid compact outline"
-      title    : "EDIT"
-      callback : delegate.lazyBound 'editItem', this
-
-    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
-    @editButton.hide()  if provider is 'aws'
 
     @providerTag = new KDCustomHTMLView
       cssClass : 'tag'
-      partial  : @getData().provider
+      partial  : provider
 
     @providerTag.setCss 'background-color', providers[provider].color
+
+
+  settingsMenu: ->
+
+    { owner, provider } = @getData()
+    delegate            = @getDelegate()
+    @menu               = {}
+
+    @addMenuItem 'Show', delegate.lazyBound 'showItemContent', this  if owner
+
+    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
+    @addMenuItem 'Edit', delegate.lazyBound 'editItem', this  unless provider is 'aws'
+
+    @addMenuItem 'Delete', delegate.lazyBound 'deleteItem', this
+
+    return @menu
 
 
   pistachio: ->
@@ -51,7 +45,5 @@ module.exports = class AccountCredentialListItem extends KDListItemView
     <div class="credential-info">
       {{> @providerTag}} {div.title{#(title)}}
     </div>
-    <div class="buttons">
-      {{> @showCredentialButton}}{{> @deleteButton}}{{> @editButton}}
-    </div>
+    <div class="buttons">{{> @settings}}</div>
     """
