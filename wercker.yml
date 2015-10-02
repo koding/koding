@@ -228,7 +228,7 @@ deploy:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
     - script:
-        name: zip
+        name: build application
         code: |
           cd $WERCKER_ROOT
 
@@ -237,6 +237,10 @@ deploy:
           ./scripts/install-npm.sh -d client -u
 
           make -C client dist
+    - script:
+        name: zip
+        code: |
+          cd $WERCKER_ROOT
 
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg

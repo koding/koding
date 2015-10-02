@@ -89,9 +89,9 @@ module.exports = class OutputView extends kd.ScrollView
     return no  unless err
 
     kd.warn '[outputView]', err
-    @add 'An error occured:', err.message or err
-
     outputParser.showUserFriendlyError err.message
+
+    return @add 'An error occured:', err.message or err
 
 
   pistachio: ->
