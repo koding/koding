@@ -280,7 +280,7 @@ func (m *Machine) stopIfKlientIsMissing(ctx context.Context) error {
 	}
 
 	// If the klient has been missing less than X minutes, don't stop
-	if time.Since(m.Assignee.KlientMissingAt) < time.Minute*50 {
+	if time.Since(m.Assignee.KlientMissingAt) < time.Minute*20 {
 		return nil
 	}
 
