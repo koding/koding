@@ -40,10 +40,10 @@ module.exports = class ChatPane extends React.Component
 
   getChannelCreationDate: (givenDate) ->
     dateString = moment(givenDate).calendar null,
-      sameDay  : '[Today]'
-      lastDay  : '[Yesterday]'
-      lastWeek : '[Last] dddd'
-      sameElse : 'MMM D'
+      sameDay  : '[today]'
+      lastDay  : '[yesterday]'
+      lastWeek : '[last] dddd'
+      sameElse : '[on] MMM D'
 
 
   getChannelCreatorProfile: (accountId) ->
