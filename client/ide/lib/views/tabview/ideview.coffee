@@ -53,6 +53,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @on 'IDETabMoved',              @bound 'handleTabMoved'
     @on 'NewSplitViewCreated',      @bound 'handleSplitViewCreated'
     @on 'SplitViewMerged',          @bound 'handleSplitViewMerged'
+    @on 'CloseFullScreen',          @bound 'handleCloseFullScreen'
 
     @on 'VerticalSplitHandleClicked', =>
       frontApp.setActiveTabView @tabView
@@ -478,15 +479,29 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       return editorPane = pane.view
 
 
-  toggleFullscreen: ->
+  toggleFullscreen: (dontToggleSidebar = no) ->
 
-    { appManager, windowController } = kd.singletons
+    fullscreen = 'fullscreen'
+    { appManager : { frontApp }, windowController, mainView } = kd.singletons
 
-    @toggleClass 'fullscreen'
-    appManager.getFrontApp().getView().toggleClass 'fullscreen'
-    windowController.notifyWindowResizeListeners()
-    @isFullScreen = !@isFullScreen
+    if @isFullScreen
+      kd.utils.wait 300, => # Just wait for the CSS transition.
+        @unsetClass fullscreen
+        frontApp.getView().toggleClass fullscreen
+    else
+      @setClass fullscreen
+      frontApp.getView().toggleClass fullscreen
+
+    @isFullScreen     = !@isFullScreen
+    dontToggleSidebar = dontToggleSidebar or (@isFullScreen and mainView.isSidebarCollapsed)
+
     @holderView.setFullscreenHandleState @isFullScreen
+
+    mainView.toggleSidebar()  unless dontToggleSidebar
+    windowController.notifyWindowResizeListeners()
+
+
+  handleCloseFullScreen: -> @toggleFullscreen yes
 
 
   handlePaneRemoved: (pane) ->
