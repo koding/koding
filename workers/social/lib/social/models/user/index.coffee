@@ -2048,6 +2048,8 @@ module.exports = class JUser extends jraphical.Module
       user.sshKeys = sshKeys
       user.save callback
 
+      Tracker.identify user.username, { sshKeysCount: sshKeys.length }
+
 
   @getSSHKeys: secure (client, callback) ->
 
