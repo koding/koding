@@ -43,7 +43,6 @@ var states = map[string]*statePair{
 func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}, reqErr error) {
 	// calls with zero arguments causes args to be nil. Check it that we
 	// don't get a beloved panic
-	k.Log.Info("[DEBUG] Raw data: %s", string(r.Args.Raw))
 	if r.Args == nil {
 		return nil, NewError(ErrNoArguments)
 	}
@@ -56,8 +55,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
-
-	k.Log.Info("[DEBUG] Received args %+v", args)
 
 	if args.MachineId == "" {
 		return nil, NewError(ErrMachineIdMissing)
