@@ -26,6 +26,7 @@ import (
 	"koding/kites/kloud/plans"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/queue"
 	"koding/kites/kloud/userdata"
 
 	"koding/kites/kloud/keycreator"
@@ -234,7 +235,12 @@ func newKite(conf *Config) *kite.Kite {
 		AuthorizedUsers: authorizedUsers,
 	}
 
-	go kodingProvider.RunCheckers(checkInterval)
+	q := &queue.Queue{
+		DB:  db,
+		Log: common.NewLogger("kloud-queue", conf.DebugMode),
+	}
+	go q.RunCheckers(checkInterval)
+
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	/// AWS PROVIDER ///
