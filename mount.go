@@ -9,10 +9,10 @@ import (
 )
 
 func MountCommand(c *cli.Context) int {
-	//if len(args) < 2 {
-	//	fmt.Println(c.Help())
-	//	return 1
-	//}
+	if len(c.Args()) < 2 {
+		cli.ShowCommandHelp(c, "mount")
+		return 1
+	}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {

@@ -77,10 +77,10 @@ func NewSSHCommand() (*SSHCommand, error) {
 }
 
 func (s *SSHCommand) Run(c *cli.Context) int {
-	//if len(args) != 1 {
-	//	fmt.Println(s.Help())
-	//	return 1
-	//}
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "ssh")
+		return 1
+	}
 
 	sshKey, err := s.getSSHIp(c.Args()[0])
 	if err != nil {

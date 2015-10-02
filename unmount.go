@@ -7,12 +7,12 @@ import (
 )
 
 func UnmountCommand(c *cli.Context) int {
-	//// All of the arguments are required currently, so error if anything
-	//// is missing.
-	//if len(args) != 1 {
-	//	fmt.Printf(c.Help())
-	//	return 1
-	//}
+	// All of the arguments are required currently, so error if anything
+	// is missing.
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "unmount")
+		return 1
+	}
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
