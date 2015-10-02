@@ -31,8 +31,7 @@
   ],
   "styles": [
     "./lib/styl/*.styl",
-    "./lib/components/**/styl/*.styl",
-    "./lib/css/*.css"
+    "./lib/components/**/styl/*.styl"
   ],
   "shortcuts": [ "activity" ]
 }
