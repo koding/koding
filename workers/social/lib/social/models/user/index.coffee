@@ -891,6 +891,13 @@ module.exports = class JUser extends jraphical.Module
           # p.s. we could do that in workers
           account.updateCounts()
 
+          if foreignAuth
+            providers = {}
+            Object.keys(foreignAuth).forEach (provider) ->
+              providers[provider] = yes
+
+            Tracker.identify user.username, { foreignAuth: providers }
+
           JLog.log { type: 'login', username , success: yes }
           queue.next()
 
@@ -1983,6 +1990,11 @@ module.exports = class JUser extends jraphical.Module
 
       @saveOauthToUser foreignAuthInfo, username, (err) =>
         return callback err  if err
+
+        do (foreignAuth = {}) ->
+          { foreignAuthType } = foreignAuthInfo
+          foreignAuth[foreignAuthType] = yes
+          Tracker.identify username, { foreignAuth }
 
         @clearOauthFromSession foreignAuthInfo.session, (err) =>
           return callback err  if err

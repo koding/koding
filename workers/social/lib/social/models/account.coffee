@@ -1121,6 +1121,10 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback()
 
+    foreignAuth = {}
+    foreignAuth[provider] = no
+    Tracker.identify user.username, { foreignAuth }
+
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback) ->
     @update { $set: { 'meta.modifiedAt': new Date } }, callback
