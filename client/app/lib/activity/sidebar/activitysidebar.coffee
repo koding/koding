@@ -531,9 +531,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       return kd.warn err  if err
 
       if 'admin' in (roles ? [])
-        partial = "<a href='/Welcome'>Your team page has not been<br/>
-                      fully configured yet please<br/>
-                      click here to setup now.</a>"
+        partial = """
+          <header class='SidebarSection-header'><h4 class='SidebarSection-headerTitle'>STACKS</h4></header>
+          <label>No stacks</label>
+          <a href='/Admin/Stacks'>Create a stack</a>
+          """
       else
         partial = "Your team page has not been<br/>
                       fully configured yet please<br/>
