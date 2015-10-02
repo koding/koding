@@ -17,22 +17,32 @@ module.exports = class TeamDomainTab extends KDFormView
     then teamName = KD.utils.slugify name
     else teamName = ''
 
-    @input = new KDInputView
+    @inputView = new KDCustomHTMLView
+      cssClass     : 'login-input-view'
+      click        : => @input.setFocus()
+
+    @inputView.addSubView @input = new KDInputView
       placeholder  : 'your-team'
       defaultValue : teamName  if teamName
       attributes   : size : teamName.length or 10
       name         : 'slug'
 
     # Listen text change event in real time
-    @input.on 'input', (event) ->
-      { length }  = @getValue()
-      length      = 10  unless length
-      @setAttribute 'size', length
+    @input.on 'input', =>
+      @input.getElement().removeAttribute 'size'
 
-    @suffix = new KDView
+      element           = @fakeView.getElement()
+      element.innerHTML = @input.getValue()
+      { width }         = element.getBoundingClientRect()
+      @input.setWidth width or 100
+
+    @inputView.addSubView @suffix = new KDView
       tagName      : 'span'
       partial      : '.koding.com'
-      click        : => @input.setFocus()
+
+    @inputView.addSubView @fakeView = new KDCustomHTMLView
+      tagName      : 'div'
+      cssClass     : 'fake-view'
 
     @backLink = new KDCustomHTMLView
       tagName      : 'span'
@@ -50,7 +60,7 @@ module.exports = class TeamDomainTab extends KDFormView
 
     # <p class='dim'>Your team url can only contain lowercase letters numbers and dashes.</p>
     """
-    <div class='login-input-view'>{{> @input}}{{> @suffix}}</div>
+    {{> @inputView}}
     <div class='TeamsModal-button-separator'></div>
     {{> @backLink}}
     {{> @button}}
