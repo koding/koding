@@ -1432,7 +1432,7 @@ module.exports = class JGroup extends Module
 
 
 
-  createGroupChannel:(client, options, callback)->
+  createGroupChannel:(client, options, callback) ->
     options.name = 'public'
     options.varName = 'socialApiChannelId'
     options.typeConstant = 'group'
