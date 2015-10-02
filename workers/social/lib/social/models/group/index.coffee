@@ -1433,7 +1433,7 @@ module.exports = class JGroup extends Module
     return @createSocialAPIChannel client, options, callback
 
   createAnnouncementChannel:(client, options, callback) ->
-    options.name = if @slug is 'koding' then 'changelog' else @slug
+    options.name = 'changelog'
     options.varName = 'socialApiAnnouncementChannelId'
     options.typeConstant = 'announcement'
 
