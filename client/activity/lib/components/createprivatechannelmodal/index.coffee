@@ -121,9 +121,14 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     pattern =  /^[a-z0-9]+$/i
 
+    unless value
+      @setState invalidName: no
+      return yes
+
     if value and pattern.test value
       @setState invalidName: no
       return yes
+
     else
       @setState invalidName: yes
       return no
@@ -325,7 +330,10 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           {@renderAddParticipantInput()}
         </div>
         <div className={@getNameFieldClassnames()}>
-          <label className='Reactivity-label channelName'>Name</label>
+          <label className='Reactivity-label channelName'>
+            Name
+            <span className='Reactivity-notRequired'> (optional)</span>
+          </label>
           <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             This is how this thread is going to appear on your sidebar.
