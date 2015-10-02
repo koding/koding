@@ -1248,7 +1248,7 @@ class IDEAppController extends AppController
 
           {content, path} = context.file
 
-          return  unless content
+          return  unless content?
 
           string = @rtm.getFromModel path
           string.setText content  if string
