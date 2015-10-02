@@ -465,7 +465,6 @@ sidebarTextShadow()
     color               #fff
 
   .kdlistitemview-sidebar-item
-    font-family             Soleil
     -moz-osx-font-smoothing grayscale
     -webkit-font-smoothing  antialiased
     size                    auto 16px
@@ -983,7 +982,7 @@ h3.sidebar-title
 // refactored, moved to outer scope
 
 .activity-sidebar
-  font-family               Soleil
+  font-family               SoleilFamily
 
   a.vm
     color                   sidebarGray
@@ -1093,18 +1092,33 @@ h3.sidebar-title
       color                 sidebarActive
 
   .stack-warning
-    color                   #777
-    font-size               12px
-    background-color        rgba(35, 35, 35, 0.65)
+    margin                  0 0 32px
+    text-align              center
 
-    padding                 10px
-    line-height             15px
+    .SidebarSection-header
+      text-align            left
 
-    margin-bottom           16px
-    borderBox()
+    label
+      color                 #b3b3b3
+      display               block
+      font-size             16px
+      line-height           40px
 
     a
-      color                 #999
+      bg                    color #01AF5B
+      color                 white
+      display               inline-block
+      line-height           32px
+      padding               0 16px
+      rounded               3px
+      text-decoration       none
+      width                 auto
+
+    p
+      color                 #b3b3b3
+      font-size             12px
+      line-height           22px
+      margin-bottom         16px
 
 
   .sidebar-machine-box.selected
