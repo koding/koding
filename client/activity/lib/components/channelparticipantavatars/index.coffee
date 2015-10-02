@@ -149,7 +149,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     <div className='ChannelParticipantAvatars-singleBox'>
       <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
-        {moreCount}+
+        +{moreCount}
       </div>
     </div>
 
