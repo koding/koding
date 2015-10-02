@@ -121,6 +121,15 @@ class IDEAppController extends AppController
       if app.getId() is @getId() and not @layoutManager.isSnapshotRestored()
         @layoutManager.restoreSnapshot()
 
+      @bindListeners()
+
+
+  bindListeners: ->
+
+    @on 'CloseFullScreen', =>
+      [ideView] = @ideViews.filter (ideView) -> ideView.isFullScreen
+      ideView.emit 'CloseFullScreen'  if ideView
+
 
   prepareIDE: (withFakeViews = no) ->
 
