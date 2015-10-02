@@ -107,9 +107,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    PREVIEW_COUNT = @getPreviewCount()
-
-    participants = participants.slice 0, PREVIEW_COUNT
+    participants = participants.slice 0, @getPreviewCount()
 
     @renderAvatars participants, no
 
