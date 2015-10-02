@@ -340,12 +340,7 @@ module.exports = class IDEEditorPane extends IDEPane
     @applyChange change
 
 
-  isChangedByMe: (change) ->
-
-    for collaborator in @rtm.getCollaborators() when collaborator.isMe
-      me = collaborator
-
-    return me.sessionId is change.sessionId
+  isChangedByMe: (change) -> return change.isLocal
 
 
   getRange: (index, length, str) ->
