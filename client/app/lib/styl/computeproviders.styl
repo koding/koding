@@ -764,7 +764,7 @@ computeproviders.styl
     borderBox()
 
     .buttons
-      abs                   27px 0px 0 0
+      abs                   40% 0px 0 0
 
     &:hover
       .buttons button.secondary
@@ -772,6 +772,8 @@ computeproviders.styl
         pointer-events      auto
 
     .credential-info
+      padding               10px 0 !important
+
       .tag
         line-height         16px
         abs()
@@ -784,7 +786,7 @@ computeproviders.styl
 
     .credential-info
     .stacktemplate-info
-      padding               10px 0
+      padding               5px 0 0
 
       .title
         font-weight         bold
@@ -798,6 +800,7 @@ computeproviders.styl
         fl()
 
       .inuse-tag
+      .accesslevel-tag
         font-size           10px
         padding             0 4px
         line-height         13px
@@ -808,9 +811,26 @@ computeproviders.styl
         cursor              default
         fl()
 
+      .accesslevel-tag
+        &.private
+          background-color  darkred
+        &.public
+          background-color  darkgreen
+        &.group
+          background-color  #999
+
+
+      cite
+        display             block
+        clear               left
+        font-size           12px
+        color               #999
+        font-style          italic
+
   .stack-settings-menu
-    size                15px 10px
-    padding             0
+    size                    15px 10px
+    padding                 0
+    margin-right            10px
     pointer()
 
     .kdbutton
@@ -866,7 +886,7 @@ computeproviders.styl
           width             300px
 
     .credential-info
-      padding               0
+      padding               0 !important
 
       .fields
         vendor              transition, width .3s .3s ease

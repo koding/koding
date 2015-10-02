@@ -486,10 +486,14 @@ sidebarTextShadow()
     //   sidebarTextShadow()
 
     &.selected
-      color           sidebarActive
+      color                 sidebarActive
 
       .ttag:before
-        color         #fff
+        color               sidebarActive
+
+      .ttag
+        color               sidebarActive
+
 
     borderBox()
     &:hover
@@ -1095,8 +1099,21 @@ h3.sidebar-title
     margin                  0 0 32px
     text-align              center
 
+    &.re-init
+      color                 #b3b3b3
+      font-size             14px
+      line-height           18px
+      bg                    color, #2b2b2b
+      padding               10px
+      border-radius         5px
+      text-decoration       underline
+      pointer()
+
     .SidebarSection-header
       text-align            left
+
+    .no-stacks
+      margin-left           -10px
 
     label
       color                 #b3b3b3

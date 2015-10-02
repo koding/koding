@@ -51,6 +51,8 @@ func (p *ChannelRequest) Create() (*ChannelContainer, error) {
 	c.Name = RandomName()
 	c.TypeConstant = p.TypeConstant
 	c.Purpose = p.Purpose
+	c.Payload = p.Payload
+
 	if p.Name != "" {
 		c.Name = p.Name
 	}
