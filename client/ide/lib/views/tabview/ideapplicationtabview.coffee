@@ -20,16 +20,6 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     super options, data
 
 
-  handleClicked: (event, handle) ->
-
-    { pane } = handle.getOptions()
-
-    if $(event.target).hasClass 'close-tab'
-      @emit 'PaneRemovedByUserAction', pane
-
-    super event, handle
-
-
   removePane_: KDTabView::removePane
 
   removePane: (pane, shouldDetach, quiet = no) ->
@@ -133,4 +123,11 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
     @splitRegions?.destroy()
     @splitRegions = null
+
+
+  handleCloseAction: (pane) ->
+
+    @emit 'PaneRemovedByUserAction', pane
+
+    super pane
 
