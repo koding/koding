@@ -7,6 +7,7 @@ remote = require('./remote').getInstance()
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
+isKoding = require './util/isKoding'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -260,7 +261,7 @@ module.exports = class SocialApiController extends KDController
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
 
-    if item.typeConstant is 'privatemessage'
+    if not isKoding() and item.typeConstant is 'privatemessage'
       item.name = data.purpose
       item.purpose = item.payload?.description or ''
     else
