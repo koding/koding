@@ -30,6 +30,7 @@ throttle      = require 'throttleit'
 child_process = require 'child_process'
 collapse      = require 'bundle-collapser/plugin'
 convert       = require 'convert-source-map'
+globby        = require 'globby'
 
 
 JS_OUTFILE                  = 'bundle.js'
@@ -468,11 +469,14 @@ class Haydar extends events.EventEmitter
 
       styl manifest, globs
 
+      files = globs.reduce (acc, glob) ->
+        acc.concat globby.sync glob
+      , []
 
       if opts.watchCss and not watchedGlobs[globs.join()]
         watchedGlobs[globs.join()] = yes
         console.log "watching #{globs}"
-        w = chokidar.watch globs, persistent: yes
+        w = chokidar.watch files, persistent: yes
         w.on 'ready', -> w.on 'raw', onRaw
 
 
