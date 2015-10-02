@@ -1426,7 +1426,7 @@ module.exports = class JGroup extends Module
 
 
   createGroupChannel:(client, options, callback)->
-    options.name = if @slug is "koding" then "public" else @slug
+    options.name = "public"
     options.varName = "socialApiChannelId"
     options.typeConstant = "group"
 
