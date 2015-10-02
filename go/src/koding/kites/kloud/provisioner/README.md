@@ -33,7 +33,7 @@ installed, getting it installed is as easy as 1-2-3.
 4. To run a command as the `root` user, prefix any command with `sudo <command>`. But 
    remember, with great power, comes great responsibility! :-)
 
-5. By default, you sudo password is blank. Most people like it that way but if you prefer,
+5. By default, your sudo password is blank. Most people like it that way but if you prefer,
    you can use the `sudo passwd` command and change the default (blank) password to 
    something more secure. This is completely optional.
 

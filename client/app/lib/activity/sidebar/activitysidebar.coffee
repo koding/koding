@@ -535,8 +535,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
           <header class='SidebarSection-header'>
             <h4 class='SidebarSection-headerTitle'>STACKS</h4>
           </header>
-          <label>No stacks</label>
-          <a href='/Admin/Stacks'>Create a stack</a>
+          <div class='no-stacks'>
+            <label>No stacks</label>
+            <a href='/Admin/Stacks'>Create a stack</a>
+          </div>
           """
       else
         partial = """
