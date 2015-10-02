@@ -1463,8 +1463,9 @@ module.exports = class JGroup extends Module
     doRequest 'createChannel', client, defaultChannel, (err, channel) =>
       return callback err if err
 
-      op = { $set:{} }
+      op = { $set: {}, $push: {} }
       op.$set[varName] = channel.channel.id
+      op.$push["defaultChannels"] = channel.channel.id
 
       @update op, (err) ->
         return callback err if err
