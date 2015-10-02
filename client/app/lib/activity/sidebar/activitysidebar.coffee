@@ -546,8 +546,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             <h4 class='SidebarSection-headerTitle'>STACKS</h4>
           </header>
           <p>
-            Your team page has not been<br/>
-            fully configured yet please<br/>
+            Your stacks has not been<br/>
+            fully configured yet, please<br/>
             contact your team admin.
           </p>
           <a href='/Messages/New'>Message admin</a>
