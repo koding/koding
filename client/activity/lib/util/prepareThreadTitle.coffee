@@ -6,10 +6,10 @@ makeProfileText       = require 'activity/util/makeProfileText'
 module.exports = prepareThreadTitle = (thread) ->
 
   channel = thread.get 'channel'
-  purpose = channel.get 'purpose'
+  name = channel.get 'name'
 
-  if purpose
-    return <span className="purpose">{purpose}</span>
+  if name
+    return <span className="Thread-name">{name}</span>
 
   preview = channel.get 'participantsPreview'
   count   = channel.get 'participantCount'
