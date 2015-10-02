@@ -3,6 +3,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox'
+DropboxItem          = require 'activity/components/dropboxitem'
 ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 SearchDropboxItem    = require 'activity/components/searchdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
@@ -69,7 +70,7 @@ module.exports = class SearchDropbox extends React.Component
 
     { currentWord, value, position } = textData
 
-    matchResult = value.match /^\/s(earch)? (.+)/
+    matchResult = value.match /^\/s(earch)? (.*)/
     return no  unless matchResult
     return no  if isWithinCodeBlock value, position
 
@@ -114,11 +115,19 @@ module.exports = class SearchDropbox extends React.Component
     </ErrorDropboxItem>
 
 
+  renderEmptyQueryMessage: ->
+
+    <DropboxItem className="DropboxItem-singleLine">
+      nothing found yet, continue typing...
+    </DropboxItem>
+
+
   render: ->
 
-    { items, query, flags } = @props
+    { items, query, flags, visible } = @props
 
-    isError = items.size is 0 and query
+    isError      = items.size is 0 and query
+    isEmptyQuery = not query and visible
 
     <Dropbox
       className      = 'SearchDropbox'
@@ -128,7 +137,8 @@ module.exports = class SearchDropbox extends React.Component
       title          = 'Search'
       ref            = 'dropbox'
     >
-      { @renderList()  unless isError }
+      { @renderEmptyQueryMessage()  if isEmptyQuery }
       { @renderError()  if isError }
+      { @renderList()  unless isError and isEmptyQuery }
     </Dropbox>
 

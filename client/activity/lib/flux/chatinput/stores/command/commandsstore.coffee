@@ -13,14 +13,15 @@ module.exports = class ChatInputCommandsStore extends KodingFluxStore
 
     commands = [
       {
-        name        : '/s'
+        name        : '/search'
         description : 'Search in this channel'
+        extraInfo   : '(or /s) anything'
       }
       {
         name        : '/invite'
         description : 'Invite another member to this channel'
         paramPrefix : '@'
-        paramText   : '@user'
+        extraInfo   : '@user'
       }
       {
         name        : '/leave'
