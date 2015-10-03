@@ -94,7 +94,7 @@ module.exports = class ChannelThreadPane extends React.Component
       onDragOver={@bound 'onDragOver'}
       onDragLeave={@bound 'onDragLeave'}
       className={@getDropTargetClassNames()}>
-      <div className='ChannelThreadPane-dropContainerContent'>Drop VM's here<br/> to start collaborating</div>
+      <div className='ChannelThreadPane-dropContainerContent'>Drop VMs here<br/> to start collaborating</div>
     </div>
 
 
