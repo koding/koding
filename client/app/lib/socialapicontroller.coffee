@@ -403,7 +403,7 @@ module.exports = class SocialApiController extends KDController
     socialapi.cacheItem socialApiChannel
     socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
-    {name, typeConstant, token, id} = socialApiChannel
+    {name, typeConstant, payload, token, id} = socialApiChannel
 
     subscriptionData =
       group      : group.slug
@@ -411,6 +411,9 @@ module.exports = class SocialApiController extends KDController
       channelName: name
       channelId  : id
       token      : token
+
+    if typeConstant is 'privatemessage'
+      subscriptionData['channelName'] = payload._name
 
     kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
 
