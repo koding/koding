@@ -36,7 +36,12 @@ UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
 
-allChannels = ChannelsStore
+allChannels = [
+  ChannelsStore, (channels) ->
+    channels.filterNot (channel) -> 'group' is channel.get 'typeConstant'
+]
+
+
 allUsers    = UsersStore
 
 ChannelParticipantsSearchQueryStore        = ['ChannelParticipantsSearchQueryStore']
