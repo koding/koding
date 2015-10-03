@@ -154,7 +154,7 @@ sidebarTextShadow()
     size                    24px 19px
     line-height             16px
     color                   #fff
-    abs                     0px 0px 0 0
+    abs                     0px -5px 0 0
     font-size               11px
     font-weight             700
     background              sidebarCountBg
@@ -798,7 +798,7 @@ sidebarTextShadow()
     .avatar-area
       padding               8px
       .avatarview
-        abs                 8px 8px 0 0
+        abs                 8px 13px 0 0
         float               none
         margin-right        0
         pointer()
@@ -813,7 +813,7 @@ sidebarTextShadow()
         size                14px 14px
         abs                 0px 1px initial initial
         span.count
-          abs               0px 0px initial initial
+          abs               0px 10px initial initial
           border            2px solid #262626
           rounded           8px
 
@@ -1050,12 +1050,10 @@ h3.sidebar-title
         border              3px solid sidebarGray
         borderBox()
       > span
-        r-sprite    app vm-settings-icon
-        right       2px
-        top         4px
-        opacity     0
-        vendor      transition, opacity .1s .1s ease
-        abs()
+        abs                 4px -5px 0 0
+        opacity             0
+        r-sprite            app vm-settings-icon
+        vendor              transition, opacity .1s .1s ease
       &:hover > span
         opacity     1
       &.running > figure
