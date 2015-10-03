@@ -212,7 +212,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	}
 
 	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
-	return cmc, cmc.AddIntegration().AddIsInteracted(query).Err
+	return cmc, cmc.AddIsInteracted(query).Err
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
@@ -615,6 +615,7 @@ func (c *ChannelMessage) PopulateIntegration() (*ChannelMessage, error) {
 		if err != nil {
 			return c, err
 		}
+
 		i, err := Cache.Integration.ByChannelIntegrationId(id)
 		if err != nil {
 			return c, err
