@@ -9,9 +9,10 @@ classnames                        = require 'classnames'
 KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
-CreateChannelFlux                 = require 'activity/flux/createchannel'
 KDReactorMixin                    = require 'app/flux/reactormixin'
+isPublicChannel                   = require 'app/util/isPublicChannel'
 DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
+CreateChannelFlux                 = require 'activity/flux/createchannel'
 ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
 CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
@@ -45,10 +46,37 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       selectedItem        : getters.createChannelParticipantsSelectedItem
       selectedIndex       : getters.createChannelParticipantsSelectedIndex
       dropdownVisibility  : getters.createChannelParticipantsDropdownVisibility
+      selectedThread      : ActivityFlux.getters.selectedChannelThread
     }
 
 
   getDefaultPlaceholder: -> 'type a @username and hit enter'
+
+
+  getParticipantsWrapperClassnames: -> classnames
+    'delete-mode'                       : @state.deleteMode
+    'CreateChannel-participantsWrapper' : yes
+
+
+  getNameFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'invalid'              : @state.invalidName
+
+
+  getDropboxFieldClassnames: -> classnames
+    'Reactivity-formfield' : yes
+    'dropdown'             : yes
+    'invalid'              : @state.invalidParticipants
+
+
+  getModalProps: ->
+    isOpen             : yes
+    title              : 'Create a Private Conversation'
+    className          : 'CreateChannel-Modal'
+    buttonConfirmTitle : 'CREATE'
+    onConfirm          : @bound 'createChannel'
+    onClose            : @bound 'onClose'
+    onAbort            : @bound 'onClose'
 
 
   setName: (event) ->
@@ -62,6 +90,20 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   setPurpose: (event) ->
 
     @setState purpose: event.target.value
+
+
+  onClose: ->
+
+    return  unless @state.selectedThread
+    return  if @_isCreating
+
+    channel = @state.selectedThread.get('channel').toJS()
+
+    route = if isPublicChannel channel
+    then "/Channels/#{channel.name}"
+    else "/Messages/#{channel.id}"
+
+    kd.singletons.router.handleRoute route
 
 
   prepareRecipients: ->
@@ -79,9 +121,14 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     pattern =  /^[a-z0-9]+$/i
 
+    unless value
+      @setState invalidName: no
+      return yes
+
     if value and pattern.test value
       @setState invalidName: no
       return yes
+
     else
       @setState invalidName: yes
       return no
@@ -121,9 +168,11 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     { createPrivateChannel } = CreateChannelFlux.actions.channel
 
+    @_isCreating = yes
+
     createPrivateChannel(options).then ({channel}) =>
 
-      @props.isOpen = no
+      kd.singletons.router.handleRoute "/Messages/#{channel.id}"
 
 
   onChange: (event) ->
@@ -230,11 +279,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       </div>
 
 
-  getParticipantsWrapperClassnames: -> classnames
-    'delete-mode'                       : @state.deleteMode
-    'CreateChannel-participantsWrapper' : yes
-
-
   renderAddParticipantInput: ->
 
     <div className={@getParticipantsWrapperClassnames()}>
@@ -270,25 +314,14 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     />
 
 
-  getNameFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'invalid'              : @state.invalidName
-
-
-  getDropboxFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'dropdown'             : yes
-    'invalid'              : @state.invalidParticipants
-
-
   render: ->
 
-    <ActivityModal {...@props} onConfirm={@bound 'createChannel'}>
+    <ActivityModal {...@getModalProps()}>
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
           <strong>
-            A private group is only visible to its members,
-            and only members of a private group can read or search its contents.
+            A private conversation is only visible to its members,
+            and only those members can read or search its contents.
           </strong>
           <div>{@props.extraInformation}</div>
         </div>
@@ -297,10 +330,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           {@renderAddParticipantInput()}
         </div>
         <div className={@getNameFieldClassnames()}>
-          <label className='Reactivity-label channelName'>Name</label>
+          <label className='Reactivity-label channelName'>
+            Name
+            <span className='Reactivity-notRequired'> (optional)</span>
+          </label>
           <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
-            This is how this thread is going to appear on your sidebar.
+            This is how this conversation is going to appear on your sidebar.
           </span>
         </div>
         <div className='Reactivity-formfield'>
@@ -310,7 +346,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           </label>
           <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
-            Give your channel a purpose that describes what it will be used for.
+            Set a purpose to your conversation that describes what it will be used for.
           </span>
         </div>
       </div>

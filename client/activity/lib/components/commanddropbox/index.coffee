@@ -26,7 +26,12 @@ module.exports = class CommandDropbox extends React.Component
   isActive: -> @props.visible
 
 
-  formatSelectedValue: -> @props.selectedItem.get 'name'
+  formatSelectedValue: ->
+
+    { selectedItem } = @props
+    return ''  unless selectedItem
+
+    return "#{selectedItem.get 'name'} #{selectedItem.get 'paramPrefix', ''}"
 
 
   getItemKey: (item) -> item.get 'name'
@@ -110,7 +115,7 @@ module.exports = class CommandDropbox extends React.Component
     { query } = @props
 
     <ErrorDropboxItem>
-      { query } is not a proper command, sorry
+      { query } is not a proper command
     </ErrorDropboxItem>
 
 

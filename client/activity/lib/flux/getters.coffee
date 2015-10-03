@@ -1,3 +1,4 @@
+kd                         = require 'kd'
 immutable                  = require 'immutable'
 isPublicChatChannel        = require 'activity/util/isPublicChatChannel'
 whoami                     = require 'app/util/whoami'
@@ -142,6 +143,11 @@ selectedChannelThread = [
           body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
     return thread.set 'channel', channel
 ]
+
+channelByName = (name) ->
+  channels = kd.singletons.reactor.evaluateToJS allChannels
+  channel = _channel for id, _channel of channels when _channel.name is name
+  return channel
 
 # Returns followed public channel threads mapped with relevant channel
 # instances.
@@ -315,6 +321,18 @@ channelParticipantsSelectedItem = [
 ]
 
 
+notSelectedChannelParticipants = [
+  UsersStore
+  selectedChannelParticipants
+  (users, participants) ->
+    list = users.toList()
+    return list  unless participants
+
+    list.filterNot (user) ->
+      return participants.get user.get '_id'
+]
+
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -326,6 +344,8 @@ module.exports = {
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
+
+  channelByName
 
   selectedMessageThreadId
   selectedMessageThread
@@ -348,5 +368,6 @@ module.exports = {
   channelParticipantsDropdownVisibility
 
   allUsers
+  notSelectedChannelParticipants
 }
 

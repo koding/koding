@@ -199,7 +199,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
       { url, regenerate } = @settingsForm.inputs
 
-      url.setValue "#{globals.config.integration.url}/#{name}/#{res.token}"
+      url.setValue "#{globals.config.webhookMiddleware.url}/#{name}/#{res.token}"
 
       regenerate.updatePartial 'Webhook url has been updated!'
       regenerate.setClass 'label'

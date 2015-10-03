@@ -104,12 +104,17 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
 
+	awsRegion, ok := aws.Regions[machine.Meta.Region]
+	if !ok {
+		return fmt.Errorf("Malformed region detected: %s", machine.Meta.Region)
+	}
+
 	client := ec2.NewWithClient(
 		aws.Auth{
 			AccessKey: creds.Meta.AccessKey,
 			SecretKey: creds.Meta.SecretKey,
 		},
-		aws.Regions[machine.Meta.Region],
+		awsRegion,
 		aws.NewClient(multiec2.NewResilientTransport()),
 	)
 

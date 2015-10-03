@@ -34,6 +34,10 @@ sidebarTextShadow()
     > .kdcustomscrollview
       kalc                  height, 100% \- 40px
 
+    .avatar-area
+      .avatarview
+        left                initial
+
   &.static > .kdcustomscrollview
     kalc                    height, 100% \- 28px
 
@@ -56,6 +60,9 @@ sidebarTextShadow()
       display               block
       r-sprite              app logo-full
       cursor                default
+      rel()
+      left                  5px
+      top                   -1px
 
   .more-items
     size              238px 20px
@@ -115,12 +122,9 @@ sidebarTextShadow()
 
   &.collapsed
     &.with-sidebar
-      #main-panel-wrapper
-        // kalc            width, 100% \- 63px
-        // margin-left     63px
-        // shadow         -8px 0 16px #323232
-        margin-left 0
-        width       100%
+      #main-sidebar
+        width               50px
+
 
     #sidebar-toggle:after
       left               7px
@@ -143,7 +147,7 @@ sidebarTextShadow()
 
 .activity-sidebar
   font-family         adelleSans
-  padding             1px 20px
+  padding             1px 18px
   borderBox()
 
   cite.count
@@ -220,7 +224,7 @@ sidebarTextShadow()
       line-height     22px
       padding         0 0 0 35px
       rounded         0
-      overflow        visible
+      overflow        hidden
 
       figure
         display       block
@@ -252,7 +256,7 @@ sidebarTextShadow()
         size            24px 20px
         line-height     20px
         color           #fff
-        abs             2px 0px 0 0
+        abs()
         font-size       10px
         font-weight     700
         background      sidebarCountBg
@@ -461,7 +465,6 @@ sidebarTextShadow()
     color               #fff
 
   .kdlistitemview-sidebar-item
-    font-family             Soleil
     -moz-osx-font-smoothing grayscale
     -webkit-font-smoothing  antialiased
     size                    auto 16px
@@ -483,10 +486,14 @@ sidebarTextShadow()
     //   sidebarTextShadow()
 
     &.selected
-      color           sidebarActive
+      color                 sidebarActive
 
       .ttag:before
-        color         #fff
+        color               sidebarActive
+
+      .ttag
+        color               sidebarActive
+
 
     borderBox()
     &:hover
@@ -518,6 +525,10 @@ sidebarTextShadow()
       margin-left           6px
       color                 #b3b3b3
 
+      em
+        rel()
+        top                 -2px
+
       &:before
         display             block
         content             '#'
@@ -527,7 +538,6 @@ sidebarTextShadow()
         left                0
         text-shadow         none
         abs()
-
 
     .profile
       ellipsis()
@@ -609,7 +619,7 @@ sidebarTextShadow()
           float             none
           line-height       18px
           font-size         16px
-          width             170px
+          size              170px 19px
           margin-left       4px
           rel()
           top               -2px
@@ -676,10 +686,11 @@ sidebarTextShadow()
       line-height     28px
 
 .account-area
-  bottom            0
-  left              0
-  size              sidebarWidth 45px
+  bottom                    0
+  left                      0
+  size                      258px 45px
   fix()
+  vendor                    transition, width .3s ease
 
   > div
     display         inline-block
@@ -725,12 +736,12 @@ sidebarTextShadow()
       color           #fff
 
   .acc-dropdown-icon
-    right           50px
+    right                   50px
     &.active
-      border-right  1px solid #323232
+      border-right          1px solid #323232
 
   .acc-dropdown-icon .icon
-    r-sprite        app 'account-arrow'
+    r-sprite                app 'account-arrow'
 
   .avatar-area
     bg                color, #262626
@@ -741,8 +752,10 @@ sidebarTextShadow()
     rel()
 
     .avatarview
-      margin-right    14px
+      margin-right          14px
       fl()
+      rel()
+      left                  3px
 
       cite.staff
         hidden()
@@ -973,11 +986,11 @@ h3.sidebar-title
 // refactored, moved to outer scope
 
 .activity-sidebar
-  font-family               Soleil
+  font-family               SoleilFamily
 
   a.vm
+    color                   sidebarGray
     borderBox()
-    color                   $gray-14
     display                 block
     font-size               $fs-regular
     line-height             20px
@@ -988,6 +1001,7 @@ h3.sidebar-title
     size                    218px 16px
     -moz-osx-font-smoothing grayscale
     -webkit-font-smoothing  antialiased
+    rel()
 
     &.add-app
     &.add-vm
@@ -1010,9 +1024,11 @@ h3.sidebar-title
       ellipsis()
       font-size             16px
       line-height           20px
+      size                  200px 20px
       vendor                transition, width .1s ease .05s
       width                 200px
-      rel()
+      abs()
+      top                   1px
 
     &.social > figure
     &.activity > figure
@@ -1029,14 +1045,14 @@ h3.sidebar-title
         width               13px
         height              13px
         bg                  color, transparent
-        abs                 5px 0 0 0px
+        abs                 4px 0 0 0px
         rounded             3px
         border              3px solid sidebarGray
         borderBox()
       > span
         r-sprite    app vm-settings-icon
         right       2px
-        top         2px
+        top         4px
         opacity     0
         vendor      transition, opacity .1s .1s ease
         abs()
@@ -1052,7 +1068,7 @@ h3.sidebar-title
         size        100% 3px
         background  none
         border      none
-        abs         0 0 -4px 0px
+        abs         24px 0 0 0
         rounded     1px
         .bar
           background  #4BA148
@@ -1080,18 +1096,46 @@ h3.sidebar-title
       color                 sidebarActive
 
   .stack-warning
-    color                   #777
-    font-size               12px
-    background-color        rgba(35, 35, 35, 0.65)
+    margin                  0 0 32px
+    text-align              center
 
-    padding                 10px
-    line-height             15px
+    &.re-init
+      color                 #b3b3b3
+      font-size             14px
+      line-height           18px
+      bg                    color, #2b2b2b
+      padding               10px
+      border-radius         5px
+      text-decoration       underline
+      pointer()
 
-    margin-bottom           16px
-    borderBox()
+    .SidebarSection-header
+      text-align            left
+
+    .no-stacks
+      margin-left           -10px
+
+    label
+      color                 #b3b3b3
+      display               block
+      font-size             16px
+      line-height           40px
 
     a
-      color                 #999
+      bg                    color #01AF5B
+      color                 white
+      display               inline-block
+      line-height           32px
+      padding               0 16px
+      rounded               3px
+      text-decoration       none
+      width                 auto
+
+    p
+      color                 #b3b3b3
+      font-size             12px
+      line-height           22px
+      margin-bottom         16px
 
 
   .sidebar-machine-box.selected

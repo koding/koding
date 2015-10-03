@@ -17,10 +17,11 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###
 loadMessages = (channelId, options = {}) ->
 
-  options.limit ?= 25
+  options.limit ?= 50
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
-    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
+    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS
+    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
@@ -33,7 +34,12 @@ loadMessages = (channelId, options = {}) ->
         return reject err
 
       # clean load more markers of given messages first.
-      cleanLoaderMarkers channelId, messages
+      # kd.utils.defer -> cleanLoaderMarkers channelId, messages
+
+      if messages.length < options.limit
+        dispatch SET_ALL_MESSAGES_LOADED, { channelId }
+      else
+        dispatch UNSET_ALL_MESSAGES_LOADED, { channelId }
 
       kd.singletons.reactor.batch ->
         messages.forEach (message) ->
@@ -158,9 +164,10 @@ removeLoaderMarker = (channelId, messageId, options) ->
 ###
 cleanLoaderMarkers = (channelId, messages) ->
 
-  messages.forEach (message) ->
-    removeLoaderMarker channelId, message.id, { position: 'before' }
-    removeLoaderMarker channelId, message.id, { position: 'after' }
+  kd.singletons.reactor.batch ->
+    messages.forEach (message) ->
+      removeLoaderMarker channelId, message.id, { position: 'before' }
+      removeLoaderMarker channelId, message.id, { position: 'after' }
 
 
 ###*

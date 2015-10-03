@@ -3,6 +3,8 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox'
+DropboxItem          = require 'activity/components/dropboxitem'
+ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 SearchDropboxItem    = require 'activity/components/searchdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
@@ -20,6 +22,13 @@ module.exports = class SearchDropbox extends React.Component
     visible        : no
     selectedItem   : null
     selectedIndex  : 0
+    flags          : immutable.Map()
+
+
+  shouldComponentUpdate: (nextProps, nextState) -> not nextProps.flags?.get 'isLoading'
+
+
+  isActive: -> @props.visible
 
 
   formatSelectedValue: -> @props.selectedItem.get('message').toJS()
@@ -61,11 +70,11 @@ module.exports = class SearchDropbox extends React.Component
 
     { currentWord, value, position } = textData
 
-    matchResult = value.match /\/s (.+)/
+    matchResult = value.match /^\/s(earch)? (.*)/
     return no  unless matchResult
     return no  if isWithinCodeBlock value, position
 
-    query = matchResult[1]
+    query = matchResult[2]
     { stateId } = @props
     ChatInputFlux.actions.search.setQuery stateId, query
     ChatInputFlux.actions.search.setVisibility stateId, yes
@@ -97,7 +106,28 @@ module.exports = class SearchDropbox extends React.Component
       />
 
 
+  renderError: ->
+
+    { query } = @props
+
+    <ErrorDropboxItem>
+      { query } not found
+    </ErrorDropboxItem>
+
+
+  renderEmptyQueryMessage: ->
+
+    <DropboxItem className="DropboxItem-singleLine">
+      nothing found yet, continue typing...
+    </DropboxItem>
+
+
   render: ->
+
+    { items, query, flags, visible } = @props
+
+    isError      = items.size is 0 and query
+    isEmptyQuery = not query and visible
 
     <Dropbox
       className      = 'SearchDropbox'
@@ -107,6 +137,8 @@ module.exports = class SearchDropbox extends React.Component
       title          = 'Search'
       ref            = 'dropbox'
     >
-      {@renderList()}
+      { @renderEmptyQueryMessage()  if isEmptyQuery }
+      { @renderError()  if isError }
+      { @renderList()  unless isError and isEmptyQuery }
     </Dropbox>
 

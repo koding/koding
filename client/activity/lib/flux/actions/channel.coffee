@@ -11,6 +11,7 @@ realtimeActionCreators  = require './realtime/actioncreators'
 showErrorNotification   = require 'app/util/showErrorNotification'
 remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
+getters                 = require 'activity/flux/getters'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -27,10 +28,7 @@ loadChannelByName = (name) ->
 
   name = name.toLowerCase()
 
-  type = switch name
-    when 'public'                     then 'group'
-    when 'changelog', getGroup().slug then 'announcement'
-    else 'topic'
+  type = getChannelTypeByName name
 
   dispatch LOAD_CHANNEL_BY_NAME_BEGIN, { name, type }
 
@@ -350,9 +348,30 @@ deletePrivateChannel = (channelId) ->
       showErrorNotification err, userMessage: err.message
 
 
-addParticipants = (options = {}) ->
+leavePrivateChannel = (channelId, callback = kd.noop) ->
+
+  accountId   = whoami()._id
+  { channel } = kd.singletons.socialapi
+  { LEAVE_PRIVATE_CHANNEL_BEGIN
+    LEAVE_PRIVATE_CHANNEL_SUCCESS
+    LEAVE_PRIVATE_CHANNEL_FAIL } = actionTypes
+
+  dispatch LEAVE_PRIVATE_CHANNEL_BEGIN, { channelId, accountId }
+
+  channel.leave { channelId }, (err, result) ->
+    if err
+      dispatch LEAVE_PRIVATE_CHANNEL_FAIL , { err, channelId, accountId }
+      showErrorNotification err, userMessage: err.message
+      return callback err
+
+    dispatch LEAVE_PRIVATE_CHANNEL_SUCCESS, { channelId, accountId }
+    callback null, result
+
+
+addParticipants = (channelId, accountIds, userIds) ->
 
   { channel } = kd.singletons.socialapi
+  options     = { channelId, accountIds }
 
   { ADD_PARTICIPANTS_TO_CHANNEL_BEGIN
     ADD_PARTICIPANTS_TO_CHANNEL_FAIL
@@ -366,7 +385,18 @@ addParticipants = (options = {}) ->
       showErrorNotification err.description
       return
 
-    dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, options
+    for userId in userIds
+      dispatch ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, { channelId, userId }
+
+
+addParticipantsByNames = (channelId, names) ->
+
+  users        = kd.singletons.reactor.evaluateToJS getters.allUsers
+  participants = (user for userId, user of users when names.indexOf(user.profile.nickname) > -1)
+  accountIds   = (user.socialApiId for user in participants)
+  userIds      = (user._id for user in participants)
+
+  addParticipants channelId, accountIds, userIds
 
 
 ###*
@@ -399,6 +429,7 @@ module.exports = {
   followChannel
   unfollowChannel
   addParticipants
+  addParticipantsByNames
   loadChannelByName
   loadChannelById
   loadChannel
@@ -411,5 +442,6 @@ module.exports = {
   setChannelParticipantsDropdownVisibility
   deletePrivateChannel
   glance
+  leavePrivateChannel
 }
 

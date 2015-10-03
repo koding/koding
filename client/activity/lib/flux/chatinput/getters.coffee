@@ -3,6 +3,7 @@ immutable                  = require 'immutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
+parseStringToCommand       = require 'activity/util/parseStringToCommand'
 
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
@@ -24,6 +25,7 @@ SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyM
 SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
 SearchStore                         = [['ChatInputSearchStore'], withEmptyMap]
+SearchFlagsStore                    = [['ChatInputSearchFlagsStore'], withEmptyMap]
 ValueStore                          = [['ChatInputValueStore'], withEmptyMap]
 CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList]
 CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
@@ -43,7 +45,16 @@ filteredEmojiList = (stateId) -> [
   filteredEmojiListQuery stateId
   (emojis, query) ->
     return immutable.List()  unless query
-    emojis.filter (emoji) -> emoji.indexOf(query) is 0
+
+    isBeginningMatch = query.length < 3
+    emojis
+      .filter (emoji) ->
+        index = emoji.indexOf(query)
+        if isBeginningMatch then index is 0 else index > -1
+      .sort (emoji1, emoji2) ->
+        return -1  if emoji1.indexOf(query) is 0
+        return 1  if emoji2.indexOf(query) is 0
+        return 0
 ]
 
 
@@ -146,14 +157,22 @@ usersQuery = (stateId) -> [
 
 
 # Returns a list of users depending on the current query
-# If query is empty, returns selected channel participants
-# Otherwise, returns users filtered by query
+# If query is empty, returns:
+# - users who are not participants of selected channel if current input command is /invite
+# - otherwise, selected channel participants
+# If query is not empty, returns users filtered by query
 users = (stateId) -> [
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
   usersQuery stateId
-  (allUsers, participants, query) ->
-    return participants?.toList() ? immutable.List()  unless query
+  currentCommand
+  ActivityFluxGetters.notSelectedChannelParticipants
+  (allUsers, participants, query, command, notParticipants) ->
+    unless query
+      list = if command?.name is '/invite'
+      then notParticipants
+      else participants?.toList()
+      return list ? immutable.List()
 
     query = query.toLowerCase()
     allUsers.toList().filter (user) ->
@@ -226,10 +245,22 @@ searchVisibility = (stateId) -> [
 ]
 
 
+searchFlags = (stateId) -> [
+  SearchFlagsStore
+  (flags) -> flags.get stateId
+]
+
+
 currentValue = [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
   (values, channelId) -> values.get channelId, ''
+]
+
+
+currentCommand = [
+  currentValue
+  (value) -> parseStringToCommand value
 ]
 
 
@@ -307,6 +338,7 @@ module.exports = {
   searchSelectedIndex
   searchSelectedItem
   searchVisibility
+  searchFlags
 
   currentValue
 

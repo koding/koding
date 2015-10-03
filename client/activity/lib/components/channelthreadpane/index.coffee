@@ -1,14 +1,18 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-KDReactorMixin       = require 'app/flux/reactormixin'
-ActivityFlux         = require 'activity/flux'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-ThreadSidebar        = require 'activity/components/threadsidebar'
-ThreadHeader         = require 'activity/components/threadheader'
-PublicChannelLink    = require 'activity/components/publicchannellink'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-PublicChatPane       = require 'activity/components/publicchatpane'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+KDReactorMixin               = require 'app/flux/reactormixin'
+ActivityFlux                 = require 'activity/flux'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+ThreadSidebar                = require 'activity/components/threadsidebar'
+ThreadHeader                 = require 'activity/components/threadheader'
+PublicChannelLink            = require 'activity/components/publicchannellink'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+PublicChatPane               = require 'activity/components/publicchatpane'
+Link                         = require 'app/components/common/link'
+Modal                        = require 'app/components/modal'
+showNotification             = require 'app/util/showNotification'
+CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -31,6 +35,8 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
+      showDropTarget        : no
+      isComingSoonModalOpen : no
       channelThread         : immutable.Map()
       channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
@@ -38,11 +44,58 @@ module.exports = class ChannelThreadPane extends React.Component
       channelParticipants   : immutable.List()
 
 
+  componentDidMount: -> reset @props, @state
 
-  componentDidMount: -> reset @props
+
+  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
-  componentWillReceiveProps: (nextProps) -> reset nextProps
+  startVideoCall: ->
+
+    @setState isComingSoonModalOpen: yes
+
+
+  onDragEnter: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: yes
+
+
+  onDragOver: (event) -> kd.utils.stopDOMEvent event
+
+
+  onDragLeave: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+
+
+  onDrop: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+    showNotification 'Coming soon...', type: 'main'
+
+
+  getDropTargetClassNames: -> classnames
+    'ChannelThreadPane-dropContainer': yes
+    'hidden': not @state.showDropTarget
+
+
+  onClose: ->
+
+    @setState isComingSoonModalOpen: no
+
+
+  renderDropSection: ->
+
+    <div
+      onDrop={@bound 'onDrop'}
+      onDragOver={@bound 'onDragOver'}
+      onDragLeave={@bound 'onDragLeave'}
+      className={@getDropTargetClassNames()}>
+      <div className='ChannelThreadPane-dropContainerContent'>Drop VM's here<br/> to start collaborating</div>
+    </div>
 
 
   renderHeader: ->
@@ -57,11 +110,25 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
+  renderVideoCallArea: ->
+
+    <Link className='ChannelThreadPane-videoCall' onClick={@bound 'startVideoCall'}>
+      <span>Start a Video Call</span>
+      <i className='ChannelThreadPane-videoCallIcon'></i>
+    </Link>
+
+
   render: ->
     <div className="ChannelThreadPane is-withChat">
-      <section className="ChannelThreadPane-content">
+      <CollaborationComingSoonModal
+        onClose={@bound 'onClose'}
+        isOpen={@state.isComingSoonModalOpen}/>
+      <section className="ChannelThreadPane-content"
+        onDragEnter={@bound 'onDragEnter'}>
+        {@renderDropSection()}
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
+          {@renderVideoCallArea()}
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
@@ -81,12 +148,21 @@ module.exports = class ChannelThreadPane extends React.Component
 
 React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
-reset = (props) ->
+reset = (props, state) ->
 
   { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
 
+  # if there is no channel in the url, and there is no selected channelThread,
+  # then load public.
+  unless channelName
+    unless state.channelThread
+      channelName = 'public'
+
   if channelName
+    channel = ActivityFlux.getters.channelByName channelName
+    thread.changeSelectedThread channel.id  if channel
+
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
@@ -96,7 +172,7 @@ reset = (props) ->
       else
         messageActions.changeSelectedMessage null
 
-  else
+  else if not state.channelThread
     thread.changeSelectedThread null
 
 

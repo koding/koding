@@ -2,6 +2,7 @@ kd              = require 'kd'
 actionTypes     = require './actiontypes'
 getGroup        = require 'app/util/getGroup'
 SearchConstants = require 'activity/flux/actions/searchconstants'
+getters         = require 'activity/flux/chatinput/getters'
 
 MIN_QUERY_LENGTH = 1
 MAX_QUERY_LENGTH = 500
@@ -12,6 +13,8 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 ###*
  * Action to search items by query
+ * Once items are loaded, it checks if a new query was set
+ * during loading. If it's so, it loads data for a new query
  *
  * @param {string} stateId
  * @param {string} query
@@ -31,10 +34,14 @@ fetchData = (stateId, query) ->
     highlightPreTag  : HIGHLIGHT_PRE_MARKER
     highlightPostTag : HIGHLIGHT_POST_MARKER
 
-  dispatch actionTypes.CHAT_INPUT_SEARCH_BEGIN
+  dispatch actionTypes.CHAT_INPUT_SEARCH_BEGIN, { stateId }
   kd.singletons.search.searchChannelWithHighlighting query, socialApiChannelId, options
     .then (items) ->
       dispatch actionTypes.CHAT_INPUT_SEARCH_SUCCESS, { stateId, items }
+
+      currentQuery = kd.singletons.reactor.evaluate getters.searchQuery stateId
+      if currentQuery isnt query
+        setQuery stateId, currentQuery
     .catch (err) ->
       dispatch actionTypes.CHAT_INPUT_SEARCH_FAIL, { stateId, err }
 
@@ -49,8 +56,9 @@ resetData = (stateId) -> dispatch actionTypes.CHAT_INPUT_SEARCH_RESET, { stateId
 
 ###*
  * Action to set current search query.
- * Also, it resets search items selected index and loads items
- * filtered by query if query is not empty
+ * Also, if no data is loading at the moment,
+ * it resets search items selected index and loads items
+ * filtered by query if query is not empty.
  *
  * @param {string} stateId
  * @param {string} query
@@ -60,6 +68,10 @@ setQuery = (stateId, query) ->
   if query
     { SET_CHAT_INPUT_SEARCH_QUERY } = actionTypes
     dispatch SET_CHAT_INPUT_SEARCH_QUERY, { stateId, query }
+
+    flags = kd.singletons.reactor.evaluate getters.searchFlags stateId
+    return  if flags?.get 'isLoading'
+
     resetSelectedIndex stateId
     fetchData stateId, query
   else

@@ -13,6 +13,7 @@ module.exports = outputParser =
 
   showUserFriendlyError: (content) ->
 
+    return  if not content or content.trim?() is ''
     return  if content.indexOf('error') is -1
 
     for errorString, niceMessage of HANDLED_ERRORS

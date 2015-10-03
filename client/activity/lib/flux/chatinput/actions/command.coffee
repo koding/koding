@@ -1,5 +1,6 @@
 kd             = require 'kd'
 actionTypes    = require './actiontypes'
+channelActions = require 'activity/flux/actions/channel'
 
 ###*
  * Action to set current query of chat input commands.
@@ -88,6 +89,26 @@ setVisibility = (stateId, visible) ->
   dispatch SET_CHAT_INPUT_COMMANDS_VISIBILITY, { stateId, visible }
 
 
+cleanUsername = (name) -> if name.indexOf('@') is 0 then name.substring(1) else name
+
+
+executeCommand = (command, channel) ->
+
+  channelId        = channel.get 'id'
+  { name, params } = command
+
+  switch name
+    when '/invite'
+      usernames = (cleanUsername param for param in params)
+      channelActions.addParticipantsByNames channelId, usernames
+    when '/leave'
+      if channel.get('typeConstant') is 'privatemessage'
+        channelActions.leavePrivateChannel channelId, (err) ->
+          kd.singletons.router.handleRoute '/Channels/public'  unless err
+      else
+        channelActions.unfollowChannel channelId
+
+
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
@@ -99,5 +120,6 @@ module.exports = {
   moveToPrevIndex
   resetSelectedIndex
   setVisibility
+  executeCommand
 }
 

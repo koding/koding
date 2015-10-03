@@ -27,9 +27,9 @@ const (
 	// DefaultRangeForQuery defines the range of interval for the queries.
 	DefaultRangeForQuery = 3
 
-	// DailyAtTenPM specifies interval; cron runs at utc, 5 UTC is 10pm PST
+	// DailyAtTwoPM specifies interval; cron runs at utc, 21 UTC is 2pm PST
 	// with daylight savings time.
-	DailyAtTenPM = "0 0 5 * * *"
+	DailyAtTwoPM = "0 0 21 * * *"
 )
 
 type janitor struct {
@@ -63,13 +63,15 @@ func main() {
 	}
 
 	c := cron.New()
-	c.AddFunc(DailyAtTenPM, func() {
+	c.AddFunc(DailyAtTwoPM, func() {
 		var wg sync.WaitGroup
 
 		for _, w := range warnings {
 			wg.Add(1)
 
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
+			// sleep random time to avoid all workers starting at the same time;
+			// random time can be anywhere from 0 seconds to 1.38 hour.
+			time.Sleep(time.Second * time.Duration(rand.Intn(5000)))
 
 			go func(warning Warning) {
 				defer wg.Done()

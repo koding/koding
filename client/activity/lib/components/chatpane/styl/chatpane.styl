@@ -10,6 +10,60 @@
   kalc                      height, 100vh \- 52px
   vendor                    flex-direction, column
 
+.ChatPane-infoContainer
+  padding                   10px 20px 10px 34px
+  line-height               22px
+  max-width                 610px
+
+  .ChatPane-channelName
+    font-size               20px
+    color                   $gray-8
+    margin-bottom           10px
+
+  .ChatPane-channelDescription
+    color                   $gray-8
+
+  .ChatPane-actionContainer
+    margin-top              10px
+
+    a
+      rel()
+      dIBlock()
+      margin-right          20px
+
+      &:before
+        rel()
+        dIBlock()
+        top                 2px
+        content             ''
+        margin-right        5px
+
+      .Tooltip-wrapper
+        hidden()
+        left                50%
+        margin-left         -38px
+        top                 -1px
+
+        &:after
+          border-top-color  #000
+
+        span
+          bg                color, #000
+
+        &.visible
+          visible()
+
+    .ChatPane-inviteOthersAction:before
+      r-sprite              'activity', 'invite-people'
+
+    .ChatPane-startCollaborationAction:before
+      r-sprite              'activity', 'start-collaboration'
+
+    .ChatPane-addIntegrationAction:before
+      height                17px !important
+      bg                    position, 0px -353px !important
+      r-sprite              'activity', 'add-integration'
+
 .ChatPane-body
   padding                   0
   vendor                    flex, 1
