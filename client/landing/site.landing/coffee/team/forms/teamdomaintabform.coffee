@@ -62,6 +62,6 @@ module.exports = class TeamDomainTab extends KDFormView
     """
     {{> @inputView}}
     <div class='TeamsModal-button-separator'></div>
-    {{> @backLink}}
     {{> @button}}
+    {{> @backLink}}
     """

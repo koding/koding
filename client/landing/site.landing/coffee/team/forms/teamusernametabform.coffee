@@ -101,6 +101,6 @@ module.exports = class TeamUsernameTabForm extends KDFormView
     <div class='login-input-view'><span>Password</span>{{> @password}}{{> @passwordStrength}}</div>
     <p class='dim'></p>
     <div class='TeamsModal-button-separator'></div>
-    {{> @backLink}}
     {{> @button}}
+    {{> @backLink}}
     """

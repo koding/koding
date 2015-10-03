@@ -68,6 +68,6 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
       <div class='login-input-view'><span>Username</span>{{> @username}}</div>
       <div class='login-input-view password'><span>Password</span>{{> @password}}{{> @passwordStrength}}</div>
       <div class='TeamsModal-button-separator'></div>
-      {{> @loginLink}}
       {{> @button}}
+      {{> @loginLink}}
       """
