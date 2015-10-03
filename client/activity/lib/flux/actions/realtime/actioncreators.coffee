@@ -15,7 +15,12 @@ bindChannelEvents = (channel) ->
 
     channel.on 'MessageAdded', (message) ->
       bindMessageEvents message
-      dispatch actions.LOAD_MESSAGE_SUCCESS, { channel, message, channelId: channel.id }
+
+      _channel = kd.singletons.socialapi.retrieveCachedItemById message.initialChannelId
+      dispatch actions.LOAD_MESSAGE_SUCCESS,
+        channel   : _channel
+        channelId : _channel.id
+        message   : message
 
     channel.on 'MessageRemoved', (message) ->
       dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: message.id }
