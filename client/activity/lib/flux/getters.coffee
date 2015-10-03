@@ -177,6 +177,7 @@ followedPublicChannelThreads = [
       return thread.set 'channel', channel
 ]
 
+
 # Returns all public channels with followed/unfollowed filters
 filteredPublicChannels = [
   channelThreads
