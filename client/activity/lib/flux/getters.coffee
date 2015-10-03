@@ -5,6 +5,7 @@ whoami                     = require 'app/util/whoami'
 isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
+getGroup                   = require 'app/util/getGroup'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -34,6 +35,14 @@ SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
 SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
+
+
+FollowedPublicChannelIdsStore = [
+  FollowedPublicChannelIdsStore
+  (ids) ->
+    groupChannelId = getGroup().socialApiChannelId
+    ids.filter (id) -> id isnt groupChannelId
+]
 
 
 allChannels = [
