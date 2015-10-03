@@ -31,6 +31,7 @@ module.exports = class ActivityAppController extends AppController
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
     helper.loadFonts()
+    helper.loadEmojiStyles()
 
 
   post: (options = {}, callback = noop) ->
@@ -154,3 +155,11 @@ helper =
 
     KodingAppsController.appendHeadElement 'script', options
 
+
+  loadEmojiStyles: ->
+
+    options =
+      identifier : 'emojis'
+      url        : '/a/static/emojify/emojify.css'
+
+    KodingAppsController.appendHeadElement 'style', options
