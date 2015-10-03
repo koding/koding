@@ -261,7 +261,7 @@ module.exports = class SocialApiController extends KDController
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
 
-    if not isKoding() and item.typeConstant is 'privatemessage'
+    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
       item.payload or= {}
       item.payload._name = data.name
       item.name = data.purpose
