@@ -16,12 +16,14 @@ module.exports = class ThreadSidebar extends React.Component
 
   render: ->
     <div className="ThreadSidebar">
-      <ThreadSidebarContentBox title="Participants">
+      <ThreadSidebarContentBox title="PARTICIPANTS">
         <ChannelParticipantAvatars
           channelThread={@props.channelThread}
           participants={@props.channelParticipants} />
       </ThreadSidebarContentBox>
-      <ThreadSidebarContentBox title="SHARED VMs & COLLABORATION">
+      <ThreadSidebarContentBox className='dnd-collaborate' title="SHARED VMs & COLLABORATION">
+        <p className="ThreadSidebarContentBox-info">Drag a VM to share it with your teammates</p>
+        <p className="ThreadSidebarContentBox-info">Drag a Workspace to collaborate</p>
       </ThreadSidebarContentBox>
     </div>
 

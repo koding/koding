@@ -1,15 +1,27 @@
 .ThreadSidebarContentBox
   margin                    0 0 20px
 
+  &.dnd-collaborate .ThreadSidebarContentBox-content
+    padding                 20px
+    border                  1px dashed #D3D3D3
+    rounded                 2px
+
+
 .ThreadSidebarContentBox-header
   font-family               $ff-title
   font-size                 11px
   font-weight               $fw-regular
-  letter-spacing            2px
+  letter-spacing            .06em
   text-transform            uppercase
   color                     #9c9c9c
   line-height               $fs-big
   margin                    0 0 10px
+
+.ThreadSidebarContentBox-content
+  .ThreadSidebarContentBox-info
+    text-align              center
+    font-size               $fs-small
+    color                   #A2A2A2
 
 // @media only screen and (max-width : 950px)
 //   .ThreadSidebarContentBox.secondary
