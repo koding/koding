@@ -2,7 +2,6 @@ package models
 
 import (
 	"socialapi/request"
-	"strconv"
 
 	"github.com/koding/bongo"
 )
@@ -130,7 +129,6 @@ func (c *ChannelMessageContainer) SetGenerics(query *request.Query) *ChannelMess
 	c.AddReplies(query)
 	c.AddRepliesCount(query)
 	c.AddInteractions(query)
-	c.AddIntegration()
 
 	return c
 }
@@ -234,21 +232,6 @@ func (cc *ChannelMessageContainer) AddIsInteracted(query *request.Query) *Channe
 		c.Interactions["like"].IsInteracted = isInteracted
 		if cc.Replies != nil {
 			cc.Replies = *cc.Replies.AddIsInteracted(query)
-		}
-
-		return nil
-	})
-}
-
-func (cc *ChannelMessageContainer) AddIntegration() *ChannelMessageContainer {
-	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
-		channelIntegration := cc.Message.GetPayload(ChannelMessagePayloadKeyIntegration)
-		if channelIntegration != nil && *channelIntegration != "" {
-			id, _ := strconv.ParseInt(*channelIntegration, 10, 64)
-			cim, err := Cache.Integration.ByChannelIntegrationId(id)
-			c.Integration = cim
-
-			return err
 		}
 
 		return nil
