@@ -246,34 +246,6 @@ func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParti
 	return response.NewOK(participants)
 }
 
-// DeletePrivateChannelMessages deletes all channel messages from a private message channel
-// when there are no more participants
-func DeleteDesertedChannelMessages(channelId int64) error {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return err
-	}
-
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
-		return nil
-	}
-
-	cp := models.NewChannelParticipant()
-	cp.ChannelId = c.Id
-	count, err := cp.FetchParticipantCount()
-	if err != nil {
-		return err
-	}
-
-	if count != 0 {
-		return nil
-	}
-
-	// no need to keep the channel any more
-	return c.Delete()
-}
-
 func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 
@@ -349,6 +321,34 @@ func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, []*models.ChannelParticipant{cp})
 
 	return response.NewDefaultOK()
+}
+
+// DeletePrivateChannelMessages deletes all channel messages from a private message channel
+// when there are no more participants
+func DeleteDesertedChannelMessages(channelId int64) error {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return err
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
+		return nil
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	count, err := cp.FetchParticipantCount()
+	if err != nil {
+		return err
+	}
+
+	if count != 0 {
+		return nil
+	}
+
+	// no need to keep the channel any more
+	return c.Delete()
 }
 
 func updateStatus(participant *models.ChannelParticipant, query *request.Query, ctx *models.Context) (*models.ChannelParticipant, error) {
