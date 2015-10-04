@@ -788,7 +788,7 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	// * they are in a group different from koding
 	// ** trying to follow/read a topic content
 	groupChan := NewChannel()
-	if err := groupChan.FetchPublicChannel(c.GroupName); err != nil {
+	if err := groupChan.FetchGroupChannel(c.GroupName); err != nil {
 		return false, err
 	}
 
@@ -911,7 +911,7 @@ func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	return cp.IsParticipant(accountId)
 }
 
-func (c *Channel) FetchPublicChannel(groupName string) error {
+func (c *Channel) FetchGroupChannel(groupName string) error {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"group_name":    groupName,

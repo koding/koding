@@ -83,7 +83,7 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 
 	// find the group channel
 	ch := models.NewChannel()
-	err = ch.FetchPublicChannel(c.GroupName)
+	err = ch.FetchGroupChannel(c.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
