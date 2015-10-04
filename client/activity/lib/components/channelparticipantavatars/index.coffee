@@ -252,9 +252,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
         {@renderMoreCount()}
         {@renderNewParticipantButton()}
       </div>
-        {@renderAddNewParticipantInput()}
-        {@renderAllParticipantsMenu()}
-        {@renderAddNewChannelParticipantsDropdown()}
+      {@renderAddNewParticipantInput()}
+      {@renderAllParticipantsMenu()}
+      {@renderAddNewChannelParticipantsDropdown()}
     </div>
 
 
