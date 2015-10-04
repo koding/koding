@@ -487,6 +487,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     kd.singletons.mainController.ready =>
       if isReactivityEnabled()
         @addReactivitySidebarSections()
+        # @addInviteMembersSection()
       else
         @addFollowedTopics()
         @addMessages()
@@ -736,6 +737,32 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     SidebarSectionsView = require 'app/components/sidebarsections/view'
 
     @addSubView new SidebarSectionsView
+
+
+  # addInviteMembersSection: ->
+
+  #   { groupsController } = kd.singletons
+  #   groupsController.ready =>
+
+  #     currentGroup = groupsController.getCurrentGroup()
+  #     currentGroup.fetchMyRoles (err, roles = []) =>
+
+  #       return kd.warn err  if err
+  #       return unless 'admin' in roles
+
+  #       @addSubView section = new kd.CustomHTMLView
+  #         tagName  : 'section'
+  #         cssClass : 'warning-section invite'
+  #         partial  : """
+  #           <div class='no-stacks'>
+  #             <label>Invite your team</label>
+  #             <p>
+  #               Send out invites to<br/>
+  #               your teammates.
+  #             </p>
+  #             <a href='/Admin/Invitations'>Invite</a>
+  #           </div>
+  #           """
 
 
   addFollowedTopics: ->
