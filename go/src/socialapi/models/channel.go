@@ -1027,3 +1027,8 @@ func (c *Channel) ShowUnreadCount() bool {
 		c.TypeConstant == Channel_TYPE_TOPIC ||
 		c.TypeConstant == Channel_TYPE_BOT
 }
+
+// IsGroup checks if the channel type is a group channel
+func (c *Channel) IsGroup() bool {
+	return c.TypeConstant == Channel_TYPE_GROUP
+}
