@@ -223,7 +223,7 @@ func getTopicDiff(channels []models.Channel, topics []string, excludedChannelId 
 	// aggregate all channel names into map
 	channelNames := map[string]struct{}{}
 	for _, channel := range channels {
-		if excludedChannelId != channel.GetId() && channel.TypeConstant != models.Channel_TYPE_GROUP {
+		if excludedChannelId != channel.GetId() && !channel.IsGroup() {
 			channelNames[channel.Name] = struct{}{}
 		}
 	}
