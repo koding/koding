@@ -682,13 +682,8 @@ func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
 		return c, nil
 	}
 
-	ch := NewChannel()
-	selector := map[string]interface{}{
-		"group_name":    c.GroupName,
-		"type_constant": Channel_TYPE_GROUP,
-	}
-
-	if err := ch.One(bongo.NewQS(selector)); err != nil {
+	ch, err := Cache.Channel.ByGroupName(c.GroupName)
+	if err != nil {
 		return nil, err
 	}
 
