@@ -157,11 +157,17 @@ func isKodingPost(data *models.ChannelMessage) (bool, error) {
 	return true, nil
 }
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
+	f.log.Debug("update message %s", data.Id)
+
 	if res, _ := isEligible(data); !res {
 		return nil
 	}
 
-	f.log.Debug("update message %s", data.Id)
+	// if this is not a koding post, we dont case about the rest
+	if isKodingPost, err := isKodingPost(data); !isKodingPost {
+		return err // even tho this is not a koding post, err can be nil
+	}
+
 	// fetch message's current topics from the db
 	channels, err := fetchMessageChannels(data.Id)
 	if err != nil {
