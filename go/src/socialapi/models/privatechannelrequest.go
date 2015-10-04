@@ -391,14 +391,11 @@ func (p *ChannelRequest) createMessage(channelId int64, typeConstant string) (*C
 }
 
 func getBody(p *ChannelRequest, typeConstant string) string {
-	switch typeConstant {
-	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
-		return p.Body
-	case ChannelMessage_TYPE_SYSTEM:
+	if typeConstant == ChannelMessage_TYPE_SYSTEM {
 		return "system"
 	}
 
-	return ""
+	return p.Body
 }
 
 func formatParticipantIds(participantIds []int64) string {
