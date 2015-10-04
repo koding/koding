@@ -51,7 +51,25 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return err
 	}
 
-	return f.ensureChannelMessages(c, data, topics)
+	parent, err := data.FetchParentChannel()
+	if err != nil {
+		return err
+	}
+
+	// if message is posted to a non-group channel directly (eg: topic), make
+	// sure that message is also persisted in group channel too
+	if !c.IsGroup() {
+		if _, err := parent.EnsureMessage(data, true); err != nil && err != models.ErrMessageAlreadyInTheChannel {
+			return err
+		}
+	}
+
+	// we only operate on koding group's messages
+	if parent.GroupName != models.Channel_KODING_NAME {
+		return nil
+	}
+
+	return f.ensureChannelMessages(parent, data, topics)
 }
 
 func (f *Controller) ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
