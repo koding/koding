@@ -1,4 +1,4 @@
-package activity
+package pinnedactivity
 
 import (
 	"errors"
