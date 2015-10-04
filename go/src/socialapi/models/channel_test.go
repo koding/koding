@@ -1369,7 +1369,7 @@ func TestChannelDelete(t *testing.T) {
 	})
 }
 
-func TestFetchPublicChannel(t *testing.T) {
+func TestFetchGroupChannel(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -1388,7 +1388,7 @@ func TestFetchPublicChannel(t *testing.T) {
 		So(err, ShouldBeNil)
 		Convey("it should return a public channel with given group name", func() {
 			pc := NewChannel()
-			err := pc.FetchPublicChannel(c.GroupName)
+			err := pc.FetchGroupChannel(c.GroupName)
 			So(err, ShouldBeNil)
 			So(pc.GroupName, ShouldEqual, c.GroupName)
 			So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)

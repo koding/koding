@@ -108,11 +108,11 @@ func fetchInitialChannelId(u *url.URL, context *models.Context) (int64, error) {
 		return channelId, nil
 	}
 
-	return fetchPublicChannelId(context.GroupName)
+	return FetchGroupChannelId(context.GroupName)
 }
 
 // TODO when we implement Team product, we will need a better caching mechanism
-func fetchPublicChannelId(groupName string) (int64, error) {
+func FetchGroupChannelId(groupName string) (int64, error) {
 
 	if groupName == "koding" && publicChannel != nil {
 		return publicChannel.Id, nil
@@ -123,7 +123,7 @@ func fetchPublicChannelId(groupName string) (int64, error) {
 		publicChannel = channel
 	}
 
-	if err := channel.FetchPublicChannel(groupName); err != nil {
+	if err := channel.FetchGroupChannel(groupName); err != nil {
 		return 0, err
 	}
 
