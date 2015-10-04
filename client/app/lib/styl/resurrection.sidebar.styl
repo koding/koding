@@ -364,15 +364,15 @@ sidebarTextShadow()
           // bg          color, #8CEE71
           // border      2px solid #8CEE71
         > .progressbar-container
-          size        100% 3px
-          background  none
-          border      none
-          abs         0 0 0px 0px
-          rounded     1px
+          abs               0 0 0px 0px
+          background        none
+          border            none
+          rounded           1px
+          size              95% 3px
           .bar
-            background  #4BA148
-            border      none
-            shadow      none
+            background      #4BA148
+            border          none
+            shadow          none
 
   .ws-add-icon
   .ws-settings-icon
@@ -854,9 +854,7 @@ h3.sidebar-title
       r-sprite              app , 'plus-16'
 
     &.buy-vm
-      abs()
-      top                   15px
-      right                 0
+      abs                   15px -2px 0 0
 
   cite.count
     top                     11px
@@ -1063,15 +1061,15 @@ h3.sidebar-title
       &.reconnecting > figure
         border-color   #FFC884
       > .progressbar-container
-        size        100% 3px
-        background  none
-        border      none
-        abs         24px 0 0 0
-        rounded     1px
+        abs                 24px 0 0 0
+        background          none
+        border              none
+        rounded             1px
+        size                95% 3px
         .bar
-          background  #4BA148
-          border      none
-          shadow      none
+          background        #4BA148
+          border            none
+          shadow            none
 
   .workspaces-link
     border-bottom           none
