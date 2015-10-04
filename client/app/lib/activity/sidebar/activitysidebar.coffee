@@ -553,7 +553,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
           <a href='/Messages/New'>Message admin</a>
           """
 
-      cssClass = 'stack-warning hidden'
+      cssClass = 'warning-section hidden'
       view     = new KDCustomHTMLView { cssClass, partial }
 
       @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
