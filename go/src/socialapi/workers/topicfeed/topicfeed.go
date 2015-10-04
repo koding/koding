@@ -40,11 +40,6 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return nil
 	}
 
-	topics := extractTopics(data.Body)
-	if len(topics) == 0 {
-		return nil
-	}
-
 	c, err := models.Cache.Channel.ById(data.InitialChannelId)
 	if err != nil {
 		f.log.Error("Error on models.Cache.Channel.ById", data.InitialChannelId, err)
@@ -66,6 +61,11 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 
 	// we only operate on koding group's messages
 	if parent.GroupName != models.Channel_KODING_NAME {
+		return nil
+	}
+
+	topics := extractTopics(data.Body)
+	if len(topics) == 0 {
 		return nil
 	}
 
