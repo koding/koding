@@ -347,3 +347,44 @@ func TestMessageUpdated(t *testing.T) {
 	})
 }
 
+func TestMessageDeleted(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	// init mongo connection
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	controller := topicfeed.New(r.Log, appConfig)
+
+	Convey("while testing MessageDeleted", t, func() {
+
+		account := models.CreateAccountWithTest()
+		groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
+		topicChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, "koding")
+
+		topicName := topicChannel.Name
+		c := models.NewChannelMessage()
+		c.InitialChannelId = groupChannel.Id
+		c.AccountId = account.Id
+		c.Body = "my test post with a hashTag #" + topicName
+		c.TypeConstant = models.ChannelMessage_TYPE_POST
+
+		// create with unscoped
+		err := bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+		So(err, ShouldBeNil)
+
+		So(controller.MessageSaved(c), ShouldBeNil)
+		So(controller.MessageDeleted(c), ShouldBeNil)
+
+		Convey("messages should be deleted from other channels", func() {
+			m, err := topicChannel.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(m, ShouldBeNil)
+		})
+	})
+}
