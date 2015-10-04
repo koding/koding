@@ -142,6 +142,20 @@ func filterTopics(topics map[string]struct{}) map[string]struct{} {
 	return filteredTopics
 
 }
+
+func isKodingPost(data *models.ChannelMessage) (bool, error) {
+	parent, err := data.FetchParentChannel()
+	if err != nil {
+		return false, err
+	}
+
+	// we only operate on koding group's messages
+	if parent.GroupName != models.Channel_KODING_NAME {
+		return false, nil
+	}
+
+	return true, nil
+}
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 	if res, _ := isEligible(data); !res {
 		return nil
