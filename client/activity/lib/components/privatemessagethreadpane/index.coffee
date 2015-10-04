@@ -7,8 +7,9 @@ classnames                = require 'classnames'
 PrivateChatPane           = require 'activity/components/privatechatpane'
 ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
 ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
+ThreadSidebar             = require 'activity/components/threadsidebar'
 prepareThreadTitle        = require 'activity/util/prepareThreadTitle'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+ImmutableRenderMixin      = require 'react-immutable-render-mixin'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -58,18 +59,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     />
 
 
-  renderSidebar: ->
-
-    <div className="ThreadSidebar">
-      <ThreadSidebarContentBox title="Participants">
-        <ChannelParticipantAvatars
-          channelThread = { @state.channelThread }
-          participants  = { @state.channelParticipants }
-        />
-      </ThreadSidebarContentBox>
-    </div>
-
-
   render: ->
     <div className='PrivateMessageThreadPane'>
       <section className="PrivateMessageThreadPane-content">
@@ -83,7 +72,9 @@ module.exports = class PrivateMessageThreadPane extends React.Component
         </div>
       </section>
       <aside className="PrivateMessageThreadPane-sidebar">
-        {@renderSidebar()}
+        <ThreadSidebar
+          channelThread={@state.channelThread}
+          channelParticipants={@state.channelParticipants}/>
       </aside>
     </div>
 

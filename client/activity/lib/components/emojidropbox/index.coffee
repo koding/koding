@@ -21,6 +21,7 @@ module.exports = class EmojiDropbox extends React.Component
     items          : immutable.List()
     selectedIndex  : 0
     selectedItem   : null
+    query          : ''
 
 
   formatSelectedValue: -> formatEmojiName @props.selectedItem
@@ -84,7 +85,7 @@ module.exports = class EmojiDropbox extends React.Component
 
   renderList: ->
 
-    { items, selectedIndex } = @props
+    { items, selectedIndex, query } = @props
 
     items.map (item, index) =>
       isSelected = index is selectedIndex
@@ -93,6 +94,7 @@ module.exports = class EmojiDropbox extends React.Component
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
+        query       = { query }
         onSelected  = { @bound 'onItemSelected' }
         onConfirmed = { @bound 'confirmSelectedItem' }
         key         = { @getItemKey item }

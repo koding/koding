@@ -23,25 +23,6 @@ module.exports = class PublicChatPane extends React.Component
       showCollaborationTooltip : no
 
 
-  componentDidMount: ->
-
-    document.addEventListener 'click', @bound 'setTooltipStates'
-
-
-  setTooltipStates: (event) ->
-
-    className = event.target.parentNode.className
-
-    return @setState showCollaborationTooltip: no  if className is 'ChatPane-addIntegrationAction'
-    return @setState showIntegrationTooltip: no  if className is 'ChatPane-startCollaborationAction'
-
-    kd.utils.stopDOMEvent event
-
-    @setState
-      showIntegrationTooltip   : no
-      showCollaborationTooltip : no
-
-
   channel: (key) -> @props.thread?.getIn ['channel', key]
 
 
@@ -73,8 +54,10 @@ module.exports = class PublicChatPane extends React.Component
   startCollaboration: (event) ->
 
     kd.utils.stopDOMEvent event
-    event.stopPropagation()
-    @setState showCollaborationTooltip: not @state.showCollaborationTooltip
+
+    @setState showCollaborationTooltip: yes
+
+    kd.utils.wait 2000, => @setState showCollaborationTooltip: no
 
 
   inviteOthers: (event) ->
@@ -91,8 +74,10 @@ module.exports = class PublicChatPane extends React.Component
   addIntegration: (event) ->
 
     kd.utils.stopDOMEvent event
-    event.stopPropagation()
-    @setState showIntegrationTooltip: not @state.showIntegrationTooltip
+
+    @setState showIntegrationTooltip: yes
+
+    kd.utils.wait 2000, => @setState showIntegrationTooltip: no
 
 
   renderFollowChannel: ->

@@ -94,7 +94,7 @@ module.exports = class ChannelThreadPane extends React.Component
       onDragOver={@bound 'onDragOver'}
       onDragLeave={@bound 'onDragLeave'}
       className={@getDropTargetClassNames()}>
-      <div className='ChannelThreadPane-dropContainerContent'>Drop VM's here<br/> to start collaborating</div>
+      <div className='ChannelThreadPane-dropContainerContent'>Drop VMs here<br/> to start collaborating</div>
     </div>
 
 
@@ -166,6 +166,12 @@ reset = (props, state) ->
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
+
+      if postId
+        messageActions.changeSelectedMessage postId
+      else
+        messageActions.changeSelectedMessage null
+
   else if not state.channelThread
     thread.changeSelectedThread null
 

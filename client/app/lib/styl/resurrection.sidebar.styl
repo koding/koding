@@ -154,7 +154,7 @@ sidebarTextShadow()
     size                    24px 19px
     line-height             16px
     color                   #fff
-    abs                     0px 0px 0 0
+    abs                     0px -5px 0 0
     font-size               11px
     font-weight             700
     background              sidebarCountBg
@@ -364,15 +364,15 @@ sidebarTextShadow()
           // bg          color, #8CEE71
           // border      2px solid #8CEE71
         > .progressbar-container
-          size        100% 3px
-          background  none
-          border      none
-          abs         0 0 0px 0px
-          rounded     1px
+          abs               0 0 0px 0px
+          background        none
+          border            none
+          rounded           1px
+          size              95% 3px
           .bar
-            background  #4BA148
-            border      none
-            shadow      none
+            background      #4BA148
+            border          none
+            shadow          none
 
   .ws-add-icon
   .ws-settings-icon
@@ -798,7 +798,7 @@ sidebarTextShadow()
     .avatar-area
       padding               8px
       .avatarview
-        abs                 8px 8px 0 0
+        abs                 8px 13px 0 0
         float               none
         margin-right        0
         pointer()
@@ -813,7 +813,7 @@ sidebarTextShadow()
         size                14px 14px
         abs                 0px 1px initial initial
         span.count
-          abs               0px 0px initial initial
+          abs               0px 10px initial initial
           border            2px solid #262626
           rounded           8px
 
@@ -854,9 +854,7 @@ h3.sidebar-title
       r-sprite              app , 'plus-16'
 
     &.buy-vm
-      abs()
-      top                   15px
-      right                 0
+      abs                   15px -2px 0 0
 
   cite.count
     top                     11px
@@ -1050,12 +1048,10 @@ h3.sidebar-title
         border              3px solid sidebarGray
         borderBox()
       > span
-        r-sprite    app vm-settings-icon
-        right       2px
-        top         4px
-        opacity     0
-        vendor      transition, opacity .1s .1s ease
-        abs()
+        abs                 4px -5px 0 0
+        opacity             0
+        r-sprite            app vm-settings-icon
+        vendor              transition, opacity .1s .1s ease
       &:hover > span
         opacity     1
       &.running > figure
@@ -1065,15 +1061,15 @@ h3.sidebar-title
       &.reconnecting > figure
         border-color   #FFC884
       > .progressbar-container
-        size        100% 3px
-        background  none
-        border      none
-        abs         24px 0 0 0
-        rounded     1px
+        abs                 24px 0 0 0
+        background          none
+        border              none
+        rounded             1px
+        size                95% 3px
         .bar
-          background  #4BA148
-          border      none
-          shadow      none
+          background        #4BA148
+          border            none
+          shadow            none
 
   .workspaces-link
     border-bottom           none
@@ -1095,7 +1091,7 @@ h3.sidebar-title
     &:hover
       color                 sidebarActive
 
-  .stack-warning
+  .warning-section
     margin                  0 0 32px
     text-align              center
 
@@ -1136,6 +1132,9 @@ h3.sidebar-title
       font-size             12px
       line-height           22px
       margin-bottom         16px
+
+    // &.invite
+    //   abs                   0 0 10px 0
 
 
   .sidebar-machine-box.selected
