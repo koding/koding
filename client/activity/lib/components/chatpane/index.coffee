@@ -2,6 +2,7 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 ChatList             = require 'activity/components/chatlist'
 ActivityFlux         = require 'activity/flux'
+whoami               = require 'app/util/whoami'
 Scroller             = require 'app/components/scroller'
 ScrollerMixin        = require 'app/components/scroller/scrollermixin'
 Link                 = require 'app/components/common/link'
@@ -62,13 +63,21 @@ module.exports = class ChatPane extends React.Component
     'visible': @props.showIntegrationTooltip
 
 
+  renderAuthor: ->
+
+    if @props.createdBy._id is whoami()._id
+      <strong>you</strong>
+    else
+      <ProfileLinkContainer origin={@props.createdBy}>
+        <ProfileText />
+      </ProfileLinkContainer>
+
+
   renderProfileLink: ->
 
     createdAt = @getChannelCreationDate @channel 'createdAt'
     <span>, created by&nbsp;
-      <ProfileLinkContainer origin={@props.createdBy}>
-        <ProfileText />
-      </ProfileLinkContainer> {createdAt}. <br/>
+      {@renderAuthor()} {createdAt}. <br/>
     </span>
 
   renderChannelName: ->
