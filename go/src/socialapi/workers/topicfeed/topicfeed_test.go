@@ -277,3 +277,73 @@ func TestFetchTopicChannel(t *testing.T) {
 		})
 	})
 }
+
+func TestMessageUpdated(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	// init mongo connection
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	controller := topicfeed.New(r.Log, appConfig)
+
+	Convey("while testing MessageUpdated", t, func() {
+
+		Convey("if message is non-koding post", func() {
+			account, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
+
+			topicChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
+
+			topicName := topicChannel.Name
+			c := models.NewChannelMessage()
+			c.InitialChannelId = groupChannel.Id
+			c.AccountId = account.Id
+			c.Body = "my test post with a hashTag #" + topicName
+			c.TypeConstant = models.ChannelMessage_TYPE_POST
+
+			// create with unscoped
+			err := bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+			So(err, ShouldBeNil)
+
+			So(controller.MessageUpdated(c), ShouldBeNil)
+
+			Convey("should not be posted to other channel", func() {
+				m, err := topicChannel.FetchLastMessage()
+				So(err, ShouldBeNil)
+				So(m, ShouldBeNil)
+			})
+		})
+		Convey("if message is a koding post", func() {
+			account := models.CreateAccountWithTest()
+			groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
+
+			topicChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, "koding")
+
+			topicName := topicChannel.Name
+			c := models.NewChannelMessage()
+			c.InitialChannelId = groupChannel.Id
+			c.AccountId = account.Id
+			c.Body = "my test post with a hashTag #" + topicName
+			c.TypeConstant = models.ChannelMessage_TYPE_POST
+
+			// create with unscoped
+			err := bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+			So(err, ShouldBeNil)
+
+			So(controller.MessageUpdated(c), ShouldBeNil)
+
+			Convey("should be posted to other channel", func() {
+				m, err := topicChannel.FetchLastMessage()
+				So(err, ShouldBeNil)
+				So(m, ShouldNotBeNil)
+				So(m.Id, ShouldEqual, c.Id)
+			})
+		})
+	})
+}
+
