@@ -6,6 +6,8 @@ Scroller       = require 'app/components/scroller'
 ScrollerMixin  = require 'app/components/scroller/scrollermixin'
 classnames     = require 'classnames'
 
+PublicChannelListItem = require 'activity/components/publicchannellistitem'
+
 module.exports = class SidebarModalThreadList extends React.Component
 
   @include [ScrollerMixin]
@@ -21,14 +23,14 @@ module.exports = class SidebarModalThreadList extends React.Component
 
   renderChildren: ->
 
-    { itemComponent: Component, onItemClick, threads } = @props
+    { onItemClick, threads } = @props
 
     threads.toList().map (thread, i) ->
       itemProps =
         thread      : thread
         key         : thread.get 'channelId'
         onItemClick : onItemClick
-      <Component {...itemProps} />
+      <PublicChannelListItem {...itemProps} />
 
 
   renderNoResultText: ->
@@ -43,7 +45,7 @@ module.exports = class SidebarModalThreadList extends React.Component
 
   render: ->
 
-    <div className={"ChannelList #{@props.className}"}>
+    <div className={"SidebarModalThreadList #{@props.className}"}>
       <Scroller
         onThresholdReached={@bound 'onThresholdReached'}
         ref="scrollContainer">

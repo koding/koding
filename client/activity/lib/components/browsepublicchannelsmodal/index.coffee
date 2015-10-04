@@ -29,6 +29,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
   getDataBindings: ->
 
     filteredPublicChannels: ActivityFlux.getters.filteredPublicChannels
+    selectedThread: ActivityFlux.getters.selectedChannelThread
 
 
   onItemClick: ->
@@ -58,13 +59,6 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
       'hidden'          : mode is MODE.SEARCH
 
 
-  getChannelsClassName: (_mode) ->
-
-    { mode } = @state
-    return classnames
-      'hidden' : mode is _mode
-
-
   handleYourChannelsClick: ->
 
     @setState { mode : MODE.YOUR_CHANNELS }
@@ -73,6 +67,14 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
   handleOtherChannelsClick: ->
 
     @setState { mode : MODE.OTHER_CHANNELS }
+
+
+  onYourChannelsThresholdReached: (options) ->
+
+    ActivityFlux.actions.channel.loadFollowedPublicChannels options
+
+
+  onOtherChannelsThresholdReached: (options) ->
 
 
   renderHeader: ->
@@ -90,19 +92,28 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     </div>
 
 
-  render: ->
+  renderList: ->
 
-    { filteredPublicChannels } = @state
+    { filteredPublicChannels, mode } = @state
     yourChannels  = filteredPublicChannels.followed
     otherChannels = filteredPublicChannels.unfollowed
+
+    switch mode
+      when MODE.YOUR_CHANNELS
+        <SidebarModalThreadList threads={yourChannels} onThreasholdReached={ @bound 'onYourChannelsThresholdReached' }  />
+      when MODE.OTHER_CHANNELS
+        <SidebarModalThreadList threads={otherChannels} onThreasholdReached={ @bound 'onOtherChannelsThresholdReached' } />
+
+
+  render: ->
 
     <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
       <div className='ChannelListWrapper'>
         { @renderHeader() }
         <div className={@getTabClassName MODE.YOUR_CHANNELS} onClick={@bound 'handleYourChannelsClick'}>Your Channels</div>
         <div className={@getTabClassName MODE.OTHER_CHANNELS} onClick={@bound 'handleOtherChannelsClick'}>Other Channels</div>
-        <SidebarModalThreadList threads={yourChannels} className={@getChannelsClassName MODE.YOUR_CHANNELS} />
-        <SidebarModalThreadList threads={otherChannels} className={@getChannelsClassName MODE.OTHER_CHANNELS} />
+        <div className='clearfix'></div>
+        { @renderList() }
       </div>
     </Modal>
 

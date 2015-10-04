@@ -186,7 +186,7 @@ filteredPublicChannels = [
     {
       followed: channels.map (channel) -> threads.get channel.get('id')
       unfollowed: threads.filterNot (thread) ->
-        channels.includes thread.getIn ['channel', 'id']
+        channels.has thread.getIn ['channel', 'id']
     }
 ]
 
