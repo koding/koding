@@ -404,6 +404,57 @@ func (g GithubListener) member(e *webhook.MemberEvent) (string, error) {
 	), nil
 }
 
+<<<<<<< Updated upstream
+=======
+func (g GithubListener) Delete(ctx context.Context, e *webhook.DeleteEvent) {
+	d, err := g.delete(e)
+	if err != nil {
+		g.Log.Error("failed to parse delete event data: %+v, err: %s", e, err.Error())
+		return
+	}
+
+	g.output(ctx, d)
+}
+
+func (g GithubListener) delete(e *webhook.DeleteEvent) (string, error) {
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
+	refType := e.RefType
+	ref := e.Ref
+	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
+
+	return fmt.Sprintf("%s deleted %s `%s` at %s",
+		user,
+		refType,
+		ref,
+		repo,
+	), nil
+}
+
+func (g GithubListener) Create(ctx context.Context, e *webhook.CreateEvent) {
+	d, err := g.create(e)
+	if err != nil {
+		g.Log.Error("failed to parse create tag or branch data: %+v, err: %s", e, err.Error())
+		return
+	}
+
+	g.output(ctx, d)
+}
+
+func (g GithubListener) create(e *webhook.CreateEvent) (string, error) {
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
+	refType := e.RefType
+	ref := e.Ref
+	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
+
+	return fmt.Sprintf("%s created %s `%s` at %s",
+		user,
+		refType,
+		ref,
+		repo,
+	), nil
+}
+
+>>>>>>> Stashed changes
 // TODO(mehmetali) limit outgoing string, should not be more than 2K char?
 func (g GithubListener) output(ctx context.Context, str string) {
 	gi, ok := FromGithubContext(ctx)
