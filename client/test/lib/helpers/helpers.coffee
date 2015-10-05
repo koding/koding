@@ -168,7 +168,7 @@ module.exports =
     browser
       .pause                    2500 # while typing something steals activity input focus
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
-      .waitForElementVisible    '.topic-public [testpath=activity-list] [testpath=ActivityListItemView]', 20000
+      .pause                    3000 # for page load
       .waitForElementVisible    '[testpath=ActivityInputView]', 30000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
