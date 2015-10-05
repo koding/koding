@@ -38,7 +38,7 @@ module.exports = class PublicChatPane extends React.Component
     return  if @props.thread.getIn ['flags', 'isMessagesLoading']
 
     from = @props.messages.first().get('createdAt')
-    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
+    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from, loadedWithScroll: yes }
 
 
   onFollowChannel: ->
