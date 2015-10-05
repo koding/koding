@@ -136,7 +136,7 @@ module.exports = class AvatarView extends LinkView
 
     kd.getSingleton("groupsController").ready =>
       {slug} = kd.getSingleton("groupsController").getCurrentGroup()
-      href = if payload
+      href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
       else if slug is 'koding'
         "/#{profile.nickname}"
