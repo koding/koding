@@ -45,7 +45,7 @@ module.exports = class ProfileLinkView extends LinkView
   updateHref: ->
     { payload } = @getOptions()
     nickname = @getData().profile?.nickname
-    href = if payload then "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
+    href = if payload?.channelIntegrationId then "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
     else if nickname then "/#{nickname}"
 
     @setAttribute "href", href  if href
