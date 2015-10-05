@@ -65,7 +65,7 @@ module.exports = class ProfileLinkView extends LinkView
     {payload} = @getOptions()
     {profile} = @getData()
     JView::pistachio.call this,
-      if payload
+      if payload?.integrationTitle
       then "#{payload.integrationTitle}"
       else if profile.firstName is "" and profile.lastName is ""
       then "{{#(profile.nickname)}} {{> @troll}}"
