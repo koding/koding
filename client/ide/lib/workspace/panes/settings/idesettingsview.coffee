@@ -46,7 +46,7 @@ module.exports = class IDESettingsView extends JView
 
     @appStorage.setValue key, value
 
-    {componentId} = @getOptions()
-    appManager = kd.getSingleton 'appManager'
+    { componentId } = @getOptions()
+    appManager      = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'updateSettings', componentId, key, value
 

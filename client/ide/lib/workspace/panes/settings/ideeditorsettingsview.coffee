@@ -97,6 +97,10 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableEmmet', state
 
+    @autoRemovePane      = new KodingSwitch
+      cssClass           : 'tiny settings-on-off'
+      callback           : (state) => @emit 'SettingsChanged', 'autoRemovePane', state
+
 
   getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
 
@@ -107,7 +111,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
       'keyboardHandler', 'scrollPastEnd', 'trimTrailingWhitespaces', 'openRecentFiles', 'useAutosave'
-      'enableAutocomplete', 'enableSnippets', 'enableEmmet'
+      'enableAutocomplete', 'enableSnippets', 'enableEmmet', 'autoRemovePane'
     ]
 
 
@@ -128,22 +132,31 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     enableAutocomplete      : yes
     highlightActiveLine     : yes
     trimTrailingWhitespaces : no
+    autoRemovePane          : no
 
 
   pistachio: ->
 
     """
       <div class="settings-header">Editor Settings</div>
-      <p>Enable autosave                 {{> @useAutosave}}</p>
-      <p>Use soft tabs                   {{> @useSoftTabs}}</p>
-      <p>Line numbers                    {{> @showGutter}}</p>
-      <p>Use word wrapping               {{> @useWordWrap}}</p>
-      <p>Show print margin               {{> @showPrintMargin}}</p>
-      <p>Highlight active line           {{> @highlightActiveLine}}</p>
-      <p>Show invisibles                 {{> @showInvisibles}}</p>
-      <p>Use scroll past end             {{> @scrollPastEnd}}</p>
+      <p>Enable autosave                        {{> @useAutosave}}</p>
+      <p>Use soft tabs                          {{> @useSoftTabs}}</p>
+      <p>Line numbers                           {{> @showGutter}}</p>
       <p>
-        <span title="Trim trailing whitespaces on save">Trim trailing whitespaces...</span>
+        <span title="Remove pane when last tab closed">
+          Remove pane when last tab closed
+        </span>
+        {{> @autoRemovePane}}
+      </p>
+      <p>Use word wrapping                      {{> @useWordWrap}}</p>
+      <p>Show print margin                      {{> @showPrintMargin}}</p>
+      <p>Highlight active line                  {{> @highlightActiveLine}}</p>
+      <p>Show invisibles                        {{> @showInvisibles}}</p>
+      <p>Use scroll past end                    {{> @scrollPastEnd}}</p>
+      <p>
+        <span title="Trim trailing whitespaces on save">
+          Trim trailing whitespaces on save
+        </span>
         {{> @trimTrailingWhitespaces}}
       </p>
       <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
