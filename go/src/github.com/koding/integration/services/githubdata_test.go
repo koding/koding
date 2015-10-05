@@ -1782,8 +1782,6 @@ const (
   }
 }`
 
-<<<<<<< Updated upstream
-=======
 	createBranchData = `{
   "ref": "createdBranch",
   "ref_type": "branch",
@@ -2122,7 +2120,6 @@ const (
   }
 }`
 
->>>>>>> Stashed changes
 	memberData = `{
   "action": "added",
   "member": {

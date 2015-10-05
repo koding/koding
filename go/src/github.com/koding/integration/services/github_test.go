@@ -67,8 +67,6 @@ func TestGithubCommitComment(t *testing.T) {
 	equals(t, exp, d)
 }
 
-<<<<<<< Updated upstream
-=======
 func TestGithubCreateBranch(t *testing.T) {
 	whd := &webhook.CreateEvent{}
 	err := json.Unmarshal([]byte(createBranchData), whd)
@@ -117,7 +115,6 @@ func TestGithubDeleteTag(t *testing.T) {
 	equals(t, exp, d)
 }
 
->>>>>>> Stashed changes
 func TestGithubPullRequest(t *testing.T) {
 	whd := &webhook.PullRequestEvent{}
 	err := json.Unmarshal([]byte(pullRequestTestData), whd)

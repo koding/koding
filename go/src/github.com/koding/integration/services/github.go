@@ -404,8 +404,6 @@ func (g GithubListener) member(e *webhook.MemberEvent) (string, error) {
 	), nil
 }
 
-<<<<<<< Updated upstream
-=======
 func (g GithubListener) Delete(ctx context.Context, e *webhook.DeleteEvent) {
 	d, err := g.delete(e)
 	if err != nil {
@@ -454,7 +452,6 @@ func (g GithubListener) create(e *webhook.CreateEvent) (string, error) {
 	), nil
 }
 
->>>>>>> Stashed changes
 // TODO(mehmetali) limit outgoing string, should not be more than 2K char?
 func (g GithubListener) output(ctx context.Context, str string) {
 	gi, ok := FromGithubContext(ctx)
