@@ -13,6 +13,7 @@ immutable            = require 'immutable'
 module.exports = class ChannelInfoContainer extends React.Component
 
   @defaultProps =
+    afterInviteOthers: kd.noop
     thread: immutable.Map()
 
 
@@ -49,6 +50,8 @@ module.exports = class ChannelInfoContainer extends React.Component
     kd.utils.stopDOMEvent event
 
     ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite @'
+
+    @props.afterInviteOthers()
 
 
   renderChannelName: ->
