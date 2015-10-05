@@ -487,6 +487,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     kd.singletons.mainController.ready =>
       if isReactivityEnabled()
         @addReactivitySidebarSections()
+        # @addInviteMembersSection()
       else
         @addFollowedTopics()
         @addMessages()
@@ -546,14 +547,14 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             <h4 class='SidebarSection-headerTitle'>STACKS</h4>
           </header>
           <p>
-            Your team page has not been<br/>
-            fully configured yet please<br/>
+            Your stacks has not been<br/>
+            fully configured yet, please<br/>
             contact your team admin.
           </p>
           <a href='/Messages/New'>Message admin</a>
           """
 
-      cssClass = 'stack-warning hidden'
+      cssClass = 'warning-section hidden'
       view     = new KDCustomHTMLView { cssClass, partial }
 
       @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
@@ -736,6 +737,32 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     SidebarSectionsView = require 'app/components/sidebarsections/view'
 
     @addSubView new SidebarSectionsView
+
+
+  # addInviteMembersSection: ->
+
+  #   { groupsController } = kd.singletons
+  #   groupsController.ready =>
+
+  #     currentGroup = groupsController.getCurrentGroup()
+  #     currentGroup.fetchMyRoles (err, roles = []) =>
+
+  #       return kd.warn err  if err
+  #       return unless 'admin' in roles
+
+  #       @addSubView section = new kd.CustomHTMLView
+  #         tagName  : 'section'
+  #         cssClass : 'warning-section invite'
+  #         partial  : """
+  #           <div class='no-stacks'>
+  #             <label>Invite your team</label>
+  #             <p>
+  #               Send out invites to<br/>
+  #               your teammates.
+  #             </p>
+  #             <a href='/Admin/Invitations'>Invite</a>
+  #           </div>
+  #           """
 
 
   addFollowedTopics: ->

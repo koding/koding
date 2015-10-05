@@ -54,9 +54,6 @@ func New(c *Config) *kontrol.Kontrol {
 
 	kon := kontrol.NewWithoutHandlers(kiteConf, Version)
 
-	// track every kind of call
-	kon.Kite.PreHandleFunc(createTracker(met))
-
 	kon.Kite.HandleFunc("register",
 		metricKiteHandler(met, "HandleRegister", kon.HandleRegister),
 	)
@@ -161,27 +158,8 @@ func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) ht
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		h(w, r)
-		if err := m.Gauge(
-			"kontrolHandlerTimes",      // metric name
-			float64(time.Since(start)), // count
-			// using funcName: for consistency with callCount
-			[]string{"funcName:" + funcName},
-			1.0, // rate
-		); err != nil {
-			// TODO(cihangir) should we log/return error?
-		}
-
-		// Unlike metricKiteHandler, we have to call the count here because
-		// Kite's PreHandlerFunc doesn't exist for HTTP. So with plain HTTP
-		// methods, we have to increase the metric count manually in this func
-		if err := m.Count(
-			"kontrolCallCount", // metric name
-			1,                  // count
-			[]string{"funcName:" + r.Method}, // tags for metric call
-			1.0, // rate
-		); err != nil {
-			// TODO(cihangir) should we log/return error?
-		}
+		logGaugeMetric(m, "kontrolHandlerTimes", funcName, float64(time.Since(start)))
+		logCountMetric(m, "kontrolCallCount", funcName, 1)
 	}
 }
 
@@ -195,15 +173,8 @@ func metricKiteHandler(m *metrics.DogStatsD, funcName string, h kite.HandlerFunc
 	return func(r *kite.Request) (interface{}, error) {
 		start := time.Now()
 		hRes, hErr := h(r)
-		if err := m.Gauge(
-			"kontrolHandlerTimes", // metric name
-			float64(time.Since(start)),
-			// using funcName: for consistency with callCount
-			[]string{"funcName:" + funcName},
-			1.0, // rate
-		); err != nil {
-			// TODO(cihangir) should we log/return error?
-		}
+		logGaugeMetric(m, "kontrolHandlerTimes", funcName, float64(time.Since(start)))
+		logCountMetric(m, "kontrolCallCount", funcName, 1)
 		return hRes, hErr
 	}
 }
@@ -312,22 +283,25 @@ func authenticateMachine(authType string, r *kite.Request) error {
 	return nil
 }
 
-func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
-	return func(r *kite.Request) (interface{}, error) {
-		// if metrics not set, act as noop
-		if metrics == nil {
-			return true, nil
-		}
+func logCountMetric(m *metrics.DogStatsD, name, funcName string, value int64) {
+	if err := m.Count(
+		name,  // metric name
+		value, // count
+		[]string{"funcName:" + funcName}, // tags for metric call
+		1.0, // rate
+	); err != nil {
+		// TODO(cihangir) should we log/return error?
+	}
+}
 
-		if err := metrics.Count(
-			"kontrolCallCount", // metric name
-			1,                  // count
-			[]string{"funcName:" + r.Method}, // tags for metric call
-			1.0, // rate
-		); err != nil {
-			// TODO(cihangir) should we log/return error?
-		}
-
-		return true, nil
+func logGaugeMetric(m *metrics.DogStatsD, name, funcName string, value float64) {
+	if err := m.Gauge(
+		name,  // metric name
+		value, // count
+		// using funcName: for consistency with callCount
+		[]string{"funcName:" + funcName},
+		1.0, // rate
+	); err != nil {
+		// TODO(cihangir) should we log/return error?
 	}
 }
