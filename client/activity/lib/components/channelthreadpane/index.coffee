@@ -3,6 +3,7 @@ React                        = require 'kd-react'
 KDReactorMixin               = require 'app/flux/reactormixin'
 ActivityFlux                 = require 'activity/flux'
 immutable                    = require 'immutable'
+getGroup                     = require 'app/util/getGroup'
 classnames                   = require 'classnames'
 ThreadSidebar                = require 'activity/components/threadsidebar'
 ThreadHeader                 = require 'activity/components/threadheader'
@@ -149,7 +150,7 @@ reset = (props, state) ->
   # then load public.
   unless channelName
     unless state.channelThread
-      channelName = 'public'
+      channelName = getGroup().slug
 
   if channelName
     channel = ActivityFlux.getters.channelByName channelName
