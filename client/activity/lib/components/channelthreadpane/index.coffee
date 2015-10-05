@@ -168,4 +168,3 @@ reset = (props, state) ->
   else if not state.channelThread
     thread.changeSelectedThread null
 
-
