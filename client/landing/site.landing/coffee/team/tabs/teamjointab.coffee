@@ -47,9 +47,14 @@ module.exports = class TeamJoinTab extends KDTabPaneView
   joinTeam: (formData) ->
 
     { username } = formData
-    success      = ->
+    success      = =>
       KD.utils.storeNewTeamData 'join', formData
-      KD.utils.joinTeam()
+      KD.utils.joinTeam
+        error : ({responseText}) =>
+          if /TwoFactor/.test responseText
+            @form.showTwoFactor()
+          else
+            new KDNotificationView title : responseText
 
     if @alreadyMember then success()
     else

@@ -31,6 +31,14 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
           messages    :
             required  : 'Please enter a password.'
 
+      @tfcode = new KDInputView
+        name          : 'tfcode'
+        placeholder   : 'authentication code'
+        testPath      : 'login-form-tfcode'
+        attributes    :
+          testpath    : 'login-form-tfcode'
+
+
     email = teamData.invitation?.email
 
     @email = new KDInputView
@@ -53,12 +61,23 @@ module.exports = class TeamJoinTabForm extends TeamUsernameTabForm
       partial  : loginLinkPartial
 
 
+  showTwoFactor: ->
+
+    @$('.two-factor').removeClass 'hidden'
+    @tfcode.setFocus()
+
+
   pistachio: ->
 
     if @alreadyMember
       """
       <div class='login-input-view'><span>Password</span>{{> @password}}</div>
-      <p class='dim'>Your email address indicates that you're already a Koding user, please type your password to proceed.<br><a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a></p>
+      <div class='login-input-view two-factor hidden'><span>2-factor</span>{{> @tfcode}}</div>
+      <p class='dim'>
+        Your email address indicates that you're already a Koding user,
+        please type your password to proceed.<br>
+        <a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
+      </p>
       <div class='TeamsModal-button-separator'></div>
       {{> @button}}
       """
