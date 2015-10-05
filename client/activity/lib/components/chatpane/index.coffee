@@ -14,6 +14,7 @@ module.exports = class ChatPane extends React.Component
     messages          : null
     isDataLoading     : no
     onLoadMore        : kd.noop
+    afterInviteOthers : kd.noop
     showItemMenu      : yes
 
 
@@ -29,13 +30,19 @@ module.exports = class ChatPane extends React.Component
   onTopThresholdReached: -> @props.onLoadMore()
 
 
+  afterInviteOthers: -> @props.afterInviteOthers()
+
+
   channel: (key) -> @props.thread.getIn ['channel', key]
 
 
   renderChannelInfoContainer: ->
 
     if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
-      <ChannelInfoContainer key={@channel 'id'} thread={@props.thread} />
+      <ChannelInfoContainer
+        key={@channel 'id'}
+        thread={@props.thread}
+        afterInviteOthers={@bound 'afterInviteOthers'} />
 
 
   renderBody: ->
