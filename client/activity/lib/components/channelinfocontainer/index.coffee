@@ -7,9 +7,14 @@ Link                 = require 'app/components/common/link'
 ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 ProfileText          = require 'app/components/profile/profiletext'
 moment               = require 'moment'
+immutable            = require 'immutable'
 
 
 module.exports = class ChannelInfoContainer extends React.Component
+
+  @defaultProps =
+    thread: immutable.Map()
+
 
   constructor: (props) ->
 
