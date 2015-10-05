@@ -97,9 +97,9 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableEmmet', state
 
-    @autoRemovePane      = new KodingSwitch
+    @enableAutoRemovePane = new KodingSwitch
       cssClass           : 'tiny settings-on-off'
-      callback           : (state) => @emit 'SettingsChanged', 'autoRemovePane', state
+      callback           : (state) => @emit 'SettingsChanged', 'enableAutoRemovePane', state
 
 
   getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
@@ -111,7 +111,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
       'keyboardHandler', 'scrollPastEnd', 'trimTrailingWhitespaces', 'openRecentFiles', 'useAutosave'
-      'enableAutocomplete', 'enableSnippets', 'enableEmmet', 'autoRemovePane'
+      'enableAutocomplete', 'enableSnippets', 'enableEmmet', 'enableAutoRemovePane'
     ]
 
 
@@ -132,7 +132,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     enableAutocomplete      : yes
     highlightActiveLine     : yes
     trimTrailingWhitespaces : no
-    autoRemovePane          : no
+    enableAutoRemovePane    : no
 
 
   pistachio: ->
@@ -146,7 +146,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
         <span title="Remove pane when last tab closed">
           Remove pane when last tab closed
         </span>
-        {{> @autoRemovePane}}
+        {{> @enableAutoRemovePane}}
       </p>
       <p>Use word wrapping                      {{> @useWordWrap}}</p>
       <p>Show print margin                      {{> @showPrintMargin}}</p>

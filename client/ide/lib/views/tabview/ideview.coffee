@@ -132,21 +132,22 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   handleCloseSplitView: (handle) ->
 
-    { frontApp }    = kd.singletons.appManager
-    appStorage      = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
-    paneLength      = handle.getDelegate().panes.length
+    { frontApp } = kd.singletons.appManager
+    appStorage   = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+    paneLength   = handle.getDelegate().panes.length
 
     if not paneLength and not frontApp.targetTabView
 
-      unless appStorage.getValue 'IsAutoRemovePaneSuggested'
-        return @showSuggestAutoRemovePaneModal appStorage
+      if not appStorage.getValue 'IsAutoRemovePaneSuggested'
+        appStorage.setValue 'IsAutoRemovePaneSuggested', yes
+        return @showSuggestAutoRemovePaneModal()
 
-      @closeSplitView()  if appStorage.getValue 'autoRemovePane'
+      @closeSplitView()  if appStorage.getValue 'enableAutoRemovePane'
 
 
-  showSuggestAutoRemovePaneModal: (appStorage) ->
+  showSuggestAutoRemovePaneModal: ->
 
-    appStorage.setValue 'IsAutoRemovePaneSuggested', yes
+    { frontApp } = kd.singletons.appManager
 
     modal = new KDModalView
       title         : 'Would you like us to remove the pane when there are no tabs left?'
@@ -159,14 +160,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         'Yes'       :
           style     : 'solid green medium'
           callback  : =>
-            appStorage.setValue 'autoRemovePane', yes
+            frontApp.settingsPane.emit 'EnableAutoRemovePane'
             @closeSplitView()
             modal.destroy()
         'No'        :
           style     : 'solid red medium'
-          callback  : ->
-            appStorage.setValue 'autoRemovePane', no
-            modal.destroy()
+          callback  : -> modal.destroy()
 
 
   createSplitHandle = (type) ->
