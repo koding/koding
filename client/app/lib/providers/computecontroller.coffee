@@ -954,6 +954,6 @@ module.exports = class ComputeController extends KDController
     kd.singletons.appManager.tell 'IDE', 'tailFile', {
       file
       description:
-        "Your stack build completed successfully, in the following
-         logs you can find details about your custom stack script."
+        "Your Koding Stack has successfully been initialized. The log here
+         describes each executed step of the Stack creation process."
     }

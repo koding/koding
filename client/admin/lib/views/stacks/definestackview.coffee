@@ -108,10 +108,10 @@ module.exports = class DefineStackView extends KDView
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
-        @saveButton.enable()
+        @_credentialsPassed = yes
         @tabView.showPaneByIndex 0
       else
-        @saveButton.disable()
+        @_credentialsPassed = yes
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
@@ -183,7 +183,6 @@ module.exports = class DefineStackView extends KDView
     @buttons.addSubView @saveButton = new KDButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
-      disabled       : yes
       loader         : yes
       callback       : @bound 'handleSave'
 
@@ -195,6 +194,12 @@ module.exports = class DefineStackView extends KDView
 
 
   handleSave: ->
+
+    unless @_credentialsPassed
+      @outputView.addAndWarn "Please add your credentials to be
+                              able to save this template"
+      @saveButton.hideLoader()
+      return
 
     unless @variablesView.isPassed()
 
@@ -272,11 +277,12 @@ module.exports = class DefineStackView extends KDView
 
       action = if not stackTemplates?.length then 'addAndWarn' else 'add'
 
-      @outputView[action] "
-        Your stack script has been successfully saved and applied
-        to all your team members. You can now close this window
-        or continue working with your stack.
-      "
+      @outputView[action] """
+        Your stack script has been successfully saved and all your team
+        members now will use the stack you have just saved.
+
+        You can now close this window or continue working with your stack.
+      """
 
       @cancelButton.setTitle 'Close'
       @saveButton.hide()
