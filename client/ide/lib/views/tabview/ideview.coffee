@@ -5,6 +5,7 @@ FSFile                = require 'app/util/fs/fsfile'
 KDView                = kd.View
 FSHelper              = require 'app/util/fs/fshelper'
 IDEHelpers            = require '../../idehelpers'
+KDModalView           = kd.ModalView
 IDEEditorPane         = require '../../workspace/panes/ideeditorpane'
 IDETailerPane         = require '../../workspace/panes/idetailerpane'
 KDContextMenu         = kd.ContextMenu
@@ -117,8 +118,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       { options : { paneType } } = pane.view
       handle.off 'RenamingRequested'  if paneType is 'terminal'
 
-      if not handle.getDelegate().panes.length and not frontApp.targetTabView
-        @closeSplitView()
+      @handleCloseSplitView handle  if frontApp.fakeViewsDestroyed
 
 
     # This is a custom event for IDEApplicationTabView
@@ -128,6 +128,45 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       if view instanceof IDETerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
+
+
+  handleCloseSplitView: (handle) ->
+
+    { frontApp }    = kd.singletons.appManager
+    appStorage      = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+    paneLength      = handle.getDelegate().panes.length
+
+    if not paneLength and not frontApp.targetTabView
+
+      unless appStorage.getValue 'IsAutoRemovePaneSuggested'
+        return @showSuggestAutoRemovePaneModal appStorage
+
+      @closeSplitView()  if appStorage.getValue 'autoRemovePane'
+
+
+  showSuggestAutoRemovePaneModal: (appStorage) ->
+
+    appStorage.setValue 'IsAutoRemovePaneSuggested', yes
+
+    modal = new KDModalView
+      title         : 'Would you like us to remove the pane when there are no tabs left?'
+      cssClass      : 'autoremovepane-confirm'
+      content       : """
+        <p>You can always change this setting on preferences.</p>
+      """
+      overlay       : yes
+      buttons       :
+        'Yes'       :
+          style     : 'solid green medium'
+          callback  : =>
+            appStorage.setValue 'autoRemovePane', yes
+            @closeSplitView()
+            modal.destroy()
+        'No'        :
+          style     : 'solid red medium'
+          callback  : ->
+            appStorage.setValue 'autoRemovePane', no
+            modal.destroy()
 
 
   createSplitHandle = (type) ->
