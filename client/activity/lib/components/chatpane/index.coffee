@@ -10,11 +10,11 @@ ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title         : null
-    messages      : null
-    isDataLoading : no
-    onLoadMore    : kd.noop
-    showItemMenu  : yes
+    title             : null
+    messages          : null
+    isDataLoading     : no
+    onLoadMore        : kd.noop
+    showItemMenu      : yes
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -43,8 +43,8 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.messages?.size
 
     <Scroller
-      onTopThresholdReached={@bound 'onTopThresholdReached'}
-      ref="scrollContainer">
+      ref="scrollContainer"
+      onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
