@@ -35,6 +35,13 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
         messages    :
           required  : 'Please enter a password.'
 
+    @tfcode = new KDInputView
+      name          : 'tfcode'
+      placeholder   : 'authentication code'
+      testPath      : 'login-form-tfcode'
+      attributes    :
+        testpath    : 'login-form-tfcode'
+
     @backLink = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
@@ -48,11 +55,18 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
       type       : 'submit'
 
 
+  showTwoFactor: ->
+
+    @$('.two-factor').removeClass 'hidden'
+    @tfcode.setFocus()
+
+
   pistachio: ->
 
     """
     <div class='login-input-view'><span>Username</span>{{> @username}}</div>
     <div class='login-input-view'><span>Password</span>{{> @password}}</div>
+    <div class='login-input-view two-factor hidden'><span>2-Factor</span>{{> @tfcode}}</div>
     <div class='TeamsModal-button-separator'></div>
     {{> @button}}
     {{> @backLink}}
