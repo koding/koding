@@ -14,22 +14,21 @@ func MountCommand(c *cli.Context) int {
 		return 1
 	}
 
-	k, err := CreateKlientClient(NewKlientOptions())
-	if err != nil {
-		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
-		return 1
+	var (
+		name       = c.Args()[0]
+		localPath  = c.Args()[1]
+		remotePath = c.String("remotepath") // note the lowercase of all chars
+	)
+
+	// allow scp like declaration, ie `<vmname>:/path/to/remote`
+	if strings.Contains(name, ":") {
+		names := strings.Split(name, ":")
+		name, remotePath = names[0], names[1]
 	}
 
-	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
-		return 1
-	}
-
-	var localPath = c.Args()[1]
-
-	// send absolute path to klient unless local path is empty
-	if strings.TrimSpace(c.Args()[1]) != "" {
-		absoluteLocalPath, err := filepath.Abs(c.Args()[1])
+	// send absolute local path to klient unless local path is empty
+	if strings.TrimSpace(localPath) != "" {
+		absoluteLocalPath, err := filepath.Abs(localPath)
 		if err == nil {
 			localPath = absoluteLocalPath
 		}
@@ -40,13 +39,24 @@ func MountCommand(c *cli.Context) int {
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
 	}{
-		Name:      c.Args()[0],
+		Name:      name,
 		LocalPath: localPath,
 	}
 
-	// `RemotePath` is optional; klient defaults to user VM's home directory
-	if len(c.Args()) > 2 {
-		mountRequest.RemotePath = c.Args()[2]
+	// RemotePath is optional
+	if remotePath != "" {
+		mountRequest.RemotePath = remotePath
+	}
+
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
+		return 1
+	}
+
+	if err := k.Dial(); err != nil {
+		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
+		return 1
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)

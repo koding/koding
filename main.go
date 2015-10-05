@@ -29,7 +29,17 @@ func main() {
 			Name:        "mount",
 			Usage:       "Mount a remote folder to a local folder",
 			Description: "Mount a remote folder from the given remote machine, to the specified local folder.",
-			Action:      Exit(CheckUpdateFirst(MountCommand)),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "remotepath, r",
+					Usage: "Full path of remote folder in machine to mount.",
+				},
+				cli.StringFlag{
+					Name:  "watch, w",
+					Usage: "Enable watching for changes in remote machine.",
+				},
+			},
+			Action: Exit(CheckUpdateFirst(MountCommand)),
 		},
 		cli.Command{
 			Name:        "unmount",
