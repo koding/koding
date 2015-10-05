@@ -34,6 +34,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       placeholder         : 'type a @username and hit enter'
 
 
+  componentWillUnmount: ->
+
+    CreateChannelFlux.actions.user.resetSelectedIndex()
+    CreateChannelFlux.actions.user.unsetInputQuery()
+    CreateChannelFlux.actions.channel.removeAllParticipants()
+
+
   getDataBindings: ->
 
     { getters } = CreateChannelFlux
