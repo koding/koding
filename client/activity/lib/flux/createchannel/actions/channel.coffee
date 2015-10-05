@@ -1,8 +1,7 @@
-_                       = require 'lodash'
-kd                      = require 'kd'
-actionTypes             = require './actiontypes'
-showErrorNotification   = require 'app/util/showErrorNotification'
-{ actions: appActions } = require 'app/flux'
+_                     = require 'lodash'
+kd                    = require 'kd'
+actionTypes           = require './actiontypes'
+showErrorNotification = require 'app/util/showErrorNotification'
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
