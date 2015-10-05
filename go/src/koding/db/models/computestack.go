@@ -1,6 +1,11 @@
 package models
 
-import "labix.org/v2/mgo/bson"
+import (
+	"koding/kites/kloud/stackstate"
+	"time"
+
+	"labix.org/v2/mgo/bson"
+)
 
 // ComputeStack is a document from jComputeStack collection
 type ComputeStack struct {
@@ -12,4 +17,14 @@ type ComputeStack struct {
 
 	// User injected credentials
 	Credentials map[string][]string `bson:"credentials"`
+
+	Status struct {
+		State      string    `bson:"state"`
+		Reason     string    `bson:"reason"`
+		ModifiedAt time.Time `bson:"modifiedAt"`
+	} `bson:"status"`
+}
+
+func (c *ComputeStack) State() stackstate.State {
+	return stackstate.States[c.Status.State]
 }

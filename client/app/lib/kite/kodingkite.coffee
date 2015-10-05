@@ -12,7 +12,7 @@ module.exports = class KodingKite extends KDObject
 
   [DISCONNECTED, CONNECTED] = [0, 1]
   MAX_QUEUE_SIZE = 50
-
+  MAX_WAITING_TIME = 60000 # 1 min.
 
   init: ->
 
@@ -79,6 +79,8 @@ module.exports = class KodingKite extends KDObject
 
         @waitForConnection _args
 
+          .timeout MAX_WAITING_TIME
+
           .then (args)=>
             KiteLogger.started name, rpcMethod
             resolve (@transport?.tell args...
@@ -97,13 +99,14 @@ module.exports = class KodingKite extends KDObject
                     @transport?.expireToken =>
                       resolve @transport.tell args...
 
-                KiteLogger.failed name, rpcMethod
+                KiteLogger.failed name, rpcMethod, err
                 throw err
 
             )
 
-          .catch =>
-            KiteLogger.failed name, rpcMethod
+          .catch (err) =>
+
+            KiteLogger.failed name, rpcMethod, err
             reject @_kiteInvalidError
 
       unless @_state is CONNECTED
@@ -112,6 +115,8 @@ module.exports = class KodingKite extends KDObject
       promise
 
     else
+
+      console.warn "[KITE][INVALID]", this
 
       KiteLogger.failed name, rpcMethod
       Promise.reject @_kiteInvalidError

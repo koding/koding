@@ -1,10 +1,11 @@
-kd                  = require 'kd'
-React               = require 'kd-react'
-Router              = require 'app/components/router'
-Location            = require 'react-router/lib/Location'
-handlers            = require './routehandlers'
-lazyrouter          = require 'app/lazyrouter'
-isReactivityEnabled = require 'app/util/isReactivityEnabled'
+kd                        = require 'kd'
+React                     = require 'kd-react'
+createHistory             = require 'history/lib/createHistory'
+createLocation            = require 'history/lib/createLocation'
+handlers                  = require './routehandlers'
+lazyrouter                = require 'app/lazyrouter'
+isReactivityEnabled       = require 'app/util/isReactivityEnabled'
+{ RoutingContext, match } = require 'react-router'
 
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
 
@@ -15,6 +16,7 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
     'SinglePost'
     'SingleChannelWithSummary'
     'SinglePostWithSummary'
+    'PrivateMessages'
   ]
 
   # since `isReactivityEnabled` flag checks roles from config,
@@ -35,15 +37,15 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
 ###
 handleReactivity = ({ query }, router) ->
 
-  location = new Location router.currentPath, query
   routes = require './reactivityroutes'
 
+  location = createLocation router.currentPath
+
   activityView (view) ->
-    Router.run routes, location, (error, state) ->
+
+    match { routes, location }, (err, redirectLocation, renderProps) ->
       React.render(
-        <Router {...state}>
-          {routes}
-        </Router>
+        <RoutingContext {...renderProps} />
         view.reactivityContainer.getElement()
       )
 

@@ -10,27 +10,6 @@ import (
 	"socialapi/workers/common/response"
 )
 
-func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
-	messageId, err := request.GetURIInt64(u, "id")
-	if err != nil {
-		return nil, errors.New("Couldnt get mesage id from URI")
-	}
-
-	if req.AccountId == 0 {
-		return nil, errors.New("AccountId is not set")
-	}
-
-	interactionType := u.Query().Get("type")
-	//if interaction is not in the allowed interations
-	if _, ok := models.AllowedInteractions[interactionType]; !ok {
-		return nil, fmt.Errorf("interaction not allowed - %s", interactionType)
-	}
-
-	req.MessageId = messageId
-	req.TypeConstant = interactionType
-	return req, nil
-}
-
 func Add(u *url.URL, h http.Header, req *models.Interaction) (int, http.Header, interface{}, error) {
 	var err error
 	req, err = prepareInteraction(u, req)
@@ -104,7 +83,7 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 
 	// find the group channel
 	ch := models.NewChannel()
-	err = ch.FetchPublicChannel(c.GroupName)
+	err = ch.FetchGroupChannel(c.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -122,4 +101,25 @@ func ListInteractedMessages(u *url.URL, h http.Header, _ interface{}, c *models.
 	rs.PopulateWith(messages, query)
 
 	return response.HandleResultAndError(rs, rs.Err())
+}
+
+func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interaction, error) {
+	messageId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return nil, errors.New("Couldnt get mesage id from URI")
+	}
+
+	if req.AccountId == 0 {
+		return nil, errors.New("AccountId is not set")
+	}
+
+	interactionType := u.Query().Get("type")
+	//if interaction is not in the allowed interations
+	if _, ok := models.AllowedInteractions[interactionType]; !ok {
+		return nil, fmt.Errorf("interaction not allowed - %s", interactionType)
+	}
+
+	req.MessageId = messageId
+	req.TypeConstant = interactionType
+	return req, nil
 }

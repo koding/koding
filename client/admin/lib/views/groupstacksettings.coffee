@@ -30,7 +30,10 @@ module.exports = class GroupStackSettings extends kd.View
       @showEditor template
 
     onboardingView.on 'ScrollTo', (direction = 'top') =>
-      @scrollView["scrollTo#{direction.capitalize()}"] 500
+      duration = 500
+      top      = if direction is 'top' then 0 else @scrollView.getScrollHeight()
+
+      @scrollView.scrollTo { top, duration }
 
 
   createInitialView: ->

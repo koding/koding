@@ -14,13 +14,13 @@ You should be ready for testing when you clone Koding repository.
 ## Running tests in local
 
 Running tests in local is as easy as executing `./run $TEST_COMMAND`.
-`$TEST_COMMAND` can be `socialworkertests`, `nodeservertests`, and `runnodetests`.
+`$TEST_COMMAND` can be `socialworkertests`, `nodeservertests`, and `nodetestfiles`.
 These commands picks up the files with the extension `.test.coffee` and ignores the rest.
 So be sure that your test files end with `.test.coffee`
 
 `socialworkertests` and `nodeservertests` are for the files in socialworker and servers directories.
-On the other hand `runnodetests` should be used to run a single test file or all the files in directory.
-For example `./run runnodetests pathToSingleFile.test.coffee` or `./run runnodetests aFolder`
+On the other hand `nodetestfiles` can be used to run a single test file or all the files in directory.
+For example `./run nodetestfiles pathToSingleFile.x.test.coffee` or `./run nodetestfiles aFolder`
 
 ## Writing tests
 

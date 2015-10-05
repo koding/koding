@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 Bongo            = require 'bongo'
 { Relationship } = require 'jraphical'
 request          = require 'request'
@@ -75,6 +74,8 @@ module.exports = class SocialChannel extends Base
         fetchBotChannel:
           (signature Object, Function)
         create:
+          (signature Object, Function)
+        createChannelWithParticipants:
           (signature Object, Function)
 
     schema             :
@@ -163,32 +164,32 @@ module.exports = class SocialChannel extends Base
     validate: ['name']
 
   # searchTopics - search topics for autocompletion
-  @searchTopics          = secureRequest fnName: 'searchTopics'
+  @searchTopics          = secureRequest { fnName: 'searchTopics' }
 
   # fetchProfileFeed - lists all activities of an account
   # within a specified group
-  @fetchProfileFeed      = secureRequest fnName: 'fetchProfileFeed'
+  @fetchProfileFeed      = secureRequest { fnName: 'fetchProfileFeed' }
 
   # fetchProfileFeedCount - fetches all activity count of an account
   # within a specified group
-  @fetchProfileFeedCount = secureRequest fnName: 'fetchProfileFeedCount'
+  @fetchProfileFeedCount = secureRequest { fnName: 'fetchProfileFeedCount' }
 
   # fetchPopularTopics - lists group specific popular topics
   # it can be daily, weekly, monthly
-  @fetchPopularTopics    = secureRequest fnName: 'fetchPopularTopics'
+  @fetchPopularTopics    = secureRequest { fnName: 'fetchPopularTopics' }
 
   # fetchPopularPosts -  lists group specific popular posts
   # it can be daily, weekly, monthly
-  @fetchPopularPosts     = secureRequest fnName: 'fetchPopularPosts'
+  @fetchPopularPosts     = secureRequest { fnName: 'fetchPopularPosts' }
 
   # fetchChannels - lists group's topic channels
-  @fetchChannels         = secureRequest fnName: 'fetchGroupChannels'
+  @fetchChannels         = secureRequest { fnName: 'fetchGroupChannels' }
 
   # fetchFollowedChannels - lists followed channels(topics) of an account
-  @fetchFollowedChannels = secureRequest fnName: 'fetchFollowedChannels'
+  @fetchFollowedChannels = secureRequest { fnName: 'fetchFollowedChannels' }
 
   # fetchFollowedChannelCount - fetch followed channel count of an account
-  @fetchFollowedChannelCount = secureRequest fnName: 'fetchFollowedChannelCount'
+  @fetchFollowedChannelCount = secureRequest { fnName: 'fetchFollowedChannelCount' }
 
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
@@ -206,6 +207,12 @@ module.exports = class SocialChannel extends Base
   @removeParticipants = secureRequest
     fnName  : 'removeParticipants'
     validate: ['channelId']
+
+  createChannelWithParticipantsHelper = (client, data, callback) ->
+    doRequest 'createChannelWithParticipants', client, data, callback
+
+  @createChannelWithParticipants = permit 'send private message',
+    success: createChannelWithParticipantsHelper
 
   @leave = secure (client, data, callback) ->
     return callback new KodingError 'channel id is required for leaving a channel'  unless data.channelId

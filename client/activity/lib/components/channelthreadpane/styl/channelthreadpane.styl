@@ -3,42 +3,96 @@ $header-height              = 52px
 .ChannelThreadPane
 .ChannelThreadPane-body
   dFlex()
-  flex-direction            row
+  vendor                    flex-direction, row
 
 .ChannelThreadPane-content
   dFlex()
-  flex                      1
-  flex-direction            column
+  rel()
+  vendor                    flex, 1
+  vendor                    flex-direction, column
+
+.ChannelThreadPane-dropContainer
+  abs()
+  borderBox()
+  margin                    10px
+  rounded                   6px
+  border                    2px dashed $gray-10
+  top                       0
+  left                      0
+  size                      calc(100% \- 20px), calc(100% \- 20px)
+  bg                        color, rgba(255, 255, 255, 0.9)
+  z-index                   3
+  font-size                 30px
+  text-align                center
+
+.ChannelThreadPane-dropContainerContent
+  rel()
+  line-height             40px
+  top                     50%
+  margin-top              -65px
+  color                   $gray-10
+
+  &:before
+    rel()
+    dBlock()
+    margin                0 auto 20px
+    content               ''
+    r-sprite              'activity', 'cloud-icon'
 
 .ChannelThreadPane-header
-  padding                   0 20px
-  flex                      0 0 52px
+  bg                        color, #fcfcfc
+  padding                   0 20px 0 34px
+  vendor                    flex, 0 0 52px
+  vendor                    align-items, center
   dFlex()
-  align-items               center
+  rel()
+
+.ChannelThreadPane-videoCall
+  abs()
+  top                       18px
+  right                     25px
+  color                     #3d3c40 !important
+
+  span:after
+    rel()
+    dIBlock()
+    content                 ''
+    margin-left             10px
+    r-sprite                'activity', 'right-arrow'
+
+.ChannelThreadPane-videoCallIcon
+  rel()
+  dIBlock()
+  content                   ''
+  margin-left               10px
+  top                       2px
+  r-sprite                  'activity', 'video-call'
 
 .ChannelThreadPane-footer
-  flex                      0 0 1px
+  vendor                    flex, 0 0 1px
 
 .ChannelThreadPane-body
-  flex                      1
+  vendor                    flex, 1
 
 .ChannelThreadPane.is-withFeed
   .ChannelThreadPane-feedWrapper
-    flex                    1
+    vendor                  flex, 1
     bg                      color #f5f5f5
 
 .ChannelThreadPane.is-withChat
   .ChannelThreadPane-chatWrapper
-    flex                    1
+    vendor                  flex, 1
 
 .ChannelThreadPane-feedWrapper
 .ChannelThreadPane-chatWrapper
 .ChannelThreadPane-postWrapper
-  flex                      .00001
+  vendor                    flex, .00001
   vendor                    transition, flex .177s ease
 
 .ChannelThreadPane-sidebar
-  flex                      0 0 240px
   bg                        color, #f5f5f5
+  vendor                    flex, 0 0 240px
 
-
+// @media only screen and (max-width : 950px)
+//   .ChannelThreadPane-sidebar
+//     vendor                  flex, 0 0 40px

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"testing"
+	"time"
 
 	"github.com/koding/runner"
 
@@ -122,6 +124,132 @@ func TestChannelHistory(t *testing.T) {
 								So(err, ShouldBeNil)
 								So(count, ShouldNotBeNil)
 								So(count.TotalCount, ShouldEqual, 10)
+							})
+						})
+						Convey("We should be able to check history according to request", func() {
+							channel := channel
+							for i := 0; i < 5; i++ {
+								body := fmt.Sprintf("body%d", i)
+								post, err := rest.CreatePostWithBody(channel.Id, channelParticipant.AccountId, body)
+								// we need to wait while posting messages
+								// if we dont use time sleep, Added_at field of the messages is
+								// gonna be equal and this behavior is not expected situation
+								// Then, tests will not be worked correctly
+								time.Sleep(1000 * time.Millisecond)
+								So(err, ShouldBeNil)
+								So(post, ShouldNotBeNil)
+								So(post.Id, ShouldNotEqual, 0)
+								So(post.Body, ShouldNotEqual, "")
+							}
+							bodyMes := "postMid message"
+							postMid, err := rest.CreatePostWithBody(channel.Id, channelParticipant.AccountId, bodyMes)
+							So(postMid, ShouldNotBeNil)
+							So(err, ShouldBeNil)
+							for i := 5; i < 10; i++ {
+								time.Sleep(1000 * time.Millisecond)
+								body := fmt.Sprintf("body%d", i)
+								post, err := rest.CreatePostWithBody(channel.Id, channelParticipant.AccountId, body)
+								So(err, ShouldBeNil)
+								So(post, ShouldNotBeNil)
+								So(post.Id, ShouldNotEqual, 0)
+								So(post.Body, ShouldNotEqual, "")
+							}
+							Convey("We should able to fetch the history with query request ", func() {
+								history, err := rest.GetHistory(
+									channel.Id,
+									&request.Query{
+										AccountId: account.Id,
+									},
+									ses.ClientId,
+								)
+
+								So(err, ShouldBeNil)
+								So(history, ShouldNotBeNil)
+								So(len(history.MessageList), ShouldEqual, 11)
+							})
+
+							Convey("We should able to fetch the history with query ADDED AT & ASC ", func() {
+								history, err := rest.GetHistory(
+									channel.Id,
+									&request.Query{
+										From:      postMid.CreatedAt,
+										SortOrder: "ASC",
+									},
+									ses.ClientId,
+								)
+
+								var historyArr []string
+								arr := []string{"postMid message", "body5", "body6", "body7", "body8", "body9"}
+								for _, x := range history.MessageList {
+									historyArr = append(historyArr, x.Message.Body)
+								}
+								So(err, ShouldBeNil)
+								So(history, ShouldNotBeNil)
+								So(len(history.MessageList), ShouldEqual, 6)
+								So(arr, ShouldResemble, historyArr)
+							})
+
+							Convey("We should able to fetch the history with query ADDED AT & DESC ", func() {
+								history, err := rest.GetHistory(
+									channel.Id,
+									&request.Query{
+										From:      postMid.CreatedAt,
+										SortOrder: "DESC",
+									},
+									ses.ClientId,
+								)
+
+								var historyArr []string
+								arr := []string{"body4", "body3", "body2", "body1", "body0"}
+								for _, x := range history.MessageList {
+									historyArr = append(historyArr, x.Message.Body)
+								}
+								So(err, ShouldBeNil)
+								So(history, ShouldNotBeNil)
+								So(len(history.MessageList), ShouldEqual, 5)
+								So(arr, ShouldResemble, historyArr)
+							})
+							Convey("We should able to fetch the with query ADDED AT & DESC ORDER& LIMIT ", func() {
+								history, err := rest.GetHistory(
+									channel.Id,
+									&request.Query{
+										From:      postMid.CreatedAt,
+										SortOrder: "DESC",
+										Limit:     3,
+									},
+									ses.ClientId,
+								)
+
+								var historyArr []string
+								arr := []string{"body4", "body3", "body2"}
+								for _, x := range history.MessageList {
+									historyArr = append(historyArr, x.Message.Body)
+								}
+								So(err, ShouldBeNil)
+								So(history, ShouldNotBeNil)
+								So(len(history.MessageList), ShouldEqual, 3)
+								So(arr, ShouldResemble, historyArr)
+							})
+							Convey("We should able to fetch the with query ADDED AT & ASC ORDER& LIMIT ", func() {
+								history, err := rest.GetHistory(
+									channel.Id,
+									&request.Query{
+										From:      postMid.CreatedAt,
+										SortOrder: "ASC",
+										Limit:     3,
+									},
+									ses.ClientId,
+								)
+
+								var historyArr []string
+								arr := []string{"postMid message", "body5", "body6"}
+								for _, x := range history.MessageList {
+									historyArr = append(historyArr, x.Message.Body)
+								}
+								So(err, ShouldBeNil)
+								So(history, ShouldNotBeNil)
+								So(len(history.MessageList), ShouldEqual, 3)
+								So(arr, ShouldResemble, historyArr)
 							})
 						})
 					})

@@ -442,46 +442,6 @@ Admin main styles
       font-style          normal
 
 
-
-// Admin modal specific styling
-.AppModal--admin
-
-  &.kdmodal .kdmodal-inner .kdmodal-content
-    overflow                hidden
-
-  // common tab styling
-  .AppModal-content.kdtabview
-    overflow                hidden
-
-  .kdtabhandlecontainer
-    background              none
-    padding                 0
-    height                  62px
-    line-height             62px
-    box-shadow              inset 0 -3px 0 #f2f2f2
-    border                  none
-
-    .kdtabhandle-tabs
-      size                  auto, auto
-      fl()
-
-    .kdtabhandle
-      padding               0 23px
-      margin                0
-      border                none
-      line-height           inherit
-      height                62px
-      background            none
-      color                 #969696
-      opacity               0.99
-      font-size             14px
-      font-weight           600
-
-      &.active
-        box-shadow          inset 0 -3px 0 #01b05a
-        color               #575757 !important
-        bg                  color, transparent !important
-
 // outline button styling
 .AppModal--admin
 
@@ -518,6 +478,11 @@ Admin main styles
 
   .members-commonview
     overflow                hidden
+
+  .clear-search
+    font-size               13px
+    color                   #8d8d8d
+    pointer()
 
   .search
     margin                  25px 0
@@ -911,12 +876,10 @@ Admin main styles
       .kdbutton
         z-index             1
 
-      .prev-button
-        right               110px !important
-
-      .setasdefault-button
-        right               265px !important
-
+    .credential-list
+      .credential-item
+        .inuse-tag
+          margin-top        -10px
 
 .AppModal--admin .invitations
 
@@ -1043,7 +1006,7 @@ Admin main styles
   button.solid.compact.nav
     right                   0
     bottom                  0
-    abs()
+    margin-left             10px
 
     &[disabled]
       opacity               .4
@@ -1054,6 +1017,8 @@ Admin main styles
     &.cancel
       right                 initial
       left                  0
+      margin-left           0
+      abs()
 
   form
     .formline
@@ -1152,7 +1117,8 @@ Admin main styles
     height                  100%
 
     .kdformview
-      height                calc(100% \- 50px)
+      height                100%
+      border-bottom         none
       overflow              auto
 
       .advanced-field
@@ -1162,25 +1128,26 @@ Admin main styles
         .advanced-field
           display           block
 
+    .listview-wrapper
+      .kdscrollview
+        height              calc(100% \- 30px)
+
+  &.form-open
+    .listview-wrapper
+      display               none
+
 
   .kdscrollview > .define-stack-view
-    height                  calc(100% \- 160px)
+    overflow                hidden
 
-  .step-define-stack
-    height                  calc(100% \- 270px)
-
-    .editor-view
-      height                calc(100% \+ 116px)
+    > .kdscrollview
+      height                calc(100% \- 150px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
 
   .kdtabpaneview.stack-template
-    height                  calc(100% \- 87px)
-
-  .edit-mode
-    .step-define-stack .editor-view
-      height                calc(100% \+ 220px)
+    height                  calc(100% \- 137px)
 
 
   .stack-editor-footer
@@ -1411,11 +1378,12 @@ Admin main styles
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
     z-index                 15
-    height                  0
+    height                  0 !important
     abs()
 
     &.raise
-      height                calc(50% - 33px)
+      bottom                35px
+      height                calc(40% - 33px) !important
 
     pre.output-view
       height                auto
@@ -1756,6 +1724,9 @@ Admin main styles
     overflow                hidden
     margin                  57px 0 0 123px !important
 
+    &.services
+      margin                28px 0 0 39px !important
+
   .box
     size                    256px, 112px
     rounded                 4px
@@ -1776,6 +1747,10 @@ Admin main styles
       text-align            center
       font-weight           300
       margin-top            13px
+
+  .services
+    .box
+      size                  227px, 95px
 
   .coming-soon
     cursor                  not-allowed
@@ -1855,6 +1830,16 @@ Admin main styles
         .label
           margin-top        4px
 
+      &.azure
+        rel()
+        top                 -9px
+
+        img
+          margin            25px 0 0 63px
+
+        .label
+          margin-top        10px
+
       &.digitalocean
         rel()
         top                 -9px
@@ -1883,6 +1868,11 @@ Admin main styles
 
     height                  auto
 
+    .kdtabhandle .title
+      position              relative
+      top                   15px
+      left                  22px
+
     .description
       width                 350px
 
@@ -1894,31 +1884,25 @@ Admin main styles
 
     .github
       img
-        margin              35px 0 0 67px
+        margin              31px 0 0 54px
 
     .bitbucket
       img
-        margin              26px 0 0 51px
-
-      .label
-        margin-top          6px
+        margin              27px 0 0 37px
 
     .gitlab
       top                   11px
       rel()
 
       img
-        margin              4px 0 0 56px
+        margin              9px 0 0 42px
 
-      .label
-        margin-top          17px
-
-    .owngitserver
+    .yourgitserver
       top                   11px
       rel()
 
       img
-        margin              11px 0 0 113px
+        margin              3px 0 0 98px
 
       .label
         margin              15px 0 0 -3px
@@ -1966,15 +1950,19 @@ Admin main styles
         left                45px
         abs()
 
+      .title
+        margin              0
+        padding             0 25px 0 10px
+        font-size           12px
+        font-weight         200
+        color               #606060
+        line-height         34px
+
       .kdselectbox
         border              none
         top                 15px
         left                15px
         rel()
-
-        .title
-          margin            0
-          padding           0 25px 0 10px
 
         .arrows
           height            6px
@@ -2033,7 +2021,7 @@ Admin main styles
       overflow              hidden
       margin-bottom         10px
 
-      .koding-on-off
+      .kdcustomcheckbox
         fl()
 
       .label
@@ -2043,13 +2031,13 @@ Admin main styles
         line-height         22px
         color               #434343
         font-weight         100
-        top                 -3px
+        top                 -1px
         pointer()
         rel()
 
   .stack-preview
 
-    width                   526px
+    width                   626px
     min-height              320px
     padding-bottom          20px
     margin                  0 auto
@@ -2062,6 +2050,9 @@ Admin main styles
     left                    11px
     rel()
 
+    .line
+      overflow              hidden
+
     .header
       line-height           45px
       height                45px
@@ -2071,28 +2062,50 @@ Admin main styles
       border-bottom         1px solid #DEDEDE
       text-indent           16px
 
-    .lines
+    .number
       color                 #C5C5C5
       width                 28px
       text-align            right
       margin-right          15px
       font-size             12px
-      margin-top            10px
       line-height           18px
       fl()
 
     .has-markdown
       pre
         padding             0
+        font-size           12px
+        line-height         18px
+        fl()
 
       code
         bg                  color, transparent
         border              none
         line-height         18px
-        padding             10px
+        padding             0
 
 
   &.main-content.get-started
     .footer
     .stack-preview
       hidden()
+
+
+@keyframes hilite
+  0%
+    background              rgba(255, 255, 0, .06)
+  15%
+    background              rgba(255, 255, 0, .18)
+  30%
+    background              rgba(255, 255, 0, .28)
+  50%
+    background              rgba(255, 255, 0, .38)
+  75%
+    background              rgba(255, 255, 0, .18)
+  85%
+    background              rgba(255, 255, 0, .06)
+  100%
+    background              none
+
+.hilite
+  vendor                    animation, hilite 3s

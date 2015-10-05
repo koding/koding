@@ -34,11 +34,12 @@ type Config struct {
 	Storage string
 
 	Postgres struct {
-		Host     string `default:"localhost"`
-		Port     int    `default:"5432"`
-		Username string `required:"true"`
-		Password string `required:"true"`
-		DBName   string `required:"true" `
+		Host           string `default:"localhost"`
+		Port           int    `default:"5432"`
+		Username       string `required:"true"`
+		Password       string `required:"true"`
+		DBName         string `required:"true" `
+		ConnectTimeout int    `default:"20"`
 	}
 }
 

@@ -66,7 +66,7 @@ module.exports = class DefineStackView extends KDView
       stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
     }
     @tabView.addPane providersPane     = new KDTabPaneView
-      name : 'Providers'
+      name : 'Credentials'
       view : @providersView
 
     @readmeView                        = new ReadmeView { stackTemplate }
@@ -82,15 +82,29 @@ module.exports = class DefineStackView extends KDView
 
     @createMainButtons()
 
-    @providersView.on 'ItemSelected', (credential) =>
+    { credentialStatus } = @stackTemplateView
+
+    @providersView.on 'ItemSelected', (credentialItem) =>
 
       # After adding credential, we are sharing it with the current
       # group, so anyone in this group can use this credential ~ GG
       { slug } = kd.singletons.groupsController.getCurrentGroup()
 
+      credential = credentialItem.getData()
+
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        @stackTemplateView.credentialStatus.setCredential credential
+        credentialStatus.setCredential credential
+
+        @providersView.resetItems()
+        credentialItem.inuseView.show()
+
+    @providersView.on 'ItemDeleted', (credential) ->
+
+      { identifier } = credential.getData()
+      if identifier in credentialStatus.credentials
+        credentialStatus.setCredential() # To unset active credential
+                                         # since it's deleted
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
@@ -100,11 +114,18 @@ module.exports = class DefineStackView extends KDView
         @saveButton.disable()
 
     @tabView.on 'PaneDidShow', (pane) =>
+      @outputView.fall()
       if pane is providersPane
-        @outputView.fall()
         @setFooterVisibility 'hide'
       else
         @setFooterVisibility 'show'
+        pane.getMainView().emit 'FocusToEditor'
+
+    { ace } = @stackTemplateView.editorView.aceView
+
+    ace.on 'FileContentChanged', =>
+      @setAsDefaultButton.hide()
+      @saveButton.show()
 
 
   setFooterVisibility: (state) ->
@@ -145,17 +166,10 @@ module.exports = class DefineStackView extends KDView
     @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
 
 
-    @buttons.addSubView @cancelButton  = new KDButtonView
+    @buttons.addSubView @cancelButton = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
-
-    @buttons.addSubView @saveButton    = new KDButtonView
-      title          : 'Save & Test'
-      cssClass       : 'solid compact green nav next'
-      disabled       : yes
-      loader         : yes
-      callback       : @bound 'handleSave'
 
     @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
@@ -166,11 +180,18 @@ module.exports = class DefineStackView extends KDView
         title        : "Generates a preview of this template
                         with your own account information."
 
+    @buttons.addSubView @saveButton = new KDButtonView
+      title          : 'Save & Test'
+      cssClass       : 'solid compact green nav next'
+      disabled       : yes
+      loader         : yes
+      callback       : @bound 'handleSave'
+
     @buttons.addSubView @setAsDefaultButton = new KDButtonView
       title          : 'Set as Default for Team'
-      cssClass       : 'solid compact nav next hidden setasdefault-button'
+      cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : @bound 'handleSetDefaultTemplate'
+      callback       : => @handleSetDefaultTemplate()
 
 
   handleSave: ->
@@ -243,17 +264,28 @@ module.exports = class DefineStackView extends KDView
                          template and try again"
         return
 
-      @outputView.add "You can now close this window, or set this
-                       template as default for your team members."
+      { groupsController } = kd.singletons
+
+      { stackTemplates } = groupsController.getCurrentGroup()
+
+      @handleSetDefaultTemplate completed = no
+
+      action = if not stackTemplates?.length then 'addAndWarn' else 'add'
+
+      @outputView[action] "
+        Your stack script has been successfully saved and applied
+        to all your team members. You can now close this window
+        or continue working with your stack.
+      "
 
       @cancelButton.setTitle 'Close'
-      @setAsDefaultButton.show()
+      @saveButton.hide()
 
 
   checkAndBootstrapCredentials: (callback) ->
 
     { credentialsData } = @stackTemplateView.credentialStatus
-    [credential]        = credentialsData
+    [ credential ]      = credentialsData
 
     failed = (err) =>
       @outputView.handleError err
@@ -504,7 +536,7 @@ module.exports = class DefineStackView extends KDView
       """
 
 
-  handleSetDefaultTemplate: ->
+  handleSetDefaultTemplate: (completed = yes) ->
 
     { stackTemplate }                       = @getData()
     { computeController, groupsController } = kd.singletons
@@ -518,15 +550,21 @@ module.exports = class DefineStackView extends KDView
 
     @outputView.add 'Setting this as default group stack template...'
 
-    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-      return if @outputView.handleError err
+    stackTemplate.setAccess 'group', (err) =>
+      return  if @outputView.handleError err
 
-      new kd.NotificationView
-        title : "Group (#{slug}) stack has been saved!"
-        type  : 'mini'
+      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
+        return  if @outputView.handleError err
 
-      computeController.createDefaultStack yes
-      computeController.checkStackRevisions()
+        new kd.NotificationView
+          title : "Team (#{slug}) stack has been saved!"
+          type  : 'mini'
 
-      @emit 'Reload'
-      @emit 'Completed', stackTemplate
+        computeController.createDefaultStack yes
+
+        @emit 'Reload'
+
+        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
+
+        if completed
+          @emit 'Completed', stackTemplate

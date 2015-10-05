@@ -62,10 +62,9 @@ ifeq ($(KONTROL_STORAGE), "etcd")
 	@killall etcd ||:
 
 	@echo "Installing etcd"
-	@curl -L  https://github.com/coreos/etcd/releases/download/v2.2.0-rc.0/etcd-v2.2.0-rc.0-linux-amd64.tar.gz -o etcd-v2.2.0-rc.0-linux-amd64.tar.gz
-	tar xzvf etcd-v2.2.0-rc.0-linux-amd64.tar.gz
-	cd etcd-v2.2.0-rc.0-linux-amd64; ./etcd &
-	sleep 5
+	test -d "_etcd" || git clone https://github.com/coreos/etcd _etcd
+	@rm -rf _etcd/default.etcd ||: #remove previous folder
+	@cd _etcd; ./build; ./bin/etcd &
 endif
 
 	@echo "Creating test key"
@@ -94,10 +93,9 @@ ifeq ($(KONTROL_STORAGE), etcd)
 	@killall etcd ||:
 
 	@echo "Installing etcd"
-	@curl -L  https://github.com/coreos/etcd/releases/download/v2.2.0-rc.0/etcd-v2.2.0-rc.0-linux-amd64.tar.gz -o etcd-v2.2.0-rc.0-linux-amd64.tar.gz
-	tar xzvf etcd-v2.2.0-rc.0-linux-amd64.tar.gz
-	cd etcd-v2.2.0-rc.0-linux-amd64; ./etcd &
-	sleep 5
+	test -d "_etcd" || git clone https://github.com/coreos/etcd _etcd
+	@rm -rf _etcd/default.etcd ||: #remove previous folder
+	@cd _etcd; ./build; ./bin/etcd &
 endif
 
 ifeq ($(KONTROL_STORAGE), postgres)

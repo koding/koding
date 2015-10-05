@@ -10,7 +10,7 @@ MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
 BlockUserModal       = require 'app/components/blockusermodal'
 ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
-MessageLink          = require 'activity/components/messagelink'
+MessageLink          = require 'activity/components/publicchannelmessagelink'
 
 
 module.exports = class SimpleChatListItem extends ChatListItem
@@ -18,7 +18,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject SimpleChatListItem': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
@@ -35,6 +35,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}

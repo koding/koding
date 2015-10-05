@@ -449,14 +449,22 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 	}
 
 	// order channels in memory instead of ordering them in db
-	channelIds := make([]int64, 2)
-	for _, channel := range channels {
-		if channel.TypeConstant == Channel_TYPE_GROUP {
-			channelIds[0] = channel.Id
+	channelIds := make([]int64, len(channels))
+	switch len(channels) {
+	case 1:
+		// we can have one result if group doesnt have announcement channel
+		channelIds[0] = channels[0].Id
+	case 2:
+		for _, channel := range channels {
+			if channel.TypeConstant == Channel_TYPE_GROUP {
+				channelIds[0] = channel.Id
+			}
+			if channel.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+				channelIds[1] = channel.Id
+			}
 		}
-		if channel.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
-			channelIds[1] = channel.Id
-		}
+	default:
+		return nil, nil
 	}
 
 	return channelIds, nil

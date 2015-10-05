@@ -70,6 +70,26 @@ module.exports = class GroupsController extends KDController
 
     @groupChannel.once 'setSecretNames', callback
 
+
+  openSocialGroupChannel:(group, callback=->) ->
+    {realtime, socialapi} = kd.singletons
+
+    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
+      return callback err  if err
+
+      socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
+        return callback err  if err
+
+        realtimeChan = registeredChan?.delegate
+
+        return callback "realtime chan is not set"  unless realtimeChan
+
+        @filterXssAndForwardEvents realtimeChan, [
+          'StackTemplateChanged'
+        ]
+
+        callback null
+
   changeGroup: (groupName = 'koding', callback = kd.noop) ->
 
     return callback()  if @currentGroupName is groupName
@@ -88,6 +108,7 @@ module.exports = class GroupsController extends KDController
           @currentGroupData.setGroup group
           callback null, groupName, group
           @openGroupChannel getGroup()
+          @openSocialGroupChannel getGroup()
           @emit 'ready'
 
   getUserArea:->

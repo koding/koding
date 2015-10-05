@@ -10,16 +10,17 @@ import (
 )
 
 const (
-	PrivateMessageSystem_TYPE_INVITE = "invite"
-	PrivateMessageSystem_TYPE_JOIN   = "join"
-	PrivateMessageSystem_TYPE_LEAVE  = "leave"
-	PrivateMessageSystem_TYPE_REJECT = "reject"
-	PrivateMessageSystem_TYPE_KICK   = "kick"
-	PrivateMessageSystem_TYPE_INIT   = "initiate"
+	ChannelRequestMessage_TYPE_INVITE = "invite"
+	ChannelRequestMessage_TYPE_JOIN   = "join"
+	ChannelRequestMessage_TYPE_LEAVE  = "leave"
+	ChannelRequestMessage_TYPE_REJECT = "reject"
+	ChannelRequestMessage_TYPE_KICK   = "kick"
+	ChannelRequestMessage_TYPE_INIT   = "initiate"
 )
 
-type PrivateChannelRequest struct {
+type ChannelRequest struct {
 	Body            string      `json:"body"`
+	Name            string      `json:"name"`
 	Payload         gorm.Hstore `json:"payload,omitempty"`
 	GroupName       string      `json:"groupName"`
 	Recipients      []string
@@ -31,17 +32,7 @@ type PrivateChannelRequest struct {
 	TypeConstant    string `json:"type"`
 }
 
-func (p *PrivateChannelRequest) SetSystemMessageType(systemType string) {
-	if p.Payload == nil {
-		p.Payload = gorm.Hstore{}
-	}
-
-	if systemType != "" {
-		p.Payload["systemType"] = &systemType
-	}
-}
-
-func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
+func (p *ChannelRequest) Create() (*ChannelContainer, error) {
 	// validate the request
 	if err := p.validate(); err != nil {
 		return nil, err
@@ -54,8 +45,23 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 	}
 
 	// create the channel
-	c := NewPrivateChannel(p.AccountId, p.GroupName, p.TypeConstant)
+	c := NewChannel()
+	c.GroupName = p.GroupName
+	c.CreatorId = p.AccountId
+	c.Name = RandomName()
+	c.TypeConstant = p.TypeConstant
 	c.Purpose = p.Purpose
+	c.Payload = p.Payload
+
+	if p.Name != "" {
+		c.Name = p.Name
+	}
+
+	// all topic channels under koding, should be public
+	if c.TypeConstant == Channel_TYPE_TOPIC && c.GroupName == Channel_KODING_NAME {
+		c.PrivacyConstant = Channel_PRIVACY_PUBLIC
+	}
+
 	if err := c.Create(); err != nil {
 		return nil, err
 	}
@@ -90,7 +96,12 @@ func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 		}
 	}
 
-	return p.buildInitContainer(c, participantIds)
+	typeConstant := ChannelMessage_TYPE_PRIVATE_MESSAGE
+	if p.TypeConstant == Channel_TYPE_TOPIC {
+		typeConstant = ChannelMessage_TYPE_POST
+	}
+
+	return p.buildInitContainer(c, participantIds, typeConstant)
 }
 
 func checkForGroupParticipation(groupChannel *Channel, participantId int64) error {
@@ -111,9 +122,9 @@ func checkForGroupParticipation(groupChannel *Channel, participantId int64) erro
 	return nil
 }
 
-func (p *PrivateChannelRequest) buildInitContainer(c *Channel, participantIds []int64) (*ChannelContainer, error) {
+func (p *ChannelRequest) buildInitContainer(c *Channel, participantIds []int64, typeConstant string) (*ChannelContainer, error) {
 
-	np := &PrivateChannelRequest{}
+	np := &ChannelRequest{}
 	*np = *p
 	lastMessage, err := p.AddInitActivity(c, participantIds)
 	if err != nil {
@@ -123,7 +134,8 @@ func (p *PrivateChannelRequest) buildInitContainer(c *Channel, participantIds []
 	if np.Body != "" {
 		var err error
 		// create private message
-		lastMessage, err = np.AddMessage(c)
+
+		lastMessage, err = p.createActivity(c, typeConstant)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +159,7 @@ func (p *PrivateChannelRequest) buildInitContainer(c *Channel, participantIds []
 	return cmc, nil
 }
 
-func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
+func (p *ChannelRequest) Send() (*ChannelContainer, error) {
 	if err := p.validate(); err != nil {
 		return nil, err
 	}
@@ -190,7 +202,13 @@ func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	cm, err := p.AddMessage(c)
+	typeConstant := ChannelMessage_TYPE_PRIVATE_MESSAGE
+
+	if c.TypeConstant == Channel_TYPE_TOPIC {
+		typeConstant = ChannelMessage_TYPE_POST
+	}
+
+	cm, err := p.createActivity(c, typeConstant)
 	if err != nil {
 		return nil, err
 	}
@@ -198,18 +216,14 @@ func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 	return p.buildContainer(c, cm)
 }
 
-func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
-	clone := new(PrivateChannelRequest)
+func (p *ChannelRequest) Clone() *ChannelRequest {
+	clone := new(ChannelRequest)
 	*clone = *p
 
 	return clone
 }
 
-func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelMessage, error) {
-	return p.createActivity(c, ChannelMessage_TYPE_PRIVATE_MESSAGE)
-}
-
-func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
+func (p *ChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
 	if p.AccountId != addedBy && addedBy != 0 {
 		addedByStr := strconv.FormatInt(addedBy, 10)
 		p.Payload["addedBy"] = &addedByStr
@@ -220,13 +234,13 @@ func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error
 	return err
 }
 
-func (p *PrivateChannelRequest) AddLeaveActivity(c *Channel) error {
+func (p *ChannelRequest) AddLeaveActivity(c *Channel) error {
 	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
 
 	return err
 }
 
-func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*ChannelMessage, error) {
+func (p *ChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*ChannelMessage, error) {
 	if len(participantIds) == 0 {
 		return nil, nil
 	}
@@ -238,7 +252,7 @@ func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int
 	if len(participantIds) > 0 {
 		payload := formatParticipantIds(participantIds)
 		p.Payload["initialParticipants"] = &payload
-		activity := PrivateMessageSystem_TYPE_INIT
+		activity := ChannelRequestMessage_TYPE_INIT
 		p.Payload["systemType"] = &activity
 	}
 
@@ -250,7 +264,17 @@ func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int
 	return cm, nil
 }
 
-func (p *PrivateChannelRequest) createActivity(c *Channel, typeConstant string) (*ChannelMessage, error) {
+func (p *ChannelRequest) SetSystemMessageType(systemType string) {
+	if p.Payload == nil {
+		p.Payload = gorm.Hstore{}
+	}
+
+	if systemType != "" {
+		p.Payload["systemType"] = &systemType
+	}
+}
+
+func (p *ChannelRequest) createActivity(c *Channel, typeConstant string) (*ChannelMessage, error) {
 	cm, err := p.createMessage(c.Id, typeConstant)
 	if err != nil {
 		return nil, err
@@ -266,7 +290,7 @@ func (p *PrivateChannelRequest) createActivity(c *Channel, typeConstant string) 
 	return cm, nil
 }
 
-func (p *PrivateChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
+func (p *ChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
 
 	lastMessageContainer, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
@@ -282,7 +306,7 @@ func (p *PrivateChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (
 	return cmc, nil
 }
 
-func (p *PrivateChannelRequest) validate() error {
+func (p *ChannelRequest) validate() error {
 	if p.AccountId == 0 {
 		return ErrAccountIdIsNotSet
 	}
@@ -299,7 +323,7 @@ func (p *PrivateChannelRequest) validate() error {
 }
 
 // TODO refactor this function to use postgres
-func (p *PrivateChannelRequest) obtainParticipantIds() ([]int64, error) {
+func (p *ChannelRequest) obtainParticipantIds() ([]int64, error) {
 	participantIds := make([]int64, len(p.Recipients))
 	for i, participantName := range p.Recipients {
 		// get account from mongo
@@ -351,18 +375,7 @@ func prependCreatorId(participants []int64, authorId int64) []int64 {
 	return participantIds
 }
 
-func getBody(p *PrivateChannelRequest, typeConstant string) string {
-	switch typeConstant {
-	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
-		return p.Body
-	case ChannelMessage_TYPE_SYSTEM:
-		return "system"
-	}
-
-	return ""
-}
-
-func (p *PrivateChannelRequest) createMessage(channelId int64, typeConstant string) (*ChannelMessage, error) {
+func (p *ChannelRequest) createMessage(channelId int64, typeConstant string) (*ChannelMessage, error) {
 	cm := NewChannelMessage()
 	cm.Body = getBody(p, typeConstant)
 	cm.TypeConstant = typeConstant
@@ -375,6 +388,14 @@ func (p *PrivateChannelRequest) createMessage(channelId int64, typeConstant stri
 	}
 
 	return cm, nil
+}
+
+func getBody(p *ChannelRequest, typeConstant string) string {
+	if typeConstant == ChannelMessage_TYPE_SYSTEM {
+		return "system"
+	}
+
+	return p.Body
 }
 
 func formatParticipantIds(participantIds []int64) string {

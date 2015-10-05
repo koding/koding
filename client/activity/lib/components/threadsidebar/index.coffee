@@ -12,20 +12,37 @@ module.exports = class ThreadSidebar extends React.Component
     channelThread: immutable.Map()
     messageThread: immutable.Map()
     channelParticipants: immutable.Map()
-    popularMessages: immutable.Map()
+
+
+  renderInviteSection: ->
+
+    return  unless @props.channelParticipants
+
+    if @props.channelParticipants.count() > 1
+      return <ChannelParticipantAvatars
+        channelThread={@props.channelThread}
+        participants={@props.channelParticipants} />
+
+    { channel }          = @props.channelThread.toJS()
+    { groupsController } = kd.singletons
+
+    return  unless channel.typeConstant is 'topic'
+    return  unless channel.name is groupsController.getGroupSlug()
+
+    <p className="ThreadSidebarContentBox-info--inviteTeammates">
+      <label>You didn't invite your team yet!</label>
+      <a href="/Admin/Invitations">Invite your teammates</a>
+    </p>
 
 
   render: ->
     <div className="ThreadSidebar">
-      <ThreadSidebarContentBox title="Participants">
-        <ChannelParticipantAvatars
-          channelThread={@props.channelThread}
-          participants={@props.channelParticipants} />
+      <ThreadSidebarContentBox title="PARTICIPANTS">
+        {@renderInviteSection()}
       </ThreadSidebarContentBox>
-      <ThreadSidebarContentBox title="Most Active Threads" titleLink="/Channels/Public/summary">
-        <ChannelMessagesList
-          channelThread={@props.channelThread}
-          messages={@props.popularMessages} />
+      <ThreadSidebarContentBox className="dnd-collaborate" title="SHARED VMs & COLLABORATION">
+        <p className="ThreadSidebarContentBox-info">Drag a VM to share it with your teammates</p>
+        <p className="ThreadSidebarContentBox-info">Drag a Workspace to collaborate</p>
       </ThreadSidebarContentBox>
     </div>
 
