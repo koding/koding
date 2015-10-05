@@ -6,7 +6,7 @@ module.exports = class StartVideoCallLink extends React.Component
 
   render: ->
 
-    <Link className='StartVideoCall-link' onClick={@props.startVideoCall}>
+    <Link className='StartVideoCall-link' onClick={@props.onStart}>
       <span>Start a Video Call</span>
       <i className='StartVideoCall-icon'></i>
     </Link>

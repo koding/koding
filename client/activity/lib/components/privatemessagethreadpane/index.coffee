@@ -47,7 +47,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
-  startVideoCall: ->
+  onStart: ->
 
     @setState isComingSoonModalOpen: yes
 
@@ -80,7 +80,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       <section className="PrivateMessageThreadPane-content">
         <header className="PrivateMessageThreadPane-header">
           {@renderHeader()}
-          <StartVideoCallLink startVideoCall={@bound 'startVideoCall'}/>
+          <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
         <div className="PrivateMessageThreadPane-body">
           <section className="PrivateMessageThreadPane-chatWrapper">

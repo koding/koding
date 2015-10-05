@@ -50,7 +50,7 @@ module.exports = class ChannelThreadPane extends React.Component
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
-  startVideoCall: ->
+  onStart: ->
 
     @setState isComingSoonModalOpen: yes
 
@@ -120,7 +120,7 @@ module.exports = class ChannelThreadPane extends React.Component
         {@renderDropSection()}
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
-          <StartVideoCallLink startVideoCall={@bound 'startVideoCall'}/>
+          <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
