@@ -272,11 +272,12 @@ module.exports = class DefineStackView extends KDView
 
       action = if not stackTemplates?.length then 'addAndWarn' else 'add'
 
-      @outputView[action] "
-        Your stack script has been successfully saved and applied
-        to all your team members. You can now close this window
-        or continue working with your stack.
-      "
+      @outputView[action] """
+        Your stack script has been successfully saved and all your team
+        members now will use the stack you have just saved.
+
+        You can now close this window or continue working with your stack.
+      """
 
       @cancelButton.setTitle 'Close'
       @saveButton.hide()
