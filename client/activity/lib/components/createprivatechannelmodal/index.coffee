@@ -30,7 +30,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       purpose             : ''
       query               : ''
       deleteMode          : no
-      invalidName         : no
       invalidParticipants : no
       placeholder         : 'type a @username and hit enter'
 
@@ -58,11 +57,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     'CreateChannel-participantsWrapper' : yes
 
 
-  getNameFieldClassnames: -> classnames
-    'Reactivity-formfield' : yes
-    'invalid'              : @state.invalidName
-
-
   getDropboxFieldClassnames: -> classnames
     'Reactivity-formfield' : yes
     'dropdown'             : yes
@@ -84,7 +78,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     value = event.target.value
     value = value.toLowerCase()
     @setState name: value
-    @validateName(value)
 
 
   setPurpose: (event) ->
@@ -114,24 +107,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       .toJS()
 
 
-  validateName: (value) ->
-
-    pattern =  /^[a-z0-9]+$/i
-
-    unless value
-      @setState invalidName: no
-      return yes
-
-    if value and pattern.test value
-      @setState invalidName: no
-      return yes
-
-    else
-      @setState invalidName: yes
-      return no
-
-
-  validateParticipants: () ->
+  validateParticipants: ->
 
     recipients = @prepareRecipients()
 
@@ -143,19 +119,9 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       return no
 
 
-  validateForm : ->
-
-    isValidName         = @validateName(@state.name)
-    isValidParticipants = @validateParticipants()
-
-    if isValidName and isValidParticipants
-      return yes
-    return no
-
-
   createChannel: ->
 
-    return  unless @validateForm()
+    return  unless @validateParticipants()
 
     recipients = @prepareRecipients()
     options =
@@ -326,7 +292,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           <label className='Reactivity-label inviteMembers'>Invite Members</label>
           {@renderAddParticipantInput()}
         </div>
-        <div className={@getNameFieldClassnames()}>
+        <div className='Reactivity-formfield'>
           <label className='Reactivity-label channelName'>
             Name
             <span className='Reactivity-notRequired'> (optional)</span>
