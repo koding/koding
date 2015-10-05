@@ -256,6 +256,8 @@ module.exports = class JGroup extends Module
       socialApiChannelId             : String
       # channel id for announcements of a group
       socialApiAnnouncementChannelId : String
+      # channel id for default of a non-koding group
+      socialApiDefaultChannelId : String
       avatar        : String
       slug          :
         type        : String
