@@ -52,7 +52,7 @@ module.exports = class PrivateChatPane extends React.Component
         <ChatInputWidget
           ref          = 'chatInputWidget'
           onSubmit     = { @bound 'onSubmit' }
-          enableSearch = no
+          enableSearch = { no }
           thread       = { @props.thread }
         />
       </footer>
