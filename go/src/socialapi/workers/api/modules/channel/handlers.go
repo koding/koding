@@ -94,4 +94,13 @@ func AddHandlers(m *mux.Mux) {
 			Securer:  models.ChannelSecurer,
 		},
 	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  ByParticipants,
+			Name:     "channel-by-participants",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/by/participants",
+		},
+	)
 }
