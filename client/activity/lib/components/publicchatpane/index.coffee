@@ -3,7 +3,6 @@ React           = require 'kd-react'
 immutable       = require 'immutable'
 ActivityFlux    = require 'activity/flux'
 ChatPane        = require 'activity/components/chatpane'
-ChatInputFlux   = require 'activity/flux/chatinput'
 ChatInputWidget = require 'activity/components/chatinputwidget'
 
 
@@ -51,33 +50,11 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.channel.followChannel @channel 'id'
 
 
-  startCollaboration: (event) ->
+  afterInviteOthers: ->
 
-    kd.utils.stopDOMEvent event
+    return  unless input = @refs.chatInputWidget
 
-    @setState showCollaborationTooltip: yes
-
-    kd.utils.wait 2000, => @setState showCollaborationTooltip: no
-
-
-  inviteOthers: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    chatInputWidget = @refs.chatInputWidget
-    textInput = React.findDOMNode chatInputWidget.refs.textInput
-    textInput.focus()
-
-    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite @'
-
-
-  addIntegration: (event) ->
-
-    kd.utils.stopDOMEvent event
-
-    @setState showIntegrationTooltip: yes
-
-    kd.utils.wait 2000, => @setState showIntegrationTooltip: no
+    input.focus()
 
 
   renderFollowChannel: ->
@@ -111,17 +88,12 @@ module.exports = class PublicChatPane extends React.Component
   render: ->
 
     <ChatPane
-      thread             = { @props.thread }
-      className          = "PublicChatPane"
-      messages           = { @props.messages }
-      onSubmit           = { @bound 'onSubmit' }
-      onLoadMore         = { @bound 'onLoadMore' }
-      inviteOthers       = { @bound 'inviteOthers' }
-      addIntegration     = { @bound 'addIntegration' }
-      startCollaboration = { @bound 'startCollaboration' }
-      showIntegrationTooltip = { @state.showIntegrationTooltip }
-      showCollaborationTooltip = { @state.showCollaborationTooltip }
-    >
+      thread     = { @props.thread }
+      className  = "PublicChatPane"
+      messages   = { @props.messages }
+      onSubmit   = { @bound 'onSubmit' }
+      afterInviteOthers = {@bound 'afterInviteOthers'}
+      onLoadMore = { @bound 'onLoadMore' }>
       {@renderFooter()}
     </ChatPane>
 
