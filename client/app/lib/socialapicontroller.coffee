@@ -825,6 +825,20 @@ module.exports = class SocialApiController extends KDController
 
     revive               : mapChannel
 
+    byParticipants: (options, callback) ->
+
+      serialized = options.participants
+        .map (id) -> "participants=#{id}"
+        .join "&"
+
+      doXhrRequest
+        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        type: 'GET'
+      , (err, result) ->
+        return callback err  if err
+        return callback null, mapChannels result
+
+
   moderation:
     link     : (options, callback) ->
       doXhrRequest
