@@ -37,6 +37,13 @@ module.exports = class CreatePublicChannelModal extends React.Component
       placeholder         : 'type a @username and hit enter'
 
 
+  componentWillUnmount: ->
+
+    CreateChannelFlux.actions.user.resetSelectedIndex()
+    CreateChannelFlux.actions.user.unsetInputQuery()
+    CreateChannelFlux.actions.channel.removeAllParticipants()
+
+
   getDataBindings: ->
 
     { getters } = CreateChannelFlux
@@ -110,13 +117,10 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   prepareRecipients: ->
 
-    recipients = []
-
-    @state.participants.map (participant) ->
-
-      recipients.push participant.getIn ['profile', 'nickname']
-
-    return recipients
+    @state.participants
+      .toList()
+      .map (p) -> p.getIn ['profile', 'nickname']
+      .toJS()
 
 
   validateName: (value) ->

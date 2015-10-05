@@ -1602,7 +1602,10 @@ module.exports = class JUser extends jraphical.Module
       ->
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
-        Tracker.track username, { to : email, subject }, { pin }
+
+        opts = { pin, email, group: client.context.group }
+        Tracker.track username, { to : email, subject }, opts
+
         queue.next()
 
       ->

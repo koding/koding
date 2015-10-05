@@ -3,16 +3,17 @@ React                        = require 'kd-react'
 KDReactorMixin               = require 'app/flux/reactormixin'
 ActivityFlux                 = require 'activity/flux'
 immutable                    = require 'immutable'
+getGroup                     = require 'app/util/getGroup'
 classnames                   = require 'classnames'
 ThreadSidebar                = require 'activity/components/threadsidebar'
 ThreadHeader                 = require 'activity/components/threadheader'
 PublicChannelLink            = require 'activity/components/publicchannellink'
 ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 PublicChatPane               = require 'activity/components/publicchatpane'
-Link                         = require 'app/components/common/link'
-Modal                        = require 'app/components/modal'
 showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
+StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
+
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -50,7 +51,7 @@ module.exports = class ChannelThreadPane extends React.Component
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
-  startVideoCall: ->
+  onStart: ->
 
     @setState isComingSoonModalOpen: yes
 
@@ -110,14 +111,6 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderVideoCallArea: ->
-
-    <Link className='ChannelThreadPane-videoCall' onClick={@bound 'startVideoCall'}>
-      <span>Start a Video Call</span>
-      <i className='ChannelThreadPane-videoCallIcon'></i>
-    </Link>
-
-
   render: ->
     <div className="ChannelThreadPane is-withChat">
       <CollaborationComingSoonModal
@@ -128,7 +121,7 @@ module.exports = class ChannelThreadPane extends React.Component
         {@renderDropSection()}
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
-          {@renderVideoCallArea()}
+          <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
@@ -157,7 +150,7 @@ reset = (props, state) ->
   # then load public.
   unless channelName
     unless state.channelThread
-      channelName = 'public'
+      channelName = getGroup().slug
 
   if channelName
     channel = ActivityFlux.getters.channelByName channelName

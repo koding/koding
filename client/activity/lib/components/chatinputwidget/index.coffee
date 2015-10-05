@@ -67,6 +67,11 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
 
 
+  componentDidUpdate: (oldProps, oldState) ->
+
+    @focus()  if oldState.value isnt @state.value
+
+
   getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
 
 
