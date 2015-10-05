@@ -727,6 +727,21 @@ module.exports = class ComputeController extends KDController
 
       updateWith options
 
+  # Stacks
+
+  # Start helper to start all machines in the given stack
+  startStack: (stack) ->
+
+    for machine in stack.machines
+      @start machine  if machine.isStopped()
+
+
+  # Stop helper to stop all machines in the given stack
+  stopStack: (stack) ->
+
+    for machine in stack.machines
+      @stop machine  if machine.isRunning()
+
 
   # Snapshots
   #
