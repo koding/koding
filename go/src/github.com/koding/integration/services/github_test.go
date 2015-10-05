@@ -83,6 +83,22 @@ func TestGithubCommitComment(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubCreateBranch(t *testing.T) {
+	whd := &webhook.CreateEvent{}
+	err := json.Unmarshal([]byte(createBranchData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.create(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[mehmetalisavas](https://github.com/mehmetalisavas) created branch `createdBranch` at [mehmetalisavas/webhook](https://github.com/mehmetalisavas/webhook)"
+	equals(t, exp, d)
+}
+
 func TestGithubDeleteBranch(t *testing.T) {
 	whd := &webhook.DeleteEvent{}
 	err := json.Unmarshal([]byte(deleteBranchData), whd)
