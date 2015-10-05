@@ -23,6 +23,8 @@ module.exports = class ChatPane extends React.Component
     return  unless nextProps?.thread
 
     { thread } = nextProps
+
+    @loadedWithScroll       = thread.getIn ['flags', 'loadedWithScroll']
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
     @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
 
@@ -54,6 +56,7 @@ module.exports = class ChatPane extends React.Component
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       <ChatList
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+        loadedWithScroll={@props.thread?.getIn ['flags', 'loadedWithScroll']}
         messages={@props.messages}
         showItemMenu={@props.showItemMenu}
         channelId={@channel 'id'}
