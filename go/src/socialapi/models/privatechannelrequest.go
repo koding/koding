@@ -297,10 +297,16 @@ func (p *ChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*Channe
 		return nil, err
 	}
 
+	cm, err = lastMessageContainer.Message.PopulatePayload()
+	if err != nil {
+		return nil, err
+	}
+
 	cmc := NewChannelContainer()
 	cmc.Channel = c
 	cmc.IsParticipant = true
 	cmc.LastMessage = lastMessageContainer
+	cmc.LastMessage.Message = cm
 	cmc.LastMessage.Message.ClientRequestId = p.ClientRequestId
 
 	return cmc, nil

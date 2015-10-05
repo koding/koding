@@ -551,11 +551,21 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             fully configured yet, please<br/>
             contact your team admin.
           </p>
-          <a href='/Messages/New'>Message admin</a>
           """
 
       cssClass = 'warning-section hidden'
       view     = new KDCustomHTMLView { cssClass, partial }
+
+      unless 'admin' in (roles ? [])
+        view.addSubView new KDCustomHTMLView
+          tagName: 'a'
+          partial: 'Message admin'
+          attributes: { href: '/Messages/New' }
+          click: (event) ->
+            kd.utils.stopDOMEvent event
+
+            ActivityFlux = require 'activity/flux'
+            ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
 
       @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
 

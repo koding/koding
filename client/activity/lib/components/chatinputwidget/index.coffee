@@ -67,6 +67,11 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
 
 
+  componentDidUpdate: (oldProps, oldState) ->
+
+    @focus()  if oldState.value isnt @state.value
+
+
   getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
 
 
@@ -202,8 +207,7 @@ module.exports = class ChatInputWidget extends React.Component
     newValue = value + item
     @setValue newValue
 
-    textInput = React.findDOMNode this.refs.textInput
-    textInput.focus()
+    @focus()
 
 
   onSearchItemConfirmed: (message) ->
@@ -233,10 +237,15 @@ module.exports = class ChatInputWidget extends React.Component
       value = searchMarker + value
       @setValue value
 
-    textInput = React.findDOMNode @refs.textInput
-    textInput.focus()
+    @focus()
 
     @refs.searchDropbox.checkTextForQuery { value }
+
+
+  focus: ->
+
+    textInput = React.findDOMNode @refs.textInput
+    textInput.focus()
 
 
   renderEmojiDropbox: ->
