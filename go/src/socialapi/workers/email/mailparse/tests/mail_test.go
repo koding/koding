@@ -34,7 +34,7 @@ func TestMailParse(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			c := socialapimodels.CreateChannelWithTest(acc.Id)
-			socialapimodels.AddParticipants(c.Id, acc.Id)
+			socialapimodels.AddParticipantsWithTest(c.Id, acc.Id)
 
 			cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
 			So(cm, ShouldNotBeNil)
