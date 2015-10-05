@@ -91,6 +91,7 @@ module.exports = class MainControllerLoggedOut extends KDController
           handleBanned responseText
         else if /TwoFactor/i.test responseText
           @emit 'TwoFactorEnabled'
+          callback? { err: 'TwoFactorEnabled' }
           return
         else
           new KDNotificationView title : responseText

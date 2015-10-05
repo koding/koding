@@ -29,7 +29,10 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       testPath : 'login-form'
       callback : (formData) =>
         mainController.on 'LoginFailed', => @form.button.hideLoader()
-        mainController.login formData
+        mainController.login formData, (err) =>
+          @form.button.hideLoader()
+          @form.tfcode.show()
+          @form.tfcode.setFocus()
 
     @form.button.unsetClass 'solid medium green'
     @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
