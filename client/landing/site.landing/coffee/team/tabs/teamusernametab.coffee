@@ -73,13 +73,19 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     if username is slug
       return new KDNotificationView title : "Sorry, your group domain and your username can not be the same!"
 
-    success = ->
+    success = =>
       KD.utils.storeNewTeamData 'username', formData
       KD.utils.createTeam
-        success : (data)->
+        success : (data) ->
           KD.utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
+        error : ({responseText}) =>
+          if /TwoFactor/.test responseText
+            @form.showTwoFactor()
+          else
+            new KDNotificationView title : responseText
+
 
     unless checkUsername
     then success()
