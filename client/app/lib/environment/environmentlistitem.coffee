@@ -1,16 +1,14 @@
-kd                     = require 'kd'
-JView                  = require 'app/jview'
-isKoding               = require 'app/util/isKoding'
+kd                        = require 'kd'
+JView                     = require 'app/jview'
+isKoding                  = require 'app/util/isKoding'
 
-remote                 = require('app/remote').getInstance()
+remote                    = require('app/remote').getInstance()
 
-MachinesList           = require './machineslist'
-MachinesListController = require './machineslistcontroller'
+MachinesList              = require './machineslist'
+MachinesListController    = require './machineslistcontroller'
 
-ComputeHelpers         = require '../providers/computehelpers'
-
-showNotification       = require 'app/util/showNotification'
-
+ComputeHelpers            = require '../providers/computehelpers'
+showNotification          = require 'app/util/showNotification'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
@@ -74,8 +72,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-      @getDelegate().emit 'ModalDestroyRequested'
-      ComputeHelpers.handleNewMachineRequest { provider }
+    @getDelegate().emit 'ModalDestroyRequested'
+    ComputeHelpers.handleNewMachineRequest { provider }
 
 
   createExtraViews: ->
