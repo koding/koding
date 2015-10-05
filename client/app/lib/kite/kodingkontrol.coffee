@@ -166,7 +166,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
       queryString = KiteCache.generateQueryString query
 
-      kite.on 'close', (event)=>
+      kite.on 'close', (event) =>
 
         return  unless event?.code is 1002
 
@@ -174,7 +174,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         KiteCache.unset query
 
         kiteInstance = @kites[kiteName]?['singleton'] or {}
-        {waitingPromises} = kiteInstance
+        { waitingPromises } = kiteInstance
 
         delete @kites[kiteName]['singleton']
 
