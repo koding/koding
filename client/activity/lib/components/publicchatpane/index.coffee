@@ -29,10 +29,6 @@ module.exports = class PublicChatPane extends React.Component
   onSubmit: ({ value }) ->
 
     return  unless body = value
-    name = @channel 'name'
-
-    unless body.match ///\##{name}///
-      body += " ##{name} "
 
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
