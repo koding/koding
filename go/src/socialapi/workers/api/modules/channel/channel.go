@@ -174,8 +174,8 @@ func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	unify[strconv.FormatInt(context.Client.Account.Id, 10)] = struct{}{}
 
 	// remove duplicates from participants
-	for _, participantStr := range participantsStr {
-		unify[participantStr] = struct{}{}
+	for i := range participantsStr {
+		unify[participantsStr[i]] = struct{}{}
 	}
 
 	participants := make([]int64, 0)
