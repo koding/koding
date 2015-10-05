@@ -138,11 +138,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     if not paneLength and not frontApp.targetTabView
 
-      if not appStorage.getValue 'IsAutoRemovePaneSuggested'
-        appStorage.setValue 'IsAutoRemovePaneSuggested', yes
-        return @showSuggestAutoRemovePaneModal()
+      appStorage.ready =>
 
-      @closeSplitView()  if appStorage.getValue 'enableAutoRemovePane'
+        if not appStorage.getValue 'IsAutoRemovePaneSuggested'
+          appStorage.setValue 'IsAutoRemovePaneSuggested', yes
+          return @showSuggestAutoRemovePaneModal()
+
+        @closeSplitView()  if appStorage.getValue 'enableAutoRemovePane'
 
 
   showSuggestAutoRemovePaneModal: ->
