@@ -94,6 +94,27 @@ func FetchChannelByName(accountId int64, name, groupName, typeConstant, token st
 	return ccs.Channel, nil
 }
 
+func FetchChannelsByParticipants(accountIds []int64, typeConstant, token string) ([]models.ChannelContainer, error) {
+	ids := ""
+	for _, id := range accountIds {
+		ids += fmt.Sprintf("id=%d&", id)
+	}
+
+	url := fmt.Sprintf("/channel/by/participants?%stype=%s", ids, typeConstant)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
+	if err != nil {
+		return nil, err
+	}
+
+	var ccs []models.ChannelContainer
+	err = json.Unmarshal(res, &ccs)
+	if err != nil {
+		return nil, err
+	}
+
+	return ccs, nil
+}
+
 func DeleteChannel(creatorId, channelId int64) error {
 	c := models.NewChannel()
 	c.CreatorId = creatorId
