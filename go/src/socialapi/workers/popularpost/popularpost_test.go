@@ -15,15 +15,7 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
-	"labix.org/v2/mgo/bson"
 )
-
-func createAccount() (*models.Account, error) {
-	acc := models.NewAccount()
-	acc.OldId = bson.NewObjectId().Hex()
-
-	return rest.CreateAccount(acc)
-}
 
 func updateCreatedAt(id int64, ti time.Time) error {
 	msg := models.NewChannelMessage()
@@ -44,7 +36,7 @@ func TestPopularPost(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 
 	// initialize redis
-	runner.MustGetRedisConn()
+	r.Bongo.MustGetRedisConn()
 
 	// initialize popular post controller
 	controller := New(r.Log, runner.MustInitRedisConn(r.Conf))
@@ -73,11 +65,9 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given a post", t, func() {
-		account, err := createAccount()
-		So(err, ShouldBeNil)
+		account := models.CreateAccountWithTest()
 
-		c, err := rest.CreateChannel(account.Id)
-		So(err, ShouldBeNil)
+		c := models.CreateChannelWithTest(account.Id)
 
 		cm, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
@@ -130,8 +120,7 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given two posts created on same day", t, func() {
-		account, err := createAccount()
-		So(err, ShouldBeNil)
+		account := models.CreateAccountWithTest()
 
 		groupName := models.RandomGroupName()
 
@@ -151,8 +140,7 @@ func TestPopularPost(t *testing.T) {
 		cm, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
 
-		acc2, err := createAccount()
-		So(err, ShouldBeNil)
+		acc2 := models.CreateAccountWithTest()
 
 		post2, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
@@ -204,8 +192,7 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given two posts created on different days", t, func() {
-		account, err := createAccount()
-		So(err, ShouldBeNil)
+		account := models.CreateAccountWithTest()
 
 		groupName := models.RandomGroupName()
 
