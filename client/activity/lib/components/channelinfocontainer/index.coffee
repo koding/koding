@@ -129,13 +129,13 @@ module.exports = class ChannelInfoContainer extends React.Component
           className='ChannelInfoContainer-action StartCollaborationLink'
           onClick={@bound 'onCollaborationHelp'}>
           Start Collaboration
-          {renderTooltip @props.collabTooltipVisible}
+          {renderTooltip @state.collabTooltipVisible}
         </Link>
         <Link
           className='ChannelInfoContainer-action AddIntegrationLink'
           onClick={@bound 'onIntegrationHelp'}>
           Add integration
-          {renderTooltip @props.integrationTooltipVisible}
+          {renderTooltip @state.integrationTooltipVisible}
         </Link>
         <Link
           className='ChannelInfoContainer-action InviteOthersLink'
