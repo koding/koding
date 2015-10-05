@@ -1,15 +1,17 @@
-kd                        = require 'kd'
-React                     = require 'kd-react'
-KDReactorMixin            = require 'app/flux/reactormixin'
-ActivityFlux              = require 'activity/flux'
-immutable                 = require 'immutable'
-classnames                = require 'classnames'
-PrivateChatPane           = require 'activity/components/privatechatpane'
-ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
-ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
-ThreadSidebar             = require 'activity/components/threadsidebar'
-prepareThreadTitle        = require 'activity/util/prepareThreadTitle'
-ImmutableRenderMixin      = require 'react-immutable-render-mixin'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+KDReactorMixin               = require 'app/flux/reactormixin'
+ActivityFlux                 = require 'activity/flux'
+immutable                    = require 'immutable'
+classnames                   = require 'classnames'
+PrivateChatPane              = require 'activity/components/privatechatpane'
+ThreadSidebarContentBox      = require 'activity/components/threadsidebarcontentbox'
+ChannelParticipantAvatars    = require 'activity/components/channelparticipantavatars'
+ThreadSidebar                = require 'activity/components/threadsidebar'
+prepareThreadTitle           = require 'activity/util/prepareThreadTitle'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
+CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -36,12 +38,23 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       channelThread         : immutable.Map()
       channelThreadMessages : immutable.List()
       channelParticipants   : immutable.List()
+      isComingSoonModalOpen : no
 
 
   componentDidMount: -> reset @props, @state
 
 
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
+
+
+  startVideoCall: ->
+
+    @setState isComingSoonModalOpen: yes
+
+
+  onClose: ->
+
+    @setState isComingSoonModalOpen: no
 
 
   renderHeader: ->
@@ -61,9 +74,13 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
   render: ->
     <div className='PrivateMessageThreadPane'>
+      <CollaborationComingSoonModal
+        onClose={@bound 'onClose'}
+        isOpen={@state.isComingSoonModalOpen}/>
       <section className="PrivateMessageThreadPane-content">
         <header className="PrivateMessageThreadPane-header">
           {@renderHeader()}
+          <StartVideoCallLink startVideoCall={@bound 'startVideoCall'}/>
         </header>
         <div className="PrivateMessageThreadPane-body">
           <section className="PrivateMessageThreadPane-chatWrapper">
