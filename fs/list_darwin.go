@@ -16,12 +16,11 @@ func unescape(s string) string {
 
 func getMountInfo(mnt string) (*MountInfo, error) {
 	var st syscall.Statfs_t
-	err := syscall.Statfs(mnt, &st)
-	if err != nil {
+	if err := syscall.Statfs(mnt, &st); err != nil {
 		return nil, err
 	}
-	i := &MountInfo{
-		FSName: unescape(cstr(st.Mntfromname[:])),
-	}
+
+	i := &MountInfo{FSName: unescape(cstr(st.Mntfromname[:]))}
+
 	return i, nil
 }

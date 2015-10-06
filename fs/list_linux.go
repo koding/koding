@@ -31,22 +31,23 @@ func getMountInfo(mnt string) (*MountInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, line := range strings.Split(string(data), "\n") {
 		fields := strings.Fields(line)
 		if len(fields) < 3 {
 			continue
 		}
+
 		// Fields are: fsname dir type opts freq passno
 		fsname := fstabUnescape.Replace(fields[0])
 		dir := fstabUnescape.Replace(fields[1])
 		fstype := fstabUnescape.Replace(fields[2])
+
 		if mnt == dir {
-			info := &MountInfo{
-				FSName: fsname,
-				Type:   fstype,
-			}
+			info := &MountInfo{FSName: fsname, Type: fstype}
 			return info, nil
 		}
 	}
+
 	return nil, errNotFound
 }
