@@ -158,6 +158,7 @@ module.exports = class GroupsController extends KDController
         new KDNotificationView {title:"Membership policy has been updated."}
       showError err
 
+
   ###*
    *  Sets given stack template as current group's default stack template
    *
