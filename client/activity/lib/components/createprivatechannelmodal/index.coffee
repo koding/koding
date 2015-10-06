@@ -115,20 +115,20 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     if @state.preExistingChannel
       if @state.name or @state.purpose
         props = _.assign {}, props,
-          buttonExtraTitle: continueButtonTitle
-          onButtonExtraClick: continueButtonOnClick
-          buttonConfirmTitle: createButtonTitle
-          buttonConfirmClassName: 'Button--cancel'
+          buttonExtraTitle       : continueButtonTitle
+          onButtonExtraClick     : continueButtonOnClick
+          buttonConfirmTitle     : createButtonTitle
+          buttonConfirmClassName : 'Button--cancel'
       else
         props = _.assign {}, props,
-          buttonConfirmTitle: continueButtonTitle
-          onConfirm: continueButtonOnClick
+          buttonConfirmTitle : continueButtonTitle
+          onConfirm          : continueButtonOnClick
     else
       props = _.assign {}, props,
-        buttonExtraTitle: null
-        buttonConfirmTitle: createButtonTitle
-        buttonOnClick: @bound 'createChannel'
-        buttonConfirmClassName: 'Button--primary'
+        buttonExtraTitle       : null
+        buttonConfirmTitle     : createButtonTitle
+        buttonOnClick          : @bound 'createChannel'
+        buttonConfirmClassName : 'Button--primary'
 
     return props
 
