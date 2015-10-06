@@ -110,7 +110,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       @_isRouting = yes
       kd.singletons.router.handleRoute "/Messages/#{@state.preExistingChannel.get 'id'}"
 
-    createButtonTitle = 'CREATE NEW THREAD'
+    createButtonTitle = 'CREATE'
 
     if @state.preExistingChannel
       if @state.name or @state.purpose
