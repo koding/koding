@@ -31,6 +31,7 @@ module.exports = class GroupsController extends KDController
       { slug } = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
 
+
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -156,3 +157,38 @@ module.exports = class GroupsController extends KDController
         policy.emit 'MembershipPolicyChangeSaved'
         new KDNotificationView {title:"Membership policy has been updated."}
       showError err
+
+
+  ###*
+   *  Sets given stack template as current group's default stack template
+   *
+   *  @param  {JStackTemplate}  stackTemplate
+   *  @param  {Func}            callback  [ err ]
+  ###
+  setDefaultTemplate: (stackTemplate, callback = kd.noop) ->
+
+    { computeController }   = kd.singletons
+    { slug } = currentGroup = @getCurrentGroup()
+
+    if slug is 'koding'
+      return callback 'Setting stack template for koding is disabled'
+
+    # Share given stacktemplate with group first
+    stackTemplate.setAccess 'group', (err) ->
+      return callback err  if err
+
+      # Modify group data to use this stackTemplate as default
+      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) ->
+        return callback err  if err
+
+        new kd.NotificationView
+          title : "Team (#{slug}) stack has been saved!"
+          type  : 'mini'
+
+        # Re-call create default stack flow to make sure it exists
+        computeController.createDefaultStack yes
+
+        # Warn other group members about stack template update
+        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
+
+        callback null

@@ -20,7 +20,6 @@ module.exports = class BaseStackTemplateListItem extends kd.ListItemView
     @menu = {}
 
     @settings        = new KDButtonViewWithMenu
-      title          : ''
       cssClass       : 'stack-settings-menu'
       itemChildClass : ActivityItemMenuItem
       delegate       : this
@@ -30,13 +29,13 @@ module.exports = class BaseStackTemplateListItem extends kd.ListItemView
       callback       : (event) => @settings.contextMenu event
 
 
-  addMenuItem: (title, callback) -> @menu[title] = {callback}
+  addMenuItem: (title, callback) -> @menu[title] = { callback }
 
 
   settingsMenu: ->
 
     delegate  = @getDelegate()
-    @menu     = {}
+    @menu    ?= {}
 
     @addMenuItem 'Show',    delegate.lazyBound 'showItemContent', this
     @addMenuItem 'Edit',    @bound 'updateStackTemplate'

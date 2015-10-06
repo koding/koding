@@ -58,14 +58,15 @@ module.exports = class AdminAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    data       or= kd.singletons.groupsController.getCurrentGroup()
-    options.view = new AdminAppView
-      title      : 'Team Settings'
-      cssClass   : 'AppModal AppModal--admin'
-      width      : 1000
-      height     : '90%'
-      overlay    : yes
-      tabData    : NAV_ITEMS
+    data         or= kd.singletons.groupsController.getCurrentGroup()
+    options.view   = new AdminAppView
+      title        : 'Team Settings'
+      cssClass     : 'AppModal AppModal--admin'
+      width        : 1000
+      height       : '90%'
+      overlay      : yes
+      overlayClick : no
+      tabData      : NAV_ITEMS
     , data
 
     super options, data
