@@ -801,12 +801,13 @@ sidebarTextShadow()
         abs                 8px 13px 0 0
         float               none
         margin-right        0
+        opacity             .65
         pointer()
         vendor              filter, grayscale(1)
-        -webkit-transition  -webkit-filter .3s linear
-        transition          filter .3s linear
+        vendor              transition, filter .3s linear, opacity .3s linear
 
         &:hover
+          opacity           1
           vendor            filter, grayscale(0)
 
       .acc-notification-icon
