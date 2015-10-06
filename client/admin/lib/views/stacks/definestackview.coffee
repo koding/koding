@@ -547,33 +547,13 @@ module.exports = class DefineStackView extends KDView
 
   handleSetDefaultTemplate: (completed = yes) ->
 
-    { stackTemplate }                       = @getData()
-    { computeController, groupsController } = kd.singletons
-
-    currentGroup = groupsController.getCurrentGroup()
-    { slug }     = currentGroup
-
-    if slug is 'koding'
-      return new kd.NotificationView
-        title: 'Setting stack template for koding is disabled'
+    { stackTemplate }    = @getData()
+    { groupsController } = kd.singletons
 
     @outputView.add 'Setting this as default group stack template...'
 
-    stackTemplate.setAccess 'group', (err) =>
+    groupsController.setDefaultTemplate stackTemplate, (err) =>
       return  if @outputView.handleError err
 
-      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
-        return  if @outputView.handleError err
-
-        new kd.NotificationView
-          title : "Team (#{slug}) stack has been saved!"
-          type  : 'mini'
-
-        computeController.createDefaultStack yes
-
-        @emit 'Reload'
-
-        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
-
-        if completed
-          @emit 'Completed', stackTemplate
+      @emit 'Reload'
+      @emit 'Completed', stackTemplate  if completed
