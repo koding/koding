@@ -65,20 +65,17 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
           use os specific init daemon to run binary
         klient ps - return list of user VMs to mount
     * EXTERNAL BETA
-        support flags in cli, ie --remotepath=, --internalpath=
+        support flags in cli for optional args, ie --remotepath
         `kd update` after phone home to check for updates
         `kd ssh` that opens ssh connection on VM
-        brew formula for installation
-        deal with klient crashes
-          use state ie bolt.db or not state?
+        `kd remount`
+          store state in ie bolt.db
           unmount folders if it exists before starting
           handle mounting onto to previously mounted folder
+        battle test
+    * 1.0
         invalidate local cache on file changes in user VM
         invalidate file list on file list changes
-        battle test
-        how to deal with internet connection dropping?
-        `kd remount`
-    * 1.0
         kd run - run entire command on VM, return results
             shell hooks: fish, bash
         remaining FUSE operations
