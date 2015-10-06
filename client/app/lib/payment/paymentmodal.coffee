@@ -4,7 +4,6 @@ PaymentBaseModal  = require './paymentbasemodal'
 PaymentForm       = require './paymentform'
 PaymentConstants  = require './paymentconstants'
 showError         = require '../util/showError'
-trackEvent        = require 'app/util/trackEvent'
 
 
 # This class is the modal view.
@@ -42,11 +41,6 @@ module.exports = class PaymentModal extends PaymentBaseModal
     super options, data
 
     { planTitle, planInterval } = @state
-
-    trackEvent 'Viewed Product',
-      id       : "#{planTitle}-#{planInterval}"
-      title    : planTitle
-      interval : planInterval
 
 
   initViews: ->
@@ -146,4 +140,3 @@ module.exports = class PaymentModal extends PaymentBaseModal
         @setTitle 'Downgrade complete.'
 
     @form.showSuccess operation
-

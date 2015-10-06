@@ -9,7 +9,6 @@ remote = require('app/remote').getInstance()
 globals = require 'globals'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 getGroup = require 'app/util/getGroup'
-trackEvent = require 'app/util/trackEvent'
 whoami = require 'app/util/whoami'
 isMine = require 'app/util/isMine'
 AppController = require 'app/appcontroller'
@@ -34,9 +33,6 @@ module.exports = class MembersAppController extends AppController
     @appManager = kd.getSingleton "appManager"
 
     super options, data
-
-    @once "MemberListLoaded", ->
-      trackEvent "Load member list, success"
 
   createContentDisplay:(model, callback=->)->
     kd.singletons.appManager.setFrontApp this
@@ -214,4 +210,3 @@ module.exports = class MembersAppController extends AppController
 
     whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
     account.fetchStorages  whitelist, callback
-
