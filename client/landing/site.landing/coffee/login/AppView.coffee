@@ -15,7 +15,7 @@ MainControllerLoggedOut               = require './../core/maincontrollerloggedo
 
 module.exports = class LoginView extends JView
 
-  RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+  RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
 
   stop           = KD.utils.stopDOMEvent
   ENTER          = 13
@@ -415,7 +415,7 @@ module.exports = class LoginView extends JView
         @recaptcha = new KDCustomHTMLView
           tagName    : 'script'
           attributes :
-            src      : RECATCHA_JS
+            src      : RECAPTCHA_JS
             async    : yes
             defer    : yes
 
