@@ -1,5 +1,5 @@
-onHeaders            = require 'on-headers'
-{ MetricsBase }      = require 'koding-datadog'
+onFinished      = require 'on-finished'
+{ MetricsBase } = require 'koding-datadog'
 
 module.exports = class MetricsMiddleware extends MetricsBase
 
@@ -9,7 +9,6 @@ module.exports = class MetricsMiddleware extends MetricsBase
   @sanitizeMetricName : (string) ->
 
     return string
-      .replace /\/$/g,                 'home'  # replace last / with home
       .replace /[\/-]/g,               '.'     # replace all / with .
       .replace /\.{2,}/g,              '.'     # remove adjacent dots
       .replace /[^a-zA-Z0-9_\.]/g,     '_'     # replace invalid chars with _
@@ -22,6 +21,7 @@ module.exports = class MetricsMiddleware extends MetricsBase
       when req?.route?              then req.route.path
       else                               req.path
 
+    path = 'home'  if path is '/'
     @sanitizeMetricName "#{@prefix}.#{path}"
 
 
@@ -35,7 +35,7 @@ module.exports = class MetricsMiddleware extends MetricsBase
     return tags
 
 
-  @metricsOnHeaders : (opts) ->
+  @metricsOnFinished : (opts) ->
 
     return {
       increment         :
@@ -47,13 +47,13 @@ module.exports = class MetricsMiddleware extends MetricsBase
 
   @send : (req, res, next) =>
 
-    timer = new @timer
+    start = new Date()
 
-    onHeaders res, =>
+    onFinished res, =>
       metricName  = @generateName req
       tags        = @populateTags req, res
-      elapsedTime = timer.getElapsedTimeInMilliSecs()
-      @sendMetrics @metricsOnHeaders({ elapsedTime }), metricName, tags
+      elapsedTime = new Date() - start
+      @sendMetrics @metricsOnFinished({ elapsedTime }), metricName, tags
 
     next()
 
