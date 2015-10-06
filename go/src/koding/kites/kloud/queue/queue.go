@@ -32,6 +32,7 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 	for _ = range time.Tick(interval) {
 		// do not block the next tick
 		go q.CheckKoding()
+		go q.CheckAWS()
 	}
 }
 
