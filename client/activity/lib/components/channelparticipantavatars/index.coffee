@@ -10,6 +10,8 @@ ActivityFlux                = require 'activity/flux'
 ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
 DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
+getGroup                    = require 'app/util/getGroup'
+validator                   = require 'validator'
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
@@ -208,7 +210,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     accountId    = whoami()._id
     groupAdminId = @props.channelThread.getIn ['channel','accountOldId']
 
-    if accountId is groupAdminId then return yes else return no
+    return accountId is groupAdminId
+
+
   isGroupChannel: ->
 
     channelId = @props.channelThread.getIn ['channel','id']
@@ -216,6 +220,21 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     return channelId is getGroup().socialApiDefaultChannelId
 
 
+  onEnter: (event) ->
+
+    DropboxInputMixin.onEnter.call this, event
+
+    if @isGroupAdmin() and @isGroupChannel()
+
+      value        = event.target.value.trim()
+      isValidEmail = validator.isEmail value
+
+      if isValidEmail
+
+        { channel, user } = ActivityFlux.actions
+
+        channel.inviteMember [{email: value}], ->
+          user.unsetChannelParticipantsInputQuery()
 
 
   getPlaceHolder: ->
@@ -235,7 +254,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
         onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @bound 'onChange' }
         placeholder = { @getPlaceHolder() }
-        value       = { @state.value }
+        value       = { @state.query }
         ref         = 'textInput'
       />
     </div>
