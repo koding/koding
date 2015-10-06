@@ -60,7 +60,7 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 	if err != nil {
 		m.Log.Debug("Error connecting to klient, stopping if needed. Error: %s",
 			err.Error())
-		return q.StopIfKlientIsMissing(ctx, nil)
+		return err
 	}
 
 	// replace with the real and authenticated username
@@ -75,23 +75,23 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 	if err != nil {
 		m.Log.Debug("Error getting klient usage, stopping if needed. Error: %s",
 			err.Error())
-		return q.StopIfKlientIsMissing(ctx, nil)
+		return err
 	}
 
 	// we don't have any payments for AWS. Assume the timeout is the same as
 	// for Koding, 50 minutes
 	planTimeout := 50 * time.Minute
 
-	q.Log.Debug("machine [%s] (aws) is inactive for %s (plan limit: %s, plan: %s).",
-		m.IpAddress, usg.InactiveDuration, planTimeout, m.Payment.Plan)
+	q.Log.Debug("machine [%s] (aws) is inactive for %s (plan limit: %s",
+		m.IpAddress, usg.InactiveDuration, planTimeout)
 
 	// It still have plenty of time to work, do not stop it
 	if usg.InactiveDuration <= planTimeout {
 		return nil
 	}
 
-	q.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
-		m.IpAddress, usg.InactiveDuration, m.Payment.Plan)
+	q.Log.Info("machine [%s] has reached current plan limit of %s. Shutting down...",
+		m.IpAddress, usg.InactiveDuration)
 
 	// Hasta la vista, baby!
 	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
