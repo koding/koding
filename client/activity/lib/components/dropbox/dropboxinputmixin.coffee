@@ -1,6 +1,9 @@
 kd            = require 'kd'
-React          = require 'kd-react'
-keyboardKeys   = require 'app/util/keyboardKeys'
+React         = require 'kd-react'
+keyboardKeys  = require 'app/util/keyboardKeys'
+showError     = require 'app/util/showError'
+validator     = require 'validator'
+ActivityFlux  = require 'activity/flux'
 
 
 module.exports = DropboxInputMixin =
@@ -32,6 +35,16 @@ module.exports = DropboxInputMixin =
     if dropdown.isActive()
 
       dropdown.confirmSelectedItem()
+
+    else if @isGroupAdmin and @isGroupAdmin()
+
+      value        = event.target.value.trim()
+      isValidEmail = validator.isEmail value
+
+      return showError 'That doesn\'t seem like a valid email address.'  unless isValidEmail
+
+      ActivityFlux.actions.channel.inviteMember [{email: value}], =>
+        @setState value: ''
 
 
   onEsc: (event) -> @getDropdown().close()
