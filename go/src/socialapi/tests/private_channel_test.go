@@ -8,6 +8,7 @@ import (
 	"socialapi/workers/common/tests"
 	"testing"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -245,6 +246,27 @@ func TestPrivateMesssages(t *testing.T) {
 				So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
 				So(pm[0].IsParticipant, ShouldBeTrue)
 
+			})
+
+			payload := gorm.Hstore{}
+			bar := "bar"
+			payload["foo"] = &bar
+
+			Convey("given payload should be populated", func() {
+				pmr := models.ChannelRequest{}
+				pmr.AccountId = account.Id
+				pmr.Body = "this is a body message for private message @devrim @sinan"
+				pmr.GroupName = groupName
+				pmr.Recipients = []string{"devrim", "sinan"}
+				pmr.Payload = payload
+
+				pcr, err := rest.SendPrivateChannelRequest(pmr)
+				So(err, ShouldBeNil)
+				So(pcr, ShouldNotBeNil)
+				So(pcr.Channel, ShouldNotBeNil)
+				So(pcr.Channel.Payload, ShouldNotBeNil)
+				So(len(pcr.Channel.Payload), ShouldBeGreaterThan, 0)
+				So(*pcr.Channel.Payload["foo"], ShouldEqual, bar)
 			})
 
 			Convey("user join activity should be listed by recipients", func() {

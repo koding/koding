@@ -108,10 +108,10 @@ module.exports = class DefineStackView extends KDView
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
-        @saveButton.enable()
+        @_credentialsPassed = yes
         @tabView.showPaneByIndex 0
       else
-        @saveButton.disable()
+        @_credentialsPassed = yes
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
@@ -183,7 +183,6 @@ module.exports = class DefineStackView extends KDView
     @buttons.addSubView @saveButton = new KDButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
-      disabled       : yes
       loader         : yes
       callback       : @bound 'handleSave'
 
@@ -195,6 +194,12 @@ module.exports = class DefineStackView extends KDView
 
 
   handleSave: ->
+
+    unless @_credentialsPassed
+      @outputView.addAndWarn "Please add your credentials to be
+                              able to save this template"
+      @saveButton.hideLoader()
+      return
 
     unless @variablesView.isPassed()
 
@@ -266,25 +271,21 @@ module.exports = class DefineStackView extends KDView
 
       { groupsController } = kd.singletons
 
-      currentGroup = groupsController.getCurrentGroup()
+      { stackTemplates } = groupsController.getCurrentGroup()
 
-      if not currentGroup.stackTemplates?.length
-        @handleSetDefaultTemplate completed = no
-        @outputView.addAndWarn "
-          Your stack script has been successfully saved and applied
-          to all your team members. You can now close this window
-          and continue working with your stack.
-        "
+      @handleSetDefaultTemplate completed = no
 
-      else
-        @outputView.add "You can now apply your stack changes to all your
-                         team members or close this window and continue to
-                         work on your stack script."
+      action = if not stackTemplates?.length then 'addAndWarn' else 'add'
 
-        @setAsDefaultButton.show()
-        @saveButton.hide()
+      @outputView[action] """
+        Your stack script has been successfully saved and all your team
+        members now will use the stack you have just saved.
+
+        You can now close this window or continue working with your stack.
+      """
 
       @cancelButton.setTitle 'Close'
+      @saveButton.hide()
 
 
   checkAndBootstrapCredentials: (callback) ->

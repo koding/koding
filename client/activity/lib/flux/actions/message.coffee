@@ -215,17 +215,23 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
+  # since this action works for all types of channel, we need to specify the
+  # type when we are posting.
+  channel = socialapi.retrieveCachedItemById channelId
+  type = channel.typeConstant
+
   fetchEmbedPayload { body, payload }, (embedPayload) ->
     payload = _.assign {}, payload, embedPayload
 
-    socialapi.message.post { channelId, clientRequestId, body, payload }, (err, message) ->
+    options = { channelId, clientRequestId, body, payload, type }
+    socialapi.message.sendPrivateMessage options, (err, [channel]) ->
       if err
         dispatch CREATE_MESSAGE_FAIL, {
           err, channelId, clientRequestId
         }
         return
 
-      channel = socialapi.retrieveCachedItemById channelId
+      { lastMessage: message } = channel
 
       realtimeActionCreators.bindMessageEvents message
       dispatch CREATE_MESSAGE_SUCCESS, {

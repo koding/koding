@@ -170,6 +170,7 @@ func (cue *channelUpdatedEvent) isValidNotifyAllParticipantsEvent() bool {
 	// send only post operations the the client
 	if cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_POST ||
 		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_PRIVATE_MESSAGE ||
+		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_SYSTEM ||
 		cue.ParentChannelMessage.TypeConstant == models.ChannelMessage_TYPE_BOT {
 		return true
 	}

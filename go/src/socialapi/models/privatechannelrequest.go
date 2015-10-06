@@ -51,6 +51,8 @@ func (p *ChannelRequest) Create() (*ChannelContainer, error) {
 	c.Name = RandomName()
 	c.TypeConstant = p.TypeConstant
 	c.Purpose = p.Purpose
+	c.Payload = p.Payload
+
 	if p.Name != "" {
 		c.Name = p.Name
 	}
@@ -295,10 +297,16 @@ func (p *ChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*Channe
 		return nil, err
 	}
 
+	cm, err = lastMessageContainer.Message.PopulatePayload()
+	if err != nil {
+		return nil, err
+	}
+
 	cmc := NewChannelContainer()
 	cmc.Channel = c
 	cmc.IsParticipant = true
 	cmc.LastMessage = lastMessageContainer
+	cmc.LastMessage.Message = cm
 	cmc.LastMessage.Message.ClientRequestId = p.ClientRequestId
 
 	return cmc, nil
@@ -389,14 +397,11 @@ func (p *ChannelRequest) createMessage(channelId int64, typeConstant string) (*C
 }
 
 func getBody(p *ChannelRequest, typeConstant string) string {
-	switch typeConstant {
-	case ChannelMessage_TYPE_PRIVATE_MESSAGE:
-		return p.Body
-	case ChannelMessage_TYPE_SYSTEM:
+	if typeConstant == ChannelMessage_TYPE_SYSTEM {
 		return "system"
 	}
 
-	return ""
+	return p.Body
 }
 
 func formatParticipantIds(participantIds []int64) string {

@@ -1,4 +1,4 @@
-_ = require 'lodash'
+_                       = require 'lodash'
 kd                      = require 'kd'
 whoami                  = require 'app/util/whoami'
 actionTypes             = require './actiontypes'
@@ -28,10 +28,7 @@ loadChannelByName = (name) ->
 
   name = name.toLowerCase()
 
-  type = switch name
-    when 'public'                     then 'group'
-    when 'changelog', getGroup().slug then 'announcement'
-    else 'topic'
+  type = getChannelTypeByName name
 
   dispatch LOAD_CHANNEL_BY_NAME_BEGIN, { name, type }
 
@@ -65,6 +62,31 @@ loadChannelById = (id) ->
 
     realtimeActionCreators.bindChannelEvents channel
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+
+loadChannelByParticipants = (participants, options = {}) ->
+
+  { LOAD_CHANNEL_BY_PARTICIPANTS_BEGIN
+    LOAD_CHANNEL_BY_PARTICIPANTS_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
+
+  new Promise (resolve, reject) ->
+
+    dispatch LOAD_CHANNEL_BY_PARTICIPANTS_BEGIN, { participants }
+
+    _options = _.assign {}, options, { participants }
+
+    kd.singletons.socialapi.channel.byParticipants _options, (err, channels) ->
+      if err
+        dispatch LOAD_CHANNEL_BY_PARTICIPANTS_FAIL, { participants }
+        reject err
+        return
+
+      kd.singletons.reactor.batch ->
+        channels.forEach (channel) ->
+          dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+        resolve { channels }
 
 
 ###*
@@ -435,6 +457,7 @@ module.exports = {
   addParticipantsByNames
   loadChannelByName
   loadChannelById
+  loadChannelByParticipants
   loadChannel
   loadFollowedPrivateChannels
   loadFollowedPublicChannels

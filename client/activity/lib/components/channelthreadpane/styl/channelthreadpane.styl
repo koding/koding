@@ -47,27 +47,6 @@ $header-height              = 52px
   dFlex()
   rel()
 
-.ChannelThreadPane-videoCall
-  abs()
-  top                       18px
-  right                     25px
-  color                     #3d3c40 !important
-
-  span:after
-    rel()
-    dIBlock()
-    content                 ''
-    margin-left             10px
-    r-sprite                'activity', 'right-arrow'
-
-.ChannelThreadPane-videoCallIcon
-  rel()
-  dIBlock()
-  content                   ''
-  margin-left               10px
-  top                       2px
-  r-sprite                  'activity', 'video-call'
-
 .ChannelThreadPane-footer
   vendor                    flex, 0 0 1px
 
@@ -90,9 +69,9 @@ $header-height              = 52px
   vendor                    transition, flex .177s ease
 
 .ChannelThreadPane-sidebar
-  vendor                    flex, 0 0 240px
   bg                        color, #f5f5f5
+  vendor                    flex, 0 0 240px
 
-@media only screen and (max-width : 950px)
-  .ChannelThreadPane-sidebar
-    vendor                  flex, 0 0 40px
+// @media only screen and (max-width : 950px)
+//   .ChannelThreadPane-sidebar
+//     vendor                  flex, 0 0 40px

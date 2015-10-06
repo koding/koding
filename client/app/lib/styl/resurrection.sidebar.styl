@@ -154,7 +154,7 @@ sidebarTextShadow()
     size                    24px 19px
     line-height             16px
     color                   #fff
-    abs                     0px 0px 0 0
+    abs                     0px -5px 0 0
     font-size               11px
     font-weight             700
     background              sidebarCountBg
@@ -364,15 +364,15 @@ sidebarTextShadow()
           // bg          color, #8CEE71
           // border      2px solid #8CEE71
         > .progressbar-container
-          size        100% 3px
-          background  none
-          border      none
-          abs         0 0 0px 0px
-          rounded     1px
+          abs               0 0 0px 0px
+          background        none
+          border            none
+          rounded           1px
+          size              95% 3px
           .bar
-            background  #4BA148
-            border      none
-            shadow      none
+            background      #4BA148
+            border          none
+            shadow          none
 
   .ws-add-icon
   .ws-settings-icon
@@ -486,10 +486,14 @@ sidebarTextShadow()
     //   sidebarTextShadow()
 
     &.selected
-      color           sidebarActive
+      color                 sidebarActive
 
       .ttag:before
-        color         #fff
+        color               sidebarActive
+
+      .ttag
+        color               sidebarActive
+
 
     borderBox()
     &:hover
@@ -794,7 +798,7 @@ sidebarTextShadow()
     .avatar-area
       padding               8px
       .avatarview
-        abs                 8px 8px 0 0
+        abs                 8px 13px 0 0
         float               none
         margin-right        0
         pointer()
@@ -809,7 +813,7 @@ sidebarTextShadow()
         size                14px 14px
         abs                 0px 1px initial initial
         span.count
-          abs               0px 0px initial initial
+          abs               0px 10px initial initial
           border            2px solid #262626
           rounded           8px
 
@@ -850,9 +854,7 @@ h3.sidebar-title
       r-sprite              app , 'plus-16'
 
     &.buy-vm
-      abs()
-      top                   15px
-      right                 0
+      abs                   15px -2px 0 0
 
   cite.count
     top                     11px
@@ -994,7 +996,7 @@ h3.sidebar-title
     margin-bottom           8px
     padding                 0px 8px 0px 19px
     opacity                 1
-    size                    218px 16px
+    size                    218px 20px
     -moz-osx-font-smoothing grayscale
     -webkit-font-smoothing  antialiased
     rel()
@@ -1007,11 +1009,12 @@ h3.sidebar-title
         opacity       1
 
     > figure
-      abs                   3px 0 0 3px
+      abs                   50% 0 0 0px
       display               block
       width                 16px
       height                16px
       bg                    color #222
+      vendor                transform, translateY(-50%)
 
     &.running:hover > div
       width         180px
@@ -1024,7 +1027,7 @@ h3.sidebar-title
       vendor                transition, width .1s ease .05s
       width                 200px
       abs()
-      top                   1px
+      top                   0
 
     &.social > figure
     &.activity > figure
@@ -1041,17 +1044,14 @@ h3.sidebar-title
         width               13px
         height              13px
         bg                  color, transparent
-        abs                 4px 0 0 0px
         rounded             3px
         border              3px solid sidebarGray
         borderBox()
       > span
-        r-sprite    app vm-settings-icon
-        right       2px
-        top         4px
-        opacity     0
-        vendor      transition, opacity .1s .1s ease
-        abs()
+        abs                 4px -5px 0 0
+        opacity             0
+        r-sprite            app vm-settings-icon
+        vendor              transition, opacity .1s .1s ease
       &:hover > span
         opacity     1
       &.running > figure
@@ -1061,15 +1061,15 @@ h3.sidebar-title
       &.reconnecting > figure
         border-color   #FFC884
       > .progressbar-container
-        size        100% 3px
-        background  none
-        border      none
-        abs         24px 0 0 0
-        rounded     1px
+        abs                 24px 0 0 0
+        background          none
+        border              none
+        rounded             1px
+        size                95% 3px
         .bar
-          background  #4BA148
-          border      none
-          shadow      none
+          background        #4BA148
+          border            none
+          shadow            none
 
   .workspaces-link
     border-bottom           none
@@ -1091,12 +1091,25 @@ h3.sidebar-title
     &:hover
       color                 sidebarActive
 
-  .stack-warning
+  .warning-section
     margin                  0 0 32px
     text-align              center
 
+    &.re-init
+      color                 #b3b3b3
+      font-size             14px
+      line-height           18px
+      bg                    color, #2b2b2b
+      padding               10px
+      border-radius         5px
+      text-decoration       underline
+      pointer()
+
     .SidebarSection-header
       text-align            left
+
+    .no-stacks
+      margin-left           -10px
 
     label
       color                 #b3b3b3
@@ -1119,6 +1132,9 @@ h3.sidebar-title
       font-size             12px
       line-height           22px
       margin-bottom         16px
+
+    // &.invite
+    //   abs                   0 0 10px 0
 
 
   .sidebar-machine-box.selected

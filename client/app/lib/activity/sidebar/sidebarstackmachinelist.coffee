@@ -57,9 +57,9 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
     return  @stackModifiedWarning.show()  if @stackModifiedWarning?
 
     @stackModifiedWarning = new kd.CustomHTMLView
-      cssClass : 'stack-warning'
+      cssClass : 'warning-section re-init'
       partial  : "You have different resources in your stack.
-                  <a href=#>Click here</a> to re-initialize this stack."
+                  <span>Click here</span> to re-initialize this stack."
       click    : -> new EnvironmentsModal
 
     @warningWrapper.addSubView @stackModifiedWarning

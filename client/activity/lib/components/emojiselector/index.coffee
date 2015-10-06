@@ -1,14 +1,15 @@
-$                    = require 'jquery'
-kd                   = require 'kd'
-React                = require 'kd-react'
-classnames           = require 'classnames'
-immutable            = require 'immutable'
-emojify              = require 'emojify.js'
-formatEmojiName      = require 'activity/util/formatEmojiName'
-ChatInputFlux        = require 'activity/flux/chatinput'
-Dropbox              = require 'activity/components/dropbox'
-EmojiSelectorItem    = require 'activity/components/emojiselectoritem'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+$                     = require 'jquery'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+classnames            = require 'classnames'
+immutable             = require 'immutable'
+emojify               = require 'emojify.js'
+formatEmojiName       = require 'activity/util/formatEmojiName'
+ChatInputFlux         = require 'activity/flux/chatinput'
+Dropbox               = require 'activity/components/dropbox'
+EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
+ImmutableRenderMixin  = require 'react-immutable-render-mixin'
+renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
 
 
 module.exports = class EmojiSelector extends React.Component
@@ -22,7 +23,6 @@ module.exports = class EmojiSelector extends React.Component
   @defaultProps =
     items        : immutable.List()
     visible      : no
-    itemsPerRow  : 8
     selectedItem : ''
 
 
@@ -31,7 +31,7 @@ module.exports = class EmojiSelector extends React.Component
     document.addEventListener 'keydown',   @bound 'handleKeyDown'
 
     element = React.findDOMNode this.refs.list
-    emojify.run element
+    emojify.run element, renderEmojiSpriteIcon
 
 
   componentWillUnmount: ->
@@ -42,7 +42,7 @@ module.exports = class EmojiSelector extends React.Component
   componentDidUpdate: (prevProps, prevState) ->
 
     element = React.findDOMNode this.refs.selectedItem
-    emojify.run element
+    emojify.run element, renderEmojiSpriteIcon
 
 
   onItemSelected: (index) ->
@@ -74,16 +74,14 @@ module.exports = class EmojiSelector extends React.Component
 
   renderList: ->
 
-    { items, itemsPerRow, selectedItem } = @props
+    { items, selectedItem } = @props
 
     items.map (item, index) =>
-      isFirstInRow = (index + 1) % itemsPerRow is 1
       isSelected   = selectedItem is item
 
       <EmojiSelectorItem
         item         = { item }
         index        = { index }
-        isFirstInRow = { isFirstInRow }
         isSelected   = { isSelected }
         onSelected   = { @bound 'onItemSelected' }
         onConfirmed  = { @bound 'onItemConfirmed' }
@@ -103,6 +101,7 @@ module.exports = class EmojiSelector extends React.Component
     >
       <div className="EmojiSelector-list" ref="list">
         {@renderList()}
+        <div className='clearfix'></div>
       </div>
       <div className="EmojiSelector-footer">
         <div className="EmojiSelector-selectedItemIcon" ref="selectedItem">
@@ -114,3 +113,4 @@ module.exports = class EmojiSelector extends React.Component
         <div className="clearfix" />
       </div>
     </Dropbox>
+

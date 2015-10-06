@@ -1,8 +1,7 @@
-_                       = require 'lodash'
-kd                      = require 'kd'
-actionTypes             = require './actiontypes'
-showErrorNotification   = require 'app/util/showErrorNotification'
-{ actions: appActions } = require 'app/flux'
+_                     = require 'lodash'
+kd                    = require 'kd'
+actionTypes           = require './actiontypes'
+showErrorNotification = require 'app/util/showErrorNotification'
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -102,8 +101,8 @@ _mapPrivateChannelOptions = (options) ->
   _options = _.assign {}, options
 
   _options['payload'] or= {}
-  _options['payload']['description'] = options.purpose
-  _options['purpose'] = options.name
+  _options['payload']['description'] = options.purpose or ''
+  _options['purpose'] = options.name or ''
   _options['name'] = ''
 
   return _options

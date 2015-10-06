@@ -225,18 +225,18 @@ module.exports = class MainView extends KDView
     then @unsetClass 'hover'
     else @toggleClass 'collapsed'
 
-    @isSidebarCollapsed               = !@isSidebarCollapsed
-    { appManager, windowController }  = kd.singletons
+    @isSidebarCollapsed = !@isSidebarCollapsed
+    { frontApp }        = kd.singletons.appManager
 
-    if appManager.getFrontApp().getOption('name') is 'IDE'
-      windowController.notifyWindowResizeListeners()
+    if frontApp.getOption('name') is 'IDE'
+      kd.singletons.windowController.notifyWindowResizeListeners()
+      frontApp.emit 'CloseFullScreen'  unless @isSidebarCollapsed
 
 
   toggleHoverSidebar: ->
 
     # Just toggle it and don't change the 'isSidebarCollapsed' variable
     @toggleClass 'collapsed'
-
     @toggleClass 'hover'
 
 
@@ -369,8 +369,10 @@ module.exports = class MainView extends KDView
   toggleFullscreen: ->
 
     if @isFullscreen()
-    then @disableFullscreen()
-    else @enableFullscreen()
+      @disableFullscreen()
+    else
+      @toggleSidebar()
+      @enableFullscreen()
 
 
   bindPulsingRemove:->
