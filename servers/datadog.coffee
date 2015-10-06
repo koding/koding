@@ -1,3 +1,5 @@
+{ argv }        = require 'optimist'
+KONFIG          = require('koding-config-manager').load("main.#{argv.c}")
 onFinished      = require 'on-finished'
 { MetricsBase } = require 'koding-datadog'
 
@@ -29,6 +31,7 @@ module.exports = class MetricsMiddleware extends MetricsBase
 
     tags ?= []
     tags  = @populateCommonTags tags
+    tags.push "version:#{KONFIG.version}"
     tags.push "http_method:#{req.method}"
     tags.push "http_response_code:#{res.statusCode}"
 
