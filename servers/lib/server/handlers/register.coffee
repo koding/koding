@@ -1,5 +1,7 @@
 { getClientId
-  handleClientIdNotFound } = require './../helpers'
+  handleClientIdNotFound
+  setSessionCookie
+} = require './../helpers'
 koding                     = require './../bongo'
 
 module.exports = (req, res) ->
@@ -35,8 +37,8 @@ module.exports = (req, res) ->
 
         return res.status(400).send message
 
+      setSessionCookie res, result.newToken
 
-      res.cookie 'clientId', result.newToken, { path : '/' }
       # handle the request as an XHR response:
       return res.status(200).end() if req.xhr
       # handle the request with an HTTP redirect:
