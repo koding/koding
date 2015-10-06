@@ -6,6 +6,7 @@ isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 getGroup                   = require 'app/util/getGroup'
+SidebarPublicChannelsTabs  = require 'activity/flux/stores/sidebarchannels/sidebarpublicchannelstabs'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -16,26 +17,28 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 # the store is falsy. Another ones with `withEmptyList` will return an empty
 # immutable list if data from the store is falsy.
 
-ChannelFlagsStore              = [['ChannelFlagsStore'], withEmptyMap]
-MessageFlagsStore              = [['MessageFlagsStore'], withEmptyMap]
-ChannelsStore                  = [['ChannelsStore'], withEmptyMap]
-MessagesStore                  = [['MessagesStore'], withEmptyMap]
-ChannelThreadsStore            = [['ChannelThreadsStore'], withEmptyMap]
-MessageThreadsStore            = [['MessageThreadsStore'], withEmptyMap]
-FollowedPublicChannelIdsStore  = [['FollowedPublicChannelIdsStore'], withEmptyMap]
-FollowedPrivateChannelIdsStore = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
-PopularChannelIdsStore         = [['PopularChannelIdsStore'], withEmptyMap]
-ChannelParticipantIdsStore     = [['ChannelParticipantIdsStore'], withEmptyMap]
-ChannelPopularMessageIdsStore  = [['ChannelPopularMessageIdsStore'], withEmptyMap]
-SelectedChannelThreadIdStore   = ['SelectedChannelThreadIdStore'] # no need for default
-SelectedMessageThreadIdStore   = ['SelectedMessageThreadIdStore']
-SuggestionsStore               = [['SuggestionsStore'], withEmptyList]
-SuggestionsQueryStore          = ['SuggestionsQueryStore']
-SuggestionsFlagsStore          = [['SuggestionsFlagsStore'], withEmptyMap]
-SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
-UsersStore                     = [['UsersStore'], withEmptyMap]
-MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
+ChannelFlagsStore               = [['ChannelFlagsStore'], withEmptyMap]
+MessageFlagsStore               = [['MessageFlagsStore'], withEmptyMap]
+ChannelsStore                   = [['ChannelsStore'], withEmptyMap]
+MessagesStore                   = [['MessagesStore'], withEmptyMap]
+ChannelThreadsStore             = [['ChannelThreadsStore'], withEmptyMap]
+MessageThreadsStore             = [['MessageThreadsStore'], withEmptyMap]
+FollowedPublicChannelIdsStore   = [['FollowedPublicChannelIdsStore'], withEmptyMap]
+FollowedPrivateChannelIdsStore  = [['FollowedPrivateChannelIdsStore'], withEmptyMap]
+PopularChannelIdsStore          = [['PopularChannelIdsStore'], withEmptyMap]
+ChannelParticipantIdsStore      = [['ChannelParticipantIdsStore'], withEmptyMap]
+ChannelPopularMessageIdsStore   = [['ChannelPopularMessageIdsStore'], withEmptyMap]
+SelectedChannelThreadIdStore    = ['SelectedChannelThreadIdStore'] # no need for default
+SelectedMessageThreadIdStore    = ['SelectedMessageThreadIdStore']
+SuggestionsStore                = [['SuggestionsStore'], withEmptyList]
+SuggestionsQueryStore           = ['SuggestionsQueryStore']
+SuggestionsFlagsStore           = [['SuggestionsFlagsStore'], withEmptyMap]
+SuggestionsSelectedIndexStore   = ['SuggestionsSelectedIndexStore']
+UsersStore                      = [['UsersStore'], withEmptyMap]
+MessageLikersStore              = [['MessageLikersStore'], withEmptyMap]
 
+SidebarPublicChannelsQueryStore = ['SidebarPublicChannelsQueryStore']
+SidebarPublicChannelsTabStore   = ['SidebarPublicChannelsTabStore']
 
 FollowedPublicChannelIdsStore = [
   FollowedPublicChannelIdsStore
@@ -351,6 +354,27 @@ notSelectedChannelParticipants = [
 ]
 
 
+sidebarPublicChannelsQuery = SidebarPublicChannelsQueryStore
+sidebarPublicChannelsTab   = SidebarPublicChannelsTabStore
+sidebarPublicChannels      = [
+  channelThreads
+  filteredPublicChannels
+  SidebarPublicChannelsQueryStore
+  SidebarPublicChannelsTabStore
+  (threads, filteredChannels, query, tab) ->
+    if (query)
+      result = threads.filter (thread) =>
+        name = thread.getIn(['channel', 'name']).toLowerCase()
+        return name.indexOf(query.toLowerCase()) > -1
+    else
+      result = if tab is SidebarPublicChannelsTabs.YourChannels
+      then filteredChannels.followed
+      else filteredChannels.unfollowed
+
+    return result
+]
+
+
 module.exports = {
   allChannels
   followedPublicChannelThreads
@@ -387,5 +411,9 @@ module.exports = {
 
   allUsers
   notSelectedChannelParticipants
+
+  sidebarPublicChannelsQuery
+  sidebarPublicChannelsTab
+  sidebarPublicChannels
 }
 

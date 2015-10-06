@@ -45,6 +45,7 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
 
     @on actions.LOAD_CHANNEL_SUCCESS, @addNewThread
+    @on actions.LOAD_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
     @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @addNewThread
@@ -63,6 +64,14 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
   handleLoadMessageSuccess: (threads, { channelId, message }) ->
 
     return addMessage threads, channelId, message.id
+
+
+  handleLoadChannelListSuccess: (threads, { channels }) ->
+
+    return threads.withMutations (map) =>
+      for channel in channels
+        map = @addNewThread map, { channel }
+      return map
 
 
   ###*

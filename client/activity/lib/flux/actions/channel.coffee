@@ -310,6 +310,22 @@ loadChannelsByQuery = (query, options = {}) ->
     dispatch LOAD_CHANNELS_SUCCESS, { channels }
 
 
+loadChannels = (options = {}) ->
+
+  { LOAD_CHANNELS_BEGIN
+    LOAD_CHANNELS_SUCCESS
+    LOAD_CHANNELS_FAIL } = actionTypes
+
+  dispatch LOAD_CHANNELS_BEGIN
+
+  kd.singletons.socialapi.channel.list options, (err, channels) ->
+    if err
+      dispatch LOAD_CHANNELS_FAIL, { err }
+      return
+
+    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+
+
 ###*
  * Action to follow channel by given channelId
  *
@@ -466,6 +482,18 @@ glance = do (glancingMap = {}) -> (channelId) ->
     dispatch GLANCE_CHANNEL_SUCCESS, { channelId }
 
 
+setSidebarPublicChannelsQuery = (query) ->
+
+  { SET_SIDEBAR_PUBLIC_CHANNELS_QUERY } = actionTypes
+  dispatch SET_SIDEBAR_PUBLIC_CHANNELS_QUERY, { query }
+
+
+setSidebarPublicChannelsTab = (tab) ->
+
+  { SET_SIDEBAR_PUBLIC_CHANNELS_TAB } = actionTypes
+  dispatch SET_SIDEBAR_PUBLIC_CHANNELS_TAB, { tab }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -477,6 +505,7 @@ module.exports = {
   loadChannel
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
+  loadChannels
   loadParticipants
   loadPopularMessages
   loadPopularChannels
@@ -486,5 +515,7 @@ module.exports = {
   glance
   leavePrivateChannel
   inviteMember
+  setSidebarPublicChannelsQuery
+  setSidebarPublicChannelsTab
 }
 
