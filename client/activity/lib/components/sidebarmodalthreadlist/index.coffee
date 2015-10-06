@@ -35,11 +35,11 @@ module.exports = class SidebarModalThreadList extends React.Component
 
   renderNoResultText: ->
 
-    { noResultText } = @props
-    return  if @props.threads.size > 0    
+    { noResultText, threads } = @props
+    return  if threads.size > 0
 
-    <div>
-      {noResultText}
+    <div className='SidebarModalThreadList-emptyResult'>
+      { noResultText }
     </div>
 
 
@@ -49,8 +49,8 @@ module.exports = class SidebarModalThreadList extends React.Component
       <Scroller
         onThresholdReached={@bound 'onThresholdReached'}
         ref="scrollContainer">
-        {@renderChildren()}
-        {@renderNoResultText()}
+        { @renderChildren() }
+        { @renderNoResultText() }
       </Scroller>
     </div>
 

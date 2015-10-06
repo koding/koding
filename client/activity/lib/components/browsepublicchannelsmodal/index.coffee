@@ -107,15 +107,25 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     </div>
 
 
-  render: ->
+  renderList: ->
 
-    { channels } = @state
+    { channels, query } = @state
+    noResutText  = 'Sorry, your search did not have any results'  if query
+
+    <SidebarModalThreadList
+      threads             = { channels }
+      noResultText        = { noResutText }
+      onThreasholdReached = { @bound 'onYourChannelsThresholdReached' }
+    />
+
+
+  render: ->
 
     <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
       <div className='ChannelListWrapper'>
         { @renderHeader() }
         { @renderTabs() }
-        <SidebarModalThreadList threads={channels} onThreasholdReached={ @bound 'onYourChannelsThresholdReached' }  />
+        { @renderList() }
       </div>
     </Modal>
 
