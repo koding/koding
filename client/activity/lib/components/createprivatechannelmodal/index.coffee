@@ -72,13 +72,31 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
 
   getModalProps: ->
-    isOpen             : yes
-    title              : 'Create a Private Conversation'
-    className          : 'CreateChannel-Modal'
-    buttonConfirmTitle : 'CREATE'
-    onConfirm          : @bound 'createChannel'
-    onClose            : @bound 'onClose'
-    onAbort            : @bound 'onClose'
+    props =
+      isOpen             : yes
+      title              : 'Create a Private Conversation'
+      className          : 'CreateChannel-Modal'
+      buttonConfirmTitle : 'CREATE'
+      onConfirm          : @bound 'createChannel'
+      onClose            : @bound 'onClose'
+      onAbort            : @bound 'onClose'
+
+    if @state.preExistingChannel
+      props = _.assign {}, props,
+        buttonExtraTitle: 'CONTINUE EXISTING CONVERSATION'
+        onButtonExtraClick: (event) =>
+          kd.utils.stopDOMEvent event
+          @_isRouting = yes
+          kd.singletons.router.handleRoute "/Messages/#{@state.preExistingChannel.get 'id'}"
+        buttonConfirmTitle: 'CREATE NEW THREAD'
+        buttonConfirmClassName: 'Button--cancel'
+    else
+      props = _.assign {}, props,
+        buttonExtraTitle: null
+        buttonConfirmTitle: 'CREATE'
+        buttonConfirmClassName: 'Button--primary'
+
+    return props
 
 
   setName: (event) ->
