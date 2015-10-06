@@ -372,8 +372,11 @@ module.exports = class DefineStackView extends KDView
             .add JSON.stringify machines, null, 2
             .add 'This stack has been saved succesfully!'
 
+          { config }      = stackTemplate
+          config.verified = yes
+
           updateStackTemplate {
-            stackTemplate, machines
+            stackTemplate, machines, config
           }, callback
 
 
