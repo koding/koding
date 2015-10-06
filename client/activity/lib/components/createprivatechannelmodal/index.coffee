@@ -1,3 +1,4 @@
+_                                 = require 'lodash'
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
@@ -6,6 +7,7 @@ Avatar                            = require 'app/components/profile/avatar'
 AppFlux                           = require 'app/flux'
 TextArea                          = require 'react-autosize-textarea'
 classnames                        = require 'classnames'
+toImmutable                       = require 'app/util/toImmutable'
 KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
@@ -40,6 +42,27 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     CreateChannelFlux.actions.user.resetSelectedIndex()
     CreateChannelFlux.actions.user.unsetInputQuery()
     CreateChannelFlux.actions.channel.removeAllParticipants()
+
+
+  componentDidUpdate: (oldProps, oldState) ->
+
+    if oldState.participants isnt @state.participants
+
+      unless @state.participants?.size
+        return @setState { preExistingChannel: null }
+
+      participants = @state.participants
+        .map (participant) -> participant.get 'socialApiId'
+        .toList()
+        .toJS()
+
+      { loadChannelByParticipants } = ActivityFlux.actions.channel
+
+      loadChannelByParticipants(participants).then ({ channels }) =>
+        if channels.length
+          @setState { preExistingChannel: toImmutable channels[0] }
+        else
+          @setState { preExistingChannel: null }
 
 
   getDataBindings: ->
