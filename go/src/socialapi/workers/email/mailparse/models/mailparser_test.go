@@ -211,7 +211,7 @@ func TestPersist(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			c := socialapimodels.CreateChannelWithTest(acc.Id)
-			socialapimodels.AddParticipants(c.Id, acc.Id)
+			socialapimodels.AddParticipantsWithTest(c.Id, acc.Id)
 
 			mongoUser, err := modelhelper.GetUser(acc.Nick)
 			So(err, ShouldBeNil)
@@ -232,7 +232,7 @@ func TestPersist(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			c := socialapimodels.CreateChannelWithTest(acc.Id)
-			socialapimodels.AddParticipants(c.Id, acc.Id)
+			socialapimodels.AddParticipantsWithTest(c.Id, acc.Id)
 
 			cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
 			So(cm, ShouldNotBeNil)
