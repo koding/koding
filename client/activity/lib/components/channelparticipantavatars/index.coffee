@@ -209,6 +209,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     groupAdminId = @props.channelThread.getIn ['channel','accountOldId']
 
     if accountId is groupAdminId then return yes else return no
+  isGroupChannel: ->
+
+    channelId = @props.channelThread.getIn ['channel','id']
+
+    return channelId is getGroup().socialApiDefaultChannelId
+
+
 
 
   getPlaceHolder: ->
