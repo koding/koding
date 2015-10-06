@@ -12,6 +12,8 @@ showErrorNotification   = require 'app/util/showErrorNotification'
 remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
 getters                 = require 'activity/flux/getters'
+showError               = require 'app/util/showError'
+showNotification        = require 'app/util/showNotification'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -433,6 +435,20 @@ setChannelParticipantsDropdownVisibility = (visible) ->
   dispatch SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY, { visible }
 
 
+inviteMember = (invites, callback = kd.noop) ->
+
+  { INVITE_MEMBER_SUCCESS, INVITE_MEMBER_FAIL } = actionTypes
+
+  remote.api.JInvitation.create invitations: invites, (err) =>
+    if err
+      showError 'Failed to send invite, please try again.'
+      return dispatch actionTypes.INVITE_MEMBER_FAIL, invites
+
+    dispatch actionTypes.INVITE_MEMBER_SUCCESS, invites
+    showNotification 'Invitation sent.', type: 'main'
+    callback()
+
+
 emptyPromise = new Promise (resolve) -> resolve()
 
 glance = do (glancingMap = {}) -> (channelId) ->
@@ -469,5 +485,6 @@ module.exports = {
   deletePrivateChannel
   glance
   leavePrivateChannel
+  inviteMember
 }
 
