@@ -116,13 +116,6 @@ module.exports = class PricingAppView extends JView
       title    : 'Learn more about all our features'
       cssClass : 'learn-more'
       href     : '/Features'
-      click    : ->
-        KD.utils.trackEvent "Learn more about features, click",
-          path     : '/Pricing'
-          category : 'userInteraction'
-          action   : 'clicks'
-          label    : 'settingsUpgradePlan'
-
 
     footer.addSubView new KDCustomHTMLView
       cssClass : 'footer-msg'
@@ -175,5 +168,3 @@ module.exports = class PricingAppView extends JView
       {{> @footer}}
       {{> @kodingFooter}}
     """
-
-

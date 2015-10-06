@@ -559,12 +559,6 @@ module.exports = class LoginView extends JView
         expiration = new Date Date.now() + (60 * 60 * 1000) # an hour
         document.cookie = "newRegister=true;expires=#{expiration.toUTCString()}"
 
-        KD.utils.defer ->
-          KD.utils.trackEvent 'Signup, success',
-            category : 'userInteraction'
-            action   : 'microConversions'
-            label    : 'userSignup'
-
         return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) =>
