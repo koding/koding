@@ -140,9 +140,11 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     @_isCreating = yes
 
-    createPrivateChannel(options).then ({channel}) =>
-
-      kd.singletons.router.handleRoute "/Messages/#{channel.id}"
+    createPrivateChannel(options)
+      .then ({channel}) ->
+        kd.singletons.router.handleRoute "/Messages/#{channel.id}"
+      .catch =>
+        @_isCreating = no
 
 
   onChange: (event) ->

@@ -157,9 +157,11 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
     @_isCreating = yes
 
-    createPublicChannel(options).then ({channel}) =>
-
-      kd.singletons.router.handleRoute "/Channels/#{channel.name}"
+    createPublicChannel(options)
+      .then ({channel}) ->
+        kd.singletons.router.handleRoute "/Channels/#{channel.name}"
+      .catch =>
+        @_isCreating = no
 
 
   onChange: (event) ->
