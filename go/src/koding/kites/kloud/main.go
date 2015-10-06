@@ -235,12 +235,6 @@ func newKite(conf *Config) *kite.Kite {
 		AuthorizedUsers: authorizedUsers,
 	}
 
-	q := &queue.Queue{
-		DB:  db,
-		Log: common.NewLogger("kloud-queue", conf.DebugMode),
-	}
-	go q.RunCheckers(checkInterval)
-
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	/// AWS PROVIDER ///
@@ -253,6 +247,15 @@ func newKite(conf *Config) *kite.Kite {
 		Kite:       k,
 		Userdata:   userdata,
 	}
+
+	// QUEUE STOPPER ///
+
+	q := &queue.Queue{
+		KodingProvider: kodingProvider,
+		AwsProvider:    awsProvider,
+		Log:            common.NewLogger("kloud-queue", conf.DebugMode),
+	}
+	go q.RunCheckers(checkInterval)
 
 	// KLOUD DISPATCHER ///
 	kloudLogger := common.NewLogger("kloud", conf.DebugMode)

@@ -9,19 +9,21 @@ import (
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
 
-	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
+	"koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/provider/koding"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 type Queue struct {
-	DB  *mongodb.MongoDB
-	Log logging.Logger
+	KodingProvider *koding.Provider
+	AwsProvider    *awsprovider.Provider
+	Log            logging.Logger
 }
 
 // RunChecker runs the checker for Koding and AWS providers every given
@@ -184,7 +186,7 @@ func (q *Queue) FetchKoding() (*Machine, error) {
 		return nil
 	}
 
-	if err := q.DB.Run("jMachines", query); err != nil {
+	if err := q.Sess.DB.Run("jMachines", query); err != nil {
 		return nil, err
 	}
 
@@ -196,7 +198,7 @@ func (q *Queue) FetchKoding() (*Machine, error) {
 
 func (q *Queue) Lock(id string) error {
 	machine := &Machine{}
-	err := q.DB.Run("jMachines", func(c *mgo.Collection) error {
+	err := q.Sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 		// we use findAndModify() to get a unique lock from the DB. That means only
 		// one instance should be responsible for this action. We will update the
 		// assignee if none else is doing stuff with it.
@@ -239,7 +241,7 @@ func (q *Queue) Lock(id string) error {
 }
 
 func (q *Queue) Unlock(id string) {
-	q.DB.Run("jMachines", func(c *mgo.Collection) error {
+	q.Sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{"assignee.inProgress": false}},
