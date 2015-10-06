@@ -231,7 +231,7 @@ module.exports = class ActivityInputWidget extends KDView
   getEmbedBoxPayload: -> return @embedBox.getData()
 
 
-  showError: (err, options = {}) ->
+  showError: (err) ->
 
     showError err
     @unlockSubmit()
