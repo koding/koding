@@ -32,6 +32,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       deleteMode          : no
       invalidParticipants : no
       placeholder         : 'type a @username and hit enter'
+      preExistingChannel  : null
 
 
   componentWillUnmount: ->
