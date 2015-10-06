@@ -171,6 +171,12 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
+    @buttons.addSubView @setAsDefaultButton = new KDButtonView
+      title          : 'Apply to Team'
+      cssClass       : 'solid compact green nav next hidden'
+      loader         : yes
+      callback       : => @handleSetDefaultTemplate()
+
     @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
       cssClass       : 'solid compact light-gray nav next prev-button'
@@ -185,12 +191,6 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact green nav next'
       loader         : yes
       callback       : @bound 'handleSave'
-
-    @buttons.addSubView @setAsDefaultButton = new KDButtonView
-      title          : 'Set as Default for Team'
-      cssClass       : 'solid compact green nav next hidden'
-      loader         : yes
-      callback       : => @handleSetDefaultTemplate()
 
 
   handleSave: ->
@@ -260,6 +260,16 @@ module.exports = class DefineStackView extends KDView
 
   processTemplate: (stackTemplate) ->
 
+    setToGroup = (method = 'add') =>
+      @handleSetDefaultTemplate completed = no
+
+      @outputView[method] """
+        Your stack script has been successfully saved and all your team
+        members now will use the stack you have just saved.
+
+        You can now close this window or continue working with your stack.
+      """
+
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
@@ -270,22 +280,33 @@ module.exports = class DefineStackView extends KDView
         return
 
       { groupsController } = kd.singletons
+      { stackTemplates }   = groupsController.getCurrentGroup()
+      templateSetBefore    = stackTemplates?.length
 
-      { stackTemplates } = groupsController.getCurrentGroup()
+      if templateSetBefore
 
-      @handleSetDefaultTemplate completed = no
+        unless stackTemplate.inuse
 
-      action = if not stackTemplates?.length then 'addAndWarn' else 'add'
+          @setAsDefaultButton.show()
 
-      @outputView[action] """
-        Your stack script has been successfully saved and all your team
-        members now will use the stack you have just saved.
+          @outputView.add """
 
-        You can now close this window or continue working with your stack.
-      """
+            Your stack script has been successfully saved.
+
+            If you want your team members to use this template you need to
+            apply it for your team.
+
+            You can now close this window or continue working with your stack.
+          """
+
+        else
+          setToGroup()
+
+      else
+        setToGroup 'addAndWarn'
+
 
       @cancelButton.setTitle 'Close'
-      @saveButton.hide()
 
 
   checkAndBootstrapCredentials: (callback) ->
