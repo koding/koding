@@ -1,3 +1,4 @@
+_                                 = require 'lodash'
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
@@ -6,6 +7,7 @@ Avatar                            = require 'app/components/profile/avatar'
 AppFlux                           = require 'app/flux'
 TextArea                          = require 'react-autosize-textarea'
 classnames                        = require 'classnames'
+toImmutable                       = require 'app/util/toImmutable'
 KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
@@ -14,6 +16,7 @@ isPublicChannel                   = require 'app/util/isPublicChannel'
 DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
 CreateChannelFlux                 = require 'activity/flux/createchannel'
 ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
+PreExistingChannelBox             = require './preexistingchannelbox'
 ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
 CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
 
@@ -32,6 +35,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       deleteMode          : no
       invalidParticipants : no
       placeholder         : 'type a @username and hit enter'
+      preExistingChannel  : null
 
 
   componentWillUnmount: ->
@@ -39,6 +43,27 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     CreateChannelFlux.actions.user.resetSelectedIndex()
     CreateChannelFlux.actions.user.unsetInputQuery()
     CreateChannelFlux.actions.channel.removeAllParticipants()
+
+
+  componentDidUpdate: (oldProps, oldState) ->
+
+    if oldState.participants isnt @state.participants
+
+      unless @state.participants?.size
+        return @setState { preExistingChannel: null }
+
+      participants = @state.participants
+        .map (participant) -> participant.get 'socialApiId'
+        .toList()
+        .toJS()
+
+      { loadChannelByParticipants } = ActivityFlux.actions.channel
+
+      loadChannelByParticipants(participants).then ({ channels }) =>
+        if channels.length
+          @setState { preExistingChannel: toImmutable channels[0] }
+        else
+          @setState { preExistingChannel: null }
 
 
   getDataBindings: ->
@@ -71,13 +96,41 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
 
   getModalProps: ->
-    isOpen             : yes
-    title              : 'Create a Private Conversation'
-    className          : 'CreateChannel-Modal'
-    buttonConfirmTitle : 'CREATE'
-    onConfirm          : @bound 'createChannel'
-    onClose            : @bound 'onClose'
-    onAbort            : @bound 'onClose'
+    props =
+      isOpen             : yes
+      title              : 'Create a Private Conversation'
+      className          : 'CreateChannel-Modal'
+      buttonConfirmTitle : 'CREATE'
+      onClose            : @bound 'onClose'
+      onAbort            : @bound 'onClose'
+
+    continueButtonTitle = 'CONTINUE EXISTING CONVERSATION'
+    continueButtonOnClick = (event) =>
+      kd.utils.stopDOMEvent event
+      @_isRouting = yes
+      kd.singletons.router.handleRoute "/Messages/#{@state.preExistingChannel.get 'id'}"
+
+    createButtonTitle = 'CREATE'
+
+    if @state.preExistingChannel
+      if @state.name or @state.purpose
+        props = _.assign {}, props,
+          buttonExtraTitle       : continueButtonTitle
+          onButtonExtraClick     : continueButtonOnClick
+          buttonConfirmTitle     : createButtonTitle
+          buttonConfirmClassName : 'Button--cancel'
+      else
+        props = _.assign {}, props,
+          buttonConfirmTitle : continueButtonTitle
+          onConfirm          : continueButtonOnClick
+    else
+      props = _.assign {}, props,
+        buttonExtraTitle       : null
+        buttonConfirmTitle     : createButtonTitle
+        buttonOnClick          : @bound 'createChannel'
+        buttonConfirmClassName : 'Button--primary'
+
+    return props
 
 
   setName: (event) ->
@@ -95,7 +148,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   onClose: ->
 
     return  unless @state.selectedThread
-    return  if @_isCreating
+    return  if @_isRouting
 
     channel = @state.selectedThread.get('channel').toJS()
 
@@ -138,13 +191,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     { createPrivateChannel } = CreateChannelFlux.actions.channel
 
-    @_isCreating = yes
+    @_isRouting = yes
 
     createPrivateChannel(options)
       .then ({channel}) ->
         kd.singletons.router.handleRoute "/Messages/#{channel.id}"
       .catch =>
-        @_isCreating = no
+        @_isRouting = no
 
 
   onChange: (event) ->
@@ -286,6 +339,15 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     />
 
 
+  renderPreExistingChannelBox: ->
+
+    return null  unless @state.preExistingChannel
+
+    <PreExistingChannelBox
+      participants={@state.participants}
+      channel={@state.preExistingChannel} />
+
+
   render: ->
 
     <ActivityModal {...@getModalProps()}>
@@ -301,6 +363,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           <label className='Reactivity-label inviteMembers'>Invite Members</label>
           {@renderAddParticipantInput()}
         </div>
+        {@renderPreExistingChannelBox()}
         <div className='Reactivity-formfield'>
           <label className='Reactivity-label channelName'>
             Name
