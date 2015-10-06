@@ -241,7 +241,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     placeholder  = 'type a @username and hit enter'
 
-    if @isGroupAdmin()
+    if @isGroupAdmin() and @isGroupChannel()
       placeholder = 'type a @username or email'
 
     return placeholder
