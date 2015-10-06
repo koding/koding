@@ -10,6 +10,8 @@ ActivityFlux                = require 'activity/flux'
 ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
 DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
+getGroup                    = require 'app/util/getGroup'
+validator                   = require 'validator'
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
@@ -203,14 +205,56 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     channel.setChannelParticipantsDropdownVisibility yes
 
 
+  isGroupAdmin: ->
+
+    accountId    = whoami()._id
+    groupAdminId = @props.channelThread.getIn ['channel','accountOldId']
+
+    return accountId is groupAdminId
+
+
+  isGroupChannel: ->
+
+    channelId = @props.channelThread.getIn ['channel','id']
+
+    return channelId is getGroup().socialApiDefaultChannelId
+
+
+  onEnter: (event) ->
+
+    DropboxInputMixin.onEnter.call this, event
+
+    if @isGroupAdmin() and @isGroupChannel()
+
+      value        = event.target.value.trim()
+      isValidEmail = validator.isEmail value
+
+      if isValidEmail
+
+        { channel, user } = ActivityFlux.actions
+
+        channel.inviteMember([{email: value}]).then ->
+          user.unsetChannelParticipantsInputQuery()
+
+
+  getPlaceHolder: ->
+
+    placeholder  = 'type a @username and hit enter'
+
+    if @isGroupAdmin() and @isGroupChannel()
+      placeholder = 'type a @username or email'
+
+    return placeholder
+
+
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
       <input ref='ChannelParticipantsInput'
         onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @bound 'onChange' }
-        placeholder = 'type a @username and hit enter'
-        value       = { @state.value }
+        placeholder = { @getPlaceHolder() }
+        value       = { @state.query }
         ref         = 'textInput'
       />
     </div>

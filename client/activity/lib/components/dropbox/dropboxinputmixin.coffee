@@ -1,6 +1,6 @@
 kd            = require 'kd'
-React          = require 'kd-react'
-keyboardKeys   = require 'app/util/keyboardKeys'
+React         = require 'kd-react'
+keyboardKeys  = require 'app/util/keyboardKeys'
 
 
 module.exports = DropboxInputMixin =
