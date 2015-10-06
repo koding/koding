@@ -64,7 +64,7 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	}
 
 	ctx := context.Background()
-	if err := p.attachSession(ctx, m); err != nil {
+	if err := p.AttachSession(ctx, m); err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	if err != nil {
 		m.Log.Debug("Error connecting to klient, stopping if needed. Error: %s",
 			err.Error())
-		return m.stopIfKlientIsMissing(ctx)
+		return m.StopIfKlientIsMissing(ctx)
 	}
 
 	// replace with the real and authenticated username
@@ -88,12 +88,12 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	if err != nil {
 		m.Log.Debug("Error getting klient usage, stopping if needed. Error: %s",
 			err.Error())
-		return m.stopIfKlientIsMissing(ctx)
+		return m.StopIfKlientIsMissing(ctx)
 	}
 
 	// We successfully connected and communicated with Klient, clear the
 	// missing value.
-	m.klientIsNotMissing()
+	m.KlientIsNotMissing()
 
 	// get the timeout from the plan in which the user belongs to
 	plan := plans.Plans[m.Payment.Plan]
@@ -116,7 +116,7 @@ func (p *Provider) CheckUsage(m *Machine) error {
 
 	// Hasta la vista, baby!
 	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
-	if err := m.stop(ctx); err != nil {
+	if err := m.StopMachine(ctx); err != nil {
 		// returning is ok, because Kloud will mark it anyways as stopped if
 		// Klient is not rechable anymore with the `info` method
 		p.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.Id.Hex(), err)
@@ -125,7 +125,7 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	p.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
 
 	// mark it as stopped, so client side shouldn't ask for any eventer
-	return m.markAsStoppedWithReason("Machine is stopped due inactivity")
+	return m.MarkAsStoppedWithReason("Machine is stopped due inactivity")
 }
 
 // FetchOne() fetches a single machine document from mongodb that meets the criterias:
@@ -181,7 +181,7 @@ func (p *Provider) FetchOne() (*Machine, error) {
 	}
 
 	// Don't forget to set any important non-db related Machine values.
-	machine.locker = p
+	machine.Locker = p
 
 	return machine, nil
 }

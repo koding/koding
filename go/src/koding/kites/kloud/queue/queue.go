@@ -10,7 +10,6 @@ import (
 	"golang.org/x/net/context"
 
 	"koding/kites/kloud/klient"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/aws"
@@ -36,7 +35,7 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 }
 
 func (q *Queue) CheckKoding() {
-	machine, err := q.FetchOne()
+	machine, err := q.FetchKoding()
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
@@ -48,7 +47,7 @@ func (q *Queue) CheckKoding() {
 		return
 	}
 
-	if err := q.CheckUsage(machine); err != nil {
+	if err := q.CheckKodingUsage(machine); err != nil {
 		// only log if it's something else
 		switch err {
 		case kite.ErrNoKitesAvailable,
@@ -64,7 +63,7 @@ func (q *Queue) CheckKoding() {
 // CheckUsage checks a single machine usages patterns and applies certain
 // restrictions (if any available). For example it could stop a machine after a
 // certain inactivity time.
-func (q *Queue) CheckUsage(m *Machine) error {
+func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 	if m == nil {
 		return errors.New("checking machine. document is nil")
 	}
@@ -74,7 +73,8 @@ func (q *Queue) CheckUsage(m *Machine) error {
 	}
 
 	ctx := context.Background()
-	if err := p.attachSession(ctx, m); err != nil {
+
+	if err := q.KodingProvider.AttachSession(ctx, m); err != nil {
 		return err
 	}
 
@@ -83,7 +83,7 @@ func (q *Queue) CheckUsage(m *Machine) error {
 	if err != nil {
 		m.Log.Debug("Error connecting to klient, stopping if needed. Error: %s",
 			err.Error())
-		return m.stopIfKlientIsMissing(ctx)
+		return m.StopIfKlientIsMissing(ctx)
 	}
 
 	// replace with the real and authenticated username
@@ -98,18 +98,18 @@ func (q *Queue) CheckUsage(m *Machine) error {
 	if err != nil {
 		m.Log.Debug("Error getting klient usage, stopping if needed. Error: %s",
 			err.Error())
-		return m.stopIfKlientIsMissing(ctx)
+		return m.StopIfKlientIsMissing(ctx)
 	}
 
 	// We successfully connected and communicated with Klient, clear the
 	// missing value.
-	m.klientIsNotMissing()
+	m.KlientIsNotMissing()
 
 	// get the timeout from the plan in which the user belongs to
 	plan := plans.Plans[m.Payment.Plan]
 	planTimeout := plan.Timeout
 
-	p.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+	q.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		m.IpAddress, usg.InactiveDuration, planTimeout, m.Payment.Plan)
 
 	// It still have plenty of time to work, do not stop it
@@ -117,25 +117,25 @@ func (q *Queue) CheckUsage(m *Machine) error {
 		return nil
 	}
 
-	p.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
+	q.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
 		m.IpAddress, usg.InactiveDuration, m.Payment.Plan)
 
 	// lock so it doesn't interfere with others.
-	p.Lock(m.Id.Hex())
-	defer p.Unlock(m.Id.Hex())
+	q.KodingProvider.Lock(m.Id.Hex())
+	defer q.KodingProvider.Unlock(m.Id.Hex())
 
 	// Hasta la vista, baby!
-	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
-	if err := m.stop(ctx); err != nil {
+	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
+	if err := m.StopMachine(ctx); err != nil {
 		// returning is ok, because Kloud will mark it anyways as stopped if
 		// Klient is not rechable anymore with the `info` method
-		p.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.Id.Hex(), err)
+		q.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.Id.Hex(), err)
 		return err
 	}
-	p.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
+	q.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
 
 	// mark it as stopped, so client side shouldn't ask for any eventer
-	return m.markAsStoppedWithReason("Machine is stopped due inactivity")
+	return m.MarkAsStoppedWithReason("Machine is stopped due inactivity")
 }
 
 // FetchKoding() fetches a single machine document from mongodb that meets the criterias:
@@ -145,8 +145,8 @@ func (q *Queue) CheckUsage(m *Machine) error {
 // 3. are not always on machines
 // 4. are not assigned to anyone yet (unlocked)
 // 5. are not picked up by others yet recently
-func (q *Queue) FetchKoding() (*Machine, error) {
-	machine := &Machine{}
+func (q *Queue) FetchKoding() (*koding.Machine, error) {
+	machine := &koding.Machine{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
 		// 1. belongs to koding provider
@@ -186,65 +186,12 @@ func (q *Queue) FetchKoding() (*Machine, error) {
 		return nil
 	}
 
-	if err := q.Sess.DB.Run("jMachines", query); err != nil {
+	if err := q.KodingProvider.DB.Run("jMachines", query); err != nil {
 		return nil, err
 	}
 
 	// Don't forget to set any important non-db related Machine values.
-	machine.locker = q
+	machine.Locker = q.KodingProvider
 
 	return machine, nil
-}
-
-func (q *Queue) Lock(id string) error {
-	machine := &Machine{}
-	err := q.Sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-		// we use findAndModify() to get a unique lock from the DB. That means only
-		// one instance should be responsible for this action. We will update the
-		// assignee if none else is doing stuff with it.
-		change := mgo.Change{
-			Update: bson.M{
-				"$set": bson.M{
-					"assignee.inProgress": true,
-					"assignee.assignedAt": time.Now().UTC(),
-				},
-			},
-			ReturnNew: true,
-		}
-
-		// if Find() is successful the Update() above will be applied (which
-		// set's us as assignee by marking the inProgress to true). If not, it
-		// means someone else is working on this document and we should return
-		// with an error. The whole process is atomic and a single transaction.
-		_, err := c.Find(
-			bson.M{
-				"_id": bson.ObjectIdHex(id),
-				"assignee.inProgress": bson.M{"$ne": true},
-			},
-		).Apply(change, &machine) // machine is used just used for prevent nil unmarshalling
-		return err
-	})
-
-	// query didn't matched, means it's assigned to some other Kloud
-	// instances and an ongoing event is in process.
-	if err == mgo.ErrNotFound {
-		return kloud.ErrLockAcquired
-	}
-
-	// some other error, this shouldn't be happed
-	if err != nil {
-		q.Log.Error("Storage get error: %s", err.Error())
-		return kloud.NewError(kloud.ErrBadState)
-	}
-
-	return nil
-}
-
-func (q *Queue) Unlock(id string) {
-	q.Sess.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{"assignee.inProgress": false}},
-		)
-	})
 }
