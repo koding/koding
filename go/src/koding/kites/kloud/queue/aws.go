@@ -82,7 +82,7 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 	// for Koding, 50 minutes
 	planTimeout := 50 * time.Minute
 
-	q.Log.Debug("machine [%s] (aws) is inactive for %s (plan limit: %s",
+	q.Log.Debug("machine [%s] (aws) is inactive for %s (plan limit: %s)",
 		m.IpAddress, usg.InactiveDuration, planTimeout)
 
 	// It still have plenty of time to work, do not stop it
@@ -107,7 +107,6 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 }
 
 func (q *Queue) FetchAWS() (*awsprovider.Machine, error) {
-	q.Log.Debug("Fetching AWS machine")
 	machine := &awsprovider.Machine{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
