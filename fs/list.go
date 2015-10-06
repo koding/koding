@@ -1,37 +1,23 @@
+// Imported from https://github.com/bazil/fuse.
 package fs
 
-import "github.com/cloudfoundry/gosigar"
-
-func ListMounts() map[string]string {
-	fslist := sigar.FileSystemList{}
-	fslist.Get()
-
-	list := map[string]string{}
-	for _, fs := range fslist.List {
-		list[fs.DevName] = fs.DirName
-	}
-
-	return list
+type MountInfo struct {
+	FSName string
+	Type   string
 }
 
-func ListMountByName(name string) (string, bool) {
-	list := ListMounts()
-	for mountName, mountPath := range list {
-		if mountName == name {
-			return mountPath, true
-		}
-	}
-
-	return "", false
+func GetMountByPath(path string) (*MountInfo, error) {
+	return getMountInfo(path)
 }
 
-func ListMountByPath(path string) (string, bool) {
-	list := ListMounts()
-	for mountName, mountPath := range list {
-		if mountPath == path {
-			return mountName, true
+// cstr converts a nil-terminated C string into a Go string
+func cstr(ca []int8) string {
+	s := make([]byte, 0, len(ca))
+	for _, c := range ca {
+		if c == 0x00 {
+			break
 		}
+		s = append(s, byte(c))
 	}
-
-	return "", false
+	return string(s)
 }
