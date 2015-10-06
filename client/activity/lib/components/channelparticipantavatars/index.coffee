@@ -203,13 +203,31 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     channel.setChannelParticipantsDropdownVisibility yes
 
 
+  isGroupAdmin: ->
+
+    accountId    = whoami()._id
+    groupAdminId = @props.channelThread.getIn ['channel','accountOldId']
+
+    if accountId is groupAdminId then return yes else return no
+
+
+  getPlaceHolder: ->
+
+    placeholder  = 'type a @username and hit enter'
+
+    if @isGroupAdmin()
+      placeholder = 'type a @username or email'
+
+    return placeholder
+
+
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
       <input ref='ChannelParticipantsInput'
         onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @bound 'onChange' }
-        placeholder = 'type a @username and hit enter'
+        placeholder = { @getPlaceHolder() }
         value       = { @state.value }
         ref         = 'textInput'
       />
