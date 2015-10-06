@@ -28,6 +28,7 @@ type Queue struct {
 // RunChecker runs the checker for Koding and AWS providers every given
 // interval time. It fetches a single document.
 func (q *Queue) RunCheckers(interval time.Duration) {
+	q.Log.Debug("queue started with interval %s", interval)
 	for _ = range time.Tick(interval) {
 		// do not block the next tick
 		go q.CheckKoding()
