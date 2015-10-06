@@ -298,15 +298,14 @@ module.exports = class LoginView extends JView
     givenName  = gravatar.name?.givenName
     familyName = gravatar.name?.familyName
 
-    fields   = {}
-    size     = 80
-    fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+    fields = {}
+    size   = 80
+    src    = KD.utils.getGravatarUrl size, requestHash
 
     fields.photo =
       itemClass  : KDCustomHTMLView
       tagName    : 'img'
-      attributes :
-        src      : "//gravatar.com/avatar/#{requestHash}?size=#{size}&d=#{fallback}&r=g"
+      attributes : { src }
 
     fields.email =
       itemClass : KDCustomHTMLView
