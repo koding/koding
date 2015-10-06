@@ -233,7 +233,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
         { channel, user } = ActivityFlux.actions
 
-        channel.inviteMember [{email: value}], ->
+        channel.inviteMember([{email: value}]).then ->
           user.unsetChannelParticipantsInputQuery()
 
 

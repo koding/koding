@@ -103,8 +103,8 @@ executeCommand = (command, channel) ->
       channelActions.addParticipantsByNames channelId, usernames
     when '/leave'
       if channel.get('typeConstant') is 'privatemessage'
-        channelActions.leavePrivateChannel channelId, (err) ->
-          kd.singletons.router.handleRoute '/Channels/public'  unless err
+        channelActions.leavePrivateChannel(channelId).then ->
+          kd.singletons.router.handleRoute '/Channels/public'
       else
         channelActions.unfollowChannel channelId
 
