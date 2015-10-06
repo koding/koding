@@ -96,7 +96,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   onClose: ->
 
     return  unless @state.selectedThread
-    return  if @_isCreating
+    return  if @_isRouting
 
     channel = @state.selectedThread.get('channel').toJS()
 
@@ -139,13 +139,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     { createPrivateChannel } = CreateChannelFlux.actions.channel
 
-    @_isCreating = yes
+    @_isRouting = yes
 
     createPrivateChannel(options)
       .then ({channel}) ->
         kd.singletons.router.handleRoute "/Messages/#{channel.id}"
       .catch =>
-        @_isCreating = no
+        @_isRouting = no
 
 
   onChange: (event) ->
