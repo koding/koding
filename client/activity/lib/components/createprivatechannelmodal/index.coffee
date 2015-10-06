@@ -16,6 +16,7 @@ isPublicChannel                   = require 'app/util/isPublicChannel'
 DropboxInputMixin                 = require 'activity/components/dropbox/dropboxinputmixin'
 CreateChannelFlux                 = require 'activity/flux/createchannel'
 ProfileLinkContainer              = require 'app/components/profile/profilelinkcontainer'
+PreExistingChannelBox             = require './preexistingchannelbox'
 ChannelParticipantsDropdown       = require 'activity/components/channelparticipantsdropdown'
 CreateChannelParticipantsDropdown = require 'activity/components/createchannelparticipantsdropdown'
 
@@ -328,6 +329,15 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     />
 
 
+  renderPreExistingChannelBox: ->
+
+    return null  unless @state.preExistingChannel
+
+    <PreExistingChannelBox
+      participants={@state.participants}
+      channel={@state.preExistingChannel} />
+
+
   render: ->
 
     <ActivityModal {...@getModalProps()}>
@@ -343,6 +353,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           <label className='Reactivity-label inviteMembers'>Invite Members</label>
           {@renderAddParticipantInput()}
         </div>
+        {@renderPreExistingChannelBox()}
         <div className='Reactivity-formfield'>
           <label className='Reactivity-label channelName'>
             Name
