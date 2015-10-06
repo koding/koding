@@ -11,8 +11,6 @@ import (
 	"koding/kites/kloud/plans"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/koding/logging"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -237,85 +235,5 @@ func (m *Machine) Unlock() error {
 
 	// Unlock does not return an error
 	m.Locker.Unlock(m.Id.Hex())
-	return nil
-}
-
-// KlientIsNotMissing will unset the `assignee.klientMissingAt` value
-// from the database, only if the Machine.Assignee.KlientMissingAt value
-// has data. Therefor it is safe to call as frequently.
-func (m *Machine) KlientIsNotMissing() error {
-	if m.Assignee.KlientMissingAt.IsZero() {
-		return nil
-	}
-
-	m.Log.Debug("Clearing assignee.klientMissingAt")
-
-	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			m.Id,
-			bson.M{"$unset": bson.M{"assignee.klientMissingAt": ""}},
-		)
-	})
-}
-
-// StopIfKlientIsMissing will stop the current Machine X minutes after
-// the `assignee.klientMissingAt` value. If the value does not exist in
-// the databse, it will write it and return.
-//
-// Therefor, this method is expected be called as often as needed,
-// and will shutdown the Machine if klient has been missing for too long.
-func (m *Machine) StopIfKlientIsMissing(ctx context.Context) error {
-
-	// If this is the first time Klient has been found missing,
-	// set the missingat time and return
-	if m.Assignee.KlientMissingAt.IsZero() {
-		m.Log.Debug("Klient has been reported missing, recording this as the first time it went missing")
-
-		return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				m.Id,
-				bson.M{"$set": bson.M{"assignee.klientMissingAt": time.Now().UTC()}},
-			)
-		})
-	}
-
-	// If the klient has been missing less than X minutes, don't stop
-	if time.Since(m.Assignee.KlientMissingAt) < time.Minute*20 {
-		return nil
-	}
-
-	// lock so it doesn't interfere with others.
-	err := m.Lock()
-
-	defer func(m *Machine) {
-		err := m.Unlock()
-		if err != nil {
-			m.Log.Error("Defer Error: Unlocking machine failed, %s", err.Error())
-		}
-	}(m)
-
-	// Check for a Lock error
-	if err != nil {
-		return err
-	}
-
-	// Clear the klientMissingAt field, or we risk Stopping the user's
-	// machine next time they run it, without waiting the proper X minute
-	// timeout.
-	defer func(m *Machine) {
-		err := m.KlientIsNotMissing()
-		if err != nil {
-			m.Log.Error("Defer Error: Call to klientIsNotMissing failed, %s", err.Error())
-		}
-	}(m)
-
-	// Hasta la vista, baby!
-	m.Log.Info("======> STOP started (missing klient) <======, username:%s", m.Credential)
-	if err := m.Stop(ctx); err != nil {
-		m.Log.Info("======> STOP failed (missing klient: %s) <======", err)
-		return err
-	}
-	m.Log.Info("======> STOP finished (missing klient) <======, username:%s", m.Credential)
-
 	return nil
 }

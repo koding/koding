@@ -24,7 +24,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		// AWS. Probably it was deleted and the state was not updated (possible
 		// due a human interaction or a non kloud interaction done somewhere
 		// else.)
-		if err := m.markAsNotInitialized(); err != nil {
+		if err := m.MarkAsNotInitialized(); err != nil {
 			return err
 		}
 
@@ -68,7 +68,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	m.push("Checking remote machine", 75, machinestate.Starting)
-	if !m.isKlientReady() {
+	if !m.IsKlientReady() {
 		return errors.New("klient is not ready")
 	}
 
