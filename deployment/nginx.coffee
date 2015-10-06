@@ -302,6 +302,11 @@ module.exports.create = (KONFIG, environment)->
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
       }
+
+      location = /kd {
+        rewrite / "https://koding-kd.s3.amazonaws.com/install-kd.sh" break;
+      }
+
       #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
 
