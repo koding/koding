@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"socialapi/models"
 	"socialapi/request"
 	"strconv"
@@ -95,20 +96,20 @@ func FetchChannelByName(accountId int64, name, groupName, typeConstant, token st
 }
 
 func FetchChannelsByParticipants(accountIds []int64, typeConstant, token string) ([]models.ChannelContainer, error) {
-	ids := ""
+	v := url.Values{}
+	v.Add("type", typeConstant)
 	for _, id := range accountIds {
-		ids += fmt.Sprintf("id=%d&", id)
+		v.Add("id", fmt.Sprintf("%d", id))
 	}
 
-	url := fmt.Sprintf("/channel/by/participants?%stype=%s", ids, typeConstant)
+	url := fmt.Sprintf("/channel/by/participants?%s", v.Encode())
 	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}
 
 	var ccs []models.ChannelContainer
-	err = json.Unmarshal(res, &ccs)
-	if err != nil {
+	if err := json.Unmarshal(res, &ccs); err != nil {
 		return nil, err
 	}
 

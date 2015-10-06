@@ -34,6 +34,7 @@ func TestPopularPost(t *testing.T) {
 	// initialize mongo
 	appConfig := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
 	// initialize redis
 	r.Bongo.MustGetRedisConn()

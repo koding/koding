@@ -249,7 +249,6 @@ func TestChannelByParticipants(t *testing.T) {
 			tc2 := createChannelAndParticipants(admin1, groupName1, models.Channel_TYPE_TOPIC, ses1.ClientId, acc1.Id, acc2.Id)
 
 			Convey("valid request should return valid response", func() {
-
 				channels, err := rest.FetchChannelsByParticipants([]int64{acc1.Id, acc2.Id}, models.Channel_TYPE_TOPIC, ses1.ClientId)
 				// there should be an err
 				So(err, ShouldBeNil)
