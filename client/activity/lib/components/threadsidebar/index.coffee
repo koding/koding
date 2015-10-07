@@ -44,6 +44,12 @@ module.exports = class ThreadSidebar extends React.Component
         <p className="ThreadSidebarContentBox-info">Drag a VM to share it with your teammates</p>
         <p className="ThreadSidebarContentBox-info">Drag a Workspace to collaborate</p>
       </ThreadSidebarContentBox>
+      <ThreadSidebarContentBox className="help-support" title="HELP & SUPPORT">
+        <a href="http://learn.koding.com/guides/kdfs">Mount your own editors to Koding with KDFS</a>
+        <a href="http://learn.koding.com/guides/collaboration/">Using collaboration</a>
+        <a href="http://learn.koding.com/categories/ssh/">How to ssh into your VMs?</a>
+        <a href="http://learn.koding.com"><i>See more...</i></a>
+      </ThreadSidebarContentBox>
     </div>
 
 
