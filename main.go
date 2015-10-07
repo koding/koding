@@ -28,7 +28,7 @@ func main() {
 		cli.Command{
 			Name:        "mount",
 			Usage:       "Mount a remote folder to a local folder",
-			Description: "Mount a remote folder from the given remote machine, to the specified local folder.",
+			Description: cmdDescriptions["mount"],
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "remotepath, r",
@@ -50,7 +50,7 @@ func main() {
 		cli.Command{
 			Name:        "ssh",
 			Usage:       "SSH into the machine.",
-			Description: "SSH into the machine.",
+			Description: cmdDescriptions["ssh"],
 			Action:      Exit(CheckUpdateFirst(SSHCommandFactory)),
 		},
 		cli.Command{
