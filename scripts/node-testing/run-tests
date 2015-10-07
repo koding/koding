@@ -1,19 +1,11 @@
 #!/usr/bin/env coffee
-
-###
 # this file runs shell-scripts on the test instance(s) via ssh
-###
 
-{ exec }               = require 'child_process'
-{ getNthInstanceData } = require './helper'
+{ exec }                          = require 'child_process'
+{ getNthInstancePublicIpAddress } = require './helper'
 
-async                  = require 'async'
-shellCommands          = require './shell-commands'
-
-
-unless instanceData = process.argv[2]
-  console.error 'error: instance data file is not specified'
-  process.exit 1
+async                             = require 'async'
+shellCommands                     = require './shell-commands'
 
 
 addEventListenersToChildProcess = (child) ->
@@ -47,12 +39,16 @@ iterator = (item, cb) ->
 # runs shell scripts in series in test instance via ssh
 start = ->
 
-  # getting first test instance's data
-  { publicIpAddress }   = getNthInstanceData instanceData, 0
+  unless instanceData = process.argv[2]
+    console.error 'error: instance data file is not specified'
+    process.exit 1
 
-  shellCommandsArray     = shellCommands.asArray publicIpAddress
+  shellCommandsArray = shellCommands.asArray {
+    socialWorker    : getNthInstancePublicIpAddress instanceData, 0
+    nodejsWebServer : getNthInstancePublicIpAddress instanceData, 1
+  }
 
-  async.eachSeries shellCommandsArray, iterator, (err) ->
+  async.eachParallel shellCommandsArray, iterator, (err) ->
     console.log err  if err
     process.exit()
 
