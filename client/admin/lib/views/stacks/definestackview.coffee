@@ -180,28 +180,12 @@ module.exports = class DefineStackView extends KDView
 
   createMainButtons: ->
 
-    @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
-
+    @inputTitle.addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
 
     @buttons.addSubView @cancelButton = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
-
-    @buttons.addSubView @setAsDefaultButton = new KDButtonView
-      title          : 'Apply to Team'
-      cssClass       : 'solid compact green nav next hidden'
-      loader         : yes
-      callback       : => @handleSetDefaultTemplate()
-
-    @buttons.addSubView @previewButton = new KDButtonView
-      title          : 'Template Preview'
-      cssClass       : 'solid compact light-gray nav next prev-button'
-      loader         : yes
-      callback       : @bound 'handlePreview'
-      tooltip        :
-        title        : "Generates a preview of this template
-                        with your own account information."
 
     @buttons.addSubView @saveButton = new KDButtonView
       title          : 'Save & Test'
@@ -209,6 +193,20 @@ module.exports = class DefineStackView extends KDView
       loader         : yes
       callback       : @bound 'handleSave'
 
+    @buttons.addSubView @previewButton = new KDButtonView
+      title          : 'Template Preview'
+      cssClass       : 'hidden solid compact light-gray nav next prev-button'
+      loader         : yes
+      callback       : @bound 'handlePreview'
+      tooltip        :
+        title        : "Generates a preview of this template
+                        with your own account information."
+
+    @buttons.addSubView @setAsDefaultButton = new KDButtonView
+      title          : 'Apply to Team'
+      cssClass       : 'solid compact green nav next hidden'
+      loader         : yes
+      callback       : => @handleSetDefaultTemplate()
 
   handleSave: ->
 
