@@ -68,10 +68,6 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
 
       go test ./..
 
-## Debug:
-
-    Pass `--debug=true` args to turn on application specific logs or `--fusedebug=true` to turn on library specific logs.
-
 ## Releases:
 
   Latest and previous releases are available at: https://github.com/koding/fuseklient/releases.
