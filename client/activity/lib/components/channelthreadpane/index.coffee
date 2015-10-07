@@ -13,6 +13,7 @@ PublicChatPane               = require 'activity/components/publicchatpane'
 showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
+ChannelDropContainer         = require 'activity/components/channeldropcontainer'
 
 
 module.exports = class ChannelThreadPane extends React.Component
@@ -78,25 +79,9 @@ module.exports = class ChannelThreadPane extends React.Component
     showNotification 'Coming soon...', type: 'main'
 
 
-  getDropTargetClassNames: -> classnames
-    'ChannelThreadPane-dropContainer': yes
-    'hidden': not @state.showDropTarget
-
-
   onClose: ->
 
     @setState isComingSoonModalOpen: no
-
-
-  renderDropSection: ->
-
-    <div
-      onDrop={@bound 'onDrop'}
-      onDragOver={@bound 'onDragOver'}
-      onDragLeave={@bound 'onDragLeave'}
-      className={@getDropTargetClassNames()}>
-      <div className='ChannelThreadPane-dropContainerContent'>Drop VMs here<br/> to start collaborating</div>
-    </div>
 
 
   renderHeader: ->
@@ -118,7 +103,11 @@ module.exports = class ChannelThreadPane extends React.Component
         isOpen={@state.isComingSoonModalOpen}/>
       <section className="ChannelThreadPane-content"
         onDragEnter={@bound 'onDragEnter'}>
-        {@renderDropSection()}
+        <ChannelDropContainer
+          onDrop={@bound 'onDrop'}
+          onDragOver={@bound 'onDragOver'}
+          onDragLeave={@bound 'onDragLeave'}
+          showDropTarget={@state.showDropTarget}/>
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
           <StartVideoCallLink onStart={@bound 'onStart'}/>
