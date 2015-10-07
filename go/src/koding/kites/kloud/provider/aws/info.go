@@ -53,7 +53,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// NotInitialized so the user can build again.
 	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
 		resultState = machinestate.NotInitialized
-		if err := m.markAsNotInitialized(); err != nil {
+		if err := m.MarkAsNotInitialized(); err != nil {
 			return nil, err
 		}
 	}
