@@ -31,7 +31,6 @@ func newService() (service.Service, error) {
 	return service.New(&serviceProgram{}, svcConfig)
 }
 
-// TODO: is this required Lee?
 type serviceProgram struct{}
 
 func (p *serviceProgram) Start(s service.Service) error {
@@ -87,7 +86,7 @@ func InstallCommand(c *cli.Context) int {
 	if err != nil {
 		if os.IsNotExist(err) {
 			klientShFile := []byte(fmt.Sprintf(`#!/bin/sh
-%sKITE_HOME=%s %s --kontrol-url=%s
+%sKITE_HOME=%s %s --kontrol-url=%s -debug
 `,
 				sudoCmd, KiteHome, klientBinPath, KontrolUrl))
 
