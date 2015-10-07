@@ -24,7 +24,6 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     options.content     = content
     options.contentType = contentType
-
     options.file        = FSHelper.createFileInstance
       path: "localfile:/stack.#{contentType}"
 
@@ -34,5 +33,5 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     ace.ready =>
       ace.setTheme 'github', no
-      @emit 'ace.changeSetting', 'tabSize', 2
+      ace.setTabSize 2, no
       @emit 'EditorReady'
