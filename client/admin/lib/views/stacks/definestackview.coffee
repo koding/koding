@@ -52,8 +52,6 @@ module.exports = class DefineStackView extends KDView
       partial  : '<span>Stacks</span> &gt; <span class="active">New Stack</span>'
 
     @createStackNameInput()
-    @createOutputView()
-
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
     @stackTemplateView                 = new StackTemplateView options, data
@@ -90,6 +88,7 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.showPaneByIndex 0
 
+    @createOutputView()
     @createFooter()
 
     @createMainButtons()
@@ -174,7 +173,9 @@ module.exports = class DefineStackView extends KDView
 
   createOutputView: ->
 
-    @addSubView @outputView = new OutputView
+    @stackTemplateView.addSubView @outputView = view =  new OutputView
+    @stackTemplateView.on 'ShowOutputView', view.bound 'raise'
+    @stackTemplateView.on 'HideOutputView', view.bound 'fall'
 
     @outputView.add 'Welcome to Stack Template Editor'
 

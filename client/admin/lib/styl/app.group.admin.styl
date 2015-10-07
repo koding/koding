@@ -1323,6 +1323,8 @@ Admin main styles
       right                 0
       bottom                0
       abs()
+      &:focus
+        vendor              box-shadow, none
 
   .kdview.credential-status
     width                   200px
@@ -1367,8 +1369,8 @@ Admin main styles
     abs()
 
     &.raise
-      height                calc(40% - 33px) !important
-      border                1px solid #e4e4e4
+      height                calc(70% - 33px) !important
+      border-top            1px solid #e4e4e4
 
     pre.output-view
       height                auto

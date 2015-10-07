@@ -27,7 +27,6 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
     @editorView.addSubView new KDButtonView
       title    : 'Logs'
       cssClass : 'solid compact showlogs-link'
-      callback : delegate.outputView.bound 'raise'
+      callback : => @emit 'ShowOutputView'
 
-    # FIXME Not liked this ~ GG
-    @editorView.on 'click', delegate.outputView.bound 'fall'
+    @editorView.on 'click', => @emit 'HideOutputView'
