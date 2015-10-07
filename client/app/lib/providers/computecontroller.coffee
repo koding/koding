@@ -46,7 +46,7 @@ module.exports = class ComputeController extends KDController
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
 
-      groupsController.on 'StackTemplateChanged', @bound 'checkStackRevisions'
+      groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
 
       @fetchStacks =>
 
@@ -386,6 +386,8 @@ module.exports = class ComputeController extends KDController
         create()  if @stacks.length is 0
       else
         @emit 'StacksNotConfigured'
+
+      @checkGroupStackRevisions()
 
 
   # remote.ComputeProvider and Kloud kite public methods
@@ -877,6 +879,22 @@ module.exports = class ComputeController extends KDController
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack
+
+
+  checkGroupStacks: ->
+
+    @checkStackRevisions()
+
+    { groupsController } = kd.singletons
+    { slug } = currentGroup = groupsController.getCurrentGroup()
+
+    remote.api.JGroup.one { slug }, (err, _currentGroup) =>
+      return kd.warn err  if err
+      return kd.warn 'No such Group!'  unless _currentGroup
+
+      currentGroup.stackTemplates = _currentGroup.stackTemplates
+
+      @checkGroupStackRevisions()
 
 
   checkGroupStackRevisions: ->
