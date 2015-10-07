@@ -48,7 +48,7 @@ start = ->
     nodejsWebServer : getNthInstancePublicIpAddress instanceData, 1
   }
 
-  async.eachParallel shellCommandsArray, iterator, (err) ->
+  async.each shellCommandsArray, iterator, (err) ->
     console.log err  if err
     process.exit()
 
