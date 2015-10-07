@@ -592,7 +592,7 @@ module.exports = class JUser extends jraphical.Module
         if err
           callback err
         else if confirmed
-          @confirmEmail (err) -> callback err
+          @confirmEmail callback
         else
           callback new KodingError 'PIN is not confirmed.'
 
@@ -1932,7 +1932,7 @@ module.exports = class JUser extends jraphical.Module
 
       Tracker.identify username, modifier
 
-      Tracker.track username, { subject : Tracker.types.FINISH_REGISTER }
+      Tracker.track username, { subject: Tracker.types.FINISH_REGISTER }
 
 
   block: (blockedUntil, callback) ->

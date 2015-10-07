@@ -46,6 +46,9 @@ module.exports = class Tracker extends bongo.Base
 
   @properties = {}
 
+  @properties[@types.FINISH_REGISTER] = {
+    category: 'NewAccount', label: 'VerifyAccount'
+  }
 
   @identifyAndTrack = (username, event, eventProperties = {}) ->
     @identify username
