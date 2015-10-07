@@ -1,15 +1,36 @@
-$             = require 'jquery'
-React         = require 'kd-react'
-emojify       = require 'emojify.js'
-formatContent = require 'app/util/formatReactivityContent'
-immutable     = require 'immutable'
-classnames    = require 'classnames'
+$                    = require 'jquery'
+React                = require 'kd-react'
+emojify              = require 'emojify.js'
+formatContent        = require 'app/util/formatReactivityContent'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+transformTags        = require 'app/util/transformReactivityTags'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class MessageBody extends React.Component
 
+  @include [ImmutableRenderMixin]
+
   @defaultProps =
     message: immutable.Map()
+
+
+  constructor: (props) ->
+
+    super props
+
+    @state = { message: @props.message }
+
+
+  contentDidMount: (content) ->
+
+    @content = content
+    @renderEmojis()
+    @transformChannelHashtags()
+
+
+  componentDidUpdate: -> @renderEmojis()
 
 
   renderEmojis: ->
@@ -18,18 +39,21 @@ module.exports = class MessageBody extends React.Component
     emojify.run contentElement  if contentElement
 
 
-  contentDidMount: (content) ->
+  transformChannelHashtags: ->
 
-    @content = content
-    @renderEmojis()
+    { message } = @state
 
+    return  if message.has('isFake')
+    return  unless message.has('body')
 
-  componentDidUpdate: -> @renderEmojis()
+    transformTags message.get('body'), (transformed) =>
+
+      @setState { message: message.set 'body', transformed }
 
 
   render: ->
 
-    { message } = @props
+    { message } = @state
 
     body    = helper.prepareMessageBody message.toJS()
     content = formatContent body
