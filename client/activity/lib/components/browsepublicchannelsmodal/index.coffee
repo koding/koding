@@ -53,10 +53,10 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     isActive = if isYoursChannels
     then tab is Tabs.YourChannels
     else tab is Tabs.OtherChannels
+
     return classnames
       'ChannelList-tab' : yes
       'active-tab'      : isActive
-      'hidden'          : @isSearchActive()
 
 
   onYourChannelsClick: ->
@@ -113,7 +113,11 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
   renderTabs: ->
 
-    <div className={if @isSearchActive() then 'hidden'}>
+    className = classnames
+      'ChannelList-tabs' : yes
+      'hidden'           : @isSearchActive()
+
+    <div className={className}>
       <div className={@getTabClassName yes} onClick={@bound 'onYourChannelsClick'}>Your Channels</div>
       <div className={@getTabClassName no} onClick={@bound 'onOtherChannelsClick'}>Other Channels</div>
       <div className='clearfix'></div>

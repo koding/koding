@@ -53,6 +53,7 @@ describe 'ChannelsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelsStore']
 
+      mockPublicChannel.isParticipant = yes
       expect(storeState.foo).to.eql mockPublicChannel
 
 
