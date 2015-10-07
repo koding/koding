@@ -9,6 +9,7 @@ import (
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
 
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
@@ -109,7 +110,12 @@ func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 
 	// We successfully connected and communicated with Klient, clear the
 	// missing value.
-	q.KlientIsNotMissing(m)
+	if !m.Assignee.KlientMissingAt.IsZero() {
+		err := modelhelper.UnsetKlientMissingAt(m.Id)
+		if err != nil {
+			m.Log.Error("Defer Error: Call to klientIsNotMissing failed, %s", err.Error())
+		}
+	}
 
 	// get the timeout from the plan in which the user belongs to
 	plan := plans.Plans[m.Payment.Plan]
@@ -233,9 +239,11 @@ func (q *Queue) StopIfKlientIsMissing(ctx context.Context, m *koding.Machine) er
 	// machine next time they run it, without waiting the proper X minute
 	// timeout.
 	defer func(m *koding.Machine) {
-		err := q.KlientIsNotMissing(m)
-		if err != nil {
-			m.Log.Error("Defer Error: Call to klientIsNotMissing failed, %s", err.Error())
+		if !m.Assignee.KlientMissingAt.IsZero() {
+			err := modelhelper.UnsetKlientMissingAt(m.Id)
+			if err != nil {
+				m.Log.Error("Defer Error: Call to klientIsNotMissing failed, %s", err.Error())
+			}
 		}
 	}(m)
 
@@ -248,21 +256,4 @@ func (q *Queue) StopIfKlientIsMissing(ctx context.Context, m *koding.Machine) er
 	m.Log.Info("======> STOP finished (missing klient) <======, username:%s", m.Credential)
 
 	return nil
-}
-
-// KlientIsNotMissing will unset the `assignee.klientMissingAt` value
-// from the database, only if the Machine.Assignee.KlientMissingAt value
-// has data. Therefor it is safe to call as frequently.
-func (q *Queue) KlientIsNotMissing(m *koding.Machine) error {
-	if m.Assignee.KlientMissingAt.IsZero() {
-		return nil
-	}
-
-	m.Log.Debug("Clearing assignee.klientMissingAt")
-	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			m.Id,
-			bson.M{"$unset": bson.M{"assignee.klientMissingAt": ""}},
-		)
-	})
 }
