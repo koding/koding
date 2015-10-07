@@ -8,7 +8,7 @@ classnames     = require 'classnames'
 
 PublicChannelListItem = require 'activity/components/publicchannellistitem'
 
-module.exports = class SidebarModalThreadList extends React.Component
+module.exports = class SidebarModalThreads extends React.Component
 
   @include [ScrollerMixin]
 
@@ -38,14 +38,14 @@ module.exports = class SidebarModalThreadList extends React.Component
     { noResultText, threads } = @props
     return  if threads.size > 0
 
-    <div className='SidebarModalThreadList-emptyResult'>
+    <div className='SidebarModalThreads-emptyResult'>
       { noResultText }
     </div>
 
 
   render: ->
 
-    <div className={"SidebarModalThreadList #{@props.className}"}>
+    <div className={"SidebarModalThreads #{@props.className}"}>
       <Scroller
         onThresholdReached={@bound 'onThresholdReached'}
         ref="scrollContainer">

@@ -7,17 +7,20 @@ ActivityFlux = require 'activity/flux'
 isPublicChannel = require 'app/util/isPublicChannel'
 PublicChannelListItem = require 'activity/components/publicchannellistitem'
 classnames = require 'classnames'
-SidebarModalThreadList = require 'activity/components/sidebarmodalthreadlist'
+SidebarModalThreads = require 'activity/components/sidebarmodalthreads'
 Tabs = require 'activity/flux/stores/sidebarchannels/sidebarpublicchannelstabs'
 
 module.exports = class BrowsePublicChannelsModal extends React.Component
 
   getDataBindings: ->
 
-    query          : ActivityFlux.getters.sidebarPublicChannelsQuery
-    tab            : ActivityFlux.getters.sidebarPublicChannelsTab
-    channels       : ActivityFlux.getters.sidebarPublicChannels
-    selectedThread : ActivityFlux.getters.selectedChannelThread
+    { getters } = ActivityFlux
+    return {
+      query          : getters.sidebarPublicChannelsQuery
+      tab            : getters.sidebarPublicChannelsTab
+      channels       : getters.sidebarPublicChannels
+      selectedThread : getters.selectedChannelThread
+    }
 
 
   isSearchActive: -> if @state.query then yes else no
@@ -58,14 +61,16 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
   onYourChannelsClick: ->
 
-    ActivityFlux.actions.channel.loadFollowedPublicChannels()
-    ActivityFlux.actions.channel.setSidebarPublicChannelsTab Tabs.YourChannels
+    { channel } = ActivityFlux.actions
+    channel.loadFollowedPublicChannels()
+    channel.setSidebarPublicChannelsTab Tabs.YourChannels
 
 
   onOtherChannelsClick: ->
 
-    ActivityFlux.actions.channel.loadChannels()
-    ActivityFlux.actions.channel.setSidebarPublicChannelsTab Tabs.OtherChannels
+    { channel } = ActivityFlux.actions
+    channel.loadChannels()
+    channel.setSidebarPublicChannelsTab Tabs.OtherChannels
 
 
   onThresholdReached: (options) ->
@@ -82,9 +87,10 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
   onSearchInputChange: (event) ->
 
-    { value } = event.target
-    ActivityFlux.actions.channel.loadChannelsByQuery value  if value
-    ActivityFlux.actions.channel.setSidebarPublicChannelsQuery value
+    { value }   = event.target
+    { channel } = ActivityFlux.actions
+    channel.loadChannelsByQuery value  if value
+    channel.setSidebarPublicChannelsQuery value
 
 
   renderHeader: ->
@@ -119,7 +125,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     { channels } = @state
     noResutText  = 'Sorry, your search did not have any results'  if @isSearchActive()
 
-    <SidebarModalThreadList
+    <SidebarModalThreads
       threads            = { channels }
       noResultText       = { noResutText }
       onThresholdReached = { @bound 'onThresholdReached' }
