@@ -37,7 +37,8 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 }
 
 func (q *Queue) CheckKoding() {
-	machine, err := q.FetchKoding()
+	var machine *koding.Machine
+	err := q.FetchProvider("koding", &machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
@@ -48,6 +49,9 @@ func (q *Queue) CheckKoding() {
 		// move one with the next one
 		return
 	}
+
+	// Don't forget to set any important non-db related Machine values.
+	machine.Locker = q.KodingProvider
 
 	if err := q.CheckKodingUsage(machine); err != nil {
 		// only log if it's something else
@@ -140,27 +144,21 @@ func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 	return m.MarkAsStoppedWithReason("Machine is stopped due inactivity")
 }
 
-// FetchKoding() fetches a single machine document from mongodb that meets the criterias:
-//
-// 1. belongs to koding provider
-// 2. are running
-// 3. are not always on machines
-// 4. are not assigned to anyone yet (unlocked)
-// 5. are not picked up by others yet recently
-func (q *Queue) FetchKoding() (*koding.Machine, error) {
-	machine := &koding.Machine{}
+// Fetch provider fetches the machine and populates the fields for the given
+// provider.
+func (q *Queue) FetchProvider(provider string, machine interface{}) error {
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
-		// 1. belongs to koding provider
+		// 1. belongs to the given provider
 		// 2. are running
 		// 3. are not always on machines
-		// 4. are not assigned to anyone yet (unlocked)
-		// 5. are not picked up by others yet recently in last 30 seconds
+		// 3. are not assigned to anyone yet (unlocked)
+		// 4. are not picked up by others yet recently in last 30 seconds
 		//
 		// The $ne is used to catch documents whose field is not true including
 		// that do not contain that particular field
 		egligibleMachines := bson.M{
-			"provider":            "koding",
+			"provider":            provider,
 			"status.state":        machinestate.Running.String(),
 			"meta.alwaysOn":       bson.M{"$ne": true},
 			"assignee.inProgress": bson.M{"$ne": true},
@@ -180,7 +178,7 @@ func (q *Queue) FetchKoding() (*koding.Machine, error) {
 		// always the oldest one instead of random/first. Returning an error
 		// means there is no document that matches our criteria.
 		// err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
-		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, &machine)
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, machine)
 		if err != nil {
 			return err
 		}
@@ -188,14 +186,7 @@ func (q *Queue) FetchKoding() (*koding.Machine, error) {
 		return nil
 	}
 
-	if err := q.KodingProvider.DB.Run("jMachines", query); err != nil {
-		return nil, err
-	}
-
-	// Don't forget to set any important non-db related Machine values.
-	machine.Locker = q.KodingProvider
-
-	return machine, nil
+	return q.AwsProvider.DB.Run("jMachines", query)
 }
 
 // StopIfKlientIsMissing will stop the current Machine X minutes after
