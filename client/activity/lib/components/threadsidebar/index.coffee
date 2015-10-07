@@ -14,20 +14,25 @@ module.exports = class ThreadSidebar extends React.Component
     channelParticipants: immutable.Map()
 
 
+  isGroupChannel: (channel) ->
+
+    { groupsController } = kd.singletons
+
+    return channel.name is groupsController.getGroupSlug()
+
+
   renderInviteSection: ->
 
     return  unless @props.channelParticipants
 
-    if @props.channelParticipants.count() > 1
+    { channel } = @props.channelThread.toJS()
+
+    if @props.channelParticipants.size or not @isGroupChannel channel
       return <ChannelParticipantAvatars
         channelThread={@props.channelThread}
         participants={@props.channelParticipants} />
 
-    { channel }          = @props.channelThread.toJS()
-    { groupsController } = kd.singletons
-
     return  unless channel.typeConstant is 'topic'
-    return  unless channel.name is groupsController.getGroupSlug()
 
     <p className="ThreadSidebarContentBox-info--inviteTeammates">
       <label>You didn't invite your team yet!</label>
