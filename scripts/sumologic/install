@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPTS=$(dirname ${BASH_SOURCE[0]})
+
+COLLECTOR_DOWNLOAD_URL=https://collectors.sumologic.com/rest/download/linux/64
+COLLECTOR_INSTALL_SCRIPT=/tmp/SumoCollector.sh
+
+wget -O $COLLECTOR_INSTALL_SCRIPT $COLLECTOR_DOWNLOAD_URL
+chmod 740 $COLLECTOR_INSTALL_SCRIPT
+$COLLECTOR_INSTALL_SCRIPT -q

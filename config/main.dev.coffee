@@ -106,13 +106,13 @@ Configuration = (options={}) ->
   algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                   }
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , indexSuffix:        algolia.indexSuffix                     , apiSecretKey:       '682e02a34e2a65dc774f5ec355ceca33'                                                  , apiSearchOnlyKey: "8dc0b0dc39282effe9305981d427fec7" }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapp201506"           , password:        "socialapp201506"                    , dbname:   "social"                  }
-  kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapp201506"          , password:        "kontrolapp201506"                   , dbname:   "social"                  }
+  kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapp201506"          , password:        "kontrolapp201506"                   , dbname:   "social"                    , connecttimeout: 20 }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                               , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
-  integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration"}
-  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
-  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-dev" }
+  integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration" }
+  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                        , url: "#{customDomain.public}/api/webhook"     }
+  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-dev"      }
   tokbox              = { apiKey:   "45253342"                                    , apiSecret:          "e834f7f61bd2b3fafc36d258da92413cebb5ce6e" }
   recaptcha           = { enabled: no }
 
@@ -309,6 +309,7 @@ Configuration = (options={}) ->
     tokbox               : { apiKey: tokbox.apiKey }
     disabledFeatures     : disabledFeatures
     integration          : { url: "#{integration.url}" }
+    webhookMiddleware    : { url: "#{webhookMiddleware.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
     recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
 
@@ -344,7 +345,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password} -postgres-connecttimeout #{kontrolPostgres.connecttimeout}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -500,6 +501,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/channel/(.*)/list"
             proxyPass   : "http://socialapi/channel/$1/list$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/by/(.*)"
+            proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
           }
           {
             location    : "~ /api/social/collaboration/ping"
@@ -1199,6 +1204,9 @@ Configuration = (options={}) ->
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
         echo "  run importusers           : to import koding user data"
+        echo "  run nodeservertests       : to run tests for node.js web server"
+        echo "  run socialworkertests     : to run tests for social worker"
+        echo "  run nodetestfiles         : to run a single test or all test files in a directory"
         echo "  run sanitize-email        : to sanitize email"
         echo "  run help                  : to show this list"
         echo ""

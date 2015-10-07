@@ -91,7 +91,7 @@ module.exports =
 
     if user.gravatar
       browser
-        .assert.valueContains 'input[name=username]',  'kodingtestuser'
+        .assert.valueContains 'input[name=username]',  'kodingqa'
         .assert.valueContains 'input[name=firstName]', 'Koding'
         .assert.valueContains 'input[name=lastName]',  'Testuser'
     else
@@ -168,6 +168,7 @@ module.exports =
     browser
       .pause                    2500 # while typing something steals activity input focus
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
+      .pause                    3000 # for page load
       .waitForElementVisible    '[testpath=ActivityInputView]', 30000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
@@ -429,12 +430,18 @@ module.exports =
       .waitForElementVisible   '.AppModal--account', 20000
 
 
-  openAvatarAreaModal: (browser) ->
+  openAvatarAreaModal: (browser, forTeams) ->
 
-    browser
-      .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
-      .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
-      .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
+    if forTeams
+      browser
+        .waitForElementVisible   '.avatar-area .avatarview img', 20000
+        .click                   '.avatar-area .avatarview img'
+        .waitForElementVisible   '.avatararea-popup.team', 20000
+    else
+      browser
+        .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
+        .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
+        .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
   fillPaymentForm: (browser, planType = 'developer') ->

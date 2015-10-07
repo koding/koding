@@ -1,4 +1,5 @@
 ChatInputModule = require './chatinput'
+CreateChannelModule = require './createchannel'
 
 module.exports =
   getters   : require './getters'
@@ -9,7 +10,6 @@ module.exports =
     channel         : require './actions/channel'
     suggestions     : require './actions/suggestions'
     user            : require './actions/user'
-    chatInputSearch : require './actions/chatinputsearch'
 
   stores    : [
     require './stores/messagesstore'
@@ -30,17 +30,20 @@ module.exports =
     require './stores/messagelikerssstore'
     require './stores/channelflagsstore'
     require './stores/messageflagsstore'
-    require './stores/chatinput/chatinputchannelsselectedindexstore'
-    require './stores/chatinput/chatinputchannelsquerystore'
-    require './stores/chatinput/chatinputchannelsvisibilitystore'
-    require './stores/chatinput/chatinputusersselectedindexstore'
-    require './stores/chatinput/chatinputusersquerystore'
-    require './stores/chatinput/chatinputusersvisibilitystore'
-    require './stores/chatinput/chatinputsearchselectedindexstore'
-    require './stores/chatinput/chatinputsearchquerystore'
-    require './stores/chatinput/chatinputsearchvisibilitystore'
-    require './stores/chatinput/chatinputsearchstore'
+    require './stores/channelparticipants/channelparticipantssearchquerystore'
+    require './stores/channelparticipants/channelparticipantsdropdownvisibilitystore'
+    require './stores/channelparticipants/channelparticipantsselectedindexstore'
+
+    require './stores/channelmessageloadermarkersstore'
+
   ]
   # module stores
   .concat ChatInputModule.stores
+  .concat CreateChannelModule.stores
+
+  register: (reactor) ->
+    reactor.registerStores @stores
+
+    realtimeActionCreators = require './actions/realtime/actioncreators'
+    realtimeActionCreators.bindNotificationEvents()
 

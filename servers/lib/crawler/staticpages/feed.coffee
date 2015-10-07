@@ -29,23 +29,37 @@ createProfileFeed = (models, account, options, callback) ->
 
       index = yes  if result.length >= 3
 
-      buildContent models, result, options, (err, content) ->
-        return callback err  if err
+      handleContent = handleContentKallback callback, {
+        page         : page
+        index        : index
+        nickname     : account.profile.nickname
+        itemCount    : itemCount
+        itemsPerPage : itemsPerPage
+      }
 
-        return callback { message: 'content not found' }  if not content
+      buildContent models, result, options, handleContent
 
-        paginationOptions = {
-          currentPage   : page
-          numberOfItems : itemCount
-          itemsPerPage
-          route         : "#{account.profile.nickname}"
-        }
 
-        pagination = getPagination paginationOptions
-        if pagination
-          content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
+handleContentKallback = (callback, params) ->
+  { page, itemCount, itemsPerPage, nickname, index } = params
 
-        callback null, { content, index }
+  return (err, content) ->
+    return callback err  if err
+
+    return callback { message: 'content not found' }  if not content
+
+    paginationOptions = {
+      currentPage   : page
+      numberOfItems : itemCount
+      itemsPerPage
+      route         : "#{nickname}"
+    }
+
+    pagination = getPagination paginationOptions
+    if pagination
+      content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
+
+    callback null, { content, index }
 
 
 createFeed = (models, options, callback) ->

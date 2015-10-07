@@ -1,7 +1,8 @@
-KodingFluxStore = require 'app/flux/store'
-actions         = require '../actions/actiontypes'
-toImmutable     = require 'app/util/toImmutable'
-immutable       = require 'immutable'
+KodingFluxStore      = require 'app/flux/store'
+actions              = require '../actions/actiontypes'
+toImmutable          = require 'app/util/toImmutable'
+immutable            = require 'immutable'
+createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 module.exports = class ChannelsStore extends KodingFluxStore
 
@@ -24,7 +25,18 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.UNFOLLOW_CHANNEL_BEGIN, @handleUnfollowChannelBegin
     @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
     @on actions.UNFOLLOW_CHANNEL_FAIL, @handleUnfollowChannelFail
+    @on actions.LEAVE_PRIVATE_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
 
+    @on actions.ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, @handleAddParticipantsToChannelBegin
+    @on actions.ADD_PARTICIPANTS_TO_CHANNEL_FAIL, @handleAddParticipantsToChannelFail
+
+    @on actions.SET_CHANNEL_UNREAD_COUNT, @handleSetUnreadCount
+
+    @on actions.GLANCE_CHANNEL_BEGIN, @handleGlanceChannel
+    @on actions.GLANCE_CHANNEL_SUCCESS, @handleGlanceChannel
+
+    @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+    @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 
   handleLoadChannelSuccess: (channels, { channel }) ->
 
@@ -52,6 +64,16 @@ module.exports = class ChannelsStore extends KodingFluxStore
       channels = channels.setIn [channelId, 'isParticipant'], no
 
     return channels
+
+
+  handleSetUnreadCount: (channels, { channelId, unreadCount }) ->
+
+    channels.setIn [channelId, 'unreadCount'], unreadCount
+
+
+  handleGlanceChannel: (channels, { channelId }) ->
+
+    channels.setIn [channelId, 'unreadCount'], 0
 
 
 initChannel = (channels, id) ->

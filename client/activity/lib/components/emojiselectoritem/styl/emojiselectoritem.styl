@@ -1,19 +1,12 @@
 .EmojiSelectorItem
   fl()
-  size                      16px 16px
-  padding                   5px
-  margin-left               5px
-  margin-bottom             5px
-  rounded                   5px
-  bg                        color, #fff
+  padding                   2px
+  rounded                   4px
 
-  .emoji
-    size                    16px 16px
+  &.DropboxItem-selected
+    bg                      color, #FEEC99
 
-  &.DropupItem-selected
-    bg                      color, rgba(249,204,13,0.4)
-
-.EmojiSelectorItem-firstInRow
-  margin-left               0px
-  clear                     left
+  .emojiSpriteIcon
+    transform               scale(0.625, 0.625)
+    size                    32px 32px
 

@@ -113,7 +113,7 @@ module.exports =
       .waitForElementNotPresent saveIconSelector, 20000 # Assertion
 
 
-  closeFile: (browser, fileName) ->
+  closeFile: (browser, fileName, user) ->
 
     closeFileSelector = "#{tabHandleSelector} span.close-tab"
 
@@ -121,7 +121,7 @@ module.exports =
       .moveToElement             tabHandleSelector, 60, 15
       .waitForElementVisible     closeFileSelector, 20000
       .click                     closeFileSelector
-      .waitForElementNotPresent  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
+      .waitForElementNotPresent  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
 
 
   openAnExistingFile: (browser, user, fileName, text) ->
@@ -138,7 +138,7 @@ module.exports =
       .click                  fileChevronSelector
       .waitForElementVisible  'li.open-file', 20000
       .click                  'li.open-file'
-      .waitForElementVisible  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
+      .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
       .assert.containsText    activeEditorSelector, text # Assertion
 
 
@@ -165,3 +165,35 @@ module.exports =
 
     helpers.clickVMHeaderButton(browser)
     browser.click ".context-list-wrapper #{selector}"
+
+  compressFileFolder: (browser, user, type, fileFolderName, compressType) ->
+
+    webPath     = '/home/' + user.username + '/Web'
+    name        = fileFolderName
+
+    if type is 'folder'
+      webPath   = '/home/' + user.username
+      name      = fileFolderName.name
+
+    fileFolderSelector  = "span[title='" + webPath + '/' + name + "']"
+    submenuSelector     = "li.as-#{compressType}"
+    extension           = '.zip'
+
+    if compressType is 'targz'
+      extension = '.tar.gz'
+
+    newFile = "span[title='" + webPath + '/' + name + extension + "']"
+
+    browser
+      .waitForElementPresent     fileFolderSelector, 20000
+      .click                     fileFolderSelector
+      .click                     fileFolderSelector + ' + .chevron'
+      .waitForElementVisible     'li.compress', 20000
+      .click                     'li.compress'
+      .waitForElementVisible     submenuSelector, 20000
+      .click                     submenuSelector
+      .pause                     2000
+      .waitForElementPresent     newFile, 20000 # Assertion
+
+    helpers.deleteFile(browser, fileFolderSelector)
+    helpers.deleteFile(browser, newFile)

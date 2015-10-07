@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"log"
 	"net/http"
 	"time"
@@ -15,8 +16,10 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
+	"github.com/koding/metrics"
 )
 
+const Name = "kontrol"
 const Version = "0.0.6"
 
 func New(c *Config) *kontrol.Kontrol {
@@ -46,11 +49,39 @@ func New(c *Config) *kontrol.Kontrol {
 		kiteConf.Port = c.Port
 	}
 
-	kon := kontrol.New(kiteConf, Version)
+	// TODO: Move the metrics instance somewhere meaningful
+	met := common.MustInitMetrics(Name)
+
+	kon := kontrol.NewWithoutHandlers(kiteConf, Version)
+
+	kon.Kite.HandleFunc("register",
+		metricKiteHandler(met, "HandleRegister", kon.HandleRegister),
+	)
+
+	kon.Kite.HandleFunc("registerMachine",
+		metricKiteHandler(met, "HandleMachine", kon.HandleMachine),
+	).DisableAuthentication()
+
+	kon.Kite.HandleFunc("getKites",
+		metricKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
+	)
+	kon.Kite.HandleFunc("getToken",
+		metricKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
+	)
+	kon.Kite.HandleFunc("getKey",
+		metricKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
+	)
+
+	kon.Kite.HandleHTTPFunc("/heartbeat",
+		metricHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
+	)
+
+	kon.Kite.HandleHTTP("/register", throttledHandler(
+		metricHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
+	))
+
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateMachine
-
-	kon.Kite.HandleHTTP("/register", throttledHandler(kon.HandleRegisterHTTP))
 
 	switch c.Storage {
 	case "etcd":
@@ -66,7 +97,12 @@ func New(c *Config) *kontrol.Kontrol {
 		p := kontrol.NewPostgres(postgresConf, kon.Kite.Log)
 		p.DB.SetMaxOpenConns(20)
 		kon.SetStorage(p)
-		kon.SetKeyPairStorage(p)
+
+		s := kontrol.NewCachedStorage(
+			p,
+			kontrol.NewMemKeyPairStorageTTL(time.Minute*5),
+		)
+		kon.SetKeyPairStorage(s)
 		// kon.MachineKeyPicker = newMachineKeyPicker(p)
 	default:
 		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
@@ -110,6 +146,37 @@ func throttledHandler(h http.HandlerFunc) http.Handler {
 	}
 
 	return httpRateLimiter.RateLimit(http.HandlerFunc(h))
+}
+
+// metricHandler records the execution time of the given handler on
+// the provided metrics.
+func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) http.HandlerFunc {
+	if m == nil {
+		return h
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		h(w, r)
+		logGaugeMetric(m, "kontrolHandlerTimes", funcName, float64(time.Since(start)))
+		logCountMetric(m, "kontrolCallCount", funcName, 1)
+	}
+}
+
+// metricKiteHandler records the execution time of the given handler on
+// the provided metrics.
+func metricKiteHandler(m *metrics.DogStatsD, funcName string, h kite.HandlerFunc) kite.HandlerFunc {
+	if m == nil {
+		return h
+	}
+
+	return func(r *kite.Request) (interface{}, error) {
+		start := time.Now()
+		hRes, hErr := h(r)
+		logGaugeMetric(m, "kontrolHandlerTimes", funcName, float64(time.Since(start)))
+		logCountMetric(m, "kontrolCallCount", funcName, 1)
+		return hRes, hErr
+	}
 }
 
 // func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
@@ -214,4 +281,27 @@ func authenticateMachine(authType string, r *kite.Request) error {
 
 	// everything is ok, succefully validated
 	return nil
+}
+
+func logCountMetric(m *metrics.DogStatsD, name, funcName string, value int64) {
+	if err := m.Count(
+		name,  // metric name
+		value, // count
+		[]string{"funcName:" + funcName}, // tags for metric call
+		1.0, // rate
+	); err != nil {
+		// TODO(cihangir) should we log/return error?
+	}
+}
+
+func logGaugeMetric(m *metrics.DogStatsD, name, funcName string, value float64) {
+	if err := m.Gauge(
+		name,  // metric name
+		value, // count
+		// using funcName: for consistency with callCount
+		[]string{"funcName:" + funcName},
+		1.0, // rate
+	); err != nil {
+		// TODO(cihangir) should we log/return error?
+	}
 }

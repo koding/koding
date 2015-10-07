@@ -30,6 +30,7 @@ func (b *Build) Action(args []string, k *kite.Client) error {
 	resp, err := k.Tell("build", &KloudArgs{
 		MachineId:  *b.id,
 		SnapshotId: *b.snapshotId,
+		Provider:   "koding",
 	})
 	if err != nil {
 		return err

@@ -20,8 +20,9 @@
     "/Channels/:channelName": "SingleChannel",
     "/Channels/:channelName/:postSlug": "SinglePost",
     "/Channels/:channelName/summary": "SingleChannelWithSummary",
-    "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary"
+    "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary",
 
+    "/Messages/:privateChannelId": "PrivateMessages"
 
 
   },
@@ -34,3 +35,4 @@
   ],
   "shortcuts": [ "activity" ]
 }
+

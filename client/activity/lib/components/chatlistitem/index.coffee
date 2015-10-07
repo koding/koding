@@ -24,7 +24,9 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-MessageLink           = require 'activity/components/messagelink'
+MessageLink           = require 'activity/components/publicchannelmessagelink'
+EmbedBox              = require 'activity/components/embedbox'
+KeyboardKeys          = require 'app/util/keyboardKeys'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -33,15 +35,15 @@ module.exports = class ChatListItem extends React.Component
   @defaultProps =
     hover                         : no
     account                       : null
-    editMode                      : no
     isDeleting                    : no
     isMenuOpen                    : no
+    channelName                   : ''
     editInputValue                : ''
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
-
+    isSelected                    : no
 
   constructor: (props) ->
 
@@ -50,7 +52,7 @@ module.exports = class ChatListItem extends React.Component
     @state =
       hover                         : @props.hover
       account                       : @props.account
-      editMode                      : @props.editMode
+      editMode                      : @props.message.get '__isEditing'
       isDeleting                    : @props.isDeleting
       isMenuOpen                    : @props.isMenuOpen
       editInputValue                : @props.message.get 'body'
@@ -62,6 +64,14 @@ module.exports = class ChatListItem extends React.Component
   componentDidMount: ->
 
     @getAccountInfo()
+
+
+  componentDidUpdate: (prevProps, prevState) ->
+
+    isEditing  = @props.message.get '__isEditing'
+    wasEditing = prevProps.message.get '__isEditing'
+
+    @focusInputOnEdit()  if isEditing and not wasEditing
 
 
   getAccountInfo: ->
@@ -91,6 +101,7 @@ module.exports = class ChatListItem extends React.Component
       'ChatItem'      : yes
       'mouse-enter'   : @state.hover
       'is-menuOpen'   : @state.isMenuOpen
+      'is-selected'   : @props.isSelected
     onMouseEnter      : =>
       @setState hover : yes
     onMouseLeave      : =>
@@ -182,12 +193,19 @@ module.exports = class ChatListItem extends React.Component
     @setState isDeleting: no
 
 
-  editPost: ->
+  focusInputOnEdit: ->
 
-    @setState editMode: yes
     domNode = @refs.EditMessageTextarea.getDOMNode()
+
     kd.utils.wait 100, ->
       kd.utils.moveCaretToEnd domNode
+
+
+  editPost: ->
+
+    messageId = @props.message.get '_id'
+
+    ActivityFlux.actions.message.setMessageEditMode messageId
 
 
   showDeletePostPromptModal: ->
@@ -230,18 +248,34 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
-    @setState editMode: no
+    return @deletePostButtonHandler()  if @state.isDeleting
+
+    return @setState isDeleting: yes  unless @state.editInputValue.trim()
+
+    name  = @props.channelName
+    value = @state.editInputValue
+    messageId = @props.message.get '_id'
+
+    unless value.match ///\##{name}///
+      value += " ##{name} "
+
+    ActivityFlux.actions.message.unsetMessageEditMode messageId
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
-      @state.editInputValue
+      value
       @props.message.get('payload').toJS()
     )
 
 
   cancelEdit: ->
 
-    @setState editMode: no, editInputValue: @props.message.get('body')
+    return @closeDeletePostModal()  if @state.isDeleting
+
+    messageId = @props.message.get '_id'
+    ActivityFlux.actions.message.unsetMessageEditMode messageId
+
+    @setState editInputValue: @props.message.get('body')
 
 
   onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
@@ -254,28 +288,27 @@ module.exports = class ChatListItem extends React.Component
 
   onEditInputKeyDown: (event) ->
 
-    code = event.which or event.keyCode
-    key  = keycode code
+    { ESC, ENTER } = KeyboardKeys
 
-    switch key
-      when 'esc'
-        @cancelEdit()
-      when 'enter'
-        @updateMessage()
+    switch event.which
+      when ESC         then @cancelEdit()
+      when ENTER       then @updateMessage()
 
 
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
-    'hidden' : not @state.editMode
+    'hidden' : not @props.message.get '__isEditing'
+    'visible' : @props.message.get '__isEditing'
 
 
   getMediaObjectClassNames: -> classnames
-    'hidden' : @state.editMode
+    'ChatListItem-itemBodyContainer': yes
+    'hidden' : @props.message.get '__isEditing'
 
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
@@ -313,16 +346,13 @@ module.exports = class ChatListItem extends React.Component
       />
 
 
-  getClassNames: ->
-    editForm: classnames
-      'ChatItem-updateMessageForm': yes
-      'hidden': not @state.editMode
-    mediaContent: classnames
-      'hidden': @state.editMode
-    contentWrapper: classnames
-      'ChatItem-contentWrapper': yes
-      'MediaObject': yes
-      'editing': @state.editMode
+  renderEmbedBox: ->
+
+    { message } = @props
+    embedData   = message.get 'link'
+
+    if embedData
+      <EmbedBox data={embedData.toJS()} type='chat' />
 
 
   render: ->
@@ -345,6 +375,7 @@ module.exports = class ChatListItem extends React.Component
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}

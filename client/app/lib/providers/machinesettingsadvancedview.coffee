@@ -50,8 +50,12 @@ module.exports = class MachineSettingsAdvancedView extends KDView
     if tagName is 'FIGURE' or parentTagName is 'FIGURE' or tagName is 'P'
 
       switch buttonType
-        when 'reinit'    then computeController.reinit  @machine
         when 'terminate' then computeController.destroy @machine
         when 'reassign'  then new FindManagedNodesModal reassign: yes, @machine
+        when 'reinit'
+          if @machine.provider is 'aws'
+            return new kd.NotificationView title: 'Coming soon', duration: 4500
+
+          computeController.reinit  @machine
 
       @emit 'ModalDestroyRequested'

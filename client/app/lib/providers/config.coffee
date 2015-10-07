@@ -6,8 +6,14 @@ module.exports = globals.config.providers =
     name                   : "Custom"
     link                   : "https://koding.com"
     title                  : "Custom Credential"
+    color                  : "#b9c0b8"
     description            : """Custom credentials can include meta
                                credentials for any service"""
+    listText               : """
+                              You're currently using these custom datas in your
+                              stack templates, you can change their contents
+                              without touching stack templates.
+                            """
     credentialFields       :
       credential           :
         label              : "Credential"
@@ -17,7 +23,8 @@ module.exports = globals.config.providers =
   aws                      :
     name                   : "Amazon Web Services"
     link                   : "https://aws.amazon.com"
-    title                  : "AWS Credential"
+    title                  : "AWS"
+    color                  : "#F9A900"
     description            : "Amazon Web Services"
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
@@ -26,12 +33,11 @@ module.exports = globals.config.providers =
                              ]
     credentialFields       :
       access_key           :
-        label              : "Access Key"
+        label              : "Access Key ID"
         placeholder        : "aws access key"
       secret_key           :
-        label              : "Secret Key"
+        label              : "Secret Access Key"
         placeholder        : "aws secret key"
-        type               : "password"
       region               :
         label              : 'Region'
         type               : 'selection'
@@ -42,7 +48,7 @@ module.exports = globals.config.providers =
           { title: 'US West (Oregon) (us-west-2)',              value: 'us-west-2' }
           { title: 'US West (N. California) (us-west-1)',       value: 'us-west-1' }
           { title: 'EU (Ireland) (eu-west-1)',                  value: 'eu-west-1' }
-          { title: 'EU (Frankfurt) (eu-central-1)',             value: 'eu-central-1' }
+        # { title: 'EU (Frankfurt) (eu-central-1)',             value: 'eu-central-1' }
           { title: 'Asia Pacific (Singapore) (ap-southeast-1)', value: 'ap-southeast-1' }
           { title: 'Asia Pacific (Sydney) (ap-southeast-2)',    value: 'ap-southeast-2' }
           { title: 'Asia Pacific (Tokyo) (ap-northeast-1)',     value: 'ap-northeast-1' }
@@ -52,21 +58,24 @@ module.exports = globals.config.providers =
   koding                   :
     name                   : "Koding"
     link                   : "https://koding.com"
-    title                  : "Koding Credential"
+    title                  : "Koding"
+    color                  : "#50c157"
     description            : "Koding rulez."
     credentialFields       : {}
 
   managed                  :
     name                   : "Managed VMs"
     link                   : "https://koding.com"
-    title                  : "Managed VM Credential"
+    title                  : "Managed VM"
+    color                  : "#6d119e"
     description            : "Use your power."
     credentialFields       : {}
 
   google                   :
     name                   : "Google Compute Engine"
     link                   : "https://cloud.google.com/products/compute-engine/"
-    title                  : "Google Cloud Credential"
+    title                  : "Google Cloud"
+    color                  : "#357e99"
     description            : "Google compute engine"
     credentialFields       :
       projectId            :
@@ -85,24 +94,26 @@ module.exports = globals.config.providers =
       #   placeholder        : "google zone"
       #   defaultValue       : "us-central1-a"
 
-  engineyard               :
-    name                   : "EngineYard"
-    link                   : "https://www.engineyard.com/"
-    title                  : "EngineYard Credential"
-    description            : "EngineYard"
+  azure                    :
+    name                   : "Azure"
+    link                   : "https://azure.microsoft.com/"
+    title                  : "Azure"
+    color                  : "#ec06be"
+    description            : "Azure"
     credentialFields       :
       accountId            :
         label              : "Account Id"
-        placeholder        : "account id in engineyard"
+        placeholder        : "account id in azure"
       secret               :
         label              : "Secret"
-        placeholder        : "engineyard secret"
+        placeholder        : "azure secret"
         type               : "password"
 
   digitalocean             :
     name                   : "Digital Ocean"
     link                   : "https://digitalocean.com"
-    title                  : "Digitalocean Credential"
+    title                  : "Digitalocean"
+    color                  : "#7abad7"
     description            : "Digitalocean droplets"
     credentialFields       :
       clientId             :
@@ -115,7 +126,8 @@ module.exports = globals.config.providers =
   rackspace                :
     name                   : "Rackspace"
     link                   : "http://www.rackspace.com"
-    title                  : "Rackspace Credential"
+    title                  : "Rackspace"
+    color                  : "#d8deea"
     description            : "Rackspace machines"
     credentialFields       :
       username             :
@@ -124,3 +136,12 @@ module.exports = globals.config.providers =
       apiKey               :
         label              : "API Key"
         placeholder        : "rackspace api key"
+
+  userInput                :
+    name                   : "User Input"
+    title                  : "User Input"
+    listText               : """
+                            These are the input data that you've provided for
+                            your Team's stack requirements. Deleting these
+                            informations can cause some issues on your stacks.
+                            """

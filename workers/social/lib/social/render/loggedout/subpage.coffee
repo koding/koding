@@ -1,3 +1,4 @@
+# coffeelint: disable=cyclomatic_complexity
 putSplash = (name, section, model) ->
   name = if model?.title then model.title else section
   body = if model?.body  then model.body  else ''
@@ -18,6 +19,7 @@ putSplash = (name, section, model) ->
     content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
 
   return content
+  # coffeelint: enable=cyclomatic_complexity
 
 generateShareUrl = (model, uri) ->
   slug = if model?.bongo_?.constructorName and model?.slug

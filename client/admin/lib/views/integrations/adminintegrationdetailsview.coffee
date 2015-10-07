@@ -182,8 +182,9 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     integrationHelpers.update options, (err) =>
       return kd.warn err  if err
-
       @settingsForm.buttons.Save.hideLoader()
+      new kd.NotificationView title : 'Integration is successfully saved!'
+      kd.singletons.router.handleRoute '/Admin/Integrations'
 
 
   regenerateToken: ->
@@ -198,7 +199,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
       { url, regenerate } = @settingsForm.inputs
 
-      url.setValue "#{globals.config.integration.url}/#{name}/#{res.token}"
+      url.setValue "#{globals.config.webhookMiddleware.url}/#{name}/#{res.token}"
 
       regenerate.updatePartial 'Webhook url has been updated!'
       regenerate.setClass 'label'
@@ -266,6 +267,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
           cssClass      : if data.authorizable then 'hidden'
+          click         : -> @selectAll()
           nextElement   :
             regenerate  :
               itemClass : KDCustomHTMLView

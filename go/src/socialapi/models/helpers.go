@@ -20,7 +20,7 @@ func CreateChannelWithParticipants() (*Channel, []*Account) {
 	accounts := []*Account{account1, account2, account3}
 
 	channel := CreateChannelWithTest(account1.Id)
-	AddParticipants(channel.Id, account1.Id, account2.Id, account3.Id)
+	AddParticipantsWithTest(channel.Id, account1.Id, account2.Id, account3.Id)
 
 	return channel, accounts
 }
@@ -129,7 +129,7 @@ func CreateTrollMessage(channelId, accountId int64, typeConstant string) *Channe
 	return cm
 }
 
-func AddParticipants(channelId int64, accountIds ...int64) {
+func AddParticipantsWithTest(channelId int64, accountIds ...int64) {
 
 	for _, accountId := range accountIds {
 		participant := NewChannelParticipant()

@@ -31,6 +31,7 @@ module.exports = class GroupsController extends KDController
       { slug } = entryPoint  if entryPoint?.type is 'group'
       @changeGroup slug
 
+
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -70,6 +71,26 @@ module.exports = class GroupsController extends KDController
 
     @groupChannel.once 'setSecretNames', callback
 
+
+  openSocialGroupChannel:(group, callback=->) ->
+    {realtime, socialapi} = kd.singletons
+
+    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
+      return callback err  if err
+
+      socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
+        return callback err  if err
+
+        realtimeChan = registeredChan?.delegate
+
+        return callback "realtime chan is not set"  unless realtimeChan
+
+        @filterXssAndForwardEvents realtimeChan, [
+          'StackTemplateChanged'
+        ]
+
+        callback null
+
   changeGroup: (groupName = 'koding', callback = kd.noop) ->
 
     return callback()  if @currentGroupName is groupName
@@ -88,6 +109,7 @@ module.exports = class GroupsController extends KDController
           @currentGroupData.setGroup group
           callback null, groupName, group
           @openGroupChannel getGroup()
+          @openSocialGroupChannel getGroup()
           @emit 'ready'
 
   getUserArea:->
@@ -135,3 +157,38 @@ module.exports = class GroupsController extends KDController
         policy.emit 'MembershipPolicyChangeSaved'
         new KDNotificationView {title:"Membership policy has been updated."}
       showError err
+
+
+  ###*
+   *  Sets given stack template as current group's default stack template
+   *
+   *  @param  {JStackTemplate}  stackTemplate
+   *  @param  {Func}            callback  [ err ]
+  ###
+  setDefaultTemplate: (stackTemplate, callback = kd.noop) ->
+
+    { computeController }   = kd.singletons
+    { slug } = currentGroup = @getCurrentGroup()
+
+    if slug is 'koding'
+      return callback 'Setting stack template for koding is disabled'
+
+    # Share given stacktemplate with group first
+    stackTemplate.setAccess 'group', (err) ->
+      return callback err  if err
+
+      # Modify group data to use this stackTemplate as default
+      currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) ->
+        return callback err  if err
+
+        new kd.NotificationView
+          title : "Team (#{slug}) stack has been saved!"
+          type  : 'mini'
+
+        # Re-call create default stack flow to make sure it exists
+        computeController.createDefaultStack yes
+
+        # Warn other group members about stack template update
+        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
+
+        callback null
