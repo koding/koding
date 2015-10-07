@@ -60,11 +60,13 @@ func (c *ChannelLink) BeforeCreate() error {
 	}
 
 	c.CreatedAt = time.Now().UTC()
+	c.DeletedAt = ZeroDate()
 	return nil
 }
 
 // BeforeUpdate runs before updating struct
 func (c *ChannelLink) BeforeUpdate() error {
+	c.DeletedAt = ZeroDate()
 	return c.validateBeforeOps()
 }
 
