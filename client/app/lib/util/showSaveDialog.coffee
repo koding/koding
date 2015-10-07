@@ -38,7 +38,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
   form.addSubView input = new KDInputView
     label        : label
     defaultValue : options.inputDefaultValue or ""
-    keydown      : (event) =>
+    keydown      : (event) ->
       dialog.buttons.Save.click()  if event.which is 13
 
   form.addSubView labelFinder = new KDLabelView
