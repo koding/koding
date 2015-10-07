@@ -189,6 +189,12 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
+    @buttons.addSubView @setAsDefaultButton = new KDButtonView
+      title          : 'Apply to Team'
+      cssClass       : 'solid compact green nav next hidden'
+      loader         : yes
+      callback       : => @handleSetDefaultTemplate()
+
     @buttons.addSubView @saveButton = new KDButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
@@ -204,11 +210,6 @@ module.exports = class DefineStackView extends KDView
         title        : "Generates a preview of this template
                         with your own account information."
 
-    @buttons.addSubView @setAsDefaultButton = new KDButtonView
-      title          : 'Apply to Team'
-      cssClass       : 'solid compact green nav next hidden'
-      loader         : yes
-      callback       : => @handleSetDefaultTemplate()
 
   handleSave: ->
 
