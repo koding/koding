@@ -46,6 +46,11 @@ module.exports = class DefineStackView extends KDView
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
 
+    @addSubView new kd.CustomHTMLView
+      tagName  : 'header'
+      cssClass : 'breadcrumb'
+      partial  : '<span>Stacks</span> &gt; <span class="active">New Stack</span>'
+
     @createStackNameInput()
     @createOutputView()
 
