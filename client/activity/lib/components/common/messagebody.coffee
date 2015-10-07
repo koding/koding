@@ -1,12 +1,16 @@
-$             = require 'jquery'
-React         = require 'kd-react'
-emojify       = require 'emojify.js'
-formatContent = require 'app/util/formatReactivityContent'
-immutable     = require 'immutable'
-classnames    = require 'classnames'
+$                    = require 'jquery'
+React                = require 'kd-react'
+emojify              = require 'emojify.js'
+formatContent        = require 'app/util/formatReactivityContent'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+transformTags        = require 'app/util/transformReactivityTags'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
 module.exports = class MessageBody extends React.Component
+
+  @include [ImmutableRenderMixin]
 
   @defaultProps =
     message: immutable.Map()
