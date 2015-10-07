@@ -13,18 +13,19 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
 
     { stackTemplate } = @getOptions()
 
-    @addSubView new KDCustomHTMLView
-      cssClass   : 'text header'
-      partial    : 'Readme text for this stack template'
+    defaultContent = """
+      ##### Readme text for this stack template
 
-    @messageView = @addSubView new KDCustomHTMLView
-      cssClass   : 'message-view'
-      partial    : "You can write down a readme text for new users. This text
-                    will be shown when they wants to use this stack. You can
-                    use markdown with the readme content."
+      You can write down a readme text for new users.
+      This text will be shown when they wants to use this stack.
+      You can use markdown with the readme content.
+
+
+    """
 
     @editorView   = @addSubView new MarkdownEditorView
-      content     : stackTemplate?.description or ''
+      content     : stackTemplate?.description or defaultContent
       delegate    : this
       contentType : 'md'
+
 
