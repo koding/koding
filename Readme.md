@@ -1,36 +1,17 @@
 # fuseklient
 
-Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). Currently for OSX only. This is an in progress beta version. See https://github.com/koding/fuseklient/tree/alphabranch for alpha release.
-
-## WARNING
-
-  Use a new VM.
+Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https://github.com/koding/klient). This is an in progress beta version. See https://github.com/koding/fuseklient/tree/alphabranch for alpha release.
 
 ## Steps to get started:
 
-    # ----- Following commands are run on your VM -----
-
-    # Add your ssh key to `~/.ssh/authorized_keys` in a NEW Koding VM. This
-    # will let us authenticate against Klient on that machine.
-    # (Note: this step will be removed eventually.)
-
-    # Get the IP of your VM from your VM. (Note: this step will be removed in eventually.)
-    sent-hil: ~ $ curl ifconfig.co
-    54.152.21.37
-
-    # ----- Following commands are run on your local ----
-
-    # Install osxfuse on your local via brew (requires working XCode).
-    # (TODO: this step will be automated eventually.)
-    brew install Caskroom/cask/osxfuse
-
-    # Download latest release from https://github.com/koding/fuseklient/releases to your local.
+    # ----- Download kd -----
+    curl https://koding-kd.s3.amazonaws.com/install-kd.sh -s | bash
 
     # Create a NEW folder in local to use as mount point:
     mkdir -p /path/to/local
 
-    # Start daemon:
-    ./fuseklient --ip=<ip> --remotepath=/home/<koding username>/Web --localpath=/path/to/local --sshuser=<koding username>
+    # Mount the remote machine:
+    kd mount <machine name> </path/to/local> --remotepath=...
 
     # Mounted folder is now available. Open a terminal:
     ls -alh /path/to/local
@@ -63,23 +44,23 @@ Prototype that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](htt
           kd unmount
         kd install - dl os specific library
           use os specific init daemon to run binary
-        klient ps - return list of user VMs to mount
+        klient ps - return list of user machines to mount
     * EXTERNAL BETA
         support flags in cli for optional args, ie --remotepath
         `kd update` after phone home to check for updates
-        `kd ssh` that opens ssh connection on VM
+        `kd ssh` that opens ssh connection on machine
         `kd remount`
           store state in ie bolt.db
           unmount folders if it exists before starting
           handle mounting onto to previously mounted folder
-        battle test
     * 1.0
-        invalidate local cache on file changes in user VM
+        battle test
+        invalidate local cache on file changes in user machine
         invalidate file list on file list changes
-        kd run - run entire command on VM, return results
+        kd run - run entire command on machine, return results
             shell hooks: fish, bash
         remaining FUSE operations
-        lock resources in VM on open or write operations
+        lock resources in machine on open or write operations
         streaming support for kd run
         klient running on local with tunnel
 
