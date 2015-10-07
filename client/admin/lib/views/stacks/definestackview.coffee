@@ -133,6 +133,7 @@ module.exports = class DefineStackView extends KDView
 
     ace.on 'FileContentChanged', =>
       @setAsDefaultButton.hide()
+      @inputTitle.unsetClass 'three-buttons'
       @saveButton.show()
 
 
@@ -239,6 +240,7 @@ module.exports = class DefineStackView extends KDView
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
+    @inputTitle.unsetClass 'three-buttons'
 
     @checkAndBootstrapCredentials (err, credentials) =>
       return @saveButton.hideLoader()  if err
@@ -303,6 +305,7 @@ module.exports = class DefineStackView extends KDView
         unless stackTemplate.inuse
 
           @setAsDefaultButton.show()
+          @inputTitle.setClass 'three-buttons'
 
           @outputView.add """
 
