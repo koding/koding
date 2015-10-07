@@ -25,15 +25,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
     super options, data
 
     { stackTemplate } = @getOptions()
-
-    @addSubView new KDCustomHTMLView
-      cssClass  : 'text header'
-      partial   : 'Define custom variables here'
-
-    @messageView = @addSubView new KDCustomHTMLView
-      cssClass   : 'message-view'
-
-    @editorView  = @addSubView new VariablesEditorView options
+    @editorView       = @addSubView new VariablesEditorView options
 
     if cred = stackTemplate?.credentials?.custom?.first
       @reviveCredential cred
@@ -96,8 +88,6 @@ module.exports = class VariablesView extends StackBaseEditorTabView
     else
       @indicator.unsetClass 'red'
 
-
-    @messageView.updatePartial stateMessage
     @_state = newState
 
 
