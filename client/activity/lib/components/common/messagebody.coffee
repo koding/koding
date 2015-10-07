@@ -16,10 +16,11 @@ module.exports = class MessageBody extends React.Component
     message: immutable.Map()
 
 
-  renderEmojis: ->
+  constructor: (props) ->
 
-    contentElement = React.findDOMNode @content
-    emojify.run contentElement  if contentElement
+    super props
+
+    @state = { message: @props.message }
 
 
   contentDidMount: (content) ->
@@ -31,9 +32,15 @@ module.exports = class MessageBody extends React.Component
   componentDidUpdate: -> @renderEmojis()
 
 
+  renderEmojis: ->
+
+    contentElement = React.findDOMNode @content
+    emojify.run contentElement  if contentElement
+
+
   render: ->
 
-    { message } = @props
+    { message } = @state
 
     body    = helper.prepareMessageBody message.toJS()
     content = formatContent body
