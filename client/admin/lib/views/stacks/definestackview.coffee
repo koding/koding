@@ -8,6 +8,7 @@ KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
+KDFormViewWithFields = kd.FormViewWithFields
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
@@ -25,7 +26,7 @@ ProvidersView        = require './providersview'
 VariablesView        = require './variablesview'
 ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
-
+CredentialStatusView = require './credentialstatusview'
 
 module.exports = class DefineStackView extends KDView
 
@@ -45,6 +46,7 @@ module.exports = class DefineStackView extends KDView
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
 
+    @createStackNameInput()
     @createOutputView()
 
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
@@ -74,6 +76,7 @@ module.exports = class DefineStackView extends KDView
       name : 'Readme'
       view : @readmeView
 
+    @credentialStatusView = new CredentialStatusView { stackTemplate }
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @tabView.showPaneByIndex 0
@@ -81,8 +84,6 @@ module.exports = class DefineStackView extends KDView
     @createFooter()
 
     @createMainButtons()
-
-    { credentialStatus } = @stackTemplateView
 
     @providersView.on 'ItemSelected', (credentialItem) =>
 
@@ -94,24 +95,25 @@ module.exports = class DefineStackView extends KDView
 
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        credentialStatus.setCredential credential
+        @credentialStatusView.setCredential credential
 
         @providersView.resetItems()
         credentialItem.inuseView.show()
 
-    @providersView.on 'ItemDeleted', (credential) ->
+    @providersView.on 'ItemDeleted', (credential) =>
 
       { identifier } = credential.getData()
-      if identifier in credentialStatus.credentials
-        credentialStatus.setCredential() # To unset active credential
-                                         # since it's deleted
+      if identifier in @credentialStatusView.credentials
+        @credentialStatusView.setCredential() # To unset active credential since it's deleted
 
-    @stackTemplateView.on 'CredentialStatusChanged', (status) =>
+    @credentialStatusView.on 'StatusChanged', (status) =>
       if status is 'verified'
         @_credentialsPassed = yes
+        @credentialWarning.hide()
         @tabView.showPaneByIndex 0
       else
-        @_credentialsPassed = yes
+        @credentialWarning.show()
+        @_credentialsPassed = no
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
@@ -153,6 +155,20 @@ module.exports = class DefineStackView extends KDView
           </div>
         </div>
       """
+
+
+  createStackNameInput: ->
+
+    { stackTemplate } = @getData()
+
+    @addSubView @inputTitle  = new KDFormViewWithFields
+      cssClass               : 'template-title-form'
+      fields                 :
+        title                :
+          cssClass           : 'template-title'
+          label              : 'Stack Name'
+          defaultValue       : stackTemplate?.title or 'Default stack template'
+
 
   createOutputView: ->
 
@@ -311,7 +327,7 @@ module.exports = class DefineStackView extends KDView
 
   checkAndBootstrapCredentials: (callback) ->
 
-    { credentialsData } = @stackTemplateView.credentialStatus
+    { credentialsData } = @credentialStatusView
     [ credential ]      = credentialsData
 
     failed = (err) =>
@@ -405,7 +421,7 @@ module.exports = class DefineStackView extends KDView
 
     { stackTemplate } = @getData()
 
-    { title }         = @stackTemplateView.inputTitle.getData()
+    { title }         = @inputTitle.getData()
     templateContent   = @stackTemplateView.editorView.getValue()
     description       = @readmeView.editorView.getValue() # aka readme
 
@@ -444,7 +460,7 @@ module.exports = class DefineStackView extends KDView
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credData      = @stackTemplateView.credentialStatus.credentialsData
+    credData      = @credentialStatusView.credentialsData
     awsIdentifier = credData.first.identifier
     credentials   =
       aws         : [ awsIdentifier ]
