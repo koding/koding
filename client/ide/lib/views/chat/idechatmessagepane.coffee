@@ -220,7 +220,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     return  unless event.target.tagName is 'A'
 
     @removeOnboarding()
-    @showAutoCompleteInput()
+    @participantHeads.emit 'ShowNewParticipantView'
 
 
   createHeaderViews: ->
