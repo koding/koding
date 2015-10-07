@@ -20,7 +20,7 @@ func main() {
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:   "mounts",
-					Usage:  "List the available machines.",
+					Usage:  "List the mounted machines.",
 					Action: Exit(CheckUpdateFirst(MountsCommand)),
 				},
 			},
@@ -93,7 +93,5 @@ func main() {
 type ExitingCommand func(*cli.Context) int
 
 func Exit(f ExitingCommand) func(*cli.Context) {
-	return func(c *cli.Context) {
-		os.Exit(f(c))
-	}
+	return func(c *cli.Context) { os.Exit(f(c)) }
 }
