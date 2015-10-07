@@ -79,6 +79,10 @@ build:
         name: client node modules
         code: scripts/install-npm.sh -d client -u
     - script:
+        name: run coffeelint
+        code: |
+          ./scripts/lint-coffeescript.sh
+    - script:
         name: build client
         code: |
           make -C client dist
@@ -97,10 +101,6 @@ build:
         name: build backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
-    - script:
-        name: run coffeelint
-        code: |
-          ./scripts/lint-coffeescript.sh
     - script:
         name: check social api code quality
         code: |
