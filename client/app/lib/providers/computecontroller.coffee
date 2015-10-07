@@ -879,6 +879,28 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  checkGroupStackRevisions: ->
+
+    return  if isKoding()
+    return  if not @stacks?.length
+
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
+    { stackTemplates }   = currentGroup
+
+    return  if not stackTemplates?.length
+
+    existents = 0
+
+    for stackTemplate in stackTemplates
+      for stack in @stacks
+        existents++  if stack.baseStackId is stackTemplate
+
+    if existents isnt stackTemplates.length
+    then @emit 'GroupStacksInconsistent'
+    else @emit 'GroupStacksConsistent'
+
+
   verifyStackRequirements: (stack) ->
 
     unless stack
