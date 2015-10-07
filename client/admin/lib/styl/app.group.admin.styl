@@ -853,9 +853,6 @@ Admin main styles
 
   .define-stack-view
 
-    .kdtabhandlecontainer
-      margin-bottom         25px
-
     .kdtabhandle-tabs
       width                 100%
 
@@ -868,13 +865,8 @@ Admin main styles
         margin-bottom       15px
 
     .buttons
-      size                  100%, 30px
-      z-index               16
       text-align            right
-      rel()
-
-      .kdbutton
-        z-index             1
+      size                  230px, 30px
 
     .credential-list
       .credential-item
@@ -1004,8 +996,6 @@ Admin main styles
 
 
   button.solid.compact.nav
-    right                   0
-    bottom                  0
     margin-left             10px
 
     &[disabled]
@@ -1013,12 +1003,6 @@ Admin main styles
 
     &.prev
       right                 80px
-
-    &.cancel
-      right                 initial
-      left                  0
-      margin-left           0
-      abs()
 
   form
     .formline
@@ -1141,19 +1125,20 @@ Admin main styles
     overflow                hidden
 
     > .kdscrollview
-      height                calc(100% \- 150px)
+      height                calc(100% \- 193px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
 
   .kdtabpaneview.stack-template
-    height                  calc(100% \- 137px)
+    height                  calc(100% \- 43px)
 
 
   .stack-editor-footer
     height                  90px
-    border-top              1px solid #D9D7D7
-    background              #EFEFEF
+    background              #FFF
+    border                  1px solid #e4e4e4
+    border-top              none
     margin-bottom           25px
     rounded                 0 0 4px 4px
 
@@ -1165,7 +1150,7 @@ Admin main styles
 
       &:last-child
 
-        border-left         1px solid #D9D7D7
+        border-left         1px solid #e4e4e4
 
         .icon
           r-sprite          'admin', 'manual'
@@ -1276,7 +1261,7 @@ Admin main styles
 
 .AppModal--admin .stacks-v2
 
-  .variables
+  .private-variables
 
     .indicator
       width                 auto
@@ -1302,9 +1287,7 @@ Admin main styles
         bg                  color, darkred
 
   .readme
-  .variables
     .editor-view
-      height                calc(100% \- 170px)
       rounded               4px 4px 0 0
 
   .readme
@@ -1373,34 +1356,28 @@ Admin main styles
         r-sprite            account, 'check-8'
 
   .kdview.output
-    bottom                  -90px
+    bottom                  0
     vendor                  transition, height .2s ease
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
     z-index                 15
     height                  0 !important
+    rounded                 0 0 4px 4px
+    borderBox()
     abs()
 
     &.raise
-      bottom                35px
       height                calc(40% - 33px) !important
+      border                1px solid #e4e4e4
 
     pre.output-view
       height                auto
-
-  .template-title-form
-    height                  49px
-    // bg                      color, #EFEFEF
-    // border-bottom           1px solid #979797
+      margin                0 10px
 
     .kdlabel
       line-height           49px
       text-indent           17px
       margin                0
-
-  .template-title
-    margin-top              5px !important
-
 
 .AppModal--admin .members
   .label
@@ -2109,3 +2086,135 @@ Admin main styles
 
 .hilite
   vendor                    animation, hilite 3s
+
+
+// white stack, beware !importants here..
+
+.AppModal--admin
+
+  .kdmodal-content
+    margin-top              -40px !important
+    height                  100% !important
+
+  .AppModal-nav
+    margin-top              40px
+
+  .kdtabpaneview.general
+    padding-top             40px
+
+  .breadcrumb
+    font-size               18px
+    color                   #00B057
+
+    .active
+      font-weight           bold
+
+.stacks
+
+  .stack-onboarding.main-content
+    padding-top             40px
+
+  .ace_gutter-layer
+    bg                      color, #FFF
+
+  .define-stack-view
+    .kdtabhandle
+    .kdtabhandlecontainer
+      height                42px !important
+      line-height           42px
+      box-shadow            none
+
+    .kdtabpaneview
+      bg                    color, #FFF
+      border                1px solid #E4E4E4
+      border-top            none
+      borderBox()
+
+      > div
+        padding             15px
+        borderBox()
+
+      .define-stack-view
+        padding             0
+
+    .kdtabhandlecontainer .kdtabhandle.active
+      box-shadow            none !important
+      bg                    color, #FFF !important
+      border                1px solid #E4E4E4
+      border-bottom         1px solid #FFF
+      top                   1px
+      rounded               4px 0 4px 0
+
+    .kdtabhandlecontainer
+      border-bottom         1px solid #E4E4E4
+
+  .credential-creation-intro
+    margin                  20px 0 40px 160px !important
+    hidden()
+
+    p:first-child
+      font-size             16px
+      font-weight           bold
+
+    + .kdformview
+      border-bottom         none !important
+      height                calc(100% \- 180px) !important
+
+  .credentials-form-view
+    label
+      text-align            right
+      margin-right          10px !important
+
+  .kdtabpaneview
+    &.private-variables
+    &.readme
+    &.credentials
+      height                calc(100% \- 43px)
+
+  .stack-name
+    min-width               100px !important
+    line-height             30px !important
+    height                  30px
+
+
+  .template-title-form
+    overflow                hidden
+
+  .formline.template-title
+  .formline.template-title + .buttons
+    fl()
+
+  input.template-title
+    width                   379px
+    height                  30px
+    line-height             30px
+
+  .stacktemplates
+    padding-top             40px
+
+  .kdtabhandle.credentials
+    // left                    213px
+    // rel()
+
+    width                   154px
+
+    .warning
+      display               inline-block
+      r-sprite              'admin', 'warning'
+      top                   11px
+      left                  110px
+      abs()
+
+  .credential-item .buttons
+    width                   370px
+
+  .define-stack-view.edit-mode
+    .editor-pane.editor-view
+      margin-top            20px
+
+  .step-creds.form-open
+    .credential-creation-intro
+      visible()
+
+  .editor-main > .kdview
+    height                  100% !important
