@@ -11,8 +11,9 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     super options, data
 
-    @on 'EditorReady', =>
-      return  if options.inEditMode
+    @once 'EditorReady', =>
+
+      return  unless options.showHelpContent
 
       position = row: 0, column: 0
       content  = """

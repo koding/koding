@@ -15,13 +15,13 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
 
     super options, data ? {}
 
-    { credential, stackTemplate, template } = @getData()
+    { credential, stackTemplate, template, showHelpContent } = @getData()
 
     content  = stackTemplate?.template?.content
     delegate = @getDelegate()
 
     @addSubView @editorView = new StackTemplateEditorView {
-      delegate: this, content, inEditMode: stackTemplate?
+      delegate: this, content, showHelpContent
     }
 
     @editorView.addSubView new KDButtonView
