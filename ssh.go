@@ -82,6 +82,10 @@ func (s *SSHCommand) Run(c *cli.Context) int {
 		return 1
 	}
 
+	if !s.keysExist() {
+		MustConfirm("'ssh' command needs to create public/private rsa key pair. Continue? [Y|n]")
+	}
+
 	sshKey, err := s.getSSHIp(c.Args()[0])
 	if err != nil {
 		fmt.Printf("Error getting ssh key: '%s'\n", err)
@@ -99,7 +103,6 @@ func (s *SSHCommand) Run(c *cli.Context) int {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("Error sshing into remote VM: '%s'\n", err)
 		return 1
 	}
 
@@ -136,7 +139,9 @@ func (s *SSHCommand) prepareForSSH(name string) error {
 		err      error
 	)
 
-	if s.publicKeyExists() && s.privateKeyExists() {
+	if s.keysExist() {
+		fmt.Printf("Using existing keypair at: %s \n", s.publicKeyPath())
+
 		if contents, err = ioutil.ReadFile(s.publicKeyPath()); err != nil {
 			return err
 		}
@@ -146,6 +151,8 @@ func (s *SSHCommand) prepareForSSH(name string) error {
 			return err
 		}
 	} else {
+		fmt.Printf("Creating new keypair at: %s \n", s.publicKeyPath())
+
 		if contents, err = s.generateAndSaveKey(); err != nil {
 			return err
 		}
@@ -217,4 +224,8 @@ func (s *SSHCommand) publicKeyPath() string {
 
 func (s *SSHCommand) privateKeyPath() string {
 	return path.Join(s.KeyPath, s.KeyName)
+}
+
+func (s *SSHCommand) keysExist() bool {
+	return s.publicKeyExists() && s.privateKeyExists()
 }
