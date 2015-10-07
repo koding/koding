@@ -828,7 +828,7 @@ module.exports = class SocialApiController extends KDController
     byParticipants: (options, callback) ->
 
       serialized = options.participants
-        .map (id) -> "participants=#{id}"
+        .map (id) -> "id=#{id}"
         .join "&"
 
       doXhrRequest
