@@ -27,6 +27,7 @@ module.exports = class MessageBody extends React.Component
 
     @content = content
     @renderEmojis()
+    @transformChannelHashtags()
 
 
   componentDidUpdate: -> @renderEmojis()
@@ -36,6 +37,18 @@ module.exports = class MessageBody extends React.Component
 
     contentElement = React.findDOMNode @content
     emojify.run contentElement  if contentElement
+
+
+  transformChannelHashtags: ->
+
+    { message } = @state
+
+    return  if message.has('isFake')
+    return  unless message.has('body')
+
+    transformTags message.get('body'), (transformed) =>
+
+      @setState { message: message.set 'body', transformed }
 
 
   render: ->
