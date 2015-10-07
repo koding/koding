@@ -109,3 +109,22 @@ module.exports =
             .click             '.ParticipantHeads-button--new'
             .pause             500
             .click             chatSelecor
+
+
+  closeChatPage: (browser) ->
+
+    closeButtonSelector = '.chat-view a.close span'
+    chatBox             = '.chat-view'
+
+
+    browser.element 'css selector', chatBox, (result) =>
+      if result.status is 0
+        browser
+          .waitForElementVisible     chatBox, 20000
+          .waitForElementVisible     closeButtonSelector, 20000
+          .click                     closeButtonSelector
+          .waitForElementNotVisible  chatBox, 20000
+          .waitForElementVisible    '.panel-1 .terminal-pane', 20000
+      else
+        browser
+          .waitForElementVisible    '.panel-1 .terminal-pane', 20000

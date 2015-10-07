@@ -2,6 +2,8 @@ helpers = require '../helpers/helpers.js'
 utils   = require '../utils/utils.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
 
+chatBox  = '.collaboration.message-pane'
+
 
 startSession = (browser, firstUser, secondUser) ->
 
@@ -25,7 +27,6 @@ startSession = (browser, firstUser, secondUser) ->
         .waitForElementVisible  secondUserOnlineAvatar, 20000 # Assertion
         .waitForElementVisible  chatTextSelector, 20000
         .assert.containsText    chatTextSelector, 'CHAT' # Assertion
-        .end()
 
 
 joinSession = (browser, firstUser, secondUser) ->
@@ -40,9 +41,8 @@ joinSession = (browser, firstUser, secondUser) ->
   loadingButton    = acceptButton + '.loading'
   selectedMachine  = '.sidebar-machine-box.selected'
   filetree         = '.ide-files-tab'
-  chatBox          = '.collaboration.message-pane'
   message          = '.kdlistitemview-activity.privatemessage'
-  chatUsers        = chatBox + ' .chat-heads'
+  chatUsers        = "#{chatBox} .chat-heads"
   userAvatar       = ".avatars .avatarview.online[href='/#{firstUserName}']"
   chatTextSelector = '.status-bar a.active'
 
@@ -72,18 +72,39 @@ joinSession = (browser, firstUser, secondUser) ->
         .waitForElementVisible     userAvatar, 20000 # Assertion
         .waitForElementVisible     chatTextSelector, 20000
         .assert.containsText       chatTextSelector, 'CHAT' # Assertion
-        .end()
+
+
+start = (browser) ->
+
+  firstUser    = utils.getUser no, 0
+  secondUser   = utils.getUser no, 1
+  firstBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+  if firstBrowser
+    startSession browser, firstUser, secondUser
+  else
+    joinSession browser, firstUser, secondUser
 
 
 module.exports =
 
+
   start: (browser) ->
 
-    firstUser    = utils.getUser no, 0
-    secondUser   = utils.getUser no, 1
-    firstBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    start(browser)
 
-    if firstBrowser
-      startSession browser, firstUser, secondUser
-    else
-      joinSession browser, firstUser, secondUser
+    browser.end()
+
+
+  runCommandOnInviteUserTerminal: (browser) ->
+
+    start(browser)
+
+    collaborationHelpers.closeChatPage(browser)
+
+    helpers.runCommandOnTerminal(browser)
+
+    browser.end()
+
+
+
