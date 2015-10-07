@@ -69,24 +69,9 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
 
       go test ./..
 
-## Releases:
-
-  Latest and previous releases are available at: https://github.com/koding/fuseklient/releases.
-
-  For new releases:
-
-      cd auth; go generate
-      cd ../; go build
-      tar -cvf fuseklient_OSX.tar fuseklient Readme.md
-
-      # Upload to Github releases for distribution
-
 ## Notes:
 
-  * Use fullpath in arguments, without ~.
   * Mounting on an existing folder won't overwrite contents, but they won't be visible while Fuse is running.
-  * Use `tar -cvf fuseklient_OSX.tar fuseklient Readme.md` and upload to Github releases for distribution.
   * If you get `Device not configured` when trying to access mount when daemon is not running: do `diskutil unmount force <folder>`.
   * If you get `mount point <folder> is itself on a OSXFUSE volume`, do `diskutil unmount force <folder>`.
-  * Not tested on Linux yet, will be supported by 1.0.
   * See https://github.com/jacobsa/fuse for more information.
