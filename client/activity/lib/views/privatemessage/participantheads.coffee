@@ -45,6 +45,8 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
     @addSubView @previewContainer
     @addSubView @actionsContainer
 
+    @on 'ShowNewParticipantView', @bound 'onNewParticipantClick'
+
 
   ###*
    * Click handler for new participant button.
