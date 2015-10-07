@@ -40,6 +40,18 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @getDelegate().emit 'ItemSelected', @getData()
 
 
+  settingsMenu: ->
+
+    listView      = @getDelegate()
+    stackTemplate = @getData()
+
+    unless stackTemplate.inuse
+      @addMenuItem 'Apply to Team', ->
+        listView.emit 'ItemSelectedAsDefault', stackTemplate
+
+    super
+
+
   pistachio: ->
 
     { meta } = @getData()

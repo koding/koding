@@ -112,3 +112,29 @@ describe 'ChannelFlagsStore', ->
 
       expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql no
 
+
+  describe 'handleSetLoadedWithScroll', ->
+
+    it 'sets loadedWithScroll flags to true', ->
+
+      @reactor.dispatch actionTypes.SET_LOADED_WITH_SCROLL, {
+        channelId: 'mockChannelFlagsForSuccessId'
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState.mockChannelFlagsForSuccessId.loadedWithScroll).to.eql yes
+
+
+  describe 'handleUnsetLoadedWithScroll', ->
+
+    it 'sets loadedWithScroll flags to false', ->
+
+      @reactor.dispatch actionTypes.UNSET_LOADED_WITH_SCROLL, {
+        channelId: 'mockChannelFlagsForSuccessId'
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState.mockChannelFlagsForSuccessId.loadedWithScroll).to.eql no
+

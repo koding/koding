@@ -127,7 +127,7 @@ func TestProcess(t *testing.T) {
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leaf.Id, acc1.Id, acc2.Id)
 
 			cp := models.NewChannelParticipant()
 			cp.ChannelId = leaf.Id
@@ -165,7 +165,7 @@ func TestProcess(t *testing.T) {
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leaf.Id, acc1.Id, acc2.Id)
 
 			// create messages to the regarding leaf channel
 			models.CreateMessage(leaf.Id, acc1.Id, models.ChannelMessage_TYPE_POST)
@@ -202,11 +202,11 @@ func TestProcess(t *testing.T) {
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leaf.Id, acc1.Id, acc2.Id)
 
 			otherChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(otherChannel.Id, acc1.Id, acc2.Id)
 
 			// add same messages to the otherChannel
 			body := fmt.Sprintf("#%s and #%s are my topics", leaf.Name, otherChannel.Name)
@@ -276,11 +276,11 @@ func TestProcess(t *testing.T) {
 			root := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(leaf.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leaf.Id, acc1.Id, acc2.Id)
 
 			otherChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(otherChannel.Id, acc1.Id, acc2.Id)
 
 			body := fmt.Sprintf("#%s and #%s are my topics", leaf.Name, otherChannel.Name)
 
@@ -337,14 +337,14 @@ func TestProcess(t *testing.T) {
 			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leafChannel.Id, acc1.Id, acc2.Id)
 
 			leafChannel, err := models.Cache.Channel.ById(leafChannel.Id)
 			So(err, ShouldBeNil)
 
 			otherChannel := models.CreateChannelWithTest(acc1.Id)
 			// add participants with tests
-			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(otherChannel.Id, acc1.Id, acc2.Id)
 			// add same messages to the otherChannel
 
 			body := "hey yo! #" + leafChannel.Name
@@ -398,12 +398,12 @@ func TestProcess(t *testing.T) {
 			rootChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			leafChannel := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(rootChannel.Id, acc1.Id, acc2.Id)
-			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(rootChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leafChannel.Id, acc1.Id, acc2.Id)
 
 			otherChannel := models.CreateTypedGroupedChannelWithTest(acc1.Id, models.Channel_TYPE_TOPIC, groupName)
 			// add participants with tests
-			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(otherChannel.Id, acc1.Id, acc2.Id)
 
 			// add same messages to the otherChannel
 			body := fmt.Sprintf("hey yo! #%s #%s"+leafChannel.Name, rootChannel.Name)
@@ -480,8 +480,8 @@ func TestProcess(t *testing.T) {
 
 			So(cl.Create(), ShouldBeNil)
 
-			models.AddParticipants(rootChannel.Id, acc1.Id, acc2.Id)
-			models.AddParticipants(leafChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(rootChannel.Id, acc1.Id, acc2.Id)
+			models.AddParticipantsWithTest(leafChannel.Id, acc1.Id, acc2.Id)
 			leafChannel, err := models.Cache.Channel.ById(leafChannel.Id)
 			So(err, ShouldBeNil)
 

@@ -159,7 +159,7 @@ func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	query := request.GetQuery(u)
 	query.GroupName = context.GroupName
 
-	participantsStr, ok := u.Query()["participants"]
+	participantsStr, ok := u.Query()["id"]
 	if !ok {
 		return response.NewBadRequest(errors.New("participants not set"))
 	}

@@ -1,4 +1,4 @@
-_ = require 'lodash'
+_                       = require 'lodash'
 kd                      = require 'kd'
 whoami                  = require 'app/util/whoami'
 actionTypes             = require './actiontypes'
@@ -12,6 +12,8 @@ showErrorNotification   = require 'app/util/showErrorNotification'
 remote                  = require('app/remote').getInstance()
 { actions: appActions } = require 'app/flux'
 getters                 = require 'activity/flux/getters'
+showError               = require 'app/util/showError'
+showNotification        = require 'app/util/showNotification'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -62,6 +64,31 @@ loadChannelById = (id) ->
 
     realtimeActionCreators.bindChannelEvents channel
     dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+
+loadChannelByParticipants = (participants, options = {}) ->
+
+  { LOAD_CHANNEL_BY_PARTICIPANTS_BEGIN
+    LOAD_CHANNEL_BY_PARTICIPANTS_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
+
+  new Promise (resolve, reject) ->
+
+    dispatch LOAD_CHANNEL_BY_PARTICIPANTS_BEGIN, { participants }
+
+    _options = _.assign {}, options, { participants }
+
+    kd.singletons.socialapi.channel.byParticipants _options, (err, channels) ->
+      if err
+        dispatch LOAD_CHANNEL_BY_PARTICIPANTS_FAIL, { participants }
+        reject err
+        return
+
+      kd.singletons.reactor.batch ->
+        channels.forEach (channel) ->
+          dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+        resolve { channels }
 
 
 ###*
@@ -348,7 +375,7 @@ deletePrivateChannel = (channelId) ->
       showErrorNotification err, userMessage: err.message
 
 
-leavePrivateChannel = (channelId, callback = kd.noop) ->
+leavePrivateChannel = (channelId) ->
 
   accountId   = whoami()._id
   { channel } = kd.singletons.socialapi
@@ -361,11 +388,9 @@ leavePrivateChannel = (channelId, callback = kd.noop) ->
   channel.leave { channelId }, (err, result) ->
     if err
       dispatch LEAVE_PRIVATE_CHANNEL_FAIL , { err, channelId, accountId }
-      showErrorNotification err, userMessage: err.message
-      return callback err
+      return showErrorNotification err, userMessage: err.message
 
     dispatch LEAVE_PRIVATE_CHANNEL_SUCCESS, { channelId, accountId }
-    callback null, result
 
 
 addParticipants = (channelId, accountIds, userIds) ->
@@ -408,6 +433,22 @@ setChannelParticipantsDropdownVisibility = (visible) ->
   dispatch SET_CHANNEL_PARTICIPANTS_DROPDOWN_VISIBILITY, { visible }
 
 
+inviteMember = (invites) ->
+
+  { INVITE_MEMBER_SUCCESS, INVITE_MEMBER_FAIL } = actionTypes
+
+  new Promise (resolve, reject) ->
+    remote.api.JInvitation.create invitations: invites, (err) =>
+      if err
+        showError 'Failed to send invite, please try again.'
+        return dispatch actionTypes.INVITE_MEMBER_FAIL, invites
+
+      dispatch actionTypes.INVITE_MEMBER_SUCCESS, invites
+      showNotification 'Invitation sent.', type: 'main'
+
+      resolve()
+
+
 emptyPromise = new Promise (resolve) -> resolve()
 
 glance = do (glancingMap = {}) -> (channelId) ->
@@ -432,6 +473,7 @@ module.exports = {
   addParticipantsByNames
   loadChannelByName
   loadChannelById
+  loadChannelByParticipants
   loadChannel
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
@@ -443,5 +485,6 @@ module.exports = {
   deletePrivateChannel
   glance
   leavePrivateChannel
+  inviteMember
 }
 

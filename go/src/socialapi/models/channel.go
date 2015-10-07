@@ -517,9 +517,8 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 
 	bongoQuery := &bongo.Query{
 		Selector: map[string]interface{}{
-			"group_name":       q.GroupName,
-			"type_constant":    q.Type,
-			"privacy_constant": Channel_PRIVACY_PUBLIC,
+			"group_name":    q.GroupName,
+			"type_constant": q.Type,
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
@@ -593,10 +592,14 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	return *c, nil
 }
 
-// ByParticipants
+// ByParticipants fetches the channels by their respective participants
 func (c *Channel) ByParticipants(participants []int64, q *request.Query) ([]Channel, error) {
 	if q.GroupName == "" {
 		return nil, ErrGroupNameIsNotSet
+	}
+
+	if len(participants) == 0 {
+		return nil, ErrChannelParticipantIsNotSet
 	}
 
 	if q.Type == "" {

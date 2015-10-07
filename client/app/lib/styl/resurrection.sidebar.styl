@@ -801,12 +801,13 @@ sidebarTextShadow()
         abs                 8px 13px 0 0
         float               none
         margin-right        0
+        opacity             .65
         pointer()
         vendor              filter, grayscale(1)
-        -webkit-transition  -webkit-filter .3s linear
-        transition          filter .3s linear
+        vendor              transition, filter .3s linear, opacity .3s linear
 
         &:hover
+          opacity           1
           vendor            filter, grayscale(0)
 
       .acc-notification-icon
@@ -996,7 +997,7 @@ h3.sidebar-title
     margin-bottom           8px
     padding                 0px 8px 0px 19px
     opacity                 1
-    size                    218px 16px
+    size                    218px 20px
     -moz-osx-font-smoothing grayscale
     -webkit-font-smoothing  antialiased
     rel()
@@ -1009,11 +1010,12 @@ h3.sidebar-title
         opacity       1
 
     > figure
-      abs                   3px 0 0 3px
+      abs                   50% 0 0 0px
       display               block
       width                 16px
       height                16px
       bg                    color #222
+      vendor                transform, translateY(-50%)
 
     &.running:hover > div
       width         180px
@@ -1026,7 +1028,7 @@ h3.sidebar-title
       vendor                transition, width .1s ease .05s
       width                 200px
       abs()
-      top                   1px
+      top                   0
 
     &.social > figure
     &.activity > figure
@@ -1043,7 +1045,6 @@ h3.sidebar-title
         width               13px
         height              13px
         bg                  color, transparent
-        abs                 4px 0 0 0px
         rounded             3px
         border              3px solid sidebarGray
         borderBox()

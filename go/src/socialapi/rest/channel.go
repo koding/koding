@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"socialapi/models"
 	"socialapi/request"
 	"strconv"
@@ -92,6 +93,27 @@ func FetchChannelByName(accountId int64, name, groupName, typeConstant, token st
 	}
 
 	return ccs.Channel, nil
+}
+
+func FetchChannelsByParticipants(accountIds []int64, typeConstant, token string) ([]models.ChannelContainer, error) {
+	v := url.Values{}
+	v.Add("type", typeConstant)
+	for _, id := range accountIds {
+		v.Add("id", fmt.Sprintf("%d", id))
+	}
+
+	url := fmt.Sprintf("/channel/by/participants?%s", v.Encode())
+	res, err := sendRequestWithAuth("GET", url, nil, token)
+	if err != nil {
+		return nil, err
+	}
+
+	var ccs []models.ChannelContainer
+	if err := json.Unmarshal(res, &ccs); err != nil {
+		return nil, err
+	}
+
+	return ccs, nil
 }
 
 func DeleteChannel(creatorId, channelId int64) error {
