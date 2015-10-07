@@ -368,7 +368,7 @@ sidebarPublicChannels      = [
         return name.indexOf(query.toLowerCase()) > -1
     else
       result = if tab is SidebarPublicChannelsTabs.YourChannels
-      then filteredChannels.followed
+      then filteredChannels.followed.filter (thread) -> thread.getIn ['channel', 'isParticipant']
       else filteredChannels.unfollowed
 
     return result

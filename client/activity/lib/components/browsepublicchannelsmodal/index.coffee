@@ -20,11 +20,18 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     selectedThread : ActivityFlux.getters.selectedChannelThread
 
 
-  onItemClick: ->
+  isSearchActive: -> if @state.query then yes else no
+
+
+  # if user clicks on channel in the list, modal will be closed
+  # and user will be redirected to channel's page.
+  # In this case we don't need to handle onClose event
+  onItemClick: -> @skipCloseHandling = yes
 
 
   onClose: ->
 
+    return  @skipCloseHandling = no  if @skipCloseHandling
     return  unless @state.selectedThread
 
     channel = @state.selectedThread.get('channel').toJS()
@@ -38,7 +45,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
   getTabClassName: (isYoursChannels) ->
 
-    { tab, query } = @state
+    { tab } = @state
 
     isActive = if isYoursChannels
     then tab is Tabs.YourChannels
@@ -46,7 +53,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     return classnames
       'ChannelList-tab' : yes
       'active-tab'      : isActive
-      'hidden'          : query
+      'hidden'          : @isSearchActive()
 
 
   onYourChannelsClick: ->
@@ -61,14 +68,16 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
     ActivityFlux.actions.channel.setSidebarPublicChannelsTab Tabs.OtherChannels
 
 
-  onYourChannelsThresholdReached: (options) ->
+  onThresholdReached: (options) ->
 
-    #ActivityFlux.actions.channel.loadFollowedPublicChannels options
-
-
-  onOtherChannelsThresholdReached: (options) ->
-
-    #ActivityFlux.actions.channel.loadChannels options
+    { tab, query } = @state
+    { channel }    = ActivityFlux.actions
+    if @isSearchActive()
+      channel.loadChannelsByQuery query, options
+    else if tab is Tabs.YourChannels
+      channel.loadFollowedPublicChannels options
+    else
+      channel.loadChannels options
 
 
   onSearchInputChange: (event) ->
@@ -98,9 +107,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
   renderTabs: ->
 
-    { query } = @state
-
-    <div className={if query then 'hidden'}>
+    <div className={if @isSearchActive() then 'hidden'}>
       <div className={@getTabClassName yes} onClick={@bound 'onYourChannelsClick'}>Your Channels</div>
       <div className={@getTabClassName no} onClick={@bound 'onOtherChannelsClick'}>Other Channels</div>
       <div className='clearfix'></div>
@@ -109,20 +116,25 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
 
   renderList: ->
 
-    { channels, query } = @state
-    noResutText  = 'Sorry, your search did not have any results'  if query
+    { channels } = @state
+    noResutText  = 'Sorry, your search did not have any results'  if @isSearchActive()
 
     <SidebarModalThreadList
-      threads             = { channels }
-      noResultText        = { noResutText }
-      onThreasholdReached = { @bound 'onYourChannelsThresholdReached' }
+      threads            = { channels }
+      noResultText       = { noResutText }
+      onThresholdReached = { @bound 'onThresholdReached' }
+      onItemClick        = { @bound 'onItemClick' }
     />
 
 
   render: ->
 
+    className = classnames
+      'ChannelListWrapper' : yes
+      'active-search'      : @isSearchActive()
+
     <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
-      <div className='ChannelListWrapper'>
+      <div className={className}>
         { @renderHeader() }
         { @renderTabs() }
         { @renderList() }
