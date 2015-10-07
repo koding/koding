@@ -75,7 +75,7 @@ var (
 		SnapshotTotalLimit: 0,
 		AlwaysOnLimit:      0,
 		StorageLimit:       3,
-		Timeout:            4 * time.Minute,
+		Timeout:            50 * time.Minute,
 		allowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
