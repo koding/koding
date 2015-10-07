@@ -5,6 +5,7 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
 ## Steps to get started:
 
     # ----- Download kd -----
+    # kd is the cli to interact with klient and fuseklient
     curl https://koding-kd.s3.amazonaws.com/install-kd.sh -s | bash
 
     # Create a NEW folder in local to use as mount point:
