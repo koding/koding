@@ -1,8 +1,8 @@
 articlize                      = require 'indefinite-article'
 MainHeaderView                 = require './../../core/mainheaderview'
-TeamJoinByLoginForm            = require './../forms/TeamJoinByLoginForm'
-TeamJoinBySignupForm           = require './../forms/TeamJoinBySignupForm'
-TeamJoinWithInvitedAccountForm = require './../forms/TeamJoinWithInvitedAccountForm'
+TeamJoinByLoginForm            = require './../forms/teamjoinbyloginform'
+TeamJoinBySignupForm           = require './../forms/teamjoinbysignupform'
+TeamJoinWithInvitedAccountForm = require './../forms/teamjoinwithinvitedaccountform'
 
 TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
