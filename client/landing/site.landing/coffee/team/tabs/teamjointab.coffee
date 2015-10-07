@@ -1,6 +1,9 @@
-articlize                 = require 'indefinite-article'
-MainHeaderView            = require './../../core/mainheaderview'
-TeamJoinTabForm           = require './../forms/teamjointabform'
+articlize                      = require 'indefinite-article'
+MainHeaderView                 = require './../../core/mainheaderview'
+TeamJoinByLoginForm            = require './../forms/TeamJoinByLoginForm'
+TeamJoinBySignupForm           = require './../forms/TeamJoinBySignupForm'
+TeamJoinWithInvitedAccountForm = require './../forms/TeamJoinWithInvitedAccountForm'
+
 TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
 module.exports = class TeamJoinTab extends KDTabPaneView
@@ -26,21 +29,56 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     @wrapper.addSubView @intro = new KDCustomHTMLView { tagName: 'p', cssClass: 'intro', partial: '' }
     @wrapper.addSubView new KDCustomHTMLView { tagName: 'h4', partial: modalTitle }
     @wrapper.addSubView new KDCustomHTMLView { tagName: 'h5', partial: @getDescription() }
-    @wrapper.addSubView @form = new TeamJoinTabForm { callback: @bound('joinTeam'), @alreadyMember }
+    @addForm()
+
+
+  addForm: ->
+
+    TeamJoinTabFormClass = if @alreadyMember and @wantsToUseDifferentAccount
+      @hideAvatar()
+      TeamJoinByLoginForm
+    else if @alreadyMember
+      @showAvatar()
+      TeamJoinWithInvitedAccountForm
+    else
+      @hideAvatar()
+      TeamJoinBySignupForm
+
+    @form?.destroy()
+    @form = new TeamJoinTabFormClass { callback: @bound 'joinTeam' }
+    @wrapper.addSubView @form
+    @form.once 'FormNeedsToBeChanged', (isMember, needsDifferentAccount) =>
+      @alreadyMember = isMember
+      @wantsToUseDifferentAccount = needsDifferentAccount
+      @addForm()
+
+
+  hideAvatar: ->
+
+    @avatar?.hide()
+    @intro.hide()
+
+
+  showAvatar: ->
+
+    @avatar?.show()
+    @intro.show()
 
 
   putAvatar: ->
 
-    @wrapper.addSubView figure = new KDCustomHTMLView { tagName: 'figure' }
+    @wrapper.addSubView @avatar = new KDCustomHTMLView { tagName: 'figure' }
 
     { getProfile, getGravatarUrl, getTeamData } = KD.utils
     { invitation: { email } }                   = getTeamData()
 
     getProfile email,
       error   : ->
-      success : ({hash, firstName, nickname}) =>
+      success : (profile) =>
+        { hash, firstName, nickname } = profile
+        KD.utils.storeNewTeamData 'profile', profile
         @intro.updatePartial "Hey #{firstName or '@' + nickname},"
-        figure.addSubView new KDCustomHTMLView
+        @avatar.addSubView new KDCustomHTMLView
           tagName    : 'img'
           attributes : { src: getGravatarUrl 64, hash }
 
