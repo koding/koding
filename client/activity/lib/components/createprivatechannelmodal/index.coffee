@@ -127,7 +127,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       props = _.assign {}, props,
         buttonExtraTitle       : null
         buttonConfirmTitle     : createButtonTitle
-        buttonOnClick          : @bound 'createChannel'
+        onConfirm              : @bound 'createChannel'
         buttonConfirmClassName : 'Button--primary'
 
     return props
