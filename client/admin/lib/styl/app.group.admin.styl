@@ -2099,7 +2099,11 @@ Admin main styles
   .AppModal-nav
     margin-top              40px
 
-  .kdtabpaneview:not(.stacks)
+  .kdtabpaneview
+    &.general
+    &.members
+    &.invitations
+    &.integrations
       padding-top           40px
 
   .breadcrumb
@@ -2209,7 +2213,7 @@ Admin main styles
     width                   370px
 
   .define-stack-view.edit-mode
-    .editor-pane.editor-view
+    .step-define-stack .editor-pane.editor-view
       margin-top            20px
 
   .step-creds.form-open
