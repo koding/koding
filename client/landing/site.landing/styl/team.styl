@@ -24,7 +24,14 @@ team.styl
   bg                        color #111
 
   &:before
-    bg                      color, #323232
+
+    // http://uigradients.com/#PinotNoir - reversed
+    background: -webkit-linear-gradient(90deg, #182848 10%, #4b6cb7 90%); /* Chrome 10+, Saf5.1+ */
+    background:    -moz-linear-gradient(90deg, #182848 10%, #4b6cb7 90%); /* FF3.6+ */
+    background:     -ms-linear-gradient(90deg, #182848 10%, #4b6cb7 90%); /* IE10 */
+    background:      -o-linear-gradient(90deg, #182848 10%, #4b6cb7 90%); /* Opera 11.10+ */
+    background:         linear-gradient(90deg, #182848 10%, #4b6cb7 90%); /* W3C */
+
     content                 ''
     fix                     0px 0 0 0px
     size                    100% 100%
@@ -75,8 +82,9 @@ team.styl
   top                       0px
   color                     #434343
   z-index                   3
-  rounded                   5px
+  rounded                   7px
   text-align                center
+  shadow                    0 20px 40px rgba(0,0,0,.2)
   borderBox()
   rel()
 
