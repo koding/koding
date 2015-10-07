@@ -165,7 +165,7 @@ func (c *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 
 	// message does not contain any mentioned users
 	if len(usernames) == 0 {
-		return mentionedUserIds, nil
+		return nil, nil
 	}
 
 	mentionedUsers, err := socialapimodels.FetchAccountsByNicks(usernames)
@@ -173,10 +173,16 @@ func (c *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 		return nil, err
 	}
 
+	return c.handleUsernameMentions(reply, targetId, mentionedUsers)
+}
+
+func (c *Controller) handleUsernameMentions(reply *socialapimodels.ChannelMessage, targetId int64, mentionedUsers []socialapimodels.Account) ([]int64, error) {
 	groupChannel, err := reply.FetchParentChannel()
 	if err != nil {
 		return nil, err
 	}
+
+	mentionedUserIds := make([]int64, 0)
 
 	for _, mentionedUser := range mentionedUsers {
 		// if user mentions herself ignore it
@@ -213,23 +219,26 @@ func (c *Controller) notify(contentId, notifierId int64, contextChannel *sociala
 		return
 	}
 
-	notification := buildNotification(contentId, notifierId, time.Now())
+	notification := newNotification(contentId, notifierId, time.Now().UTC())
 	notification.ContextChannelId = contextChannel.Id
 	if err := notification.Upsert(); err != nil {
-		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
+		c.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
 }
 
-func (n *Controller) instantNotify(contentId, notifierId int64, contextChannel *socialapimodels.Channel) {
-	isParticipant, err := isParticipant(notifierId, contextChannel)
-	if err != nil {
-		n.log.Error("Could not check participation info for user %d: %s", notifierId, err)
-		return
-	}
+func (c *Controller) instantNotify(contentId, notifierId int64, contextChannel *socialapimodels.Channel, checkForParticipation bool) {
+	// if we need to check for participation, do here
+	if checkForParticipation {
+		isParticipant, err := isParticipant(notifierId, contextChannel)
+		if err != nil {
+			c.log.Error("Could not check participation info for user %d: %s", notifierId, err)
+			return
+		}
 
-	// when mentioned user does not exist within the group, do not send notification
-	if !isParticipant {
-		return
+		// when mentioned user does not exist within the group, do not send notification
+		if !isParticipant {
+			return
+		}
 	}
 
 	notification := prepareActiveNotification(contentId, notifierId)
