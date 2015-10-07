@@ -8,14 +8,14 @@ import (
 
 func (n *Notification) BeforeCreate() {
 	if n.UnsubscribedAt.IsZero() && n.SubscribedAt.IsZero() {
-		n.SubscribedAt = time.Now()
+		n.SubscribedAt = time.Now().UTC()
 	}
 }
 
 func (n *Notification) BeforeUpdate() {
 	if n.UnsubscribedAt.IsZero() && !n.SubscribeOnly {
 		n.Glanced = false
-		n.ActivatedAt = time.Now()
+		n.ActivatedAt = time.Now().UTC()
 	}
 }
 
