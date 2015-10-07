@@ -16,7 +16,7 @@ module.exports =
       'sudo /opt/koding/run socialworkertests'"
 
 
-    nodejsServer : (publicIpAddress) ->
+    nodejsWebServer : (publicIpAddress) ->
 
       return "ssh -o 'StrictHostKeyChecking no' \
       -i #{pemFilePath} \
@@ -24,12 +24,12 @@ module.exports =
       'sudo /opt/koding/run nodeservertests'"
 
 
-  asArray : (publicIpAddress) ->
+  asArray : (publicIpAddresses) ->
 
     return [
 
-      @get.socialWorker publicIpAddress
+      @get.socialWorker publicIpAddresses.socialWorker
 
-      @get.nodejsServer publicIpAddress
+      @get.nodejsWebServer publicIpAddresses.nodejsWebServer
 
     ]
