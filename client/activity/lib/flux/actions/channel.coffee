@@ -310,6 +310,11 @@ loadChannelsByQuery = (query, options = {}) ->
     dispatch LOAD_CHANNELS_SUCCESS, { channels }
 
 
+###*
+ * Action to load channels with given options
+ *
+ * @param {object=} options
+###
 loadChannels = (options = {}) ->
 
   { LOAD_CHANNELS_BEGIN
@@ -482,12 +487,22 @@ glance = do (glancingMap = {}) -> (channelId) ->
     dispatch GLANCE_CHANNEL_SUCCESS, { channelId }
 
 
+###*
+ * Action to set sidebar public channels search query
+ *
+ * @param {string} tab
+###
 setSidebarPublicChannelsQuery = (query) ->
 
   { SET_SIDEBAR_PUBLIC_CHANNELS_QUERY } = actionTypes
   dispatch SET_SIDEBAR_PUBLIC_CHANNELS_QUERY, { query }
 
 
+###*
+ * Action to set current tab of sidebar public channels
+ *
+ * @param {string} tab
+###
 setSidebarPublicChannelsTab = (tab) ->
 
   { SET_SIDEBAR_PUBLIC_CHANNELS_TAB } = actionTypes
