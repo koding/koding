@@ -66,8 +66,13 @@ module.exports = class DefineStackView extends KDView
       stackTemplate
     }
     @tabView.addPane variablesPane     = new KDTabPaneView
-      name : 'Variables'
+      name : 'Private Variables'
       view : @variablesView
+
+    @readmeView                        = new ReadmeView { stackTemplate }
+    @tabView.addPane readmePane        = new KDTabPaneView
+      name : 'Readme'
+      view : @readmeView
 
     @providersView                     = new ProvidersView {
       stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
@@ -76,10 +81,6 @@ module.exports = class DefineStackView extends KDView
       name : 'Credentials'
       view : @providersView
 
-    @readmeView                        = new ReadmeView { stackTemplate }
-    @tabView.addPane readmePane        = new KDTabPaneView
-      name : 'Readme'
-      view : @readmeView
 
     @credentialStatusView = new CredentialStatusView { stackTemplate }
     { @credentials } = @stackTemplateView.credentialStatus or {}
