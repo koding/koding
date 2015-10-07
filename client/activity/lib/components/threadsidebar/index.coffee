@@ -4,6 +4,7 @@ immutable                 = require 'immutable'
 ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
 ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
 ChannelMessagesList       = require 'activity/components/channelmessageslist'
+isGroupChannel            = require 'app/util/isgroupchannel'
 
 
 module.exports = class ThreadSidebar extends React.Component
@@ -14,20 +15,13 @@ module.exports = class ThreadSidebar extends React.Component
     channelParticipants: immutable.Map()
 
 
-  isGroupChannel: (channel) ->
-
-    { groupsController } = kd.singletons
-
-    return channel.name is groupsController.getGroupSlug()
-
-
   renderInviteSection: ->
 
     return  unless @props.channelParticipants
 
     { channel } = @props.channelThread.toJS()
 
-    if @props.channelParticipants.size or not @isGroupChannel channel
+    if @props.channelParticipants.size or not isGroupChannel channel
       return <ChannelParticipantAvatars
         channelThread={@props.channelThread}
         participants={@props.channelParticipants} />
