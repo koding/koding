@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+// StartCommand starts local klient. Requires sudo.
 func StartCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {

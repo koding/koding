@@ -16,14 +16,16 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// SSHCommand is the cli command that lets users ssh into their remote VM.
+// SSHCommand is the cli command that lets users ssh into their remote machine.
 // It manages the creating and storing of authorization keys for ease of use.
 //
 // On first run it generates a new SSH key pair and adds it to the requested
-// VM. On subsequent requests it uses the same key pair, but adds it each time
-// to user VM, since we can't assume if key exists in local, remote VM must
-// also have that key, ie if user has multiple VMs, but key was only added to
-// one VM.
+// machine. On subsequent requests it uses the same key pair, but adds it each
+// time to user machine, since we can't assume if key exists in local, remote
+// machine must also have that key, ie if user has multiple machines, but key
+// was only added to one machine.
+//
+// Before generating a new key, it asks user to confirm or deny.
 //
 // SSH public keys have comment of the form: "koding-<number>", where number is
 // a random integer. Klient requires a non empty comment; by adding a random
@@ -37,7 +39,8 @@ type SSHCommand struct {
 	KeyName string
 
 	// Transport is communication layer between this and local klient. This is
-	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote VM.
+	// used to add SSH public key to `~/.ssh/authorized_keys` on the remote
+	// machine.
 	Transport
 }
 
@@ -109,8 +112,8 @@ func (s *SSHCommand) Run(c *cli.Context) int {
 	return 0
 }
 
-// getSSHIp returns the username and the hostname of the remove VM to ssh.
-// It assume user exists on the remove VM with the same Koding username.
+// getSSHIp returns the username and the hostname of the remove machine to ssh.
+// It assume user exists on the remove machine with the same Koding username.
 func (s *SSHCommand) getSSHIp(name string) (string, error) {
 	res, err := s.Tell("remote.list")
 	if err != nil {
@@ -128,11 +131,11 @@ func (s *SSHCommand) getSSHIp(name string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("No VM found with specified name: `%s`", name)
+	return "", fmt.Errorf("No machine found with specified name: `%s`", name)
 }
 
 // prepareForSSH checks if SSH key pair exists, if not it generates a new one
-// and saves it. It adds the key pair to remote VM each time.
+// and saves it. It adds the key pair to remote machine each time.
 func (s *SSHCommand) prepareForSSH(name string) error {
 	var (
 		contents []byte

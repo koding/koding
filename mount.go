@@ -8,6 +8,8 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+// MountCommand mounts a folder on remote machine to local folder by machine
+// name.
 func MountCommand(c *cli.Context) int {
 	if len(c.Args()) < 2 {
 		cli.ShowCommandHelp(c, "mount")
@@ -20,7 +22,7 @@ func MountCommand(c *cli.Context) int {
 		remotePath = c.String("remotepath") // note the lowercase of all chars
 	)
 
-	// allow scp like declaration, ie `<vmname>:/path/to/remote`
+	// allow scp like declaration, ie `<machine name>:/path/to/remote`
 	if strings.Contains(name, ":") {
 		names := strings.Split(name, ":")
 		name, remotePath = names[0], names[1]
@@ -50,12 +52,12 @@ func MountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remove machine: '%s'\n", err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remove machine: '%s'\n", err)
 		return 1
 	}
 
@@ -77,7 +79,7 @@ func MountCommand(c *cli.Context) int {
 		}
 	}
 
-	fmt.Println("Successfully mounted:", localPath)
+	fmt.Println("\nSuccessfully mounted:", localPath)
 
 	return 0
 }

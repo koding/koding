@@ -131,14 +131,12 @@ Please provide your Koding Username and Password when prompted..
 	// Klient is setting the wrong file permissions when installed by ctl,
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
-	err = os.Chmod(KiteHome, 0755)
-	if err != nil {
+	if err = os.Chmod(KiteHome, 0755); err != nil {
 		fmt.Printf("Error installing %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
-	err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644)
-	if err != nil {
+	if err = os.Chmod(filepath.Join(KiteHome, "kite.key"), 0644); err != nil {
 		fmt.Printf("Error installing kite.key: '%s'\n", err)
 		return 1
 	}
@@ -151,8 +149,7 @@ Please provide your Koding Username and Password when prompted..
 	}
 
 	// Install the klient binary as a OS service
-	err = s.Install()
-	if err != nil {
+	if err = s.Install(); err != nil {
 		fmt.Printf("Error installing service: '%s'\n", err)
 		return 1
 	}
@@ -170,7 +167,7 @@ Please provide your Koding Username and Password when prompted..
 	// properly before telling the user success
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remote VM: '%s'\n", err)
+		fmt.Printf("Error connecting to remote machine: '%s'\n", err)
 		return 1
 	}
 
@@ -180,9 +177,7 @@ Please provide your Koding Username and Password when prompted..
 	// if needed.
 	for i := 0; i < 5; i++ {
 		time.Sleep(1 * time.Second)
-		err = k.Dial()
-
-		if err == nil {
+		if err = k.Dial(); err == nil {
 			break
 		}
 	}
@@ -190,14 +185,11 @@ Please provide your Koding Username and Password when prompted..
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
 	if err != nil {
-		fmt.Printf(`Error: verifying the installation of the %s.
-
-Reason: %s
-`,
-			KlientName, err.Error())
+		fmt.Printf("Error verifying the installation of %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
-	fmt.Printf("\n\nSuccessfully installed the %s!\n", KlientName)
+	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", KlientName)
+
 	return 0
 }

@@ -6,21 +6,28 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-var cmdDescriptions map[string]string
+// cmdDescriptions is the help text shown to user. Note in addition to adding
+// new text here you'll need to update main.go to use the description.
+var cmdDescriptions = map[string]string{
+	"ssh": fmtDesc("<machine name>", "SSH into the machine."),
+	"mount": fmtDesc(
+		"<machine name> </path/local/folder>",
+		"Mount folder from remote machine to local folder.",
+	),
+	"unmount": fmtDesc(
+		"<machine name>",
+		"Unmount folder which was previously mounted.",
+	),
+}
 
 func init() {
-	cmdDescriptions = map[string]string{
-		"ssh":   fmtDesc("", "SSH into the machine."),
-		"mount": fmtDesc("[vm name] <local folder>", "Mount a remote folder from the given remote machine, to the specified local folder."),
-	}
-
 	cli.AppHelpTemplate = `
 USAGE:
-   {{.Name}} {{if .Flags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} [arguments...]
-   {{if .Version}}
+   {{.Name}} command [command options]
+
 COMMANDS:
    {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
-   {{end}}{{end}}
+   {{end}}
 `
 
 	cli.CommandHelpTemplate = `USAGE:

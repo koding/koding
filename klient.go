@@ -19,12 +19,11 @@ func NewKlientOptions() KlientOptions {
 	}
 }
 
-// Klient Options
 type KlientOptions struct {
-	// The address that the Kite Client will attempt to connect.
+	// Address is the path to the Klient.
 	Address string
 
-	// The full filesystem path to kite.key, which will be loaded and used
+	// KiteKeyPath is the full path to kite.key, which will be loaded and used
 	// to authorize kdbin requests to Klient.
 	KiteKeyPath string
 

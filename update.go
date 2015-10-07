@@ -10,6 +10,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+// UpdateCommand updates this binary if there's an update available.
 func UpdateCommand(c *cli.Context) int {
 	checkUpdate := NewCheckUpdate()
 
@@ -33,6 +34,7 @@ func UpdateCommand(c *cli.Context) int {
 		return 1
 	}
 
+	fmt.Printf("An update is available...\n")
 	fmt.Printf("Stopping %s...\n", KlientName)
 
 	// stop klient before we update it

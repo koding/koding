@@ -18,20 +18,16 @@ const (
 
 	// KiteHome is full path to the kite key that we will use to authenticate
 	// to the given klient.
-	//
-	// TODO: move to OS friendly place.
 	KiteHome = "/etc/kite"
 
 	// KlientDirectory is full path to directory that holds klient.
-	//
-	// TODO: move to OS friendly place.
 	KlientDirectory = "/opt/kite/klient"
 
 	// KlientctlDirectory is full path to directory that holds klientctl.
 	KlientctlDirectory = "/usr/local/bin"
 
 	// KontrolUrl is the url to connect to authenticate local klient and get
-	// list of VMs.
+	// list of machines.
 	KontrolUrl = "https://koding.com/kontrol/kite"
 
 	// KlientctlVersion is the current version of klientctl. This number is used

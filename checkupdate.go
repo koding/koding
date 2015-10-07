@@ -16,6 +16,8 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
+// CheckUpdateFirst can be prepended to any existing cli command to have it
+// check if there's an update available before running the command.
 func CheckUpdateFirst(f ExitingCommand) ExitingCommand {
 	return func(c *cli.Context) int {
 		u := NewCheckUpdate()
@@ -27,11 +29,19 @@ func CheckUpdateFirst(f ExitingCommand) ExitingCommand {
 	}
 }
 
-// CheckUpdate checks if there an update available based on checking.
+// CheckUpdate checks if there an update available.
 type CheckUpdate struct {
-	Location           string
+	// Location is the url we check if there's a new update available. If the
+	// number in this location is greater than the number hardcoded in this
+	// binary it return true.
+	Location string
+
+	// RandomSeededNumber is a random number so we don't check update each time.
 	RandomSeededNumber int
-	ForceCheck         bool
+
+	// ForceCheck forces checking of update regardless of the value of above
+	// random number.
+	ForceCheck bool
 }
 
 // NewCheckUpdate is the required initializer for CheckUpdate.
@@ -43,10 +53,7 @@ func NewCheckUpdate() *CheckUpdate {
 	}
 }
 
-// IsUpdateAvailable checks if a newer version of `kd` is available for
-// download by hitting an S3 file and comparing the number in that file
-// to local version number. It only checks 1 out of 3 times randomly to
-// avoid checking for update each time.
+// IsUpdateAvailable checks if a newer version of `kd` is available.
 func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 	if !c.ForceCheck && c.RandomSeededNumber != 1 {
 		return false, nil

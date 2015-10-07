@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+// StopCommand stop local klient. Requires sudo.
 func StopCommand(c *cli.Context) int {
 	s, err := newService()
 	if err != nil {
@@ -19,5 +20,6 @@ func StopCommand(c *cli.Context) int {
 	}
 
 	fmt.Printf("Successfully stopped %s\n", KlientName)
+
 	return 0
 }

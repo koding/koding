@@ -10,8 +10,8 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = Name
-	//app.Usage = ""
-	//app.Action = Help
+	app.Version = fmt.Sprintf("%d", KlientctlVersion)
+
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:   "list",
@@ -34,17 +34,18 @@ func main() {
 					Name:  "remotepath, r",
 					Usage: "Full path of remote folder in machine to mount.",
 				},
-				cli.StringFlag{
-					Name:  "watch, w",
-					Usage: "Enable watching for changes in remote machine.",
-				},
+				// TODO: implement this in klient and then enable this
+				// cli.StringFlag{
+				//   Name:  "watch, w",
+				//   Usage: "Enable watching for changes in remote machine.",
+				// },
 			},
 			Action: Exit(CheckUpdateFirst(MountCommand)),
 		},
 		cli.Command{
 			Name:        "unmount",
-			Usage:       "Unmount specified machine.",
-			Description: "Unmount a machine which was previously mounted.",
+			Usage:       "Unmount previously mounted machine.",
+			Description: cmdDescriptions["unmount"],
 			Action:      Exit(CheckUpdateFirst(UnmountCommand)),
 		},
 		cli.Command{
