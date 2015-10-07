@@ -75,11 +75,11 @@ func MountCommand(c *cli.Context) int {
 		}
 
 		if len(warning) > 0 {
-			fmt.Printf("Warning: %s\n", warning)
+			fmt.Printf("Warning: %s\n\n", warning)
 		}
 	}
 
-	fmt.Println("\nSuccessfully mounted:", localPath)
+	fmt.Println("Successfully mounted:", localPath)
 
 	return 0
 }

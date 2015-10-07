@@ -96,6 +96,11 @@ func (s *SSHCommand) Run(c *cli.Context) int {
 	}
 
 	if err := s.prepareForSSH(c.Args()[0]); err != nil {
+		if strings.Contains(err.Error(), "user: unknown user") {
+			fmt.Println("Currently unable to ssh into managed machines.")
+			return 1
+		}
+
 		fmt.Printf("Error getting ssh key: '%s'\n", err)
 		return 1
 	}
