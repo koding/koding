@@ -181,9 +181,9 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       view.addSubView view.intro = new kd.CustomHTMLView
         cssClass  : 'credential-creation-intro'
         partial   : '''
-          <p>Here is how you add your AWS keys</a>
+          <p>Add your AWS credentials</a>
           <ol>
-            <li>Login to <a href='https://console.aws.amazon.com'>AWS console</a></li>
+            <li>Create an AWS user</li>
             <li>Attach the AdministratorAccess policy</li>
             <li>Add the Access Key ID and Secret here</li>
           </ol>
@@ -192,6 +192,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { ui }    = kd.singletons.computeController
     view.form = ui.generateAddCredentialFormFor options
+    view.form.setClass 'credentials-form-view'
 
     view.form.on "Cancel", ->
       view.unsetClass "form-open"
