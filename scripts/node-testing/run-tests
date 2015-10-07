@@ -10,13 +10,16 @@ shellCommands                     = require './shell-commands'
 
 addEventListenersToChildProcess = (child) ->
 
+  output = ''
+
   child.stdout.on 'data', (data) ->
-    process.stdout.write  data
+    output += data
 
   child.stderr.on 'data', (data) ->
-    process.stdout.write  data
+    output += data
 
   child.on 'exit', (code) ->
+    process.stdout.write output
 
     # if child exits with a non-zero code, exit the main process as well
     if code isnt 0
