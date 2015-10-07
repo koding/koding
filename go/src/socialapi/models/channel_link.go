@@ -22,6 +22,12 @@ type ChannelLink struct {
 	// CreatedAt holds the creation time of the channel_link
 	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
 
+	// Deletion date of the leaf channel
+	// In theory, we don't delete leaf channel
+	// we link leaf channel to the root channel
+	// and marks leaf channel as deleted
+	DeletedAt time.Time `json:"deletedAt"`
+
 	// options for operations
 
 	// DeleteMessages remove the messages of a channel
