@@ -8,6 +8,7 @@ startSession = (browser, firstUser, secondUser) ->
   secondUserName         = secondUser.username
   secondUserAvatar       = ".avatars .avatarview[href='/#{secondUserName}']"
   secondUserOnlineAvatar = secondUserAvatar + '.online'
+  chatTextSelector       = '.status-bar a.active'
 
   helpers.beginTest browser, firstUser
   helpers.waitForVMRunning browser
@@ -20,8 +21,10 @@ startSession = (browser, firstUser, secondUser) ->
       collaborationHelpers.inviteUser   browser, secondUserName
 
       browser
-        .waitForElementVisible secondUserAvatar, 60000
-        .waitForElementVisible secondUserOnlineAvatar, 20000
+        .waitForElementVisible  secondUserAvatar, 60000
+        .waitForElementVisible  secondUserOnlineAvatar, 20000 # Assertion
+        .waitForElementVisible  chatTextSelector, 20000
+        .assert.containsText    chatTextSelector, 'CHAT' # Assertion
         .end()
 
 
@@ -41,6 +44,7 @@ joinSession = (browser, firstUser, secondUser) ->
   message          = '.kdlistitemview-activity.privatemessage'
   chatUsers        = chatBox + ' .chat-heads'
   userAvatar       = ".avatars .avatarview.online[href='/#{firstUserName}']"
+  chatTextSelector = '.status-bar a.active'
 
   helpers.beginTest browser, secondUser
 
@@ -65,7 +69,9 @@ joinSession = (browser, firstUser, secondUser) ->
         .assert.containsText       chatBox, firstUserName
         .assert.containsText       chatBox, secondUserName
         .assert.containsText       filetree, firstUserName
-        .waitForElementVisible     userAvatar, 20000
+        .waitForElementVisible     userAvatar, 20000 # Assertion
+        .waitForElementVisible     chatTextSelector, 20000
+        .assert.containsText       chatTextSelector, 'CHAT' # Assertion
         .end()
 
 
@@ -81,5 +87,3 @@ module.exports =
       startSession browser, firstUser, secondUser
     else
       joinSession browser, firstUser, secondUser
-
-
