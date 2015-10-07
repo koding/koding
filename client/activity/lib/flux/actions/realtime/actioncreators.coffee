@@ -63,12 +63,14 @@ bindNotificationEvents = ->
     .on 'ParticipantUpdated', _dispatchFn
     .on 'MessageListUpdated', _dispatchFn
     .on 'AddedToChannel', (options) ->
-      {unreadCount, channel} = options
+      channel = kd.singletons.socialapi.channel.revive options
       actionType = if channel.typeConstant in ['privatemessage', 'bot', 'collaboration']
       then actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS
       else actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS
       payload = { channel, channelId: channel.id }
       dispatch actionType, payload
+
+      { unreadCount } = channel
 
       _dispatchFn { unreadCount, channel }
 
