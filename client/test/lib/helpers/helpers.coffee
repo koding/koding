@@ -495,6 +495,19 @@ module.exports =
       .pause                   5000
 
 
+  runCommandOnTerminal: (browser) ->
+
+    time = Date.now()
+
+    browser
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+      .pause                     5000
+      .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
+      .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
+      .end()
+
+
   setCookie: (browser, name, value) ->
 
     domain = '.dev.koding.com'
