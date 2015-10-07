@@ -315,6 +315,13 @@ utils.extend utils,
       error       : callbacks.error
 
 
+  getGravatarUrl : (size = 80, hash) ->
+
+    fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+
+    return "//gravatar.com/avatar/#{hash}?size=#{size}&d=#{fallback}&r=g"
+
+
   getGroupLogo : ->
 
     { group } = KD.config

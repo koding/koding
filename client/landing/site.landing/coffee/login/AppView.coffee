@@ -15,7 +15,7 @@ MainControllerLoggedOut               = require './../core/maincontrollerloggedo
 
 module.exports = class LoginView extends JView
 
-  RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+  RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
 
   stop           = KD.utils.stopDOMEvent
   ENTER          = 13
@@ -298,15 +298,14 @@ module.exports = class LoginView extends JView
     givenName  = gravatar.name?.givenName
     familyName = gravatar.name?.familyName
 
-    fields   = {}
-    size     = 80
-    fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+    fields = {}
+    size   = 80
+    src    = KD.utils.getGravatarUrl size, requestHash
 
     fields.photo =
       itemClass  : KDCustomHTMLView
       tagName    : 'img'
-      attributes :
-        src      : "//gravatar.com/avatar/#{requestHash}?size=#{size}&d=#{fallback}&r=g"
+      attributes : { src }
 
     fields.email =
       itemClass : KDCustomHTMLView
@@ -415,7 +414,7 @@ module.exports = class LoginView extends JView
         @recaptcha = new KDCustomHTMLView
           tagName    : 'script'
           attributes :
-            src      : RECATCHA_JS
+            src      : RECAPTCHA_JS
             async    : yes
             defer    : yes
 
