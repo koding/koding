@@ -30,9 +30,9 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     super options, data
 
-    @setCss background: 'black'
-
     { ace } = @aceView
 
-    ace.ready ->
+    ace.ready =>
+      ace.setTheme 'github', no
       @emit 'ace.changeSetting', 'tabSize', 2
+      @emit 'EditorReady'
