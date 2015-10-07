@@ -123,10 +123,7 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
-      if pane is providersPane
-        @setFooterVisibility 'hide'
-      else
-        @setFooterVisibility 'show'
+      unless pane is providersPane
         pane.getMainView().emit 'FocusToEditor'
 
     { ace } = @stackTemplateView.editorView.aceView
@@ -134,11 +131,6 @@ module.exports = class DefineStackView extends KDView
     ace.on 'FileContentChanged', =>
       @setAsDefaultButton.hide()
       @saveButton.show()
-
-
-  setFooterVisibility: (state) ->
-    @buttons[state]()
-    @footer[state]()
 
 
   createFooter: ->
