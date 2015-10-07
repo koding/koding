@@ -77,5 +77,5 @@ func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 		return false, err
 	}
 
-	return newVersion > KlientctlVersion, nil
+	return newVersion > Version, nil
 }

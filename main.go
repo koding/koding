@@ -10,24 +10,24 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = Name
-	app.Version = fmt.Sprintf("%d", KlientctlVersion)
+	app.Version = fmt.Sprintf("%d", Version)
 
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:   "list",
-			Usage:  "List the available machines",
+			Usage:  "List the available machines.",
 			Action: Exit(CheckUpdateFirst(ListCommand)),
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:   "mounts",
-					Usage:  "List the available machines",
+					Usage:  "List the available machines.",
 					Action: Exit(CheckUpdateFirst(MountsCommand)),
 				},
 			},
 		},
 		cli.Command{
 			Name:        "mount",
-			Usage:       "Mount a remote folder to a local folder",
+			Usage:       "Mount a remote folder to a local folder.",
 			Description: cmdDescriptions["mount"],
 			Flags: []cli.Flag{
 				cli.StringFlag{

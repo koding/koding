@@ -15,7 +15,7 @@ func NewKlientOptions() KlientOptions {
 		Address:     KlientAddress,
 		KiteKeyPath: filepath.Join(KiteHome, "kite.key"),
 		Name:        Name,
-		Version:     Version,
+		Version:     KiteVersion,
 	}
 }
 

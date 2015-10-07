@@ -3,7 +3,7 @@ package main
 import "runtime"
 
 const (
-	Version = "0.0.1"
+	KiteVersion = "0.0.1"
 
 	// Name is the user facing name for this binary. Internally we call it
 	// klientctl to avoid confusion.
@@ -30,10 +30,10 @@ const (
 	// list of machines.
 	KontrolUrl = "https://koding.com/kontrol/kite"
 
-	// KlientctlVersion is the current version of klientctl. This number is used
+	// Version is the current version of klientctl. This number is used
 	// by CheckUpdate to determine if current version is behind or equal to latest
 	// version on S3 bucket.
-	KlientctlVersion = 1
+	Version = 1
 
 	osName = runtime.GOOS
 
