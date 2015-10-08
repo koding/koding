@@ -17,7 +17,7 @@ do ->
 
 
     # if there is no such group take user to group creation with given group info
-    if not group or not KD.config.hasTeamAccess
+    if not group
       newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams?group=#{groupName}"
       return location.replace newUrl
 
