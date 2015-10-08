@@ -1,12 +1,12 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
-upgradePlanLink 	  = '.avatararea-popup .kdview [href="/Pricing"]'
-upgradePlanButton	  = '.kdmodal-inner .green'
-upgradePlanName     = '.plan-name'
-tooltipValidation   = '.kdtooltip'
+upgradePlanLink   = '.avatararea-popup .kdview [href="/Pricing"]'
+upgradePlanButton = '.kdmodal-inner .green'
+upgradePlanName   = '.plan-name'
+tooltipValidation = '.kdtooltip'
 
-freePlanSelector    = '.single-plan.free.current'
+freePlanSelector  = '.single-plan.free.current'
 
 
 module.exports = 
@@ -76,7 +76,7 @@ module.exports =
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
-          .waitForElementVisible       upgradePlanName, 10000
+          .waitForElementVisible      upgradePlanName, 10000
           .assert.containsText        upgradePlanName, 'Developer Plan'
           .assert.containsText        '.cardmonth .exp-date', 'Exp. Date'
           .setValue                   cardMonthInputField, '88'
