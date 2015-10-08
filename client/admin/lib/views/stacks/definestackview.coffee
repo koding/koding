@@ -176,6 +176,9 @@ module.exports = class DefineStackView extends KDView
     @stackTemplateView.addSubView @outputView = view =  new OutputView
     @stackTemplateView.on 'ShowOutputView', view.bound 'raise'
     @stackTemplateView.on 'HideOutputView', view.bound 'fall'
+    @stackTemplateView.on 'ShowTemplatePreview', @bound 'handlePreview'
+
+    @previewButton = @stackTemplateView.previewButton
 
     @outputView.add 'Welcome to Stack Template Editor'
 
@@ -200,15 +203,6 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact green nav next'
       loader         : yes
       callback       : @bound 'handleSave'
-
-    @buttons.addSubView @previewButton = new KDButtonView
-      title          : 'Template Preview'
-      cssClass       : 'hidden solid compact light-gray nav next prev-button'
-      loader         : yes
-      callback       : @bound 'handlePreview'
-      tooltip        :
-        title        : "Generates a preview of this template
-                        with your own account information."
 
 
   handleSave: ->
