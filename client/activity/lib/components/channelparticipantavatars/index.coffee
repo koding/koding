@@ -11,6 +11,7 @@ ProfileLinkContainer        = require 'app/components/profile/profilelinkcontain
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
 DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
 getGroup                    = require 'app/util/getGroup'
+isUserGroupAdmin            = require 'app/util/isusergroupadmin'
 validator                   = require 'validator'
 showErrorNotification       = require 'app/util/showErrorNotification'
 
@@ -52,7 +53,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
   componentDidMount: ->
 
-    @isUserGroupAdmin()
+    isUserGroupAdmin (err, isAdmin) =>
+
+      return showErrorNotification err  if err
+
+      if isAdmin
+      then @setState isGroupAdmin: yes
+      else @setState isGroupAdmin: no
 
     document.addEventListener 'mousedown', @bound 'handleOutsideMouseClick'
 
@@ -211,21 +218,6 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     user.setChannelParticipantsInputQuery query
     channel.setChannelParticipantsDropdownVisibility yes
-
-
-  isUserGroupAdmin: ->
-
-    { groupsController } = kd.singletons
-
-    groupsController.ready =>
-      currentGroup = groupsController.getCurrentGroup()
-      currentGroup.fetchMyRoles (err, roles) =>
-        return showErrorNotification err  if err
-
-        if 'admin' in (roles ? [])
-          return @setState isGroupAdmin: yes
-        else
-          return @setState isGroupAdmin: no
 
 
   isGroupChannel: ->
