@@ -46,7 +46,7 @@ module.exports = class ComputeController extends KDController
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
 
-      groupsController.on 'StackTemplateChanged', @bound 'checkStackRevisions'
+      groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
 
       @fetchStacks =>
 
@@ -387,6 +387,8 @@ module.exports = class ComputeController extends KDController
       else
         @emit 'StacksNotConfigured'
 
+      @checkGroupStackRevisions()
+
 
   # remote.ComputeProvider and Kloud kite public methods
   #
@@ -632,7 +634,7 @@ module.exports = class ComputeController extends KDController
 
 
 
-  start: (machine)->
+  start: (machine) ->
 
     return if methodNotSupportedBy machine
 
@@ -644,7 +646,7 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().start { machineId: machine._id }
 
-    .then (res)=>
+    .then (res) =>
 
       kd.log "start res:", res
       @_clearTrialCounts machine
@@ -652,12 +654,12 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       (@errorHandler call, 'start', machine) err
 
 
-  stop: (machine)->
+  stop: (machine) ->
 
     return if methodNotSupportedBy machine
 
@@ -670,7 +672,7 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().stop { machineId: machine._id }
 
-    .then (res)=>
+    .then (res) =>
 
       kd.log "stop res:", res
       @_clearTrialCounts machine
@@ -678,7 +680,7 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       (@errorHandler call, 'stop', machine) err
 
@@ -726,6 +728,21 @@ module.exports = class ComputeController extends KDController
     else
 
       updateWith options
+
+  # Stacks
+
+  # Start helper to start all machines in the given stack
+  startStack: (stack) ->
+
+    for machine in stack.machines
+      @start machine  if machine.isStopped()
+
+
+  # Stop helper to stop all machines in the given stack
+  stopStack: (stack) ->
+
+    for machine in stack.machines
+      @stop machine  if machine.isRunning()
 
 
   # Snapshots
@@ -864,6 +881,44 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  checkGroupStacks: ->
+
+    @checkStackRevisions()
+
+    { groupsController } = kd.singletons
+    { slug } = currentGroup = groupsController.getCurrentGroup()
+
+    remote.api.JGroup.one { slug }, (err, _currentGroup) =>
+      return kd.warn err  if err
+      return kd.warn 'No such Group!'  unless _currentGroup
+
+      currentGroup.stackTemplates = _currentGroup.stackTemplates
+
+      @checkGroupStackRevisions()
+
+
+  checkGroupStackRevisions: ->
+
+    return  if isKoding()
+    return  if not @stacks?.length
+
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
+    { stackTemplates }   = currentGroup
+
+    return  if not stackTemplates?.length
+
+    existents = 0
+
+    for stackTemplate in stackTemplates
+      for stack in @stacks
+        existents++  if stack.baseStackId is stackTemplate
+
+    if existents isnt stackTemplates.length
+    then @emit 'GroupStacksInconsistent'
+    else @emit 'GroupStacksConsistent'
+
+
   verifyStackRequirements: (stack) ->
 
     unless stack
@@ -939,6 +994,6 @@ module.exports = class ComputeController extends KDController
     kd.singletons.appManager.tell 'IDE', 'tailFile', {
       file
       description:
-        "Your stack build completed successfully, in the following
-         logs you can find details about your custom stack script."
+        "Your Koding Stack has successfully been initialized. The log here
+         describes each executed step of the Stack creation process."
     }

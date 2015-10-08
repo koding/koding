@@ -12,7 +12,7 @@ module.exports = class CollaborationComingSoonModal extends React.Component
   render: ->
     <Modal className='CollaborationComingSoonModal' isOpen={@props.isOpen} onClose={@props.onClose}>
       <div className='CollaborationComingSoonModal-header'>
-        <h3>Collaborate using video chat</h3>
+        <h3>Start a video chat in any channel</h3>
         <span>Coming really soon...</span>
       </div>
       <div className='CollaborationComingSoonModal-content'>

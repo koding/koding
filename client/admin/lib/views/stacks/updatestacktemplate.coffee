@@ -7,11 +7,12 @@ module.exports = updateStackTemplate = (data, callback) ->
     title, stackTemplate, machines, config } = data
 
   title or= 'Default stack template'
+  config ?= stackTemplate.config ? {}
 
   if stackTemplate?.update
 
     dataToUpdate = if machines \
-      then { machines } else {
+      then { machines, config } else {
         title, template, credentials
         templateDetails, config, description
       }

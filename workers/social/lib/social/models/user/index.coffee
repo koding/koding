@@ -930,7 +930,7 @@ module.exports = class JUser extends jraphical.Module
         return callback new Error 'Registration is currently disabled!'
 
       # check if email domain is in allowed domains
-      return checkWithDomain groupName, email, callback  if not invitationToken
+      return checkWithDomain groupName, email, callback  unless invitationToken
 
       JInvitation.byCode invitationToken, (err, invitation) ->
         # check if invitation exists
@@ -1602,7 +1602,10 @@ module.exports = class JUser extends jraphical.Module
       ->
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
-        Tracker.track username, { to : email, subject }, { pin }
+
+        opts = { pin, email, group: client.context.group }
+        Tracker.track username, { to : email, subject }, opts
+
         queue.next()
 
       ->

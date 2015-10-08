@@ -38,7 +38,7 @@ module.exports = class PublicChatPane extends React.Component
     return  if @props.thread.getIn ['flags', 'isMessagesLoading']
 
     from = @props.messages.first().get('createdAt')
-    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
+    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from, loadedWithScroll: yes }
 
 
   onFollowChannel: ->
@@ -73,8 +73,13 @@ module.exports = class PublicChatPane extends React.Component
     { thread } = @props
 
     footerInnerComponent = if @channel 'isParticipant'
-    then <ChatInputWidget ref='chatInputWidget' onSubmit={@bound 'onSubmit'} thread= {thread} enableSearch={yes} />
-    else @renderFollowChannel()
+      <ChatInputWidget
+        ref='chatInputWidget'
+        onSubmit={@bound 'onSubmit'}
+        thread={thread}
+        enableSearch={yes} />
+    else
+      @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">
       {footerInnerComponent}

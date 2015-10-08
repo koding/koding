@@ -32,6 +32,7 @@ SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
 isReactivityEnabled             = require 'app/util/isReactivityEnabled'
+EnvironmentsModal               = require 'app/environment/environmentsmodal'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -105,6 +106,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
       .on 'StacksNotConfigured',       @bound 'addStacksNotConfiguredWarning'
+      .on 'GroupStacksInconsistent',   @bound 'addGroupStacksChangedWarning'
+      .on 'GroupStacksConsistent',     @bound 'hideGroupStacksChangedWarning'
 
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
@@ -522,6 +525,41 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
+  hideGroupStacksChangedWarning: ->
+
+    @groupStacksChangedWarning?.hide()
+
+
+  addGroupStacksChangedWarning: ->
+
+    return  if isKoding()
+
+    if @groupStacksChangedWarning and not @groupStacksChangedWarning.isDestroyed
+      return @groupStacksChangedWarning.show()
+
+    view = new KDCustomHTMLView
+      cssClass : 'warning-section'
+      partial  : """
+        <header class='SidebarSection-header'>
+          <h4 class='SidebarSection-headerTitle'>STACKS</h4>
+        </header>
+        <p>
+          You have different resources in your stacks.
+          Please re-initialize your stacks.
+        </p>
+      """
+
+    view.addSubView new KDCustomHTMLView
+      tagName: 'a'
+      partial: 'Show Stacks'
+      click: (event) ->
+        kd.utils.stopDOMEvent event
+        new EnvironmentsModal
+
+    @groupStacksChangedWarning = \
+      @machinesWrapper.addSubView view, null, shouldPrepend = yes
+
+
   addStacksNotConfiguredWarning: ->
 
     return  if isKoding()
@@ -551,11 +589,21 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             fully configured yet, please<br/>
             contact your team admin.
           </p>
-          <a href='/Messages/New'>Message admin</a>
           """
 
       cssClass = 'warning-section hidden'
       view     = new KDCustomHTMLView { cssClass, partial }
+
+      unless 'admin' in (roles ? [])
+        view.addSubView new KDCustomHTMLView
+          tagName: 'a'
+          partial: 'Message admin'
+          attributes: { href: '/Messages/New' }
+          click: (event) ->
+            kd.utils.stopDOMEvent event
+
+            ActivityFlux = require 'activity/flux'
+            ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
 
       @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
 

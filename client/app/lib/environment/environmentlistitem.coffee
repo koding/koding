@@ -1,16 +1,15 @@
-kd                     = require 'kd'
-JView                  = require 'app/jview'
-isKoding               = require 'app/util/isKoding'
+kd                        = require 'kd'
+JView                     = require 'app/jview'
+isKoding                  = require 'app/util/isKoding'
 
-remote                 = require('app/remote').getInstance()
+remote                    = require('app/remote').getInstance()
 
-MachinesList           = require './machineslist'
-MachinesListController = require './machineslistcontroller'
+MachinesList              = require './machineslist'
+MachinesListController    = require './machineslistcontroller'
 
-ComputeHelpers         = require '../providers/computehelpers'
-
-showNotification       = require 'app/util/showNotification'
-
+KodingSwitch              = require 'app/commonviews/kodingswitch'
+ComputeHelpers            = require '../providers/computehelpers'
+showNotification          = require 'app/util/showNotification'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
@@ -74,8 +73,8 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleMachineRequest: (provider) ->
 
-      @getDelegate().emit 'ModalDestroyRequested'
-      ComputeHelpers.handleNewMachineRequest { provider }
+    @getDelegate().emit 'ModalDestroyRequested'
+    ComputeHelpers.handleNewMachineRequest { provider }
 
 
   createExtraViews: ->
@@ -98,9 +97,14 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @updateNotification = new kd.CustomHTMLView
       cssClass : 'update-notification hidden'
 
+    @stackStateToggle = new kd.CustomHTMLView
+      cssClass : 'stack-state-toggle'
+
     if isKoding() or title is 'Managed VMs'
-    then @infoIcon = new kd.CustomHTMLView
-    else @createInfoIcon()
+      @infoIcon = new kd.CustomHTMLView
+    else
+      @createInfoIcon()
+      @createStackStateToggle()
 
 
   createInfoIcon: ->
@@ -126,6 +130,49 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           #{revisionMessage}
         "
 
+  createStackStateToggle: ->
+
+    { machines } = stack = @getData()
+    { computeController, router } = kd.singletons
+
+    notready     = no
+    state        = no
+
+    for machine in machines
+      unless machine.isUsable()
+        notready = yes
+        state    = no
+        break
+
+      state |= machine.isRunning()
+
+    toggle = new KodingSwitch
+      cssClass      : 'tiny'
+      defaultValue  : state
+      disabled      : notready
+      callback      : =>
+
+        router.handleRoute '/IDE'
+
+        if state
+        then computeController.stopStack  stack
+        else computeController.startStack stack
+
+        @getDelegate().emit 'ModalDestroyRequested'
+
+    if notready
+      @stackStateToggle.setTooltip
+        title : 'Machines are not ready'
+
+    nextState = if state then 'off' else 'on'
+
+    label = new kd.LabelView
+      title     : "Turn #{nextState} all vms in this stack"
+      mousedown : toggle.bound 'mouseDown'
+
+    @stackStateToggle.addSubView toggle
+    @stackStateToggle.addSubView label
+
 
   showUpdateNotification: ->
 
@@ -136,7 +183,6 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @fetchStackTemplate (err, stackTemplate) =>
 
       return showNotification err  if err
-
 
       { template: { details } } = stackTemplate
       lastUpdaterId = details?.lastUpdaterId ? stackTemplate.originId
@@ -189,6 +235,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         <div class="icons">
           {{> @infoIcon}}
         </div>
+        {{> @stackStateToggle}}
         <div class="button-container">
           {{> @reinitButton}}
           {{> @addManagedButton}}

@@ -262,10 +262,8 @@ module.exports = class SocialApiController extends KDController
     item.payload             = data.payload
 
     if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
-      item.payload or= {}
-      item.payload._name = data.name
       item.name = data.purpose
-      item.purpose = item.payload.description or ''
+      item.purpose = item.payload?.description or ''
     else
       item.name = data.name
       item.purpose = data.purpose
@@ -403,7 +401,7 @@ module.exports = class SocialApiController extends KDController
     socialapi.cacheItem socialApiChannel
     socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
-    {name, typeConstant, payload, token, id} = socialApiChannel
+    {name, typeConstant, token, id} = socialApiChannel
 
     subscriptionData =
       group      : group.slug
@@ -411,9 +409,6 @@ module.exports = class SocialApiController extends KDController
       channelName: name
       channelId  : id
       token      : token
-
-    if typeConstant is 'privatemessage'
-      subscriptionData['channelName'] = payload._name
 
     kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
 
@@ -829,6 +824,20 @@ module.exports = class SocialApiController extends KDController
       successFn          : removeChannel
 
     revive               : mapChannel
+
+    byParticipants: (options, callback) ->
+
+      serialized = options.participants
+        .map (id) -> "id=#{id}"
+        .join "&"
+
+      doXhrRequest
+        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        type: 'GET'
+      , (err, result) ->
+        return callback err  if err
+        return callback null, mapChannels result
+
 
   moderation:
     link     : (options, callback) ->

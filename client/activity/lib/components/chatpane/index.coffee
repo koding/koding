@@ -23,6 +23,8 @@ module.exports = class ChatPane extends React.Component
     return  unless nextProps?.thread
 
     { thread } = nextProps
+
+    @loadedWithScroll       = thread.getIn ['flags', 'loadedWithScroll']
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
     @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
 
@@ -52,9 +54,9 @@ module.exports = class ChatPane extends React.Component
     <Scroller
       ref="scrollContainer"
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
-      {@renderChannelInfoContainer()}
       <ChatList
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+        loadedWithScroll={@props.thread?.getIn ['flags', 'loadedWithScroll']}
         messages={@props.messages}
         showItemMenu={@props.showItemMenu}
         channelId={@channel 'id'}
@@ -68,6 +70,7 @@ module.exports = class ChatPane extends React.Component
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
         <section className="ChatPane-body" ref="ChatPaneBody">
+          {@renderChannelInfoContainer()}
           {@renderBody()}
           {@props.children}
         </section>

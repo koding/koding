@@ -25,7 +25,9 @@ module.exports = ScrollerMixin =
 
     element = React.findDOMNode @refs.scrollContainer
 
-    if @shouldScrollToBottom
+    if @loadedWithScroll
+      element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
+    else if @shouldScrollToBottom
       element.scrollTop = element.scrollHeight
 
 
