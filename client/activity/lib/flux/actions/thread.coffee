@@ -51,7 +51,7 @@ switchToDefaultChannelForStackRequest = ->
     nicknames = admins.map (a) -> "@#{a.profile.nickname}"
     suffix = if nicknames.length > 1 then 's' else ''
     inputValue = """
-      Hello dear admin#{suffix} #{nicknames.join ' '} can you please create a default stack template?
+      Hi #{suffix} #{nicknames.join ' '}, I don't have my VMs. Can you please create a stack?
     """
 
     ChatInputFlux = require 'activity/flux/chatinput'

@@ -12,6 +12,8 @@ prepareThreadTitle           = require 'activity/util/prepareThreadTitle'
 ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
+showNotification             = require 'app/util/showNotification'
+ChannelDropContainer         = require 'activity/components/channeldropcontainer'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -35,6 +37,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     super props
 
     @state =
+      showDropTarget        : no
       channelThread         : immutable.Map()
       channelThreadMessages : immutable.List()
       channelParticipants   : immutable.List()
@@ -72,23 +75,51 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     />
 
 
+  onDragEnter: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: yes
+
+
+  onDragOver: (event) -> kd.utils.stopDOMEvent event
+
+
+  onDragLeave: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+
+
+  onDrop: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+    showNotification 'Coming soon...', type: 'main'
+
+
   render: ->
     <div className='PrivateMessageThreadPane'>
       <CollaborationComingSoonModal
         onClose={@bound 'onClose'}
         isOpen={@state.isComingSoonModalOpen}/>
-      <section className="PrivateMessageThreadPane-content">
-        <header className="PrivateMessageThreadPane-header">
+      <section className='PrivateMessageThreadPane-content'
+        onDragEnter={@bound 'onDragEnter'}>
+        <ChannelDropContainer
+          onDrop={@bound 'onDrop'}
+          onDragOver={@bound 'onDragOver'}
+          onDragLeave={@bound 'onDragLeave'}
+          showDropTarget={@state.showDropTarget}/>
+        <header className='PrivateMessageThreadPane-header'>
           {@renderHeader()}
           <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
-        <div className="PrivateMessageThreadPane-body">
-          <section className="PrivateMessageThreadPane-chatWrapper">
+        <div className='PrivateMessageThreadPane-body'>
+          <section className='PrivateMessageThreadPane-chatWrapper'>
             {@renderChat()}
           </section>
         </div>
       </section>
-      <aside className="PrivateMessageThreadPane-sidebar">
+      <aside className='PrivateMessageThreadPane-sidebar'>
         <ThreadSidebar
           channelThread={@state.channelThread}
           channelParticipants={@state.channelParticipants}/>

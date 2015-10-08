@@ -1,6 +1,5 @@
 transformTagTokens = require './transformTagTokens'
 transformEmails = require './transformEmails'
-transformTags = require './transformReactivityTags'
 formatQuotes = require './formatQuotes'
 formatBlockquotes = require './formatBlockquotes'
 applyMarkdown = require './applyMarkdown'
@@ -11,7 +10,6 @@ module.exports = (body = '', markdownOptions = {}) ->
 
   fns = [
     transformTagTokens
-    transformTags
     transformEmails
     formatQuotes
     formatBlockquotes

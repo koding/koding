@@ -70,7 +70,7 @@ func (a *Amazon) CheckBuild(ctx context.Context, instanceId string, start, finis
 	}
 
 	ws := waitstate.WaitState{
-		Timeout:      12 * time.Minute,
+		Timeout:      15 * time.Minute,
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Running,
 		Start:        start,

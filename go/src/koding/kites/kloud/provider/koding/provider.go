@@ -71,7 +71,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		p.Log.Debug("[%s] using region: %s", machine.Id.Hex(), machine.Meta.Region)
 	}
 
-	if err := p.attachSession(ctx, machine); err != nil {
+	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	return machine, nil
 }
 
-func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
+func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
 	if len(machine.Users) == 0 {
@@ -154,7 +154,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	machine.User = user
 	machine.cleanFuncs = make([]func(), 0)
 	machine.Checker = checker
-	machine.locker = p
+	machine.Locker = p
 
 	ev, ok := eventer.FromContext(ctx)
 	if ok {

@@ -333,3 +333,14 @@ func RemoveAllMachinesForUser(userId bson.ObjectId) error {
 
 	return Mongo.Run(MachinesColl, query)
 }
+
+func UnsetKlientMissingAt(userId bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.UpdateId(
+			userId,
+			bson.M{"$unset": bson.M{"assignee.klientMissingAt": ""}},
+		)
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
