@@ -9,7 +9,9 @@ handleError = (err, callback) ->
   console.error err
   return callback? err
 
+
 updateCookie = (req, res, session) ->
+
   { clientId }       = session
   { maxAge, secure } = KONFIG.sessionCookie
 
@@ -114,5 +116,3 @@ prepareFakeClient = (fakeClient, options) ->
 
 
 module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie }
-
-
