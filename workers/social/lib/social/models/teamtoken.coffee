@@ -114,7 +114,7 @@ module.exports = class JTeamInvitation extends jraphical.Module
 
       emails.forEach (email) =>
         queue.push =>
-          @create client, {email}, (err, invitation) ->
+          @create client, { email }, (err, invitation) ->
             return queue.fin()  if err
 
             properties =
@@ -122,7 +122,7 @@ module.exports = class JTeamInvitation extends jraphical.Module
               invitee  : invitation.email
               link     : "#{protocol}//#{hostname}/Teams/#{encodeURIComponent invitation.code}"
 
-            Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.CREATE_TEAM }, properties
+            Tracker.identifyAndTrack invitation.email, { subject: Tracker.types.CREATE_TEAM }, properties
             queue.fin()
 
       dash queue, callback
