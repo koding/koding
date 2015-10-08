@@ -57,9 +57,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
       return showErrorNotification err  if err
 
-      if isAdmin
-      then @setState isGroupAdmin: yes
-      else @setState isGroupAdmin: no
+      @setState isGroupAdmin: isAdmin
 
     document.addEventListener 'mousedown', @bound 'handleOutsideMouseClick'
 
