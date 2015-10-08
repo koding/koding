@@ -80,7 +80,10 @@ channelParticipants = [
   (channelIds, users) ->
     channelIds.map (participantIds) ->
       participantIds.reduce (result, id) ->
-        if users.has id
+
+        return result  if id is whoami()._id
+
+        if users.has(id)
         then result.set id, users.get id
         else result
       , immutable.Map()
