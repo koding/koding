@@ -3,6 +3,8 @@ KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
 bongo            = require './bongo'
 { v4: createId } = require 'node-uuid'
 
+{ setSessionCookie } = require './helpers'
+
 handleError = (err, callback) ->
   console.error err
   return callback? err
@@ -18,7 +20,7 @@ updateCookie = (req, res, session) ->
     req.pendingCookies or= {}
     req.pendingCookies.clientId = clientId
 
-    res.cookie 'clientId', clientId, { maxAge, secure }
+    setSessionCookie res, clientId
 
   unless req?.cookies?._csrf
 
