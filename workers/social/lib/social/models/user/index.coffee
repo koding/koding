@@ -20,8 +20,6 @@ module.exports = class JUser extends jraphical.Module
   JName                = require '../name'
   JGroup               = require '../group'
   JLog                 = require '../log'
-  JPaymentPlan         = require '../payment/plan'
-  JPaymentSubscription = require '../payment/subscription'
   ComputeProvider      = require '../computeproviders/computeprovider'
   Tracker              = require '../tracker'
 
