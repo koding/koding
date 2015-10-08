@@ -10,6 +10,7 @@ MoreWorkspacesModal     = require 'app/activity/sidebar/moreworkspacesmodal'
 AddWorkspaceView        = require 'app/addworkspaceview'
 IDEAppController        = require 'ide'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+isKoding                = require 'app/util/isKoding'
 
 
 module.exports = class SidebarMachineBox extends KDView
@@ -267,7 +268,8 @@ module.exports = class SidebarMachineBox extends KDView
 
       switch state
         when Stopping, Terminating then @deselect()
-        when Terminated then @destroy()
+        when Terminated
+          @destroy()  if isKoding()
 
 
   setUnreadCount: (channelId, count) ->
