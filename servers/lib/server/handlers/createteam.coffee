@@ -42,7 +42,6 @@ module.exports = (req, res, next) ->
     ->
       { teamAccessCode } = body
       # if we dont have teamaccesscode just continue
-      return queue.next() if not teamAccessCode
 
       validateTeamInvitation = validateTeamInvitationKallback res, queue
       JTeamInvitation.byCode teamAccessCode, validateTeamInvitation
