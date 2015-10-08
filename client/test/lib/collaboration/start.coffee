@@ -76,14 +76,14 @@ joinSession = (browser, firstUser, secondUser) ->
 
 start = (browser) ->
 
-  firstUser    = utils.getUser no, 0
-  secondUser   = utils.getUser no, 1
-  firstBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+  host        = utils.getUser no, 0
+  participant = utils.getUser no, 1
+  hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
 
-  if firstBrowser
-    startSession browser, firstUser, secondUser
+  if hostBrowser
+    startSession browser, host, participant
   else
-    joinSession browser, firstUser, secondUser
+    joinSession browser, host, participant
 
 
 module.exports =
