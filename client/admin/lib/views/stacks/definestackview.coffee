@@ -75,11 +75,11 @@ module.exports = class DefineStackView extends KDView
     @providersView                     = new ProvidersView {
       stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
     }
-    @tabView.addPane providersPane     = new KDTabPaneView
+    @tabView.addPane @providersPane    = new KDTabPaneView
       name : 'Credentials'
       view : @providersView
 
-    providersPane.tabHandle.addSubView @credentialWarning = new kd.CustomHTMLView
+    @providersPane.tabHandle.addSubView @credentialWarning = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'warning hidden'
 
@@ -118,14 +118,16 @@ module.exports = class DefineStackView extends KDView
       if status is 'verified'
         @_credentialsPassed = yes
         @credentialWarning.hide()
+        @providersPane.tabHandle.unsetClass 'warning'
         @tabView.showPaneByIndex 0
       else
         @credentialWarning.show()
+        @providersPane.tabHandle.setClass 'warning'
         @_credentialsPassed = no
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
-      unless pane is providersPane
+      unless pane is @providersPane
         pane.getMainView().emit 'FocusToEditor'
 
     { ace } = @stackTemplateView.editorView.aceView
