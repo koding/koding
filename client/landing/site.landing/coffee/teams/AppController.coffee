@@ -6,8 +6,7 @@ module.exports = class TeamsAppController extends KDViewController
 
   constructor: (options = {}, data) ->
 
-    options.view = new TeamsView
-      cssClass   : 'content-page teams'
+    options.view = new TeamsView { cssClass: 'content-page' }
 
     super options, data
 

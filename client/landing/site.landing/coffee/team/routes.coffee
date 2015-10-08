@@ -5,17 +5,8 @@ do ->
   KD.registerRoutes 'Team',
 
     '/Team'       : handleRoot
-    '/Team/Login' : -> KD.singletons.router.handleRoute '/Login'
+    '/Team/Login' : -> KD.singletons.router.handleRoute '/Team'
     '/Team/:step' : ({ params : { step }, query }) ->
-
-      unless KD.config.hasTeamAccess
-        groupName  = KD.utils.getGroupNameFromLocation()
-        if groupName isnt 'koding'
-          href = location.href
-          href = href.replace "#{groupName}.", ''
-          return location.assign href
-        else
-          return handleRoot()
 
       { router } = KD.singletons
       router.openSection 'Team', null, null, (app) ->

@@ -213,18 +213,14 @@ utils.extend utils,
         new KDNotificationView title : responseText
 
 
-  routeIfInvitationTokenIsValid: (token) ->
+  routeIfInvitationTokenIsValid: (token, callbacks) ->
 
     $.ajax
       url       : "/-/teams/validate-token"
       data      : { token }
       type      : 'POST'
-      success   : ({email}) ->
-        KD.utils.storeNewTeamData 'invitation', { token, email }
-        KD.singletons.router.handleRoute '/Welcome'
-      error     : ({responseText}) ->
-        new KDNotificationView title : responseText
-        KD.singletons.router.handleRoute '/'
+      success   : callbacks.success
+      error     : callbacks.error
 
 
   fetchTeamMembers: ({name, limit, token}, callback) ->

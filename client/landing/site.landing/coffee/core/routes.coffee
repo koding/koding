@@ -17,7 +17,7 @@ do ->
 
 
     # if there is no such group take user to group creation with given group info
-    if not group or not KD.config.hasTeamAccess
+    if not group
       newUrl = "http://#{location.host.replace(groupName + '.', '')}/Teams?group=#{groupName}"
       return location.replace newUrl
 
@@ -27,8 +27,13 @@ do ->
 
   handleInvitation = ({params : {token}, query}) ->
 
-    { routeIfInvitationTokenIsValid } = KD.utils
-    routeIfInvitationTokenIsValid token
+    KD.utils.routeIfInvitationTokenIsValid token,
+      success   : ({email}) ->
+        KD.utils.storeNewTeamData 'invitation', { token, email }
+        KD.singletons.router.handleRoute '/Welcome'
+      error     : ({responseText}) ->
+        new KDNotificationView title : responseText
+        KD.singletons.router.handleRoute '/'
 
 
   handleTeamOnboardingRoute = (section, {params, query}) ->
