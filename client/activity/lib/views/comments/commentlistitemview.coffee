@@ -3,7 +3,7 @@ KDButtonView              = kd.ButtonView
 KDCustomHTMLView          = kd.CustomHTMLView
 KDTimeAgoView             = kd.TimeAgoView
 KDView                    = kd.View
-runEmojifyOnMarkdown      = require 'activity/util/runEmojifyOnMarkdown'
+emojifyMarkdown           = require 'activity/util/emojifyMarkdown'
 CommentDeleteModal        = require './commentdeletemodal'
 CommentInputEditWidget    = require './commentinputeditwidget'
 CommentLikeView           = require './commentlikeview'
@@ -49,7 +49,7 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
   handleDataUpdate: ->
 
     handleUpdate.call this
-    runEmojifyOnMarkdown @getElement()
+    emojifyMarkdown @getElement()
 
 
   handleInternalLink: (event) ->
@@ -266,7 +266,7 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
 
     kd.utils.defer =>
       @checkIfItsTooTall()
-      runEmojifyOnMarkdown @getElement()
+      emojifyMarkdown @getElement()
 
     # @setAnchors()
 

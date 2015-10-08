@@ -15,7 +15,7 @@ ProfileLinkView           = require 'app/commonviews/linkviews/profilelinkview'
 JView                     = require 'app/jview'
 AvatarView                = require 'app/commonviews/avatarviews/avatarview'
 Promise                   = require 'bluebird'
-runEmojifyOnMarkdown      = require 'activity/util/runEmojifyOnMarkdown'
+emojifyMarkdown           = require 'activity/util/emojifyMarkdown'
 htmlencode                = require 'htmlencode'
 animatedRemoveMixin       = require 'activity/mixins/animatedremove'
 ActivityBaseListItemView  = require './activitybaselistitemview'
@@ -227,14 +227,14 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
 
     super
 
-    runEmojifyOnMarkdown @getElement()
+    emojifyMarkdown @getElement()
 
 
   viewAppended: ->
 
     JView::viewAppended.call this
 
-    runEmojifyOnMarkdown @getElement()
+    emojifyMarkdown @getElement()
 
     { updatedAt, createdAt } = @getData()
 
