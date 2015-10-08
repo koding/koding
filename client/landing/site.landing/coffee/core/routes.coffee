@@ -27,8 +27,13 @@ do ->
 
   handleInvitation = ({params : {token}, query}) ->
 
-    { routeIfInvitationTokenIsValid } = KD.utils
-    routeIfInvitationTokenIsValid token
+    KD.utils.routeIfInvitationTokenIsValid token,
+      success   : ({email}) ->
+        KD.utils.storeNewTeamData 'invitation', { token, email }
+        KD.singletons.router.handleRoute '/Welcome'
+      error     : ({responseText}) ->
+        new KDNotificationView title : responseText
+        KD.singletons.router.handleRoute '/'
 
 
   handleTeamOnboardingRoute = (section, {params, query}) ->
