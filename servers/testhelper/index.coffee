@@ -4,8 +4,23 @@ Bongo       = require 'bongo'
 request     = require 'request'
 querystring = require 'querystring'
 
+{ argv  }   = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+mongo       = KONFIG.mongoReplSet or "mongodb://#{ KONFIG.mongo }"
 { daisy }   = Bongo
 { expect }  = require 'chai'
+
+
+checkBongoConnectivity = (callback) ->
+
+  bongo = new Bongo
+    root   : __dirname
+    mongo  : mongo
+    models : ''
+
+  bongo.once 'dbClientReady', ->
+    callback()
+
 
 # returns 20 characters by default
 generateRandomString = (length = 20) -> hat().slice(32 - length)
@@ -127,5 +142,6 @@ module.exports = {
   generateRandomEmail
   generateRandomString
   generateRandomUsername
+  checkBongoConnectivity
   generateDefaultRequestParams
 }
