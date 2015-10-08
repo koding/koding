@@ -189,7 +189,6 @@ afterGroupCreateKallback = (res, params) ->
           queue.fin()
 
       ->
-        return queue.fin()  if not teamAccessCode
         JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
           return queue.fin  if err or not invitation
           invitation.markAsUsed (err) ->
