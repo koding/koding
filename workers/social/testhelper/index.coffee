@@ -45,24 +45,22 @@ generateDummyClient = (context, callback) ->
     { session, account } = data
     context ?= { group: session?.groupName ? 'koding' }
 
-    if account instanceof JAccount
-      { clientIP, clientId } = session
+    return callback 'session error'  unless account instanceof JAccount
 
-      # replace token with session.clientid
-      sessionToken = clientId
+    { clientIP, clientId } = session
 
-      # setting client data
-      client =
-        sessionToken : sessionToken
-        context      : context
-        clientIP     : '127.0.0.1'
-        connection   :
-          delegate   : account
+    # replace token with session.clientid
+    sessionToken = clientId
 
-      callback null, client
+    # setting client data
+    client =
+      sessionToken : sessionToken
+      context      : context
+      clientIP     : '127.0.0.1'
+      connection   :
+        delegate   : account
 
-    else
-      callback 'session error'
+    callback null, client
 
 
 withDummyClient = (context, callback) ->
