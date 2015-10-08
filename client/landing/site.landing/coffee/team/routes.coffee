@@ -5,7 +5,7 @@ do ->
   KD.registerRoutes 'Team',
 
     '/Team'       : handleRoot
-    '/Team/Login' : -> KD.singletons.router.handleRoute '/Login'
+    '/Team/Login' : -> KD.singletons.router.handleRoute '/Team'
     '/Team/:step' : ({ params : { step }, query }) ->
 
       { router } = KD.singletons
