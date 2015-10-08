@@ -31,7 +31,8 @@ updateCookie = (req, res, session) ->
     req.pendingCookies or= {}
     req.pendingCookies._csrf = csrfToken
 
-    res.cookie '_csrf', csrfToken, { maxAge, secure }
+    expires = new Date Date.now() + maxAge
+    res.cookie '_csrf', csrfToken, { expires, secure }
 
 
 generateFakeClientFromReq = (req, res, callback) ->
