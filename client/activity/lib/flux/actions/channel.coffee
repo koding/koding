@@ -294,20 +294,9 @@ loadPopularChannels = (options = {}) ->
 ###
 loadChannelsByQuery = (query, options = {}) ->
 
-  { LOAD_CHANNELS_BEGIN
-    LOAD_CHANNELS_SUCCESS
-    LOAD_CHANNELS_FAIL } = actionTypes
-
   options.name = query
-
-  dispatch LOAD_CHANNELS_BEGIN
-
-  kd.singletons.socialapi.channel.searchTopics options, (err, channels) ->
-    if err
-      dispatch LOAD_CHANNELS_FAIL, { err, query }
-      return
-
-    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+  func = kd.singletons.socialapi.channel.searchTopics
+  loadChannelsWithFunc func, options
 
 
 ###*
@@ -317,18 +306,32 @@ loadChannelsByQuery = (query, options = {}) ->
 ###
 loadChannels = (options = {}) ->
 
+  func = kd.singletons.socialapi.channel.list
+  loadChannelsWithFunc func, options
+
+
+loadChannelsWithFunc = (func, options) ->
+
   { LOAD_CHANNELS_BEGIN
     LOAD_CHANNELS_SUCCESS
-    LOAD_CHANNELS_FAIL } = actionTypes
+    LOAD_CHANNELS_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
 
   dispatch LOAD_CHANNELS_BEGIN
 
-  kd.singletons.socialapi.channel.list options, (err, channels) ->
-    if err
-      dispatch LOAD_CHANNELS_FAIL, { err }
-      return
+  new Promise (resolve, reject) ->
+    func options, (err, channels) ->
+      if err
+        dispatch LOAD_CHANNELS_FAIL, { err }
+        return reject err
 
-    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+      kd.singletons.reactor.batch ->
+        channels.forEach (channel) ->
+          dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+        dispatch LOAD_CHANNELS_SUCCESS, { channels }
+
+      resolve { channels }
 
 
 ###*

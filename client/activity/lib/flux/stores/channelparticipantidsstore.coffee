@@ -13,7 +13,6 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_CHANNEL_SUCCESS, @handleChannelLoad
-    @on actions.LOAD_CHANNELS_SUCCESS, @handleChannelsLoad
 
     @on actions.LOAD_CHANNEL_PARTICIPANTS_BEGIN, @handleLoadBegin
     @on actions.LOAD_CHANNEL_PARTICIPANT_SUCCESS, @handleLoadSuccess
@@ -34,14 +33,6 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
   handleChannelLoad: (participantIds, { channel }) ->
 
     return participantIds.set channel.id, immutable.Map()
-
-
-  handleChannelsLoad: (participantIds, { channels }) ->
-
-    return participantIds.withMutations (map) =>
-      for channel in channels
-        map = @handleChannelLoad map, { channel }
-      return map
 
 
   ###*
