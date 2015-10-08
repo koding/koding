@@ -27,7 +27,7 @@ module.exports = class GroupStackSettings extends kd.View
 
     onboardingView.on 'StackOnboardingCompleted', (template) =>
       onboardingView.destroy()
-      @showEditor template
+      @showEditor template, no, yes
 
     onboardingView.on 'ScrollTo', (direction = 'top') =>
       duration = 500
@@ -44,11 +44,11 @@ module.exports = class GroupStackSettings extends kd.View
     @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
 
 
-  showEditor: (stackTemplate, inEditMode) ->
+  showEditor: (stackTemplate, inEditMode, showHelpContent) ->
 
     @initialView.hide()
 
-    defineStackView = new DefineStackView { inEditMode }, { stackTemplate }
+    defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
     @scrollView.addSubView defineStackView
 
     defineStackView.on 'Reload', => @initialView.reload()

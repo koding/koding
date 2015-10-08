@@ -11,10 +11,6 @@ module.exports = class ProvidersView extends KDView
 
     super options, data
 
-    @addSubView new KDCustomHTMLView
-      cssClass  : 'text header'
-      partial   : 'Provide credential details for this stack'
-
     { stackTemplate, selectedCredentials, provider } = @getOptions()
 
     @credentialList = new CredentialListView {

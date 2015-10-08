@@ -87,7 +87,7 @@ module.exports = class CredentialStatusView extends KDView
     @setInfo()
     @link.updatePartial message or 'Credentials are not set'
     @icon.unsetClass 'verified'
-    @emit 'StatusChanged', 'not-verified'
+    kd.utils.defer => @emit 'StatusChanged', 'not-verified'
 
     @stalledView.show()
 
