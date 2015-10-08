@@ -12,6 +12,8 @@ ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdr
 DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
 getGroup                    = require 'app/util/getGroup'
 validator                   = require 'validator'
+showErrorNotification       = require 'app/util/showErrorNotification'
+
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
@@ -28,7 +30,11 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     super
 
-    @state = { addNewParticipantMode: no, showAllParticipants: no, value: '' }
+    @state =
+      value                 : ''
+      isGroupAdmin          : no
+      showAllParticipants   : no
+      addNewParticipantMode : no
 
 
   getDataBindings: ->
@@ -45,6 +51,8 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
 
   componentDidMount: ->
+
+    @isUserGroupAdmin()
 
     document.addEventListener 'mousedown', @bound 'handleOutsideMouseClick'
 
@@ -205,12 +213,19 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     channel.setChannelParticipantsDropdownVisibility yes
 
 
-  isGroupAdmin: ->
+  isUserGroupAdmin: ->
 
-    accountId    = whoami()._id
-    groupAdminId = @props.channelThread.getIn ['channel','accountOldId']
+    { groupsController } = kd.singletons
 
-    return accountId is groupAdminId
+    groupsController.ready =>
+      currentGroup = groupsController.getCurrentGroup()
+      currentGroup.fetchMyRoles (err, roles) =>
+        return showErrorNotification err  if err
+
+        if 'admin' in (roles ? [])
+          return @setState isGroupAdmin: yes
+        else
+          return @setState isGroupAdmin: no
 
 
   isGroupChannel: ->
@@ -224,7 +239,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     DropboxInputMixin.onEnter.call this, event
 
-    if @isGroupAdmin() and @isGroupChannel()
+    if @state.isGroupAdmin and @isGroupChannel()
 
       value        = event.target.value.trim()
       isValidEmail = validator.isEmail value
@@ -241,7 +256,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     placeholder  = 'type a @username and hit enter'
 
-    if @isGroupAdmin() and @isGroupChannel()
+    if @state.isGroupAdmin and @isGroupChannel()
       placeholder = 'type a @username or email'
 
     return placeholder
