@@ -1549,8 +1549,8 @@ module.exports = class JUser extends jraphical.Module
     { nickname : oldUsername }  = account.profile
 
     # if firstname is not received use username as firstname
-    userFormData.firstName = username  if not firstName or firstName is ''
-    userFormData.lastName  = ''        if not lastName
+    userFormData.firstName = username  unless firstName
+    userFormData.lastName  = ''        unless lastName
 
     email = userFormData.email = emailsanitize email
 
@@ -1572,14 +1572,16 @@ module.exports = class JUser extends jraphical.Module
 
       =>
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo) ->
-          console.log 'Error while getting oauth data from session', err  if err
+          if err
+            console.log 'Error while getting oauth data from session', err
+            return queue.next()
 
-          foreignAuthType = foreignAuthInfo?.foreignAuthType
+          return queue.next()  unless foreignAuthInfo
 
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
           # a security hole, let's auto generate it if it's not provided in request
-          if foreignAuthInfo?.foreignAuthType and not password?
+          unless password
             password        = userFormData.password        = createId()
             passwordConfirm = userFormData.passwordConfirm = password
 
