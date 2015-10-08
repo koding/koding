@@ -15,6 +15,18 @@ KodingError = require '../error'
 
 emailsanitize = require './user/emailsanitize'
 
+getName = (delegate) ->
+
+  { nickname, firstName, lastName } = delegate.profile
+
+  name = nickname
+  name = firstName              if firstName
+  name = "#{name} #{lastName}"  if firstName and lastName
+
+  return name
+
+
+
 module.exports = class JTeamInvitation extends jraphical.Module
 
   @trait __dirname, '../traits/protected'
@@ -37,6 +49,8 @@ module.exports = class JTeamInvitation extends jraphical.Module
           (signature Object, Function)
         byCode:
           (signature String, Function)
+        sendInvitationEmails:
+          (signature [String], Function)
 
     sharedEvents    :
       static        : []
@@ -90,4 +104,26 @@ module.exports = class JTeamInvitation extends jraphical.Module
 
   @byCode: (code, callback) ->
     @one { code }, callback
+
+  @sendInvitationEmails: permit 'send invitations',
+    success: (client, emails, callback) ->
+
+      inviter     = getName client.connection.delegate
+      queue       = []
+      invitations = []
+
+      emails.forEach (email) =>
+        queue.push =>
+          @create client, {email}, (err, invitation) ->
+            return queue.fin()  if err
+
+            properties =
+              inviter  : inviter
+              invitee  : invitation.email
+              link     : "#{protocol}//#{hostname}/Teams/#{encodeURIComponent invitation.code}"
+
+            Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.CREATE_TEAM }, properties
+            queue.fin()
+
+      dash queue, callback
 
