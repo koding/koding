@@ -60,6 +60,7 @@ module.exports = class MessageBody extends React.Component
 
     typeConstant = message.get 'typeConstant'
     className    = classnames
+      'has-markdown'          : yes
       'MessageBody'           : yes
       'MessageBody-joinLeave' : typeConstant in [ 'join', 'leave', 'system' ]
 
