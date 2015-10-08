@@ -65,6 +65,9 @@ generateDummyClient = (context, callback) ->
 
 withDummyClient = (context, callback) ->
 
+  [context, callback] = [callback, context]  unless callback
+  context         ?= { group : 'koding' }
+
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
     callback { client }
@@ -72,6 +75,7 @@ withDummyClient = (context, callback) ->
 
 withConvertedUser = (opts, callback) ->
 
+  [opts, callback]          = [callback, opts]  unless callback
   { context, userFormData } = opts  if opts
 
   context      ?= { group : 'koding' }
@@ -84,7 +88,7 @@ withConvertedUser = (opts, callback) ->
       client.sessionToken        = newToken
       client.connection.delegate = account
 
-      if opts.userFormData?
+      if opts?.userFormData?
       then callback { client, account, sessionToken : newToken }
       else callback { client, account, sessionToken : newToken, userFormData }
 
@@ -154,6 +158,7 @@ generateRandomUserArray =  (count, callback) ->
 
 
 module.exports = {
+  _
   daisy
   expect
   withDummyClient
