@@ -813,7 +813,7 @@ class IDEAppController extends AppController
 
   goToTabNumber: (index) ->
 
-    @activeTabView.showPaneByIndex index
+    @activeTabView?.showPaneByIndex index
 
 
   goToLine: ->
