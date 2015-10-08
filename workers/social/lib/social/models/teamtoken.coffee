@@ -74,19 +74,24 @@ module.exports = class JTeamInvitation extends jraphical.Module
     success: (client, callback) ->
       @remove callback
 
-  @create: permit 'send invitations',
+
+  @create: (options, callback) ->
+
+    data =
+      code      : options.code or shortid.generate()[0..3] # eg: VJPj9
+      email     : options.email
+      groupName : options.groupName or 'koding'
+
+    invite = new JTeamInvitation data
+    invite.save (err) ->
+      return callback new KodingError err  if err
+      return callback null, invite
+
+
+  @create$: permit 'send invitations',
     success: (client, options, callback) ->
+      @create options, callback
 
-      data =   {
-        code      : options.code or shortid.generate()[0..3] # eg: VJPj9
-        email     : options.email
-        groupName : options.groupName or 'koding'
-      }
-
-      invite = new JTeamInvitation data
-      invite.save (err) ->
-        return callback new KodingError err  if err
-        return callback null, invite
 
   @byCode: (code, callback) ->
     @one { code }, callback
