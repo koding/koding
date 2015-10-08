@@ -82,6 +82,8 @@ module.exports = class DefineStackView extends KDView
     @providersPane.tabHandle.addSubView @credentialWarning = new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'warning hidden'
+      tooltip  :
+        title  : 'You need to set your AWS credentials to be able build this stack.'
 
     @credentialStatusView = new CredentialStatusView { stackTemplate }
     { @credentials } = @stackTemplateView.credentialStatus or {}
