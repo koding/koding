@@ -62,33 +62,35 @@ module.exports = class VariablesView extends StackBaseEditorTabView
         if not value = @_providedData[field] or value?.trim?() is ''
           missings.push field
 
-      if (count = missings.length) > 0
-        @setState 'MISSING', missings
-        @indicator.updatePartial count
-        return
-
-      @setState 'PASSED'
-      @indicator.unsetClass 'in'
+      if missings.length then @setState 'MISSING', missings else @setState 'PASSED'
 
     else
-      @indicator.unsetClass 'in'
       @setState 'INITIAL'
 
 
   setState: (newState, missings) ->
 
     stateMessage = STATES[newState]
+    @_state      = newState
 
-    if missings?
-      stateMessage = STATES.MISSING.replace '%VARIABLES%', missings
+    @indicator.unsetTooltip()
 
-    if newState is 'INVALID'
-      @indicator.setClass 'in red'
-      @indicator.updatePartial 's'
+    if @isPassed()
+      @indicator.unsetClass 'in red'
+      @parent.tabHandle.unsetClass 'notification'
     else
+      @indicator.setClass 'in'
       @indicator.unsetClass 'red'
+      @parent.tabHandle.setClass 'notification'
 
-    @_state = newState
+    if newState is 'MISSING'
+      if missings.length
+        stateMessage = STATES.MISSING.replace '%VARIABLES%', missings
+        @indicator.setTooltip title: stateMessage
+        @indicator.updatePartial missings.length
+    else if newState is 'INVALID'
+      @indicator.setClass 'red'
+      @indicator.updatePartial '!'
 
 
   isPassed: -> @_state in ['PASSED', 'INITIAL']
