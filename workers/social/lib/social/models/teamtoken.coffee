@@ -123,7 +123,10 @@ module.exports = class JTeamInvitation extends jraphical.Module
               link     : "#{protocol}//#{hostname}/Teams/#{encodeURIComponent invitation.code}"
 
             Tracker.identifyAndTrack invitation.email, { subject: Tracker.types.INVITED_CREATE_TEAM }, properties
+
+            invitations.push invitation
+
             queue.fin()
 
-      dash queue, callback
-
+      dash queue, ->
+        callback null, invitations

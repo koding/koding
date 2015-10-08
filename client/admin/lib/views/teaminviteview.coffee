@@ -48,6 +48,11 @@ module.exports = class TeamInviteView extends JView
       cssClass : 'solid medium red fr hidden'
       callback : @bound 'hideConfirmation'
 
+    @close = new kd.ButtonView
+      title    : 'Close'
+      cssClass : 'solid medium fr hidden'
+      callback : @bound 'hideConfirmation'
+
 
   prepareEmails: ->
 
@@ -63,9 +68,29 @@ module.exports = class TeamInviteView extends JView
 
   sendInvites: ->
 
-    remote.api.JTeamInvitation.sendInvitationEmails @emails, =>
-      new kd.NotificationView title : 'Invitations sent!'
-      @hideConfirmation()
+    remote.api.JTeamInvitation.sendInvitationEmails @emails, (err, invitations) =>
+
+      new kd.NotificationView
+        title: 'Invitations sent!'
+
+      message = ""
+
+      { protocol, hostname, port } = location
+
+      port = ":#{port}"  if port
+
+      for invitation in invitations
+        url = "#{protocol}//#{hostname}#{port}/Teams/#{encodeURIComponent invitation.code}"
+        message += " - #{invitation.email} : <a href='#{url}'>#{url}</a><br/>"
+
+      @confirmationView.updatePartial "Following invitations are sent:<br/><br/>#{message}"
+
+      @confirm.hide()
+      @abort.hide()
+
+      @textarea.setValue ''
+
+      @close.show()
 
 
   showConfirmation: ->
@@ -74,6 +99,7 @@ module.exports = class TeamInviteView extends JView
 
     @confirmationView.updatePartial @emails.join '<br/>'
 
+    @close.hide()
     @textarea.hide()
     @invite.hide()
 
@@ -89,6 +115,7 @@ module.exports = class TeamInviteView extends JView
     @confirmationView.hide()
     @confirm.hide()
     @abort.hide()
+    @close.hide()
 
     @textarea.show()
     @invite.show()
@@ -101,5 +128,5 @@ module.exports = class TeamInviteView extends JView
     {{> @textarea}}
     {{> @invite}}
     {{> @confirmationView}}
-    {{> @confirm}}{{> @abort}}
+    {{> @close}}{{> @confirm}}{{> @abort}}
     """
