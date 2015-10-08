@@ -11,10 +11,7 @@ module.exports = (callback) ->
 
       return callback err  if err
 
-      isAdmin = no
-
-      if 'admin' in (roles ? [])
-        isAdmin = yes
+      isAdmin = 'admin' in (roles ? [])
 
       return callback null, isAdmin
 
