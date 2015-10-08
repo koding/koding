@@ -91,6 +91,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
     else if newState is 'INVALID'
       @indicator.setClass 'red'
       @indicator.updatePartial '!'
+      @indicator.setTooltip title: STATES.INVALID
 
 
   isPassed: -> @_state in ['PASSED', 'INITIAL']
