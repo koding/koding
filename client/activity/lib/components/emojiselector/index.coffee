@@ -94,10 +94,10 @@ module.exports = class EmojiSelector extends React.Component
     { visible, selectedItem } = @props
 
     <Dropbox
-      className    = 'EmojiSelector'
-      visible      = { visible }
-      onOuterClick = { @bound 'close' }
-      direction    = 'up'
+      className = 'EmojiSelector'
+      visible   = { visible }
+      onClose   = { @bound 'close' }
+      direction = 'up'
     >
       <div className="EmojiSelector-list" ref="list">
         {@renderList()}

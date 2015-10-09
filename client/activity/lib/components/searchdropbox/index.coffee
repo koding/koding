@@ -130,12 +130,12 @@ module.exports = class SearchDropbox extends React.Component
     isEmptyQuery = not query and visible
 
     <Dropbox
-      className      = 'SearchDropbox'
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
-      direction      = 'up'
-      title          = 'Search'
-      ref            = 'dropbox'
+      className = 'SearchDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      direction = 'up'
+      title     = 'Search'
+      ref       = 'dropbox'
     >
       { @renderEmptyQueryMessage()  if isEmptyQuery }
       { @renderError()  if isError }

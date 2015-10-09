@@ -104,12 +104,12 @@ module.exports = class ChannelDropbox extends React.Component
   render: ->
 
     <Dropbox
-      className    = 'ChannelDropbox'
-      visible      = { @isActive() }
-      onOuterClick = { @bound 'close' }
-      direction    = 'up'
-      title        = 'Channels'
-      ref          = 'dropbox'
+      className = 'ChannelDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      direction = 'up'
+      title     = 'Channels'
+      ref       = 'dropbox'
     >
       {@renderList()}
     </Dropbox>

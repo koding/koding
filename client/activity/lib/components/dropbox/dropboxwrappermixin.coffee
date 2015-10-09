@@ -61,3 +61,6 @@ module.exports = DropboxWrapperMixin =
 
   getItemKey: (item) -> item.get 'id'
 
+
+  setPosition: (inputDimensions) -> @refs.dropbox.setPosition inputDimensions
+

@@ -56,11 +56,11 @@ module.exports = class CreateChannelParticipantsDropdown extends React.Component
   render: ->
 
     <Dropbox
-      className      = "ChannelParticipantsDropdown CreateChannel-dropbox"
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
-      ref            = 'dropbox'
-      top            = '100px'
+      className = "ChannelParticipantsDropdown CreateChannel-dropbox"
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      ref       = 'dropbox'
+      top       = '100px'
     >
       <div className="Dropdown-innerContainer">
         <div className="ChannelParticipantsDropdown-list">

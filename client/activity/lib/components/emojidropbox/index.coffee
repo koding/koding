@@ -107,13 +107,13 @@ module.exports = class EmojiDropbox extends React.Component
     { query } = @props
 
     <Dropbox
-      className    = 'EmojiDropbox'
-      visible      = { @isActive() }
-      onOuterClick = { @bound 'close' }
-      direction    = 'up'
-      title        = 'Emojis matching '
-      subtitle     = { ":#{query}" }
-      ref          = 'dropbox'
+      className = 'EmojiDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      direction = 'up'
+      title     = 'Emojis matching '
+      subtitle  = { ":#{query}" }
+      ref       = 'dropbox'
     >
       {@renderList()}
       <div className="clearfix" />

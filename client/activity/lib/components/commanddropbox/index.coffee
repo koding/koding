@@ -126,13 +126,13 @@ module.exports = class CommandDropbox extends React.Component
     isError = items.size is 0 and query
 
     <Dropbox
-      className    = 'CommandDropbox'
-      visible      = { @isActive() }
-      onOuterClick = { @bound 'close' }
-      direction    = 'up'
-      title        = 'Commands matching'
-      subtitle     = { query }
-      ref          = 'dropbox'
+      className = 'CommandDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      direction = 'up'
+      title     = 'Commands matching'
+      subtitle  = { query }
+      ref       = 'dropbox'
     >
       { @renderList()  unless isError }
       { @renderError()  if isError }

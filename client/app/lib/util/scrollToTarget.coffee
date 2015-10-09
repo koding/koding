@@ -25,13 +25,17 @@ module.exports = (container, target) ->
   containerScrollTop    = container.scrollTop()
   containerHeight       = container.height()
   containerScrollBottom = containerScrollTop + containerHeight
-  targetTop             = target.position().top
+
+  targetPosition        = target.position()
+  return  unless targetPosition
+
+  targetTop             = targetPosition.top
   targetHeight          = target.outerHeight yes
   targetBottom          = targetTop + targetHeight
 
-  isBelowVisibleArea = targetBottom > containerScrollBottom
-  isAboveVisibleArea = targetTop < containerScrollTop
-  fitContainerHeight = targetHeight < containerHeight
+  isBelowVisibleArea    = targetBottom > containerScrollBottom
+  isAboveVisibleArea    = targetTop < containerScrollTop
+  fitContainerHeight    = targetHeight < containerHeight
 
   if isBelowVisibleArea and fitContainerHeight
     hasNextSibling = target.next().length > 0

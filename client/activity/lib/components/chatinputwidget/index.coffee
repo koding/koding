@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+$                    = require 'jquery'
 TextArea             = require 'react-autosize-textarea'
 EmojiDropbox         = require 'activity/components/emojidropbox'
 ChannelDropbox       = require 'activity/components/channeldropbox'
@@ -72,10 +73,31 @@ module.exports = class ChatInputWidget extends React.Component
     focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
     @setValue value  if value
 
+    window.addEventListener 'resize', @bound 'setDropboxPositions'
+
 
   componentDidUpdate: (oldProps, oldState) ->
 
     @focus()  if oldState.value isnt @state.value
+    @setDropboxPositions()
+
+
+  componentWillUnmount: ->
+
+    window.removeEventListener 'resize', @bound 'setDropboxPositions'
+
+
+  setDropboxPositions: ->
+
+    textInput = $ React.findDOMNode @refs.textInput
+
+    offset = textInput.offset()
+    width  = textInput.outerWidth()
+    height = textInput.outerHeight()
+
+    inputDimensions = { width, height, left : offset.left, top : offset.top }
+    for dropbox in @getDropboxes() when dropbox?
+      dropbox.setPosition inputDimensions
 
 
   isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
@@ -166,10 +188,7 @@ module.exports = class ChatInputWidget extends React.Component
       @resetValue()
 
 
-  onEsc: (event) ->
-
-    dropbox.close()  for dropbox in @getDropboxes() when dropbox?
-    @props.onEsc?()
+  onEsc: (event) -> @props.onEsc?()
 
 
   onNextPosition: (event, keyInfo) ->
@@ -346,7 +365,6 @@ module.exports = class ChatInputWidget extends React.Component
   render: ->
 
     <div className="ChatInputWidget">
-      { @renderEmojiSelector() }
       { @renderEmojiDropbox() }
       { @renderChannelDropbox() }
       { @renderUserDropbox() }

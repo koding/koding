@@ -3,6 +3,7 @@ kd           = require 'kd'
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
+Portal       = require 'react-portal'
 
 module.exports = class Dropbox extends React.Component
 
@@ -12,47 +13,34 @@ module.exports = class Dropbox extends React.Component
     direction : 'down'
 
 
-  componentDidMount: ->
-
-    document.addEventListener 'mousedown', @bound 'handleMouseClick'
-
-
-  componentWillUnmount: ->
-
-    document.removeEventListener 'mousedown', @bound 'handleMouseClick'
-
-
-  componentDidUpdate: ->
-
-    return  unless @props.visible
-    return  unless @props.direction is 'up'
-
-    element = $ React.findDOMNode @refs.dropbox
-    element.css top : -element.outerHeight()
-
-
   getContentElement: -> React.findDOMNode @refs.content
 
 
-  handleMouseClick: (event) ->
+  setPosition: (inputDimensions) ->
 
-    return  unless @props.visible
+    { visible, direction } = @props
 
-    { target } = event
-    element    = React.findDOMNode this
-    innerClick = $.contains element, target
+    return  unless visible
 
-    @props.onOuterClick?()  unless innerClick
+    element = $ React.findDOMNode @refs.dropbox
+    { width, height, top, left } = inputDimensions
+
+    if direction is 'up'
+      height = $(window).height()
+      css = { left, width, bottom : height - top }
+    else
+      css = { left, width, top : top + height }
+
+    element.css css
 
 
   getClassName: ->
 
-    { className, visible } = @props
+    { className } = @props
 
     classes =
-      'Dropbox-container' : yes
-      'hidden'            : not visible
-    classes[className]   = yes  if className
+      'Dropbox' : yes
+    classes[className] = yes  if className
 
     return classnames classes
 
@@ -78,10 +66,11 @@ module.exports = class Dropbox extends React.Component
 
   render: ->
 
-    className = @getClassName()
+    { visible, onClose } = @props
 
-    <div className={className}>
-      <div className='Dropbox' ref='dropbox'>
+    className = @getClassName()
+    <Portal isOpened={visible} closeOnEsc=yes closeOnOutsideClick=yes onClose={onClose}>
+      <div className={className} ref='dropbox'>
         { @renderHeader() }
         <div className='Dropbox-scrollable' ref='content'>
           <div className='Dropbox-content'>
@@ -89,5 +78,5 @@ module.exports = class Dropbox extends React.Component
           </div>
         </div>
       </div>
-    </div>
+    </Portal>
 
