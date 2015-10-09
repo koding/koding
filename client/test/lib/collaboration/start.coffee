@@ -123,13 +123,22 @@ module.exports =
 
   runCommandOnInviteUserTerminal: (browser) ->
 
-    start(browser)
+    host         = utils.getUser no, 0
+    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant  = utils.getUser no, 1
+    terminalText = host.teamSlug
 
+    start(browser)
     collaborationHelpers.closeChatPage(browser)
 
-    helpers.runCommandOnTerminal(browser)
+    if hostBrowser
+      helpers.runCommandOnTerminal(browser, terminalText)
+    else
+      # wait for terminal command appears on participant
+      # we couldn't find a better way to avoid this pause
+      # because there is no way to be sure when some text
+      # is inserted to terminal or we couldn't find a way. - acetgiller
+      browser.pause 5000
+      browser.assert.containsText '.kdtabpaneview.terminal', terminalText
 
     browser.end()
-
-
-
