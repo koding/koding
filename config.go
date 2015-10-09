@@ -10,7 +10,7 @@ const (
 	Name = "kd"
 
 	// KlientName is the user facing name for klient.
-	KlientName = "Koding Service Connector"
+	KlientName = "KD Daemon"
 
 	// KlientAddress is url of locally running klient to connect to send
 	// user commands.
