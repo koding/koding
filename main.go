@@ -68,6 +68,12 @@ func main() {
 			Action:      Exit(UninstallCommand),
 		},
 		cli.Command{
+			Name:        "status",
+			Usage:       fmt.Sprintf("Status of the %s.", KlientName),
+			Description: fmt.Sprintf("Status the %s.", KlientName),
+			Action:      Exit(StatusCommand),
+		},
+		cli.Command{
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s. sudo is required.", KlientName),
 			Description: fmt.Sprintf("Start the %s. sudo is required.", KlientName),
