@@ -44,13 +44,13 @@ module.exports = class PublicChannelListItem extends React.Component
       <Button
         className="ChannelListItem-unfollow"
         onClick={@bound 'unfollowChannel'}>
-        UNFOLLOW
+        LEAVE
       </Button>
     else
       <Button
         className="ChannelListItem-follow"
         onClick={@bound 'followChannel'}>
-        FOLLOW
+        JOIN
       </Button>
 
 

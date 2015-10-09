@@ -36,6 +36,8 @@ module.exports =
 
     require './stores/channelmessageloadermarkersstore'
 
+    require './stores/sidebarchannels/sidebarpublicchannelsquerystore'
+    require './stores/sidebarchannels/sidebarpublicchannelstabstore'
   ]
   # module stores
   .concat ChatInputModule.stores

@@ -294,20 +294,44 @@ loadPopularChannels = (options = {}) ->
 ###
 loadChannelsByQuery = (query, options = {}) ->
 
+  options.name = query
+  func = kd.singletons.socialapi.channel.searchTopics
+  loadChannelsWithFunc func, options
+
+
+###*
+ * Action to load channels with given options
+ *
+ * @param {object=} options
+###
+loadChannels = (options = {}) ->
+
+  func = kd.singletons.socialapi.channel.list
+  loadChannelsWithFunc func, options
+
+
+loadChannelsWithFunc = (func, options) ->
+
   { LOAD_CHANNELS_BEGIN
     LOAD_CHANNELS_SUCCESS
-    LOAD_CHANNELS_FAIL } = actionTypes
-
-  options.name = query
+    LOAD_CHANNELS_FAIL
+    LOAD_CHANNEL_SUCCESS } = actionTypes
 
   dispatch LOAD_CHANNELS_BEGIN
 
-  kd.singletons.socialapi.channel.searchTopics options, (err, channels) ->
-    if err
-      dispatch LOAD_CHANNELS_FAIL, { err, query }
-      return
+  new Promise (resolve, reject) ->
+    func options, (err, channels) ->
+      if err
+        dispatch LOAD_CHANNELS_FAIL, { err }
+        return reject err
 
-    dispatch LOAD_CHANNELS_SUCCESS, { channels }
+      kd.singletons.reactor.batch ->
+        channels.forEach (channel) ->
+          dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+        dispatch LOAD_CHANNELS_SUCCESS, { channels }
+
+      resolve { channels }
 
 
 ###*
@@ -466,6 +490,28 @@ glance = do (glancingMap = {}) -> (channelId) ->
     dispatch GLANCE_CHANNEL_SUCCESS, { channelId }
 
 
+###*
+ * Action to set sidebar public channels search query
+ *
+ * @param {string} tab
+###
+setSidebarPublicChannelsQuery = (query) ->
+
+  { SET_SIDEBAR_PUBLIC_CHANNELS_QUERY } = actionTypes
+  dispatch SET_SIDEBAR_PUBLIC_CHANNELS_QUERY, { query }
+
+
+###*
+ * Action to set current tab of sidebar public channels
+ *
+ * @param {string} tab
+###
+setSidebarPublicChannelsTab = (tab) ->
+
+  { SET_SIDEBAR_PUBLIC_CHANNELS_TAB } = actionTypes
+  dispatch SET_SIDEBAR_PUBLIC_CHANNELS_TAB, { tab }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -477,6 +523,7 @@ module.exports = {
   loadChannel
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
+  loadChannels
   loadParticipants
   loadPopularMessages
   loadPopularChannels
@@ -486,5 +533,7 @@ module.exports = {
   glance
   leavePrivateChannel
   inviteMember
+  setSidebarPublicChannelsQuery
+  setSidebarPublicChannelsTab
 }
 
