@@ -48,6 +48,6 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
     return null  unless @props.channelId
 
     <div className="LoadMoreMessagesMarker">
-      <a href="#" onClick={@bound 'onClick'}>Load more maaan!</a>
+      <a href="#" onClick={@bound 'onClick'}>Load more</a>
     </div>
 
