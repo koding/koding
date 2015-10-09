@@ -22,7 +22,7 @@ func StopCommand(c *cli.Context) int {
 	}
 
 	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
-		fmt.Printf("Timed out waiting for the %s to stop", KlientName)
+		fmt.Printf("Timed out waiting for the %s to stop\n", KlientName)
 		return 1
 	}
 

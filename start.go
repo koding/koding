@@ -22,7 +22,7 @@ func StartCommand(c *cli.Context) int {
 
 	fmt.Println("Waiting until started...")
 	if err := WaitUntilStarted(KlientAddress, 5, 1*time.Second); err != nil {
-		fmt.Printf("Error: Klient was unable to start properly.")
+		fmt.Printf("Error: The %s was unable to start properly.\n", KlientName)
 		return 1
 	}
 
