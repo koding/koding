@@ -40,7 +40,8 @@ module.exports =
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
 
 
-  endSessionFromStatusBar: (browser) ->
+
+  endSessionFromStatusBar: (browser, shouldAssert = yes) ->
 
     statusBarSelector       = '.status-bar .collab-status'
     buttonContainerSelector = statusBarSelector + ' .button-container'
@@ -52,7 +53,7 @@ module.exports =
       .waitForElementVisible  buttonContainerSelector, 20000
       .click                  buttonContainerSelector + ' button.end-session'
 
-    @endSessionModal(browser)
+    @endSessionModal(browser, shouldAssert)
 
 
   endSessionFromChat: (browser) ->
@@ -66,7 +67,7 @@ module.exports =
     @endSessionModal(browser)
 
 
-  endSessionModal: (browser) ->
+  endSessionModal: (browser, shouldAssert = yes) ->
 
     buttonsSelector = '.kdmodal .kdmodal-buttons'
 
@@ -74,7 +75,10 @@ module.exports =
       .waitForElementVisible  '.with-buttons', 20000
       .waitForElementVisible  buttonsSelector, 20000
       .click                  buttonsSelector + ' button.green'
-      .waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
+      .pause                  5000
+
+    if shouldAssert
+      browser.waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
 
 
   openChatSettingsMenu: (browser) ->
