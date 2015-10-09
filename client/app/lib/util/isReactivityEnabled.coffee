@@ -1,6 +1,6 @@
 kd = require 'kd'
 isKoding = require 'app/util/isKoding'
 
-module.exports = -> yes
+module.exports = -> not isKoding()
 
 
