@@ -26,7 +26,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
 
     @editorView.addSubView @previewButton = new KDButtonView
       title    : 'Preview'
-      cssClass : 'solid compact template-preview-link'
+      cssClass : 'solid compact light-gray template-preview-link'
       loader   : yes
       tooltip  :
         title  : 'Generates a preview of this template with your own account information.'
@@ -34,7 +34,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
 
     @editorView.addSubView new KDButtonView
       title    : 'Logs'
-      cssClass : 'solid compact showlogs-link'
+      cssClass : 'solid compact light-gray showlogs-link'
       callback : => @emit 'ShowOutputView'
 
     @editorView.on 'click', => @emit 'HideOutputView'
