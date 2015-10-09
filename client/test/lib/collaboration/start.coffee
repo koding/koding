@@ -24,8 +24,8 @@ startSession = (browser, firstUser, secondUser) ->
 
       browser
         .waitForElementVisible  secondUserAvatar, 60000
-        .waitForElementVisible  secondUserOnlineAvatar, 20000 # Assertion
-        .waitForElementVisible  chatTextSelector, 20000
+        .waitForElementVisible  secondUserOnlineAvatar, 50000 # Assertion
+        .waitForElementVisible  chatTextSelector, 50000
         .assert.containsText    chatTextSelector, 'CHAT' # Assertion
 
 
@@ -55,22 +55,22 @@ joinSession = (browser, firstUser, secondUser) ->
     else
       browser
         .waitForElementVisible     shareModal, 200000 # wait for vm turn on for host
-        .waitForElementVisible     fullName, 20000
+        .waitForElementVisible     fullName, 50000
         .assert.containsText       shareModal, firstUserName
-        .waitForElementVisible     acceptButton, 20000
-        .waitForElementVisible     rejectButton, 20000
+        .waitForElementVisible     acceptButton, 50000
+        .waitForElementVisible     rejectButton, 50000
         .click                     acceptButton
-        .waitForElementVisible     loadingButton, 20000
-        .waitForElementNotPresent  shareModal, 20000
-        .waitForElementVisible     selectedMachine, 20000
-        .waitForElementVisible     chatBox, 20000
-        .waitForElementVisible     chatUsers, 20000
-        .waitForElementVisible     message, 20000
+        .waitForElementVisible     loadingButton, 50000
+        .waitForElementNotPresent  shareModal, 50000
+        .waitForElementVisible     selectedMachine, 50000
+        .waitForElementVisible     chatBox, 50000
+        .waitForElementVisible     chatUsers, 50000
+        .waitForElementVisible     message, 50000
         .assert.containsText       chatBox, firstUserName
         .assert.containsText       chatBox, secondUserName
         .assert.containsText       filetree, firstUserName
-        .waitForElementVisible     userAvatar, 20000 # Assertion
-        .waitForElementVisible     chatTextSelector, 20000
+        .waitForElementVisible     userAvatar, 50000 # Assertion
+        .waitForElementVisible     chatTextSelector, 50000
         .assert.containsText       chatTextSelector, 'CHAT' # Assertion
 
 
