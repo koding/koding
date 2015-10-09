@@ -26,7 +26,7 @@ type ChannelLink struct {
 	// In theory, we don't delete leaf channel
 	// we link leaf channel to the root channel
 	// and marks leaf channel as deleted
-	DeletedAt time.Time `json:"deletedAt"`
+	IsFinihed bool `json:"isFinished"`
 
 	// options for operations
 
