@@ -163,3 +163,28 @@ module.exports = class NotificationController extends KDObject
 
       # send user to Banned page
       global.location.href = '/Banned'
+
+
+    @on 'MembershipRoleChanged', ({role}) ->
+      modal = new KDModalView
+        title         : "Your role has been changed to #{role}."
+        overlay       : yes
+        overlayClick  : no
+        cancelable    : no
+        content       :
+          """
+          <div class="modalformline">
+            Hello,<br><br>
+            Your role has been changed in this team.<br><br>
+            Please refresh your browser to get your new powers.<br><br>
+          </div>
+          """
+        buttons       :
+          "Ok"        :
+            style     : "solid light-gray medium"
+            callback  : (event) ->
+              modal.destroy()
+              global.location.reload yes
+
+      kd.utils.wait 10000, =>
+        global.location.reload yes

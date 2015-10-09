@@ -655,7 +655,11 @@ module.exports = class JGroup extends Module
             as          : role
           ).save (err) ->
             return callback err  if err
-            queue.next()
+            JAccount.one { _id: targetId }, (err, account) ->
+              return callback err  if err
+
+              account.sendNotification 'MembershipRoleChanged', { role, group: client.context.group }  if account
+              queue.next()
 
         # remove existing ones
         queue = queue.concat [
