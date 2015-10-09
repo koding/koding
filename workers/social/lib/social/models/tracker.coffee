@@ -4,6 +4,8 @@ bongo    = require 'bongo'
 
 { argv } = require 'optimist'
 
+_ = require 'lodash'
+
 KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
 { socialapi } = KONFIG
 exchangeName  = "#{socialapi.eventExchangeName}:0"
@@ -42,6 +44,8 @@ module.exports = class Tracker extends bongo.Base
     INVITED_CREATE_TEAM  : 'was invited to create a team'
     SENT_FEEDBACK        : 'sent feedback'
 
+  @properties = {}
+
 
   @identifyAndTrack = (username, event, eventProperties = {}) ->
     @identify username
@@ -75,6 +79,8 @@ module.exports = class Tracker extends bongo.Base
 
 
   @track = (username, event, options = {}) ->
+    _.extend options, @properties[event.subject]
+
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username = forcedRecipient
