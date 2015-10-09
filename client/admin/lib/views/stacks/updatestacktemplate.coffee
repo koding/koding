@@ -9,10 +9,10 @@ module.exports = updateStackTemplate = (data, callback) ->
   title or= 'Default stack template'
   config ?= stackTemplate.config ? {}
 
-  inuse   = stackTemplate.inuse
-  updated = stackTemplate._updated
-
   if stackTemplate?.update
+
+    inuse   = stackTemplate.inuse
+    updated = stackTemplate._updated
 
     dataToUpdate = if machines \
       then { machines, config } else {
