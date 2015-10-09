@@ -96,7 +96,8 @@ module.exports = class ChatInputWidget extends React.Component
     height = textInput.outerHeight()
 
     inputDimensions = { width, height, left : offset.left, top : offset.top }
-    for dropbox in @getDropboxes() when dropbox?
+    dropboxes = @getDropboxes().concat @refs.emojiSelector
+    for dropbox in dropboxes when dropbox?
       dropbox.updatePosition inputDimensions
 
 
@@ -289,6 +290,7 @@ module.exports = class ChatInputWidget extends React.Component
       visible         = { commonEmojiListVisibility }
       selectedItem    = { commonEmojiListSelectedItem }
       onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
+      ref             = 'emojiSelector'
       stateId         = { @stateId }
     />
 
@@ -366,6 +368,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     <div className="ChatInputWidget">
       { @renderEmojiDropbox() }
+      { @renderEmojiSelector() }
       { @renderChannelDropbox() }
       { @renderUserDropbox() }
       { @renderSearchDropbox() }

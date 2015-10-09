@@ -10,7 +10,8 @@ module.exports = class Dropbox extends React.Component
   @defaultProps =
     visible   : no
     className : ''
-    direction : 'down'
+    type      : 'dropdown'
+    left      : 0
 
 
   getContentElement: -> React.findDOMNode @refs.content
@@ -21,7 +22,7 @@ module.exports = class Dropbox extends React.Component
 
   setInputDimensions: (inputDimensions) ->
 
-    { visible, direction } = @props
+    { visible } = @props
     @inputDimensions = inputDimensions
 
     return  unless visible
@@ -31,16 +32,25 @@ module.exports = class Dropbox extends React.Component
 
   calculatePosition: ->
 
-    { visible, direction } = @props
+    { visible, type } = @props
     return  unless @inputDimensions and visible
 
     { width, height, top, left } = @inputDimensions
 
-    if direction is 'up'
+    css = { width }
+    if type is 'dropup'
       winHeight = $(window).height()
-      css = { left, width, bottom : winHeight - top }
+      css.bottom = winHeight - top
     else
-      css = { left, width, top : top + height }
+      css.top = top + height
+
+    rightDelta = @props.right
+    leftDelta  = @props.left
+    if rightDelta?
+      winWidth  = $(window).width()
+      css.right = winWidth - left - width - rightDelta
+    else
+      css.left  = left + leftDelta
 
     element = $ React.findDOMNode @refs.dropbox
     element.css css
@@ -48,12 +58,12 @@ module.exports = class Dropbox extends React.Component
 
   getClassName: ->
 
-    { className, direction } = @props
+    { className, type } = @props
 
     classes =
       'Dropbox'  : yes
-      'Dropdown' : direction is 'down'
-      'Dropup'   : direction is 'up'
+      'Dropdown' : type is 'dropdown'
+      'Dropup'   : type is 'dropup'
     classes[className] = yes  if className
 
     return classnames classes

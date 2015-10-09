@@ -107,7 +107,7 @@ module.exports = class UserDropbox extends React.Component
       className = 'UserDropbox'
       visible   = { @isActive() }
       onClose   = { @bound 'close' }
-      direction = 'up'
+      type      = 'dropup'
       title     = 'People'
       ref       = 'dropbox'
     >

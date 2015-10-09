@@ -107,7 +107,7 @@ module.exports = class ChannelDropbox extends React.Component
       className = 'ChannelDropbox'
       visible   = { @isActive() }
       onClose   = { @bound 'close' }
-      direction = 'up'
+      type      = 'dropup'
       title     = 'Channels'
       ref       = 'dropbox'
     >

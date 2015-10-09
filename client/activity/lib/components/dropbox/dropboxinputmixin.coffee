@@ -74,6 +74,8 @@ module.exports = DropboxInputMixin =
 
     textInput = $ React.findDOMNode @refs.textInput
 
+    return  unless textInput.length
+
     offset = textInput.offset()
     width  = textInput.outerWidth()
     height = textInput.outerHeight()

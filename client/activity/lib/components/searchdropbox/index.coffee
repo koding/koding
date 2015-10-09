@@ -133,7 +133,7 @@ module.exports = class SearchDropbox extends React.Component
       className = 'SearchDropbox'
       visible   = { @isActive() }
       onClose   = { @bound 'close' }
-      direction = 'up'
+      type      = 'dropup'
       title     = 'Search'
       ref       = 'dropbox'
     >
