@@ -49,6 +49,7 @@ module.exports = class AdminInvitationsView extends KDView
 
     tabView.showPaneByIndex 0
 
+    invite.on 'KDTabPaneActive', -> inviteView.inputViews.first?.email.setFocus()
     inviteView.on 'NewInvitationsAdded', -> pendingView.refresh()
 
     @on 'SubTabRequested', (action, identifier) -> tabView.showPaneByName PANE_NAMES_BY_ROUTE[action]

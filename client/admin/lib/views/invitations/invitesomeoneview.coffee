@@ -53,7 +53,8 @@ module.exports = class InviteSomeoneView extends KDView
       @inputViews.splice @inputViews.indexOf(view), 1
 
     @inputWrapper.addSubView view
-    view.email.setFocus()    if setFocus
+    if setFocus
+      kd.utils.defer -> view.email.setFocus()
     view.admin.setValue yes  if setAdmin
     @inputViews.push view
 
