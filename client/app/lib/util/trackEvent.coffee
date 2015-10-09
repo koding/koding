@@ -1,4 +1,3 @@
-kd = require 'kd'
 globals = require 'globals'
 isLoggedIn = require './isLoggedIn'
 
