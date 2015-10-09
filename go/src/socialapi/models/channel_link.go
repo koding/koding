@@ -22,10 +22,9 @@ type ChannelLink struct {
 	// CreatedAt holds the creation time of the channel_link
 	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
 
-	// Deletion date of the leaf channel
-	// In theory, we don't delete leaf channel
+	// IsFinished is false as default
 	// we link leaf channel to the root channel
-	// and marks leaf channel as deleted
+	// and marks leaf channel true
 	IsFinihed bool `json:"isFinished"`
 
 	// options for operations
@@ -180,6 +179,28 @@ func (c *ChannelLink) create() error {
 	}
 
 	return bongo.B.Create(c)
+}
+
+// IsUnfinished checks the db if linking process is completely done or not
+// if result true -> linking process is not done
+// if result false -> linking process is completely done
+// We will searh root channel in db as leaf channel,
+// Aim of this search, protect linking conflict of root-leaf channels
+func (c *ChannelLink) IsUnfinished(rootID int64) bool {
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"leaf_id":     rootID,
+			"is_finished": false,
+		},
+	}
+
+	// if there is no error, it means we already have it
+	if err := c.One(bq); err == nil {
+		return true
+	}
+
+	return false
+
 }
 
 func (c *ChannelLink) validate() error {
