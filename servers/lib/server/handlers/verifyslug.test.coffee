@@ -123,10 +123,6 @@ runTests = -> describe 'server.handlers.verifyslug', ->
 
       slug = generateRandomString()
 
-      createTeamRequestParams = generateCreateTeamRequestParams
-        body   :
-          slug : slug
-
       verifySlugRequestParams = generateVerifySlugRequestParams
         body   :
           name : slug
@@ -134,11 +130,15 @@ runTests = -> describe 'server.handlers.verifyslug', ->
       queue = [
 
         ->
-          # expecting team to be created
-          request.post createTeamRequestParams, (err, res, body) ->
-            expect(err)             .to.not.exist
-            expect(res.statusCode)  .to.be.equal 200
-            queue.next()
+          generateCreateTeamRequestParams {
+            body : { slug }
+          }, (createTeamRequestParams) ->
+
+            # expecting team to be created
+            request.post createTeamRequestParams, (err, res, body) ->
+              expect(err)             .to.not.exist
+              expect(res.statusCode)  .to.be.equal 200
+              queue.next()
 
         ->
           # expecting HTTP 400 when domain is taken
