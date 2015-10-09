@@ -10,4 +10,12 @@ TrackingTypes = require './trackingtypes'
 options    = {}
 properties = {}
 
+properties[TrackingTypes.BUTTON_CLICKED] = {
+  label: TrackingTypes.LABEL_CLICK
+}
+
+properties[TrackingTypes.MODAL_DISPLAYED] = {
+  label: TrackingTypes.LABEL_MODAL_SUCCESS
+}
+
 module.exports = { options, properties }
