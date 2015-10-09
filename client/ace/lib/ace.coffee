@@ -8,7 +8,6 @@ KDNotificationView   = kd.NotificationView
 KDView               = kd.View
 remote               = require('app/remote').getInstance()
 globals              = require 'globals'
-trackEvent           = require 'app/util/trackEvent'
 FSHelper             = require 'app/util/fs/fshelper'
 settings             = require './settings'
 
@@ -125,8 +124,6 @@ class Ace extends KDView
       @show()
 
       kd.utils.defer @lazyBound 'emit', 'ready'
-
-      trackEvent 'Open Ace, success'
 
     @ready =>
       LineWidgets = ace.require('ace/line_widgets').LineWidgets

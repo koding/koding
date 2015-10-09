@@ -2046,5 +2046,3 @@ module.exports = class JUser extends jraphical.Module
 
     selector.username = @username
     JSession.remove selector, callback
-
-
