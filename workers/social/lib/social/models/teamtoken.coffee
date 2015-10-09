@@ -119,7 +119,7 @@ module.exports = class JTeamInvitation extends jraphical.Module
 
       emails.forEach (email) =>
         queue.push =>
-          @create client, { email }, (err, invitation) ->
+          @create { email }, (err, invitation) ->
             return queue.fin err  if err
 
             properties =

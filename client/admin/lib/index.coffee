@@ -97,6 +97,7 @@ module.exports = class AdminAppController extends AppController
           targetPaneView.handleAction? action
 
         if identifier or action
+          targetPaneView.emit 'SubTabRequested', action, identifier
           { parentTabTitle } = targetPane.getOptions()
 
           if parentTabTitle

@@ -3,6 +3,7 @@ getGroup           = require 'app/util/getGroup'
 whoami             = require 'app/util/whoami'
 envDataProvider    = require 'app/userenvironmentdataprovider'
 kd                 = require 'kd'
+articlize          = require 'indefinite-article'
 KDModalView        = kd.ModalView
 KDNotificationView = kd.NotificationView
 KDObject           = kd.Object
@@ -163,3 +164,22 @@ module.exports = class NotificationController extends KDObject
 
       # send user to Banned page
       global.location.href = '/Banned'
+
+
+    @on 'MembershipRoleChanged', ({role, adminNick}) ->
+      modal = new KDModalView
+        title         : "Your team role has been changed!"
+        overlay       : yes
+        width         : 500
+        content       :
+          """
+          <div class="modalformline">
+            @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser to changes take effect.
+          </div>
+          """
+        buttons       :
+          "Reload page"        :
+            style     : "solid green medium"
+            callback  : (event) ->
+              modal.destroy()
+              global.location.reload yes

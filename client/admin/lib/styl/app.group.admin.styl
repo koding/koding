@@ -478,6 +478,9 @@ Admin main styles
 
   .members-commonview
     overflow                hidden
+    main.kdscrollview > .kdlistview
+      padding-right         25px
+      borderBox()
 
   .clear-search
     font-size               13px
@@ -876,6 +879,13 @@ Admin main styles
 
 .AppModal--admin .invitations
 
+  .invite-view
+    height                  calc(100% \- 40px)
+
+    main
+      padding               5px 25px 5px 5px
+      borderBox()
+
   .kdlistitemview-member
     height                  40px
 
@@ -883,40 +893,63 @@ Admin main styles
       height                85px
 
   .kdbutton
-    &.invite
-      abs()
-      top                   15px
-      right                 0
 
-    &.add-more
-      height                24px
-      bg                    color, #BDC3C7
-      display               block
-      margin-bottom         50px
-
-      span
-        line-height         24px
-        font-size           10px
-        color               #FFF
-
-    &.cancel
-      margin                0 10px 0 440px // hmm
-
+    &.invite-members
+      margin-right          25px
+      fr()
 
   .information
     font-size               14px
     color                   #3E3E3E
-    margin                  20px 0 40px 0
+    margin                  20px 0 0
 
     p
-      margin-bottom         15px
+      color                 #7B7B7B
+      font-size             15px
+      line-height           1.5em
+      margin-bottom         25px
+      max-width             550px
+      text-rendering        geometricPrecision
+
+    label
+      color                 #929292
+      display               inline-block
+      font-size             11px
+      font-family           Soleil
+      letter-spacing        0.05em
+      size                  30%, 20px
+      text-transform        uppercase
+      text-rendering        geometricPrecision
+      &:first-of-type
+        width               40%
+      &:last-of-type
+        width               30%
+
+      span
+        fr()
 
   .invite-inputs
     margin-bottom           10px
+    rel()
+
+    .kdcustomcheckbox
+      abs                   10px 10px
+      z-index               1
 
     .kdinput
-      size                  160px, 40px
-      margin-right          10px
+      border-color          #DDDCDD
+      size                  30%, 40px
+      margin-right          0
+      rounded               0
+      z-index               0
+      &:first-of-type
+        border-right-width  0
+        rounded             3px 0 0 3px
+        width               40%
+      &:last-of-type
+        border-left-width   0
+        rounded             0 3px 3px 0
+        padding-right       37px
 
     .user-email
       width                 240px
@@ -2252,8 +2285,3 @@ Admin main styles
 
   .editor-main > .kdview
     height                  100% !important
-
-
-.kdtabpaneview.invite
-  .invite-view
-    height                calc(100% \- 40px)
