@@ -18,14 +18,11 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     super options, data
 
-    @hide()
-
     @machineBoxes = []
     @machineBoxesByMachineUId = {}
 
     @createHeader()
     @addMachineBoxes()
-    @updateVisibility()
 
 
   createHeader: ->
@@ -54,8 +51,6 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     data = boxes or @getData()
     data.forEach @bound 'addMachineBox'
 
-    @updateVisibility()
-
 
   addMachineBox: (machineAndWorkspaceData) ->
 
@@ -65,7 +60,6 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     box = new SidebarMachineBox {}, machineAndWorkspaceData
 
-    box.on 'SetVisibility', @bound 'updateVisibility'
     box.once 'KDObjectWillBeDestroyed', @lazyBound 'handleMachineBoxDestroy', box
 
     @forwardEvent box, 'ListStateChanged'

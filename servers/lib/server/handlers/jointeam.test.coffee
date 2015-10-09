@@ -61,20 +61,18 @@ runTests = -> describe 'server.handlers.jointeam', ->
     inviteeEmail            = generateRandomEmail()
     inviteeUsername         = generateRandomString()
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body          :
-        slug        : slug
-        invitees    : inviteeEmail
-        companyName : slug
-
     queue = [
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams {
+          body : { slug, companyName : slug, invitees : inviteeEmail }
+        }, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting invitation to be created
@@ -177,12 +175,6 @@ runTests = -> describe 'server.handlers.jointeam', ->
     password                = 'testpass'
     inviteeEmail            = generateRandomEmail()
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body          :
-        slug        : slug
-        invitees    : inviteeEmail
-        companyName : slug
-
     registerRequestParams   = generateRegisterRequestParams
       body            :
         email         : inviteeEmail
@@ -199,11 +191,15 @@ runTests = -> describe 'server.handlers.jointeam', ->
           queue.next()
 
       ->
-        # expecting team to be created successfully
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams {
+          body : { slug, invitees : inviteeEmail, companyName : slug }
+        }, (createTeamRequestParams) ->
+
+          # expecting team to be created successfully
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting invitation to be created
@@ -259,11 +255,6 @@ runTests = -> describe 'server.handlers.jointeam', ->
     domains                 = 'gmail.com, koding.com'
     domainsArray            = convertToArray domains
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body       :
-        slug     : slug
-        domains  : domains
-
     testAllowedDomain = (queue, domain, slug) ->
       queue.push ->
         # generating random email with the allowed domain
@@ -280,11 +271,15 @@ runTests = -> describe 'server.handlers.jointeam', ->
     queue = [
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams {
+          body : { slug, domains }
+        }, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
     ]
 
@@ -310,11 +305,6 @@ runTests = -> describe 'server.handlers.jointeam', ->
         username      : username
         password      : password
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body       :
-        slug     : slug
-        domains  : allowedDomain
-
     queue = [
 
       ->
@@ -325,11 +315,15 @@ runTests = -> describe 'server.handlers.jointeam', ->
           queue.next()
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams {
+          body : { slug, domains : allowedDomain }
+        }, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting HTTP 400 with invalid username
@@ -375,19 +369,18 @@ runTests = -> describe 'server.handlers.jointeam', ->
     domains                 = 'gmail.com, koding.com'
     domainsArray            = convertToArray domains
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body       :
-        slug     : slug
-        domains  : domains
-
     queue = [
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams {
+          body : { slug, domains }
+        }, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         joinTeamRequestParams = generateJoinTeamRequestParams
@@ -414,12 +407,6 @@ runTests = -> describe 'server.handlers.jointeam', ->
     slug                    = generateRandomString()
     inviteeEmail            = generateRandomEmail()
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body          :
-        slug        : slug
-        invitees    : inviteeEmail
-        companyName : slug
-
     joinTeamRequestParams = generateJoinTeamRequestParams
       body       :
         slug     : slug
@@ -428,11 +415,15 @@ runTests = -> describe 'server.handlers.jointeam', ->
     queue = [
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams {
+          body : { slug, companyName : slug, invitees : inviteeEmail }
+        }, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting HTTP 400 using invalid token

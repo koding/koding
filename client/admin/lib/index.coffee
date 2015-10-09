@@ -1,6 +1,7 @@
 kd                         = require 'kd'
 AppController              = require 'app/appcontroller'
 AdminAppView               = require './adminappview'
+TeamInviteView             = require './views/teaminviteview'
 AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
@@ -53,6 +54,7 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
         { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView       }
+        { slug : 'TeamInvite',     title : 'Invite teams',      viewClass : TeamInviteView           }
       ]
 
 
