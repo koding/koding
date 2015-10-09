@@ -186,6 +186,15 @@ module.exports = class GroupsController extends KDController
         # Re-call create default stack flow to make sure it exists
         computeController.createDefaultStack yes
 
+        id = currentGroup.socialApiDefaultChannelId
+
+        ActivityFlux = require 'activity/flux'
+        ActivityFlux.actions.message.createMessage id, "
+          I've just updated the Team stack template, please take a backup of
+          your existing data and re-initialize your stack to use the latest
+          version.
+        "
+
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
