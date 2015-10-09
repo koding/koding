@@ -189,7 +189,8 @@ filteredPublicChannels = [
     {
       followed: channels.map (channel) -> threads.get channel.get('id')
       unfollowed: threads.filterNot (thread) ->
-        channels.has thread.getIn ['channel', 'id']
+        channel = thread.get('channel').toJS()
+        return channels.has(channel.id) or not isPublicChannel channel
     }
 ]
 
@@ -364,8 +365,9 @@ sidebarPublicChannels      = [
   (threads, filteredChannels, query, tab) ->
     if (query)
       result = threads.filter (thread) =>
-        name = thread.getIn(['channel', 'name']).toLowerCase()
-        return name.indexOf(query.toLowerCase()) > -1
+        channel = thread.get('channel').toJS()
+        name = channel.name.toLowerCase()
+        return name.indexOf(query.toLowerCase()) > -1 and isPublicChannel channel
     else
       result = if tab is SidebarPublicChannelsTabs.YourChannels
       then filteredChannels.followed.filter (thread) -> thread.getIn ['channel', 'isParticipant']
