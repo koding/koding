@@ -20,6 +20,12 @@ module.exports = class Dropbox extends React.Component
   componentDidUpdate: -> @calculatePosition()
 
 
+  onClose: ->
+
+    { visible, onClose } = @props
+    onClose?()  if visible
+
+
   setInputDimensions: (inputDimensions) ->
 
     { visible } = @props
@@ -93,7 +99,7 @@ module.exports = class Dropbox extends React.Component
     { visible, onClose } = @props
 
     className = @getClassName()
-    <Portal isOpened={visible} closeOnEsc=yes closeOnOutsideClick=yes onClose={onClose}>
+    <Portal isOpened={visible} closeOnEsc=yes closeOnOutsideClick=yes onClose={@bound 'onClose'}>
       <div className={className} ref='dropbox'>
         { @renderHeader() }
         <div className='Dropbox-scrollable' ref='content'>

@@ -70,10 +70,14 @@ module.exports = class ChatInputWidget extends React.Component
 
     { value } = @props
 
-    focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
+    textInput = React.findDOMNode this.refs.textInput
+    focusOnGlobalKeyDown textInput
     @setValue value  if value
 
     window.addEventListener 'resize', @bound 'updateDropboxPositions'
+
+    scrollContainer = $(textInput).closest '.Scrollable'
+    scrollContainer.on 'scroll', @bound 'closeDropboxes'
 
 
   componentDidUpdate: (oldProps, oldState) ->
@@ -86,6 +90,10 @@ module.exports = class ChatInputWidget extends React.Component
 
     window.removeEventListener 'resize', @bound 'updateDropboxPositions'
 
+    textInput = React.findDOMNode this.refs.textInput
+    scrollContainer = $(textInput).closest '.Scrollable'
+    scrollContainer.off 'scroll', @bound 'closeDropboxes'
+
 
   updateDropboxPositions: ->
 
@@ -96,15 +104,17 @@ module.exports = class ChatInputWidget extends React.Component
     height = textInput.outerHeight()
 
     inputDimensions = { width, height, left : offset.left, top : offset.top }
-    dropboxes = @getDropboxes().concat @refs.emojiSelector
-    for dropbox in dropboxes when dropbox?
+    for dropbox in @getDropboxes() when dropbox?
       dropbox.updatePosition inputDimensions
 
 
   isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
 
 
-  getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
+  getInputDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
+
+
+  getDropboxes: -> @getInputDropboxes().concat @refs.emojiSelector
 
 
   setValue: (value) ->
@@ -143,7 +153,7 @@ module.exports = class ChatInputWidget extends React.Component
     # stop checking for others and close active dropbox
     # if it exists
     queryIsSet = no
-    for dropbox in @getDropboxes() when dropbox?
+    for dropbox in @getInputDropboxes() when dropbox?
       unless queryIsSet
         queryIsSet = dropbox.checkTextForQuery textData
         continue  if queryIsSet
@@ -170,7 +180,7 @@ module.exports = class ChatInputWidget extends React.Component
     kd.utils.stopDOMEvent event
 
     isDropboxEnter = no
-    for dropbox in @getDropboxes() when dropbox?
+    for dropbox in @getInputDropboxes() when dropbox?
       continue  unless dropbox.isActive()
 
       dropbox.confirmSelectedItem()
@@ -194,7 +204,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   onNextPosition: (event, keyInfo) ->
 
-    for dropbox in @getDropboxes() when dropbox?
+    for dropbox in @getInputDropboxes() when dropbox?
       continue  unless dropbox.isActive()
 
       stopEvent = dropbox.moveToNextPosition keyInfo
@@ -205,7 +215,7 @@ module.exports = class ChatInputWidget extends React.Component
   onPrevPosition: (event, keyInfo) ->
 
     if event.target.value
-      for dropbox in @getDropboxes() when dropbox?
+      for dropbox in @getInputDropboxes() when dropbox?
         continue  unless dropbox.isActive()
 
         stopEvent = dropbox.moveToPrevPosition keyInfo
@@ -264,6 +274,11 @@ module.exports = class ChatInputWidget extends React.Component
 
     textInput = React.findDOMNode @refs.textInput
     textInput.focus()
+
+
+  closeDropboxes: ->
+
+    dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
   renderEmojiDropbox: ->
