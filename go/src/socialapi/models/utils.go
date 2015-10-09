@@ -11,8 +11,8 @@ func IsIn(s string, ts ...string) bool {
 	return false
 }
 
-// StringSliceUnique removes duplicates from a string slice
-func StringSliceUnique(ss []string) []string {
+// UnifyStringSlice removes duplicates from a string slice
+func UnifyStringSlice(ss []string) []string {
 	mss := make(map[string]struct{})
 
 	for _, s := range ss {
@@ -20,7 +20,7 @@ func StringSliceUnique(ss []string) []string {
 	}
 
 	// convert it to string slice
-	res := make([]string, 0, len(mss))
+	res := make([]string, 0)
 	for ms := range mss {
 		res = append(res, ms)
 	}
