@@ -20,11 +20,9 @@ module.exports = class InvitationInputView extends KDView
 
   createElements: ->
 
-    { cancellable } = @getOptions()
-
     @addSubView @email = new KDInputView
       cssClass     : 'user-email'
-      placeholder  : 'name@domain.com'
+      placeholder  : 'mail@example.com'
       validate     :
         rules      :
           required : yes
@@ -32,11 +30,11 @@ module.exports = class InvitationInputView extends KDView
 
     @addSubView @firstName = new KDInputView
       cssClass    : 'firstname'
-      placeholder : 'first name (optional)'
+      placeholder : 'Optional'
 
     @addSubView @lastName = new KDInputView
       cssClass    : 'lastname'
-      placeholder : 'last name (optional)'
+      placeholder : 'Optional'
 
     if cancellable
       @addSubView @cancel = new KDCustomHTMLView
