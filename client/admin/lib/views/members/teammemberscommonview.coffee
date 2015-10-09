@@ -156,9 +156,10 @@ module.exports = class TeamMembersCommonView extends KDView
 
   listMembers: (members) ->
 
-    unless members.length
+    if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()
-      return @listController.noItemView.show()
+      @listController.noItemView.show()
+      return
 
     @skip += members.length
 

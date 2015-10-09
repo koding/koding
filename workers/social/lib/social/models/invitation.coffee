@@ -90,6 +90,9 @@ module.exports = class JInvitation extends jraphical.Module
       modifiedAt    :
         type        : Date
         default     : -> new Date
+      role          :
+        type        : String
+        default     : -> 'member'
 
   accept$: secure (client, callback) ->
     { delegate } = client.connection
@@ -164,7 +167,7 @@ module.exports = class JInvitation extends jraphical.Module
 
         queue = invitations.map (invitation) -> ->
 
-          { email, firstName, lastName } = invitation
+          { email, firstName, lastName, role } = invitation
 
           JInvitation.one { email, groupName }, (err, invitation) ->
             return callback new KodingError err  if err
@@ -190,6 +193,7 @@ module.exports = class JInvitation extends jraphical.Module
                 hash
                 email
                 groupName
+                role
               }
               # firstName and lastName are optional
               data.firstName = firstName  if firstName

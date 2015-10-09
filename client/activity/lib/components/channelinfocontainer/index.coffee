@@ -76,7 +76,7 @@ module.exports = class ChannelInfoContainer extends React.Component
     authorId = @channel 'accountOldId'
     origin = { _id: authorId, constructorName: 'JAccount' }
 
-    author = if author is whoami()._id
+    author = if authorId is whoami()._id
       <strong>you</strong>
     else
       <ProfileLinkContainer origin={origin}>
