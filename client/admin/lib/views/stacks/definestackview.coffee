@@ -479,8 +479,9 @@ module.exports = class DefineStackView extends KDView
 
       templateContent = convertedDoc.content
 
+    template   = templateContent
+    currentSum = stackTemplate?.template?.sum
 
-    template = templateContent
 
     updateStackTemplate {
       template, description, templateDetails
@@ -490,6 +491,8 @@ module.exports = class DefineStackView extends KDView
       if not err and stackTemplate
         @setData { stackTemplate }
         @emit 'Reload'
+
+      stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
       callback err, stackTemplate
 
