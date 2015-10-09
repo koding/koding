@@ -180,6 +180,8 @@ class Ace extends KDView
 
       @isTrimWhiteSpacesEnabled = if @appStorage.getValue('trimTrailingWhitespaces') then yes else no
 
+      @emit 'SettingsApplied'
+
 
   saveStarted: ->
 
