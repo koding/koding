@@ -41,25 +41,13 @@ module.exports = class HomeView extends KDView
       title    : ''
       cssClass : 'ss-button next'
       icon     : {}
-      click    : =>
-        @rotateImagesBy 1
-
-        KD.utils.trackEvent "Homepage slider, click",
-          category : 'userInteraction'
-          action   : 'clicks'
-          label    : 'homeSliderRight'
+      click    : => @rotateImagesBy 1
 
     @prevButton = new CustomLinkView
       title    : ''
       cssClass : 'ss-button prev'
       icon     : {}
-      click    : =>
-        @rotateImagesBy -1
-
-        KD.utils.trackEvent "Homepage slider, click",
-          category : 'userInteraction'
-          action   : 'clicks'
-          label    : 'homeSliderLeft'
+      click    : => @rotateImagesBy -1
 
     view = this
     @imageSets = for [image, slogan], i in IMAGES
@@ -82,13 +70,7 @@ module.exports = class HomeView extends KDView
         delegate : slide
         img      : image
         cssClass : "nav-dot#{if i is 1 then ' active' else ''}"
-        click    : ->
-          @getDelegate().emit 'click'
-
-          KD.utils.trackEvent "Homepage dots, click",
-            category : 'userInteraction'
-            action   : 'clicks'
-            label    : 'homeSliderDots'
+        click    : -> @getDelegate().emit 'click'
 
       infoDots = INFODOTS[i]
 
