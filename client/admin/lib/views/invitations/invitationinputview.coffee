@@ -36,11 +36,6 @@ module.exports = class InvitationInputView extends KDView
       cssClass    : 'lastname'
       placeholder : 'Optional'
 
-    if cancellable
-      @addSubView @cancel = new KDCustomHTMLView
-        tagName  : 'span'
-        cssClass : 'cancel icon'
-        click    : => @destroy()
 
     @inputs = [ @email, @firstName, @lastName ]
 
