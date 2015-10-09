@@ -127,11 +127,14 @@ ensureMessage = (messageId) ->
   loadMessage(messageId).then ({ message }) ->
     channelId = message.initialChannelId
     loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+      messagesBefore = reactor.evaluate ['MessagesStore']
       loadMessages(channelId, { from: message.createdAt, sortOrder: 'ASC' }).then ({ messages }) ->
         [..., last] = messages
         return { message }  unless last
 
-        putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+        # put a loader marker only if this message was not here before.
+        unless messagesBefore.has last.id
+          putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
 
         return { message }
 
