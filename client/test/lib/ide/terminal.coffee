@@ -125,6 +125,7 @@ module.exports =
     createTerminalSession(browser, user)
 
     helpers.runCommandOnTerminal(browser)
+    browser.end()
 
 
   renameTerminalTab: (browser) ->

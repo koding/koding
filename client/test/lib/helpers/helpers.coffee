@@ -505,7 +505,6 @@ module.exports =
       .pause                     5000
       .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
       .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
-      .end()
 
 
   setCookie: (browser, name, value) ->
