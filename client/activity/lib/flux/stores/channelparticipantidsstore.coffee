@@ -32,7 +32,10 @@ module.exports = class ChannelParticipantIdsStore extends KodingFluxStore
   ###
   handleChannelLoad: (participantIds, { channel }) ->
 
-    return participantIds.set channel.id, immutable.Map()
+    unless participantIds.has channel.id
+      participantIds = participantIds.set channel.id, immutable.Map()
+
+    return participantIds
 
 
   ###*
