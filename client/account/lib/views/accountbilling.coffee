@@ -1,6 +1,5 @@
 kd                        = require 'kd'
 showError                 = require 'app/util/showError'
-trackEvent                = require 'app/util/trackEvent'
 SubscriptionView          = require 'app/payment/subscriptionview'
 PaymentMethodView         = require 'app/payment/paymentmethodview'
 PaymentHistoryListItem    = require './paymenthistorylistitem'
@@ -68,12 +67,6 @@ module.exports = class AccountBilling extends kd.View
     @on 'ChangeSubscriptionRequested', ->
       kd.singletons.router.handleRoute '/Pricing'
       @parent.emit 'ModalCloseRequested'
-
-      trackEvent 'Account Upgrade, click',
-        path     : '/Account/Billing'
-        category : 'userInteraction'
-        action   : 'clicks'
-        label    : 'billingUpgrade'
 
     paymentController.subscriptions (err, subscription) =>
       return showError err  if err?
@@ -203,5 +196,3 @@ module.exports = class AccountBilling extends kd.View
     else @paymentMethodButton.hide()
 
     @paymentMethod.setPaymentInfo method
-
-

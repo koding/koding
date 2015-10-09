@@ -5,7 +5,6 @@ KDNotificationView = kd.NotificationView
 whoami             = require '../util/whoami'
 getGroup           = require '../util/getGroup'
 showError          = require '../util/showError'
-trackEvent         = require '../util/trackEvent'
 
 remote             = require('../remote').getInstance()
 globals            = require 'globals'
@@ -134,7 +133,6 @@ module.exports = class GroupsController extends KDController
       return showError err  if err?
       callback err, response
       kd.getSingleton('mainController').emit 'JoinedGroup'
-      trackEvent "Join group, success", slug:group.slug
 
   acceptInvitation:(group, callback)->
     whoami().acceptInvitation group, (err, res)=>

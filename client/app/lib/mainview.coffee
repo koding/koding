@@ -6,7 +6,6 @@ KDButtonView            = kd.ButtonView
 KDView                  = kd.View
 sinkrow                 = require 'sinkrow'
 globals                 = require 'globals'
-trackEvent              = require './util/trackEvent'
 remote                  = require('./remote').getInstance()
 isLoggedIn              = require './util/isLoggedIn'
 whoami                  = require './util/whoami'
@@ -80,9 +79,7 @@ module.exports = class MainView extends KDView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
-      click      : (event) =>
-        kd.utils.stopDOMEvent event
-        trackEvent 'Koding Logo, click'
+      click      : (event) -> kd.utils.stopDOMEvent event
 
     @header.addSubView logoWrapper
 
@@ -153,9 +150,7 @@ module.exports = class MainView extends KDView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
-      click      : (event) =>
-        kd.utils.stopDOMEvent event
-        trackEvent 'Koding Logo, click'
+      click      : (event) -> kd.utils.stopDOMEvent event
 
     @logoWrapper.addSubView closeHandle = new KDCustomHTMLView
       cssClass : "sidebar-close-handle"
@@ -439,6 +434,3 @@ module.exports = class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
-
-
-
