@@ -86,6 +86,12 @@ func main() {
 			Action:      Exit(StopCommand),
 		},
 		cli.Command{
+			Name:        "restart",
+			Usage:       fmt.Sprintf("Restart the %s. sudo is required.", KlientName),
+			Description: fmt.Sprintf("Restart the %s. sudo is required.", KlientName),
+			Action:      Exit(RestartCommand),
+		},
+		cli.Command{
 			Name:        "update",
 			Usage:       "Update to latest version. sudo is required.",
 			Description: "Update to latest version. sudo is required.",
