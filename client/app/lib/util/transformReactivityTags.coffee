@@ -7,6 +7,11 @@ module.exports = (text = '', callback) ->
 
   skipRanges = getBlockquoteRanges text
 
+  inSkipRange = (position) ->
+    for [start, end] in skipRanges
+      return yes  if start <= position <= end
+    return no
+
   hashtagsWithIndices = twitter.extractHashtagsWithIndices(text).filter (h) ->
     [start, end] = h.indices
     not (inSkipRange(start) or inSkipRange(end))
@@ -41,11 +46,5 @@ module.exports = (text = '', callback) ->
     # return this here so that other places can hook into this
     # via Promise api as well.
     return text
-
-
-inSkipRange = (position) ->
-  for [start, end] in skipRanges
-    return yes  if start <= position <= end
-  return no
 
 
