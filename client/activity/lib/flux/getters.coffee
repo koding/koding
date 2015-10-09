@@ -97,7 +97,7 @@ channelThreads = [
   ChannelThreadsStore
   MessagesStore
   ChannelFlagsStore
-  ChannelsStore
+  allChannels
   ['ChannelMessageLoaderMarkersStore']
   (threads, messages, channelFlags, channels, loaderMarkers) ->
     threads.map (thread) ->
