@@ -229,7 +229,7 @@ module.exports = class JStackTemplate extends Module
         # Keep last updater info in the template details
         data.template.details.lastUpdaterId = delegate.getId()
 
-      @update { $set: data }, (err) -> callback err
+      @update { $set: data }, (err) => callback err, this
 
 
 # Base StackTemplate example for koding group
