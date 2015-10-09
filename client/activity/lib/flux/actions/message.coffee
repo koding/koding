@@ -113,6 +113,13 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     return { message }
 
 
+###*
+ * Ensures a message is there and it also has enough surrounding message
+ * siblings so that scrolling into a single post would make much more sense.
+ *
+ * @param {string} messageId
+ * @return {Promise}
+###
 ensureMessage = (messageId) ->
 
   { reactor } = kd.singletons
