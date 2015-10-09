@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 KDView                = kd.View
+KDCustomHTMLView      = kd.CustomHTMLView
 isKoding              = require 'app/util/isKoding'
 KDTabView             = kd.TabView
 KDTabPaneView         = kd.TabPaneView
@@ -27,9 +28,27 @@ module.exports = class AdminMembersView extends KDView
     tabView.addPane admins = new KDTabPaneView name: 'Admins'
     tabView.addPane mods   = new KDTabPaneView name: 'Moderators'
 
-    all.addSubView    @allView    = new TeamMembersCommonView { fetcherMethod: 'fetchMembersWithEmail'    }, data
-    admins.addSubView @adminsView = new TeamMembersCommonView { fetcherMethod: 'fetchAdminsWithEmail'     }, data
-    mods.addSubView   @modsView   = new TeamMembersCommonView { fetcherMethod: 'fetchModeratorsWithEmail' }, data
+    all.addSubView @allView = new TeamMembersCommonView
+      fetcherMethod     : 'fetchMembersWithEmail'
+      noItemFoundWidget : new KDCustomHTMLView
+        partial         : 'No members found!'
+        cssClass        : 'no-item-view'
+    , data
+
+    admins.addSubView @adminsView = new TeamMembersCommonView
+      fetcherMethod     : 'fetchAdminsWithEmail'
+      noItemFoundWidget : new KDCustomHTMLView
+        partial         : 'No admins found!'
+        cssClass        : 'no-item-view'
+    , data
+
+    mods.addSubView @modsView = new TeamMembersCommonView
+      fetcherMethod     : 'fetchModeratorsWithEmail'
+      noItemFoundWidget : new KDCustomHTMLView
+        partial         : 'No moderators found!'
+        cssClass        : 'no-item-view'
+    , data
+
 
     if isKoding()
       tabView.addPane blockedMembersPane = new KDTabPaneView name: 'Blocked'

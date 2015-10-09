@@ -19,6 +19,8 @@ module.exports = class GroupStackSettings extends kd.View
 
     @createInitialView()
 
+    kd.singletons.appStorageController.storage 'Ace', '1.0.1'
+
 
   createOnboardingView: (options = {}) ->
 
@@ -27,10 +29,13 @@ module.exports = class GroupStackSettings extends kd.View
 
     onboardingView.on 'StackOnboardingCompleted', (template) =>
       onboardingView.destroy()
-      @showEditor template
+      @showEditor template, no, yes
 
     onboardingView.on 'ScrollTo', (direction = 'top') =>
-      @scrollView["scrollTo#{direction.capitalize()}"] 500
+      duration = 500
+      top      = if direction is 'top' then 0 else @scrollView.getScrollHeight()
+
+      @scrollView.scrollTo { top, duration }
 
 
   createInitialView: ->
@@ -41,11 +46,11 @@ module.exports = class GroupStackSettings extends kd.View
     @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
 
 
-  showEditor: (stackTemplate, inEditMode) ->
+  showEditor: (stackTemplate, inEditMode, showHelpContent) ->
 
     @initialView.hide()
 
-    defineStackView = new DefineStackView { inEditMode }, { stackTemplate }
+    defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
     @scrollView.addSubView defineStackView
 
     defineStackView.on 'Reload', => @initialView.reload()

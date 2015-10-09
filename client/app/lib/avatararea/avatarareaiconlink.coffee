@@ -30,6 +30,11 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
 
     kd.utils.stopDOMEvent event
 
+    { mainView } = kd.singletons
+
+    if mainView.hasClass('hover') or mainView.isSidebarCollapsed
+      mainView.resetSidebar()
+
     return skipNextClick = no  if skipNextClick
 
     popup = @getDelegate()

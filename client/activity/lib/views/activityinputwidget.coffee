@@ -7,11 +7,9 @@ ActivityInputHelperView = require './activityinputhelperview'
 ActivityInputView       = require './activityinputview'
 EmbedBoxWidget          = require './embedboxwidget'
 globals                 = require 'globals'
-trackEvent              = require 'app/util/trackEvent'
 showError               = require 'app/util/showError'
 generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
-showErrorNotification   = require 'app/util/showErrorNotification'
 isLoggedIn              = require 'app/util/isLoggedIn'
 SuggestionMenuView      = require 'activity/components/suggestionmenu/view'
 ActivityFlux            = require 'activity/flux'
@@ -164,8 +162,6 @@ module.exports = class ActivityInputWidget extends KDView
 
     @emit 'SubmitSucceeded', activity
 
-    trackEvent "Status update create, success", { length: activity?.body?.length }
-
 
   create: (options, callback) ->
 
@@ -203,7 +199,8 @@ module.exports = class ActivityInputWidget extends KDView
     appManager.tell 'Activity', 'edit', { id: activity.id, body, payload }, (err, message) =>
 
       if err
-        return @showError err, userMessage : 'You are not allowed to edit this post.'
+        err.message = 'You are not allowed to edit this post.'  unless err.message
+        return @showError err
 
       activity.body = body
       activity.link = payload
@@ -211,8 +208,6 @@ module.exports = class ActivityInputWidget extends KDView
       activity.emit 'update'
 
       callback err, activity
-
-      trackEvent 'Status update edit, success'
 
 
   reset: (unlock = yes) ->
@@ -231,10 +226,9 @@ module.exports = class ActivityInputWidget extends KDView
   getEmbedBoxPayload: -> return @embedBox.getData()
 
 
-  showError: (err, options = {}) ->
+  showError: (err) ->
 
-    showErrorNotification err, options
-
+    showError err
     @unlockSubmit()
 
 

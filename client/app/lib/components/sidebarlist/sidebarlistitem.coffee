@@ -17,15 +17,16 @@ module.exports = class SidebarListItem extends React.Component
     return null  unless @props.unreadCount > 0
 
     return \
-      <cite className="SidebarListItem-unreadCount">
+      <cite className='SidebarListItem-unreadCount'>
         {@props.unreadCount}
       </cite>
 
 
   render: ->
+
     <div className={@getClassName()} onClick={@props.onClick}>
-      <cite className="SidebarListItem-icon" />
-      <Link className="SidebarListItem-link" href={@props.href}>
+      <cite className='SidebarListItem-icon' />
+      <Link className='SidebarListItem-link' href={@props.href}>
         {@props.title}
       </Link>
       {@renderUnreadCount()}

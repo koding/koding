@@ -1,15 +1,12 @@
 kd                      = require 'kd'
-KDView                  = kd.View
 curryIn                 = require 'app/util/curryIn'
 KDButtonView            = kd.ButtonView
-
+StackBaseEditorTabView  = require './stackbaseeditortabview'
 KDCustomHTMLView        = kd.CustomHTMLView
-KDFormViewWithFields    = kd.FormViewWithFields
-CredentialStatusView    = require './credentialstatusview'
 StackTemplateEditorView = require './editors/stacktemplateeditorview'
 
 
-module.exports = class StackTemplateView extends KDView
+module.exports = class StackTemplateView extends StackBaseEditorTabView
 
 
   constructor: (options = {}, data) ->
@@ -18,50 +15,26 @@ module.exports = class StackTemplateView extends KDView
 
     super options, data ? {}
 
-    { credential, stackTemplate, template } = @getData()
+    { credential, stackTemplate, template, showHelpContent } = @getData()
 
-    title   = stackTemplate?.title or 'Default stack template'
-    content = stackTemplate?.template?.content
-
-    @addSubView new KDCustomHTMLView
-      cssClass  : 'text header title'
-      partial   : 'Here is your stack preview'
-
-    @addSubView new KDCustomHTMLView
-      cssClass  : 'description'
-      partial   : 'You can make advanced changes like modifying your VM, installing packages, and running shell commands.'
-
-    @addSubView @inputTitle  = new KDFormViewWithFields
-      cssClass               : 'template-title-form'
-      fields                 :
-        title                :
-          cssClass           : 'template-title'
-          label              : 'Stack Template Title'
-          defaultValue       : title
-          nextElement        :
-            credentialStatus :
-              cssClass       : 'credential-status'
-              itemClass      : CredentialStatusView
-              stackTemplate  : stackTemplate
-
-    { @credentialStatus } = @inputTitle.inputs
-    delegate              = @getDelegate()
-
-    @credentialStatus.link.on 'click', ->
-      delegate.tabView.showPaneByName 'Providers'
+    content  = stackTemplate?.template?.content
+    delegate = @getDelegate()
 
     @addSubView @editorView = new StackTemplateEditorView {
-      delegate: this, content
+      delegate: this, content, showHelpContent
     }
+
+    @editorView.addSubView @previewButton = new KDButtonView
+      title    : 'Preview'
+      cssClass : 'solid compact light-gray template-preview-link'
+      loader   : yes
+      tooltip  :
+        title  : 'Generates a preview of this template with your own account information.'
+      callback : => @emit 'ShowTemplatePreview'
 
     @editorView.addSubView new KDButtonView
       title    : 'Logs'
-      cssClass : 'solid compact showlogs-link'
-      callback : delegate.outputView.bound 'raise'
+      cssClass : 'solid compact light-gray showlogs-link'
+      callback : => @emit 'ShowOutputView'
 
-    # FIXME Not liked this ~ GG
-    @editorView.on 'click', delegate.outputView.bound 'fall'
-
-    @credentialStatus.on 'StatusChanged', (status) =>
-      @emit 'CredentialStatusChanged', status
-
+    @editorView.on 'click', => @emit 'HideOutputView'

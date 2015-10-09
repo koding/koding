@@ -40,6 +40,11 @@ ALTER TABLE api.channel ADD CONSTRAINT "channel_creator_id_fkey" FOREIGN KEY ("c
 -- ----------------------------
 --  Indexes structure for table channel
 -- ----------------------------
+DROP INDEX IF EXISTS "api"."channel_deleted_at_group_name_type_constant_creator_id_idx";
+CREATE INDEX "channel_deleted_at_group_name_type_constant_creator_id_idx" ON "api"."channel" USING btree (deleted_at ASC NULLS FIRST, group_name DESC NULLS FIRST, type_constant DESC NULLS FIRST, creator_id DESC NULLS FIRST);
+
+DROP INDEX IF EXISTS "api"."channel_group_name_type_constant_deleted_at_idx";
+CREATE INDEX "channel_group_name_type_constant_deleted_at_idx" ON "api"."channel" USING btree (group_name DESC NULLS FIRST, type_constant DESC NULLS FIRST, deleted_at DESC NULLS FIRST);
 
 -- ----------------------------
 --  Check constraints for table channel

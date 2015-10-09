@@ -1,6 +1,5 @@
 kd = require 'kd'
 actions = require '../actiontypes'
-getGroup = require 'app/util/getGroup'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -16,7 +15,12 @@ bindChannelEvents = (channel) ->
 
     channel.on 'MessageAdded', (message) ->
       bindMessageEvents message
-      dispatch actions.LOAD_MESSAGE_SUCCESS, { channel, message, channelId: channel.id }
+
+      _channel = kd.singletons.socialapi.retrieveCachedItemById message.initialChannelId
+      dispatch actions.LOAD_MESSAGE_SUCCESS,
+        channel   : _channel
+        channelId : _channel.id
+        message   : message
 
     channel.on 'MessageRemoved', (message) ->
       dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: message.id }
@@ -38,9 +42,6 @@ bindMessageEvents = (message) ->
     dispatch actions.UNLIKE_MESSAGE_SUCCESS, { userId, messageId }
 
   message.on 'AddReply', (comment) ->
-    if getGroup().socialApiChannelId is channelId
-      channel = kd.singletons.socialapi.retrieveCachedItemById channelId
-      dispatch actions.LOAD_MESSAGE_SUCCESS, { message: comment, channelId, channel }
     dispatch actions.LOAD_COMMENT_SUCCESS, { messageId, comment }
 
   message.on 'RemoveReply', (comment) ->
@@ -50,8 +51,40 @@ bindMessageEvents = (message) ->
     channel = kd.singletons.socialapi.retrieveCachedItemById channelId
     dispatch actions.LOAD_MESSAGE_SUCCESS, { channelId, message, channel }
 
+bindNotificationEvents = ->
+
+  _dispatchFn = _createUnreadCountDispatchFn kd.singletons.reactor
+
+  kd.singletons.notificationController
+    .on 'MessageAddedToChannel', _dispatchFn
+    .on 'MessageRemovedFromChannel', _dispatchFn
+    .on 'RemovedFromChannel', _dispatchFn
+    .on 'ReplyAdded', _dispatchFn
+    .on 'ParticipantUpdated', _dispatchFn
+    .on 'MessageListUpdated', _dispatchFn
+    .on 'AddedToChannel', (options) ->
+      channel = kd.singletons.socialapi.channel.revive options
+      actionType = if channel.typeConstant in ['privatemessage', 'bot', 'collaboration']
+      then actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS
+      else actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS
+      payload = { channel, channelId: channel.id }
+      dispatch actionType, payload
+
+      { unreadCount } = channel
+
+      _dispatchFn { unreadCount, channel }
+
+
+_createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
+  _reactor.dispatch actions.SET_CHANNEL_UNREAD_COUNT,
+    unreadCount : unreadCount
+    channelId   : channel.id
+
+  _reactor.dispatch actions.UNSET_LOADED_WITH_SCROLL, channelId: channel.id
+
 
 module.exports = {
   bindChannelEvents
   bindMessageEvents
+  bindNotificationEvents
 }

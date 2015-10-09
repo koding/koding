@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
@@ -34,7 +35,7 @@ func tearUp(t *testing.T, f func()) {
 	f()
 }
 
-func TestSendMessage(t *testing.T) {
+func TestSaveMessage(t *testing.T) {
 
 	tearUp(t, func() {
 		Convey("while testing bot", t, func() {
@@ -46,14 +47,20 @@ func TestSendMessage(t *testing.T) {
 
 			groupName := models.RandomGroupName()
 
-			channel := models.CreateTypedGroupedChannelWithTest(bot.account.Id, models.Channel_TYPE_TOPIC, groupName)
+			account, err := models.CreateAccountInBothDbsWithNick("sinan")
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+
+			channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
+
+			ci, _ := CreateTestChannelIntegration(t)
 
 			Convey("bot should be able to create message", func() {
 				message := &Message{}
 				message.Body = "testmessage"
 				message.ChannelId = channel.Id
-				message.ChannelIntegrationId = 13
-				err := bot.SendMessage(message)
+				message.ChannelIntegrationId = ci.Id
+				err := bot.SaveMessage(message)
 				So(err, ShouldBeNil)
 
 				m, err := channel.FetchLastMessage()
@@ -63,7 +70,8 @@ func TestSendMessage(t *testing.T) {
 				So(m.InitialChannelId, ShouldEqual, message.ChannelId)
 				So(m.AccountId, ShouldEqual, bot.account.Id)
 				So(m.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_BOT)
-				So(*(m.GetPayload("channelIntegrationId")), ShouldEqual, "13")
+				ID := fmt.Sprintf("%d", ci.Id)
+				So(*(m.GetPayload("channelIntegrationId")), ShouldEqual, ID)
 
 			})
 		})

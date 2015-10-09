@@ -8,6 +8,7 @@ import (
 	"socialapi/workers/common/tests"
 	"testing"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -61,7 +62,7 @@ func TestPrivateMesssages(t *testing.T) {
 			So(recipient2, ShouldNotBeNil)
 
 			Convey("participants should be a member of parent group", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body message for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -77,7 +78,7 @@ func TestPrivateMesssages(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("one can send private message to one person", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body message for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -89,7 +90,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("0 recipient should not fail", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message"
 				pmr.GroupName = groupName
@@ -102,7 +103,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("if sender is not defined should fail to create PM", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = 0
 				pmr.Body = "this is a body for private message"
 				pmr.GroupName = ""
@@ -114,7 +115,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("one can send private message to multiple person", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @sinan"
 				pmr.GroupName = groupName
@@ -125,7 +126,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 			})
 			Convey("private message response should have created channel", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -142,7 +143,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("private message response should have participant status data", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -155,7 +156,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("private message response should have participant count", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for @sinan private message @devrim"
 				pmr.GroupName = groupName
@@ -167,7 +168,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("private message response should have participant preview", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is @sinan a body for @devrim private message"
 				pmr.GroupName = groupName
@@ -180,7 +181,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 			Convey("private message response should have last Message", func() {
 				body := "hi @devrim this is a body for private message also for @sinan"
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = body
 				pmr.GroupName = groupName
@@ -193,7 +194,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 			Convey("private message should be listed by all recipients", func() {
 				body := "hi @devrim this is a body for private message also for @sinan"
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = body
 				pmr.GroupName = groupName
@@ -218,7 +219,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("user should be able to search private messages via purpose field", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "search private messages"
 				pmr.GroupName = groupName
@@ -245,6 +246,27 @@ func TestPrivateMesssages(t *testing.T) {
 				So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
 				So(pm[0].IsParticipant, ShouldBeTrue)
 
+			})
+
+			payload := gorm.Hstore{}
+			bar := "bar"
+			payload["foo"] = &bar
+
+			Convey("given payload should be populated", func() {
+				pmr := models.ChannelRequest{}
+				pmr.AccountId = account.Id
+				pmr.Body = "this is a body message for private message @devrim @sinan"
+				pmr.GroupName = groupName
+				pmr.Recipients = []string{"devrim", "sinan"}
+				pmr.Payload = payload
+
+				pcr, err := rest.SendPrivateChannelRequest(pmr)
+				So(err, ShouldBeNil)
+				So(pcr, ShouldNotBeNil)
+				So(pcr.Channel, ShouldNotBeNil)
+				So(pcr.Channel.Payload, ShouldNotBeNil)
+				So(len(pcr.Channel.Payload), ShouldBeGreaterThan, 0)
+				So(*pcr.Channel.Payload["foo"], ShouldEqual, bar)
 			})
 
 			Convey("user join activity should be listed by recipients", func() {
@@ -274,7 +296,7 @@ func TestPrivateMesssages(t *testing.T) {
 				_, err = groupChannel.AddParticipant(recipient.Id)
 				So(err, ShouldBeNil)
 
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "test private message participants"
 				pmr.GroupName = groupName
@@ -322,7 +344,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 				systemType, ok := history.MessageList[0].Message.Payload["systemType"]
 				So(ok, ShouldBeTrue)
-				So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_JOIN)
+				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_JOIN)
 
 				// try to add same participant
 				_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
@@ -343,7 +365,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("user should not be able to edit join messages", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "test private message participants again"
 				pmr.GroupName = groupName
@@ -380,7 +402,7 @@ func TestPrivateMesssages(t *testing.T) {
 			})
 
 			Convey("first chat message should include initial participants", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "test initial participation message"
 				pmr.GroupName = groupName
@@ -414,7 +436,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 				systemType, ok := history.MessageList[1].Message.Payload["systemType"]
 				So(ok, ShouldBeTrue)
-				So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_INIT)
+				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_INIT)
 
 				participants := make([]string, 0)
 				err = json.Unmarshal([]byte(*initialParticipants), &participants)

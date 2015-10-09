@@ -4,6 +4,7 @@ remote          = require('app/remote').getInstance()
 globals         = require 'globals'
 getGroup        = require 'app/util/getGroup'
 checkFlag       = require 'app/util/checkFlag'
+isKoding        = require 'app/util/isKoding'
 AppStorage      = require 'app/appstorage'
 AppController   = require 'app/appcontroller'
 KodingAppsController = require 'app/kodingappscontroller'
@@ -30,6 +31,7 @@ module.exports = class ActivityAppController extends AppController
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
     helper.loadFonts()
+    helper.loadEmojiStyles()
 
 
   post: (options = {}, callback = noop) ->
@@ -133,9 +135,12 @@ module.exports = class ActivityAppController extends AppController
 
     kd.utils.stopDOMEvent e
 
-    switch e.model.name
-      when 'prevwindow' then @getView().openPrev()
-      when 'nextwindow' then @getView().openNext()
+    if isKoding()
+      switch e.model.name
+        when 'prevwindow' then @getView().openPrev()
+        when 'nextwindow' then @getView().openNext()
+    # else
+    #   throw 'flux action'
 
 helper =
 
@@ -150,3 +155,11 @@ helper =
 
     KodingAppsController.appendHeadElement 'script', options
 
+
+  loadEmojiStyles: ->
+
+    options =
+      identifier : 'emojis'
+      url        : '/a/static/emojify/emojify.css'
+
+    KodingAppsController.appendHeadElement 'style', options

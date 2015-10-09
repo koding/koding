@@ -937,7 +937,7 @@ func TestMarkedAsTroll(t *testing.T) {
 }
 
 func createPrivateMessageChannel(accountId int64, groupName string) (int64, error) {
-	pmr := models.PrivateChannelRequest{}
+	pmr := models.ChannelRequest{}
 	pmr.AccountId = accountId
 	pmr.Body = "this is a body for private message @sinan"
 	pmr.GroupName = groupName

@@ -1,6 +1,7 @@
 kd                  = require 'kd'
 KDView              = kd.View
 showError           = require 'app/util/showError'
+isKoding            = require 'app/util/isKoding'
 KDCustomHTMLView    = kd.CustomHTMLView
 ComputeResizeModal  = require './computeresizemodal'
 CircularProgressBar = require 'app/commonviews/circularprogressbar'
@@ -53,10 +54,14 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
         <span>#{format usage} of #{format total}</span>
       """
 
-    unless @getData().isManaged()
+    if not @getData().isManaged() and isKoding()
       @addSubView new KDCustomHTMLView
         cssClass : 'footline'
-        partial  : "If you have a paid plan or storage through referrals, you can <a href='#' class='resize'>resize your VM</a>.<br>Share Koding and <a href='#' class='share'>get more storage for free</a>!"
+        partial  : """
+          If you have a paid plan or storage through referrals, you can
+          <a href='#' class='resize'>resize your VM</a>.<br>Share Koding and
+          <a href='#' class='share'>get more storage for free</a>!
+        """
         click    : (e) =>
           if e.target.tagName is 'A'
 

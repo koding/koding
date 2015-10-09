@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
@@ -91,13 +90,16 @@ module.exports = class JInvitation extends jraphical.Module
       modifiedAt    :
         type        : Date
         default     : -> new Date
+      role          :
+        type        : String
+        default     : -> 'member'
 
   accept$: secure (client, callback) ->
     { delegate } = client.connection
     @accept delegate, callback
 
   accept: (account, callback) ->
-    operation = $set : { status: 'accepted' }
+    operation = { $set : { status: 'accepted' } }
     @update operation, callback
 
   # validTypes holds states that can still redeemable
@@ -120,7 +122,7 @@ module.exports = class JInvitation extends jraphical.Module
       selector.status  or= 'pending'
 
       { limit }       = options
-      options.sort  or= createdAt : -1
+      options.sort  or= { createdAt : -1 }
       options.limit or= 25
       options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
       options.skip    = 0
@@ -165,7 +167,7 @@ module.exports = class JInvitation extends jraphical.Module
 
         queue = invitations.map (invitation) -> ->
 
-          { email, firstName, lastName } = invitation
+          { email, firstName, lastName, role } = invitation
 
           JInvitation.one { email, groupName }, (err, invitation) ->
             return callback new KodingError err  if err
@@ -191,6 +193,7 @@ module.exports = class JInvitation extends jraphical.Module
                 hash
                 email
                 groupName
+                role
               }
               # firstName and lastName are optional
               data.firstName = firstName  if firstName
@@ -244,11 +247,12 @@ module.exports = class JInvitation extends jraphical.Module
 
   # sendInvitationEmail sends email according to given JInvitation
   @sendInvitationEmail: (client, invitation, callback) ->
-    invitee      = getName client.connection.delegate
+    inviter      = getName client.connection.delegate
 
     properties =
       groupName: invitation.groupName
-      invitee  : invitee
+      inviter  : inviter
+      invitee  : inviter # TODO: this field is deprecated, remove after updating template
       link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
 
     Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
@@ -257,15 +261,12 @@ module.exports = class JInvitation extends jraphical.Module
 
 
   getName = (delegate) ->
+
     { nickname, firstName, lastName } = delegate.profile
 
     name = nickname
-
-    if "#{firstName}" is not ''
-      name = firstName
-
-    if "#{lastName}" is not ''
-      name = "#{name} #{lastName}"
+    name = firstName              if firstName
+    name = "#{name} #{lastName}"  if firstName and lastName
 
     return name
 

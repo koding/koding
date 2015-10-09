@@ -246,34 +246,6 @@ func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParti
 	return response.NewOK(participants)
 }
 
-// DeletePrivateChannelMessages deletes all channel messages from a private message channel
-// when there are no more participants
-func DeleteDesertedChannelMessages(channelId int64) error {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return err
-	}
-
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
-		return nil
-	}
-
-	cp := models.NewChannelParticipant()
-	cp.ChannelId = c.Id
-	count, err := cp.FetchParticipantCount()
-	if err != nil {
-		return err
-	}
-
-	if count != 0 {
-		return nil
-	}
-
-	// no need to keep the channel any more
-	return c.Delete()
-}
-
 func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelParticipant) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 
@@ -351,6 +323,34 @@ func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 	return response.NewDefaultOK()
 }
 
+// DeletePrivateChannelMessages deletes all channel messages from a private message channel
+// when there are no more participants
+func DeleteDesertedChannelMessages(channelId int64) error {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return err
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
+		return nil
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	count, err := cp.FetchParticipantCount()
+	if err != nil {
+		return err
+	}
+
+	if count != 0 {
+		return nil
+	}
+
+	// no need to keep the channel any more
+	return c.Delete()
+}
+
 func updateStatus(participant *models.ChannelParticipant, query *request.Query, ctx *models.Context) (*models.ChannelParticipant, error) {
 
 	if ok := ctx.IsLoggedIn(); !ok {
@@ -418,9 +418,11 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 			return errors.New("you can not add only one participant into topic channel")
 		}
 
-		if participants[0].AccountId != requesterId {
-			return errors.New("you can not add others into topic channel")
-		}
+		// with the new UI structure, now other users can add others into topic channels
+		//
+		// if participants[0].AccountId != requesterId {
+		// 	return errors.New("you can not add others into topic channel")
+		// }
 	}
 
 	// return early for non private message channels
@@ -458,12 +460,12 @@ func addJoinActivity(channelId int64, participant *models.ChannelParticipant, ad
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	pmr := &models.ChannelRequest{AccountId: participant.AccountId}
 	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_INVITE)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_INVITE)
 		addedBy = 0
 	} else {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_JOIN)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_JOIN)
 	}
 
 	return pmr.AddJoinActivity(c, addedBy)
@@ -479,11 +481,11 @@ func addLeaveActivity(channelId, accountId int64, participant *models.ChannelPar
 		return err
 	}
 
-	pmr := &models.PrivateChannelRequest{AccountId: participant.AccountId}
+	pmr := &models.ChannelRequest{AccountId: participant.AccountId}
 	if accountId == participant.AccountId {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_LEAVE)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_LEAVE)
 	} else {
-		pmr.SetSystemMessageType(models.PrivateMessageSystem_TYPE_KICK)
+		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_KICK)
 	}
 
 	return pmr.AddLeaveActivity(c)

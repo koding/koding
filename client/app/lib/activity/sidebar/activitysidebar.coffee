@@ -17,7 +17,6 @@ ActivitySideView                = require './activitysideview'
 KDCustomHTMLView                = kd.CustomHTMLView
 SidebarTopicItem                = require './sidebartopicitem'
 isFeatureEnabled                = require 'app/util/isFeatureEnabled'
-EnvironmentsModal               = require 'app/environment/environmentsmodal'
 fetchChatChannels               = require 'activity/util/fetchChatChannels'
 SidebarPinnedItem               = require './sidebarpinneditem'
 KDNotificationView              = kd.NotificationView
@@ -29,9 +28,11 @@ isChannelCollaborative          = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList          = require './sidebarownmachineslist'
 environmentDataProvider         = require 'app/userenvironmentdataprovider'
 SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
+SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
 isReactivityEnabled             = require 'app/util/isReactivityEnabled'
+EnvironmentsModal               = require 'app/environment/environmentsmodal'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
 # once we merged two sidebars into one
@@ -86,17 +87,18 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     router
       .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
-    notificationController
-      .on 'AddedToChannel',            @bound 'accountAddedToChannel'
-      .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
-      .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
-      .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
-      .on 'ReplyAdded',                @bound 'replyAdded'
+    if isKoding()
+      notificationController
+        .on 'AddedToChannel',            @bound 'accountAddedToChannel'
+        .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
+        .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
+        .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
+        .on 'ReplyAdded',                @bound 'replyAdded'
 
-      .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
-      .on 'ParticipantUpdated',        @bound 'handleGlanced'
-      # .on 'ReplyRemoved',              (update) -> log update.event, update
-      # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
+        .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
+        .on 'ParticipantUpdated',        @bound 'handleGlanced'
+        # .on 'ReplyRemoved',              (update) -> log update.event, update
+        # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
       .on 'MachineDataModified',       @bound 'updateMachines'
@@ -104,7 +106,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
       .on 'MachineBuilt',              @bound 'machineBuilt'
       .on 'StacksNotConfigured',       @bound 'addStacksNotConfiguredWarning'
-      .on 'StacksInconsistent',        @bound 'addStacksModifiedWarning'
+      .on 'GroupStacksInconsistent',   @bound 'addGroupStacksChangedWarning'
+      .on 'GroupStacksConsistent',     @bound 'hideGroupStacksChangedWarning'
 
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
@@ -487,6 +490,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     kd.singletons.mainController.ready =>
       if isReactivityEnabled()
         @addReactivitySidebarSections()
+        # @addInviteMembersSection()
       else
         @addFollowedTopics()
         @addMessages()
@@ -521,6 +525,41 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch (data) => callback data
 
 
+  hideGroupStacksChangedWarning: ->
+
+    @groupStacksChangedWarning?.hide()
+
+
+  addGroupStacksChangedWarning: ->
+
+    return  if isKoding()
+
+    if @groupStacksChangedWarning and not @groupStacksChangedWarning.isDestroyed
+      return @groupStacksChangedWarning.show()
+
+    view = new KDCustomHTMLView
+      cssClass : 'warning-section'
+      partial  : """
+        <header class='SidebarSection-header'>
+          <h4 class='SidebarSection-headerTitle'>STACKS</h4>
+        </header>
+        <p>
+          You have different resources in your stacks.
+          Please re-initialize your stacks.
+        </p>
+      """
+
+    view.addSubView new KDCustomHTMLView
+      tagName: 'a'
+      partial: 'Show Stacks'
+      click: (event) ->
+        kd.utils.stopDOMEvent event
+        new EnvironmentsModal
+
+    @groupStacksChangedWarning = \
+      @machinesWrapper.addSubView view, null, shouldPrepend = yes
+
+
   addStacksNotConfiguredWarning: ->
 
     return  if isKoding()
@@ -531,16 +570,40 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       return kd.warn err  if err
 
       if 'admin' in (roles ? [])
-        partial = "<a href='/Welcome'>Your team page has not been<br/>
-                      fully configured yet please<br/>
-                      click here to setup now.</a>"
+        partial = """
+          <header class='SidebarSection-header'>
+            <h4 class='SidebarSection-headerTitle'>STACKS</h4>
+          </header>
+          <div class='no-stacks'>
+            <label>No stacks</label>
+            <a href='/Admin/Stacks'>Create a stack</a>
+          </div>
+          """
       else
-        partial = "Your team page has not been<br/>
-                      fully configured yet please<br/>
-                      contact your team admin.</a>"
+        partial = """
+          <header class='SidebarSection-header'>
+            <h4 class='SidebarSection-headerTitle'>STACKS</h4>
+          </header>
+          <p>
+            Your stacks has not been<br/>
+            fully configured yet, please<br/>
+            contact your team admin.
+          </p>
+          """
 
-      cssClass = 'stack-warning hidden'
+      cssClass = 'warning-section hidden'
       view     = new KDCustomHTMLView { cssClass, partial }
+
+      unless 'admin' in (roles ? [])
+        view.addSubView new KDCustomHTMLView
+          tagName: 'a'
+          partial: 'Message admin'
+          attributes: { href: '/Messages/New' }
+          click: (event) ->
+            kd.utils.stopDOMEvent event
+
+            ActivityFlux = require 'activity/flux'
+            ActivityFlux.actions.thread.switchToDefaultChannelForStackRequest()
 
       @stacksNotConfiguredWarning = @machinesWrapper.addSubView view, null, shouldPrepend = yes
 
@@ -568,21 +631,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   #   new SidebarStacksNotConfiguredPopup
 
 
-  addStacksModifiedWarning: ->
-
-    return  if isKoding()
-    return  @stacksModifiedWarning.show()  if @stacksModifiedWarning?
-
-    @stacksModifiedWarning = new KDCustomHTMLView
-      cssClass : 'stack-warning'
-      partial  : "You have different resources in your stacks.
-                  <a href=#>Click here</a> to re-initialize existing stacks."
-      click    : -> new EnvironmentsModal
-
-    @machinesWrapper.addSubView \
-      @stacksModifiedWarning, null, shouldPrepend = yes
-
-
   addMachineList: (expandedBoxUIds) ->
 
     @machineLists = []
@@ -593,14 +641,79 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         cssClass: 'machines-wrapper'
 
     if isKoding()
-      @createMachineList 'own'
-      @createMachineList 'shared'
+      @createDefaultMachineList expandedBoxUIds
+      @createSharedMachineList()
+    else
+      @createStackMachineList expandedBoxUIds
+
+
+  createDefaultMachineList: (expandedBoxUIds) ->
+
+    @createMachineList 'own'
 
     if environmentDataProvider.hasData()
       @addMachines_ environmentDataProvider.get(), expandedBoxUIds
     else
       environmentDataProvider.fetch (data) =>
         @addMachines_ data, expandedBoxUIds
+
+
+  createSharedMachineList: ->
+
+    machines = environmentDataProvider.getSharedMachines()
+    @createMachineList 'shared', {}, machines
+
+
+  createStackMachineList: do (inProgress = no) -> (expandedBoxUIds) ->
+
+    return  if inProgress
+
+    inProgress = yes
+
+    { computeController } = kd.singletons
+
+    computeController.fetchStacks (err, stacks) =>
+
+      return showError err  if err
+
+      stacks.forEach (stack) =>
+
+        { title } = stack
+
+        environmentMap = {}
+
+        for node in environmentDataProvider.getMyMachines()
+          environmentMap[node.machine._id] = node
+
+        stackEnvironment = stack.machines.map (machine) ->
+          environmentMap[machine._id]
+
+        type = switch
+          when title is 'Managed VMs' then 'own'
+          else 'stack'
+
+        options = { title, stack }
+
+        @createMachineList type, options, stackEnvironment
+        @createSharedMachineList()
+        @bindStackEvents stack
+
+      inProgress = no
+
+
+  bindStackEvents: (stack) ->
+
+    stack.on 'update', @lazyBound 'handleStackUpdate', stack
+
+
+  handleStackUpdate: (stack) ->
+
+    stack.machines
+      .map (machine) => @getMachineBoxByMachineUId machine.uid
+      .forEach (box) ->
+        return  unless box
+        visibility = stack.config.sidebar?[box.machine.uid]?.visibility
+        box?.setVisibility visibility ? on
 
 
   redrawMachineList: ->
@@ -627,11 +740,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   addMachines_: (data, expandedBoxUIds = {}) ->
 
-    { shared, collaboration } = data
-    sharedData = shared.concat collaboration
-
-    @addBoxes 'own'    , data.own
-    @addBoxes 'shared' , sharedData
+    @addBoxes 'own', data.own
 
     if Object.keys(expandedBoxUIds).length is 0
       expandedBoxUIds = @localStorageController.getValue('SidebarState') or {}
@@ -659,6 +768,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     MachineListClasses =
       own              : SidebarOwnMachinesList
       shared           : SidebarSharedMachinesList
+      stack            : SidebarStackMachineList
 
     list = new MachineListClasses[type] options, data
 
@@ -675,6 +785,32 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     SidebarSectionsView = require 'app/components/sidebarsections/view'
 
     @addSubView new SidebarSectionsView
+
+
+  # addInviteMembersSection: ->
+
+  #   { groupsController } = kd.singletons
+  #   groupsController.ready =>
+
+  #     currentGroup = groupsController.getCurrentGroup()
+  #     currentGroup.fetchMyRoles (err, roles = []) =>
+
+  #       return kd.warn err  if err
+  #       return unless 'admin' in roles
+
+  #       @addSubView section = new kd.CustomHTMLView
+  #         tagName  : 'section'
+  #         cssClass : 'warning-section invite'
+  #         partial  : """
+  #           <div class='no-stacks'>
+  #             <label>Invite your team</label>
+  #             <p>
+  #               Send out invites to<br/>
+  #               your teammates.
+  #             </p>
+  #             <a href='/Admin/Invitations'>Invite</a>
+  #           </div>
+  #           """
 
 
   addFollowedTopics: ->
@@ -771,14 +907,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   getMachineBoxByMachineUId: (uid) ->
 
-    box = null
-
     for machineList in @machineLists
       for machineBox in machineList.machineBoxes
         if machineBox.machine.uid is uid
-          box = machineBox
-
-    return box
+          return machineBox
 
 
   machineBuilt: ->

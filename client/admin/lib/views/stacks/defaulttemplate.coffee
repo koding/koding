@@ -9,6 +9,9 @@ module.exports = """
     "resource": {
       "aws_instance": {
         "example": {
+          "tags": {
+            "Name": "${var.koding_user_username}-${var.koding_group_slug}"
+          },
           "instance_type": "t2.micro",
           "ami": ""
         }

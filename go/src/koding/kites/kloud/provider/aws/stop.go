@@ -32,28 +32,6 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 
 	latestState = machinestate.Stopped
 
-	m.push("Initializing domain instance", 65, machinestate.Stopping)
-	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
-		return err
-	}
-
-	m.push("Deleting domain", 85, machinestate.Stopping)
-	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
-		m.Log.Warning("couldn't delete domain %s", err)
-	}
-
-	// also get all domain aliases that belongs to this machine and unset
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
-	if err != nil {
-		m.Log.Error("fetching domains for unseting err: %s", err.Error())
-	}
-
-	for _, domain := range domains {
-		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
-			m.Log.Error("couldn't delete domain: %s", err.Error())
-		}
-	}
-
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			m.Id,

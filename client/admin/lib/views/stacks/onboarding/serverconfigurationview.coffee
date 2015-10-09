@@ -20,26 +20,29 @@ module.exports = class ServerConfigurationView extends kd.View
         partial  : "<p>#{section}</p>"
 
       for service, config of services
-        row = new kd.CustomHTMLView cssClass: 'row'
+        row = new kd.CustomHTMLView cssClass: "row #{service}"
 
         do (service, config) =>
 
-          row.addSubView kdSwitch = new KodingSwitch
-            size         : 'tiny'
+          row.addSubView checkbox = new kd.CustomCheckBox
             name         : service
             package      : config.package
             command      : config.command
             defaultValue : no
-            callback     : => @emit 'UpdateStackTemplate'
+            click        : =>
+              @emit 'UpdateStackTemplate'
+              @emit 'HiliteTemplate', 'line', config.package
+
 
           row.addSubView new kd.CustomHTMLView
             partial  : config.title
             cssClass : 'label'
             click    : =>
-              if kdSwitch.getValue() then kdSwitch.setOff() else kdSwitch.setOn()
+              if checkbox.getValue() then checkbox.setValue 0 else checkbox.setValue 1
               @emit 'UpdateStackTemplate'
+              @emit 'HiliteTemplate', 'line', config.package
 
-          @configurationToggles.push kdSwitch
+          @configurationToggles.push checkbox
           section.addSubView row
 
       @addSubView section

@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 emailsanitize = require './user/emailsanitize'
@@ -232,6 +231,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         # changing user's password to new one
         user.changePassword newPassword, (err) ->
           return callback err  if err
+          queue.next()
+
+      ->
+        # kill user sessions
+        user.killSessions {}, (err) ->
           queue.next()
 
       ->

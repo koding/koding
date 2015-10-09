@@ -11,19 +11,18 @@ module.exports = class ProvidersView extends KDView
 
     super options, data
 
-    @addSubView new KDCustomHTMLView
-      cssClass  : 'text header'
-      partial   : 'Provide credential details for this stack'
-
     { stackTemplate, selectedCredentials, provider } = @getOptions()
 
     @credentialList = new CredentialListView {
       stackTemplate, selectedCredentials, provider
     }
 
-    @forwardEvent @credentialList.list, 'ItemSelected'
+    @forwardEvents @credentialList.list, ['ItemSelected', 'ItemDeleted']
 
     mainView = @addSubView new KDView
       cssClass: 'stacks stacks-v2'
 
     mainView.addSubView @credentialList
+
+  resetItems: ->
+    @credentialList.list.emit 'ResetInuseStates'

@@ -21,10 +21,35 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
   constructor: (options = {}, data) ->
 
-    options.noItemFoundText ?= "You don't have any credentials"
+    options.limit               or= 30
+    options.noItemFoundText      ?= "You don't have any credentials"
+
     super options, data
 
-    @loadItems()
+    @filterStates =
+      skip  : 0
+      busy  : no
+      query : {}
+
+
+  followLazyLoad: ->
+
+    @on 'LazyLoadThresholdReached', kd.utils.debounce 300, =>
+
+      return  @hideLazyLoader()  if @filterStates.busy
+
+      @filterStates.busy  = yes
+      @filterStates.skip += @getOption 'limit'
+
+      @fetch @filterStates.query, (err, credentials) =>
+        @hideLazyLoader()
+
+        if err or not credentials
+          return @filterStates.busy = no
+
+        @instantiateListItems credentials
+        @filterStates.busy = no
+      , { skip : @filterStates.skip }
 
 
   loadItems: ->
@@ -34,22 +59,48 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     { query, provider, requiredFields } = @getOptions()
 
-    query          ?=  {}
-    query.provider ?= provider        if provider
-    query.fields   ?= requiredFields  if requiredFields
+    @filterStates.query.provider ?= provider        if provider
+    @filterStates.query.fields   ?= requiredFields  if requiredFields
 
-    { JCredential } = remote.api
-
-    JCredential.some query, { limit: 30 }, (err, credentials) =>
+    @fetch @filterStates.query, (err, credentials) =>
 
       if provider? and credentials?.length is 0
         @showAddCredentialFormFor provider
 
       @hideLazyLoader()
+      @instantiateListItems credentials
 
-      return if showError err, \
-        KodingError : "Failed to fetch data, try again later."
 
+  fetch: (query, callback, options = {}) ->
+
+    { JCredential } = remote.api
+
+    options.limit or= @getOption 'limit'
+    options.sort    = "meta.modifiedAt": -1
+
+    JCredential.some @filterStates.query, options, (err, credentials) =>
+
+      if err
+        @hideLazyLoader()
+        showError err, \
+          KodingError : "Failed to fetch data, try again later."
+        return
+
+      callback err, credentials
+
+
+  filterByProvider: (query = {}) ->
+
+    @filterStates.skip = 0
+
+    @removeAllItems()
+    @showLazyLoader no
+
+    @filterStates.query = query
+
+    @fetch @filterStates.query, (err, credentials) =>
+
+      @hideLazyLoader()
       @instantiateListItems credentials
 
 
@@ -57,17 +108,20 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     super
 
-    view = @getView()
-    view.on 'ShowShareCredentialFormFor', @bound 'showShareCredentialFormFor'
-    view.on 'ItemDeleted', (item) =>
+    @listView.on 'ShowShareCredentialFormFor', @bound 'showShareCredentialFormFor'
+    @listView.on 'ItemDeleted', (item) =>
       @removeItem item
       @noItemView.show()  if @listView.items.length is 0
 
-    {provider, requiredFields} = @getOptions()
+    { provider, requiredFields, dontShowCredentialMenu } = @getOptions()
 
     if provider
-    then @createAddDataButton()
-    else @createAddCredentialMenu()
+      @createAddDataButton()
+    else
+      @createAddCredentialMenu()  unless dontShowCredentialMenu
+
+    @loadItems()
+    @followLazyLoad()
 
 
   createAddDataButton: ->
@@ -115,6 +169,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     view = @getView().parent
     view.form?.destroy()
+    view.intro?.destroy()
 
     view.setClass "form-open"
 
@@ -122,8 +177,22 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     options.defaultTitle   = defaultTitle    if defaultTitle?
     options.requiredFields = requiredFields  if requiredFields?
 
+    if provider is 'aws'
+      view.addSubView view.intro = new kd.CustomHTMLView
+        cssClass  : 'credential-creation-intro'
+        partial   : '''
+          <p>Add your AWS credentials</a>
+          <ol>
+            <li>Create an AWS user</li>
+            <li>Attach the AdministratorAccess policy</li>
+            <li>Add the Access Key ID and Secret here</li>
+          </ol>
+          <p>Need some help? <a href='http://learn.koding.com/aws-provider-setup'>Follow our guide</a>
+          '''
+
     { ui }    = kd.singletons.computeController
     view.form = ui.generateAddCredentialFormFor options
+    view.form.setClass 'credentials-form-view'
 
     view.form.on "Cancel", ->
       view.unsetClass "form-open"

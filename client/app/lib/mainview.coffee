@@ -1,21 +1,21 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDCustomScrollView = kd.CustomScrollView
-KDScrollView = kd.ScrollView
-KDButtonView = kd.ButtonView
-KDView = kd.View
-sinkrow = require 'sinkrow'
-globals = require 'globals'
-trackEvent = require './util/trackEvent'
-remote = require('./remote').getInstance()
-isLoggedIn = require './util/isLoggedIn'
-whoami = require './util/whoami'
-ActivitySidebar = require './activity/sidebar/activitysidebar'
-AvatarArea = require './avatararea/avatararea'
-CustomLinkView = require './customlinkview'
-GlobalNotificationView = require './globalnotificationview'
-MainTabView = require './maintabview'
-TopNavigation = require './topnavigation'
+kd                      = require 'kd'
+KDCustomHTMLView        = kd.CustomHTMLView
+KDCustomScrollView      = kd.CustomScrollView
+KDScrollView            = kd.ScrollView
+KDButtonView            = kd.ButtonView
+KDView                  = kd.View
+sinkrow                 = require 'sinkrow'
+globals                 = require 'globals'
+remote                  = require('./remote').getInstance()
+isLoggedIn              = require './util/isLoggedIn'
+whoami                  = require './util/whoami'
+isKoding                = require './util/isKoding'
+ActivitySidebar         = require './activity/sidebar/activitysidebar'
+AvatarArea              = require './avatararea/avatararea'
+CustomLinkView          = require './customlinkview'
+GlobalNotificationView  = require './globalnotificationview'
+MainTabView             = require './maintabview'
+TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -79,9 +79,7 @@ module.exports = class MainView extends KDView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
-      click      : (event) =>
-        kd.utils.stopDOMEvent event
-        trackEvent 'Koding Logo, click'
+      click      : (event) -> kd.utils.stopDOMEvent event
 
     @header.addSubView logoWrapper
 
@@ -126,38 +124,48 @@ module.exports = class MainView extends KDView
 
   createSidebar: ->
 
+    timer = null
     @setClass 'with-sidebar'
 
     @addSubView @aside = new KDCustomHTMLView
+      bind       : 'mouseenter mouseleave'
       tagName    : 'aside'
+      cssClass   : unless isKoding() then 'team' else ''
       domId      : 'main-sidebar'
       attributes :
         testpath : 'main-sidebar'
+      mouseenter : =>
+        if @isSidebarCollapsed
+          timer = kd.utils.wait 200, => @toggleHoverSidebar()
+      mouseleave : =>
+        kd.utils.killWait timer  if timer
+        @toggleHoverSidebar()  if @hasClass 'hover'
 
     entryPoint = globals.config.entryPoint
 
-    logoWrapper = new KDCustomHTMLView
-      cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
+    @logoWrapper = new KDCustomHTMLView
+      cssClass  : unless isKoding() then 'logo-wrapper group' else 'logo-wrapper'
 
-    logoWrapper.addSubView new KDCustomHTMLView
+    @logoWrapper.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
-      click      : (event) =>
-        kd.utils.stopDOMEvent event
-        trackEvent 'Koding Logo, click'
+      click      : (event) -> kd.utils.stopDOMEvent event
 
-    logoWrapper.addSubView closeHandle = new KDCustomHTMLView
+    @logoWrapper.addSubView closeHandle = new KDCustomHTMLView
       cssClass : "sidebar-close-handle"
       partial  : "<span class='icon'></span>"
       click    : @bound 'toggleSidebar'
 
     closeHandle.hide()
 
-    @aside.addSubView logoWrapper
+    @aside.addSubView @logoWrapper
 
     @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
+      # FW should be checked
+      # this works weird somehow - SY
+      # offscreenIndicatorClassName: if isKoding() then 'unread' else 'SidebarListItem-unreadCount'
 
     @sidebar.addSubView moreItemsAbove = new KDView
       cssClass  : 'more-items above hidden'
@@ -190,6 +198,10 @@ module.exports = class MainView extends KDView
     kd.singletons.notificationController.on 'ParticipantUpdated', =>
       @sidebar.updateOffscreenIndicators()
 
+    @sidebar.on 'ShowCloseHandle', =>
+      @aside.setClass 'has-runningMachine'
+
+
   createPanelWrapper:->
 
     @addSubView @panelWrapper = new KDView
@@ -204,14 +216,29 @@ module.exports = class MainView extends KDView
 
   toggleSidebar: ->
 
-    @toggleClass 'collapsed'
+    if @hasClass 'hover'
+    then @unsetClass 'hover'
+    else @toggleClass 'collapsed'
 
     @isSidebarCollapsed = !@isSidebarCollapsed
+    { frontApp }        = kd.singletons.appManager
 
-    {appManager, windowController} = kd.singletons
+    if frontApp.getOption('name') is 'IDE'
+      kd.singletons.windowController.notifyWindowResizeListeners()
+      frontApp.emit 'CloseFullScreen'  unless @isSidebarCollapsed
 
-    if appManager.getFrontApp().getOption('name') is 'IDE'
-      windowController.notifyWindowResizeListeners()
+
+  toggleHoverSidebar: ->
+
+    # Just toggle it and don't change the 'isSidebarCollapsed' variable
+    @toggleClass 'collapsed'
+    @toggleClass 'hover'
+
+
+  resetSidebar: ->
+
+    @toggleHoverSidebar()
+    @toggleSidebar()
 
 
   glanceChannelWorkspace: (channel) ->
@@ -221,22 +248,13 @@ module.exports = class MainView extends KDView
 
   createAccountArea:->
 
-    @aside.addSubView @accountArea = new KDCustomHTMLView
-      cssClass : 'account-area'
+    @accountArea = new KDCustomHTMLView { cssClass: 'account-area' }
 
-    if isLoggedIn()
-    then @createLoggedInAccountArea()
-    else
-      mc = kd.getSingleton "mainController"
-      mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
-
-
-  createLoggedInAccountArea:->
-
-    KDView.setElementClass global.document.body, 'add', 'logged-in'
+    if isKoding()
+    then @aside.addSubView @accountArea
+    else @logoWrapper.addSubView @accountArea
 
     @accountArea.destroySubViews()
-
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
 
 
@@ -346,8 +364,10 @@ module.exports = class MainView extends KDView
   toggleFullscreen: ->
 
     if @isFullscreen()
-    then @disableFullscreen()
-    else @enableFullscreen()
+      @disableFullscreen()
+    else
+      @toggleSidebar()
+      @enableFullscreen()
 
 
   bindPulsingRemove:->
@@ -414,6 +434,3 @@ module.exports = class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
-
-
-

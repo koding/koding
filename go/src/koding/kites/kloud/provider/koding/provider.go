@@ -42,12 +42,6 @@ type Provider struct {
 	AuthorizedUsers map[string]string
 }
 
-type Credential struct {
-	Id        bson.ObjectId `bson:"_id" json:"-"`
-	PublicKey string        `bson:"publicKey"`
-	Meta      bson.M        `bson:"meta"`
-}
-
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
@@ -77,7 +71,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		p.Log.Debug("[%s] using region: %s", machine.Id.Hex(), machine.Meta.Region)
 	}
 
-	if err := p.attachSession(ctx, machine); err != nil {
+	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
 	}
 
@@ -89,7 +83,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	return machine, nil
 }
 
-func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
+func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
 	if len(machine.Users) == 0 {
@@ -160,7 +154,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	machine.User = user
 	machine.cleanFuncs = make([]func(), 0)
 	machine.Checker = checker
-	machine.locker = p
+	machine.Locker = p
 
 	ev, ok := eventer.FromContext(ctx)
 	if ok {
@@ -266,19 +260,6 @@ func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) e
 	}
 
 	return fmt.Errorf("permission denied. user not in the list of permitted users")
-}
-
-func (p *Provider) credential(publicKey string) (*Credential, error) {
-	credential := &Credential{}
-	// we neglect errors because credential is optional
-	err := p.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": publicKey}).One(credential)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return credential, nil
 }
 
 func (m *Machine) ProviderName() string { return m.Provider }

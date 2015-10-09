@@ -1,5 +1,6 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
+isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
 MachineSettingsModal   = require '../providers/machinesettingsmodal'
@@ -35,12 +36,6 @@ module.exports = class MachinesListItem extends kd.ListItemView
       disabled      : isManaged
       callback      : @bound 'handleAlwaysOnStateChanged'
 
-    # removed from the view since functionality isn't there - SY
-    @sidebarToggle  = new KodingSwitch
-      cssClass      : 'tiny'
-      defaultValue  : yes
-      callback      : (state) -> console.log "sb >>", state
-
     @settingsLink   = new kd.CustomHTMLView
       cssClass      : 'settings-link'
       partial       : 'settings'
@@ -50,6 +45,26 @@ module.exports = class MachinesListItem extends kd.ListItemView
     # more to come like os, version etc.
     @vminfo =
       instance_type : machine.jMachine.meta?.instance_type or ''
+
+    @createSidebarToggle()
+
+
+  createSidebarToggle: ->
+
+    return  if isKoding()
+
+    machine = @getData()
+
+    { computeController } = kd.singletons
+
+    stack = computeController.findStackFromMachineId machine._id
+    defaultValue = stack.config?.sidebar?[machine.uid]?.visibility
+    defaultValue ?= on
+
+    @sidebarToggle  = new KodingSwitch
+      cssClass      : 'tiny'
+      defaultValue  : defaultValue
+      callback      : @bound 'updateSidebarVisibility'
 
 
   handleAlwaysOnStateChanged: (state) ->
@@ -72,12 +87,29 @@ module.exports = class MachinesListItem extends kd.ListItemView
         @alwaysOnToggle.setOff no
 
 
+  updateSidebarVisibility: (state) ->
+
+    machine = @getData()
+
+    { computeController } = kd.singletons
+
+    stack = computeController.findStackFromMachineId machine._id
+
+
+    config = stack.config ?= {}
+
+    config.sidebar ?= {}
+    config.sidebar[machine.uid] = { visibility: state }
+
+    stack.modify { config }
+
+
   pistachio: ->
     data = @getData()
     { provider } = data
 
     if provider is 'managed'
-      provider = data.jMachine.meta.managedProvider
+      provider = data.jMachine.meta.managedProvider or 'UnknownProvider'
 
     pData = PROVIDERS[provider]
     logo  = pData.logo or provider.toLowerCase()
@@ -108,6 +140,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
       <div>
         {{> @alwaysOnToggle}}
       </div>
+      #{unless isKoding() then '<div>{{> @sidebarToggle}}</div>' else ''}
     """
 
   PROVIDERS      =

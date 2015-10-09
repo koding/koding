@@ -120,7 +120,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
-		if err := m.markAsNotInitialized(); err != nil {
+		if err := m.MarkAsNotInitialized(); err != nil {
 			return err
 		}
 
@@ -139,7 +139,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.addDomainAndTags()
 
 	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 80, machinestate.Building)
-	if !m.isKlientReady() {
+	if !m.IsKlientReady() {
 		return errors.New("klient is not ready")
 	}
 

@@ -3,14 +3,28 @@
   padding                   14px 0
   cursor                    pointer
 
+  a
+    text-decoration         none
 
 .SidebarSection-headerTitle
   font-weight               $fw-regular
   font-size                 $fs-small
   height                    1em
   line-height               16px
-  color                     $gray-7
-  text-shadow               1px 1px 1px $gray-1
+  color                     $gray-8
+  -moz-osx-font-smoothing   grayscale
+  -webkit-font-smoothing    antialiased
   word-spacing              0.2em
-  letter-spacing            0.05em
+  letter-spacing            0.08em
   text-transform            uppercase
+
+.SidebarSection-secondaryLink
+  abs                       50% 0px 0 0
+  hidden()
+  margin-top                -8px // icon height is 16px
+  r-sprite                  app , 'plus-16'
+
+.SidebarSection:hover
+  .SidebarSection-secondaryLink
+    visible()
+

@@ -1,36 +1,71 @@
-kd                = require 'kd'
-React             = require 'kd-react'
-PublicChatPane    = require 'activity/components/publicchatpane'
-PublicFeedPane    = require 'activity/components/publicfeedpane'
-ChannelThreadPane = require 'activity/components/channelthreadpane'
-PostPane          = require 'activity/components/postpane'
+kd                       = require 'kd'
+React                    = require 'kd-react'
+PublicChatPane           = require 'activity/components/publicchatpane'
+PublicFeedPane           = require 'activity/components/publicfeedpane'
+ChannelThreadPane        = require 'activity/components/channelthreadpane'
+PostPane                 = require 'activity/components/postpane'
+PrivateMessageThreadPane = require 'activity/components/privatemessagethreadpane'
+CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
+CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
+BrowsePublicChannelsModal = require 'activity/components/browsepublicchannelsmodal'
+BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsmodal'
 
-module.exports =
+ActivityAppComponent = require 'activity/components/appcomponent'
+
+# module.exports = [
+#   {
+#     path: '/Channels'
+#     component: ChannelThreadPane
+#     childRoutes: [
+#       path: ':channelName(/:postId)'
+#       components:
+#         chat: PublicChatPane
+#     ]
+#   },
+#   {
+#     path: '/Messages/:privateChannelId'
+#     component: PrivateMessageThreadPane
+#   }
+# ]
+
+
+module.exports = newRoutes = [
   path: '/Channels'
-  component: ChannelThreadPane
+  component: ActivityAppComponent
   childRoutes: [
-    path: ':channelName'
+    path: 'New'
     components:
-      feed: null
-      chat: PublicChatPane
-      post: null
+      content: ChannelThreadPane
+      modal: CreatePublicChannelModal
   ,
-    path: ':channelName/summary'
+    path: 'All'
     components:
-      feed: PublicFeedPane
-      chat: PublicChatPane
-      post: null
+      content: ChannelThreadPane
+      modal: BrowsePublicChannelsModal
   ,
-    path: ':channelName/summary/:postSlug'
+    path: ':channelName(/:postId)'
     components:
-      feed: PublicFeedPane
-      chat: PublicChatPane
-      post: PostPane
-  ,
-    path: ':channelName/:postSlug'
-    components:
-      feed: null
-      chat: PublicChatPane
-      post: PostPane
+      content: ChannelThreadPane
+      modal: null
   ]
+,
+  path: '/Messages'
+  component: ActivityAppComponent
+  childRoutes: [
+    path: 'New'
+    components:
+      content: PrivateMessageThreadPane
+      modal: CreatePrivateChannelModal
+  ,
+    path: 'All'
+    components:
+      content: PrivateMessageThreadPane
+      modal: BrowsePrivateChannelsModal
+  ,
+    path: ':privateChannelId'
+    components:
+      content: PrivateMessageThreadPane
+      modal: null
+  ]
+]
 
