@@ -47,6 +47,13 @@ FollowedPublicChannelIdsStore = [
     ids.filter (id) -> id isnt groupChannelId
 ]
 
+ChannelThreadsStore = [
+  ChannelThreadsStore
+  (threads) ->
+    groupChannelId = getGroup().socialApiChannelId
+    threads.filter (thread) -> thread.get('channelId') isnt groupChannelId
+]
+
 
 allChannels = [
   ChannelsStore, (channels) ->
