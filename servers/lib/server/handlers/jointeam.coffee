@@ -2,7 +2,12 @@ Bongo                                   = require 'bongo'
 koding                                  = require './../bongo'
 { uniq }                                = require 'underscore'
 { dash, daisy }                         = Bongo
-{ getClientId, handleClientIdNotFound } = require './../helpers'
+
+{
+  getClientId
+  handleClientIdNotFound
+  setSessionCookie
+} = require './../helpers'
 
 module.exports = (req, res, next) ->
 
@@ -91,7 +96,7 @@ generateJoinTeamKallback = (res, body) ->
     # login returns replacementToken but register returns newToken
     clientId = result.replacementToken or result.newToken
     # set clientId
-    res.cookie 'clientId', clientId, { path : '/' }
+    setSessionCookie res, clientId
 
     # handle the request with an HTTP redirect:
     return res.redirect 301, redirect if redirect
