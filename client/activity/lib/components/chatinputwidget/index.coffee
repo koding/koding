@@ -73,21 +73,21 @@ module.exports = class ChatInputWidget extends React.Component
     focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
     @setValue value  if value
 
-    window.addEventListener 'resize', @bound 'setDropboxPositions'
+    window.addEventListener 'resize', @bound 'updateDropboxPositions'
 
 
   componentDidUpdate: (oldProps, oldState) ->
 
     @focus()  if oldState.value isnt @state.value
-    @setDropboxPositions()
+    @updateDropboxPositions()
 
 
   componentWillUnmount: ->
 
-    window.removeEventListener 'resize', @bound 'setDropboxPositions'
+    window.removeEventListener 'resize', @bound 'updateDropboxPositions'
 
 
-  setDropboxPositions: ->
+  updateDropboxPositions: ->
 
     textInput = $ React.findDOMNode @refs.textInput
 
@@ -97,7 +97,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     inputDimensions = { width, height, left : offset.left, top : offset.top }
     for dropbox in @getDropboxes() when dropbox?
-      dropbox.setPosition inputDimensions
+      dropbox.updatePosition inputDimensions
 
 
   isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
