@@ -29,6 +29,7 @@ module.exports = class Tracker
     REQUEST_EMAIL_CHANGE : 'requested pin to change email'
     CHANGED_EMAIL        : 'changed their email'
     INVITED_GROUP        : 'was invited to a group'
+    INVITED_CREATE_TEAM  : 'was invited to create a team'
     SENT_FEEDBACK        : 'sent feedback'
 
 

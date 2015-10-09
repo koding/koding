@@ -25,15 +25,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
     super options, data
 
     { stackTemplate } = @getOptions()
-
-    @addSubView new KDCustomHTMLView
-      cssClass  : 'text header'
-      partial   : 'Define custom variables here'
-
-    @messageView = @addSubView new KDCustomHTMLView
-      cssClass   : 'message-view'
-
-    @editorView  = @addSubView new VariablesEditorView options
+    @editorView       = @addSubView new VariablesEditorView options
 
     if cred = stackTemplate?.credentials?.custom?.first
       @reviveCredential cred
@@ -70,35 +62,36 @@ module.exports = class VariablesView extends StackBaseEditorTabView
         if not value = @_providedData[field] or value?.trim?() is ''
           missings.push field
 
-      if (count = missings.length) > 0
-        @setState 'MISSING', missings
-        @indicator.updatePartial count
-        return
-
-      @setState 'PASSED'
-      @indicator.unsetClass 'in'
+      if missings.length then @setState 'MISSING', missings else @setState 'PASSED'
 
     else
-      @indicator.unsetClass 'in'
       @setState 'INITIAL'
 
 
   setState: (newState, missings) ->
 
     stateMessage = STATES[newState]
+    @_state      = newState
 
-    if missings?
-      stateMessage = STATES.MISSING.replace '%VARIABLES%', missings
+    @indicator.unsetTooltip()
 
-    if newState is 'INVALID'
-      @indicator.setClass 'in red'
-      @indicator.updatePartial 's'
+    if @isPassed()
+      @indicator.unsetClass 'in red'
+      @parent.tabHandle.unsetClass 'notification'
     else
+      @indicator.setClass 'in'
       @indicator.unsetClass 'red'
+      @parent.tabHandle.setClass 'notification'
 
-
-    @messageView.updatePartial stateMessage
-    @_state = newState
+    if newState is 'MISSING'
+      if missings.length
+        stateMessage = STATES.MISSING.replace '%VARIABLES%', missings
+        @indicator.setTooltip title: stateMessage
+        @indicator.updatePartial missings.length
+    else if newState is 'INVALID'
+      @indicator.setClass 'red'
+      @indicator.updatePartial '!'
+      @indicator.setTooltip title: STATES.INVALID
 
 
   isPassed: -> @_state in ['PASSED', 'INITIAL']

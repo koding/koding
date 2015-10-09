@@ -8,6 +8,7 @@ KDButtonView         = kd.ButtonView
 KDTabPaneView        = kd.TabPaneView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
+KDFormViewWithFields = kd.FormViewWithFields
 
 whoami               = require 'app/util/whoami'
 curryIn              = require 'app/util/curryIn'
@@ -25,7 +26,7 @@ ProvidersView        = require './providersview'
 VariablesView        = require './variablesview'
 ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
-
+CredentialStatusView = require './credentialstatusview'
 
 module.exports = class DefineStackView extends KDView
 
@@ -45,8 +46,12 @@ module.exports = class DefineStackView extends KDView
     title   = stackTemplate?.title or 'Default stack template'
     content = stackTemplate?.template?.content
 
-    @createOutputView()
+    @addSubView new kd.CustomHTMLView
+      tagName  : 'header'
+      cssClass : 'breadcrumb'
+      partial  : '<span>Stacks</span> &gt; <span class="active">New Stack</span>'
 
+    @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
 
     @stackTemplateView                 = new StackTemplateView options, data
@@ -59,30 +64,36 @@ module.exports = class DefineStackView extends KDView
       stackTemplate
     }
     @tabView.addPane variablesPane     = new KDTabPaneView
-      name : 'Variables'
+      name : 'Private Variables'
       view : @variablesView
-
-    @providersView                     = new ProvidersView {
-      stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
-    }
-    @tabView.addPane providersPane     = new KDTabPaneView
-      name : 'Credentials'
-      view : @providersView
 
     @readmeView                        = new ReadmeView { stackTemplate }
     @tabView.addPane readmePane        = new KDTabPaneView
       name : 'Readme'
       view : @readmeView
 
+    @providersView                     = new ProvidersView {
+      stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
+    }
+    @tabView.addPane @providersPane    = new KDTabPaneView
+      name : 'Credentials'
+      view : @providersView
+
+    @providersPane.tabHandle.addSubView @credentialWarning = new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'warning hidden'
+      tooltip  :
+        title  : 'You need to set your AWS credentials to be able build this stack.'
+
+    @credentialStatusView = new CredentialStatusView { stackTemplate }
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @tabView.showPaneByIndex 0
 
+    @createOutputView()
     @createFooter()
 
     @createMainButtons()
-
-    { credentialStatus } = @stackTemplateView
 
     @providersView.on 'ItemSelected', (credentialItem) =>
 
@@ -94,43 +105,39 @@ module.exports = class DefineStackView extends KDView
 
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        credentialStatus.setCredential credential
+        @credentialStatusView.setCredential credential
 
         @providersView.resetItems()
         credentialItem.inuseView.show()
 
-    @providersView.on 'ItemDeleted', (credential) ->
+    @providersView.on 'ItemDeleted', (credential) =>
 
       { identifier } = credential.getData()
-      if identifier in credentialStatus.credentials
-        credentialStatus.setCredential() # To unset active credential
-                                         # since it's deleted
+      if identifier in @credentialStatusView.credentials
+        @credentialStatusView.setCredential() # To unset active credential since it's deleted
 
-    @stackTemplateView.on 'CredentialStatusChanged', (status) =>
+    @credentialStatusView.on 'StatusChanged', (status) =>
       if status is 'verified'
         @_credentialsPassed = yes
+        @credentialWarning.hide()
+        @providersPane.tabHandle.unsetClass 'warning'
         @tabView.showPaneByIndex 0
       else
-        @_credentialsPassed = yes
+        @credentialWarning.show()
+        @providersPane.tabHandle.setClass 'warning'
+        @_credentialsPassed = no
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
-      if pane is providersPane
-        @setFooterVisibility 'hide'
-      else
-        @setFooterVisibility 'show'
+      unless pane is @providersPane
         pane.getMainView().emit 'FocusToEditor'
 
     { ace } = @stackTemplateView.editorView.aceView
 
     ace.on 'FileContentChanged', =>
       @setAsDefaultButton.hide()
+      @inputTitle.unsetClass 'three-buttons'
       @saveButton.show()
-
-
-  setFooterVisibility: (state) ->
-    @buttons[state]()
-    @footer[state]()
 
 
   createFooter: ->
@@ -154,17 +161,35 @@ module.exports = class DefineStackView extends KDView
         </div>
       """
 
+
+  createStackNameInput: ->
+
+    { stackTemplate } = @getData()
+
+    @addSubView @inputTitle  = new KDFormViewWithFields
+      cssClass               : 'template-title-form'
+      fields                 :
+        title                :
+          cssClass           : 'template-title'
+          label              : 'Stack Name'
+          defaultValue       : stackTemplate?.title or 'Default stack template'
+
+
   createOutputView: ->
 
-    @addSubView @outputView = new OutputView
+    @stackTemplateView.addSubView @outputView = view =  new OutputView
+    @stackTemplateView.on 'ShowOutputView', view.bound 'raise'
+    @stackTemplateView.on 'HideOutputView', view.bound 'fall'
+    @stackTemplateView.on 'ShowTemplatePreview', @bound 'handlePreview'
+
+    @previewButton = @stackTemplateView.previewButton
 
     @outputView.add 'Welcome to Stack Template Editor'
 
 
   createMainButtons: ->
 
-    @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
-
+    @inputTitle.addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
 
     @buttons.addSubView @cancelButton = new KDButtonView
       title          : 'Cancel'
@@ -176,15 +201,6 @@ module.exports = class DefineStackView extends KDView
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
       callback       : => @handleSetDefaultTemplate()
-
-    @buttons.addSubView @previewButton = new KDButtonView
-      title          : 'Template Preview'
-      cssClass       : 'solid compact light-gray nav next prev-button'
-      loader         : yes
-      callback       : @bound 'handlePreview'
-      tooltip        :
-        title        : "Generates a preview of this template
-                        with your own account information."
 
     @buttons.addSubView @saveButton = new KDButtonView
       title          : 'Save & Test'
@@ -224,6 +240,7 @@ module.exports = class DefineStackView extends KDView
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
+    @inputTitle.unsetClass 'three-buttons'
 
     @checkAndBootstrapCredentials (err, credentials) =>
       return @saveButton.hideLoader()  if err
@@ -288,6 +305,7 @@ module.exports = class DefineStackView extends KDView
         unless stackTemplate.inuse
 
           @setAsDefaultButton.show()
+          @inputTitle.setClass 'three-buttons'
 
           @outputView.add """
 
@@ -311,7 +329,7 @@ module.exports = class DefineStackView extends KDView
 
   checkAndBootstrapCredentials: (callback) ->
 
-    { credentialsData } = @stackTemplateView.credentialStatus
+    { credentialsData } = @credentialStatusView
     [ credential ]      = credentialsData
 
     failed = (err) =>
@@ -405,7 +423,7 @@ module.exports = class DefineStackView extends KDView
 
     { stackTemplate } = @getData()
 
-    { title }         = @stackTemplateView.inputTitle.getData()
+    { title }         = @inputTitle.getData()
     templateContent   = @stackTemplateView.editorView.getValue()
     description       = @readmeView.editorView.getValue() # aka readme
 
@@ -444,7 +462,7 @@ module.exports = class DefineStackView extends KDView
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credData      = @stackTemplateView.credentialStatus.credentialsData
+    credData      = @credentialStatusView.credentialsData
     awsIdentifier = credData.first.identifier
     credentials   =
       aws         : [ awsIdentifier ]
