@@ -3,6 +3,7 @@ KDView                  = kd.View
 KDInputView             = kd.InputView
 KDButtonView            = kd.ButtonView
 KDLoaderView            = kd.LoaderView
+KDCustomCheckBox        = kd.CustomCheckBox
 KDCustomHTMLView        = kd.CustomHTMLView
 
 
@@ -36,8 +37,10 @@ module.exports = class InvitationInputView extends KDView
       cssClass    : 'lastname'
       placeholder : 'Optional'
 
+    @addSubView @admin = new KDCustomCheckBox
+      defaultValue : no
 
-    @inputs = [ @email, @firstName, @lastName ]
+    @inputs = [ @email, @firstName, @lastName, @admin ]
 
 
   serialize: ->
@@ -46,5 +49,6 @@ module.exports = class InvitationInputView extends KDView
       email     : @email.getValue()
       firstName : @firstName.getValue()
       lastName  : @lastName.getValue()
+      role      : if @admin.getValue() then 'admin' else 'member'
     }
 
