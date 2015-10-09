@@ -15,7 +15,12 @@ bindChannelEvents = (channel) ->
 
     channel.on 'MessageAdded', (message) ->
       bindMessageEvents message
-      dispatch actions.LOAD_MESSAGE_SUCCESS, { channel, message, channelId: channel.id }
+
+      _channel = kd.singletons.socialapi.retrieveCachedItemById message.initialChannelId
+      dispatch actions.LOAD_MESSAGE_SUCCESS,
+        channel   : _channel
+        channelId : _channel.id
+        message   : message
 
     channel.on 'MessageRemoved', (message) ->
       dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: message.id }
@@ -48,16 +53,34 @@ bindMessageEvents = (message) ->
 
 bindNotificationEvents = ->
 
-  kd.singletons.notificationController
-    .on 'MessageAddedToChannel', ({ unreadCount, channel }) ->
-      dispatch actions.SET_CHANNEL_UNREAD_COUNT, { unreadCount, channelId: channel.id }
+  _dispatchFn = _createUnreadCountDispatchFn kd.singletons.reactor
 
-    .on 'AddedToChannel', (args...) -> console.log 'AddedToChannel', args...
-    .on 'RemovedFromChannel', (args...) -> console.log 'RemovedFromChannel', args...
-    .on 'MessageRemovedFromChannel', (args...) -> console.log 'MessageRemovedFromChannel', args...
-    .on 'ReplyAdded', (args...) -> console.log 'MessageAddedToChannel', args...
-    .on 'MessageListUpdated', (args...) -> console.log 'MessageListUpdated', args...
-    .on 'ParticipantUpdated', (args...) -> console.log 'ParticipantUpdated', args...
+  kd.singletons.notificationController
+    .on 'MessageAddedToChannel', _dispatchFn
+    .on 'MessageRemovedFromChannel', _dispatchFn
+    .on 'RemovedFromChannel', _dispatchFn
+    .on 'ReplyAdded', _dispatchFn
+    .on 'ParticipantUpdated', _dispatchFn
+    .on 'MessageListUpdated', _dispatchFn
+    .on 'AddedToChannel', (options) ->
+      channel = kd.singletons.socialapi.channel.revive options
+      actionType = if channel.typeConstant in ['privatemessage', 'bot', 'collaboration']
+      then actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS
+      else actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS
+      payload = { channel, channelId: channel.id }
+      dispatch actionType, payload
+
+      { unreadCount } = channel
+
+      _dispatchFn { unreadCount, channel }
+
+
+_createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
+  _reactor.dispatch actions.SET_CHANNEL_UNREAD_COUNT,
+    unreadCount : unreadCount
+    channelId   : channel.id
+
+  _reactor.dispatch actions.UNSET_LOADED_WITH_SCROLL, channelId: channel.id
 
 
 module.exports = {

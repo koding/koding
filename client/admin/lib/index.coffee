@@ -1,6 +1,7 @@
 kd                         = require 'kd'
 AppController              = require 'app/appcontroller'
 AdminAppView               = require './adminappview'
+TeamInviteView             = require './views/teaminviteview'
 AdminMembersView           = require './views/members/adminmembersview'
 AdministrationView         = require './views/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
@@ -53,19 +54,21 @@ module.exports = class AdminAppController extends AppController
         { slug : 'Onboarding',     title : 'Onboarding',        viewClass : OnboardingAdminView      }
         { slug : 'Moderation',     title : 'Topic Moderation',  viewClass : TopicModerationView      }
         { slug : 'Administration', title : 'Administration',    viewClass : AdministrationView       }
+        { slug : 'TeamInvite',     title : 'Invite teams',      viewClass : TeamInviteView           }
       ]
 
 
   constructor: (options = {}, data) ->
 
-    data       or= kd.singletons.groupsController.getCurrentGroup()
-    options.view = new AdminAppView
-      title      : 'Team Settings'
-      cssClass   : 'AppModal AppModal--admin'
-      width      : 1000
-      height     : '90%'
-      overlay    : yes
-      tabData    : NAV_ITEMS
+    data         or= kd.singletons.groupsController.getCurrentGroup()
+    options.view   = new AdminAppView
+      title        : 'Team Settings'
+      cssClass     : 'AppModal AppModal--admin'
+      width        : 1000
+      height       : '90%'
+      overlay      : yes
+      overlayClick : no
+      tabData      : NAV_ITEMS
     , data
 
     super options, data

@@ -21,7 +21,8 @@ loadMessages = (channelId, options = {}) ->
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS
-    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED } = actionTypes
+    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED
+    SET_LOADED_WITH_SCROLL, UNSET_LOADED_WITH_SCROLL } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
@@ -45,6 +46,9 @@ loadMessages = (channelId, options = {}) ->
         messages.forEach (message) ->
           dispatchLoadMessageSuccess channelId, message
         dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+
+        if options.loadedWithScroll
+          dispatch SET_LOADED_WITH_SCROLL, { channelId }
 
       resolve { messages }
 
@@ -215,17 +219,23 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
+  # since this action works for all types of channel, we need to specify the
+  # type when we are posting.
+  channel = socialapi.retrieveCachedItemById channelId
+  type = channel.typeConstant
+
   fetchEmbedPayload { body, payload }, (embedPayload) ->
     payload = _.assign {}, payload, embedPayload
 
-    socialapi.message.post { channelId, clientRequestId, body, payload }, (err, message) ->
+    options = { channelId, clientRequestId, body, payload, type }
+    socialapi.message.sendPrivateMessage options, (err, [channel]) ->
       if err
         dispatch CREATE_MESSAGE_FAIL, {
           err, channelId, clientRequestId
         }
         return
 
-      channel = socialapi.retrieveCachedItemById channelId
+      { lastMessage: message } = channel
 
       realtimeActionCreators.bindMessageEvents message
       dispatch CREATE_MESSAGE_SUCCESS, {

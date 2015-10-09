@@ -7,6 +7,7 @@ remote = require('./remote').getInstance()
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
+isKoding = require './util/isKoding'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -259,8 +260,14 @@ module.exports = class SocialApiController extends KDController
     item.accountOldId        = channel.accountOldId
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
-    item.name                = data.name
-    item.purpose             = data.purpose
+
+    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
+      item.name = data.purpose
+      item.purpose = item.payload?.description or ''
+    else
+      item.name = data.name
+      item.purpose = data.purpose
+
     item.participantCount    = channel.participantCount
     item.participantsPreview = mapAccounts channel.participantsPreview
     item.unreadCount         = channel.unreadCount
@@ -817,6 +824,20 @@ module.exports = class SocialApiController extends KDController
       successFn          : removeChannel
 
     revive               : mapChannel
+
+    byParticipants: (options, callback) ->
+
+      serialized = options.participants
+        .map (id) -> "id=#{id}"
+        .join "&"
+
+      doXhrRequest
+        endPoint: "/api/social/channel/by/participants?#{serialized}"
+        type: 'GET'
+      , (err, result) ->
+        return callback err  if err
+        return callback null, mapChannels result
+
 
   moderation:
     link     : (options, callback) ->

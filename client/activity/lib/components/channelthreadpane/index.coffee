@@ -1,14 +1,19 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-KDReactorMixin       = require 'app/flux/reactormixin'
-ActivityFlux         = require 'activity/flux'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-ThreadSidebar        = require 'activity/components/threadsidebar'
-ThreadHeader         = require 'activity/components/threadheader'
-PublicChannelLink    = require 'activity/components/publicchannellink'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-PublicChatPane       = require 'activity/components/publicchatpane'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+KDReactorMixin               = require 'app/flux/reactormixin'
+ActivityFlux                 = require 'activity/flux'
+immutable                    = require 'immutable'
+getGroup                     = require 'app/util/getGroup'
+classnames                   = require 'classnames'
+ThreadSidebar                = require 'activity/components/threadsidebar'
+ThreadHeader                 = require 'activity/components/threadheader'
+PublicChannelLink            = require 'activity/components/publicchannellink'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+PublicChatPane               = require 'activity/components/publicchatpane'
+showNotification             = require 'app/util/showNotification'
+CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
+StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
+ChannelDropContainer         = require 'activity/components/channeldropcontainer'
 
 
 module.exports = class ChannelThreadPane extends React.Component
@@ -32,6 +37,8 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
+      showDropTarget        : no
+      isComingSoonModalOpen : no
       channelThread         : immutable.Map()
       channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
@@ -43,6 +50,38 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
+
+
+  onStart: ->
+
+    @setState isComingSoonModalOpen: yes
+
+
+  onDragEnter: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: yes
+
+
+  onDragOver: (event) -> kd.utils.stopDOMEvent event
+
+
+  onDragLeave: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+
+
+  onDrop: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+    showNotification 'Coming soon...', type: 'main'
+
+
+  onClose: ->
+
+    @setState isComingSoonModalOpen: no
 
 
   renderHeader: ->
@@ -59,9 +98,19 @@ module.exports = class ChannelThreadPane extends React.Component
 
   render: ->
     <div className="ChannelThreadPane is-withChat">
-      <section className="ChannelThreadPane-content">
+      <CollaborationComingSoonModal
+        onClose={@bound 'onClose'}
+        isOpen={@state.isComingSoonModalOpen}/>
+      <section className="ChannelThreadPane-content"
+        onDragEnter={@bound 'onDragEnter'}>
+        <ChannelDropContainer
+          onDrop={@bound 'onDrop'}
+          onDragOver={@bound 'onDragOver'}
+          onDragLeave={@bound 'onDragLeave'}
+          showDropTarget={@state.showDropTarget}/>
         <header className="ChannelThreadPane-header">
           {@renderHeader()}
+          <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
@@ -90,7 +139,7 @@ reset = (props, state) ->
   # then load public.
   unless channelName
     unless state.channelThread
-      channelName = 'public'
+      channelName = getGroup().slug
 
   if channelName
     channel = ActivityFlux.getters.channelByName channelName
@@ -99,7 +148,12 @@ reset = (props, state) ->
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
+
+      if postId
+        messageActions.changeSelectedMessage postId
+      else
+        messageActions.changeSelectedMessage null
+
   else if not state.channelThread
     thread.changeSelectedThread null
-
 

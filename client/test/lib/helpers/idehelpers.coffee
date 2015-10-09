@@ -113,7 +113,7 @@ module.exports =
       .waitForElementNotPresent saveIconSelector, 20000 # Assertion
 
 
-  closeFile: (browser, fileName) ->
+  closeFile: (browser, fileName, user) ->
 
     closeFileSelector = "#{tabHandleSelector} span.close-tab"
 
@@ -121,7 +121,7 @@ module.exports =
       .moveToElement             tabHandleSelector, 60, 15
       .waitForElementVisible     closeFileSelector, 20000
       .click                     closeFileSelector
-      .waitForElementNotPresent  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
+      .waitForElementNotPresent  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
 
 
   openAnExistingFile: (browser, user, fileName, text) ->
@@ -138,7 +138,7 @@ module.exports =
       .click                  fileChevronSelector
       .waitForElementVisible  'li.open-file', 20000
       .click                  'li.open-file'
-      .waitForElementVisible  "#{tabHandleSelector} div[title='#{fileName}']", 20000 # Assertion
+      .waitForElementVisible  "#{tabHandleSelector} div[title='/home/#{user.username}/#{fileName}']", 20000 # Assertion
       .assert.containsText    activeEditorSelector, text # Assertion
 
 

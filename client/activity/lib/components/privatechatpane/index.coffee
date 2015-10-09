@@ -31,19 +31,28 @@ module.exports = class PrivateChatPane extends React.Component
     kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
+  afterInviteOthers: ->
+
+    return  unless input = @refs.chatInputWidget
+
+    input.focus()
+
+
   render: ->
 
     <ChatPane
       thread     = { @props.thread }
-      className  = "PrivateChatPane"
+      className  = 'PrivateChatPane'
       messages   = { @props.messages }
       onSubmit   = { @bound 'onSubmit' }
+      afterInviteOthers = {@bound 'afterInviteOthers'}
       onLoadMore = { @bound 'onLoadMore' }
     >
-      <footer className="PrivateChatPane-footer">
+      <footer className='PrivateChatPane-footer'>
         <ChatInputWidget
+          ref          = 'chatInputWidget'
           onSubmit     = { @bound 'onSubmit' }
-          enableSearch = no
+          enableSearch = { no }
           thread       = { @props.thread }
         />
       </footer>

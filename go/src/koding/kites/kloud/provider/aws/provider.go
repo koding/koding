@@ -75,7 +75,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 
 	p.Log.Debug("Using region: %s", machine.Meta.Region)
 
-	if err := p.attachSession(ctx, machine); err != nil {
+	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
 	}
 
@@ -87,7 +87,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	return machine, nil
 }
 
-func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
+func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
 	if len(machine.Users) == 0 {
@@ -104,12 +104,17 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
 
+	awsRegion, ok := aws.Regions[machine.Meta.Region]
+	if !ok {
+		return fmt.Errorf("Malformed region detected: %s", machine.Meta.Region)
+	}
+
 	client := ec2.NewWithClient(
 		aws.Auth{
 			AccessKey: creds.Meta.AccessKey,
 			SecretKey: creds.Meta.SecretKey,
 		},
-		aws.Regions[machine.Meta.Region],
+		awsRegion,
 		aws.NewClient(multiec2.NewResilientTransport()),
 	)
 

@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"errors"
 	"koding/db/models"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -287,7 +288,12 @@ func ChangeMachineState(machineId bson.ObjectId, state string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
 			bson.M{"_id": machineId},
-			bson.M{"$set": bson.M{"status.state": state}},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state,
+					"status.modifiedAt": time.Now().UTC(),
+				},
+			},
 		)
 	}
 
@@ -329,6 +335,17 @@ func RemoveAllMachinesForUser(userId bson.ObjectId) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(selector)
 		return err
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
+
+func UnsetKlientMissingAt(userId bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.UpdateId(
+			userId,
+			bson.M{"$unset": bson.M{"assignee.klientMissingAt": ""}},
+		)
 	}
 
 	return Mongo.Run(MachinesColl, query)

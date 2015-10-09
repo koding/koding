@@ -257,15 +257,12 @@ module.exports = class JInvitation extends jraphical.Module
 
 
   getName = (delegate) ->
+
     { nickname, firstName, lastName } = delegate.profile
 
     name = nickname
-
-    if "#{firstName}" is not ''
-      name = firstName
-
-    if "#{lastName}" is not ''
-      name = "#{name} #{lastName}"
+    name = firstName              if firstName
+    name = "#{name} #{lastName}"  if firstName and lastName
 
     return name
 

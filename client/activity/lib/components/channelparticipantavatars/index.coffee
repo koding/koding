@@ -10,6 +10,11 @@ ActivityFlux                = require 'activity/flux'
 ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
 ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
 DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
+getGroup                    = require 'app/util/getGroup'
+isUserGroupAdmin            = require 'app/util/isusergroupadmin'
+validator                   = require 'validator'
+showErrorNotification       = require 'app/util/showErrorNotification'
+
 
 module.exports = class ChannelParticipantAvatars extends React.Component
 
@@ -26,7 +31,11 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     super
 
-    @state = { addNewParticipantMode: no, showAllParticipants: no, value: '' }
+    @state =
+      value                 : ''
+      isGroupAdmin          : no
+      showAllParticipants   : no
+      addNewParticipantMode : no
 
 
   getDataBindings: ->
@@ -43,6 +52,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
 
   componentDidMount: ->
+
+    isUserGroupAdmin (err, isAdmin) =>
+
+      return showErrorNotification err  if err
+
+      @setState isGroupAdmin: isAdmin
 
     document.addEventListener 'mousedown', @bound 'handleOutsideMouseClick'
 
@@ -107,9 +122,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    PREVIEW_COUNT = @getPreviewCount()
-
-    participants = participants.slice 0, PREVIEW_COUNT
+    participants = participants.slice 0, @getPreviewCount()
 
     @renderAvatars participants, no
 
@@ -151,7 +164,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     <div className='ChannelParticipantAvatars-singleBox'>
       <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
-        {moreCount}+
+        +{moreCount}
       </div>
     </div>
 
@@ -161,12 +174,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     return null  unless @state.showAllParticipants
     return null  unless @props.participants
 
-    { participants } = @props
+    { participants }  = @props
+    otherParticipants = participants.slice @getPreviewCount()
 
     <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
+      <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
-        <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
-        {@renderAvatars(participants, yes)}
+        {@renderAvatars(otherParticipants, yes)}
       </div>
     </div>
 
@@ -204,14 +218,48 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     channel.setChannelParticipantsDropdownVisibility yes
 
 
+  isGroupChannel: ->
+
+    channelId = @props.channelThread.getIn ['channel','id']
+
+    return channelId is getGroup().socialApiDefaultChannelId
+
+
+  onEnter: (event) ->
+
+    DropboxInputMixin.onEnter.call this, event
+
+    if @state.isGroupAdmin and @isGroupChannel()
+
+      value        = event.target.value.trim()
+      isValidEmail = validator.isEmail value
+
+      if isValidEmail
+
+        { channel, user } = ActivityFlux.actions
+
+        channel.inviteMember([{email: value}]).then ->
+          user.unsetChannelParticipantsInputQuery()
+
+
+  getPlaceHolder: ->
+
+    placeholder  = 'type a @username and hit enter'
+
+    if @state.isGroupAdmin and @isGroupChannel()
+      placeholder = 'type a @username or email'
+
+    return placeholder
+
+
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
       <input ref='ChannelParticipantsInput'
         onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @bound 'onChange' }
-        placeholder = 'type a @username and hit enter'
-        value       = { @state.value }
+        placeholder = { @getPlaceHolder() }
+        value       = { @state.query }
         ref         = 'textInput'
       />
     </div>
@@ -253,9 +301,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
         {@renderMoreCount()}
         {@renderNewParticipantButton()}
       </div>
-        {@renderAddNewParticipantInput()}
-        {@renderAllParticipantsMenu()}
-        {@renderAddNewChannelParticipantsDropdown()}
+      {@renderAddNewParticipantInput()}
+      {@renderAllParticipantsMenu()}
+      {@renderAddNewChannelParticipantsDropdown()}
     </div>
 
 

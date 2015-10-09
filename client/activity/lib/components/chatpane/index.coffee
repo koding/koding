@@ -4,23 +4,18 @@ ChatList             = require 'activity/components/chatlist'
 ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
 ScrollerMixin        = require 'app/components/scroller/scrollermixin'
-Link                 = require 'app/components/common/link'
-dateFormat           = require 'dateformat'
-remote               = require('app/remote').getInstance()
-ProfileText          = require 'app/components/profile/profiletext'
-ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
-classnames           = require 'classnames'
-moment               = require 'moment'
+ChannelInfoContainer = require 'activity/components/channelinfocontainer'
+
 
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title         : null
-    messages      : null
-    isDataLoading : no
-    onLoadMore    : kd.noop
-    showItemMenu  : yes
-    createdBy     : null
+    title             : null
+    messages          : null
+    isDataLoading     : no
+    onLoadMore        : kd.noop
+    afterInviteOthers : kd.noop
+    showItemMenu      : yes
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -28,6 +23,8 @@ module.exports = class ChatPane extends React.Component
     return  unless nextProps?.thread
 
     { thread } = nextProps
+
+    @loadedWithScroll       = thread.getIn ['flags', 'loadedWithScroll']
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
     @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
 
@@ -35,70 +32,19 @@ module.exports = class ChatPane extends React.Component
   onTopThresholdReached: -> @props.onLoadMore()
 
 
+  afterInviteOthers: -> @props.afterInviteOthers()
+
+
   channel: (key) -> @props.thread.getIn ['channel', key]
-
-
-  getChannelCreationDate: (givenDate) ->
-    dateString = moment(givenDate).calendar null,
-      sameDay  : '[Today]'
-      lastDay  : '[Yesterday]'
-      lastWeek : '[Last] dddd'
-      sameElse : 'MMM D'
-
-
-  getChannelCreatorProfile: (accountId) ->
-
-    remote.cacheable "JAccount", accountId, (err, account)=>
-      return @props.createdBy = account  if account
-
-
-  getCollaborationTooltipClassNames: -> classnames
-    'Tooltip-wrapper': yes
-    'visible': @props.showCollaborationTooltip
-
-
-  getIntegrationTooltipClassNames: -> classnames
-    'Tooltip-wrapper': yes
-    'visible': @props.showIntegrationTooltip
-
-
-  renderProfileLink: ->
-
-    createdAt = @getChannelCreationDate @channel 'createdAt'
-    <span>, created by&nbsp;
-      <ProfileLinkContainer origin={@props.createdBy}>
-        <ProfileText />
-      </ProfileLinkContainer> on {createdAt}. <br/>
-    </span>
 
 
   renderChannelInfoContainer: ->
 
-    return null  unless @props.thread
-    @getChannelCreatorProfile @channel 'accountOldId'
-
-    if @props.thread.getIn(['flags', 'reachedFirstMessage']) and @props.createdBy
-      channelName = @channel 'name'
-      <div className='ChatPane-infoContainer'>
-        <div className='ChatPane-channelName'>#{channelName}</div>
-        <div className='ChatPane-channelDescription'>
-          This is the <Link onClick=kd.noop>#{channelName}</Link> channel
-          {@renderProfileLink()}
-          You can start a collaboration session, or drag and drop  VMs and workspaces here from the sidebar to let anyone in this channel access them.
-          (<Link onClick ={ @props.startCollaboration }>Show me how?</Link>)
-        </div>
-        <div className='ChatPane-actionContainer'>
-          <Link className='ChatPane-startCollaborationAction' onClick ={ @props.startCollaboration }>
-            Start Collaboration
-            <div className={@getCollaborationTooltipClassNames()}><span>Coming soon</span></div>
-          </Link>
-          <Link className='ChatPane-addIntegrationAction' onClick ={ @props.addIntegration }>
-            Add integration
-            <div className={@getIntegrationTooltipClassNames()}><span>Coming soon</span></div>
-          </Link>
-          <Link className='ChatPane-inviteOthersAction' onClick ={ @props.inviteOthers }>Invite others</Link>
-        </div>
-      </div>
+    if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
+      <ChannelInfoContainer
+        key={@channel 'id'}
+        thread={@props.thread}
+        afterInviteOthers={@bound 'afterInviteOthers'} />
 
 
   renderBody: ->
@@ -106,11 +52,11 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.messages?.size
 
     <Scroller
-      onTopThresholdReached={@bound 'onTopThresholdReached'}
-      ref="scrollContainer">
-      {@renderChannelInfoContainer()}
+      ref="scrollContainer"
+      onTopThresholdReached={@bound 'onTopThresholdReached'}>
       <ChatList
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
+        loadedWithScroll={@props.thread?.getIn ['flags', 'loadedWithScroll']}
         messages={@props.messages}
         showItemMenu={@props.showItemMenu}
         channelId={@channel 'id'}
@@ -124,6 +70,7 @@ module.exports = class ChatPane extends React.Component
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
         <section className="ChatPane-body" ref="ChatPaneBody">
+          {@renderChannelInfoContainer()}
           {@renderBody()}
           {@props.children}
         </section>

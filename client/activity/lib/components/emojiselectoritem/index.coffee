@@ -12,17 +12,15 @@ module.exports = class EmojiSelectorItem extends React.Component
 
   @defaultProps =
     item         : immutable.Map()
-    isFirstInRow : no
     isSelected   : no
     index        : 0
 
 
   render: ->
 
-    { item, isFirstInRow } = @props
+    { item } = @props
     className = classnames
       'EmojiSelectorItem'            : yes
-      'EmojiSelectorItem-firstInRow' : isFirstInRow
 
     <DropboxItem {...@props} className={className}>
       {formatEmojiName item}

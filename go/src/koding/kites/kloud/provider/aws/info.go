@@ -1,6 +1,7 @@
 package awsprovider
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
@@ -40,6 +41,10 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	instance, err := m.Session.AWSClient.Instance()
 	if err == nil {
 		resultState = amazon.StatusToState(instance.State.Name)
+		// we don't care about already terminated VM's in AWS provider
+		if resultState == machinestate.Terminating {
+			resultState = machinestate.Terminated
+		}
 	} else if err == amazon.ErrNoInstances {
 		resultState = machinestate.NotInitialized
 	} else {
@@ -50,10 +55,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// This happens when a machine was destroyed recently in one hour span.
 	// The machine is still available in AWS but it's been marked as
 	// Terminated. Because we still have the machine document, mark it as
-	// NotInitialized so the user can build again.
+	// Terminated so the client side knows what to do
 	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
-		resultState = machinestate.NotInitialized
-		if err := m.markAsNotInitialized(); err != nil {
+		if err := modelhelper.ChangeMachineState(m.Id, machinestate.Terminated.String()); err != nil {
 			return nil, err
 		}
 	}

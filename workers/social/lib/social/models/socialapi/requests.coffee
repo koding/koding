@@ -258,9 +258,6 @@ fetchFollowedChannelCount = (data, callback) ->
   get url, data, callback
 
 createChannelWithParticipants = (data, callback) ->
-  if not data.recipients or data.recipients.length < 1
-    return callback new KodingError 'Request is not valid'
-
   url = "#{socialProxyUrl}/channel/initwithparticipants"
   post url, data, callback
 
@@ -272,9 +269,6 @@ sendMessageToChannel = (data, callback) ->
   post url, data, callback
 
 initPrivateMessage = (data, callback) ->
-  if not data.recipients or data.recipients.length < 1
-    return callback new KodingError 'Request is not valid'
-
   url = "#{socialProxyUrl}/privatechannel/init"
   post url, data, callback
 

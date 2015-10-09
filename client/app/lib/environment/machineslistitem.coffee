@@ -95,7 +95,8 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     stack = computeController.findStackFromMachineId machine._id
 
-    { config } = stack.config ?= {}
+
+    config = stack.config ?= {}
 
     config.sidebar ?= {}
     config.sidebar[machine.uid] = { visibility: state }

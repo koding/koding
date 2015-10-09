@@ -256,6 +256,8 @@ module.exports = class JGroup extends Module
       socialApiChannelId             : String
       # channel id for announcements of a group
       socialApiAnnouncementChannelId : String
+      # channel id for default of a non-koding group
+      socialApiDefaultChannelId : String
       avatar        : String
       slug          :
         type        : String
@@ -419,10 +421,14 @@ module.exports = class JGroup extends Module
 
   @create = (client, groupData, owner, callback) ->
 
+    # bongo doesnt set array values as their defaults
+    groupData.defaultChannels or= []
+
     JPermissionSet        = require './permissionset'
     JMembershipPolicy     = require './membershippolicy'
     JSession              = require '../session'
     JName                 = require '../name'
+
     group                 = new this groupData
     group.privacy         = 'private'
     defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
@@ -1387,16 +1393,11 @@ module.exports = class JGroup extends Module
 
   createSocialApiChannels: (client, callback) ->
 
-    if @socialApiChannelId and @socialApiAnnouncementChannelId
-      return callback null, {
-        @socialApiChannelId,
-        @socialApiAnnouncementChannelId
-      }
-
     @fetchOwner (err, owner) =>
       return callback err if err?
       unless owner
         return callback { message: "Owner not found for #{@slug} group" }
+
       owner.createSocialApiId (err, socialApiId) =>
         return callback err if err?
         # required data for creating a channel
@@ -1407,17 +1408,29 @@ module.exports = class JGroup extends Module
           privacyConstant : privacy
 
         @createGroupChannel client, options, (err, groupChannelId) =>
-          return callback err if err?
+          return callback err  if err?
 
-          @createAnnouncementChannel client, options, (err, announcementChannelId) ->
-            return callback err if err?
+          # announcement channel will only be created for koding channel
+          if @slug is 'koding'
 
-            return callback null, {
-              # channel id for #public - used as group channel
-              socialApiChannelId             : groupChannelId,
-              # channel id for #koding - used for announcements
-              socialApiAnnouncementChannelId : announcementChannelId
-            }
+            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
+              return callback err if err?
+
+              return callback null, {
+                # channel id for #public - used as group channel
+                socialApiChannelId             : groupChannelId,
+                # channel id for #koding - used for announcements
+                socialApiAnnouncementChannelId : announcementChannelId
+              }
+
+          else
+            @createDefaultChannel client, options, (err, defaultChannelId) ->
+              return callback err if err?
+
+              return callback null, {
+                socialApiChannelId: groupChannelId
+                socialApiDefaultChannelId: defaultChannelId
+              }
 
 
   createGroupChannel:(client, options, callback) ->
@@ -1428,9 +1441,16 @@ module.exports = class JGroup extends Module
     return @createSocialAPIChannel client, options, callback
 
   createAnnouncementChannel:(client, options, callback) ->
-    options.name = if @slug is 'koding' then 'changelog' else @slug
+    options.name = 'changelog'
     options.varName = 'socialApiAnnouncementChannelId'
     options.typeConstant = 'announcement'
+
+    return @createSocialAPIChannel client, options, callback
+
+  createDefaultChannel:(client, options, callback) ->
+    options.name = @slug
+    options.varName = 'socialApiDefaultChannelId'
+    options.typeConstant = 'topic'
 
     return @createSocialAPIChannel client, options, callback
 
@@ -1451,8 +1471,9 @@ module.exports = class JGroup extends Module
     doRequest 'createChannel', client, defaultChannel, (err, channel) =>
       return callback err if err
 
-      op = { $set:{} }
+      op = { $set: {}, $push: {} }
       op.$set[varName] = channel.channel.id
+      op.$push['defaultChannels'] = channel.channel.id
 
       @update op, (err) ->
         return callback err if err

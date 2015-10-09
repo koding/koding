@@ -1,6 +1,8 @@
-querystring = require 'querystring'
+JTeamInvitation = require '../../../workers/social/lib/social/models/teamtoken'
 
-{ generateUrl
+{ expect
+  generateUrl
+  querystring
   deepObjectExtend
   generateRandomEmail
   generateRandomString
@@ -124,19 +126,20 @@ generateCreateTeamRequestBody = (opts = {}) ->
   companyName = "testcompany#{generateRandomString(10)}"
 
   defaultBodyObject =
-    slug           :  companyName
-    email          :  generateRandomEmail()
-    agree          :  'on'
-    allow          :  'true'
-    domains        :  'koding.com, gmail.com'
-    invitees       :  invitees
-    redirect       :  ''
-    username       :  username
-    password       :  'testpass'
-    newsletter     :  'true'
-    companyName    :  companyName
-    alreadyMember  :  'false'
-    passwordConfirm:  'testpass'
+    slug           : companyName
+    email          : generateRandomEmail()
+    agree          : 'on'
+    allow          : 'true'
+    domains        : 'koding.com, gmail.com'
+    invitees       : invitees
+    redirect       : ''
+    username       : username
+    password       : 'testpass'
+    newsletter     : 'true'
+    companyName    : companyName
+    alreadyMember  : 'false'
+    teamAccessCode : ''
+    passwordConfirm: 'testpass'
 
   deepObjectExtend defaultBodyObject, opts
 
@@ -144,7 +147,7 @@ generateCreateTeamRequestBody = (opts = {}) ->
 
 
 # overwrites given options in the default params
-generateCreateTeamRequestParams = (opts = {}) ->
+generateCreateTeamRequestParams = (opts = {}, callback) ->
 
   url  = generateUrl
     route : '-/teams/create'
@@ -154,10 +157,21 @@ generateCreateTeamRequestParams = (opts = {}) ->
   params               = { url, body }
   defaultRequestParams = generateDefaultRequestParams params
   requestParams        = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body   = querystring.stringify requestParams.body
 
-  return requestParams
+  # return without creating a team invitation
+  if opts.createTeamInvitation is no
+    # after deep extending object, encodes body param to a query string
+    requestParams.body = querystring.stringify requestParams.body
+    return callback requestParams
+
+  slug  = opts.body ? body.slug
+  email = opts.email ? body.email
+
+  JTeamInvitation.create { groupName : slug, email }, (err, teamInvitation) ->
+    expect(err).to.not.exist
+    requestParams.body.teamAccessCode = teamInvitation.code
+    requestParams.body                = querystring.stringify requestParams.body
+    return callback requestParams
 
 
 module.exports = {

@@ -1,8 +1,8 @@
 package models
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/models"
 	"socialapi/request"
 	"testing"
 
@@ -67,7 +67,7 @@ func TestChannelSearch(t *testing.T) {
 		account := CreateAccountWithTest()
 		groupChannel := CreateTypedPublicChannelWithTest(
 			account.Id,
-			models.Channel_TYPE_GROUP,
+			Channel_TYPE_GROUP,
 		)
 
 		c.CreatorId = account.Id
@@ -683,7 +683,7 @@ func TestChannelAddParticipant(t *testing.T) {
 			account := CreateAccountWithTest()
 			c := CreateTypedPublicChannelWithTest(
 				account.Id,
-				models.Channel_TYPE_LINKED_TOPIC,
+				Channel_TYPE_LINKED_TOPIC,
 			)
 
 			cp, err := c.AddParticipant(account.Id)
@@ -1369,7 +1369,7 @@ func TestChannelDelete(t *testing.T) {
 	})
 }
 
-func TestFetchPublicChannel(t *testing.T) {
+func TestFetchGroupChannel(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -1388,7 +1388,7 @@ func TestFetchPublicChannel(t *testing.T) {
 		So(err, ShouldBeNil)
 		Convey("it should return a public channel with given group name", func() {
 			pc := NewChannel()
-			err := pc.FetchPublicChannel(c.GroupName)
+			err := pc.FetchGroupChannel(c.GroupName)
 			So(err, ShouldBeNil)
 			So(pc.GroupName, ShouldEqual, c.GroupName)
 			So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)
@@ -1404,7 +1404,7 @@ func TestChannelFetchRoot(t *testing.T) {
 	defer r.Close()
 
 	Convey("while fetching the root", t, func() {
-		acc := models.CreateAccountWithTest()
+		acc := CreateAccountWithTest()
 		So(acc, ShouldNotBeNil)
 
 		Convey("if channel id is not set", func() {
@@ -1415,9 +1415,9 @@ func TestChannelFetchRoot(t *testing.T) {
 		})
 
 		Convey("when root doesnt exist", func() {
-			leaf := models.CreateTypedGroupedChannelWithTest(
+			leaf := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				RandomName(),
 			)
 
@@ -1430,15 +1430,15 @@ func TestChannelFetchRoot(t *testing.T) {
 
 		Convey("when root does exist", func() {
 			groupName := RandomName()
-			root := models.CreateTypedGroupedChannelWithTest(
+			root := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				groupName,
 			)
 
-			leaf := models.CreateTypedGroupedChannelWithTest(
+			leaf := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				groupName,
 			)
 
@@ -1467,7 +1467,7 @@ func TestChannelFetchLeaves(t *testing.T) {
 	defer r.Close()
 
 	Convey("while fetching the root", t, func() {
-		acc := models.CreateAccountWithTest()
+		acc := CreateAccountWithTest()
 		So(acc, ShouldNotBeNil)
 
 		Convey("if channel id is not set", func() {
@@ -1478,9 +1478,9 @@ func TestChannelFetchLeaves(t *testing.T) {
 		})
 
 		Convey("when leaf doesnt exist", func() {
-			root := models.CreateTypedGroupedChannelWithTest(
+			root := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				RandomName(),
 			)
 
@@ -1493,15 +1493,15 @@ func TestChannelFetchLeaves(t *testing.T) {
 
 		Convey("when leaves does exist", func() {
 			groupName := RandomName()
-			root := models.CreateTypedGroupedChannelWithTest(
+			root := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				groupName,
 			)
 
-			leaf1 := models.CreateTypedGroupedChannelWithTest(
+			leaf1 := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				groupName,
 			)
 
@@ -1512,9 +1512,9 @@ func TestChannelFetchLeaves(t *testing.T) {
 
 			So(cl.Create(), ShouldBeNil)
 
-			leaf2 := models.CreateTypedGroupedChannelWithTest(
+			leaf2 := CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				models.Channel_TYPE_TOPIC,
+				Channel_TYPE_TOPIC,
 				groupName,
 			)
 
@@ -1530,6 +1530,178 @@ func TestChannelFetchLeaves(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(leaves, ShouldNotBeNil)
 				So(len(leaves), ShouldEqual, 2)
+			})
+		})
+	})
+}
+
+func TestChannelByParticipants(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("while fetching channels by their participants", t, func() {
+		_, _, groupName := CreateRandomGroupDataWithChecks()
+
+		Convey("group name should be set in query", func() {
+			q := request.NewQuery()
+			q.GroupName = ""
+
+			c := NewChannel()
+			_, err := c.ByParticipants([]int64{}, q)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrGroupNameIsNotSet)
+		})
+
+		Convey("at least one participant should be passed", func() {
+			q := request.NewQuery()
+			q.GroupName = groupName
+
+			c := NewChannel()
+			_, err := c.ByParticipants([]int64{}, q)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelParticipantIsNotSet)
+		})
+
+		acc1 := CreateAccountWithTest()
+		acc2 := CreateAccountWithTest()
+		acc3 := CreateAccountWithTest()
+
+		tc1 := CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			Channel_TYPE_TOPIC,
+			groupName,
+		)
+		AddParticipantsWithTest(tc1.Id, acc1.Id, acc2.Id, acc3.Id)
+
+		tc2 := CreateTypedGroupedChannelWithTest(
+			acc1.Id,
+			Channel_TYPE_TOPIC,
+			groupName,
+		)
+		AddParticipantsWithTest(tc2.Id, acc1.Id, acc2.Id, acc3.Id)
+
+		Convey("ordering should be working by channel created_at", func() {
+			q := request.NewQuery()
+			q.GroupName = groupName
+			q.Type = Channel_TYPE_TOPIC
+
+			c := NewChannel()
+			channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 2)
+			So(channels[0].Id, ShouldEqual, tc1.Id)
+			So(channels[1].Id, ShouldEqual, tc2.Id)
+		})
+
+		Convey("skip options should be working", func() {
+			q := request.NewQuery()
+			q.GroupName = groupName
+			q.Type = Channel_TYPE_TOPIC
+			q.Skip = 1
+
+			c := NewChannel()
+			channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 1)
+			So(channels[0].Id, ShouldEqual, tc2.Id)
+		})
+
+		Convey("limit options should be working", func() {
+			q := request.NewQuery()
+			q.GroupName = groupName
+			q.Type = Channel_TYPE_TOPIC
+			q.Limit = 1
+
+			c := NewChannel()
+			channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 1)
+			So(channels[0].Id, ShouldEqual, tc1.Id)
+		})
+
+		Convey("type option should be working", func() {
+			pc1 := CreateTypedGroupedChannelWithTest(
+				acc1.Id,
+				Channel_TYPE_PRIVATE_MESSAGE,
+				groupName,
+			)
+			AddParticipantsWithTest(pc1.Id, acc1.Id, acc2.Id, acc3.Id)
+
+			q := request.NewQuery()
+			q.GroupName = groupName
+			q.Type = Channel_TYPE_PRIVATE_MESSAGE
+
+			c := NewChannel()
+			channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 1)
+			So(channels[0].Id, ShouldEqual, pc1.Id)
+		})
+
+		Convey("all channels should be active", func() {
+			// delete the second channel
+			So(tc2.Delete(), ShouldBeNil)
+
+			q := request.NewQuery()
+			q.GroupName = groupName
+			q.Type = Channel_TYPE_TOPIC
+
+			c := NewChannel()
+			channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 1)
+			So(channels[0].Id, ShouldEqual, tc1.Id)
+		})
+
+		Convey("all members should be active", func() {
+			// delete the second participant from second channel
+			So(tc2.RemoveParticipant(acc2.Id), ShouldBeNil)
+
+			q := request.NewQuery()
+			q.GroupName = groupName
+			q.Type = Channel_TYPE_TOPIC
+
+			c := NewChannel()
+			channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 1)
+			So(channels[0].Id, ShouldEqual, tc1.Id)
+		})
+
+		Convey("if the members are also in other groups", func() {
+			Convey("group context should be working", func() {
+				_, _, groupName := CreateRandomGroupDataWithChecks()
+
+				tc1 := CreateTypedGroupedChannelWithTest(
+					acc1.Id,
+					Channel_TYPE_TOPIC,
+					groupName,
+				)
+				AddParticipantsWithTest(tc1.Id, acc1.Id, acc2.Id, acc3.Id)
+
+				tc2 := CreateTypedGroupedChannelWithTest(
+					acc1.Id,
+					Channel_TYPE_TOPIC,
+					groupName,
+				)
+				AddParticipantsWithTest(tc2.Id, acc1.Id, acc2.Id, acc3.Id)
+
+				q := request.NewQuery()
+				q.GroupName = groupName
+				q.Type = Channel_TYPE_TOPIC
+
+				c := NewChannel()
+				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
+				So(err, ShouldBeNil)
+				So(len(channels), ShouldEqual, 2)
+				So(channels[0].GroupName, ShouldEqual, groupName)
 			})
 		})
 	})

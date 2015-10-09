@@ -1,7 +1,7 @@
-kd                      = require 'kd'
-actionTypes             = require './actiontypes'
-showErrorNotification   = require 'app/util/showErrorNotification'
-{ actions: appActions } = require 'app/flux'
+_                     = require 'lodash'
+kd                    = require 'kd'
+actionTypes           = require './actiontypes'
+showErrorNotification = require 'app/util/showErrorNotification'
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -48,7 +48,7 @@ removeAllParticipants = ->
  * @param {string} payload.purpose
  * @param {array} payload.recipients
 ###
-createPublicChannel = (options={}) ->
+createPublicChannel = (options = {}) ->
 
   { CREATE_PUBLIC_CHANNEL
     CREATE_PUBLIC_CHANNEL_FAIL
@@ -75,7 +75,7 @@ createPublicChannel = (options={}) ->
  * @param {string} payload.purpose
  * @param {array}  payload.recipients
 ###
-createPrivateChannel = (options={}) ->
+createPrivateChannel = (options = {}) ->
 
   { CREATE_PRIVATE_CHANNEL
     CREATE_PRIVATE_CHANNEL_FAIL
@@ -83,7 +83,9 @@ createPrivateChannel = (options={}) ->
 
   dispatch CREATE_PRIVATE_CHANNEL, options
 
-  kd.singletons.socialapi.channel.createChannelWithParticipants options, (err, channels) ->
+  _options = _mapPrivateChannelOptions options
+
+  kd.singletons.socialapi.channel.createChannelWithParticipants _options, (err, channels) ->
     if err
       dispatch CREATE_PRIVATE_CHANNEL_FAIL, { err }
       showErrorNotification err, userMessage: err.message
@@ -91,6 +93,19 @@ createPrivateChannel = (options={}) ->
 
     [channel] = channels
     dispatch CREATE_PRIVATE_CHANNEL_SUCCESS, { channel }
+
+
+_mapPrivateChannelOptions = (options) ->
+
+  # don't modify arg
+  _options = _.assign {}, options
+
+  _options['payload'] or= {}
+  _options['payload']['description'] = options.purpose or ''
+  _options['purpose'] = options.name or ''
+  _options['name'] = ''
+
+  return _options
 
 
 module.exports = {

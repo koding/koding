@@ -1,18 +1,19 @@
 .NewMessageMarker
-  rel()
+  abs()
+  border-bottom             1px solid lighten($red, 30%)
+  kalc                      width, 100% \- 40px
+  margin                    -16px 20px 15px
   padding                   0 0 20px
-  border-bottom             1px solid lighten($color-success, 50%)
-  margin                    0 20px 15px
 
 .NewMessageMarker-content
-  abs()
-  right                     30px
-  bottom                    -8px
-  min-width                 80px
-  color                     $color-success
+  abs                       0 17px -10px 0
   bg                        color, #fcfcfc
-  margin-left               -40px
-  text-align                center
+  bottom                    -8px
+  color                     lighten($red, 30%)
   font-size                 $fs-smaller
+  margin-left               -40px
+  min-width                 80px
+  padding                   0 6px
+  text-align                center
 
 

@@ -5,6 +5,7 @@ whoami                     = require 'app/util/whoami'
 isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
+getGroup                   = require 'app/util/getGroup'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -36,7 +37,20 @@ UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
 
-allChannels = ChannelsStore
+FollowedPublicChannelIdsStore = [
+  FollowedPublicChannelIdsStore
+  (ids) ->
+    groupChannelId = getGroup().socialApiChannelId
+    ids.filter (id) -> id isnt groupChannelId
+]
+
+
+allChannels = [
+  ChannelsStore, (channels) ->
+    channels.filterNot (channel) -> 'group' is channel.get 'typeConstant'
+]
+
+
 allUsers    = UsersStore
 
 ChannelParticipantsSearchQueryStore        = ['ChannelParticipantsSearchQueryStore']
@@ -66,7 +80,10 @@ channelParticipants = [
   (channelIds, users) ->
     channelIds.map (participantIds) ->
       participantIds.reduce (result, id) ->
-        if users.has id
+
+        return result  if id is whoami()._id
+
+        if users.has(id)
         then result.set id, users.get id
         else result
       , immutable.Map()

@@ -420,10 +420,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @showRandomMarketingSnippet()  if @state is Starting
     else if @state is Terminated
       @label.destroy?()
-      @createStateLabel "
+      @createStateLabel if isKoding() then "
         The VM <strong>#{@machineName or ''}</strong> was
         successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
+      " else "
+        The VM <strong>#{@machineName or ''}</strong> was terminated.
+        Please re-initalize your stack to rebuild the VM again.
       "
       @createStateButton()
     else if @state is Running
@@ -547,10 +550,13 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     return  if @isManaged
 
     if @state in [Terminated, 'NotFound']
-      title    = 'Create a new VM'
       callback = 'requestNewMachine'
 
-      if not isKoding()
+      if isKoding()
+        title  = 'Create a new VM'
+      else
+        title  = 'Show Stacks'
+
         { groupsController } = kd.singletons
         return  unless groupsController.currentGroupHasStack()
 

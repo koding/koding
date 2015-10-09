@@ -15,13 +15,13 @@ command="node $path"
 $command &
 pid=$!
 while [[ true ]]; do
-    
+
     if [[ `uname` == "Darwin" ]]; then
-      files=`find $watchfolder -type f -mtime -2s`
+      files=`find -L $watchfolder -type f -mtime -2s`
     else
-      files=`find $watchfolder -type f -mmin $(echo 2/60 | bc -l)`
+      files=`find -L $watchfolder -type f -mmin $(echo 2/60 | bc -l)`
     fi
-    
+
     if [[ $files != "" ]]
     then
         echo [watch-node $$] files changed [$files] killing $pid $command
