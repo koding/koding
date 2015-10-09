@@ -3,7 +3,6 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CommentInputWidget = require './commentinputwidget'
 showError = require 'app/util/showError'
-trackEvent = require 'app/util/trackEvent'
 Encoder = require 'htmlencode'
 
 module.exports = class CommentInputEditWidget extends CommentInputWidget
@@ -68,8 +67,6 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
 
     @emit 'EditSucceeded', activity
 
-    trackEvent "Comment edit, success", { length: activity?.body?.length }
-
 
   viewAppended: ->
 
@@ -86,7 +83,3 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
       pistachio : 'Press Esc to cancel'
 
     kd.utils.defer @bound 'setFocus'
-
-
-
-

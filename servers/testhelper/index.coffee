@@ -4,7 +4,7 @@ Bongo       = require 'bongo'
 request     = require 'request'
 querystring = require 'querystring'
 
-{ argv  }   = require 'optimist'
+{ argv }   = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 mongo       = KONFIG.mongoReplSet or "mongodb://#{ KONFIG.mongo }"
 { daisy }   = Bongo

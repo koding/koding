@@ -3,6 +3,7 @@ KDView                  = kd.View
 KDInputView             = kd.InputView
 KDButtonView            = kd.ButtonView
 KDLoaderView            = kd.LoaderView
+KDCustomCheckBox        = kd.CustomCheckBox
 KDCustomHTMLView        = kd.CustomHTMLView
 
 
@@ -20,11 +21,9 @@ module.exports = class InvitationInputView extends KDView
 
   createElements: ->
 
-    { cancellable } = @getOptions()
-
     @addSubView @email = new KDInputView
       cssClass     : 'user-email'
-      placeholder  : 'name@domain.com'
+      placeholder  : 'mail@example.com'
       validate     :
         rules      :
           required : yes
@@ -32,19 +31,16 @@ module.exports = class InvitationInputView extends KDView
 
     @addSubView @firstName = new KDInputView
       cssClass    : 'firstname'
-      placeholder : 'first name (optional)'
+      placeholder : 'Optional'
 
     @addSubView @lastName = new KDInputView
       cssClass    : 'lastname'
-      placeholder : 'last name (optional)'
+      placeholder : 'Optional'
 
-    if cancellable
-      @addSubView @cancel = new KDCustomHTMLView
-        tagName  : 'span'
-        cssClass : 'cancel icon'
-        click    : => @destroy()
+    @addSubView @admin = new KDCustomCheckBox
+      defaultValue : no
 
-    @inputs = [ @email, @firstName, @lastName ]
+    @inputs = [ @email, @firstName, @lastName, @admin ]
 
 
   serialize: ->
@@ -53,5 +49,6 @@ module.exports = class InvitationInputView extends KDView
       email     : @email.getValue()
       firstName : @firstName.getValue()
       lastName  : @lastName.getValue()
+      role      : if @admin.getValue() then 'admin' else 'member'
     }
 

@@ -53,7 +53,8 @@ module.exports = class ChatList extends React.Component
 
   glance: debounce 1000, {}, ->
 
-    ActivityFlux.actions.channel.glance @props.channelId
+    if kd.singletons.windowController.isFocused()
+      ActivityFlux.actions.channel.glance @props.channelId
 
 
   onGlancerEnter: -> @glance()

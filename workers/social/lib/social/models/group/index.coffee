@@ -667,10 +667,22 @@ module.exports = class JGroup extends Module
             else
               queue.next()
           ->
+            notifyAccountOnRoleChange client, targetId, roles, queue.next
+          ->
             callback null
         ]
 
         daisy queue
+
+  notifyAccountOnRoleChange = (client, id, roles, callback) ->
+    JAccount.one { _id: id }, (err, account) ->
+      return callback err  if err or not account
+
+      role = if roles?.length > 0 then roles[0] else 'member'
+      contents = { role, group: client.context.group, adminNick: client.connection.delegate.profile.nickname }
+      account.sendNotification 'MembershipRoleChanged', contents
+      callback null
+
 
   addDefaultRoles:(callback) ->
     group = this
