@@ -67,7 +67,10 @@ module.exports = class InviteSomeoneView extends KDView
     invites = []
 
     for view in @inputViews
-      value  = view.email.getValue().trim()
+      value = view.email.getValue().trim()
+
+      continue  unless value
+
       result = if not value then no else view.email.validate()
 
       if value and not result
