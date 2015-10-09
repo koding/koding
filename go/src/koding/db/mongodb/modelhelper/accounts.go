@@ -15,7 +15,6 @@ func GetAccountById(id string) (*models.Account, error) {
 	return account, Mongo.One(AccountsColl, id, account)
 }
 
-// GetAccountsByIds fetches all the accounts given by their IDs
 func GetAccountsByIds(ids []bson.ObjectId) ([]models.Account, error) {
 	accounts := make([]models.Account, 0)
 
