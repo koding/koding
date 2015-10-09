@@ -151,3 +151,29 @@ func HealthCheck(a string) error {
 
 	return nil
 }
+
+// IsKlientRunning does a quick check against klient's http server
+// to verify that it is running. It does *not* check the auth or tcp
+// connection, it *just* attempts to verify that klient is running.
+func IsKlientRunning(a string) bool {
+	res, err := http.Get(a)
+
+	if res != nil {
+		defer res.Body.Close()
+	}
+
+	// If there was an error even talking to Klient, something is wrong.
+	if err != nil {
+		return false
+	}
+
+	// It should be safe to ignore any errors dumping the response data,
+	// since we just want to check the data itself. Handling the error
+	// might aid with debugging any problems though.
+	resData, _ := ioutil.ReadAll(res.Body)
+	if string(resData) != "Welcome to SockJS!\n" {
+		return false
+	}
+
+	return true
+}

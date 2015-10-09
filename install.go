@@ -162,24 +162,8 @@ Please provide your Koding Username and Password when prompted..
 	// connection below, anyway.
 	s.Start()
 
-	// Create a kite to talk to klient, so we can verify that it installed
-	// properly before telling the user success
-	k, err := CreateKlientClient(NewKlientOptions())
-	if err != nil {
-		fmt.Printf("Error connecting to remote machine: '%s'\n", err)
-		return 1
-	}
-
-	fmt.Printf("Verifying installation...")
-
-	// Try multiple times to connect to Klient, and return the final error
-	// if needed.
-	for i := 0; i < 5; i++ {
-		time.Sleep(1 * time.Second)
-		if err = k.Dial(); err == nil {
-			break
-		}
-	}
+	fmt.Println("Verifying installation...")
+	err = WaitUntilStarted(KlientAddress, 5, 1*time.Second)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.

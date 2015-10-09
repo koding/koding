@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/codegangsta/cli"
 )
@@ -19,7 +21,25 @@ func StopCommand(c *cli.Context) int {
 		return 1
 	}
 
+	if err := WaitUntilStopped(KlientAddress, 5, 1*time.Second); err != nil {
+		fmt.Printf("Timed out waiting for the %s to stop", KlientName)
+		return 1
+	}
+
 	fmt.Printf("Successfully stopped %s\n", KlientName)
 
 	return 0
+}
+
+func WaitUntilStopped(address string, attempts int, pauseIntv time.Duration) error {
+	// Wait for klient
+	for i := 0; i < 5; i++ {
+		time.Sleep(pauseIntv)
+
+		if !IsKlientRunning(address) {
+			return nil
+		}
+	}
+
+	return errors.New("Klient failed to stop in the expected time")
 }
