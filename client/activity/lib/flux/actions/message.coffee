@@ -113,6 +113,13 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     return { message }
 
 
+###*
+ * Ensures a message is there and it also has enough surrounding message
+ * siblings so that scrolling into a single post would make much more sense.
+ *
+ * @param {string} messageId
+ * @return {Promise}
+###
 ensureMessage = (messageId) ->
 
   { reactor } = kd.singletons
@@ -120,11 +127,14 @@ ensureMessage = (messageId) ->
   loadMessage(messageId).then ({ message }) ->
     channelId = message.initialChannelId
     loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+      messagesBefore = reactor.evaluate ['MessagesStore']
       loadMessages(channelId, { from: message.createdAt, sortOrder: 'ASC' }).then ({ messages }) ->
         [..., last] = messages
         return { message }  unless last
 
-        putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+        # put a loader marker only if this message was not here before.
+        unless messagesBefore.has last.id
+          putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
 
         return { message }
 

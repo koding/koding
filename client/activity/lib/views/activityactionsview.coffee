@@ -5,7 +5,6 @@ ActivityCommentCount = require './comments/activitycommentcount'
 ActivityLikeView = require './activitylikeview'
 ActivitySharePopup = require './activitysharepopup'
 groupifyLink = require 'app/util/groupifyLink'
-trackEvent = require 'app/util/trackEvent'
 JView = require 'app/jview'
 CustomLinkView = require 'app/customlinkview'
 
@@ -57,8 +56,6 @@ module.exports = class ActivityActionsView extends JView
 
         pane.scrollView.wrapper.once 'scroll', @sharePopup.bound 'destroy'
 
-        trackEvent "Activity share, click"
-
     @likeView = new ActivityLikeView {}, data
 
     @loader = new KDLoaderView
@@ -100,5 +97,3 @@ module.exports = class ActivityActionsView extends JView
     </span>
     {{> @loader}}
     """
-
-

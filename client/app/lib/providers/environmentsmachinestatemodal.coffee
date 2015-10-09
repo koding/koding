@@ -24,7 +24,6 @@ MarketingSnippetView    = require 'app/marketing/marketingsnippetview'
 whoami                  = require 'app/util/whoami'
 isKoding                = require 'app/util/isKoding'
 showError               = require 'app/util/showError'
-trackEvent              = require 'app/util/trackEvent'
 applyMarkdown           = require 'app/util/applyMarkdown'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
@@ -788,10 +787,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       else
         kd.utils.defer @bound 'buildInitial'
-        trackEvent 'Account verfication, success',
-          category : 'userInteraction'
-          action   : 'microConversions'
-          label    : 'completedAccountVerification'
 
 
   downgradePlan: (callback) ->

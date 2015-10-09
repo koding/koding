@@ -894,6 +894,8 @@ module.exports = class ComputeController extends KDController
 
       currentGroup.stackTemplates = _currentGroup.stackTemplates
 
+      @createDefaultStack yes  if @stacks.length is 0
+
       @checkGroupStackRevisions()
 
 

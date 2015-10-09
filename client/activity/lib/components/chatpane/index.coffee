@@ -54,6 +54,7 @@ module.exports = class ChatPane extends React.Component
     <Scroller
       ref="scrollContainer"
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
+      {@renderChannelInfoContainer()}
       <ChatList
         isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
         loadedWithScroll={@props.thread?.getIn ['flags', 'loadedWithScroll']}
@@ -70,7 +71,6 @@ module.exports = class ChatPane extends React.Component
     <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
         <section className="ChatPane-body" ref="ChatPaneBody">
-          {@renderChannelInfoContainer()}
           {@renderBody()}
           {@props.children}
         </section>
