@@ -147,6 +147,15 @@ func (c *ChannelLink) create() error {
 		return err
 	}
 
+	//
+	// Check the rootid is if leaf channel or not,
+	// call is IsUnfinished func
+	// if returns true wait changing this result to false from true.
+	// BUT I NEED TO DEFINE STRUCTURE, are we gonna use time.sleep or
+	// another delay-control system?
+	//
+	//
+
 	// then delete the link between two channels
 	bq := &bongo.Query{
 		Selector: map[string]interface{}{
