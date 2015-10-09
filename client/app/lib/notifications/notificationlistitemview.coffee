@@ -191,3 +191,9 @@ module.exports = class NotificationListItemView extends KDListItemView
 
 
 
+calculateReactivityLink = (post) ->
+
+  channel = kd.singletons.socialapi.retrieveCachedItemById post.initialChannelId
+  return "/Channels/#{channel.name.toLowerCase()}/#{post.id}"
+
+
