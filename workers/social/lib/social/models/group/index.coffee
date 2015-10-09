@@ -658,7 +658,8 @@ module.exports = class JGroup extends Module
             JAccount.one { _id: targetId }, (err, account) ->
               return callback err  if err
 
-              account.sendNotification 'MembershipRoleChanged', { role, group: client.context.group }  if account
+              contents = { role, group: client.context.group, adminNick: client.connection.delegate.profile.nickname }
+              account.sendNotification 'MembershipRoleChanged', contents  if account
               queue.next()
 
         # remove existing ones
