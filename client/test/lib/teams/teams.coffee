@@ -3,7 +3,7 @@ utils    = require '../utils/utils.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 
 
-module.exports =
+module.exports = {}
 
 
   # createTeam: (browser) ->
