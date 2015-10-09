@@ -1,10 +1,11 @@
-actions                = require 'activity/flux/chatinput/actions/actiontypes'
-BaseSelectedIndexStore = require 'activity/flux/chatinput/stores/baseselectedindexstore'
+actions            = require 'activity/flux/chatinput/actions/actiontypes'
+SelectedIndexStore = require 'activity/flux/chatinput/stores/chatinputselectedindexstore'
+
 
 ###*
  * Store to contain filtered emoji list selected index
 ###
-module.exports = class FilteredEmojiListSelectedIndexStore extends BaseSelectedIndexStore
+module.exports = class FilteredEmojiListSelectedIndexStore extends SelectedIndexStore
 
   @getterPath = 'FilteredEmojiListSelectedIndexStore'
 

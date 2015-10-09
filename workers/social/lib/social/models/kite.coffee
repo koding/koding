@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 module.exports = class JKite extends jraphical.Module
 
@@ -73,7 +74,7 @@ module.exports = class JKite extends jraphical.Module
 
   modify: permit 'edit kite',
     success: (client, formData, callback) ->
-      @update { $set: { name: formData.name, description: formData.description } }, callback
+      @update $set: { name: formData.name, description: formData.description } , callback
 
   deleteKite: permit 'delete kite',
     success: (client, callback) ->

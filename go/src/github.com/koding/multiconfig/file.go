@@ -3,7 +3,7 @@ package multiconfig
 import (
 	"encoding/json"
 	"errors"
-	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -11,40 +11,27 @@ import (
 )
 
 var (
-	// ErrSourceNotSet states that neither the path or the reader is set on the loader
-	ErrSourceNotSet = errors.New("config path or reader is not set")
+	// ErrPathNotSet states that given path to file loader is empty
+	ErrPathNotSet = errors.New("config path is not set")
 
 	// ErrFileNotFound states that given file is not exists
 	ErrFileNotFound = errors.New("config file not found")
 )
 
 // TOMLLoader satisifies the loader interface. It loads the configuration from
-// the given toml file or Reader
+// the given toml file.
 type TOMLLoader struct {
-	Path   string
-	Reader io.Reader
+	Path string
 }
 
 // Load loads the source into the config defined by struct s
-// Defaults to using the Reader if provided, otherwise tries to read from the
-// file
 func (t *TOMLLoader) Load(s interface{}) error {
-	var r io.Reader
-
-	if t.Reader != nil {
-		r = t.Reader
-	} else if t.Path != "" {
-		file, err := getConfig(t.Path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		r = file
-	} else {
-		return ErrSourceNotSet
+	filePath, err := getConfigPath(t.Path)
+	if err != nil {
+		return err
 	}
 
-	if _, err := toml.DecodeReader(r, s); err != nil {
+	if _, err := toml.DecodeFile(filePath, s); err != nil {
 		return err
 	}
 
@@ -52,49 +39,47 @@ func (t *TOMLLoader) Load(s interface{}) error {
 }
 
 // JSONLoader satisifies the loader interface. It loads the configuration from
-// the given json file or Reader
+// the given json file.
 type JSONLoader struct {
-	Path   string
-	Reader io.Reader
+	Path string
 }
 
 // Load loads the source into the config defined by struct s
-// Defaults to using the Reader if provided, otherwise tries to read from the
-// file
 func (j *JSONLoader) Load(s interface{}) error {
-	var r io.Reader
-	if j.Reader != nil {
-		r = j.Reader
-	} else if j.Path != "" {
-		file, err := getConfig(j.Path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		r = file
-	} else {
-		return ErrSourceNotSet
+	filePath, err := getConfigPath(j.Path)
+	if err != nil {
+		return err
 	}
 
-	return json.NewDecoder(r).Decode(s)
+	file, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(file, s)
 }
 
-func getConfig(path string) (*os.File, error) {
+func getConfigPath(path string) (string, error) {
+	if path == "" {
+		return "", ErrPathNotSet
+	}
+
 	pwd, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	configPath := filepath.Join(pwd, path)
 
 	// check if file with combined path is exists(relative path)
 	if _, err := os.Stat(configPath); !os.IsNotExist(err) {
-		return os.Open(configPath)
+		return configPath, nil
 	}
 
-	f, err := os.Open(path)
-	if os.IsNotExist(err) {
-		return nil, ErrFileNotFound
+	// check if file is exists it self
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return path, nil
 	}
-	return f, err
+
+	return "", ErrFileNotFound
 }

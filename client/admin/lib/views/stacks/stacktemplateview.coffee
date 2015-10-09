@@ -1,14 +1,15 @@
 kd                      = require 'kd'
+KDView                  = kd.View
 curryIn                 = require 'app/util/curryIn'
 KDButtonView            = kd.ButtonView
-StackBaseEditorTabView  = require './stackbaseeditortabview'
+
 KDCustomHTMLView        = kd.CustomHTMLView
 KDFormViewWithFields    = kd.FormViewWithFields
 CredentialStatusView    = require './credentialstatusview'
 StackTemplateEditorView = require './editors/stacktemplateeditorview'
 
 
-module.exports = class StackTemplateView extends StackBaseEditorTabView
+module.exports = class StackTemplateView extends KDView
 
 
   constructor: (options = {}, data) ->
@@ -47,7 +48,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
     delegate              = @getDelegate()
 
     @credentialStatus.link.on 'click', ->
-      delegate.tabView.showPaneByName 'Credentials'
+      delegate.tabView.showPaneByName 'Providers'
 
     @addSubView @editorView = new StackTemplateEditorView {
       delegate: this, content

@@ -1,6 +1,6 @@
 # coffeelint: disable=indentation
-isEmailValid        = require './emailchecker'
-reservedTeamDomains = require './reservedteamdomains'
+# coffeelint: disable=no_implicit_braces
+isEmailValid = require './emailchecker'
 
 module.exports = class Validators
 
@@ -16,7 +16,7 @@ module.exports = class Validators
       $                     # end of string
     ///
 
-    return (name not in reservedTeamDomains) and (teamDomainPattern.test name)
+    return teamDomainPattern.test name
 
 
   createKodingError = (err) ->
@@ -24,9 +24,9 @@ module.exports = class Validators
     message: if 'string' is typeof err then err else err.message
 
 
-  required = (field) ->
+  required = (field) =>
 
-    Validators::[field] = (userData, callback) ->
+    this::[field] = (userData, callback) ->
 
       callback \
         unless userData[field]?

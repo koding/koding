@@ -9,6 +9,8 @@ module.exports = class GuestCleanerWorker
 
   whitlistedModels = ['JSession', 'JUser', 'JProposedDomain', 'JAppStorage', 'JName']
 
+  # due to a bug in coffeelint 1.10.1
+  # coffeelint: disable=no_implicit_braces
   collectDataAndRelationships: (relationships, callback) ->
     toBeDeletedData = {}
     toBeDeletedRelationshipIds = []
@@ -114,6 +116,7 @@ module.exports = class GuestCleanerWorker
             ->
               #If we don't delete JNames, we eventually have millions of them.
               JName.remove { name : account.profile.nickname }, (err) ->
+                if err then console.error err
                 queue.next()
             ->
               #Delete JAccount itself

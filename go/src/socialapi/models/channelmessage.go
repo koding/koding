@@ -212,7 +212,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	}
 
 	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
-	return cmc, cmc.AddIsInteracted(query).Err
+	return cmc, cmc.AddIntegration().AddIsInteracted(query).Err
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
@@ -572,12 +572,7 @@ func (c *ChannelMessage) PopulatePayload() (*ChannelMessage, error) {
 		return nil, err
 	}
 
-	i, err := cm.PopulateIntegration()
-	if err != nil {
-		return nil, err
-	}
-
-	return i.PopulateInitialParticipants()
+	return cm.PopulateInitialParticipants()
 }
 
 func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
@@ -603,29 +598,6 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 	newCm.Payload["addedBy"] = addedByData
 
 	return newCm, nil
-}
-
-func (c *ChannelMessage) PopulateIntegration() (*ChannelMessage, error) {
-	newCm := NewChannelMessage()
-	*newCm = *c
-
-	channelIntegration := c.GetPayload(ChannelMessagePayloadKeyIntegration)
-	if channelIntegration != nil && *channelIntegration != "" {
-		id, err := strconv.ParseInt(*channelIntegration, 10, 64)
-		if err != nil {
-			return c, err
-		}
-
-		i, err := Cache.Integration.ByChannelIntegrationId(id)
-		if err != nil {
-			return c, err
-		}
-		newCm.SetPayload("integrationTitle", i.Title)
-		newCm.SetPayload("integrationIconPath", i.IconPath)
-
-		return newCm, nil
-	}
-	return c, nil
 }
 
 func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) {
@@ -682,8 +654,13 @@ func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
 		return c, nil
 	}
 
-	ch, err := Cache.Channel.ByGroupName(c.GroupName)
-	if err != nil {
+	ch := NewChannel()
+	selector := map[string]interface{}{
+		"group_name":    c.GroupName,
+		"type_constant": Channel_TYPE_GROUP,
+	}
+
+	if err := ch.One(bongo.NewQS(selector)); err != nil {
 		return nil, err
 	}
 

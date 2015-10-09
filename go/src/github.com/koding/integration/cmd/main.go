@@ -54,14 +54,8 @@ func RegisterServices(sf *services.Services, conf *Config) {
 		log.Fatal("Could not initialize Pivotal Service : %s", err)
 	}
 
-	pagerdutyService, err := RegisterPagerdutyService(sf, conf)
-	if err != nil {
-		log.Fatal("Could not initialize Pagerduty Service : %s", err)
-	}
-
 	sf.Register("github", githubService)
 	sf.Register("pivotal", pivotalService)
-	sf.Register("pagerduty", pagerdutyService)
 }
 
 func RegisterGithubService(sf *services.Services, conf *Config) (services.Service, error) {
@@ -81,13 +75,4 @@ func RegisterPivotalService(sf *services.Services, conf *Config) (services.Servi
 	}
 
 	return services.NewPivotal(pv, conf.Log)
-}
-
-func RegisterPagerdutyService(sf *services.Services, conf *Config) (services.Service, error) {
-	pd := &services.PagerdutyConfig{
-		PublicURL:      conf.PublicURL,
-		IntegrationURL: conf.IntegrationAddr,
-	}
-
-	return services.NewPagerduty(pd, conf.Log)
 }

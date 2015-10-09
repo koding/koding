@@ -1,37 +1,39 @@
-kd                        = require 'kd'
-timeago                   = require 'timeago'
-KDButtonViewWithMenu      = kd.ButtonViewWithMenu
-
-ActivityItemMenuItem      = require 'activity/views/activityitemmenuitem'
-BaseStackTemplateListItem = require './basestacktemplatelistitem'
+kd    = require 'kd'
+JView = require 'app/jview'
 
 
-module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
+module.exports = class StackTemplateListItem extends kd.ListItemView
+
+  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    { inuse, accessLevel } = @getData()
+    delegate         = @getDelegate()
+    { title, inuse } = @getData()
+
+    @deleteButton = new kd.ButtonView
+      cssClass : 'solid compact outline red secondary'
+      title    : 'DELETE'
+      callback : delegate.lazyBound 'deleteItem', this
+
+    @showButton = new kd.ButtonView
+      cssClass : 'solid compact outline secondary'
+      title    : 'SHOW'
+      callback : delegate.lazyBound 'showItemContent', this
+
+    @updateButton = new kd.ButtonView
+      cssClass : 'solid compact outline'
+      title    : 'EDIT'
+      callback : @bound 'updateStackTemplate'
 
     @inuseView = new kd.CustomHTMLView
       cssClass : 'inuse-tag'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This group currently using this template'
-
-    @accessLevelView = new kd.CustomHTMLView
-      cssClass : "accesslevel-tag #{accessLevel}"
-      partial  : accessLevel.toUpperCase()
-      tooltip  :
-        title  : switch accessLevel
-          when 'public'
-            'This group currently using this template'
-          when 'group'
-            'This template can be used in group'
-          when 'private'
-            'Only you can use this template'
 
     @inuseView.hide()  unless inuse
 
@@ -40,26 +42,12 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @getDelegate().emit 'ItemSelected', @getData()
 
 
-  settingsMenu: ->
-
-    listView      = @getDelegate()
-    stackTemplate = @getData()
-
-    unless stackTemplate.inuse
-      @addMenuItem 'Apply to Team', ->
-        listView.emit 'ItemSelectedAsDefault', stackTemplate
-
-    super
-
-
   pistachio: ->
-
-    { meta } = @getData()
-
     """
     <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}} {{> @inuseView}} {{> @accessLevelView}}
-      <cite>#{timeago meta.createdAt}</cite>
+      {div.title{#(title)}} {{> @inuseView}}
     </div>
-    <div class='buttons'>{{> @settings}}</div>
+    <div class='buttons'>
+      {{> @showButton}}{{> @deleteButton}}{{> @updateButton}}
+    </div>
     """

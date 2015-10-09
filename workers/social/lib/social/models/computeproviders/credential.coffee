@@ -1,3 +1,5 @@
+# due to a bug in coffeelint 1.10.1
+# coffeelint: disable=no_implicit_braces
 jraphical      = require 'jraphical'
 
 module.exports = class JCredential extends jraphical.Module
@@ -24,7 +26,6 @@ module.exports = class JCredential extends jraphical.Module
     softDelete        : yes
 
     permissions       :
-      'modify credential' : []
       'create credential' : ['member']
       'update credential' : ['member']
       'list credentials'  : ['member']
@@ -163,6 +164,14 @@ module.exports = class JCredential extends jraphical.Module
       JGroup.one { slug: group }, (err, group) ->
         return callback err  if err?
 
+        # FIXME Dunno why but `options` variable is overriding by fetcher
+        # in bongo above, so I had to re-set it here. When we fix the
+        # fetcher issue in bongo this won't be needed anymore, thanks JS ~ GG
+        options =
+          limit         : 1
+          targetOptions :
+            selector    : { identifier }
+
         group.fetchCredential {}, options, (err, res) ->
           callback err, res
 
@@ -218,13 +227,12 @@ module.exports = class JCredential extends jraphical.Module
   fetchUsers: permit
 
     advanced: [
-      { permission: 'modify credential' }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
     success: (client, callback) ->
 
-      Relationship.someData { targetId : @getId() }, {
+      Relationship.someData targetId : @getId(), {
         as:1, sourceId:1, sourceName:1
       }, (err, cursor) ->
 
@@ -297,7 +305,6 @@ module.exports = class JCredential extends jraphical.Module
   shareWith$: permit
 
     advanced: [
-      { permission: 'modify credential' }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -358,7 +365,6 @@ module.exports = class JCredential extends jraphical.Module
   fetchData$: permit
 
     advanced: [
-      { permission: 'modify credential' }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -370,7 +376,6 @@ module.exports = class JCredential extends jraphical.Module
   update$: permit
 
     advanced: [
-      { permission: 'modify credential' }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -383,14 +388,14 @@ module.exports = class JCredential extends jraphical.Module
 
       title ?= @title
 
-      @update { $set : { title } }, (err) =>
+      @update $set : { title }, (err) =>
         return callback err  if err?
 
         if meta?
 
           @fetchData (err, credData) ->
             return callback err  if err?
-            credData.update { $set : { meta } }, callback
+            credData.update $set : { meta }, callback
 
         else
           callback null
@@ -399,7 +404,6 @@ module.exports = class JCredential extends jraphical.Module
   isBootstrapped: permit
 
     advanced: [
-      { permission: 'modify credential' }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -408,15 +412,10 @@ module.exports = class JCredential extends jraphical.Module
       provider = PROVIDERS[@provider]
 
       unless provider
-        return callback null, no
+        callback new KodingError 'Provider is not supported'
+        return
 
       { bootstrapKeys } = provider
-
-      # If bootstrapKeys is not defined in the Provider
-      # it means that this credential is not supporting bootstrap
-      # we can safely return `no` at this point ~ GG
-      if bootstrapKeys.length is 0
-        return callback null, no
 
       @fetchData (err, data) ->
         return callback err  if err

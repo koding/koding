@@ -1,7 +1,7 @@
-{ argv }         = require 'optimist'
-KONFIG           = require('koding-config-manager').load("main.#{argv.c}")
-bongo            = require './bongo'
-{ v4: createId } = require 'node-uuid'
+{ argv } = require 'optimist'
+
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+bongo    = require './bongo'
 
 handleError = (err, callback) ->
   console.error err
@@ -9,26 +9,16 @@ handleError = (err, callback) ->
 
 updateCookie = (req, res, session) ->
   { clientId }       = session
-  { maxAge, secure } = KONFIG.sessionCookie
 
   # if we already have the same cookie in request, dont do anything
-  unless req?.cookies?.clientId is clientId
+  return if req?.cookies?.clientId is clientId
 
-    # set cookie as pending cookie
-    req.pendingCookies or= {}
-    req.pendingCookies.clientId = clientId
+  { maxAge, secure } = KONFIG.sessionCookie
+  # set cookie as pending cookie
+  req.pendingCookies or= {}
+  req.pendingCookies.clientId = clientId
 
-    res.cookie 'clientId', clientId, { maxAge, secure }
-
-  unless req?.cookies?._csrf
-
-    csrfToken = createId()
-      # set cookie as pending cookie
-    req.pendingCookies or= {}
-    req.pendingCookies._csrf = csrfToken
-
-    res.cookie '_csrf', csrfToken, { maxAge, secure }
-
+  res.cookie 'clientId', clientId, { maxAge, secure }
 
 generateFakeClientFromReq = (req, res, callback) ->
 

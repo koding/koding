@@ -40,36 +40,18 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return nil
 	}
 
+	topics := extractTopics(data.Body)
+	if len(topics) == 0 {
+		return nil
+	}
+
 	c, err := models.Cache.Channel.ById(data.InitialChannelId)
 	if err != nil {
 		f.log.Error("Error on models.Cache.Channel.ById", data.InitialChannelId, err)
 		return err
 	}
 
-	parent, err := data.FetchParentChannel()
-	if err != nil {
-		return err
-	}
-
-	// if message is posted to a non-group channel directly (eg: topic), make
-	// sure that message is also persisted in group channel too
-	if !c.IsGroup() {
-		if _, err := parent.EnsureMessage(data, true); err != nil && err != models.ErrMessageAlreadyInTheChannel {
-			return err
-		}
-	}
-
-	// we only operate on koding group's messages
-	if parent.GroupName != models.Channel_KODING_NAME {
-		return nil
-	}
-
-	topics := extractTopics(data.Body)
-	if len(topics) == 0 {
-		return nil
-	}
-
-	return f.ensureChannelMessages(parent, data, topics)
+	return f.ensureChannelMessages(c, data, topics)
 }
 
 func (f *Controller) ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
@@ -160,33 +142,12 @@ func filterTopics(topics map[string]struct{}) map[string]struct{} {
 	return filteredTopics
 
 }
-
-func isKodingPost(data *models.ChannelMessage) (bool, error) {
-	parent, err := data.FetchParentChannel()
-	if err != nil {
-		return false, err
-	}
-
-	// we only operate on koding group's messages
-	if parent.GroupName != models.Channel_KODING_NAME {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
-	f.log.Debug("update message %s", data.Id)
-
 	if res, _ := isEligible(data); !res {
 		return nil
 	}
 
-	// if this is not a koding post, we dont care about the rest
-	if isKodingPost, err := isKodingPost(data); !isKodingPost {
-		return err // even tho this is not a koding post, err can be nil
-	}
-
+	f.log.Debug("update message %s", data.Id)
 	// fetch message's current topics from the db
 	channels, err := fetchMessageChannels(data.Id)
 	if err != nil {
@@ -262,7 +223,7 @@ func getTopicDiff(channels []models.Channel, topics []string, excludedChannelId 
 	// aggregate all channel names into map
 	channelNames := map[string]struct{}{}
 	for _, channel := range channels {
-		if excludedChannelId != channel.GetId() && !channel.IsGroup() {
+		if excludedChannelId != channel.GetId() && channel.TypeConstant != models.Channel_TYPE_GROUP {
 			channelNames[channel.Name] = struct{}{}
 		}
 	}

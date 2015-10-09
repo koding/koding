@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 { Module } = require 'jraphical'
 
 JMachine = require './computeproviders/machine'
@@ -135,13 +136,16 @@ module.exports = class JWorkspace extends Module
 
   @fetchByMachines$ = secure (client, callback) ->
 
-    query = {}
-
-    JMachine.some$ client, query, (err, machines) ->
+    client.connection.delegate.fetchUser (err, user) ->
       return callback err  if err
 
-      machineUIds = machines.map (machine) -> machine.uid
-      JWorkspace.some { machineUId: { $in: machineUIds } }, {}, callback
+      query = { 'users.id': user.getId() }
+
+      JMachine.some query, {}, (err, machines) ->
+        return callback err  if err
+
+        machineUIds = machines.map (machine) -> machine.uid
+        JWorkspace.some { machineUId: { $in: machineUIds } }, {}, callback
 
 
   @deleteById = secure (client, id, callback) ->

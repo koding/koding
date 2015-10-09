@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 # NOTE: All domain registry related stuff removed
 # you can look at them from 745b4914f14fa424a3e38db68e09a1bc832be7f4
 
@@ -213,7 +214,7 @@ module.exports = class JProposedDomain extends jraphical.Module
         account.addDomain domain, { data: { group } }, (err) ->
           return callback err  if err
 
-          stack.appendTo { domains: domain.getId() }, (err) ->
+          stack.appendTo domains: domain.getId(), (err) ->
             callback err, domain
 
 
@@ -230,37 +231,35 @@ module.exports = class JProposedDomain extends jraphical.Module
         callback null
 
 
-  @createDomain$: permit 'create domains',
+  @createDomain$: permit 'create domains', success: (client, data, callback) ->
 
-    success: (client, data, callback) ->
+    { domain, stack } = data
 
-      { domain, stack } = data
+    error = (message, name) ->
+      callback new KodingError message, name
 
-      error = (message, name) ->
-        callback new KodingError message, name
+    unless domain
+      return error 'Domain is not provided'
 
-      unless domain
-        return error 'Domain is not provided'
+    { delegate } = client.connection
+    { group }    = client.context
+    { nickname } = delegate.profile
 
-      { delegate } = client.connection
-      { group }    = client.context
-      { nickname } = delegate.profile
+    { err, domain, type, slug, prefix } = parseDomain domain, { nickname, group }
+    return callback err  if err
 
-      { err, domain, type, slug, prefix } = parseDomain domain, { nickname, group }
+    checkExistence domain, (err) ->
       return callback err  if err
 
-      checkExistence domain, (err) ->
+      resolveDomain domain, (err) ->
         return callback err  if err
 
-        resolveDomain domain, (err) ->
-          return callback err  if err
+        JProposedDomain.createDomain {
+          domain, group, stack
+          account: delegate
+        }, callback
 
-          JProposedDomain.createDomain {
-            domain, group, stack
-            account: delegate
-          }, callback
-
-        , type is 'custom'
+      , type is 'custom'
 
 
   @createDomains = (options, callback) ->
@@ -285,11 +284,11 @@ module.exports = class JProposedDomain extends jraphical.Module
 
       checkExistence domain, (err) =>
         return callback err  if err
-        @update { $set: { domain } }, callback
+        @update $set: { domain }, callback
 
     else
 
-      @update { $unset: { domain: 1 } }, callback
+      @update $unset: domain: 1, callback
 
 
   activateDomain: permit
@@ -309,10 +308,10 @@ module.exports = class JProposedDomain extends jraphical.Module
 
 
   bindMachine: (target, callback) ->
-    @update { $addToSet: { machines: target } }, callback
+    @update $addToSet: machines: target, callback
 
   unbindMachine: (target, callback) ->
-    @update { $pullAll: { machines: [ target ] } }, callback
+    @update $pullAll: machines: [ target ], callback
 
 
   bindMachine$: permit
@@ -355,7 +354,7 @@ module.exports = class JProposedDomain extends jraphical.Module
     success: (client, callback) ->
       { delegate } = client.connection
       if /^([\w\-]+)\.kd\.io$/.test @domain
-        return callback { message: "It's not allowed to delete root domains" }
+        return callback message: "It's not allowed to delete root domains"
       @remove (err) -> callback err
 
 

@@ -66,7 +66,7 @@ module.exports = class DefineStackView extends KDView
       stackTemplate, selectedCredentials: @credentials, provider: 'aws' # Hard coded for now ~ GG
     }
     @tabView.addPane providersPane     = new KDTabPaneView
-      name : 'Credentials'
+      name : 'Providers'
       view : @providersView
 
     @readmeView                        = new ReadmeView { stackTemplate }
@@ -82,50 +82,29 @@ module.exports = class DefineStackView extends KDView
 
     @createMainButtons()
 
-    { credentialStatus } = @stackTemplateView
-
-    @providersView.on 'ItemSelected', (credentialItem) =>
+    @providersView.on 'ItemSelected', (credential) =>
 
       # After adding credential, we are sharing it with the current
       # group, so anyone in this group can use this credential ~ GG
       { slug } = kd.singletons.groupsController.getCurrentGroup()
 
-      credential = credentialItem.getData()
-
       credential.shareWith { target: slug }, (err) =>
         console.warn 'Failed to share credential:', err  if err
-        credentialStatus.setCredential credential
-
-        @providersView.resetItems()
-        credentialItem.inuseView.show()
-
-    @providersView.on 'ItemDeleted', (credential) ->
-
-      { identifier } = credential.getData()
-      if identifier in credentialStatus.credentials
-        credentialStatus.setCredential() # To unset active credential
-                                         # since it's deleted
+        @stackTemplateView.credentialStatus.setCredential credential
 
     @stackTemplateView.on 'CredentialStatusChanged', (status) =>
       if status is 'verified'
-        @_credentialsPassed = yes
+        @saveButton.enable()
         @tabView.showPaneByIndex 0
       else
-        @_credentialsPassed = yes
+        @saveButton.disable()
 
     @tabView.on 'PaneDidShow', (pane) =>
-      @outputView.fall()
       if pane is providersPane
+        @outputView.fall()
         @setFooterVisibility 'hide'
       else
         @setFooterVisibility 'show'
-        pane.getMainView().emit 'FocusToEditor'
-
-    { ace } = @stackTemplateView.editorView.aceView
-
-    ace.on 'FileContentChanged', =>
-      @setAsDefaultButton.hide()
-      @saveButton.show()
 
 
   setFooterVisibility: (state) ->
@@ -166,16 +145,17 @@ module.exports = class DefineStackView extends KDView
     @addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
 
 
-    @buttons.addSubView @cancelButton = new KDButtonView
+    @buttons.addSubView @cancelButton  = new KDButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
-    @buttons.addSubView @setAsDefaultButton = new KDButtonView
-      title          : 'Apply to Team'
-      cssClass       : 'solid compact green nav next hidden'
+    @buttons.addSubView @saveButton    = new KDButtonView
+      title          : 'Save & Test'
+      cssClass       : 'solid compact green nav next'
+      disabled       : yes
       loader         : yes
-      callback       : => @handleSetDefaultTemplate()
+      callback       : @bound 'handleSave'
 
     @buttons.addSubView @previewButton = new KDButtonView
       title          : 'Template Preview'
@@ -186,20 +166,14 @@ module.exports = class DefineStackView extends KDView
         title        : "Generates a preview of this template
                         with your own account information."
 
-    @buttons.addSubView @saveButton = new KDButtonView
-      title          : 'Save & Test'
-      cssClass       : 'solid compact green nav next'
+    @buttons.addSubView @setAsDefaultButton = new KDButtonView
+      title          : 'Set as Default for Team'
+      cssClass       : 'solid compact nav next hidden setasdefault-button'
       loader         : yes
-      callback       : @bound 'handleSave'
+      callback       : @bound 'handleSetDefaultTemplate'
 
 
   handleSave: ->
-
-    unless @_credentialsPassed
-      @outputView.addAndWarn "Please add your credentials to be
-                              able to save this template"
-      @saveButton.hideLoader()
-      return
 
     unless @variablesView.isPassed()
 
@@ -260,16 +234,6 @@ module.exports = class DefineStackView extends KDView
 
   processTemplate: (stackTemplate) ->
 
-    setToGroup = (method = 'add') =>
-      @handleSetDefaultTemplate completed = no
-
-      @outputView[method] """
-        Your stack script has been successfully saved and all your team
-        members now will use the stack you have just saved.
-
-        You can now close this window or continue working with your stack.
-      """
-
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
@@ -279,40 +243,17 @@ module.exports = class DefineStackView extends KDView
                          template and try again"
         return
 
-      { groupsController } = kd.singletons
-      { stackTemplates }   = groupsController.getCurrentGroup()
-      templateSetBefore    = stackTemplates?.length
-
-      if templateSetBefore
-
-        unless stackTemplate.inuse
-
-          @setAsDefaultButton.show()
-
-          @outputView.add """
-
-            Your stack script has been successfully saved.
-
-            If you want your team members to use this template you need to
-            apply it for your team.
-
-            You can now close this window or continue working with your stack.
-          """
-
-        else
-          setToGroup()
-
-      else
-        setToGroup 'addAndWarn'
-
+      @outputView.add "You can now close this window, or set this
+                       template as default for your team members."
 
       @cancelButton.setTitle 'Close'
+      @setAsDefaultButton.show()
 
 
   checkAndBootstrapCredentials: (callback) ->
 
     { credentialsData } = @stackTemplateView.credentialStatus
-    [ credential ]      = credentialsData
+    [credential]        = credentialsData
 
     failed = (err) =>
       @outputView.handleError err
@@ -393,11 +334,8 @@ module.exports = class DefineStackView extends KDView
             .add JSON.stringify machines, null, 2
             .add 'This stack has been saved succesfully!'
 
-          { config }      = stackTemplate
-          config.verified = yes
-
           updateStackTemplate {
-            stackTemplate, machines, config
+            stackTemplate, machines
           }, callback
 
 
@@ -566,15 +504,29 @@ module.exports = class DefineStackView extends KDView
       """
 
 
-  handleSetDefaultTemplate: (completed = yes) ->
+  handleSetDefaultTemplate: ->
 
-    { stackTemplate }    = @getData()
-    { groupsController } = kd.singletons
+    { stackTemplate }                       = @getData()
+    { computeController, groupsController } = kd.singletons
+
+    currentGroup = groupsController.getCurrentGroup()
+    { slug }     = currentGroup
+
+    if slug is 'koding'
+      return new kd.NotificationView
+        title: 'Setting stack template for koding is disabled'
 
     @outputView.add 'Setting this as default group stack template...'
 
-    groupsController.setDefaultTemplate stackTemplate, (err) =>
-      return  if @outputView.handleError err
+    currentGroup.modify stackTemplates: [ stackTemplate._id ], (err) =>
+      return if @outputView.handleError err
+
+      new kd.NotificationView
+        title : "Group (#{slug}) stack has been saved!"
+        type  : 'mini'
+
+      computeController.createDefaultStack yes
+      computeController.checkStackRevisions()
 
       @emit 'Reload'
-      @emit 'Completed', stackTemplate  if completed
+      @emit 'Completed', stackTemplate

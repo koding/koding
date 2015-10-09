@@ -43,9 +43,9 @@ module.exports = class ProfileLinkView extends LinkView
 
 
   updateHref: ->
-    { payload } = @getOptions()
+    { integration } = @getOptions()
     nickname = @getData().profile?.nickname
-    href = if payload?.channelIntegrationId then "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
+    href = if integration then "/Admin/Integrations/Configure/#{integration.id}"
     else if nickname then "/#{nickname}"
 
     @setAttribute "href", href  if href
@@ -62,11 +62,11 @@ module.exports = class ProfileLinkView extends LinkView
     super fields
 
   pistachio:->
-    {payload} = @getOptions()
+    { integration } = @getOptions()
     {profile} = @getData()
     JView::pistachio.call this,
-      if payload?.integrationTitle
-      then "#{payload.integrationTitle}"
+      if integration
+      then "#{integration.title}"
       else if profile.firstName is "" and profile.lastName is ""
       then "{{#(profile.nickname)}} {{> @troll}}"
       else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{> @troll}}"

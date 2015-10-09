@@ -80,14 +80,13 @@ koding = new Bongo {
 
       if err
         console.error 'bongo.fetchClient', { err, sessionToken, context }
-        callback null
+        koding.emit 'error', err
 
       else if account instanceof JAccount
 
         usertracker.track account.profile.nickname
 
-        { clientIP, clientId: sessionToken } = session
-
+        { clientIP } = session
         callback {
           sessionToken, context, clientIP,
           connection:{ delegate : account }
@@ -96,7 +95,6 @@ koding = new Bongo {
       else
         console.error 'this is not a proper account', { sessionToken }
         console.error 'constructor is JAccount', JAccount is account.constructor
-        callback null
 }
 
 koding.on 'authenticateUser', (client, callback) ->
@@ -160,3 +158,5 @@ do ->
     res.send "Socialworker is running with version: #{KONFIG.version}"
 
   app.listen argv.p
+
+

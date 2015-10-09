@@ -37,13 +37,6 @@ module.exports = class EnvironmentListController extends kd.ListViewController
 
     @instantiateListItems stacks
 
-    return  if stacks.length is 1
-
-    @getView().setClass 'multi-stack'
-
-    @getItemsOrdered().forEach (view) =>
-      view.header.show()
-
-      if stack = @getOption 'selected'
-        unless stack.getId() is view.getData().getId()
-          view.setClass 'collapsed'
+    if stacks.length > 1
+      view.title.show()  for view in @getItemsOrdered()
+      @getView().setClass 'multi-stack'

@@ -165,6 +165,7 @@ class Ace extends KDView
     @setShortcuts yes
 
     @appStorage.fetchStorage (storage) =>
+
       @setTheme()
       @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes       , no
       @setShowGutter          @appStorage.getValue('showGutter')          ? yes       , no
@@ -181,8 +182,6 @@ class Ace extends KDView
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
       @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
 
-      @isTrimWhiteSpacesEnabled = if @appStorage.getValue('trimTrailingWhitespaces') then yes else no
-
 
   saveStarted: ->
 
@@ -193,6 +192,10 @@ class Ace extends KDView
 
     @lastSavedContents = @lastContentsSentForSave
     @emit 'FileContentRestored'
+    # unless @askedForSave
+      # log "this file has changed, put a modal and block editing @fatihacet!"
+      # fatihacet - this case works buggy.
+    @askedForSave = no
 
 
   saveAsFinished: (newFile, oldFile) ->
@@ -286,11 +289,6 @@ class Ace extends KDView
     @editor.commands.addCommand toCommand(model, exec)
 
 
-  getCursor: ->
-
-    return  @editor.getSession().getSelection().getCursor()
-
-
   setEditorListeners: ->
 
     { shortcuts } = kd.singletons
@@ -298,7 +296,7 @@ class Ace extends KDView
 
     @editor.getSession().selection.on 'changeCursor', (cursor) =>
       return if @suppressListeners
-      @emit 'ace.change.cursor', @getCursor()
+      @emit 'ace.change.cursor', @editor.getSession().getSelection().getCursor()
 
     @editor.commands.on 'afterExec', (e) =>
       if e.command.name is 'insertstring' and /^[\w.]$/.test e.args
@@ -333,14 +331,7 @@ class Ace extends KDView
   FS REQUESTS
   ###
 
-  setTrimTrailingWhitespaces: (value) ->
-
-    @isTrimWhiteSpacesEnabled = value
-
-
-  requestSave: (options = {}) ->
-
-    options.ignoreActiveLineOnTrim ?= no
+  requestSave: ->
 
     contents = @getContents()
 
@@ -348,10 +339,6 @@ class Ace extends KDView
       if @getDelegate().parent.active
         @notify 'Nothing to save!'
       return
-
-    if @isTrimWhiteSpacesEnabled
-      @trimTrailingWhitespaces options.ignoreActiveLineOnTrim
-      contents = @getContents()
 
     @askedForSave = yes
     @emit 'ace.requests.save', contents
@@ -672,27 +659,43 @@ class Ace extends KDView
             details.destroy()
 
 
+  #obsolete: Now we are using IDE saveAllFiles method
+  saveAllFiles: ->
+    aceApp = kd.singletons.appManager.get 'Ace'
+    return unless aceApp
+
+    {aceViews} = aceApp.getView()
+
+    for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
+      aceView.ace.requestSave()
+      aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
+
 
   removeModifiedFromTab: ->
 
-    @emit 'RemoveModifiedFromTab', @getData().path
+    aceView      = @parent
 
+    unless aceView
+      # happens when collab is active and when you have tabs open
+      # and when you reload the page - SY
+      kd.warn 'possible race condition, shadowing the error! @acet'
+      return
 
-  trimTrailingWhitespaces: (ignoreActiveLine) ->
+    { tabView }     = aceView.delegate
+    return  unless tabView
 
-    doc       = @editor.getSession().getDocument()
-    lines     = doc.getAllLines()
-    activeRow = @getCursor().row  if ignoreActiveLine
+    activeTabHandle = tabView.getActivePane().getHandle()
 
-    for line, lineNumber in lines
-      whiteSpaceIndex = line.search /\s+$/
+    { handles }  = tabView
+    targetHandle = null
 
-      if whiteSpaceIndex > -1
-        if activeRow?
-          if activeRow isnt lineNumber
-            doc.removeInLine lineNumber, whiteSpaceIndex, line.length
-        else
-          doc.removeInLine lineNumber, whiteSpaceIndex, line.length
+    for handle in handles when activeTabHandle.id is handle.id
+      targetHandle = handle
+      targetHandle.setClass 'saved'
+
+      kd.utils.wait 500, ->
+        targetHandle.unsetClass 'modified'
+        targetHandle.unsetClass 'saved'
 
 
   showGotoLine: ->

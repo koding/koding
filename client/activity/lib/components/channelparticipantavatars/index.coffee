@@ -1,47 +1,26 @@
-kd                          = require 'kd'
-whoami                      = require 'app/util/whoami'
-React                       = require 'kd-react'
-Avatar                      = require 'app/components/profile/avatar'
-KDReactorMixin              = require 'app/flux/reactormixin'
-immutable                   = require 'immutable'
-classnames                  = require 'classnames'
-AppFlux                     = require 'app/flux'
-ActivityFlux                = require 'activity/flux'
-ProfileLinkContainer        = require 'app/components/profile/profilelinkcontainer'
-ChannelParticipantsDropdown = require 'activity/components/channelparticipantsdropdown'
-DropboxInputMixin           = require 'activity/components/dropbox/dropboxinputmixin'
-getGroup                    = require 'app/util/getGroup'
-validator                   = require 'validator'
+kd                   = require 'kd'
+React                = require 'kd-react'
+Avatar               = require 'app/components/profile/avatar'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
+
 
 module.exports = class ChannelParticipantAvatars extends React.Component
-
-  @include [DropboxInputMixin]
-
-  PREVIEW_COUNT     = 0
-  MAX_PREVIEW_COUNT = 19
-
-  @defaultProps =
-    channelThread : null
-    participants  : null
 
   constructor: (props) ->
 
     super
 
-    @state = { addNewParticipantMode: no, showAllParticipants: no, value: '' }
+    @state = { addNewParticipantMode: no, showAllParticipants: no }
 
 
-  getDataBindings: ->
+  PREVIEW_COUNT = 0
+  MAX_PREVIEW_COUNT = 4
 
-    { getters } = ActivityFlux
-
-    return {
-      query              : getters.channelParticipantsSearchQuery
-      dropdownUsers      : getters.channelParticipantsInputUsers
-      selectedItem       : getters.channelParticipantsSelectedItem
-      selectedIndex      : getters.channelParticipantsSelectedIndex
-      dropdownVisibility : getters.channelParticipantsDropdownVisibility
-    }
+  @defaultProps =
+    channelThread : null
+    participants  : null
 
 
   componentDidMount: ->
@@ -109,7 +88,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    participants = participants.slice 0, @getPreviewCount()
+    PREVIEW_COUNT = @getPreviewCount()
+
+    participants = participants.slice 0, PREVIEW_COUNT
 
     @renderAvatars participants, no
 
@@ -151,7 +132,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     <div className='ChannelParticipantAvatars-singleBox'>
       <div className='ChannelParticipantAvatars-moreCount' ref='showMoreButton' onClick={@bound 'onShowMoreParticipantButtonClick'}>
-        +{moreCount}
+        {moreCount}+
       </div>
     </div>
 
@@ -161,13 +142,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     return null  unless @state.showAllParticipants
     return null  unless @props.participants
 
-    { participants }  = @props
-    otherParticipants = participants.slice @getPreviewCount()
+    { participants } = @props
 
     <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
-      <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
-        {@renderAvatars(otherParticipants, yes)}
+        <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
+        {@renderAvatars(participants, yes)}
       </div>
     </div>
 
@@ -189,117 +169,19 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     'slide-down': @state.addNewParticipantMode
 
 
-  onChange: (event) ->
-
-    { value } = event.target
-    @setState { value }
-
-    matchResult = value.match /^@(.*)/
-
-    query = value
-    query = matchResult[1]  if matchResult
-
-    { channel, user } = ActivityFlux.actions
-
-    user.setChannelParticipantsInputQuery query
-    channel.setChannelParticipantsDropdownVisibility yes
-
-
-  isGroupAdmin: ->
-
-    accountId    = whoami()._id
-    groupAdminId = @props.channelThread.getIn ['channel','accountOldId']
-
-    return accountId is groupAdminId
-
-
-  isGroupChannel: ->
-
-    channelId = @props.channelThread.getIn ['channel','id']
-
-    return channelId is getGroup().socialApiDefaultChannelId
-
-
-  onEnter: (event) ->
-
-    DropboxInputMixin.onEnter.call this, event
-
-    if @isGroupAdmin() and @isGroupChannel()
-
-      value        = event.target.value.trim()
-      isValidEmail = validator.isEmail value
-
-      if isValidEmail
-
-        { channel, user } = ActivityFlux.actions
-
-        channel.inviteMember([{email: value}]).then ->
-          user.unsetChannelParticipantsInputQuery()
-
-
-  getPlaceHolder: ->
-
-    placeholder  = 'type a @username and hit enter'
-
-    if @isGroupAdmin() and @isGroupChannel()
-      placeholder = 'type a @username or email'
-
-    return placeholder
-
-
   renderAddNewParticipantInput: ->
 
     <div className={@getNewParticipantInputClassNames()}>
-      <input ref='ChannelParticipantsInput'
-        onKeyDown   = { @bound 'onKeyDown' }
-        onChange    = { @bound 'onChange' }
-        placeholder = { @getPlaceHolder() }
-        value       = { @state.query }
-        ref         = 'textInput'
-      />
+      <input placeholder='type a @username and hit enter' />
     </div>
-
-
-  onDropdownItemConfirmed: (item) ->
-
-    channelId   = @props.channelThread.get 'channelId'
-    participant = @state.selectedItem
-
-    userIds     = [ participant.get '_id' ]
-    accountIds  = [ participant.get 'socialApiId' ]
-
-    { channel } = ActivityFlux.actions
-
-    channel.addParticipants channelId, accountIds, userIds
-
-    @setState value: ''
-
-
-  renderAddNewChannelParticipantsDropdown: ->
-
-    <ChannelParticipantsDropdown
-      ref             = 'dropdown'
-      query           = { @state.query }
-      value           = { @state.value }
-      visible         = { @state.dropdownVisibility }
-      items           = { @state.dropdownUsers }
-      selectedItem    = { @state.selectedItem }
-      selectedIndex   = { @state.selectedIndex }
-      onItemConfirmed = { @bound 'onDropdownItemConfirmed' }
-    />
 
 
   render: ->
-    <div>
-      <div className='ChannelParticipantAvatars'>
-        {@renderPreviewAvatars()}
-        {@renderMoreCount()}
-        {@renderNewParticipantButton()}
-      </div>
+    <div className='ChannelParticipantAvatars'>
+      {@renderPreviewAvatars()}
+      {@renderMoreCount()}
+      {@renderNewParticipantButton()}
       {@renderAddNewParticipantInput()}
       {@renderAllParticipantsMenu()}
-      {@renderAddNewChannelParticipantsDropdown()}
     </div>
 
-
-React.Component.include.call ChannelParticipantAvatars, [KDReactorMixin]

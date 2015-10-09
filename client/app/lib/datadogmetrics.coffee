@@ -41,29 +41,8 @@ module.exports = class DatadogMetrics extends KDObject
       @inProgress = no
 
 
-  interval = null
+  remote.once 'ready', ->
 
-  startInterval = ->
+    do ->
 
-    return  if interval
-    interval = kd.utils.repeat 5 * 1000, -> DatadogMetrics.send()
-
-  stopInterval = ->
-
-    kd.utils.killRepeat interval
-    interval = null
-
-
-  remote.on 'connected', ->
-
-    return  if interval
-
-    { mainController } = kd.singletons
-    mainController.on 'AccountChanged', (account) ->
-
-      if account.type is 'registered'
-      then startInterval()
-      else stopInterval()
-
-
-  remote.on 'disconnected', stopInterval
+      kd.utils.repeat 5 * 1000, -> DatadogMetrics.send()

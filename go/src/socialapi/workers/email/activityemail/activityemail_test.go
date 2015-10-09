@@ -26,7 +26,7 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 
 	// initialize redis
-	redisConn := r.Bongo.MustGetRedisConn()
+	redisConn := runner.MustGetRedisConn()
 
 	Convey("User replies to another user who has daily digests", t, func() {
 		acc1, err := rest.CreateAccountWithDailyDigest()
@@ -38,7 +38,7 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 		groupName := models.RandomGroupName()
 
 		// fetch admin's session
-		ses, err := models.FetchOrCreateSession(acc1.Nick, groupName)
+		ses, err := models.FetchOrCreateSession(account.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ses, ShouldNotBeNil)
 

@@ -11,6 +11,7 @@ trackEvent              = require 'app/util/trackEvent'
 showError               = require 'app/util/showError'
 generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
+showErrorNotification   = require 'app/util/showErrorNotification'
 isLoggedIn              = require 'app/util/isLoggedIn'
 SuggestionMenuView      = require 'activity/components/suggestionmenu/view'
 ActivityFlux            = require 'activity/flux'
@@ -202,8 +203,7 @@ module.exports = class ActivityInputWidget extends KDView
     appManager.tell 'Activity', 'edit', { id: activity.id, body, payload }, (err, message) =>
 
       if err
-        err.message = 'You are not allowed to edit this post.'  unless err.message
-        return @showError err
+        return @showError err, userMessage : 'You are not allowed to edit this post.'
 
       activity.body = body
       activity.link = payload
@@ -231,9 +231,10 @@ module.exports = class ActivityInputWidget extends KDView
   getEmbedBoxPayload: -> return @embedBox.getData()
 
 
-  showError: (err) ->
+  showError: (err, options = {}) ->
 
-    showError err
+    showErrorNotification err, options
+
     @unlockSubmit()
 
 

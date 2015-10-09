@@ -110,10 +110,7 @@ func (f *FlagLoader) processField(flagSet *flag.FlagSet, fieldName string, field
 			fieldName = f.Prefix + "-" + fieldName
 		}
 
-		// we only can get the value from expored fields, unexported fields panics
-		if field.IsExported() {
-			flagSet.Var(newFieldValue(field), flagName(fieldName), flagUsage(fieldName))
-		}
+		flagSet.Var(newFieldValue(field), flagName(fieldName), flagUsage(fieldName))
 	}
 
 	return nil

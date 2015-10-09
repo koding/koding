@@ -55,18 +55,7 @@ func createUserWithVM() (*models.User, error) {
 		return nil, err
 	}
 
-	machine := &models.Machine{ObjectId: bson.NewObjectId(), Provider: "koding"}
-	return user, modelhelper.CreateMachineForUser(machine, user)
-}
-
-func createUserWithManagedVM() (*models.User, error) {
-	username := "userWithManagedVms"
-	user, _, err := modeltesthelper.CreateUser(username)
-	if err != nil {
-		return nil, err
-	}
-
-	machine := &models.Machine{ObjectId: bson.NewObjectId(), Provider: "managed"}
+	machine := &models.Machine{ObjectId: bson.NewObjectId()}
 	return user, modelhelper.CreateMachineForUser(machine, user)
 }
 

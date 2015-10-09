@@ -38,6 +38,7 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
+  # coffeelint: disable=no_implicit_braces
   # coffeelint: disable=indentation
   constructor:(data = {}, options = {}) ->
     super data

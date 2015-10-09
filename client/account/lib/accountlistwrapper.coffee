@@ -15,12 +15,13 @@ AccountTwoFactorAuth                = require './accounttwofactorauth'
 AccountEditShortcuts                = require './views/accounteditshortcuts'
 AccountKodingKeyList                = require './accountkodingkeylist'
 AccountReferralSystem               = require './views/referral/accountreferralsystem'
-AccountCredentialListWrapper        = require './accountcredentiallistwrapper'
+AccountCredentialList               = require './accountcredentiallist'
 AccountEmailNotifications           = require './views/accountemailnotifications'
 AccountLinkedAccountsList           = require './accountlinkedaccountslist'
 AccountSshKeyListController         = require './views/accountsshkeylistcontroller'
 AccountEditorListController         = require './views/accounteditorlistcontroller'
 AccountKodingKeyListController      = require './views/accountkodingkeylistcontroller'
+AccountCredentialListController     = require './views/accountcredentiallistcontroller'
 AccountLinkedAccountsListController = require './views/accountlinkedaccountslistcontroller'
 
 
@@ -40,7 +41,8 @@ module.exports = class AccountListWrapper extends KDView
     keys                       : AccountSshKeyList
     kodingKeysController       : AccountKodingKeyListController
     kodingKeys                 : AccountKodingKeyList
-    credentials                : AccountCredentialListWrapper
+    credentialsController      : AccountCredentialListController
+    credentials                : AccountCredentialList
     twofactorauth              : AccountTwoFactorAuth
     deleteAccount              : DeleteAccountView
     leaveGroup                 : LeaveGroupView
@@ -49,15 +51,14 @@ module.exports = class AccountListWrapper extends KDView
     shortcuts                  : AccountEditShortcuts
 
   viewAppended:->
+    {listType} = @getData()
 
-    { listType } = @getData()
-    type         = if listType then listType or ''
+    type = if listType then listType or ''
 
     listViewClass   = if listClasses[type] then listClasses[type] else KDListView
     controllerClass = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
 
     @addSubView view = new listViewClass cssClass : type, delegate: this
-
     if controllerClass
       controller   = new controllerClass
         view       : view

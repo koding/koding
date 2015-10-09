@@ -1,9 +1,7 @@
 kd      = require 'kd'
-remote  = require('app/remote').getInstance()
+nick    = require 'app/util/nick'
 Machine = require '../machine'
 
-nick     = require 'app/util/nick'
-isKoding = require 'app/util/isKoding'
 
 # Not exported
 getIp = (url)->
@@ -38,37 +36,19 @@ queryKites = ->
         return []
 
 
-fetchStack = (callback) ->
+createMachine = (kite, callback)->
 
   { computeController } = kd.singletons
 
-  if isKoding()
-    return callback null, computeController.stacks.first
+  stack = computeController.stacks.first._id
 
-  title = 'Managed VMs'
-
-  for stack in computeController.stacks when stack.title is title
-    return callback null, stack
-
-  options = { title }
-  remote.api.JComputeStack.create options, callback
-
-
-createMachine = (kite, callback)->
-
-  fetchStack (err, stack) ->
-
-    return callback err  if err
-
-    { computeController } = kd.singletons
-
-    computeController.create {
-      provider    : 'managed'
-      queryString : kite.queryString
-      ipAddress   : kite.ipAddress
-      label       : kite.kite.hostname
-      stack       : stack._id
-    }, callback
+  computeController.create {
+    provider    : 'managed'
+    queryString : kite.queryString
+    ipAddress   : kite.ipAddress
+    label       : kite.kite.hostname
+    stack
+  }, callback
 
 
 updateMachineData = ({machine, kite}, callback)->
@@ -83,3 +63,5 @@ module.exports = {
   updateMachineData
   queryKites
 }
+
+

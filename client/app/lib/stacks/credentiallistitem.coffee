@@ -50,14 +50,12 @@ module.exports = class CredentialListItem extends kd.ListItemView
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
 
-    delegate.on 'ResetInuseStates', @inuseView.bound 'hide'
-
 
   setVerified: (state, reason) ->
 
     if state
       @warningView.hide()
-      @getDelegate().emit 'ItemSelected', this
+      @getDelegate().emit 'ItemSelected', @getData()
     else
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"

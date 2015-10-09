@@ -7,7 +7,6 @@ hljs                  = require 'highlight.js'
 showError             = require 'app/util/showError'
 
 StackTemplateListItem = require './stacktemplatelistitem'
-StackTemplateContentModal = require './stacktemplatecontentmodal'
 
 
 module.exports = class StackTemplateList extends KDListView
@@ -47,4 +46,15 @@ module.exports = class StackTemplateList extends KDListView
 
   showItemContent: (item) ->
 
-    new StackTemplateContentModal {}, item.getData()
+    stackTemplate = item.getData()
+    content = JSON.stringify stackTemplate, null, 2
+    cred = hljs.highlight('json', content).value
+
+    new KDModalView
+      title          : stackTemplate.title
+      subtitle       : stackTemplate.modifiedAt
+      cssClass       : 'has-markdown content-modal'
+      height         : 500
+      overlay        : yes
+      overlayOptions : cssClass : 'second-overlay'
+      content        : "<pre><code>#{cred}</code></pre>"

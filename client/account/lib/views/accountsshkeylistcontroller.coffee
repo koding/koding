@@ -10,7 +10,6 @@ showError = require 'app/util/showError'
 Machine = require 'app/providers/machine'
 SshKey = require 'app/util/sshkey'
 KDModalView = kd.ModalView
-nick = require 'app/util/nick'
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
@@ -80,17 +79,16 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
   showDeleteModal: ->
 
-    nickname = nick()
-    modal    = new KDModalView
+    modal = new KDModalView
       title          : 'Deleting SSH Key'
-      content        : """
+      content        : '''
         <p>
           Please note that even though the SSH key has been deleted from Account Settings, 
-          it still exists in your <strong>/home/#{nickname}/.ssh/authorized_keys</strong> file.
+          it still exists in your <strong>/home/username/.ssh/authorized_keys</strong> file. 
           Please ensure that you delete the key from that file too. 
           <a href="http://learn.koding.com/guides/ssh-into-your-vm/#deleting-a-key" target="_blank" class="guide-link">This guide</a> shows how to delete a ssh key.
         </p>
-      """
+      '''
       overlay        : yes
       overlayOptions :
         cssClass     : 'delete-ssh-key-overlay'

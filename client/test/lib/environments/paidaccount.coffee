@@ -7,7 +7,6 @@ vmSelector = '.sidebar-machine-box.koding-vm-1'
 
 module.exports =
 
-
   seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
@@ -22,7 +21,6 @@ module.exports =
         browser.end()
       else
         browser
-          .waitForElementVisible '.computeplan-modal.free-plan', 20000
           .waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
           .end()
 
@@ -48,29 +46,9 @@ module.exports =
           .end()
 
 
-  createSnapshotForNonPaidUser: (browser) ->
-
-    messageSelector  = '.kdmodal.computeplan-modal .message'
-    message          = 'The Snapshot feature is only available for paid accounts.'
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    environmentHelpers.attemptCreateSnapshot(browser)
-
-    browser.element 'css selector', '.snapshots .add-view', (result) =>
-      if result.status is 0
-        browser.end()
-      else
-        browser
-          .waitForElementVisible messageSelector, 20000
-          .assert.containsText   messageSelector, message #Assertion
-          .end()
-
-
-  addVM: (browser) ->
+ addVM: (browser) ->
 
     freeModalSelector = '.computeplan-modal.free-plan'
-    linkSelector      = "#{freeModalSelector} a.custom-link-view span"
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -80,33 +58,29 @@ module.exports =
         browser.end()
       else
         environmentHelpers.clickAddVMButton(browser)
-        browser.pause 10000 # wait to see the modal
+        browser.pause 5000 # wait to see the modal
 
         browser.element 'css selector', freeModalSelector, (result) =>
           if result.status is 0
             browser
-              .waitForElementVisible   linkSelector, 20000
-              .click                   linkSelector
+              .waitForElementVisible   freeModalSelector, 20000
+              .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
+              .click                   freeModalSelector + ' a.custom-link-view span'
 
             helpers.selectPlan(browser)
             helpers.fillPaymentForm(browser)
 
-            browser
-              .url helpers.getUrl() + '/IDE'
-              .pause  10000 # wait for sidebar redraw
-
+            browser.url helpers.getUrl() + '/IDE'
             environmentHelpers.clickAddVMButton(browser)
             environmentHelpers.clickCreateVMButton(browser)
           else
             environmentHelpers.clickCreateVMButton(browser)
 
-          browser.end()
-
 
   # this test depends addVM test.
   turnOnNewPaidVM: (browser) ->
 
-    vmName = 'koding-vm-1'
+    vmName     = 'koding-vm-1'
 
     helpers.beginTest(browser)
 
@@ -133,7 +107,7 @@ module.exports =
 
     browser.element  'css selector', '.AppModal-form.with-fields .alwayson .koding-on-off.on', (result) =>
       if result.status is 0
-        console.log ' ✔ VM is already always on, ending test...'
+        console.log 'VM is already always on, ending test...'
         browser.end()
 
       else
@@ -150,3 +124,67 @@ module.exports =
               .waitForElementVisible   '.AppModal-form.with-fields .alwayson .koding-on-off.on', 20000
               .end()
 
+
+  createSnapshotForNonPaidUser: (browser) ->
+    
+    messageSelector  = '.kdmodal.computeplan-modal .message'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.attemptCreateSnapshot(browser)
+
+    browser
+      .waitForElementVisible messageSelector, 20000
+      .assert.containsText   messageSelector, "The Snapshot feature is only available for paid accounts." #Assertion
+      .end()
+
+
+  createSnapshot: (browser) ->
+   
+    labelSelector   = '.kdlistitemview-snapshot .info .label'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    
+    name = environmentHelpers.createSnapshot(browser)
+
+    browser
+      .waitForElementVisible labelSelector, 300000
+      .assert.containsText   labelSelector, name #Assertion
+      .end()
+ 
+
+  renameSnapshot: (browser) ->
+    
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.openSnapshotsSettings(browser)
+
+    environmentHelpers.createSnapshotIfNotFound browser, (name)->
+      environmentHelpers.attemptCreateSnapshot(browser)
+      renamed = environmentHelpers.nameSnapshot(browser)
+      environmentHelpers.assertSnapshotPresent browser, renamed, false
+      browser.end()
+      
+
+
+  #This test depends on createSnapshot
+  deleteSnapshot: (browser) ->
+
+    confirmSelector = ".kdmodal .kdmodal-buttons .red"
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    environmentHelpers.openSnapshotsSettings(browser)
+
+    environmentHelpers.createSnapshotIfNotFound browser, (name)->
+
+      environmentHelpers.deleteSnapshot(browser)
+
+      browser
+        .waitForElementNotPresent confirmSelector, 20000
+        .pause                    1000 #Deleted snapshots take a little time to disappear.
+      
+      environmentHelpers.assertSnapshotPresent browser, name, true
+
+      browser.end()

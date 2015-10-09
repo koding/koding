@@ -1,6 +1,10 @@
 kd = require 'kd'
-isKoding = require 'app/util/isKoding'
+checkFlag = require 'app/util/checkFlag'
 
-module.exports = -> not isKoding()
+module.exports = ->
 
+  { mainController } = kd.singletons
+  isReactivityFeatureDisabled = mainController.isFeatureDisabled 'reactivity', godMode: no
+
+  checkFlag('reactivity') and not isReactivityFeatureDisabled
 

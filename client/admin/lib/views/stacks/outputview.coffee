@@ -4,7 +4,6 @@ dateFormat     = require 'dateformat'
 
 JView          = require 'app/jview'
 curryIn        = require 'app/util/curryIn'
-outputParser   = require './outputparser'
 objectToString = require 'app/util/objectToString'
 
 
@@ -39,7 +38,7 @@ module.exports = class OutputView extends kd.ScrollView
 
   stringify = (content) ->
 
-    for item, i in content
+    for item,i in content
       content[i] = if typeof item is 'object' \
                    then objectToString item else item
 
@@ -52,26 +51,6 @@ module.exports = class OutputView extends kd.ScrollView
     content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}\n"
     @code.setPartial hljs.highlight(@highlight, content).value
     @scrollToBottom()
-
-    return this
-
-
-  addAndWarn: (content) ->
-
-    @add content
-
-    modal = new kd.ModalView
-      title          : ''
-      content        : content
-      overlay        : yes
-      overlayOptions :
-        cssClass     : 'second-overlay'
-        overlayClick : yes
-      buttons        :
-        close        :
-          title      : 'Close'
-          cssClass   : 'solid medium gray'
-          callback   : -> modal.destroy()
 
     return this
 
@@ -89,9 +68,7 @@ module.exports = class OutputView extends kd.ScrollView
     return no  unless err
 
     kd.warn '[outputView]', err
-    outputParser.showUserFriendlyError err.message
-
-    return @add 'An error occured:', err.message or err
+    @add 'An error occured:', err.message or err
 
 
   pistachio: ->

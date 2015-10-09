@@ -302,9 +302,6 @@ type RuntimeOptions struct {
 	Integration       struct {
 		Url string `json:"url"`
 	} `json:"integration"`
-	WebhookMiddleware struct {
-		Url string `json:"url"`
-	} `json:"webhookMiddleware"`
 	Google struct {
 		ApiKey string `json:"apiKey"`
 	} `json:"google"`

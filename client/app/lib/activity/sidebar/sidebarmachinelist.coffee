@@ -18,14 +18,11 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     super options, data
 
-    @hide()
-
     @machineBoxes = []
     @machineBoxesByMachineUId = {}
 
     @createHeader()
     @addMachineBoxes()
-    @updateVisibility()
 
 
   createHeader: ->
@@ -46,15 +43,14 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @addSubView @header
 
 
-  headerClickHandler: -> new EnvironmentsModal selected: @getOption 'stack'
-
+  headerClickHandler: -> new EnvironmentsModal
 
   addMachineBoxes: (boxes) ->
 
     data = boxes or @getData()
-    data.forEach @bound 'addMachineBox'
 
-    @updateVisibility()
+    for obj in data
+      @addMachineBox obj
 
 
   addMachineBox: (machineAndWorkspaceData) ->
@@ -63,23 +59,19 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     return no  if @machineBoxesByMachineUId[uid]
 
-    box = new SidebarMachineBox {}, machineAndWorkspaceData
+    machineBox = new SidebarMachineBox {}, machineAndWorkspaceData
+    @addSubView machineBox
+    @machineBoxes.push machineBox
+    @machineBoxesByMachineUId[uid] = machineBox
 
-    box.on 'SetVisibility', @bound 'updateVisibility'
-    box.once 'KDObjectWillBeDestroyed', @lazyBound 'handleMachineBoxDestroy', box
+    @show() if @machineBoxes.length is 1
 
-    @forwardEvent box, 'ListStateChanged'
+    machineBox.once 'KDObjectWillBeDestroyed', =>
+      @machineBoxes.splice @machineBoxes.indexOf(machineBox), 1
+      delete @machineBoxesByMachineUId[machineBox.machine.uid]
+      @emit 'MachineBoxDestroyed', machineBox
 
-    @addSubView box
-    @machineBoxes.push box
-    @machineBoxesByMachineUId[uid] = box
-
-
-  handleMachineBoxDestroy: (box) ->
-
-    @machineBoxes.splice @machineBoxes.indexOf(box), 1
-    delete @machineBoxesByMachineUId[box.machine.uid]
-    @emit 'MachineBoxDestroyed', box
+    machineBox.on 'ListStateChanged', => @emit 'ListStateChanged'
 
 
   removeWorkspaceByChannelId: (channelId) ->
@@ -131,12 +123,3 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @forEachMachineBoxes (box) -> machines.push box.machine
 
     return machines
-
-
-  updateVisibility: ->
-
-    shownBoxes = @machineBoxes.filter (box) -> not box.hasClass 'hidden'
-
-    if shownBoxes.length is 0
-    then @hide()
-    else @show()

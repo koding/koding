@@ -1,32 +1,21 @@
-kd      = require 'kd'
 globals = require 'globals'
-
-remote  = require('./remote').getInstance()
-
-
+kd = require 'kd'
+remote = require('./remote').getInstance()
 module.exports = class KiteLogger
 
   @buffer = kd.utils.dict()
 
-  @log = (kiteName, rpcCall, state, err) ->
-
-    _log = if state is 'failed' then 'warn' else 'info'
-
-    # Comment-out following lines if you need extensive logging
-    # for all the kite calls from client side ~ GG
-    #
-    # key = "#{kiteName}.#{rpcCall}"
-    # kd[_log] "[KITELOGGER][#{state}]", key
-    # kd.error "[KITELOGGER][#{state}]", err  if err
+  @log = (kiteName, rpcCall, state) ->
 
     key = "#{kiteName}.#{rpcCall}:#{state}"
+    # log "[KITELOGGER]", key
 
     @buffer[key] ?= 0
     @buffer[key]++
 
   ['failed', 'success', 'queued', 'started'].forEach (helper)=>
-    @[helper] = (kiteName, rpcCall, err) ->
-      @log kiteName, rpcCall, helper, err
+    @[helper] = (kiteName, rpcCall) ->
+      @log kiteName, rpcCall, helper
 
   @consume = ->
 

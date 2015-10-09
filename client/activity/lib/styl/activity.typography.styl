@@ -35,16 +35,14 @@
     background-color          $color-code-bg
     color                     $color-code
 
-  pre
-    border                  1px solid $gray-18
-    background-color        $white
-    padding                 .2em
-    code
-    .u-code
-      background-color      $white
-      display               block
-      line-height           1.4em
-      font-size             $fs-small
+  pre code
+  pre .u-code
+    padding                   .5em .8em
+    display                   block
+    line-height               1.6em
+    background-color          $white
+    border                    1px solid $gray-18
+    font-size                 $fs-regular
 
 
 
@@ -101,7 +99,6 @@
     line-height               $body-line-height
     color                     $color-primary-text
     padding                   0.5em 0
-    text-rendering            geometricPrecision
 
   /* Info Bars */
   p.u-infoBar
@@ -116,15 +113,12 @@
   /* Blockquotes */
   blockquote
   .u-blockquote
+    padding                   0 0 0 1.4em
+    border-left               6px solid $gray-19
+    margin                    0.5em 0
 
     p
-      margin                  .5em 0
-      font-size               $fs-regular
-      padding                 0 0 0 .8em !important
-      kalc                    width, 100% \- 4px
-      border-left             4px solid $gray-19
-      rounded                 2px
-      borderBox()
+      font-size               $fs-big
 
     footer
       font-size               1.4rem

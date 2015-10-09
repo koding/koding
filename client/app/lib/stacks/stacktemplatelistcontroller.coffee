@@ -24,16 +24,14 @@ module.exports = class StackTemplateListController extends AccountListViewContro
 
     { JStackTemplate } = remote.api
 
-    currentGroup = getGroup()
-    query        = { group: currentGroup.slug }
-
-    # TODO Add Pagination here ~ GG
-    JStackTemplate.some query, { limit: 30 }, (err, stackTemplates) =>
+    JStackTemplate.some {}, { limit: 30 }, (err, stackTemplates) =>
 
       @hideLazyLoader()
 
       return if showError err, \
         KodingError : "Failed to fetch stackTemplates, try again later."
+
+      currentGroup = getGroup()
 
       stackTemplates ?= []
       stackTemplates.map (template) ->

@@ -28,7 +28,7 @@ func NewBot() (*Bot, error) {
 	return &Bot{account: acc}, nil
 }
 
-func (b *Bot) SaveMessage(m *Message) error {
+func (b *Bot) SendMessage(m *Message) error {
 	cm, err := b.createMessage(m)
 	if err != nil {
 		return err
@@ -58,6 +58,7 @@ func (b *Bot) createMessageList(cm *models.ChannelMessage, channelId int64) erro
 }
 
 func (b *Bot) FetchBotChannel(a *models.Account, group *models.Channel) (*models.Channel, error) {
+
 	c, err := b.fetchOrCreateChannel(a, group.GroupName)
 	if err != nil {
 		return nil, err
@@ -98,7 +99,8 @@ func fetchBotChannel(a *models.Account, groupName string) (*models.Channel, erro
 		"group_name":    groupName,
 	}
 
-	// if err is nil it means we already have that channel
+	// if err is nil
+	// it means we already have that channel
 	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return nil, err

@@ -1,4 +1,3 @@
-_                     = require 'lodash'
 getGroup              = require './getGroup'
 getBlockquoteRanges   = require './getBlockquoteRanges'
 groupifyLink          = require './groupifyLink'
@@ -14,13 +13,12 @@ module.exports = (text = '') ->
       return yes  if start <= position <= end
     return no
 
-  hashtags = _.uniq twitter.extractHashtags text
+  hashtags = twitter.extractHashtags text
   for hashtag in hashtags
-    url  = groupifyLink "/Activity/Topic/#{hashtag}", no
-    tag  = "##{hashtag}"
-    text = text.replace "#{tag}", (match, offset) ->
-      if inSkipRange offset
-      then match
-      else "[#{tag}](#{url})"
+    href = groupifyLink "/Activity/Topic/#{hashtag}", no
+    tag = "##{hashtag}"
+    url =  "[#{tag}](#{href})"
 
+    text = text.replace "#{tag}", url
+  
   return text

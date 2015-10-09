@@ -21,12 +21,9 @@ module.exports = class ProvidersView extends KDView
       stackTemplate, selectedCredentials, provider
     }
 
-    @forwardEvents @credentialList.list, ['ItemSelected', 'ItemDeleted']
+    @forwardEvent @credentialList.list, 'ItemSelected'
 
     mainView = @addSubView new KDView
       cssClass: 'stacks stacks-v2'
 
     mainView.addSubView @credentialList
-
-  resetItems: ->
-    @credentialList.list.emit 'ResetInuseStates'

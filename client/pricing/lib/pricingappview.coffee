@@ -194,33 +194,31 @@ module.exports = class PricingAppView extends KDView
 
   preventBlockedUser: (options, callback) ->
 
-    kd.utils.defer =>
+    @appStorage.fetchValue KEY, (result) =>
 
-      @appStorage.fetchValue KEY, (result) =>
+      return callback()  unless result
 
-        return callback()  unless result
+      difference = Date.now() - result.timestamp
 
-        difference = Date.now() - result.timestamp
+      if difference < DURATION
 
-        if difference < DURATION
+        @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
-          @workflowController = new PaymentWorkflow { state: options, delegate: this }
+        @workflowController.on PaymentConstants.events.WORKFLOW_STARTED, =>
+          @state.inProcess = no
+          @workflowController.failedAttemptLimitReached no
 
-          @workflowController.on PaymentConstants.events.WORKFLOW_STARTED, =>
-            @state.inProcess = no
-            @workflowController.failedAttemptLimitReached no
+        workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
-          workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
+        @workflowController.on workflowCouldNotStart, =>
+          @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
+          @state.inProcess = no
 
-          @workflowController.on workflowCouldNotStart, =>
-            @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
-            @state.inProcess = no
+        return
 
-          return
+      @removeBlockFromUser()
 
-        @removeBlockFromUser()
-
-        return callback()
+      return callback()
 
 
   removeBlockFromUser: ->

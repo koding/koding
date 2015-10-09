@@ -108,11 +108,10 @@ generateWorkerSection = (app, options={}, KONFIG) ->
 generateMemmonSection = (config) ->
 
   {limit, email} = config
-  limit or= "2048MB"
 
   """
   [eventlistener:memmon]
-  command=memmon -a #{limit}
+  command=memmon -g environment=#{limit}
   events=TICK_60
   """
 

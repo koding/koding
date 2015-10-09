@@ -82,11 +82,6 @@ module.exports = (options = {}, callback) ->
     { fn:fetchBotChannel,        key: 'bot' }
   ]
 
-  handleQueue fetchActivitiesForNavigatedURL, reqs, params, callback
-
-
-handleQueue = (fetchActivitiesForNavigatedURL, reqs, params, callback) ->
-
   queue = reqs.map (req) -> ->
     req.fn (err, data) ->
       queue.localPrefetchedFeeds or= {}

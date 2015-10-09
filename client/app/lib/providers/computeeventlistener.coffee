@@ -150,8 +150,7 @@ module.exports = class ComputeEventListener extends KDObject
           computeController.emit ev.public, machineId: eventId
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
-          # For `apply` event revive all the machines in a stack ~ GG
-          computeController.triggerReviveFor eventId, asStack = type is 'apply'
+          computeController.triggerReviveFor eventId
         else
           computeController.stateChecker.ignore eventId
 

@@ -14,7 +14,7 @@ func (f *Controller) ChannelCreated(data *models.Channel) error {
 
 	// add public group channel id into tags for security
 	publicChannel := models.NewChannel()
-	err := publicChannel.FetchGroupChannel(data.GroupName)
+	err := publicChannel.FetchPublicChannel(data.GroupName)
 	if err != nil {
 		return err
 	}

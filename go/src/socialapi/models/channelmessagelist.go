@@ -124,21 +124,12 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
+	query.AddScope(SortedByAddedAt)
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
-	if q.SortOrder == "ASC" {
-		query.AddScope(SortedByAddedAtASC)
-	} else {
-		query.AddScope(SortedByAddedAt)
-	}
 
 	bongoQuery := bongo.B.BuildQuery(c, query)
-
 	if !q.From.IsZero() {
-		if q.SortOrder == "ASC" {
-			bongoQuery = bongoQuery.Where("added_at > ?", q.From)
-		} else {
-			bongoQuery = bongoQuery.Where("added_at < ?", q.From)
-		}
+		bongoQuery = bongoQuery.Where("added_at < ?", q.From)
 	}
 
 	var messages []int64

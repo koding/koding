@@ -14,12 +14,9 @@ module.exports = class SidebarList extends React.Component
 
   renderChildren: ->
 
-    { itemComponent: Component, selectedId, threads, previewCount, componentProp } = @props
+    { itemComponent: Component, selectedId } = @props
 
-    if componentProp is 'SidebarMessagesListItem'
-      threads = threads.slice 0, previewCount
-
-    threads.map (thread) ->
+    @props.threads.map (thread) ->
       id = thread.getIn ['channel', 'id']
       <Component key={id} active={id is selectedId} thread={thread} />
 

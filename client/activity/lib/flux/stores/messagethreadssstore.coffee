@@ -26,7 +26,6 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_MESSAGE_SUCCESS, @ensureThread
-    @on actions.LOAD_POPULAR_MESSAGE_SUCCESS, @ensureThread
     @on actions.CREATE_MESSAGE_SUCCESS, @ensureThread
 
     @on actions.LOAD_COMMENT_SUCCESS, @handleLoadSuccess
@@ -49,7 +48,7 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
   ensureThread: (threads, { message }) ->
 
     unless threads.has message.id
-      return threads = initThread threads, message.id
+      return initThread threads, message.id
 
     return threads
 

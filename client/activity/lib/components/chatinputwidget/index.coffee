@@ -1,119 +1,93 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-TextArea             = require 'react-autosize-textarea'
-EmojiDropbox         = require 'activity/components/emojidropbox'
-ChannelDropbox       = require 'activity/components/channeldropbox'
-UserDropbox          = require 'activity/components/userdropbox'
-EmojiSelector        = require 'activity/components/emojiselector'
-SearchDropbox        = require 'activity/components/searchdropbox'
-CommandDropbox       = require 'activity/components/commanddropbox'
-ActivityFlux         = require 'activity/flux'
-ChatInputFlux        = require 'activity/flux/chatinput'
-KDReactorMixin       = require 'app/flux/reactormixin'
-formatEmojiName      = require 'activity/util/formatEmojiName'
-KeyboardKeys         = require 'app/util/keyboardKeys'
-Link                 = require 'app/components/common/link'
-whoami               = require 'app/util/whoami'
-helpers              = require './helpers'
-focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
-parseStringToCommand = require 'activity/util/parseStringToCommand'
+kd              = require 'kd'
+React           = require 'kd-react'
+TextArea        = require 'react-autosize-textarea'
+EmojiDropup     = require 'activity/components/emojidropup'
+ChannelDropup   = require 'activity/components/channeldropup'
+UserDropup      = require 'activity/components/userdropup'
+EmojiSelector   = require 'activity/components/emojiselector'
+SearchDropup    = require 'activity/components/searchdropup'
+ActivityFlux    = require 'activity/flux'
+ChatInputFlux   = require 'activity/flux/chatinput'
+KDReactorMixin  = require 'app/flux/reactormixin'
+formatEmojiName = require 'activity/util/formatEmojiName'
+Link            = require 'app/components/common/link'
+helpers         = require './helpers'
+groupifyLink   = require 'app/util/groupifyLink'
 
 
 module.exports = class ChatInputWidget extends React.Component
 
-  { TAB, ESC, ENTER, UP_ARROW, RIGHT_ARROW, DOWN_ARROW, LEFT_ARROW } = KeyboardKeys
+  TAB         = 9
+  ENTER       = 13
+  ESC         = 27
+  LEFT_ARROW  = 37
+  UP_ARROW    = 38
+  RIGHT_ARROW = 39
+  DOWN_ARROW  = 40
 
-  @defaultProps =
-    enableSearch : no
+
+  constructor: (props) ->
+
+    super props
+
+    @state = { value : '' }
 
 
   getDataBindings: ->
 
-    { getters } = ChatInputFlux
+    { getters }      = ActivityFlux
+    chatInputGetters = ChatInputFlux.getters
 
     return {
-      value                          : getters.currentValue
-      filteredEmojiList              : getters.filteredEmojiList @stateId
-      filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
-      filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
-      filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      commonEmojiList                : getters.commonEmojiList
-      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
-      channels                       : getters.channels @stateId
-      channelsSelectedIndex          : getters.channelsSelectedIndex @stateId
-      channelsSelectedItem           : getters.channelsSelectedItem @stateId
-      channelsQuery                  : getters.channelsQuery @stateId
-      channelsVisibility             : getters.channelsVisibility @stateId
-      users                          : getters.users @stateId
-      usersQuery                     : getters.usersQuery @stateId
-      userSelectedIndex              : getters.usersSelectedIndex @stateId
-      usersSelectedItem              : getters.usersSelectedItem @stateId
-      usersVisibility                : getters.usersVisibility @stateId
-      searchItems                    : getters.searchItems @stateId
-      searchQuery                    : getters.searchQuery @stateId
-      searchSelectedIndex            : getters.searchSelectedIndex @stateId
-      searchSelectedItem             : getters.searchSelectedItem @stateId
-      searchVisibility               : getters.searchVisibility @stateId
-      searchFlags                    : getters.searchFlags @stateId
-      commands                       : getters.commands @stateId
-      commandsQuery                  : getters.commandsQuery @stateId
-      commandsSelectedIndex          : getters.commandsSelectedIndex @stateId
-      commandsSelectedItem           : getters.commandsSelectedItem @stateId
-      commandsVisibility             : getters.commandsVisibility @stateId
+      filteredEmojiList              : chatInputGetters.filteredEmojiList @stateId
+      filteredEmojiListSelectedIndex : chatInputGetters.filteredEmojiListSelectedIndex @stateId
+      filteredEmojiListSelectedItem  : chatInputGetters.filteredEmojiListSelectedItem @stateId
+      filteredEmojiListQuery         : chatInputGetters.filteredEmojiListQuery @stateId
+      commonEmojiList                : chatInputGetters.commonEmojiList
+      commonEmojiListSelectedItem    : chatInputGetters.commonEmojiListSelectedItem @stateId
+      commonEmojiListVisibility      : chatInputGetters.commonEmojiListVisibility @stateId
+      channels                       : getters.chatInputChannels @stateId
+      channelsSelectedIndex          : getters.chatInputChannelsSelectedIndex @stateId
+      channelsSelectedItem           : getters.chatInputChannelsSelectedItem @stateId
+      channelsQuery                  : getters.chatInputChannelsQuery @stateId
+      channelsVisibility             : getters.chatInputChannelsVisibility @stateId
+      users                          : getters.chatInputUsers @stateId
+      usersQuery                     : getters.chatInputUsersQuery @stateId
+      userSelectedIndex              : getters.chatInputUsersSelectedIndex @stateId
+      usersSelectedItem              : getters.chatInputUsersSelectedItem @stateId
+      usersVisibility                : getters.chatInputUsersVisibility @stateId
+      searchItems                    : getters.chatInputSearchItems @stateId
+      searchQuery                    : getters.chatInputSearchQuery @stateId
+      searchSelectedIndex            : getters.chatInputSearchSelectedIndex @stateId
+      searchSelectedItem             : getters.chatInputSearchSelectedItem @stateId
+      searchVisibility               : getters.chatInputSearchVisibility @stateId
     }
 
 
-  componentDidMount: -> focusOnGlobalKeyDown React.findDOMNode this.refs.textInput
-
-
-  componentDidUpdate: (oldProps, oldState) ->
-
-    @focus()  if oldState.value isnt @state.value
-
-
-  getDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
-
-
-  setValue: (value) ->
-
-    channelId = @props.thread.get 'channelId'
-    ChatInputFlux.actions.value.setValue channelId, value
-
-
-  resetValue: ->
-
-    channelId = @props.thread.get 'channelId'
-    ChatInputFlux.actions.value.resetValue channelId
+  getDropups: -> [ @refs.emojiDropup, @refs.channelDropup, @refs.userDropup, @refs.searchDropup ]
 
 
   onChange: (event) ->
 
     { value } = event.target
-
-    @setValue value
-    @runDropboxChecks value
-
-
-  runDropboxChecks: (value) ->
+    @setState { value }
 
     textInput = React.findDOMNode @refs.textInput
     textData  =
       currentWord : helpers.getCurrentWord textInput
       value       : value
-      position    : helpers.getCursorPosition textInput
 
-    # Let every dropbox check entered text.
-    # If any dropbox considers text as a query,
-    # stop checking for others and close active dropbox
+    # Let every dropup check entered text.
+    # If any dropup considers text as a query,
+    # stop checking for others and close active dropup
     # if it exists
     queryIsSet = no
-    for dropbox in @getDropboxes() when dropbox?
+    for dropup in @getDropups()
       unless queryIsSet
-        queryIsSet = dropbox.checkTextForQuery textData
+        queryIsSet = dropup.checkTextForQuery textData
         continue  if queryIsSet
 
-      dropbox.close()  if dropbox.isActive()
+      dropup.close()  if dropup.isActive()
 
 
   onKeyDown: (event) ->
@@ -134,70 +108,53 @@ module.exports = class ChatInputWidget extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    isDropboxEnter = no
-    for dropbox in @getDropboxes() when dropbox?
-      continue  unless dropbox.isActive()
+    isDropupEnter = no
+    for dropup in @getDropups()
+      continue  unless dropup.isActive()
 
-      dropbox.confirmSelectedItem()
-      isDropboxEnter = yes
+      dropup.confirmSelectedItem()
+      isDropupEnter = yes
       break
 
-    unless isDropboxEnter
-      value = @state.value.trim()
-      channel = @props.thread.get 'channel'
-      command = parseStringToCommand value
-
-      if command
-        ChatInputFlux.actions.command.executeCommand command, channel
-      else
-        @props.onSubmit? { value }
-
-      @resetValue()
+    unless isDropupEnter
+      @props.onSubmit? { value: @state.value }
+      @setState { value: '' }
 
 
   onEsc: (event) ->
 
-    dropbox.close()  for dropbox in @getDropboxes() when dropbox?
+    dropup.close() for dropup in @getDropups()
 
 
   onNextPosition: (event, keyInfo) ->
 
-    for dropbox in @getDropboxes() when dropbox?
-      continue  unless dropbox.isActive()
+    for dropup in @getDropups()
+      continue  unless dropup.isActive()
 
-      stopEvent = dropbox.moveToNextPosition keyInfo
+      stopEvent = dropup.moveToNextPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
       break
 
 
   onPrevPosition: (event, keyInfo) ->
 
-    if event.target.value
-      for dropbox in @getDropboxes() when dropbox?
-        continue  unless dropbox.isActive()
+    for dropup in @getDropups()
+      continue  unless dropup.isActive()
 
-        stopEvent = dropbox.moveToPrevPosition keyInfo
-        kd.utils.stopDOMEvent event  if stopEvent
-        break
-    else
-
-      return  unless keyInfo.isUpArrow
-
-      accountId = whoami()._id
-      ChatInputFlux.actions.message.setLastMessageEditMode accountId
+      stopEvent = dropup.moveToPrevPosition keyInfo
+      kd.utils.stopDOMEvent event  if stopEvent
+      break
 
 
-  onDropboxItemConfirmed: (item, addWhitespace = yes, callback = kd.noop) ->
+  onDropupItemConfirmed: (item) ->
 
     textInput = React.findDOMNode @refs.textInput
 
-    item += ' '  if addWhitespace
-    { value, cursorPosition } = helpers.insertDropboxItem textInput, item
-    @setValue value
+    { value, cursorPosition } = helpers.insertDropupItem textInput, item
+    @setState { value }
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
-      callback value
 
 
   onSelectorItemConfirmed: (item) ->
@@ -205,22 +162,17 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = @state
 
     newValue = value + item
-    @setValue newValue
+    @setState { value : newValue }
 
-    @focus()
+    textInput = React.findDOMNode this.refs.textInput
+    textInput.focus()
 
 
   onSearchItemConfirmed: (message) ->
 
-    { initialChannelId, id } = message
+    { initialChannelId, slug } = message
     ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
-      kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
-
-
-  onCommandItemConfirmed: (item) ->
-
-    @onDropboxItemConfirmed item, no, (value) =>
-      @runDropboxChecks value
+      kd.singletons.router.handleRoute groupifyLink "/Channels/#{channel.name}/#{slug}"
 
 
   handleEmojiButtonClick: (event) ->
@@ -235,30 +187,25 @@ module.exports = class ChatInputWidget extends React.Component
 
     if value.indexOf(searchMarker) is -1
       value = searchMarker + value
-      @setValue value
-
-    @focus()
-
-    @refs.searchDropbox.checkTextForQuery { value }
-
-
-  focus: ->
+      @setState { value }
 
     textInput = React.findDOMNode @refs.textInput
     textInput.focus()
 
+    @refs.searchDropup.checkTextForQuery { value }
 
-  renderEmojiDropbox: ->
+
+  renderEmojiDropup: ->
 
     { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
 
-    <EmojiDropbox
+    <EmojiDropup
       items           = { filteredEmojiList }
       selectedIndex   = { filteredEmojiListSelectedIndex }
       selectedItem    = { filteredEmojiListSelectedItem }
       query           = { filteredEmojiListQuery }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'emojiDropbox'
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'emojiDropup'
       stateId         = { @stateId }
     />
 
@@ -276,82 +223,51 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
-  renderChannelDropbox: ->
+  renderChannelDropup: ->
 
     { channels, channelsSelectedItem, channelsSelectedIndex, channelsQuery, channelsVisibility } = @state
 
-    <ChannelDropbox
+    <ChannelDropup
       items           = { channels }
       selectedIndex   = { channelsSelectedIndex }
       selectedItem    = { channelsSelectedItem }
       query           = { channelsQuery }
       visible         = { channelsVisibility }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'channelDropbox'
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'channelDropup'
       stateId         = { @stateId }
     />
 
 
-  renderUserDropbox: ->
+  renderUserDropup: ->
 
     { users, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
 
-    <UserDropbox
+    <UserDropup
       items           = { users }
       selectedIndex   = { userSelectedIndex }
       selectedItem    = { usersSelectedItem }
       query           = { usersQuery }
       visible         = { usersVisibility }
-      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'userDropbox'
+      onItemConfirmed = { @bound 'onDropupItemConfirmed' }
+      ref             = 'userDropup'
       stateId         = { @stateId }
     />
 
 
-  renderSearchDropbox: ->
+  renderSearchDropup: ->
 
-    { enableSearch } = @props
-    return  unless enableSearch
+    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility } = @state
 
-    { searchItems, searchSelectedIndex, searchSelectedItem, searchQuery, searchVisibility, searchFlags } = @state
-
-    <SearchDropbox
+    <SearchDropup
       items           = { searchItems }
       selectedIndex   = { searchSelectedIndex }
       selectedItem    = { searchSelectedItem }
       query           = { searchQuery }
       visible         = { searchVisibility }
       onItemConfirmed = { @bound 'onSearchItemConfirmed' }
-      ref             = 'searchDropbox'
+      ref             = 'searchDropup'
       stateId         = { @stateId }
-      flags           = { searchFlags }
-    />
-
-
-  renderCommandDropbox: ->
-
-    { commands, commandsSelectedItem, commandsSelectedIndex, commandsQuery, commandsVisibility } = @state
-
-    <CommandDropbox
-      items           = { commands }
-      selectedIndex   = { commandsSelectedIndex }
-      selectedItem    = { commandsSelectedItem }
-      query           = { commandsQuery }
-      visible         = { commandsVisibility }
-      onItemConfirmed = { @bound 'onCommandItemConfirmed' }
-      ref             = 'commandDropbox'
-      stateId         = { @stateId }
-    />
-
-
-  renderSearchButton: ->
-
-    { enableSearch } = @props
-    return  unless enableSearch
-
-    <Link
-      className = "ChatInputWidget-searchButton"
-      onClick   = { @bound 'handleSearchButtonClick' }
     />
 
 
@@ -359,21 +275,23 @@ module.exports = class ChatInputWidget extends React.Component
 
     <div className="ChatInputWidget">
       { @renderEmojiSelector() }
-      { @renderEmojiDropbox() }
-      { @renderChannelDropbox() }
-      { @renderUserDropbox() }
-      { @renderSearchDropbox() }
-      { @renderCommandDropbox() }
+      { @renderEmojiDropup() }
+      { @renderChannelDropup() }
+      { @renderUserDropup() }
+      { @renderSearchDropup() }
       <TextArea
         value     = { @state.value }
         onChange  = { @bound 'onChange' }
         onKeyDown = { @bound 'onKeyDown' }
         ref       = 'textInput'
       />
-      { @renderSearchButton() }
       <Link
         className = "ChatInputWidget-emojiButton"
         onClick   = { @bound 'handleEmojiButtonClick' }
+      />
+      <Link
+        className = "ChatInputWidget-searchButton"
+        onClick   = { @bound 'handleSearchButtonClick' }
       />
     </div>
 

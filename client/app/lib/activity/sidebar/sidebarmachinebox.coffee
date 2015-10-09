@@ -42,17 +42,10 @@ module.exports = class SidebarMachineBox extends KDView
     computeController = kd.getSingleton 'computeController'
     computeController.on "stateChanged-#{@machine._id}", @bound 'handleStateChanged'
 
-    if stack = computeController.findStackFromMachineId @machine._id
-      visibility = stack.config?.sidebar?[@machine.uid]?.visibility
-
-    @setVisibility visibility ? on
-
 
   handleStateChanged: (state) ->
 
-    if state is Machine.State.Running
-      kd.singletons.mainView.sidebar.emit 'ShowCloseHandle'
-      @machineItem.settingsIcon.show()
+    @machineItem.settingsIcon.show()  if state is Machine.State.Running
 
 
   createMachineItem: ->
@@ -298,9 +291,3 @@ module.exports = class SidebarMachineBox extends KDView
   isMachineRunning: ->
 
     return @machine.status.state is Machine.State.Running
-
-
-  setVisibility: (state) ->
-
-    if state then @show() else @hide()
-    @emit 'SetVisibility', state

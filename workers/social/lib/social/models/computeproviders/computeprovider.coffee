@@ -172,7 +172,6 @@ module.exports = class ComputeProvider extends Base
 
   @update = secure revive
 
-
     shouldReviveClient   : yes
     shouldPassCredential : yes
 
@@ -280,11 +279,9 @@ module.exports = class ComputeProvider extends Base
             if not err and admin and not admin.getId().equals account.getId()
               admin.fetchUser (err, adminUser) ->
                 if not err and adminUser
-                  machineInfo.users = [{
-                    id       : adminUser.getId(),
-                    username : adminUser.username,
-                    sudo     : yes, owner: yes
-                  }]
+                  machineInfo.users = [
+                    { id: adminUser.getId(), sudo: yes, owner: yes }
+                  ]
                 create machineInfo
             else
               create machineInfo

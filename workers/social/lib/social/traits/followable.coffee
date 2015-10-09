@@ -1,3 +1,5 @@
+# due to a bug in coffeelint 1.10.1
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 KodingError = require '../error.coffee'
 

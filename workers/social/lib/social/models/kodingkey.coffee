@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 JAccount  = require './account'
 KodingError = require '../error'

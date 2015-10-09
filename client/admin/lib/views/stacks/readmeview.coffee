@@ -1,10 +1,12 @@
-kd                      = require 'kd'
-KDCustomHTMLView        = kd.CustomHTMLView
-StackBaseEditorTabView  = require './stackbaseeditortabview'
-MarkdownEditorView      = require './editors/markdowneditorview'
+kd                 = require 'kd'
+
+KDView             = kd.View
+KDCustomHTMLView   = kd.CustomHTMLView
+
+MarkdownEditorView = require './editors/markdowneditorview'
 
 
-module.exports = class ReadmeView extends StackBaseEditorTabView
+module.exports = class ReadmeView extends KDView
 
 
   constructor: (options = {}, data) ->
@@ -27,4 +29,3 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
       content     : stackTemplate?.description or ''
       delegate    : this
       contentType : 'md'
-

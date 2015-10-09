@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 # JTeamInvitation is a temporary invitation token collection will be used for
 # inviting companies to use/try teams product, this file should be removed after
 # releasing teams product.

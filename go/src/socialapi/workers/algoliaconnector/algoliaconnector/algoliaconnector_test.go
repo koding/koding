@@ -261,9 +261,7 @@ func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, 
 				return nil
 			}
 		case <-deadLine:
-			handler.log.Critical("deadline reached on making sure sysnonyms but not returning an error")
-			// return errDeadline
-			return nil
+			return errDeadline
 		}
 	}
 }

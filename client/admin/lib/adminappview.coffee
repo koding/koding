@@ -26,16 +26,7 @@ module.exports = class AdminAppView extends kd.ModalView
     @setListeners()
 
 
-  _windowDidResize: (e) ->
-
-    height = if window.innerHeight < 600 then 100 else 90
-    @setHeight height, '%'
-    @setPositions()
-
-
   setListeners: ->
-
-    @listenWindowResize()
 
     @on 'groupSettingsUpdated', (group)->
       @setData group

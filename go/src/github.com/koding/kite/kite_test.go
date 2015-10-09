@@ -19,10 +19,10 @@ func TestMultiple(t *testing.T) {
 	testDuration := time.Second * 10
 
 	// number of available mathworker kites to be called
-	kiteNumber := 3
+	kiteNumber := 10
 
 	// number of exp kites that will call mathwork kites
-	clientNumber := 3
+	clientNumber := 10
 
 	// ports are starting from 6000 up to 6000 + kiteNumber
 	port := 6000
@@ -113,7 +113,7 @@ func TestConcurrency(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// number of exp kites that will call mathworker kite
-	clientNumber := 3
+	clientNumber := 30
 
 	fmt.Printf("Creating %d exp clients\n", clientNumber)
 	clients := make([]*Client, clientNumber)

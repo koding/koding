@@ -3,75 +3,42 @@ $header-height              = 52px
 .ChannelThreadPane
 .ChannelThreadPane-body
   dFlex()
-  vendor                    flex-direction, row
+  flex-direction            row
 
 .ChannelThreadPane-content
   dFlex()
-  rel()
-  vendor                    flex, 1
-  vendor                    flex-direction, column
-
-.ChannelThreadPane-dropContainer
-  abs()
-  borderBox()
-  margin                    10px
-  rounded                   6px
-  border                    2px dashed $gray-10
-  top                       0
-  left                      0
-  size                      calc(100% \- 20px), calc(100% \- 20px)
-  bg                        color, rgba(255, 255, 255, 0.9)
-  z-index                   3
-  font-size                 30px
-  text-align                center
-
-.ChannelThreadPane-dropContainerContent
-  rel()
-  line-height             40px
-  top                     50%
-  margin-top              -65px
-  color                   $gray-10
-
-  &:before
-    rel()
-    dBlock()
-    margin                0 auto 20px
-    content               ''
-    r-sprite              'activity', 'cloud-icon'
+  flex                      1
+  flex-direction            column
 
 .ChannelThreadPane-header
-  bg                        color, #fcfcfc
-  padding                   0 20px 0 34px
-  vendor                    flex, 0 0 52px
-  vendor                    align-items, center
+  padding                   0 20px
+  flex                      0 0 52px
   dFlex()
-  rel()
+  align-items               center
 
 .ChannelThreadPane-footer
-  vendor                    flex, 0 0 1px
+  flex                      0 0 1px
 
 .ChannelThreadPane-body
-  vendor                    flex, 1
+  flex                      1
 
 .ChannelThreadPane.is-withFeed
   .ChannelThreadPane-feedWrapper
-    vendor                  flex, 1
+    flex                    1
     bg                      color #f5f5f5
 
 .ChannelThreadPane.is-withChat
   .ChannelThreadPane-chatWrapper
-    vendor                  flex, 1
+    flex                    1
 
 .ChannelThreadPane-feedWrapper
 .ChannelThreadPane-chatWrapper
 .ChannelThreadPane-postWrapper
-  vendor                    flex, .00001
+  flex                      .00001
   vendor                    transition, flex .177s ease
 
 .ChannelThreadPane-sidebar
+  flex                      0 0 240px
   bg                        color, #f5f5f5
-  vendor                    flex, 0 0 240px
 
-// @media only screen and (max-width : 950px)
-//   .ChannelThreadPane-sidebar
-//     vendor                  flex, 0 0 40px
+

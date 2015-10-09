@@ -29,8 +29,6 @@ module.exports = (req, res, next) ->
   body.emailFrequency.marketing = newsletter is 'true'
   # rename variable
   body.invitationToken          = token
-  # required for JUser.login
-  body.groupName                = slug
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -87,11 +85,8 @@ generateJoinTeamKallback = (res, body) ->
 
     # return if we got error from join/register
     return res.status(400).send getErrorMessage err  if err?
-
-    # login returns replacementToken but register returns newToken
-    clientId = result.replacementToken or result.newToken
     # set clientId
-    res.cookie 'clientId', clientId, { path : '/' }
+    res.cookie 'clientId', result.newToken, { path : '/' }
 
     # handle the request with an HTTP redirect:
     return res.redirect 301, redirect if redirect

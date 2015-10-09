@@ -8,7 +8,6 @@ KDNotificationView   = kd.NotificationView
 
 nick                 = require 'app/util/nick'
 isKoding             = require 'app/util/isKoding'
-FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 
@@ -35,7 +34,7 @@ module.exports = class ComputeController extends KDController
 
     super
 
-    { mainController, groupsController, router } = kd.singletons
+    { mainController, router } = kd.singletons
 
     @ui = ComputeController_UI
 
@@ -45,8 +44,6 @@ module.exports = class ComputeController extends KDController
 
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
-
-      groupsController.on 'StackTemplateChanged', @bound 'checkStackRevisions'
 
       @fetchStacks =>
 
@@ -176,9 +173,9 @@ module.exports = class ComputeController extends KDController
   # Fetchers most of these methods has internal
   # caches with in ComputeController
 
-  fetchStacks: do (queue=[]) ->
+  fetchStacks: do (queue=[])->
 
-    (callback = kd.noop) -> kd.singletons.mainController.ready =>
+    (callback = kd.noop)-> kd.singletons.mainController.ready =>
 
       if @stacks.length > 0
         callback null, @stacks
@@ -187,14 +184,14 @@ module.exports = class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      remote.api.JComputeStack.some {}, (err, stacks = []) =>
+      remote.api.JComputeStack.some {}, (err, stacks = [])=>
 
         if err?
           cb err  for cb in queue
           queue = []
           return
 
-        remote.api.JMachine.some {}, (err, _machines = []) =>
+        remote.api.JMachine.some {}, (err, _machines = [])=>
 
           if err?
             cb err  for cb in queue
@@ -480,9 +477,9 @@ module.exports = class ComputeController extends KDController
       destroy machine
 
 
-  reinit: (machine, snapshotId) ->
+  reinit: (machine, snapshotId)->
 
-    return  if methodNotSupportedBy(machine) or machine.provider is 'aws'
+    return if methodNotSupportedBy machine
 
     startReinit = =>
 
@@ -632,7 +629,7 @@ module.exports = class ComputeController extends KDController
 
 
 
-  start: (machine) ->
+  start: (machine)->
 
     return if methodNotSupportedBy machine
 
@@ -644,7 +641,7 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().start { machineId: machine._id }
 
-    .then (res) =>
+    .then (res)=>
 
       kd.log "start res:", res
       @_clearTrialCounts machine
@@ -652,12 +649,12 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err) =>
+    .catch (err)=>
 
       (@errorHandler call, 'start', machine) err
 
 
-  stop: (machine) ->
+  stop: (machine)->
 
     return if methodNotSupportedBy machine
 
@@ -670,7 +667,7 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().stop { machineId: machine._id }
 
-    .then (res) =>
+    .then (res)=>
 
       kd.log "stop res:", res
       @_clearTrialCounts machine
@@ -678,7 +675,7 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err) =>
+    .catch (err)=>
 
       (@errorHandler call, 'stop', machine) err
 
@@ -691,57 +688,14 @@ module.exports = class ComputeController extends KDController
     @update machine, alwaysOn: state, callback
 
 
-  update: (machine, options, callback = kd.noop) ->
+  update: (machine, options, callback = kd.noop)->
 
-    updateWith = (options) =>
-      remote.api.ComputeProvider.update options, (err) =>
-        @triggerReviveFor machine._id  unless err?
-        callback err
-
-    { provider }      = machine
     options.machineId = machine._id
-    options.provider  = provider
+    options.provider  = machine.provider
 
-    # For teams context we need to use JMachine.credential field for ongoing
-    # operations with ComputeProvider which will need to verify credential
-    # on each request. There is one user experience issue with that behaivour
-    # which is causing user to reinitialize their stacks if one of the valid
-    # credential has been changed. To prevent that we are taking stack template
-    # credential if it fits with the current JMachine requirements. So user
-    # not requires to re-init their stacks when a credential is changed but not
-    # the template itself. ~ GG
-    unless isKoding()
-
-      stack = @findStackFromMachineId machine._id
-      return updateWith options  unless stack
-
-      @fetchBaseStackTemplate stack, (err, template) ->
-        return updateWith options  if err or not template
-
-        credential = template.credentials[provider]?.first ? machine.credential
-        options.credential = credential
-
-        updateWith options
-
-    else
-
-      updateWith options
-
-  # Stacks
-
-  # Start helper to start all machines in the given stack
-  startStack: (stack) ->
-
-    for machine in stack.machines
-      @start machine  if machine.isStopped()
-
-
-  # Stop helper to stop all machines in the given stack
-  stopStack: (stack) ->
-
-    for machine in stack.machines
-      @stop machine  if machine.isRunning()
-
+    remote.api.ComputeProvider.update options, (err)=>
+      @triggerReviveFor machine._id  unless err?
+      callback err
 
   # Snapshots
   #
@@ -827,23 +781,15 @@ module.exports = class ComputeController extends KDController
   # Utils beyond this point
   #
 
-  triggerReviveFor: (machineId, asStack = no) ->
+  triggerReviveFor:(machineId)->
 
-    kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{machineId}..."
+    kd.info "Triggering revive for #{machineId}..."
 
-    @fetchStacks =>
-
-      if asStack
-        stack = @findStackFromStackId machineId
-        return  if stack
-          stack.machines.forEach (machine) =>
-            @triggerReviveFor machine._id
-
-      remote.api.JMachine.one machineId, (err, machine) =>
-        if err? then kd.warn "Revive failed for #{machineId}: ", err
-        else
-          @emit "revive-#{machineId}", machine
-          kd.info "Revive triggered for #{machineId}", machine
+    remote.api.JMachine.one machineId, (err, machine)=>
+      if err? then kd.warn "Revive failed for #{machineId}: ", err
+      else
+        @emit "revive-#{machineId}", machine
+        kd.info "Revive triggered for #{machineId}", machine
 
 
   invalidateCache: (machineId)->
@@ -906,54 +852,9 @@ module.exports = class ComputeController extends KDController
 
 
   ###*
-   * Fetch given stack's README from the stackTemplate which
-   * is generated from.
-  ###
-
-  fetchStackReadme: (stack, callback = kd.noop) ->
-
-    return callback null, ''  unless stack?.baseStackId
-
-    @fetchBaseStackTemplate stack, (err, template) ->
-      return callback err, template?.description ? ''
-
-
-  ###*
-   * Fetch given stack's stackTemplate which is generated from.
-  ###
-
-  fetchBaseStackTemplate: (stack, callback = kd.noop) ->
-
-    return callback null, ''  unless stack?.baseStackId
-
-    { baseStackId } = stack
-
-    remote.cacheable 'JStackTemplate', baseStackId, (err, templates) ->
-      return callback err  if err
-      [ template ] = templates
-      return callback null, template or {}
-
-
-  ###*
    * Automatically kill active collaboration sessions if any
   ###
   stopCollaborationSession: ->
 
     kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
 
-
-  showBuildLogs: (machine) ->
-
-    # Not supported for Koding Group
-    return  if isKoding()
-
-    # Path of cloud-init-output log
-    path = '/var/log/cloud-init-output.log'
-    file = FSHelper.createFileInstance { path, machine }
-
-    kd.singletons.appManager.tell 'IDE', 'tailFile', {
-      file
-      description:
-        "Your Koding Stack has successfully been initialized. The log here
-         describes each executed step of the Stack creation process."
-    }

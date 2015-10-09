@@ -116,7 +116,7 @@ module.exports = class MemberItemView extends KDListItemView
 
       group.fetchUserRoles [ jAccount.getId() ], (err, roles) =>
 
-        return @handleError button, err  if err
+        return @handleError button  if err
 
         data        = @getData()
         data.roles  = (role.as for role in roles)
@@ -135,12 +135,10 @@ module.exports = class MemberItemView extends KDListItemView
     @createSettingsView()
 
 
-  handleError: (button, err) ->
-    if err?.message is 'Access denied'
-      return global.location.href = '/Activity'
+  handleError: (button, message) ->
 
     button.hideLoader()
-    message = err?.message or 'Failed to change user role. Please try again.'
+    message or= 'Failed to change user role. Please try again.'
     return new KDNotificationView title: message, duration: 5000
 
 
@@ -148,7 +146,7 @@ module.exports = class MemberItemView extends KDListItemView
 
     kd.singletons.groupsController.getCurrentGroup().kickMember @getData().getId(), (err) =>
 
-      return @handleError @actionButtons.kick, new Error 'Failed to kick user. Please try again.'  if err
+      return @handleError @actionButtons.kick, 'Failed to kick user. Please try again.'  if err
 
       @destroy()
 

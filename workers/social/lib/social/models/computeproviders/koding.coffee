@@ -8,8 +8,6 @@ Regions           = require 'koding-regions'
 { argv }          = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
-{ updateMachine, validateResizeByUserPlan } = require './helpers'
-
 SUPPORTED_REGIONS = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
 
 module.exports = class Koding extends ProviderInterface
@@ -108,6 +106,8 @@ module.exports = class Koding extends ProviderInterface
 
     provider = @providerSlug
 
+    JMachine = require './machine'
+
     { fetchUserPlan, fetchUsage } = require './computeutils'
 
     fetchUserPlan client, (err, userPlan) ->
@@ -126,8 +126,16 @@ module.exports = class Koding extends ProviderInterface
         if resize?
           resize = +resize
 
-          if err = validateResizeByUserPlan resize, userPlan
-            return callback err
+          if isNaN resize
+            return callback new KodingError \
+            'Requested new size is not valid.', 'WrongParameter'
+          else if resize > userPlan.storage
+            return callback new KodingError \
+            """Requested new size exceeds allowed
+               limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+          else if resize < 3
+            return callback new KodingError \
+            """New size can't be less than 3GB.""", 'WrongParameter'
 
         { ObjectId } = require 'bongo'
 
@@ -145,7 +153,37 @@ module.exports = class Koding extends ProviderInterface
             $elemMatch :
               id       : group.getId()
 
-        updateMachine { selector, alwaysOn, resize, usage, userPlan }, callback
+        JMachine.one selector, (err, machine) ->
+
+          if err? or not machine?
+            err ?= new KodingError 'Machine object not found.'
+            return callback err
+
+          fieldsToUpdate = {}
+
+          if alwaysOn?
+            fieldsToUpdate['meta.alwaysOn'] = alwaysOn
+
+          if resize?
+
+            storageSize = machine.meta?.storage_size ? 3
+
+            if (resize - storageSize) + usage.storage > userPlan.storage
+              return callback new KodingError \
+              """Requested new size exceeds allowed
+                 limit of #{userPlan.storage}GB.""", 'UsageLimitReached'
+            else if resize is machine.getAt 'meta.storage_size'
+              return callback new KodingError \
+              """Requested new size is same with current
+                 storage size (#{resize}GB).""", 'SameValueForResize'
+
+            fieldsToUpdate['meta.storage_size'] = resize
+
+          machine.update
+
+            $set: fieldsToUpdate
+
+          , (err) -> callback err
 
 
   @fetchAvailable = (client, options, callback) ->
@@ -160,4 +198,5 @@ module.exports = class Koding extends ProviderInterface
         price : 'free'
       }
     ]
+
 

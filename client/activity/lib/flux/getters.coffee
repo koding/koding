@@ -1,11 +1,8 @@
-kd                         = require 'kd'
 immutable                  = require 'immutable'
 isPublicChatChannel        = require 'activity/util/isPublicChatChannel'
 whoami                     = require 'app/util/whoami'
-isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
-getGroup                   = require 'app/util/getGroup'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -36,47 +33,45 @@ SuggestionsSelectedIndexStore  = ['SuggestionsSelectedIndexStore']
 UsersStore                     = [['UsersStore'], withEmptyMap]
 MessageLikersStore             = [['MessageLikersStore'], withEmptyMap]
 
+ChatInputChannelsQueryStore         = ['ChatInputChannelsQueryStore']
+ChatInputChannelsSelectedIndexStore = ['ChatInputChannelsSelectedIndexStore']
+ChatInputChannelsVisibilityStore    = ['ChatInputChannelsVisibilityStore']
+ChatInputUsersQueryStore            = ['ChatInputUsersQueryStore']
+ChatInputUsersSelectedIndexStore    = ['ChatInputUsersSelectedIndexStore']
+ChatInputUsersVisibilityStore       = ['ChatInputUsersVisibilityStore']
+ChatInputSearchQueryStore           = ['ChatInputSearchQueryStore']
+ChatInputSearchSelectedIndexStore   = ['ChatInputSearchSelectedIndexStore']
+ChatInputSearchVisibilityStore      = ['ChatInputSearchVisibilityStore']
+ChatInputSearchStore                = ['ChatInputSearchStore']
 
-FollowedPublicChannelIdsStore = [
-  FollowedPublicChannelIdsStore
-  (ids) ->
-    groupChannelId = getGroup().socialApiChannelId
-    ids.filter (id) -> id isnt groupChannelId
-]
-
-
-allChannels = [
-  ChannelsStore, (channels) ->
-    channels.filterNot (channel) -> 'group' is channel.get 'typeConstant'
-]
-
-
-allUsers    = UsersStore
-
-ChannelParticipantsSearchQueryStore        = ['ChannelParticipantsSearchQueryStore']
-ChannelParticipantsSelectedIndexStore      = ['ChannelParticipantsSelectedIndexStore']
-ChannelParticipantsDropdownVisibilityStore = ['ChannelParticipantsDropdownVisibilityStore']
 
 # Computed Data getters.
 # Following will be transformations of the store datas for other parts (mainly
 # visual components) to use.
 
+# Maps followed public channel ids with relevant channel instances.
+followedPublicChannels = [
+  FollowedPublicChannelIdsStore
+  ChannelsStore
+  (ids, channels) -> ids.map (id) -> channels.get id
+]
+
 # Maps followed private channel ids with relevant channel instances.
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
-  allChannels
+  ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 popularChannels = [
   PopularChannelIdsStore
-  allChannels
+  ChannelsStore
   (ids, channels) -> ids.map (id) -> channels.get id
 ]
 
 channelParticipants = [
   ChannelParticipantIdsStore
-  allUsers
+  UsersStore
   (channelIds, users) ->
     channelIds.map (participantIds) ->
       participantIds.reduce (result, id) ->
@@ -91,22 +86,25 @@ channelThreads = [
   ChannelThreadsStore
   MessagesStore
   ChannelFlagsStore
-  ChannelsStore
-  ['ChannelMessageLoaderMarkersStore']
-  (threads, messages, channelFlags, channels, loaderMarkers) ->
+  (threads, messages, channelFlags) ->
     threads.map (thread) ->
       channelId = thread.get 'channelId'
       thread = thread.set 'flags', channelFlags.get channelId
-      thread = thread.set 'channel', channels.get channelId
-      thread.update 'messages', (msgs) -> msgs.map (messageId) ->
-        message = messages.get messageId
-        if message.has('__editedBody')
-          message = message.set 'body', message.get '__editedBody'
-          message = message.set 'payload', message.get '__editedPayload'
-        if loaderMarkers.hasIn [channelId, messageId]
-          message = message.set 'loaderMarkers', loaderMarkers.getIn [channelId, messageId]
-        return message
-      .sortBy (m) -> m.get 'createdAt'
+      thread.update 'messages', (msgs) ->
+        msgs.map (messageId) ->
+          message = messages.get messageId
+          if parentId = message.get 'parentId'
+            # FIXME: this string comparison shouldn't be here, but somehow
+            # undefined `parentId` s are returning as empty immutable lists,
+            # this needs to be investigated. ~Umut
+            if 'string' is typeof parentId
+              parent = messages.get parentId
+              message = message.set 'parent', parent
+          if message.has('__editedBody')
+            message = message.set 'body', message.get '__editedBody'
+            message = message.set 'payload', message.get '__editedPayload'
+          return message
+        .sortBy (m) -> m.get 'createdAt'
 ]
 
 channelPopularMessages = [
@@ -123,24 +121,9 @@ selectedChannelThreadId = SelectedChannelThreadIdStore
 
 # Returns selected channel instance.
 selectedChannel = [
-  allChannels
+  ChannelsStore
   selectedChannelThreadId
   (channels, id) -> if id then channels.get id else null
-]
-
-# Maps followed public channel ids with relevant channel instances.
-# If this channel is a public channel, we set current channelId as an item of followedPublicChannels,
-# we set this channelId to list this channel on channel list modal and sidebar channel list.
-# If this channel isn't followed by user, user can follow on channel list modal by follow button.
-followedPublicChannels = [
-  FollowedPublicChannelIdsStore
-  selectedChannel
-  allChannels
-  (ids, channel, channels) ->
-    if channel
-      channelId = channel.get 'id'
-      ids = ids.set channelId, channelId  if isPublicChannel(channel.toJS())
-    ids.map (id) -> channels.get id
 ]
 
 # Returns the selected thread mapped with selected channel instance.
@@ -154,14 +137,9 @@ selectedChannelThread = [
       messages.map (msg) ->
         msg.update 'body', (body) ->
           # don't show channel name on post body.
-          body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
+          body.replace ///\##{channel.get('name')}///, ''
     return thread.set 'channel', channel
 ]
-
-channelByName = (name) ->
-  channels = kd.singletons.reactor.evaluateToJS allChannels
-  channel = _channel for id, _channel of channels when _channel.name is name
-  return channel
 
 # Returns followed public channel threads mapped with relevant channel
 # instances.
@@ -172,30 +150,6 @@ followedPublicChannelThreads = [
     channels.map (channel) ->
       thread = threads.get channel.get('id')
       return thread.set 'channel', channel
-]
-
-# Returns all public channels with followed/unfollowed filters
-filteredPublicChannels = [
-  channelThreads
-  followedPublicChannels
-  (threads, channels) ->
-    {
-      followed: channels.map (channel) -> threads.get channel.get('id')
-      unfollowed: threads.filterNot (thread) ->
-        channels.includes thread.getIn ['channel', 'id']
-    }
-]
-
-# Returns all private channels with followed/unfollowed filters
-filteredPrivateChannels = [
-  channelThreads
-  followedPrivateChannels
-  (threads, channels) ->
-    {
-      followed: channels.map (channel) -> threads.get channel.get('id')
-      unfollowed: threads.filterNot (thread) ->
-        channels.includes thread.getIn ['channel', 'id']
-    }
 ]
 
 # Returns followed private channel threads mapped with relevant channel
@@ -214,7 +168,7 @@ followedPrivateChannelThreads = [
 selectedChannelThreadMessages = [
   selectedChannelThread
   MessageLikersStore
-  allUsers
+  UsersStore
   (thread, likers, users) ->
     return null  unless thread
     thread.get('messages').map (message) ->
@@ -273,7 +227,6 @@ selectedMessageThreadComments = [
   selectedMessageThread
   (thread) ->
     return null  unless thread
-
     thread.get 'comments'
 ]
 
@@ -302,64 +255,116 @@ currentSuggestionsSelectedItem = [
 ]
 
 
-channelParticipantsSearchQuery  = ChannelParticipantsSearchQueryStore
+chatInputChannelsQuery = (stateId) -> [
+  ChatInputChannelsQueryStore
+  (queries) -> queries.get stateId
+]
+# Returns a list of channels depending on the current query
+# If query if empty, returns popular channels
+# Otherwise, returns channels filtered by query
+chatInputChannels = (stateId) -> [
+  ChannelsStore
+  popularChannels
+  chatInputChannelsQuery stateId
+  (channels, popularChannels, query) ->
+    return popularChannels.toList()  unless query
+
+    query = query.toLowerCase()
+    channels.toList().filter (channel) ->
+      channelName = channel.get('name').toLowerCase()
+      return channelName.indexOf(query) is 0
+]
+chatInputChannelsRawIndex = (stateId) -> [
+  ChatInputChannelsSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+chatInputChannelsSelectedIndex = (stateId) -> [
+  chatInputChannels stateId
+  chatInputChannelsRawIndex stateId
+  calculateListSelectedIndex
+]
+chatInputChannelsSelectedItem = (stateId) -> [
+  chatInputChannels stateId
+  chatInputChannelsSelectedIndex stateId
+  getListSelectedItem
+]
+chatInputChannelsVisibility = (stateId) -> [
+  ChatInputChannelsVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
+
+chatInputUsersQuery = (stateId) -> [
+  ChatInputUsersQueryStore
+  (queries) -> queries.get stateId
+]
 # Returns a list of users depending on the current query
 # If query is empty, returns selected channel participants
 # Otherwise, returns users filtered by query
-channelParticipantsInputUsers = [
+chatInputUsers = (stateId) -> [
   UsersStore
   selectedChannelParticipants
-  channelParticipantsSearchQuery
+  chatInputUsersQuery stateId
   (users, participants, query) ->
-    return immutable.List()  unless query
+    return participants?.toList() ? immutable.List()  unless query
 
     query = query.toLowerCase()
     users.toList().filter (user) ->
-      return  if participants.get user.get '_id'
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
       return userName.indexOf(query) is 0
 ]
-
-channelParticipantsSelectedIndex = [
-  channelParticipantsInputUsers
-  ChannelParticipantsSelectedIndexStore
+chatInputUsersRawIndex = (stateId) -> [
+  ChatInputUsersSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+chatInputUsersSelectedIndex = (stateId) -> [
+  chatInputUsers stateId
+  chatInputUsersRawIndex stateId
   calculateListSelectedIndex
 ]
-
-channelParticipantsDropdownVisibility = ChannelParticipantsDropdownVisibilityStore
-
-channelParticipantsSelectedItem = [
-  channelParticipantsInputUsers
-  channelParticipantsSelectedIndex
+chatInputUsersSelectedItem = (stateId) -> [
+  chatInputUsers stateId
+  chatInputUsersSelectedIndex stateId
   getListSelectedItem
 ]
-
-
-notSelectedChannelParticipants = [
-  UsersStore
-  selectedChannelParticipants
-  (users, participants) ->
-    list = users.toList()
-    return list  unless participants
-
-    list.filterNot (user) ->
-      return participants.get user.get '_id'
+chatInputUsersVisibility = (stateId) -> [
+  ChatInputUsersVisibilityStore
+  (visibilities) -> visibilities.get stateId
 ]
 
+chatInputSearchItems = (stateId) -> [
+  ChatInputSearchStore
+  (searchStore) -> searchStore.get stateId
+]
+chatInputSearchQuery = (stateId) -> [
+  ChatInputSearchQueryStore
+  (queries) -> queries.get stateId
+]
+chatInputSearchRawIndex = (stateId) -> [
+  ChatInputSearchSelectedIndexStore
+  (indexes) -> indexes.get stateId
+]
+chatInputSearchSelectedIndex = (stateId) -> [
+  chatInputSearchItems stateId
+  chatInputSearchRawIndex stateId
+  calculateListSelectedIndex
+]
+chatInputSearchSelectedItem = (stateId) -> [
+  chatInputSearchItems stateId
+  chatInputSearchSelectedIndex stateId
+  getListSelectedItem
+]
+chatInputSearchVisibility = (stateId) -> [
+  ChatInputSearchVisibilityStore
+  (visibilities) -> visibilities.get stateId
+]
 
 module.exports = {
-  allChannels
   followedPublicChannelThreads
-  filteredPublicChannels
-  filteredPrivateChannels
   followedPrivateChannelThreads
-  popularChannels
 
   selectedChannelThreadId
   selectedChannelThread
   selectedChannelThreadMessages
-
-  channelByName
 
   selectedMessageThreadId
   selectedMessageThread
@@ -375,13 +380,22 @@ module.exports = {
   currentSuggestionsSelectedIndex
   currentSuggestionsSelectedItem
 
-  channelParticipantsSearchQuery
-  channelParticipantsInputUsers
-  channelParticipantsSelectedItem
-  channelParticipantsSelectedIndex
-  channelParticipantsDropdownVisibility
+  chatInputChannels
+  chatInputChannelsQuery
+  chatInputChannelsSelectedIndex
+  chatInputChannelsSelectedItem
+  chatInputChannelsVisibility
 
-  allUsers
-  notSelectedChannelParticipants
+  chatInputUsers
+  chatInputUsersQuery
+  chatInputUsersSelectedIndex
+  chatInputUsersSelectedItem
+  chatInputUsersVisibility
+
+  chatInputSearchItems
+  chatInputSearchQuery
+  chatInputSearchSelectedIndex
+  chatInputSearchSelectedItem
+  chatInputSearchVisibility
 }
 

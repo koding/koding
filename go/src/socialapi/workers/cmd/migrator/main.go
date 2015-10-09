@@ -54,7 +54,7 @@ func main() {
 	}
 
 	if *flagIntegration {
-		handler.EnsureIntegrations()
+		handler.CreateIntegrations()
 
 		return
 	}

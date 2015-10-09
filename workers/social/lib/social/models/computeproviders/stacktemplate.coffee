@@ -18,11 +18,11 @@ module.exports = class JStackTemplate extends Module
 
     permissions       :
 
-      'create stack template'     : ['member', 'moderator']
-      'list stack templates'      : ['member', 'moderator']
+      'create stack template'     : []
+      'list stack templates'      : []
 
-      'delete own stack template' : ['member', 'moderator']
-      'update own stack template' : ['member', 'moderator']
+      'delete own stack template' : []
+      'update own stack template' : []
 
       'delete stack template'     : []
       'update stack template'     : []
@@ -32,10 +32,6 @@ module.exports = class JStackTemplate extends Module
       static          :
         create        :
           (signature Object, Function)
-        one           : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
         some          : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -79,9 +75,7 @@ module.exports = class JStackTemplate extends Module
 
       meta            : require 'bongo/bundles/meta'
 
-      group           :
-        type          : String
-        required      : yes
+      group           : String
 
       template        :
         content       : String
@@ -141,6 +135,7 @@ module.exports = class JStackTemplate extends Module
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
 
+  # coffeelint: disable=no_implicit_braces
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -170,16 +165,6 @@ module.exports = class JStackTemplate extends Module
         callback err, templates
 
 
-  @one$: permit 'list stack templates',
-
-    success: (client, selector, options, callback) ->
-
-      options ?= {}
-      options.limit = 1
-
-      @some$ client, selector, options, callback
-
-
   delete: permit
 
     advanced: [
@@ -199,7 +184,7 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, accessLevel, callback) ->
 
-      @update { $set: { accessLevel } }, callback
+      @update $set: { accessLevel }, callback
 
 
   update$: permit
@@ -210,8 +195,6 @@ module.exports = class JStackTemplate extends Module
     ]
 
     success: (client, data, callback) ->
-
-      { delegate } = client.connection
 
       # It's not allowed to change a stack template group or owner
       delete data.originId
@@ -226,10 +209,7 @@ module.exports = class JStackTemplate extends Module
         if not templateDetails?
           data.template.details = @getAt 'template.details'
 
-        # Keep last updater info in the template details
-        data.template.details.lastUpdaterId = delegate.getId()
-
-      @update { $set: data }, (err) -> callback err
+      @update $set: data, (err) -> callback err
 
 
 # Base StackTemplate example for koding group

@@ -90,49 +90,15 @@ type Kontrol struct {
 }
 
 // New creates a new kontrol instance with the given version and config
-// instance, and the default kontrol handlers. Publickey is used for
-// validating tokens and privateKey is used for signing tokens.
+// instance. Publickey is used for validating tokens and privateKey is used for
+// signing tokens.
 //
 // Public and private keys are RSA pem blocks that can be generated with the
 // following command:
 //     openssl genrsa -out testkey.pem 2048
 //     openssl rsa -in testkey.pem -pubout > testkey_pub.pem
 //
-// If you need to provide custom handlers in place of the default ones,
-// use the following command instead:
-//     NewWithoutHandlers(conf, version)
-//
 func New(conf *config.Config, version string) *Kontrol {
-	kontrol := NewWithoutHandlers(conf, version)
-
-	kontrol.Kite.HandleFunc("register", kontrol.HandleRegister)
-	kontrol.Kite.HandleFunc("registerMachine", kontrol.HandleMachine).DisableAuthentication()
-	kontrol.Kite.HandleFunc("getKites", kontrol.HandleGetKites)
-	kontrol.Kite.HandleFunc("getToken", kontrol.HandleGetToken)
-	kontrol.Kite.HandleFunc("getKey", kontrol.HandleGetKey)
-
-	kontrol.Kite.HandleHTTPFunc("/register", kontrol.HandleRegisterHTTP)
-	kontrol.Kite.HandleHTTPFunc("/heartbeat", kontrol.HandleHeartbeat)
-
-	return kontrol
-}
-
-// NewWithoutHandlers creates a new kontrol instance with the given version and config
-// instance, but *without* the default handlers. If this is function is
-// used, make sure to implement the expected kontrol functionality.
-//
-// Example:
-//
-//     kontrol := NewWithoutHandlers(conf, version)
-//     kontrol.Kite.HandleFunc("register", kontrol.HandleRegister)
-//     kontrol.Kite.HandleFunc("registerMachine", kontrol.HandleMachine).DisableAuthentication()
-//     kontrol.Kite.HandleFunc("getKites", kontrol.HandleGetKites)
-//     kontrol.Kite.HandleFunc("getToken", kontrol.HandleGetToken)
-//     kontrol.Kite.HandleFunc("getKey", kontrol.HandleGetKey)
-//     kontrol.Kite.HandleHTTPFunc("/heartbeat", kontrol.HandleHeartbeat)
-//     kontrol.Kite.HandleHTTPFunc("/register", kontrol.HandleRegisterHTTP)
-//
-func NewWithoutHandlers(conf *config.Config, version string) *Kontrol {
 	k := kite.New("kontrol", version)
 	k.Config = conf
 
@@ -141,7 +107,7 @@ func NewWithoutHandlers(conf *config.Config, version string) *Kontrol {
 		k.Config.Port = DefaultPort
 	}
 
-	return &Kontrol{
+	kontrol := &Kontrol{
 		Kite:        k,
 		log:         k.Log,
 		clientLocks: NewIdlock(),
@@ -150,6 +116,17 @@ func NewWithoutHandlers(conf *config.Config, version string) *Kontrol {
 		lastPublic:  make([]string, 0),
 		lastPrivate: make([]string, 0),
 	}
+
+	k.HandleFunc("register", kontrol.HandleRegister)
+	k.HandleFunc("registerMachine", kontrol.HandleMachine).DisableAuthentication()
+	k.HandleFunc("getKites", kontrol.HandleGetKites)
+	k.HandleFunc("getToken", kontrol.HandleGetToken)
+	k.HandleFunc("getKey", kontrol.HandleGetKey)
+
+	k.HandleHTTPFunc("/register", kontrol.HandleRegisterHTTP)
+	k.HandleHTTPFunc("/heartbeat", kontrol.HandleHeartbeat)
+
+	return kontrol
 }
 
 func (k *Kontrol) AddAuthenticator(keyType string, fn func(*kite.Request) error) {

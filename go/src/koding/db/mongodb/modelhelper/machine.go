@@ -52,8 +52,7 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 }
 
 var (
-	MachineStateRunning   = "Running"
-	MachineProviderKoding = "koding"
+	MachineStateRunning = "Running"
 )
 
 func GetRunningVms(provider string) ([]*models.Machine, error) {
@@ -91,32 +90,9 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 }
 
 func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
-	query := bson.M{
-		"users": bson.M{
-			"$elemMatch": bson.M{
-				"id":    userId,
-				"owner": true,
-			},
-		},
-	}
-
-	return findMachineContainers(query)
-}
-
-func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
-	query := bson.M{
-		"users": bson.M{
-			"$elemMatch": bson.M{
-				"id":    userId,
-				"owner": true,
-			},
-		},
-		"groups": bson.M{
-			"$elemMatch": bson.M{
-				"id": group.Id,
-			},
-		},
-	}
+	query := bson.M{"users": bson.M{
+		"$elemMatch": bson.M{"id": userId, "owner": true},
+	}}
 
 	return findMachineContainers(query)
 }
@@ -131,18 +107,8 @@ func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 
 func GetCollabMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
 	query := bson.M{
-		"users": bson.M{
-			"$elemMatch": bson.M{
-				"id":        userId,
-				"owner":     false,
-				"permanent": bson.M{"$ne": true},
-			},
-		},
-		"groups": bson.M{
-			"$elemMatch": bson.M{
-				"id": group.Id,
-			},
-		},
+		"users":  bson.M{"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": bson.M{"$ne": true}}},
+		"groups": bson.M{"$elemMatch": bson.M{"id": group.Id}},
 	}
 
 	return findMachineContainers(query)

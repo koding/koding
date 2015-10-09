@@ -5,29 +5,12 @@ Modal  = require 'app/components/modal'
 module.exports = class ActivityModal extends React.Component
 
   @defaultProps =
-    onClose                : kd.noop
-    onAbort                : kd.noop
-    onConfirm              : kd.noop
-    onButtonExtraClick     : kd.noop
-    closeOnEsc             : yes
-    closeOnOutsideClick    : yes
-    hasOverlay             : yes
-    isOpen                 : no
-    buttonAbortTitle       : 'CANCEL'
-    buttonAbortClassName   : 'Button--secondary'
-    buttonConfirmTitle     : 'OK'
-    buttonConfirmClassName : 'Button--danger'
-    buttonExtraTitle       : null
-    buttonExtraClassName   : 'Button--primary'
-
-
-  renderExtraButton: ->
-
-    return null  unless @props.buttonExtraTitle
-
-    <Modal.Button className={@props.buttonExtraClassName} onClick={@props.onButtonExtraClick}>
-      {@props.buttonExtraTitle}
-    </Modal.Button>
+    onClose             : kd.noop
+    closeOnEsc          : yes
+    closeOnOutsideClick : yes
+    hasOverlay          : yes
+    isOpen              : no
+    buttonAbortTitle    : 'CANCEL'
 
 
   render: ->
@@ -37,11 +20,10 @@ module.exports = class ActivityModal extends React.Component
         {@props.children}
       </Modal.Content>
       <Modal.ButtonGroup>
-        <Modal.Button className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
+        <Modal.Button className="Button--danger" onClick={@props.onConfirm}>
           {@props.buttonConfirmTitle}
         </Modal.Button>
-        {@renderExtraButton()}
-        <Modal.Button className={@props.buttonAbortClassName} onClick={@props.onAbort}>
+        <Modal.Button className="Button--secondary" onClick={@props.onAbort}>
           {@props.buttonAbortTitle}
         </Modal.Button>
       </Modal.ButtonGroup>

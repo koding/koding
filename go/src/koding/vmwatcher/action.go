@@ -40,6 +40,7 @@ func stopVMIfRunning(machineId, username, reason string) error {
 	}
 
 	if machine.Status.State != "Running" {
+		Log.Info("Machine: '%s' has status: '%s'...skipping", machineId, machine.Status.State)
 		return nil
 	}
 

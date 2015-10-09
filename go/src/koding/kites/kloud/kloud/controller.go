@@ -89,6 +89,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		}()
 	}
 
+	k.Log.Debug("args %+v", args)
+
 	provider, ok := k.providers[args.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)

@@ -1,4 +1,3 @@
-# coffeelint: disable=cyclomatic_complexity
 module.exports = (options = {}, callback) ->
 
   { dash }  = require 'bongo'
@@ -106,7 +105,7 @@ module.exports = (options = {}, callback) ->
 
         queue.fin()
     ->
-      bongoModels.JWorkspace.fetchByMachines$ client, (err, workspaces) ->
+      bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
         console.log err  if err
         userWorkspaces = workspaces or []
         queue.fin()

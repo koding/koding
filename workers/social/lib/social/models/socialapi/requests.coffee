@@ -257,18 +257,10 @@ fetchFollowedChannelCount = (data, callback) ->
   url = "#{socialProxyUrl}/account/#{data.accountId}/channels/count"
   get url, data, callback
 
-createChannelWithParticipants = (data, callback) ->
-  url = "#{socialProxyUrl}/channel/initwithparticipants"
-  post url, data, callback
-
-sendMessageToChannel = (data, callback) ->
-  if not data.body or not data.channelId
+initPrivateMessage = (data, callback) ->
+  if not data.recipients or data.recipients.length < 1
     return callback new KodingError 'Request is not valid'
 
-  url = "#{socialProxyUrl}/channel/sendwithparticipants"
-  post url, data, callback
-
-initPrivateMessage = (data, callback) ->
   url = "#{socialProxyUrl}/privatechannel/init"
   post url, data, callback
 
@@ -495,8 +487,6 @@ module.exports = {
   fetchProfileFeedCount
   searchTopics
   searchChats
-  createChannelWithParticipants
-  sendMessageToChannel
   fetchPrivateMessages
   fetchPrivateMessageCount
   initPrivateMessage

@@ -65,10 +65,9 @@ module.exports = class ActivityListItemView extends ActivityBaseListItemView
         height    : 37
       cssClass    : 'author-avatar'
       origin      : origin
-      payload     : data.payload
+      integration : data.integration
 
-
-    @author = new ProfileLinkView { origin, payload : data.payload }
+    @author = new ProfileLinkView { origin, integration: data.integration }
 
     {commentViewClass} = options
 

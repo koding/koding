@@ -48,60 +48,25 @@ module.exports =
 
     @openVmSettingsModal browser, vmName, '.domains'
 
-
   openAdvancedSettings: (browser, vmName) ->
 
     @openVmSettingsModal browser, vmName, '.advanced'
 
-
   openSnapshotsSettings: (browser,vmName) ->
-
 
     @openVmSettingsModal browser, vmName, '.snapshots'
 
-
-  attemptCreateSnapshot: (browser, openSettings = yes) ->
+  attemptCreateSnapshot: (browser) ->
 
     buttonSelector   = '.snapshots .add-button'
 
-    if openSettings
-      @openSnapshotsSettings(browser)
+    @openSnapshotsSettings(browser)
 
     browser
       .waitForElementVisible buttonSelector, 20000
       .click                 buttonSelector
-
-
-  addSnapsButton: (browser) ->
-
-    buttonSelector   = '.snapshots .add-button'
-
-    browser
-      .waitForElementVisible buttonSelector, 20000
-      .click                 buttonSelector
-
-
-  renameSnapshot: (browser) ->
-
-    name                  = 'renamed-snapshot'
-    inputSelector         = '.snapshots input[type=text].label'
-    snapshotSelector      = '.snapshots .kdlistitemview-snapshot:first-child'
-    renameButtonSelector  = '.snapshots .info .buttons button.rename'
-
-    browser
-      .waitForElementVisible snapshotSelector, 20000
-      .moveToElement         snapshotSelector, 200, 20
-      .waitForElementVisible renameButtonSelector, 20000
-      .click                 renameButtonSelector
-      .waitForElementVisible inputSelector, 20000
-      .clearValue            inputSelector
-      .setValue              inputSelector, [name, browser.Keys.RETURN]
-
-    return name
-
 
   nameSnapshot: (browser) ->
-
     name            = helpers.getFakeText().split(' ')[0]
     inputSelector   = '.snapshots .text.hitenterview'
 
@@ -113,36 +78,25 @@ module.exports =
     return name
 
 
-  createSnapshot: (browser, openSettings = yes) ->
+  createSnapshot: (browser) ->
 
-    upgradeSelector  = '.kdmodal.computeplan-modal .custom-link-view'
-    labelSelector    = '.kdlistitemview-snapshot .info .label'
-    snapshotSelector = '.snapshots .kdlistitemview-snapshot:first-child'
+    upgradeSelector = '.kdmodal.computeplan-modal .custom-link-view'
 
-    if openSettings
-      @attemptCreateSnapshot(browser)
+    @attemptCreateSnapshot(browser)
 
-    browser.element 'css selector',snapshotSelector , (result) =>
-      if result.status is 0
-        console.log '✔ Snapshot exits. Ending test...'
-      else
-        browser.pause 3000 #Wait for the modal for upgrading to be displayed or not
+    browser.pause 6000 #Wait for the modal for upgrading to be displayed or not
 
-        browser.element 'css selector', upgradeSelector, (result) =>
+    browser.isVisible upgradeSelector, (result) ->
 
-          if result.status is 0 # upgrade account then create snapshot
-            browser.click(upgradeSelector)
-            helpers.selectPlan(browser)
-            helpers.fillPaymentForm(browser)
-            browser.url helpers.getUrl() + '/IDE'
-            @attemptCreateSnapshot(browser)
+      if result.value
+         browser.click(upgradeSelector)
+         helpers.selectPlan(browser)
+         helpers.fillPaymentForm(browser)
+         browser.url helpers.getUrl() + '/IDE'
 
-          name = @nameSnapshot(browser)
+    @attemptCreateSnapshot(browser)
 
-          browser
-            .waitForElementVisible labelSelector, 300000
-            .assert.containsText   labelSelector, name #Assertion
-
+    return @nameSnapshot(browser)
 
   assertSnapshotPresent: (browser, name, reverse=false) ->
 
@@ -170,8 +124,8 @@ module.exports =
 
   deleteSnapshot: (browser) ->
 
-    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot:first-child"
-    deleteSelector  = "#{elementSelector} .buttons .delete"
+    elementSelector = ".kdlistview .kdlistitemview-snapshot.snapshot"
+    deleteSelector  = ".kdlistitemview-snapshot .buttons .delete"
     confirmSelector = ".kdmodal .kdmodal-buttons .red"
 
     browser
@@ -182,7 +136,6 @@ module.exports =
       .waitForElementVisible confirmSelector, 20000
       .click                 confirmSelector
 
-
   openResizeVmModal: (browser) ->
 
     resizeSelector  = ".disk-usage-info .footline .resize"
@@ -192,6 +145,7 @@ module.exports =
     browser
       .waitForElementVisible resizeSelector, 20000
       .click                 resizeSelector
+
 
 
   clickAddVMButton: (browser) ->
@@ -210,13 +164,11 @@ module.exports =
   clickAddKodingVMButton: (browser) ->
 
     modalSelector  = '.environments-modal'
-    itemSelector   = "#{modalSelector} .machines-item:not(.header)"
-    buttonSelector = "#{modalSelector} .kdbutton.add-vm-button"
+    buttonSelector = modalSelector + ' .kdbutton.add-vm-button'
 
     browser
-      .waitForElementVisible   modalSelector,  50000 # Assertion
-      .waitForElementVisible   itemSelector,   50000 # Assertion
-      .waitForElementVisible   buttonSelector, 50000 # Assertion
+      .waitForElementVisible   modalSelector, 20000 # Assertion
+      .waitForElementVisible   buttonSelector, 20000 # Assertion
       .click                   buttonSelector
 
 
@@ -228,11 +180,11 @@ module.exports =
 
   addDomain: (browser, user) ->
 
-    buttonSelector       = '.domains .kdheaderview button.add-button'
+    buttonSelector     = '.domains .kdheaderview button.add-button'
     buttonLoaderSelector = '.add-view button.loading'
-    paragraph            = helpers.getFakeText()
-    createDomainName     = paragraph.split(' ')[0]
-    domainName           = createDomainName + '.' + user.username + '.dev.koding.io'
+    paragraph          = helpers.getFakeText()
+    createDomainName   = paragraph.split(' ')[0]
+    domainName         = createDomainName + '.' + user.username + '.dev.koding.io'
 
     @openDomainSettings(browser)
 
@@ -266,11 +218,11 @@ module.exports =
   clickCreateVMButton: (browser) ->
 
     browser
-      .waitForElementVisible    '.env-modal.paid-plan', 50000
+      .waitForElementVisible    '.env-modal.paid-plan', 25000
       .click                    '.env-modal.paid-plan button'
-      .waitForElementNotVisible '.env-modal.paid-plan', 50000
-      .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 50000
-
+      .waitForElementNotVisible '.env-modal.paid-plan', 250000
+      .waitForElementVisible    '.my-machines .koding-vm-1 a:first-child', 25000
+      .end()
 
   nameVM: (browser, name) ->
 

@@ -1,49 +1,75 @@
-kd                        = require 'kd'
-KDButtonView              = kd.ButtonView
-KDCustomHTMLView          = kd.CustomHTMLView
-globals                   = require 'globals'
-BaseStackTemplateListItem = require 'app/stacks/basestacktemplatelistitem'
+kd             = require 'kd'
+KDButtonView   = kd.ButtonView
+KDListItemView = kd.ListItemView
+JView          = require 'app/jview'
 
 
-module.exports = class AccountCredentialListItem extends BaseStackTemplateListItem
+module.exports = class AccountCredentialListItem extends KDListItemView
 
-  constructor: (options = {}, data) ->
+  JView.mixin @prototype
 
+  constructor: (options = {}, data)->
     options.cssClass = kd.utils.curry "credential-item clearfix", options.cssClass
-
     super options, data
 
-    delegate            = @getDelegate()
-    { providers }       = globals.config
-    { owner, provider } = @getData()
+    delegate  = @getDelegate()
+    { owner } = @getData()
 
-    @providerTag = new KDCustomHTMLView
-      cssClass : 'tag'
-      partial  : provider
+    @deleteButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "delete"
+      title    : "delete"
+      callback : delegate.lazyBound 'deleteItem', this
 
-    @providerTag.setCss 'background-color', providers[provider].color
+    @shareButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "share"
+      title    : "share"
+      disabled : !owner
+      callback : delegate.lazyBound 'shareItem', this
+
+    @showCredentialButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "show"
+      title    : "show"
+      disabled : !owner
+      callback : delegate.lazyBound 'showItemContent', this
+
+    @participantsButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "participants"
+      title    : "participants"
+      disabled : !owner
+      callback : delegate.lazyBound 'showItemParticipants', this
+
+    @isBootstrappedButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "bootstrapped"
+      title    : "is Bootstrapped?"
+      callback : delegate.lazyBound 'checkIsBootstrapped', this
+
+    @bootstrapButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "bootstrap"
+      title    : "bootstrap"
+      callback : delegate.lazyBound 'bootstrap', this
+
+    @verifyButton = new KDButtonView
+      # iconOnly : yes
+      cssClass : "verify"
+      title    : "verify"
+      callback : delegate.lazyBound 'verify', this
 
 
-  settingsMenu: ->
-
-    { owner, provider } = @getData()
-    delegate            = @getDelegate()
-    @menu               = {}
-
-    @addMenuItem 'Show', delegate.lazyBound 'showItemContent', this  if owner
-
-    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
-    @addMenuItem 'Edit', delegate.lazyBound 'editItem', this  unless provider is 'aws'
-
-    @addMenuItem 'Delete', delegate.lazyBound 'deleteItem', this
-
-    return @menu
-
-
-  pistachio: ->
+  pistachio:->
     """
-    <div class="credential-info">
-      {{> @providerTag}} {div.title{#(title)}}
+    <div class='credential-info'>
+      {h4{#(title)}} {p{#(provider)}}
     </div>
-    <div class="buttons">{{> @settings}}</div>
+    <div class='buttons'>
+      {{> @showCredentialButton}}{{> @deleteButton}}
+      {{> @shareButton}}{{> @participantsButton}}
+      {{> @isBootstrappedButton}}{{> @bootstrapButton}}
+      {{> @verifyButton}}
+    </div>
     """

@@ -1,6 +1,4 @@
-$                     = require 'jquery'
 kd                    = require 'kd'
-hljs                  = require 'highlight.js'
 JView                 = require 'app/jview'
 CodeSetupView         = require './codesetupview'
 { jsonToYaml }        = require '../yamlutils'
@@ -9,10 +7,8 @@ GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
 CLONE_REPO_TEMPLATES  =
-  github              : 'git clone git@github.com/your-organization/reponame.git'
-  bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
-  gitlab              : 'git clone git@gitlab.com/your-organization/reponame.git'
-  yourgitserver       : 'git clone git@yourgitserver.com/reponame.git'
+  github              : 'git clone git@github.com/username/reponame.git'
+  owngitserver        : 'git clone git@yourgitserver.com/reponame.git'
 PROVIDER_TEMPLATES    =
   aws                 :
     aws               :
@@ -56,9 +52,6 @@ module.exports = class OnboardingView extends JView
         @updateStackTemplate()
         @emit 'ScrollTo', 'bottom'  if scrollToBottom
 
-      page.on 'HiliteTemplate', (type, keyword) =>
-        kd.utils.wait 737, => @hiliteTemplate type, keyword
-
     @on 'PageNavigationRequested', (direction) =>
       pageIndex  = @pages.indexOf @currentPage
       nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
@@ -92,18 +85,6 @@ module.exports = class OnboardingView extends JView
       else
         @nextButton.disable()
         @stackPreview.hide()
-
-    @configurationView.tabView.on 'PaneAdded', => @codeSetupView.addPane()
-
-    @configurationView.tabView.on 'PaneRemoved', =>
-      @codeSetupView.tabView.removePane @codeSetupView.tabView.panes.last
-
-    @configurationView.on 'InstanceTypeChanged', (type) =>
-      for pane, index in @configurationView.tabView.panes
-        label = @codeSetupView.tabView.panes[index]?.instanceTypeLabel
-        label.updatePartial pane.instanceTypeSelectBox.getValue()  if label
-
-        @hiliteTemplate 'line', type
 
 
   createFooter: ->
@@ -141,10 +122,10 @@ module.exports = class OnboardingView extends JView
 
   updateStackTemplate: ->
 
-    selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
-    codeSetupPanes    = @codeSetupView.tabView.panes
-    serverConfigPanes = @configurationView.tabView.panes
-    selectedInstances = {}
+    selectedProvider    = @providerSelectionView.selected?.getOption 'provider'
+    selectedCodeService = @codeSetupView.selected?.getOption 'service'
+    serverConfigPanes   = @configurationView.tabView.panes
+    selectedInstances   = {}
 
     serverConfigPanes.forEach (pane, index) ->
 
@@ -152,14 +133,12 @@ module.exports = class OnboardingView extends JView
       { configView, instanceTypeSelectBox } = pane
       { configurationToggles } = configView
 
-      serverConfig    = selectedInstances["example_#{++index}"] =
-        instance_type : instanceTypeSelectBox.getValue()
-        ami           : ''
-        tags          :
-          Name        : "${var.koding_user_username}-${var.koding_group_slug}"
+      serverConfig = selectedInstances["example_#{++index}"] =
+        instance_type: instanceTypeSelectBox.getValue()
+        ami: ''
 
       configurationToggles.forEach (toggle) ->
-        selectedServices.push (toggle.getOption 'package' or toggle.getOption 'name')  if toggle.getValue()
+        selectedServices.push toggle.getOption 'name'  if toggle.getValue()
 
       if selectedServices.length
         serverConfig.user_data = "apt-get -y install #{selectedServices.join ' '}"
@@ -169,25 +148,19 @@ module.exports = class OnboardingView extends JView
       resource       :
         aws_instance : selectedInstances
 
-    codeSetupPanes.forEach (pane, index) ->
-      selectedService = pane.view.selected?.getOption 'service'
-      cloneText       = CLONE_REPO_TEMPLATES[selectedService]
-      serverConfig    = stackTemplate.resource.aws_instance["example_#{++index}"]
-      groupSlug       = kd.singletons.groupsController.getCurrentGroup().slug
-      user_data       = serverConfig?.user_data
+    if selectedCodeService
+      cloneText = CLONE_REPO_TEMPLATES[selectedCodeService]
 
-      if cloneText
+      for serverName, serverConfig of stackTemplate.resource.aws_instance
+        { user_data } = serverConfig
 
-        cloneText = cloneText.replace 'your-organization', groupSlug
-
-        if serverConfig
-          if user_data
-            serverConfig.user_data = """
-              #{user_data}
-              #{cloneText}
-            """
-          else
-            serverConfig.user_data = cloneText  if serverConfig
+        if user_data
+          serverConfig.user_data = """
+            #{user_data}
+            #{cloneText}
+          """
+        else
+          serverConfig.user_data = cloneText
 
 
     { content, err } = jsonToYaml stackTemplate
@@ -205,38 +178,21 @@ module.exports = class OnboardingView extends JView
     codeMarkup    = ''
     templateLines = content.split '\n'
 
+    for index in [1...templateLines.length]
+      linesMarkup += "<div>#{index}</div>"
+
     @stackContent.destroySubViews()
+    @stackContent.addSubView new kd.CustomHTMLView
+      cssClass : 'lines'
+      partial  : "#{linesMarkup}"
 
-    for line, index in templateLines when line
-      @stackContent.addSubView new kd.CustomHTMLView
-        cssClass : 'line'
-        partial  : """
-          <div class="number">#{++index}</div>
-          <pre><code class="coffee">#{line}</code></pre>
-        """
-
-    hljs.highlightBlock line  for line in document.querySelectorAll '.line code'
-
-
-  hiliteTemplate: (type, keyword) ->
-
-    commonSelector = $ ".stack-preview .line:contains('#{keyword}')"
-
-    if type is 'all'
-      lines = document.querySelectorAll '.stack-preview .line'
-      line.classList.add 'hilite'  for line in lines
-
-    else if type is 'line'
-      if tabView = @currentPage.tabView
-        if tabView.getActivePaneIndex() is 1
-          commonSelector.last().addClass 'hilite'
-        else
-          commonSelector.first().addClass 'hilite'
-      else
-        commonSelector.addClass 'hilite'
-
-    else if type is 'block'
-      commonSelector.prev().nextAll().addClass 'hilite'
+    @stackContent.addSubView new kd.CustomHTMLView
+      cssClass : 'code'
+      partial  : applyMarkdown """
+        ```coffee
+        #{content}
+        ```
+      """
 
 
   pistachio: ->

@@ -7,7 +7,6 @@ remote = require('./remote').getInstance()
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
-isKoding = require './util/isKoding'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -53,7 +52,7 @@ module.exports = class SocialApiController extends KDController
     fn = switch dataPath
       when 'followedChannels' then mapChannels
       when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
-      when 'privateMessages'                   then mapCreatedChannel
+      when 'privateMessages'                   then mapPrivateMessages
       when 'bot' then mapBotChannel
 
     return fn(data) or []
@@ -125,6 +124,10 @@ module.exports = class SocialApiController extends KDController
     {accountOldId, replies, interactions}           = data
     {createdAt, deletedAt, updatedAt, typeConstant} = plain
 
+    parentId = if typeConstant is 'reply' and data.parentId
+    then data.parentId
+    else null
+
     cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
     if cachedItem
@@ -139,6 +142,8 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
+
+    m.parentId = parentId
 
     # since node.js(realtime) and golang(regular fetch) is returning different
     # timestamps, these are to unify all timestamp values. ~Umut
@@ -208,8 +213,8 @@ module.exports = class SocialApiController extends KDController
       callback  kd.getSingleton("groupsController").getCurrentGroup()
 
 
-  mapCreatedChannel: mapCreatedChannel
-  mapCreatedChannel = (messages) ->
+  mapPrivateMessages: mapPrivateMessages
+  mapPrivateMessages = (messages) ->
 
     messages = [].concat(messages)
     return [] unless messages?.length > 0
@@ -257,17 +262,10 @@ module.exports = class SocialApiController extends KDController
 
     item._id                 = data.id
     item.isParticipant       = channel.isParticipant
-    item.accountOldId        = channel.accountOldId
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload
-
-    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
-      item.name = data.purpose
-      item.purpose = item.payload?.description or ''
-    else
-      item.name = data.name
-      item.purpose = data.purpose
-
+    item.name                = data.name
+    item.purpose             = data.purpose
     item.participantCount    = channel.participantCount
     item.participantsPreview = mapAccounts channel.participantsPreview
     item.unreadCount         = channel.unreadCount
@@ -382,55 +380,39 @@ module.exports = class SocialApiController extends KDController
 
     message.isShown = yes
 
-  registerAndOpenChannel : registerAndOpenChannel = (group, socialApiChannel, callback) ->
+
+  registerAndOpenChannels = (socialApiChannels) ->
+
     {socialapi} = kd.singletons
-
-    channelName = generateChannelName socialApiChannel
-
-    if realtimeChannel = socialapi.openedChannels[channelName]
-      # this means, someone tried to open this channel before and it is not
-      # registered yet, so wait until subscription succeed and continue on the
-      # operation
-      if not realtimeChannel.channel
-        return socialapi.on "ChannelRegistered-#{channelName}", (socialApiChannel) ->
-          channelName = generateChannelName socialApiChannel
-          callback null, socialapi.openedChannels[channelName]
-      else
-        return callback null, realtimeChannel
-
-    socialapi.cacheItem socialApiChannel
-    socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
-
-    {name, typeConstant, token, id} = socialApiChannel
-
-    subscriptionData =
-      group      : group.slug
-      channelType: typeConstant
-      channelName: name
-      channelId  : id
-      token      : token
-
-    kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
-
-      return callback err  if err
-
-      registeredChan = {delegate: realtimeChannel, channel: socialApiChannel}
-      # add opened channel to the openedChannels list, for later use
-      socialapi.openedChannels[channelName] = registeredChan
-
-      # start forwarding private channel evetns to the original social channel
-      forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
-
-      # notify listener
-      socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
-
-      return callback null, registeredChan
-
-
-  registerAndOpenChannels : registerAndOpenChannels = (socialApiChannels) ->
     getCurrentGroup (group)->
       socialApiChannels.forEach (socialApiChannel) ->
-        registerAndOpenChannel group, socialApiChannel, kd.noop
+        channelName = generateChannelName socialApiChannel
+        return  if socialapi.openedChannels[channelName]
+        socialapi.cacheItem socialApiChannel
+        socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
+
+        {name, typeConstant, token, id} = socialApiChannel
+
+        subscriptionData =
+          group      : group.slug
+          channelType: typeConstant
+          channelName: name
+          channelId  : id
+          token      : token
+
+        kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
+
+          return kd.warn err  if err
+
+          # add opened channel to the openedChannels list, for later use
+          socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
+
+          # start forwarding private channel evetns to the original social channel
+          forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
+
+          # notify listener
+          socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
+
 
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
@@ -541,15 +523,6 @@ module.exports = class SocialApiController extends KDController
 
       return callback null, item
 
-    # if type is either group or announcement and we can't find it it means
-    # that it's not loaded at all, and since we know that those are present in
-    # prefetchedData['followedChannels'] so load them and try to retrieve item
-    # after that again.
-    if not item and type in ['group', 'announcement']
-      @getPrefetchedData 'followedChannels'
-      item = @retrieveCachedItem type, id
-      return callback null, item  if item
-
     kallback = (err, data) =>
       return callback err  if err
 
@@ -640,29 +613,24 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'listLikers'
       validateOptionsWith: ['id']
 
-    sendMessageToChannel : messageRequesterFn
-      fnName             : 'sendMessageToChannel'
-      validateOptionsWith: ['body', 'channelId']
-      mapperFn           : mapCreatedChannel
-
     initPrivateMessage   : messageRequesterFn
       fnName             : 'initPrivateMessage'
       validateOptionsWith: ['body', 'recipients']
-      mapperFn           : mapCreatedChannel
+      mapperFn           : mapPrivateMessages
 
     sendPrivateMessage   : messageRequesterFn
       fnName             : 'sendPrivateMessage'
       validateOptionsWith: ['body', 'channelId']
-      mapperFn           : mapCreatedChannel
+      mapperFn           : mapPrivateMessages
 
     search               : messageRequesterFn
       fnName             : 'search'
       validateOptionsWith: ['name']
-      mapperFn           : mapCreatedChannel
+      mapperFn           : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
       fnName             : 'fetchPrivateMessages'
-      mapperFn           : mapCreatedChannel
+      mapperFn           : mapPrivateMessages
 
     create               : channelRequesterFn
       fnName             : 'create'
@@ -693,11 +661,6 @@ module.exports = class SocialApiController extends KDController
     list                 : channelRequesterFn
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
-
-    createChannelWithParticipants   : channelRequesterFn
-      fnName                        : 'createChannelWithParticipants'
-      validateOptionsWith           : ['body', 'recipients']
-      mapperFn                      : mapCreatedChannel
 
     fetchActivities      : (options = {}, callback = kd.noop)->
 
@@ -824,20 +787,6 @@ module.exports = class SocialApiController extends KDController
       successFn          : removeChannel
 
     revive               : mapChannel
-
-    byParticipants: (options, callback) ->
-
-      serialized = options.participants
-        .map (id) -> "id=#{id}"
-        .join "&"
-
-      doXhrRequest
-        endPoint: "/api/social/channel/by/participants?#{serialized}"
-        type: 'GET'
-      , (err, result) ->
-        return callback err  if err
-        return callback null, mapChannels result
-
 
   moderation:
     link     : (options, callback) ->

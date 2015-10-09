@@ -143,14 +143,14 @@ module.exports =
 
   openTeamSettingsModal: (browser) ->
 
-    avatarareaPopup  = '.avatararea-popup.team'
-    teamDashboard    = '.AppModal--admin'
-    teamSettingsLink = "#{avatarareaPopup} .admin a"
+    avatarareaPopup      = '.avatararea-popup'
+    teamDashboard        = '.AppModal--admin'
+    teamSettingsLinkItem = "#{avatarareaPopup} .content a[href='/Admin']"
 
     browser
       .waitForElementVisible  avatarareaPopup, 20000
-      .waitForElementVisible  teamSettingsLink, 20000
-      .click                  teamSettingsLink
+      .waitForElementVisible  teamSettingsLinkItem, 20000
+      .click                  teamSettingsLinkItem
       .waitForElementVisible  teamDashboard, 20000 # Assertion
       .pause                  200 # Wait for team settings
       .assert.containsText    teamDashboard, 'Team Settings' # Assertion
@@ -159,50 +159,13 @@ module.exports =
   seeTeamNameOnsideBar: (browser, name) ->
 
     sidebarSelector = '.with-sidebar [testpath=main-sidebar]'
-    listSelector    = "#{sidebarSelector} .SidebarListItem"
 
     browser
       .waitForElementVisible  sidebarSelector, 20000
-      .waitForElementVisible  listSelector, 20000
       .assert.containsText    sidebarSelector, name
 
 
   clickTeamSettings: (browser) ->
 
-    helpers.openAvatarAreaModal(browser, yes)
+    helpers.openAvatarAreaModal(browser)
     @openTeamSettingsModal(browser)
-
-
-  startStackCreate: (browser) ->
-
-    welcomePageSelector = '.content-page.welcome'
-    stackSelector       = "#{welcomePageSelector} a[href='/Admin/Stacks']"
-    overlaySelector     = '.AppModal--admin'
-    getstartedSelector  = "#{overlaySelector} .stack-onboarding.get-started"
-    buttonSelector      = "#{getstartedSelector} .header button"
-
-    browser
-      .waitForElementVisible  welcomePageSelector, 20000
-      .waitForElementVisible  stackSelector, 20000
-      .click                  stackSelector
-      .waitForElementVisible  overlaySelector, 20000
-      .waitForElementVisible  getstartedSelector, 20000
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector
-
-
-  openInvitationsTab: (browser) ->
-
-    tabsSelector              = ".kdmodal-content .kdtabhandle-tabs"
-    invitationsButtonSelector = "#{tabsSelector} .invitations"
-    invitationsPageSelector   = ".kdmodal-content  .AppModal--admin-tabs .invitations"
-
-    browser
-      .waitForElementVisible  tabsSelector, 20000
-      .waitForElementVisible  "#{tabsSelector} .invitations", 20000
-      .waitForElementVisible  invitationsButtonSelector, 20000
-      .click                  invitationsButtonSelector
-      .waitForElementVisible  invitationsPageSelector, 20000 # Assertion
-      .pause                  2000 # wait for page load
-
-

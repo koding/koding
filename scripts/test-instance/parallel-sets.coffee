@@ -72,7 +72,6 @@ module.exports = [
 
   [
     { name : 'collaboration collaboration' }
-    { name : 'environments snapshot' }
   ]
 
   [

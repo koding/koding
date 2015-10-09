@@ -21,10 +21,6 @@ build:
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
     - script:
-        name: create version file
-        code: |
-          $WERCKER_ROOT/scripts/create_version.sh
-    - script:
         name: build started
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
@@ -71,7 +67,7 @@ build:
           ./configure --config prod
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
@@ -215,10 +211,11 @@ deploy:
         name: deploy started
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "<$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH started" "deploying" 5
-    - script:
-        name: create version file
-        code: |
-          $WERCKER_ROOT/scripts/create_version.sh
+    - create-file:
+        name: write version file
+        filename: $WERCKER_ROOT/VERSION
+        content: ${WERCKER_GIT_COMMIT:0:8}
+        overwrite: true
     - script:
         name: setup nvm
         code: |
@@ -228,23 +225,15 @@ deploy:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
     - script:
-        name: build application
-        code: |
-          cd $WERCKER_ROOT
-
-          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
-
-          ./scripts/install-npm.sh -d client -u
-
-          make -C client dist
-    - script:
         name: zip
         code: |
           cd $WERCKER_ROOT
 
+          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME
+
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
-          zip -q --symlinks -r $(cat $WERCKER_ROOT/ARCHIVE_NAME) .
+          zip -q --symlinks -r $ARCHIVE .
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
     - script:
@@ -257,10 +246,10 @@ deploy:
         secret-key: $S3_KEY_SECRET
         app-name: koding
         env-name: $EB_ENV_NAME
-        version-label: $(cat $WERCKER_ROOT/ARCHIVE_NAME)
+        version-label: $ARCHIVE
         region: $EB_ENV_REGION
         s3-bucket: $S3_EB_DEPLOY-$EB_ENV_REGION
-        s3-key: $(cat $WERCKER_ROOT/ARCHIVE_NAME)
+        s3-key: $ARCHIVE
     - script:
         name: notify-cebeci with eb trigger
         code: |

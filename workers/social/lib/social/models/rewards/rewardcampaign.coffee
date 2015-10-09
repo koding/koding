@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 { Model }   = require 'bongo'
 jraphical   = require 'jraphical'
 KodingError = require '../../error'
@@ -168,7 +169,7 @@ module.exports = class JRewardCampaign extends jraphical.Module
     unless callback
       [size, callback] = [@perEventAmount, size]
 
-    @update { $inc: { givenAmount: size } } , callback
+    @update $inc: givenAmount: size , callback
 
 
 
@@ -211,7 +212,7 @@ module.exports = class JRewardCampaign extends jraphical.Module
     JRewardCampaign.fetchCampaign campaignName, (err, campaign) ->
 
       return callback err  if err
-      return callback null, { isValid: no }  unless campaign
+      return callback null, isValid: no  unless campaign
 
       { maxAmount,
         givenAmount,
@@ -221,12 +222,12 @@ module.exports = class JRewardCampaign extends jraphical.Module
 
       if Date.now() < startDate.getTime()
         console.info "campaign #{campaignName} is not started yet"
-        return callback null, { isValid: no }
+        return callback null, isValid: no
 
       # if date is valid
       if Date.now() > endDate.getTime()
         console.info "date is not valid for campaign #{campaignName}"
-        return callback null, { isValid: no }
+        return callback null, isValid: no
 
       # if campaign initial amount is 0
       # then this is an infinite campaign
@@ -236,7 +237,7 @@ module.exports = class JRewardCampaign extends jraphical.Module
       # if campaign hit the limits
       if givenAmount + perEventAmount > maxAmount
         console.info "hit the max amount for #{campaignName} campaign"
-        return callback null, { isValid: no }
+        return callback null, isValid: no
 
       return callback null, { isValid: yes, campaign }
 
@@ -245,7 +246,7 @@ module.exports = class JRewardCampaign extends jraphical.Module
 
   update$: permit 'manage campaign',
     success: (client, data, callback) ->
-      @update { $set: data }, callback
+      @update $set: data, callback
 
 
   remove$: permit 'manage campaign',

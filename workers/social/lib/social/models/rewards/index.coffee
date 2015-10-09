@@ -112,65 +112,6 @@ module.exports = class JReward extends jraphical.Message
       callback null, res[0]?.total ? 0
 
 
-  fetchReferrer = (account, callback) ->
-
-    unless referrerUsername = account.referrerUsername
-      return callback null # User doesn't have any referrer
-
-    # get referrer
-    JAccount.one { 'profile.nickname': referrerUsername }, callback
-
-
-  confirmRewards = (source, target, callback) ->
-
-    JReward.update
-      providedBy : source.getId()
-      originId   : target.getId()
-    ,
-      $set       : { confirmed : yes }
-    , (err) ->
-      return callback err  if err?
-
-      options = { originId: target.getId() }
-      JReward.calculateAndUpdateEarnedAmount options, callback
-
-
-  createRewards = (campaign, source, target, callback) ->
-
-    reward   = null
-    type     = campaign.type
-    unit     = campaign.unit
-    originId = target.getId()
-
-    queue = [
-
-      ->
-
-        reward = new JReward {
-          amount         : campaign.perEventAmount
-          sourceCampaign : campaign.name
-          providedBy     : source.getId()
-          originId, type, unit
-        }
-
-        reward.save (err) ->
-          return callback err  if err
-          queue.next()
-
-      ->
-
-        campaign.increaseGivenAmount (err) ->
-          logError "Couldn't increase given amount:", err  if err?
-
-          callback null
-
-    ]
-
-    daisy queue
-
-
-  logError = (rest...) -> console.error '[Rewards]', rest...
-
 
   # Private Methods
   # ---------------
@@ -333,7 +274,74 @@ module.exports = class JReward extends jraphical.Message
   # Background Processes
   # --------------------
 
-  addUserRegisteredListener = ->
+  do ->
+
+    logError = (rest...) -> console.error '[Rewards]', rest...
+
+    fetchReferrer = (account, callback) ->
+
+      unless referrerUsername = account.referrerUsername
+        return callback null # User doesn't have any referrer
+
+      # get referrer
+      JAccount.one { 'profile.nickname': referrerUsername }, (err, referrer) ->
+
+        return callback err  if err
+
+        unless referrer
+          # if referrer not fonud then do nothing and return
+          return callback null # Referrer couldn't found
+
+        callback null, referrer
+
+
+    confirmRewards = (source, target, callback) ->
+
+      JReward.update
+        providedBy : source.getId()
+        originId   : target.getId()
+      ,
+        $set       : { confirmed : yes }
+      , (err) ->
+        return callback err  if err?
+
+        options = { originId: target.getId() }
+        JReward.calculateAndUpdateEarnedAmount options, callback
+
+
+    createRewards = (campaign, source, target, callback) ->
+
+      reward   = null
+      type     = campaign.type
+      unit     = campaign.unit
+      originId = target.getId()
+
+      queue = [
+
+        ->
+
+          reward = new JReward {
+            amount         : campaign.perEventAmount
+            sourceCampaign : campaign.name
+            providedBy     : source.getId()
+            originId, type, unit
+          }
+
+          reward.save (err) ->
+            return callback err  if err
+            queue.next()
+
+        ->
+
+          campaign.increaseGivenAmount (err) ->
+            logError "Couldn't increase given amount:", err  if err?
+
+            callback null
+
+      ]
+
+      daisy queue
+
 
     JRewardCampaign = require './rewardcampaign'
 
@@ -383,8 +391,6 @@ module.exports = class JReward extends jraphical.Message
 
       daisy queue
 
-
-  addEmailConfimedListener = ->
 
     # When users confirm their emails we need to confirm
     # existing rewards for them.
@@ -442,11 +448,5 @@ module.exports = class JReward extends jraphical.Message
       ]
 
       daisy queue
-
-
-  do ->
-
-    addUserRegisteredListener()
-    addEmailConfimedListener()
 
 

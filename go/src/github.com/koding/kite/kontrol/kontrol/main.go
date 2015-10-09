@@ -32,12 +32,11 @@ type Kontrol struct {
 	Version  string `default:"0.0.1"`
 
 	Postgres struct {
-		Host           string `default:"localhost"`
-		Port           int    `default:"5432"`
-		Username       string
-		Password       string
-		DBName         string
-		ConnectTimeout int `default:"20"`
+		Host     string `default:"localhost"`
+		Port     int    `default:"5432"`
+		Username string
+		Password string
+		DBName   string
 	}
 }
 

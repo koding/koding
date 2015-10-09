@@ -47,9 +47,7 @@ func IsUserNotConfirmedFn(user *models.User, _ *Warning) (bool, error) {
 // IsUserVMsEmptyFn checks if user has any vms. If not, we don't send email
 // saying their vms will be deleted.
 func IsUserVMsEmptyFn(user *models.User, _ *Warning) (bool, error) {
-	machines, err := modelhelper.GetMachinesByUsernameAndProvider(
-		user.Name, modelhelper.MachineProviderKoding,
-	)
+	machines, err := modelhelper.GetMachinesByUsername(user.Name)
 	if err != nil {
 		return false, err
 	}

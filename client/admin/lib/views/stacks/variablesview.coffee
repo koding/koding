@@ -1,14 +1,15 @@
 kd                         = require 'kd'
 remote                     = require('app/remote').getInstance()
+
 KDView                     = kd.View
 KDCustomHTMLView           = kd.CustomHTMLView
-StackBaseEditorTabView     = require './stackbaseeditortabview'
+
 requirementsParser         = require './requirementsparser'
 VariablesEditorView        = require './editors/variableseditorview'
 { yamlToJson, jsonToYaml } = require './yamlutils'
 
 
-module.exports = class VariablesView extends StackBaseEditorTabView
+module.exports = class VariablesView extends KDView
 
   STATES    =
     INITIAL : "You can define your custom variables,
@@ -156,6 +157,5 @@ module.exports = class VariablesView extends StackBaseEditorTabView
         return kd.warn err  if err
 
         @_activeCredential = credential
-
-        if (Object.keys data.meta).length
-          @getAce().setContent (jsonToYaml data.meta).content
+        content = (jsonToYaml data.meta).content
+        @getAce().setContent content

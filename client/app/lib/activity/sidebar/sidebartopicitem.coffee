@@ -76,8 +76,9 @@ module.exports = class SidebarTopicItem extends SidebarItem
   pistachio: ->
 
     """
-    <span class="ttag">{em{#(name)}}</span>
+    {span.ttag{#(name)}}
     {{> @followButton}}
     {{> @unreadCount}}
     """
+
 

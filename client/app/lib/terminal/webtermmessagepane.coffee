@@ -64,7 +64,7 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
     kd.utils.killRepeat @loader.repeater
     @loader.hide()
 
-    if err.message in ["ErrNoSession", "session doesn't exists"]
+    if err.message is "ErrNoSession"
 
       @setMessage \
         "This session is not valid anymore,

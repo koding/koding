@@ -24,7 +24,7 @@ module.exports = class ThreadSidebarContentBox extends React.Component
 
 
   render: ->
-    <div className={kd.utils.curry 'ThreadSidebarContentBox', @props.className}>
+    <div className="ThreadSidebarContentBox">
       {@renderHeader()}
       <section className="ThreadSidebarContentBox-content">
         {@props.children}

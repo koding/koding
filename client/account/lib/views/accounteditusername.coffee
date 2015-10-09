@@ -272,13 +272,14 @@ module.exports = class AccountEditUsername extends JView
         title    : message
         duration : 3500
 
-    remote.api.JUser.verifyByPin resendIfExists: yes, (err) =>
+    whoami().fetchFromUser "email", (err, email) =>
+      return notify err.message, 3500  if err
 
-      @emailForm.fields.verifyEmail.hide()
-      @emailForm.inputs.verifyEmail.hide()
-      return showError err if err
-
-      notify "We've sent you a confirmation mail.", 3500
+      remote.api.JPasswordRecovery.resendVerification nickname, (err) =>
+        @emailForm.fields.verifyEmail.hide()
+        @emailForm.inputs.verifyEmail.hide()
+        return showError err if err
+        notify "We've sent you a confirmation mail.", 3500
 
   confirmCurrentPassword: (opts, callback) ->
 

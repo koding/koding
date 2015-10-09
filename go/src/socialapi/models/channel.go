@@ -517,8 +517,9 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 
 	bongoQuery := &bongo.Query{
 		Selector: map[string]interface{}{
-			"group_name":    q.GroupName,
-			"type_constant": q.Type,
+			"group_name":       q.GroupName,
+			"type_constant":    q.Type,
+			"privacy_constant": Channel_PRIVACY_PUBLIC,
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
@@ -590,54 +591,6 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	}
 
 	return *c, nil
-}
-
-// ByParticipants fetches the channels by their respective participants
-func (c *Channel) ByParticipants(participants []int64, q *request.Query) ([]Channel, error) {
-	if q.GroupName == "" {
-		return nil, ErrGroupNameIsNotSet
-	}
-
-	if len(participants) == 0 {
-		return nil, ErrChannelParticipantIsNotSet
-	}
-
-	if q.Type == "" {
-		q.Type = Channel_TYPE_PRIVATE_MESSAGE
-	}
-
-	var channelIds []int64
-
-	cp := NewChannelParticipant()
-
-	err := bongo.B.DB.
-		Model(cp).
-		Table(cp.BongoName()).
-		Joins(
-		`left join api.channel on
-		 api.channel_participant.channel_id = api.channel.id`).
-		Where(
-		`api.channel_participant.account_id IN ( ? ) and
-		 api.channel_participant.status_constant = ? and
-		 api.channel.group_name = ? and
-		 api.channel.deleted_at < '0001-01-02 00:00:00+00' and
-		 api.channel.type_constant = ?`,
-		participants,
-		ChannelParticipant_STATUS_ACTIVE,
-		q.GroupName,
-		q.Type,
-	).
-		Group("channel_participant.channel_id, channel.created_at").
-		Having("COUNT (channel_participant.channel_id) = ?", len(participants)).
-		Order("channel.created_at").
-		Limit(q.Limit).
-		Offset(q.Skip).
-		Pluck("api.channel_participant.channel_id", &channelIds).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return c.FetchByIds(channelIds)
 }
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
@@ -835,7 +788,7 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	// * they are in a group different from koding
 	// ** trying to follow/read a topic content
 	groupChan := NewChannel()
-	if err := groupChan.FetchGroupChannel(c.GroupName); err != nil {
+	if err := groupChan.FetchPublicChannel(c.GroupName); err != nil {
 		return false, err
 	}
 
@@ -958,7 +911,7 @@ func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	return cp.IsParticipant(accountId)
 }
 
-func (c *Channel) FetchGroupChannel(groupName string) error {
+func (c *Channel) FetchPublicChannel(groupName string) error {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"group_name":    groupName,
@@ -1073,9 +1026,4 @@ func (c *Channel) ShowUnreadCount() bool {
 		c.TypeConstant == Channel_TYPE_ANNOUNCEMENT ||
 		c.TypeConstant == Channel_TYPE_TOPIC ||
 		c.TypeConstant == Channel_TYPE_BOT
-}
-
-// IsGroup checks if the channel type is a group channel
-func (c *Channel) IsGroup() bool {
-	return c.TypeConstant == Channel_TYPE_GROUP
 }

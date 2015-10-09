@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 { Model }      = require 'bongo'
 jraphical      = require 'jraphical'
 module.exports = class JReferralCampaign extends jraphical.Module
@@ -93,7 +94,7 @@ module.exports = class JReferralCampaign extends jraphical.Module
     [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
     fetchCampaign campaignName, (err, campaign) ->
       return callback err  if err
-      return callback null, { isValid: no }  unless campaign
+      return callback null, isValid: no  unless campaign
 
       { campaignGivenAmount,
         campaignInitialAmount
@@ -101,12 +102,12 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
       if Date.now() < startDate.getTime()
         console.info 'campaign is not started yet'
-        return callback null, { isValid: no }
+        return callback null, isValid: no
 
       # if date is valid
       if Date.now() > endDate.getTime()
         console.info 'date is not valid for campaign'
-        return callback null, { isValid: no }
+        return callback null, isValid: no
 
       # if campaign initial amount is 0
       # then this is an infinite campaign
@@ -115,7 +116,7 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
       # if campaign has more disk space
       if campaignGivenAmount > campaignInitialAmount
-        return callback null, { isValid: no }
+        return callback null, isValid: no
 
       return callback null, { isValid: yes, campaign }
 

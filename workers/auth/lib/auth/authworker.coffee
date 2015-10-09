@@ -1,4 +1,3 @@
-# coffeelint: disable=cyclomatic_complexity
 { EventEmitter } = require 'microemitter'
 
 module.exports = class AuthWorker extends EventEmitter
@@ -23,6 +22,8 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'topic'
     autoDelete  : yes
 
+  # due to a bug in coffeelint 1.10.1
+  # coffeelint: disable=no_implicit_braces
   constructor: (@bongo, options = {}) ->
 
     # instance options
@@ -219,10 +220,8 @@ module.exports = class AuthWorker extends EventEmitter
         if err then callback err
         else if hasPermission
           client =
-            context    :
-              group    : group.slug
-            connection :
-              delegate : account
+            context   : group   : group.slug
+            connection: delegate: account
 
           reqOptions =
             type: options.apiChannelType
@@ -245,7 +244,7 @@ module.exports = class AuthWorker extends EventEmitter
 
     checkGroupPermission = (group, account, callback) ->
       { JPermissionSet, JGroup, SocialChannel } = @bongo.models
-      client = { context: { group: group.slug }, connection: { delegate: account } }
+      client = { context: { group: group.slug }, connection: delegate: account }
       JPermissionSet.checkPermission client, 'read group activity', group,
         null, callback
 

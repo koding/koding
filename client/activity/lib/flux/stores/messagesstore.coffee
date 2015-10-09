@@ -1,6 +1,5 @@
 whoami                   = require 'app/util/whoami'
 actions                  = require '../actions/actiontypes'
-chatinputActions         = require '../chatinput/actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
 KodingFluxStore          = require 'app/flux/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
@@ -39,10 +38,6 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.EDIT_MESSAGE_BEGIN, @handleEditMessageBegin
     @on actions.EDIT_MESSAGE_SUCCESS, @handleEditMessageSuccess
     @on actions.EDIT_MESSAGE_FAIL, @handleEditMessageFail
-    @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
-    @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
-
-    @on chatinputActions.SET_LAST_MESSAGE_EDIT_MODE, @handleSetLastMessageEditMode
 
     @on actions.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
@@ -89,13 +84,18 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {string} payload.clientRequestId
    * @return {IMMessageCollection} nextState
   ###
-  handleCreateMessageBegin: (messages, { body, clientRequestId }) ->
+  handleCreateMessageBegin: (messages, { body, clientRequestId, messageId }) ->
 
     { createFakeMessage, addMessage } = MessageCollectionHelpers
 
     message = createFakeMessage clientRequestId, body
 
-    return addMessage messages, toImmutable message
+    _message = toImmutable message
+
+    if messageId
+      _message.set 'parentId', messageId
+
+    return addMessage messages, _message
 
 
   ###*
@@ -193,55 +193,6 @@ module.exports = class MessagesStore extends KodingFluxStore
 
 
   ###*
-   * It sets message editing mode
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleSetMessageEditMode: (messages, { messageId }) ->
-
-    return messages = messages.setIn [messageId, '__isEditing'], yes
-
-
-  ###*
-   * It unsets message editing mode
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.messageId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleUnsetMessageEditMode: (messages, { messageId }) ->
-
-    return messages = messages.setIn [messageId, '__isEditing'], no
-
-
-  ###*
-   * It sets last message editing mode
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.accountId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleSetLastMessageEditMode: (messages, { accountId }) ->
-
-    isLastMessageSetFound = no
-
-    return messages
-      .sortBy (message) -> message.get 'createdAt'
-      .reverse()
-      .map (message) ->
-        if (message.getIn(['account', '_id']) is accountId) and (isLastMessageSetFound is no)
-          isLastMessageSetFound = yes
-          return message.set '__isEditing', yes
-        else
-          return message
-
-
-  ###*
    * Handler for `CREATE_COMMENT_SUCCESS` action.
    * It first removes fake comment if it exists, and then pushes given comment
    * from payload.
@@ -252,12 +203,15 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {SocialMessage} payload.comment
    * @return {IMMessageCollection} nextState
   ###
-  handleCreateCommentSuccess: (messages, { clientRequestId, comment }) ->
+  handleCreateCommentSuccess: (messages, { clientRequestId, comment, messageId }) ->
 
     { addMessage, removeFakeMessage } = MessageCollectionHelpers
 
     if clientRequestId
       messages = removeFakeMessage messages, clientRequestId
+
+    if messageId
+      comment.parentId = messageId
 
     return addMessage messages, toImmutable comment
 
@@ -270,9 +224,11 @@ module.exports = class MessagesStore extends KodingFluxStore
    * @param {SocialMessage} payload.comment
    * @param {IMMessageCollection} nextState
   ###
-  handleLoadCommentSuccess: (messages, { comment }) ->
+  handleLoadCommentSuccess: (messages, { messageId, comment }) ->
 
     { addMessage } = MessageCollectionHelpers
+
+    comment.parentId = messageId
 
     return addMessage messages, toImmutable comment
 
@@ -324,4 +280,5 @@ module.exports = class MessagesStore extends KodingFluxStore
     { removeMessage } = MessageCollectionHelpers
 
     return removeMessage messages, messageId
+
 

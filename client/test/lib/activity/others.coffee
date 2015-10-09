@@ -117,30 +117,25 @@ module.exports =
       .end()
 
 
-  switchBetweenChannels: (browser) ->
+  # switchBetweenChannels: (browser) ->
 
-    helpers.beginTest(browser)
+  #   helpers.beginTest(browser)
 
-    firstHashtag  = helpers.doFollowTopic(browser)
-    secondHashtag = helpers.doFollowTopic(browser)
+  #   firstHashtag  = helpers.doFollowTopic(browser)
+  #   secondHashtag = helpers.doFollowTopic(browser)
 
-    firstHashtag  = firstHashtag.replace '#', ''
-    secondHashtag = secondHashtag.replace '#', ''
+  #   firstHashtag  = firstHashtag.replace '#', ''
+  #   secondHashtag = secondHashtag.replace '#', ''
 
-    firstHashtagSelector  = ".followed.topics [testpath='public-feed-link/Activity/Topic/#{firstHashtag}']"
-    secondHashtagSelector = ".followed.topics [testpath='public-feed-link/Activity/Topic/#{secondHashtag}']"
+  #   channelTitle          = '[testpath=channel-title]'
+  #   firstHashtagSelector  = ".followed.topics [testpath='public-feed-link/Activity/Topic/#{firstHashtag}']"
+  #   secondHashtagSelector = ".followed.topics [testpath='public-feed-link/Activity/Topic/#{secondHashtag}']"
 
-    firstHashtagPage  = "#content-page-activity .topic-#{firstHashtag}.topic-pane"
-    secondHashtagPage = "#content-page-activity .topic-#{secondHashtag}.topic-pane"
-
-    browser
-      .waitForElementVisible  firstHashtagSelector, 20000
-      .click                  firstHashtagSelector
-      .waitForElementVisible  firstHashtagPage, 20000
-      .assert.containsText    firstHashtagPage, firstHashtag # Assertion
-
-      .waitForElementVisible  secondHashtagSelector, 20000
-      .click                  secondHashtagSelector
-      .waitForElementVisible  secondHashtagPage, 20000
-      .assert.containsText    secondHashtagPage, secondHashtag # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible  firstHashtagSelector, 20000
+  #     .click                  firstHashtagSelector
+  #     .assert.containsText    channelTitle, firstHashtag # Assertion
+  #     .waitForElementVisible  secondHashtagSelector,20000
+  #     .click                  secondHashtagSelector
+  #     .assert.containsText    channelTitle, secondHashtag # Assertion
+  #     .end()

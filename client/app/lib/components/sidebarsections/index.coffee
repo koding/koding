@@ -8,17 +8,14 @@ SidebarMessagesSection = require 'app/components/sidebarmessagessection'
 
 module.exports = class SidebarSections extends React.Component
 
-  PREVIEW_COUNT = 10
 
   { getters, actions } = ActivityFlux
 
   getDataBindings: ->
     return {
-      publicChannels          : getters.followedPublicChannelThreads
-      privateChannels         : getters.followedPrivateChannelThreads
-      selectedThreadId        : getters.selectedChannelThreadId
-      filteredPublicChannels  : getters.filteredPublicChannels
-      filteredPrivateChannels : getters.filteredPrivateChannels
+      publicChannels   : getters.followedPublicChannelThreads
+      privateChannels  : getters.followedPrivateChannelThreads
+      selectedThreadId : getters.selectedChannelThreadId
     }
 
 
@@ -29,16 +26,14 @@ module.exports = class SidebarSections extends React.Component
 
   renderChannelsSection: ->
     <SidebarChannelsSection
-      previewCount={PREVIEW_COUNT}
-      selectedId={@state.selectedThreadId}
-      threads={@state.filteredPublicChannels.followed} />
+      threads={@state.publicChannels}
+      selectedId={@state.selectedThreadId} />
 
 
   renderMessagesSection: ->
     <SidebarMessagesSection
-      previewCount={PREVIEW_COUNT}
-      selectedId={@state.selectedThreadId}
-      threads={@state.filteredPrivateChannels.followed} />
+      threads={@state.privateChannels}
+      selectedId={@state.selectedThreadId} />
 
 
   render: ->

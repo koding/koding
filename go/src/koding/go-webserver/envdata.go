@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
 	"labix.org/v2/mgo/bson"
@@ -35,14 +34,14 @@ func getEnvData(userInfo *UserInfo) *EnvData {
 	}
 
 	return &EnvData{
-		Own:           getOwn(userId, userInfo.Group),
+		Own:           getOwn(userId),
 		Shared:        getShared(userId),
 		Collaboration: collab,
 	}
 }
 
-func getOwn(userId bson.ObjectId, group *models.Group) []*MachineAndWorkspaces {
-	ownMachines, err := modelhelper.GetOwnGroupMachines(userId, group)
+func getOwn(userId bson.ObjectId) []*MachineAndWorkspaces {
+	ownMachines, err := modelhelper.GetOwnMachines(userId)
 	if err != nil {
 		Log.Error(fmt.Sprintf("Error fetching machines for: %s %s", userId, err))
 		return nil

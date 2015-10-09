@@ -7,7 +7,6 @@ MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
-remote               = require('app/remote').getInstance()
 
 
 module.exports = class TeamMembersCommonView extends KDView
@@ -53,15 +52,6 @@ module.exports = class TeamMembersCommonView extends KDView
       type        : 'text'
       placeholder : @getOptions().searchInputPlaceholder
       callback    : @bound 'search'
-
-    @searchContainer.addSubView @searchClear = new KDCustomHTMLView
-      tagName     : 'span'
-      partial     : 'clear'
-      cssClass    : 'clear-search hidden'
-      click       : =>
-        @searchInput.setValue ''
-        @search()
-        @searchClear.hide()
 
 
   createListController: ->
@@ -175,6 +165,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     query = @searchInput.getValue()
 
+
     if query is ''
       @page = 0
       @skip = 0
@@ -184,31 +175,15 @@ module.exports = class TeamMembersCommonView extends KDView
     @page      = 0  if query isnt @lastQuery
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
-    @searchClear.show()
 
     kd.singletons.search.searchAccounts query, options
-      .then (accounts) => @handleSearchResult accounts
+      .then (accounts) =>
+        @resetListItems no  if @page is 0
+        @listMembers accounts
+        @isFetching = no
       .catch (err) =>
         @page = 0
         @handleError err
-
-
-  handleSearchResult: (accounts) ->
-
-    usernames = (profile.nickname for { profile } in accounts)
-
-    # Send a request to back-end for user emails.
-    remote.api.JAccount.fetchEmailsByUsername usernames, (err, emails) =>
-
-      @resetListItems no  if err
-
-      for account in accounts
-        { profile }   = account
-        profile.email = emails[profile.nickname]
-
-      @resetListItems no  if @page is 0
-      @listMembers accounts
-      @isFetching = no
 
 
   resetListItems: (showLoader = yes) ->

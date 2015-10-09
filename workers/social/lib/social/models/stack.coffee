@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 
@@ -73,7 +74,7 @@ module.exports = class JComputeStack extends jraphical.Module
       stackRevision      : String
 
       machines           :
-        type             : Object
+        type             : [ ObjectId ]
         default          : -> []
 
       config             : Object
@@ -93,31 +94,18 @@ module.exports = class JComputeStack extends jraphical.Module
         default          : -> {}
 
       status             :
+        type             : String
+        enum             : ['Wrong type specified!', [
 
-        modifiedAt       : Date
-        reason           : String
+          # States which description ending with '...' means its an ongoing
+          # proccess which you may get progress info about it
+          #
+          'Initial'         # Initial state
+          'Terminating'     # Stack is getting destroyed...
+          'Terminated'      # Stack is destroyed, not exists anymore
+        ]]
 
-        state            :
-          type           : String
-          default        : -> 'NotInitialized'
-          enum           : ['Wrong type specified!', [
-            # Unknown is a state that needs to be resolved manually
-            'Unknown'
-
-            # NotInitialzed defines a state where the stack does not exists and was
-            # not built . It's waits to be initialized.
-            'NotInitialized'
-
-            # Initialized defines the state where the stack is built and in a functional state
-            'Initialized'
-
-            # Destroying is in progress of destroying the stack.
-            'Destroying'
-
-            # Building is in progress of creating the stack. A successfull building
-            # state results in an Initialized state.
-            'Building'
-          ]]
+        default          : -> 'Initial'
 
 
   @getStack = (account, _id, callback) ->
@@ -135,7 +123,7 @@ module.exports = class JComputeStack extends jraphical.Module
     # TODO add check for itemToAppend to make sure its just ~ GG
     # including supported fields: [rules, domains, machines, extras]
 
-    @update { $addToSet: itemToAppend }, (err) -> callback err
+    @update $addToSet: itemToAppend, (err) -> callback err
 
 
   ###*
@@ -145,17 +133,15 @@ module.exports = class JComputeStack extends jraphical.Module
    * @param  {Function} callback
    * @return {void}
   ###
-  @create$ = permit 'create stack',
+  @create$ = permit 'create stack', success: (client, data, callback) ->
 
-    success: (client, data, callback) ->
+    data.account   = client.connection.delegate
+    data.groupSlug = client.context.group
 
-      data.account   = client.connection.delegate
-      data.groupSlug = client.context.group
+    delete data.baseStackId
+    delete data.stackRevision
 
-      delete data.baseStackId
-      delete data.stackRevision
-
-      JComputeStack.create data, callback
+    JComputeStack.create data, callback
 
 
   ###*
@@ -338,7 +324,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
         dataToUpdate.credentials = sanitized
 
-      @update { $set : dataToUpdate }, (err) ->
+      @update $set : dataToUpdate, (err) ->
         return callback err  if err?
         callback null
 
@@ -383,3 +369,5 @@ module.exports = class JComputeStack extends jraphical.Module
             stackRevisionErrors.TEMPLATEDIFFERENT
 
         callback null, { status, machineCount: template.machines.length }
+
+

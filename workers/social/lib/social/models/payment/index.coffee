@@ -1,3 +1,4 @@
+# coffeelint: disable=no_implicit_braces
 { Base } = require 'bongo'
 recurly  = require 'koding-payment'
 { argv } = require 'optimist'

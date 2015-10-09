@@ -20,7 +20,7 @@ func (h *Handler) GenerateKey(u *url.URL, header http.Header, _ interface{}, con
 	}
 
 	c := models.NewChannel()
-	err := c.FetchGroupChannel(context.GroupName)
+	err := c.FetchPublicChannel(context.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

@@ -26,8 +26,6 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     fsMove             : 'fs.move'
     fsCreateDirectory  : 'fs.createDirectory'
 
-    tail               : 'log.tail'
-
     webtermKillSessions: 'webterm.killSessions'
     webtermGetSessions : 'webterm.getSessions'
     webtermPing        : 'webterm.ping'

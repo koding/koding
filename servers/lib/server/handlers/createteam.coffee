@@ -8,7 +8,6 @@ KONFIG                                  = require('koding-config-manager').load 
 { hostname, environment }               = KONFIG
 { dash, daisy }                         = Bongo
 { getClientId, handleClientIdNotFound } = require './../helpers'
-{ validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
 
 module.exports = (req, res, next) ->
 
@@ -38,15 +37,16 @@ module.exports = (req, res, next) ->
   alreadyMember       = alreadyMember is 'true'
 
   queue = [
-
     ->
       { teamAccessCode } = body
       # if we dont have teamaccesscode just continue
       return queue.next() if not teamAccessCode
 
-      validateTeamInvitation = validateTeamInvitationKallback res, queue
-      JTeamInvitation.byCode teamAccessCode, validateTeamInvitation
-
+      JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+        return res.status(400).send err.message
+        return res.status(400).send 'Team Invitation is not found'  if not invitation
+        return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
+        return queue.next()
     ->
       koding.fetchClient clientId, context, (client_) ->
 
@@ -89,27 +89,18 @@ module.exports = (req, res, next) ->
 
     ->
       # generating callback function to be used in both login and convert
-      createGroup = createGroupKallback client, req, res, body
+      createGroupKallback = generateCreateGroupKallback client, req, res, body
 
       if alreadyMember
-      then JUser.login client.sessionToken, body, createGroup
-      else JUser.convert client, body, createGroup
+      then JUser.login client.sessionToken, body, createGroupKallback
+      else JUser.convert client, body, createGroupKallback
 
   ]
 
   daisy queue
 
 
-validateTeamInvitationKallback = (res, queue) ->
-
-  return (err, invitation) ->
-    return res.status(400).send err.message                     if err
-    return res.status(400).send 'Team Invitation is not found'  if not invitation
-    return res.status(400).send 'Team Invitation is not valid'  if not invitation.isValid()
-    return queue.next()
-
-
-createGroupKallback = (client, req, res, body) ->
+generateCreateGroupKallback = (client, req, res, body) ->
 
   # returning a callback function
   return (err, result) ->
@@ -154,12 +145,6 @@ createGroupKallback = (client, req, res, body) ->
       { statusCode, errorMessage } = validationError
       return res.status(statusCode).send errorMessage
 
-    afterGroupCreate = afterGroupCreateKallback res, {
-      body             : body
-      client           : client
-      username         : result.account.profile.nickname
-    }
-
     JGroup.create client,
       slug            : slug
       title           : companyName
@@ -167,57 +152,49 @@ createGroupKallback = (client, req, res, body) ->
       initialData     : body
       allowedDomains  : convertToArray domains # clear & convert domains into array
       defaultChannels : []
-    , owner, afterGroupCreate
+    , owner, (err, group) ->
 
+      if err or not group
+        console.error 'Error while creating the group', err
+        return res.status(500).send "Couldn't create the group."
 
+      queue = [
 
-afterGroupCreateKallback = (res, params) ->
-
-  { JUser, JTeamInvitation } = koding.models
-  { body : { slug, teamAccessCode, invitees }, client,  username } = params
-
-  return (err, group) ->
-    if err or not group
-      console.error 'Error while creating the group', err
-      return res.status(500).send "Couldn't create the group."
-
-    queue = [
-
-      # add other parallel operations here
-      -> createInvitations client, invitees, (err) ->
-          console.error 'Err while creating invitations', err  if err
-          queue.fin()
-
-      ->
-        return queue.fin()  if not teamAccessCode
-        JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
-          return queue.fin  if err or not invitation
-          invitation.markAsUsed (err) ->
-            console.error err  if err
+        # add other parallel operations here
+        -> createInvitations client, invitees, (err) ->
+            console.error 'Err while creating invitations', err  if err
             queue.fin()
-    ]
+        ->
+          if not teamAccessCode
+            queue.fin()
+          else
+            JTeamInvitation.byCode teamAccessCode, (err, invitation) ->
+              if err or not invitation
+                queue.fin()
+              else
+                invitation.markAsUsed (err) ->
+                  console.error err  if err
+                  queue.fin()
+      ]
 
-    dash queue, (err) ->
-      # do not block group creation
-      console.error 'Error while creating group artifacts', body, err if err
+      dash queue, (err) ->
+        # do not block group creation
+        console.error 'Error while creating group artifacts', body, err if err
 
-      opt =
-        username  : username
-        groupName : slug
+        opt =
+          username  : result.account.profile.nickname
+          groupName : slug
 
-      data =
-        token : JUser.createJWT opt
+        data =
+          token : JUser.createJWT opt
 
-      return res.status(200).send data
+        return res.status(200).send data
 
 
 validateGroupDataAndReturnError = (body) ->
 
   unless body.slug
     return { statusCode : 400, errorMessage : 'Group slug can not be empty.' }
-
-  unless validateTeamDomain body.slug
-    return { statusCode : 400, errorMessage : 'Invalid group slug.' }
 
   else unless body.companyName
     return { statusCode : 400, errorMessage : 'Company name can not be empty.' }
@@ -257,5 +234,3 @@ getErrorMessage = (err) ->
   message     = "#{message}: #{Object.keys err.errors}"  if err.errors?
 
   return message
-
-
