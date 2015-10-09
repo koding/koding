@@ -32,6 +32,8 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
 
     { message: messageActions } = ActivityFlux.actions
 
+    messagesBefore = kd.singletons.reactor.evaluate ['MessagesStore']
+
     messageActions.loadMessages(channelId, options).then ({ messages }) ->
       messageActions.removeLoaderMarker channelId, messageId, { position }
 
@@ -41,7 +43,8 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
       # don't put loader markers on top.
       return  unless position is 'after'
 
-      messageActions.putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+      unless messagesBefore.has last.id
+        messageActions.putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
 
 
   render: ->
