@@ -86,12 +86,37 @@ start = (browser) ->
     joinSession browser, host, participant
 
 
+leave = (browser) ->
+
+  participant  = utils.getUser no, 1
+  hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+  unless hostBrowser
+    collaborationHelpers.leaveSessionFromStatusBar(browser)
+    # assert that no shared vm on sidebar
+
+
+waitAndEndSession = (browser) ->
+
+  host        = utils.getUser no, 0
+  hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+  participant  = utils.getUser no, 1
+
+  participantAvatar = ".avatars .avatarview.online[href='/#{participant.username}']"
+
+  if hostBrowser
+    browser.waitForElementNotPresent participantAvatar, 60000
+    collaborationHelpers.endSessionFromStatusBar(browser)
+
+
 module.exports =
 
 
   start: (browser) ->
 
     start(browser)
+    leave(browser)
+    waitAndEndSession(browser)
 
     browser.end()
 

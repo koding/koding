@@ -40,6 +40,10 @@ module.exports =
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
 
 
+  leaveSessionFromStatusBar: (browser) ->
+
+    @endSessionFromStatusBar(browser, no)
+
 
   endSessionFromStatusBar: (browser, shouldAssert = yes) ->
 
