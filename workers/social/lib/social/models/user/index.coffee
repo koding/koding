@@ -959,8 +959,12 @@ module.exports = class JUser extends jraphical.Module
       JGroup.one { slug }, (err, group) ->
         return callback err   if err
         return callback null  if not group
+            
+        roles = ['member']
+        roles.push invitation.role  if invitation.role 
+        roles = uniq roles
 
-        group.approveMember account, (err) ->
+        group.approveMember account, roles, (err) ->
           return callback err  if err
 
           # do not forget to redeem invitation
