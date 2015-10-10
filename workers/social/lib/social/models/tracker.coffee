@@ -1,4 +1,7 @@
 bongo    = require 'bongo'
+
+{ secure, signature } = bongo
+
 { argv } = require 'optimist'
 
 KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
@@ -11,7 +14,14 @@ analytics = new Analytics(KONFIG.segment)
 
 mqClient = null
 
-module.exports = class Tracker
+module.exports = class Tracker extends bongo.Base
+
+  @share()
+
+  @set
+    sharedMethods:
+      static:
+        track: (signature String, Object)
 
   KodingError = require '../error'
 
@@ -53,6 +63,15 @@ module.exports = class Tracker
       console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
+  @track$ = secure (client, subject, options = {}) ->
+
+    { profile: { nickname } } = client.connection.delegate
+
+    event = { subject }
+
+    @track nickname, event, options
+
+
   @track = (username, mail, options = {}) ->
     # use `forcedRecipient` for both username and email
     if forcedRecipient
@@ -84,5 +103,3 @@ module.exports = class Tracker
 
 
   @setMqClient = (m) -> mqClient = m
-
-
