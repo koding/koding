@@ -444,43 +444,79 @@ module.exports =
         .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
-  fillPaymentForm: (browser, planType = 'developer') ->
+  fillPaymentForm: (browser, planType = 'developer', validCardDetails = true, insertCardNumber = true, insertCVC = true, insertCardMonth = true, insertCardYear = true, insertCardName = true) ->
 
     user          = utils.getUser()
     name          = user.username
     paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
-    cardNumber    = '4111 1111 1111 1111'
-    cvc           = '123'
-    month         = '12'
-    year          = '2017'
+    
+    if validCardDetails
+      cardNumber    = '4111 1111 1111 1111'
+      cvc           = '123'
+      month         = '12'
+      year          = '2017'
+    else
+      cardNumber    = '11111111111111'
+      cvc           = '12345'
+      month         = '13'
+      year          = '1999'
 
-    browser
-      .waitForElementVisible   '.payment-modal', 20000
-      .waitForElementVisible   paymentModal, 20000
-      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
-      .click                   'input[name=cardNumber]'
-      .setValue                'input[name=cardNumber]', cardNumber
-      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
-      .click                   'input[name=cardCVC]'
-      .setValue                'input[name=cardCVC]', cvc
-      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
-      .click                   'input[name=cardMonth]'
-      .setValue                'input[name=cardMonth]', month
-      .waitForElementVisible   paymentModal + ' .cardyear', 20000
-      .click                   'input[name=cardYear]'
-      .setValue                'input[name=cardYear]', year
-      .waitForElementVisible   paymentModal + ' .cardname', 20000
-      .click                   'input[name=cardName]'
-      .setValue                'input[name=cardName]', name
-      .click                   '.year-price-msg'
-      .waitForElementVisible   'button.submit-btn', 20000
-      .click                   'button.submit-btn'
-      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
-      .click                   'button.submit-btn'
-      .waitForElementVisible   '[testpath=main-sidebar]', 20000
-      .url                     @getUrl() + '/Pricing'
-      .waitForElementVisible   '.content-page.pricing', 20000
-      .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
+    if insertCardNumber
+      browser
+        .waitForElementVisible   '.payment-modal', 20000
+        .waitForElementVisible   paymentModal, 20000
+        .waitForElementVisible   paymentModal + ' .cardnumber', 20000
+        .click                   'input[name=cardNumber]'
+        .setValue                'input[name=cardNumber]', cardNumber
+
+    if insertCVC  
+      browser
+        .waitForElementVisible   '.payment-modal', 20000
+        .waitForElementVisible   paymentModal + ' .cardcvc', 20000
+        .click                   'input[name=cardCVC]'
+        .setValue                'input[name=cardCVC]', cvc
+
+    if insertCardMonth
+      browser
+        .waitForElementVisible   '.payment-modal', 20000
+        .waitForElementVisible   paymentModal + ' .cardmonth', 20000
+        .click                   'input[name=cardMonth]'
+        .setValue                'input[name=cardMonth]', month
+
+    if insertCardYear
+      browser
+        .waitForElementVisible   '.payment-modal', 20000
+        .waitForElementVisible   paymentModal + ' .cardyear', 20000
+        .click                   'input[name=cardYear]'
+        .setValue                'input[name=cardYear]', year
+
+    if insertCardName
+      browser
+        .waitForElementVisible   '.payment-modal', 20000
+        .waitForElementVisible   paymentModal + ' .cardname', 20000
+        .click                   'input[name=cardName]'
+        .clearValue              'input[name=cardName]'
+        .setValue                'input[name=cardName]', name  
+
+  submitForm: (browser, validCardDetails = true) ->
+  
+    upgradePlanButton = '.kdmodal-inner .green'
+    planType = 'developer'
+
+    if validCardDetails
+      browser
+        .waitForElementVisible   'button.submit-btn', 20000
+        .click                   'button.submit-btn'
+        .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+        .click                   'button.submit-btn'
+        .waitForElementVisible   '[testpath=main-sidebar]', 20000
+        .url                     @getUrl() + '/Pricing'
+        .waitForElementVisible   '.content-page.pricing', 20000
+        .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
+    else
+      browser
+        .expect.element(upgradePlanButton).to.not.be.enabled
+
 
 
   selectPlan: (browser, planType = 'developer') ->

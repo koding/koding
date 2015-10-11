@@ -1,11 +1,7 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
-upgradePlanLink   = '.avatararea-popup .kdview [href="/Pricing"]'
-upgradePlanButton = '.kdmodal-inner .green'
-upgradePlanName   = '.plan-name'
-tooltipValidation = '.kdtooltip'
-
+tooltipValidation = '.kdtooltip .wrapper'
 freePlanSelector  = '.single-plan.free.current'
 
 
@@ -24,15 +20,13 @@ module.exports =
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
-          .waitForElementVisible      upgradePlanName, 10000
-          .assert.containsText        upgradePlanName, 'Developer Plan'
-          .assert.containsText        '.card-number', 'Card Number'
-          .setValue                   inputWrapper + ' .kdinput', '111111111111'
-          .waitForElementVisible      inputWrapper + ' .validation-error', 5000
-          .assert.containsText        tooltipValidation, 'Card number is not valid'
+          helpers.fillPaymentForm(browser, 'developer', false, true, false, false, false, false)
+          helpers.submitForm(browser, false)
 
-          .expect.element(upgradePlanButton).to.not.be.enabled
-          browser.end()
+          browser
+            .waitForElementVisible      inputWrapper + ' .validation-error', 5000
+            .assert.containsText        tooltipValidation, 'Card number is not valid'
+            .end()
         else
           browser.end()
 
@@ -50,15 +44,13 @@ module.exports =
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
-          .waitForElementVisible      upgradePlanName, 10000
-          .assert.containsText        upgradePlanName, 'Developer Plan'
-          .assert.containsText        '.cardcvc .cvc', 'CVC'
-          .setValue                   cvcInputField, '12345'
-          .waitForElementVisible      cvcInputField, 5000
-          .assert.containsText        tooltipValidation, 'CVC is not valid'
+          helpers.fillPaymentForm(browser, 'developer', false, false, true, false, false, false)
+          helpers.submitForm(browser, false)
 
-          .expect.element(upgradePlanButton).to.not.be.enabled
-          browser.end()
+          browser
+            .waitForElementVisible      cvcInputField, 5000
+            .assert.containsText        tooltipValidation, 'CVC is not valid'
+            .end()
         else
           browser.end()
 
@@ -76,15 +68,13 @@ module.exports =
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
-          .waitForElementVisible      upgradePlanName, 10000
-          .assert.containsText        upgradePlanName, 'Developer Plan'
-          .assert.containsText        '.cardmonth .exp-date', 'Exp. Date'
-          .setValue                   cardMonthInputField, '88'
-          .waitForElementVisible      cardMonthInputField, 5000
-          .assert.containsText        tooltipValidation, 'Invalid month!'
+          helpers.fillPaymentForm(browser, 'developer', false, false, false, true, false, false)
+          helpers.submitForm(browser, false)
 
-          .expect.element(upgradePlanButton).to.not.be.enabled
-          browser.end()
+          browser
+            .waitForElementVisible      cardMonthInputField, 5000
+            .assert.containsText        tooltipValidation, 'Invalid month!'
+            .end()
         else
           browser.end()
 
@@ -102,13 +92,30 @@ module.exports =
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
-          .waitForElementVisible      upgradePlanName, 10000
-          .assert.containsText        upgradePlanName, 'Developer Plan'
-          .setValue                   cardYearInputField, '1999'
-          .waitForElementVisible      cardYearInputField, 5000
-          .assert.containsText        tooltipValidation, 'Invalid year!'
+          helpers.fillPaymentForm(browser, 'developer', false, false, false, false, true, false)
+          helpers.submitForm(browser, false)
 
-          .expect.element(upgradePlanButton).to.not.be.enabled
+          browser
+            .waitForElementVisible      cardYearInputField, 5000
+            .assert.containsText        tooltipValidation, 'Invalid year!'
+            .end()
+        else
           browser.end()
+
+  checkUpgradePlanButtonWithInvalidData: (browser) ->
+    helpers.beginTest(browser)
+    
+    browser
+      .url                     helpers.getUrl() + '/Pricing'
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.current', 20000
+      .element 'css selector', freePlanSelector, (result) ->
+        if result.status is 0
+          helpers.selectPlan(browser, 'developer')
+          helpers.fillPaymentForm(browser, 'developer', false, true, true, true, true, true)
+          helpers.submitForm(browser, false)
+
+          browser
+            .end()
         else
           browser.end()
