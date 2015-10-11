@@ -29,7 +29,7 @@ module.exports = [
   ]
 
   [
-    { name: 'invalidCardDetails'}
+    { name: 'pricing invalidCardDetails'}
     { name: 'pricing payment' }
     { name: 'activity post' }
     { name: 'staticpages loggedout' }
