@@ -446,20 +446,20 @@ module.exports =
 
   fillPaymentForm: (browser, planType = 'developer', validCardDetails = true, insertCardNumber = true, insertCVC = true, insertCardMonth = true, insertCardYear = true, insertCardName = true) ->
 
-    user          = utils.getUser()
-    name          = user.username
-    paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
+    user         = utils.getUser()
+    name         = user.username
+    paymentModal = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
     
     if validCardDetails
-      cardNumber    = '4111 1111 1111 1111'
-      cvc           = '123'
-      month         = '12'
-      year          = '2017'
+      cardNumber = '4111 1111 1111 1111'
+      cvc        = '123'
+      month      = '12'
+      year       = '2017'
     else
-      cardNumber    = '11111111111111'
-      cvc           = '12345'
-      month         = '13'
-      year          = '1999'
+      cardNumber = '11111111111111'
+      cvc        = '12345'
+      month      = '13'
+      year       = '1999'
 
     if insertCardNumber
       browser
