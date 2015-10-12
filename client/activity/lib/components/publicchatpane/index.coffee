@@ -10,7 +10,6 @@ module.exports = class PublicChatPane extends React.Component
 
   @defaultProps =
     thread   : immutable.Map()
-    messages : immutable.List()
     padded   : no
 
   constructor: (props) ->
@@ -30,15 +29,6 @@ module.exports = class PublicChatPane extends React.Component
     return  unless body = value
 
     ActivityFlux.actions.message.createMessage @channel('id'), body
-
-
-  onLoadMore: ->
-
-    return  unless @props.messages.size
-    return  if @props.thread.getIn ['flags', 'isMessagesLoading']
-
-    from = @props.messages.first().get('createdAt')
-    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from, loadedWithScroll: yes }
 
 
   onFollowChannel: ->
@@ -68,7 +58,7 @@ module.exports = class PublicChatPane extends React.Component
 
   renderFooter: ->
 
-    return null  unless @props.messages
+    return null  unless @props.thread?.get 'messages'
 
     { thread } = @props
 
@@ -91,10 +81,8 @@ module.exports = class PublicChatPane extends React.Component
     <ChatPane
       thread     = { @props.thread }
       className  = "PublicChatPane"
-      messages   = { @props.messages }
       onSubmit   = { @bound 'onSubmit' }
-      afterInviteOthers = {@bound 'afterInviteOthers'}
-      onLoadMore = { @bound 'onLoadMore' }>
+      afterInviteOthers = {@bound 'afterInviteOthers'}>
       {@renderFooter()}
     </ChatPane>
 
