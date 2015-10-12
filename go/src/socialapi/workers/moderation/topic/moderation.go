@@ -78,7 +78,7 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 	}
 
 	if err := c.setIsFinished(cl); err != nil {
-		c.log.Error("Error while setting isFinised value in db as true, err: %s ", err.Error())
+		c.log.Error("Error while setting isFinished value in db as true, err: %s ", err.Error())
 		return err
 	}
 
@@ -86,9 +86,10 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 }
 
 // setIsFinished marks the channel link process as finished.
-// setIsFinished works after all moving process is conpletely done
+// setIsFinished works after all moving process is completely done
 func (c *Controller) setIsFinished(cl *models.ChannelLink) error {
-	cl.IsFinihed = true
+	cl.IsFinished = true
+
 	if err := cl.Update(); err != nil {
 		return err
 	}
