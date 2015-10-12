@@ -85,13 +85,13 @@ withConvertedUser = (opts, callback) ->
   withDummyClient context, ({ client }) ->
     JUser.convert client, userFormData, (err, data) ->
       expect(err).to.not.exist
-      { account, newToken }      = data
-      client.sessionToken        = newToken
-      client.connection.delegate = account
+      { account, newToken, user } = data
+      client.sessionToken         = newToken
+      client.connection.delegate  = account
 
       if opts?.userFormData?
-      then callback { client, account, sessionToken : newToken }
-      else callback { client, account, sessionToken : newToken, userFormData }
+      then callback { client, user, account, sessionToken : newToken }
+      else callback { client, user, account, sessionToken : newToken, userFormData }
 
 
 generateDummyUserFormData = (opts = {}) ->
