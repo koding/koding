@@ -42,15 +42,13 @@ loadMessages = (channelId, options = {}) ->
       else
         dispatch UNSET_ALL_MESSAGES_LOADED, { channelId }
 
-      kd.singletons.reactor.batch ->
-        messages.forEach (message) ->
-          dispatchLoadMessageSuccess channelId, message
-        dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+      kd.utils.defer ->
+        kd.singletons.reactor.batch ->
+          for message in messages
+            dispatchLoadMessageSuccess channelId, message
 
-        if options.loadedWithScroll
-          dispatch SET_LOADED_WITH_SCROLL, { channelId }
-
-      resolve { messages }
+          dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+        resolve { messages }
 
 
 ###*
