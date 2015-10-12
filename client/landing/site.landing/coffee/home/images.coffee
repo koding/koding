@@ -3,5 +3,4 @@ module.exports = [
     [ 'ss-terminal.png',        '1 Million+ strong global dev community.' ]
     [ 'ss-ide.png',             '20,000,000+ VMs spun up and counting.' ]
     [ 'ss-channels.png',        '8+ Petabytes of VM space allocated.' ]
-    [ 'ss-settings.png',        '5,000+ developers write code here every day.' ]
   ]
