@@ -156,6 +156,13 @@ generateRandomUserArray =  (count, callback) ->
   daisy queue
 
 
+expectAccessDenied = (done, caller, callee, args...) ->
+
+  withDummyClient ({ client }) ->
+    caller[callee] client, args..., (err) ->
+      expect(err?.message).to.be.equal 'Access denied'
+      done()
+
 
 module.exports = {
   _
@@ -164,6 +171,7 @@ module.exports = {
   withDummyClient
   generateUserInfo
   withConvertedUser
+  expectAccessDenied
   generateDummyClient
   generateCredentials
   generateRandomEmail
