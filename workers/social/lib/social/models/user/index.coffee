@@ -1671,7 +1671,7 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         # don't block register
-        callback error, { account, newToken }
+        callback error, { account, newToken, user }
         queue.next()
 
       ->
