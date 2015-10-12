@@ -6,8 +6,6 @@ KDCustomHTMLView          = kd.CustomHTMLView
 KDModalView               = kd.ModalView
 KDNotificationView        = kd.NotificationView
 globals                   = require 'globals'
-logToExternal             = require 'app/util/logToExternal'
-logToExternalWithTime     = require 'app/util/logToExternalWithTime'
 whoami                    = require 'app/util/whoami'
 KodingAppsController      = require 'app/kodingappscontroller'
 FSHelper                  = require 'app/util/fs/fshelper'
@@ -175,10 +173,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
       unless silence
         if err?.message?.match /permission denied/i
           message = "Permission denied!"
-          logToExternal "filetree: Couldn't fetch files, permission denied"
         else
           message = "Couldn't fetch files! Click to retry"
-          logToExternalWithTime "filetree: Couldn't fetch files"
         @notify message, null, \
                 """Sorry, a problem occurred while communicating with servers,
                    please try again later.""", yes
