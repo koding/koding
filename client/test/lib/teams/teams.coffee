@@ -135,55 +135,31 @@ module.exports =
       .end()
 
 
-  # inviteUser: (browser) ->
+  inviteUser: (browser) ->
 
-  #   invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
-  #   inviteButtonSelector     = "#{invitationsModalSelector} button.invite"
-  #   inviteUserView           = "#{invitationsModalSelector} .invite-view"
-  #   emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
-  #   userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
-  #   inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
-  #   cancelButton             = "#{invitationsModalSelector} button.cancel"
-  #   notificationView         = '.kdnotification'
-  #   pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    inviteUserView           = "#{invitationsModalSelector} .invite-view"
+    emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
+    userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
+    inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
+    notificationView         = '.kdnotification'
+    pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
+    pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
 
-  #   user = teamsHelpers.loginTeam(browser)
-  #   teamsHelpers.clickTeamSettings(browser)
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
 
-  #   teamsHelpers.openInvitationsTab(browser)
+    teamsHelpers.openInvitationsTab(browser)
 
-  #   browser
-  #     .waitForElementVisible  inviteButtonSelector, 20000
-  #     .click                  inviteButtonSelector
-  #     .waitForElementVisible  inviteUserView, 20000
-  #     .waitForElementVisible  emailInputSelector, 20000
-  #     .setValue               emailInputSelector, userEmail
-  #     .waitForElementVisible  inviteMemberButton, 20000
-  #     .click                  inviteMemberButton
-  #     .waitForElementVisible  notificationView, 20000
-  #     .assert.containsText    notificationView, 'All invites sent'
-  #     .waitForElementVisible  cancelButton, 20000
-  #     .click                  cancelButton
-  #     .waitForElementVisible  pendingMemberView, 20000
-  #     .assert.containsText    pendingMemberView, userEmail
-  #     .end()
-    helpers.beginTest(browser, adminUser)
-    teamsHelpers.createInvitation browser, user, (invitationLink) ->
-      browser.click '.close-icon.closeModal'
-
-      helpers.doLogout(browser)
-
-      browser
-        .url                   invitationLink
-        .waitForElementVisible modalSelector, 20000
-        .waitForElementVisible emailSelector, 20000
-        .waitForElementVisible companyNameSelector, 20000
-        .assert.valueContains  emailSelector, user.email
-        .setValue              companyNameSelector, user.teamSlug
-        .click                 signUpButton
-        .pause                 2500
-
-      teamsHelpers.enterTeamURL(browser)
-      teamsHelpers.fillUsernamePasswordForm(browser, user)
-      browser.end()
-
+    browser
+      .waitForElementVisible  inviteUserView, 20000
+      .waitForElementVisible  emailInputSelector, 20000
+      .setValue               emailInputSelector, userEmail
+      .waitForElementVisible  inviteMemberButton, 20000
+      .click                  inviteMemberButton
+      .waitForElementVisible  notificationView, 20000
+      .assert.containsText    notificationView, 'All invites sent'
+      .click                  pendingMembersTab
+      .waitForElementVisible  pendingMemberView, 20000
+      .assert.containsText    pendingMemberView, userEmail
+      .end()
