@@ -145,6 +145,37 @@ module.exports =
     return user
 
 
+  createInvitation: (browser, user, callback) ->
+
+    adminLink      = '.avatararea-popup a[href="/Admin"]'
+    inviteLink     = '.teaminvite.AppModal-navItem'
+    teamInvitePage = '.TeamInvite'
+    inviteButton   = "#{teamInvitePage} button"
+    sendMailPage   = "#{teamInvitePage} .kdscrollview"
+    sendMailButton = "#{teamInvitePage} button.green:not(.hidden)"
+    notification   = '.kdnotification.main'
+
+    helpers.openAvatarAreaModal(browser)
+    browser
+      .waitForElementVisible  adminLink, 20000
+      .click                  adminLink
+      .waitForElementVisible  inviteLink, 20000
+      .click                  inviteLink
+      .waitForElementVisible  teamInvitePage, 20000
+      .setValue               "#{teamInvitePage} textarea.text", user.email
+      .waitForElementVisible  inviteButton, 20000
+      .click                  inviteButton
+      .waitForElementVisible  sendMailPage, 20000
+      .assert.containsText    sendMailPage, user.email # Assertion
+      .waitForElementVisible  sendMailButton, 20000
+      .click                  sendMailButton
+      .waitForElementVisible  notification, 20000
+      .assert.containsText    notification, 'Invitations sent!'
+      .pause                  2000
+      .getAttribute           "#{sendMailPage} a" , 'href', (result) ->
+        callback result.value
+
+
   openTeamSettingsModal: (browser) ->
 
     avatarareaPopup  = '.avatararea-popup.team'
