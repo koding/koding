@@ -62,6 +62,12 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("group name is not passed")
 	}
 
+	if args.Destroy {
+		k.Log.Debug("Bootstrap destroy is called")
+	} else {
+		k.Log.Debug("Bootstrap apply is called")
+	}
+
 	ctx := k.ContextCreator(context.Background())
 	sess, ok := session.FromContext(ctx)
 	if !ok {
@@ -146,8 +152,8 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		k.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
-		k.Log.Debug(finalBootstrap)
+		// k.Log.Debug("[%s] Final bootstrap:", cred.Identifier)
+		// k.Log.Debug(finalBootstrap)
 
 		// Important so bootstraping is distributed amongs multiple users. If I
 		// use these keys to bootstrap, any other user should be not create
