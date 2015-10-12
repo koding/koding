@@ -16,13 +16,13 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     { inuse, accessLevel } = @getData()
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'inuse-tag'
+      cssClass : 'custom-tag'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This group currently using this template'
 
     @accessLevelView = new kd.CustomHTMLView
-      cssClass : "accesslevel-tag #{accessLevel}"
+      cssClass : "custom-tag #{accessLevel}"
       partial  : accessLevel.toUpperCase()
       tooltip  :
         title  : switch accessLevel
