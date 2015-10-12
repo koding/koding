@@ -211,12 +211,6 @@ module.exports = class DefineStackView extends KDView
 
   handleSave: ->
 
-    unless @_credentialsPassed
-      @outputView.addAndWarn "Please add your credentials to be
-                              able to save this template"
-      @saveButton.hideLoader()
-      return
-
     unless @variablesView.isPassed()
 
       # Warn user if one is trying to save without
@@ -322,7 +316,6 @@ module.exports = class DefineStackView extends KDView
 
       else
         setToGroup 'addAndWarn'
-
 
       @cancelButton.setTitle 'Close'
 
@@ -462,10 +455,12 @@ module.exports = class DefineStackView extends KDView
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credData      = @credentialStatusView.credentialsData
-    awsIdentifier = credData.first.identifier
-    credentials   =
-      aws         : [ awsIdentifier ]
+    credData    = @credentialStatusView.credentialsData ? []
+    credentials = {}
+
+    if credData.length > 0
+      awsIdentifier   = credData.first.identifier
+      credentials.aws = [ awsIdentifier ]
 
     # Add Custom Variables if exists
     if variablesCredential = @variablesView._activeCredential
@@ -481,7 +476,6 @@ module.exports = class DefineStackView extends KDView
 
     template   = templateContent
     currentSum = stackTemplate?.template?.sum
-
 
     updateStackTemplate {
       template, description, templateDetails
