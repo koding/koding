@@ -1,4 +1,5 @@
 { expect
+  ObjectId
   withConvertedUser
   generateRandomString } = require '../../index'
 
