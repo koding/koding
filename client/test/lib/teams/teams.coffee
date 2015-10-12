@@ -38,26 +38,26 @@ module.exports =
       browser.end()
 
 
-  # loginTeam: (browser) ->
+  loginTeam: (browser) ->
 
-  #   teamsHelpers.loginTeam(browser)
-  #   browser.end()
-
-
-  # openTeamSettings: (browser) ->
-
-  #   teamsHelpers.loginTeam(browser)
-  #   teamsHelpers.clickTeamSettings(browser)
-
-  #   browser.end()
+    teamsHelpers.loginTeam(browser)
+    browser.end()
 
 
-  # seeTeamNameOnSideBar: (browser) ->
+  openTeamSettings: (browser) ->
 
-  #   user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
 
-  #   teamsHelpers.seeTeamNameOnsideBar(browser, user.teamSlug)
-  #   browser.end()
+    browser.end()
+
+
+  seeTeamNameOnSideBar: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+
+    teamsHelpers.seeTeamNameOnsideBar(browser, user.teamSlug)
+    browser.end()
 
 
   # checkTeamSettings: (browser) ->
