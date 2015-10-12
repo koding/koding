@@ -24,3 +24,6 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
       """
       @aceView.ace.editor.session.insert position, content
+
+
+  isStackContentChanged: -> @getOption('content') isnt @getContent()
