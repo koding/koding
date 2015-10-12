@@ -25,7 +25,7 @@ type ChannelLink struct {
 	// IsFinished is false as default
 	// we link leaf channel to the root channel
 	// and marks leaf channel true
-	IsFinihed bool `json:"isFinished"`
+	IsFinished bool `json:"isFinished"		  sql:"NOT NULL"`
 
 	// options for operations
 
