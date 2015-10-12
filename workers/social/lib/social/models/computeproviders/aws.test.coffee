@@ -19,12 +19,8 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
 
     it 'should reply to ping request', (done) ->
 
-      userFormData = generateDummyUserFormData()
-
-      withConvertedUser { userFormData }, (data) ->
-
-        { client, account } = data
-        client.r            = { account }
+      withConvertedUser ({ client, account }) ->
+        client.r = { account }
 
         Aws.ping client, {}, (err, data) ->
           expect(err?.message).to.not.exist
