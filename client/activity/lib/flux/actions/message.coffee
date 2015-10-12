@@ -21,8 +21,7 @@ loadMessages = (channelId, options = {}) ->
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS
-    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED
-    SET_LOADED_WITH_SCROLL, UNSET_LOADED_WITH_SCROLL } = actionTypes
+    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
