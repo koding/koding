@@ -236,34 +236,34 @@ module.exports = class DefineStackView extends KDView
     @setAsDefaultButton.hide()
     @inputTitle.unsetClass 'three-buttons'
 
-    @checkAndBootstrapCredentials (err, credentials) =>
-      return @saveButton.hideLoader()  if err
+    @saveTemplate (err, stackTemplate) =>
+
+      if @outputView.handleError err
+        @saveButton.hideLoader()
+        return
 
       @outputView
-        .add 'Credentials are ready!'
-        .add 'Saving current template content...'
+        .add 'Template content saved.'
+        .add 'Setting up custom variables...'
 
-      @saveTemplate (err, stackTemplate) =>
+      meta = @variablesView._providedData
+      data = { stackTemplate, meta }
+
+      updateCustomVariable data, (err, _stackTemplate) =>
 
         if @outputView.handleError err
           @saveButton.hideLoader()
           return
 
         @outputView
-          .add 'Template content saved.'
-          .add 'Setting up custom variables...'
+          .add 'Custom variables are set.'
+          .add 'Checking provided credentials...'
 
-        meta = @variablesView._providedData
-        data = { stackTemplate, meta }
-
-        updateCustomVariable data, (err, _stackTemplate) =>
-
-          if @outputView.handleError err
-            @saveButton.hideLoader()
-            return
+        @checkAndBootstrapCredentials (err, credentials) =>
+          return @saveButton.hideLoader()  if err
 
           @outputView
-            .add 'Custom variables are set.'
+            .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
           @processTemplate _stackTemplate
@@ -284,6 +284,7 @@ module.exports = class DefineStackView extends KDView
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
+      @emit 'Reload'
 
       if err
         @outputView.add "Parsing failed, please check your
@@ -338,6 +339,14 @@ module.exports = class DefineStackView extends KDView
     @outputView
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
+
+    if not credential or credential.provider isnt 'aws'
+      @cancelButton.setTitle 'Close'
+      return failed "
+        Required credentials are not provided yet, we are unable to test the
+        stack template. Stack template content is saved and can be tested once
+        required credentials are provided.
+      "
 
     credential.isBootstrapped (err, state) =>
 
