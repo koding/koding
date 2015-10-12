@@ -32,7 +32,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       callback : @bound 'verifyCredential'
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'inuse-tag hidden'
+      cssClass : 'custom-tag hidden'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This stack template currently using this credential'
