@@ -41,15 +41,16 @@ module.exports = class DefineStackView extends KDView
 
     options.delegate = this
 
-    @setClass 'edit-mode'  if @getOption 'inEditMode'
+    @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
-    title   = stackTemplate?.title or 'Default stack template'
-    content = stackTemplate?.template?.content
+    title           = stackTemplate?.title or 'Default stack template'
+    content         = stackTemplate?.template?.content
+    breadcrumbTitle = if inEditMode then 'Edit Stack' else 'New Stack'
 
     @addSubView new kd.CustomHTMLView
       tagName  : 'header'
       cssClass : 'breadcrumb'
-      partial  : '<span>Stacks</span> &gt; <span class="active">New Stack</span>'
+      partial  : "<span>Stacks</span> &gt; <span class='active'>#{breadcrumbTitle}</span>"
 
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
