@@ -56,6 +56,8 @@ module.exports = class Tracker extends bongo.Base
 
 
   @identify = (username, traits = {}) ->
+    return  unless KONFIG.sendEventsToSegment
+
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username     = forcedRecipient
@@ -82,6 +84,8 @@ module.exports = class Tracker extends bongo.Base
 
 
   @track = (username, event, options = {}) ->
+    return  unless KONFIG.sendEventsToSegment
+
     _.extend options, @properties[event.subject]
 
     # use `forcedRecipient` for both username and email
