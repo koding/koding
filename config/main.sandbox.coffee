@@ -116,8 +116,7 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
-  segment                 = 'swZaC1nE4sYPLjkGTKsNpmGAkYmPcFtx'
-
+  segment = 'swZaC1nE4sYPLjkGTKsNpmGAkYmPcFtx'
 
   disabledFeatures =
     moderation : yes

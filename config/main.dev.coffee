@@ -129,9 +129,12 @@ Configuration = (options={}) ->
     serviceAccountEmail   : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0@developer.gserviceaccount.com"
     serviceAccountKeyFile : "#{projectRoot}/keys/KodingCollaborationDev201506.pem"
 
-  segment                 = 'kb2hfdgf20'
+  segment = 'kb2hfdgf20'
 
-  github                  = { clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"   , redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback" }
+  github =
+    clientId     : "f8e440b796d953ea01e5"
+    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
+    redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
 
   # if you want to disable a feature add here with "true" value do not forget to
