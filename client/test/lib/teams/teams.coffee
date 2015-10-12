@@ -3,29 +3,39 @@ utils    = require '../utils/utils.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
 
 
-module.exports = {}
+module.exports =
 
 
-  # createTeam: (browser) ->
+  createTeam: (browser) ->
 
-  #   user = utils.getUser(yes)
+    modalSelector       = '.TeamsModal.TeamsModal--create'
+    emailSelector       = "#{modalSelector} input[name=email]"
+    companyNameSelector = "#{modalSelector} input[name=companyName]"
+    signUpButton        = "#{modalSelector} button[type=submit]"
+    user                = utils.getUser(yes)
+    adminUser           =
+      username          : 'devrim'
+      password          : 'devrim'
 
-  #   browser.url helpers.getUrl()
-  #   browser.maximizeWindow()
+    helpers.beginTest(browser, adminUser)
+    teamsHelpers.createInvitation browser, user, (invitationLink) ->
+      browser.click '.close-icon.closeModal'
 
-  #   teamsHelpers.setCookie(browser)
+      helpers.doLogout(browser)
 
-  #   teamsHelpers.openTeamsPage(browser)
-  #   teamsHelpers.fillSignUpFormOnTeamsHomePage(browser, user)
-  #   teamsHelpers.enterTeamURL(browser)
-  #   # teamsHelpers.enterEmailDomains(browser)
-  #   # teamsHelpers.enterInvites(browser)
-  #   teamsHelpers.fillUsernamePasswordForm(browser, user)
-  #   # teamsHelpers.setupStackPage(browser)
-  #   # teamsHelpers.congratulationsPage(browser)
-  #   # teamsHelpers.loginToTeam(browser, user)
+      browser
+        .url                   invitationLink
+        .waitForElementVisible modalSelector, 20000
+        .waitForElementVisible emailSelector, 20000
+        .waitForElementVisible companyNameSelector, 20000
+        .assert.valueContains  emailSelector, user.email
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
 
-  #   browser.end()
+      teamsHelpers.enterTeamURL(browser)
+      teamsHelpers.fillUsernamePasswordForm(browser, user)
+      browser.end()
 
 
   # loginTeam: (browser) ->
@@ -156,3 +166,23 @@ module.exports = {}
   #     .waitForElementVisible  pendingMemberView, 20000
   #     .assert.containsText    pendingMemberView, userEmail
   #     .end()
+    helpers.beginTest(browser, adminUser)
+    teamsHelpers.createInvitation browser, user, (invitationLink) ->
+      browser.click '.close-icon.closeModal'
+
+      helpers.doLogout(browser)
+
+      browser
+        .url                   invitationLink
+        .waitForElementVisible modalSelector, 20000
+        .waitForElementVisible emailSelector, 20000
+        .waitForElementVisible companyNameSelector, 20000
+        .assert.valueContains  emailSelector, user.email
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
+
+      teamsHelpers.enterTeamURL(browser)
+      teamsHelpers.fillUsernamePasswordForm(browser, user)
+      browser.end()
+
