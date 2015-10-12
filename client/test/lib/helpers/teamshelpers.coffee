@@ -89,9 +89,13 @@ module.exports =
 
   loginAssertion: (browser) ->
 
+    user = utils.getUser()
+
     browser
       .waitForElementVisible  '.content-page.welcome', 20000 # Assertion
       .waitForElementVisible  '[testpath=main-sidebar]', 20000 # Assertion
+
+    console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password} to team: #{helpers.getUrl(yes)}"
 
 
   setupStackPage: (browser) ->
