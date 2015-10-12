@@ -11,14 +11,13 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
     timestamp : null
     position  : 'after'
     autoload  : no
-    isLoading : no
 
 
   onClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    { channelId, messageId, position, timestamp, isLoading } = @props
+    { channelId, messageId, position, timestamp } = @props
 
     positionToLimiterMap = after: 'from', before: 'to'
     positionToSortOrderMap = after: 'ASC', before: 'DESC'
