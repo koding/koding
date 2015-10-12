@@ -45,11 +45,9 @@ module.exports =
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
-      console.log " ✔ users.json found, returning #{index}. user"
       return users[index]
 
     catch
-      console.log ' ✔ users.json does not exist, creating new user data'
 
       users = @generateUsers()
       return users[index]
