@@ -11,6 +11,10 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     super options, data
 
+    @loadedContent = options.content
+
+    @on 'ResetLoadedContent', @bound 'resetLoadedContent'
+
     @once 'EditorReady', =>
 
       return  unless options.showHelpContent
@@ -26,4 +30,6 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
       @aceView.ace.editor.session.insert position, content
 
 
-  isStackContentChanged: -> @getOption('content') isnt @getContent()
+  isStackContentChanged: -> @loadedContent isnt @getContent()
+
+  resetLoadedContent: -> @loadedContent = @getContent()
