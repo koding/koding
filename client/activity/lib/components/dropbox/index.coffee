@@ -3,7 +3,7 @@ kd           = require 'kd'
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
-Portal       = require 'react-portal'
+KeyboardKeys = require 'app/util/keyboardKeys'
 
 module.exports = class Dropbox extends React.Component
 
@@ -11,65 +11,43 @@ module.exports = class Dropbox extends React.Component
     visible   : no
     className : ''
     type      : 'dropdown'
-    left      : 0
+
+
+  componentDidMount: ->
+
+    document.addEventListener 'mousedown', @bound 'handleMouseClick'
+    document.addEventListener 'keydown', @bound 'handleKeyDown'
+
+
+  componentWillUnmount: ->
+
+    document.removeEventListener 'mousedown', @bound 'handleMouseClick'
+    document.removeEventListener 'keydown', @bound 'handleKeyDown'
 
 
   getContentElement: -> React.findDOMNode @refs.content
 
 
-  componentDidUpdate: -> kd.utils.defer @bound 'calculatePosition'
-
-
-  onClose: ->
+  handleMouseClick: (event) ->
 
     { visible, onClose } = @props
-    onClose?()  if visible
-
-
-  setInputDimensions: (inputDimensions) ->
-
-    { visible } = @props
-    @inputDimensions = inputDimensions
 
     return  unless visible
 
-    @calculatePosition()
+    { target } = event
+    dropbox    = React.findDOMNode this
+    innerClick = $.contains dropbox, target
+
+    onClose?()  unless innerClick
 
 
-  calculatePosition: ->
+  handleKeyDown: (event) ->
 
-    { visible, type } = @props
-    return  unless @inputDimensions and visible
+    { visible, onClose } = @props
 
-    { width, height, top, left } = @inputDimensions
+    return  unless @props.visible
 
-    dropbox       = React.findDOMNode @refs.dropbox
-    dropboxHeight = $(dropbox).height()
-    winHeight     = $(window).height()
-    winWidth      = $(window).width()
-    if type is 'dropup'
-      type = 'dropdown'  if top - dropboxHeight < 0
-    else
-      type = 'dropup'  if top + height + dropboxHeight > winHeight
-
-    css = { width, top : 'auto', bottom : 'auto' }
-    if type is 'dropup'
-      css.bottom = winHeight - top
-    else
-      css.top    = top + height
-
-    rightDelta = @props.right
-    leftDelta  = @props.left
-    if rightDelta?
-      css.right = winWidth - left - width - rightDelta
-    else
-      css.left  = left + leftDelta
-
-    element = $ React.findDOMNode @refs.dropbox
-    element
-      .css css
-      .toggleClass 'Dropup', type is 'dropup'
-      .toggleClass 'Dropdown', type is 'dropdown'
+    onClose?()  if event.which is KeyboardKeys.ESC
 
 
   getClassName: ->
@@ -79,6 +57,8 @@ module.exports = class Dropbox extends React.Component
     classes =
       'Reactivity' : yes
       'Dropbox'    : yes
+      'Dropup'     : type is 'dropup'
+      'Dropdown'   : type is 'dropdown'
     classes[className] = yes  if className
 
     return classnames classes
@@ -105,17 +85,15 @@ module.exports = class Dropbox extends React.Component
 
   render: ->
 
-    { visible, onClose } = @props
+    { visible } = @props
 
     className = @getClassName()
-    <Portal isOpened={visible} closeOnEsc=yes closeOnOutsideClick=yes onClose={@bound 'onClose'}>
-      <div className={className} ref='dropbox'>
-        { @renderHeader() }
-        <div className='Dropbox-scrollable' ref='content'>
-          <div className='Dropbox-content'>
-            { @props.children }
-          </div>
+    <div className={className} ref='dropbox'>
+      { @renderHeader() }
+      <div className='Dropbox-scrollable' ref='content'>
+        <div className='Dropbox-content'>
+          { @props.children }
         </div>
       </div>
-    </Portal>
+    </div>
 

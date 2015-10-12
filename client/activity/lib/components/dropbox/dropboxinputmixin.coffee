@@ -53,35 +53,3 @@ module.exports = DropboxInputMixin =
       stopEvent = dropdown.moveToPrevPosition keyInfo
       kd.utils.stopDOMEvent event  if stopEvent
 
-
-  componentDidMount: ->
-
-    window.addEventListener 'resize', @bound 'updateDropdownPosition'
-    @updateDropdownPosition()
-
-
-  componentDidUpdate: ->
-
-    @updateDropdownPosition()
-
-
-  componentWillUnmount: ->
-
-    window.removeEventListener 'resize', @bound 'updateDropdownPosition'
-
-
-  updateDropdownPosition: ->
-
-    textInput = $ React.findDOMNode @refs.textInput
-
-    return  unless textInput.length
-
-    offset = textInput.offset()
-    width  = textInput.outerWidth()
-    height = textInput.outerHeight()
-
-    inputDimensions = { width, height, left : offset.left, top : offset.top }
-
-    dropdown = @getDropdown()
-    dropdown.updatePosition inputDimensions
-
