@@ -137,9 +137,6 @@ module.exports =
     browser.url url
     browser.maximizeWindow()
 
-    @setCookie(browser)
-    browser.url url
-
     @loginToTeam(browser, user)
 
     return user
