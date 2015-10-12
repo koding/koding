@@ -14,6 +14,8 @@ remote                  = require('app/remote').getInstance()
 getters                 = require 'activity/flux/getters'
 showError               = require 'app/util/showError'
 showNotification        = require 'app/util/showNotification'
+Promise                 = require 'bluebird'
+
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
