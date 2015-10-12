@@ -17,7 +17,7 @@ module.exports = class Dropbox extends React.Component
   getContentElement: -> React.findDOMNode @refs.content
 
 
-  componentDidUpdate: -> @calculatePosition()
+  componentDidUpdate: -> kd.utils.defer @bound 'calculatePosition'
 
 
   onClose: ->
@@ -43,23 +43,33 @@ module.exports = class Dropbox extends React.Component
 
     { width, height, top, left } = @inputDimensions
 
-    css = { width }
+    dropbox       = React.findDOMNode @refs.dropbox
+    dropboxHeight = $(dropbox).height()
+    winHeight     = $(window).height()
+    winWidth      = $(window).width()
     if type is 'dropup'
-      winHeight = $(window).height()
+      type = 'dropdown'  if top - dropboxHeight < 0
+    else
+      type = 'dropup'  if top + height + dropboxHeight > winHeight
+
+    css = { width, top : 'auto', bottom : 'auto' }
+    if type is 'dropup'
       css.bottom = winHeight - top
     else
-      css.top = top + height
+      css.top    = top + height
 
     rightDelta = @props.right
     leftDelta  = @props.left
     if rightDelta?
-      winWidth  = $(window).width()
       css.right = winWidth - left - width - rightDelta
     else
       css.left  = left + leftDelta
 
     element = $ React.findDOMNode @refs.dropbox
-    element.css css
+    element
+      .css css
+      .toggleClass 'Dropup', type is 'dropup'
+      .toggleClass 'Dropdown', type is 'dropdown'
 
 
   getClassName: ->
@@ -67,9 +77,8 @@ module.exports = class Dropbox extends React.Component
     { className, type } = @props
 
     classes =
-      'Dropbox'  : yes
-      'Dropdown' : type is 'dropdown'
-      'Dropup'   : type is 'dropup'
+      'Reactivity' : yes
+      'Dropbox'    : yes
     classes[className] = yes  if className
 
     return classnames classes
