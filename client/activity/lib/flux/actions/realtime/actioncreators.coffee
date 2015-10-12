@@ -80,8 +80,6 @@ _createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
     unreadCount : unreadCount
     channelId   : channel.id
 
-  _reactor.dispatch actions.UNSET_LOADED_WITH_SCROLL, channelId: channel.id
-
 
 module.exports = {
   bindChannelEvents
