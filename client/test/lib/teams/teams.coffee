@@ -60,21 +60,21 @@ module.exports =
     browser.end()
 
 
-  # checkTeamSettings: (browser) ->
+  checkTeamSettings: (browser) ->
 
-  #   user = teamsHelpers.loginTeam(browser)
-  #   teamsHelpers.clickTeamSettings(browser)
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
 
-  #   teamSettingsSelector = '.AppModal--admin-tabs .general-settings'
+    teamSettingsSelector = '.AppModal--admin-tabs .general-settings'
 
-  #   browser
-  #     .waitForElementVisible  teamSettingsSelector, 20000
-  #     .waitForElementVisible  'input[name=title]', 20000
-  #     .assert.valueContains   'input[name=title]', user.name
-  #     .waitForElementVisible  'input[name=url]', 20000
-  #     .assert.valueContains   'input[name=url]', user.teamSlug
-  #     .waitForElementVisible  '.avatar-upload .avatar', 20000
-  #     .end()
+    browser
+      .waitForElementVisible  teamSettingsSelector, 20000
+      .waitForElementVisible  'input[name=title]', 20000
+      .assert.valueContains   'input[name=title]', user.teamSlug
+      .waitForElementVisible  'input[name=url]', 20000
+      .assert.valueContains   'input[name=url]', user.teamSlug
+      .waitForElementVisible  '.avatar-upload .avatar', 20000
+      .end()
 
 
   # stacks: (browser) ->
