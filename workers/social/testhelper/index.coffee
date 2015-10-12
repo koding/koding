@@ -4,6 +4,7 @@ JUser                   = require '../lib/social/models/user'
 JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
+ObjectId                = require('mongodb').BSONPure.ObjectID
 
 { expect }              = require 'chai'
 { daisy }               = Bongo
@@ -168,6 +169,7 @@ module.exports = {
   _
   daisy
   expect
+  ObjectId
   withDummyClient
   generateUserInfo
   withConvertedUser
