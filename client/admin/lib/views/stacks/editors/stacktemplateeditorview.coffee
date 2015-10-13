@@ -15,7 +15,8 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     @once 'EditorReady', =>
 
-      return  unless options.showHelpContent
+      unless options.showHelpContent
+        return ace.contentChanged = no
 
       position = row: 0, column: 0
       content  = """
@@ -23,5 +24,6 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
         # You can make advanced changes like modifying your VM,
         # installing packages, and running shell commands.
       """
+
       ace.editor.session.insert position, content
       ace.contentChanged = no
