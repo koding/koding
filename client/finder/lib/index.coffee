@@ -66,11 +66,13 @@ module.exports = class FinderController extends KDController
 
     checkDraggingItem = (event) ->
 
-      { items } = event.originalEvent.dataTransfer
+      { dataTransfer } = event.originalEvent
 
-      # If the user isn't dragging a file and internalDragging is false,
-      # show the overlay.
-      if items?[0].kind isnt 'file' and not controller.treeController.internalDragging
+      # Workaround for FF
+      return yes  if dataTransfer.types?[0] is 'application/x-moz-file'
+
+      # If the user isn't dragging a file and internalDragging is false, show the overlay.
+      if dataTransfer.items?[0].kind isnt 'file' and not controller.treeController.internalDragging
         finderView.overlay?.show()
         return no
 
