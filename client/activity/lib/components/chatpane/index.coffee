@@ -41,8 +41,7 @@ module.exports = class ChatPane extends React.Component
 
     @isThresholdReached = yes
 
-    from = messages.first().get('createdAt')
-    kd.utils.wait 500, => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
+    kd.utils.wait 500, => @props.onLoadMore()
 
 
   afterInviteOthers: -> @props.afterInviteOthers()

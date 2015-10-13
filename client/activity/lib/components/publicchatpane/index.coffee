@@ -43,6 +43,14 @@ module.exports = class PublicChatPane extends React.Component
     input.focus()
 
 
+  onLoadMore: ->
+
+    messages = @props.thread.get 'messages'
+    from     = messages.first().get 'createdAt'
+
+    ActivityFlux.actions.message.loadMessages @channel('id'), { from }
+
+
   renderFollowChannel: ->
 
     <div className="PublicChatPane-subscribeContainer">
@@ -82,6 +90,7 @@ module.exports = class PublicChatPane extends React.Component
       thread     = { @props.thread }
       className  = "PublicChatPane"
       onSubmit   = { @bound 'onSubmit' }
+      onLoadMore = { @bound 'onLoadMore' }
       afterInviteOthers = {@bound 'afterInviteOthers'}>
       {@renderFooter()}
     </ChatPane>
