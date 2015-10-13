@@ -47,7 +47,7 @@ module.exports = class PrivateChannelListItem extends React.Component
     onConfirm          : @bound "deleteChannelButtonHandler"
     onAbort            : @bound "closeDeleteChannelPromptModal"
     onClose            : @bound "closeDeleteChannelPromptModal"
-    className          : 'PrivateChannel-deletePromptModal'
+    className          : 'PrivateChannel-deletePromptModal ActivityPromptModal'
     closeIcon          : no
 
 
