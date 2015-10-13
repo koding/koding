@@ -38,7 +38,7 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
 
 
   # we can use this methodology when multiple modals shown same time.
-  handleMouseClickOutside: (event) ->
+  handleOuterClick: (event) ->
 
     { target } = event
 
@@ -52,7 +52,7 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
   render: ->
 
     title = 'Other Messages:'
-    <Modal ref='ModalWrapper' className='ChannelList-Modal' handleMouseClickOutside={@bound 'handleMouseClickOutside'} isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal ref='ModalWrapper' className='ChannelList-Modal' handleOuterClick={@bound 'handleOuterClick'} isOpen={yes} onClose={@bound 'onClose'}>
       <SidebarModalList
         title={title}
         searchProp='name'

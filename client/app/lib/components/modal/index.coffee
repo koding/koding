@@ -26,7 +26,7 @@ module.exports = class Modal extends React.Component
 
     super options, data
 
-    @handleMouseClickOutside = @handleMouseClickOutside.bind this
+    @handleMouseClickOutside = @handleOuterClick.bind this
 
 
   getPortalProps: ->
@@ -37,19 +37,19 @@ module.exports = class Modal extends React.Component
 
   componentDidMount: ->
 
-    document.addEventListener('mousedown', @handleMouseClickOutside);
+    document.addEventListener 'mousedown', @bound 'handleOuterClick'
 
 
   componentWillUnmount: ->
 
-    document.removeEventListener('mousedown', @handleMouseClickOutside);
+    document.removeEventListener 'mousedown', @bound 'handleOuterClick'
 
 
-  handleMouseClickOutside: (event) ->
+  handleOuterClick: (event) ->
 
     return if isNodeInRoot event.target, React.findDOMNode @refs.ModalWrapper
 
-    return @props.handleMouseClickOutside(event)  if @props.handleMouseClickOutside
+    return @props.handleOuterClick(event)  if @props.handleOuterClick
 
     event.stopPropagation()
     @props.onClose()
