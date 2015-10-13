@@ -1,6 +1,7 @@
 kd             = require 'kd'
 actionTypes    = require './actiontypes'
 channelActions = require 'activity/flux/actions/channel'
+getGroup       = require 'app/util/getGroup'
 
 ###*
  * Action to set current query of chat input commands.
@@ -104,7 +105,8 @@ executeCommand = (command, channel) ->
     when '/leave'
       if channel.get('typeConstant') is 'privatemessage'
         channelActions.leavePrivateChannel(channelId).then ->
-          kd.singletons.router.handleRoute '/Channels/public'
+          channelName = getGroup().slug
+          kd.singletons.router.handleRoute "/Channels/#{channelName}"
       else
         channelActions.unfollowChannel channelId
 
