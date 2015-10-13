@@ -160,9 +160,14 @@ generateRandomUserArray =  (count, callback) ->
 expectAccessDenied = (done, caller, callee, args...) ->
 
   withDummyClient ({ client }) ->
-    caller[callee] client, args..., (err) ->
+
+    kallback = (err) ->
       expect(err?.message).to.be.equal 'Access denied'
       done()
+
+    if    args.length > 0
+    then  caller[callee] client, args..., kallback
+    else  caller[callee] client, kallback
 
 
 module.exports = {
