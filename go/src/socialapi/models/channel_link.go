@@ -151,7 +151,7 @@ func (c *ChannelLink) create() error {
 
 	// it controls the channel linking process, if not finished
 	// then dont try to link another channel and return error
-	if IsInProgress(c.RootId) {
+	if c.IsInProgress(c.RootId) {
 		return ErrLinkingProcessNotDone
 	}
 
