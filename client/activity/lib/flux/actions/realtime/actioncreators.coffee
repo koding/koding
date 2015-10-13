@@ -47,7 +47,12 @@ bindMessageEvents = (message) ->
   message.on 'RemoveReply', (comment) ->
     dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: comment.id }
 
-  message.on 'update', ->
+  message.on 'update', (updatedKeys) ->
+    # FIXME: we need to find a better way to skip handling this case
+    # ignore update if it is sent within message 'updateInstance' event,
+    # in this case updatedKeys is not empty
+    return  if updatedKeys
+
     channel = kd.singletons.socialapi.retrieveCachedItemById channelId
     dispatch actions.LOAD_MESSAGE_SUCCESS, { channelId, message, channel }
 
