@@ -1,6 +1,7 @@
 kd     = require 'kd'
 React  = require 'kd-react'
 Portal = require 'react-portal'
+isNodeInRoot = require 'app/util/isnodeinroot'
 
 
 class ModalOverlay extends React.Component
@@ -17,16 +18,41 @@ module.exports = class Modal extends React.Component
   @defaultProps =
     onClose             : kd.noop
     closeOnEsc          : yes
-    closeOnOutsideClick : yes
     hasOverlay          : yes
     isOpen              : no
     closeIcon           : yes
+
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @handleMouseClickOutside = @handleMouseClickOutside.bind this
+
 
   getPortalProps: ->
     isOpened            : @props.isOpen
     onClose             : @props.onClose
     closeOnEsc          : @props.closeOnEsc
-    closeOnOutsideClick : @props.closeOnOutsideClick
+
+
+  componentDidMount: ->
+
+    document.addEventListener('mousedown', @handleMouseClickOutside);
+
+
+  componentWillUnmount: ->
+
+    document.removeEventListener('mousedown', @handleMouseClickOutside);
+
+
+  handleMouseClickOutside: (event) ->
+
+    return if isNodeInRoot event.target, React.findDOMNode @refs.ModalWrapper
+
+    return @props.handleMouseClickOutside(event)  if @props.handleMouseClickOutside
+
+    event.stopPropagation()
+    @props.onClose()
 
 
   renderModalCloseIcon: ->
@@ -40,7 +66,7 @@ module.exports = class Modal extends React.Component
     return null  unless @props.isOpen
 
     <Portal {...@getPortalProps()} ref="modal">
-      <div className={kd.utils.curry 'Reactivity Modal', @props.className}>
+      <div ref='ModalWrapper' className={kd.utils.curry 'Reactivity Modal', @props.className}>
         {@renderModalCloseIcon()}
         {@props.children}
       </div>
