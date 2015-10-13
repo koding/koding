@@ -27,14 +27,14 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     @companyName = new LoginInputView
       inputOptions    :
         name          : 'companyName'
-        placeholder   : 'Company Name'
+        placeholder   : 'Name your team'
         attributes    : testpath : 'company-name'
         validate      :
           event       : 'blur'
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter a your company name."
+            required  : "Please enter a team name."
 
     # make the placeholders go away
     @email.inputReceivedKeyup()        if email

@@ -21,7 +21,7 @@ module.exports = class TeamAllowedDomainTabForm extends KDFormView
       domain = null  if domain in mailServices
 
     @label = new KDLabelView
-      title : 'Allow sign up and team discovery with a company email address'
+      title : 'Allow sign up and team discovery with a specific email address'
       for   : 'allow'
 
     @checkbox = new KDInputView
