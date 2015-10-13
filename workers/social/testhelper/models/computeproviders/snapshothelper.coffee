@@ -1,4 +1,5 @@
-{ expect
+{ _
+  expect
   ObjectId
   withConvertedUser
   generateRandomString } = require '../../index'
@@ -10,13 +11,15 @@ JSnapshot = require '../../../../social/lib/social/models/computeproviders/snaps
 createSnapshot = (data, callback) ->
 
   snapshot = new JSnapshot
-    label       : data.label ? generateRandomString()
-    region      : data.region ? 'someRegion'
-    originId    : data.originId ? new ObjectId
+    label       : generateRandomString()
+    region      : 'someRegion'
+    originId    : new ObjectId
     createdAt   : new Date
-    machineId   : data.machineId ? generateRandomString()
-    snapshotId  : data.snapshotId ? generateRandomString()
-    storageSize : data.storageSize ? '1'
+    machineId   : generateRandomString()
+    snapshotId  : generateRandomString()
+    storageSize : '1'
+
+  snapshot = _.extend snapshot, data
 
   snapshot.save (err) ->
     return callback err, snapshot
