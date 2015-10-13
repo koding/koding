@@ -41,7 +41,7 @@ func (c *Controller) Create(cl *models.ChannelLink) error {
 		return err
 	}
 
-	if err := c.setIsFinished(cl); err != nil {
+	if err := c.markAsFinished(cl); err != nil {
 		return err
 	}
 
@@ -88,9 +88,9 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 	return nil
 }
 
-// setIsFinished marks the channel link process as finished.
-// setIsFinished works after all moving process is completely done
-func (c *Controller) setIsFinished(cl *models.ChannelLink) error {
+// markAsFinished marks the channel link process as finished.
+// markAsFinished works after all moving process is completely done
+func (c *Controller) markAsFinished(cl *models.ChannelLink) error {
 	cl.IsFinished = true
 
 	if err := cl.Update(); err != nil {
