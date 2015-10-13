@@ -22,9 +22,11 @@ type ChannelLink struct {
 	// CreatedAt holds the creation time of the channel_link
 	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
 
-	// IsFinished is false as default
+	// IsFinished holds the linking process
 	// we link leaf channel to the root channel
-	// and marks leaf channel true
+	// and marks channel_link as true
+	// if isFinished is false, it means
+	// linking the channels process is not done yet.
 	IsFinished bool `json:"isFinished"		  sql:"NOT NULL"`
 
 	// options for operations
@@ -147,14 +149,11 @@ func (c *ChannelLink) create() error {
 		return err
 	}
 
-	//
-	// Check the rootid is if leaf channel or not,
-	// call is IsUnfinished func
-	// if returns true wait changing this result to false from true.
-	// BUT I NEED TO DEFINE STRUCTURE, are we gonna use time.sleep or
-	// another delay-control system?
-	//
-	//
+	// it controls the channel linking process, if not finished
+	// then dont try to link another channel and return error
+	if IsInProgress(c.RootId) {
+		return ErrLinkingProcessNotDone
+	}
 
 	// then delete the link between two channels
 	bq := &bongo.Query{
@@ -190,12 +189,12 @@ func (c *ChannelLink) create() error {
 	return bongo.B.Create(c)
 }
 
-// IsUnfinished checks the db if linking process is completely done or not
-// if result true -> linking process is not done
-// if result false -> linking process is completely done
+// IsInProgress checks the db if linking process is completely done or not
+// if true -> linking process is not done
+// if false -> linking process is completely done
 // We will searh root channel in db as leaf channel,
 // Aim of this search, protect linking conflict of root-leaf channels
-func (c *ChannelLink) IsUnfinished(rootID int64) bool {
+func (c *ChannelLink) IsInProgress(rootID int64) bool {
 	bq := &bongo.Query{
 		Selector: map[string]interface{}{
 			"leaf_id":     rootID,
