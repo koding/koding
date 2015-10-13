@@ -13,7 +13,6 @@ module.exports = class ChatPane extends React.Component
     title             : null
     messages          : null
     isDataLoading     : no
-    onLoadMore        : kd.noop
     afterInviteOthers : kd.noop
     showItemMenu      : yes
 
@@ -24,12 +23,25 @@ module.exports = class ChatPane extends React.Component
 
     { thread } = nextProps
 
-    @loadedWithScroll       = thread.getIn ['flags', 'loadedWithScroll']
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
-    @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
+
+    if isMessageBeingSubmitted
+      @shouldScrollToBottom   = yes
+      @isPageLoaded           = no
 
 
-  onTopThresholdReached: -> @props.onLoadMore()
+  onTopThresholdReached: (event) ->
+
+    messages = @props.thread.get 'messages'
+    @isPageLoaded = no
+
+    return  if @isThresholdReached
+
+    return  unless messages.size
+
+    @isThresholdReached = yes
+
+    kd.utils.wait 500, => @props.onLoadMore()
 
 
   afterInviteOthers: -> @props.afterInviteOthers()
@@ -49,16 +61,15 @@ module.exports = class ChatPane extends React.Component
 
   renderBody: ->
 
-    return null  unless @props.messages?.size
+    return null  unless @props.thread
 
     <Scroller
       ref="scrollContainer"
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
-        isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
-        loadedWithScroll={@props.thread?.getIn ['flags', 'loadedWithScroll']}
-        messages={@props.messages}
+        isMessagesLoading={@isThresholdReached}
+        messages={@props.thread.get 'messages'}
         showItemMenu={@props.showItemMenu}
         channelId={@channel 'id'}
         channelName={@channel 'name'}

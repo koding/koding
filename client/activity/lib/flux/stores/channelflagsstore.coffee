@@ -13,26 +13,11 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.LOAD_MESSAGES_BEGIN, @handleLoadMessagesBegin
-    @on actions.LOAD_MESSAGES_SUCCESS, @handleLoadMessagesSuccess
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageEnd
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageEnd
     @on actions.SET_ALL_MESSAGES_LOADED, @handleSetAllMessagesLoaded
     @on actions.UNSET_ALL_MESSAGES_LOADED, @handleUnsetAllMessagesLoaded
-    @on actions.SET_LOADED_WITH_SCROLL, @handleSetLoadedWithScroll
-    @on actions.UNSET_LOADED_WITH_SCROLL, @handleUnsetLoadedWithScroll
-
-  handleLoadMessagesBegin: (channelFlags, { channelId }) ->
-
-    channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'isMessagesLoading'], yes
-
-
-  handleLoadMessagesSuccess: (channelFlags, { channelId }) ->
-
-    channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'isMessagesLoading'], no
 
 
   handleCreateMessageBegin: (channelFlags, { channelId }) ->
@@ -57,18 +42,6 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'reachedFirstMessage'], no
-
-
-  handleSetLoadedWithScroll: (channelFlags, { channelId }) ->
-
-    channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'loadedWithScroll'], yes
-
-
-  handleUnsetLoadedWithScroll: (channelFlags, { channelId }) ->
-
-    channelFlags = helper.ensureChannelMap channelFlags, channelId
-    return channelFlags.setIn [channelId, 'loadedWithScroll'], no
 
 
 helper =

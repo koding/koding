@@ -12,32 +12,6 @@ describe 'ChannelFlagsStore', ->
 
   afterEach -> @reactor.reset()
 
-  describe 'handleLoadMessagesBegin', ->
-
-    it 'listens to regular load messages success', ->
-
-      @reactor.dispatch actionTypes.LOAD_MESSAGES_BEGIN, {
-        channelId: 'mockChannelFlagsForBeginId'
-      }
-
-      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-
-      expect(storeState.mockChannelFlagsForBeginId.isMessagesLoading).to.eql yes
-
-
-  describe 'handleLoadMessagesSuccess', ->
-
-    it 'listens to regular load messages success', ->
-
-      @reactor.dispatch actionTypes.LOAD_MESSAGES_SUCCESS, {
-        channelId: 'mockChannelFlagsForSuccessId'
-      }
-
-      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-
-      expect(storeState.mockChannelFlagsForSuccessId.isMessagesLoading).to.eql no
-
-
   describe 'handleCreateMessageBegin', ->
 
     it 'sets isMessageBeingSubmitted flag to true when a new message is being submitted in the channel', ->
@@ -111,30 +85,4 @@ describe 'ChannelFlagsStore', ->
       storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
 
       expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql no
-
-
-  describe 'handleSetLoadedWithScroll', ->
-
-    it 'sets loadedWithScroll flags to true', ->
-
-      @reactor.dispatch actionTypes.SET_LOADED_WITH_SCROLL, {
-        channelId: 'mockChannelFlagsForSuccessId'
-      }
-
-      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-
-      expect(storeState.mockChannelFlagsForSuccessId.loadedWithScroll).to.eql yes
-
-
-  describe 'handleUnsetLoadedWithScroll', ->
-
-    it 'sets loadedWithScroll flags to false', ->
-
-      @reactor.dispatch actionTypes.UNSET_LOADED_WITH_SCROLL, {
-        channelId: 'mockChannelFlagsForSuccessId'
-      }
-
-      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
-
-      expect(storeState.mockChannelFlagsForSuccessId.loadedWithScroll).to.eql no
 
