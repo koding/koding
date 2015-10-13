@@ -7,12 +7,24 @@ if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
 fi
 
+# ver contains the last digit of a go version, i.e: for v1.5 it contains 5 # we
+# are using it because the link operator has changed after v1.5, previously it
+# was an empty space, now its '=' (following code is retrieved from:
+# https://github.com/coreos/etcd/blob/master/build)
+val=$(go version)
+ver=$(echo $val | awk -F ' ' '{print $3}' | awk -F '.' '{print $2}')
+if [ $ver -gt 4 ]; then
+	LINK_OPERATOR="="
+else
+	LINK_OPERATOR=" "
+fi
+
 # first try to fetch it from git HEAD
 # then try to read currrent directory
 # it may be in one upper folder - if you are in go folder
 # it may be in root folder if you are in socialapi folder
 version=$(git rev-parse HEAD || cat ./VERSION || cat ../VERSION || cat ../../../VERSION || echo "0")
-ldflags="-X koding/artifact.VERSION ${version:0:8}"
+ldflags="-X koding/artifact.VERSION${LINK_OPERATOR}${version:0:8}"
 
 services=(
   koding/broker
@@ -91,7 +103,7 @@ terraformservices=(
 
 )
 
-tldflags="-X main.GitCommit ${version:0:8}"
+tldflags="-X main.GitCommit${LINK_OPERATOR}${version:0:8}"
 `which go` install -v -ldflags "$tldflags"  "${terraformservices[@]}"
 
 for i in "${terraformservices[@]}"
