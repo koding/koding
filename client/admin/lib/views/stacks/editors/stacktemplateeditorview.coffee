@@ -11,9 +11,7 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     super options, data
 
-    @loadedContent = options.content
-
-    @on 'ResetLoadedContent', @bound 'resetLoadedContent'
+    ace = @getAce()
 
     @once 'EditorReady', =>
 
@@ -24,12 +22,6 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
         # Here is your stack preview
         # You can make advanced changes like modifying your VM,
         # installing packages, and running shell commands.
-
-
       """
-      @aceView.ace.editor.session.insert position, content
-
-
-  isStackContentChanged: -> @loadedContent isnt @getContent()
-
-  resetLoadedContent: -> @loadedContent = @getContent()
+      ace.editor.session.insert position, content
+      ace.contentChanged = no

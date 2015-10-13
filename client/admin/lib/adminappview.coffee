@@ -139,7 +139,8 @@ module.exports = class AdminAppView extends kd.ModalView
 
     return @destroy()  unless stacksPane
 
-    { mainView } = stacksPane
+    { mainView }    = stacksPane
+    { editorView }  = mainView?.defineStackView?.stackTemplateView
 
-    unless mainView?.defineStackView?.stackTemplateView.editorView.isStackContentChanged()
+    unless editorView?.getAce().isContentChanged()
       @destroy()

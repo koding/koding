@@ -259,8 +259,6 @@ module.exports = class DefineStackView extends KDView
           .add 'Template content saved.'
           .add 'Setting up custom variables...'
 
-        @stackTemplateView.editorView.emit 'ResetLoadedContent'
-
         meta = @variablesView._providedData
         data = { stackTemplate, meta }
 
