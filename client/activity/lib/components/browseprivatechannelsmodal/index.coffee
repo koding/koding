@@ -6,6 +6,7 @@ KDReactorMixin = require 'app/flux/reactormixin'
 ActivityFlux = require 'activity/flux'
 isPublicChannel = require 'app/util/isPublicChannel'
 PrivateChannelListItem = require 'activity/components/privatechannellistitem'
+isNodeInRoot = require 'app/util/isnodeinroot'
 
 
 module.exports = class BrowsePrivateChannelsModal extends React.Component
@@ -36,10 +37,22 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
     kd.singletons.router.handleRoute route
 
 
+  # we can use this methodology when multiple modals shown same time.
+  handleMouseClickOutside: (event) ->
+
+    { target } = event
+
+    ActivityPromptModal = document.querySelector('.ActivityPromptModal')
+
+    return  if isNodeInRoot(target, ActivityPromptModal)
+
+    return @onClose()  unless isNodeInRoot target, React.findDOMNode @refs.ModalWrapper
+
+
   render: ->
 
     title = 'Other Messages:'
-    <Modal className='ChannelList-Modal' closeOnOutsideClick={no} isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal ref='ModalWrapper' className='ChannelList-Modal' handleMouseClickOutside={@bound 'handleMouseClickOutside'} isOpen={yes} onClose={@bound 'onClose'}>
       <SidebarModalList
         title={title}
         searchProp='name'
