@@ -45,6 +45,13 @@ module.exports = class ParticipantHeads extends kd.CustomHTMLView
     @addSubView @previewContainer
     @addSubView @actionsContainer
 
+    @bindListeners()
+
+
+  bindListeners: ->
+
+    @on 'ShowParticipantAutocomplete', @bound 'onNewParticipantClick'
+
 
   ###*
    * Click handler for new participant button.

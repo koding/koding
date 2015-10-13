@@ -13,16 +13,22 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     options.cssClass = kd.utils.curry "stacktemplate-item clearfix", options.cssClass
     super options, data
 
-    { inuse, accessLevel } = @getData()
+    { inuse, accessLevel, config } = @getData()
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'inuse-tag'
+      cssClass : 'custom-tag'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This group currently using this template'
 
+    @notReadyView = new kd.CustomHTMLView
+      cssClass : 'custom-tag not-ready'
+      partial  : 'NOT READY'
+      tooltip  :
+        title  : 'Template is not verified or credential data is missing'
+
     @accessLevelView = new kd.CustomHTMLView
-      cssClass : "accesslevel-tag #{accessLevel}"
+      cssClass : "custom-tag #{accessLevel}"
       partial  : accessLevel.toUpperCase()
       tooltip  :
         title  : switch accessLevel
@@ -33,7 +39,8 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
           when 'private'
             'Only you can use this template'
 
-    @inuseView.hide()  unless inuse
+    @inuseView.hide()     unless inuse
+    @notReadyView.hide()  if config.verified
 
 
   updateStackTemplate: ->
@@ -45,7 +52,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     listView      = @getDelegate()
     stackTemplate = @getData()
 
-    unless stackTemplate.inuse
+    if not stackTemplate.inuse and stackTemplate.config.verified
       @addMenuItem 'Apply to Team', ->
         listView.emit 'ItemSelectedAsDefault', stackTemplate
 
@@ -58,7 +65,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     """
     <div class='stacktemplate-info clearfix'>
-      {div.title{#(title)}} {{> @inuseView}} {{> @accessLevelView}}
+      {div.title{#(title)}} {{> @inuseView}} {{> @notReadyView}} {{> @accessLevelView}}
       <cite>#{timeago meta.createdAt}</cite>
     </div>
     <div class='buttons'>{{> @settings}}</div>

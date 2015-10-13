@@ -41,15 +41,16 @@ module.exports = class DefineStackView extends KDView
 
     options.delegate = this
 
-    @setClass 'edit-mode'  if @getOption 'inEditMode'
+    @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
-    title   = stackTemplate?.title or 'Default stack template'
-    content = stackTemplate?.template?.content
+    title           = stackTemplate?.title or 'Default stack template'
+    content         = stackTemplate?.template?.content
+    breadcrumbTitle = if inEditMode then 'Edit Stack' else 'New Stack'
 
     @addSubView new kd.CustomHTMLView
       tagName  : 'header'
       cssClass : 'breadcrumb'
-      partial  : '<span>Stacks</span> &gt; <span class="active">New Stack</span>'
+      partial  : "<span>Stacks</span> &gt; <span class='active'>#{breadcrumbTitle}</span>"
 
     @createStackNameInput()
     @addSubView @tabView = new KDTabView hideHandleCloseIcons: yes
@@ -156,7 +157,7 @@ module.exports = class DefineStackView extends KDView
           <span class="icon"></span>
           <div class="text">
             <p>To learn about stack files</p>
-            <a href="#">Check out our docs</a>
+            <a href="http://learn.koding.com/stacktemplate">Check out our docs</a>
           </div>
         </div>
       """
@@ -211,12 +212,6 @@ module.exports = class DefineStackView extends KDView
 
   handleSave: ->
 
-    unless @_credentialsPassed
-      @outputView.addAndWarn "Please add your credentials to be
-                              able to save this template"
-      @saveButton.hideLoader()
-      return
-
     unless @variablesView.isPassed()
 
       # Warn user if one is trying to save without
@@ -242,34 +237,34 @@ module.exports = class DefineStackView extends KDView
     @setAsDefaultButton.hide()
     @inputTitle.unsetClass 'three-buttons'
 
-    @checkAndBootstrapCredentials (err, credentials) =>
-      return @saveButton.hideLoader()  if err
+    @saveTemplate (err, stackTemplate) =>
+
+      if @outputView.handleError err
+        @saveButton.hideLoader()
+        return
 
       @outputView
-        .add 'Credentials are ready!'
-        .add 'Saving current template content...'
+        .add 'Template content saved.'
+        .add 'Setting up custom variables...'
 
-      @saveTemplate (err, stackTemplate) =>
+      meta = @variablesView._providedData
+      data = { stackTemplate, meta }
+
+      updateCustomVariable data, (err, _stackTemplate) =>
 
         if @outputView.handleError err
           @saveButton.hideLoader()
           return
 
         @outputView
-          .add 'Template content saved.'
-          .add 'Setting up custom variables...'
+          .add 'Custom variables are set.'
+          .add 'Checking provided credentials...'
 
-        meta = @variablesView._providedData
-        data = { stackTemplate, meta }
-
-        updateCustomVariable data, (err, _stackTemplate) =>
-
-          if @outputView.handleError err
-            @saveButton.hideLoader()
-            return
+        @checkAndBootstrapCredentials (err, credentials) =>
+          return @saveButton.hideLoader()  if err
 
           @outputView
-            .add 'Custom variables are set.'
+            .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
           @processTemplate _stackTemplate
@@ -290,6 +285,7 @@ module.exports = class DefineStackView extends KDView
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
+      @emit 'Reload'
 
       if err
         @outputView.add "Parsing failed, please check your
@@ -323,7 +319,6 @@ module.exports = class DefineStackView extends KDView
       else
         setToGroup 'addAndWarn'
 
-
       @cancelButton.setTitle 'Close'
 
 
@@ -345,6 +340,14 @@ module.exports = class DefineStackView extends KDView
     @outputView
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
+
+    if not credential or credential.provider isnt 'aws'
+      @cancelButton.setTitle 'Close'
+      return failed "
+        Required credentials are not provided yet, we are unable to test the
+        stack template. Stack template content is saved and can be tested once
+        required credentials are provided.
+      "
 
     credential.isBootstrapped (err, state) =>
 
@@ -462,10 +465,12 @@ module.exports = class DefineStackView extends KDView
     templateDetails = null
 
     # TODO Make this to support multiple credentials
-    credData      = @credentialStatusView.credentialsData
-    awsIdentifier = credData.first.identifier
-    credentials   =
-      aws         : [ awsIdentifier ]
+    credData    = @credentialStatusView.credentialsData ? []
+    credentials = {}
+
+    if credData.length > 0
+      awsIdentifier   = credData.first.identifier
+      credentials.aws = [ awsIdentifier ]
 
     # Add Custom Variables if exists
     if variablesCredential = @variablesView._activeCredential
@@ -481,7 +486,6 @@ module.exports = class DefineStackView extends KDView
 
     template   = templateContent
     currentSum = stackTemplate?.template?.sum
-
 
     updateStackTemplate {
       template, description, templateDetails
