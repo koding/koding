@@ -1,6 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
+Tracker     = require './tracker'
 
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
@@ -654,11 +655,14 @@ module.exports = class JAccount extends jraphical.Module
       state = prefs[granularity]
       current[granularity] = state# then 'instant' else 'never'
 
-    updateUserPref = ->
-      user.update { $set: { emailFrequency: current } }, (err) ->
-        return callback err  if err
+    user.update { $set: { emailFrequency: current } }, (err) ->
+      return callback err  if err
 
-    updateUserPref()
+      emailFrequency =
+        global    : current.global
+        marketing : current.marketing
+
+      Tracker.identify user.username, { emailFrequency }
 
   setEmailPreferences$: secure (client, prefs, callback) ->
     JUser = require './user'
@@ -862,8 +866,13 @@ module.exports = class JAccount extends jraphical.Module
       op = { $set: fields }
       @update op, (err) =>
         JAccount.sendUpdateInstanceEvent this, op  unless err
-        SocialAccount  = require './socialapi/socialaccount'
 
+        firstName = fields['profile.firstName']
+        lastName  = fields['profile.lastName']
+
+        Tracker.identify @getAt('profile.nickname'), { firstName, lastName }
+
+        SocialAccount = require './socialapi/socialaccount'
         SocialAccount.update {
           id            : @socialApiId
           nick          : @profile.nickname
@@ -1111,6 +1120,10 @@ module.exports = class JAccount extends jraphical.Module
         JReferrableEmail.delete user.username, callback
     else
       callback()
+
+    foreignAuth = {}
+    foreignAuth[provider] = no
+    Tracker.identify user.username, { foreignAuth }
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback) ->
