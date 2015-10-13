@@ -388,8 +388,9 @@ module.exports = class ComputeController_UI
 
   @showComputeError = (options) ->
 
-    { stack, errorMessage, title, subtitle, cssClass } = options
+    { stack, errorMessage, title, subtitle, cssClass, message } = options
     cssClass ?= ''
+    message  ?= ''
 
     modal     = new kd.ModalView
       title          : title    ? "An error occured"
@@ -404,7 +405,13 @@ module.exports = class ComputeController_UI
 
     content      = (hljs.highlight 'profile', errorMessage).value
     errorDetails = new kd.CustomHTMLView
-      partial  : "<pre><code>#{content}</code></pre>"
+      cssClass : 'error-content'
+      partial  : """
+        #{message}
+        <pre>
+          <code>#{content}</code>
+        </pre>
+      """
 
     if stack?
 
