@@ -72,7 +72,11 @@ module.exports = class AccountCredentialList extends KDListView
             callback   : =>
               modal.buttons.Remove.disable()
               @destroyResources credential, (err) ->
-                removeCredential()  unless showError err
+                if err
+                  modal.buttons.DestroyAll.hideLoader()
+                  modal.buttons.Remove.enable()
+                else
+                  removeCredential()
           cancel       :
             title      : 'Cancel'
             style      : 'solid light-gray medium'
@@ -135,10 +139,23 @@ module.exports = class AccountCredentialList extends KDListView
 
   destroyResources: (credential, callback) ->
 
-    identifiers = [credential.identifier]
+    identifiers = [ credential.identifier ]
+
     kd.singletons.computeController.getKloud()
       .bootstrap { identifiers, destroy: yes }
-      .nodeify callback
+      .then -> callback null
+      .catch (err) ->
+        kd.singletons.computeController.ui.showComputeError
+          title   : 'An error occured while destroying resources'
+          message : "
+            Following error occured while destroying resources related with
+            this credential, however you still can delete the credential from
+            Koding and destroy your resources manually or you can Terminate all
+            existing instances manually then try to destroy rest of the
+            resources from here again.
+          "
+          errorMessage : err?.message ? err
+        callback err
 
 
   verify: (item) ->
