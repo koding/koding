@@ -12,14 +12,14 @@ populateMetaData = (provider) ->
   meta = switch provider
 
     when 'google'
-        projectId            : generateRandomString()
-        privateKeyContent    : generateRandomString()
-        clientSecretsContent : generateRandomString()
+      projectId            : generateRandomString()
+      privateKeyContent    : generateRandomString()
+      clientSecretsContent : generateRandomString()
 
     when 'aws'
-        region               : 'us-east-1'
-        instance_type        : 't2.micro'
-        storage_size         : 2
+      region               : 'us-east-1'
+      instance_type        : 't2.micro'
+      storage_size         : 2
 
 
 withConvertedUserAndCredential = (opts, callback) ->
