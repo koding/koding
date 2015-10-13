@@ -26,12 +26,16 @@ generateMetaData = (provider) ->
 
 withConvertedUserAndCredential = (options, callback) ->
 
+  [options, callback] = [callback, options]  unless callback
+  options            ?= {}
+
   withConvertedUser options, (data) ->
-    options.meta  ?= generateMetaData options.provider
-    options.title ?= "test#{options.provider}#{generateRandomString()}"
+    options.provider ?= 'aws'
+    options.meta     ?= generateMetaData options.provider
+    options.title    ?= "test#{options.provider}#{generateRandomString()}"
 
     JCredential.create data.client, options, (err, credential) ->
-      expect(err).to.not.exist
+      expect(err?.message).to.not.exist
       data.credential = credential
       callback data
 
