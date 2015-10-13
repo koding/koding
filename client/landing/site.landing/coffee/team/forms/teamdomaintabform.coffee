@@ -47,7 +47,7 @@ module.exports = class TeamDomainTab extends KDFormView
     @backLink = new KDCustomHTMLView
       tagName      : 'span'
       cssClass     : 'TeamsModal-button-link back'
-      partial      : '← <a href="/Teams">Back</a>'
+      partial      : "← <a href=\"/Teams/#{team.invitation.teamAccessCode}\">Back</a>"
 
     @button = new KDButtonView
       title        : 'NEXT'
