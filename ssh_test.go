@@ -31,7 +31,10 @@ func TestSSHCommand(t *testing.T) {
 		})
 
 		Convey("It should return error if invalid key exists", func() {
-			err := ioutil.WriteFile(s.publicKeyPath(), []byte("a"), 0700)
+			err := ioutil.WriteFile(s.privateKeyPath(), []byte("a"), 0700)
+			So(err, ShouldBeNil)
+
+			err = ioutil.WriteFile(s.publicKeyPath(), []byte("a"), 0700)
 			So(err, ShouldBeNil)
 
 			err = s.prepareForSSH("name")
