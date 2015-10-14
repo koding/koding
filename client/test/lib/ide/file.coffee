@@ -10,24 +10,8 @@ module.exports =
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-
-    helpers.openFolderContextMenu(browser, user, 'Web')
-
-    webPath       = '/home/' + user.username + '/Web'
-    indexSelector = "span[title='" + webPath + '/index.html' + "']"
-
-    browser
-      .waitForElementVisible   'li.expand', 15000
-      .click                   'li.expand'
-      .waitForElementVisible   indexSelector, 15000
-      .click                   indexSelector
-      .click                   indexSelector + ' + .chevron'
-      .waitForElementVisible   'li.open-file', 20000
-      .click                   'li.open-file'
-      .waitForElementVisible   '.pane-wrapper .kdsplitview-panel .indexhtml', 20000 # Assertion
-      .waitForElementVisible   '.kdtabpaneview.indexhtml', 20000 # Assertion
-      .assert.containsText     '.kdtabpaneview.indexhtml', 'Hello World from HTML by Koding' # Assertion
-      .end()
+    ideHelpers.openFileFromWebFolder(browser, user, )
+    browser.end()
 
 
   createFileFromContextMenu: (browser) ->

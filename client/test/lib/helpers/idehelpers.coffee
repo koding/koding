@@ -142,6 +142,29 @@ module.exports =
       .assert.containsText    activeEditorSelector, text # Assertion
 
 
+  openFileFromWebFolder: (browser, user, fileName, fileContent) ->
+
+    fileName    or= 'index.html'
+    fileContent or= 'Hello World from HTML by Koding'
+    fileSelector  = "span[title='/home/#{user.username}/Web/#{fileName}']"
+    fileNameSlug  = fileName.replace '.', ''
+    tabSelector   = ".kdtabpaneview.#{fileNameSlug}"
+
+    helpers.openFolderContextMenu browser, user, 'Web'
+
+    browser
+      .waitForElementVisible   'li.expand', 15000
+      .click                   'li.expand'
+      .waitForElementVisible   fileSelector, 15000
+      .click                   fileSelector
+      .click                   fileSelector + ' + .chevron'
+      .waitForElementVisible   'li.open-file', 20000
+      .click                   'li.open-file'
+      .waitForElementVisible   ".pane-wrapper .kdsplitview-panel .#{fileNameSlug}", 20000 # Assertion
+      .waitForElementVisible   tabSelector, 20000 # Assertion
+      .assert.containsText     tabSelector, fileContent # Assertion
+
+
   openFile: (browser, user, fileName) ->
 
     filePath            = "/home/#{user.username}/Web/#{fileName}"
@@ -165,6 +188,7 @@ module.exports =
 
     helpers.clickVMHeaderButton(browser)
     browser.click ".context-list-wrapper #{selector}"
+
 
   compressFileFolder: (browser, user, type, fileFolderName, compressType) ->
 
