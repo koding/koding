@@ -15,6 +15,11 @@ team.group.creation.styl
 
   // GENERIC SIGNUPFORM CUSTOMIZATIONS
 
+  .TeamsModal
+    .login-input-view.validation-error
+      .kdinput
+        border              3px solid #e79a8f
+
   .kdtabpaneview .TeamsModal.TeamsModal--groupCreation
     margin-bottom           100px
 
@@ -35,13 +40,11 @@ team.group.creation.styl
         bg                  color transparent
 
       input.kdinput
-        text-align          left
+        text-align          center
         bg                  color transparent
         borderBox()
         &:focus
           shadow            0 0 5px rgba(0,0,0,.1)
-        &.validation-error
-          border-color      #FF6B5D
 
       > span
         abs                 3px 0 0 3px
@@ -65,9 +68,13 @@ team.group.creation.styl
     .TeamsModal-button-link.back a
       color                 #999
 
+    form
+      margin-top            20px
+
   // LOGIN/CREATE TAB STYLE CUSTOMIZATIONS
 
   .TeamsModal--create
+  .TeamsModal--groupCreation
   .kdtabpaneview.login .TeamsModal
     margin-bottom           0
 
@@ -189,15 +196,12 @@ team.group.creation.styl
     .login-input-view
       margin-bottom         11px
 
-      input.kdinput
-        padding-left        127px
-        text-align          left
-
-      .PasswordStrength
-        rounded             3px
-        width               calc(100% - 134px)
-        abs                 0 0 4px 130px
-        z-index             4
+    .PasswordStrength
+      top                   -30px
+      left                  5px
+      rounded               3px
+      width                 calc(100% - 10px)
+      z-index               4
 
     p.dim
       margin                25px auto
