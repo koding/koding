@@ -24,7 +24,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 		yesUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(yesUpdate, ShouldBeTrue)
-		So(KlientctlVersion, ShouldBeLessThan, 2)
+		So(Version, ShouldBeLessThan, 2)
 	})
 
 	Convey("It should return false if latest version is less or equal to than current version", t, func() {
@@ -41,7 +41,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(noUpdate, ShouldBeFalse)
-		So(KlientctlVersion, ShouldEqual, 1)
+		So(Version, ShouldEqual, 1)
 	})
 
 	Convey("It should check for update if ForceCheck is enabled", t, func() {
@@ -58,7 +58,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(noUpdate, ShouldBeFalse)
-		So(KlientctlVersion, ShouldEqual, 1)
+		So(Version, ShouldEqual, 1)
 	})
 
 	Convey("It shouldn't update if randomly seeded number is not 1", t, func() {
