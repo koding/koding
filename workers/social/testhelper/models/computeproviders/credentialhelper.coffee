@@ -18,8 +18,10 @@ generateMetaData = (provider) ->
 
     when 'aws'
       region               : 'us-east-1'
-      instance_type        : 't2.micro'
+      access_key           : generateRandomString()
+      secret_key           : generateRandomString()
       storage_size         : 2
+      instance_type        : 't2.micro'
 
   return meta
 
