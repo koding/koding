@@ -53,7 +53,7 @@ func TestAskToCreate(t *testing.T) {
 		var in, out bytes.Buffer
 		fmt.Fprintf(&in, "no\n")
 		err := askToCreate(askDir, &in, &out)
-		So(err, ShouldEqual, errs.ErrUserCancelled)
+		So(err, ShouldEqual, klientctlerrors.ErrUserCancelled)
 		So(exists(askDir), ShouldBeFalse)
 	})
 
