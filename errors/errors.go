@@ -10,5 +10,5 @@ import "errors"
 // vs instances, to avoid awkaward check implementation.
 
 var (
-	UserCancelled = errors.New("User cancelled operation")
+	ErrUserCancelled = errors.New("User cancelled operation")
 )

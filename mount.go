@@ -152,7 +152,7 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 	// The user chose not to create the folder. We cannot mount something that
 	// doesn't exist - so we must fail here with an error.
 	if !createFolder {
-		return errs.UserCancelled
+		return errs.ErrUserCancelled
 	}
 
 	err = os.Mkdir(p, 0655)
