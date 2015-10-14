@@ -199,6 +199,7 @@ func (c *ChannelLink) create() error {
 // We will searh root channel in db as leaf channel,
 // Aim of this search, protect linking conflict of root-leaf channels
 func (c *ChannelLink) IsInProgress(rootID int64) (bool, error) {
+	newCh := NewChannelLink()
 	bq := &bongo.Query{
 		Selector: map[string]interface{}{
 			"leaf_id":     rootID,
@@ -207,7 +208,7 @@ func (c *ChannelLink) IsInProgress(rootID int64) (bool, error) {
 	}
 
 	// if there is no error, it means we already have it
-	err := c.One(bq)
+	err := newCh.One(bq)
 
 	if err != nil && err != bongo.RecordNotFound {
 		return false, err
