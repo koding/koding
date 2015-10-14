@@ -37,7 +37,15 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 // Create moves the participants and the messages of a leaf channel to the root
 // channel, it may remove the messages if the option is passed
 func (c *Controller) Create(cl *models.ChannelLink) error {
-	return c.process(cl)
+	if err := c.process(cl); err != nil {
+		return err
+	}
+
+	if err := c.markAsFinished(cl); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete just here for referance
@@ -74,6 +82,18 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 
 	if err := c.updateInitialChannelIds(cl); err != nil {
 		c.log.Error("Error while updating the initial channel ids, err: %s ", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+// markAsFinished marks the channel link process as finished.
+// markAsFinished works after all moving process is completely done
+func (c *Controller) markAsFinished(cl *models.ChannelLink) error {
+	cl.IsFinished = true
+
+	if err := cl.Update(); err != nil {
 		return err
 	}
 
