@@ -36,12 +36,13 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
   describe '#ping()', ->
 
     it 'should be able to ping for the given provider', (done) ->
-
-      withConvertedUser {}, ({ client, account }) ->
+      
+      withConvertedUser ({ client, account }) ->
         client.r  = { account }
         queue     = []
 
         for providerSlug, provider of PROVIDERS
+          options = { provider }
           queue.push ->
             options = { provider }
             ComputeProvider.ping client, options, (err, data) ->
@@ -58,7 +59,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should not be able to ping if user doesnt have the right to ping', (done) ->
 
-      withDummyClient { group : 'koding' }, ({ client }) ->
+      withDummyClient ({ client }) ->
 
         ComputeProvider.ping$ client, { provider : PROVIDERS.google }, (err, data) ->
           expect(err?.message).to.be.equal 'Access denied'
@@ -69,7 +70,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should fail when user is not registered', (done) ->
 
-      withDummyClient { group : 'koding' }, ({ client }) ->
+      withDummyClient ({ client }) ->
 
 
 
