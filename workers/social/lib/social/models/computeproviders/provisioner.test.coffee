@@ -24,7 +24,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
     it 'should fail to create provisioner if user doesnt have permission', (done) ->
 
-      expectAccessDenied done, JProvisioner, 'create', data = {}
+      expectAccessDenied JProvisioner, 'create', data = {}, done
 
 
     it 'should be able to create provisioner when valid data provided', (done) ->
@@ -110,7 +110,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
     it 'should fail to fetch provisioner data if user doesnt have permission', (done) ->
 
-      expectAccessDenied done, JProvisioner, 'some$', selector = {}, options = {}
+      expectAccessDenied JProvisioner, 'some$', selector = {}, options = {}, done
 
 
   it 'should be able to fetch provisioner data', (done) ->
@@ -129,7 +129,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
 
     it 'should fail to fetch provisioner data if user doesnt have permission', (done) ->
 
-      expectAccessDenied done, JProvisioner, 'one$', selector = {}, options = {}
+      expectAccessDenied JProvisioner, 'one$', selector = {}, options = {}, done
 
 
   it 'should be able to fetch provisioner data', (done) ->
@@ -149,7 +149,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
     it 'should fail to delete provisioner data if user doesnt have permission', (done) ->
 
       withConvertedUserAndProvisioner ({ provisioner }) ->
-        expectAccessDenied done, provisioner, 'delete', selector = {}, options = {}
+        expectAccessDenied provisioner, 'delete', selector = {}, options = {}, done
 
 
   it 'should be able to delete provisioner of the given client', (done) ->
@@ -188,7 +188,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
     it 'should fail to change access of provisioner if user doesnt have permission', (done) ->
 
       withConvertedUserAndProvisioner ({ provisioner }) ->
-        expectAccessDenied done, provisioner, 'setAccess', accessLevel = 'someLevel'
+        expectAccessDenied provisioner, 'setAccess', accessLevel = 'someLevel', done
 
 
   it 'should be able to set access level of provisioner', (done) ->
@@ -221,7 +221,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
     it 'should fail to update provisioner if user doesnt have permission', (done) ->
 
       withConvertedUserAndProvisioner ({ provisioner }) ->
-        expectAccessDenied done, provisioner, 'update$', data = {}
+        expectAccessDenied provisioner, 'update$', data = {}, done
 
 
   it 'should be able to update provisioner data', (done) ->
