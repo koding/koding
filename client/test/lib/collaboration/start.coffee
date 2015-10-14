@@ -1,5 +1,6 @@
-helpers = require '../helpers/helpers.js'
-utils   = require '../utils/utils.js'
+utils                = require '../utils/utils.js'
+helpers              = require '../helpers/helpers.js'
+ideHelpers           = require '../helpers/idehelpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
 
 chatBox  = '.collaboration.message-pane'
@@ -141,4 +142,49 @@ module.exports =
       browser.pause 5000
       browser.assert.containsText '.kdtabpaneview.terminal', terminalText
 
+    leave(browser)
+    waitAndEndSession(browser)
+
     browser.end()
+
+
+  openFile: (browser) ->
+
+    host                   = utils.getUser no, 0
+    hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant            = utils.getUser no, 1
+    terminalText           = host.teamSlug
+    hostFileName           = 'index.html'
+    paneSelector           = '.pane-wrapper .application-tab-handle-holder'
+    lineWidgetSelector     = ".kdtabpaneview.active .ace-line-widget-"
+    participantFileName    = 'python.py'
+    participantFileContent = 'Hello World from Python by Koding'
+
+    start(browser)
+    collaborationHelpers.closeChatPage(browser)
+
+    if hostBrowser
+      ideHelpers.openFileFromWebFolder browser, host
+
+      # wait for participant file opening
+      browser
+        .waitForElementVisible "#{paneSelector} .pythonpy",  60000
+        # .waitForElementVisible "#{lineWidgetSelector}#{participant.username}", 60000
+    else
+      # wait for host file opening
+      browser.waitForElementVisible "#{paneSelector} .indexhtml", 60000
+
+      # open file in host's vm
+      ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
+      # browser.waitForElementVisible "#{lineWidgetSelector}#{host.username}", 60000
+
+    browser.pause 8000
+    leave(browser)
+
+    # assert no line widget after participant left
+    # browser.waitForElementNotPresent "#{lineWidgetSelector}#{participant.username}", 60000
+
+    waitAndEndSession(browser)
+    browser.end()
+
+

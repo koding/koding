@@ -132,7 +132,7 @@ module.exports =
           .waitForElementVisible     closeButtonSelector, 20000
           .click                     closeButtonSelector
           .waitForElementNotVisible  chatBox, 20000
-          .waitForElementVisible    '.panel-1 .terminal-pane', 20000
+          .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
       else
         browser
-          .waitForElementVisible    '.panel-1 .terminal-pane', 20000
+          .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
