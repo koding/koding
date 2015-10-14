@@ -30,19 +30,19 @@ module.exports = class AccountCredentialList extends KDListView
 
       kd.warn "Bootstrap check failed:", { credential, err }  if err
 
-      description = applyMarkdown if bootstrapped then """
-        This **#{credential.title}** credential is bootstrapped
-        before which means that you have modified data on your
-        **#{credential.provider}** account.
-
+      description = applyMarkdown if bootstrapped then "
+        This **#{credential.title}** credential is bootstrapped before which
+        means that you have modified data on your **#{credential.provider}**
+        account.
+        \n\n
         You can remove this credential from Koding and manually cleanup
         the resources created on your provider or you can **destroy** all
         bootstrapped data and resources along with credential.
-
+        \n\n
         **WARNING!** destroying resources includes **ALL RESOURCES**; your
         team member's instances, volumes, keypairs and **everything else we've
         created on your account**.
-      """ else "Do you want to remove **#{credential.title}** ?"
+      " else "Do you want to remove **#{credential.title}** ?"
 
       removeCredential = =>
         credential.delete (err) =>
