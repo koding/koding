@@ -28,8 +28,8 @@ ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
 CredentialStatusView = require './credentialstatusview'
 
-module.exports = class DefineStackView extends KDView
 
+module.exports = class DefineStackView extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -429,6 +429,7 @@ module.exports = class DefineStackView extends KDView
     { title }         = @inputTitle.getData()
     templateContent   = @stackTemplateView.editorView.getValue()
     description       = @readmeView.editorView.getValue() # aka readme
+    rawContent        = templateContent
 
     # TODO split following into their own helper methods
     # and call them in here ~ GG
@@ -488,7 +489,7 @@ module.exports = class DefineStackView extends KDView
     currentSum = stackTemplate?.template?.sum
 
     updateStackTemplate {
-      template, description, templateDetails
+      template, description, rawContent, templateDetails
       credentials, stackTemplate, title, config
     }, (err, stackTemplate) =>
 

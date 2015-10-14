@@ -79,8 +79,7 @@ module.exports = class ChatList extends React.Component
             messageId={currentMessage.get 'id'}
             position="before"
             autoload={beforeMarker.get 'autoload'}
-            timestamp={currentMessage.get 'createdAt'}
-            isLoading={isMessagesLoading} />
+            timestamp={currentMessage.get 'createdAt'}/>
 
     switch
       # if this is first message put a date marker no matter what.
@@ -109,7 +108,7 @@ module.exports = class ChatList extends React.Component
 
   getAfterMarkers: (currentMessage, prevMessage, index) ->
 
-    { channelId, isMessagesLoading } = @props
+    { channelId } = @props
 
     markers = []
 
@@ -121,8 +120,7 @@ module.exports = class ChatList extends React.Component
             messageId={currentMessage.get 'id'}
             position="after"
             autoload={afterMarker.get 'autoload'}
-            timestamp={currentMessage.get 'createdAt'}
-            isLoading={isMessagesLoading} />
+            timestamp={currentMessage.get 'createdAt'} />
 
     return markers
 

@@ -41,9 +41,9 @@ func (n *NotificationContent) FindByTarget() error {
 	return n.One(q)
 }
 
-// CreateNotification validates notifiable instance and creates a new notification
+// CreateNotification validates notifier instance and creates a new notification
 // with actor activity.
-func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
+func CreateNotificationContent(i Notifier) (*NotificationContent, error) {
 	// first check for type constant and target id
 	if i.GetType() == "" {
 		return nil, errors.New("Type must be set")
@@ -114,8 +114,8 @@ func (n *NotificationContent) FetchIdsByTargetId(targetId int64) ([]int64, error
 	return ids, n.Some(&ids, query)
 }
 
-// CreateNotificationType creates an instance of notifiable subclasses
-func CreateNotificationContentType(notificationType string) (Notifiable, error) {
+// CreateNotificationType creates an instance of notifier subclasses
+func CreateNotificationContentType(notificationType string) (Notifier, error) {
 	switch notificationType {
 	case NotificationContent_TYPE_LIKE:
 		return NewInteractionNotification(notificationType), nil
@@ -129,7 +129,7 @@ func CreateNotificationContentType(notificationType string) (Notifiable, error) 
 
 }
 
-func (n *NotificationContent) GetContentType() (Notifiable, error) {
+func (n *NotificationContent) GetContentType() (Notifier, error) {
 	return CreateNotificationContentType(n.TypeConstant)
 }
 
