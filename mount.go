@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klient/cmd/klientctl/errors"
+	"github.com/koding/klient/cmd/klientctl/klientctlerrors"
 	"github.com/koding/klient/cmd/klientctl/util"
 )
 
