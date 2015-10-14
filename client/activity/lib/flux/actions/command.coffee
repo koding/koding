@@ -1,4 +1,6 @@
+kd             = require 'kd'
 channelActions = require './channel'
+getGroup       = require 'app/util/getGroup'
 
 
 cleanUsername = (name) -> if name.indexOf('@') is 0 then name.substring(1) else name
@@ -15,8 +17,9 @@ executeCommand = (command, channel) ->
       channelActions.addParticipantsByNames channelId, usernames
     when '/leave'
       if channel.get('typeConstant') is 'privatemessage'
-        channelActions.leavePrivateChannel channelId, (err) ->
-          kd.singletons.router.handleRoute '/Channels/public'  unless err
+        channelActions.leavePrivateChannel(channelId).then ->
+          channelName = getGroup().slug
+          kd.singletons.router.handleRoute "/Channels/#{channelName}"
       else
         channelActions.unfollowChannel channelId
 
