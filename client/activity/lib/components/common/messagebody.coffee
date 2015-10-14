@@ -27,10 +27,18 @@ module.exports = class MessageBody extends React.Component
 
     @content = content
     @renderEmojis()
-    @transformChannelHashtags()
+    @transformChannelHashtags @state.message
 
 
-  componentDidUpdate: -> @renderEmojis()
+  componentDidUpdate: (prevProps, prevState) ->
+
+    { message } = @props
+    # if message body is updated in props, we need to process hashtags
+    # and update state with a new message body
+    unless prevProps.message.get('body') is message.get('body')
+      return @transformChannelHashtags message
+
+    @renderEmojis()
 
 
   renderEmojis: ->
@@ -39,9 +47,7 @@ module.exports = class MessageBody extends React.Component
     emojify.run contentElement  if contentElement
 
 
-  transformChannelHashtags: ->
-
-    { message } = @state
+  transformChannelHashtags: (message) ->
 
     return  if message.has('isFake')
     return  unless message.has('body')

@@ -87,6 +87,7 @@ module.exports = class JStackTemplate extends Module
         content       : String
         sum           : String
         details       : Object
+        rawContent    : String
 
       # Identifiers of JCredentials
       # structured like following;
@@ -101,15 +102,18 @@ module.exports = class JStackTemplate extends Module
         default       : -> {}
 
 
-  generateTemplateObject = (content, details) ->
+  generateTemplateObject = (content, rawContent, details) ->
 
-    crypto   = require 'crypto'
-    content  = ''  unless typeof content is 'string'
+    crypto     = require 'crypto'
+    content    = ''  unless typeof content is 'string'
+    rawContent = ''  unless typeof rawContent is 'string'
+
     details ?= {}
 
     return {
       content
       details
+      rawContent
       sum: crypto.createHash 'sha1'
         .update content
         .digest 'hex'
@@ -133,7 +137,8 @@ module.exports = class JStackTemplate extends Module
         description : data.description ? ''
         machines    : data.machines    ? []
         accessLevel : data.accessLevel ? 'private'
-        template    : generateTemplateObject data.template, data.templateDetails
+        template    : generateTemplateObject \
+          data.template, data.rawContent, data.templateDetails
         credentials : data.credentials
 
       stackTemplate.save (err) ->
@@ -218,13 +223,18 @@ module.exports = class JStackTemplate extends Module
       delete data.group
 
       # Update template sum if template update requested
-      { template, templateDetails } = data
+      { template, templateDetails, rawContent } = data
+
       if template?
-        data.template = generateTemplateObject template, templateDetails
+        data.template = generateTemplateObject \
+          template, rawContent, templateDetails
 
         # Keep the existing template details if not provided
         if not templateDetails?
           data.template.details = @getAt 'template.details'
+
+        delete data.templateDetails
+        delete data.rawContent
 
         # Keep last updater info in the template details
         data.template.details.lastUpdaterId = delegate.getId()
