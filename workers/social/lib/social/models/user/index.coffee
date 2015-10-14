@@ -1630,6 +1630,7 @@ module.exports = class JUser extends jraphical.Module
 
         { status, lastLoginDate } = user
         { createdAt } = account.meta
+        { group } = client.context
 
         sshKeysCount = user.sshKeys.length
 
@@ -1638,6 +1639,7 @@ module.exports = class JUser extends jraphical.Module
           marketing    : user.emailFrequency.marketing
 
         traits = {
+          group
           email
           createdAt
           lastLoginDate
