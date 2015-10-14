@@ -151,7 +151,11 @@ func (c *ChannelLink) create() error {
 
 	// it controls the channel linking process, if not finished
 	// then dont try to link another channel and return error
-	if c.IsInProgress(c.RootId) {
+	isInProgress, err := c.IsInProgress(c.RootId)
+	if err != nil {
+		return err
+	}
+	if isInProgress {
 		return ErrLinkingProcessNotDone
 	}
 
@@ -194,7 +198,7 @@ func (c *ChannelLink) create() error {
 // if false -> linking process is completely done
 // We will searh root channel in db as leaf channel,
 // Aim of this search, protect linking conflict of root-leaf channels
-func (c *ChannelLink) IsInProgress(rootID int64) bool {
+func (c *ChannelLink) IsInProgress(rootID int64) (bool, error) {
 	bq := &bongo.Query{
 		Selector: map[string]interface{}{
 			"leaf_id":     rootID,
@@ -203,12 +207,17 @@ func (c *ChannelLink) IsInProgress(rootID int64) bool {
 	}
 
 	// if there is no error, it means we already have it
-	if err := c.One(bq); err == nil {
-		return true
+	err := c.One(bq)
+
+	if err != nil {
+		return false, err
 	}
 
-	return false
+	if err == nil {
+		return true, nil
+	}
 
+	return false, nil
 }
 
 func (c *ChannelLink) validate() error {
