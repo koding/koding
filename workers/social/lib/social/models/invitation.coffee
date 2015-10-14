@@ -261,9 +261,7 @@ module.exports = class JInvitation extends jraphical.Module
 
     properties =
       groupName    : invitation.groupName
-      groupLink    : groupLink
       inviter      : inviter
-      inviterLink  : groupLink + profile.nickname
       inviterImage : imgURL
       link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
 
