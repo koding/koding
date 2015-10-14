@@ -22,6 +22,7 @@ module.exports = class Modal extends React.Component
     isOpen              : no
     closeIcon           : yes
 
+
   getPortalProps: ->
     isOpened            : @props.isOpen
     onClose             : @props.onClose
@@ -40,7 +41,7 @@ module.exports = class Modal extends React.Component
     return null  unless @props.isOpen
 
     <Portal {...@getPortalProps()} ref="modal">
-      <div className={kd.utils.curry 'Reactivity Modal', @props.className}>
+      <div ref='ModalWrapper' className={kd.utils.curry 'Reactivity Modal', @props.className}>
         {@renderModalCloseIcon()}
         {@props.children}
       </div>
