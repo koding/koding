@@ -22,6 +22,7 @@
 module.exports = [
 
   [
+    { name: 'hubspot' }
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
