@@ -53,6 +53,7 @@ withConvertedUserAndCredential = (options, callback) ->
 
 
 module.exports = {
+  createCredential
   generateMetaData
   withConvertedUserAndCredential
 }
