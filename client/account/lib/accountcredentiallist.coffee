@@ -148,7 +148,7 @@ module.exports = class AccountCredentialList extends KDListView
         kd.singletons.computeController.ui.showComputeError
           title   : 'An error occured while destroying resources'
           message : "
-            Following error occured while destroying resources related with
+            Following error occurred while destroying resources related with
             this credential, however you still can delete the credential from
             Koding and destroy your resources manually or you can Terminate all
             existing instances manually then try to destroy rest of the

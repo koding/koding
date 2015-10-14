@@ -390,7 +390,7 @@ module.exports = class ComputeController_UI
 
     { stack, errorMessage, title, subtitle, cssClass, message } = options
     cssClass ?= ''
-    message  ?= ''
+    message   = if message then "<div class='message'>#{message}</div>" else ''
 
     modal     = new kd.ModalView
       title          : title    ? "An error occured"
@@ -408,9 +408,9 @@ module.exports = class ComputeController_UI
       cssClass : 'error-content'
       partial  : """
         #{message}
-        <pre>
-          <code>#{content}</code>
-        </pre>
+        <div class='content'>
+          <pre><code>#{content}</code></pre>
+        </div>
       """
 
     if stack?

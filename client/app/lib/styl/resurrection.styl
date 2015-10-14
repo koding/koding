@@ -1256,7 +1256,22 @@ paymentGrayLighter  = #f8f8f8
   .kdmodal-content
     margin-top              -10px !important
     height                  calc(100% \- 20px) !important
-    overflow                auto !important
+
+  .kdmodal-inner
+    height                  calc(100% \- 55px) !important
+
+  .error-content
+    height                  100%
+    vendor                  flex, 1
+    vendor                  flex-direction, column
+    dFlex()
+
+    .message
+      min-height            50px
+      font-size             13px
+
+    .content
+      overflow              auto
 
 
 .kdmodal.env-ide-error-modal
