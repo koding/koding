@@ -43,7 +43,8 @@ withConvertedUserAndStackTemplate = (options, callback) ->
 
     JStackTemplate.create client, stackTemplateData, (err, stackTemplate) ->
       expect(err).to.not.exist
-      data.stackTemplate = stackTemplate
+      data.stackTemplate     = stackTemplate
+      data.stackTemplateData = stackTemplateData
       callback data
 
 
