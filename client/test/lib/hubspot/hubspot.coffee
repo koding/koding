@@ -27,7 +27,7 @@ module.exports =
       browser
         .url(page)
         .maximizeWindow()
-        .waitForElementVisible '.footer__logo', 25000
+        .waitForElementPresent '#hs-analytics', 25000
 
     browser.end()
 
