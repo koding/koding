@@ -209,7 +209,7 @@ func (c *ChannelLink) IsInProgress(rootID int64) (bool, error) {
 	// if there is no error, it means we already have it
 	err := c.One(bq)
 
-	if err != nil {
+	if err != nil && err != bongo.RecordNotFound {
 		return false, err
 	}
 
