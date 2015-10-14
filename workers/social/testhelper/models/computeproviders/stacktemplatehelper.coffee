@@ -2,7 +2,9 @@
   expect
   withConvertedUser
   generateRandomString } = require '../../index'
-JStackTemplate = require '../../../../social/lib/social/models/computeproviders/stacktemplate'
+
+JStackTemplate = require  \
+  '../../../../social/lib/social/models/computeproviders/stacktemplate'
 
 
 generateStackTemplateData = (client, data) ->
@@ -32,6 +34,14 @@ generateStackTemplateData = (client, data) ->
   return stackTemplate
 
 
+createStackTemplate = (client, options, callback) ->
+
+  stackTemplateData = generateStackTemplateData client, options
+
+  JStackTemplate.create client, stackTemplateData, (err, stackTemplate) ->
+    callback err, { stackTemplate, stackTemplateData }
+
+
 withConvertedUserAndStackTemplate = (options, callback) ->
 
   [options, callback] = [callback, options]  unless callback
@@ -41,14 +51,15 @@ withConvertedUserAndStackTemplate = (options, callback) ->
     { client }        = data
     stackTemplateData = generateStackTemplateData client, options
 
-    JStackTemplate.create client, stackTemplateData, (err, stackTemplate) ->
+    createStackTemplate client, options, (err, template) ->
       expect(err).to.not.exist
-      data.stackTemplate     = stackTemplate
-      data.stackTemplateData = stackTemplateData
+      data.stackTemplate     = template.stackTemplate
+      data.stackTemplateData = template.stackTemplateData
       callback data
 
 
 module.exports = {
+  createStackTemplate
   generateStackTemplateData
   withConvertedUserAndStackTemplate
 }
