@@ -1249,11 +1249,29 @@ paymentGrayLighter  = #f8f8f8
 
 
 .kdmodal.compute-error-modal
+
   .kdtabhandle
     max-width               250px !important
 
-  .error-details
-    overflow                auto
+  .kdmodal-content
+    margin-top              -10px !important
+    height                  calc(100% \- 20px) !important
+
+  .kdmodal-inner
+    height                  calc(100% \- 55px) !important
+
+  .error-content
+    height                  100%
+    vendor                  flex-direction, column
+    dFlex()
+
+    .message
+      flex-shrink           0
+      font-size             13px
+
+    .content
+      flex                  1 1 auto
+      overflow              auto
 
 
 .kdmodal.env-ide-error-modal
