@@ -1,15 +1,19 @@
-
-{ PLANS, PROVIDERS, fetchGroupStackTemplate, revive,
-  fetchUsage, checkTemplateUsage } = require './computeutils'
-
 { daisy
   expect
+  ObjectId
   withDummyClient
   withConvertedUser
+  expectAccessDenied
+  generateRandomString
   checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
+{ withConvertedUserAndCredential } = require \
+  '../../../../testhelper/models/computeproviders/credentialhelper'
+{ withConvertedUserAnd } = require  \
+  '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
-ComputeProvider = require './computeprovider'
+{ PROVIDERS, revive }   = require './computeutils'
+ComputeProvider         = require './computeprovider'
 
 
 # this function will be called once before running any test
@@ -36,7 +40,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
   describe '#ping()', ->
 
     it 'should be able to ping for the given provider', (done) ->
-      
+
       withConvertedUser ({ client, account }) ->
         client.r  = { account }
         queue     = []
@@ -59,21 +63,198 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should not be able to ping if user doesnt have the right to ping', (done) ->
 
-      withDummyClient ({ client }) ->
+      expectAccessDenied ComputeProvider, 'ping$', { provider : PROVIDERS.google }, done
 
-        ComputeProvider.ping$ client, { provider : PROVIDERS.google }, (err, data) ->
-          expect(err?.message).to.be.equal 'Access denied'
+
+  describe '#create()', ->
+
+    it 'should be able to create a new compute provider', (done) ->
+
+      withConvertedUserAnd ['Provisioner', 'Stack'], (data) ->
+        { client, user, account, provisioner, stack, group } = data
+
+        client.r      = { group : group.slug, user, account }
+        label         = generateRandomString()
+        generatedFrom = new ObjectId
+        provider      = 'aws'
+
+        options = {
+          client, stack, provider, label, generatedFrom
+          users : []
+          provisioners : [provisioner.slug]
+        }
+
+        ComputeProvider.create client, options, (err, machine) ->
+          expect(err?.message).to.not.exist
+          expect(machine).to.be.an 'object'
+          expect(machine.provider).to.be.equal 'aws'
+          expect(machine.generatedFrom).to.be.equal generatedFrom
+          expect(machine.provisioners).to.have.length 1
+          expect(machine.provisioners[0]).to.be.equal provisioner.slug
+          expect(machine.groups).to.have.length 1
+          expect(machine.groups[0].id).to.be.deep.equal group._id
+          expect(machine.domain).to.exist
+          expect(machine.slug).to.exist
+          expect(machine.status).to.be.an 'object'
+          expect(machine.assignee).to.be.an 'object'
           done()
 
 
-  describe.skip '#create()', ->
+  describe '#create$()', ->
 
-    it 'should fail when user is not registered', (done) ->
+    it 'should fail if use doesnt have permission', (done) ->
+
+      expectAccessDenied ComputeProvider, 'create$', {}, done
+
+
+  describe '#fetchAvailable()', ->
+
+    it 'should be able to fetch availabe object', (done) ->
+
+      withConvertedUserAndCredential ({ client, credential }) ->
+
+        options =
+          provider: 'google'
+          credential : credential
+
+        ComputeProvider.fetchAvailable client, options, (err, data) ->
+          expect(err?.message).to.not.exist
+          expect(data).to.be.an 'array'
+          done()
+
+
+    it 'should fail if no provider is given', (done) ->
+
+      withDummyClient ({ client }) ->
+        ComputeProvider.fetchAvailable client, { provider : null }, (err, data) ->
+          expect(err?.message).to.be.equal 'No such provider.'
+          done()
+
+
+    it 'should fail if credential is not provided', (done) ->
 
       withDummyClient ({ client }) ->
 
+        options =
+          provider: 'google'
+
+        ComputeProvider.fetchAvailable client, options, (err, data) ->
+          expect(err?.message).to.be.equal 'Credential is required.'
+          done()
 
 
+    it 'should fail if given credential is not valid', (done) ->
+
+      withDummyClient ({ client }) ->
+
+        options =
+          provider: 'google'
+          credential : 'invalid'
+
+        ComputeProvider.fetchAvailable client, options, (err, data) ->
+          expect(err?.message).to.be.equal 'Credential failed.'
+          done()
+
+
+  describe '#fetchUsage', ->
+
+    it 'should be able to fetch the usage', (done) ->
+
+      withConvertedUserAndCredential ({ client, credential }) ->
+        options = { credential, provider : 'aws' }
+        ComputeProvider.fetchUsage client, options, (err, usage) ->
+          expect(err).to.not.exist
+          expect(usage).to.be.an 'object'
+          done()
+
+
+  describe '#fetchPlans', ->
+
+    it 'should fail if user doesnt have permission', (done) ->
+
+      expectAccessDenied ComputeProvider, 'fetchPlans', done
+
+
+    it 'should be able to fetch plans', (done) ->
+
+      withConvertedUserAndCredential ({ client, credential }) ->
+        ComputeProvider.fetchPlans client, (err, usage) ->
+          expect(err).to.not.exist
+          expect(usage).to.be.an 'object'
+          done()
+
+
+  describe '#update()', ->
+
+    it 'should if no machine id is given', (done) ->
+
+      withConvertedUserAndCredential ({ client, credential }) ->
+
+        options =
+          provider : 'aws'
+          credential : credential
+
+        ComputeProvider.update client, options, (err) ->
+          expect(err?.message).to.be.equal 'A valid machineId and an update option required.'
+          done()
+
+
+    it 'should be able to update compute provider data', (done) ->
+
+      withConvertedUserAnd ['Credential', 'ComputeProvider'], (data) ->
+        { client, credential, machine } = data
+
+        options =
+          provider   : 'aws'
+          credential : credential
+          machineId  : machine._id + ''
+          alwaysOn   : true
+
+        ComputeProvider.update client, options, (err) ->
+          expect(err?.message).to.not.exist
+          done()
+
+
+  describe '#remove()', ->
+
+    it 'should fail if not implemented yet', (done) ->
+
+      withConvertedUserAnd ['Credential', 'ComputeProvider'], (data) ->
+        { client, credential } = data
+
+        options =
+          provider   : 'aws'
+          credential : credential
+
+        ComputeProvider.remove client, options, (err) ->
+          expect(err?.message).to.be.equal 'Not implemented yet.'
+          done()
+
+
+  describe '#createStackFromTemplate', ->
+
+    it 'should fail if user doesnt have permission', (done) ->
+
+      expectAccessDenied ComputeProvider, 'createStackFromTemplate', {}, done
+
+
+  describe 'createGroupStack', ->
+
+    it 'should be able to create group stack', (done) ->
+
+      # creating a new group and a new StackTemplate for that group
+      groupSlug = generateRandomString()
+      options   = { context : { group : groupSlug} }
+
+      withConvertedUserAnd ['Group', 'StackTemplate'], options, (data) ->
+        { group, client } = data
+
+        ComputeProvider.createGroupStack data.client, (err, groupStack) ->
+          expect(err?.message).to.not.exist
+          expect(groupStack).to.exist
+          expect(groupStack).to.be.an 'object'
+          expect(groupStack.originId).to.be.deep.equal client._id
+          done()
 
 
 
