@@ -57,7 +57,6 @@ module.exports = class PrivateChatPane extends React.Component
         <ChatInputWidget
           onSubmit         = { @bound 'onSubmit' }
           onCommand        = { @bound 'onCommand' }
-          enableSearch     = no
           channelId        = { @channel 'id' }
           disabledFeatures = { ['search'] }
         />
