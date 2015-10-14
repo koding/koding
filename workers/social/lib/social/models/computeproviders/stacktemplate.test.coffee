@@ -64,32 +64,15 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should be able to fetch stack template data', (done) ->
 
-        withConvertedUser ({ client }) ->
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
+          selector = { _id : stackTemplate._id }
 
-          stackTemplate     = null
-          stackTemplateData = generateStackTemplateData client
-
-          queue = [
-
-            ->
-              StackTemplate.create client, stackTemplateData, (err, template) ->
-                expect(err?.message).to.not.exist
-                stackTemplate = template
-                queue.next()
-
-            ->
-              selector = { _id : stackTemplate._id }
-              StackTemplate.some$ client, selector, (err, templates) ->
-                expect(err?.message).to.not.exist
-                expect(templates[0].title).to.be.equal stackTemplateData.title
-                expect(templates[0].template.content).to.be.deep.equal stackTemplateData.template
-                queue.next()
-
-            -> done()
-
-          ]
-
-          daisy queue
+          StackTemplate.some$ client, selector, (err, templates) ->
+            expect(err?.message).to.not.exist
+            expect(templates[0].title).to.be.equal stackTemplateData.title
+            expect(templates[0].template.content).to.be.deep.equal stackTemplateData.template
+            done()
 
 
   describe '#one$()', ->
@@ -105,33 +88,15 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should be able to fetch stack template data', (done) ->
 
-        withConvertedUser ({ client }) ->
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
+          selector = { _id : stackTemplate._id }
 
-          stackTemplate     = null
-          stackTemplateData = generateStackTemplateData client
-
-          queue = [
-
-            ->
-              StackTemplate.create client, stackTemplateData, (err, template) ->
-                expect(err).to.not.exist
-                stackTemplate = template
-                queue.next()
-
-            ->
-              selector = { '_id' : stackTemplate._id }
-              StackTemplate.one$ client, selector, null, (err, template) ->
-                expect(err?.message).to.not.exist
-                expect(template).to.exist
-                expect(template.title).to.be.equal stackTemplateData.title
-                expect(template.template.content).to.be.deep.equal stackTemplateData.template
-                queue.next()
-
-            -> done()
-
-          ]
-
-          daisy queue
+          StackTemplate.one$ client, selector, null, (err, templates) ->
+            expect(err?.message).to.not.exist
+            expect(templates[0].title).to.be.equal stackTemplateData.title
+            expect(templates[0].template.content).to.be.deep.equal stackTemplateData.template
+            done()
 
 
   describe 'delete()', ->
@@ -148,19 +113,9 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should be able to delete the stack template', (done) ->
 
-        withConvertedUser ({ client }) ->
-
-          stackTemplate     = null
-          stackTemplateData = null
+        withConvertedUserAndStackTemplate ({ client, stackTemplate }) ->
 
           queue = [
-
-            ->
-              stackTemplateData = generateStackTemplateData client
-              StackTemplate.create client, stackTemplateData, (err, template_) ->
-                expect(err).to.not.exist
-                stackTemplate = template_
-                queue.next()
 
             ->
               stackTemplate.delete client, (err) ->
@@ -194,19 +149,9 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should be able to set access level of stack template', (done) ->
 
-        withConvertedUser ({ client }) ->
-
-          stackTemplate     = null
-          stackTemplateData = null
+        withConvertedUserAndStackTemplate ({ client, stackTemplate }) ->
 
           queue = [
-
-            ->
-              stackTemplateData = generateStackTemplateData client
-              StackTemplate.create client, stackTemplateData, (err, template_) ->
-                expect(err).to.not.exist
-                stackTemplate = template_
-                queue.next()
 
             ->
               stackTemplate.setAccess client, 'someInvalidAccessLevel', (err) ->
@@ -246,19 +191,10 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should be able to update the stack template', (done) ->
 
-        withConvertedUser ({ client }) ->
-
-          stackTemplate     = null
-          stackTemplateData = null
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
 
           queue = [
-
-            ->
-              stackTemplateData = generateStackTemplateData client
-              StackTemplate.create client, stackTemplateData, (err, template_) ->
-                expect(err).to.not.exist
-                stackTemplate = template_
-                queue.next()
 
             ->
               params = { title : 'title should be updated' }
