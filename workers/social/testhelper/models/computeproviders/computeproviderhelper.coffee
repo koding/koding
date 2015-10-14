@@ -14,32 +14,67 @@ JStackTemplate  = require '../../../../social/lib/social/models/computeproviders
 ComputeProvider = require '../../../../social/lib/social/models/computeproviders/computeprovider'
 
 
+# this helper registers a new user and creates request models
 withConvertedUserAnd = (models, options, callback) ->
 
   [options, callback] = [callback, options]  unless callback
   options            ?= {}
   queue               = []
 
-  withConvertedUser (data) ->
+  withConvertedUser options, (data) ->
     { client, user, account } = data
     { group : groupSlug }     = client.context
 
+    _createGroup = (client, options, callback) ->
+      group = null
+
+      groupData =
+        slug           : groupSlug
+        title          : generateRandomString()
+        visibility     : 'visible'
+        allowedDomains : ['koding.com']
+
+      _queue = [
+
+        ->
+          JGroup.create client, groupData, account, (err, group_) ->
+            expect(err?.message).to.not.exist
+            group = group_
+            _queue.next()
+
+        ->
+          # if StackTemplate is in models, then create a StackTemplate
+          # for the newly created group
+          return _queue.next()  unless 'StackTemplate' in models
+          _createStackTemplate client, options, ({ stackTemplate }) ->
+            query = { $set : { stackTemplates : [stackTemplate._id] } }
+            group.update query, (err) ->
+              expect(err).to.not.exist
+              _queue.next()
+
+        -> callback { group }
+
+      ]
+
+      daisy _queue
+
+
     _createCredential = (client, options, callback) ->
       createCredential client, options, (err, data_) ->
-        expect(err).to.not.exist
+        expect(err?.message).to.not.exist
         callback data_
 
 
     _createProvisioner = (client, options, callback) ->
       createProvisioner client, options, (err, data_) ->
-        expect(err).to.not.exist
+        expect(err?.message).to.not.exist
         callback data_
 
 
     _createStackTemplate = (client, options, callback) ->
-      createStackTemplate client, options, (err, template) ->
-        expect(err).to.not.exist
-        callback { template }
+      createStackTemplate client, options, (err, data_) ->
+        expect(err?.message).to.not.exist
+        callback data_
 
 
     _createStack = (client, options, callback) ->
@@ -53,14 +88,14 @@ withConvertedUserAnd = (models, options, callback) ->
         ->
           # adding group to stackData, will be needed while creating stack
           JGroup.one { slug : groupSlug }, (err, group_) ->
-            expect(err).to.not.exist
+            expect(err?.message).to.not.exist
             stackData.group = group = group_
             _queue.next()
 
         ->
-          _createStackTemplate client, options, ({ template }) ->
-            stackData.template = stackTemplate = template.stackTemplate
-            stackTemplateData  = template.stackTemplateData
+          _createStackTemplate client, options, (data_) ->
+            stackData.template = stackTemplate = data_.stackTemplate
+            stackTemplateData  = data_.stackTemplateData
             _queue.next()
 
         ->
@@ -98,7 +133,7 @@ withConvertedUserAnd = (models, options, callback) ->
           }
 
           ComputeProvider.create client, computeProviderOptions, (err, machine) ->
-            expect(err).to.not.exist
+            expect(err?.message).to.not.exist
             callback { machine, stack }
 
       ]
@@ -108,7 +143,10 @@ withConvertedUserAnd = (models, options, callback) ->
 
     models.forEach (model) ->
 
+      # each helper function for the request model will be called
+      # the created data will be aggregated in the data variable
       fn = switch model
+        when 'Group'            then _createGroup
         when 'Credential'       then _createCredential
         when 'Provisioner'      then _createProvisioner
         when 'StackTemplate'    then _createStackTemplate
@@ -121,6 +159,7 @@ withConvertedUserAnd = (models, options, callback) ->
           data = _.extend data, data_
           queue.next()
 
+    # returning data variable after requested models created
     queue.push -> callback data
 
     daisy queue
