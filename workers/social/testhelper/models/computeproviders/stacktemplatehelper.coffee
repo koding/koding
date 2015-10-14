@@ -1,4 +1,5 @@
 { _
+  expect
   withConvertedUser
   generateRandomString } = require '../../index'
 JStackTemplate = require '../../../../social/lib/social/models/computeproviders/stacktemplate'
@@ -37,7 +38,8 @@ withConvertedUserAndStackTemplate = (options, callback) ->
   options            ?= {}
 
   withConvertedUser (data) ->
-    stackTemplateData = generateStackTemplateData data.client, options
+    { client }        = data
+    stackTemplateData = generateStackTemplateData client, options
 
     JStackTemplate.create client, stackTemplateData, (err, stackTemplate) ->
       expect(err).to.not.exist
