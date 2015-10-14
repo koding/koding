@@ -1,4 +1,6 @@
-JView = require './../../core/jview'
+JView           = require './../../core/jview'
+LoginInputView  = require './../../login/logininputview'
+
 
 module.exports = class TeamJoinTabForm extends KDFormView
 
@@ -6,7 +8,7 @@ module.exports = class TeamJoinTabForm extends KDFormView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'clearfix'
+    options.cssClass = 'clearfix login-form'
 
     super options, data
 
@@ -29,24 +31,27 @@ module.exports = class TeamJoinTabForm extends KDFormView
 
   getPassword: ->
 
-    new KDInputView
-      type        : 'password'
-      name        : 'password'
-      placeholder : 'password'
-      validate    :
-        event     : 'blur'
-        container : this
-        rules     : { required: yes }
-        messages  : { required: 'Please enter a password.' }
+    new LoginInputView
+      inputOptions  :
+        type        : 'password'
+        name        : 'password'
+        placeholder : 'password'
+        validate    :
+          event     : 'blur'
+          container : this
+          rules     : { required: yes }
+          messages  : { required: 'Please enter a password.' }
 
 
   getTFCode: ->
 
-    new KDInputView
-      name          : 'tfcode'
-      placeholder   : 'authentication code'
-      testPath      : 'login-form-tfcode'
-      attributes    : { testpath: 'login-form-tfcode' }
+    new LoginInputView
+      cssClass      : 'hidden two-factor'
+      inputOptions  :
+        name        : 'tfcode'
+        placeholder : 'authentication code'
+        testPath    : 'login-form-tfcode'
+        attributes  : { testpath: 'login-form-tfcode' }
 
 
   showTwoFactor: ->

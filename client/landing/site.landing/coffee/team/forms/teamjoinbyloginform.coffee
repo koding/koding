@@ -1,5 +1,7 @@
 JView           = require './../../core/jview'
 TeamJoinTabForm = require './../forms/teamjointabform'
+LoginInputView  = require './../../login/logininputview'
+
 
 module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
@@ -7,13 +9,15 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
     super
 
-    @username = new KDInputView
-      placeholder      : 'your username'
-      name             : 'username'
-      validate         :
-        rules          : { required: yes }
-        messages       : { required: 'Please enter a username.' }
-        events         : { required: 'blur' }
+    @username = new LoginInputView
+      inputOptions    :
+        placeholder   : 'your username'
+        name          : 'username'
+        validate      :
+          rules       : { required: yes }
+          messages    : { required: 'Please enter a username.' }
+          events      : { required: 'blur' }
+
 
     teamData                = KD.utils.getTeamData()
     if teamData.profile
@@ -49,9 +53,9 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
   pistachio: ->
 
     """
-    <div class='login-input-view'><span>Username</span>{{> @username}}</div>
-    <div class='login-input-view'><span>Password</span>{{> @password}}</div>
-    <div class='login-input-view two-factor hidden'><span>2-factor</span>{{> @tfcode}}</div>
+    {{> @username}}
+    {{> @password}}
+    {{> @tfcode}}
     <p class='dim'>
       <a href='//#{KD.utils.getMainDomain()}/Recover' target='_self'>Forgot your password?</a>
     </p>

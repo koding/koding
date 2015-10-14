@@ -1,5 +1,7 @@
 JView           = require './../../core/jview'
 TeamJoinTabForm = require './../forms/teamjointabform'
+LoginInputView  = require './../../login/logininputview'
+
 
 module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
@@ -9,10 +11,12 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
     teamData     = KD.utils.getTeamData()
 
-    @username = new KDInputView
-      placeholder      : 'pick a username'
-      name             : 'username'
-      defaultValue     : teamData.signup.username
+    @username = new LoginInputView
+      cssClass        : 'hidden'
+      inputOptions    :
+        placeholder   : 'pick a username'
+        name          : 'username'
+        defaultValue  : teamData.signup.username
 
     @password   = @getPassword()
     @tfcode     = @getTFCode()
@@ -35,9 +39,9 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
   pistachio: ->
 
       """
-      <div class='login-input-view hidden'><span>Password</span>{{> @username}}</div>
-      <div class='login-input-view'><span>Password</span>{{> @password}}</div>
-      <div class='login-input-view two-factor hidden'><span>2-factor</span>{{> @tfcode}}</div>
+      {{> @username}}
+      {{> @password}}
+      {{> @tfcode}}
       <p class='dim'>
         Your email address indicates that you're already a Koding user,
         please type your password to proceed.<br>
