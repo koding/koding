@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 )
@@ -40,8 +39,25 @@ func MustConfirm(help string) {
 //
 // If an empty line is supplied (ie, `"\n"`), the supplied value is
 // used as default.
-func YesNoConfirmWithDefault(r io.Reader, d bool) (bool, error) {
-	text, err := bufio.NewReader(r).ReadString('\n')
+//
+// TODO: Find a way to mock Stdin, so that we can pass in a generic Reader
+// here and not an explicit bufio.Reader. To understand why this problem
+// exists, here is a description of the problem:
+//
+// askToCreate calls YesNoConfirmWithDefault() multiple times, with a
+// single reader instance (os.Stdin). If you mock this stdin with a
+// bytes.Buffer, then this functions use of:
+//
+// 		bufio.NewReader(r).ReadString('\n')
+//
+// will cause the bytes.Buffer to be drained completely on the first
+// YesNo confirm. Subsequent YesNo attempts on the same Reader will
+// only see an empty bytes.Buffer, because the first bufio.Reader drained
+// the entire bytes.Buffer. We need to figure a way to mock Stdin,
+// so that it can be not greedy.
+func YesNoConfirmWithDefault(r *bufio.Reader, d bool) (bool, error) {
+	text, err := r.ReadString('\n')
+
 	if err != nil {
 		// TODO: Log this error, because it's strange.
 		// log.Debug(fmt.Sprintf("Retry loop exited with err: '%s'", err.Error())

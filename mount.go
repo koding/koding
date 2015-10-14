@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -41,7 +42,7 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	// Ask the user if they want the localPath created, if it does not exist.
-	if err := askToCreate(localPath, os.Stdout, os.Stdin); err != nil {
+	if err := askToCreate(localPath, os.Stdin, os.Stdout); err != nil {
 		fmt.Printf(
 			"Error: Unable to create specified localPath '%s'",
 			localPath)
@@ -101,7 +102,11 @@ func MountCommand(c *cli.Context) int {
 // askToCreate checks if the folder does not exist, and creates it
 // if the user chooses to. If the user does *not* choose to create it,
 // we return an IsNotExist error.
-func askToCreate(p string, w io.Writer, r io.Reader) error {
+//
+// TODO: Handle the case where a user types stuff in before being prompted,
+// and then the prompt uses that. Ie, flush the input so that what we
+// read is new input from the user. Not tested :)
+func askToCreate(p string, r io.Reader, w io.Writer) error {
 	_, err := os.Stat(p)
 
 	// If we fail to stat the file, and it's *not* IsNotExist, we may be
@@ -121,10 +126,14 @@ func askToCreate(p string, w io.Writer, r io.Reader) error {
 		"The mount folder does not exist, would you like to create it? [Y/n]",
 	)
 
+	// To understand why we're creating a bReader here, please see
+	// the docstring on YesNoConfirmWithDefault().
+	bReader := bufio.NewReader(r)
+
 	// Retry YesNo confirmation 3 times if needed
 	var createFolder bool
-	for i := 0; i < 3; {
-		createFolder, err = util.YesNoConfirmWithDefault(r, true)
+	for i := 0; i < 3; i++ {
+		createFolder, err = util.YesNoConfirmWithDefault(bReader, true)
 		// If the user supplied an accepted value, stop trying
 		if err == nil {
 			break
