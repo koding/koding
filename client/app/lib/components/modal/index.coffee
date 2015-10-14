@@ -1,7 +1,6 @@
 kd     = require 'kd'
 React  = require 'kd-react'
 Portal = require 'react-portal'
-isNodeInRoot = require 'app/util/isnodeinroot'
 
 
 class ModalOverlay extends React.Component
@@ -18,41 +17,17 @@ module.exports = class Modal extends React.Component
   @defaultProps =
     onClose             : kd.noop
     closeOnEsc          : yes
+    closeOnOutsideClick : yes
     hasOverlay          : yes
     isOpen              : no
     closeIcon           : yes
-
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    @handleMouseClickOutside = @handleOuterClick.bind this
 
 
   getPortalProps: ->
     isOpened            : @props.isOpen
     onClose             : @props.onClose
     closeOnEsc          : @props.closeOnEsc
-
-
-  componentDidMount: ->
-
-    document.addEventListener 'mousedown', @bound 'handleOuterClick'
-
-
-  componentWillUnmount: ->
-
-    document.removeEventListener 'mousedown', @bound 'handleOuterClick'
-
-
-  handleOuterClick: (event) ->
-
-    return if isNodeInRoot event.target, React.findDOMNode @refs.ModalWrapper
-
-    return @props.handleOuterClick(event)  if @props.handleOuterClick
-
-    event.stopPropagation()
-    @props.onClose()
+    closeOnOutsideClick : @props.closeOnOutsideClick
 
 
   renderModalCloseIcon: ->
