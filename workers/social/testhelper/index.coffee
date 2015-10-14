@@ -157,13 +157,13 @@ generateRandomUserArray =  (count, callback) ->
   daisy queue
 
 
-expectAccessDenied = (done, caller, callee, args...) ->
+expectAccessDenied = (caller, callee, args..., callback) ->
 
   withDummyClient ({ client }) ->
 
     kallback = (err) ->
       expect(err?.message).to.be.equal 'Access denied'
-      done()
+      callback()
 
     if    args.length > 0
     then  caller[callee] client, args..., kallback
