@@ -1262,15 +1262,15 @@ paymentGrayLighter  = #f8f8f8
 
   .error-content
     height                  100%
-    vendor                  flex, 1
     vendor                  flex-direction, column
     dFlex()
 
     .message
-      min-height            50px
+      flex-shrink           0
       font-size             13px
 
     .content
+      flex                  1 1 auto
       overflow              auto
 
 
