@@ -4,6 +4,7 @@
   withConvertedUser }    = require '../../index'
 { createProvisioner }    = require './provisionerhelper'
 { createStackTemplate }  = require './stacktemplatehelper'
+{ createCredential }     = require './credentialhelper'
 
 JGroup          = require '../../../../social/lib/social/models/group'
 JProvisioner    = require '../../../../social/lib/social/models/computeproviders/provisioner'
@@ -21,16 +22,22 @@ withConvertedUserAnd = (models, options, callback) ->
     { client, user, account } = data
     { group : groupSlug }     = client.context
 
+    _createCredential = (client, options, callback) ->
+      createCredential client, options, (err, data_) ->
+        expect(err).to.not.exist
+        callback data_
+
+
+    _createProvisioner = (client, options, callback) ->
+      createProvisioner client, options, (err, data_) ->
+        expect(err).to.not.exist
+        callback data_
+
+
     _createStackTemplate = (client, options, callback) ->
       createStackTemplate client, options, (err, template) ->
         expect(err).to.not.exist
         callback { template }
-
-
-    _createStackFromTemplate = (stackData, options, callback) ->
-      ComputeProvider.generateStackFromTemplate stackData, options, (err, { stack }) ->
-        expect(err?.message).to.not.exist
-        callback { stack }
 
 
     _createStack = (client, options, callback) ->
@@ -56,8 +63,9 @@ withConvertedUserAnd = (models, options, callback) ->
 
         ->
           # create a stack from the given template
-          _createStackFromTemplate stackData, options, (data_) ->
-            callback { group, stack : data_.stack, stackTemplate, stackTemplateData }
+          ComputeProvider.generateStackFromTemplate stackData, options, (err, { stack }) ->
+            expect(err?.message).to.not.exist
+            callback { group, stack, stackTemplate, stackTemplateData }
 
       ]
 
@@ -75,7 +83,7 @@ withConvertedUserAnd = (models, options, callback) ->
       computeProviderOptions = {
         client, stack, provider, label, generatedFrom
         users : []
-        provisioners : ['test_provisioner']
+        provisioners : [data.provisioner ? 'test_provisioner']
       }
 
       ComputeProvider.create client, computeProviderOptions, (err, data_) ->
@@ -85,25 +93,18 @@ withConvertedUserAnd = (models, options, callback) ->
 
     models.forEach (model) ->
 
-      switch model
-        when 'StackTemplate'
-          queue.push ->
-            _createStackTemplate client, options, (data_) ->
-              data = _.extend data, data_
-              queue.next()
+      fn = switch model
+        when 'Credential'       then _createCredential
+        when 'Provisioner'      then _createProvisioner
+        when 'StackTemplate'    then _createStackTemplate
+        when 'Stack'            then _createStack
+        when 'ComputeProvider'  then _createComputeProvider
+        else                         callback 'invalid request'
 
-        when 'Stack'
-          queue.push ->
-            _createStack client, options, (data_) ->
-              data = _.extend data, data_
-              queue.next()
-
-        when 'Provisioner'
-          queue.push ->
-            createProvisioner client, options, (err, data_) ->
-              expect(err).to.not.exist
-              data = _.extend data, data_
-              queue.next()
+      queue.push ->
+        fn client, options, (data_) ->
+          data = _.extend data, data_
+          queue.next()
 
     queue.push -> callback data
 
