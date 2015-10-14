@@ -602,5 +602,7 @@ module.exports = class DefineStackView extends KDView
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       return  if @outputView.handleError err
 
+      stackTemplate.inuse = yes
+
       @emit 'Reload'
       @emit 'Completed', stackTemplate  if completed
