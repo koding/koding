@@ -43,6 +43,12 @@ func MountCommand(c *cli.Context) int {
 
 	// Ask the user if they want the localPath created, if it does not exist.
 	if err := askToCreate(localPath, os.Stdin, os.Stdout); err != nil {
+		// If the error is that the user cancelled, just return
+		if err == klientctlerrors.ErrUserCancelled {
+			fmt.Println("Cannot mount to a directory that does not exist, exiting..")
+			return 0
+		}
+
 		fmt.Printf(
 			"Error: Unable to create specified localPath '%s'",
 			localPath)
