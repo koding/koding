@@ -53,7 +53,7 @@ runTests = -> describe 'workers.social.models.computeproviders.snapshot', ->
 
     it 'should fail to fetch snapshot data if user doesnt have permission', (done) ->
 
-      expectAccessDenied done, JSnapshot, 'one$', snapshotId = null
+      expectAccessDenied JSnapshot, 'one$', snapshotId = null, done
 
 
     it 'should be able to fetch the snapshot data', (done) ->
@@ -72,7 +72,7 @@ runTests = -> describe 'workers.social.models.computeproviders.snapshot', ->
 
     it 'should fail to fetch snapshot data if user doesnt have permission', (done) ->
 
-      expectAccessDenied done, JSnapshot, 'some$', selector = {}, options = {}
+      expectAccessDenied JSnapshot, 'some$', selector = {}, options = {}, done
 
 
     it 'should be able to fetch snapshot data', (done) ->
@@ -93,7 +93,7 @@ runTests = -> describe 'workers.social.models.computeproviders.snapshot', ->
     it 'should fail to rename snapshot if user doesnt have permission', (done) ->
 
       withConvertedUserAndSnapshot ({ snapshot }) ->
-        expectAccessDenied done, snapshot, 'rename', label = 'someLabel'
+        expectAccessDenied snapshot, 'rename', label = 'someLabel', done
 
 
     it 'should fail to rename snapshot if label is empty', (done) ->
