@@ -1,9 +1,7 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
 ActivityFlux          = require 'activity/flux'
-Link                  = require 'app/components/common/link'
 Button                = require 'app/components/common/button'
-ActivityPromptModal   = require 'app/components/activitypromptmodal'
 prepareThreadTitle    = require 'activity/util/prepareThreadTitle'
 PrivateChannelLink    = require 'activity/components/privatechannellink'
 
@@ -27,46 +25,45 @@ module.exports = class PrivateChannelListItem extends React.Component
     else @props.thread.get 'channel'
 
 
-  showDeleteChannelPromptModal: (event) ->
+  showDeleteConfirmButtons: ->
 
-    kd.utils.stopDOMEvent event
     @setState isDeleting: yes
 
 
-  closeDeleteChannelPromptModal: ->
+  cancelDeleting: ->
 
     @setState isDeleting: no
 
 
-  getDeleteItemModalProps: ->
-
-    title              : "Delete message"
-    body               : "Are you sure you want to delete this message?"
-    buttonConfirmTitle : "DELETE"
-    className          : "Modal-DeleteItemPrompt"
-    onConfirm          : @bound "deleteChannelButtonHandler"
-    onAbort            : @bound "closeDeleteChannelPromptModal"
-    onClose            : @bound "closeDeleteChannelPromptModal"
-    className          : 'PrivateChannel-deletePromptModal ActivityPromptModal'
-    closeIcon          : no
-
-
-  deleteChannelButtonHandler: (event) ->
+  confirmDelete: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    { deletePrivateChannel } = ActivityFlux.actions.channel
     channelId = @channel 'id'
+    { deletePrivateChannel } = ActivityFlux.actions.channel
 
     deletePrivateChannel channelId
 
 
+  renderDeleteChannelConfirmButtons: ->
+
+    if @state.isDeleting
+      <div>
+        <Button
+          className="ChannelListItem-button confirm"
+          onClick={@bound 'confirmDelete'}>Confirm</Button>
+        <Button
+          className="ChannelListItem-button cancel"
+          onClick={@bound 'cancelDeleting'}>Cancel</Button>
+      </div>
+
+
   renderDeleteButton: ->
 
-    if @channel('typeConstant') is 'privatemessage'
+    if @channel('typeConstant') is 'privatemessage' and not @state.isDeleting
       <Button
         className="ChannelListItem-delete"
-        onClick={@bound 'showDeleteChannelPromptModal'}>DELETE</Button>
+        onClick={@bound 'showDeleteConfirmButtons'}>DELETE</Button>
 
 
   render: ->
@@ -78,8 +75,6 @@ module.exports = class PrivateChannelListItem extends React.Component
     <PrivateChannelLink to={@channel()} className='ChannelListItem' onClick={@props.onItemClick}>
       <span className='ChannelListItem-title'>{title}</span>
       {@renderDeleteButton()}
-      <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
-        Are you sure you want to delete this message?
-      </ActivityPromptModal>
+      {@renderDeleteChannelConfirmButtons()}
     </PrivateChannelLink>
 
