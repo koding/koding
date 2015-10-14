@@ -4,9 +4,12 @@ StackTemplate = require './stacktemplate'
   expect
   withDummyClient
   withConvertedUser
+  expectAccessDenied
   generateRandomString
   checkBongoConnectivity }    = require '../../../../testhelper'
-{ generateStackTemplateData } = require '../../../../testhelper/models/computeproviders/stacktemplatehelper'
+{ generateStackTemplateData
+  withConvertedUserAndStackTemplate } = require \
+  '../../../../testhelper/models/computeproviders/stacktemplatehelper'
 
 
 # this function will be called once before running any test
@@ -24,11 +27,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to create stack template', (done) ->
 
-        withDummyClient ({ client }) ->
-
-          StackTemplate.create client, {}, (err, template) ->
-            expect(err?.message).to.be.equal 'Access denied'
-            done()
+        expectAccessDenied StackTemplate, 'create', {}, done
 
 
     describe 'when user has the permission', ->
@@ -58,11 +57,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to fetch stack templates', (done) ->
 
-        withDummyClient ({ client }) ->
-
-          StackTemplate.some$ client, {}, (err, template) ->
-            expect(err?.message).to.be.equal 'Access denied'
-            done()
+        expectAccessDenied StackTemplate, 'some$', {}, done
 
 
     describe 'when user has the permission', ->
@@ -103,11 +98,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to fetch stack templates', (done) ->
 
-        withDummyClient ({ client }) ->
-
-          StackTemplate.one$ client, {}, {}, (err, template) ->
-            expect(err?.message).to.be.equal 'Access denied'
-            done()
+        expectAccessDenied StackTemplate, 'one$', {}, {}, done
 
 
     describe 'when user has the permission', ->
@@ -149,31 +140,8 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to delete the stack template', (done) ->
 
-        stackTemplate = null
-
-        queue = [
-
-          ->
-            withConvertedUser ({ client }) ->
-
-              stackTemplateData = generateStackTemplateData client
-              StackTemplate.create client, stackTemplateData, (err, template_) ->
-                expect(err).to.not.exist
-                stackTemplate = template_
-                queue.next()
-
-          ->
-            withDummyClient ({ client }) ->
-
-              stackTemplate.delete client, (err) ->
-                expect(err?.message).to.be.equal 'Access denied'
-                queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        withConvertedUserAndStackTemplate ({ stackTemplate }) ->
+          expectAccessDenied stackTemplate, 'delete', done
 
 
     describe 'when user has the permission', ->
@@ -218,31 +186,8 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to set access level of the template', (done) ->
 
-        stackTemplate = null
-
-        queue = [
-
-          ->
-            withConvertedUser ({ client }) ->
-
-              stackTemplateData = generateStackTemplateData client
-              StackTemplate.create client, stackTemplateData, (err, template_) ->
-                expect(err).to.not.exist
-                stackTemplate = template_
-                queue.next()
-
-          ->
-            withDummyClient ({ client }) ->
-
-              stackTemplate.setAccess client, 'public', (err) ->
-                expect(err?.message).to.be.equal 'Access denied'
-                queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        withConvertedUserAndStackTemplate ({ stackTemplate }) ->
+          expectAccessDenied stackTemplate, 'setAccess', 'public', done
 
 
     describe 'when user has the permission', ->
@@ -293,31 +238,8 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to update the stack template', (done) ->
 
-        stackTemplate = null
-
-        queue = [
-
-          ->
-            withConvertedUser ({ client }) ->
-
-              stackTemplateData = generateStackTemplateData client
-              StackTemplate.create client, stackTemplateData, (err, template_) ->
-                expect(err).to.not.exist
-                stackTemplate = template_
-                queue.next()
-
-          ->
-            withDummyClient ({ client }) ->
-
-              stackTemplate.update$ client, {}, (err) ->
-                expect(err?.message).to.be.equal 'Access denied'
-                queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        withConvertedUserAndStackTemplate ({ stackTemplate }) ->
+          expectAccessDenied stackTemplate, 'update$', {}, done
 
 
     describe 'when user has the permission', ->
