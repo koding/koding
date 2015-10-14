@@ -155,10 +155,5 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 		return errs.ErrUserCancelled
 	}
 
-	err = os.Mkdir(p, 0655)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return os.Mkdir(p, 0655)
 }
