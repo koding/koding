@@ -4,10 +4,9 @@ JUser                   = require '../lib/social/models/user'
 JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
-ObjectId                = require('mongodb').BSONPure.ObjectID
 
 { expect }              = require 'chai'
-{ daisy }               = Bongo
+{ daisy, ObjectId }     = Bongo
 { argv }                = require 'optimist'
 { env : { MONGO_URL } } = process
 KONFIG                  = require('koding-config-manager').load("main.#{argv.c}")
