@@ -51,9 +51,32 @@ module.exports = class ChatPane extends React.Component
 
     if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
       <ChannelInfoContainer
+        ref='ChannelInfoContainer'
         key={@channel 'id'}
         thread={@props.thread}
         afterInviteOthers={@bound 'afterInviteOthers'} />
+
+
+  beforeScrollDidUpdate: ->
+
+    @setPaddedClassName()
+
+
+  setPaddedClassName: ->
+
+    list                       = React.findDOMNode @refs.ChatList
+    scrollContainer            = React.findDOMNode @refs.scrollContainer
+    channelInfoContainer       = React.findDOMNode @refs.ChannelInfoContainer
+    listHeight                 = list.offsetHeight
+    scrollContainerHeight      = scrollContainer.offsetHeight
+    channelInfoContainerHeight = 0
+
+    if channelInfoContainer
+      channelInfoContainerHeight = channelInfoContainer.offsetHeight
+
+    if listHeight < scrollContainerHeight - channelInfoContainerHeight
+    then list.classList.add 'padded'
+    else list.classList.remove 'padded'
 
 
   renderBody: ->
@@ -65,6 +88,7 @@ module.exports = class ChatPane extends React.Component
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
+        ref='ChatList'
         isMessagesLoading={@isThresholdReached}
         messages={@props.thread.get 'messages'}
         showItemMenu={@props.showItemMenu}
