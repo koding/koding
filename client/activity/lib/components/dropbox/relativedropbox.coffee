@@ -2,7 +2,7 @@ $          = require 'jquery'
 kd         = require 'kd'
 React      = require 'kd-react'
 classnames = require 'classnames'
-Dropbox    = require './index'
+Dropbox    = require './dropboxbody'
 
 module.exports = class RelativeDropbox extends React.Component
 

@@ -2,7 +2,7 @@ $       = require 'jquery'
 kd      = require 'kd'
 React   = require 'kd-react'
 Portal  = require 'react-portal'
-Dropbox = require './index'
+Dropbox = require './dropboxbody'
 
 module.exports = class PortalDropbox extends React.Component
 

@@ -5,7 +5,7 @@ classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
 KeyboardKeys = require 'app/util/keyboardKeys'
 
-module.exports = class Dropbox extends React.Component
+module.exports = class DropboxBody extends React.Component
 
   @defaultProps =
     visible   : no
