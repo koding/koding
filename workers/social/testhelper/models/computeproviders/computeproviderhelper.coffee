@@ -1,7 +1,9 @@
 { _
   daisy
   expect
-  withConvertedUser }    = require '../../index'
+  ObjectId
+  withConvertedUser
+  generateRandomString } = require '../../index'
 { createProvisioner }    = require './provisionerhelper'
 { createStackTemplate }  = require './stacktemplatehelper'
 { createCredential }     = require './credentialhelper'
@@ -75,20 +77,33 @@ withConvertedUserAnd = (models, options, callback) ->
     _createComputeProvider = (client, options, callback) ->
       computeProvider = null
       client.r        = { group : groupSlug, user, account }
+      stack           = options.stack ? null
       label           = generateRandomString()
-      generatedFrom   = new ObjectId
       provider        = 'aws'
+      generatedFrom   = new ObjectId
 
-      expect(stack).to.exist
-      computeProviderOptions = {
-        client, stack, provider, label, generatedFrom
-        users : []
-        provisioners : [data.provisioner ? 'test_provisioner']
-      }
+      _queue = [
 
-      ComputeProvider.create client, computeProviderOptions, (err, data_) ->
-        expect(err).to.not.exist
-        callback data_
+        ->
+          return queue.next()  if stack
+          _createStack client, options, (data_) ->
+            { stack } = data_
+            _queue.next()
+
+        ->
+          computeProviderOptions = {
+            client, stack, provider, label, generatedFrom
+            users : []
+            provisioners : [data.provisioner ? 'test_provisioner']
+          }
+
+          ComputeProvider.create client, computeProviderOptions, (err, machine) ->
+            expect(err).to.not.exist
+            callback { machine, stack }
+
+      ]
+
+      daisy _queue
 
 
     models.forEach (model) ->
