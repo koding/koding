@@ -23,7 +23,19 @@ generateMetaData = (provider) ->
       storage_size         : 2
       instance_type        : 't2.micro'
 
+    else 'unimplemented provider'
+
   return meta
+
+
+createCredential = (client, options, callback) ->
+
+  options.provider ?= 'aws'
+  options.meta     ?= generateMetaData options.provider
+  options.title    ?= "test#{options.provider}#{generateRandomString()}"
+
+  JCredential.create client, options, (err, credential) ->
+    callback err, { credential }
 
 
 withConvertedUserAndCredential = (options, callback) ->
@@ -32,12 +44,10 @@ withConvertedUserAndCredential = (options, callback) ->
   options            ?= {}
 
   withConvertedUser options, (data) ->
-    options.provider ?= 'aws'
-    options.meta     ?= generateMetaData options.provider
-    options.title    ?= "test#{options.provider}#{generateRandomString()}"
+    { client } = data
 
-    JCredential.create data.client, options, (err, credential) ->
-      expect(err?.message).to.not.exist
+    createCredential client, options, (err, { credential }) ->
+      expect(err).to.not.exist
       data.credential = credential
       callback data
 
