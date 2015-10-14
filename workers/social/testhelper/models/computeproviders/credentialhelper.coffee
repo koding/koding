@@ -32,7 +32,7 @@ createCredential = (client, options, callback) ->
 
   options.provider ?= 'aws'
   options.meta     ?= generateMetaData options.provider
-  options.title    ?= "test#{options.provider}#{generateRandomString()}"
+  options.title    ?= 'koding'
 
   JCredential.create client, options, (err, credential) ->
     callback err, { credential }
