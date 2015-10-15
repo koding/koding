@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -37,11 +39,14 @@ type BotChannelData struct {
 //////////// PushRequest //////////////
 
 type PushRequest struct {
-	Body       string   `json:"body"`
-	ChannelId  int64    `json:"channelId,string"`
-	GroupName  string   `json:"groupName"`
-	Token      string   `json:"token"`
-	FallbackFn Fallback `json:"-"`
+	Body       string      `json:"body"`
+	ChannelId  int64       `json:"channelId,string"`
+	GroupName  string      `json:"groupName"`
+	Token      string      `json:"token"`
+	FallbackFn Fallback    `json:"-"`
+	Payload    gorm.Hstore `json:"payload"`
+	// EventType  map[string]*string `json:"eventType"`
+
 }
 
 // NewPushRequest creates a new PushRequest instance with Fallback function
