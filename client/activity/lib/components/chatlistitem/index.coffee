@@ -28,6 +28,7 @@ MessageLink           = require 'activity/components/publicchannelmessagelink'
 EmbedBox              = require 'activity/components/embedbox'
 KeyboardKeys          = require 'app/util/keyboardKeys'
 ChatInputWidget       = require 'activity/components/chatinputwidget'
+Encoder               = require 'htmlencode'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -296,6 +297,7 @@ module.exports = class ChatListItem extends React.Component
   renderEditMode: ->
 
     { message } = @props
+    messageBody = Encoder.htmlDecode message.get 'body'
 
     return  unless message.get '__isEditing'
 
@@ -309,7 +311,7 @@ module.exports = class ChatListItem extends React.Component
       </div>
       <ChatInputWidget
         channelId        = { @props.channelId }
-        value            = { message.get 'body' }
+        value            = { messageBody }
         onSubmit         = { @bound 'updateMessage' }
         onEsc            = { @bound 'cancelEdit' }
         ref              = 'editInput'
