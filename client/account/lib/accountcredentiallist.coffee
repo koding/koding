@@ -148,11 +148,15 @@ module.exports = class AccountCredentialList extends KDListView
         kd.singletons.computeController.ui.showComputeError
           title   : 'An error occured while destroying resources'
           message : "
-            Following error occurred while destroying resources related with
-            this credential, however you still can delete the credential from
-            Koding and destroy your resources manually or you can Terminate all
-            existing instances manually then try to destroy rest of the
-            resources from here again.
+            Some errors occurred while destroying resources that are created
+            with this credential.
+            <br/>
+            You can either visit
+            <a href='http://console.aws.amazon.com/' target=_blank>
+            console.aws.amazon.com
+            </a> to clear the EC2 instances and try this again, or go ahead
+            and delete this credential here but you will need to destroy your
+            resources manually from AWS console later.
           "
           errorMessage : err?.message ? err
         callback err
