@@ -456,6 +456,10 @@ func (g GithubListener) create(e *webhook.CreateEvent) (string, error) {
 	), nil
 }
 
+func (g GithubListener) eventType(req *http.Request) string {
+	return req.Header.Get("X-GitHub-Event")
+}
+
 // TODO(mehmetali) limit outgoing string, should not be more than 2K char?
 func (g GithubListener) output(ctx context.Context, str string) {
 	gi, ok := FromGithubContext(ctx)
