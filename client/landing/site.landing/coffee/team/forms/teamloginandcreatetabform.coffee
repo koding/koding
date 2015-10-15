@@ -45,7 +45,7 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
     @backLink = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
-      partial  : '← <a href="/Team/Domain">Back</a>'
+      partial  : '<i></i> <a href="/Team/Domain">Back</a>'
 
 
     @button = new KDButtonView
