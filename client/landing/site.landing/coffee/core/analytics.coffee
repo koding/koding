@@ -10,3 +10,15 @@ module.exports = class Analytics
 
     data = { action, properties }
     request 'track', 'post', data
+
+
+  @page: (name, category) ->
+
+    properties =
+      url      : window.location.toString()
+      path     : window.location.pathname
+      title    : window.document.title
+      referrer : window.document.referrer
+
+    data = { name, category, properties }
+    request 'page', 'post', data
