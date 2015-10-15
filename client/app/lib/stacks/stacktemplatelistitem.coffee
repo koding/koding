@@ -1,8 +1,6 @@
 kd                        = require 'kd'
 timeago                   = require 'timeago'
-KDButtonViewWithMenu      = kd.ButtonViewWithMenu
 
-ActivityItemMenuItem      = require 'activity/views/activityitemmenuitem'
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
 
 
@@ -43,7 +41,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     @notReadyView.hide()  if config.verified
 
 
-  updateStackTemplate: ->
+  editStackTemplate: ->
     @getDelegate().emit 'ItemSelected', @getData()
 
 
