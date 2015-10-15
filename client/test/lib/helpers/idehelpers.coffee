@@ -7,6 +7,7 @@ filesTabSelector    = '.ide-files-tab .file-container'
 
 module.exports =
 
+
   openNewFile: (browser) ->
 
     @closeAllTabs browser
@@ -27,12 +28,19 @@ module.exports =
     browser.pause 5000 # wait for snapshot restore
 
     handleSelector = panelSelector + ' .kdtabhandle.kddraggable'
+    modalSelector  = '.autoremovepane-confirm'
+
 
     doClose = ->
       browser
         .moveToElement handleSelector, 5, 5
         .click         handleSelector + ' .close-tab'
-        .pause         300
+        .pause         500 # wait for modal
+        .element       'css selector', modalSelector, (result) ->
+          if result.status is 0
+            browser
+              .click   "#{modalSelector} .kdbutton.red"
+              .pause   500
 
 
     close = ->
@@ -41,6 +49,7 @@ module.exports =
 
         if result.value.length isnt 0 then doClose()
         if length - 1 > 0 then close()
+
 
     close()
 
