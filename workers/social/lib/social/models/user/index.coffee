@@ -20,10 +20,9 @@ module.exports = class JUser extends jraphical.Module
   JName                = require '../name'
   JGroup               = require '../group'
   JLog                 = require '../log'
-  JPaymentPlan         = require '../payment/plan'
-  JPaymentSubscription = require '../payment/subscription'
   ComputeProvider      = require '../computeproviders/computeprovider'
   Tracker              = require '../tracker'
+  Payment              = require '../payment'
 
   @bannedUserList = ['abrt', 'amykhailov', 'apache', 'about', 'visa', 'shared-',
                      'cthorn', 'daemon', 'dbus', 'dyasar', 'ec2-user', 'http',
@@ -164,7 +163,10 @@ module.exports = class JUser extends jraphical.Module
           type      : String
           # enum      : ['invalid status',['online','offline','away','busy']]
 
-      sshKeys       : [Object]
+      sshKeys       :
+        type        : Object
+        default     : []
+
       foreignAuth            :
         github               :
           foreignId          : String
@@ -855,12 +857,15 @@ module.exports = class JUser extends jraphical.Module
           $set            :
             username      : username
             clientId      : replacementToken
-            lastLoginDate : new Date
+            lastLoginDate : lastLoginDate = new Date
           $unset          :
             guestId       : 1
 
         session.update sessionUpdateOptions, (err) ->
           return callback err  if err
+
+          Tracker.identify username, { lastLoginDate }
+
           queue.next()
 
       ->
@@ -885,6 +890,13 @@ module.exports = class JUser extends jraphical.Module
           # is not correct place to do it, FIXME GG
           # p.s. we could do that in workers
           account.updateCounts()
+
+          if foreignAuth
+            providers = {}
+            Object.keys(foreignAuth).forEach (provider) ->
+              providers[provider] = yes
+
+            Tracker.identify user.username, { foreignAuth: providers }
 
           JLog.log { type: 'login', username , success: yes }
           queue.next()
@@ -1554,6 +1566,7 @@ module.exports = class JUser extends jraphical.Module
     newToken         = null
     invitation       = null
     foreignAuthType  = null
+    subscription     = null
 
     queue = [
 
@@ -1598,9 +1611,51 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        date = new Date 0
+        subscription =
+          accountId          : account.getId()
+          planTitle          : 'free'
+          planInterval       : 'month'
+          state              : 'active'
+          provider           : 'koding'
+          expiredAt          : date
+          canceledAt         : date
+          currentPeriodStart : date
+          currentPeriodEnd   : date
+
+        queue.next()
+
+      ->
         jwtToken = JUser.createJWT { username }
 
-        Tracker.identify username, { jwtToken, email, pin }
+        { status, lastLoginDate } = user
+        { createdAt } = account.meta
+
+        sshKeysCount = user.sshKeys.length
+
+        emailFrequency =
+          global       : user.emailFrequency.global
+          marketing    : user.emailFrequency.marketing
+
+        traits = {
+          email
+          createdAt
+          lastLoginDate
+          status
+
+          firstName
+          lastName
+
+          subscription
+          sshKeysCount
+          emailFrequency
+
+          pin
+          jwtToken
+        }
+
+        Tracker.identify username, traits
+
         queue.next()
 
       ->
@@ -1844,6 +1899,8 @@ module.exports = class JUser extends jraphical.Module
 
             callback null
 
+            Tracker.identify @username, { email }
+
 
   fetchHomepageView: (options, callback) ->
 
@@ -1863,11 +1920,15 @@ module.exports = class JUser extends jraphical.Module
       console.log "ALERT: #{username} is trying to confirm '#{status}' email"
       return callback null
 
-    @update { $set: { status: 'confirmed' } }, (err, res) =>
+    modifier = { status: 'confirmed' }
+
+    @update { $set: modifier }, (err, res) =>
       return callback err if err
       JUser.emit 'EmailConfirmed', this
 
       callback null
+
+      Tracker.identify username, modifier
 
       Tracker.track username, { subject : Tracker.types.FINISH_REGISTER }
 
@@ -1875,30 +1936,39 @@ module.exports = class JUser extends jraphical.Module
   block: (blockedUntil, callback) ->
 
     unless blockedUntil then return callback new KodingError 'Blocking date is not defined'
-    @update
-      $set           :
-        status       : 'blocked',
-        blockedUntil : blockedUntil
-    , (err) =>
+
+    status = 'blocked'
+
+    @update { $set: { status, blockedUntil } }, (err) =>
+
       return callback err if err
+
       JUser.emit 'UserBlocked', this
-      # clear all of the cookies of the blocked user
 
       console.log 'JUser#block JSession#remove', { @username, blockedUntil }
 
+      # clear all of the cookies of the blocked user
       JSession.remove { username: @username }, callback
+
+      Tracker.identify @username, { status }
 
 
   unblock: (callback) ->
 
-    @update
-      $set            :
-        blockedUntil  : new Date()
-    , (err) =>
-      return callback err if err
+    status = 'confirmed'
+
+    op =
+      $set   : { status }
+      $unset : { blockedUntil: yes }
+
+    @update op, (err) =>
+
+      return callback err  if err
 
       JUser.emit 'UserUnblocked', this
-      return callback err
+      callback()
+
+      Tracker.identify @username, { status }
 
 
   unlinkOAuths: (callback) ->
@@ -1920,6 +1990,11 @@ module.exports = class JUser extends jraphical.Module
 
       @saveOauthToUser foreignAuthInfo, username, (err) =>
         return callback err  if err
+
+        do (foreignAuth = {}) ->
+          { foreignAuthType } = foreignAuthInfo
+          foreignAuth[foreignAuthType] = yes
+          Tracker.identify username, { foreignAuth }
 
         @clearOauthFromSession foreignAuthInfo.session, (err) =>
           return callback err  if err
@@ -1972,6 +2047,8 @@ module.exports = class JUser extends jraphical.Module
     @fetchUser client, (err, user) ->
       user.sshKeys = sshKeys
       user.save callback
+
+      Tracker.identify user.username, { sshKeysCount: sshKeys.length }
 
 
   @getSSHKeys: secure (client, callback) ->

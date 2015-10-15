@@ -150,8 +150,13 @@ module.exports = class TeamMembersCommonView extends KDView
 
   handleError: (err) ->
 
-    @listController.lazyLoader.hide()
-    kd.warn err
+    @page = 0
+
+    if err?.message?.indexOf('No account found') > -1
+      @search yes
+    else
+      @listController.lazyLoader.hide()
+      kd.warn err
 
 
   listMembers: (members) ->
@@ -172,26 +177,35 @@ module.exports = class TeamMembersCommonView extends KDView
     @searchContainer.show()
 
 
-  search: ->
+  search: (useSearchMembersMethod = no) ->
 
     query = @searchInput.getValue()
 
     if query is ''
       @page = 0
       @skip = 0
+      @searchClear.hide()
       @resetListItems()
       return @fetchMembers()
 
     @page      = 0  if query isnt @lastQuery
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
+    group      = @getData()
+
     @searchClear.show()
 
-    kd.singletons.search.searchAccounts query, options
-      .then (accounts) => @handleSearchResult accounts
-      .catch (err) =>
-        @page = 0
-        @handleError err
+    if useSearchMembersMethod is yes # explicit check for truthy value
+      group.searchMembers query, {}, (err, accounts) =>
+        if accounts.length
+          @handleSearchResult accounts
+        else
+          @handleError err
+    else
+      kd.singletons.search.searchAccounts query, options
+        .then (accounts) => @handleSearchResult accounts
+        .catch (err) =>
+          @handleError err
 
 
   handleSearchResult: (accounts) ->

@@ -11,9 +11,12 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     super options, data
 
+    ace = @getAce()
+
     @once 'EditorReady', =>
 
-      return  unless options.showHelpContent
+      unless options.showHelpContent
+        return ace.contentChanged = no
 
       position = row: 0, column: 0
       content  = """
@@ -23,4 +26,6 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
 
       """
-      @aceView.ace.editor.session.insert position, content
+
+      ace.editor.session.insert position, content
+      ace.contentChanged = no
