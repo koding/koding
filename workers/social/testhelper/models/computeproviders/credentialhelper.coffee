@@ -23,6 +23,14 @@ generateMetaData = (provider) ->
       storage_size         : 2
       instance_type        : 't2.micro'
 
+    when 'koding'
+      type                 : 'aws'
+      region               : region ? SUPPORTED_REGIONS[0]
+      source_ami           : ''
+      instance_type        : 't2.micro'
+      storage_size         : storage
+      alwaysOn             : no
+
     else 'unimplemented provider'
 
   return meta
