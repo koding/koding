@@ -245,7 +245,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       # creating a new group and a new StackTemplate for that group
       groupSlug = generateRandomString()
-      options   = { context : { group : groupSlug} }
+      options   = { context : { group : groupSlug } }
 
       withConvertedUserAnd ['Group', 'StackTemplate'], options, (data) ->
         { group, client } = data

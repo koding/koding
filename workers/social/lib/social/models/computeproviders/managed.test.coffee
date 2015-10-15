@@ -60,7 +60,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
           expect(managedVm.postCreateOptions.ipAddress).to.equal options.ipAddress
           done()
 
-  
+
 beforeTests()
 
 runTests()
