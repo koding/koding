@@ -8,22 +8,21 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-// TODO: Make custom error types, so that we can provide custom
-// error messages while still retaining easily identiable errors?
-var (
-//	// The local klient is not returning an http response.
-//	HealthErrorNoHttp = errors.New(
-//		"The klient /kite route is returning an error")
-//
-//	// The http response on /kite does not match the "Welcome to SockJS!"
-//	// klient response.
-//	HealthErrorUnexpectedResponse = errors.New(
-//		"The klient /kite route is not returning the expected response")
-)
-
+// Dialing klient itself is failing. This likely shouldn't happen, but
+// it is in theory possible for invalid auth or if simply klient is
+// not running properly.
 type HealthErrorDialFailed struct{ Message string }
+
+// The local klient is not returning an http response.
 type HealthErrorNoHttp struct{ Message string }
+
+// We are unable to Read the kite.key, so it either doesn't exist at the
+// specified location or the permissions are broken relative to the
+// current user.
 type HealthErrorUnableReadKey struct{ Message string }
+
+// The http response on /kite does not match the "Welcome to SockJS!"
+// klient response.
 type HealthErrorUnexpectedResponse struct{ Message string }
 
 func (e HealthErrorDialFailed) Error() string         { return e.Message }
