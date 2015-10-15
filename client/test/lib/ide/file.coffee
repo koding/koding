@@ -10,7 +10,7 @@ module.exports =
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    ideHelpers.openFileFromWebFolder(browser, user, )
+    ideHelpers.openFileFromWebFolder(browser, user)
     browser.end()
 
 

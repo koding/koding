@@ -153,8 +153,6 @@ module.exports =
     host                   = utils.getUser no, 0
     hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant            = utils.getUser no, 1
-    terminalText           = host.teamSlug
-    hostFileName           = 'index.html'
     paneSelector           = '.pane-wrapper .application-tab-handle-holder'
     lineWidgetSelector     = ".kdtabpaneview.active .ace-line-widget-"
     participantFileName    = 'python.py'
@@ -178,7 +176,6 @@ module.exports =
       ideHelpers.openFileFromWebFolder browser, host, participantFileName, participantFileContent
       # browser.waitForElementVisible "#{lineWidgetSelector}#{host.username}", 60000
 
-    browser.pause 8000
     leave(browser)
 
     # assert no line widget after participant left
@@ -186,5 +183,4 @@ module.exports =
 
     waitAndEndSession(browser)
     browser.end()
-
 
