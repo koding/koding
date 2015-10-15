@@ -42,6 +42,44 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
 
   editStackTemplate: ->
+
+    { inuse } = @getData()
+
+    if inuse
+
+      modal = new kd.ModalView
+        title          : 'Editing in-use stack template ?'
+        overlay        : yes
+        overlayOptions :
+          cssClass     : 'second-overlay'
+          overlayClick : yes
+        content        : "
+          This stack template is currently using by the Team, if you continue
+          to edit, all the changes you've made will be applied to all members,
+          we highly recommend you to create a clone of this stack template
+          first and do your updates on that clone. Once you finish your work
+          with the cloned version, you can easily apply the changes to your
+          team.
+        "
+        buttons      :
+
+          "Clone and Open Editor":
+            style    : 'solid medium green'
+            callback : ->
+              new kd.NotificationView title: 'Coming soon!'
+
+          "I know what I'm doing, Open Editor":
+            style    : 'solid medium red'
+            callback : =>
+              @_itemSelected()
+              modal.destroy()
+
+    else
+      @_itemSelected()
+
+
+
+  _itemSelected: ->
     @getDelegate().emit 'ItemSelected', @getData()
 
 
