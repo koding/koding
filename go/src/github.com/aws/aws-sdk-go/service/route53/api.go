@@ -6,14 +6,15 @@ package route53
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opAssociateVPCWithHostedZone = "AssociateVPCWithHostedZone"
 
 // AssociateVPCWithHostedZoneRequest generates a request for the AssociateVPCWithHostedZone operation.
-func (c *Route53) AssociateVPCWithHostedZoneRequest(input *AssociateVPCWithHostedZoneInput) (req *aws.Request, output *AssociateVPCWithHostedZoneOutput) {
-	op := &aws.Operation{
+func (c *Route53) AssociateVPCWithHostedZoneRequest(input *AssociateVPCWithHostedZoneInput) (req *request.Request, output *AssociateVPCWithHostedZoneOutput) {
+	op := &request.Operation{
 		Name:       opAssociateVPCWithHostedZone,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}/associatevpc",
@@ -46,8 +47,8 @@ func (c *Route53) AssociateVPCWithHostedZone(input *AssociateVPCWithHostedZoneIn
 const opChangeResourceRecordSets = "ChangeResourceRecordSets"
 
 // ChangeResourceRecordSetsRequest generates a request for the ChangeResourceRecordSets operation.
-func (c *Route53) ChangeResourceRecordSetsRequest(input *ChangeResourceRecordSetsInput) (req *aws.Request, output *ChangeResourceRecordSetsOutput) {
-	op := &aws.Operation{
+func (c *Route53) ChangeResourceRecordSetsRequest(input *ChangeResourceRecordSetsInput) (req *request.Request, output *ChangeResourceRecordSetsOutput) {
+	op := &request.Operation{
 		Name:       opChangeResourceRecordSets,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}/rrset/",
@@ -100,8 +101,8 @@ func (c *Route53) ChangeResourceRecordSets(input *ChangeResourceRecordSetsInput)
 const opChangeTagsForResource = "ChangeTagsForResource"
 
 // ChangeTagsForResourceRequest generates a request for the ChangeTagsForResource operation.
-func (c *Route53) ChangeTagsForResourceRequest(input *ChangeTagsForResourceInput) (req *aws.Request, output *ChangeTagsForResourceOutput) {
-	op := &aws.Operation{
+func (c *Route53) ChangeTagsForResourceRequest(input *ChangeTagsForResourceInput) (req *request.Request, output *ChangeTagsForResourceOutput) {
+	op := &request.Operation{
 		Name:       opChangeTagsForResource,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/tags/{ResourceType}/{ResourceId}",
@@ -126,8 +127,8 @@ func (c *Route53) ChangeTagsForResource(input *ChangeTagsForResourceInput) (*Cha
 const opCreateHealthCheck = "CreateHealthCheck"
 
 // CreateHealthCheckRequest generates a request for the CreateHealthCheck operation.
-func (c *Route53) CreateHealthCheckRequest(input *CreateHealthCheckInput) (req *aws.Request, output *CreateHealthCheckOutput) {
-	op := &aws.Operation{
+func (c *Route53) CreateHealthCheckRequest(input *CreateHealthCheckInput) (req *request.Request, output *CreateHealthCheckOutput) {
+	op := &request.Operation{
 		Name:       opCreateHealthCheck,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/healthcheck",
@@ -158,8 +159,8 @@ func (c *Route53) CreateHealthCheck(input *CreateHealthCheckInput) (*CreateHealt
 const opCreateHostedZone = "CreateHostedZone"
 
 // CreateHostedZoneRequest generates a request for the CreateHostedZone operation.
-func (c *Route53) CreateHostedZoneRequest(input *CreateHostedZoneInput) (req *aws.Request, output *CreateHostedZoneOutput) {
-	op := &aws.Operation{
+func (c *Route53) CreateHostedZoneRequest(input *CreateHostedZoneInput) (req *request.Request, output *CreateHostedZoneOutput) {
+	op := &request.Operation{
 		Name:       opCreateHostedZone,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/hostedzone",
@@ -205,8 +206,8 @@ func (c *Route53) CreateHostedZone(input *CreateHostedZoneInput) (*CreateHostedZ
 const opCreateReusableDelegationSet = "CreateReusableDelegationSet"
 
 // CreateReusableDelegationSetRequest generates a request for the CreateReusableDelegationSet operation.
-func (c *Route53) CreateReusableDelegationSetRequest(input *CreateReusableDelegationSetInput) (req *aws.Request, output *CreateReusableDelegationSetOutput) {
-	op := &aws.Operation{
+func (c *Route53) CreateReusableDelegationSetRequest(input *CreateReusableDelegationSetInput) (req *request.Request, output *CreateReusableDelegationSetOutput) {
+	op := &request.Operation{
 		Name:       opCreateReusableDelegationSet,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/delegationset",
@@ -240,8 +241,8 @@ func (c *Route53) CreateReusableDelegationSet(input *CreateReusableDelegationSet
 const opDeleteHealthCheck = "DeleteHealthCheck"
 
 // DeleteHealthCheckRequest generates a request for the DeleteHealthCheck operation.
-func (c *Route53) DeleteHealthCheckRequest(input *DeleteHealthCheckInput) (req *aws.Request, output *DeleteHealthCheckOutput) {
-	op := &aws.Operation{
+func (c *Route53) DeleteHealthCheckRequest(input *DeleteHealthCheckInput) (req *request.Request, output *DeleteHealthCheckOutput) {
+	op := &request.Operation{
 		Name:       opDeleteHealthCheck,
 		HTTPMethod: "DELETE",
 		HTTPPath:   "/2013-04-01/healthcheck/{HealthCheckId}",
@@ -276,8 +277,8 @@ func (c *Route53) DeleteHealthCheck(input *DeleteHealthCheckInput) (*DeleteHealt
 const opDeleteHostedZone = "DeleteHostedZone"
 
 // DeleteHostedZoneRequest generates a request for the DeleteHostedZone operation.
-func (c *Route53) DeleteHostedZoneRequest(input *DeleteHostedZoneInput) (req *aws.Request, output *DeleteHostedZoneOutput) {
-	op := &aws.Operation{
+func (c *Route53) DeleteHostedZoneRequest(input *DeleteHostedZoneInput) (req *request.Request, output *DeleteHostedZoneOutput) {
+	op := &request.Operation{
 		Name:       opDeleteHostedZone,
 		HTTPMethod: "DELETE",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}",
@@ -316,8 +317,8 @@ func (c *Route53) DeleteHostedZone(input *DeleteHostedZoneInput) (*DeleteHostedZ
 const opDeleteReusableDelegationSet = "DeleteReusableDelegationSet"
 
 // DeleteReusableDelegationSetRequest generates a request for the DeleteReusableDelegationSet operation.
-func (c *Route53) DeleteReusableDelegationSetRequest(input *DeleteReusableDelegationSetInput) (req *aws.Request, output *DeleteReusableDelegationSetOutput) {
-	op := &aws.Operation{
+func (c *Route53) DeleteReusableDelegationSetRequest(input *DeleteReusableDelegationSetInput) (req *request.Request, output *DeleteReusableDelegationSetOutput) {
+	op := &request.Operation{
 		Name:       opDeleteReusableDelegationSet,
 		HTTPMethod: "DELETE",
 		HTTPPath:   "/2013-04-01/delegationset/{Id}",
@@ -351,8 +352,8 @@ func (c *Route53) DeleteReusableDelegationSet(input *DeleteReusableDelegationSet
 const opDisassociateVPCFromHostedZone = "DisassociateVPCFromHostedZone"
 
 // DisassociateVPCFromHostedZoneRequest generates a request for the DisassociateVPCFromHostedZone operation.
-func (c *Route53) DisassociateVPCFromHostedZoneRequest(input *DisassociateVPCFromHostedZoneInput) (req *aws.Request, output *DisassociateVPCFromHostedZoneOutput) {
-	op := &aws.Operation{
+func (c *Route53) DisassociateVPCFromHostedZoneRequest(input *DisassociateVPCFromHostedZoneInput) (req *request.Request, output *DisassociateVPCFromHostedZoneOutput) {
+	op := &request.Operation{
 		Name:       opDisassociateVPCFromHostedZone,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}/disassociatevpc",
@@ -385,8 +386,8 @@ func (c *Route53) DisassociateVPCFromHostedZone(input *DisassociateVPCFromHosted
 const opGetChange = "GetChange"
 
 // GetChangeRequest generates a request for the GetChange operation.
-func (c *Route53) GetChangeRequest(input *GetChangeInput) (req *aws.Request, output *GetChangeOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetChangeRequest(input *GetChangeInput) (req *request.Request, output *GetChangeOutput) {
+	op := &request.Operation{
 		Name:       opGetChange,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/change/{Id}",
@@ -417,22 +418,22 @@ func (c *Route53) GetChange(input *GetChangeInput) (*GetChangeOutput, error) {
 	return out, err
 }
 
-const opGetCheckerIPRanges = "GetCheckerIpRanges"
+const opGetCheckerIpRanges = "GetCheckerIpRanges"
 
-// GetCheckerIPRangesRequest generates a request for the GetCheckerIPRanges operation.
-func (c *Route53) GetCheckerIPRangesRequest(input *GetCheckerIPRangesInput) (req *aws.Request, output *GetCheckerIPRangesOutput) {
-	op := &aws.Operation{
-		Name:       opGetCheckerIPRanges,
+// GetCheckerIpRangesRequest generates a request for the GetCheckerIpRanges operation.
+func (c *Route53) GetCheckerIpRangesRequest(input *GetCheckerIpRangesInput) (req *request.Request, output *GetCheckerIpRangesOutput) {
+	op := &request.Operation{
+		Name:       opGetCheckerIpRanges,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/checkeripranges",
 	}
 
 	if input == nil {
-		input = &GetCheckerIPRangesInput{}
+		input = &GetCheckerIpRangesInput{}
 	}
 
 	req = c.newRequest(op, input, output)
-	output = &GetCheckerIPRangesOutput{}
+	output = &GetCheckerIpRangesOutput{}
 	req.Data = output
 	return
 }
@@ -441,8 +442,8 @@ func (c *Route53) GetCheckerIPRangesRequest(input *GetCheckerIPRangesInput) (req
 // to check the health of your resources, send a GET request to the 2013-04-01/checkeripranges
 // resource. You can use these IP addresses to configure router and firewall
 // rules to allow health checkers to check the health of your resources.
-func (c *Route53) GetCheckerIPRanges(input *GetCheckerIPRangesInput) (*GetCheckerIPRangesOutput, error) {
-	req, out := c.GetCheckerIPRangesRequest(input)
+func (c *Route53) GetCheckerIpRanges(input *GetCheckerIpRangesInput) (*GetCheckerIpRangesOutput, error) {
+	req, out := c.GetCheckerIpRangesRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -450,8 +451,8 @@ func (c *Route53) GetCheckerIPRanges(input *GetCheckerIPRangesInput) (*GetChecke
 const opGetGeoLocation = "GetGeoLocation"
 
 // GetGeoLocationRequest generates a request for the GetGeoLocation operation.
-func (c *Route53) GetGeoLocationRequest(input *GetGeoLocationInput) (req *aws.Request, output *GetGeoLocationOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetGeoLocationRequest(input *GetGeoLocationInput) (req *request.Request, output *GetGeoLocationOutput) {
+	op := &request.Operation{
 		Name:       opGetGeoLocation,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/geolocation",
@@ -479,8 +480,8 @@ func (c *Route53) GetGeoLocation(input *GetGeoLocationInput) (*GetGeoLocationOut
 const opGetHealthCheck = "GetHealthCheck"
 
 // GetHealthCheckRequest generates a request for the GetHealthCheck operation.
-func (c *Route53) GetHealthCheckRequest(input *GetHealthCheckInput) (req *aws.Request, output *GetHealthCheckOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetHealthCheckRequest(input *GetHealthCheckInput) (req *request.Request, output *GetHealthCheckOutput) {
+	op := &request.Operation{
 		Name:       opGetHealthCheck,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/healthcheck/{HealthCheckId}",
@@ -507,8 +508,8 @@ func (c *Route53) GetHealthCheck(input *GetHealthCheckInput) (*GetHealthCheckOut
 const opGetHealthCheckCount = "GetHealthCheckCount"
 
 // GetHealthCheckCountRequest generates a request for the GetHealthCheckCount operation.
-func (c *Route53) GetHealthCheckCountRequest(input *GetHealthCheckCountInput) (req *aws.Request, output *GetHealthCheckCountOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetHealthCheckCountRequest(input *GetHealthCheckCountInput) (req *request.Request, output *GetHealthCheckCountOutput) {
+	op := &request.Operation{
 		Name:       opGetHealthCheckCount,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/healthcheckcount",
@@ -535,8 +536,8 @@ func (c *Route53) GetHealthCheckCount(input *GetHealthCheckCountInput) (*GetHeal
 const opGetHealthCheckLastFailureReason = "GetHealthCheckLastFailureReason"
 
 // GetHealthCheckLastFailureReasonRequest generates a request for the GetHealthCheckLastFailureReason operation.
-func (c *Route53) GetHealthCheckLastFailureReasonRequest(input *GetHealthCheckLastFailureReasonInput) (req *aws.Request, output *GetHealthCheckLastFailureReasonOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetHealthCheckLastFailureReasonRequest(input *GetHealthCheckLastFailureReasonInput) (req *request.Request, output *GetHealthCheckLastFailureReasonOutput) {
+	op := &request.Operation{
 		Name:       opGetHealthCheckLastFailureReason,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/healthcheck/{HealthCheckId}/lastfailurereason",
@@ -565,8 +566,8 @@ func (c *Route53) GetHealthCheckLastFailureReason(input *GetHealthCheckLastFailu
 const opGetHealthCheckStatus = "GetHealthCheckStatus"
 
 // GetHealthCheckStatusRequest generates a request for the GetHealthCheckStatus operation.
-func (c *Route53) GetHealthCheckStatusRequest(input *GetHealthCheckStatusInput) (req *aws.Request, output *GetHealthCheckStatusOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetHealthCheckStatusRequest(input *GetHealthCheckStatusInput) (req *request.Request, output *GetHealthCheckStatusOutput) {
+	op := &request.Operation{
 		Name:       opGetHealthCheckStatus,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/healthcheck/{HealthCheckId}/status",
@@ -594,8 +595,8 @@ func (c *Route53) GetHealthCheckStatus(input *GetHealthCheckStatusInput) (*GetHe
 const opGetHostedZone = "GetHostedZone"
 
 // GetHostedZoneRequest generates a request for the GetHostedZone operation.
-func (c *Route53) GetHostedZoneRequest(input *GetHostedZoneInput) (req *aws.Request, output *GetHostedZoneOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetHostedZoneRequest(input *GetHostedZoneInput) (req *request.Request, output *GetHostedZoneOutput) {
+	op := &request.Operation{
 		Name:       opGetHostedZone,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}",
@@ -624,8 +625,8 @@ func (c *Route53) GetHostedZone(input *GetHostedZoneInput) (*GetHostedZoneOutput
 const opGetHostedZoneCount = "GetHostedZoneCount"
 
 // GetHostedZoneCountRequest generates a request for the GetHostedZoneCount operation.
-func (c *Route53) GetHostedZoneCountRequest(input *GetHostedZoneCountInput) (req *aws.Request, output *GetHostedZoneCountOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetHostedZoneCountRequest(input *GetHostedZoneCountInput) (req *request.Request, output *GetHostedZoneCountOutput) {
+	op := &request.Operation{
 		Name:       opGetHostedZoneCount,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/hostedzonecount",
@@ -652,8 +653,8 @@ func (c *Route53) GetHostedZoneCount(input *GetHostedZoneCountInput) (*GetHosted
 const opGetReusableDelegationSet = "GetReusableDelegationSet"
 
 // GetReusableDelegationSetRequest generates a request for the GetReusableDelegationSet operation.
-func (c *Route53) GetReusableDelegationSetRequest(input *GetReusableDelegationSetInput) (req *aws.Request, output *GetReusableDelegationSetOutput) {
-	op := &aws.Operation{
+func (c *Route53) GetReusableDelegationSetRequest(input *GetReusableDelegationSetInput) (req *request.Request, output *GetReusableDelegationSetOutput) {
+	op := &request.Operation{
 		Name:       opGetReusableDelegationSet,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/delegationset/{Id}",
@@ -680,8 +681,8 @@ func (c *Route53) GetReusableDelegationSet(input *GetReusableDelegationSetInput)
 const opListGeoLocations = "ListGeoLocations"
 
 // ListGeoLocationsRequest generates a request for the ListGeoLocations operation.
-func (c *Route53) ListGeoLocationsRequest(input *ListGeoLocationsInput) (req *aws.Request, output *ListGeoLocationsOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListGeoLocationsRequest(input *ListGeoLocationsInput) (req *request.Request, output *ListGeoLocationsOutput) {
+	op := &request.Operation{
 		Name:       opListGeoLocations,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/geolocations",
@@ -719,12 +720,12 @@ func (c *Route53) ListGeoLocations(input *ListGeoLocationsInput) (*ListGeoLocati
 const opListHealthChecks = "ListHealthChecks"
 
 // ListHealthChecksRequest generates a request for the ListHealthChecks operation.
-func (c *Route53) ListHealthChecksRequest(input *ListHealthChecksInput) (req *aws.Request, output *ListHealthChecksOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListHealthChecksRequest(input *ListHealthChecksInput) (req *request.Request, output *ListHealthChecksOutput) {
+	op := &request.Operation{
 		Name:       opListHealthChecks,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/healthcheck",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"NextMarker"},
 			LimitToken:      "MaxItems",
@@ -767,12 +768,12 @@ func (c *Route53) ListHealthChecksPages(input *ListHealthChecksInput, fn func(p 
 const opListHostedZones = "ListHostedZones"
 
 // ListHostedZonesRequest generates a request for the ListHostedZones operation.
-func (c *Route53) ListHostedZonesRequest(input *ListHostedZonesInput) (req *aws.Request, output *ListHostedZonesOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListHostedZonesRequest(input *ListHostedZonesInput) (req *request.Request, output *ListHostedZonesOutput) {
+	op := &request.Operation{
 		Name:       opListHostedZones,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/hostedzone",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"NextMarker"},
 			LimitToken:      "MaxItems",
@@ -815,8 +816,8 @@ func (c *Route53) ListHostedZonesPages(input *ListHostedZonesInput, fn func(p *L
 const opListHostedZonesByName = "ListHostedZonesByName"
 
 // ListHostedZonesByNameRequest generates a request for the ListHostedZonesByName operation.
-func (c *Route53) ListHostedZonesByNameRequest(input *ListHostedZonesByNameInput) (req *aws.Request, output *ListHostedZonesByNameOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListHostedZonesByNameRequest(input *ListHostedZonesByNameInput) (req *request.Request, output *ListHostedZonesByNameOutput) {
+	op := &request.Operation{
 		Name:       opListHostedZonesByName,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/hostedzonesbyname",
@@ -852,12 +853,12 @@ func (c *Route53) ListHostedZonesByName(input *ListHostedZonesByNameInput) (*Lis
 const opListResourceRecordSets = "ListResourceRecordSets"
 
 // ListResourceRecordSetsRequest generates a request for the ListResourceRecordSets operation.
-func (c *Route53) ListResourceRecordSetsRequest(input *ListResourceRecordSetsInput) (req *aws.Request, output *ListResourceRecordSetsOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListResourceRecordSetsRequest(input *ListResourceRecordSetsInput) (req *request.Request, output *ListResourceRecordSetsOutput) {
+	op := &request.Operation{
 		Name:       opListResourceRecordSets,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}/rrset",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"StartRecordName", "StartRecordType", "StartRecordIdentifier"},
 			OutputTokens:    []string{"NextRecordName", "NextRecordType", "NextRecordIdentifier"},
 			LimitToken:      "MaxItems",
@@ -929,8 +930,8 @@ func (c *Route53) ListResourceRecordSetsPages(input *ListResourceRecordSetsInput
 const opListReusableDelegationSets = "ListReusableDelegationSets"
 
 // ListReusableDelegationSetsRequest generates a request for the ListReusableDelegationSets operation.
-func (c *Route53) ListReusableDelegationSetsRequest(input *ListReusableDelegationSetsInput) (req *aws.Request, output *ListReusableDelegationSetsOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListReusableDelegationSetsRequest(input *ListReusableDelegationSetsInput) (req *request.Request, output *ListReusableDelegationSetsOutput) {
+	op := &request.Operation{
 		Name:       opListReusableDelegationSets,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/delegationset",
@@ -965,8 +966,8 @@ func (c *Route53) ListReusableDelegationSets(input *ListReusableDelegationSetsIn
 const opListTagsForResource = "ListTagsForResource"
 
 // ListTagsForResourceRequest generates a request for the ListTagsForResource operation.
-func (c *Route53) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *aws.Request, output *ListTagsForResourceOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
 		Name:       opListTagsForResource,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2013-04-01/tags/{ResourceType}/{ResourceId}",
@@ -991,8 +992,8 @@ func (c *Route53) ListTagsForResource(input *ListTagsForResourceInput) (*ListTag
 const opListTagsForResources = "ListTagsForResources"
 
 // ListTagsForResourcesRequest generates a request for the ListTagsForResources operation.
-func (c *Route53) ListTagsForResourcesRequest(input *ListTagsForResourcesInput) (req *aws.Request, output *ListTagsForResourcesOutput) {
-	op := &aws.Operation{
+func (c *Route53) ListTagsForResourcesRequest(input *ListTagsForResourcesInput) (req *request.Request, output *ListTagsForResourcesOutput) {
+	op := &request.Operation{
 		Name:       opListTagsForResources,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/tags/{ResourceType}",
@@ -1017,8 +1018,8 @@ func (c *Route53) ListTagsForResources(input *ListTagsForResourcesInput) (*ListT
 const opUpdateHealthCheck = "UpdateHealthCheck"
 
 // UpdateHealthCheckRequest generates a request for the UpdateHealthCheck operation.
-func (c *Route53) UpdateHealthCheckRequest(input *UpdateHealthCheckInput) (req *aws.Request, output *UpdateHealthCheckOutput) {
-	op := &aws.Operation{
+func (c *Route53) UpdateHealthCheckRequest(input *UpdateHealthCheckInput) (req *request.Request, output *UpdateHealthCheckOutput) {
+	op := &request.Operation{
 		Name:       opUpdateHealthCheck,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/healthcheck/{HealthCheckId}",
@@ -1049,8 +1050,8 @@ func (c *Route53) UpdateHealthCheck(input *UpdateHealthCheckInput) (*UpdateHealt
 const opUpdateHostedZoneComment = "UpdateHostedZoneComment"
 
 // UpdateHostedZoneCommentRequest generates a request for the UpdateHostedZoneComment operation.
-func (c *Route53) UpdateHostedZoneCommentRequest(input *UpdateHostedZoneCommentInput) (req *aws.Request, output *UpdateHostedZoneCommentOutput) {
-	op := &aws.Operation{
+func (c *Route53) UpdateHostedZoneCommentRequest(input *UpdateHostedZoneCommentInput) (req *request.Request, output *UpdateHostedZoneCommentOutput) {
+	op := &request.Operation{
 		Name:       opUpdateHostedZoneComment,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2013-04-01/hostedzone/{Id}",
@@ -1115,13 +1116,23 @@ type AliasTarget struct {
 	// in the Amazon Route 53 Developer Guide
 	//
 	// .
-	HostedZoneID *string `locationName:"HostedZoneId" type:"string" required:"true"`
+	HostedZoneId *string `type:"string" required:"true"`
 
 	metadataAliasTarget `json:"-" xml:"-"`
 }
 
 type metadataAliasTarget struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AliasTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AliasTarget) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the request to associate a
@@ -1134,7 +1145,7 @@ type AssociateVPCWithHostedZoneInput struct {
 	//
 	// Note that you cannot associate a VPC with a hosted zone that doesn't have
 	// an existing VPC association.
-	HostedZoneID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	HostedZoneId *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The VPC that you want your hosted zone to be associated with.
 	VPC *VPC `type:"structure" required:"true"`
@@ -1144,6 +1155,16 @@ type AssociateVPCWithHostedZoneInput struct {
 
 type metadataAssociateVPCWithHostedZoneInput struct {
 	SDKShapeTraits bool `locationName:"AssociateVPCWithHostedZoneRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s AssociateVPCWithHostedZoneInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateVPCWithHostedZoneInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing the response information for the request.
@@ -1159,13 +1180,23 @@ type metadataAssociateVPCWithHostedZoneOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AssociateVPCWithHostedZoneOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateVPCWithHostedZoneOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains the information for each change in a change
 // batch request.
 type Change struct {
 	// The action to perform.
 	//
 	// Valid values: CREATE | DELETE | UPSERT
-	Action *string `type:"string" required:"true"`
+	Action *string `type:"string" required:"true" enum:"ChangeAction"`
 
 	// Information about the resource record set to create or delete.
 	ResourceRecordSet *ResourceRecordSet `type:"structure" required:"true"`
@@ -1177,12 +1208,22 @@ type metadataChange struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Change) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Change) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains an optional comment and the changes that you
 // want to make with a change batch request.
 type ChangeBatch struct {
 	// A complex type that contains one Change element for each resource record
 	// set that you want to create or delete.
-	Changes []*Change `locationNameList:"Change" type:"list" required:"true"`
+	Changes []*Change `locationNameList:"Change" min:"1" type:"list" required:"true"`
 
 	// Optional: Any comments you want to include about a change batch request.
 	Comment *string `type:"string"`
@@ -1192,6 +1233,16 @@ type ChangeBatch struct {
 
 type metadataChangeBatch struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ChangeBatch) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChangeBatch) GoString() string {
+	return s.String()
 }
 
 // A complex type that describes change information about changes made to your
@@ -1209,13 +1260,13 @@ type ChangeInfo struct {
 
 	// The ID of the request. Use this ID to track when the change has completed
 	// across all Amazon Route 53 DNS servers.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The current state of the request. PENDING indicates that this request has
 	// not yet been applied to all Amazon Route 53 DNS servers.
 	//
 	// Valid Values: PENDING | INSYNC
-	Status *string `type:"string" required:"true"`
+	Status *string `type:"string" required:"true" enum:"ChangeStatus"`
 
 	// The date and time the change was submitted, in the format YYYY-MM-DDThh:mm:ssZ,
 	// as specified in the ISO 8601 standard (for example, 2009-11-19T19:37:58Z).
@@ -1230,6 +1281,16 @@ type metadataChangeInfo struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ChangeInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChangeInfo) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains a change batch.
 type ChangeResourceRecordSetsInput struct {
 	// A complex type that contains an optional comment and the Changes element.
@@ -1237,13 +1298,23 @@ type ChangeResourceRecordSetsInput struct {
 
 	// The ID of the hosted zone that contains the resource record sets that you
 	// want to change.
-	HostedZoneID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	HostedZoneId *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataChangeResourceRecordSetsInput `json:"-" xml:"-"`
 }
 
 type metadataChangeResourceRecordSetsInput struct {
 	SDKShapeTraits bool `locationName:"ChangeResourceRecordSetsRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s ChangeResourceRecordSetsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChangeResourceRecordSetsInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing the response for the request.
@@ -1262,31 +1333,51 @@ type metadataChangeResourceRecordSetsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ChangeResourceRecordSetsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChangeResourceRecordSetsOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type containing information about a request to add, change, or
 // delete the tags that are associated with a resource.
 type ChangeTagsForResourceInput struct {
 	// A complex type that contains a list of Tag elements. Each Tag element identifies
 	// a tag that you want to add or update for the specified resource.
-	AddTags []*Tag `locationNameList:"Tag" type:"list"`
+	AddTags []*Tag `locationNameList:"Tag" min:"1" type:"list"`
 
 	// A list of Tag keys that you want to remove from the specified resource.
-	RemoveTagKeys []*string `locationNameList:"Key" type:"list"`
+	RemoveTagKeys []*string `locationNameList:"Key" min:"1" type:"list"`
 
 	// The ID of the resource for which you want to add, change, or delete tags.
-	ResourceID *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
+	ResourceId *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
 
 	// The type of the resource.
 	//
 	// - The resource type for health checks is healthcheck.
 	//
 	// - The resource type for hosted zones is hostedzone.
-	ResourceType *string `location:"uri" locationName:"ResourceType" type:"string" required:"true"`
+	ResourceType *string `location:"uri" locationName:"ResourceType" type:"string" required:"true" enum:"TagResourceType"`
 
 	metadataChangeTagsForResourceInput `json:"-" xml:"-"`
 }
 
 type metadataChangeTagsForResourceInput struct {
 	SDKShapeTraits bool `locationName:"ChangeTagsForResourceRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s ChangeTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChangeTagsForResourceInput) GoString() string {
+	return s.String()
 }
 
 // Empty response for the request.
@@ -1296,6 +1387,16 @@ type ChangeTagsForResourceOutput struct {
 
 type metadataChangeTagsForResourceOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ChangeTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ChangeTagsForResourceOutput) GoString() string {
+	return s.String()
 }
 
 // >A complex type that contains information about the request to create a health
@@ -1309,7 +1410,7 @@ type CreateHealthCheckInput struct {
 	//
 	// Valid characters are any Unicode code points that are legal in an XML 1.0
 	// document. The UTF-8 encoding of the value must be less than 128 bytes.
-	CallerReference *string `type:"string" required:"true"`
+	CallerReference *string `min:"1" type:"string" required:"true"`
 
 	// A complex type that contains health check configuration.
 	HealthCheckConfig *HealthCheckConfig `type:"structure" required:"true"`
@@ -1319,6 +1420,16 @@ type CreateHealthCheckInput struct {
 
 type metadataCreateHealthCheckInput struct {
 	SDKShapeTraits bool `locationName:"CreateHealthCheckRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s CreateHealthCheckInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateHealthCheckInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing the response information for the new health check.
@@ -1336,6 +1447,16 @@ type metadataCreateHealthCheckOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateHealthCheckOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateHealthCheckOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the request to create a hosted
 // zone.
 type CreateHostedZoneInput struct {
@@ -1347,11 +1468,11 @@ type CreateHostedZoneInput struct {
 	//
 	// Valid characters are any Unicode code points that are legal in an XML 1.0
 	// document. The UTF-8 encoding of the value must be less than 128 bytes.
-	CallerReference *string `type:"string" required:"true"`
+	CallerReference *string `min:"1" type:"string" required:"true"`
 
 	// The delegation set id of the reusable delgation set whose NS records you
 	// want to assign to the new hosted zone.
-	DelegationSetID *string `locationName:"DelegationSetId" type:"string"`
+	DelegationSetId *string `type:"string"`
 
 	// A complex type that contains an optional comment about your hosted zone.
 	HostedZoneConfig *HostedZoneConfig `type:"structure"`
@@ -1376,6 +1497,16 @@ type CreateHostedZoneInput struct {
 
 type metadataCreateHostedZoneInput struct {
 	SDKShapeTraits bool `locationName:"CreateHostedZoneRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s CreateHostedZoneInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateHostedZoneInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing the response information for the new hosted zone.
@@ -1403,6 +1534,16 @@ type metadataCreateHostedZoneOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateHostedZoneOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateHostedZoneOutput) GoString() string {
+	return s.String()
+}
+
 type CreateReusableDelegationSetInput struct {
 	// A unique string that identifies the request and that allows failed CreateReusableDelegationSet
 	// requests to be retried without the risk of executing the operation twice.
@@ -1412,17 +1553,27 @@ type CreateReusableDelegationSetInput struct {
 	//
 	// Valid characters are any Unicode code points that are legal in an XML 1.0
 	// document. The UTF-8 encoding of the value must be less than 128 bytes.
-	CallerReference *string `type:"string" required:"true"`
+	CallerReference *string `min:"1" type:"string" required:"true"`
 
 	// The ID of the hosted zone whose delegation set you want to mark as reusable.
 	// It is an optional parameter.
-	HostedZoneID *string `locationName:"HostedZoneId" type:"string"`
+	HostedZoneId *string `type:"string"`
 
 	metadataCreateReusableDelegationSetInput `json:"-" xml:"-"`
 }
 
 type metadataCreateReusableDelegationSetInput struct {
 	SDKShapeTraits bool `locationName:"CreateReusableDelegationSetRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s CreateReusableDelegationSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateReusableDelegationSetInput) GoString() string {
+	return s.String()
 }
 
 type CreateReusableDelegationSetOutput struct {
@@ -1439,16 +1590,26 @@ type metadataCreateReusableDelegationSetOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateReusableDelegationSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateReusableDelegationSetOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains name server information.
 type DelegationSet struct {
-	CallerReference *string `type:"string"`
+	CallerReference *string `min:"1" type:"string"`
 
-	ID *string `locationName:"Id" type:"string"`
+	Id *string `type:"string"`
 
 	// A complex type that contains the authoritative name servers for the hosted
 	// zone. Use the method provided by your domain registrar to add an NS record
 	// to your domain for each NameServer that is assigned to your hosted zone.
-	NameServers []*string `locationNameList:"NameServer" type:"list" required:"true"`
+	NameServers []*string `locationNameList:"NameServer" min:"1" type:"list" required:"true"`
 
 	metadataDelegationSet `json:"-" xml:"-"`
 }
@@ -1457,16 +1618,36 @@ type metadataDelegationSet struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DelegationSet) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DelegationSet) GoString() string {
+	return s.String()
+}
+
 // A complex type containing the request information for delete health check.
 type DeleteHealthCheckInput struct {
 	// The ID of the health check to delete.
-	HealthCheckID *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
+	HealthCheckId *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
 
 	metadataDeleteHealthCheckInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteHealthCheckInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteHealthCheckInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteHealthCheckInput) GoString() string {
+	return s.String()
 }
 
 // Empty response for the request.
@@ -1478,17 +1659,37 @@ type metadataDeleteHealthCheckOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteHealthCheckOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteHealthCheckOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the hosted zone that you want
 // to delete.
 type DeleteHostedZoneInput struct {
 	// The ID of the hosted zone you want to delete.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataDeleteHostedZoneInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteHostedZoneInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteHostedZoneInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteHostedZoneInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing the response information for the request.
@@ -1504,16 +1705,36 @@ type metadataDeleteHostedZoneOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteHostedZoneOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteHostedZoneOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type containing the information for the delete request.
 type DeleteReusableDelegationSetInput struct {
 	// The ID of the reusable delegation set you want to delete.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataDeleteReusableDelegationSetInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteReusableDelegationSetInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteReusableDelegationSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteReusableDelegationSetInput) GoString() string {
+	return s.String()
 }
 
 // Empty response for the request.
@@ -1525,6 +1746,16 @@ type metadataDeleteReusableDelegationSetOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteReusableDelegationSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteReusableDelegationSetOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the request to disassociate
 // a VPC from an hosted zone.
 type DisassociateVPCFromHostedZoneInput struct {
@@ -1534,7 +1765,7 @@ type DisassociateVPCFromHostedZoneInput struct {
 	// The ID of the hosted zone you want to disassociate your VPC from.
 	//
 	// Note that you cannot disassociate the last VPC from a hosted zone.
-	HostedZoneID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	HostedZoneId *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The VPC that you want your hosted zone to be disassociated from.
 	VPC *VPC `type:"structure" required:"true"`
@@ -1544,6 +1775,16 @@ type DisassociateVPCFromHostedZoneInput struct {
 
 type metadataDisassociateVPCFromHostedZoneInput struct {
 	SDKShapeTraits bool `locationName:"DisassociateVPCFromHostedZoneRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s DisassociateVPCFromHostedZoneInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateVPCFromHostedZoneInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing the response information for the request.
@@ -1559,6 +1800,16 @@ type metadataDisassociateVPCFromHostedZoneOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DisassociateVPCFromHostedZoneOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateVPCFromHostedZoneOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about a geo location.
 type GeoLocation struct {
 	// The code for a continent geo location. Note: only continent locations have
@@ -1568,21 +1819,21 @@ type GeoLocation struct {
 	//
 	// Constraint: Specifying ContinentCode with either CountryCode or SubdivisionCode
 	// returns an InvalidInput error.
-	ContinentCode *string `type:"string"`
+	ContinentCode *string `min:"2" type:"string"`
 
 	// The code for a country geo location. The default location uses '*' for the
 	// country code and will match all locations that are not matched by a geo location.
 	//
 	// The default geo location uses a * for the country code. All other country
 	// codes follow the ISO 3166 two-character code.
-	CountryCode *string `type:"string"`
+	CountryCode *string `min:"1" type:"string"`
 
 	// The code for a country's subdivision (e.g., a province of Canada). A subdivision
 	// code is only valid with the appropriate country code.
 	//
 	// Constraint: Specifying SubdivisionCode without CountryCode returns an InvalidInput
 	// error.
-	SubdivisionCode *string `type:"string"`
+	SubdivisionCode *string `min:"1" type:"string"`
 
 	metadataGeoLocation `json:"-" xml:"-"`
 }
@@ -1591,34 +1842,44 @@ type metadataGeoLocation struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GeoLocation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GeoLocation) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about a GeoLocation.
 type GeoLocationDetails struct {
 	// The code for a continent geo location. Note: only continent locations have
 	// a continent code.
-	ContinentCode *string `type:"string"`
+	ContinentCode *string `min:"2" type:"string"`
 
 	// The name of the continent. This element is only present if ContinentCode
 	// is also present.
-	ContinentName *string `type:"string"`
+	ContinentName *string `min:"1" type:"string"`
 
 	// The code for a country geo location. The default location uses '*' for the
 	// country code and will match all locations that are not matched by a geo location.
 	//
 	// The default geo location uses a * for the country code. All other country
 	// codes follow the ISO 3166 two-character code.
-	CountryCode *string `type:"string"`
+	CountryCode *string `min:"1" type:"string"`
 
 	// The name of the country. This element is only present if CountryCode is also
 	// present.
-	CountryName *string `type:"string"`
+	CountryName *string `min:"1" type:"string"`
 
 	// The code for a country's subdivision (e.g., a province of Canada). A subdivision
 	// code is only valid with the appropriate country code.
-	SubdivisionCode *string `type:"string"`
+	SubdivisionCode *string `min:"1" type:"string"`
 
 	// The name of the subdivision. This element is only present if SubdivisionCode
 	// is also present.
-	SubdivisionName *string `type:"string"`
+	SubdivisionName *string `min:"1" type:"string"`
 
 	metadataGeoLocationDetails `json:"-" xml:"-"`
 }
@@ -1627,18 +1888,38 @@ type metadataGeoLocationDetails struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GeoLocationDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GeoLocationDetails) GoString() string {
+	return s.String()
+}
+
 // The input for a GetChange request.
 type GetChangeInput struct {
 	// The ID of the change batch request. The value that you specify here is the
 	// value that ChangeResourceRecordSets returned in the Id element when you submitted
 	// the request.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetChangeInput `json:"-" xml:"-"`
 }
 
 type metadataGetChangeInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetChangeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetChangeInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the ChangeInfo element.
@@ -1655,26 +1936,56 @@ type metadataGetChangeOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-// Empty request.
-type GetCheckerIPRangesInput struct {
-	metadataGetCheckerIPRangesInput `json:"-" xml:"-"`
+// String returns the string representation
+func (s GetChangeOutput) String() string {
+	return awsutil.Prettify(s)
 }
 
-type metadataGetCheckerIPRangesInput struct {
+// GoString returns the string representation
+func (s GetChangeOutput) GoString() string {
+	return s.String()
+}
+
+// Empty request.
+type GetCheckerIpRangesInput struct {
+	metadataGetCheckerIpRangesInput `json:"-" xml:"-"`
+}
+
+type metadataGetCheckerIpRangesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetCheckerIpRangesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCheckerIpRangesInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the CheckerIpRanges element.
-type GetCheckerIPRangesOutput struct {
+type GetCheckerIpRangesOutput struct {
 	// A complex type that contains sorted list of IP ranges in CIDR format for
 	// Amazon Route 53 health checkers.
-	CheckerIPRanges []*string `locationName:"CheckerIpRanges" type:"list" required:"true"`
+	CheckerIpRanges []*string `type:"list" required:"true"`
 
-	metadataGetCheckerIPRangesOutput `json:"-" xml:"-"`
+	metadataGetCheckerIpRangesOutput `json:"-" xml:"-"`
 }
 
-type metadataGetCheckerIPRangesOutput struct {
+type metadataGetCheckerIpRangesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetCheckerIpRangesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCheckerIpRangesOutput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the request to get a geo location.
@@ -1686,27 +1997,37 @@ type GetGeoLocationInput struct {
 	//
 	// Constraint: Specifying ContinentCode with either CountryCode or SubdivisionCode
 	// returns an InvalidInput error.
-	ContinentCode *string `location:"querystring" locationName:"continentcode" type:"string"`
+	ContinentCode *string `location:"querystring" locationName:"continentcode" min:"2" type:"string"`
 
 	// The code for a country geo location. The default location uses '*' for the
 	// country code and will match all locations that are not matched by a geo location.
 	//
 	// The default geo location uses a * for the country code. All other country
 	// codes follow the ISO 3166 two-character code.
-	CountryCode *string `location:"querystring" locationName:"countrycode" type:"string"`
+	CountryCode *string `location:"querystring" locationName:"countrycode" min:"1" type:"string"`
 
 	// The code for a country's subdivision (e.g., a province of Canada). A subdivision
 	// code is only valid with the appropriate country code.
 	//
 	// Constraint: Specifying SubdivisionCode without CountryCode returns an InvalidInput
 	// error.
-	SubdivisionCode *string `location:"querystring" locationName:"subdivisioncode" type:"string"`
+	SubdivisionCode *string `location:"querystring" locationName:"subdivisioncode" min:"1" type:"string"`
 
 	metadataGetGeoLocationInput `json:"-" xml:"-"`
 }
 
 type metadataGetGeoLocationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetGeoLocationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetGeoLocationInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing information about the specified geo location.
@@ -1721,6 +2042,16 @@ type metadataGetGeoLocationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetGeoLocationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetGeoLocationOutput) GoString() string {
+	return s.String()
+}
+
 // To retrieve a count of all your health checks, send a GET request to the
 // 2013-04-01/healthcheckcount resource.
 type GetHealthCheckCountInput struct {
@@ -1729,6 +2060,16 @@ type GetHealthCheckCountInput struct {
 
 type metadataGetHealthCheckCountInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetHealthCheckCountInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckCountInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the count of health checks associated with the
@@ -1744,11 +2085,21 @@ type metadataGetHealthCheckCountOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHealthCheckCountOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckCountOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the request to get a health
 // check.
 type GetHealthCheckInput struct {
 	// The ID of the health check to retrieve.
-	HealthCheckID *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
+	HealthCheckId *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
 
 	metadataGetHealthCheckInput `json:"-" xml:"-"`
 }
@@ -1757,18 +2108,38 @@ type metadataGetHealthCheckInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHealthCheckInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckInput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the request to get the most
 // recent failure reason for a health check.
 type GetHealthCheckLastFailureReasonInput struct {
 	// The ID of the health check for which you want to retrieve the reason for
 	// the most recent failure.
-	HealthCheckID *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
+	HealthCheckId *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
 
 	metadataGetHealthCheckLastFailureReasonInput `json:"-" xml:"-"`
 }
 
 type metadataGetHealthCheckLastFailureReasonInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetHealthCheckLastFailureReasonInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckLastFailureReasonInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the most recent failure for
@@ -1785,6 +2156,16 @@ type metadataGetHealthCheckLastFailureReasonOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHealthCheckLastFailureReasonOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckLastFailureReasonOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type containing information about the specified health check.
 type GetHealthCheckOutput struct {
 	// A complex type that contains the information about the specified health check.
@@ -1797,18 +2178,38 @@ type metadataGetHealthCheckOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHealthCheckOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the request to get health
 // check status for a health check.
 type GetHealthCheckStatusInput struct {
 	// The ID of the health check for which you want to retrieve the most recent
 	// status.
-	HealthCheckID *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
+	HealthCheckId *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
 
 	metadataGetHealthCheckStatusInput `json:"-" xml:"-"`
 }
 
 type metadataGetHealthCheckStatusInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetHealthCheckStatusInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckStatusInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the status of the specified
@@ -1825,6 +2226,16 @@ type metadataGetHealthCheckStatusOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHealthCheckStatusOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHealthCheckStatusOutput) GoString() string {
+	return s.String()
+}
+
 // To retrieve a count of all your hosted zones, send a GET request to the 2013-04-01/hostedzonecount
 // resource.
 type GetHostedZoneCountInput struct {
@@ -1833,6 +2244,16 @@ type GetHostedZoneCountInput struct {
 
 type metadataGetHostedZoneCountInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetHostedZoneCountInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHostedZoneCountInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the count of hosted zones associated with the
@@ -1848,17 +2269,37 @@ type metadataGetHostedZoneCountOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHostedZoneCountOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHostedZoneCountOutput) GoString() string {
+	return s.String()
+}
+
 // The input for a GetHostedZone request.
 type GetHostedZoneInput struct {
 	// The ID of the hosted zone for which you want to get a list of the name servers
 	// in the delegation set.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetHostedZoneInput `json:"-" xml:"-"`
 }
 
 type metadataGetHostedZoneInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetHostedZoneInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHostedZoneInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing information about the specified hosted zone.
@@ -1872,7 +2313,7 @@ type GetHostedZoneOutput struct {
 
 	// A complex type that contains information about VPCs associated with the specified
 	// hosted zone.
-	VPCs []*VPC `locationNameList:"VPC" type:"list"`
+	VPCs []*VPC `locationNameList:"VPC" min:"1" type:"list"`
 
 	metadataGetHostedZoneOutput `json:"-" xml:"-"`
 }
@@ -1881,17 +2322,37 @@ type metadataGetHostedZoneOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetHostedZoneOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetHostedZoneOutput) GoString() string {
+	return s.String()
+}
+
 // The input for a GetReusableDelegationSet request.
 type GetReusableDelegationSetInput struct {
 	// The ID of the reusable delegation set for which you want to get a list of
 	// the name server.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetReusableDelegationSetInput `json:"-" xml:"-"`
 }
 
 type metadataGetReusableDelegationSetInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetReusableDelegationSetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetReusableDelegationSetInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing information about the specified reusable delegation
@@ -1908,10 +2369,20 @@ type metadataGetReusableDelegationSetOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetReusableDelegationSetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetReusableDelegationSetOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains identifying information about the health check.
 type HealthCheck struct {
 	// A unique string that identifies the request to create the health check.
-	CallerReference *string `type:"string" required:"true"`
+	CallerReference *string `min:"1" type:"string" required:"true"`
 
 	// A complex type that contains the health check configuration.
 	HealthCheckConfig *HealthCheckConfig `type:"structure" required:"true"`
@@ -1919,10 +2390,10 @@ type HealthCheck struct {
 	// The version of the health check. You can optionally pass this value in a
 	// call to UpdateHealthCheck to prevent overwriting another change to the health
 	// check.
-	HealthCheckVersion *int64 `type:"long" required:"true"`
+	HealthCheckVersion *int64 `min:"1" type:"long" required:"true"`
 
 	// The ID of the specified health check.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	metadataHealthCheck `json:"-" xml:"-"`
 }
@@ -1931,8 +2402,22 @@ type metadataHealthCheck struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s HealthCheck) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HealthCheck) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains the health check configuration.
 type HealthCheckConfig struct {
+	// For a specified parent health check, a list of HealthCheckId values for the
+	// associated child health checks.
+	ChildHealthChecks []*string `locationNameList:"ChildHealthCheck" type:"list"`
+
 	// The number of consecutive health checks that an endpoint must pass or fail
 	// for Route 53 to change the current status of the endpoint from unhealthy
 	// to healthy or vice versa.
@@ -1940,25 +2425,40 @@ type HealthCheckConfig struct {
 	// Valid values are integers between 1 and 10. For more information, see "How
 	// Amazon Route 53 Determines Whether an Endpoint Is Healthy" in the Amazon
 	// Route 53 Developer Guide.
-	FailureThreshold *int64 `type:"integer"`
+	FailureThreshold *int64 `min:"1" type:"integer"`
 
 	// Fully qualified domain name of the instance to be health checked.
 	FullyQualifiedDomainName *string `type:"string"`
 
+	// The minimum number of child health checks that must be healthy for Route
+	// 53 to consider the parent health check to be healthy. Valid values are integers
+	// between 0 and 256, inclusive.
+	HealthThreshold *int64 `type:"integer"`
+
 	// IP Address of the instance being checked.
 	IPAddress *string `type:"string"`
+
+	// A boolean value that indicates whether the status of health check should
+	// be inverted. For example, if a health check is healthy but Inverted is True,
+	// then Route 53 considers the health check to be unhealthy.
+	Inverted *bool `type:"boolean"`
+
+	// A Boolean value that indicates whether you want Route 53 to measure the latency
+	// between health checkers in multiple AWS regions and your endpoint and to
+	// display CloudWatch latency graphs in the Route 53 console.
+	MeasureLatency *bool `type:"boolean"`
 
 	// Port on which connection will be opened to the instance to health check.
 	// For HTTP and HTTP_STR_MATCH this defaults to 80 if the port is not specified.
 	// For HTTPS and HTTPS_STR_MATCH this defaults to 443 if the port is not specified.
-	Port *int64 `type:"integer"`
+	Port *int64 `min:"1" type:"integer"`
 
 	// The number of seconds between the time that Route 53 gets a response from
 	// your endpoint and the time that it sends the next health-check request.
 	//
 	// Each Route 53 health checker makes requests at this interval. Valid values
 	// are 10 and 30. The default value is 30.
-	RequestInterval *int64 `type:"integer"`
+	RequestInterval *int64 `min:"10" type:"integer"`
 
 	// Path to ping on the instance to check the health. Required for HTTP, HTTPS,
 	// HTTP_STR_MATCH, and HTTPS_STR_MATCH health checks, HTTP request is issued
@@ -1971,13 +2471,23 @@ type HealthCheckConfig struct {
 
 	// The type of health check to be performed. Currently supported types are TCP,
 	// HTTP, HTTPS, HTTP_STR_MATCH, and HTTPS_STR_MATCH.
-	Type *string `type:"string" required:"true"`
+	Type *string `type:"string" required:"true" enum:"HealthCheckType"`
 
 	metadataHealthCheckConfig `json:"-" xml:"-"`
 }
 
 type metadataHealthCheckConfig struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s HealthCheckConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HealthCheckConfig) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the IP address of a Route 53 health checker
@@ -1997,16 +2507,26 @@ type metadataHealthCheckObservation struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s HealthCheckObservation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HealthCheckObservation) GoString() string {
+	return s.String()
+}
+
 // A complex type that contain information about the specified hosted zone.
 type HostedZone struct {
 	// A unique string that identifies the request to create the hosted zone.
-	CallerReference *string `type:"string" required:"true"`
+	CallerReference *string `min:"1" type:"string" required:"true"`
 
 	// A complex type that contains the Comment element.
 	Config *HostedZoneConfig `type:"structure"`
 
 	// The ID of the specified hosted zone.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The name of the domain. This must be a fully-specified domain, for example,
 	// www.example.com. The trailing dot is optional; Route 53 assumes that the
@@ -2026,6 +2546,16 @@ type HostedZone struct {
 
 type metadataHostedZone struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s HostedZone) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HostedZone) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains an optional comment about your hosted zone.
@@ -2048,6 +2578,16 @@ type metadataHostedZoneConfig struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s HostedZoneConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HostedZoneConfig) GoString() string {
+	return s.String()
+}
+
 // The input for a ListGeoLocations request.
 type ListGeoLocationsInput struct {
 	// The maximum number of geo locations you want in the response body.
@@ -2061,27 +2601,37 @@ type ListGeoLocationsInput struct {
 	//
 	// Constraint: Specifying ContinentCode with either CountryCode or SubdivisionCode
 	// returns an InvalidInput error.
-	StartContinentCode *string `location:"querystring" locationName:"startcontinentcode" type:"string"`
+	StartContinentCode *string `location:"querystring" locationName:"startcontinentcode" min:"2" type:"string"`
 
 	// The first country code in the lexicographic ordering of geo locations that
 	// you want the ListGeoLocations request to list.
 	//
 	// The default geo location uses a * for the country code. All other country
 	// codes follow the ISO 3166 two-character code.
-	StartCountryCode *string `location:"querystring" locationName:"startcountrycode" type:"string"`
+	StartCountryCode *string `location:"querystring" locationName:"startcountrycode" min:"1" type:"string"`
 
 	// The first subdivision code in the lexicographic ordering of geo locations
 	// that you want the ListGeoLocations request to list.
 	//
 	// Constraint: Specifying SubdivisionCode without CountryCode returns an InvalidInput
 	// error.
-	StartSubdivisionCode *string `location:"querystring" locationName:"startsubdivisioncode" type:"string"`
+	StartSubdivisionCode *string `location:"querystring" locationName:"startsubdivisioncode" min:"1" type:"string"`
 
 	metadataListGeoLocationsInput `json:"-" xml:"-"`
 }
 
 type metadataListGeoLocationsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListGeoLocationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGeoLocationsInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the geo locations that are
@@ -2107,23 +2657,33 @@ type ListGeoLocationsOutput struct {
 	// If the results were truncated, the continent code of the next geo location
 	// in the list. This element is present only if ListGeoLocationsResponse$IsTruncated
 	// is true and the next geo location to list is a continent location.
-	NextContinentCode *string `type:"string"`
+	NextContinentCode *string `min:"2" type:"string"`
 
 	// If the results were truncated, the country code of the next geo location
 	// in the list. This element is present only if ListGeoLocationsResponse$IsTruncated
 	// is true and the next geo location to list is not a continent location.
-	NextCountryCode *string `type:"string"`
+	NextCountryCode *string `min:"1" type:"string"`
 
 	// If the results were truncated, the subdivision code of the next geo location
 	// in the list. This element is present only if ListGeoLocationsResponse$IsTruncated
 	// is true and the next geo location has a subdivision.
-	NextSubdivisionCode *string `type:"string"`
+	NextSubdivisionCode *string `min:"1" type:"string"`
 
 	metadataListGeoLocationsOutput `json:"-" xml:"-"`
 }
 
 type metadataListGeoLocationsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListGeoLocationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGeoLocationsOutput) GoString() string {
+	return s.String()
 }
 
 // To retrieve a list of your health checks, send a GET request to the 2013-04-01/healthcheck
@@ -2149,6 +2709,16 @@ type ListHealthChecksInput struct {
 
 type metadataListHealthChecksInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListHealthChecksInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListHealthChecksInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the response for the request.
@@ -2188,6 +2758,16 @@ type metadataListHealthChecksOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListHealthChecksOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListHealthChecksOutput) GoString() string {
+	return s.String()
+}
+
 // To retrieve a list of your hosted zones in lexicographic order, send a GET
 // request to the 2013-04-01/hostedzonesbyname resource. The response to this
 // request includes a HostedZones element with zero or more HostedZone child
@@ -2212,7 +2792,7 @@ type ListHostedZonesByNameInput struct {
 	// If the request returned more than one page of results, submit another request
 	// and specify the value of NextDNSName and NextHostedZoneId from the last response
 	// in the DNSName and HostedZoneId parameters to get the next page of results.
-	HostedZoneID *string `location:"querystring" locationName:"hostedzoneid" type:"string"`
+	HostedZoneId *string `location:"querystring" locationName:"hostedzoneid" type:"string"`
 
 	// Specify the maximum number of hosted zones to return per page of results.
 	MaxItems *string `location:"querystring" locationName:"maxitems" type:"string"`
@@ -2224,13 +2804,23 @@ type metadataListHostedZonesByNameInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListHostedZonesByNameInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListHostedZonesByNameInput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains the response for the request.
 type ListHostedZonesByNameOutput struct {
 	// The DNSName value sent in the request.
 	DNSName *string `type:"string"`
 
 	// The HostedZoneId value sent in the request.
-	HostedZoneID *string `locationName:"HostedZoneId" type:"string"`
+	HostedZoneId *string `type:"string"`
 
 	// A complex type that contains information about the hosted zones associated
 	// with the current AWS account.
@@ -2263,13 +2853,23 @@ type ListHostedZonesByNameOutput struct {
 	// make another request to ListHostedZonesByName. Specify the value of ListHostedZonesByNameResponse$NextDNSName
 	// in the ListHostedZonesByNameRequest$DNSName element and ListHostedZonesByNameResponse$NextHostedZoneId
 	// in the ListHostedZonesByNameRequest$HostedZoneId element.
-	NextHostedZoneID *string `locationName:"NextHostedZoneId" type:"string"`
+	NextHostedZoneId *string `type:"string"`
 
 	metadataListHostedZonesByNameOutput `json:"-" xml:"-"`
 }
 
 type metadataListHostedZonesByNameOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListHostedZonesByNameOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListHostedZonesByNameOutput) GoString() string {
+	return s.String()
 }
 
 // To retrieve a list of your hosted zones, send a GET request to the 2013-04-01/hostedzone
@@ -2285,7 +2885,7 @@ type metadataListHostedZonesByNameOutput struct {
 //  Route 53 returns a maximum of 100 items. If you set MaxItems to a value
 // greater than 100, Route 53 returns only the first 100.
 type ListHostedZonesInput struct {
-	DelegationSetID *string `location:"querystring" locationName:"delegationsetid" type:"string"`
+	DelegationSetId *string `location:"querystring" locationName:"delegationsetid" type:"string"`
 
 	// If the request returned more than one page of results, submit another request
 	// and specify the value of NextMarker from the last response in the marker
@@ -2300,6 +2900,16 @@ type ListHostedZonesInput struct {
 
 type metadataListHostedZonesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListHostedZonesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListHostedZonesInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the response for the request.
@@ -2339,11 +2949,21 @@ type metadataListHostedZonesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListHostedZonesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListHostedZonesOutput) GoString() string {
+	return s.String()
+}
+
 // The input for a ListResourceRecordSets request.
 type ListResourceRecordSetsInput struct {
 	// The ID of the hosted zone that contains the resource record sets that you
 	// want to get.
-	HostedZoneID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	HostedZoneId *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The maximum number of records you want in the response body.
 	MaxItems *string `location:"querystring" locationName:"maxitems" type:"string"`
@@ -2352,7 +2972,7 @@ type ListResourceRecordSetsInput struct {
 	// DNS name and type, specify the value of ListResourceRecordSetsResponse$NextRecordIdentifier
 	// from the previous response to get the next resource record set that has the
 	// current DNS name and type.
-	StartRecordIdentifier *string `location:"querystring" locationName:"identifier" type:"string"`
+	StartRecordIdentifier *string `location:"querystring" locationName:"identifier" min:"1" type:"string"`
 
 	// The first name in the lexicographic ordering of domain names that you want
 	// the ListResourceRecordSets request to list.
@@ -2370,13 +2990,23 @@ type ListResourceRecordSetsInput struct {
 	//
 	// Constraint: Specifying type without specifying name returns an InvalidInput
 	// error.
-	StartRecordType *string `location:"querystring" locationName:"type" type:"string"`
+	StartRecordType *string `location:"querystring" locationName:"type" type:"string" enum:"RRType"`
 
 	metadataListResourceRecordSetsInput `json:"-" xml:"-"`
 }
 
 type metadataListResourceRecordSetsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListResourceRecordSetsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResourceRecordSetsInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the resource record sets that
@@ -2397,7 +3027,7 @@ type ListResourceRecordSetsOutput struct {
 	// Weighted resource record sets only: If results were truncated for a given
 	// DNS name and type, the value of SetIdentifier for the next resource record
 	// set that has the current DNS name and type.
-	NextRecordIdentifier *string `type:"string"`
+	NextRecordIdentifier *string `min:"1" type:"string"`
 
 	// If the results were truncated, the name of the next record in the list. This
 	// element is present only if ListResourceRecordSetsResponse$IsTruncated is
@@ -2407,7 +3037,7 @@ type ListResourceRecordSetsOutput struct {
 	// If the results were truncated, the type of the next record in the list. This
 	// element is present only if ListResourceRecordSetsResponse$IsTruncated is
 	// true.
-	NextRecordType *string `type:"string"`
+	NextRecordType *string `type:"string" enum:"RRType"`
 
 	// A complex type that contains information about the resource record sets that
 	// are returned by the request.
@@ -2418,6 +3048,16 @@ type ListResourceRecordSetsOutput struct {
 
 type metadataListResourceRecordSetsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListResourceRecordSetsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResourceRecordSetsOutput) GoString() string {
+	return s.String()
 }
 
 // To retrieve a list of your reusable delegation sets, send a GET request to
@@ -2445,6 +3085,16 @@ type ListReusableDelegationSetsInput struct {
 
 type metadataListReusableDelegationSetsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListReusableDelegationSetsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReusableDelegationSetsInput) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains the response for the request.
@@ -2486,24 +3136,44 @@ type metadataListReusableDelegationSetsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListReusableDelegationSetsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListReusableDelegationSetsOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type containing information about a request for a list of the tags
 // that are associated with an individual resource.
 type ListTagsForResourceInput struct {
 	// The ID of the resource for which you want to retrieve tags.
-	ResourceID *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
+	ResourceId *string `location:"uri" locationName:"ResourceId" type:"string" required:"true"`
 
 	// The type of the resource.
 	//
 	// - The resource type for health checks is healthcheck.
 	//
 	// - The resource type for hosted zones is hostedzone.
-	ResourceType *string `location:"uri" locationName:"ResourceType" type:"string" required:"true"`
+	ResourceType *string `location:"uri" locationName:"ResourceType" type:"string" required:"true" enum:"TagResourceType"`
 
 	metadataListTagsForResourceInput `json:"-" xml:"-"`
 }
 
 type metadataListTagsForResourceInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing tags for the specified resource.
@@ -2518,25 +3188,45 @@ type metadataListTagsForResourceOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type containing information about a request for a list of the tags
 // that are associated with up to 10 specified resources.
 type ListTagsForResourcesInput struct {
 	// A complex type that contains the ResourceId element for each resource for
 	// which you want to get a list of tags.
-	ResourceIDs []*string `locationName:"ResourceIds" locationNameList:"ResourceId" type:"list" required:"true"`
+	ResourceIds []*string `locationNameList:"ResourceId" min:"1" type:"list" required:"true"`
 
 	// The type of the resources.
 	//
 	// - The resource type for health checks is healthcheck.
 	//
 	// - The resource type for hosted zones is hostedzone.
-	ResourceType *string `location:"uri" locationName:"ResourceType" type:"string" required:"true"`
+	ResourceType *string `location:"uri" locationName:"ResourceType" type:"string" required:"true" enum:"TagResourceType"`
 
 	metadataListTagsForResourcesInput `json:"-" xml:"-"`
 }
 
 type metadataListTagsForResourcesInput struct {
 	SDKShapeTraits bool `locationName:"ListTagsForResourcesRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourcesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourcesInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing tags for the specified resources.
@@ -2551,6 +3241,16 @@ type metadataListTagsForResourcesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListTagsForResourcesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourcesOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains the value of the Value element for the current
 // resource record set.
 type ResourceRecord struct {
@@ -2562,6 +3262,16 @@ type ResourceRecord struct {
 
 type metadataResourceRecord struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResourceRecord) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceRecord) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the current resource record
@@ -2587,7 +3297,7 @@ type ResourceRecordSet struct {
 	// set.
 	//
 	// Valid values: PRIMARY | SECONDARY
-	Failover *string `type:"string"`
+	Failover *string `type:"string" enum:"ResourceRecordSetFailover"`
 
 	// Geo location resource record sets only: Among resource record sets that have
 	// the same combination of DNS name and type, a value that specifies the geo
@@ -2597,7 +3307,7 @@ type ResourceRecordSet struct {
 	// Health Check resource record sets only, not required for alias resource record
 	// sets: An identifier that is used to identify health check associated with
 	// the resource record set.
-	HealthCheckID *string `locationName:"HealthCheckId" type:"string"`
+	HealthCheckId *string `type:"string"`
 
 	// The domain name of the current resource record set.
 	Name *string `type:"string" required:"true"`
@@ -2605,22 +3315,22 @@ type ResourceRecordSet struct {
 	// Latency-based resource record sets only: Among resource record sets that
 	// have the same combination of DNS name and type, a value that specifies the
 	// AWS region for the current resource record set.
-	Region *string `type:"string"`
+	Region *string `min:"1" type:"string" enum:"ResourceRecordSetRegion"`
 
 	// A complex type that contains the resource records for the current resource
 	// record set.
-	ResourceRecords []*ResourceRecord `locationNameList:"ResourceRecord" type:"list"`
+	ResourceRecords []*ResourceRecord `locationNameList:"ResourceRecord" min:"1" type:"list"`
 
 	// Weighted, Latency, Geo, and Failover resource record sets only: An identifier
 	// that differentiates among multiple resource record sets that have the same
 	// combination of DNS name and type.
-	SetIdentifier *string `type:"string"`
+	SetIdentifier *string `min:"1" type:"string"`
 
 	// The cache time to live for the current resource record set.
 	TTL *int64 `type:"long"`
 
 	// The type of the current resource record set.
-	Type *string `type:"string" required:"true"`
+	Type *string `type:"string" required:"true" enum:"RRType"`
 
 	// Weighted resource record sets only: Among resource record sets that have
 	// the same combination of DNS name and type, a value that determines what portion
@@ -2635,26 +3345,46 @@ type metadataResourceRecordSet struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ResourceRecordSet) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceRecordSet) GoString() string {
+	return s.String()
+}
+
 // A complex type containing a resource and its associated tags.
 type ResourceTagSet struct {
 	// The ID for the specified resource.
-	ResourceID *string `locationName:"ResourceId" type:"string"`
+	ResourceId *string `type:"string"`
 
 	// The type of the resource.
 	//
 	// - The resource type for health checks is healthcheck.
 	//
 	// - The resource type for hosted zones is hostedzone.
-	ResourceType *string `type:"string"`
+	ResourceType *string `type:"string" enum:"TagResourceType"`
 
 	// The tags associated with the specified resource.
-	Tags []*Tag `locationNameList:"Tag" type:"list"`
+	Tags []*Tag `locationNameList:"Tag" min:"1" type:"list"`
 
 	metadataResourceTagSet `json:"-" xml:"-"`
 }
 
 type metadataResourceTagSet struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResourceTagSet) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceTagSet) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the health check status for
@@ -2676,6 +3406,16 @@ type metadataStatusReport struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s StatusReport) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StatusReport) GoString() string {
+	return s.String()
+}
+
 // A single tag containing a key and value.
 type Tag struct {
 	// The key for a Tag.
@@ -2691,9 +3431,25 @@ type metadataTag struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
 // >A complex type that contains information about the request to update a health
 // check.
 type UpdateHealthCheckInput struct {
+	// For a specified parent health check, a list of HealthCheckId values for the
+	// associated child health checks.
+	//
+	// Specify this value only if you want to change it.
+	ChildHealthChecks []*string `locationNameList:"ChildHealthCheck" type:"list"`
+
 	// The number of consecutive health checks that an endpoint must pass or fail
 	// for Route 53 to change the current status of the endpoint from unhealthy
 	// to healthy or vice versa.
@@ -2703,7 +3459,7 @@ type UpdateHealthCheckInput struct {
 	// Route 53 Developer Guide.
 	//
 	// Specify this value only if you want to change it.
-	FailureThreshold *int64 `type:"integer"`
+	FailureThreshold *int64 `min:"1" type:"integer"`
 
 	// Fully qualified domain name of the instance to be health checked.
 	//
@@ -2711,24 +3467,38 @@ type UpdateHealthCheckInput struct {
 	FullyQualifiedDomainName *string `type:"string"`
 
 	// The ID of the health check to update.
-	HealthCheckID *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
+	HealthCheckId *string `location:"uri" locationName:"HealthCheckId" type:"string" required:"true"`
 
 	// Optional. When you specify a health check version, Route 53 compares this
 	// value with the current value in the health check, which prevents you from
 	// updating the health check when the versions don't match. Using HealthCheckVersion
 	// lets you prevent overwriting another change to the health check.
-	HealthCheckVersion *int64 `type:"long"`
+	HealthCheckVersion *int64 `min:"1" type:"long"`
+
+	// The minimum number of child health checks that must be healthy for Route
+	// 53 to consider the parent health check to be healthy. Valid values are integers
+	// between 0 and 256, inclusive.
+	//
+	// Specify this value only if you want to change it.
+	HealthThreshold *int64 `type:"integer"`
 
 	// The IP address of the resource that you want to check.
 	//
 	// Specify this value only if you want to change it.
 	IPAddress *string `type:"string"`
 
+	// A boolean value that indicates whether the status of health check should
+	// be inverted. For example, if a health check is healthy but Inverted is True,
+	// then Route 53 considers the health check to be unhealthy.
+	//
+	// Specify this value only if you want to change it.
+	Inverted *bool `type:"boolean"`
+
 	// The port on which you want Route 53 to open a connection to perform health
 	// checks.
 	//
 	// Specify this value only if you want to change it.
-	Port *int64 `type:"integer"`
+	Port *int64 `min:"1" type:"integer"`
 
 	// The path that you want Amazon Route 53 to request when performing health
 	// checks. The path can be any value for which your endpoint will return an
@@ -2753,6 +3523,16 @@ type metadataUpdateHealthCheckInput struct {
 	SDKShapeTraits bool `locationName:"UpdateHealthCheckRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
 }
 
+// String returns the string representation
+func (s UpdateHealthCheckInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateHealthCheckInput) GoString() string {
+	return s.String()
+}
+
 type UpdateHealthCheckOutput struct {
 	// A complex type that contains identifying information about the health check.
 	HealthCheck *HealthCheck `type:"structure" required:"true"`
@@ -2764,6 +3544,16 @@ type metadataUpdateHealthCheckOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateHealthCheckOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateHealthCheckOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the request to update a hosted
 // zone comment.
 type UpdateHostedZoneCommentInput struct {
@@ -2771,13 +3561,23 @@ type UpdateHostedZoneCommentInput struct {
 	Comment *string `type:"string"`
 
 	// The ID of the hosted zone you want to update.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataUpdateHostedZoneCommentInput `json:"-" xml:"-"`
 }
 
 type metadataUpdateHostedZoneCommentInput struct {
 	SDKShapeTraits bool `locationName:"UpdateHostedZoneCommentRequest" type:"structure" xmlURI:"https://route53.amazonaws.com/doc/2013-04-01/"`
+}
+
+// String returns the string representation
+func (s UpdateHostedZoneCommentInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateHostedZoneCommentInput) GoString() string {
+	return s.String()
 }
 
 // A complex type containing information about the specified hosted zone after
@@ -2793,11 +3593,21 @@ type metadataUpdateHostedZoneCommentOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateHostedZoneCommentOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateHostedZoneCommentOutput) GoString() string {
+	return s.String()
+}
+
 type VPC struct {
 	// A VPC ID
-	VPCID *string `locationName:"VPCId" type:"string"`
+	VPCId *string `type:"string"`
 
-	VPCRegion *string `type:"string"`
+	VPCRegion *string `min:"1" type:"string" enum:"VPCRegion"`
 
 	metadataVPC `json:"-" xml:"-"`
 }
@@ -2805,3 +3615,127 @@ type VPC struct {
 type metadataVPC struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s VPC) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VPC) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum ChangeAction
+	ChangeActionCreate = "CREATE"
+	// @enum ChangeAction
+	ChangeActionDelete = "DELETE"
+	// @enum ChangeAction
+	ChangeActionUpsert = "UPSERT"
+)
+
+const (
+	// @enum ChangeStatus
+	ChangeStatusPending = "PENDING"
+	// @enum ChangeStatus
+	ChangeStatusInsync = "INSYNC"
+)
+
+const (
+	// @enum HealthCheckType
+	HealthCheckTypeHttp = "HTTP"
+	// @enum HealthCheckType
+	HealthCheckTypeHttps = "HTTPS"
+	// @enum HealthCheckType
+	HealthCheckTypeHttpStrMatch = "HTTP_STR_MATCH"
+	// @enum HealthCheckType
+	HealthCheckTypeHttpsStrMatch = "HTTPS_STR_MATCH"
+	// @enum HealthCheckType
+	HealthCheckTypeTcp = "TCP"
+	// @enum HealthCheckType
+	HealthCheckTypeCalculated = "CALCULATED"
+)
+
+const (
+	// @enum RRType
+	RRTypeSoa = "SOA"
+	// @enum RRType
+	RRTypeA = "A"
+	// @enum RRType
+	RRTypeTxt = "TXT"
+	// @enum RRType
+	RRTypeNs = "NS"
+	// @enum RRType
+	RRTypeCname = "CNAME"
+	// @enum RRType
+	RRTypeMx = "MX"
+	// @enum RRType
+	RRTypePtr = "PTR"
+	// @enum RRType
+	RRTypeSrv = "SRV"
+	// @enum RRType
+	RRTypeSpf = "SPF"
+	// @enum RRType
+	RRTypeAaaa = "AAAA"
+)
+
+const (
+	// @enum ResourceRecordSetFailover
+	ResourceRecordSetFailoverPrimary = "PRIMARY"
+	// @enum ResourceRecordSetFailover
+	ResourceRecordSetFailoverSecondary = "SECONDARY"
+)
+
+const (
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionUsEast1 = "us-east-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionUsWest1 = "us-west-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionUsWest2 = "us-west-2"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionEuWest1 = "eu-west-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionEuCentral1 = "eu-central-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionApSoutheast1 = "ap-southeast-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionApSoutheast2 = "ap-southeast-2"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionApNortheast1 = "ap-northeast-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionSaEast1 = "sa-east-1"
+	// @enum ResourceRecordSetRegion
+	ResourceRecordSetRegionCnNorth1 = "cn-north-1"
+)
+
+const (
+	// @enum TagResourceType
+	TagResourceTypeHealthcheck = "healthcheck"
+	// @enum TagResourceType
+	TagResourceTypeHostedzone = "hostedzone"
+)
+
+const (
+	// @enum VPCRegion
+	VPCRegionUsEast1 = "us-east-1"
+	// @enum VPCRegion
+	VPCRegionUsWest1 = "us-west-1"
+	// @enum VPCRegion
+	VPCRegionUsWest2 = "us-west-2"
+	// @enum VPCRegion
+	VPCRegionEuWest1 = "eu-west-1"
+	// @enum VPCRegion
+	VPCRegionEuCentral1 = "eu-central-1"
+	// @enum VPCRegion
+	VPCRegionApSoutheast1 = "ap-southeast-1"
+	// @enum VPCRegion
+	VPCRegionApSoutheast2 = "ap-southeast-2"
+	// @enum VPCRegion
+	VPCRegionApNortheast1 = "ap-northeast-1"
+	// @enum VPCRegion
+	VPCRegionSaEast1 = "sa-east-1"
+	// @enum VPCRegion
+	VPCRegionCnNorth1 = "cn-north-1"
+)

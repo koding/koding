@@ -6,14 +6,15 @@ package machinelearning
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opCreateBatchPrediction = "CreateBatchPrediction"
 
 // CreateBatchPredictionRequest generates a request for the CreateBatchPrediction operation.
-func (c *MachineLearning) CreateBatchPredictionRequest(input *CreateBatchPredictionInput) (req *aws.Request, output *CreateBatchPredictionOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateBatchPredictionRequest(input *CreateBatchPredictionInput) (req *request.Request, output *CreateBatchPredictionOutput) {
+	op := &request.Operation{
 		Name:       opCreateBatchPrediction,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -52,8 +53,8 @@ func (c *MachineLearning) CreateBatchPrediction(input *CreateBatchPredictionInpu
 const opCreateDataSourceFromRDS = "CreateDataSourceFromRDS"
 
 // CreateDataSourceFromRDSRequest generates a request for the CreateDataSourceFromRDS operation.
-func (c *MachineLearning) CreateDataSourceFromRDSRequest(input *CreateDataSourceFromRDSInput) (req *aws.Request, output *CreateDataSourceFromRDSOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateDataSourceFromRDSRequest(input *CreateDataSourceFromRDSInput) (req *request.Request, output *CreateDataSourceFromRDSOutput) {
+	op := &request.Operation{
 		Name:       opCreateDataSourceFromRDS,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -92,8 +93,8 @@ func (c *MachineLearning) CreateDataSourceFromRDS(input *CreateDataSourceFromRDS
 const opCreateDataSourceFromRedshift = "CreateDataSourceFromRedshift"
 
 // CreateDataSourceFromRedshiftRequest generates a request for the CreateDataSourceFromRedshift operation.
-func (c *MachineLearning) CreateDataSourceFromRedshiftRequest(input *CreateDataSourceFromRedshiftInput) (req *aws.Request, output *CreateDataSourceFromRedshiftOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateDataSourceFromRedshiftRequest(input *CreateDataSourceFromRedshiftInput) (req *request.Request, output *CreateDataSourceFromRedshiftOutput) {
+	op := &request.Operation{
 		Name:       opCreateDataSourceFromRedshift,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -148,8 +149,8 @@ func (c *MachineLearning) CreateDataSourceFromRedshift(input *CreateDataSourceFr
 const opCreateDataSourceFromS3 = "CreateDataSourceFromS3"
 
 // CreateDataSourceFromS3Request generates a request for the CreateDataSourceFromS3 operation.
-func (c *MachineLearning) CreateDataSourceFromS3Request(input *CreateDataSourceFromS3Input) (req *aws.Request, output *CreateDataSourceFromS3Output) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateDataSourceFromS3Request(input *CreateDataSourceFromS3Input) (req *request.Request, output *CreateDataSourceFromS3Output) {
+	op := &request.Operation{
 		Name:       opCreateDataSourceFromS3,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -204,8 +205,8 @@ func (c *MachineLearning) CreateDataSourceFromS3(input *CreateDataSourceFromS3In
 const opCreateEvaluation = "CreateEvaluation"
 
 // CreateEvaluationRequest generates a request for the CreateEvaluation operation.
-func (c *MachineLearning) CreateEvaluationRequest(input *CreateEvaluationInput) (req *aws.Request, output *CreateEvaluationOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateEvaluationRequest(input *CreateEvaluationInput) (req *request.Request, output *CreateEvaluationOutput) {
+	op := &request.Operation{
 		Name:       opCreateEvaluation,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -246,8 +247,8 @@ func (c *MachineLearning) CreateEvaluation(input *CreateEvaluationInput) (*Creat
 const opCreateMLModel = "CreateMLModel"
 
 // CreateMLModelRequest generates a request for the CreateMLModel operation.
-func (c *MachineLearning) CreateMLModelRequest(input *CreateMLModelInput) (req *aws.Request, output *CreateMLModelOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateMLModelRequest(input *CreateMLModelInput) (req *request.Request, output *CreateMLModelOutput) {
+	op := &request.Operation{
 		Name:       opCreateMLModel,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -289,8 +290,8 @@ func (c *MachineLearning) CreateMLModel(input *CreateMLModelInput) (*CreateMLMod
 const opCreateRealtimeEndpoint = "CreateRealtimeEndpoint"
 
 // CreateRealtimeEndpointRequest generates a request for the CreateRealtimeEndpoint operation.
-func (c *MachineLearning) CreateRealtimeEndpointRequest(input *CreateRealtimeEndpointInput) (req *aws.Request, output *CreateRealtimeEndpointOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) CreateRealtimeEndpointRequest(input *CreateRealtimeEndpointInput) (req *request.Request, output *CreateRealtimeEndpointOutput) {
+	op := &request.Operation{
 		Name:       opCreateRealtimeEndpoint,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -318,8 +319,8 @@ func (c *MachineLearning) CreateRealtimeEndpoint(input *CreateRealtimeEndpointIn
 const opDeleteBatchPrediction = "DeleteBatchPrediction"
 
 // DeleteBatchPredictionRequest generates a request for the DeleteBatchPrediction operation.
-func (c *MachineLearning) DeleteBatchPredictionRequest(input *DeleteBatchPredictionInput) (req *aws.Request, output *DeleteBatchPredictionOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DeleteBatchPredictionRequest(input *DeleteBatchPredictionInput) (req *request.Request, output *DeleteBatchPredictionOutput) {
+	op := &request.Operation{
 		Name:       opDeleteBatchPrediction,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -340,7 +341,7 @@ func (c *MachineLearning) DeleteBatchPredictionRequest(input *DeleteBatchPredict
 // After using the DeleteBatchPrediction operation, you can use the GetBatchPrediction
 // operation to verify that the status of the BatchPrediction changed to DELETED.
 //
-// Caution The result of the DeleteBatchPrediction operation is irreversible.
+// Caution: The result of the DeleteBatchPrediction operation is irreversible.
 func (c *MachineLearning) DeleteBatchPrediction(input *DeleteBatchPredictionInput) (*DeleteBatchPredictionOutput, error) {
 	req, out := c.DeleteBatchPredictionRequest(input)
 	err := req.Send()
@@ -350,8 +351,8 @@ func (c *MachineLearning) DeleteBatchPrediction(input *DeleteBatchPredictionInpu
 const opDeleteDataSource = "DeleteDataSource"
 
 // DeleteDataSourceRequest generates a request for the DeleteDataSource operation.
-func (c *MachineLearning) DeleteDataSourceRequest(input *DeleteDataSourceInput) (req *aws.Request, output *DeleteDataSourceOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DeleteDataSourceRequest(input *DeleteDataSourceInput) (req *request.Request, output *DeleteDataSourceOutput) {
+	op := &request.Operation{
 		Name:       opDeleteDataSource,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -372,7 +373,7 @@ func (c *MachineLearning) DeleteDataSourceRequest(input *DeleteDataSourceInput) 
 // After using the DeleteDataSource operation, you can use the GetDataSource
 // operation to verify that the status of the DataSource changed to DELETED.
 //
-// Caution The results of the DeleteDataSource operation are irreversible.
+// Caution: The results of the DeleteDataSource operation are irreversible.
 func (c *MachineLearning) DeleteDataSource(input *DeleteDataSourceInput) (*DeleteDataSourceOutput, error) {
 	req, out := c.DeleteDataSourceRequest(input)
 	err := req.Send()
@@ -382,8 +383,8 @@ func (c *MachineLearning) DeleteDataSource(input *DeleteDataSourceInput) (*Delet
 const opDeleteEvaluation = "DeleteEvaluation"
 
 // DeleteEvaluationRequest generates a request for the DeleteEvaluation operation.
-func (c *MachineLearning) DeleteEvaluationRequest(input *DeleteEvaluationInput) (req *aws.Request, output *DeleteEvaluationOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DeleteEvaluationRequest(input *DeleteEvaluationInput) (req *request.Request, output *DeleteEvaluationOutput) {
+	op := &request.Operation{
 		Name:       opDeleteEvaluation,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -404,7 +405,7 @@ func (c *MachineLearning) DeleteEvaluationRequest(input *DeleteEvaluationInput) 
 // After invoking the DeleteEvaluation operation, you can use the GetEvaluation
 // operation to verify that the status of the Evaluation changed to DELETED.
 //
-// Caution The results of the DeleteEvaluation operation are irreversible.
+// Caution: The results of the DeleteEvaluation operation are irreversible.
 func (c *MachineLearning) DeleteEvaluation(input *DeleteEvaluationInput) (*DeleteEvaluationOutput, error) {
 	req, out := c.DeleteEvaluationRequest(input)
 	err := req.Send()
@@ -414,8 +415,8 @@ func (c *MachineLearning) DeleteEvaluation(input *DeleteEvaluationInput) (*Delet
 const opDeleteMLModel = "DeleteMLModel"
 
 // DeleteMLModelRequest generates a request for the DeleteMLModel operation.
-func (c *MachineLearning) DeleteMLModelRequest(input *DeleteMLModelInput) (req *aws.Request, output *DeleteMLModelOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DeleteMLModelRequest(input *DeleteMLModelInput) (req *request.Request, output *DeleteMLModelOutput) {
+	op := &request.Operation{
 		Name:       opDeleteMLModel,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -436,7 +437,7 @@ func (c *MachineLearning) DeleteMLModelRequest(input *DeleteMLModelInput) (req *
 // After using the DeleteMLModel operation, you can use the GetMLModel operation
 // to verify that the status of the MLModel changed to DELETED.
 //
-// Caution The result of the DeleteMLModel operation is irreversible.
+// Caution: The result of the DeleteMLModel operation is irreversible.
 func (c *MachineLearning) DeleteMLModel(input *DeleteMLModelInput) (*DeleteMLModelOutput, error) {
 	req, out := c.DeleteMLModelRequest(input)
 	err := req.Send()
@@ -446,8 +447,8 @@ func (c *MachineLearning) DeleteMLModel(input *DeleteMLModelInput) (*DeleteMLMod
 const opDeleteRealtimeEndpoint = "DeleteRealtimeEndpoint"
 
 // DeleteRealtimeEndpointRequest generates a request for the DeleteRealtimeEndpoint operation.
-func (c *MachineLearning) DeleteRealtimeEndpointRequest(input *DeleteRealtimeEndpointInput) (req *aws.Request, output *DeleteRealtimeEndpointOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DeleteRealtimeEndpointRequest(input *DeleteRealtimeEndpointInput) (req *request.Request, output *DeleteRealtimeEndpointOutput) {
+	op := &request.Operation{
 		Name:       opDeleteRealtimeEndpoint,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -473,12 +474,12 @@ func (c *MachineLearning) DeleteRealtimeEndpoint(input *DeleteRealtimeEndpointIn
 const opDescribeBatchPredictions = "DescribeBatchPredictions"
 
 // DescribeBatchPredictionsRequest generates a request for the DescribeBatchPredictions operation.
-func (c *MachineLearning) DescribeBatchPredictionsRequest(input *DescribeBatchPredictionsInput) (req *aws.Request, output *DescribeBatchPredictionsOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DescribeBatchPredictionsRequest(input *DescribeBatchPredictionsInput) (req *request.Request, output *DescribeBatchPredictionsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeBatchPredictions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "Limit",
@@ -514,12 +515,12 @@ func (c *MachineLearning) DescribeBatchPredictionsPages(input *DescribeBatchPred
 const opDescribeDataSources = "DescribeDataSources"
 
 // DescribeDataSourcesRequest generates a request for the DescribeDataSources operation.
-func (c *MachineLearning) DescribeDataSourcesRequest(input *DescribeDataSourcesInput) (req *aws.Request, output *DescribeDataSourcesOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DescribeDataSourcesRequest(input *DescribeDataSourcesInput) (req *request.Request, output *DescribeDataSourcesOutput) {
+	op := &request.Operation{
 		Name:       opDescribeDataSources,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "Limit",
@@ -554,12 +555,12 @@ func (c *MachineLearning) DescribeDataSourcesPages(input *DescribeDataSourcesInp
 const opDescribeEvaluations = "DescribeEvaluations"
 
 // DescribeEvaluationsRequest generates a request for the DescribeEvaluations operation.
-func (c *MachineLearning) DescribeEvaluationsRequest(input *DescribeEvaluationsInput) (req *aws.Request, output *DescribeEvaluationsOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DescribeEvaluationsRequest(input *DescribeEvaluationsInput) (req *request.Request, output *DescribeEvaluationsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeEvaluations,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "Limit",
@@ -595,12 +596,12 @@ func (c *MachineLearning) DescribeEvaluationsPages(input *DescribeEvaluationsInp
 const opDescribeMLModels = "DescribeMLModels"
 
 // DescribeMLModelsRequest generates a request for the DescribeMLModels operation.
-func (c *MachineLearning) DescribeMLModelsRequest(input *DescribeMLModelsInput) (req *aws.Request, output *DescribeMLModelsOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) DescribeMLModelsRequest(input *DescribeMLModelsInput) (req *request.Request, output *DescribeMLModelsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeMLModels,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "Limit",
@@ -635,8 +636,8 @@ func (c *MachineLearning) DescribeMLModelsPages(input *DescribeMLModelsInput, fn
 const opGetBatchPrediction = "GetBatchPrediction"
 
 // GetBatchPredictionRequest generates a request for the GetBatchPrediction operation.
-func (c *MachineLearning) GetBatchPredictionRequest(input *GetBatchPredictionInput) (req *aws.Request, output *GetBatchPredictionOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) GetBatchPredictionRequest(input *GetBatchPredictionInput) (req *request.Request, output *GetBatchPredictionOutput) {
+	op := &request.Operation{
 		Name:       opGetBatchPrediction,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -663,8 +664,8 @@ func (c *MachineLearning) GetBatchPrediction(input *GetBatchPredictionInput) (*G
 const opGetDataSource = "GetDataSource"
 
 // GetDataSourceRequest generates a request for the GetDataSource operation.
-func (c *MachineLearning) GetDataSourceRequest(input *GetDataSourceInput) (req *aws.Request, output *GetDataSourceOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) GetDataSourceRequest(input *GetDataSourceInput) (req *request.Request, output *GetDataSourceOutput) {
+	op := &request.Operation{
 		Name:       opGetDataSource,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -695,8 +696,8 @@ func (c *MachineLearning) GetDataSource(input *GetDataSourceInput) (*GetDataSour
 const opGetEvaluation = "GetEvaluation"
 
 // GetEvaluationRequest generates a request for the GetEvaluation operation.
-func (c *MachineLearning) GetEvaluationRequest(input *GetEvaluationInput) (req *aws.Request, output *GetEvaluationOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) GetEvaluationRequest(input *GetEvaluationInput) (req *request.Request, output *GetEvaluationOutput) {
+	op := &request.Operation{
 		Name:       opGetEvaluation,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -723,8 +724,8 @@ func (c *MachineLearning) GetEvaluation(input *GetEvaluationInput) (*GetEvaluati
 const opGetMLModel = "GetMLModel"
 
 // GetMLModelRequest generates a request for the GetMLModel operation.
-func (c *MachineLearning) GetMLModelRequest(input *GetMLModelInput) (req *aws.Request, output *GetMLModelOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) GetMLModelRequest(input *GetMLModelInput) (req *request.Request, output *GetMLModelOutput) {
+	op := &request.Operation{
 		Name:       opGetMLModel,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -753,8 +754,8 @@ func (c *MachineLearning) GetMLModel(input *GetMLModelInput) (*GetMLModelOutput,
 const opPredict = "Predict"
 
 // PredictRequest generates a request for the Predict operation.
-func (c *MachineLearning) PredictRequest(input *PredictInput) (req *aws.Request, output *PredictOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) PredictRequest(input *PredictInput) (req *request.Request, output *PredictOutput) {
+	op := &request.Operation{
 		Name:       opPredict,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -770,10 +771,10 @@ func (c *MachineLearning) PredictRequest(input *PredictInput) (req *aws.Request,
 	return
 }
 
-// Generates a prediction for the observation using the specified MLModel.
+// Generates a prediction for the observation using the specified ML Model.
 //
-// Note Not all response parameters will be populated because this is dependent
-// on the type of requested model.
+// Note Not all response parameters will be populated. Whether a response parameter
+// is populated depends on the type of model requested.
 func (c *MachineLearning) Predict(input *PredictInput) (*PredictOutput, error) {
 	req, out := c.PredictRequest(input)
 	err := req.Send()
@@ -783,8 +784,8 @@ func (c *MachineLearning) Predict(input *PredictInput) (*PredictOutput, error) {
 const opUpdateBatchPrediction = "UpdateBatchPrediction"
 
 // UpdateBatchPredictionRequest generates a request for the UpdateBatchPrediction operation.
-func (c *MachineLearning) UpdateBatchPredictionRequest(input *UpdateBatchPredictionInput) (req *aws.Request, output *UpdateBatchPredictionOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) UpdateBatchPredictionRequest(input *UpdateBatchPredictionInput) (req *request.Request, output *UpdateBatchPredictionOutput) {
+	op := &request.Operation{
 		Name:       opUpdateBatchPrediction,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -813,8 +814,8 @@ func (c *MachineLearning) UpdateBatchPrediction(input *UpdateBatchPredictionInpu
 const opUpdateDataSource = "UpdateDataSource"
 
 // UpdateDataSourceRequest generates a request for the UpdateDataSource operation.
-func (c *MachineLearning) UpdateDataSourceRequest(input *UpdateDataSourceInput) (req *aws.Request, output *UpdateDataSourceOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) UpdateDataSourceRequest(input *UpdateDataSourceInput) (req *request.Request, output *UpdateDataSourceOutput) {
+	op := &request.Operation{
 		Name:       opUpdateDataSource,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -843,8 +844,8 @@ func (c *MachineLearning) UpdateDataSource(input *UpdateDataSourceInput) (*Updat
 const opUpdateEvaluation = "UpdateEvaluation"
 
 // UpdateEvaluationRequest generates a request for the UpdateEvaluation operation.
-func (c *MachineLearning) UpdateEvaluationRequest(input *UpdateEvaluationInput) (req *aws.Request, output *UpdateEvaluationOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) UpdateEvaluationRequest(input *UpdateEvaluationInput) (req *request.Request, output *UpdateEvaluationOutput) {
+	op := &request.Operation{
 		Name:       opUpdateEvaluation,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -873,8 +874,8 @@ func (c *MachineLearning) UpdateEvaluation(input *UpdateEvaluationInput) (*Updat
 const opUpdateMLModel = "UpdateMLModel"
 
 // UpdateMLModelRequest generates a request for the UpdateMLModel operation.
-func (c *MachineLearning) UpdateMLModelRequest(input *UpdateMLModelInput) (req *aws.Request, output *UpdateMLModelOutput) {
-	op := &aws.Operation{
+func (c *MachineLearning) UpdateMLModelRequest(input *UpdateMLModelInput) (req *request.Request, output *UpdateMLModelOutput) {
+	op := &request.Operation{
 		Name:       opUpdateMLModel,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -906,11 +907,11 @@ func (c *MachineLearning) UpdateMLModel(input *UpdateMLModelInput) (*UpdateMLMod
 // file information of a Batch Prediction.
 type BatchPrediction struct {
 	// The ID of the DataSource that points to the group of observations to predict.
-	BatchPredictionDataSourceID *string `locationName:"BatchPredictionDataSourceId" type:"string"`
+	BatchPredictionDataSourceId *string `min:"1" type:"string"`
 
 	// The ID assigned to the BatchPrediction at creation. This value should be
 	// identical to the value of the BatchPredictionID in the request.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string"`
+	BatchPredictionId *string `min:"1" type:"string"`
 
 	// The time that the BatchPrediction was created. The time is expressed in epoch
 	// time.
@@ -919,7 +920,7 @@ type BatchPrediction struct {
 	// The AWS user account that invoked the BatchPrediction. The account type can
 	// be either an AWS root account or an AWS Identity and Access Management (IAM)
 	// user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The location of the data file or directory in Amazon Simple Storage Service
 	// (Amazon S3).
@@ -931,7 +932,7 @@ type BatchPrediction struct {
 
 	// The ID of the MLModel that generated predictions for the BatchPrediction
 	// request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// A description of the most recent details about processing the batch prediction
 	// request.
@@ -943,7 +944,7 @@ type BatchPrediction struct {
 	// The location of an Amazon S3 bucket or directory to receive the operation
 	// results. The following substrings are not allowed in the s3 key portion of
 	// the "outputURI" field: ':', '//', '/./', '/../'.
-	OutputURI *string `locationName:"OutputUri" type:"string"`
+	OutputUri *string `type:"string"`
 
 	// The status of the BatchPrediction. This element can have one of the following
 	// values:
@@ -953,7 +954,7 @@ type BatchPrediction struct {
 	//  FAILED - The request to peform a batch prediction did not run to completion.
 	// It is not usable.  COMPLETED - The batch prediction process completed successfully.
 	//  DELETED - The BatchPrediction is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	metadataBatchPrediction `json:"-" xml:"-"`
 }
@@ -962,19 +963,29 @@ type metadataBatchPrediction struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s BatchPrediction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchPrediction) GoString() string {
+	return s.String()
+}
+
 type CreateBatchPredictionInput struct {
 	// The ID of the DataSource that points to the group of observations to predict.
-	BatchPredictionDataSourceID *string `locationName:"BatchPredictionDataSourceId" type:"string" required:"true"`
+	BatchPredictionDataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied ID that uniquely identifies the BatchPrediction.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string" required:"true"`
+	BatchPredictionId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the BatchPrediction. BatchPredictionName
 	// can only use the UTF-8 character set.
 	BatchPredictionName *string `type:"string"`
 
 	// The ID of the MLModel that will generate predictions for the group of observations.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	// The location of an Amazon Simple Storage Service (Amazon S3) bucket or directory
 	// to store the batch prediction results. The following substrings are not allowed
@@ -983,13 +994,23 @@ type CreateBatchPredictionInput struct {
 	// Amazon ML needs permissions to store and retrieve the logs on your behalf.
 	// For information about how to set permissions, see the Amazon Machine Learning
 	// Developer Guide (http://docs.aws.amazon.com/machine-learning/latest/dg).
-	OutputURI *string `locationName:"OutputUri" type:"string" required:"true"`
+	OutputUri *string `type:"string" required:"true"`
 
 	metadataCreateBatchPredictionInput `json:"-" xml:"-"`
 }
 
 type metadataCreateBatchPredictionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateBatchPredictionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateBatchPredictionInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a CreateBatchPrediction operation, and is an acknowledgement
@@ -1001,13 +1022,23 @@ type metadataCreateBatchPredictionInput struct {
 type CreateBatchPredictionOutput struct {
 	// A user-supplied ID that uniquely identifies the BatchPrediction. This value
 	// is identical to the value of the BatchPredictionId in the request.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string"`
+	BatchPredictionId *string `min:"1" type:"string"`
 
 	metadataCreateBatchPredictionOutput `json:"-" xml:"-"`
 }
 
 type metadataCreateBatchPredictionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateBatchPredictionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateBatchPredictionOutput) GoString() string {
+	return s.String()
 }
 
 type CreateDataSourceFromRDSInput struct {
@@ -1019,7 +1050,7 @@ type CreateDataSourceFromRDSInput struct {
 
 	// A user-supplied ID that uniquely identifies the DataSource. Typically, an
 	// Amazon Resource Number (ARN) becomes the ID for a DataSource.
-	DataSourceID *string `locationName:"DataSourceId" type:"string" required:"true"`
+	DataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the DataSource.
 	DataSourceName *string `type:"string"`
@@ -1062,19 +1093,29 @@ type CreateDataSourceFromRDSInput struct {
 	//  DataRearrangement - A JSON string representing the splitting requirement
 	// of a Datasource.
 	//
-	//   Sample -  "{\"randomSeed\":\"some-random-seed\", \"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
+	//   Sample -  "{\"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
 	RDSData *RDSDataSpec `type:"structure" required:"true"`
 
 	// The role that Amazon ML assumes on behalf of the user to create and activate
 	// a data pipeline in the user’s account and copy data (using the SelectSqlQuery)
 	// query from Amazon RDS to Amazon S3.
-	RoleARN *string `type:"string" required:"true"`
+	RoleARN *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateDataSourceFromRDSInput `json:"-" xml:"-"`
 }
 
 type metadataCreateDataSourceFromRDSInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDataSourceFromRDSInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataSourceFromRDSInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a CreateDataSourceFromRDS operation, and is an acknowledgement
@@ -1089,13 +1130,23 @@ type metadataCreateDataSourceFromRDSInput struct {
 type CreateDataSourceFromRDSOutput struct {
 	// A user-supplied ID that uniquely identifies the datasource. This value should
 	// be identical to the value of the DataSourceID in the request.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	metadataCreateDataSourceFromRDSOutput `json:"-" xml:"-"`
 }
 
 type metadataCreateDataSourceFromRDSOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDataSourceFromRDSOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataSourceFromRDSOutput) GoString() string {
+	return s.String()
 }
 
 type CreateDataSourceFromRedshiftInput struct {
@@ -1106,7 +1157,7 @@ type CreateDataSourceFromRedshiftInput struct {
 	ComputeStatistics *bool `type:"boolean"`
 
 	// A user-supplied ID that uniquely identifies the DataSource.
-	DataSourceID *string `locationName:"DataSourceId" type:"string" required:"true"`
+	DataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the DataSource.
 	DataSourceName *string `type:"string"`
@@ -1134,7 +1185,7 @@ type CreateDataSourceFromRedshiftInput struct {
 	//  DataRearrangement - A JSON string representing the splitting requirement
 	// of a Datasource.
 	//
-	//   Sample -  "{\"randomSeed\":\"some-random-seed\", \"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
+	//   Sample -  "{\"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
 	DataSpec *RedshiftDataSpec `type:"structure" required:"true"`
 
 	// A fully specified role Amazon Resource Name (ARN). Amazon ML assumes the
@@ -1145,13 +1196,23 @@ type CreateDataSourceFromRedshiftInput struct {
 	//
 	// An Amazon S3 bucket policy to grant Amazon ML read/write permissions on
 	// the S3StagingLocation
-	RoleARN *string `type:"string" required:"true"`
+	RoleARN *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateDataSourceFromRedshiftInput `json:"-" xml:"-"`
 }
 
 type metadataCreateDataSourceFromRedshiftInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDataSourceFromRedshiftInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataSourceFromRedshiftInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a CreateDataSourceFromRedshift operation, and is
@@ -1163,13 +1224,23 @@ type metadataCreateDataSourceFromRedshiftInput struct {
 type CreateDataSourceFromRedshiftOutput struct {
 	// A user-supplied ID that uniquely identifies the datasource. This value should
 	// be identical to the value of the DataSourceID in the request.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	metadataCreateDataSourceFromRedshiftOutput `json:"-" xml:"-"`
 }
 
 type metadataCreateDataSourceFromRedshiftOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDataSourceFromRedshiftOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataSourceFromRedshiftOutput) GoString() string {
+	return s.String()
 }
 
 type CreateDataSourceFromS3Input struct {
@@ -1180,7 +1251,7 @@ type CreateDataSourceFromS3Input struct {
 	ComputeStatistics *bool `type:"boolean"`
 
 	// A user-supplied identifier that uniquely identifies the DataSource.
-	DataSourceID *string `locationName:"DataSourceId" type:"string" required:"true"`
+	DataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the DataSource.
 	DataSourceName *string `type:"string"`
@@ -1198,7 +1269,7 @@ type CreateDataSourceFromS3Input struct {
 	//  DataRearrangement - A JSON string representing the splitting requirement
 	// of a Datasource.
 	//
-	//   Sample -  "{\"randomSeed\":\"some-random-seed\", \"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
+	//   Sample -  "{\"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
 	DataSpec *S3DataSpec `type:"structure" required:"true"`
 
 	metadataCreateDataSourceFromS3Input `json:"-" xml:"-"`
@@ -1206,6 +1277,16 @@ type CreateDataSourceFromS3Input struct {
 
 type metadataCreateDataSourceFromS3Input struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDataSourceFromS3Input) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataSourceFromS3Input) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a CreateDataSourceFromS3 operation, and is an acknowledgement
@@ -1216,7 +1297,7 @@ type metadataCreateDataSourceFromS3Input struct {
 type CreateDataSourceFromS3Output struct {
 	// A user-supplied ID that uniquely identifies the datasource. This value should
 	// be identical to the value of the DataSourceID in the request.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	metadataCreateDataSourceFromS3Output `json:"-" xml:"-"`
 }
@@ -1225,13 +1306,23 @@ type metadataCreateDataSourceFromS3Output struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateDataSourceFromS3Output) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDataSourceFromS3Output) GoString() string {
+	return s.String()
+}
+
 type CreateEvaluationInput struct {
 	// The ID of the DataSource for the evaluation. The schema of the DataSource
 	// must match the schema used to create the MLModel.
-	EvaluationDataSourceID *string `locationName:"EvaluationDataSourceId" type:"string" required:"true"`
+	EvaluationDataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied ID that uniquely identifies the Evaluation.
-	EvaluationID *string `locationName:"EvaluationId" type:"string" required:"true"`
+	EvaluationId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the Evaluation.
 	EvaluationName *string `type:"string"`
@@ -1240,13 +1331,23 @@ type CreateEvaluationInput struct {
 	//
 	// The schema used in creating the MLModel must match the schema of the DataSource
 	// used in the Evaluation.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateEvaluationInput `json:"-" xml:"-"`
 }
 
 type metadataCreateEvaluationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateEvaluationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateEvaluationInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a CreateEvaluation operation, and is an acknowledgement
@@ -1257,7 +1358,7 @@ type metadataCreateEvaluationInput struct {
 type CreateEvaluationOutput struct {
 	// The user-supplied ID that uniquely identifies the Evaluation. This value
 	// should be identical to the value of the EvaluationId in the request.
-	EvaluationID *string `locationName:"EvaluationId" type:"string"`
+	EvaluationId *string `min:"1" type:"string"`
 
 	metadataCreateEvaluationOutput `json:"-" xml:"-"`
 }
@@ -1266,9 +1367,19 @@ type metadataCreateEvaluationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateEvaluationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateEvaluationOutput) GoString() string {
+	return s.String()
+}
+
 type CreateMLModelInput struct {
 	// A user-supplied ID that uniquely identifies the MLModel.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the MLModel.
 	MLModelName *string `type:"string"`
@@ -1280,7 +1391,7 @@ type CreateMLModelInput struct {
 	// Choose BINARY if the MLModel result has two possible values. Choose MULTICLASS
 	// if the MLModel result has a limited number of values.    For more information,
 	// see the Amazon Machine Learning Developer Guide (http://docs.aws.amazon.com/machine-learning/latest/dg).
-	MLModelType *string `type:"string" required:"true"`
+	MLModelType *string `type:"string" required:"true" enum:"MLModelType"`
 
 	// A list of the training parameters in the MLModel. The list is implemented
 	// as a map of key/value pairs.
@@ -1324,16 +1435,26 @@ type CreateMLModelInput struct {
 	// The Amazon Simple Storage Service (Amazon S3) location and file name that
 	// contains the MLModel recipe. You must specify either the recipe or its URI.
 	// If you don’t specify a recipe or its URI, Amazon ML creates a default.
-	RecipeURI *string `locationName:"RecipeUri" type:"string"`
+	RecipeUri *string `type:"string"`
 
 	// The DataSource that points to the training data.
-	TrainingDataSourceID *string `locationName:"TrainingDataSourceId" type:"string" required:"true"`
+	TrainingDataSourceId *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateMLModelInput `json:"-" xml:"-"`
 }
 
 type metadataCreateMLModelInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateMLModelInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateMLModelInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a CreateMLModel operation, and is an acknowledgement
@@ -1344,7 +1465,7 @@ type metadataCreateMLModelInput struct {
 type CreateMLModelOutput struct {
 	// A user-supplied ID that uniquely identifies the MLModel. This value should
 	// be identical to the value of the MLModelId in the request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	metadataCreateMLModelOutput `json:"-" xml:"-"`
 }
@@ -1353,15 +1474,35 @@ type metadataCreateMLModelOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateMLModelOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateMLModelOutput) GoString() string {
+	return s.String()
+}
+
 type CreateRealtimeEndpointInput struct {
 	// The ID assigned to the MLModel during creation.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateRealtimeEndpointInput `json:"-" xml:"-"`
 }
 
 type metadataCreateRealtimeEndpointInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateRealtimeEndpointInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateRealtimeEndpointInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of an CreateRealtimeEndpoint operation.
@@ -1373,7 +1514,7 @@ type metadataCreateRealtimeEndpointInput struct {
 type CreateRealtimeEndpointOutput struct {
 	// A user-supplied ID that uniquely identifies the MLModel. This value should
 	// be identical to the value of the MLModelId in the request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// The endpoint information of the MLModel
 	RealtimeEndpointInfo *RealtimeEndpointInfo `type:"structure"`
@@ -1383,6 +1524,16 @@ type CreateRealtimeEndpointOutput struct {
 
 type metadataCreateRealtimeEndpointOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateRealtimeEndpointOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateRealtimeEndpointOutput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of the GetDataSource operation.
@@ -1401,7 +1552,7 @@ type DataSource struct {
 	// The AWS user account from which the DataSource was created. The account type
 	// can be either an AWS root account or an AWS Identity and Access Management
 	// (IAM) user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The location and name of the data in Amazon Simple Storage Service (Amazon
 	// S3) that is used by a DataSource.
@@ -1415,7 +1566,7 @@ type DataSource struct {
 	DataSizeInBytes *int64 `type:"long"`
 
 	// The ID that is assigned to the DataSource during creation.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	// The time of the most recent edit to the BatchPrediction. The time is expressed
 	// in epoch time.
@@ -1438,7 +1589,7 @@ type DataSource struct {
 
 	// The Amazon Resource Name (ARN) of an AWS IAM Role (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html#roles-about-termsandconcepts)
 	// such as the following: arn:aws:iam::account:role/rolename.
-	RoleARN *string `type:"string"`
+	RoleARN *string `min:"1" type:"string"`
 
 	// The current status of the DataSource. This element can have one of the following
 	// values:
@@ -1448,7 +1599,7 @@ type DataSource struct {
 	// request to create a DataSource did not run to completion. It is not usable.
 	// COMPLETED - The creation process completed successfully. DELETED - The DataSource
 	// is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	metadataDataSource `json:"-" xml:"-"`
 }
@@ -1457,15 +1608,35 @@ type metadataDataSource struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DataSource) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DataSource) GoString() string {
+	return s.String()
+}
+
 type DeleteBatchPredictionInput struct {
 	// A user-supplied ID that uniquely identifies the BatchPrediction.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string" required:"true"`
+	BatchPredictionId *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteBatchPredictionInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteBatchPredictionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteBatchPredictionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteBatchPredictionInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a DeleteBatchPrediction operation.
@@ -1475,7 +1646,7 @@ type metadataDeleteBatchPredictionInput struct {
 type DeleteBatchPredictionOutput struct {
 	// A user-supplied ID that uniquely identifies the BatchPrediction. This value
 	// should be identical to the value of the BatchPredictionID in the request.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string"`
+	BatchPredictionId *string `min:"1" type:"string"`
 
 	metadataDeleteBatchPredictionOutput `json:"-" xml:"-"`
 }
@@ -1484,9 +1655,19 @@ type metadataDeleteBatchPredictionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteBatchPredictionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteBatchPredictionOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteDataSourceInput struct {
 	// A user-supplied ID that uniquely identifies the DataSource.
-	DataSourceID *string `locationName:"DataSourceId" type:"string" required:"true"`
+	DataSourceId *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteDataSourceInput `json:"-" xml:"-"`
 }
@@ -1495,11 +1676,21 @@ type metadataDeleteDataSourceInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteDataSourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDataSourceInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of a DeleteDataSource operation.
 type DeleteDataSourceOutput struct {
 	// A user-supplied ID that uniquely identifies the DataSource. This value should
 	// be identical to the value of the DataSourceID in the request.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	metadataDeleteDataSourceOutput `json:"-" xml:"-"`
 }
@@ -1508,15 +1699,35 @@ type metadataDeleteDataSourceOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteDataSourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDataSourceOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteEvaluationInput struct {
 	// A user-supplied ID that uniquely identifies the Evaluation to delete.
-	EvaluationID *string `locationName:"EvaluationId" type:"string" required:"true"`
+	EvaluationId *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteEvaluationInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteEvaluationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteEvaluationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteEvaluationInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a DeleteEvaluation operation. The output indicates
@@ -1527,7 +1738,7 @@ type metadataDeleteEvaluationInput struct {
 type DeleteEvaluationOutput struct {
 	// A user-supplied ID that uniquely identifies the Evaluation. This value should
 	// be identical to the value of the EvaluationId in the request.
-	EvaluationID *string `locationName:"EvaluationId" type:"string"`
+	EvaluationId *string `min:"1" type:"string"`
 
 	metadataDeleteEvaluationOutput `json:"-" xml:"-"`
 }
@@ -1536,15 +1747,35 @@ type metadataDeleteEvaluationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteEvaluationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteEvaluationOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteMLModelInput struct {
 	// A user-supplied ID that uniquely identifies the MLModel.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteMLModelInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteMLModelInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteMLModelInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteMLModelInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a DeleteMLModel operation.
@@ -1554,7 +1785,7 @@ type metadataDeleteMLModelInput struct {
 type DeleteMLModelOutput struct {
 	// A user-supplied ID that uniquely identifies the MLModel. This value should
 	// be identical to the value of the MLModelID in the request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	metadataDeleteMLModelOutput `json:"-" xml:"-"`
 }
@@ -1563,9 +1794,19 @@ type metadataDeleteMLModelOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteMLModelOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteMLModelOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteRealtimeEndpointInput struct {
 	// The ID assigned to the MLModel during creation.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteRealtimeEndpointInput `json:"-" xml:"-"`
 }
@@ -1574,13 +1815,23 @@ type metadataDeleteRealtimeEndpointInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteRealtimeEndpointInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteRealtimeEndpointInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of an DeleteRealtimeEndpoint operation.
 //
 // The result contains the MLModelId and the endpoint information for the MLModel.
 type DeleteRealtimeEndpointOutput struct {
 	// A user-supplied ID that uniquely identifies the MLModel. This value should
 	// be identical to the value of the MLModelId in the request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// The endpoint information of the MLModel
 	RealtimeEndpointInfo *RealtimeEndpointInfo `type:"structure"`
@@ -1590,6 +1841,16 @@ type DeleteRealtimeEndpointOutput struct {
 
 type metadataDeleteRealtimeEndpointOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteRealtimeEndpointOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteRealtimeEndpointOutput) GoString() string {
+	return s.String()
 }
 
 type DescribeBatchPredictionsInput struct {
@@ -1608,7 +1869,7 @@ type DescribeBatchPredictionsInput struct {
 	// used in the BatchPrediction.  DataURI - Sets the search criteria to the data
 	// file(s) used in the BatchPrediction. The URL can identify either a file or
 	// an Amazon Simple Storage Solution (Amazon S3) bucket or directory.
-	FilterVariable *string `type:"string"`
+	FilterVariable *string `type:"string" enum:"BatchPredictionFilterVariable"`
 
 	// The greater than or equal to operator. The BatchPrediction results will have
 	// FilterVariable values that are greater than or equal to the value specified
@@ -1630,7 +1891,7 @@ type DescribeBatchPredictionsInput struct {
 
 	// The number of pages of information to include in the result. The range of
 	// acceptable values is 1 through 100. The default value is 100.
-	Limit *int64 `type:"integer"`
+	Limit *int64 `min:"1" type:"integer"`
 
 	// The not equal to operator. The BatchPrediction results will have FilterVariable
 	// values not equal to the value specified with NE.
@@ -1657,13 +1918,23 @@ type DescribeBatchPredictionsInput struct {
 	//
 	//   asc - Arranges the list in ascending order (A-Z, 0-9).  dsc - Arranges
 	// the list in descending order (Z-A, 9-0).  Results are sorted by FilterVariable.
-	SortOrder *string `type:"string"`
+	SortOrder *string `type:"string" enum:"SortOrder"`
 
 	metadataDescribeBatchPredictionsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeBatchPredictionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeBatchPredictionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeBatchPredictionsInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a DescribeBatchPredictions operation. The content
@@ -1683,6 +1954,16 @@ type metadataDescribeBatchPredictionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeBatchPredictionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeBatchPredictionsOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeDataSourcesInput struct {
 	// The equal to operator. The DataSource results will have FilterVariable values
 	// that exactly match the value specified with EQ.
@@ -1697,7 +1978,7 @@ type DescribeDataSourcesInput struct {
 	// can identify either a file or an Amazon Simple Storage Service (Amazon S3)
 	// bucket or directory.  IAMUser - Sets the search criteria to the user account
 	// that invoked the DataSource creation.
-	FilterVariable *string `type:"string"`
+	FilterVariable *string `type:"string" enum:"DataSourceFilterVariable"`
 
 	// The greater than or equal to operator. The DataSource results will have FilterVariable
 	// values that are greater than or equal to the value specified with GE.
@@ -1716,7 +1997,7 @@ type DescribeDataSourcesInput struct {
 	LT *string `type:"string"`
 
 	// The maximum number of DataSource to include in the result.
-	Limit *int64 `type:"integer"`
+	Limit *int64 `min:"1" type:"integer"`
 
 	// The not equal to operator. The DataSource results will have FilterVariable
 	// values not equal to the value specified with NE.
@@ -1743,13 +2024,23 @@ type DescribeDataSourcesInput struct {
 	//
 	//   asc - Arranges the list in ascending order (A-Z, 0-9).  dsc - Arranges
 	// the list in descending order (Z-A, 9-0).  Results are sorted by FilterVariable.
-	SortOrder *string `type:"string"`
+	SortOrder *string `type:"string" enum:"SortOrder"`
 
 	metadataDescribeDataSourcesInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeDataSourcesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeDataSourcesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDataSourcesInput) GoString() string {
+	return s.String()
 }
 
 // Represents the query results from a DescribeDataSources operation. The content
@@ -1769,6 +2060,16 @@ type metadataDescribeDataSourcesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeDataSourcesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDataSourcesOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeEvaluationsInput struct {
 	// The equal to operator. The Evaluation results will have FilterVariable values
 	// that exactly match the value specified with EQ.
@@ -1785,7 +2086,7 @@ type DescribeEvaluationsInput struct {
 	// - Sets the search criteria to the data file(s) used in Evaluation. The URL
 	// can identify either a file or an Amazon Simple Storage Solution (Amazon S3)
 	// bucket or directory.
-	FilterVariable *string `type:"string"`
+	FilterVariable *string `type:"string" enum:"EvaluationFilterVariable"`
 
 	// The greater than or equal to operator. The Evaluation results will have FilterVariable
 	// values that are greater than or equal to the value specified with GE.
@@ -1804,7 +2105,7 @@ type DescribeEvaluationsInput struct {
 	LT *string `type:"string"`
 
 	// The maximum number of Evaluation to include in the result.
-	Limit *int64 `type:"integer"`
+	Limit *int64 `min:"1" type:"integer"`
 
 	// The not equal to operator. The Evaluation results will have FilterVariable
 	// values not equal to the value specified with NE.
@@ -1831,13 +2132,23 @@ type DescribeEvaluationsInput struct {
 	//
 	//   asc - Arranges the list in ascending order (A-Z, 0-9).  dsc - Arranges
 	// the list in descending order (Z-A, 9-0).  Results are sorted by FilterVariable.
-	SortOrder *string `type:"string"`
+	SortOrder *string `type:"string" enum:"SortOrder"`
 
 	metadataDescribeEvaluationsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeEvaluationsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEvaluationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEvaluationsInput) GoString() string {
+	return s.String()
 }
 
 // Represents the query results from a DescribeEvaluations operation. The content
@@ -1855,6 +2166,16 @@ type DescribeEvaluationsOutput struct {
 
 type metadataDescribeEvaluationsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEvaluationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEvaluationsOutput) GoString() string {
+	return s.String()
 }
 
 type DescribeMLModelsInput struct {
@@ -1875,7 +2196,7 @@ type DescribeMLModelsInput struct {
 	// to the algorithm that the MLModel uses.  TrainingDataURI - Sets the search
 	// criteria to the data file(s) used in training a MLModel. The URL can identify
 	// either a file or an Amazon Simple Storage Service (Amazon S3) bucket or directory.
-	FilterVariable *string `type:"string"`
+	FilterVariable *string `type:"string" enum:"MLModelFilterVariable"`
 
 	// The greater than or equal to operator. The MLModel results will have FilterVariable
 	// values that are greater than or equal to the value specified with GE.
@@ -1895,7 +2216,7 @@ type DescribeMLModelsInput struct {
 
 	// The number of pages of information to include in the result. The range of
 	// acceptable values is 1 through 100. The default value is 100.
-	Limit *int64 `type:"integer"`
+	Limit *int64 `min:"1" type:"integer"`
 
 	// The not equal to operator. The MLModel results will have FilterVariable values
 	// not equal to the value specified with NE.
@@ -1922,13 +2243,23 @@ type DescribeMLModelsInput struct {
 	//
 	//   asc - Arranges the list in ascending order (A-Z, 0-9).  dsc - Arranges
 	// the list in descending order (Z-A, 9-0).  Results are sorted by FilterVariable.
-	SortOrder *string `type:"string"`
+	SortOrder *string `type:"string" enum:"SortOrder"`
 
 	metadataDescribeMLModelsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeMLModelsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeMLModelsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeMLModelsInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a DescribeMLModels operation. The content is essentially
@@ -1948,6 +2279,16 @@ type metadataDescribeMLModelsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeMLModelsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeMLModelsOutput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of GetEvaluation operation.
 //
 // The content consists of the detailed metadata and data file information
@@ -1960,13 +2301,13 @@ type Evaluation struct {
 	// The AWS user account that invoked the evaluation. The account type can be
 	// either an AWS root account or an AWS Identity and Access Management (IAM)
 	// user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The ID of the DataSource that is used to evaluate the MLModel.
-	EvaluationDataSourceID *string `locationName:"EvaluationDataSourceId" type:"string"`
+	EvaluationDataSourceId *string `min:"1" type:"string"`
 
 	// The ID that is assigned to the Evaluation at creation.
-	EvaluationID *string `locationName:"EvaluationId" type:"string"`
+	EvaluationId *string `min:"1" type:"string"`
 
 	// The location and name of the data in Amazon Simple Storage Server (Amazon
 	// S3) that is used in the evaluation.
@@ -1977,7 +2318,7 @@ type Evaluation struct {
 	LastUpdatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// The ID of the MLModel that is the focus of the evaluation.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// A description of the most recent details about evaluating the MLModel.
 	Message *string `type:"string"`
@@ -2011,7 +2352,7 @@ type Evaluation struct {
 	// to evaluate an MLModel did not run to completion. It is not usable.  COMPLETED
 	// - The evaluation process completed successfully.  DELETED - The Evaluation
 	// is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	metadataEvaluation `json:"-" xml:"-"`
 }
@@ -2020,9 +2361,19 @@ type metadataEvaluation struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Evaluation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Evaluation) GoString() string {
+	return s.String()
+}
+
 type GetBatchPredictionInput struct {
 	// An ID assigned to the BatchPrediction at creation.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string" required:"true"`
+	BatchPredictionId *string `min:"1" type:"string" required:"true"`
 
 	metadataGetBatchPredictionInput `json:"-" xml:"-"`
 }
@@ -2031,14 +2382,24 @@ type metadataGetBatchPredictionInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetBatchPredictionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetBatchPredictionInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of a GetBatchPrediction operation and describes a BatchPrediction.
 type GetBatchPredictionOutput struct {
 	// The ID of the DataSource that was used to create the BatchPrediction.
-	BatchPredictionDataSourceID *string `locationName:"BatchPredictionDataSourceId" type:"string"`
+	BatchPredictionDataSourceId *string `min:"1" type:"string"`
 
 	// An ID assigned to the BatchPrediction at creation. This value should be identical
 	// to the value of the BatchPredictionID in the request.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string"`
+	BatchPredictionId *string `min:"1" type:"string"`
 
 	// The time when the BatchPrediction was created. The time is expressed in epoch
 	// time.
@@ -2047,7 +2408,7 @@ type GetBatchPredictionOutput struct {
 	// The AWS user account that invoked the BatchPrediction. The account type can
 	// be either an AWS root account or an AWS Identity and Access Management (IAM)
 	// user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The location of the data file or directory in Amazon Simple Storage Service
 	// (Amazon S3).
@@ -2058,11 +2419,11 @@ type GetBatchPredictionOutput struct {
 	LastUpdatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// A link to the file that contains logs of the CreateBatchPrediction operation.
-	LogURI *string `locationName:"LogUri" type:"string"`
+	LogUri *string `type:"string"`
 
 	// The ID of the MLModel that generated predictions for the BatchPrediction
 	// request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// A description of the most recent details about processing the batch prediction
 	// request.
@@ -2073,7 +2434,7 @@ type GetBatchPredictionOutput struct {
 
 	// The location of an Amazon S3 bucket or directory to receive the operation
 	// results.
-	OutputURI *string `locationName:"OutputUri" type:"string"`
+	OutputUri *string `type:"string"`
 
 	// The status of the BatchPrediction, which can be one of the following values:
 	//
@@ -2082,7 +2443,7 @@ type GetBatchPredictionOutput struct {
 	// FAILED - The request to perform a batch prediction did not run to completion.
 	// It is not usable.  COMPLETED - The batch prediction process completed successfully.
 	//  DELETED - The BatchPrediction is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	metadataGetBatchPredictionOutput `json:"-" xml:"-"`
 }
@@ -2091,9 +2452,19 @@ type metadataGetBatchPredictionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetBatchPredictionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetBatchPredictionOutput) GoString() string {
+	return s.String()
+}
+
 type GetDataSourceInput struct {
 	// The ID assigned to the DataSource at creation.
-	DataSourceID *string `locationName:"DataSourceId" type:"string" required:"true"`
+	DataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// Specifies whether the GetDataSource operation should return DataSourceSchema.
 	//
@@ -2109,6 +2480,16 @@ type metadataGetDataSourceInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetDataSourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDataSourceInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of a GetDataSource operation and describes a DataSource.
 type GetDataSourceOutput struct {
 	// The parameter is true if statistics need to be generated from the observation
@@ -2122,7 +2503,7 @@ type GetDataSourceOutput struct {
 	// The AWS user account from which the DataSource was created. The account type
 	// can be either an AWS root account or an AWS Identity and Access Management
 	// (IAM) user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The location of the data file or directory in Amazon Simple Storage Service
 	// (Amazon S3).
@@ -2137,7 +2518,7 @@ type GetDataSourceOutput struct {
 
 	// The ID assigned to the DataSource at creation. This value should be identical
 	// to the value of the DataSourceId in the request.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	// The schema used by all of the data files of this DataSource.
 	//
@@ -2149,7 +2530,7 @@ type GetDataSourceOutput struct {
 	LastUpdatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// A link to the file containining logs of either create DataSource operation.
-	LogURI *string `locationName:"LogUri" type:"string"`
+	LogUri *string `type:"string"`
 
 	// The description of the most recent details about creating the DataSource.
 	Message *string `type:"string"`
@@ -2168,7 +2549,7 @@ type GetDataSourceOutput struct {
 
 	// The Amazon Resource Name (ARN) of an AWS IAM Role (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html#roles-about-termsandconcepts)
 	// such as the following: arn:aws:iam::account:role/rolename.
-	RoleARN *string `type:"string"`
+	RoleARN *string `min:"1" type:"string"`
 
 	// The current status of the DataSource. This element can have one of the following
 	// values:
@@ -2178,7 +2559,7 @@ type GetDataSourceOutput struct {
 	// request to create a DataSource did not run to completion. It is not usable.
 	//  COMPLETED - The creation process completed successfully.  DELETED - The
 	// DataSource is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	metadataGetDataSourceOutput `json:"-" xml:"-"`
 }
@@ -2187,16 +2568,36 @@ type metadataGetDataSourceOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetDataSourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDataSourceOutput) GoString() string {
+	return s.String()
+}
+
 type GetEvaluationInput struct {
 	// The ID of the Evaluation to retrieve. The evaluation of each MLModel is recorded
 	// and cataloged. The ID provides the means to access the information.
-	EvaluationID *string `locationName:"EvaluationId" type:"string" required:"true"`
+	EvaluationId *string `min:"1" type:"string" required:"true"`
 
 	metadataGetEvaluationInput `json:"-" xml:"-"`
 }
 
 type metadataGetEvaluationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetEvaluationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetEvaluationInput) GoString() string {
+	return s.String()
 }
 
 // Represents the output of a GetEvaluation operation and describes an Evaluation.
@@ -2208,13 +2609,13 @@ type GetEvaluationOutput struct {
 	// The AWS user account that invoked the evaluation. The account type can be
 	// either an AWS root account or an AWS Identity and Access Management (IAM)
 	// user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The DataSource used for this evaluation.
-	EvaluationDataSourceID *string `locationName:"EvaluationDataSourceId" type:"string"`
+	EvaluationDataSourceId *string `min:"1" type:"string"`
 
 	// The evaluation ID which is same as the EvaluationId in the request.
-	EvaluationID *string `locationName:"EvaluationId" type:"string"`
+	EvaluationId *string `min:"1" type:"string"`
 
 	// The location of the data file or directory in Amazon Simple Storage Service
 	// (Amazon S3).
@@ -2225,10 +2626,10 @@ type GetEvaluationOutput struct {
 	LastUpdatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// A link to the file that contains logs of the CreateEvaluation operation.
-	LogURI *string `locationName:"LogUri" type:"string"`
+	LogUri *string `type:"string"`
 
 	// The ID of the MLModel that was the focus of the evaluation.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// A description of the most recent details about evaluating the MLModel.
 	Message *string `type:"string"`
@@ -2262,7 +2663,7 @@ type GetEvaluationOutput struct {
 	// to evaluate an MLModel did not run to completion. It is not usable.  COMPLETED
 	// - The evaluation process completed successfully.  DELETED - The Evaluation
 	// is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	metadataGetEvaluationOutput `json:"-" xml:"-"`
 }
@@ -2271,9 +2672,19 @@ type metadataGetEvaluationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetEvaluationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetEvaluationOutput) GoString() string {
+	return s.String()
+}
+
 type GetMLModelInput struct {
 	// The ID assigned to the MLModel at creation.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	// Specifies whether the GetMLModel operation should return Recipe.
 	//
@@ -2289,6 +2700,16 @@ type metadataGetMLModelInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetMLModelInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetMLModelInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of a GetMLModel operation, and provides detailed information
 // about a MLModel.
 type GetMLModelOutput struct {
@@ -2298,7 +2719,7 @@ type GetMLModelOutput struct {
 	// The AWS user account from which the MLModel was created. The account type
 	// can be either an AWS root account or an AWS Identity and Access Management
 	// (IAM) user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The current endpoint of the MLModel
 	EndpointInfo *RealtimeEndpointInfo `type:"structure"`
@@ -2312,10 +2733,10 @@ type GetMLModelOutput struct {
 	LastUpdatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// A link to the file that contains logs of the CreateMLModel operation.
-	LogURI *string `locationName:"LogUri" type:"string"`
+	LogUri *string `type:"string"`
 
 	// The MLModel ID which is same as the MLModelId in the request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// Identifies the MLModel category. The following are the available types:
 	//
@@ -2323,7 +2744,7 @@ type GetMLModelOutput struct {
 	// should a house have?" BINARY -- Produces one of two possible results. For
 	// example, "Is this an e-commerce website?" MULTICLASS -- Produces more than
 	// two possible results. For example, "Is this a HIGH, LOW or MEDIUM risk trade?"
-	MLModelType *string `type:"string"`
+	MLModelType *string `type:"string" enum:"MLModelType"`
 
 	// Description of the most recent details about accessing the MLModel.
 	Message *string `type:"string"`
@@ -2365,10 +2786,10 @@ type GetMLModelOutput struct {
 	// a MLModel.  INPROGRESS - The request is processing.  FAILED - The request
 	// did not run to completion. It is not usable.  COMPLETED - The request completed
 	// successfully.  DELETED - The MLModel is marked as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	// The ID of the training DataSource.
-	TrainingDataSourceID *string `locationName:"TrainingDataSourceId" type:"string"`
+	TrainingDataSourceId *string `min:"1" type:"string"`
 
 	// A list of the training parameters in the MLModel. The list is implemented
 	// as a map of key/value pairs.
@@ -2411,6 +2832,16 @@ type metadataGetMLModelOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetMLModelOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetMLModelOutput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of a GetMLModel operation.
 //
 // The content consists of the detailed metadata and the current status of
@@ -2420,7 +2851,7 @@ type MLModel struct {
 	//
 	//  SGD -- Stochastic gradient descent. The goal of SGD is to minimize the
 	// gradient of the loss function.
-	Algorithm *string `type:"string"`
+	Algorithm *string `type:"string" enum:"Algorithm"`
 
 	// The time that the MLModel was created. The time is expressed in epoch time.
 	CreatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
@@ -2428,7 +2859,7 @@ type MLModel struct {
 	// The AWS user account from which the MLModel was created. The account type
 	// can be either an AWS root account or an AWS Identity and Access Management
 	// (IAM) user account.
-	CreatedByIAMUser *string `locationName:"CreatedByIamUser" type:"string"`
+	CreatedByIamUser *string `type:"string"`
 
 	// The current endpoint of the MLModel.
 	EndpointInfo *RealtimeEndpointInfo `type:"structure"`
@@ -2442,7 +2873,7 @@ type MLModel struct {
 	LastUpdatedAt *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// The ID assigned to the MLModel at creation.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	// Identifies the MLModel category. The following are the available types:
 	//
@@ -2451,7 +2882,7 @@ type MLModel struct {
 	// example, "Is this a child-friendly web site?". MULTICLASS - Produces more
 	// than two possible results. For example, "Is this a HIGH, LOW or MEDIUM risk
 	// trade?".
-	MLModelType *string `type:"string"`
+	MLModelType *string `type:"string" enum:"MLModelType"`
 
 	// A description of the most recent details about accessing the MLModel.
 	Message *string `type:"string"`
@@ -2476,10 +2907,10 @@ type MLModel struct {
 	// to create an MLModel did not run to completion. It is not usable. COMPLETED
 	// - The creation process completed successfully. DELETED - The MLModel is marked
 	// as deleted. It is not usable.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EntityStatus"`
 
 	// The ID of the training DataSource. The CreateMLModel operation uses the TrainingDataSourceId.
-	TrainingDataSourceID *string `locationName:"TrainingDataSourceId" type:"string"`
+	TrainingDataSourceId *string `min:"1" type:"string"`
 
 	// A list of the training parameters in the MLModel. The list is implemented
 	// as a map of key/value pairs.
@@ -2522,6 +2953,16 @@ type metadataMLModel struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s MLModel) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MLModel) GoString() string {
+	return s.String()
+}
+
 // Measurements of how well the MLModel performed on known observations. One
 // of the following metrics is returned, based on the type of the MLModel:
 //
@@ -2547,9 +2988,19 @@ type metadataPerformanceMetrics struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s PerformanceMetrics) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PerformanceMetrics) GoString() string {
+	return s.String()
+}
+
 type PredictInput struct {
 	// A unique identifier of the MLModel.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	PredictEndpoint *string `type:"string" required:"true"`
 
@@ -2561,6 +3012,16 @@ type PredictInput struct {
 
 type metadataPredictInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s PredictInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PredictInput) GoString() string {
+	return s.String()
 }
 
 type PredictOutput struct {
@@ -2584,6 +3045,16 @@ type metadataPredictOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s PredictOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PredictOutput) GoString() string {
+	return s.String()
+}
+
 // The output from a Predict operation:
 //
 //    Details - Contains the following attributes: DetailsAttributes.PREDICTIVE_MODEL_TYPE
@@ -2600,7 +3071,7 @@ type Prediction struct {
 	Details map[string]*string `locationName:"details" type:"map"`
 
 	// The prediction label for either a BINARY or MULTICLASS MLModel.
-	PredictedLabel *string `locationName:"predictedLabel" type:"string"`
+	PredictedLabel *string `locationName:"predictedLabel" min:"1" type:"string"`
 
 	// Provides the raw classification score corresponding to each label.
 	PredictedScores map[string]*float64 `locationName:"predictedScores" type:"map"`
@@ -2615,21 +3086,61 @@ type metadataPrediction struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Prediction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Prediction) GoString() string {
+	return s.String()
+}
+
 // The data specification of an Amazon Relational Database Service (Amazon RDS)
 // DataSource.
 type RDSDataSpec struct {
 	// DataRearrangement - A JSON string that represents the splitting requirement
 	// of a DataSource.
 	//
-	//   Sample -  "{\"randomSeed\":\"some-random-seed\", \"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
+	//   Sample -  "{\"splitting\":{\"percentBegin\":10,\"percentEnd\":60}}"
 	DataRearrangement *string `type:"string"`
 
-	// A JSON string that represents the schema. This is not required if DataSchemaUri
-	// is specified.
+	// A JSON string that represents the schema for an Amazon RDS DataSource. The
+	// DataSchema defines the structure of the observation data in the data file(s)
+	// referenced in the DataSource.
+	//
+	// A DataSchema is not required if you specify a DataSchemaUri
+	//
+	// Define your DataSchema as a series of key-value pairs. attributes and excludedVariableNames
+	// have an array of key-value pairs for their value. Use the following format
+	// to define your DataSchema.
+	//
+	// { "version": "1.0",
+	//
+	//  "recordAnnotationFieldName": "F1",
+	//
+	//  "recordWeightFieldName": "F2",
+	//
+	//  "targetFieldName": "F3",
+	//
+	//  "dataFormat": "CSV",
+	//
+	//  "dataFileContainsHeader": true,
+	//
+	//  "attributes": [
+	//
+	//  { "fieldName": "F1", "fieldType": "TEXT" }, { "fieldName": "F2", "fieldType":
+	// "NUMERIC" }, { "fieldName": "F3", "fieldType": "CATEGORICAL" }, { "fieldName":
+	// "F4", "fieldType": "NUMERIC" }, { "fieldName": "F5", "fieldType": "CATEGORICAL"
+	// }, { "fieldName": "F6", "fieldType": "TEXT" }, { "fieldName": "F7", "fieldType":
+	// "WEIGHTED_INT_SEQUENCE" }, { "fieldName": "F8", "fieldType": "WEIGHTED_STRING_SEQUENCE"
+	// } ],
+	//
+	//  "excludedVariableNames": [ "F6" ] }
 	DataSchema *string `type:"string"`
 
 	// The Amazon S3 location of the DataSchema.
-	DataSchemaURI *string `locationName:"DataSchemaUri" type:"string"`
+	DataSchemaUri *string `type:"string"`
 
 	// The AWS Identity and Access Management (IAM) credentials that are used connect
 	// to the Amazon RDS database.
@@ -2642,7 +3153,7 @@ type RDSDataSpec struct {
 	// Cloud (Amazon EC2) instance to carry out the copy operation from Amazon RDS
 	// to an Amazon S3 task. For more information, see Role templates (http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-iam-roles.html)
 	// for data pipelines.
-	ResourceRole *string `type:"string" required:"true"`
+	ResourceRole *string `min:"1" type:"string" required:"true"`
 
 	// The Amazon S3 location for staging Amazon RDS data. The data retrieved from
 	// Amazon RDS using SelectSqlQuery is stored in this location.
@@ -2652,21 +3163,21 @@ type RDSDataSpec struct {
 	// Ensure that there are appropriate ingress rules set up to allow access to
 	// the RDS DB instance. This attribute is used by Data Pipeline to carry out
 	// the copy operation from Amazon RDS to an Amazon S3 task.
-	SecurityGroupIDs []*string `locationName:"SecurityGroupIds" type:"list" required:"true"`
+	SecurityGroupIds []*string `type:"list" required:"true"`
 
 	// The query that is used to retrieve the observation data for the DataSource.
-	SelectSQLQuery *string `locationName:"SelectSqlQuery" type:"string" required:"true"`
+	SelectSqlQuery *string `min:"1" type:"string" required:"true"`
 
 	// The role (DataPipelineDefaultRole) assumed by AWS Data Pipeline service to
 	// monitor the progress of the copy task from Amazon RDS to Amazon S3. For more
 	// information, see Role templates (http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-iam-roles.html)
 	// for data pipelines.
-	ServiceRole *string `type:"string" required:"true"`
+	ServiceRole *string `min:"1" type:"string" required:"true"`
 
 	// The subnet ID to be used to access a VPC-based RDS DB instance. This attribute
 	// is used by Data Pipeline to carry out the copy task from Amazon RDS to Amazon
 	// S3.
-	SubnetID *string `locationName:"SubnetId" type:"string" required:"true"`
+	SubnetId *string `min:"1" type:"string" required:"true"`
 
 	metadataRDSDataSpec `json:"-" xml:"-"`
 }
@@ -2675,13 +3186,23 @@ type metadataRDSDataSpec struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RDSDataSpec) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RDSDataSpec) GoString() string {
+	return s.String()
+}
+
 // The database details of an Amazon RDS database.
 type RDSDatabase struct {
 	// The name of a database hosted on an RDS DB instance.
-	DatabaseName *string `type:"string" required:"true"`
+	DatabaseName *string `min:"1" type:"string" required:"true"`
 
 	// The ID of an RDS DB instance.
-	InstanceIdentifier *string `type:"string" required:"true"`
+	InstanceIdentifier *string `min:"1" type:"string" required:"true"`
 
 	metadataRDSDatabase `json:"-" xml:"-"`
 }
@@ -2690,17 +3211,27 @@ type metadataRDSDatabase struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RDSDatabase) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RDSDatabase) GoString() string {
+	return s.String()
+}
+
 // The database credentials to connect to a database on an RDS DB instance.
 type RDSDatabaseCredentials struct {
 	// The password to be used by Amazon ML to connect to a database on an RDS DB
 	// instance. The password should have sufficient permissions to execute the
 	// RDSSelectQuery query.
-	Password *string `type:"string" required:"true"`
+	Password *string `min:"8" type:"string" required:"true"`
 
 	// The username to be used by Amazon ML to connect to database on an Amazon
 	// RDS instance. The username should have sufficient permissions to execute
 	// an RDSSelectSqlQuery query.
-	Username *string `type:"string" required:"true"`
+	Username *string `min:"1" type:"string" required:"true"`
 
 	metadataRDSDatabaseCredentials `json:"-" xml:"-"`
 }
@@ -2709,12 +3240,22 @@ type metadataRDSDatabaseCredentials struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RDSDatabaseCredentials) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RDSDatabaseCredentials) GoString() string {
+	return s.String()
+}
+
 // The datasource details that are specific to Amazon RDS.
 type RDSMetadata struct {
 	// The ID of the Data Pipeline instance that is used to carry to copy data from
 	// Amazon RDS to Amazon S3. You can use the ID to find details about the instance
 	// in the Data Pipeline console.
-	DataPipelineID *string `locationName:"DataPipelineId" type:"string"`
+	DataPipelineId *string `min:"1" type:"string"`
 
 	// The database details required to connect to an Amazon RDS.
 	Database *RDSDatabase `type:"structure"`
@@ -2722,29 +3263,39 @@ type RDSMetadata struct {
 	// The username to be used by Amazon ML to connect to database on an Amazon
 	// RDS instance. The username should have sufficient permissions to execute
 	// an RDSSelectSqlQuery query.
-	DatabaseUserName *string `type:"string"`
+	DatabaseUserName *string `min:"1" type:"string"`
 
 	// The role (DataPipelineDefaultResourceRole) assumed by an Amazon EC2 instance
 	// to carry out the copy task from Amazon RDS to Amazon S3. For more information,
 	// see Role templates (http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-iam-roles.html)
 	// for data pipelines.
-	ResourceRole *string `type:"string"`
+	ResourceRole *string `min:"1" type:"string"`
 
 	// The SQL query that is supplied during CreateDataSourceFromRDS. Returns only
 	// if Verbose is true in GetDataSourceInput.
-	SelectSQLQuery *string `locationName:"SelectSqlQuery" type:"string"`
+	SelectSqlQuery *string `min:"1" type:"string"`
 
 	// The role (DataPipelineDefaultRole) assumed by the Data Pipeline service to
 	// monitor the progress of the copy task from Amazon RDS to Amazon S3. For more
 	// information, see Role templates (http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-iam-roles.html)
 	// for data pipelines.
-	ServiceRole *string `type:"string"`
+	ServiceRole *string `min:"1" type:"string"`
 
 	metadataRDSMetadata `json:"-" xml:"-"`
 }
 
 type metadataRDSMetadata struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RDSMetadata) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RDSMetadata) GoString() string {
+	return s.String()
 }
 
 // Describes the real-time endpoint information for an MLModel.
@@ -2759,14 +3310,14 @@ type RealtimeEndpointInfo struct {
 	//  NONE - Endpoint does not exist or was previously deleted. READY - Endpoint
 	// is ready to be used for real-time predictions. UPDATING - Updating/creating
 	// the endpoint.
-	EndpointStatus *string `type:"string"`
+	EndpointStatus *string `type:"string" enum:"RealtimeEndpointStatus"`
 
 	// The URI that specifies where to send real-time prediction requests for the
 	// MLModel.
 	//
 	// Note The application must wait until the real-time endpoint is ready before
 	// using this URI.
-	EndpointURL *string `locationName:"EndpointUrl" type:"string"`
+	EndpointUrl *string `type:"string"`
 
 	// The maximum processing rate for the real-time endpoint for MLModel, measured
 	// in incoming requests per second.
@@ -2779,16 +3330,57 @@ type metadataRealtimeEndpointInfo struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RealtimeEndpointInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RealtimeEndpointInfo) GoString() string {
+	return s.String()
+}
+
 // Describes the data specification of an Amazon Redshift DataSource.
 type RedshiftDataSpec struct {
 	// Describes the splitting specifications for a DataSource.
 	DataRearrangement *string `type:"string"`
 
-	// Describes the schema for an Amazon Redshift DataSource.
+	// A JSON string that represents the schema for an Amazon Redshift DataSource.
+	// The DataSchema defines the structure of the observation data in the data
+	// file(s) referenced in the DataSource.
+	//
+	// A DataSchema is not required if you specify a DataSchemaUri.
+	//
+	// Define your DataSchema as a series of key-value pairs. attributes and excludedVariableNames
+	// have an array of key-value pairs for their value. Use the following format
+	// to define your DataSchema.
+	//
+	// { "version": "1.0",
+	//
+	//  "recordAnnotationFieldName": "F1",
+	//
+	//  "recordWeightFieldName": "F2",
+	//
+	//  "targetFieldName": "F3",
+	//
+	//  "dataFormat": "CSV",
+	//
+	//  "dataFileContainsHeader": true,
+	//
+	//  "attributes": [
+	//
+	//  { "fieldName": "F1", "fieldType": "TEXT" }, { "fieldName": "F2", "fieldType":
+	// "NUMERIC" }, { "fieldName": "F3", "fieldType": "CATEGORICAL" }, { "fieldName":
+	// "F4", "fieldType": "NUMERIC" }, { "fieldName": "F5", "fieldType": "CATEGORICAL"
+	// }, { "fieldName": "F6", "fieldType": "TEXT" }, { "fieldName": "F7", "fieldType":
+	// "WEIGHTED_INT_SEQUENCE" }, { "fieldName": "F8", "fieldType": "WEIGHTED_STRING_SEQUENCE"
+	// } ],
+	//
+	//  "excludedVariableNames": [ "F6" ] }
 	DataSchema *string `type:"string"`
 
 	// Describes the schema location for an Amazon Redshift DataSource.
-	DataSchemaURI *string `locationName:"DataSchemaUri" type:"string"`
+	DataSchemaUri *string `type:"string"`
 
 	// Describes AWS Identity and Access Management (IAM) credentials that are used
 	// connect to the Amazon Redshift database.
@@ -2803,7 +3395,7 @@ type RedshiftDataSpec struct {
 
 	// Describes the SQL Query to execute on an Amazon Redshift database for an
 	// Amazon Redshift DataSource.
-	SelectSQLQuery *string `locationName:"SelectSqlQuery" type:"string" required:"true"`
+	SelectSqlQuery *string `min:"1" type:"string" required:"true"`
 
 	metadataRedshiftDataSpec `json:"-" xml:"-"`
 }
@@ -2812,20 +3404,40 @@ type metadataRedshiftDataSpec struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RedshiftDataSpec) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RedshiftDataSpec) GoString() string {
+	return s.String()
+}
+
 // Describes the database details required to connect to an Amazon Redshift
 // database.
 type RedshiftDatabase struct {
 	// The ID of an Amazon Redshift cluster.
-	ClusterIdentifier *string `type:"string" required:"true"`
+	ClusterIdentifier *string `min:"1" type:"string" required:"true"`
 
 	// The name of a database hosted on an Amazon Redshift cluster.
-	DatabaseName *string `type:"string" required:"true"`
+	DatabaseName *string `min:"1" type:"string" required:"true"`
 
 	metadataRedshiftDatabase `json:"-" xml:"-"`
 }
 
 type metadataRedshiftDatabase struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RedshiftDatabase) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RedshiftDatabase) GoString() string {
+	return s.String()
 }
 
 // Describes the database credentials for connecting to a database on an Amazon
@@ -2835,13 +3447,13 @@ type RedshiftDatabaseCredentials struct {
 	// Redshift cluster. The password should have sufficient permissions to execute
 	// a RedshiftSelectSqlQuery query. The password should be valid for an Amazon
 	// Redshift USER (http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_USER.html).
-	Password *string `type:"string" required:"true"`
+	Password *string `min:"8" type:"string" required:"true"`
 
 	// A username to be used by Amazon Machine Learning (Amazon ML)to connect to
 	// a database on an Amazon Redshift cluster. The username should have sufficient
 	// permissions to execute the RedshiftSelectSqlQuery query. The username should
 	// be valid for an Amazon Redshift USER (http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_USER.html).
-	Username *string `type:"string" required:"true"`
+	Username *string `min:"1" type:"string" required:"true"`
 
 	metadataRedshiftDatabaseCredentials `json:"-" xml:"-"`
 }
@@ -2850,13 +3462,23 @@ type metadataRedshiftDatabaseCredentials struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RedshiftDatabaseCredentials) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RedshiftDatabaseCredentials) GoString() string {
+	return s.String()
+}
+
 // Describes the DataSource details specific to Amazon Redshift.
 type RedshiftMetadata struct {
 	// A username to be used by Amazon Machine Learning (Amazon ML)to connect to
 	// a database on an Amazon Redshift cluster. The username should have sufficient
 	// permissions to execute the RedshiftSelectSqlQuery query. The username should
 	// be valid for an Amazon Redshift USER (http://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_USER.html).
-	DatabaseUserName *string `type:"string"`
+	DatabaseUserName *string `min:"1" type:"string"`
 
 	// Describes the database details required to connect to an Amazon Redshift
 	// database.
@@ -2864,13 +3486,23 @@ type RedshiftMetadata struct {
 
 	// The SQL query that is specified during CreateDataSourceFromRedshift. Returns
 	// only if Verbose is true in GetDataSourceInput.
-	SelectSQLQuery *string `locationName:"SelectSqlQuery" type:"string"`
+	SelectSqlQuery *string `min:"1" type:"string"`
 
 	metadataRedshiftMetadata `json:"-" xml:"-"`
 }
 
 type metadataRedshiftMetadata struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RedshiftMetadata) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RedshiftMetadata) GoString() string {
+	return s.String()
 }
 
 // Describes the data specification of a DataSource.
@@ -2883,7 +3515,36 @@ type S3DataSpec struct {
 	// Describes the splitting requirement of a Datasource.
 	DataRearrangement *string `type:"string"`
 
-	// Describes the schema for an Amazon S3 DataSource.
+	// A JSON string that represents the schema for an Amazon S3 DataSource. The
+	// DataSchema defines the structure of the observation data in the data file(s)
+	// referenced in the DataSource.
+	//
+	// Define your DataSchema as a series of key-value pairs. attributes and excludedVariableNames
+	// have an array of key-value pairs for their value. Use the following format
+	// to define your DataSchema.
+	//
+	// { "version": "1.0",
+	//
+	//  "recordAnnotationFieldName": "F1",
+	//
+	//  "recordWeightFieldName": "F2",
+	//
+	//  "targetFieldName": "F3",
+	//
+	//  "dataFormat": "CSV",
+	//
+	//  "dataFileContainsHeader": true,
+	//
+	//  "attributes": [
+	//
+	//  { "fieldName": "F1", "fieldType": "TEXT" }, { "fieldName": "F2", "fieldType":
+	// "NUMERIC" }, { "fieldName": "F3", "fieldType": "CATEGORICAL" }, { "fieldName":
+	// "F4", "fieldType": "NUMERIC" }, { "fieldName": "F5", "fieldType": "CATEGORICAL"
+	// }, { "fieldName": "F6", "fieldType": "TEXT" }, { "fieldName": "F7", "fieldType":
+	// "WEIGHTED_INT_SEQUENCE" }, { "fieldName": "F8", "fieldType": "WEIGHTED_STRING_SEQUENCE"
+	// } ],
+	//
+	//  "excludedVariableNames": [ "F6" ] }
 	DataSchema *string `type:"string"`
 
 	// Describes the schema Location in Amazon S3.
@@ -2896,9 +3557,19 @@ type metadataS3DataSpec struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s S3DataSpec) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3DataSpec) GoString() string {
+	return s.String()
+}
+
 type UpdateBatchPredictionInput struct {
 	// The ID assigned to the BatchPrediction during creation.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string" required:"true"`
+	BatchPredictionId *string `min:"1" type:"string" required:"true"`
 
 	// A new user-supplied name or description of the BatchPrediction.
 	BatchPredictionName *string `type:"string" required:"true"`
@@ -2910,13 +3581,23 @@ type metadataUpdateBatchPredictionInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateBatchPredictionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateBatchPredictionInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of an UpdateBatchPrediction operation.
 //
 // You can see the updated content by using the GetBatchPrediction operation.
 type UpdateBatchPredictionOutput struct {
 	// The ID assigned to the BatchPrediction during creation. This value should
 	// be identical to the value of the BatchPredictionId in the request.
-	BatchPredictionID *string `locationName:"BatchPredictionId" type:"string"`
+	BatchPredictionId *string `min:"1" type:"string"`
 
 	metadataUpdateBatchPredictionOutput `json:"-" xml:"-"`
 }
@@ -2925,9 +3606,19 @@ type metadataUpdateBatchPredictionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateBatchPredictionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateBatchPredictionOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateDataSourceInput struct {
 	// The ID assigned to the DataSource during creation.
-	DataSourceID *string `locationName:"DataSourceId" type:"string" required:"true"`
+	DataSourceId *string `min:"1" type:"string" required:"true"`
 
 	// A new user-supplied name or description of the DataSource that will replace
 	// the current description.
@@ -2940,13 +3631,23 @@ type metadataUpdateDataSourceInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateDataSourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDataSourceInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of an UpdateDataSource operation.
 //
 // You can see the updated content by using the GetBatchPrediction operation.
 type UpdateDataSourceOutput struct {
 	// The ID assigned to the DataSource during creation. This value should be identical
 	// to the value of the DataSourceID in the request.
-	DataSourceID *string `locationName:"DataSourceId" type:"string"`
+	DataSourceId *string `min:"1" type:"string"`
 
 	metadataUpdateDataSourceOutput `json:"-" xml:"-"`
 }
@@ -2955,9 +3656,19 @@ type metadataUpdateDataSourceOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateDataSourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDataSourceOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateEvaluationInput struct {
 	// The ID assigned to the Evaluation during creation.
-	EvaluationID *string `locationName:"EvaluationId" type:"string" required:"true"`
+	EvaluationId *string `min:"1" type:"string" required:"true"`
 
 	// A new user-supplied name or description of the Evaluation that will replace
 	// the current content.
@@ -2970,13 +3681,23 @@ type metadataUpdateEvaluationInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateEvaluationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateEvaluationInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of an UpdateEvaluation operation.
 //
 // You can see the updated content by using the GetEvaluation operation.
 type UpdateEvaluationOutput struct {
 	// The ID assigned to the Evaluation during creation. This value should be identical
 	// to the value of the Evaluation in the request.
-	EvaluationID *string `locationName:"EvaluationId" type:"string"`
+	EvaluationId *string `min:"1" type:"string"`
 
 	metadataUpdateEvaluationOutput `json:"-" xml:"-"`
 }
@@ -2985,9 +3706,19 @@ type metadataUpdateEvaluationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateEvaluationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateEvaluationOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateMLModelInput struct {
 	// The ID assigned to the MLModel during creation.
-	MLModelID *string `locationName:"MLModelId" type:"string" required:"true"`
+	MLModelId *string `min:"1" type:"string" required:"true"`
 
 	// A user-supplied name or description of the MLModel.
 	MLModelName *string `type:"string"`
@@ -3007,13 +3738,23 @@ type metadataUpdateMLModelInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateMLModelInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateMLModelInput) GoString() string {
+	return s.String()
+}
+
 // Represents the output of an UpdateMLModel operation.
 //
 // You can see the updated content by using the GetMLModel operation.
 type UpdateMLModelOutput struct {
 	// The ID assigned to the MLModel during creation. This value should be identical
 	// to the value of the MLModelID in the request.
-	MLModelID *string `locationName:"MLModelId" type:"string"`
+	MLModelId *string `min:"1" type:"string"`
 
 	metadataUpdateMLModelOutput `json:"-" xml:"-"`
 }
@@ -3021,3 +3762,189 @@ type UpdateMLModelOutput struct {
 type metadataUpdateMLModelOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s UpdateMLModelOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateMLModelOutput) GoString() string {
+	return s.String()
+}
+
+// The function used to train a MLModel. Training choices supported by Amazon
+// ML include the following:
+//
+//  SGD - Stochastic Gradient Descent. RandomForest - Random forest of decision
+// trees.
+const (
+	// @enum Algorithm
+	AlgorithmSgd = "sgd"
+)
+
+// A list of the variables to use in searching or filtering BatchPrediction.
+//
+//   CreatedAt - Sets the search criteria to BatchPrediction creation date.
+//  Status - Sets the search criteria to BatchPrediction status.  Name - Sets
+// the search criteria to the contents of BatchPrediction  Name.  IAMUser -
+// Sets the search criteria to the user account that invoked the BatchPrediction
+// creation.  MLModelId - Sets the search criteria to the MLModel used in the
+// BatchPrediction.  DataSourceId - Sets the search criteria to the DataSource
+// used in the BatchPrediction.  DataURI - Sets the search criteria to the data
+// file(s) used in the BatchPrediction. The URL can identify either a file or
+// an Amazon Simple Storage Service (Amazon S3) bucket or directory.
+const (
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableCreatedAt = "CreatedAt"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableLastUpdatedAt = "LastUpdatedAt"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableStatus = "Status"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableName = "Name"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableIamuser = "IAMUser"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableMlmodelId = "MLModelId"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableDataSourceId = "DataSourceId"
+	// @enum BatchPredictionFilterVariable
+	BatchPredictionFilterVariableDataUri = "DataURI"
+)
+
+// A list of the variables to use in searching or filtering DataSource.
+//
+//   CreatedAt - Sets the search criteria to DataSource creation date.  Status
+// - Sets the search criteria to DataSource status.  Name - Sets the search
+// criteria to the contents of DataSource   Name.  DataUri - Sets the search
+// criteria to the URI of data files used to create the DataSource. The URI
+// can identify either a file or an Amazon Simple Storage Service (Amazon S3)
+// bucket or directory.  IAMUser - Sets the search criteria to the user account
+// that invoked the DataSource creation.  Note The variable names should match
+// the variable names in the DataSource.
+const (
+	// @enum DataSourceFilterVariable
+	DataSourceFilterVariableCreatedAt = "CreatedAt"
+	// @enum DataSourceFilterVariable
+	DataSourceFilterVariableLastUpdatedAt = "LastUpdatedAt"
+	// @enum DataSourceFilterVariable
+	DataSourceFilterVariableStatus = "Status"
+	// @enum DataSourceFilterVariable
+	DataSourceFilterVariableName = "Name"
+	// @enum DataSourceFilterVariable
+	DataSourceFilterVariableDataLocationS3 = "DataLocationS3"
+	// @enum DataSourceFilterVariable
+	DataSourceFilterVariableIamuser = "IAMUser"
+)
+
+// Contains the key values of DetailsMap: PredictiveModelType - Indicates the
+// type of the MLModel. Algorithm - Indicates the algorithm was used for the
+// MLModel.
+const (
+	// @enum DetailsAttributes
+	DetailsAttributesPredictiveModelType = "PredictiveModelType"
+	// @enum DetailsAttributes
+	DetailsAttributesAlgorithm = "Algorithm"
+)
+
+// Entity status with the following possible values:
+//
+//  PENDING INPROGRESS FAILED COMPLETED DELETED
+const (
+	// @enum EntityStatus
+	EntityStatusPending = "PENDING"
+	// @enum EntityStatus
+	EntityStatusInprogress = "INPROGRESS"
+	// @enum EntityStatus
+	EntityStatusFailed = "FAILED"
+	// @enum EntityStatus
+	EntityStatusCompleted = "COMPLETED"
+	// @enum EntityStatus
+	EntityStatusDeleted = "DELETED"
+)
+
+// A list of the variables to use in searching or filtering Evaluation.
+//
+//   CreatedAt - Sets the search criteria to Evaluation creation date.  Status
+// - Sets the search criteria to Evaluation status.  Name - Sets the search
+// criteria to the contents of Evaluation   Name.  IAMUser - Sets the search
+// criteria to the user account that invoked an evaluation.  MLModelId - Sets
+// the search criteria to the Predictor that was evaluated.  DataSourceId -
+// Sets the search criteria to the DataSource used in evaluation.  DataUri -
+// Sets the search criteria to the data file(s) used in evaluation. The URL
+// can identify either a file or an Amazon Simple Storage Service (Amazon S3)
+// bucket or directory.
+const (
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableCreatedAt = "CreatedAt"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableLastUpdatedAt = "LastUpdatedAt"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableStatus = "Status"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableName = "Name"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableIamuser = "IAMUser"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableMlmodelId = "MLModelId"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableDataSourceId = "DataSourceId"
+	// @enum EvaluationFilterVariable
+	EvaluationFilterVariableDataUri = "DataURI"
+)
+
+const (
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableCreatedAt = "CreatedAt"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableLastUpdatedAt = "LastUpdatedAt"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableStatus = "Status"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableName = "Name"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableIamuser = "IAMUser"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableTrainingDataSourceId = "TrainingDataSourceId"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableRealtimeEndpointStatus = "RealtimeEndpointStatus"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableMlmodelType = "MLModelType"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableAlgorithm = "Algorithm"
+	// @enum MLModelFilterVariable
+	MLModelFilterVariableTrainingDataUri = "TrainingDataURI"
+)
+
+const (
+	// @enum MLModelType
+	MLModelTypeRegression = "REGRESSION"
+	// @enum MLModelType
+	MLModelTypeBinary = "BINARY"
+	// @enum MLModelType
+	MLModelTypeMulticlass = "MULTICLASS"
+)
+
+const (
+	// @enum RealtimeEndpointStatus
+	RealtimeEndpointStatusNone = "NONE"
+	// @enum RealtimeEndpointStatus
+	RealtimeEndpointStatusReady = "READY"
+	// @enum RealtimeEndpointStatus
+	RealtimeEndpointStatusUpdating = "UPDATING"
+	// @enum RealtimeEndpointStatus
+	RealtimeEndpointStatusFailed = "FAILED"
+)
+
+// The sort order specified in a listing condition. Possible values include
+// the following:
+//
+//   asc - Present the information in ascending order (from A-Z).  dsc - Present
+// the information in descending order (from Z-A).
+const (
+	// @enum SortOrder
+	SortOrderAsc = "asc"
+	// @enum SortOrder
+	SortOrderDsc = "dsc"
+)

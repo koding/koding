@@ -6,17 +6,18 @@ package cloudfront
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
-const opCreateCloudFrontOriginAccessIdentity = "CreateCloudFrontOriginAccessIdentity2014_11_06"
+const opCreateCloudFrontOriginAccessIdentity = "CreateCloudFrontOriginAccessIdentity2015_07_27"
 
 // CreateCloudFrontOriginAccessIdentityRequest generates a request for the CreateCloudFrontOriginAccessIdentity operation.
-func (c *CloudFront) CreateCloudFrontOriginAccessIdentityRequest(input *CreateCloudFrontOriginAccessIdentityInput) (req *aws.Request, output *CreateCloudFrontOriginAccessIdentityOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) CreateCloudFrontOriginAccessIdentityRequest(input *CreateCloudFrontOriginAccessIdentityInput) (req *request.Request, output *CreateCloudFrontOriginAccessIdentityOutput) {
+	op := &request.Operation{
 		Name:       opCreateCloudFrontOriginAccessIdentity,
 		HTTPMethod: "POST",
-		HTTPPath:   "/2014-11-06/origin-access-identity/cloudfront",
+		HTTPPath:   "/2015-07-27/origin-access-identity/cloudfront",
 	}
 
 	if input == nil {
@@ -36,14 +37,14 @@ func (c *CloudFront) CreateCloudFrontOriginAccessIdentity(input *CreateCloudFron
 	return out, err
 }
 
-const opCreateDistribution = "CreateDistribution2014_11_06"
+const opCreateDistribution = "CreateDistribution2015_07_27"
 
 // CreateDistributionRequest generates a request for the CreateDistribution operation.
-func (c *CloudFront) CreateDistributionRequest(input *CreateDistributionInput) (req *aws.Request, output *CreateDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) CreateDistributionRequest(input *CreateDistributionInput) (req *request.Request, output *CreateDistributionOutput) {
+	op := &request.Operation{
 		Name:       opCreateDistribution,
 		HTTPMethod: "POST",
-		HTTPPath:   "/2014-11-06/distribution",
+		HTTPPath:   "/2015-07-27/distribution",
 	}
 
 	if input == nil {
@@ -63,14 +64,14 @@ func (c *CloudFront) CreateDistribution(input *CreateDistributionInput) (*Create
 	return out, err
 }
 
-const opCreateInvalidation = "CreateInvalidation2014_11_06"
+const opCreateInvalidation = "CreateInvalidation2015_07_27"
 
 // CreateInvalidationRequest generates a request for the CreateInvalidation operation.
-func (c *CloudFront) CreateInvalidationRequest(input *CreateInvalidationInput) (req *aws.Request, output *CreateInvalidationOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) CreateInvalidationRequest(input *CreateInvalidationInput) (req *request.Request, output *CreateInvalidationOutput) {
+	op := &request.Operation{
 		Name:       opCreateInvalidation,
 		HTTPMethod: "POST",
-		HTTPPath:   "/2014-11-06/distribution/{DistributionId}/invalidation",
+		HTTPPath:   "/2015-07-27/distribution/{DistributionId}/invalidation",
 	}
 
 	if input == nil {
@@ -90,14 +91,14 @@ func (c *CloudFront) CreateInvalidation(input *CreateInvalidationInput) (*Create
 	return out, err
 }
 
-const opCreateStreamingDistribution = "CreateStreamingDistribution2014_11_06"
+const opCreateStreamingDistribution = "CreateStreamingDistribution2015_07_27"
 
 // CreateStreamingDistributionRequest generates a request for the CreateStreamingDistribution operation.
-func (c *CloudFront) CreateStreamingDistributionRequest(input *CreateStreamingDistributionInput) (req *aws.Request, output *CreateStreamingDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) CreateStreamingDistributionRequest(input *CreateStreamingDistributionInput) (req *request.Request, output *CreateStreamingDistributionOutput) {
+	op := &request.Operation{
 		Name:       opCreateStreamingDistribution,
 		HTTPMethod: "POST",
-		HTTPPath:   "/2014-11-06/streaming-distribution",
+		HTTPPath:   "/2015-07-27/streaming-distribution",
 	}
 
 	if input == nil {
@@ -117,14 +118,14 @@ func (c *CloudFront) CreateStreamingDistribution(input *CreateStreamingDistribut
 	return out, err
 }
 
-const opDeleteCloudFrontOriginAccessIdentity = "DeleteCloudFrontOriginAccessIdentity2014_11_06"
+const opDeleteCloudFrontOriginAccessIdentity = "DeleteCloudFrontOriginAccessIdentity2015_07_27"
 
 // DeleteCloudFrontOriginAccessIdentityRequest generates a request for the DeleteCloudFrontOriginAccessIdentity operation.
-func (c *CloudFront) DeleteCloudFrontOriginAccessIdentityRequest(input *DeleteCloudFrontOriginAccessIdentityInput) (req *aws.Request, output *DeleteCloudFrontOriginAccessIdentityOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) DeleteCloudFrontOriginAccessIdentityRequest(input *DeleteCloudFrontOriginAccessIdentityInput) (req *request.Request, output *DeleteCloudFrontOriginAccessIdentityOutput) {
+	op := &request.Operation{
 		Name:       opDeleteCloudFrontOriginAccessIdentity,
 		HTTPMethod: "DELETE",
-		HTTPPath:   "/2014-11-06/origin-access-identity/cloudfront/{Id}",
+		HTTPPath:   "/2015-07-27/origin-access-identity/cloudfront/{Id}",
 	}
 
 	if input == nil {
@@ -144,14 +145,14 @@ func (c *CloudFront) DeleteCloudFrontOriginAccessIdentity(input *DeleteCloudFron
 	return out, err
 }
 
-const opDeleteDistribution = "DeleteDistribution2014_11_06"
+const opDeleteDistribution = "DeleteDistribution2015_07_27"
 
 // DeleteDistributionRequest generates a request for the DeleteDistribution operation.
-func (c *CloudFront) DeleteDistributionRequest(input *DeleteDistributionInput) (req *aws.Request, output *DeleteDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) DeleteDistributionRequest(input *DeleteDistributionInput) (req *request.Request, output *DeleteDistributionOutput) {
+	op := &request.Operation{
 		Name:       opDeleteDistribution,
 		HTTPMethod: "DELETE",
-		HTTPPath:   "/2014-11-06/distribution/{Id}",
+		HTTPPath:   "/2015-07-27/distribution/{Id}",
 	}
 
 	if input == nil {
@@ -171,14 +172,14 @@ func (c *CloudFront) DeleteDistribution(input *DeleteDistributionInput) (*Delete
 	return out, err
 }
 
-const opDeleteStreamingDistribution = "DeleteStreamingDistribution2014_11_06"
+const opDeleteStreamingDistribution = "DeleteStreamingDistribution2015_07_27"
 
 // DeleteStreamingDistributionRequest generates a request for the DeleteStreamingDistribution operation.
-func (c *CloudFront) DeleteStreamingDistributionRequest(input *DeleteStreamingDistributionInput) (req *aws.Request, output *DeleteStreamingDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) DeleteStreamingDistributionRequest(input *DeleteStreamingDistributionInput) (req *request.Request, output *DeleteStreamingDistributionOutput) {
+	op := &request.Operation{
 		Name:       opDeleteStreamingDistribution,
 		HTTPMethod: "DELETE",
-		HTTPPath:   "/2014-11-06/streaming-distribution/{Id}",
+		HTTPPath:   "/2015-07-27/streaming-distribution/{Id}",
 	}
 
 	if input == nil {
@@ -198,14 +199,14 @@ func (c *CloudFront) DeleteStreamingDistribution(input *DeleteStreamingDistribut
 	return out, err
 }
 
-const opGetCloudFrontOriginAccessIdentity = "GetCloudFrontOriginAccessIdentity2014_11_06"
+const opGetCloudFrontOriginAccessIdentity = "GetCloudFrontOriginAccessIdentity2015_07_27"
 
 // GetCloudFrontOriginAccessIdentityRequest generates a request for the GetCloudFrontOriginAccessIdentity operation.
-func (c *CloudFront) GetCloudFrontOriginAccessIdentityRequest(input *GetCloudFrontOriginAccessIdentityInput) (req *aws.Request, output *GetCloudFrontOriginAccessIdentityOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetCloudFrontOriginAccessIdentityRequest(input *GetCloudFrontOriginAccessIdentityInput) (req *request.Request, output *GetCloudFrontOriginAccessIdentityOutput) {
+	op := &request.Operation{
 		Name:       opGetCloudFrontOriginAccessIdentity,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/origin-access-identity/cloudfront/{Id}",
+		HTTPPath:   "/2015-07-27/origin-access-identity/cloudfront/{Id}",
 	}
 
 	if input == nil {
@@ -225,14 +226,14 @@ func (c *CloudFront) GetCloudFrontOriginAccessIdentity(input *GetCloudFrontOrigi
 	return out, err
 }
 
-const opGetCloudFrontOriginAccessIdentityConfig = "GetCloudFrontOriginAccessIdentityConfig2014_11_06"
+const opGetCloudFrontOriginAccessIdentityConfig = "GetCloudFrontOriginAccessIdentityConfig2015_07_27"
 
 // GetCloudFrontOriginAccessIdentityConfigRequest generates a request for the GetCloudFrontOriginAccessIdentityConfig operation.
-func (c *CloudFront) GetCloudFrontOriginAccessIdentityConfigRequest(input *GetCloudFrontOriginAccessIdentityConfigInput) (req *aws.Request, output *GetCloudFrontOriginAccessIdentityConfigOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetCloudFrontOriginAccessIdentityConfigRequest(input *GetCloudFrontOriginAccessIdentityConfigInput) (req *request.Request, output *GetCloudFrontOriginAccessIdentityConfigOutput) {
+	op := &request.Operation{
 		Name:       opGetCloudFrontOriginAccessIdentityConfig,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/origin-access-identity/cloudfront/{Id}/config",
+		HTTPPath:   "/2015-07-27/origin-access-identity/cloudfront/{Id}/config",
 	}
 
 	if input == nil {
@@ -252,14 +253,14 @@ func (c *CloudFront) GetCloudFrontOriginAccessIdentityConfig(input *GetCloudFron
 	return out, err
 }
 
-const opGetDistribution = "GetDistribution2014_11_06"
+const opGetDistribution = "GetDistribution2015_07_27"
 
 // GetDistributionRequest generates a request for the GetDistribution operation.
-func (c *CloudFront) GetDistributionRequest(input *GetDistributionInput) (req *aws.Request, output *GetDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetDistributionRequest(input *GetDistributionInput) (req *request.Request, output *GetDistributionOutput) {
+	op := &request.Operation{
 		Name:       opGetDistribution,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/distribution/{Id}",
+		HTTPPath:   "/2015-07-27/distribution/{Id}",
 	}
 
 	if input == nil {
@@ -279,14 +280,14 @@ func (c *CloudFront) GetDistribution(input *GetDistributionInput) (*GetDistribut
 	return out, err
 }
 
-const opGetDistributionConfig = "GetDistributionConfig2014_11_06"
+const opGetDistributionConfig = "GetDistributionConfig2015_07_27"
 
 // GetDistributionConfigRequest generates a request for the GetDistributionConfig operation.
-func (c *CloudFront) GetDistributionConfigRequest(input *GetDistributionConfigInput) (req *aws.Request, output *GetDistributionConfigOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetDistributionConfigRequest(input *GetDistributionConfigInput) (req *request.Request, output *GetDistributionConfigOutput) {
+	op := &request.Operation{
 		Name:       opGetDistributionConfig,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/distribution/{Id}/config",
+		HTTPPath:   "/2015-07-27/distribution/{Id}/config",
 	}
 
 	if input == nil {
@@ -306,14 +307,14 @@ func (c *CloudFront) GetDistributionConfig(input *GetDistributionConfigInput) (*
 	return out, err
 }
 
-const opGetInvalidation = "GetInvalidation2014_11_06"
+const opGetInvalidation = "GetInvalidation2015_07_27"
 
 // GetInvalidationRequest generates a request for the GetInvalidation operation.
-func (c *CloudFront) GetInvalidationRequest(input *GetInvalidationInput) (req *aws.Request, output *GetInvalidationOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetInvalidationRequest(input *GetInvalidationInput) (req *request.Request, output *GetInvalidationOutput) {
+	op := &request.Operation{
 		Name:       opGetInvalidation,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/distribution/{DistributionId}/invalidation/{Id}",
+		HTTPPath:   "/2015-07-27/distribution/{DistributionId}/invalidation/{Id}",
 	}
 
 	if input == nil {
@@ -333,14 +334,14 @@ func (c *CloudFront) GetInvalidation(input *GetInvalidationInput) (*GetInvalidat
 	return out, err
 }
 
-const opGetStreamingDistribution = "GetStreamingDistribution2014_11_06"
+const opGetStreamingDistribution = "GetStreamingDistribution2015_07_27"
 
 // GetStreamingDistributionRequest generates a request for the GetStreamingDistribution operation.
-func (c *CloudFront) GetStreamingDistributionRequest(input *GetStreamingDistributionInput) (req *aws.Request, output *GetStreamingDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetStreamingDistributionRequest(input *GetStreamingDistributionInput) (req *request.Request, output *GetStreamingDistributionOutput) {
+	op := &request.Operation{
 		Name:       opGetStreamingDistribution,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/streaming-distribution/{Id}",
+		HTTPPath:   "/2015-07-27/streaming-distribution/{Id}",
 	}
 
 	if input == nil {
@@ -360,14 +361,14 @@ func (c *CloudFront) GetStreamingDistribution(input *GetStreamingDistributionInp
 	return out, err
 }
 
-const opGetStreamingDistributionConfig = "GetStreamingDistributionConfig2014_11_06"
+const opGetStreamingDistributionConfig = "GetStreamingDistributionConfig2015_07_27"
 
 // GetStreamingDistributionConfigRequest generates a request for the GetStreamingDistributionConfig operation.
-func (c *CloudFront) GetStreamingDistributionConfigRequest(input *GetStreamingDistributionConfigInput) (req *aws.Request, output *GetStreamingDistributionConfigOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) GetStreamingDistributionConfigRequest(input *GetStreamingDistributionConfigInput) (req *request.Request, output *GetStreamingDistributionConfigOutput) {
+	op := &request.Operation{
 		Name:       opGetStreamingDistributionConfig,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/streaming-distribution/{Id}/config",
+		HTTPPath:   "/2015-07-27/streaming-distribution/{Id}/config",
 	}
 
 	if input == nil {
@@ -387,15 +388,15 @@ func (c *CloudFront) GetStreamingDistributionConfig(input *GetStreamingDistribut
 	return out, err
 }
 
-const opListCloudFrontOriginAccessIdentities = "ListCloudFrontOriginAccessIdentities2014_11_06"
+const opListCloudFrontOriginAccessIdentities = "ListCloudFrontOriginAccessIdentities2015_07_27"
 
 // ListCloudFrontOriginAccessIdentitiesRequest generates a request for the ListCloudFrontOriginAccessIdentities operation.
-func (c *CloudFront) ListCloudFrontOriginAccessIdentitiesRequest(input *ListCloudFrontOriginAccessIdentitiesInput) (req *aws.Request, output *ListCloudFrontOriginAccessIdentitiesOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) ListCloudFrontOriginAccessIdentitiesRequest(input *ListCloudFrontOriginAccessIdentitiesInput) (req *request.Request, output *ListCloudFrontOriginAccessIdentitiesOutput) {
+	op := &request.Operation{
 		Name:       opListCloudFrontOriginAccessIdentities,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/origin-access-identity/cloudfront",
-		Paginator: &aws.Paginator{
+		HTTPPath:   "/2015-07-27/origin-access-identity/cloudfront",
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"CloudFrontOriginAccessIdentityList.NextMarker"},
 			LimitToken:      "MaxItems",
@@ -427,15 +428,15 @@ func (c *CloudFront) ListCloudFrontOriginAccessIdentitiesPages(input *ListCloudF
 	})
 }
 
-const opListDistributions = "ListDistributions2014_11_06"
+const opListDistributions = "ListDistributions2015_07_27"
 
 // ListDistributionsRequest generates a request for the ListDistributions operation.
-func (c *CloudFront) ListDistributionsRequest(input *ListDistributionsInput) (req *aws.Request, output *ListDistributionsOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) ListDistributionsRequest(input *ListDistributionsInput) (req *request.Request, output *ListDistributionsOutput) {
+	op := &request.Operation{
 		Name:       opListDistributions,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/distribution",
-		Paginator: &aws.Paginator{
+		HTTPPath:   "/2015-07-27/distribution",
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"DistributionList.NextMarker"},
 			LimitToken:      "MaxItems",
@@ -467,15 +468,42 @@ func (c *CloudFront) ListDistributionsPages(input *ListDistributionsInput, fn fu
 	})
 }
 
-const opListInvalidations = "ListInvalidations2014_11_06"
+const opListDistributionsByWebACLId = "ListDistributionsByWebACLId2015_07_27"
+
+// ListDistributionsByWebACLIdRequest generates a request for the ListDistributionsByWebACLId operation.
+func (c *CloudFront) ListDistributionsByWebACLIdRequest(input *ListDistributionsByWebACLIdInput) (req *request.Request, output *ListDistributionsByWebACLIdOutput) {
+	op := &request.Operation{
+		Name:       opListDistributionsByWebACLId,
+		HTTPMethod: "GET",
+		HTTPPath:   "/2015-07-27/distributionsByWebACLId/{WebACLId}",
+	}
+
+	if input == nil {
+		input = &ListDistributionsByWebACLIdInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &ListDistributionsByWebACLIdOutput{}
+	req.Data = output
+	return
+}
+
+// List the distributions that are associated with a specified AWS WAF web ACL.
+func (c *CloudFront) ListDistributionsByWebACLId(input *ListDistributionsByWebACLIdInput) (*ListDistributionsByWebACLIdOutput, error) {
+	req, out := c.ListDistributionsByWebACLIdRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opListInvalidations = "ListInvalidations2015_07_27"
 
 // ListInvalidationsRequest generates a request for the ListInvalidations operation.
-func (c *CloudFront) ListInvalidationsRequest(input *ListInvalidationsInput) (req *aws.Request, output *ListInvalidationsOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) ListInvalidationsRequest(input *ListInvalidationsInput) (req *request.Request, output *ListInvalidationsOutput) {
+	op := &request.Operation{
 		Name:       opListInvalidations,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/distribution/{DistributionId}/invalidation",
-		Paginator: &aws.Paginator{
+		HTTPPath:   "/2015-07-27/distribution/{DistributionId}/invalidation",
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"InvalidationList.NextMarker"},
 			LimitToken:      "MaxItems",
@@ -507,15 +535,15 @@ func (c *CloudFront) ListInvalidationsPages(input *ListInvalidationsInput, fn fu
 	})
 }
 
-const opListStreamingDistributions = "ListStreamingDistributions2014_11_06"
+const opListStreamingDistributions = "ListStreamingDistributions2015_07_27"
 
 // ListStreamingDistributionsRequest generates a request for the ListStreamingDistributions operation.
-func (c *CloudFront) ListStreamingDistributionsRequest(input *ListStreamingDistributionsInput) (req *aws.Request, output *ListStreamingDistributionsOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) ListStreamingDistributionsRequest(input *ListStreamingDistributionsInput) (req *request.Request, output *ListStreamingDistributionsOutput) {
+	op := &request.Operation{
 		Name:       opListStreamingDistributions,
 		HTTPMethod: "GET",
-		HTTPPath:   "/2014-11-06/streaming-distribution",
-		Paginator: &aws.Paginator{
+		HTTPPath:   "/2015-07-27/streaming-distribution",
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"StreamingDistributionList.NextMarker"},
 			LimitToken:      "MaxItems",
@@ -547,14 +575,14 @@ func (c *CloudFront) ListStreamingDistributionsPages(input *ListStreamingDistrib
 	})
 }
 
-const opUpdateCloudFrontOriginAccessIdentity = "UpdateCloudFrontOriginAccessIdentity2014_11_06"
+const opUpdateCloudFrontOriginAccessIdentity = "UpdateCloudFrontOriginAccessIdentity2015_07_27"
 
 // UpdateCloudFrontOriginAccessIdentityRequest generates a request for the UpdateCloudFrontOriginAccessIdentity operation.
-func (c *CloudFront) UpdateCloudFrontOriginAccessIdentityRequest(input *UpdateCloudFrontOriginAccessIdentityInput) (req *aws.Request, output *UpdateCloudFrontOriginAccessIdentityOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) UpdateCloudFrontOriginAccessIdentityRequest(input *UpdateCloudFrontOriginAccessIdentityInput) (req *request.Request, output *UpdateCloudFrontOriginAccessIdentityOutput) {
+	op := &request.Operation{
 		Name:       opUpdateCloudFrontOriginAccessIdentity,
 		HTTPMethod: "PUT",
-		HTTPPath:   "/2014-11-06/origin-access-identity/cloudfront/{Id}/config",
+		HTTPPath:   "/2015-07-27/origin-access-identity/cloudfront/{Id}/config",
 	}
 
 	if input == nil {
@@ -574,14 +602,14 @@ func (c *CloudFront) UpdateCloudFrontOriginAccessIdentity(input *UpdateCloudFron
 	return out, err
 }
 
-const opUpdateDistribution = "UpdateDistribution2014_11_06"
+const opUpdateDistribution = "UpdateDistribution2015_07_27"
 
 // UpdateDistributionRequest generates a request for the UpdateDistribution operation.
-func (c *CloudFront) UpdateDistributionRequest(input *UpdateDistributionInput) (req *aws.Request, output *UpdateDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) UpdateDistributionRequest(input *UpdateDistributionInput) (req *request.Request, output *UpdateDistributionOutput) {
+	op := &request.Operation{
 		Name:       opUpdateDistribution,
 		HTTPMethod: "PUT",
-		HTTPPath:   "/2014-11-06/distribution/{Id}/config",
+		HTTPPath:   "/2015-07-27/distribution/{Id}/config",
 	}
 
 	if input == nil {
@@ -601,14 +629,14 @@ func (c *CloudFront) UpdateDistribution(input *UpdateDistributionInput) (*Update
 	return out, err
 }
 
-const opUpdateStreamingDistribution = "UpdateStreamingDistribution2014_11_06"
+const opUpdateStreamingDistribution = "UpdateStreamingDistribution2015_07_27"
 
 // UpdateStreamingDistributionRequest generates a request for the UpdateStreamingDistribution operation.
-func (c *CloudFront) UpdateStreamingDistributionRequest(input *UpdateStreamingDistributionInput) (req *aws.Request, output *UpdateStreamingDistributionOutput) {
-	op := &aws.Operation{
+func (c *CloudFront) UpdateStreamingDistributionRequest(input *UpdateStreamingDistributionInput) (req *request.Request, output *UpdateStreamingDistributionOutput) {
+	op := &request.Operation{
 		Name:       opUpdateStreamingDistribution,
 		HTTPMethod: "PUT",
-		HTTPPath:   "/2014-11-06/streaming-distribution/{Id}/config",
+		HTTPPath:   "/2015-07-27/streaming-distribution/{Id}/config",
 	}
 
 	if input == nil {
@@ -653,6 +681,16 @@ type metadataActiveTrustedSigners struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ActiveTrustedSigners) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ActiveTrustedSigners) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about CNAMEs (alternate domain names),
 // if any, for this distribution.
 type Aliases struct {
@@ -668,6 +706,16 @@ type Aliases struct {
 
 type metadataAliases struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Aliases) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Aliases) GoString() string {
+	return s.String()
 }
 
 // A complex type that controls which HTTP methods CloudFront processes and
@@ -703,6 +751,16 @@ type metadataAllowedMethods struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AllowedMethods) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AllowedMethods) GoString() string {
+	return s.String()
+}
+
 // A complex type that describes how CloudFront processes requests. You can
 // create up to 10 cache behaviors.You must create at least as many cache behaviors
 // (including the default cache behavior) as you have origins if you want CloudFront
@@ -728,9 +786,27 @@ type CacheBehavior struct {
 	// you may not want users to have permission to delete objects from your origin.
 	AllowedMethods *AllowedMethods `type:"structure"`
 
+	// If you don't configure your origin to add a Cache-Control max-age directive
+	// or an Expires header, DefaultTTL is the default amount of time (in seconds)
+	// that an object is in a CloudFront cache before CloudFront forwards another
+	// request to your origin to determine whether the object has been updated.
+	// The value that you specify applies only when your origin does not add HTTP
+	// headers such as Cache-Control max-age, Cache-Control s-maxage, and Expires
+	// to objects. You can specify a value from 0 to 3,153,600,000 seconds (100
+	// years).
+	DefaultTTL *int64 `type:"long"`
+
 	// A complex type that specifies how CloudFront handles query strings, cookies
 	// and headers.
 	ForwardedValues *ForwardedValues `type:"structure" required:"true"`
+
+	// The maximum amount of time (in seconds) that an object is in a CloudFront
+	// cache before CloudFront forwards another request to your origin to determine
+	// whether the object has been updated. The value that you specify applies only
+	// when your origin adds HTTP headers such as Cache-Control max-age, Cache-Control
+	// s-maxage, and Expires to objects. You can specify a value from 0 to 3,153,600,000
+	// seconds (100 years).
+	MaxTTL *int64 `type:"long"`
 
 	// The minimum amount of time that you want objects to stay in CloudFront caches
 	// before CloudFront queries your origin to see whether the object has been
@@ -754,7 +830,7 @@ type CacheBehavior struct {
 	// The value of ID for the origin that you want CloudFront to route requests
 	// to when a request matches the path pattern either for a cache behavior or
 	// for the default cache behavior.
-	TargetOriginID *string `locationName:"TargetOriginId" type:"string" required:"true"`
+	TargetOriginId *string `type:"string" required:"true"`
 
 	// A complex type that specifies the AWS accounts, if any, that you want to
 	// allow to create signed URLs for private content. If you want to require signed
@@ -777,13 +853,23 @@ type CacheBehavior struct {
 	// request with an HTTP status code of 301 (Moved Permanently) and the HTTPS
 	// URL, specify redirect-to-https. The viewer then resubmits the request using
 	// the HTTPS URL.
-	ViewerProtocolPolicy *string `type:"string" required:"true"`
+	ViewerProtocolPolicy *string `type:"string" required:"true" enum:"ViewerProtocolPolicy"`
 
 	metadataCacheBehavior `json:"-" xml:"-"`
 }
 
 type metadataCacheBehavior struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CacheBehavior) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CacheBehavior) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains zero or more CacheBehavior elements.
@@ -800,6 +886,16 @@ type CacheBehaviors struct {
 
 type metadataCacheBehaviors struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CacheBehaviors) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CacheBehaviors) GoString() string {
+	return s.String()
 }
 
 // A complex type that controls whether CloudFront caches the response to requests
@@ -825,6 +921,16 @@ type metadataCachedMethods struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CachedMethods) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CachedMethods) GoString() string {
+	return s.String()
+}
+
 // A complex type that specifies the whitelisted cookies, if any, that you want
 // CloudFront to forward to your origin that is associated with this cache behavior.
 type CookieNames struct {
@@ -842,6 +948,16 @@ type metadataCookieNames struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CookieNames) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CookieNames) GoString() string {
+	return s.String()
+}
+
 // A complex type that specifies the cookie preferences associated with this
 // cache behavior.
 type CookiePreference struct {
@@ -849,7 +965,7 @@ type CookiePreference struct {
 	// to the origin that is associated with this cache behavior. You can specify
 	// all, none or whitelist. If you choose All, CloudFront forwards all cookies
 	// regardless of how many your application uses.
-	Forward *string `type:"string" required:"true"`
+	Forward *string `type:"string" required:"true" enum:"ItemSelection"`
 
 	// A complex type that specifies the whitelisted cookies, if any, that you want
 	// CloudFront to forward to your origin that is associated with this cache behavior.
@@ -862,6 +978,16 @@ type metadataCookiePreference struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CookiePreference) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CookiePreference) GoString() string {
+	return s.String()
+}
+
 // The request to create a new origin access identity.
 type CreateCloudFrontOriginAccessIdentityInput struct {
 	// The origin access identity's configuration information.
@@ -872,6 +998,16 @@ type CreateCloudFrontOriginAccessIdentityInput struct {
 
 type metadataCreateCloudFrontOriginAccessIdentityInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentityConfig"`
+}
+
+// String returns the string representation
+func (s CreateCloudFrontOriginAccessIdentityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateCloudFrontOriginAccessIdentityInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -893,6 +1029,16 @@ type metadataCreateCloudFrontOriginAccessIdentityOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentity"`
 }
 
+// String returns the string representation
+func (s CreateCloudFrontOriginAccessIdentityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateCloudFrontOriginAccessIdentityOutput) GoString() string {
+	return s.String()
+}
+
 // The request to create a new distribution.
 type CreateDistributionInput struct {
 	// The distribution's configuration information.
@@ -903,6 +1049,16 @@ type CreateDistributionInput struct {
 
 type metadataCreateDistributionInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"DistributionConfig"`
+}
+
+// String returns the string representation
+func (s CreateDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDistributionInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -924,10 +1080,20 @@ type metadataCreateDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"Distribution"`
 }
 
+// String returns the string representation
+func (s CreateDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDistributionOutput) GoString() string {
+	return s.String()
+}
+
 // The request to create an invalidation.
 type CreateInvalidationInput struct {
 	// The distribution's id.
-	DistributionID *string `location:"uri" locationName:"DistributionId" type:"string" required:"true"`
+	DistributionId *string `location:"uri" locationName:"DistributionId" type:"string" required:"true"`
 
 	// The batch information for the invalidation.
 	InvalidationBatch *InvalidationBatch `locationName:"InvalidationBatch" type:"structure" required:"true"`
@@ -937,6 +1103,16 @@ type CreateInvalidationInput struct {
 
 type metadataCreateInvalidationInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"InvalidationBatch"`
+}
+
+// String returns the string representation
+func (s CreateInvalidationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateInvalidationInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -955,6 +1131,16 @@ type metadataCreateInvalidationOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"Invalidation"`
 }
 
+// String returns the string representation
+func (s CreateInvalidationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateInvalidationOutput) GoString() string {
+	return s.String()
+}
+
 // The request to create a new streaming distribution.
 type CreateStreamingDistributionInput struct {
 	// The streaming distribution's configuration information.
@@ -965,6 +1151,16 @@ type CreateStreamingDistributionInput struct {
 
 type metadataCreateStreamingDistributionInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistributionConfig"`
+}
+
+// String returns the string representation
+func (s CreateStreamingDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateStreamingDistributionInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -984,6 +1180,16 @@ type CreateStreamingDistributionOutput struct {
 
 type metadataCreateStreamingDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistribution"`
+}
+
+// String returns the string representation
+func (s CreateStreamingDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateStreamingDistributionOutput) GoString() string {
+	return s.String()
 }
 
 // A complex type that describes how you'd prefer CloudFront to respond to requests
@@ -1027,6 +1233,16 @@ type metadataCustomErrorResponse struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CustomErrorResponse) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CustomErrorResponse) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains zero or more CustomErrorResponse elements.
 type CustomErrorResponses struct {
 	// Optional: A complex type that contains custom error responses for this distribution.
@@ -1043,6 +1259,16 @@ type metadataCustomErrorResponses struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CustomErrorResponses) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CustomErrorResponses) GoString() string {
+	return s.String()
+}
+
 // A customer origin.
 type CustomOriginConfig struct {
 	// The HTTP port the custom origin listens on.
@@ -1052,13 +1278,23 @@ type CustomOriginConfig struct {
 	HTTPSPort *int64 `type:"integer" required:"true"`
 
 	// The origin protocol policy to apply to your origin.
-	OriginProtocolPolicy *string `type:"string" required:"true"`
+	OriginProtocolPolicy *string `type:"string" required:"true" enum:"OriginProtocolPolicy"`
 
 	metadataCustomOriginConfig `json:"-" xml:"-"`
 }
 
 type metadataCustomOriginConfig struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CustomOriginConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CustomOriginConfig) GoString() string {
+	return s.String()
 }
 
 // A complex type that describes the default cache behavior if you do not specify
@@ -1075,9 +1311,27 @@ type DefaultCacheBehavior struct {
 	// you may not want users to have permission to delete objects from your origin.
 	AllowedMethods *AllowedMethods `type:"structure"`
 
+	// If you don't configure your origin to add a Cache-Control max-age directive
+	// or an Expires header, DefaultTTL is the default amount of time (in seconds)
+	// that an object is in a CloudFront cache before CloudFront forwards another
+	// request to your origin to determine whether the object has been updated.
+	// The value that you specify applies only when your origin does not add HTTP
+	// headers such as Cache-Control max-age, Cache-Control s-maxage, and Expires
+	// to objects. You can specify a value from 0 to 3,153,600,000 seconds (100
+	// years).
+	DefaultTTL *int64 `type:"long"`
+
 	// A complex type that specifies how CloudFront handles query strings, cookies
 	// and headers.
 	ForwardedValues *ForwardedValues `type:"structure" required:"true"`
+
+	// The maximum amount of time (in seconds) that an object is in a CloudFront
+	// cache before CloudFront forwards another request to your origin to determine
+	// whether the object has been updated. The value that you specify applies only
+	// when your origin adds HTTP headers such as Cache-Control max-age, Cache-Control
+	// s-maxage, and Expires to objects. You can specify a value from 0 to 3,153,600,000
+	// seconds (100 years).
+	MaxTTL *int64 `type:"long"`
 
 	// The minimum amount of time that you want objects to stay in CloudFront caches
 	// before CloudFront queries your origin to see whether the object has been
@@ -1092,7 +1346,7 @@ type DefaultCacheBehavior struct {
 	// The value of ID for the origin that you want CloudFront to route requests
 	// to when a request matches the path pattern either for a cache behavior or
 	// for the default cache behavior.
-	TargetOriginID *string `locationName:"TargetOriginId" type:"string" required:"true"`
+	TargetOriginId *string `type:"string" required:"true"`
 
 	// A complex type that specifies the AWS accounts, if any, that you want to
 	// allow to create signed URLs for private content. If you want to require signed
@@ -1115,7 +1369,7 @@ type DefaultCacheBehavior struct {
 	// request with an HTTP status code of 301 (Moved Permanently) and the HTTPS
 	// URL, specify redirect-to-https. The viewer then resubmits the request using
 	// the HTTPS URL.
-	ViewerProtocolPolicy *string `type:"string" required:"true"`
+	ViewerProtocolPolicy *string `type:"string" required:"true" enum:"ViewerProtocolPolicy"`
 
 	metadataDefaultCacheBehavior `json:"-" xml:"-"`
 }
@@ -1124,10 +1378,20 @@ type metadataDefaultCacheBehavior struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DefaultCacheBehavior) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefaultCacheBehavior) GoString() string {
+	return s.String()
+}
+
 // The request to delete a origin access identity.
 type DeleteCloudFrontOriginAccessIdentityInput struct {
 	// The origin access identity's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The value of the ETag header you received from a previous GET or PUT request.
 	// For example: E2QWRUHAPOMQZL.
@@ -1140,6 +1404,16 @@ type metadataDeleteCloudFrontOriginAccessIdentityInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteCloudFrontOriginAccessIdentityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteCloudFrontOriginAccessIdentityInput) GoString() string {
+	return s.String()
+}
+
 type DeleteCloudFrontOriginAccessIdentityOutput struct {
 	metadataDeleteCloudFrontOriginAccessIdentityOutput `json:"-" xml:"-"`
 }
@@ -1148,10 +1422,20 @@ type metadataDeleteCloudFrontOriginAccessIdentityOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteCloudFrontOriginAccessIdentityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteCloudFrontOriginAccessIdentityOutput) GoString() string {
+	return s.String()
+}
+
 // The request to delete a distribution.
 type DeleteDistributionInput struct {
 	// The distribution id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The value of the ETag header you received when you disabled the distribution.
 	// For example: E2QWRUHAPOMQZL.
@@ -1164,6 +1448,16 @@ type metadataDeleteDistributionInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDistributionInput) GoString() string {
+	return s.String()
+}
+
 type DeleteDistributionOutput struct {
 	metadataDeleteDistributionOutput `json:"-" xml:"-"`
 }
@@ -1172,10 +1466,20 @@ type metadataDeleteDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDistributionOutput) GoString() string {
+	return s.String()
+}
+
 // The request to delete a streaming distribution.
 type DeleteStreamingDistributionInput struct {
 	// The distribution id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The value of the ETag header you received when you disabled the streaming
 	// distribution. For example: E2QWRUHAPOMQZL.
@@ -1188,12 +1492,32 @@ type metadataDeleteStreamingDistributionInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteStreamingDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteStreamingDistributionInput) GoString() string {
+	return s.String()
+}
+
 type DeleteStreamingDistributionOutput struct {
 	metadataDeleteStreamingDistributionOutput `json:"-" xml:"-"`
 }
 
 type metadataDeleteStreamingDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteStreamingDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteStreamingDistributionOutput) GoString() string {
+	return s.String()
 }
 
 // A distribution.
@@ -1215,7 +1539,7 @@ type Distribution struct {
 	DomainName *string `type:"string" required:"true"`
 
 	// The identifier for the distribution. For example: EDFDVBD632BHDS5.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The number of invalidation batches currently in progress.
 	InProgressInvalidationBatches *int64 `type:"integer" required:"true"`
@@ -1233,6 +1557,16 @@ type Distribution struct {
 
 type metadataDistribution struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Distribution) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Distribution) GoString() string {
+	return s.String()
 }
 
 // A distribution Configuration.
@@ -1287,7 +1621,7 @@ type DistributionConfig struct {
 	Origins *Origins `type:"structure" required:"true"`
 
 	// A complex type that contains information about price class for this distribution.
-	PriceClass *string `type:"string"`
+	PriceClass *string `type:"string" enum:"PriceClass"`
 
 	// A complex type that identifies ways in which you want to restrict distribution
 	// of your content.
@@ -1297,11 +1631,25 @@ type DistributionConfig struct {
 	// distribution.
 	ViewerCertificate *ViewerCertificate `type:"structure"`
 
+	// (Optional) If you're using AWS WAF to filter CloudFront requests, the Id
+	// of the AWS WAF web ACL that is associated with the distribution.
+	WebACLId *string `type:"string"`
+
 	metadataDistributionConfig `json:"-" xml:"-"`
 }
 
 type metadataDistributionConfig struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DistributionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DistributionConfig) GoString() string {
+	return s.String()
 }
 
 // A distribution list.
@@ -1337,6 +1685,16 @@ type metadataDistributionList struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DistributionList) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DistributionList) GoString() string {
+	return s.String()
+}
+
 // A summary of the information for an Amazon CloudFront distribution.
 type DistributionSummary struct {
 	// A complex type that contains information about CNAMEs (alternate domain names),
@@ -1364,7 +1722,7 @@ type DistributionSummary struct {
 	Enabled *bool `type:"boolean" required:"true"`
 
 	// The identifier for the distribution. For example: EDFDVBD632BHDS5.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The date and time the distribution was last modified.
 	LastModifiedTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
@@ -1372,7 +1730,7 @@ type DistributionSummary struct {
 	// A complex type that contains information about origins for this distribution.
 	Origins *Origins `type:"structure" required:"true"`
 
-	PriceClass *string `type:"string" required:"true"`
+	PriceClass *string `type:"string" required:"true" enum:"PriceClass"`
 
 	// A complex type that identifies ways in which you want to restrict distribution
 	// of your content.
@@ -1387,11 +1745,24 @@ type DistributionSummary struct {
 	// distribution.
 	ViewerCertificate *ViewerCertificate `type:"structure" required:"true"`
 
+	// The Web ACL Id (if any) associated with the distribution.
+	WebACLId *string `type:"string" required:"true"`
+
 	metadataDistributionSummary `json:"-" xml:"-"`
 }
 
 type metadataDistributionSummary struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DistributionSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DistributionSummary) GoString() string {
+	return s.String()
 }
 
 // A complex type that specifies how CloudFront handles query strings, cookies
@@ -1414,6 +1785,16 @@ type ForwardedValues struct {
 
 type metadataForwardedValues struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ForwardedValues) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ForwardedValues) GoString() string {
+	return s.String()
 }
 
 // A complex type that controls the countries in which your content is distributed.
@@ -1445,7 +1826,7 @@ type GeoRestriction struct {
 	// specify the countries in which you do not want CloudFront to distribute your
 	// content. - whitelist: The Location elements specify the countries in which
 	// you want CloudFront to distribute your content.
-	RestrictionType *string `type:"string" required:"true"`
+	RestrictionType *string `type:"string" required:"true" enum:"GeoRestrictionType"`
 
 	metadataGeoRestriction `json:"-" xml:"-"`
 }
@@ -1454,16 +1835,36 @@ type metadataGeoRestriction struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GeoRestriction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GeoRestriction) GoString() string {
+	return s.String()
+}
+
 // The request to get an origin access identity's configuration.
 type GetCloudFrontOriginAccessIdentityConfigInput struct {
 	// The identity's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetCloudFrontOriginAccessIdentityConfigInput `json:"-" xml:"-"`
 }
 
 type metadataGetCloudFrontOriginAccessIdentityConfigInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetCloudFrontOriginAccessIdentityConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCloudFrontOriginAccessIdentityConfigInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1481,16 +1882,36 @@ type metadataGetCloudFrontOriginAccessIdentityConfigOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentityConfig"`
 }
 
+// String returns the string representation
+func (s GetCloudFrontOriginAccessIdentityConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCloudFrontOriginAccessIdentityConfigOutput) GoString() string {
+	return s.String()
+}
+
 // The request to get an origin access identity's information.
 type GetCloudFrontOriginAccessIdentityInput struct {
 	// The identity's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetCloudFrontOriginAccessIdentityInput `json:"-" xml:"-"`
 }
 
 type metadataGetCloudFrontOriginAccessIdentityInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetCloudFrontOriginAccessIdentityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCloudFrontOriginAccessIdentityInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1509,16 +1930,36 @@ type metadataGetCloudFrontOriginAccessIdentityOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentity"`
 }
 
+// String returns the string representation
+func (s GetCloudFrontOriginAccessIdentityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCloudFrontOriginAccessIdentityOutput) GoString() string {
+	return s.String()
+}
+
 // The request to get a distribution configuration.
 type GetDistributionConfigInput struct {
 	// The distribution's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetDistributionConfigInput `json:"-" xml:"-"`
 }
 
 type metadataGetDistributionConfigInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetDistributionConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionConfigInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1536,16 +1977,36 @@ type metadataGetDistributionConfigOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"DistributionConfig"`
 }
 
+// String returns the string representation
+func (s GetDistributionConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionConfigOutput) GoString() string {
+	return s.String()
+}
+
 // The request to get a distribution's information.
 type GetDistributionInput struct {
 	// The distribution's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetDistributionInput `json:"-" xml:"-"`
 }
 
 type metadataGetDistributionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1563,19 +2024,39 @@ type metadataGetDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"Distribution"`
 }
 
+// String returns the string representation
+func (s GetDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionOutput) GoString() string {
+	return s.String()
+}
+
 // The request to get an invalidation's information.
 type GetInvalidationInput struct {
 	// The distribution's id.
-	DistributionID *string `location:"uri" locationName:"DistributionId" type:"string" required:"true"`
+	DistributionId *string `location:"uri" locationName:"DistributionId" type:"string" required:"true"`
 
 	// The invalidation's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetInvalidationInput `json:"-" xml:"-"`
 }
 
 type metadataGetInvalidationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetInvalidationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetInvalidationInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1590,16 +2071,36 @@ type metadataGetInvalidationOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"Invalidation"`
 }
 
+// String returns the string representation
+func (s GetInvalidationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetInvalidationOutput) GoString() string {
+	return s.String()
+}
+
 // To request to get a streaming distribution configuration.
 type GetStreamingDistributionConfigInput struct {
 	// The streaming distribution's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetStreamingDistributionConfigInput `json:"-" xml:"-"`
 }
 
 type metadataGetStreamingDistributionConfigInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetStreamingDistributionConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetStreamingDistributionConfigInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1617,16 +2118,36 @@ type metadataGetStreamingDistributionConfigOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistributionConfig"`
 }
 
+// String returns the string representation
+func (s GetStreamingDistributionConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetStreamingDistributionConfigOutput) GoString() string {
+	return s.String()
+}
+
 // The request to get a streaming distribution's information.
 type GetStreamingDistributionInput struct {
 	// The streaming distribution's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	metadataGetStreamingDistributionInput `json:"-" xml:"-"`
 }
 
 type metadataGetStreamingDistributionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetStreamingDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetStreamingDistributionInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1643,6 +2164,16 @@ type GetStreamingDistributionOutput struct {
 
 type metadataGetStreamingDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistribution"`
+}
+
+// String returns the string representation
+func (s GetStreamingDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetStreamingDistributionOutput) GoString() string {
+	return s.String()
 }
 
 // A complex type that specifies the headers that you want CloudFront to forward
@@ -1675,13 +2206,23 @@ type metadataHeaders struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Headers) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Headers) GoString() string {
+	return s.String()
+}
+
 // An invalidation.
 type Invalidation struct {
 	// The date and time the invalidation request was first made.
 	CreateTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
 	// The identifier for the invalidation request. For example: IDFDVBD632BHDS5.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The current invalidation information for the batch request.
 	InvalidationBatch *InvalidationBatch `type:"structure" required:"true"`
@@ -1695,6 +2236,16 @@ type Invalidation struct {
 
 type metadataInvalidation struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Invalidation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Invalidation) GoString() string {
+	return s.String()
 }
 
 // An invalidation batch.
@@ -1723,6 +2274,16 @@ type InvalidationBatch struct {
 
 type metadataInvalidationBatch struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s InvalidationBatch) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidationBatch) GoString() string {
+	return s.String()
 }
 
 // An invalidation list.
@@ -1758,12 +2319,22 @@ type metadataInvalidationList struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s InvalidationList) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidationList) GoString() string {
+	return s.String()
+}
+
 // Summary of an invalidation request.
 type InvalidationSummary struct {
 	CreateTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
 	// The unique ID for an invalidation request.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The status of an invalidation request.
 	Status *string `type:"string" required:"true"`
@@ -1775,9 +2346,19 @@ type metadataInvalidationSummary struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s InvalidationSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidationSummary) GoString() string {
+	return s.String()
+}
+
 // A complex type that lists the active CloudFront key pairs, if any, that are
 // associated with AwsAccountNumber.
-type KeyPairIDs struct {
+type KeyPairIds struct {
 	// A complex type that lists the active CloudFront key pairs, if any, that are
 	// associated with AwsAccountNumber.
 	Items []*string `locationNameList:"KeyPairId" type:"list"`
@@ -1785,11 +2366,21 @@ type KeyPairIDs struct {
 	// The number of active CloudFront key pairs for AwsAccountNumber.
 	Quantity *int64 `type:"integer" required:"true"`
 
-	metadataKeyPairIDs `json:"-" xml:"-"`
+	metadataKeyPairIds `json:"-" xml:"-"`
 }
 
-type metadataKeyPairIDs struct {
+type metadataKeyPairIds struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s KeyPairIds) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s KeyPairIds) GoString() string {
+	return s.String()
 }
 
 // The request to list origin access identities.
@@ -1811,6 +2402,16 @@ type metadataListCloudFrontOriginAccessIdentitiesInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListCloudFrontOriginAccessIdentitiesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListCloudFrontOriginAccessIdentitiesInput) GoString() string {
+	return s.String()
+}
+
 // The returned result of the corresponding request.
 type ListCloudFrontOriginAccessIdentitiesOutput struct {
 	// The CloudFrontOriginAccessIdentityList type.
@@ -1823,16 +2424,86 @@ type metadataListCloudFrontOriginAccessIdentitiesOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentityList"`
 }
 
-// The request to list your distributions.
-type ListDistributionsInput struct {
-	// Use this when paginating results to indicate where to begin in your list
-	// of distributions. The results include distributions in the list that occur
-	// after the marker. To get the next page of results, set the Marker to the
-	// value of the NextMarker from the current page's response (which is also the
-	// ID of the last distribution on that page).
+// String returns the string representation
+func (s ListCloudFrontOriginAccessIdentitiesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListCloudFrontOriginAccessIdentitiesOutput) GoString() string {
+	return s.String()
+}
+
+// The request to list distributions that are associated with a specified AWS
+// WAF web ACL.
+type ListDistributionsByWebACLIdInput struct {
+	// Use Marker and MaxItems to control pagination of results. If you have more
+	// than MaxItems distributions that satisfy the request, the response includes
+	// a NextMarker element. To get the next page of results, submit another request.
+	// For the value of Marker, specify the value of NextMarker from the last response.
+	// (For the first request, omit Marker.)
 	Marker *string `location:"querystring" locationName:"Marker" type:"string"`
 
-	// The maximum number of distributions you want in the response body.
+	// The maximum number of distributions that you want CloudFront to return in
+	// the response body. The maximum and default values are both 100.
+	MaxItems *int64 `location:"querystring" locationName:"MaxItems" type:"integer"`
+
+	// The Id of the AWS WAF web ACL for which you want to list the associated distributions.
+	// If you specify "null" for the Id, the request returns a list of the distributions
+	// that aren't associated with a web ACL.
+	WebACLId *string `location:"uri" locationName:"WebACLId" type:"string" required:"true"`
+
+	metadataListDistributionsByWebACLIdInput `json:"-" xml:"-"`
+}
+
+type metadataListDistributionsByWebACLIdInput struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListDistributionsByWebACLIdInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDistributionsByWebACLIdInput) GoString() string {
+	return s.String()
+}
+
+// The response to a request to list the distributions that are associated with
+// a specified AWS WAF web ACL.
+type ListDistributionsByWebACLIdOutput struct {
+	// The DistributionList type.
+	DistributionList *DistributionList `type:"structure"`
+
+	metadataListDistributionsByWebACLIdOutput `json:"-" xml:"-"`
+}
+
+type metadataListDistributionsByWebACLIdOutput struct {
+	SDKShapeTraits bool `type:"structure" payload:"DistributionList"`
+}
+
+// String returns the string representation
+func (s ListDistributionsByWebACLIdOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDistributionsByWebACLIdOutput) GoString() string {
+	return s.String()
+}
+
+// The request to list your distributions.
+type ListDistributionsInput struct {
+	// Use Marker and MaxItems to control pagination of results. If you have more
+	// than MaxItems distributions that satisfy the request, the response includes
+	// a NextMarker element. To get the next page of results, submit another request.
+	// For the value of Marker, specify the value of NextMarker from the last response.
+	// (For the first request, omit Marker.)
+	Marker *string `location:"querystring" locationName:"Marker" type:"string"`
+
+	// The maximum number of distributions that you want CloudFront to return in
+	// the response body. The maximum and default values are both 100.
 	MaxItems *int64 `location:"querystring" locationName:"MaxItems" type:"integer"`
 
 	metadataListDistributionsInput `json:"-" xml:"-"`
@@ -1840,6 +2511,16 @@ type ListDistributionsInput struct {
 
 type metadataListDistributionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListDistributionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDistributionsInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -1854,10 +2535,20 @@ type metadataListDistributionsOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"DistributionList"`
 }
 
+// String returns the string representation
+func (s ListDistributionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDistributionsOutput) GoString() string {
+	return s.String()
+}
+
 // The request to list invalidations.
 type ListInvalidationsInput struct {
 	// The distribution's id.
-	DistributionID *string `location:"uri" locationName:"DistributionId" type:"string" required:"true"`
+	DistributionId *string `location:"uri" locationName:"DistributionId" type:"string" required:"true"`
 
 	// Use this parameter when paginating results to indicate where to begin in
 	// your list of invalidation batches. Because the results are returned in decreasing
@@ -1878,6 +2569,16 @@ type metadataListInvalidationsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListInvalidationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListInvalidationsInput) GoString() string {
+	return s.String()
+}
+
 // The returned result of the corresponding request.
 type ListInvalidationsOutput struct {
 	// Information about invalidation batches.
@@ -1888,6 +2589,16 @@ type ListInvalidationsOutput struct {
 
 type metadataListInvalidationsOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"InvalidationList"`
+}
+
+// String returns the string representation
+func (s ListInvalidationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListInvalidationsOutput) GoString() string {
+	return s.String()
 }
 
 // The request to list your streaming distributions.
@@ -1909,6 +2620,16 @@ type metadataListStreamingDistributionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListStreamingDistributionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListStreamingDistributionsInput) GoString() string {
+	return s.String()
+}
+
 // The returned result of the corresponding request.
 type ListStreamingDistributionsOutput struct {
 	// The StreamingDistributionList type.
@@ -1919,6 +2640,16 @@ type ListStreamingDistributionsOutput struct {
 
 type metadataListStreamingDistributionsOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistributionList"`
+}
+
+// String returns the string representation
+func (s ListStreamingDistributionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListStreamingDistributionsOutput) GoString() string {
+	return s.String()
 }
 
 // A complex type that controls whether access logs are written for the distribution.
@@ -1955,6 +2686,16 @@ type metadataLoggingConfig struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s LoggingConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LoggingConfig) GoString() string {
+	return s.String()
+}
+
 // A complex type that describes the Amazon S3 bucket or the HTTP server (for
 // example, a web server) from which CloudFront gets your files.You must create
 // at least one origin.
@@ -1973,7 +2714,7 @@ type Origin struct {
 	// the distribution. You use the value of Id when you create a cache behavior.
 	// The Id identifies the origin that CloudFront routes a request to when the
 	// request matches the path pattern for that cache behavior.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// An optional element that causes CloudFront to request your content from a
 	// directory in your Amazon S3 bucket or your custom origin. When you include
@@ -1992,24 +2733,44 @@ type metadataOrigin struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Origin) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Origin) GoString() string {
+	return s.String()
+}
+
 // CloudFront origin access identity.
 type OriginAccessIdentity struct {
 	// The current configuration information for the identity.
 	CloudFrontOriginAccessIdentityConfig *OriginAccessIdentityConfig `type:"structure"`
 
 	// The ID for the origin access identity. For example: E74FTE3AJFJ256A.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The Amazon S3 canonical user ID for the origin access identity, which you
 	// use when giving the origin access identity read permission to an object in
 	// Amazon S3.
-	S3CanonicalUserID *string `locationName:"S3CanonicalUserId" type:"string" required:"true"`
+	S3CanonicalUserId *string `type:"string" required:"true"`
 
 	metadataOriginAccessIdentity `json:"-" xml:"-"`
 }
 
 type metadataOriginAccessIdentity struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s OriginAccessIdentity) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OriginAccessIdentity) GoString() string {
+	return s.String()
 }
 
 // Origin access identity configuration.
@@ -2035,6 +2796,16 @@ type OriginAccessIdentityConfig struct {
 
 type metadataOriginAccessIdentityConfig struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s OriginAccessIdentityConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OriginAccessIdentityConfig) GoString() string {
+	return s.String()
 }
 
 // The CloudFrontOriginAccessIdentityList type.
@@ -2071,6 +2842,16 @@ type metadataOriginAccessIdentityList struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s OriginAccessIdentityList) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OriginAccessIdentityList) GoString() string {
+	return s.String()
+}
+
 // Summary of the information about a CloudFront origin access identity.
 type OriginAccessIdentitySummary struct {
 	// The comment for this origin access identity, as originally specified when
@@ -2078,12 +2859,12 @@ type OriginAccessIdentitySummary struct {
 	Comment *string `type:"string" required:"true"`
 
 	// The ID for the origin access identity. For example: E74FTE3AJFJ256A.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The Amazon S3 canonical user ID for the origin access identity, which you
 	// use when giving the origin access identity read permission to an object in
 	// Amazon S3.
-	S3CanonicalUserID *string `locationName:"S3CanonicalUserId" type:"string" required:"true"`
+	S3CanonicalUserId *string `type:"string" required:"true"`
 
 	metadataOriginAccessIdentitySummary `json:"-" xml:"-"`
 }
@@ -2092,10 +2873,20 @@ type metadataOriginAccessIdentitySummary struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s OriginAccessIdentitySummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OriginAccessIdentitySummary) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about origins for this distribution.
 type Origins struct {
 	// A complex type that contains origins for this distribution.
-	Items []*Origin `locationNameList:"Origin" type:"list"`
+	Items []*Origin `locationNameList:"Origin" min:"1" type:"list"`
 
 	// The number of origins for this distribution.
 	Quantity *int64 `type:"integer" required:"true"`
@@ -2105,6 +2896,16 @@ type Origins struct {
 
 type metadataOrigins struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Origins) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Origins) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the objects that you want
@@ -2121,6 +2922,16 @@ type Paths struct {
 
 type metadataPaths struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Paths) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Paths) GoString() string {
+	return s.String()
 }
 
 // A complex type that identifies ways in which you want to restrict distribution
@@ -2141,6 +2952,16 @@ type metadataRestrictions struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Restrictions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Restrictions) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about the Amazon S3 bucket from
 // which you want CloudFront to get your media files for distribution.
 type S3Origin struct {
@@ -2155,6 +2976,16 @@ type S3Origin struct {
 
 type metadataS3Origin struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s S3Origin) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3Origin) GoString() string {
+	return s.String()
 }
 
 // A complex type that contains information about the Amazon S3 origin. If the
@@ -2180,6 +3011,16 @@ type metadataS3OriginConfig struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s S3OriginConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3OriginConfig) GoString() string {
+	return s.String()
+}
+
 // A complex type that lists the AWS accounts that were included in the TrustedSigners
 // complex type, as well as their active CloudFront key pair IDs, if any.
 type Signer struct {
@@ -2187,17 +3028,27 @@ type Signer struct {
 	// indicates that the AWS account that was used to create the distribution can
 	// created signed URLs, or an AWS account number. Omit the dashes in the account
 	// number.
-	AWSAccountNumber *string `locationName:"AwsAccountNumber" type:"string"`
+	AwsAccountNumber *string `type:"string"`
 
 	// A complex type that lists the active CloudFront key pairs, if any, that are
 	// associated with AwsAccountNumber.
-	KeyPairIDs *KeyPairIDs `locationName:"KeyPairIds" type:"structure"`
+	KeyPairIds *KeyPairIds `type:"structure"`
 
 	metadataSigner `json:"-" xml:"-"`
 }
 
 type metadataSigner struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Signer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Signer) GoString() string {
+	return s.String()
 }
 
 // A streaming distribution.
@@ -2217,7 +3068,7 @@ type StreamingDistribution struct {
 	DomainName *string `type:"string" required:"true"`
 
 	// The identifier for the streaming distribution. For example: EGTXBD79H29TRA8.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The date and time the distribution was last modified.
 	LastModifiedTime *time.Time `type:"timestamp" timestampFormat:"iso8601"`
@@ -2235,6 +3086,16 @@ type StreamingDistribution struct {
 
 type metadataStreamingDistribution struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s StreamingDistribution) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamingDistribution) GoString() string {
+	return s.String()
 }
 
 // The configuration for the streaming distribution.
@@ -2268,7 +3129,7 @@ type StreamingDistributionConfig struct {
 
 	// A complex type that contains information about price class for this streaming
 	// distribution.
-	PriceClass *string `type:"string"`
+	PriceClass *string `type:"string" enum:"PriceClass"`
 
 	// A complex type that contains information about the Amazon S3 bucket from
 	// which you want CloudFront to get your media files for distribution.
@@ -2292,6 +3153,16 @@ type StreamingDistributionConfig struct {
 
 type metadataStreamingDistributionConfig struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s StreamingDistributionConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamingDistributionConfig) GoString() string {
+	return s.String()
 }
 
 // A streaming distribution list.
@@ -2328,6 +3199,16 @@ type metadataStreamingDistributionList struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s StreamingDistributionList) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamingDistributionList) GoString() string {
+	return s.String()
+}
+
 // A summary of the information for an Amazon CloudFront streaming distribution.
 type StreamingDistributionSummary struct {
 	// A complex type that contains information about CNAMEs (alternate domain names),
@@ -2344,12 +3225,12 @@ type StreamingDistributionSummary struct {
 	Enabled *bool `type:"boolean" required:"true"`
 
 	// The identifier for the distribution. For example: EDFDVBD632BHDS5.
-	ID *string `locationName:"Id" type:"string" required:"true"`
+	Id *string `type:"string" required:"true"`
 
 	// The date and time the distribution was last modified.
 	LastModifiedTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
-	PriceClass *string `type:"string" required:"true"`
+	PriceClass *string `type:"string" required:"true" enum:"PriceClass"`
 
 	// A complex type that contains information about the Amazon S3 bucket from
 	// which you want CloudFront to get your media files for distribution.
@@ -2380,6 +3261,16 @@ type metadataStreamingDistributionSummary struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s StreamingDistributionSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamingDistributionSummary) GoString() string {
+	return s.String()
+}
+
 // A complex type that controls whether access logs are written for this streaming
 // distribution.
 type StreamingLoggingConfig struct {
@@ -2405,6 +3296,16 @@ type StreamingLoggingConfig struct {
 
 type metadataStreamingLoggingConfig struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s StreamingLoggingConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamingLoggingConfig) GoString() string {
+	return s.String()
 }
 
 // A complex type that specifies the AWS accounts, if any, that you want to
@@ -2437,13 +3338,23 @@ type metadataTrustedSigners struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s TrustedSigners) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TrustedSigners) GoString() string {
+	return s.String()
+}
+
 // The request to update an origin access identity.
 type UpdateCloudFrontOriginAccessIdentityInput struct {
 	// The identity's configuration information.
 	CloudFrontOriginAccessIdentityConfig *OriginAccessIdentityConfig `locationName:"CloudFrontOriginAccessIdentityConfig" type:"structure" required:"true"`
 
 	// The identity's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The value of the ETag header you received when retrieving the identity's
 	// configuration. For example: E2QWRUHAPOMQZL.
@@ -2454,6 +3365,16 @@ type UpdateCloudFrontOriginAccessIdentityInput struct {
 
 type metadataUpdateCloudFrontOriginAccessIdentityInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentityConfig"`
+}
+
+// String returns the string representation
+func (s UpdateCloudFrontOriginAccessIdentityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateCloudFrontOriginAccessIdentityInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -2471,13 +3392,23 @@ type metadataUpdateCloudFrontOriginAccessIdentityOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"CloudFrontOriginAccessIdentity"`
 }
 
+// String returns the string representation
+func (s UpdateCloudFrontOriginAccessIdentityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateCloudFrontOriginAccessIdentityOutput) GoString() string {
+	return s.String()
+}
+
 // The request to update a distribution.
 type UpdateDistributionInput struct {
 	// The distribution's configuration information.
 	DistributionConfig *DistributionConfig `locationName:"DistributionConfig" type:"structure" required:"true"`
 
 	// The distribution's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The value of the ETag header you received when retrieving the distribution's
 	// configuration. For example: E2QWRUHAPOMQZL.
@@ -2488,6 +3419,16 @@ type UpdateDistributionInput struct {
 
 type metadataUpdateDistributionInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"DistributionConfig"`
+}
+
+// String returns the string representation
+func (s UpdateDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDistributionInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -2505,10 +3446,20 @@ type metadataUpdateDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"Distribution"`
 }
 
+// String returns the string representation
+func (s UpdateDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDistributionOutput) GoString() string {
+	return s.String()
+}
+
 // The request to update a streaming distribution.
 type UpdateStreamingDistributionInput struct {
 	// The streaming distribution's id.
-	ID *string `location:"uri" locationName:"Id" type:"string" required:"true"`
+	Id *string `location:"uri" locationName:"Id" type:"string" required:"true"`
 
 	// The value of the ETag header you received when retrieving the streaming distribution's
 	// configuration. For example: E2QWRUHAPOMQZL.
@@ -2522,6 +3473,16 @@ type UpdateStreamingDistributionInput struct {
 
 type metadataUpdateStreamingDistributionInput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistributionConfig"`
+}
+
+// String returns the string representation
+func (s UpdateStreamingDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateStreamingDistributionInput) GoString() string {
+	return s.String()
 }
 
 // The returned result of the corresponding request.
@@ -2539,6 +3500,16 @@ type metadataUpdateStreamingDistributionOutput struct {
 	SDKShapeTraits bool `type:"structure" payload:"StreamingDistribution"`
 }
 
+// String returns the string representation
+func (s UpdateStreamingDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateStreamingDistributionOutput) GoString() string {
+	return s.String()
+}
+
 // A complex type that contains information about viewer certificates for this
 // distribution.
 type ViewerCertificate struct {
@@ -2552,7 +3523,7 @@ type ViewerCertificate struct {
 	// an alternate domain name in your object URLs (for example, https://example.com/logo.jpg),
 	// specify the IAM certificate identifier of the custom viewer certificate for
 	// this distribution. Specify either this value or CloudFrontDefaultCertificate.
-	IAMCertificateID *string `locationName:"IAMCertificateId" type:"string"`
+	IAMCertificateId *string `type:"string"`
 
 	// Specify the minimum version of the SSL protocol that you want CloudFront
 	// to use, SSLv3 or TLSv1, for HTTPS connections. CloudFront will serve your
@@ -2565,7 +3536,7 @@ type ViewerCertificate struct {
 	// If you're using a custom certificate (if you specify a value for IAMCertificateId)
 	// and if you're using SNI (if you specify sni-only for SSLSupportMethod), you
 	// must specify TLSv1 for MinimumProtocolVersion.
-	MinimumProtocolVersion *string `type:"string"`
+	MinimumProtocolVersion *string `type:"string" enum:"MinimumProtocolVersion"`
 
 	// If you specify a value for IAMCertificateId, you must also specify how you
 	// want CloudFront to serve HTTPS requests. Valid values are vip and sni-only.
@@ -2576,7 +3547,7 @@ type ViewerCertificate struct {
 	// viewers that support Server Name Indication (SNI). All modern browsers support
 	// SNI, but some browsers still in use don't support SNI. Do not specify a value
 	// for SSLSupportMethod if you specified true for CloudFrontDefaultCertificate.
-	SSLSupportMethod *string `type:"string"`
+	SSLSupportMethod *string `type:"string" enum:"SSLSupportMethod"`
 
 	metadataViewerCertificate `json:"-" xml:"-"`
 }
@@ -2584,3 +3555,87 @@ type ViewerCertificate struct {
 type metadataViewerCertificate struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s ViewerCertificate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ViewerCertificate) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum GeoRestrictionType
+	GeoRestrictionTypeBlacklist = "blacklist"
+	// @enum GeoRestrictionType
+	GeoRestrictionTypeWhitelist = "whitelist"
+	// @enum GeoRestrictionType
+	GeoRestrictionTypeNone = "none"
+)
+
+const (
+	// @enum ItemSelection
+	ItemSelectionNone = "none"
+	// @enum ItemSelection
+	ItemSelectionWhitelist = "whitelist"
+	// @enum ItemSelection
+	ItemSelectionAll = "all"
+)
+
+const (
+	// @enum Method
+	MethodGet = "GET"
+	// @enum Method
+	MethodHead = "HEAD"
+	// @enum Method
+	MethodPost = "POST"
+	// @enum Method
+	MethodPut = "PUT"
+	// @enum Method
+	MethodPatch = "PATCH"
+	// @enum Method
+	MethodOptions = "OPTIONS"
+	// @enum Method
+	MethodDelete = "DELETE"
+)
+
+const (
+	// @enum MinimumProtocolVersion
+	MinimumProtocolVersionSslv3 = "SSLv3"
+	// @enum MinimumProtocolVersion
+	MinimumProtocolVersionTlsv1 = "TLSv1"
+)
+
+const (
+	// @enum OriginProtocolPolicy
+	OriginProtocolPolicyHttpOnly = "http-only"
+	// @enum OriginProtocolPolicy
+	OriginProtocolPolicyMatchViewer = "match-viewer"
+)
+
+const (
+	// @enum PriceClass
+	PriceClassPriceClass100 = "PriceClass_100"
+	// @enum PriceClass
+	PriceClassPriceClass200 = "PriceClass_200"
+	// @enum PriceClass
+	PriceClassPriceClassAll = "PriceClass_All"
+)
+
+const (
+	// @enum SSLSupportMethod
+	SSLSupportMethodSniOnly = "sni-only"
+	// @enum SSLSupportMethod
+	SSLSupportMethodVip = "vip"
+)
+
+const (
+	// @enum ViewerProtocolPolicy
+	ViewerProtocolPolicyAllowAll = "allow-all"
+	// @enum ViewerProtocolPolicy
+	ViewerProtocolPolicyHttpsOnly = "https-only"
+	// @enum ViewerProtocolPolicy
+	ViewerProtocolPolicyRedirectToHttps = "redirect-to-https"
+)

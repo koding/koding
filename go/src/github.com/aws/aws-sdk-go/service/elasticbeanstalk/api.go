@@ -6,14 +6,15 @@ package elasticbeanstalk
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opAbortEnvironmentUpdate = "AbortEnvironmentUpdate"
 
 // AbortEnvironmentUpdateRequest generates a request for the AbortEnvironmentUpdate operation.
-func (c *ElasticBeanstalk) AbortEnvironmentUpdateRequest(input *AbortEnvironmentUpdateInput) (req *aws.Request, output *AbortEnvironmentUpdateOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) AbortEnvironmentUpdateRequest(input *AbortEnvironmentUpdateInput) (req *request.Request, output *AbortEnvironmentUpdateOutput) {
+	op := &request.Operation{
 		Name:       opAbortEnvironmentUpdate,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -40,8 +41,8 @@ func (c *ElasticBeanstalk) AbortEnvironmentUpdate(input *AbortEnvironmentUpdateI
 const opCheckDNSAvailability = "CheckDNSAvailability"
 
 // CheckDNSAvailabilityRequest generates a request for the CheckDNSAvailability operation.
-func (c *ElasticBeanstalk) CheckDNSAvailabilityRequest(input *CheckDNSAvailabilityInput) (req *aws.Request, output *CheckDNSAvailabilityOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) CheckDNSAvailabilityRequest(input *CheckDNSAvailabilityInput) (req *request.Request, output *CheckDNSAvailabilityOutput) {
+	op := &request.Operation{
 		Name:       opCheckDNSAvailability,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -67,8 +68,8 @@ func (c *ElasticBeanstalk) CheckDNSAvailability(input *CheckDNSAvailabilityInput
 const opCreateApplication = "CreateApplication"
 
 // CreateApplicationRequest generates a request for the CreateApplication operation.
-func (c *ElasticBeanstalk) CreateApplicationRequest(input *CreateApplicationInput) (req *aws.Request, output *ApplicationDescriptionMessage) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) CreateApplicationRequest(input *CreateApplicationInput) (req *request.Request, output *ApplicationDescriptionMessage) {
+	op := &request.Operation{
 		Name:       opCreateApplication,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -95,8 +96,8 @@ func (c *ElasticBeanstalk) CreateApplication(input *CreateApplicationInput) (*Ap
 const opCreateApplicationVersion = "CreateApplicationVersion"
 
 // CreateApplicationVersionRequest generates a request for the CreateApplicationVersion operation.
-func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicationVersionInput) (req *aws.Request, output *ApplicationVersionDescriptionMessage) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicationVersionInput) (req *request.Request, output *ApplicationVersionDescriptionMessage) {
+	op := &request.Operation{
 		Name:       opCreateApplicationVersion,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -127,8 +128,8 @@ func (c *ElasticBeanstalk) CreateApplicationVersion(input *CreateApplicationVers
 const opCreateConfigurationTemplate = "CreateConfigurationTemplate"
 
 // CreateConfigurationTemplateRequest generates a request for the CreateConfigurationTemplate operation.
-func (c *ElasticBeanstalk) CreateConfigurationTemplateRequest(input *CreateConfigurationTemplateInput) (req *aws.Request, output *ConfigurationSettingsDescription) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) CreateConfigurationTemplateRequest(input *CreateConfigurationTemplateInput) (req *request.Request, output *ConfigurationSettingsDescription) {
+	op := &request.Operation{
 		Name:       opCreateConfigurationTemplate,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -160,8 +161,8 @@ func (c *ElasticBeanstalk) CreateConfigurationTemplate(input *CreateConfiguratio
 const opCreateEnvironment = "CreateEnvironment"
 
 // CreateEnvironmentRequest generates a request for the CreateEnvironment operation.
-func (c *ElasticBeanstalk) CreateEnvironmentRequest(input *CreateEnvironmentInput) (req *aws.Request, output *EnvironmentDescription) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) CreateEnvironmentRequest(input *CreateEnvironmentInput) (req *request.Request, output *EnvironmentDescription) {
+	op := &request.Operation{
 		Name:       opCreateEnvironment,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -188,8 +189,8 @@ func (c *ElasticBeanstalk) CreateEnvironment(input *CreateEnvironmentInput) (*En
 const opCreateStorageLocation = "CreateStorageLocation"
 
 // CreateStorageLocationRequest generates a request for the CreateStorageLocation operation.
-func (c *ElasticBeanstalk) CreateStorageLocationRequest(input *CreateStorageLocationInput) (req *aws.Request, output *CreateStorageLocationOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) CreateStorageLocationRequest(input *CreateStorageLocationInput) (req *request.Request, output *CreateStorageLocationOutput) {
+	op := &request.Operation{
 		Name:       opCreateStorageLocation,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -217,8 +218,8 @@ func (c *ElasticBeanstalk) CreateStorageLocation(input *CreateStorageLocationInp
 const opDeleteApplication = "DeleteApplication"
 
 // DeleteApplicationRequest generates a request for the DeleteApplication operation.
-func (c *ElasticBeanstalk) DeleteApplicationRequest(input *DeleteApplicationInput) (req *aws.Request, output *DeleteApplicationOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DeleteApplicationRequest(input *DeleteApplicationInput) (req *request.Request, output *DeleteApplicationOutput) {
+	op := &request.Operation{
 		Name:       opDeleteApplication,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -248,8 +249,8 @@ func (c *ElasticBeanstalk) DeleteApplication(input *DeleteApplicationInput) (*De
 const opDeleteApplicationVersion = "DeleteApplicationVersion"
 
 // DeleteApplicationVersionRequest generates a request for the DeleteApplicationVersion operation.
-func (c *ElasticBeanstalk) DeleteApplicationVersionRequest(input *DeleteApplicationVersionInput) (req *aws.Request, output *DeleteApplicationVersionOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DeleteApplicationVersionRequest(input *DeleteApplicationVersionInput) (req *request.Request, output *DeleteApplicationVersionOutput) {
+	op := &request.Operation{
 		Name:       opDeleteApplicationVersion,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -278,8 +279,8 @@ func (c *ElasticBeanstalk) DeleteApplicationVersion(input *DeleteApplicationVers
 const opDeleteConfigurationTemplate = "DeleteConfigurationTemplate"
 
 // DeleteConfigurationTemplateRequest generates a request for the DeleteConfigurationTemplate operation.
-func (c *ElasticBeanstalk) DeleteConfigurationTemplateRequest(input *DeleteConfigurationTemplateInput) (req *aws.Request, output *DeleteConfigurationTemplateOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DeleteConfigurationTemplateRequest(input *DeleteConfigurationTemplateInput) (req *request.Request, output *DeleteConfigurationTemplateOutput) {
+	op := &request.Operation{
 		Name:       opDeleteConfigurationTemplate,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -309,8 +310,8 @@ func (c *ElasticBeanstalk) DeleteConfigurationTemplate(input *DeleteConfiguratio
 const opDeleteEnvironmentConfiguration = "DeleteEnvironmentConfiguration"
 
 // DeleteEnvironmentConfigurationRequest generates a request for the DeleteEnvironmentConfiguration operation.
-func (c *ElasticBeanstalk) DeleteEnvironmentConfigurationRequest(input *DeleteEnvironmentConfigurationInput) (req *aws.Request, output *DeleteEnvironmentConfigurationOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DeleteEnvironmentConfigurationRequest(input *DeleteEnvironmentConfigurationInput) (req *request.Request, output *DeleteEnvironmentConfigurationOutput) {
+	op := &request.Operation{
 		Name:       opDeleteEnvironmentConfiguration,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -343,8 +344,8 @@ func (c *ElasticBeanstalk) DeleteEnvironmentConfiguration(input *DeleteEnvironme
 const opDescribeApplicationVersions = "DescribeApplicationVersions"
 
 // DescribeApplicationVersionsRequest generates a request for the DescribeApplicationVersions operation.
-func (c *ElasticBeanstalk) DescribeApplicationVersionsRequest(input *DescribeApplicationVersionsInput) (req *aws.Request, output *DescribeApplicationVersionsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeApplicationVersionsRequest(input *DescribeApplicationVersionsInput) (req *request.Request, output *DescribeApplicationVersionsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeApplicationVersions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -370,8 +371,8 @@ func (c *ElasticBeanstalk) DescribeApplicationVersions(input *DescribeApplicatio
 const opDescribeApplications = "DescribeApplications"
 
 // DescribeApplicationsRequest generates a request for the DescribeApplications operation.
-func (c *ElasticBeanstalk) DescribeApplicationsRequest(input *DescribeApplicationsInput) (req *aws.Request, output *DescribeApplicationsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeApplicationsRequest(input *DescribeApplicationsInput) (req *request.Request, output *DescribeApplicationsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeApplications,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -397,8 +398,8 @@ func (c *ElasticBeanstalk) DescribeApplications(input *DescribeApplicationsInput
 const opDescribeConfigurationOptions = "DescribeConfigurationOptions"
 
 // DescribeConfigurationOptionsRequest generates a request for the DescribeConfigurationOptions operation.
-func (c *ElasticBeanstalk) DescribeConfigurationOptionsRequest(input *DescribeConfigurationOptionsInput) (req *aws.Request, output *DescribeConfigurationOptionsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeConfigurationOptionsRequest(input *DescribeConfigurationOptionsInput) (req *request.Request, output *DescribeConfigurationOptionsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeConfigurationOptions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -428,8 +429,8 @@ func (c *ElasticBeanstalk) DescribeConfigurationOptions(input *DescribeConfigura
 const opDescribeConfigurationSettings = "DescribeConfigurationSettings"
 
 // DescribeConfigurationSettingsRequest generates a request for the DescribeConfigurationSettings operation.
-func (c *ElasticBeanstalk) DescribeConfigurationSettingsRequest(input *DescribeConfigurationSettingsInput) (req *aws.Request, output *DescribeConfigurationSettingsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeConfigurationSettingsRequest(input *DescribeConfigurationSettingsInput) (req *request.Request, output *DescribeConfigurationSettingsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeConfigurationSettings,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -464,11 +465,40 @@ func (c *ElasticBeanstalk) DescribeConfigurationSettings(input *DescribeConfigur
 	return out, err
 }
 
+const opDescribeEnvironmentHealth = "DescribeEnvironmentHealth"
+
+// DescribeEnvironmentHealthRequest generates a request for the DescribeEnvironmentHealth operation.
+func (c *ElasticBeanstalk) DescribeEnvironmentHealthRequest(input *DescribeEnvironmentHealthInput) (req *request.Request, output *DescribeEnvironmentHealthOutput) {
+	op := &request.Operation{
+		Name:       opDescribeEnvironmentHealth,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeEnvironmentHealthInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeEnvironmentHealthOutput{}
+	req.Data = output
+	return
+}
+
+// Returns information about the overall health of the specified environment.
+// The DescribeEnvironmentHealth operation is only available with AWS Elastic
+// Beanstalk Enhanced Health.
+func (c *ElasticBeanstalk) DescribeEnvironmentHealth(input *DescribeEnvironmentHealthInput) (*DescribeEnvironmentHealthOutput, error) {
+	req, out := c.DescribeEnvironmentHealthRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opDescribeEnvironmentResources = "DescribeEnvironmentResources"
 
 // DescribeEnvironmentResourcesRequest generates a request for the DescribeEnvironmentResources operation.
-func (c *ElasticBeanstalk) DescribeEnvironmentResourcesRequest(input *DescribeEnvironmentResourcesInput) (req *aws.Request, output *DescribeEnvironmentResourcesOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeEnvironmentResourcesRequest(input *DescribeEnvironmentResourcesInput) (req *request.Request, output *DescribeEnvironmentResourcesOutput) {
+	op := &request.Operation{
 		Name:       opDescribeEnvironmentResources,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -494,8 +524,8 @@ func (c *ElasticBeanstalk) DescribeEnvironmentResources(input *DescribeEnvironme
 const opDescribeEnvironments = "DescribeEnvironments"
 
 // DescribeEnvironmentsRequest generates a request for the DescribeEnvironments operation.
-func (c *ElasticBeanstalk) DescribeEnvironmentsRequest(input *DescribeEnvironmentsInput) (req *aws.Request, output *DescribeEnvironmentsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeEnvironmentsRequest(input *DescribeEnvironmentsInput) (req *request.Request, output *DescribeEnvironmentsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeEnvironments,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -521,12 +551,12 @@ func (c *ElasticBeanstalk) DescribeEnvironments(input *DescribeEnvironmentsInput
 const opDescribeEvents = "DescribeEvents"
 
 // DescribeEventsRequest generates a request for the DescribeEvents operation.
-func (c *ElasticBeanstalk) DescribeEventsRequest(input *DescribeEventsInput) (req *aws.Request, output *DescribeEventsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) DescribeEventsRequest(input *DescribeEventsInput) (req *request.Request, output *DescribeEventsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeEvents,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "MaxRecords",
@@ -560,11 +590,40 @@ func (c *ElasticBeanstalk) DescribeEventsPages(input *DescribeEventsInput, fn fu
 	})
 }
 
+const opDescribeInstancesHealth = "DescribeInstancesHealth"
+
+// DescribeInstancesHealthRequest generates a request for the DescribeInstancesHealth operation.
+func (c *ElasticBeanstalk) DescribeInstancesHealthRequest(input *DescribeInstancesHealthInput) (req *request.Request, output *DescribeInstancesHealthOutput) {
+	op := &request.Operation{
+		Name:       opDescribeInstancesHealth,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeInstancesHealthInput{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &DescribeInstancesHealthOutput{}
+	req.Data = output
+	return
+}
+
+// Returns more detailed information about the health of the specified instances
+// (for example, CPU utilization, load average, and causes). The DescribeInstancesHealth
+// operation is only available with AWS Elastic Beanstalk Enhanced Health.
+func (c *ElasticBeanstalk) DescribeInstancesHealth(input *DescribeInstancesHealthInput) (*DescribeInstancesHealthOutput, error) {
+	req, out := c.DescribeInstancesHealthRequest(input)
+	err := req.Send()
+	return out, err
+}
+
 const opListAvailableSolutionStacks = "ListAvailableSolutionStacks"
 
 // ListAvailableSolutionStacksRequest generates a request for the ListAvailableSolutionStacks operation.
-func (c *ElasticBeanstalk) ListAvailableSolutionStacksRequest(input *ListAvailableSolutionStacksInput) (req *aws.Request, output *ListAvailableSolutionStacksOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) ListAvailableSolutionStacksRequest(input *ListAvailableSolutionStacksInput) (req *request.Request, output *ListAvailableSolutionStacksOutput) {
+	op := &request.Operation{
 		Name:       opListAvailableSolutionStacks,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -590,8 +649,8 @@ func (c *ElasticBeanstalk) ListAvailableSolutionStacks(input *ListAvailableSolut
 const opRebuildEnvironment = "RebuildEnvironment"
 
 // RebuildEnvironmentRequest generates a request for the RebuildEnvironment operation.
-func (c *ElasticBeanstalk) RebuildEnvironmentRequest(input *RebuildEnvironmentInput) (req *aws.Request, output *RebuildEnvironmentOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) RebuildEnvironmentRequest(input *RebuildEnvironmentInput) (req *request.Request, output *RebuildEnvironmentOutput) {
+	op := &request.Operation{
 		Name:       opRebuildEnvironment,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -618,8 +677,8 @@ func (c *ElasticBeanstalk) RebuildEnvironment(input *RebuildEnvironmentInput) (*
 const opRequestEnvironmentInfo = "RequestEnvironmentInfo"
 
 // RequestEnvironmentInfoRequest generates a request for the RequestEnvironmentInfo operation.
-func (c *ElasticBeanstalk) RequestEnvironmentInfoRequest(input *RequestEnvironmentInfoInput) (req *aws.Request, output *RequestEnvironmentInfoOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) RequestEnvironmentInfoRequest(input *RequestEnvironmentInfoInput) (req *request.Request, output *RequestEnvironmentInfoOutput) {
+	op := &request.Operation{
 		Name:       opRequestEnvironmentInfo,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -659,8 +718,8 @@ func (c *ElasticBeanstalk) RequestEnvironmentInfo(input *RequestEnvironmentInfoI
 const opRestartAppServer = "RestartAppServer"
 
 // RestartAppServerRequest generates a request for the RestartAppServer operation.
-func (c *ElasticBeanstalk) RestartAppServerRequest(input *RestartAppServerInput) (req *aws.Request, output *RestartAppServerOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) RestartAppServerRequest(input *RestartAppServerInput) (req *request.Request, output *RestartAppServerOutput) {
+	op := &request.Operation{
 		Name:       opRestartAppServer,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -687,8 +746,8 @@ func (c *ElasticBeanstalk) RestartAppServer(input *RestartAppServerInput) (*Rest
 const opRetrieveEnvironmentInfo = "RetrieveEnvironmentInfo"
 
 // RetrieveEnvironmentInfoRequest generates a request for the RetrieveEnvironmentInfo operation.
-func (c *ElasticBeanstalk) RetrieveEnvironmentInfoRequest(input *RetrieveEnvironmentInfoInput) (req *aws.Request, output *RetrieveEnvironmentInfoOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) RetrieveEnvironmentInfoRequest(input *RetrieveEnvironmentInfoInput) (req *request.Request, output *RetrieveEnvironmentInfoOutput) {
+	op := &request.Operation{
 		Name:       opRetrieveEnvironmentInfo,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -718,8 +777,8 @@ func (c *ElasticBeanstalk) RetrieveEnvironmentInfo(input *RetrieveEnvironmentInf
 const opSwapEnvironmentCNAMEs = "SwapEnvironmentCNAMEs"
 
 // SwapEnvironmentCNAMEsRequest generates a request for the SwapEnvironmentCNAMEs operation.
-func (c *ElasticBeanstalk) SwapEnvironmentCNAMEsRequest(input *SwapEnvironmentCNAMEsInput) (req *aws.Request, output *SwapEnvironmentCNAMEsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) SwapEnvironmentCNAMEsRequest(input *SwapEnvironmentCNAMEsInput) (req *request.Request, output *SwapEnvironmentCNAMEsOutput) {
+	op := &request.Operation{
 		Name:       opSwapEnvironmentCNAMEs,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -745,8 +804,8 @@ func (c *ElasticBeanstalk) SwapEnvironmentCNAMEs(input *SwapEnvironmentCNAMEsInp
 const opTerminateEnvironment = "TerminateEnvironment"
 
 // TerminateEnvironmentRequest generates a request for the TerminateEnvironment operation.
-func (c *ElasticBeanstalk) TerminateEnvironmentRequest(input *TerminateEnvironmentInput) (req *aws.Request, output *EnvironmentDescription) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) TerminateEnvironmentRequest(input *TerminateEnvironmentInput) (req *request.Request, output *EnvironmentDescription) {
+	op := &request.Operation{
 		Name:       opTerminateEnvironment,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -772,8 +831,8 @@ func (c *ElasticBeanstalk) TerminateEnvironment(input *TerminateEnvironmentInput
 const opUpdateApplication = "UpdateApplication"
 
 // UpdateApplicationRequest generates a request for the UpdateApplication operation.
-func (c *ElasticBeanstalk) UpdateApplicationRequest(input *UpdateApplicationInput) (req *aws.Request, output *ApplicationDescriptionMessage) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) UpdateApplicationRequest(input *UpdateApplicationInput) (req *request.Request, output *ApplicationDescriptionMessage) {
+	op := &request.Operation{
 		Name:       opUpdateApplication,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -802,8 +861,8 @@ func (c *ElasticBeanstalk) UpdateApplication(input *UpdateApplicationInput) (*Ap
 const opUpdateApplicationVersion = "UpdateApplicationVersion"
 
 // UpdateApplicationVersionRequest generates a request for the UpdateApplicationVersion operation.
-func (c *ElasticBeanstalk) UpdateApplicationVersionRequest(input *UpdateApplicationVersionInput) (req *aws.Request, output *ApplicationVersionDescriptionMessage) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) UpdateApplicationVersionRequest(input *UpdateApplicationVersionInput) (req *request.Request, output *ApplicationVersionDescriptionMessage) {
+	op := &request.Operation{
 		Name:       opUpdateApplicationVersion,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -832,8 +891,8 @@ func (c *ElasticBeanstalk) UpdateApplicationVersion(input *UpdateApplicationVers
 const opUpdateConfigurationTemplate = "UpdateConfigurationTemplate"
 
 // UpdateConfigurationTemplateRequest generates a request for the UpdateConfigurationTemplate operation.
-func (c *ElasticBeanstalk) UpdateConfigurationTemplateRequest(input *UpdateConfigurationTemplateInput) (req *aws.Request, output *ConfigurationSettingsDescription) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) UpdateConfigurationTemplateRequest(input *UpdateConfigurationTemplateInput) (req *request.Request, output *ConfigurationSettingsDescription) {
+	op := &request.Operation{
 		Name:       opUpdateConfigurationTemplate,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -866,8 +925,8 @@ func (c *ElasticBeanstalk) UpdateConfigurationTemplate(input *UpdateConfiguratio
 const opUpdateEnvironment = "UpdateEnvironment"
 
 // UpdateEnvironmentRequest generates a request for the UpdateEnvironment operation.
-func (c *ElasticBeanstalk) UpdateEnvironmentRequest(input *UpdateEnvironmentInput) (req *aws.Request, output *EnvironmentDescription) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) UpdateEnvironmentRequest(input *UpdateEnvironmentInput) (req *request.Request, output *EnvironmentDescription) {
+	op := &request.Operation{
 		Name:       opUpdateEnvironment,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -903,8 +962,8 @@ func (c *ElasticBeanstalk) UpdateEnvironment(input *UpdateEnvironmentInput) (*En
 const opValidateConfigurationSettings = "ValidateConfigurationSettings"
 
 // ValidateConfigurationSettingsRequest generates a request for the ValidateConfigurationSettings operation.
-func (c *ElasticBeanstalk) ValidateConfigurationSettingsRequest(input *ValidateConfigurationSettingsInput) (req *aws.Request, output *ValidateConfigurationSettingsOutput) {
-	op := &aws.Operation{
+func (c *ElasticBeanstalk) ValidateConfigurationSettingsRequest(input *ValidateConfigurationSettingsInput) (req *request.Request, output *ValidateConfigurationSettingsOutput) {
+	op := &request.Operation{
 		Name:       opValidateConfigurationSettings,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -934,17 +993,27 @@ func (c *ElasticBeanstalk) ValidateConfigurationSettings(input *ValidateConfigur
 type AbortEnvironmentUpdateInput struct {
 	// This specifies the ID of the environment with the in-progress update that
 	// you want to cancel.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// This specifies the name of the environment with the in-progress update that
 	// you want to cancel.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	metadataAbortEnvironmentUpdateInput `json:"-" xml:"-"`
 }
 
 type metadataAbortEnvironmentUpdateInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AbortEnvironmentUpdateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AbortEnvironmentUpdateInput) GoString() string {
+	return s.String()
 }
 
 type AbortEnvironmentUpdateOutput struct {
@@ -955,10 +1024,20 @@ type metadataAbortEnvironmentUpdateOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AbortEnvironmentUpdateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AbortEnvironmentUpdateOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the properties of an application.
 type ApplicationDescription struct {
 	// The name of the application.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The names of the configuration templates associated with this application.
 	ConfigurationTemplates []*string `type:"list"`
@@ -982,6 +1061,16 @@ type metadataApplicationDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ApplicationDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationDescription) GoString() string {
+	return s.String()
+}
+
 // Result message containing a single description of an application.
 type ApplicationDescriptionMessage struct {
 	// The ApplicationDescription of the application.
@@ -994,10 +1083,56 @@ type metadataApplicationDescriptionMessage struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ApplicationDescriptionMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationDescriptionMessage) GoString() string {
+	return s.String()
+}
+
+// Represents the application metrics for a specified environment.
+type ApplicationMetrics struct {
+	// The amount of time that the metrics cover (usually 10 seconds). For example,
+	// you might have 5 requests (request_count) within the most recent time slice
+	// of 10 seconds (duration).
+	Duration *int64 `type:"integer"`
+
+	// Represents the average latency for the slowest X percent of requests over
+	// the last 10 seconds. Latencies are in seconds with one milisecond resolution.
+	Latency *Latency `type:"structure"`
+
+	// Average number of requests handled by the web server per second over the
+	// last 10 seconds.
+	RequestCount *int64 `type:"integer"`
+
+	// Represents the percentage of requests over the last 10 seconds that resulted
+	// in each type of status code response.
+	StatusCodes *StatusCodes `type:"structure"`
+
+	metadataApplicationMetrics `json:"-" xml:"-"`
+}
+
+type metadataApplicationMetrics struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ApplicationMetrics) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationMetrics) GoString() string {
+	return s.String()
+}
+
 // Describes the properties of an application version.
 type ApplicationVersionDescription struct {
 	// The name of the application associated with this release.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The creation date of the application version.
 	DateCreated *time.Time `type:"timestamp" timestampFormat:"iso8601"`
@@ -1012,13 +1147,23 @@ type ApplicationVersionDescription struct {
 	SourceBundle *S3Location `type:"structure"`
 
 	// A label uniquely identifying the version for the associated application.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataApplicationVersionDescription `json:"-" xml:"-"`
 }
 
 type metadataApplicationVersionDescription struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ApplicationVersionDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationVersionDescription) GoString() string {
+	return s.String()
 }
 
 // Result message wrapping a single description of an application version.
@@ -1033,6 +1178,16 @@ type metadataApplicationVersionDescriptionMessage struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ApplicationVersionDescriptionMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ApplicationVersionDescriptionMessage) GoString() string {
+	return s.String()
+}
+
 // Describes an Auto Scaling launch configuration.
 type AutoScalingGroup struct {
 	// The name of the AutoScalingGroup .
@@ -1045,16 +1200,85 @@ type metadataAutoScalingGroup struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AutoScalingGroup) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AutoScalingGroup) GoString() string {
+	return s.String()
+}
+
+// Represents CPU utilization information from the specified instance that belongs
+// to the AWS Elastic Beanstalk environment. Use the instanceId property to
+// specify the application instance for which you'd like to return data.
+type CPUUtilization struct {
+	// Percentage of time that the CPU has spent in the I/O Wait state over the
+	// last 10 seconds.
+	IOWait *float64 `type:"double"`
+
+	// Percentage of time that the CPU has spent in the IRQ state over the last
+	// 10 seconds.
+	IRQ *float64 `type:"double"`
+
+	// Percentage of time that the CPU has spent in the Idle state over the last
+	// 10 seconds.
+	Idle *float64 `type:"double"`
+
+	// Percentage of time that the CPU has spent in the Nice state over the last
+	// 10 seconds.
+	Nice *float64 `type:"double"`
+
+	// Percentage of time that the CPU has spent in the SoftIRQ state over the last
+	// 10 seconds.
+	SoftIRQ *float64 `type:"double"`
+
+	// Percentage of time that the CPU has spent in the System state over the last
+	// 10 seconds.
+	System *float64 `type:"double"`
+
+	// Percentage of time that the CPU has spent in the User state over the last
+	// 10 seconds.
+	User *float64 `type:"double"`
+
+	metadataCPUUtilization `json:"-" xml:"-"`
+}
+
+type metadataCPUUtilization struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CPUUtilization) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CPUUtilization) GoString() string {
+	return s.String()
+}
+
 // Results message indicating whether a CNAME is available.
 type CheckDNSAvailabilityInput struct {
 	// The prefix used when this CNAME is reserved.
-	CNAMEPrefix *string `type:"string" required:"true"`
+	CNAMEPrefix *string `min:"4" type:"string" required:"true"`
 
 	metadataCheckDNSAvailabilityInput `json:"-" xml:"-"`
 }
 
 type metadataCheckDNSAvailabilityInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CheckDNSAvailabilityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CheckDNSAvailabilityInput) GoString() string {
+	return s.String()
 }
 
 // Indicates if the specified CNAME is available.
@@ -1070,13 +1294,23 @@ type CheckDNSAvailabilityOutput struct {
 
 	// The fully qualified CNAME to reserve when CreateEnvironment is called with
 	// the provided prefix.
-	FullyQualifiedCNAME *string `type:"string"`
+	FullyQualifiedCNAME *string `min:"1" type:"string"`
 
 	metadataCheckDNSAvailabilityOutput `json:"-" xml:"-"`
 }
 
 type metadataCheckDNSAvailabilityOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CheckDNSAvailabilityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CheckDNSAvailabilityOutput) GoString() string {
+	return s.String()
 }
 
 // Describes the possible values for a configuration option.
@@ -1162,18 +1396,30 @@ type ConfigurationOptionDescription struct {
 	//
 	//    Boolean : Values for this option are either true or false .
 	//
+	//    Json : Values for this option are a JSON representation of a ConfigDocument.
+	//
 	//      Scalar : Values for this option are a single selection from the possible
 	// values, or an unformatted string, or numeric value governed by the MIN/MAX/Regex
 	// constraints.   List : Values for this option are multiple selections from
 	// the possible values.   Boolean : Values for this option are either true or
-	// false .
-	ValueType *string `type:"string"`
+	// false .   Json : Values for this option are a JSON representation of a ConfigDocument.
+	ValueType *string `type:"string" enum:"ConfigurationOptionValueType"`
 
 	metadataConfigurationOptionDescription `json:"-" xml:"-"`
 }
 
 type metadataConfigurationOptionDescription struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ConfigurationOptionDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConfigurationOptionDescription) GoString() string {
+	return s.String()
 }
 
 // A specification identifying an individual configuration option along with
@@ -1188,7 +1434,7 @@ type ConfigurationOptionSetting struct {
 	OptionName *string `type:"string"`
 
 	// A unique resource name for a time-based scaling configuration option.
-	ResourceName *string `type:"string"`
+	ResourceName *string `min:"1" type:"string"`
 
 	// The current value for the configuration option.
 	Value *string `type:"string"`
@@ -1200,10 +1446,20 @@ type metadataConfigurationOptionSetting struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ConfigurationOptionSetting) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConfigurationOptionSetting) GoString() string {
+	return s.String()
+}
+
 // Describes the settings for a configuration set.
 type ConfigurationSettingsDescription struct {
 	// The name of the application associated with this configuration set.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The date (in UTC time) when this configuration set was created.
 	DateCreated *time.Time `type:"timestamp" timestampFormat:"iso8601"`
@@ -1229,13 +1485,13 @@ type ConfigurationSettingsDescription struct {
 	// environment but is in the process of deploying.   deployed: This is the configuration
 	// that is currently deployed to the associated running environment.   failed:
 	// This is a draft configuration that failed to successfully deploy.
-	DeploymentStatus *string `type:"string"`
+	DeploymentStatus *string `type:"string" enum:"ConfigurationDeploymentStatus"`
 
 	// Describes this configuration set.
 	Description *string `type:"string"`
 
 	// If not null, the name of the environment for this configuration set.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// A list of the configuration options and their values in this configuration
 	// set.
@@ -1246,7 +1502,7 @@ type ConfigurationSettingsDescription struct {
 
 	// If not null, the name of the configuration template for this configuration
 	// set.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	metadataConfigurationSettingsDescription `json:"-" xml:"-"`
 }
@@ -1255,13 +1511,23 @@ type metadataConfigurationSettingsDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ConfigurationSettingsDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConfigurationSettingsDescription) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type CreateApplicationInput struct {
 	// The name of the application.
 	//
 	//  Constraint: This name must be unique within your account. If the specified
 	// name already exists, the action returns an InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// Describes the application.
 	Description *string `type:"string"`
@@ -1273,10 +1539,20 @@ type metadataCreateApplicationInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateApplicationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateApplicationInput) GoString() string {
+	return s.String()
+}
+
 type CreateApplicationVersionInput struct {
 	// The name of the application. If no application is found with this name, and
 	// AutoCreateApplication is false, returns an InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// Determines how the system behaves if the specified application for this version
 	// does not already exist:
@@ -1316,7 +1592,7 @@ type CreateApplicationVersionInput struct {
 	// Constraint: Must be unique per application. If an application version already
 	// exists with this label for the specified application, AWS Elastic Beanstalk
 	// returns an InvalidParameterValue error.
-	VersionLabel *string `type:"string" required:"true"`
+	VersionLabel *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateApplicationVersionInput `json:"-" xml:"-"`
 }
@@ -1325,18 +1601,28 @@ type metadataCreateApplicationVersionInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateApplicationVersionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateApplicationVersionInput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type CreateConfigurationTemplateInput struct {
 	// The name of the application to associate with this configuration template.
 	// If no application is found with this name, AWS Elastic Beanstalk returns
 	// an InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// Describes this configuration.
 	Description *string `type:"string"`
 
 	// The ID of the environment used with this configuration template.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// If specified, AWS Elastic Beanstalk sets the specified configuration option
 	// to the requested value. The new value overrides the value obtained from the
@@ -1380,7 +1666,7 @@ type CreateConfigurationTemplateInput struct {
 	//
 	// Default: If a configuration template already exists with this name, AWS
 	// Elastic Beanstalk returns an InvalidParameterValue error.
-	TemplateName *string `type:"string" required:"true"`
+	TemplateName *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateConfigurationTemplateInput `json:"-" xml:"-"`
 }
@@ -1389,17 +1675,27 @@ type metadataCreateConfigurationTemplateInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateConfigurationTemplateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateConfigurationTemplateInput) GoString() string {
+	return s.String()
+}
+
 type CreateEnvironmentInput struct {
 	// The name of the application that contains the version to be deployed.
 	//
 	//  If no application is found with this name, CreateEnvironment returns an
 	// InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// If specified, the environment attempts to use this value as the prefix for
 	// the CNAME. If not specified, the CNAME is generated automatically by appending
 	// a random alphanumeric string to the environment name.
-	CNAMEPrefix *string `type:"string"`
+	CNAMEPrefix *string `min:"4" type:"string"`
 
 	// Describes this environment.
 	Description *string `type:"string"`
@@ -1413,7 +1709,7 @@ type CreateEnvironmentInput struct {
 	//
 	// Default: If the CNAME parameter is not specified, the environment name becomes
 	// part of the CNAME, and therefore part of the visible URL for your application.
-	EnvironmentName *string `type:"string" required:"true"`
+	EnvironmentName *string `min:"4" type:"string" required:"true"`
 
 	// If specified, AWS Elastic Beanstalk sets the specified configuration options
 	// to the requested value in the configuration set for the new environment.
@@ -1425,9 +1721,9 @@ type CreateEnvironmentInput struct {
 	// set for this new environment.
 	OptionsToRemove []*OptionSpecification `type:"list"`
 
-	// This is an alternative to specifying a configuration name. If specified,
-	// AWS Elastic Beanstalk sets the configuration values to the default values
-	// associated with the specified solution stack.
+	// This is an alternative to specifying a template name. If specified, AWS Elastic
+	// Beanstalk sets the configuration values to the default values associated
+	// with the specified solution stack.
 	//
 	//  Condition: You must specify either this or a TemplateName, but not both.
 	// If you specify both, AWS Elastic Beanstalk returns an InvalidParameterCombination
@@ -1446,7 +1742,7 @@ type CreateEnvironmentInput struct {
 	// but not both. If you specify both, AWS Elastic Beanstalk returns an InvalidParameterCombination
 	// error. If you do not specify either, AWS Elastic Beanstalk returns a MissingRequiredParameter
 	// error.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	// This specifies the tier to use for creating this environment.
 	Tier *EnvironmentTier `type:"structure"`
@@ -1458,7 +1754,7 @@ type CreateEnvironmentInput struct {
 	//
 	//  Default: If not specified, AWS Elastic Beanstalk attempts to launch the
 	// sample application in the container.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataCreateEnvironmentInput `json:"-" xml:"-"`
 }
@@ -1467,12 +1763,32 @@ type metadataCreateEnvironmentInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateEnvironmentInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateEnvironmentInput) GoString() string {
+	return s.String()
+}
+
 type CreateStorageLocationInput struct {
 	metadataCreateStorageLocationInput `json:"-" xml:"-"`
 }
 
 type metadataCreateStorageLocationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateStorageLocationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateStorageLocationInput) GoString() string {
+	return s.String()
 }
 
 // Results of a CreateStorageLocationResult call.
@@ -1487,10 +1803,20 @@ type metadataCreateStorageLocationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateStorageLocationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateStorageLocationOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DeleteApplicationInput struct {
 	// The name of the application to delete.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// When set to true, running environments will be terminated before deleting
 	// the application.
@@ -1503,6 +1829,16 @@ type metadataDeleteApplicationInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteApplicationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteApplicationInput) GoString() string {
+	return s.String()
+}
+
 type DeleteApplicationOutput struct {
 	metadataDeleteApplicationOutput `json:"-" xml:"-"`
 }
@@ -1511,10 +1847,20 @@ type metadataDeleteApplicationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteApplicationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteApplicationOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DeleteApplicationVersionInput struct {
 	// The name of the application to delete releases from.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// Indicates whether to delete the associated source bundle from Amazon S3:
 	//
@@ -1524,13 +1870,23 @@ type DeleteApplicationVersionInput struct {
 	DeleteSourceBundle *bool `type:"boolean"`
 
 	// The label of the version to delete.
-	VersionLabel *string `type:"string" required:"true"`
+	VersionLabel *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteApplicationVersionInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteApplicationVersionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteApplicationVersionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteApplicationVersionInput) GoString() string {
+	return s.String()
 }
 
 type DeleteApplicationVersionOutput struct {
@@ -1541,19 +1897,39 @@ type metadataDeleteApplicationVersionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteApplicationVersionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteApplicationVersionOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DeleteConfigurationTemplateInput struct {
 	// The name of the application to delete the configuration template from.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// The name of the configuration template to delete.
-	TemplateName *string `type:"string" required:"true"`
+	TemplateName *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteConfigurationTemplateInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteConfigurationTemplateInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteConfigurationTemplateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteConfigurationTemplateInput) GoString() string {
+	return s.String()
 }
 
 type DeleteConfigurationTemplateOutput struct {
@@ -1564,19 +1940,39 @@ type metadataDeleteConfigurationTemplateOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteConfigurationTemplateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteConfigurationTemplateOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DeleteEnvironmentConfigurationInput struct {
 	// The name of the application the environment is associated with.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// The name of the environment to delete the draft configuration from.
-	EnvironmentName *string `type:"string" required:"true"`
+	EnvironmentName *string `min:"4" type:"string" required:"true"`
 
 	metadataDeleteEnvironmentConfigurationInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteEnvironmentConfigurationInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteEnvironmentConfigurationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteEnvironmentConfigurationInput) GoString() string {
+	return s.String()
 }
 
 type DeleteEnvironmentConfigurationOutput struct {
@@ -1587,11 +1983,21 @@ type metadataDeleteEnvironmentConfigurationOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteEnvironmentConfigurationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteEnvironmentConfigurationOutput) GoString() string {
+	return s.String()
+}
+
 // Result message containing a list of configuration descriptions.
 type DescribeApplicationVersionsInput struct {
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// only include ones that are associated with the specified application.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// If specified, restricts the returned descriptions to only include ones that
 	// have the specified version labels.
@@ -1604,6 +2010,16 @@ type metadataDescribeApplicationVersionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeApplicationVersionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeApplicationVersionsInput) GoString() string {
+	return s.String()
+}
+
 // Result message wrapping a list of application version descriptions.
 type DescribeApplicationVersionsOutput struct {
 	// A list of ApplicationVersionDescription .
@@ -1614,6 +2030,16 @@ type DescribeApplicationVersionsOutput struct {
 
 type metadataDescribeApplicationVersionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeApplicationVersionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeApplicationVersionsOutput) GoString() string {
+	return s.String()
 }
 
 // This documentation target is not reported in the API reference.
@@ -1629,6 +2055,16 @@ type metadataDescribeApplicationsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeApplicationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeApplicationsInput) GoString() string {
+	return s.String()
+}
+
 // Result message containing a list of application descriptions.
 type DescribeApplicationsOutput struct {
 	// This parameter contains a list of ApplicationDescription.
@@ -1641,15 +2077,25 @@ type metadataDescribeApplicationsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeApplicationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeApplicationsOutput) GoString() string {
+	return s.String()
+}
+
 // Result message containig a list of application version descriptions.
 type DescribeConfigurationOptionsInput struct {
 	// The name of the application associated with the configuration template or
 	// environment. Only needed if you want to describe the configuration options
 	// associated with either the configuration template or environment.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The name of the environment whose configuration options you want to describe.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// If specified, restricts the descriptions to only the specified options.
 	Options []*OptionSpecification `type:"list"`
@@ -1659,13 +2105,23 @@ type DescribeConfigurationOptionsInput struct {
 
 	// The name of the configuration template whose configuration options you want
 	// to describe.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	metadataDescribeConfigurationOptionsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeConfigurationOptionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeConfigurationOptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeConfigurationOptionsInput) GoString() string {
+	return s.String()
 }
 
 // Describes the settings for a specified configuration set.
@@ -1683,11 +2139,21 @@ type metadataDescribeConfigurationOptionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeConfigurationOptionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeConfigurationOptionsOutput) GoString() string {
+	return s.String()
+}
+
 // Result message containing all of the configuration settings for a specified
 // solution stack or configuration template.
 type DescribeConfigurationSettingsInput struct {
 	// The application for the environment or configuration template.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// The name of the environment to describe.
 	//
@@ -1695,7 +2161,7 @@ type DescribeConfigurationSettingsInput struct {
 	// If you specify both, AWS Elastic Beanstalk returns an InvalidParameterCombination
 	// error. If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// The name of the configuration template to describe.
 	//
@@ -1703,13 +2169,23 @@ type DescribeConfigurationSettingsInput struct {
 	// but not both. If you specify both, AWS Elastic Beanstalk returns an InvalidParameterCombination
 	// error. If you do not specify either, AWS Elastic Beanstalk returns a MissingRequiredParameter
 	// error.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	metadataDescribeConfigurationSettingsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeConfigurationSettingsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeConfigurationSettingsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeConfigurationSettingsInput) GoString() string {
+	return s.String()
 }
 
 // The results from a request to change the configuration settings of an environment.
@@ -1724,6 +2200,91 @@ type metadataDescribeConfigurationSettingsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeConfigurationSettingsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeConfigurationSettingsOutput) GoString() string {
+	return s.String()
+}
+
+// See the example below to learn how to create a request body.
+type DescribeEnvironmentHealthInput struct {
+	// Specifies the response elements you wish to receive. If no attribute names
+	// are specified, AWS Elastic Beanstalk returns all response elements.
+	AttributeNames []*string `type:"list"`
+
+	// Specifies the AWS Elastic Beanstalk environment ID.
+	EnvironmentId *string `type:"string"`
+
+	// Specifies the AWS Elastic Beanstalk environment name.
+	EnvironmentName *string `min:"4" type:"string"`
+
+	metadataDescribeEnvironmentHealthInput `json:"-" xml:"-"`
+}
+
+type metadataDescribeEnvironmentHealthInput struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEnvironmentHealthInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEnvironmentHealthInput) GoString() string {
+	return s.String()
+}
+
+// See the example below for a sample response.
+type DescribeEnvironmentHealthOutput struct {
+	// Represents the application metrics for a specified environment.
+	ApplicationMetrics *ApplicationMetrics `type:"structure"`
+
+	// Returns potential causes for the reported status.
+	Causes []*string `type:"list"`
+
+	// Returns the color indicator that tells you information about the health of
+	// the environment. For more information, see Health Colors and Statuses (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+	Color *string `type:"string"`
+
+	// The AWS Elastic Beanstalk environment name.
+	EnvironmentName *string `min:"4" type:"string"`
+
+	// Contains the response body with information about the health of the environment.
+	HealthStatus *string `type:"string"`
+
+	// Represents summary information about the health of an instance. For more
+	// information, see Health Colors and Statuses (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+	InstancesHealth *InstanceHealthSummary `type:"structure"`
+
+	// The date and time the information was last refreshed.
+	RefreshedAt *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+
+	// Returns the health status value of the environment. For more information,
+	// see Health Colors and Statuses (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+	Status *string `type:"string" enum:"EnvironmentHealth"`
+
+	metadataDescribeEnvironmentHealthOutput `json:"-" xml:"-"`
+}
+
+type metadataDescribeEnvironmentHealthOutput struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEnvironmentHealthOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEnvironmentHealthOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DescribeEnvironmentResourcesInput struct {
 	// The ID of the environment to retrieve AWS resource usage data.
@@ -1731,20 +2292,30 @@ type DescribeEnvironmentResourcesInput struct {
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the environment to retrieve AWS resource usage data.
 	//
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	metadataDescribeEnvironmentResourcesInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeEnvironmentResourcesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEnvironmentResourcesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEnvironmentResourcesInput) GoString() string {
+	return s.String()
 }
 
 // Result message containing a list of environment resource descriptions.
@@ -1759,15 +2330,25 @@ type metadataDescribeEnvironmentResourcesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeEnvironmentResourcesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEnvironmentResourcesOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DescribeEnvironmentsInput struct {
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// include only those that are associated with this application.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// include only those that have the specified IDs.
-	EnvironmentIDs []*string `locationName:"EnvironmentIds" type:"list"`
+	EnvironmentIds []*string `type:"list"`
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// include only those that have the specified names.
@@ -1787,13 +2368,23 @@ type DescribeEnvironmentsInput struct {
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// include only those that are associated with this application version.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataDescribeEnvironmentsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeEnvironmentsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEnvironmentsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEnvironmentsInput) GoString() string {
+	return s.String()
 }
 
 // Result message containing a list of environment descriptions.
@@ -1808,11 +2399,21 @@ type metadataDescribeEnvironmentsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeEnvironmentsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEnvironmentsOutput) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type DescribeEventsInput struct {
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// include only those associated with this application.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// those that occur up to, but not including, the EndTime.
@@ -1820,26 +2421,26 @@ type DescribeEventsInput struct {
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// those associated with this environment.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// those associated with this environment.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// Specifies the maximum number of events that can be returned, beginning with
 	// the most recent event.
-	MaxRecords *int64 `type:"integer"`
+	MaxRecords *int64 `min:"1" type:"integer"`
 
 	// Pagination token. If specified, the events return the next batch of results.
 	NextToken *string `type:"string"`
 
 	// If specified, AWS Elastic Beanstalk restricts the described events to include
 	// only those associated with this request ID.
-	RequestID *string `locationName:"RequestId" type:"string"`
+	RequestId *string `type:"string"`
 
 	// If specified, limits the events returned from this call to include only those
 	// with the specified severity or higher.
-	Severity *string `type:"string"`
+	Severity *string `type:"string" enum:"EventSeverity"`
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// those that occur on or after this time.
@@ -1847,17 +2448,27 @@ type DescribeEventsInput struct {
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// those that are associated with this environment configuration.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	// If specified, AWS Elastic Beanstalk restricts the returned descriptions to
 	// those associated with this application version.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataDescribeEventsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeEventsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeEventsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEventsInput) GoString() string {
+	return s.String()
 }
 
 // Result message wrapping a list of event descriptions.
@@ -1876,6 +2487,76 @@ type metadataDescribeEventsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeEventsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeEventsOutput) GoString() string {
+	return s.String()
+}
+
+// See the example below to learn how to create a request body.
+type DescribeInstancesHealthInput struct {
+	// Specifies the response elements you wish to receive. If no attribute names
+	// are specified, AWS Elastic Beanstalk returns all response elements.
+	AttributeNames []*string `type:"list"`
+
+	// Specifies the AWS Elastic Beanstalk environment ID.
+	EnvironmentId *string `type:"string"`
+
+	// Specifies the AWS Elastic Beanstalk environment name.
+	EnvironmentName *string `min:"4" type:"string"`
+
+	// Specifies the next token of the request.
+	NextToken *string `min:"1" type:"string"`
+
+	metadataDescribeInstancesHealthInput `json:"-" xml:"-"`
+}
+
+type metadataDescribeInstancesHealthInput struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeInstancesHealthInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeInstancesHealthInput) GoString() string {
+	return s.String()
+}
+
+// See the example below for a sample response.
+type DescribeInstancesHealthOutput struct {
+	// Contains the response body with information about the health of the instance.
+	InstanceHealthList []*SingleInstanceHealth `type:"list"`
+
+	// The next token.
+	NextToken *string `min:"1" type:"string"`
+
+	// The date and time the information was last refreshed.
+	RefreshedAt *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+
+	metadataDescribeInstancesHealthOutput `json:"-" xml:"-"`
+}
+
+type metadataDescribeInstancesHealthOutput struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeInstancesHealthOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeInstancesHealthOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the properties of an environment.
 type EnvironmentDescription struct {
 	// Indicates if there is an in-progress environment configuration update or
@@ -1887,10 +2568,10 @@ type EnvironmentDescription struct {
 	AbortableOperationInProgress *bool `type:"boolean"`
 
 	// The name of the application associated with this environment.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The URL to the CNAME for this environment.
-	CNAME *string `type:"string"`
+	CNAME *string `min:"1" type:"string"`
 
 	// The creation date for this environment.
 	DateCreated *time.Time `type:"timestamp" timestampFormat:"iso8601"`
@@ -1906,10 +2587,10 @@ type EnvironmentDescription struct {
 	EndpointURL *string `type:"string"`
 
 	// The ID of this environment.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of this environment.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// Describes the health status of the environment. AWS Elastic Beanstalk indicates
 	// the failure levels for a running environment:
@@ -1928,7 +2609,11 @@ type EnvironmentDescription struct {
 	//   Grey: Default health for a new environment. The environment is not fully
 	// launched and health checks have not started or health checks are suspended
 	// during an UpdateEnvironment or RestartEnvironement request.    Default: Grey
-	Health *string `type:"string"`
+	Health *string `type:"string" enum:"EnvironmentHealth"`
+
+	// Returns the health status of the application running in your environment.
+	// For more information, see Health Colors and Statuses (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+	HealthStatus *string `type:"string" enum:"EnvironmentHealthStatus"`
 
 	// The description of the AWS resources used by this environment.
 	Resources *EnvironmentResourcesDescription `type:"structure"`
@@ -1943,16 +2628,16 @@ type EnvironmentDescription struct {
 	// version.   Ready: Environment is available to have an action performed on
 	// it, such as update or terminate.   Terminating: Environment is in the shut-down
 	// process.   Terminated: Environment is not running.
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"EnvironmentStatus"`
 
 	// The name of the configuration template used to originally launch this environment.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	// Describes the current tier of this environment.
 	Tier *EnvironmentTier `type:"structure"`
 
 	// The application version deployed in this environment.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataEnvironmentDescription `json:"-" xml:"-"`
 }
@@ -1961,13 +2646,23 @@ type metadataEnvironmentDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnvironmentDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnvironmentDescription) GoString() string {
+	return s.String()
+}
+
 // The information retrieved from the Amazon EC2 instances.
 type EnvironmentInfoDescription struct {
 	// The Amazon EC2 Instance ID for this information.
-	EC2InstanceID *string `locationName:"Ec2InstanceId" type:"string"`
+	Ec2InstanceId *string `type:"string"`
 
 	// The type of information retrieved.
-	InfoType *string `type:"string"`
+	InfoType *string `type:"string" enum:"EnvironmentInfoType"`
 
 	// The retrieved information.
 	Message *string `type:"string"`
@@ -1982,13 +2677,23 @@ type metadataEnvironmentInfoDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnvironmentInfoDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnvironmentInfoDescription) GoString() string {
+	return s.String()
+}
+
 // Describes the AWS resources in use by this environment. This data is live.
 type EnvironmentResourceDescription struct {
 	// The AutoScalingGroups used by this environment.
 	AutoScalingGroups []*AutoScalingGroup `type:"list"`
 
 	// The name of the environment.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// The Amazon EC2 instances used by this environment.
 	Instances []*Instance `type:"list"`
@@ -2012,6 +2717,16 @@ type metadataEnvironmentResourceDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnvironmentResourceDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnvironmentResourceDescription) GoString() string {
+	return s.String()
+}
+
 // Describes the AWS resources in use by this environment. This data is not
 // live data.
 type EnvironmentResourcesDescription struct {
@@ -2023,6 +2738,16 @@ type EnvironmentResourcesDescription struct {
 
 type metadataEnvironmentResourcesDescription struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnvironmentResourcesDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnvironmentResourcesDescription) GoString() string {
+	return s.String()
 }
 
 // Describes the properties of an environment tier
@@ -2043,13 +2768,23 @@ type metadataEnvironmentTier struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnvironmentTier) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnvironmentTier) GoString() string {
+	return s.String()
+}
+
 // Describes an event.
 type EventDescription struct {
 	// The application associated with the event.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The name of the environment associated with this event.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// The date when the event occurred.
 	EventDate *time.Time `type:"timestamp" timestampFormat:"iso8601"`
@@ -2058,16 +2793,16 @@ type EventDescription struct {
 	Message *string `type:"string"`
 
 	// The web service request ID for the activity of this event.
-	RequestID *string `locationName:"RequestId" type:"string"`
+	RequestId *string `type:"string"`
 
 	// The severity level of this event.
-	Severity *string `type:"string"`
+	Severity *string `type:"string" enum:"EventSeverity"`
 
 	// The name of the configuration associated with this event.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	// The release label for the application version associated with this event.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataEventDescription `json:"-" xml:"-"`
 }
@@ -2076,16 +2811,138 @@ type metadataEventDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EventDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EventDescription) GoString() string {
+	return s.String()
+}
+
 // The description of an Amazon EC2 instance.
 type Instance struct {
 	// The ID of the Amazon EC2 instance.
-	ID *string `locationName:"Id" type:"string"`
+	Id *string `type:"string"`
 
 	metadataInstance `json:"-" xml:"-"`
 }
 
 type metadataInstance struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Instance) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Instance) GoString() string {
+	return s.String()
+}
+
+// Represents summary information about the health of an instance. For more
+// information, see Health Colors and Statuses (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+type InstanceHealthSummary struct {
+	// Red. The health agent is reporting a high number of request failures or other
+	// issues for an instance or environment.
+	Degraded *int64 `type:"integer"`
+
+	// Green. An operation is in progress on an instance.
+	Info *int64 `type:"integer"`
+
+	// Grey. AWS Elastic Beanstalk and the health agent are reporting no data on
+	// an instance.
+	NoData *int64 `type:"integer"`
+
+	// Green. An instance is passing health checks and the health agent is not reporting
+	// any problems.
+	Ok *int64 `type:"integer"`
+
+	// Grey. An operation is in progress on an instance within the command timeout.
+	Pending *int64 `type:"integer"`
+
+	// Red. The health agent is reporting a very high number of request failures
+	// or other issues for an instance or environment.
+	Severe *int64 `type:"integer"`
+
+	// Grey. AWS Elastic Beanstalk and the health agent are reporting an insufficient
+	// amount of data on an instance.
+	Unknown *int64 `type:"integer"`
+
+	// Yellow. The health agent is reporting a moderate number of request failures
+	// or other issues for an instance or environment.
+	Warning *int64 `type:"integer"`
+
+	metadataInstanceHealthSummary `json:"-" xml:"-"`
+}
+
+type metadataInstanceHealthSummary struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s InstanceHealthSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InstanceHealthSummary) GoString() string {
+	return s.String()
+}
+
+// Represents the average latency for the slowest X percent of requests over
+// the last 10 seconds.
+type Latency struct {
+	// The average latency for the slowest 90 percent of requests over the last
+	// 10 seconds.
+	P10 *float64 `type:"double"`
+
+	// The average latency for the slowest 50 percent of requests over the last
+	// 10 seconds.
+	P50 *float64 `type:"double"`
+
+	// The average latency for the slowest 25 percent of requests over the last
+	// 10 seconds.
+	P75 *float64 `type:"double"`
+
+	// The average latency for the slowest 15 percent of requests over the last
+	// 10 seconds.
+	P85 *float64 `type:"double"`
+
+	// The average latency for the slowest 10 percent of requests over the last
+	// 10 seconds.
+	P90 *float64 `type:"double"`
+
+	// The average latency for the slowest 5 percent of requests over the last 10
+	// seconds.
+	P95 *float64 `type:"double"`
+
+	// The average latency for the slowest 1 percent of requests over the last 10
+	// seconds.
+	P99 *float64 `type:"double"`
+
+	// The average latency for the slowest 0.1 percent of requests over the last
+	// 10 seconds.
+	P999 *float64 `type:"double"`
+
+	metadataLatency `json:"-" xml:"-"`
+}
+
+type metadataLatency struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Latency) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Latency) GoString() string {
+	return s.String()
 }
 
 // Describes an Auto Scaling launch configuration.
@@ -2100,12 +2957,32 @@ type metadataLaunchConfiguration struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s LaunchConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LaunchConfiguration) GoString() string {
+	return s.String()
+}
+
 type ListAvailableSolutionStacksInput struct {
 	metadataListAvailableSolutionStacksInput `json:"-" xml:"-"`
 }
 
 type metadataListAvailableSolutionStacksInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListAvailableSolutionStacksInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAvailableSolutionStacksInput) GoString() string {
+	return s.String()
 }
 
 // A list of available AWS Elastic Beanstalk solution stacks.
@@ -2123,6 +3000,16 @@ type metadataListAvailableSolutionStacksOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListAvailableSolutionStacksOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAvailableSolutionStacksOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the properties of a Listener for the LoadBalancer.
 type Listener struct {
 	// The port that is used by the Listener.
@@ -2138,6 +3025,16 @@ type metadataListener struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Listener) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Listener) GoString() string {
+	return s.String()
+}
+
 // Describes a LoadBalancer.
 type LoadBalancer struct {
 	// The name of the LoadBalancer.
@@ -2148,6 +3045,16 @@ type LoadBalancer struct {
 
 type metadataLoadBalancer struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s LoadBalancer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LoadBalancer) GoString() string {
+	return s.String()
 }
 
 // Describes the details of a LoadBalancer.
@@ -2168,6 +3075,16 @@ type metadataLoadBalancerDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s LoadBalancerDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LoadBalancerDescription) GoString() string {
+	return s.String()
+}
+
 // A regular expression representing a restriction on a string configuration
 // option value.
 type OptionRestrictionRegex struct {
@@ -2185,6 +3102,16 @@ type metadataOptionRestrictionRegex struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s OptionRestrictionRegex) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OptionRestrictionRegex) GoString() string {
+	return s.String()
+}
+
 // A specification identifying an individual configuration option.
 type OptionSpecification struct {
 	// A unique namespace identifying the option's associated AWS resource.
@@ -2194,13 +3121,23 @@ type OptionSpecification struct {
 	OptionName *string `type:"string"`
 
 	// A unique resource name for a time-based scaling configuration option.
-	ResourceName *string `type:"string"`
+	ResourceName *string `min:"1" type:"string"`
 
 	metadataOptionSpecification `json:"-" xml:"-"`
 }
 
 type metadataOptionSpecification struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s OptionSpecification) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OptionSpecification) GoString() string {
+	return s.String()
 }
 
 // Describes a queue.
@@ -2218,20 +3155,30 @@ type metadataQueue struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Queue) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Queue) GoString() string {
+	return s.String()
+}
+
 type RebuildEnvironmentInput struct {
 	// The ID of the environment to rebuild.
 	//
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the environment to rebuild.
 	//
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	metadataRebuildEnvironmentInput `json:"-" xml:"-"`
 }
@@ -2240,12 +3187,32 @@ type metadataRebuildEnvironmentInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RebuildEnvironmentInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RebuildEnvironmentInput) GoString() string {
+	return s.String()
+}
+
 type RebuildEnvironmentOutput struct {
 	metadataRebuildEnvironmentOutput `json:"-" xml:"-"`
 }
 
 type metadataRebuildEnvironmentOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RebuildEnvironmentOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RebuildEnvironmentOutput) GoString() string {
+	return s.String()
 }
 
 // This documentation target is not reported in the API reference.
@@ -2258,7 +3225,7 @@ type RequestEnvironmentInfoInput struct {
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the environment of the requested data.
 	//
@@ -2268,16 +3235,26 @@ type RequestEnvironmentInfoInput struct {
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// The type of information to request.
-	InfoType *string `type:"string" required:"true"`
+	InfoType *string `type:"string" required:"true" enum:"EnvironmentInfoType"`
 
 	metadataRequestEnvironmentInfoInput `json:"-" xml:"-"`
 }
 
 type metadataRequestEnvironmentInfoInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RequestEnvironmentInfoInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestEnvironmentInfoInput) GoString() string {
+	return s.String()
 }
 
 type RequestEnvironmentInfoOutput struct {
@@ -2288,20 +3265,30 @@ type metadataRequestEnvironmentInfoOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RequestEnvironmentInfoOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RequestEnvironmentInfoOutput) GoString() string {
+	return s.String()
+}
+
 type RestartAppServerInput struct {
 	// The ID of the environment to restart the server for.
 	//
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the environment to restart the server for.
 	//
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	metadataRestartAppServerInput `json:"-" xml:"-"`
 }
@@ -2310,12 +3297,32 @@ type metadataRestartAppServerInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RestartAppServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RestartAppServerInput) GoString() string {
+	return s.String()
+}
+
 type RestartAppServerOutput struct {
 	metadataRestartAppServerOutput `json:"-" xml:"-"`
 }
 
 type metadataRestartAppServerOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RestartAppServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RestartAppServerOutput) GoString() string {
+	return s.String()
 }
 
 // This documentation target is not reported in the API reference.
@@ -2327,7 +3334,7 @@ type RetrieveEnvironmentInfoInput struct {
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the data's environment.
 	//
@@ -2336,16 +3343,26 @@ type RetrieveEnvironmentInfoInput struct {
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// The type of information to retrieve.
-	InfoType *string `type:"string" required:"true"`
+	InfoType *string `type:"string" required:"true" enum:"EnvironmentInfoType"`
 
 	metadataRetrieveEnvironmentInfoInput `json:"-" xml:"-"`
 }
 
 type metadataRetrieveEnvironmentInfoInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RetrieveEnvironmentInfoInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetrieveEnvironmentInfoInput) GoString() string {
+	return s.String()
 }
 
 // Result message containing a description of the requested environment info.
@@ -2358,6 +3375,16 @@ type RetrieveEnvironmentInfoOutput struct {
 
 type metadataRetrieveEnvironmentInfoOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RetrieveEnvironmentInfoOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetrieveEnvironmentInfoOutput) GoString() string {
+	return s.String()
 }
 
 // A specification of a location in Amazon S3.
@@ -2375,6 +3402,63 @@ type metadataS3Location struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s S3Location) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3Location) GoString() string {
+	return s.String()
+}
+
+// Represents health information from the specified instance that belongs to
+// the AWS Elastic Beanstalk environment. Use the InstanceId property to specify
+// the application instance for which you'd like to return data.
+type SingleInstanceHealth struct {
+	// Represents the application metrics for a specified environment.
+	ApplicationMetrics *ApplicationMetrics `type:"structure"`
+
+	// Represents the causes, which provide more information about the current health
+	// status.
+	Causes []*string `type:"list"`
+
+	// Represents the color indicator that gives you information about the health
+	// of the EC2 instance. For more information, see Health Colors and Statuses
+	// (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+	Color *string `type:"string"`
+
+	// Returns the health status of the specified instance. For more information,
+	// see Health Colors and Statuses (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
+	HealthStatus *string `type:"string"`
+
+	// The ID of the Amazon EC2 instance.
+	InstanceId *string `min:"1" type:"string"`
+
+	// The time at which the EC2 instance was launched.
+	LaunchedAt *time.Time `type:"timestamp" timestampFormat:"iso8601"`
+
+	// Represents CPU utilization and load average information for applications
+	// running in the specified environment.
+	System *SystemStatus `type:"structure"`
+
+	metadataSingleInstanceHealth `json:"-" xml:"-"`
+}
+
+type metadataSingleInstanceHealth struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s SingleInstanceHealth) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SingleInstanceHealth) GoString() string {
+	return s.String()
+}
+
 // Describes the solution stack.
 type SolutionStackDescription struct {
 	// The permitted file types allowed for a solution stack.
@@ -2390,19 +3474,76 @@ type metadataSolutionStackDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s SolutionStackDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SolutionStackDescription) GoString() string {
+	return s.String()
+}
+
 // A specification for an environment configuration
 type SourceConfiguration struct {
 	// The name of the application associated with the configuration.
-	ApplicationName *string `type:"string"`
+	ApplicationName *string `min:"1" type:"string"`
 
 	// The name of the configuration template.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	metadataSourceConfiguration `json:"-" xml:"-"`
 }
 
 type metadataSourceConfiguration struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s SourceConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SourceConfiguration) GoString() string {
+	return s.String()
+}
+
+// Represents the percentage of requests over the last 10 seconds that resulted
+// in each type of status code response. For more information, see Status Code
+// Definitions (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html).
+type StatusCodes struct {
+	// The percentage of requests over the last 10 seconds that resulted in a 2xx
+	// (200, 201, etc.) status code.
+	Status2xx *int64 `type:"integer"`
+
+	// The percentage of requests over the last 10 seconds that resulted in a 3xx
+	// (300, 301, etc.) status code.
+	Status3xx *int64 `type:"integer"`
+
+	// The percentage of requests over the last 10 seconds that resulted in a 4xx
+	// (400, 401, etc.) status code.
+	Status4xx *int64 `type:"integer"`
+
+	// The percentage of requests over the last 10 seconds that resulted in a 5xx
+	// (500, 501, etc.) status code.
+	Status5xx *int64 `type:"integer"`
+
+	metadataStatusCodes `json:"-" xml:"-"`
+}
+
+type metadataStatusCodes struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s StatusCodes) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StatusCodes) GoString() string {
+	return s.String()
 }
 
 // Swaps the CNAMEs of two environments.
@@ -2412,34 +3553,44 @@ type SwapEnvironmentCNAMEsInput struct {
 	//  Condition: You must specify at least the DestinationEnvironmentID or the
 	// DestinationEnvironmentName. You may also specify both. You must specify the
 	// SourceEnvironmentId with the DestinationEnvironmentId.
-	DestinationEnvironmentID *string `locationName:"DestinationEnvironmentId" type:"string"`
+	DestinationEnvironmentId *string `type:"string"`
 
 	// The name of the destination environment.
 	//
 	//  Condition: You must specify at least the DestinationEnvironmentID or the
 	// DestinationEnvironmentName. You may also specify both. You must specify the
 	// SourceEnvironmentName with the DestinationEnvironmentName.
-	DestinationEnvironmentName *string `type:"string"`
+	DestinationEnvironmentName *string `min:"4" type:"string"`
 
 	// The ID of the source environment.
 	//
 	//  Condition: You must specify at least the SourceEnvironmentID or the SourceEnvironmentName.
 	// You may also specify both. If you specify the SourceEnvironmentId, you must
 	// specify the DestinationEnvironmentId.
-	SourceEnvironmentID *string `locationName:"SourceEnvironmentId" type:"string"`
+	SourceEnvironmentId *string `type:"string"`
 
 	// The name of the source environment.
 	//
 	//  Condition: You must specify at least the SourceEnvironmentID or the SourceEnvironmentName.
 	// You may also specify both. If you specify the SourceEnvironmentName, you
 	// must specify the DestinationEnvironmentName.
-	SourceEnvironmentName *string `type:"string"`
+	SourceEnvironmentName *string `min:"4" type:"string"`
 
 	metadataSwapEnvironmentCNAMEsInput `json:"-" xml:"-"`
 }
 
 type metadataSwapEnvironmentCNAMEsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s SwapEnvironmentCNAMEsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SwapEnvironmentCNAMEsInput) GoString() string {
+	return s.String()
 }
 
 type SwapEnvironmentCNAMEsOutput struct {
@@ -2450,19 +3601,68 @@ type metadataSwapEnvironmentCNAMEsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s SwapEnvironmentCNAMEsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SwapEnvironmentCNAMEsOutput) GoString() string {
+	return s.String()
+}
+
+// Represents CPU utilization and load average information for applications
+// running in the specified environment.
+type SystemStatus struct {
+	// Represents CPU utilization information from the specified instance that belongs
+	// to the AWS Elastic Beanstalk environment. Use the instanceId property to
+	// specify the application instance for which you'd like to return data.
+	CPUUtilization *CPUUtilization `type:"structure"`
+
+	// Load average in the last 1-minute and 5-minute periods. For more information,
+	// see Operating System Metrics (http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-metrics.html#health-enhanced-metrics-os).
+	LoadAverage []*float64 `type:"list"`
+
+	metadataSystemStatus `json:"-" xml:"-"`
+}
+
+type metadataSystemStatus struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s SystemStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SystemStatus) GoString() string {
+	return s.String()
+}
+
 // Describes a tag applied to a resource in an environment.
 type Tag struct {
 	// The key of the tag.
-	Key *string `type:"string"`
+	Key *string `min:"1" type:"string"`
 
 	// The value of the tag.
-	Value *string `type:"string"`
+	Value *string `min:"1" type:"string"`
 
 	metadataTag `json:"-" xml:"-"`
 }
 
 type metadataTag struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
 }
 
 // This documentation target is not reported in the API reference.
@@ -2472,14 +3672,14 @@ type TerminateEnvironmentInput struct {
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the environment to terminate.
 	//
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// Indicates whether the associated AWS resources should shut down when the
 	// environment is terminated:
@@ -2508,6 +3708,16 @@ type metadataTerminateEnvironmentInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s TerminateEnvironmentInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TerminateEnvironmentInput) GoString() string {
+	return s.String()
+}
+
 // Describes a trigger.
 type Trigger struct {
 	// The name of the trigger.
@@ -2520,11 +3730,21 @@ type metadataTrigger struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Trigger) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Trigger) GoString() string {
+	return s.String()
+}
+
 // This documentation target is not reported in the API reference.
 type UpdateApplicationInput struct {
 	// The name of the application to update. If no such application is found, UpdateApplication
 	// returns an InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// A new description for the application.
 	//
@@ -2538,12 +3758,22 @@ type metadataUpdateApplicationInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateApplicationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateApplicationInput) GoString() string {
+	return s.String()
+}
+
 type UpdateApplicationVersionInput struct {
 	// The name of the application associated with this version.
 	//
 	//  If no application is found with this name, UpdateApplication returns an
 	// InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// A new description for this release.
 	Description *string `type:"string"`
@@ -2552,13 +3782,23 @@ type UpdateApplicationVersionInput struct {
 	//
 	//  If no application version is found with this label, UpdateApplication returns
 	// an InvalidParameterValue error.
-	VersionLabel *string `type:"string" required:"true"`
+	VersionLabel *string `min:"1" type:"string" required:"true"`
 
 	metadataUpdateApplicationVersionInput `json:"-" xml:"-"`
 }
 
 type metadataUpdateApplicationVersionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateApplicationVersionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateApplicationVersionInput) GoString() string {
+	return s.String()
 }
 
 // The result message containing the options for the specified solution stack.
@@ -2568,7 +3808,7 @@ type UpdateConfigurationTemplateInput struct {
 	//
 	//  If no application is found with this name, UpdateConfigurationTemplate
 	// returns an InvalidParameterValue error.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// A new description for the configuration.
 	Description *string `type:"string"`
@@ -2586,13 +3826,23 @@ type UpdateConfigurationTemplateInput struct {
 	//
 	//  If no configuration template is found with this name, UpdateConfigurationTemplate
 	// returns an InvalidParameterValue error.
-	TemplateName *string `type:"string" required:"true"`
+	TemplateName *string `min:"1" type:"string" required:"true"`
 
 	metadataUpdateConfigurationTemplateInput `json:"-" xml:"-"`
 }
 
 type metadataUpdateConfigurationTemplateInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateConfigurationTemplateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateConfigurationTemplateInput) GoString() string {
+	return s.String()
 }
 
 // This documentation target is not reported in the API reference.
@@ -2609,7 +3859,7 @@ type UpdateEnvironmentInput struct {
 	//  Condition: You must specify either this or an EnvironmentName, or both.
 	// If you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentID *string `locationName:"EnvironmentId" type:"string"`
+	EnvironmentId *string `type:"string"`
 
 	// The name of the environment to update. If no environment with this name exists,
 	// AWS Elastic Beanstalk returns an InvalidParameterValue error.
@@ -2617,7 +3867,7 @@ type UpdateEnvironmentInput struct {
 	//  Condition: You must specify either this or an EnvironmentId, or both. If
 	// you do not specify either, AWS Elastic Beanstalk returns MissingRequiredParameter
 	// error.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// If specified, AWS Elastic Beanstalk updates the configuration set associated
 	// with the running environment and sets the specified configuration options
@@ -2635,7 +3885,7 @@ type UpdateEnvironmentInput struct {
 	// If this parameter is specified, AWS Elastic Beanstalk deploys this configuration
 	// template to the environment. If no such configuration template is found,
 	// AWS Elastic Beanstalk returns an InvalidParameterValue error.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	// This specifies the tier to use to update the environment.
 	//
@@ -2646,7 +3896,7 @@ type UpdateEnvironmentInput struct {
 	// If this parameter is specified, AWS Elastic Beanstalk deploys the named application
 	// version to the environment. If no such application version is found, returns
 	// an InvalidParameterValue error.
-	VersionLabel *string `type:"string"`
+	VersionLabel *string `min:"1" type:"string"`
 
 	metadataUpdateEnvironmentInput `json:"-" xml:"-"`
 }
@@ -2655,16 +3905,26 @@ type metadataUpdateEnvironmentInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateEnvironmentInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateEnvironmentInput) GoString() string {
+	return s.String()
+}
+
 // A list of validation messages for a specified configuration template.
 type ValidateConfigurationSettingsInput struct {
 	// The name of the application that the configuration template or environment
 	// belongs to.
-	ApplicationName *string `type:"string" required:"true"`
+	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// The name of the environment to validate the settings against.
 	//
 	//  Condition: You cannot specify both this and a configuration template name.
-	EnvironmentName *string `type:"string"`
+	EnvironmentName *string `min:"4" type:"string"`
 
 	// A list of the options and desired values to evaluate.
 	OptionSettings []*ConfigurationOptionSetting `type:"list" required:"true"`
@@ -2672,13 +3932,23 @@ type ValidateConfigurationSettingsInput struct {
 	// The name of the configuration template to validate the settings against.
 	//
 	//  Condition: You cannot specify both this and an environment name.
-	TemplateName *string `type:"string"`
+	TemplateName *string `min:"1" type:"string"`
 
 	metadataValidateConfigurationSettingsInput `json:"-" xml:"-"`
 }
 
 type metadataValidateConfigurationSettingsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ValidateConfigurationSettingsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidateConfigurationSettingsInput) GoString() string {
+	return s.String()
 }
 
 // Provides a list of validation messages.
@@ -2691,6 +3961,16 @@ type ValidateConfigurationSettingsOutput struct {
 
 type metadataValidateConfigurationSettingsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ValidateConfigurationSettingsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidateConfigurationSettingsOutput) GoString() string {
+	return s.String()
 }
 
 // An error or warning for a desired configuration option value.
@@ -2712,7 +3992,7 @@ type ValidationMessage struct {
 	//     error: This message indicates that this is not a valid setting for an
 	// option.   warning: This message is providing information you should take
 	// into account.
-	Severity *string `type:"string"`
+	Severity *string `type:"string" enum:"ValidationSeverity"`
 
 	metadataValidationMessage `json:"-" xml:"-"`
 }
@@ -2720,3 +4000,139 @@ type ValidationMessage struct {
 type metadataValidationMessage struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s ValidationMessage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ValidationMessage) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum ConfigurationDeploymentStatus
+	ConfigurationDeploymentStatusDeployed = "deployed"
+	// @enum ConfigurationDeploymentStatus
+	ConfigurationDeploymentStatusPending = "pending"
+	// @enum ConfigurationDeploymentStatus
+	ConfigurationDeploymentStatusFailed = "failed"
+)
+
+const (
+	// @enum ConfigurationOptionValueType
+	ConfigurationOptionValueTypeScalar = "Scalar"
+	// @enum ConfigurationOptionValueType
+	ConfigurationOptionValueTypeList = "List"
+)
+
+const (
+	// @enum EnvironmentHealth
+	EnvironmentHealthGreen = "Green"
+	// @enum EnvironmentHealth
+	EnvironmentHealthYellow = "Yellow"
+	// @enum EnvironmentHealth
+	EnvironmentHealthRed = "Red"
+	// @enum EnvironmentHealth
+	EnvironmentHealthGrey = "Grey"
+)
+
+const (
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeStatus = "Status"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeColor = "Color"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeCauses = "Causes"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeApplicationMetrics = "ApplicationMetrics"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeInstancesHealth = "InstancesHealth"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeAll = "All"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeHealthStatus = "HealthStatus"
+	// @enum EnvironmentHealthAttribute
+	EnvironmentHealthAttributeRefreshedAt = "RefreshedAt"
+)
+
+const (
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusNoData = "NoData"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusUnknown = "Unknown"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusPending = "Pending"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusOk = "Ok"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusInfo = "Info"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusWarning = "Warning"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusDegraded = "Degraded"
+	// @enum EnvironmentHealthStatus
+	EnvironmentHealthStatusSevere = "Severe"
+)
+
+const (
+	// @enum EnvironmentInfoType
+	EnvironmentInfoTypeTail = "tail"
+	// @enum EnvironmentInfoType
+	EnvironmentInfoTypeBundle = "bundle"
+)
+
+const (
+	// @enum EnvironmentStatus
+	EnvironmentStatusLaunching = "Launching"
+	// @enum EnvironmentStatus
+	EnvironmentStatusUpdating = "Updating"
+	// @enum EnvironmentStatus
+	EnvironmentStatusReady = "Ready"
+	// @enum EnvironmentStatus
+	EnvironmentStatusTerminating = "Terminating"
+	// @enum EnvironmentStatus
+	EnvironmentStatusTerminated = "Terminated"
+)
+
+const (
+	// @enum EventSeverity
+	EventSeverityTrace = "TRACE"
+	// @enum EventSeverity
+	EventSeverityDebug = "DEBUG"
+	// @enum EventSeverity
+	EventSeverityInfo = "INFO"
+	// @enum EventSeverity
+	EventSeverityWarn = "WARN"
+	// @enum EventSeverity
+	EventSeverityError = "ERROR"
+	// @enum EventSeverity
+	EventSeverityFatal = "FATAL"
+)
+
+const (
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeHealthStatus = "HealthStatus"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeColor = "Color"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeCauses = "Causes"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeApplicationMetrics = "ApplicationMetrics"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeRefreshedAt = "RefreshedAt"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeLaunchedAt = "LaunchedAt"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeSystem = "System"
+	// @enum InstancesHealthAttribute
+	InstancesHealthAttributeAll = "All"
+)
+
+const (
+	// @enum ValidationSeverity
+	ValidationSeverityError = "error"
+	// @enum ValidationSeverity
+	ValidationSeverityWarning = "warning"
+)

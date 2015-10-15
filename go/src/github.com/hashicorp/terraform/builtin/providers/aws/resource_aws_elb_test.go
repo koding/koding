@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"testing"
 
@@ -48,6 +49,47 @@ func TestAccAWSELB_basic(t *testing.T) {
 						"aws_elb.bar", "listener.206423021.lb_protocol", "http"),
 					resource.TestCheckResourceAttr(
 						"aws_elb.bar", "cross_zone_load_balancing", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELB_fullCharacterRange(t *testing.T) {
+	var conf elb.LoadBalancerDescription
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSELBFullRangeOfCharacters,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "name", "FoobarTerraform-test123"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELB_generatedName(t *testing.T) {
+	var conf elb.LoadBalancerDescription
+	generatedNameRegexp := regexp.MustCompile("^tf-lb-")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSELBGeneratedName,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestMatchResourceAttr(
+						"aws_elb.foo", "name", generatedNameRegexp),
 				),
 			},
 		},
@@ -389,9 +431,45 @@ func TestResourceAwsElbListenerHash(t *testing.T) {
 	for tn, tc := range cases {
 		leftHash := resourceAwsElbListenerHash(tc.Left)
 		rightHash := resourceAwsElbListenerHash(tc.Right)
-		if (leftHash == rightHash) != tc.Match {
+		if leftHash == rightHash != tc.Match {
 			t.Fatalf("%s: expected match: %t, but did not get it", tn, tc.Match)
 		}
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotBeginWithHyphen(t *testing.T) {
+	var elbName = "-Testing123"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotBeLongerThen32Characters(t *testing.T) {
+	var elbName = "Testing123dddddddddddddddddddvvvv"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotHaveSpecialCharacters(t *testing.T) {
+	var elbName = "Testing123%%"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotEndWithHyphen(t *testing.T) {
+	var elbName = "Testing123-"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
 	}
 }
 
@@ -445,9 +523,9 @@ func testAccCheckAWSELBAttributes(conf *elb.LoadBalancerDescription) resource.Te
 		}
 
 		l := elb.Listener{
-			InstancePort:     aws.Long(int64(8000)),
+			InstancePort:     aws.Int64(int64(8000)),
 			InstanceProtocol: aws.String("HTTP"),
-			LoadBalancerPort: aws.Long(int64(80)),
+			LoadBalancerPort: aws.Int64(int64(80)),
 			Protocol:         aws.String("HTTP"),
 		}
 
@@ -483,10 +561,10 @@ func testAccCheckAWSELBAttributesHealthCheck(conf *elb.LoadBalancerDescription) 
 		}
 
 		check := &elb.HealthCheck{
-			Timeout:            aws.Long(int64(30)),
-			UnhealthyThreshold: aws.Long(int64(5)),
-			HealthyThreshold:   aws.Long(int64(5)),
-			Interval:           aws.Long(int64(60)),
+			Timeout:            aws.Int64(int64(30)),
+			UnhealthyThreshold: aws.Int64(int64(5)),
+			HealthyThreshold:   aws.Int64(int64(5)),
+			Interval:           aws.Int64(int64(60)),
 			Target:             aws.String("HTTP:8000/"),
 		}
 
@@ -555,6 +633,33 @@ resource "aws_elb" "bar" {
 	}
 
   cross_zone_load_balancing = true
+}
+`
+
+const testAccAWSELBFullRangeOfCharacters = `
+resource "aws_elb" "foo" {
+  name = "FoobarTerraform-test123"
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+}
+`
+
+const testAccAWSELBGeneratedName = `
+resource "aws_elb" "foo" {
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
 }
 `
 
