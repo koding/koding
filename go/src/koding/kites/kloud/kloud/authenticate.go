@@ -69,7 +69,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 
 		svc := ec2.New(&aws.Config{
 			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-			Region:      authRegion,
+			Region:      aws.String(authRegion),
 		})
 
 		// We do request to fetch and describe all supported regions. This

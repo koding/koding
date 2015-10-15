@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -21,7 +22,7 @@ func TestAccAWSRouteTable_basic(t *testing.T) {
 
 		routes := make(map[string]*ec2.Route)
 		for _, r := range v.Routes {
-			routes[*r.DestinationCIDRBlock] = r
+			routes[*r.DestinationCidrBlock] = r
 		}
 
 		if _, ok := routes["10.1.0.0/16"]; !ok {
@@ -41,7 +42,7 @@ func TestAccAWSRouteTable_basic(t *testing.T) {
 
 		routes := make(map[string]*ec2.Route)
 		for _, r := range v.Routes {
-			routes[*r.DestinationCIDRBlock] = r
+			routes[*r.DestinationCidrBlock] = r
 		}
 
 		if _, ok := routes["10.1.0.0/16"]; !ok {
@@ -93,7 +94,7 @@ func TestAccAWSRouteTable_instance(t *testing.T) {
 
 		routes := make(map[string]*ec2.Route)
 		for _, r := range v.Routes {
-			routes[*r.DestinationCIDRBlock] = r
+			routes[*r.DestinationCidrBlock] = r
 		}
 
 		if _, ok := routes["10.1.0.0/16"]; !ok {
@@ -161,7 +162,7 @@ func testAccCheckRouteTableDestroy(s *terraform.State) error {
 
 		// Try to find the resource
 		resp, err := conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-			RouteTableIDs: []*string{aws.String(rs.Primary.ID)},
+			RouteTableIds: []*string{aws.String(rs.Primary.ID)},
 		})
 		if err == nil {
 			if len(resp.RouteTables) > 0 {
@@ -197,7 +198,7 @@ func testAccCheckRouteTableExists(n string, v *ec2.RouteTable) resource.TestChec
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
 		resp, err := conn.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
-			RouteTableIDs: []*string{aws.String(rs.Primary.ID)},
+			RouteTableIds: []*string{aws.String(rs.Primary.ID)},
 		})
 		if err != nil {
 			return err
@@ -212,11 +213,15 @@ func testAccCheckRouteTableExists(n string, v *ec2.RouteTable) resource.TestChec
 	}
 }
 
-// TODO: re-enable this test.
 // VPC Peering connections are prefixed with pcx
 // Right now there is no VPC Peering resource
-func _TestAccAWSRouteTable_vpcPeering(t *testing.T) {
+func TestAccAWSRouteTable_vpcPeering(t *testing.T) {
 	var v ec2.RouteTable
+
+	acctId := os.Getenv("TF_ACC_ID")
+	if acctId == "" && os.Getenv(resource.TestEnvVar) != "" {
+		t.Fatal("Error: Test TestAccAWSRouteTable_vpcPeering requires an Account ID in TF_ACC_ID ")
+	}
 
 	testCheck := func(*terraform.State) error {
 		if len(v.Routes) != 2 {
@@ -225,7 +230,7 @@ func _TestAccAWSRouteTable_vpcPeering(t *testing.T) {
 
 		routes := make(map[string]*ec2.Route)
 		for _, r := range v.Routes {
-			routes[*r.DestinationCIDRBlock] = r
+			routes[*r.DestinationCidrBlock] = r
 		}
 
 		if _, ok := routes["10.1.0.0/16"]; !ok {
@@ -243,7 +248,7 @@ func _TestAccAWSRouteTable_vpcPeering(t *testing.T) {
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccRouteTableVpcPeeringConfig,
+				Config: testAccRouteTableVpcPeeringConfig(acctId),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
 						"aws_route_table.foo", &v),
@@ -256,20 +261,20 @@ func _TestAccAWSRouteTable_vpcPeering(t *testing.T) {
 
 func TestAccAWSRouteTable_vgwRoutePropagation(t *testing.T) {
 	var v ec2.RouteTable
-	var vgw ec2.VPNGateway
+	var vgw ec2.VpnGateway
 
 	testCheck := func(*terraform.State) error {
-		if len(v.PropagatingVGWs) != 1 {
-			return fmt.Errorf("bad propagating vgws: %#v", v.PropagatingVGWs)
+		if len(v.PropagatingVgws) != 1 {
+			return fmt.Errorf("bad propagating vgws: %#v", v.PropagatingVgws)
 		}
 
-		propagatingVGWs := make(map[string]*ec2.PropagatingVGW)
-		for _, gw := range v.PropagatingVGWs {
-			propagatingVGWs[*gw.GatewayID] = gw
+		propagatingVGWs := make(map[string]*ec2.PropagatingVgw)
+		for _, gw := range v.PropagatingVgws {
+			propagatingVGWs[*gw.GatewayId] = gw
 		}
 
-		if _, ok := propagatingVGWs[*vgw.VPNGatewayID]; !ok {
-			return fmt.Errorf("bad propagating vgws: %#v", v.PropagatingVGWs)
+		if _, ok := propagatingVGWs[*vgw.VpnGatewayId]; !ok {
+			return fmt.Errorf("bad propagating vgws: %#v", v.PropagatingVgws)
 		}
 
 		return nil
@@ -395,11 +400,10 @@ resource "aws_route_table" "foo" {
 }
 `
 
-// TODO: re-enable this test.
 // VPC Peering connections are prefixed with pcx
-// Right now there is no VPC Peering resource
-const testAccRouteTableVpcPeeringConfig = `
-resource "aws_vpc" "foo" {
+// This test requires an ENV var, TF_ACC_ID, with a valid AWS Account ID
+func testAccRouteTableVpcPeeringConfig(acc string) string {
+	cfg := `resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
 }
 
@@ -407,15 +411,34 @@ resource "aws_internet_gateway" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 }
 
+resource "aws_vpc" "bar" {
+	cidr_block = "10.3.0.0/16"
+}
+
+resource "aws_internet_gateway" "bar" {
+	vpc_id = "${aws_vpc.bar.id}"
+}
+
+resource "aws_vpc_peering_connection" "foo" {
+		vpc_id = "${aws_vpc.foo.id}"
+		peer_vpc_id = "${aws_vpc.bar.id}"
+		peer_owner_id = "%s"
+		tags {
+			foo = "bar"
+		}
+}
+
 resource "aws_route_table" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
 	route {
 		cidr_block = "10.2.0.0/16"
-        vpc_peering_connection_id = "pcx-12345"
+		vpc_peering_connection_id = "${aws_vpc_peering_connection.foo.id}"
 	}
 }
 `
+	return fmt.Sprintf(cfg, acc)
+}
 
 const testAccRouteTableVgwRoutePropagationConfig = `
 resource "aws_vpc" "foo" {

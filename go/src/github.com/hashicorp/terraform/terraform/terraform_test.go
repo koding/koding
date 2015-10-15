@@ -379,6 +379,23 @@ do_instance.foo:
   type = do_instance
 `
 
+const testTerraformApplyModuleOnlyProviderStr = `
+<no state>
+module.child:
+  aws_instance.foo:
+    ID = foo
+  test_instance.foo:
+    ID = foo
+`
+
+const testTerraformApplyModuleProviderAliasStr = `
+<no state>
+module.child:
+  aws_instance.foo:
+    ID = foo
+    provider = aws.eu
+`
+
 const testTerraformApplyOutputOrphanStr = `
 <no state>
 Outputs:
@@ -464,6 +481,11 @@ aws_instance.bar:
 
 const testTerraformApplyDestroyStr = `
 <no state>
+`
+
+const testTerraformApplyDestroyNestedModuleStr = `
+module.child.subchild:
+  <no state>
 `
 
 const testTerraformApplyErrorStr = `
@@ -1263,4 +1285,17 @@ CREATE: aws_instance.foo
 STATE:
 
 <no state>
+`
+
+const testTerraformPlanIgnoreChangesStr = `
+DIFF:
+
+UPDATE: aws_instance.foo
+  type: "" => "aws_instance"
+
+STATE:
+
+aws_instance.foo:
+  ID = bar
+  ami = ami-abcd1234
 `

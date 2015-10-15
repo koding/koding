@@ -17,7 +17,7 @@ The interpolation syntax is powerful and allows you to reference
 variables, attributes of resources, call functions, etc.
 
 You can also perform simple math in interpolations, allowing
-you to write expressions such as `${count.index+1}`.
+you to write expressions such as `${count.index + 1}`.
 
 You can escape interpolation with double dollar signs: `$${foo}`
 will be rendered as a literal `${foo}`.
@@ -57,6 +57,8 @@ For example, `${count.index}` will interpolate the current index
 in a multi-count resource. For more information on count, see the
 resource configuration page.
 
+<a id="path-variables"></a>
+
 **To reference path information**, the syntax is `path.TYPE`.
 TYPE can be `cwd`, `module`, or `root`. `cwd` will interpolate the
 cwd. `module` will interpolate the path to the current module. `root`
@@ -72,8 +74,19 @@ are documented below.
 
 The supported built-in functions are:
 
+  * `base64decode(string)` - Given a base64-encoded string, decodes it and
+    returns the original string.
+
+  * `base64encode(string)` - Returns a base64-encoded representation of the
+    given string.
+
+  * `compact(list)` - Removes empty string elements from a list. This can be
+     useful in some cases, for example when passing joined lists as module
+     variables or when parsing module outputs.
+     Example: `compact(module.my_asg.load_balancer_names)`
+
   * `concat(list1, list2)` - Combines two or more lists into a single list.
-     Example: `combine(aws_instance.db.*.tags.Name, aws_instance.web.*.tags.Name)`
+     Example: `concat(aws_instance.db.*.tags.Name, aws_instance.web.*.tags.Name)`
 
   * `element(list, index)` - Returns a single element from a list
       at the given index. If the index is greater than the number of
@@ -90,7 +103,7 @@ The supported built-in functions are:
       format. The syntax for the format is standard `sprintf` syntax.
       Good documentation for the syntax can be [found here](http://golang.org/pkg/fmt/).
       Example to zero-prefix a count, used commonly for naming servers:
-      `format("web-%03d", count.index+1)`.
+      `format("web-%03d", count.index + 1)`.
 
   * `formatlist(format, args...)` - Formats each element of a list
       according to the given format, similarly to `format`, and returns a list.
@@ -101,6 +114,9 @@ The supported built-in functions are:
       Example:
       `formatlist("instance %v has private ip %v", aws_instance.foo.*.id, aws_instance.foo.*.private_ip)`.
       Passing lists with different lengths to formatlist results in an error.
+
+  * `index(list, elem)` - Finds the index of a given element in a list. Example:
+      `index(aws_instance.foo.*.tags.Name, "foo-test")`
 
   * `join(delim, list)` - Joins the list with the delimiter. A list is
       only possible with splat variables from resources with a count
@@ -199,3 +215,34 @@ resource "aws_instance" "web" {
 
 With this, we will build a list of `template_file.web_init` resources which we can
 use in combination with our list of `aws_instance.web` resources.
+
+## Math
+
+Simple math can be performed in interpolations:
+
+```
+variable "count" {
+  default = 2
+}
+
+resource "aws_instance" "web" {
+  // ...
+  count = "${var.count}"
+
+  // tag the instance with a counter starting at 1, ie. web-001
+  tags {
+    Name = "${format("web-%03d", count.index + 1)}"
+  }
+}
+```
+
+The supported operations are:
+
+- *Add*, *Subtract*, *Multiply*, and *Divide* for **float** types
+- *Add*, *Subtract*, *Multiply*, *Divide*, and *Modulo* for **integer** types
+
+-> **Note:** Since Terraform allows hyphens in resource and variable names,
+it's best to use spaces between math operators to prevent confusion or unexpected
+behavior. For example, `${var.instance-count - 1}` will subtract **1** from the
+`instance-count` variable value, while `${var.instance-count-1}` will interpolate
+the `instance-count-1` variable value.

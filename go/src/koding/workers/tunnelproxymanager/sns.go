@@ -39,7 +39,7 @@ func (l *LifeCycle) EnureSNS(name string) error {
 		return err
 	}
 
-	l.topicARN = topic.TopicARN // dont forget to assing topic ARN
+	l.topicARN = topic.TopicArn // dont forget to assing topic ARN
 
 	snsLogger.Debug("SNS Topic is ready")
 	return nil
@@ -62,18 +62,18 @@ func (l *LifeCycle) MakeSureSubscriptions() error {
 	// previous one
 	resp, err := l.sns.Subscribe(&sns.SubscribeInput{
 		Protocol: aws.String("sqs"),
-		TopicARN: l.topicARN,
+		TopicArn: l.topicARN,
 		Endpoint: l.queueARN,
 	})
 	if err != nil {
 		return err
 	}
 
-	if resp == nil || resp.SubscriptionARN == nil {
+	if resp == nil || resp.SubscriptionArn == nil {
 		return errors.New("malformed response")
 	}
 
-	l.subscriptionARN = resp.SubscriptionARN
+	l.subscriptionARN = resp.SubscriptionArn
 
 	log.Debug("Subscription is ready between SNS and SQS")
 	return nil
