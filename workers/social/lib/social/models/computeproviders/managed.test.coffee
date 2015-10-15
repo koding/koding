@@ -18,7 +18,7 @@ beforeTests = -> before (done) ->
 
 
 # here we have actual tests
-runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
+runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
   describe '#ping()', ->
 
