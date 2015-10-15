@@ -3,8 +3,7 @@ JCredential = require './credential'
 
 { expect
   withConvertedUser
-  checkBongoConnectivity
-  generateDummyUserFormData }      = require '../../../../testhelper'
+  checkBongoConnectivity }      = require '../../../../testhelper'
 { withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders/credentialhelper'
 
 
@@ -21,12 +20,7 @@ runTests = -> describe 'workers.social.models.computeproviders.google', ->
 
     it 'should reply to ping request', (done) ->
 
-      userFormData = generateDummyUserFormData()
-
-      withConvertedUser { userFormData }, (data) ->
-
-        { client, account } = data
-
+      withConvertedUser ({ client, account }) ->
         Google.ping client, (err, data) ->
           expect(err?.message).to.not.exist
           expect(data).to.be.equal "Google. #{account.profile.nickname}!"
