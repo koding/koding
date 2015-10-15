@@ -1,5 +1,5 @@
 Google      = require './google'
-JCredential = require './credential.coffee'
+JCredential = require './credential'
 
 { expect
   withConvertedUser
