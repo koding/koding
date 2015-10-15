@@ -8,6 +8,7 @@ utils.extend utils,
         delete window.localStorage[kite]
 
 
+  analytics: require './analytics'
 
 
   getReferrer: ->
