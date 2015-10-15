@@ -116,7 +116,6 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
   it 'should be able to fetch provisioner data', (done) ->
 
     withConvertedUserAndProvisioner ({ client, provisioner }) ->
-
       selector = { slug : provisioner.slug }
       JProvisioner.some$ client, selector, (err, provisioners) ->
         expect(err).to.not.exist
@@ -135,7 +134,6 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
   it 'should be able to fetch provisioner data', (done) ->
 
     withConvertedUserAndProvisioner ({ client, provisioner }) ->
-
       selector = { slug : provisioner.slug }
       JProvisioner.one$ client, selector, (err, provisioner_) ->
         expect(err).to.not.exist
@@ -155,7 +153,6 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
   it 'should be able to delete provisioner of the given client', (done) ->
 
     withConvertedUserAndProvisioner ({ client, provisioner }) ->
-
 
       queue = [
 
