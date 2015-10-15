@@ -58,7 +58,7 @@ module.exports =
       if result.status is 0
         console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
-        console.log " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
+        console.log ' ✔ User is not registered yet. Registering...'
         @doRegister browser, user
 
 
@@ -444,59 +444,48 @@ module.exports =
         .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
-  fillPaymentForm: (browser, planType = 'developer', validCardDetails = true, insertCardNumber = true, insertCVC = true, insertCardMonth = true, insertCardYear = true, insertCardName = true) ->
+  fillPaymentForm: (browser, planType = 'developer', cardDetails) ->
+
+    defaultCard =
+      cardNumber: '4111 1111 1111 1111'
+      cvc: 123
+      month: 12
+      year: 2019
+
+    if cardDetails?  
+      for k of defaultCard
+        if !cardDetails.hasOwnProperty(k)
+          cardDetails[k] = defaultCard[k]
+    else
+      cardDetails = defaultCard
 
     user         = utils.getUser()
     name         = user.username
     paymentModal = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
-    
-    if validCardDetails
-      cardNumber = '4111 1111 1111 1111'
-      cvc        = '123'
-      month      = '12'
-      year       = '2017'
-    else
-      cardNumber = '11111111111111'
-      cvc        = '12345'
-      month      = '13'
-      year       = '1999'
 
-    if insertCardNumber
-      browser
-        .waitForElementVisible   '.payment-modal', 20000
-        .waitForElementVisible   paymentModal, 20000
-        .waitForElementVisible   paymentModal + ' .cardnumber', 20000
-        .click                   'input[name=cardNumber]'
-        .setValue                'input[name=cardNumber]', cardNumber
-
-    if insertCVC  
-      browser
-        .waitForElementVisible   '.payment-modal', 20000
-        .waitForElementVisible   paymentModal + ' .cardcvc', 20000
-        .click                   'input[name=cardCVC]'
-        .setValue                'input[name=cardCVC]', cvc
-
-    if insertCardMonth
-      browser
-        .waitForElementVisible   '.payment-modal', 20000
-        .waitForElementVisible   paymentModal + ' .cardmonth', 20000
-        .click                   'input[name=cardMonth]'
-        .setValue                'input[name=cardMonth]', month
-
-    if insertCardYear
-      browser
-        .waitForElementVisible   '.payment-modal', 20000
-        .waitForElementVisible   paymentModal + ' .cardyear', 20000
-        .click                   'input[name=cardYear]'
-        .setValue                'input[name=cardYear]', year
-
-    if insertCardName
-      browser
-        .waitForElementVisible   '.payment-modal', 20000
-        .waitForElementVisible   paymentModal + ' .cardname', 20000
-        .click                   'input[name=cardName]'
-        .clearValue              'input[name=cardName]'
-        .setValue                'input[name=cardName]', name  
+    browser
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal, 20000
+      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
+      .click                   'input[name=cardNumber]'
+      .setValue                'input[name=cardNumber]', cardDetails.cardNumber
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
+      .click                   'input[name=cardCVC]'
+      .setValue                'input[name=cardCVC]', cardDetails.cvc
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
+      .click                   'input[name=cardMonth]'
+      .setValue                'input[name=cardMonth]', cardDetails.month
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal + ' .cardyear', 20000
+      .click                   'input[name=cardYear]'
+      .setValue                'input[name=cardYear]', cardDetails.year
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal + ' .cardname', 20000
+      .click                   'input[name=cardName]'
+      .clearValue              'input[name=cardName]'
+      .setValue                'input[name=cardName]', name  
 
   submitForm: (browser, validCardDetails = true) ->
   
@@ -518,7 +507,6 @@ module.exports =
         .expect.element(upgradePlanButton).to.not.be.enabled
 
 
-
   selectPlan: (browser, planType = 'developer') ->
 
     pricingPage = '.content-page.pricing'
@@ -530,6 +518,23 @@ module.exports =
       .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
       .pause                   5000
 
+
+  checkInvalidCardDetails: (browser, cardDetails, submit) ->
+
+    freePlanSelector  = '.single-plan.free.current'
+
+    browser
+      .url                     @getUrl() + '/Pricing'
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.current', 20000
+      .element 'css selector', freePlanSelector, (result) =>
+        if result.status is 0
+          @selectPlan(browser)
+          @fillPaymentForm(browser, 'developer', cardDetails)
+          @submitForm(browser, submit)
+          browser.end()
+        else
+          browser.end()
 
   runCommandOnTerminal: (browser, text) ->
 

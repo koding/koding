@@ -29,7 +29,6 @@ module.exports = [
   ]
 
   [
-    { name: 'pricing invalidCardDetails'}
     { name: 'pricing payment' }
     { name: 'activity post' }
     { name: 'staticpages loggedout' }
@@ -64,6 +63,7 @@ module.exports = [
 
   [
     { name : 'ide terminal' }
+    { name : 'pricing invalidCardDetails' }
   ]
 
   [
