@@ -59,7 +59,6 @@ module.exports = class MainControllerLoggedOut extends KDController
     KD.singletons.router.on "RouteInfoHandled", (args) ->
 
       return  unless args
-      KD.utils.trackPage args
 
 
   login: (formData, callback) ->
