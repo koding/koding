@@ -48,6 +48,8 @@ module.exports = class JStackTemplate extends Module
           (signature String, Function)
         update        :
           (signature Object, Function)
+        clone         :
+          (signature Function)
 
     sharedEvents      :
       static          : [ ]
@@ -146,6 +148,7 @@ module.exports = class JStackTemplate extends Module
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
 
+
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -240,6 +243,37 @@ module.exports = class JStackTemplate extends Module
         data.template.details.lastUpdaterId = delegate.getId()
 
       @update { $set: data }, (err) => callback err, this
+
+
+  clone: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: (client, callback) ->
+
+      cloneData         =
+        title           : @getAt 'title'
+        description     : @getAt 'description'
+
+        config          : @getAt 'config'
+        machines        : @getAt 'machines'
+        credentials     : @getAt 'credentials'
+
+        template        : @getAt 'template.content'
+        rawContent      : @getAt 'template.rawContent'
+        templateDetails : @getAt 'template.details'
+
+      cloneData.config           ?= {}
+      cloneData.config.clonedFrom = @getId()
+
+      # TODO make sure to clone custom credentials as well ~ GG
+
+      JStackTemplate.create client, cloneData, (err, cloneStackTemplate) ->
+        if err then callback new KodingError 'Clone failed', err
+        else callback null, cloneStackTemplate
 
 
 # Base StackTemplate example for koding group
