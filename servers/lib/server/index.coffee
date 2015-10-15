@@ -71,6 +71,7 @@ app.all  '/-/profile/:email'                     , require './handlers/getprofil
 # temp endpoints ends
 
 app.post '/-/analytics/track'                    , require './handlers/analytics/track'
+app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/video-chat/session'                 , require './handlers/videosession'
