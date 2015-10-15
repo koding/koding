@@ -31,6 +31,11 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
 
+  onCommand: ({ command }) ->
+
+    ActivityFlux.actions.command.executeCommand command, @props.thread.get 'channel'
+
+
   onFollowChannel: ->
 
     ActivityFlux.actions.channel.followChannel @channel 'id'
@@ -68,16 +73,14 @@ module.exports = class PublicChatPane extends React.Component
 
     return null  unless @props.thread?.get 'messages'
 
-    { thread } = @props
-
     footerInnerComponent = if @channel 'isParticipant'
-      <ChatInputWidget
-        ref='chatInputWidget'
-        onSubmit={@bound 'onSubmit'}
-        thread={thread}
-        enableSearch={yes} />
-    else
-      @renderFollowChannel()
+    then <ChatInputWidget
+           ref          = 'chatInputWidget'
+           onSubmit     = { @bound 'onSubmit' }
+           onCommand    = { @bound 'onCommand' }
+           channelId    = { @channel 'id' }
+         />
+    else @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">
       {footerInnerComponent}

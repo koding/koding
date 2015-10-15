@@ -2,7 +2,7 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
 DropboxItem          = require 'activity/components/dropboxitem'
 ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 SearchDropboxItem    = require 'activity/components/searchdropboxitem'
@@ -130,12 +130,12 @@ module.exports = class SearchDropbox extends React.Component
     isEmptyQuery = not query and visible
 
     <Dropbox
-      className      = 'SearchDropbox'
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
-      direction      = 'up'
-      title          = 'Search'
-      ref            = 'dropbox'
+      className = 'SearchDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      type      = 'dropup'
+      title     = 'Search'
+      ref       = 'dropbox'
     >
       { @renderEmptyQueryMessage()  if isEmptyQuery }
       { @renderError()  if isError }
