@@ -80,7 +80,8 @@ type Config struct {
 }
 
 type GithubInfo struct {
-	token string
+	token     string
+	eventType string
 }
 
 func NewGithub(conf GithubConfig) (Github, error) {
@@ -228,11 +229,15 @@ func (g Github) configure(cr *helpers.ConfigureRequest, method, url string) (hel
 
 func githubContextCreator(req *http.Request) context.Context {
 	token := req.URL.Query().Get("token")
+	event := req.Header.Get("X-Github-Event")
 	gi := &GithubInfo{
-		token: token,
+		token:     token,
+		eventType: event,
 	}
 
+	// headerEventType := req.Header.Get("X-Hithub-Event")
 	return context.WithValue(context.Background(), githubInfoKey, gi)
+	// return context.WithValue(ctx, githubEventType, headerEventType)
 }
 
 // Push is triggered when a repository branch is pushed to.
@@ -456,10 +461,6 @@ func (g GithubListener) create(e *webhook.CreateEvent) (string, error) {
 	), nil
 }
 
-func (g GithubListener) eventType(req *http.Request) string {
-	return req.Header.Get("X-GitHub-Event")
-}
-
 // TODO(mehmetali) limit outgoing string, should not be more than 2K char?
 func (g GithubListener) output(ctx context.Context, str string) {
 	gi, ok := FromGithubContext(ctx)
@@ -469,6 +470,7 @@ func (g GithubListener) output(ctx context.Context, str string) {
 	}
 
 	pr := helpers.NewPushRequest(str)
+	pr.Payload["eventType"] = &gi.eventType
 
 	if err := helpers.Push(gi.token, pr, g.IntegrationUrl); err != nil {
 		g.Log.Error("Could not push message: %s", err)
