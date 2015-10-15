@@ -25,7 +25,8 @@ module.exports = DropboxWrapperMixin =
 
     { selectedItem, visible } = @props
 
-    return  if prevProps.selectedItem is selectedItem or not selectedItem or not visible
+    return  if prevProps.selectedItem is selectedItem or not selectedItem
+    return  if visible? and not visible
 
     containerElement = @refs.dropbox.getContentElement()
     itemElement      = React.findDOMNode @refs[@getItemKey selectedItem]

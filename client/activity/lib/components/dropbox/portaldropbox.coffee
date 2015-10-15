@@ -9,7 +9,8 @@ module.exports = class PortalDropbox extends React.Component
   MIN_HEIGHT = 100
 
   @defaultProps =
-    left : 0
+    left   : 0
+    resize : 'content'
 
 
   componentDidUpdate: -> kd.utils.defer @bound 'calculatePosition'
@@ -36,14 +37,14 @@ module.exports = class PortalDropbox extends React.Component
     { width, height, top, left } = @inputDimensions
 
     dropbox       = $ React.findDOMNode @refs.dropbox
-    scrollable    = dropbox.find '.Dropbox-scrollable'
+    resizable     = dropbox.find '.Dropbox-resizable'
 
-    # reset scrollable height before calculations
+    # reset resizable height before calculations
     # to have initial dropbox height
-    scrollable.css { height : 'auto' }
+    resizable.css { height : 'auto' }
 
-    scrollHeight  = scrollable.height()
-    dropboxHeight = dropbox.height()
+    resizeHeight  = resizable.outerHeight()
+    dropboxHeight = dropbox.outerHeight()
     winHeight     = $(window).height()
     winWidth      = $(window).width()
 
@@ -78,19 +79,21 @@ module.exports = class PortalDropbox extends React.Component
       .toggleClass 'Dropup', type is 'dropup'
       .toggleClass 'Dropdown', type is 'dropdown'
 
-    # update scrollable container height
+    # update resizable container height
     # if dropbox doesn't fit the window height
-    scrollHeight = if heightDelta > 0 then scrollHeight - heightDelta else 'auto'
-    scrollable.css { height : scrollHeight }
+    resizeHeight = if heightDelta > 0 then resizeHeight - heightDelta else 'auto'
+    resizable.css { height : resizeHeight }
 
 
   render: ->
 
-    { visible } = @props
+    { visible, resize } = @props
 
     <Portal isOpened={visible} className='PortalDropbox'>
-      <Dropbox {...@props} ref='dropbox'>
-        { @props.children }
+      <Dropbox {...@props}
+        contentClassName={if resize is 'content' then 'Dropbox-resizable'}
+        ref='dropbox'>
+          { @props.children }
       </Dropbox>
     </Portal>
 

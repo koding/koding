@@ -50,7 +50,7 @@ module.exports = class DropboxBody extends React.Component
     onClose?()  if event.which is KeyboardKeys.ESC
 
 
-  getClassName: ->
+  getContainerClassName: ->
 
     { className, type } = @props
 
@@ -60,6 +60,17 @@ module.exports = class DropboxBody extends React.Component
       'Dropup'     : type is 'dropup'
       'Dropdown'   : type is 'dropdown'
     classes[className] = yes  if className
+
+    return classnames classes
+
+
+  getContentClassName: ->
+
+    { contentClassName } = @props
+
+    classes =
+      'Dropbox-scrollable' : yes
+    classes[contentClassName] = yes  if contentClassName
 
     return classnames classes
 
@@ -87,10 +98,11 @@ module.exports = class DropboxBody extends React.Component
 
     { visible } = @props
 
-    className = @getClassName()
-    <div className={className} ref='dropbox'>
+    containerClassName = @getContainerClassName()
+    contentClassName   = @getContentClassName()
+    <div className={containerClassName} ref='dropbox'>
       { @renderHeader() }
-      <div className='Dropbox-scrollable' ref='content'>
+      <div className={contentClassName} ref='content'>
         <div className='Dropbox-content'>
           { @props.children }
         </div>

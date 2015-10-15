@@ -69,10 +69,10 @@ module.exports = class ChatInputWidget extends React.Component
   componentDidMount: ->
 
     { value } = @props
+    @setValue value  if value
 
     textInput = React.findDOMNode this.refs.textInput
     focusOnGlobalKeyDown textInput
-    @setValue value  if value
 
     window.addEventListener 'resize', @bound 'updateDropboxPositions'
 

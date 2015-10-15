@@ -89,8 +89,9 @@ module.exports = class EmojiSelector extends React.Component
       type      = 'dropup'
       right     = 0
       ref       = 'dropbox'
+      resize    = 'custom'
     >
-      <div className="EmojiSelector-list" ref="list">
+      <div className="EmojiSelector-list Dropbox-resizable" ref="list">
         {@renderList()}
         <div className='clearfix'></div>
       </div>
