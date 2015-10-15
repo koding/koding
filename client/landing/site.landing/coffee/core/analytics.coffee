@@ -4,3 +4,9 @@ module.exports = class Analytics
 
     options = { method, data }
     $.ajax "/-/analytics/#{path}", options
+
+
+  @track: (action, properties) ->
+
+    data = { action, properties }
+    request 'track', 'post', data
