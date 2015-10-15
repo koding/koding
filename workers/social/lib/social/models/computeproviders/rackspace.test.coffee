@@ -2,8 +2,7 @@ Rackspace      = require './rackspace'
 
 { expect
   withConvertedUser
-  checkBongoConnectivity
-  generateDummyUserFormData } = require '../../../../testhelper'
+  checkBongoConnectivity } = require '../../../../testhelper'
 
 
 # this function will be called once before running any test
@@ -19,12 +18,8 @@ runTests = -> describe 'workers.social.models.computeproviders.rackspace', ->
 
     it 'should reply to ping request', (done) ->
 
-      userFormData = generateDummyUserFormData()
-
-      withConvertedUser { userFormData }, (data) ->
-
-        { client, account } = data
-        client.r            = { account }
+      withConvertedUser ({ client, account }) ->
+        client.r = { account }
 
         Rackspace.ping client, {}, (err, data) ->
           expect(err?.message).to.not.exist
@@ -49,7 +44,7 @@ runTests = -> describe 'workers.social.models.computeproviders.rackspace', ->
           expect(data.meta.region)     .to.be.equal 'IAD'
           expect(data.credential)      .to.be.equal options.credential
           done()
-        
+
 
     describe 'when data is provided', ->
 
