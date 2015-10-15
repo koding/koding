@@ -81,9 +81,6 @@
       bg                    color, $light-yellow
       margin-top            5px !important
 
-      > div
-        max-width           485px
-
       .SettingsMenuWrapper
         hidden()
 
@@ -125,25 +122,26 @@
     fl()
     rel()
     z-index                 1
-    width                   calc(100% \- 55px)
+    width                   calc(100% \- 59px)
 
     .ChatItem-authorName
       abs()
       margin-top            2px
 
-    textarea
-      resize                none
-      display               block
-      margin-top            24px
-
   .EmbedBox-container
-    padding-left              52px
+    padding-left            52px
 
   .ChatInputWidget
     padding                 0px !important
 
+    textarea
+      resize                none
+      display               block
+      margin-top            24px
+      padding-left          12px !important
+
   .ChatInputWidget:before
-    left                    21px !important
+    display                 none
 
   .ChatInputWidget-emojiButton
     right                   21px
@@ -174,10 +172,10 @@
       visible()
 
   &.editing
-    padding                   8px 0 6px 19px !important
+    padding                 8px 0 6px 85px !important
 
     .ChatItem-updateMessageForm
-      margin-left             64px
+      width                 calc(100% \- 8px)
 
       .ChatItem-authorName
         hidden()
