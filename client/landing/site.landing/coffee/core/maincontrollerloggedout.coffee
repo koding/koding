@@ -56,9 +56,13 @@ module.exports = class MainControllerLoggedOut extends KDController
 
   setupPageAnalyticsEvent:->
 
-    KD.singletons.router.on "RouteInfoHandled", (args) ->
+    KD.singletons.router.on "RouteInfoHandled", (route) ->
 
-      return  unless args
+      return  unless route
+
+      name = route.path.split('/')[1] or '/'
+
+      KD.utils.analytics.page name
 
 
   login: (formData, callback) ->
