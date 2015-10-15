@@ -59,7 +59,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           provider : provider
 
         queue = [
-        
+
           ->
             # expecting credential to be created
             JCredential.create client, options, (err, credential_) ->
@@ -94,7 +94,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(err).to.not.exist
               expect(relationship).to.exist
               queue.next()
-        
+
           ->
             # expecting credential and credential data relation to be created
             options =
@@ -157,7 +157,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
       withConvertedUserAndCredential ({ client, credential }) ->
         selector = { _id : credential._id }
         options  = {}
-        JCredential.some$ client, selector, options ,(err, credentials) ->
+        JCredential.some$ client, selector, options, (err, credentials) ->
           expect(err?.message).to.not.exist
           expect(credentials).to.be.an 'array'
           expect(credentials).to.have.length 1
@@ -192,7 +192,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
       anotherAccount = {}
 
       queue = [
-      
+
         ->
           withConvertedUserAndCredential (data) ->
             { client, account, credential } = data
@@ -222,16 +222,16 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             expect(relationship).to.exist
             expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
             queue.next()
-      
+
         -> done()
-      
+
       ]
-      
+
       daisy queue
 
 
   describe 'shareWith', ->
-  
+
     testShareWith = (method, done) ->
       client         = {}
       account        = {}
@@ -239,7 +239,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
       anotherAccount = {}
 
       queue = [
-      
+
         ->
           withConvertedUserAndCredential (data) ->
             { client, account, credential } = data
@@ -259,7 +259,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           credential[method] client, options, (err) ->
             expect(err).to.not.exist
             queue.next()
-      
+
         ->
           options =
             as         : 'owner'
@@ -275,9 +275,9 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             queue.next()
 
         -> done()
-      
+
       ]
-      
+
       daisy queue
 
 
@@ -396,31 +396,31 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
   describe 'update$', ->
 
-      it 'should fail to update credential if user doesnt have the permission', (done) ->
+    it 'should fail to update credential if user doesnt have the permission', (done) ->
 
-        withConvertedUserAndCredential ({ credential }) ->
-          expectAccessDenied credential, 'fetchData$', {}, done
-
-
-      it 'should fail to update if title or meta is not set', (done) ->
-
-        withConvertedUserAndCredential ({ client, credential }) ->
-          credential.update$ client, { title : null }, (err) ->
-            expect(err?.message).to.be.equal 'Nothing to update'
-            done()
+      withConvertedUserAndCredential ({ credential }) ->
+        expectAccessDenied credential, 'fetchData$', {}, done
 
 
-      it 'should be able to update credential', (done) ->
+    it 'should fail to update if title or meta is not set', (done) ->
 
-        withConvertedUserAndCredential ({ client, credential }) ->
+      withConvertedUserAndCredential ({ client, credential }) ->
+        credential.update$ client, { title : null }, (err) ->
+          expect(err?.message).to.be.equal 'Nothing to update'
+          done()
 
-          options =
-            title : 'newTitle'
-            meta  : { data : 'newMeta' }
 
-          credential.update$ client, options, (err) ->
-            expect(err).to.not.exist
-            done()
+    it 'should be able to update credential', (done) ->
+
+      withConvertedUserAndCredential ({ client, credential }) ->
+
+        options =
+          title : 'newTitle'
+          meta  : { data : 'newMeta' }
+
+        credential.update$ client, options, (err) ->
+          expect(err).to.not.exist
+          done()
 
 
   describe 'isBootstrapped()', ->
