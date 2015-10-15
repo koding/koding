@@ -23,6 +23,8 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
         # Here is your stack preview
         # You can make advanced changes like modifying your VM,
         # installing packages, and running shell commands.
+
+
       """
 
       ace.editor.session.insert position, content

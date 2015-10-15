@@ -30,19 +30,19 @@ module.exports = class AccountCredentialList extends KDListView
 
       kd.warn "Bootstrap check failed:", { credential, err }  if err
 
-      description = applyMarkdown if bootstrapped then """
-        This **#{credential.title}** credential is bootstrapped
-        before which means that you have modified data on your
-        **#{credential.provider}** account.
-
+      description = applyMarkdown if bootstrapped then "
+        This **#{credential.title}** credential is bootstrapped before which
+        means that you have modified data on your **#{credential.provider}**
+        account.
+        \n\n
         You can remove this credential from Koding and manually cleanup
         the resources created on your provider or you can **destroy** all
         bootstrapped data and resources along with credential.
-
+        \n\n
         **WARNING!** destroying resources includes **ALL RESOURCES**; your
         team member's instances, volumes, keypairs and **everything else we've
         created on your account**.
-      """ else "Do you want to remove **#{credential.title}** ?"
+      " else "Do you want to remove **#{credential.title}** ?"
 
       removeCredential = =>
         credential.delete (err) =>
@@ -72,7 +72,11 @@ module.exports = class AccountCredentialList extends KDListView
             callback   : =>
               modal.buttons.Remove.disable()
               @destroyResources credential, (err) ->
-                removeCredential()  unless showError err
+                if err
+                  modal.buttons.DestroyAll.hideLoader()
+                  modal.buttons.Remove.enable()
+                else
+                  removeCredential()
           cancel       :
             title      : 'Cancel'
             style      : 'solid light-gray medium'
@@ -135,10 +139,23 @@ module.exports = class AccountCredentialList extends KDListView
 
   destroyResources: (credential, callback) ->
 
-    identifiers = [credential.identifier]
+    identifiers = [ credential.identifier ]
+
     kd.singletons.computeController.getKloud()
       .bootstrap { identifiers, destroy: yes }
-      .nodeify callback
+      .then -> callback null
+      .catch (err) ->
+        kd.singletons.computeController.ui.showComputeError
+          title   : 'An error occured while destroying resources'
+          message : "
+            Following error occurred while destroying resources related with
+            this credential, however you still can delete the credential from
+            Koding and destroy your resources manually or you can Terminate all
+            existing instances manually then try to destroy rest of the
+            resources from here again.
+          "
+          errorMessage : err?.message ? err
+        callback err
 
 
   verify: (item) ->

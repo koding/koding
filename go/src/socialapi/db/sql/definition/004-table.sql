@@ -234,7 +234,8 @@ CREATE TABLE "api"."channel_link" (
     ),
     "root_id" BIGINT NOT NULL,
     "leaf_id" BIGINT NOT NULL,
-    "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+    "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+    "is_finished" BOOLEAN NOT NULL DEFAULT FALSE
 ) WITH (OIDS=FALSE);
 -- give required channel_link permissions
-GRANT SELECT, INSERT, DELETE ON "api"."channel_link" TO "social";
+GRANT SELECT,UPDATE, INSERT, DELETE ON "api"."channel_link" TO "social";
