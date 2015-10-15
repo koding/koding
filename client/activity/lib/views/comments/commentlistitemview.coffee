@@ -23,6 +23,7 @@ animatedRemoveMixin       = require 'activity/mixins/animatedremove'
 handleUpdate              = require 'activity/mixins/handleupdate'
 ActivityBaseListItemView  = require '../activitybaselistitemview'
 
+
 module.exports = class CommentListItemView extends ActivityBaseListItemView
 
   constructor: (options = {}, data) ->
@@ -268,7 +269,16 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
       @checkIfItsTooTall()
       emojifyMarkdown @getElement()
 
-    # @setAnchors()
+    @listenImageLoad()
+
+
+  listenImageLoad: ->
+
+    selector  = @getOption('showMoreWrapperSelector') + ' img'
+    images    = @$ selector
+
+    for image in images
+      image.onload = => @checkIfItsTooTall()
 
 
   # updateTemplate: (force = no) ->
