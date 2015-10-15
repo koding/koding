@@ -16,20 +16,24 @@ module.exports = ScrollerMixin =
     # we can not catch 0px to scroll to bottom. If scroll near about 100px or less
     # and when new message received we make scroll to bottom so user can see new messages.
     # If not probably user is reading old messages and we don't make scroll to bottom.
+
     return @scrollHeight - (@scrollTop + offsetHeight) < 10
 
 
-  componentDidUpdate: (prevProps) ->
+  componentDidUpdate: ->
+
+    @beforeScrollDidUpdate?()
 
     return  unless @refs?.scrollContainer
 
     element = React.findDOMNode @refs.scrollContainer
-
-    if @shouldScrollToBottom or @isPageLoaded
+    if @shouldScrollToBottom
       element.scrollTop = element.scrollHeight
     else if @isThresholdReached
       element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
       @isThresholdReached = no
+
+    @afterScrollDidUpdate?()
 
 
   setScrollPosition: ->
@@ -44,7 +48,6 @@ module.exports = ScrollerMixin =
 
   componentDidMount: ->
 
-    @isPageLoaded = yes
     window.addEventListener "resize", @bound 'setScrollPosition'
 
 
