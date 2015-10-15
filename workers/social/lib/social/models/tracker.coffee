@@ -111,6 +111,15 @@ module.exports = class Tracker extends bongo.Base
     else mqClient.on 'ready', -> sendMessage()
 
 
+  @page = (userId, name, category, properties) ->
+
+    return  unless KONFIG.sendEventsToSegment
+
+    options = { userId, name, category, properties }
+    @addDefaults options
+    analytics.page options
+
+
   @addDefaults = (opts) ->
     opts['env']      = KONFIG.environment
     opts['hostname'] = KONFIG.hostname
