@@ -1,5 +1,6 @@
 kd                        = require 'kd'
 timeago                   = require 'timeago'
+showError                 = require 'app/util/showError'
 
 BaseStackTemplateListItem = require './basestacktemplatelistitem'
 
@@ -43,9 +44,9 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
   editStackTemplate: ->
 
-    { inuse } = @getData()
+    stackTemplate = @getData()
 
-    if inuse
+    if stackTemplate.inuse
 
       modal = new kd.ModalView
         title          : 'Editing in-use stack template ?'
@@ -65,8 +66,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
           "Clone and Open Editor":
             style    : 'solid medium green'
-            callback : ->
-              new kd.NotificationView title: 'Coming soon!'
+            loader   : yes
+            callback : =>
+              stackTemplate.clone (err, cloneStackTemplate) =>
+                @_itemSelected cloneStackTemplate  unless showError err
+                modal.destroy()
 
           "I know what I'm doing, Open Editor":
             style    : 'solid medium red'
@@ -78,9 +82,8 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
       @_itemSelected()
 
 
-
-  _itemSelected: ->
-    @getDelegate().emit 'ItemSelected', @getData()
+  _itemSelected: (data) ->
+    @getDelegate().emit 'ItemSelected', data ? @getData()
 
 
   settingsMenu: ->
