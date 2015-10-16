@@ -27,6 +27,9 @@ module.exports = class ChatPane extends React.Component
 
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
+    scrollContainer = React.findDOMNode @refs.scrollContainer
+    scrollContainer?.classList.remove 'padded'
+
 
   onTopThresholdReached: (event) ->
 
@@ -57,7 +60,7 @@ module.exports = class ChatPane extends React.Component
         afterInviteOthers={@bound 'afterInviteOthers'} />
 
 
-  beforeScrollDidUpdate: ->
+  afterScrollDidUpdate: ->
 
     @setPaddedClassName()
 
@@ -79,9 +82,9 @@ module.exports = class ChatPane extends React.Component
     diff      = scrollContainerClientHeight - (channelInfoContainerHeight + listHeight)
     hasPadded = scrollContainer.className.indexOf('padded') > -1
 
-    if diff <= 0
-    then scrollContainer.classList.remove 'padded'
-    else scrollContainer.classList.add 'padded'
+    if diff >= 0
+    then scrollContainer.classList.add 'padded'
+    else scrollContainer.classList.remove 'padded'
 
 
   renderBody: ->
