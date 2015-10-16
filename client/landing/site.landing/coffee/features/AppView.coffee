@@ -91,7 +91,7 @@ module.exports = class FeaturesView extends KDView
         view = new KDCustomHTMLView
           cssClass    : 'feature-item'
           partial     : "
-            <h5 class='#{content.iconClass}'><cite></cite>#{title}</h5>
+            <h5 class='#{content.iconClass}'><cite></cite><span>#{title}</span></h5>
             <p>#{content.text}</p>
           "
         bottomFeatures.addSubView view

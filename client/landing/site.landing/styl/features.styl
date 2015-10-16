@@ -120,10 +120,11 @@ body.features
 
         h5
           font-size           21px
-          line-height         22px
+          line-height         23px
           color               #27ae60
           font-weight         600
           position            relative
+          dFlex()
 
           &:before
             content           ''
@@ -185,14 +186,15 @@ body.features
             r-sprite          'features', 'com-search'
 
           cite
-            display        block
-            width          36px
-            height         36px
-            background     #ddd
-            border-radius  18px
-            position       absolute
-            z-index        -1
-            top            -7px
+            display         block
+            width           36px
+            height          36px
+            background      #ddd
+            border-radius   18px
+            position        absolute
+            z-index         -1
+            top             -7px
+            left            0
 
           &.pink cite
             background     #ffb5b4
@@ -247,3 +249,29 @@ body.features
       section.feature-tabs
         padding-left          25px
         padding-right         25px
+
+@media only screen and (min-width : 320px) and (max-width : 568px)
+  body.features
+    .content-page.features
+      section.feature-tabs
+        .tab-handles
+          text-align        center
+
+          > a
+            margin-left     25px
+
+            &:first-child
+              margin-left   0
+
+        .tab-contents
+          .tab-image
+            hidden()
+
+          .tab-text
+            width           100%
+            padding-right   0
+
+          .bottom-features
+            .feature-item
+              width         100%
+
