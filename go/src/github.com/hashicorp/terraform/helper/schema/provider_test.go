@@ -79,7 +79,7 @@ func TestProviderConfigure(t *testing.T) {
 		}
 
 		err = tc.P.Configure(terraform.NewResourceConfig(c))
-		if (err != nil) != tc.Err {
+		if err != nil != tc.Err {
 			t.Fatalf("%d: %s", i, err)
 		}
 	}
@@ -117,6 +117,36 @@ func TestProviderResources(t *testing.T) {
 	}
 }
 
+func TestProviderValidate(t *testing.T) {
+	cases := []struct {
+		P      *Provider
+		Config map[string]interface{}
+		Err    bool
+	}{
+		{
+			P: &Provider{
+				Schema: map[string]*Schema{
+					"foo": &Schema{},
+				},
+			},
+			Config: nil,
+			Err:    true,
+		},
+	}
+
+	for i, tc := range cases {
+		c, err := config.NewRawConfig(tc.Config)
+		if err != nil {
+			t.Fatalf("err: %s", err)
+		}
+
+		_, es := tc.P.Validate(terraform.NewResourceConfig(c))
+		if len(es) > 0 != tc.Err {
+			t.Fatalf("%d: %#v", i, es)
+		}
+	}
+}
+
 func TestProviderValidateResource(t *testing.T) {
 	cases := []struct {
 		P      *Provider
@@ -150,7 +180,7 @@ func TestProviderValidateResource(t *testing.T) {
 		}
 
 		_, es := tc.P.ValidateResource(tc.Type, terraform.NewResourceConfig(c))
-		if (len(es) > 0) != tc.Err {
+		if len(es) > 0 != tc.Err {
 			t.Fatalf("%d: %#v", i, es)
 		}
 	}

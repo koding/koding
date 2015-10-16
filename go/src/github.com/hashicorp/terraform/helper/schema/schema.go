@@ -183,7 +183,7 @@ type SchemaStateFunc func(interface{}) string
 
 // SchemaValidateFunc is a function used to validate a single field in the
 // schema.
-type SchemaValidateFunc func(interface{}) ([]string, []error)
+type SchemaValidateFunc func(interface{}, string) ([]string, []error)
 
 func (s *Schema) GoString() string {
 	return fmt.Sprintf("*%#v", *s)
@@ -205,6 +205,30 @@ func (s *Schema) DefaultValue() (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+// Returns a zero value for the schema.
+func (s *Schema) ZeroValue() interface{} {
+	// If it's a set then we'll do a bit of extra work to provide the
+	// right hashing function in our empty value.
+	if s.Type == TypeSet {
+		setFunc := s.Set
+		if setFunc == nil {
+			// Default set function uses the schema to hash the whole value
+			elem := s.Elem
+			switch t := elem.(type) {
+			case *Schema:
+				setFunc = HashSchema(t)
+			case *Resource:
+				setFunc = HashResource(t)
+			default:
+				panic("invalid set element type")
+			}
+		}
+		return &Set{F: setFunc}
+	} else {
+		return s.Type.Zero()
+	}
 }
 
 func (s *Schema) finalizeDiff(
@@ -496,10 +520,8 @@ func (m schemaMap) InternalValidate(topSchemaMap schemaMap) error {
 				return fmt.Errorf("%s: Default is not valid for lists or sets", k)
 			}
 
-			if v.Type == TypeList && v.Set != nil {
+			if v.Type != TypeSet && v.Set != nil {
 				return fmt.Errorf("%s: Set can only be set for TypeSet", k)
-			} else if v.Type == TypeSet && v.Set == nil {
-				return fmt.Errorf("%s: Set must be set", k)
 			}
 
 			switch t := v.Elem.(type) {
@@ -518,8 +540,8 @@ func (m schemaMap) InternalValidate(topSchemaMap schemaMap) error {
 
 		if v.ValidateFunc != nil {
 			switch v.Type {
-			case TypeList, TypeSet, TypeMap:
-				return fmt.Errorf("ValidateFunc is only supported on primitives.")
+			case TypeList, TypeSet:
+				return fmt.Errorf("ValidateFunc is not yet supported on lists or sets.")
 			}
 		}
 	}
@@ -782,16 +804,16 @@ func (m schemaMap) diffSet(
 	}
 
 	if o == nil {
-		o = &Set{F: schema.Set}
+		o = schema.ZeroValue().(*Set)
 	}
 	if n == nil {
-		n = &Set{F: schema.Set}
+		n = schema.ZeroValue().(*Set)
 	}
 	os := o.(*Set)
 	ns := n.(*Set)
 
 	// If the new value was set, compare the listCode's to determine if
-	// the two are equal. Comparing listCode's instead of the actuall values
+	// the two are equal. Comparing listCode's instead of the actual values
 	// is needed because there could be computed values in the set which
 	// would result in false positives while comparing.
 	if !all && nSet && reflect.DeepEqual(os.listCode(), ns.listCode()) {
@@ -805,7 +827,7 @@ func (m schemaMap) diffSet(
 	newStr := strconv.Itoa(newLen)
 
 	// If the set computed then say that the # is computed
-	if computedSet || (schema.Computed && !nSet) {
+	if computedSet || schema.Computed && !nSet {
 		// If # already exists, equals 0 and no new set is supplied, there
 		// is nothing to record in the diff
 		count, ok := d.GetOk(k + ".#")
@@ -842,39 +864,46 @@ func (m schemaMap) diffSet(
 		})
 	}
 
-	for _, code := range ns.listCode() {
-		// If the code is negative (first character is -) then
-		// replace it with "~" for our computed set stuff.
-		codeStr := strconv.Itoa(code)
-		if codeStr[0] == '-' {
-			codeStr = string('~') + codeStr[1:]
-		}
+	// Build the list of codes that will make up our set. This is the
+	// removed codes as well as all the codes in the new codes.
+	codes := make([][]int, 2)
+	codes[0] = os.Difference(ns).listCode()
+	codes[1] = ns.listCode()
+	for _, list := range codes {
+		for _, code := range list {
+			// If the code is negative (first character is -) then
+			// replace it with "~" for our computed set stuff.
+			codeStr := strconv.Itoa(code)
+			if codeStr[0] == '-' {
+				codeStr = string('~') + codeStr[1:]
+			}
 
-		switch t := schema.Elem.(type) {
-		case *Resource:
-			// This is a complex resource
-			for k2, schema := range t.Schema {
-				subK := fmt.Sprintf("%s.%s.%s", k, codeStr, k2)
-				err := m.diff(subK, schema, diff, d, true)
+			switch t := schema.Elem.(type) {
+			case *Resource:
+				// This is a complex resource
+				for k2, schema := range t.Schema {
+					subK := fmt.Sprintf("%s.%s.%s", k, codeStr, k2)
+					err := m.diff(subK, schema, diff, d, true)
+					if err != nil {
+						return err
+					}
+				}
+			case *Schema:
+				// Copy the schema so that we can set Computed/ForceNew from
+				// the parent schema (the TypeSet).
+				t2 := *t
+				t2.ForceNew = schema.ForceNew
+
+				// This is just a primitive element, so go through each and
+				// just diff each.
+				subK := fmt.Sprintf("%s.%s", k, codeStr)
+				err := m.diff(subK, &t2, diff, d, true)
 				if err != nil {
 					return err
 				}
+			default:
+				return fmt.Errorf("%s: unknown element type (internal)", k)
 			}
-		case *Schema:
-			// Copy the schema so that we can set Computed/ForceNew from
-			// the parent schema (the TypeSet).
-			t2 := *t
-			t2.ForceNew = schema.ForceNew
-
-			// This is just a primitive element, so go through each and
-			// just diff each.
-			subK := fmt.Sprintf("%s.%s", k, codeStr)
-			err := m.diff(subK, &t2, diff, d, true)
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("%s: unknown element type (internal)", k)
 		}
 	}
 
@@ -1089,6 +1118,17 @@ func (m schemaMap) validateMap(
 		}
 	}
 
+	if schema.ValidateFunc != nil {
+		validatableMap := make(map[string]interface{})
+		for _, raw := range raws {
+			for k, v := range raw.(map[string]interface{}) {
+				validatableMap[k] = v
+			}
+		}
+
+		return schema.ValidateFunc(validatableMap, k)
+	}
+
 	return nil, nil
 }
 
@@ -1096,6 +1136,13 @@ func (m schemaMap) validateObject(
 	k string,
 	schema map[string]*Schema,
 	c *terraform.ResourceConfig) ([]string, []error) {
+	raw, _ := c.GetRaw(k)
+	if _, ok := raw.(map[string]interface{}); !ok {
+		return nil, []error{fmt.Errorf(
+			"%s: expected object, got %s",
+			k, reflect.ValueOf(raw).Kind())}
+	}
+
 	var ws []string
 	var es []error
 	for subK, s := range schema {
@@ -1114,7 +1161,6 @@ func (m schemaMap) validateObject(
 	}
 
 	// Detect any extra/unknown keys and report those as errors.
-	raw, _ := c.GetRaw(k)
 	if m, ok := raw.(map[string]interface{}); ok {
 		for subk, _ := range m {
 			if _, ok := schema[subk]; !ok {
@@ -1172,7 +1218,7 @@ func (m schemaMap) validatePrimitive(
 	}
 
 	if schema.ValidateFunc != nil {
-		return schema.ValidateFunc(decoded)
+		return schema.ValidateFunc(decoded, k)
 	}
 
 	return nil, nil

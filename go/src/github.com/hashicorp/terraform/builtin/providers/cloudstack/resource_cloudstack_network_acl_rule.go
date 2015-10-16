@@ -157,21 +157,23 @@ func resourceCloudStackNetworkACLRuleCreateRule(
 		p.SetIcmptype(rule["icmp_type"].(int))
 		p.SetIcmpcode(rule["icmp_code"].(int))
 
-		r, err := cs.NetworkACL.CreateNetworkACL(p)
+		r, err := Retry(4, retryableACLCreationFunc(cs, p))
 		if err != nil {
 			return err
 		}
-		uuids["icmp"] = r.Id
+
+		uuids["icmp"] = r.(*cloudstack.CreateNetworkACLResponse).Id
 		rule["uuids"] = uuids
 	}
 
 	// If the protocol is ALL set the needed parameters
 	if rule["protocol"].(string) == "all" {
-		r, err := cs.NetworkACL.CreateNetworkACL(p)
+		r, err := Retry(4, retryableACLCreationFunc(cs, p))
 		if err != nil {
 			return err
 		}
-		uuids["all"] = r.Id
+
+		uuids["all"] = r.(*cloudstack.CreateNetworkACLResponse).Id
 		rule["uuids"] = uuids
 	}
 
@@ -206,7 +208,7 @@ func resourceCloudStackNetworkACLRuleCreateRule(
 				p.SetStartport(startPort)
 				p.SetEndport(endPort)
 
-				r, err := cs.NetworkACL.CreateNetworkACL(p)
+				r, err := Retry(4, retryableACLCreationFunc(cs, p))
 				if err != nil {
 					return err
 				}
@@ -214,7 +216,7 @@ func resourceCloudStackNetworkACLRuleCreateRule(
 				ports.Add(port)
 				rule["ports"] = ports
 
-				uuids[port.(string)] = r.Id
+				uuids[port.(string)] = r.(*cloudstack.CreateNetworkACLResponse).Id
 				rule["uuids"] = uuids
 			}
 		}
@@ -245,7 +247,7 @@ func resourceCloudStackNetworkACLRuleRead(d *schema.ResourceData, meta interface
 
 				// Get the rule
 				r, count, err := cs.NetworkACL.GetNetworkACLByID(id.(string))
-				// If the count == 0, there is no object found for this UUID
+				// If the count == 0, there is no object found for this ID
 				if err != nil {
 					if count == 0 {
 						delete(uuids, "icmp")
@@ -273,7 +275,7 @@ func resourceCloudStackNetworkACLRuleRead(d *schema.ResourceData, meta interface
 
 				// Get the rule
 				r, count, err := cs.NetworkACL.GetNetworkACLByID(id.(string))
-				// If the count == 0, there is no object found for this UUID
+				// If the count == 0, there is no object found for this ID
 				if err != nil {
 					if count == 0 {
 						delete(uuids, "all")
@@ -415,7 +417,7 @@ func resourceCloudStackNetworkACLRuleUpdate(d *schema.ResourceData, meta interfa
 
 		// Then loop through all the currently configured rules and create the new ones
 		for _, rule := range nrs.List() {
-			// When succesfully deleted, re-create it again if it still exists
+			// When successfully deleted, re-create it again if it still exists
 			err := resourceCloudStackNetworkACLRuleCreateRule(d, meta, rule.(map[string]interface{}))
 
 			// We need to update this first to preserve the correct state
@@ -467,7 +469,7 @@ func resourceCloudStackNetworkACLRuleDeleteRule(
 		// Delete the rule
 		if _, err := cs.NetworkACL.DeleteNetworkACL(p); err != nil {
 
-			// This is a very poor way to be told the UUID does no longer exist :(
+			// This is a very poor way to be told the ID does no longer exist :(
 			if strings.Contains(err.Error(), fmt.Sprintf(
 				"Invalid parameter id value=%s due to incorrect long value format, "+
 					"or entity does not exist", id.(string))) {
@@ -592,4 +594,16 @@ func verifyNetworkACLRuleParams(d *schema.ResourceData, rule map[string]interfac
 	}
 
 	return nil
+}
+
+func retryableACLCreationFunc(
+	cs *cloudstack.CloudStackClient,
+	p *cloudstack.CreateNetworkACLParams) func() (interface{}, error) {
+	return func() (interface{}, error) {
+		r, err := cs.NetworkACL.CreateNetworkACL(p)
+		if err != nil {
+			return nil, err
+		}
+		return r, nil
+	}
 }

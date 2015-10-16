@@ -1,7 +1,7 @@
 kd                                    = require 'kd'
 React                                 = require 'kd-react'
 immutable                             = require 'immutable'
-Dropbox                               = require 'activity/components/dropbox'
+Dropbox                               = require 'activity/components/dropbox/relativedropbox'
 DropboxWrapperMixin                   = require 'activity/components/dropbox/dropboxwrappermixin'
 CreateChannelFlux                     = require 'activity/flux/createchannel'
 CreateChannelParticipantsDropdownItem = require './createchannelparticipantsdropdownitem'
@@ -56,11 +56,11 @@ module.exports = class CreateChannelParticipantsDropdown extends React.Component
   render: ->
 
     <Dropbox
-      className      = "ChannelParticipantsDropdown CreateChannel-dropbox"
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
-      ref            = 'dropbox'
-      top            = '100px'
+      className = "ChannelParticipantsDropdown CreateChannel-dropbox"
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      ref       = 'dropbox'
+      top       = '100px'
     >
       <div className="Dropdown-innerContainer">
         <div className="ChannelParticipantsDropdown-list">

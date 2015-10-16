@@ -1,6 +1,9 @@
 package aws
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -32,6 +35,10 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"ses_smtp_password": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -55,8 +62,12 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 	if err := d.Set("secret", createResp.AccessKey.SecretAccessKey); err != nil {
 		return err
 	}
+
+	d.Set("ses_smtp_password",
+		sesSmtpPasswordFromSecretKey(createResp.AccessKey.SecretAccessKey))
+
 	return resourceAwsIamAccessKeyReadResult(d, &iam.AccessKeyMetadata{
-		AccessKeyID: createResp.AccessKey.AccessKeyID,
+		AccessKeyId: createResp.AccessKey.AccessKeyId,
 		CreateDate:  createResp.AccessKey.CreateDate,
 		Status:      createResp.AccessKey.Status,
 		UserName:    createResp.AccessKey.UserName,
@@ -81,7 +92,7 @@ func resourceAwsIamAccessKeyRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	for _, key := range getResp.AccessKeyMetadata {
-		if key.AccessKeyID != nil && *key.AccessKeyID == d.Id() {
+		if key.AccessKeyId != nil && *key.AccessKeyId == d.Id() {
 			return resourceAwsIamAccessKeyReadResult(d, key)
 		}
 	}
@@ -92,7 +103,7 @@ func resourceAwsIamAccessKeyRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceAwsIamAccessKeyReadResult(d *schema.ResourceData, key *iam.AccessKeyMetadata) error {
-	d.SetId(*key.AccessKeyID)
+	d.SetId(*key.AccessKeyId)
 	if err := d.Set("user", key.UserName); err != nil {
 		return err
 	}
@@ -106,7 +117,7 @@ func resourceAwsIamAccessKeyDelete(d *schema.ResourceData, meta interface{}) err
 	iamconn := meta.(*AWSClient).iamconn
 
 	request := &iam.DeleteAccessKeyInput{
-		AccessKeyID: aws.String(d.Id()),
+		AccessKeyId: aws.String(d.Id()),
 		UserName:    aws.String(d.Get("user").(string)),
 	}
 
@@ -114,4 +125,20 @@ func resourceAwsIamAccessKeyDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error deleting access key %s: %s", d.Id(), err)
 	}
 	return nil
+}
+
+func sesSmtpPasswordFromSecretKey(key *string) string {
+	if key == nil {
+		return ""
+	}
+	version := byte(0x02)
+	message := []byte("SendRawEmail")
+	hmacKey := []byte(*key)
+	h := hmac.New(sha256.New, hmacKey)
+	h.Write(message)
+	rawSig := h.Sum(nil)
+	versionedSig := make([]byte, 0, len(rawSig)+1)
+	versionedSig = append(versionedSig, version)
+	versionedSig = append(versionedSig, rawSig...)
+	return base64.StdEncoding.EncodeToString(versionedSig)
 }

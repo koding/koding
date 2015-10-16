@@ -30,7 +30,7 @@ func resourceAwsIamUser() *schema.Resource {
 				name. The only way to locate a user by UniqueID is to list them
 				all and that would make this provider unnecessarilly complex
 				and inefficient. Still, there are other reasons one might want
-				the UniqueID, so we can make it availible.
+				the UniqueID, so we can make it available.
 			*/
 			"unique_id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -90,13 +90,13 @@ func resourceAwsIamUserReadResult(d *schema.ResourceData, user *iam.User) error 
 	if err := d.Set("name", user.UserName); err != nil {
 		return err
 	}
-	if err := d.Set("arn", user.ARN); err != nil {
+	if err := d.Set("arn", user.Arn); err != nil {
 		return err
 	}
 	if err := d.Set("path", user.Path); err != nil {
 		return err
 	}
-	if err := d.Set("unique_id", user.UserID); err != nil {
+	if err := d.Set("unique_id", user.UserId); err != nil {
 		return err
 	}
 	return nil

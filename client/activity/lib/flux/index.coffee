@@ -10,6 +10,7 @@ module.exports =
     channel         : require './actions/channel'
     suggestions     : require './actions/suggestions'
     user            : require './actions/user'
+    command         : require './actions/command'
 
   stores    : [
     require './stores/messagesstore'
