@@ -2,7 +2,7 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
 UserDropboxItem      = require 'activity/components/userdropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
@@ -104,12 +104,12 @@ module.exports = class UserDropbox extends React.Component
   render: ->
 
     <Dropbox
-      className      = 'UserDropbox'
-      visible        = { @isActive() }
-      onOuterClick   = { @bound 'close' }
-      direction      = 'up'
-      title          = 'People'
-      ref            = 'dropbox'
+      className = 'UserDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      type      = 'dropup'
+      title     = 'People'
+      ref       = 'dropbox'
     >
       {@renderList()}
     </Dropbox>

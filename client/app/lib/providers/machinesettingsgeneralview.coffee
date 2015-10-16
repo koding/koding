@@ -162,7 +162,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           label         : 'Keep VM always on'
           defaultValue  : @machine.alwaysOn
           itemClass     : KodingSwitch
-          cssClass      : if isManaged or not isKoding() then 'statustoggle hidden' else 'statustoggle'
+          cssClass      : if isManaged then 'statustoggle hidden' else 'statustoggle'
           disabled      : @machine.isPermanent()
           callback      : @bound 'handleAlwaysOnStateChanged'
         nickname        :

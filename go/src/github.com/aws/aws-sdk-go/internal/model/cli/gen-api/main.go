@@ -1,7 +1,7 @@
 // Command aws-gen-gocli parses a JSON description of an AWS API and generates a
 // Go file containing a client for the API.
 //
-//     aws-gen-gocli apis/s3/2006-03-03.normal.json
+//     aws-gen-gocli apis/s3/2006-03-03/api-2.json
 package main
 
 import (
@@ -24,6 +24,10 @@ type generateInfo struct {
 	PackageDir string
 }
 
+var excludeServices = map[string]struct{}{
+	"importexport": {},
+}
+
 // newGenerateInfo initializes the service API's folder structure for a specific service.
 // If the SERVICES environment variable is set, and this service is not apart of the list
 // this service will be skipped.
@@ -31,17 +35,35 @@ func newGenerateInfo(modelFile, svcPath string) *generateInfo {
 	g := &generateInfo{API: &api.API{}}
 	g.API.Attach(modelFile)
 
-	paginatorsFile := strings.Replace(modelFile, ".normal.json", ".paginators.json", -1)
+	if _, ok := excludeServices[g.API.PackageName()]; ok {
+		return nil
+	}
+
+	paginatorsFile := strings.Replace(modelFile, "api-2.json", "paginators-1.json", -1)
 	if _, err := os.Stat(paginatorsFile); err == nil {
 		g.API.AttachPaginators(paginatorsFile)
 	}
 
+	docsFile := strings.Replace(modelFile, "api-2.json", "docs-2.json", -1)
+	if _, err := os.Stat(docsFile); err == nil {
+		g.API.AttachDocs(docsFile)
+	}
+
+	g.API.Setup()
+
 	if svc := os.Getenv("SERVICES"); svc != "" {
 		svcs := strings.Split(svc, ",")
+
+		included := false
 		for _, s := range svcs {
-			if s != g.API.PackageName() { // skip this non-included service
-				return nil
+			if s == g.API.PackageName() {
+				included = true
+				break
 			}
+		}
+		if !included {
+			// skip this non-included service
+			return nil
 		}
 	}
 
@@ -78,6 +100,13 @@ func main() {
 		}
 	}
 
+	for svcName := range excludeServices {
+		if strings.Contains(os.Getenv("SERVICES"), svcName) {
+			fmt.Printf("Service %s is not supported\n", svcName)
+			os.Exit(1)
+		}
+	}
+
 	sort.Strings(files)
 
 	// Remove old API versions from list
@@ -85,7 +114,7 @@ func main() {
 	for i := range files {
 		idx := len(files) - 1 - i
 		parts := strings.Split(files[idx], string(filepath.Separator))
-		svc := parts[len(parts)-2] // service name is 2nd-to-last component
+		svc := parts[len(parts)-3] // service name is 2nd-to-last component
 
 		if m[svc] {
 			files[idx] = "" // wipe this one out if we already saw the service
@@ -111,10 +140,9 @@ func main() {
 			}()
 
 			if g := newGenerateInfo(file, svcPath); g != nil {
-				switch g.API.PackageName() {
-				case "simpledb", "importexport":
-					// These services are not yet supported, do nothing.
-				default:
+				if _, ok := excludeServices[g.API.PackageName()]; !ok {
+					// Skip services not yet supported.
+
 					fmt.Printf("Generating %s (%s)...\n",
 						g.API.PackageName(), g.API.Metadata.APIVersion)
 

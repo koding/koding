@@ -19,15 +19,17 @@ module.exports = class ChatInputValueStore extends KodingFluxStore
 
 
   ###*
-   * It updates value for a given stateId
+   * It updates value for a given channelId and stateId
    *
    * @param {immutable.Map} currentState
    * @param {object} payload
    * @param {string} payload.channelId
+   * @param {string} payload.stateId
    * @param {string} payload.value
    * @return {immutable.Map} nextState
   ###
-  setValue: (currentState, { channelId, value }) ->
+  setValue: (currentState, { channelId, stateId, value }) ->
 
-    currentState.set channelId, value
+    currentState.set channelId, immutable.Map()  unless  currentState.get channelId
+    currentState.setIn [channelId, stateId], value
 

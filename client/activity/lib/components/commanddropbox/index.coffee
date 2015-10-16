@@ -2,7 +2,7 @@ kd                   = require 'kd'
 React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
 CommandDropboxItem   = require 'activity/components/commanddropboxitem'
 ErrorDropboxItem     = require 'activity/components/errordropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
@@ -126,13 +126,13 @@ module.exports = class CommandDropbox extends React.Component
     isError = items.size is 0 and query
 
     <Dropbox
-      className    = 'CommandDropbox'
-      visible      = { @isActive() }
-      onOuterClick = { @bound 'close' }
-      direction    = 'up'
-      title        = 'Commands matching'
-      subtitle     = { query }
-      ref          = 'dropbox'
+      className = 'CommandDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      type      = 'dropup'
+      title     = 'Commands matching'
+      subtitle  = { query }
+      ref       = 'dropbox'
     >
       { @renderList()  unless isError }
       { @renderError()  if isError }

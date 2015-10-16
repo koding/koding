@@ -28,6 +28,12 @@ func resourceCloudStackIPAddress() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"project": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"ipaddress": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -47,8 +53,8 @@ func resourceCloudStackIPAddressCreate(d *schema.ResourceData, meta interface{})
 	p := cs.Address.NewAssociateIpAddressParams()
 
 	if network, ok := d.GetOk("network"); ok {
-		// Retrieve the network UUID
-		networkid, e := retrieveUUID(cs, "network", network.(string))
+		// Retrieve the network ID
+		networkid, e := retrieveID(cs, "network", network.(string))
 		if e != nil {
 			return e.Error()
 		}
@@ -58,14 +64,25 @@ func resourceCloudStackIPAddressCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if vpc, ok := d.GetOk("vpc"); ok {
-		// Retrieve the vpc UUID
-		vpcid, e := retrieveUUID(cs, "vpc", vpc.(string))
+		// Retrieve the vpc ID
+		vpcid, e := retrieveID(cs, "vpc", vpc.(string))
 		if e != nil {
 			return e.Error()
 		}
 
 		// Set the vpcid
 		p.SetVpcid(vpcid)
+	}
+
+	// If there is a project supplied, we retrieve and set the project id
+	if project, ok := d.GetOk("project"); ok {
+		// Retrieve the project ID
+		projectid, e := retrieveID(cs, "project", project.(string))
+		if e != nil {
+			return e.Error()
+		}
+		// Set the default project ID
+		p.SetProjectid(projectid)
 	}
 
 	// Associate a new IP address
@@ -105,7 +122,7 @@ func resourceCloudStackIPAddressRead(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		d.Set("network", n.Name)
+		setValueOrID(d, "network", n.Name, f.Associatednetworkid)
 	}
 
 	if _, ok := d.GetOk("vpc"); ok {
@@ -115,8 +132,10 @@ func resourceCloudStackIPAddressRead(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		d.Set("vpc", v.Name)
+		setValueOrID(d, "vpc", v.Name, f.Vpcid)
 	}
+
+	setValueOrID(d, "project", f.Project, f.Projectid)
 
 	return nil
 }
@@ -129,7 +148,7 @@ func resourceCloudStackIPAddressDelete(d *schema.ResourceData, meta interface{})
 
 	// Disassociate the IP address
 	if _, err := cs.Address.DisassociateIpAddress(p); err != nil {
-		// This is a very poor way to be told the UUID does no longer exist :(
+		// This is a very poor way to be told the ID does no longer exist :(
 		if strings.Contains(err.Error(), fmt.Sprintf(
 			"Invalid parameter id value=%s due to incorrect long value format, "+
 				"or entity does not exist", d.Id())) {
@@ -146,7 +165,7 @@ func verifyIPAddressParams(d *schema.ResourceData) error {
 	_, network := d.GetOk("network")
 	_, vpc := d.GetOk("vpc")
 
-	if (network && vpc) || (!network && !vpc) {
+	if network && vpc || !network && !vpc {
 		return fmt.Errorf(
 			"You must supply a value for either (so not both) the 'network' or 'vpc' parameter")
 	}

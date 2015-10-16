@@ -36,8 +36,13 @@ The following arguments are supported:
      EBS-optimized.
 * `disable_api_termination` - (Optional) If true, enables [EC2 Instance
      Termination Protection](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#Using_ChangingDisableAPITermination)
+* `instance_initiated_shutdown_behavior` - (Optional) Shutdown behavior for the 
+instance. Amazon defaults this to `stop` for EBS-backed instances and 
+`terminate` for instance-store instances. Cannot be set on instance-store 
+instances. See [Shutdown Behavior](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#Using_ChangingInstanceInitiatedShutdownBehavior) for more information.
 * `instance_type` - (Required) The type of instance to start
 * `key_name` - (Optional) The key name to use for the instance.
+* `monitoring` - (Optional) If true, the launched EC2 instance will have detailed monitoring enabled. (Available since v0.6.0)
 * `security_groups` - (Optional) A list of security group names to associate with.
    If you are within a non-default VPC, you'll need to use `vpc_security_group_ids` instead.
 * `vpc_security_group_ids` - (Optional) A list of security group IDs to associate with.

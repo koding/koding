@@ -184,6 +184,41 @@ func TestParse(t *testing.T) {
 		},
 
 		{
+			"foo ${var.bar*1} baz",
+			false,
+			&ast.Concat{
+				Posx: ast.Pos{Column: 1, Line: 1},
+				Exprs: []ast.Node{
+					&ast.LiteralNode{
+						Value: "foo ",
+						Typex: ast.TypeString,
+						Posx:  ast.Pos{Column: 1, Line: 1},
+					},
+					&ast.Arithmetic{
+						Op: ast.ArithmeticOpMul,
+						Exprs: []ast.Node{
+							&ast.VariableAccess{
+								Name: "var.bar",
+								Posx: ast.Pos{Column: 7, Line: 1},
+							},
+							&ast.LiteralNode{
+								Value: 1,
+								Typex: ast.TypeInt,
+								Posx:  ast.Pos{Column: 15, Line: 1},
+							},
+						},
+						Posx: ast.Pos{Column: 7, Line: 1},
+					},
+					&ast.LiteralNode{
+						Value: " baz",
+						Typex: ast.TypeString,
+						Posx:  ast.Pos{Column: 17, Line: 1},
+					},
+				},
+			},
+		},
+
+		{
 			"${foo()}",
 			false,
 			&ast.Concat{
@@ -318,7 +353,7 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range cases {
 		actual, err := Parse(tc.Input)
-		if (err != nil) != tc.Error {
+		if err != nil != tc.Error {
 			t.Fatalf("Error: %s\n\nInput: %s", err, tc.Input)
 		}
 		if !reflect.DeepEqual(actual, tc.Result) {
