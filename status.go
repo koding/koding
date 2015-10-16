@@ -4,14 +4,39 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/codegangsta/cli"
 )
 
-const (
-	healthCheckInternetAddress = S3UpdateLocation
-	healthCheckKontrolAddress  = KontrolUrl
+var (
+	defaultHealthChecker *HealthChecker
 )
+
+func init() {
+	defaultHealthChecker = &HealthChecker{
+		HttpClient: &http.Client{
+			Timeout: 4 * time.Second,
+		},
+		LocalKiteAddress:  KlientAddress,
+		RemoteKiteAddress: KontrolUrl,
+		RemoteHttpAddress: S3UpdateLocation,
+	}
+}
+
+// HealthChecker implements state for the various HealthCheck functions,
+// ideal for mocking the health check interfaces (local kite, remote http,
+// remote kite, etc)
+type HealthChecker struct {
+	HttpClient *http.Client
+
+	// Used for verifying a locally / remotely running kite
+	LocalKiteAddress  string
+	RemoteKiteAddress string
+
+	// Used for verifying a working internet connection
+	RemoteHttpAddress string
+}
 
 // Dialing klient itself is failing. This likely shouldn't happen, but
 // it is in theory possible for invalid auth or if simply klient is
@@ -63,7 +88,7 @@ func (e ErrHealthNoKontrolHttp) Error() string      { return e.Message }
 // 	but incoming klient functionality will obviously be limited. So by
 // 	checking, we can inform the user.
 func StatusCommand(c *cli.Context) int {
-	if err := HealthCheckLocal(KlientAddress); err != nil {
+	if err := defaultHealthChecker.CheckLocal(); err != nil {
 		// TODO: Enable debug logs
 		// log.Print(err.Error())
 
@@ -110,7 +135,7 @@ Please run the following command:
 		return 1
 	}
 
-	if err := HealthCheckRemote(healthCheckInternetAddress, healthCheckKontrolAddress); err != nil {
+	if err := defaultHealthChecker.CheckRemote(); err != nil {
 		// TODO: Enable debug logs
 		// log.Print(err.Error())
 
@@ -142,8 +167,8 @@ If this problem persists, please contact us at: support@koding.com
 // the ErrHealth* types.
 //
 // TODO: Possibly return a set of warnings too? If we have any..
-func HealthCheckLocal(a string) error {
-	res, err := http.Get(a)
+func (c *HealthChecker) CheckLocal() error {
+	res, err := c.HttpClient.Get(c.LocalKiteAddress)
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
 		return ErrHealthNoHttp{Message: fmt.Sprintf(
@@ -185,21 +210,21 @@ func HealthCheckLocal(a string) error {
 
 // HealthCheckRemote checks the integrity of the ability to connect
 // to remote addresses, and thus verifying internet.
-func HealthCheckRemote(inetAddress, kontrolAddress string) error {
+func (c *HealthChecker) CheckRemote() error {
 	// Attempt to connect to google (or some reliable service) to
 	// confirm the user's outbound internet connection.
-	res, err := http.Get(inetAddress)
+	res, err := c.HttpClient.Get(c.RemoteHttpAddress)
 	if err != nil {
 		return ErrHealthNoInternet{Message: fmt.Sprintf(
 			"The internet connection fails to '%s'. Reason: %s",
-			inetAddress, err.Error(),
+			c.RemoteHttpAddress, err.Error(),
 		)}
 	}
 	defer res.Body.Close()
 
 	// Attempt to connect to kontrol's http page, simply to get an idea
 	// if Koding is running or not.
-	res, err = http.Get(kontrolAddress)
+	res, err = c.HttpClient.Get(c.RemoteKiteAddress)
 	if err != nil {
 		return ErrHealthNoKontrolHttp{Message: fmt.Sprintf(
 			"A http request to Kontrol failed. Reason: %s", err.Error(),
@@ -225,7 +250,7 @@ func HealthCheckRemote(inetAddress, kontrolAddress string) error {
 	if string(resData) != "Welcome to SockJS!\n" {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The '%s' route is returning an unexpected response: '%s'",
-			kontrolAddress, string(resData),
+			c.RemoteKiteAddress, string(resData),
 		)}
 	}
 

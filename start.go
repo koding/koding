@@ -37,7 +37,7 @@ func WaitUntilStarted(address string, attempts int, pauseIntv time.Duration) err
 	for i := 0; i < 5; i++ {
 		time.Sleep(pauseIntv)
 
-		if err = HealthCheckLocal(address); err == nil {
+		if err = defaultHealthChecker.CheckLocal(); err == nil {
 			break
 		}
 	}

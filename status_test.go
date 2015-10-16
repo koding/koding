@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestHealthCheckRemote(t *testing.T) {
+
 	Convey("Should return no errors for working http servers", t, func() {
 		ts := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
@@ -19,12 +21,28 @@ func TestHealthCheckRemote(t *testing.T) {
 
 		// We can use the same url for inet and kontrol, since inet just
 		// checks for no error
-		So(HealthCheckRemote(ts.URL, ts.URL), ShouldBeNil)
+		c := &HealthChecker{
+			HttpClient: &http.Client{
+				Timeout: 4 * time.Second,
+			},
+			RemoteKiteAddress: ts.URL,
+			RemoteHttpAddress: ts.URL,
+		}
+
+		So(c.CheckRemote(), ShouldBeNil)
 	})
 
 	Convey("Should return no internet if the inetAddress fails", t, func() {
 		// Simulate no internet with a bad address
-		err := HealthCheckRemote("http://foo", "http://bar")
+		c := &HealthChecker{
+			HttpClient: &http.Client{
+				Timeout: 4 * time.Second,
+			},
+			RemoteKiteAddress: "http://foo",
+			RemoteHttpAddress: "http://bar",
+		}
+
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrHealthNoInternet{})
 	})
@@ -40,7 +58,15 @@ func TestHealthCheckRemote(t *testing.T) {
 			}))
 		defer tsKon.Close()
 
-		err := HealthCheckRemote(tsNet.URL, tsKon.URL)
+		c := &HealthChecker{
+			HttpClient: &http.Client{
+				Timeout: 4 * time.Second,
+			},
+			RemoteKiteAddress: tsKon.URL,
+			RemoteHttpAddress: tsNet.URL,
+		}
+
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHttp{})
 	})
@@ -55,8 +81,38 @@ func TestHealthCheckRemote(t *testing.T) {
 			}))
 		defer tsKon.Close()
 
-		err := HealthCheckRemote(tsNet.URL, tsKon.URL)
+		c := &HealthChecker{
+			HttpClient: &http.Client{
+				Timeout: 4 * time.Second,
+			},
+			RemoteKiteAddress: tsNet.URL,
+			RemoteHttpAddress: tsKon.URL,
+		}
+
+		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
 		So(err, ShouldHaveSameTypeAs, ErrHealthUnexpectedResponse{})
+	})
+
+	Convey("Should timeout after X seconds", t, func() {
+		// A valid http server, that takes 1 second longer than the
+		// client timeout
+		ts := httptest.NewServer(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				time.Sleep(2 * time.Second)
+				fmt.Fprint(w, "Welcome to SockJS!\n")
+			}))
+		defer ts.Close()
+
+		c := &HealthChecker{
+			HttpClient: &http.Client{
+				Timeout: 1 * time.Second,
+			},
+			RemoteKiteAddress: ts.URL,
+			RemoteHttpAddress: ts.URL,
+		}
+
+		err := c.CheckRemote()
+		So(err, ShouldNotBeNil)
 	})
 }
