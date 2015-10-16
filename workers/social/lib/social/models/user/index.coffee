@@ -1659,6 +1659,7 @@ module.exports = class JUser extends jraphical.Module
         }
 
         Tracker.identify username, traits
+        Tracker.alias oldUsername, username
 
         queue.next()
 
