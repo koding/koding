@@ -52,12 +52,18 @@ module.exports = class ChatPane extends React.Component
 
   renderChannelInfoContainer: ->
 
-    if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
-      <ChannelInfoContainer
-        ref='ChannelInfoContainer'
-        key={@channel 'id'}
-        thread={@props.thread}
-        afterInviteOthers={@bound 'afterInviteOthers'} />
+    return null  unless @props.thread
+
+    messagesSize        = @props.thread.get('messages').size
+    reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
+
+    return null  unless reachedFirstMessage and messagesSize
+
+    <ChannelInfoContainer
+      ref='ChannelInfoContainer'
+      key={@channel 'id'}
+      thread={@props.thread}
+      afterInviteOthers={@bound 'afterInviteOthers'} />
 
 
   afterScrollDidUpdate: ->
