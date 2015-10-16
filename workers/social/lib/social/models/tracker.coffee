@@ -21,7 +21,7 @@ module.exports = class Tracker extends bongo.Base
   @set
     sharedMethods:
       static:
-        track: (signature String, Object)
+        track: (signature String, Object, Function)
 
   KodingError = require '../error'
 
@@ -63,13 +63,15 @@ module.exports = class Tracker extends bongo.Base
       console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
-  @track$ = secure (client, subject, options = {}) ->
+  @track$ = secure (client, subject, options = {}, callback) ->
 
     { profile: { nickname } } = client.connection.delegate
 
     event = { subject }
 
     @track nickname, event, options
+
+    callback()
 
 
   @track = (username, event, options = {}) ->
