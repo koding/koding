@@ -599,10 +599,10 @@ runTests = -> describe 'server.handlers.createteam', ->
   it 'should send HTTP 400 when passwords does not match', (done) ->
 
     # sending different passwords
-     options =
-       body              :
-         password        : 'somePassword'
-         passwordConfirm : 'anotherPassword'
+    options =
+      body              :
+        password        : 'somePassword'
+        passwordConfirm : 'anotherPassword'
 
     generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
