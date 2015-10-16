@@ -26,7 +26,7 @@ func TestHealthCheckRemote(t *testing.T) {
 		// Simulate no internet with a bad address
 		err := HealthCheckRemote("http://foo", "http://bar")
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, HealthErrorNoInternet{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthNoInternet{})
 	})
 
 	Convey("Should return no kontrol if the kontrolAddress fails", t, func() {
@@ -42,7 +42,7 @@ func TestHealthCheckRemote(t *testing.T) {
 
 		err := HealthCheckRemote(tsNet.URL, tsKon.URL)
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, HealthErrorNoKontrolHttp{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHttp{})
 	})
 
 	Convey("Should return unexpected response if the kontrol response is.. unexpected", t, func() {
@@ -57,6 +57,6 @@ func TestHealthCheckRemote(t *testing.T) {
 
 		err := HealthCheckRemote(tsNet.URL, tsKon.URL)
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, HealthErrorUnexpectedResponse{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthUnexpectedResponse{})
 	})
 }

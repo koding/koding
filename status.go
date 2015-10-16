@@ -8,38 +8,43 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+const (
+	healthCheckInternetAddress = S3UpdateLocation
+	healthCheckKontrolAddress  = KontrolUrl
+)
+
 // Dialing klient itself is failing. This likely shouldn't happen, but
 // it is in theory possible for invalid auth or if simply klient is
 // not running properly.
-type HealthErrorDialFailed struct{ Message string }
+type ErrHealthDialFailed struct{ Message string }
 
 // The local klient is not returning an http response.
-type HealthErrorNoHttp struct{ Message string }
+type ErrHealthNoHttp struct{ Message string }
 
 // We are unable to Read the kite.key, so it either doesn't exist at the
 // specified location or the permissions are broken relative to the
 // current user.
-type HealthErrorUnableReadKey struct{ Message string }
+type ErrHealthUnableReadKey struct{ Message string }
 
 // The http response on /kite does not match the "Welcome to SockJS!"
 // klient response.
-type HealthErrorUnexpectedResponse struct{ Message string }
+type ErrHealthUnexpectedResponse struct{ Message string }
 
 // The http response to a reliable endpoint (Google.com, for example)
 // was unable to connect. If this is the case, the user is having internet
 // troubles.
-type HealthErrorNoInternet struct{ Message string }
+type ErrHealthNoInternet struct{ Message string }
 
 // The http response from https://koding.com/kontrol/kite failed. Koding
 // itself might be down, or the users internet might be spotty.
-type HealthErrorNoKontrolHttp struct{ Message string }
+type ErrHealthNoKontrolHttp struct{ Message string }
 
-func (e HealthErrorDialFailed) Error() string         { return e.Message }
-func (e HealthErrorNoHttp) Error() string             { return e.Message }
-func (e HealthErrorUnableReadKey) Error() string      { return e.Message }
-func (e HealthErrorUnexpectedResponse) Error() string { return e.Message }
-func (e HealthErrorNoInternet) Error() string         { return e.Message }
-func (e HealthErrorNoKontrolHttp) Error() string      { return e.Message }
+func (e ErrHealthDialFailed) Error() string         { return e.Message }
+func (e ErrHealthNoHttp) Error() string             { return e.Message }
+func (e ErrHealthUnableReadKey) Error() string      { return e.Message }
+func (e ErrHealthUnexpectedResponse) Error() string { return e.Message }
+func (e ErrHealthNoInternet) Error() string         { return e.Message }
+func (e ErrHealthNoKontrolHttp) Error() string      { return e.Message }
 
 // Status informs the user about the status of the Klient service. It
 // does this in multiple stages, to help identify specific problems.
@@ -58,14 +63,13 @@ func (e HealthErrorNoKontrolHttp) Error() string      { return e.Message }
 // 	but incoming klient functionality will obviously be limited. So by
 // 	checking, we can inform the user.
 func StatusCommand(c *cli.Context) int {
-	err := HealthCheckLocal(KlientAddress)
-	if err != nil {
+	if err := HealthCheckLocal(KlientAddress); err != nil {
 		// TODO: Enable debug logs
 		// log.Print(err.Error())
 
 		// Print a friendly message for each of the given health responses.
 		switch err.(type) {
-		case HealthErrorNoHttp:
+		case ErrHealthNoHttp:
 			fmt.Printf(
 				`Error: The %s does not appear to be running. Please run
 the following command to start it:
@@ -74,7 +78,7 @@ the following command to start it:
 `,
 				KlientName)
 
-		case HealthErrorUnexpectedResponse:
+		case ErrHealthUnexpectedResponse:
 			fmt.Printf(`Error: The %s is not running properly. Please run the
 following command to restart it:
 
@@ -82,7 +86,7 @@ following command to restart it:
 `,
 				KlientName)
 
-		case HealthErrorUnableReadKey:
+		case ErrHealthUnableReadKey:
 			fmt.Printf(`Error: The authorization file for the %s is malformed
 or missing. Please run the following command:
 
@@ -91,7 +95,7 @@ or missing. Please run the following command:
 				KlientName)
 
 		// TODO: What are some good steps for the user to take if dial fails?
-		case HealthErrorDialFailed:
+		case ErrHealthDialFailed:
 			fmt.Printf(`Error: The %s does not appear to be running properly.
 Please run the following command:
 
@@ -106,18 +110,16 @@ Please run the following command:
 		return 1
 	}
 
-	err = HealthCheckRemote("https://google.com", "https://koding.com/kontrol/kite")
-
-	if err != nil {
+	if err := HealthCheckRemote(healthCheckInternetAddress, healthCheckKontrolAddress); err != nil {
 		// TODO: Enable debug logs
 		// log.Print(err.Error())
 
 		// Print a friendly message for each of the given health responses.
 		switch err.(type) {
-		case HealthErrorNoInternet:
+		case ErrHealthNoInternet:
 			fmt.Println(`Error: You do not appear to have a properly working internet connection.`)
 
-		case HealthErrorNoKontrolHttp:
+		case ErrHealthNoKontrolHttp:
 			fmt.Printf(`Error: Koding.com does not appear to be responding.
 If this problem persists, please contact us at: support@koding.com
 `)
@@ -137,14 +139,14 @@ If this problem persists, please contact us at: support@koding.com
 
 // HealthCheck runs several diagnostics on the local Klient. Errors
 // indicate an unhealthy or not running Klient, and can be compare to
-// the HealthError* types.
+// the ErrHealth* types.
 //
 // TODO: Possibly return a set of warnings too? If we have any..
 func HealthCheckLocal(a string) error {
 	res, err := http.Get(a)
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
-		return HealthErrorNoHttp{Message: fmt.Sprintf(
+		return ErrHealthNoHttp{Message: fmt.Sprintf(
 			"The klient /kite route is returning an error: '%s'", err.Error(),
 		)}
 	}
@@ -155,7 +157,7 @@ func HealthCheckLocal(a string) error {
 	// might aid with debugging any problems though.
 	resData, _ := ioutil.ReadAll(res.Body)
 	if string(resData) != "Welcome to SockJS!\n" {
-		return HealthErrorUnexpectedResponse{Message: fmt.Sprintf(
+		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The klient /kite route is returning an unexpected response: '%s'",
 			string(resData),
 		)}
@@ -165,7 +167,7 @@ func HealthCheckLocal(a string) error {
 	// error, so we can handle that.
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		return HealthErrorUnableReadKey{Message: fmt.Sprintf(
+		return ErrHealthUnableReadKey{Message: fmt.Sprintf(
 			"The klient kite key is unable to be read. Reason: '%s'", err.Error(),
 		)}
 	}
@@ -173,7 +175,7 @@ func HealthCheckLocal(a string) error {
 	// TODO: Identify varing Dial errors to produce meaningful health
 	// responses.
 	if err = k.Dial(); err != nil {
-		return HealthErrorDialFailed{Message: fmt.Sprintf(
+		return ErrHealthDialFailed{Message: fmt.Sprintf(
 			"Dailing klient failed. Reason:", err.Error(),
 		)}
 	}
@@ -188,7 +190,7 @@ func HealthCheckRemote(inetAddress, kontrolAddress string) error {
 	// confirm the user's outbound internet connection.
 	res, err := http.Get(inetAddress)
 	if err != nil {
-		return HealthErrorNoInternet{Message: fmt.Sprintf(
+		return ErrHealthNoInternet{Message: fmt.Sprintf(
 			"The internet connection fails to '%s'. Reason: %s",
 			inetAddress, err.Error(),
 		)}
@@ -199,7 +201,7 @@ func HealthCheckRemote(inetAddress, kontrolAddress string) error {
 	// if Koding is running or not.
 	res, err = http.Get(kontrolAddress)
 	if err != nil {
-		return HealthErrorNoKontrolHttp{Message: fmt.Sprintf(
+		return ErrHealthNoKontrolHttp{Message: fmt.Sprintf(
 			"A http request to Kontrol failed. Reason: %s", err.Error(),
 		)}
 	}
@@ -207,7 +209,7 @@ func HealthCheckRemote(inetAddress, kontrolAddress string) error {
 
 	// Kontrol should return a 200 response.
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return HealthErrorNoKontrolHttp{Message: fmt.Sprintf(
+		return ErrHealthNoKontrolHttp{Message: fmt.Sprintf(
 			"A http request to Kontrol returned bad status code. Code: %d",
 			res.StatusCode,
 		)}
@@ -221,7 +223,7 @@ func HealthCheckRemote(inetAddress, kontrolAddress string) error {
 	// debug Cloudflare/nginx issues.
 	resData, _ := ioutil.ReadAll(res.Body)
 	if string(resData) != "Welcome to SockJS!\n" {
-		return HealthErrorUnexpectedResponse{Message: fmt.Sprintf(
+		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The '%s' route is returning an unexpected response: '%s'",
 			kontrolAddress, string(resData),
 		)}
