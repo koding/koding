@@ -58,10 +58,14 @@ type Meta struct {
 	// be overriden.
 	//
 	// backupPath is used to backup the state file before writing a modified
-	// version. It defaults to stateOutPath + DefaultBackupExtention
+	// version. It defaults to stateOutPath + DefaultBackupExtension
+	//
+	// parallelism is used to control the number of concurrent operations
+	// allowed when walking the graph
 	statePath    string
 	stateOutPath string
 	backupPath   string
+	parallelism  int
 }
 
 // initStatePaths is used to initialize the default values for
@@ -74,7 +78,7 @@ func (m *Meta) initStatePaths() {
 		m.stateOutPath = m.statePath
 	}
 	if m.backupPath == "" {
-		m.backupPath = m.stateOutPath + DefaultBackupExtention
+		m.backupPath = m.stateOutPath + DefaultBackupExtension
 	}
 }
 
@@ -151,6 +155,7 @@ func (m *Meta) Context(copts contextOpts) (*terraform.Context, bool, error) {
 	}
 
 	opts.Module = mod
+	opts.Parallelism = copts.Parallelism
 	opts.State = state.State()
 	ctx := terraform.NewContext(opts)
 	return ctx, false, nil
@@ -190,7 +195,7 @@ func (m *Meta) InputMode() terraform.InputMode {
 
 	var mode terraform.InputMode
 	mode |= terraform.InputModeProvider
-	if len(m.variables) == 0 && m.autoKey == "" {
+	if len(m.variables) == 0 {
 		mode |= terraform.InputModeVar
 		mode |= terraform.InputModeVarUnset
 	}
@@ -430,4 +435,7 @@ type contextOpts struct {
 
 	// Set to true when running a destroy plan/apply.
 	Destroy bool
+
+	// Number of concurrent operations allowed
+	Parallelism int
 }

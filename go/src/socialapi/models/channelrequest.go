@@ -308,6 +308,10 @@ func (p *ChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*Channe
 	cmc.LastMessage = lastMessageContainer
 	cmc.LastMessage.Message = cm
 	cmc.LastMessage.Message.ClientRequestId = p.ClientRequestId
+	cmc.AddAccountOldId()
+	if cmc.Err != nil {
+		return nil, cmc.Err
+	}
 
 	return cmc, nil
 }

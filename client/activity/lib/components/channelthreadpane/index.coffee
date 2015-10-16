@@ -25,7 +25,6 @@ module.exports = class ChannelThreadPane extends React.Component
   getDataBindings: ->
     return {
       channelThread         : getters.selectedChannelThread
-      channelThreadMessages : getters.selectedChannelThreadMessages
       messageThread         : getters.selectedMessageThread
       messageThreadComments : getters.selectedMessageThreadComments
       channelParticipants   : getters.selectedChannelParticipants
@@ -40,7 +39,6 @@ module.exports = class ChannelThreadPane extends React.Component
       showDropTarget        : no
       isComingSoonModalOpen : no
       channelThread         : immutable.Map()
-      channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
       channelParticipants   : immutable.List()
@@ -114,9 +112,7 @@ module.exports = class ChannelThreadPane extends React.Component
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
-            <PublicChatPane
-              thread={@state.channelThread}
-              messages={@state.channelThreadMessages} />
+            <PublicChatPane thread={@state.channelThread}/>
           </section>
         </div>
       </section>

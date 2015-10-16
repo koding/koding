@@ -50,7 +50,7 @@ func TestExpandRecordName(t *testing.T) {
 	}
 }
 
-func TestAccRoute53Record_basic(t *testing.T) {
+func TestAccAWSRoute53Record_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -66,7 +66,7 @@ func TestAccRoute53Record_basic(t *testing.T) {
 	})
 }
 
-func TestAccRoute53Record_txtSupport(t *testing.T) {
+func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -82,7 +82,7 @@ func TestAccRoute53Record_txtSupport(t *testing.T) {
 	})
 }
 
-func TestAccRoute53Record_generatesSuffix(t *testing.T) {
+func TestAccAWSRoute53Record_generatesSuffix(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -98,7 +98,7 @@ func TestAccRoute53Record_generatesSuffix(t *testing.T) {
 	})
 }
 
-func TestAccRoute53Record_wildcard(t *testing.T) {
+func TestAccAWSRoute53Record_wildcard(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -122,7 +122,7 @@ func TestAccRoute53Record_wildcard(t *testing.T) {
 	})
 }
 
-func TestAccRoute53Record_weighted(t *testing.T) {
+func TestAccAWSRoute53Record_weighted(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -133,13 +133,14 @@ func TestAccRoute53Record_weighted(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53RecordExists("aws_route53_record.www-dev"),
 					testAccCheckRoute53RecordExists("aws_route53_record.www-live"),
+					testAccCheckRoute53RecordExists("aws_route53_record.www-off"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccRoute53Record_alias(t *testing.T) {
+func TestAccAWSRoute53Record_alias(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -155,7 +156,23 @@ func TestAccRoute53Record_alias(t *testing.T) {
 	})
 }
 
-func TestAccRoute53Record_weighted_alias(t *testing.T) {
+func TestAccAWSRoute53Record_s3_alias(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRoute53RecordDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccRoute53S3AliasRecord,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53RecordExists("aws_route53_record.alias"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSRoute53Record_weighted_alias(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -182,7 +199,7 @@ func TestAccRoute53Record_weighted_alias(t *testing.T) {
 	})
 }
 
-func TestAccRoute53Record_TypeChange(t *testing.T) {
+func TestAccAWSRoute53Record_TypeChange(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -219,7 +236,7 @@ func testAccCheckRoute53RecordDestroy(s *terraform.State) error {
 		rType := parts[2]
 
 		lopts := &route53.ListResourceRecordSetsInput{
-			HostedZoneID:    aws.String(cleanZoneID(zone)),
+			HostedZoneId:    aws.String(cleanZoneID(zone)),
 			StartRecordName: aws.String(name),
 			StartRecordType: aws.String(rType),
 		}
@@ -259,7 +276,7 @@ func testAccCheckRoute53RecordExists(n string) resource.TestCheckFunc {
 		en := expandRecordName(name, "notexample.com")
 
 		lopts := &route53.ListResourceRecordSetsInput{
-			HostedZoneID:    aws.String(cleanZoneID(zone)),
+			HostedZoneId:    aws.String(cleanZoneID(zone)),
 			StartRecordName: aws.String(en),
 			StartRecordType: aws.String(rType),
 		}
@@ -391,6 +408,16 @@ resource "aws_route53_record" "www-live" {
   set_identifier = "live"
   records = ["dev.notexample.com"]
 }
+
+resource "aws_route53_record" "www-off" {
+  zone_id = "${aws_route53_zone.main.zone_id}"
+  name = "www"
+  type = "CNAME"
+  ttl = "5"
+  weight = 0
+  set_identifier = "off"
+  records = ["dev.notexample.com"]
+}
 `
 
 const testAccRoute53ElbAliasRecord = `
@@ -444,6 +471,32 @@ resource "aws_route53_record" "alias" {
   alias {
     zone_id = "${aws_route53_zone.main.zone_id}"
     name = "${aws_route53_record.origin.name}.${aws_route53_zone.main.name}"
+    evaluate_target_health = true
+  }
+}
+`
+
+const testAccRoute53S3AliasRecord = `
+resource "aws_route53_zone" "main" {
+  name = "notexample.com"
+}
+
+resource "aws_s3_bucket" "website" {
+  bucket = "website.notexample.com"
+	acl = "public-read"
+	website {
+		index_document = "index.html"
+	}
+}
+
+resource "aws_route53_record" "alias" {
+  zone_id = "${aws_route53_zone.main.zone_id}"
+  name = "www"
+  type = "A"
+
+  alias {
+    zone_id = "${aws_s3_bucket.website.hosted_zone_id}"
+    name = "${aws_s3_bucket.website.website_domain}"
     evaluate_target_health = true
   }
 }

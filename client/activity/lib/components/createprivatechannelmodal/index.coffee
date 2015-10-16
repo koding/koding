@@ -22,8 +22,6 @@ CreateChannelParticipantsDropdown = require 'activity/components/createchannelpa
 
 module.exports = class CreatePrivateChannelModal extends React.Component
 
-  @include [DropboxInputMixin]
-
   constructor: (props) ->
 
     super
@@ -388,5 +386,5 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     </ActivityModal>
 
 
-React.Component.include.call CreatePrivateChannelModal, [KDReactorMixin]
+React.Component.include.call CreatePrivateChannelModal, [KDReactorMixin, DropboxInputMixin]
 

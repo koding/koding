@@ -13,7 +13,6 @@ module.exports = class ChatPane extends React.Component
     title             : null
     messages          : null
     isDataLoading     : no
-    onLoadMore        : kd.noop
     afterInviteOthers : kd.noop
     showItemMenu      : yes
 
@@ -24,12 +23,22 @@ module.exports = class ChatPane extends React.Component
 
     { thread } = nextProps
 
-    @loadedWithScroll       = thread.getIn ['flags', 'loadedWithScroll']
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
-    @shouldScrollToBottom   = yes  if isMessageBeingSubmitted
+
+    @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
 
-  onTopThresholdReached: -> @props.onLoadMore()
+  onTopThresholdReached: (event) ->
+
+    messages = @props.thread.get 'messages'
+
+    return  if @isThresholdReached
+
+    return  unless messages.size
+
+    @isThresholdReached = yes
+
+    kd.utils.wait 500, => @props.onLoadMore()
 
 
   afterInviteOthers: -> @props.afterInviteOthers()
@@ -42,23 +51,51 @@ module.exports = class ChatPane extends React.Component
 
     if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
       <ChannelInfoContainer
+        ref='ChannelInfoContainer'
         key={@channel 'id'}
         thread={@props.thread}
         afterInviteOthers={@bound 'afterInviteOthers'} />
 
 
+  beforeScrollDidUpdate: ->
+
+    @setPaddedClassName()
+
+
+  setPaddedClassName: ->
+
+    list                        = React.findDOMNode @refs.ChatList
+    scrollContainer             = React.findDOMNode @refs.scrollContainer
+    channelInfoContainer        = React.findDOMNode @refs.ChannelInfoContainer
+    listHeight                  = list.offsetHeight
+    scrollContainerClientHeight = scrollContainer.clientHeight
+    channelInfoContainerHeight  = 0
+
+    return  if scrollContainerClientHeight is 0
+
+    if channelInfoContainer
+      channelInfoContainerHeight = channelInfoContainer.offsetHeight
+
+    diff      = scrollContainerClientHeight - (channelInfoContainerHeight + listHeight)
+    hasPadded = scrollContainer.className.indexOf('padded') > -1
+
+    if diff <= 0
+    then scrollContainer.classList.remove 'padded'
+    else scrollContainer.classList.add 'padded'
+
+
   renderBody: ->
 
-    return null  unless @props.messages?.size
+    return null  unless @props.thread
 
     <Scroller
       ref="scrollContainer"
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
-        isMessagesLoading={@props.thread?.getIn ['flags', 'isMessagesLoading']}
-        loadedWithScroll={@props.thread?.getIn ['flags', 'loadedWithScroll']}
-        messages={@props.messages}
+        ref='ChatList'
+        isMessagesLoading={@isThresholdReached}
+        messages={@props.thread.get 'messages'}
         showItemMenu={@props.showItemMenu}
         channelId={@channel 'id'}
         channelName={@channel 'name'}

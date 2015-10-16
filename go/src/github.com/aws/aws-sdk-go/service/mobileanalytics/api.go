@@ -4,14 +4,15 @@
 package mobileanalytics
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opPutEvents = "PutEvents"
 
 // PutEventsRequest generates a request for the PutEvents operation.
-func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *aws.Request, output *PutEventsOutput) {
-	op := &aws.Operation{
+func (c *MobileAnalytics) PutEventsRequest(input *PutEventsInput) (req *request.Request, output *PutEventsOutput) {
+	op := &request.Operation{
 		Name:       opPutEvents,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2014-06-05/events",
@@ -46,7 +47,7 @@ type Event struct {
 
 	// A name signifying an event that occurred in your app. This is used for grouping
 	// and aggregating like events together for reporting purposes.
-	EventType *string `locationName:"eventType" type:"string" required:"true"`
+	EventType *string `locationName:"eventType" min:"1" type:"string" required:"true"`
 
 	// A collection of key-value pairs that gives additional, measurable context
 	// to the event. The key-value pairs are specified by the developer.
@@ -62,13 +63,23 @@ type Event struct {
 	Timestamp *string `locationName:"timestamp" type:"string" required:"true"`
 
 	// The version of the event.
-	Version *string `locationName:"version" type:"string"`
+	Version *string `locationName:"version" min:"1" type:"string"`
 
 	metadataEvent `json:"-" xml:"-"`
 }
 
 type metadataEvent struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Event) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Event) GoString() string {
+	return s.String()
 }
 
 // A container for the data needed for a PutEvent operation
@@ -90,6 +101,16 @@ type metadataPutEventsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s PutEventsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutEventsInput) GoString() string {
+	return s.String()
+}
+
 type PutEventsOutput struct {
 	metadataPutEventsOutput `json:"-" xml:"-"`
 }
@@ -98,13 +119,23 @@ type metadataPutEventsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s PutEventsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutEventsOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the session. Session information is required on ALL events.
 type Session struct {
 	// The duration of the session.
 	Duration *int64 `locationName:"duration" type:"long"`
 
 	// A unique identifier for the session
-	ID *string `locationName:"id" type:"string"`
+	Id *string `locationName:"id" min:"1" type:"string"`
 
 	// The time the event started in ISO 8601 standard date time format. For example,
 	// 2014-06-30T19:07:47.885Z
@@ -119,4 +150,14 @@ type Session struct {
 
 type metadataSession struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Session) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Session) GoString() string {
+	return s.String()
 }

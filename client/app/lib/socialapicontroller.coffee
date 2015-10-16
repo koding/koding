@@ -217,9 +217,10 @@ module.exports = class SocialApiController extends KDController
     mappedChannels = []
 
     for channelContainer in messages
-      message             = mapActivity channelContainer.lastMessage
-      channel             = mapChannel channelContainer
-      channel.lastMessage = message
+      message              = mapActivity channelContainer.lastMessage
+      channel              = mapChannel channelContainer
+      channel.accountOldId = whoami()._id  unless channel.accountOldId
+      channel.lastMessage  = message
 
       mappedChannels.push channel
 

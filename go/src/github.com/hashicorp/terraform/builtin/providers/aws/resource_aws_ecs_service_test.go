@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -128,6 +129,55 @@ func TestAccAWSEcsServiceWithFamilyAndRevision(t *testing.T) {
 	})
 }
 
+// Regression for https://github.com/hashicorp/terraform/issues/2427
+func TestAccAWSEcsServiceWithRenamedCluster(t *testing.T) {
+	originalRegexp := regexp.MustCompile(
+		"^arn:aws:ecs:[^:]+:[0-9]+:cluster/terraformecstest3$")
+	modifiedRegexp := regexp.MustCompile(
+		"^arn:aws:ecs:[^:]+:[0-9]+:cluster/terraformecstest3modified$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsServiceDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSEcsServiceWithRenamedCluster,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsServiceExists("aws_ecs_service.ghost"),
+					resource.TestMatchResourceAttr(
+						"aws_ecs_service.ghost", "cluster", originalRegexp),
+				),
+			},
+
+			resource.TestStep{
+				Config: testAccAWSEcsServiceWithRenamedClusterModified,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsServiceExists("aws_ecs_service.ghost"),
+					resource.TestMatchResourceAttr(
+						"aws_ecs_service.ghost", "cluster", modifiedRegexp),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEcsService_withIamRole(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsServiceDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSEcsService_withIamRole,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsServiceExists("aws_ecs_service.ghost"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSEcsServiceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).ecsconn
 
@@ -219,6 +269,101 @@ resource "aws_ecs_service" "mongo" {
 }
 `
 
+var testAccAWSEcsService_withIamRole = `
+resource "aws_ecs_cluster" "main" {
+	name = "terraformecstest11"
+}
+
+resource "aws_ecs_task_definition" "ghost" {
+  family = "ghost_service"
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 128,
+    "essential": true,
+    "image": "ghost:latest",
+    "memory": 128,
+    "name": "ghost",
+    "portMappings": [
+      {
+        "containerPort": 2368,
+        "hostPort": 8080
+      }
+    ]
+  }
+]
+DEFINITION
+}
+
+resource "aws_iam_role" "ecs_service" {
+    name = "EcsService"
+    assume_role_policy = <<EOF
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {"AWS": "*"},
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "ecs_service" {
+    name = "EcsService"
+    role = "${aws_iam_role.ecs_service.name}"
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:*",
+        "ec2:*",
+        "ecs:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_elb" "main" {
+  name = "foobar-terraform-test"
+  availability_zones = ["us-west-2a"]
+
+  listener {
+    instance_port = 8080
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+}
+
+resource "aws_ecs_service" "ghost" {
+  name = "ghost"
+  cluster = "${aws_ecs_cluster.main.id}"
+  task_definition = "${aws_ecs_task_definition.ghost.arn}"
+  desired_count = 1
+  iam_role = "${aws_iam_role.ecs_service.name}"
+
+  load_balancer {
+    elb_name = "${aws_elb.main.id}"
+    container_name = "ghost"
+    container_port = "2368"
+  }
+
+  depends_on = ["aws_iam_role_policy.ecs_service"]
+}
+`
+
 var testAccAWSEcsServiceWithFamilyAndRevision = `
 resource "aws_ecs_cluster" "default" {
 	name = "terraformecstest2"
@@ -271,6 +416,58 @@ resource "aws_ecs_service" "jenkins" {
   name = "jenkins"
   cluster = "${aws_ecs_cluster.default.id}"
   task_definition = "${aws_ecs_task_definition.jenkins.family}:${aws_ecs_task_definition.jenkins.revision}"
+  desired_count = 1
+}
+`
+
+var testAccAWSEcsServiceWithRenamedCluster = `
+resource "aws_ecs_cluster" "default" {
+	name = "terraformecstest3"
+}
+resource "aws_ecs_task_definition" "ghost" {
+  family = "ghost"
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 128,
+    "essential": true,
+    "image": "ghost:latest",
+    "memory": 128,
+    "name": "ghost"
+  }
+]
+DEFINITION
+}
+resource "aws_ecs_service" "ghost" {
+  name = "ghost"
+  cluster = "${aws_ecs_cluster.default.id}"
+  task_definition = "${aws_ecs_task_definition.ghost.family}:${aws_ecs_task_definition.ghost.revision}"
+  desired_count = 1
+}
+`
+
+var testAccAWSEcsServiceWithRenamedClusterModified = `
+resource "aws_ecs_cluster" "default" {
+	name = "terraformecstest3modified"
+}
+resource "aws_ecs_task_definition" "ghost" {
+  family = "ghost"
+  container_definitions = <<DEFINITION
+[
+  {
+    "cpu": 128,
+    "essential": true,
+    "image": "ghost:latest",
+    "memory": 128,
+    "name": "ghost"
+  }
+]
+DEFINITION
+}
+resource "aws_ecs_service" "ghost" {
+  name = "ghost"
+  cluster = "${aws_ecs_cluster.default.id}"
+  task_definition = "${aws_ecs_task_definition.ghost.family}:${aws_ecs_task_definition.ghost.revision}"
   desired_count = 1
 }
 `

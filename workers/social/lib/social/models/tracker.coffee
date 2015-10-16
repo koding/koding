@@ -1,4 +1,7 @@
 bongo    = require 'bongo'
+
+{ secure, signature } = bongo
+
 { argv } = require 'optimist'
 
 KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
@@ -11,7 +14,14 @@ analytics = new Analytics(KONFIG.segment)
 
 mqClient = null
 
-module.exports = class Tracker
+module.exports = class Tracker extends bongo.Base
+
+  @share()
+
+  @set
+    sharedMethods:
+      static:
+        track: (signature String, Object)
 
   KodingError = require '../error'
 
@@ -53,14 +63,23 @@ module.exports = class Tracker
       console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
-  @track = (username, mail, options = {}) ->
+  @track$ = secure (client, subject, options = {}) ->
+
+    { profile: { nickname } } = client.connection.delegate
+
+    event = { subject }
+
+    @track nickname, event, options
+
+
+  @track = (username, event, options = {}) ->
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username = forcedRecipient
-      mail.to  = forcedRecipient
+      event.to  = forcedRecipient
 
-    mail.from       or= defaultFromMail
-    mail.properties   = @addDefaults { options, username }
+    event.from       or= defaultFromMail
+    event.properties   = @addDefaults { options, username }
 
     unless mqClient
       return console.error 'RabbitMQ client not found for class `Tracker` @sent-hil'
@@ -70,7 +89,7 @@ module.exports = class Tracker
         unless exchange
           return console.error "Exchange not found to queue: #{exchangeName} @sent-hil"
 
-        exchange.publish '', mail, { type:EVENT_TYPE }
+        exchange.publish '', event, { type: EVENT_TYPE }
         exchange.close()
 
     if mqClient.readyEmitted then sendMessage()
@@ -84,5 +103,3 @@ module.exports = class Tracker
 
 
   @setMqClient = (m) -> mqClient = m
-
-

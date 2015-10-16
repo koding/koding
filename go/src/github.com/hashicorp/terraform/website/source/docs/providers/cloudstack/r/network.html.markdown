@@ -37,11 +37,14 @@ The following arguments are supported:
 * `network_offering` - (Required) The name or ID of the network offering to use
     for this network.
 
-* `vpc` - (Optional) The name of the VPC to create this network for. Changing
+* `vpc` - (Optional) The name or ID of the VPC to create this network for. Changing
     this forces a new resource to be created.
 
 * `aclid` - (Optional) The ID of a network ACL that should be attached to the
     network. Changing this forces a new resource to be created.
+
+* `project` - (Optional) The name or ID of the project to deploy this
+    instance to. Changing this forces a new resource to be created.
 
 * `zone` - (Required) The name or ID of the zone where this disk volume will be
     available. Changing this forces a new resource to be created.

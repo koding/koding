@@ -8,20 +8,33 @@ description: |-
 
 # azure\_instance
 
-Creates a hosted service, role and deployment and then creates a virtual 
+Creates a hosted service, role and deployment and then creates a virtual
 machine in the deployment based on the specified configuration.
 
 ## Example Usage
 
 ```
+resource "azure_hosted_service" "terraform-service" {
+    name = "terraform-service"
+    location = "North Europe"
+    ephemeral_contents = false
+    description = "Hosted service created by Terraform."
+    label = "tf-hs-01"
+}
+
 resource "azure_instance" "web" {
     name = "terraform-test"
+    hosted_service_name = "${azure_hosted_service.terraform-service.name}"
     image = "Ubuntu Server 14.04 LTS"
     size = "Basic_A1"
     storage_service_name = "yourstorage"
     location = "West US"
     username = "terraform"
     password = "Pass!admin123"
+    domain_name = "contoso.com"
+    domain_ou = "OU=Servers,DC=contoso.com,DC=Contoso,DC=com"
+    domain_username = "Administrator"
+    domain_password = "Pa$$word123"
 
     endpoint {
         name = "SSH"
@@ -38,6 +51,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the instance. Changing this forces a new
     resource to be created.
+
+* `hosted_service_name` - (Optional) The name of the hosted service the
+    instance should be deployed under. If not provided; it will default to the
+    value of `name`. Changes to this parameter forces the creation of a new
+    resource.
 
 * `description` - (Optional) The description for the associated hosted service.
     Changing this forces a new resource to be created (defaults to the instance
@@ -58,7 +76,8 @@ The following arguments are supported:
 
 * `storage_service_name` - (Optional) The name of an existing storage account
     within the subscription which will be used to store the VHDs of this
-    instance. Changing this forces a new resource to be created.
+    instance. Changing this forces a new resource to be created. **A Storage
+    Service is required if you are using a Platform Image**
 
 * `reverse_dns` - (Optional) The DNS address to which the IP address of the
     hosted service resolves when queried using a reverse DNS query. Changing
@@ -93,6 +112,18 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) Can be specified multiple times to define multiple
     endpoints. Each `endpoint` block supports fields documented below.
+
+* `domain_name` - (Optional) The name of an Active Directory domain to join.
+
+* `domain_ou` - (Optional) Specifies the LDAP Organizational Unit to place the 
+    instance in.
+
+* `domain_username` - (Optional) The username of an account with permission to
+    join the instance to the domain. Required if a domain_name is specified.
+
+* `domain_password` - (Optional) The password for the domain_username account
+    specified above.
+
 
 The `endpoint` block supports:
 

@@ -19,6 +19,8 @@ module.exports = class GroupStackSettings extends kd.View
 
     @createInitialView()
 
+    kd.singletons.appStorageController.storage 'Ace', '1.0.1'
+
 
   createOnboardingView: (options = {}) ->
 
@@ -48,11 +50,11 @@ module.exports = class GroupStackSettings extends kd.View
 
     @initialView.hide()
 
-    defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
-    @scrollView.addSubView defineStackView
+    @defineStackView = new DefineStackView { inEditMode }, { stackTemplate, showHelpContent }
+    @scrollView.addSubView @defineStackView
 
-    defineStackView.on 'Reload', => @initialView.reload()
+    @defineStackView.on 'Reload', => @initialView.reload()
 
-    defineStackView.on [ 'Cancel', 'Completed' ], =>
+    @defineStackView.on [ 'Cancel', 'Completed' ], =>
       @initialView.show()
-      defineStackView.destroy()
+      @defineStackView.destroy()

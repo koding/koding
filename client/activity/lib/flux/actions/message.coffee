@@ -21,8 +21,7 @@ loadMessages = (channelId, options = {}) ->
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
     LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS
-    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED
-    SET_LOADED_WITH_SCROLL, UNSET_LOADED_WITH_SCROLL } = actionTypes
+    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
@@ -42,15 +41,13 @@ loadMessages = (channelId, options = {}) ->
       else
         dispatch UNSET_ALL_MESSAGES_LOADED, { channelId }
 
-      kd.singletons.reactor.batch ->
-        messages.forEach (message) ->
-          dispatchLoadMessageSuccess channelId, message
-        dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+      kd.utils.defer ->
+        kd.singletons.reactor.batch ->
+          for message in messages
+            dispatchLoadMessageSuccess channelId, message
 
-        if options.loadedWithScroll
-          dispatch SET_LOADED_WITH_SCROLL, { channelId }
-
-      resolve { messages }
+          dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+        resolve { messages }
 
 
 ###*
@@ -113,6 +110,13 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     return { message }
 
 
+###*
+ * Ensures a message is there and it also has enough surrounding message
+ * siblings so that scrolling into a single post would make much more sense.
+ *
+ * @param {string} messageId
+ * @return {Promise}
+###
 ensureMessage = (messageId) ->
 
   { reactor } = kd.singletons
@@ -120,11 +124,14 @@ ensureMessage = (messageId) ->
   loadMessage(messageId).then ({ message }) ->
     channelId = message.initialChannelId
     loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+      messagesBefore = reactor.evaluate ['MessagesStore']
       loadMessages(channelId, { from: message.createdAt, sortOrder: 'ASC' }).then ({ messages }) ->
         [..., last] = messages
         return { message }  unless last
 
-        putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+        # put a loader marker only if this message was not here before.
+        unless messagesBefore.has last.id
+          putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
 
         return { message }
 

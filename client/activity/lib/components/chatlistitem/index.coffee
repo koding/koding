@@ -27,6 +27,8 @@ ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 MessageLink           = require 'activity/components/publicchannelmessagelink'
 EmbedBox              = require 'activity/components/embedbox'
 KeyboardKeys          = require 'app/util/keyboardKeys'
+ChatInputWidget       = require 'activity/components/chatinputwidget'
+Encoder               = require 'htmlencode'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -38,12 +40,12 @@ module.exports = class ChatListItem extends React.Component
     isDeleting                    : no
     isMenuOpen                    : no
     channelName                   : ''
-    editInputValue                : ''
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
     isSelected                    : no
+    channelId                     : ''
 
   constructor: (props) ->
 
@@ -55,7 +57,6 @@ module.exports = class ChatListItem extends React.Component
       editMode                      : @props.message.get '__isEditing'
       isDeleting                    : @props.isDeleting
       isMenuOpen                    : @props.isMenuOpen
-      editInputValue                : @props.message.get 'body'
       isUserMarkedAsTroll           : @props.message.get('account').isExempt
       isBlockUserModalVisible       : @props.isBlockUserModalVisible
       isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
@@ -195,10 +196,7 @@ module.exports = class ChatListItem extends React.Component
 
   focusInputOnEdit: ->
 
-    domNode = @refs.EditMessageTextarea.getDOMNode()
-
-    kd.utils.wait 100, ->
-      kd.utils.moveCaretToEnd domNode
+    kd.utils.wait 100, => @refs.editInput.focus()
 
 
   editPost: ->
@@ -250,10 +248,10 @@ module.exports = class ChatListItem extends React.Component
 
     return @deletePostButtonHandler()  if @state.isDeleting
 
-    return @setState isDeleting: yes  unless @state.editInputValue.trim()
+    value = @refs.editInput.getValue().trim()
+    return @setState isDeleting: yes  unless value
 
     name  = @props.channelName
-    value = @state.editInputValue
     messageId = @props.message.get '_id'
 
     unless value.match ///\##{name}///
@@ -275,24 +273,8 @@ module.exports = class ChatListItem extends React.Component
     messageId = @props.message.get '_id'
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
-    @setState editInputValue: @props.message.get('body')
-
 
   onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
-
-
-  onEditInputChange: (event) ->
-
-    @setState { editInputValue: event.target.value }
-
-
-  onEditInputKeyDown: (event) ->
-
-    { ESC, ENTER } = KeyboardKeys
-
-    switch event.which
-      when ESC         then @cancelEdit()
-      when ENTER       then @updateMessage()
 
 
   getEditModeClassNames: -> classnames
@@ -315,6 +297,9 @@ module.exports = class ChatListItem extends React.Component
   renderEditMode: ->
 
     { message } = @props
+    messageBody = Encoder.htmlDecode message.get 'body'
+
+    return  unless message.get '__isEditing'
 
     <div className={@getEditModeClassNames()}>
       <span className="ChatItem-authorName">
@@ -324,12 +309,15 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
-      <textarea
-        autoFocus
-        onKeyDown={@bound 'onEditInputKeyDown'}
-        onChange={@bound 'onEditInputChange'}
-        value={@state.editInputValue}
-        ref="EditMessageTextarea"></textarea>
+      <ChatInputWidget
+        channelId        = { @props.channelId }
+        value            = { messageBody }
+        onSubmit         = { @bound 'updateMessage' }
+        onEsc            = { @bound 'cancelEdit' }
+        ref              = 'editInput'
+        disabledFeatures = { ['commands'] }
+      />
+      <div className='clearfix'></div>
     </div>
 
 
@@ -379,6 +367,7 @@ module.exports = class ChatListItem extends React.Component
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}
+        <div className='clearfix'></div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>

@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // Load takes a set of files for each filetype and returns an API pointer.
@@ -17,22 +17,20 @@ func Load(api, docs, paginators, waiters string) *API {
 	a.Attach(docs)
 	a.Attach(paginators)
 	a.Attach(waiters)
+	a.Setup()
 	return &a
 }
 
 // Attach opens a file by name, and unmarshal its JSON data.
 // Will proceed to setup the API if not already done so.
 func (a *API) Attach(filename string) {
+	a.path = filepath.Dir(filename)
 	f, err := os.Open(filename)
 	defer f.Close()
 	if err != nil {
 		panic(err)
 	}
 	json.NewDecoder(f).Decode(a)
-
-	if !a.initialized {
-		a.Setup()
-	}
 }
 
 // AttachString will unmarshal a raw JSON string, and setup the
@@ -47,34 +45,19 @@ func (a *API) AttachString(str string) {
 
 // Setup initializes the API.
 func (a *API) Setup() {
-	a.unrecognizedNames = map[string]string{}
 	a.writeShapeNames()
 	a.resolveReferences()
 	a.fixStutterNames()
 	a.renameExportable()
-	a.renameToplevelShapes()
+	if !a.NoRenameToplevelShapes {
+		a.renameToplevelShapes()
+	}
 	a.updateTopLevelShapeReferences()
 	a.createInputOutputShapes()
 	a.customizationPasses()
 
 	if !a.NoRemoveUnusedShapes {
 		a.removeUnusedShapes()
-	}
-
-	if len(a.unrecognizedNames) > 0 {
-		msg := []string{
-			"Unrecognized inflections for the following export names:",
-			"(Add these to inflections.csv with any inflections added after the ':')",
-		}
-		fmt.Fprintf(os.Stderr, "%s\n%s\n\n", msg[0], msg[1])
-		for n, m := range a.unrecognizedNames {
-			if n == m {
-				m = ""
-			}
-			fmt.Fprintf(os.Stderr, "%s:%s\n", n, m)
-		}
-		os.Stderr.WriteString("\n\n")
-		panic("Found unrecognized exported names in API " + a.PackageName())
 	}
 
 	a.initialized = true

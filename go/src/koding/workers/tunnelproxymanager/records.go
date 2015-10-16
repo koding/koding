@@ -161,9 +161,9 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 		case <-deadline:
 			return errDeadlineReachedForChangeInfo
 		case <-check.C:
-			hostedZoneLogger.New("changeInfoID", *resp.ChangeInfo.ID).Debug("fetching latest status")
+			hostedZoneLogger.New("changeInfoID", *resp.ChangeInfo.Id).Debug("fetching latest status")
 			getChangeResp, err := r.route53.GetChange(&route53.GetChangeInput{
-				ID: resp.ChangeInfo.ID,
+				Id: resp.ChangeInfo.Id,
 			})
 			if err != nil {
 				return err
@@ -219,7 +219,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 						// use region name as identifer
 						SetIdentifier: aws.String(r.region),
 						// The cache time to live for the current resource record set.
-						TTL: aws.Long(1),
+						TTL: aws.Int64(1),
 					},
 				},
 			},
@@ -231,7 +231,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 				),
 			),
 		},
-		HostedZoneID: r.hostedZone.ID,
+		HostedZoneId: r.hostedZone.Id,
 	}
 
 	_, err := r.route53.ChangeResourceRecordSets(params)

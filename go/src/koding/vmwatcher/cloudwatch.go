@@ -40,7 +40,7 @@ func NewCloudwatch(name string, limits Limits, creds *credentials.Credentials, r
 	clients := map[string]*cloudwatch.CloudWatch{}
 
 	for _, regionName := range regions {
-		config := &aws.Config{Credentials: creds, Region: regionName}
+		config := &aws.Config{Credentials: creds, Region: aws.String(regionName)}
 		clients[regionName] = cloudwatch.New(config)
 	}
 

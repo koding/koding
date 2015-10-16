@@ -8,13 +8,30 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/service/configservice"
 )
 
 var _ time.Duration
 var _ bytes.Buffer
+
+func ExampleConfigService_DeleteConfigRule() {
+	svc := configservice.New(nil)
+
+	params := &configservice.DeleteConfigRuleInput{
+		ConfigRuleName: aws.String("StringWithCharLimit64"), // Required
+	}
+	resp, err := svc.DeleteConfigRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
 
 func ExampleConfigService_DeleteDeliveryChannel() {
 	svc := configservice.New(nil)
@@ -25,22 +42,14 @@ func ExampleConfigService_DeleteDeliveryChannel() {
 	resp, err := svc.DeleteDeliveryChannel(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_DeliverConfigSnapshot() {
@@ -52,22 +61,112 @@ func ExampleConfigService_DeliverConfigSnapshot() {
 	resp, err := svc.DeliverConfigSnapshot(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_DescribeComplianceByConfigRule() {
+	svc := configservice.New(nil)
+
+	params := &configservice.DescribeComplianceByConfigRuleInput{
+		ComplianceTypes: []*string{
+			aws.String("ComplianceType"), // Required
+			// More values...
+		},
+		ConfigRuleNames: []*string{
+			aws.String("StringWithCharLimit64"), // Required
+			// More values...
+		},
+		NextToken: aws.String("String"),
+	}
+	resp, err := svc.DescribeComplianceByConfigRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_DescribeComplianceByResource() {
+	svc := configservice.New(nil)
+
+	params := &configservice.DescribeComplianceByResourceInput{
+		ComplianceTypes: []*string{
+			aws.String("ComplianceType"), // Required
+			// More values...
+		},
+		Limit:        aws.Int64(1),
+		NextToken:    aws.String("NextToken"),
+		ResourceId:   aws.String("StringWithCharLimit256"),
+		ResourceType: aws.String("StringWithCharLimit256"),
+	}
+	resp, err := svc.DescribeComplianceByResource(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_DescribeConfigRuleEvaluationStatus() {
+	svc := configservice.New(nil)
+
+	params := &configservice.DescribeConfigRuleEvaluationStatusInput{
+		ConfigRuleNames: []*string{
+			aws.String("StringWithCharLimit64"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.DescribeConfigRuleEvaluationStatus(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_DescribeConfigRules() {
+	svc := configservice.New(nil)
+
+	params := &configservice.DescribeConfigRulesInput{
+		ConfigRuleNames: []*string{
+			aws.String("StringWithCharLimit64"), // Required
+			// More values...
+		},
+		NextToken: aws.String("String"),
+	}
+	resp, err := svc.DescribeConfigRules(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_DescribeConfigurationRecorderStatus() {
@@ -82,22 +181,14 @@ func ExampleConfigService_DescribeConfigurationRecorderStatus() {
 	resp, err := svc.DescribeConfigurationRecorderStatus(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_DescribeConfigurationRecorders() {
@@ -112,22 +203,14 @@ func ExampleConfigService_DescribeConfigurationRecorders() {
 	resp, err := svc.DescribeConfigurationRecorders(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_DescribeDeliveryChannelStatus() {
@@ -142,22 +225,14 @@ func ExampleConfigService_DescribeDeliveryChannelStatus() {
 	resp, err := svc.DescribeDeliveryChannelStatus(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_DescribeDeliveryChannels() {
@@ -172,55 +247,202 @@ func ExampleConfigService_DescribeDeliveryChannels() {
 	resp, err := svc.DescribeDeliveryChannels(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_GetComplianceDetailsByConfigRule() {
+	svc := configservice.New(nil)
+
+	params := &configservice.GetComplianceDetailsByConfigRuleInput{
+		ConfigRuleName: aws.String("StringWithCharLimit64"), // Required
+		ComplianceTypes: []*string{
+			aws.String("ComplianceType"), // Required
+			// More values...
+		},
+		Limit:     aws.Int64(1),
+		NextToken: aws.String("NextToken"),
+	}
+	resp, err := svc.GetComplianceDetailsByConfigRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_GetComplianceDetailsByResource() {
+	svc := configservice.New(nil)
+
+	params := &configservice.GetComplianceDetailsByResourceInput{
+		ResourceId:   aws.String("StringWithCharLimit256"), // Required
+		ResourceType: aws.String("StringWithCharLimit256"), // Required
+		ComplianceTypes: []*string{
+			aws.String("ComplianceType"), // Required
+			// More values...
+		},
+		NextToken: aws.String("String"),
+	}
+	resp, err := svc.GetComplianceDetailsByResource(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_GetComplianceSummaryByConfigRule() {
+	svc := configservice.New(nil)
+
+	var params *configservice.GetComplianceSummaryByConfigRuleInput
+	resp, err := svc.GetComplianceSummaryByConfigRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_GetComplianceSummaryByResourceType() {
+	svc := configservice.New(nil)
+
+	params := &configservice.GetComplianceSummaryByResourceTypeInput{
+		ResourceTypes: []*string{
+			aws.String("StringWithCharLimit256"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.GetComplianceSummaryByResourceType(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_GetResourceConfigHistory() {
 	svc := configservice.New(nil)
 
 	params := &configservice.GetResourceConfigHistoryInput{
-		ResourceID:         aws.String("ResourceId"),   // Required
+		ResourceId:         aws.String("ResourceId"),   // Required
 		ResourceType:       aws.String("ResourceType"), // Required
 		ChronologicalOrder: aws.String("ChronologicalOrder"),
 		EarlierTime:        aws.Time(time.Now()),
 		LaterTime:          aws.Time(time.Now()),
-		Limit:              aws.Long(1),
+		Limit:              aws.Int64(1),
 		NextToken:          aws.String("NextToken"),
 	}
 	resp, err := svc.GetResourceConfigHistory(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_ListDiscoveredResources() {
+	svc := configservice.New(nil)
+
+	params := &configservice.ListDiscoveredResourcesInput{
+		ResourceType:            aws.String("ResourceType"), // Required
+		IncludeDeletedResources: aws.Bool(true),
+		Limit:     aws.Int64(1),
+		NextToken: aws.String("NextToken"),
+		ResourceIds: []*string{
+			aws.String("ResourceId"), // Required
+			// More values...
+		},
+		ResourceName: aws.String("ResourceName"),
+	}
+	resp, err := svc.ListDiscoveredResources(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_PutConfigRule() {
+	svc := configservice.New(nil)
+
+	params := &configservice.PutConfigRuleInput{
+		ConfigRule: &configservice.ConfigRule{ // Required
+			Source: &configservice.Source{ // Required
+				Owner: aws.String("Owner"),
+				SourceDetails: []*configservice.SourceDetail{
+					{ // Required
+						EventSource: aws.String("EventSource"),
+						MessageType: aws.String("MessageType"),
+					},
+					// More values...
+				},
+				SourceIdentifier: aws.String("StringWithCharLimit256"),
+			},
+			ConfigRuleArn:             aws.String("String"),
+			ConfigRuleId:              aws.String("String"),
+			ConfigRuleName:            aws.String("StringWithCharLimit64"),
+			ConfigRuleState:           aws.String("ConfigRuleState"),
+			Description:               aws.String("EmptiableStringWithCharLimit256"),
+			InputParameters:           aws.String("StringWithCharLimit256"),
+			MaximumExecutionFrequency: aws.String("MaximumExecutionFrequency"),
+			Scope: &configservice.Scope{
+				ComplianceResourceId: aws.String("StringWithCharLimit256"),
+				ComplianceResourceTypes: []*string{
+					aws.String("StringWithCharLimit256"), // Required
+					// More values...
+				},
+				TagKey:   aws.String("StringWithCharLimit128"),
+				TagValue: aws.String("StringWithCharLimit256"),
+			},
+		},
+	}
+	resp, err := svc.PutConfigRule(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_PutConfigurationRecorder() {
@@ -228,29 +450,28 @@ func ExampleConfigService_PutConfigurationRecorder() {
 
 	params := &configservice.PutConfigurationRecorderInput{
 		ConfigurationRecorder: &configservice.ConfigurationRecorder{ // Required
-			Name:    aws.String("RecorderName"),
+			Name: aws.String("RecorderName"),
+			RecordingGroup: &configservice.RecordingGroup{
+				AllSupported: aws.Bool(true),
+				ResourceTypes: []*string{
+					aws.String("ResourceType"), // Required
+					// More values...
+				},
+			},
 			RoleARN: aws.String("String"),
 		},
 	}
 	resp, err := svc.PutConfigurationRecorder(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_PutDeliveryChannel() {
@@ -258,31 +479,55 @@ func ExampleConfigService_PutDeliveryChannel() {
 
 	params := &configservice.PutDeliveryChannelInput{
 		DeliveryChannel: &configservice.DeliveryChannel{ // Required
+			ConfigSnapshotDeliveryProperties: &configservice.ConfigSnapshotDeliveryProperties{
+				DeliveryFrequency: aws.String("MaximumExecutionFrequency"),
+			},
 			Name:         aws.String("ChannelName"),
 			S3BucketName: aws.String("String"),
 			S3KeyPrefix:  aws.String("String"),
-			SNSTopicARN:  aws.String("String"),
+			SnsTopicARN:  aws.String("String"),
 		},
 	}
 	resp, err := svc.PutDeliveryChannel(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleConfigService_PutEvaluations() {
+	svc := configservice.New(nil)
+
+	params := &configservice.PutEvaluationsInput{
+		ResultToken: aws.String("String"), // Required
+		Evaluations: []*configservice.Evaluation{
+			{ // Required
+				ComplianceResourceId:   aws.String("StringWithCharLimit256"), // Required
+				ComplianceResourceType: aws.String("StringWithCharLimit256"), // Required
+				ComplianceType:         aws.String("ComplianceType"),         // Required
+				OrderingTimestamp:      aws.Time(time.Now()),                 // Required
+				Annotation:             aws.String("StringWithCharLimit256"),
+			},
+			// More values...
+		},
+	}
+	resp, err := svc.PutEvaluations(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_StartConfigurationRecorder() {
@@ -294,22 +539,14 @@ func ExampleConfigService_StartConfigurationRecorder() {
 	resp, err := svc.StartConfigurationRecorder(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleConfigService_StopConfigurationRecorder() {
@@ -321,20 +558,12 @@ func ExampleConfigService_StopConfigurationRecorder() {
 	resp, err := svc.StopConfigurationRecorder(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }

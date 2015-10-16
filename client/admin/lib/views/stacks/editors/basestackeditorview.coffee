@@ -29,9 +29,19 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     super options, data
 
+
+  createEditor: ->
+
+    super
+
     { ace } = @aceView
 
-    ace.ready =>
+    ace.once 'SettingsApplied', => ace.ready =>
       ace.setTheme 'github', no
       ace.setTabSize 2, no
+      ace.setShowPrintMargin no, no
+
+      kd.utils.defer =>
+        @getEditorSession().setScrollTop 0
+
       @emit 'EditorReady'

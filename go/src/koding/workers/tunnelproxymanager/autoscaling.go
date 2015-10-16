@@ -89,7 +89,7 @@ func (l *LifeCycle) GetAutoScalingOperatingIPs() ([]*string, error) {
 
 	insResp, err := l.ec2.DescribeInstances(
 		&ec2.DescribeInstancesInput{
-			InstanceIDs: healthyInstances,
+			InstanceIds: healthyInstances,
 		},
 	)
 	if err != nil {
@@ -108,7 +108,7 @@ func filterHealthyInstances(asResp *autoscaling.DescribeAutoScalingGroupsOutput)
 		for _, instance := range asg.Instances {
 			if *instance.HealthStatus == healthy &&
 				*instance.LifecycleState == inService {
-				healthyInstances = append(healthyInstances, instance.InstanceID)
+				healthyInstances = append(healthyInstances, instance.InstanceId)
 			}
 		}
 	}
@@ -119,7 +119,7 @@ func mapPublicIps(insResp *ec2.DescribeInstancesOutput) []*string {
 	publicIps := make([]*string, 0)
 	for _, reservation := range insResp.Reservations {
 		for _, instance := range reservation.Instances {
-			publicIps = append(publicIps, instance.PublicIPAddress)
+			publicIps = append(publicIps, instance.PublicIpAddress)
 		}
 	}
 	return publicIps

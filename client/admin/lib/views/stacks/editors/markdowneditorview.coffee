@@ -13,7 +13,7 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
 
     @addSubView new KDButtonView
       title    : 'Preview'
-      cssClass : 'solid compact preview-button'
+      cssClass : 'solid compact light-gray preview-button'
       callback : @bound 'handlePreview'
 
 

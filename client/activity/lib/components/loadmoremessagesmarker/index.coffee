@@ -11,14 +11,13 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
     timestamp : null
     position  : 'after'
     autoload  : no
-    isLoading : no
 
 
   onClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
-    { channelId, messageId, position, timestamp, isLoading } = @props
+    { channelId, messageId, position, timestamp } = @props
 
     positionToLimiterMap = after: 'from', before: 'to'
     positionToSortOrderMap = after: 'ASC', before: 'DESC'
@@ -32,6 +31,8 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
 
     { message: messageActions } = ActivityFlux.actions
 
+    messagesBefore = kd.singletons.reactor.evaluate ['MessagesStore']
+
     messageActions.loadMessages(channelId, options).then ({ messages }) ->
       messageActions.removeLoaderMarker channelId, messageId, { position }
 
@@ -41,13 +42,14 @@ module.exports = class LoadMoreMessagesMarker extends React.Component
       # don't put loader markers on top.
       return  unless position is 'after'
 
-      messageActions.putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+      unless messagesBefore.has last.id
+        messageActions.putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
 
 
   render: ->
     return null  unless @props.channelId
 
     <div className="LoadMoreMessagesMarker">
-      <a href="#" onClick={@bound 'onClick'}>Load more maaan!</a>
+      <a href="#" onClick={@bound 'onClick'}>Load more</a>
     </div>
 

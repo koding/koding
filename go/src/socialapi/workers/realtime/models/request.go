@@ -45,7 +45,7 @@ type Message struct {
 
 type Authenticate struct {
 	Account *socialapimodels.Account
-	Channel ChannelInterface
+	Channel ChannelManager
 }
 
 // Namings are for backward compatibility

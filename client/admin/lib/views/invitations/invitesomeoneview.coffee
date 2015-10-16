@@ -64,11 +64,6 @@ module.exports = class InviteSomeoneView extends KDView
   createMainButtons: ->
 
     @addSubView new KDButtonView
-      title    : 'CANCEL'
-      cssClass : 'solid medium cancel'
-      callback : => @emit 'InvitationViewCancelled'
-
-    @addSubView new KDButtonView
       title    : 'INVITE MEMBERS'
       cssClass : 'solid medium green invite-members'
       callback : @bound 'inviteMembers'

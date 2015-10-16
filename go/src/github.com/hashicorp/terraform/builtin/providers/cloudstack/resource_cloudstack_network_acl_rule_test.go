@@ -122,13 +122,13 @@ func testAccCheckCloudStackNetworkACLRulesExist(n string) resource.TestCheckFunc
 			return fmt.Errorf("No network ACL rule ID is set")
 		}
 
-		for k, uuid := range rs.Primary.Attributes {
+		for k, id := range rs.Primary.Attributes {
 			if !strings.Contains(k, ".uuids.") || strings.HasSuffix(k, ".uuids.#") {
 				continue
 			}
 
 			cs := testAccProvider.Meta().(*cloudstack.CloudStackClient)
-			_, count, err := cs.NetworkACL.GetNetworkACLByID(uuid)
+			_, count, err := cs.NetworkACL.GetNetworkACLByID(id)
 
 			if err != nil {
 				return err
@@ -155,12 +155,12 @@ func testAccCheckCloudStackNetworkACLRuleDestroy(s *terraform.State) error {
 			return fmt.Errorf("No network ACL rule ID is set")
 		}
 
-		for k, uuid := range rs.Primary.Attributes {
+		for k, id := range rs.Primary.Attributes {
 			if !strings.Contains(k, ".uuids.") || strings.HasSuffix(k, ".uuids.#") {
 				continue
 			}
 
-			_, _, err := cs.NetworkACL.GetNetworkACLByID(uuid)
+			_, _, err := cs.NetworkACL.GetNetworkACLByID(id)
 			if err == nil {
 				return fmt.Errorf("Network ACL rule %s still exists", rs.Primary.ID)
 			}
@@ -181,7 +181,7 @@ resource "cloudstack_vpc" "foobar" {
 resource "cloudstack_network_acl" "foo" {
   name = "terraform-acl"
   description = "terraform-acl-text"
-  vpc = "${cloudstack_vpc.foobar.name}"
+  vpc = "${cloudstack_vpc.foobar.id}"
 }
 
 resource "cloudstack_network_acl_rule" "foo" {

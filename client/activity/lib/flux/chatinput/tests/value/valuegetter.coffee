@@ -22,6 +22,7 @@ describe 'ChatInputValueGetter', ->
 
     channelId1   = 'channel1'
     channelId2   = 'channel2'
+    stateId      = '123'
     value1       = '12345'
     value2       = 'qwerty'
     emptyChannel = 'channel3'
@@ -29,21 +30,21 @@ describe 'ChatInputValueGetter', ->
 
     it 'gets value depending on the current channel id', ->
 
-      @reactor.dispatch ChatInputActions.SET_CHAT_INPUT_VALUE, { channelId : channelId1, value : value1 }
-      @reactor.dispatch ChatInputActions.SET_CHAT_INPUT_VALUE, { channelId : channelId2, value : value2 }
+      @reactor.dispatch ChatInputActions.SET_CHAT_INPUT_VALUE, { channelId : channelId1, stateId, value : value1 }
+      @reactor.dispatch ChatInputActions.SET_CHAT_INPUT_VALUE, { channelId : channelId2, stateId, value : value2 }
 
       @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : channelId1 }
 
-      value = @reactor.evaluate getters.currentValue
+      value = @reactor.evaluate getters.currentValue stateId
       expect(value).to.equal value1
 
       @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : channelId2 }
 
-      value = @reactor.evaluate getters.currentValue
+      value = @reactor.evaluate getters.currentValue stateId
       expect(value).to.equal value2
 
       @reactor.dispatch ActivityActions.SET_SELECTED_CHANNEL_THREAD, { channelId : emptyChannel }
 
-      value = @reactor.evaluate getters.currentValue
+      value = @reactor.evaluate getters.currentValue stateId
       expect(value).to.equal ''
 

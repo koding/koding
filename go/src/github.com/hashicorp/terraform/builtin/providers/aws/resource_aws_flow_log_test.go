@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccFlowLog_basic(t *testing.T) {
+func TestAccAWSFlowLog_basic(t *testing.T) {
 	var flowLog ec2.FlowLog
 	lgn := os.Getenv("LOG_GROUP_NAME")
 
@@ -31,7 +31,7 @@ func TestAccFlowLog_basic(t *testing.T) {
 	})
 }
 
-func TestAccFlowLog_subnet(t *testing.T) {
+func TestAccAWSFlowLog_subnet(t *testing.T) {
 	var flowLog ec2.FlowLog
 	lgn := os.Getenv("LOG_GROUP_NAME")
 
@@ -64,7 +64,7 @@ func testAccCheckFlowLogExists(n string, flowLog *ec2.FlowLog) resource.TestChec
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
 		describeOpts := &ec2.DescribeFlowLogsInput{
-			FlowLogIDs: []*string{aws.String(rs.Primary.ID)},
+			FlowLogIds: []*string{aws.String(rs.Primary.ID)},
 		}
 		resp, err := conn.DescribeFlowLogs(describeOpts)
 		if err != nil {

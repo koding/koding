@@ -1,4 +1,5 @@
 kd            = require 'kd'
+$             = require 'jquery'
 React         = require 'kd-react'
 keyboardKeys  = require 'app/util/keyboardKeys'
 
@@ -15,7 +16,6 @@ module.exports = DropboxInputMixin =
     switch event.which
       when BACKSPACE   then @onBackspace? event
       when ENTER       then @onEnter event
-      when ESC         then @onEsc event
       when TAB         then @onNextPosition event, { isTab : yes }
       when DOWN_ARROW  then @onNextPosition event, { isDownArrow : yes }
       when UP_ARROW    then @onPrevPosition event, { isUpArrow : yes }
@@ -32,9 +32,6 @@ module.exports = DropboxInputMixin =
     if dropdown.isActive()
 
       dropdown.confirmSelectedItem()
-
-
-  onEsc: (event) -> @getDropdown().close()
 
 
   onNextPosition: (event, keyInfo) ->
