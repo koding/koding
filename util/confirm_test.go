@@ -57,3 +57,10 @@ func TestYesNoConfirmWithDefault(t *testing.T) {
 		So(err, ShouldNotBeNil)
 	})
 }
+
+func TestTrimAndLower(t *testing.T) {
+	Convey("Should trim and lower the given string", t, func() {
+		s := trimAndLower(" FOO bar Baz  ")
+		So(s, ShouldEqual, "foo bar baz")
+	})
+}

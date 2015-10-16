@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+// trimAndLower simply trims, and lower cases the given string
+func trimAndLower(s string) string {
+	s = strings.TrimSpace(s)
+	return strings.ToLower(s)
+}
+
 // MustConfirm asks users to confirm if they want to continue. It defaults to
 // Y if user press enter without entering anything. `y` and `yes` are the other
 // acceptable answers. Any other answer will result in exit with 1 code.
@@ -20,8 +26,7 @@ func MustConfirm(help string) {
 		os.Exit(1)
 	}
 
-	text = strings.TrimSpace(text)
-	text = strings.ToLower(text)
+	text = trimAndLower(text)
 
 	if text == "n" || text == "no" {
 		fmt.Println("Please enter 'y' or 'yes'.")
@@ -64,8 +69,7 @@ func YesNoConfirmWithDefault(r *bufio.Reader, d bool) (bool, error) {
 		return false, err
 	}
 
-	text = strings.TrimSpace(text)
-	text = strings.ToLower(text)
+	text = trimAndLower(text)
 
 	switch text {
 	case "":
