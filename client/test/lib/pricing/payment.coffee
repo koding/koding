@@ -17,7 +17,7 @@ module.exports =
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
           helpers.fillPaymentForm(browser, 'developer')
-          helpers.submitForm(browser, true)
+          helpers.submitForm(browser, yes)
           browser.end()
         else
           browser.end()

@@ -444,20 +444,13 @@ module.exports =
         .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
-  fillPaymentForm: (browser, planType = 'developer', cardDetails) ->
+  fillPaymentForm: (browser, planType = 'developer', cardDetails = {}) ->
 
-    defaultCard =
-      cardNumber: '4111 1111 1111 1111'
-      cvc: 123
-      month: 12
-      year: 2019
-
-    if cardDetails?  
-      for k of defaultCard
-        if !cardDetails.hasOwnProperty(k)
-          cardDetails[k] = defaultCard[k]
-    else
-      cardDetails = defaultCard
+    defaultCard  =
+      cardNumber : cardDetails.cardNumber or "4111 1111 1111 1111"
+      cvc        : cardDetails.cvc        or 123
+      month      : cardDetails.month      or 12
+      year       : cardDetails.year       or 2019
 
     user         = utils.getUser()
     name         = user.username
@@ -468,29 +461,25 @@ module.exports =
       .waitForElementVisible   paymentModal, 20000
       .waitForElementVisible   paymentModal + ' .cardnumber', 20000
       .click                   'input[name=cardNumber]'
-      .setValue                'input[name=cardNumber]', cardDetails.cardNumber
-      .waitForElementVisible   '.payment-modal', 20000
+      .setValue                'input[name=cardNumber]', defaultCard.cardNumber
       .waitForElementVisible   paymentModal + ' .cardcvc', 20000
       .click                   'input[name=cardCVC]'
-      .setValue                'input[name=cardCVC]', cardDetails.cvc
-      .waitForElementVisible   '.payment-modal', 20000
+      .setValue                'input[name=cardCVC]', defaultCard.cvc
       .waitForElementVisible   paymentModal + ' .cardmonth', 20000
       .click                   'input[name=cardMonth]'
-      .setValue                'input[name=cardMonth]', cardDetails.month
-      .waitForElementVisible   '.payment-modal', 20000
+      .setValue                'input[name=cardMonth]', defaultCard.month
       .waitForElementVisible   paymentModal + ' .cardyear', 20000
       .click                   'input[name=cardYear]'
-      .setValue                'input[name=cardYear]', cardDetails.year
-      .waitForElementVisible   '.payment-modal', 20000
+      .setValue                'input[name=cardYear]', defaultCard.year
       .waitForElementVisible   paymentModal + ' .cardname', 20000
       .click                   'input[name=cardName]'
       .clearValue              'input[name=cardName]'
       .setValue                'input[name=cardName]', name  
 
-  submitForm: (browser, validCardDetails = true) ->
+  submitForm: (browser, validCardDetails = yes) ->
   
     upgradePlanButton = '.kdmodal-inner .green'
-    planType = 'developer'
+    planType          = 'developer'
 
     if validCardDetails
       browser
@@ -499,7 +488,7 @@ module.exports =
         .waitForElementVisible   '.kdmodal-content .success-msg', 20000
         .click                   'button.submit-btn'
         .waitForElementVisible   '[testpath=main-sidebar]', 20000
-        .url                     @getUrl() + '/Pricing'
+        .url                     "#{@getUrl()}/Pricing"
         .waitForElementVisible   '.content-page.pricing', 20000
         .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
     else
@@ -521,12 +510,12 @@ module.exports =
 
   checkInvalidCardDetails: (browser, cardDetails, submit) ->
 
-    freePlanSelector  = '.single-plan.free.current'
+    freePlanSelector = '.single-plan.free.current'
 
     browser
-      .url                     @getUrl() + '/Pricing'
+      .url                     "#{@getUrl()}/Pricing"
       .waitForElementVisible   '.content-page.pricing', 20000
-      .waitForElementVisible   '.current', 20000
+      .waitForElementVisible   '.kdtabpaneview .kdview .current', 20000
       .element 'css selector', freePlanSelector, (result) =>
         if result.status is 0
           @selectPlan(browser)
