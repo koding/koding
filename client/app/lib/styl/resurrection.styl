@@ -1268,11 +1268,6 @@ paymentGrayLighter  = #f8f8f8
     styleScrollBars         rgba(0,0,0,.15)
 
   .with-message
-
-    .message
-      font-size             14px
-      margin-bottom         5px
-
     .kdcustomscrollview
       height                calc(100% \- 100px) !important
 
@@ -1281,13 +1276,12 @@ paymentGrayLighter  = #f8f8f8
     vendor                  flex-direction, column
     dFlex()
 
-    .message
-      flex-shrink           0
-      font-size             13px
-
     .content
       flex                  1 1 auto
 
+  .message
+    flex-shrink             0
+    font-size               13px
 
 .kdmodal.env-ide-error-modal
   left                      50% !important
