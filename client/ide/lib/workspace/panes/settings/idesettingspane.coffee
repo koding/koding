@@ -1,8 +1,10 @@
-kd = require 'kd'
-KDCustomScrollView = kd.CustomScrollView
-IDEEditorSettingsView = require './ideeditorsettingsview'
-IDEPane = require '../idepane'
+kd                      = require 'kd'
+KDCustomScrollView      = kd.CustomScrollView
+IDEEditorSettingsView   = require './ideeditorsettingsview'
+IDEPane                 = require '../idepane'
 IDETerminalSettingsView = require './ideterminalsettingsview'
+
+
 module.exports = class IDESettingsPane extends IDEPane
 
   constructor: (options = {}, data) ->
@@ -18,3 +20,5 @@ module.exports = class IDESettingsPane extends IDEPane
 
     scrollView.wrapper.addSubView @editorSettingsView
     scrollView.wrapper.addSubView @terminalSettingsView
+
+    @on 'EnableAutoRemovePane', => @editorSettingsView.enableAutoRemovePane.setOn()

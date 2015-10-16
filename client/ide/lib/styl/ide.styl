@@ -606,6 +606,11 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     clear                   both
     borderBox()
 
+    span
+      dIBlock()
+      max-width             75%
+      ellipsis()
+
     &.with-select
       line-height           32px
 
@@ -1414,3 +1419,6 @@ body.ide .kddialogview.save-as-dialog
 
       strong
         font-weight         bold
+
+.kdmodal.autoremovepane-confirm
+    width                   650px !important
