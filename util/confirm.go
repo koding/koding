@@ -62,7 +62,6 @@ func MustConfirm(help string) {
 // so that it can be not greedy.
 func YesNoConfirmWithDefault(r *bufio.Reader, d bool) (bool, error) {
 	text, err := r.ReadString('\n')
-
 	if err != nil {
 		// TODO: Log this error, because it's strange.
 		// log.Debug(fmt.Sprintf("Retry loop exited with err: '%s'", err.Error())
