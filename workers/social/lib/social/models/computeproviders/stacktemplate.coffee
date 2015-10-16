@@ -1,6 +1,6 @@
-{ ObjectId, signature }  = require 'bongo'
-{ Module, Relationship } = require 'jraphical'
-KodingError              = require '../../error'
+{ ObjectId, signature, daisy }  = require 'bongo'
+{ Module, Relationship }        = require 'jraphical'
+KodingError                     = require '../../error'
 
 
 module.exports = class JStackTemplate extends Module
@@ -245,6 +245,30 @@ module.exports = class JStackTemplate extends Module
       @update { $set: data }, (err) => callback err, this
 
 
+  cloneCustomCredentials = (client, credentials, callback) ->
+
+    JCredential = require './credential'
+    clonedCreds = []
+    queue       = []
+
+    credentials.forEach (identifier) -> queue.push ->
+      JCredential.fetchByIdentifier client, identifier, (err, credential) ->
+        if not err and credential
+          credential.clone client, (err, cloneCredential) ->
+            if err
+              console.warn "Clone failed:", err
+            else
+              clonedCreds.push cloneCredential.identifier
+            queue.next()
+        else
+          queue.next()
+
+    queue.push ->
+      callback null, clonedCreds
+
+    daisy queue
+
+
   clone: permit
 
     advanced: [
@@ -269,11 +293,16 @@ module.exports = class JStackTemplate extends Module
       cloneData.config           ?= {}
       cloneData.config.clonedFrom = @getId()
 
-      # TODO make sure to clone custom credentials as well ~ GG
+      { custom } = cloneData.credentials or {}
+      custom    ?= []
 
-      JStackTemplate.create client, cloneData, (err, cloneStackTemplate) ->
-        if err then callback new KodingError 'Clone failed', err
-        else callback null, cloneStackTemplate
+      if custom.length > 0
+        cloneCustomCredentials client, custom, (err, creds) ->
+          return callback new KodingError 'Failed to clone credentials'  if err
+          cloneData.credentials.custom = creds
+          JStackTemplate.create client, cloneData, callback
+      else
+        JStackTemplate.create client, cloneData, callback
 
 
 # Base StackTemplate example for koding group
@@ -361,5 +390,3 @@ Default Template ---
 }
 
 ###
-
-
