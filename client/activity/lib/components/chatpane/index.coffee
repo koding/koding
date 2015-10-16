@@ -74,7 +74,7 @@ module.exports = class ChatPane extends React.Component
     scrollContainerClientHeight = scrollContainer.clientHeight
     channelInfoContainerHeight  = 0
 
-    return  if scrollContainerClientHeight is 0
+    return  if scrollContainerClientHeight is 0 or listHeight is 0
 
     if channelInfoContainer
       channelInfoContainerHeight = channelInfoContainer.offsetHeight
