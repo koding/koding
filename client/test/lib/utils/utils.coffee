@@ -13,7 +13,7 @@ module.exports =
       username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
-      teamSlug = name.toLowerCase().replace /\s/g, '-'
+      teamSlug = name.toLowerCase().replace(/\s/g, '-').replace('.', '')
 
       email = "kodingtestuser+#{username}@koding.com"
 
@@ -45,11 +45,9 @@ module.exports =
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
-      console.log " ✔ users.json found, returning #{index}. user"
       return users[index]
 
     catch
-      console.log ' ✔ users.json does not exist, creating new user data'
 
       users = @generateUsers()
       return users[index]

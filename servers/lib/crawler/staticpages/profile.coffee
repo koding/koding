@@ -38,8 +38,8 @@ module.exports = (account, statusUpdates, index) ->
 putContent = (account, statusUpdates) ->
   profile      = getProfile account
 
-  if statusUpdates is ''
-    statusUpdates = """<div class="lazy-loader">#{profile.fullName} has not shared any posts yet.</div>"""
+  unless statusUpdates
+    statusUpdates = """<div class="no-item-found">#{profile.fullName} has not shared any posts yet.</div>"""
 
   imgURL  = getAvatarImageUrl profile.hash, profile.avatar, 143
   content = """

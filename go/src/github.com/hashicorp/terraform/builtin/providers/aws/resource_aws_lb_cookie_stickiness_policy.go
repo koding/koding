@@ -15,8 +15,6 @@ func resourceAwsLBCookieStickinessPolicy() *schema.Resource {
 		// There is no concept of "updating" an LB Stickiness policy in
 		// the AWS API.
 		Create: resourceAwsLBCookieStickinessPolicyCreate,
-		Update: resourceAwsLBCookieStickinessPolicyCreate,
-
 		Read:   resourceAwsLBCookieStickinessPolicyRead,
 		Delete: resourceAwsLBCookieStickinessPolicyDelete,
 
@@ -53,7 +51,7 @@ func resourceAwsLBCookieStickinessPolicyCreate(d *schema.ResourceData, meta inte
 
 	// Provision the LBStickinessPolicy
 	lbspOpts := &elb.CreateLBCookieStickinessPolicyInput{
-		CookieExpirationPeriod: aws.Long(int64(d.Get("cookie_expiration_period").(int))),
+		CookieExpirationPeriod: aws.Int64(int64(d.Get("cookie_expiration_period").(int))),
 		LoadBalancerName:       aws.String(d.Get("load_balancer").(string)),
 		PolicyName:             aws.String(d.Get("name").(string)),
 	}
@@ -64,7 +62,7 @@ func resourceAwsLBCookieStickinessPolicyCreate(d *schema.ResourceData, meta inte
 
 	setLoadBalancerOpts := &elb.SetLoadBalancerPoliciesOfListenerInput{
 		LoadBalancerName: aws.String(d.Get("load_balancer").(string)),
-		LoadBalancerPort: aws.Long(int64(d.Get("lb_port").(int))),
+		LoadBalancerPort: aws.Int64(int64(d.Get("lb_port").(int))),
 		PolicyNames:      []*string{aws.String(d.Get("name").(string))},
 	}
 
@@ -129,7 +127,7 @@ func resourceAwsLBCookieStickinessPolicyDelete(d *schema.ResourceData, meta inte
 	// policy itself.
 	setLoadBalancerOpts := &elb.SetLoadBalancerPoliciesOfListenerInput{
 		LoadBalancerName: aws.String(d.Get("load_balancer").(string)),
-		LoadBalancerPort: aws.Long(int64(d.Get("lb_port").(int))),
+		LoadBalancerPort: aws.Int64(int64(d.Get("lb_port").(int))),
 		PolicyNames:      []*string{},
 	}
 

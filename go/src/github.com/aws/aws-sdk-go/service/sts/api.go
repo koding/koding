@@ -6,14 +6,15 @@ package sts
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opAssumeRole = "AssumeRole"
 
 // AssumeRoleRequest generates a request for the AssumeRole operation.
-func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *aws.Request, output *AssumeRoleOutput) {
-	op := &aws.Operation{
+func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *request.Request, output *AssumeRoleOutput) {
+	op := &request.Operation{
 		Name:       opAssumeRole,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -45,7 +46,7 @@ func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *aws.Request, outpu
 // Instead, you can create one set of long-term credentials in one account and
 // then use temporary security credentials to access all the other accounts
 // by assuming roles in those accounts. For more information about roles, see
-// Roles (http://docs.aws.amazon.com/IAM/latest/UserGuide/WorkingWithRoles.html)
+// IAM Roles (Delegation and Federation) (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-toplevel.html)
 // in Using IAM.
 //
 // For federation, you can, for example, grant single sign-on access to the
@@ -73,7 +74,8 @@ func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *aws.Request, outpu
 // restrict the permissions for the resulting temporary security credentials.
 // You cannot use the passed policy to grant permissions that are in excess
 // of those allowed by the access policy of the role that is being assumed.
-// For more information, see Permissions for AssumeRole (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
+// For more information, see Permissions for AssumeRole, AssumeRoleWithSAML,
+// and AssumeRoleWithWebIdentity (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
 // in Using Temporary Security Credentials.
 //
 // To assume a role, your AWS account must be trusted by the role. The trust
@@ -91,10 +93,10 @@ func (c *STS) AssumeRoleRequest(input *AssumeRoleInput) (req *aws.Request, outpu
 // denied. The condition in a trust policy that tests for MFA authentication
 // might look like the following example.
 //
-//  "Condition": {"Null": {"aws:MultiFactorAuthAge": false}}
+//  "Condition": {"Bool": {"aws:MultiFactorAuthPresent": true}}
 //
 // For more information, see Configuring MFA-Protected API Access (http://docs.aws.amazon.com/IAM/latest/UserGuide/MFAProtectedAPI.html)
-// in the Using IAM guide.
+// in Using IAM guide.
 //
 // To use MFA with AssumeRole, you pass values for the SerialNumber and TokenCode
 // parameters. The SerialNumber value identifies the user's hardware or virtual
@@ -109,8 +111,8 @@ func (c *STS) AssumeRole(input *AssumeRoleInput) (*AssumeRoleOutput, error) {
 const opAssumeRoleWithSAML = "AssumeRoleWithSAML"
 
 // AssumeRoleWithSAMLRequest generates a request for the AssumeRoleWithSAML operation.
-func (c *STS) AssumeRoleWithSAMLRequest(input *AssumeRoleWithSAMLInput) (req *aws.Request, output *AssumeRoleWithSAMLOutput) {
-	op := &aws.Operation{
+func (c *STS) AssumeRoleWithSAMLRequest(input *AssumeRoleWithSAMLInput) (req *request.Request, output *AssumeRoleWithSAMLOutput) {
+	op := &request.Operation{
 		Name:       opAssumeRoleWithSAML,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -166,8 +168,8 @@ func (c *STS) AssumeRoleWithSAMLRequest(input *AssumeRoleWithSAMLInput) (req *aw
 //
 // For more information, see the following resources:
 //
-//   Creating Temporary Security Credentials for SAML Federation (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingSAML.html)
-// in Using Temporary Security Credentials.   SAML Providers (http://docs.aws.amazon.com/IAM/latest/UserGuide/idp-managing-identityproviders.html)
+//   Creating Temporary Security Credentials for SAML Federation (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingSAML.html).
+//   SAML Providers (http://docs.aws.amazon.com/IAM/latest/UserGuide/idp-managing-identityproviders.html)
 // in Using IAM.   Configuring a Relying Party and Claims (http://docs.aws.amazon.com/IAM/latest/UserGuide/create-role-saml-IdP-tasks.html)
 // in Using IAM.   Creating a Role for SAML-Based Federation (http://docs.aws.amazon.com/IAM/latest/UserGuide/create-role-saml.html)
 // in Using IAM.
@@ -180,8 +182,8 @@ func (c *STS) AssumeRoleWithSAML(input *AssumeRoleWithSAMLInput) (*AssumeRoleWit
 const opAssumeRoleWithWebIdentity = "AssumeRoleWithWebIdentity"
 
 // AssumeRoleWithWebIdentityRequest generates a request for the AssumeRoleWithWebIdentity operation.
-func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityInput) (req *aws.Request, output *AssumeRoleWithWebIdentityOutput) {
-	op := &aws.Operation{
+func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityInput) (req *request.Request, output *AssumeRoleWithWebIdentityOutput) {
+	op := &request.Operation{
 		Name:       opAssumeRoleWithWebIdentity,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -237,8 +239,7 @@ func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityI
 // restrict the permissions for the resulting temporary security credentials.
 // You cannot use the passed policy to grant permissions that are in excess
 // of those allowed by the access policy of the role that is being assumed.
-// For more information, see Permissions for AssumeRoleWithWebIdentity (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
-// in Using Temporary Security Credentials.
+// For more information, see Permissions for AssumeRoleWithWebIdentity (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html).
 //
 // Before your application can call AssumeRoleWithWebIdentity, you must have
 // an identity token from a supported identity provider and create a role that
@@ -251,9 +252,8 @@ func (c *STS) AssumeRoleWithWebIdentityRequest(input *AssumeRoleWithWebIdentityI
 //
 //    Creating a Mobile Application with Third-Party Sign-In (http://docs.aws.amazon.com/STS/latest/UsingSTS/STSUseCases.html#MobileApplication-KnownProvider)
 // and  Creating Temporary Security Credentials for Mobile Apps Using Third-Party
-// Identity Providers (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingWIF.html)
-// in Using Temporary Security Credentials.    Web Identity Federation Playground
-// (https://web-identity-federation-playground.s3.amazonaws.com/index.html).
+// Identity Providers (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingWIF.html).
+//    Web Identity Federation Playground (https://web-identity-federation-playground.s3.amazonaws.com/index.html).
 // This interactive website lets you walk through the process of authenticating
 // via Login with Amazon, Facebook, or Google, getting temporary security credentials,
 // and then using those credentials to make a request to AWS.   AWS SDK for
@@ -273,8 +273,8 @@ func (c *STS) AssumeRoleWithWebIdentity(input *AssumeRoleWithWebIdentityInput) (
 const opDecodeAuthorizationMessage = "DecodeAuthorizationMessage"
 
 // DecodeAuthorizationMessageRequest generates a request for the DecodeAuthorizationMessage operation.
-func (c *STS) DecodeAuthorizationMessageRequest(input *DecodeAuthorizationMessageInput) (req *aws.Request, output *DecodeAuthorizationMessageOutput) {
-	op := &aws.Operation{
+func (c *STS) DecodeAuthorizationMessageRequest(input *DecodeAuthorizationMessageInput) (req *request.Request, output *DecodeAuthorizationMessageOutput) {
+	op := &request.Operation{
 		Name:       opDecodeAuthorizationMessage,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -323,8 +323,8 @@ func (c *STS) DecodeAuthorizationMessage(input *DecodeAuthorizationMessageInput)
 const opGetFederationToken = "GetFederationToken"
 
 // GetFederationTokenRequest generates a request for the GetFederationToken operation.
-func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *aws.Request, output *GetFederationTokenOutput) {
-	op := &aws.Operation{
+func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *request.Request, output *GetFederationTokenOutput) {
+	op := &request.Operation{
 		Name:       opGetFederationToken,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -353,8 +353,7 @@ func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *aw
 // or an OpenID Connect-compatible identity provider, we recommend that you
 // use Amazon Cognito (http://aws.amazon.com/cognito/) or AssumeRoleWithWebIdentity.
 // For more information, see Creating Temporary Security Credentials for Mobile
-// Apps Using Identity Providers (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingWIF.html)
-// in Using Temporary Security Credentials.
+// Apps Using Identity Providers (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingWIF.html).
 //
 //  The GetFederationToken action must be called by using the long-term AWS
 // security credentials of an IAM user. You can also call GetFederationToken
@@ -401,11 +400,10 @@ func (c *STS) GetFederationTokenRequest(input *GetFederationTokenInput) (req *aw
 // that specifically allows the federated user to access the resource.
 //
 // For more information about how permissions work, see Permissions for GetFederationToken
-// (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-get-federation-token.html)
-// in Using Temporary Security Credentials. For information about using GetFederationToken
-// to create temporary security credentials, see Creating Temporary Credentials
-// to Enable Access for Federated Users (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingFedTokens.html)
-// in Using Temporary Security Credentials.
+// (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-get-federation-token.html).
+// For information about using GetFederationToken to create temporary security
+// credentials, see Creating Temporary Credentials to Enable Access for Federated
+// Users (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingFedTokens.html).
 func (c *STS) GetFederationToken(input *GetFederationTokenInput) (*GetFederationTokenOutput, error) {
 	req, out := c.GetFederationTokenRequest(input)
 	err := req.Send()
@@ -415,8 +413,8 @@ func (c *STS) GetFederationToken(input *GetFederationTokenInput) (*GetFederation
 const opGetSessionToken = "GetSessionToken"
 
 // GetSessionTokenRequest generates a request for the GetSessionToken operation.
-func (c *STS) GetSessionTokenRequest(input *GetSessionTokenInput) (req *aws.Request, output *GetSessionTokenOutput) {
-	op := &aws.Operation{
+func (c *STS) GetSessionTokenRequest(input *GetSessionTokenInput) (req *request.Request, output *GetSessionTokenOutput) {
+	op := &request.Operation{
 		Name:       opGetSessionToken,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -462,7 +460,7 @@ func (c *STS) GetSessionTokenRequest(input *GetSessionTokenInput) (req *aws.Requ
 //
 // For more information about using GetSessionToken to create temporary credentials,
 // go to Creating Temporary Credentials to Enable Access for IAM Users (http://docs.aws.amazon.com/STS/latest/UsingSTS/CreatingSessionTokens.html"
-// target="_blank) in Using Temporary Security Credentials.
+// target="_blank).
 func (c *STS) GetSessionToken(input *GetSessionTokenInput) (*GetSessionTokenOutput, error) {
 	req, out := c.GetSessionTokenRequest(input)
 	err := req.Send()
@@ -473,56 +471,81 @@ type AssumeRoleInput struct {
 	// The duration, in seconds, of the role session. The value can range from 900
 	// seconds (15 minutes) to 3600 seconds (1 hour). By default, the value is set
 	// to 3600 seconds.
-	DurationSeconds *int64 `type:"integer"`
+	DurationSeconds *int64 `min:"900" type:"integer"`
 
-	// A unique identifier that is used by third parties to assume a role in their
-	// customers' accounts. For each role that the third party can assume, they
-	// should instruct their customers to create a role with the external ID that
-	// the third party generated. Each time the third party assumes the role, they
-	// must pass the customer's external ID. The external ID is useful in order
-	// to help third parties bind a role to the customer who created it. For more
-	// information about the external ID, see About the External ID (http://docs.aws.amazon.com/STS/latest/UsingSTS/sts-delegating-externalid.html"
-	// target="_blank) in Using Temporary Security Credentials.
-	ExternalID *string `locationName:"ExternalId" type:"string"`
+	// A unique identifier that is used by third parties when assuming roles in
+	// their customers' accounts. For each role that the third party can assume,
+	// they should instruct their customers to ensure the role's trust policy checks
+	// for the external ID that the third party generated. Each time the third party
+	// assumes the role, they should pass the customer's external ID. The external
+	// ID is useful in order to help third parties bind a role to the customer who
+	// created it. For more information about the external ID, see How to Use External
+	// ID When Granting Access to Your AWS Resources (http://docs.aws.amazon.com/STS/latest/UsingSTS/sts-delegating-externalid.html)
+	// in Using Temporary Security Credentials.
+	ExternalId *string `min:"2" type:"string"`
 
 	// An IAM policy in JSON format.
 	//
-	// The policy parameter is optional. If you pass a policy, the temporary security
+	// This parameter is optional. If you pass a policy, the temporary security
 	// credentials that are returned by the operation have the permissions that
-	// are allowed by both the access policy of the role that is being assumed,
-	// and the policy that you pass. This gives you a way to further restrict the
-	// permissions for the resulting temporary security credentials. You cannot
-	// use the passed policy to grant permissions that are in excess of those allowed
-	// by the access policy of the role that is being assumed. For more information,
-	// see Permissions for AssumeRole (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
+	// are allowed by both (the intersection of) the access policy of the role that
+	// is being assumed, and the policy that you pass. This gives you a way to further
+	// restrict the permissions for the resulting temporary security credentials.
+	// You cannot use the passed policy to grant permissions that are in excess
+	// of those allowed by the access policy of the role that is being assumed.
+	// For more information, see Permissions for AssumeRole, AssumeRoleWithSAML,
+	// and AssumeRoleWithWebIdentity (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
 	// in Using Temporary Security Credentials.
-	Policy *string `type:"string"`
+	//
+	// The policy plain text must be 2048 bytes or shorter. However, an internal
+	// conversion compresses it into a packed binary format with a separate limit.
+	// The PackedPolicySize response element indicates by percentage how close to
+	// the upper size limit the policy is, with 100% equaling the maximum allowed
+	// size.
+	Policy *string `min:"1" type:"string"`
 
-	// The Amazon Resource Name (ARN) of the role that the caller is assuming.
-	RoleARN *string `locationName:"RoleArn" type:"string" required:"true"`
+	// The Amazon Resource Name (ARN) of the role to assume.
+	RoleArn *string `min:"20" type:"string" required:"true"`
 
-	// An identifier for the assumed role session. The session name is included
-	// as part of the AssumedRoleUser.
-	RoleSessionName *string `type:"string" required:"true"`
+	// An identifier for the assumed role session.
+	//
+	// Use the role session name to uniquely identity a session when the same role
+	// is assumed by different principals or for different reasons. In cross-account
+	// scenarios, the role session name is visible to, and can be logged by the
+	// account that owns the role. The role session name is also used in the ARN
+	// of the assumed role principal. This means that subsequent cross-account API
+	// requests using the temporary security credentials will expose the role session
+	// name to the external account in their CloudTrail logs.
+	RoleSessionName *string `min:"2" type:"string" required:"true"`
 
 	// The identification number of the MFA device that is associated with the user
 	// who is making the AssumeRole call. Specify this value if the trust policy
 	// of the role being assumed includes a condition that requires MFA authentication.
 	// The value is either the serial number for a hardware device (such as GAHT12345678)
 	// or an Amazon Resource Name (ARN) for a virtual device (such as arn:aws:iam::123456789012:mfa/user).
-	SerialNumber *string `type:"string"`
+	SerialNumber *string `min:"9" type:"string"`
 
 	// The value provided by the MFA device, if the trust policy of the role being
 	// assumed requires MFA (that is, if the policy includes a condition that tests
 	// for MFA). If the role being assumed requires MFA and if the TokenCode value
 	// is missing or expired, the AssumeRole call returns an "access denied" error.
-	TokenCode *string `type:"string"`
+	TokenCode *string `min:"6" type:"string"`
 
 	metadataAssumeRoleInput `json:"-" xml:"-"`
 }
 
 type metadataAssumeRoleInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssumeRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumeRoleInput) GoString() string {
+	return s.String()
 }
 
 // Contains the response to a successful AssumeRole request, including temporary
@@ -551,6 +574,16 @@ type metadataAssumeRoleOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AssumeRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumeRoleOutput) GoString() string {
+	return s.String()
+}
+
 type AssumeRoleWithSAMLInput struct {
 	// The duration, in seconds, of the role session. The value can range from 900
 	// seconds (15 minutes) to 3600 seconds (1 hour). By default, the value is set
@@ -560,7 +593,7 @@ type AssumeRoleWithSAMLInput struct {
 	//
 	// The maximum duration for a session is 1 hour, and the minimum duration is
 	// 15 minutes, even if values outside this range are specified.
-	DurationSeconds *int64 `type:"integer"`
+	DurationSeconds *int64 `min:"900" type:"integer"`
 
 	// An IAM policy in JSON format.
 	//
@@ -574,29 +607,42 @@ type AssumeRoleWithSAMLInput struct {
 	// see Permissions for AssumeRoleWithSAML (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
 	// in Using Temporary Security Credentials.
 	//
-	// The policy must be 2048 bytes or shorter, and its packed size must be less
-	// than 450 bytes.
-	Policy *string `type:"string"`
+	// The policy plain text must be 2048 bytes or shorter. However, an internal
+	// conversion compresses it into a packed binary format with a separate limit.
+	// The PackedPolicySize response element indicates by percentage how close to
+	// the upper size limit the policy is, with 100% equaling the maximum allowed
+	// size.
+	Policy *string `min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the SAML provider in IAM that describes
 	// the IdP.
-	PrincipalARN *string `locationName:"PrincipalArn" type:"string" required:"true"`
+	PrincipalArn *string `min:"20" type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the role that the caller is assuming.
-	RoleARN *string `locationName:"RoleArn" type:"string" required:"true"`
+	RoleArn *string `min:"20" type:"string" required:"true"`
 
 	// The base-64 encoded SAML authentication response provided by the IdP.
 	//
 	// For more information, see Configuring a Relying Party and Adding Claims
 	// (http://docs.aws.amazon.com/IAM/latest/UserGuide/create-role-saml-IdP-tasks.html)
 	// in the Using IAM guide.
-	SAMLAssertion *string `type:"string" required:"true"`
+	SAMLAssertion *string `min:"4" type:"string" required:"true"`
 
 	metadataAssumeRoleWithSAMLInput `json:"-" xml:"-"`
 }
 
 type metadataAssumeRoleWithSAMLInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssumeRoleWithSAMLInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumeRoleWithSAMLInput) GoString() string {
+	return s.String()
 }
 
 // Contains the response to a successful AssumeRoleWithSAML request, including
@@ -652,11 +698,21 @@ type metadataAssumeRoleWithSAMLOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AssumeRoleWithSAMLOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumeRoleWithSAMLOutput) GoString() string {
+	return s.String()
+}
+
 type AssumeRoleWithWebIdentityInput struct {
 	// The duration, in seconds, of the role session. The value can range from 900
 	// seconds (15 minutes) to 3600 seconds (1 hour). By default, the value is set
 	// to 3600 seconds.
-	DurationSeconds *int64 `type:"integer"`
+	DurationSeconds *int64 `min:"900" type:"integer"`
 
 	// An IAM policy in JSON format.
 	//
@@ -667,9 +723,14 @@ type AssumeRoleWithWebIdentityInput struct {
 	// permissions for the resulting temporary security credentials. You cannot
 	// use the passed policy to grant permissions that are in excess of those allowed
 	// by the access policy of the role that is being assumed. For more information,
-	// see Permissions for AssumeRoleWithWebIdentity (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html)
-	// in Using Temporary Security Credentials.
-	Policy *string `type:"string"`
+	// see Permissions for AssumeRoleWithWebIdentity (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-assume-role.html).
+	//
+	// The policy plain text must be 2048 bytes or shorter. However, an internal
+	// conversion compresses it into a packed binary format with a separate limit.
+	// The PackedPolicySize response element indicates by percentage how close to
+	// the upper size limit the policy is, with 100% equaling the maximum allowed
+	// size.
+	Policy *string `min:"1" type:"string"`
 
 	// The fully qualified host component of the domain name of the identity provider.
 	//
@@ -678,29 +739,39 @@ type AssumeRoleWithWebIdentityInput struct {
 	// 2.0 access tokens. Do not include URL schemes and port numbers.
 	//
 	// Do not specify this value for OpenID Connect ID tokens.
-	ProviderID *string `locationName:"ProviderId" type:"string"`
+	ProviderId *string `min:"4" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the role that the caller is assuming.
-	RoleARN *string `locationName:"RoleArn" type:"string" required:"true"`
+	RoleArn *string `min:"20" type:"string" required:"true"`
 
 	// An identifier for the assumed role session. Typically, you pass the name
 	// or identifier that is associated with the user who is using your application.
 	// That way, the temporary security credentials that your application will use
 	// are associated with that user. This session name is included as part of the
 	// ARN and assumed role ID in the AssumedRoleUser response element.
-	RoleSessionName *string `type:"string" required:"true"`
+	RoleSessionName *string `min:"2" type:"string" required:"true"`
 
 	// The OAuth 2.0 access token or OpenID Connect ID token that is provided by
 	// the identity provider. Your application must get this token by authenticating
 	// the user who is using your application with a web identity provider before
 	// the application makes an AssumeRoleWithWebIdentity call.
-	WebIdentityToken *string `type:"string" required:"true"`
+	WebIdentityToken *string `min:"4" type:"string" required:"true"`
 
 	metadataAssumeRoleWithWebIdentityInput `json:"-" xml:"-"`
 }
 
 type metadataAssumeRoleWithWebIdentityInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssumeRoleWithWebIdentityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumeRoleWithWebIdentityInput) GoString() string {
+	return s.String()
 }
 
 // Contains the response to a successful AssumeRoleWithWebIdentity request,
@@ -739,7 +810,7 @@ type AssumeRoleWithWebIdentityOutput struct {
 	// the user and the application that acquired the WebIdentityToken (pairwise
 	// identifier). For OpenID Connect ID tokens, this field contains the value
 	// returned by the identity provider as the token's sub (Subject) claim.
-	SubjectFromWebIdentityToken *string `type:"string"`
+	SubjectFromWebIdentityToken *string `min:"6" type:"string"`
 
 	metadataAssumeRoleWithWebIdentityOutput `json:"-" xml:"-"`
 }
@@ -748,19 +819,29 @@ type metadataAssumeRoleWithWebIdentityOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AssumeRoleWithWebIdentityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumeRoleWithWebIdentityOutput) GoString() string {
+	return s.String()
+}
+
 // The identifiers for the temporary security credentials that the operation
 // returns.
 type AssumedRoleUser struct {
 	// The ARN of the temporary security credentials that are returned from the
 	// AssumeRole action. For more information about ARNs and how to use them in
-	// policies, see  Identifiers for IAM Entities  (http://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html"
-	// target="_blank) in Using IAM.
-	ARN *string `locationName:"Arn" type:"string" required:"true"`
+	// policies, see IAM Identifiers (http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html)
+	// in Using IAM.
+	Arn *string `min:"20" type:"string" required:"true"`
 
 	// A unique identifier that contains the role ID and the role session name of
 	// the role that is being assumed. The role ID is generated by AWS when the
 	// role is created.
-	AssumedRoleID *string `locationName:"AssumedRoleId" type:"string" required:"true"`
+	AssumedRoleId *string `min:"2" type:"string" required:"true"`
 
 	metadataAssumedRoleUser `json:"-" xml:"-"`
 }
@@ -769,10 +850,20 @@ type metadataAssumedRoleUser struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AssumedRoleUser) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssumedRoleUser) GoString() string {
+	return s.String()
+}
+
 // AWS credentials for API authentication.
 type Credentials struct {
 	// The access key ID that identifies the temporary security credentials.
-	AccessKeyID *string `locationName:"AccessKeyId" type:"string" required:"true"`
+	AccessKeyId *string `min:"16" type:"string" required:"true"`
 
 	// The date on which the current credentials expire.
 	Expiration *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
@@ -790,15 +881,35 @@ type metadataCredentials struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Credentials) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Credentials) GoString() string {
+	return s.String()
+}
+
 type DecodeAuthorizationMessageInput struct {
 	// The encoded message that was returned with the response.
-	EncodedMessage *string `type:"string" required:"true"`
+	EncodedMessage *string `min:"1" type:"string" required:"true"`
 
 	metadataDecodeAuthorizationMessageInput `json:"-" xml:"-"`
 }
 
 type metadataDecodeAuthorizationMessageInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DecodeAuthorizationMessageInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DecodeAuthorizationMessageInput) GoString() string {
+	return s.String()
 }
 
 // A document that contains additional information about the authorization status
@@ -816,23 +927,43 @@ type metadataDecodeAuthorizationMessageOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DecodeAuthorizationMessageOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DecodeAuthorizationMessageOutput) GoString() string {
+	return s.String()
+}
+
 // Identifiers for the federated user that is associated with the credentials.
 type FederatedUser struct {
 	// The ARN that specifies the federated user that is associated with the credentials.
-	// For more information about ARNs and how to use them in policies, see Identifiers
-	// for IAM Entities (http://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html"
-	// target="_blank) in Using IAM.
-	ARN *string `locationName:"Arn" type:"string" required:"true"`
+	// For more information about ARNs and how to use them in policies, see IAM
+	// Identifiers (http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html)
+	// in Using IAM.
+	Arn *string `min:"20" type:"string" required:"true"`
 
 	// The string that identifies the federated user associated with the credentials,
 	// similar to the unique ID of an IAM user.
-	FederatedUserID *string `locationName:"FederatedUserId" type:"string" required:"true"`
+	FederatedUserId *string `min:"2" type:"string" required:"true"`
 
 	metadataFederatedUser `json:"-" xml:"-"`
 }
 
 type metadataFederatedUser struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s FederatedUser) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FederatedUser) GoString() string {
+	return s.String()
 }
 
 type GetFederationTokenInput struct {
@@ -843,13 +974,13 @@ type GetFederationTokenInput struct {
 	// seconds (one hour). If the specified duration is longer than one hour, the
 	// session obtained by using AWS account (root) credentials defaults to one
 	// hour.
-	DurationSeconds *int64 `type:"integer"`
+	DurationSeconds *int64 `min:"900" type:"integer"`
 
 	// The name of the federated user. The name is used as an identifier for the
 	// temporary security credentials (such as Bob). For example, you can reference
 	// the federated user name in a resource-based policy, such as in an Amazon
 	// S3 bucket policy.
-	Name *string `type:"string" required:"true"`
+	Name *string `min:"2" type:"string" required:"true"`
 
 	// An IAM policy in JSON format that is passed with the GetFederationToken call
 	// and evaluated along with the policy or policies that are attached to the
@@ -866,16 +997,29 @@ type GetFederationTokenInput struct {
 	// credentials are used to access a resource that has a resource-based policy
 	// that specifically allows the federated user to access the resource.
 	//
-	// For more information about how permissions work, see Permissions for GetFederationToken
-	// (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-get-federation-token.html)
-	// in Using Temporary Security Credentials.
-	Policy *string `type:"string"`
+	// The policy plain text must be 2048 bytes or shorter. However, an internal
+	// conversion compresses it into a packed binary format with a separate limit.
+	// The PackedPolicySize response element indicates by percentage how close to
+	// the upper size limit the policy is, with 100% equaling the maximum allowed
+	// size.  For more information about how permissions work, see Permissions for
+	// GetFederationToken (http://docs.aws.amazon.com/STS/latest/UsingSTS/permissions-get-federation-token.html).
+	Policy *string `min:"1" type:"string"`
 
 	metadataGetFederationTokenInput `json:"-" xml:"-"`
 }
 
 type metadataGetFederationTokenInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetFederationTokenInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetFederationTokenInput) GoString() string {
+	return s.String()
 }
 
 // Contains the response to a successful GetFederationToken request, including
@@ -902,6 +1046,16 @@ type metadataGetFederationTokenOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetFederationTokenOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetFederationTokenOutput) GoString() string {
+	return s.String()
+}
+
 type GetSessionTokenInput struct {
 	// The duration, in seconds, that the credentials should remain valid. Acceptable
 	// durations for IAM user sessions range from 900 seconds (15 minutes) to 129600
@@ -909,7 +1063,7 @@ type GetSessionTokenInput struct {
 	// for AWS account owners are restricted to a maximum of 3600 seconds (one hour).
 	// If the duration is longer than one hour, the session for AWS account owners
 	// defaults to one hour.
-	DurationSeconds *int64 `type:"integer"`
+	DurationSeconds *int64 `min:"900" type:"integer"`
 
 	// The identification number of the MFA device that is associated with the IAM
 	// user who is making the GetSessionToken call. Specify this value if the IAM
@@ -918,20 +1072,30 @@ type GetSessionTokenInput struct {
 	// Name (ARN) for a virtual device (such as arn:aws:iam::123456789012:mfa/user).
 	// You can find the device for an IAM user by going to the AWS Management Console
 	// and viewing the user's security credentials.
-	SerialNumber *string `type:"string"`
+	SerialNumber *string `min:"9" type:"string"`
 
 	// The value provided by the MFA device, if MFA is required. If any policy requires
 	// the IAM user to submit an MFA code, specify this value. If MFA authentication
 	// is required, and the user does not provide a code when requesting a set of
 	// temporary security credentials, the user will receive an "access denied"
 	// response when requesting resources that require MFA authentication.
-	TokenCode *string `type:"string"`
+	TokenCode *string `min:"6" type:"string"`
 
 	metadataGetSessionTokenInput `json:"-" xml:"-"`
 }
 
 type metadataGetSessionTokenInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetSessionTokenInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetSessionTokenInput) GoString() string {
+	return s.String()
 }
 
 // Contains the response to a successful GetSessionToken request, including
@@ -945,4 +1109,14 @@ type GetSessionTokenOutput struct {
 
 type metadataGetSessionTokenOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetSessionTokenOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetSessionTokenOutput) GoString() string {
+	return s.String()
 }

@@ -79,8 +79,7 @@ module.exports = class ChatList extends React.Component
             messageId={currentMessage.get 'id'}
             position="before"
             autoload={beforeMarker.get 'autoload'}
-            timestamp={currentMessage.get 'createdAt'}
-            isLoading={isMessagesLoading} />
+            timestamp={currentMessage.get 'createdAt'}/>
 
     switch
       # if this is first message put a date marker no matter what.
@@ -109,7 +108,7 @@ module.exports = class ChatList extends React.Component
 
   getAfterMarkers: (currentMessage, prevMessage, index) ->
 
-    { channelId, isMessagesLoading } = @props
+    { channelId } = @props
 
     markers = []
 
@@ -121,15 +120,14 @@ module.exports = class ChatList extends React.Component
             messageId={currentMessage.get 'id'}
             position="after"
             autoload={afterMarker.get 'autoload'}
-            timestamp={currentMessage.get 'createdAt'}
-            isLoading={isMessagesLoading} />
+            timestamp={currentMessage.get 'createdAt'} />
 
     return markers
 
 
   renderChildren: ->
 
-    { messages, showItemMenu, channelName } = @props
+    { messages, showItemMenu, channelName, channelId } = @props
     { selectedMessageId } = @state
 
     lastDifferentOwnerId = null
@@ -142,6 +140,7 @@ module.exports = class ChatList extends React.Component
         message      : message
         showItemMenu : showItemMenu
         channelName  : channelName
+        channelId    : channelId
 
       if selectedMessageId is message.get 'id'
         itemProps['isSelected'] = yes

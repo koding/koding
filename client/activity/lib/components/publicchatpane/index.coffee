@@ -10,7 +10,6 @@ module.exports = class PublicChatPane extends React.Component
 
   @defaultProps =
     thread   : immutable.Map()
-    messages : immutable.List()
     padded   : no
 
   constructor: (props) ->
@@ -32,13 +31,9 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.message.createMessage @channel('id'), body
 
 
-  onLoadMore: ->
+  onCommand: ({ command }) ->
 
-    return  unless @props.messages.size
-    return  if @props.thread.getIn ['flags', 'isMessagesLoading']
-
-    from = @props.messages.first().get('createdAt')
-    kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from, loadedWithScroll: yes }
+    ActivityFlux.actions.command.executeCommand command, @props.thread.get 'channel'
 
 
   onFollowChannel: ->
@@ -51,6 +46,14 @@ module.exports = class PublicChatPane extends React.Component
     return  unless input = @refs.chatInputWidget
 
     input.focus()
+
+
+  onLoadMore: ->
+
+    messages = @props.thread.get 'messages'
+    from     = messages.first().get 'createdAt'
+
+    ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
   renderFollowChannel: ->
@@ -68,18 +71,16 @@ module.exports = class PublicChatPane extends React.Component
 
   renderFooter: ->
 
-    return null  unless @props.messages
-
-    { thread } = @props
+    return null  unless @props.thread?.get 'messages'
 
     footerInnerComponent = if @channel 'isParticipant'
-      <ChatInputWidget
-        ref='chatInputWidget'
-        onSubmit={@bound 'onSubmit'}
-        thread={thread}
-        enableSearch={yes} />
-    else
-      @renderFollowChannel()
+    then <ChatInputWidget
+           ref          = 'chatInputWidget'
+           onSubmit     = { @bound 'onSubmit' }
+           onCommand    = { @bound 'onCommand' }
+           channelId    = { @channel 'id' }
+         />
+    else @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">
       {footerInnerComponent}
@@ -91,10 +92,9 @@ module.exports = class PublicChatPane extends React.Component
     <ChatPane
       thread     = { @props.thread }
       className  = "PublicChatPane"
-      messages   = { @props.messages }
       onSubmit   = { @bound 'onSubmit' }
-      afterInviteOthers = {@bound 'afterInviteOthers'}
-      onLoadMore = { @bound 'onLoadMore' }>
+      onLoadMore = { @bound 'onLoadMore' }
+      afterInviteOthers = {@bound 'afterInviteOthers'}>
       {@renderFooter()}
     </ChatPane>
 

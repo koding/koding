@@ -7,6 +7,8 @@ import (
 var (
 	// ErrNoValidProvidersFoundInChain Is returned when there are no valid
 	// providers in the ChainProvider.
+	//
+	// @readonly
 	ErrNoValidProvidersFoundInChain = awserr.New("NoCredentialProviders", "no valid providers in chain", nil)
 )
 
@@ -36,7 +38,9 @@ var (
 //             &EnvProvider{},
 //             &EC2RoleProvider{},
 //         })
-//     creds.Retrieve()
+//
+//     // Usage of ChainCredentials with aws.Config
+//     svc := ec2.New(&aws.Config{Credentials: creds})
 //
 type ChainProvider struct {
 	Providers []Provider

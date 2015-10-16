@@ -76,7 +76,7 @@ func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	return p.publish(pmc, pm)
 }
 
-func (p *PubNub) grantServerAccess(c ChannelInterface) error {
+func (p *PubNub) grantServerAccess(c ChannelManager) error {
 	ok := p.isAccessGranted(c)
 	if ok {
 		return nil
@@ -99,7 +99,7 @@ func (p *PubNub) grantServerAccess(c ChannelInterface) error {
 	return nil
 }
 
-func (p *PubNub) isAccessGranted(c ChannelInterface) bool {
+func (p *PubNub) isAccessGranted(c ChannelManager) bool {
 	p.channelMu.RLock()
 	channelName := c.PrepareName()
 
@@ -110,7 +110,7 @@ func (p *PubNub) isAccessGranted(c ChannelInterface) bool {
 	return ok
 }
 
-func (p *PubNub) cacheAccessGranted(c ChannelInterface) {
+func (p *PubNub) cacheAccessGranted(c ChannelManager) {
 	p.channelMu.Lock()
 	p.channels[c.PrepareName()] = struct{}{}
 	p.channelMu.Unlock()
@@ -161,7 +161,7 @@ func (p *PubNub) Authenticate(a *Authenticate) error {
 
 // GrantAcess grants access for the channel with the given token.
 // TODO by default TTL is set to 0. Add TTL support later on
-func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
+func (p *PubNub) GrantAccess(a *Authenticate, c ChannelManager) error {
 	// read and write access can be optional later on.
 	settings := &pubnub.AuthSettings{
 		ChannelName: c.PrepareName(),
@@ -174,7 +174,7 @@ func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 	return p.grantAccess(settings)
 }
 
-func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
+func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelManager) error {
 	// read and write access can be optional later on.
 	settings := &pubnub.AuthSettings{
 		ChannelName: c.PrepareName(),
@@ -187,7 +187,7 @@ func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
 	return p.grantAccess(settings)
 }
 
-func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
+func (p *PubNub) GrantPublicAccess(c ChannelManager) error {
 	if ok := p.isAccessGranted(c); ok {
 		return nil
 	}
@@ -224,7 +224,7 @@ func (p *PubNub) grantAccess(s *pubnub.AuthSettings) error {
 	return err
 }
 
-func (p *PubNub) publish(c ChannelInterface, message interface{}) error {
+func (p *PubNub) publish(c ChannelManager, message interface{}) error {
 
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = MaxRetryDuration

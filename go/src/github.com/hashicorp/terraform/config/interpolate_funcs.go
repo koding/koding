@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -19,15 +20,35 @@ var Funcs map[string]ast.Function
 
 func init() {
 	Funcs = map[string]ast.Function{
-		"concat":     interpolationFuncConcat(),
-		"element":    interpolationFuncElement(),
-		"file":       interpolationFuncFile(),
-		"format":     interpolationFuncFormat(),
-		"formatlist": interpolationFuncFormatList(),
-		"join":       interpolationFuncJoin(),
-		"length":     interpolationFuncLength(),
-		"replace":    interpolationFuncReplace(),
-		"split":      interpolationFuncSplit(),
+		"compact":      interpolationFuncCompact(),
+		"concat":       interpolationFuncConcat(),
+		"element":      interpolationFuncElement(),
+		"file":         interpolationFuncFile(),
+		"format":       interpolationFuncFormat(),
+		"formatlist":   interpolationFuncFormatList(),
+		"index":        interpolationFuncIndex(),
+		"join":         interpolationFuncJoin(),
+		"length":       interpolationFuncLength(),
+		"replace":      interpolationFuncReplace(),
+		"split":        interpolationFuncSplit(),
+		"base64encode": interpolationFuncBase64Encode(),
+		"base64decode": interpolationFuncBase64Decode(),
+	}
+}
+
+// interpolationFuncCompact strips a list of multi-variable values
+// (e.g. as returned by "split") of any empty strings.
+func interpolationFuncCompact() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			if !IsStringList(args[0].(string)) {
+				return args[0].(string), nil
+			}
+			return StringList(args[0].(string)).Compact().String(), nil
+		},
 	}
 }
 
@@ -54,11 +75,12 @@ func interpolationFuncConcat() ast.Function {
 					continue
 				}
 
-				if strings.Contains(argument, InterpSplitDelim) {
+				if IsStringList(argument) {
 					isDeprecated = false
+					finalList = append(finalList, StringList(argument).Slice()...)
+				} else {
+					finalList = append(finalList, argument)
 				}
-
-				finalList = append(finalList, argument)
 
 				// Deprecated concat behaviour
 				b.WriteString(argument)
@@ -68,7 +90,7 @@ func interpolationFuncConcat() ast.Function {
 				return b.String(), nil
 			}
 
-			return strings.Join(finalList, InterpSplitDelim), nil
+			return NewStringList(finalList).String(), nil
 		},
 	}
 }
@@ -131,11 +153,16 @@ func interpolationFuncFormatList() ast.Function {
 				if !ok {
 					continue
 				}
-				parts := strings.Split(s, InterpSplitDelim)
-				if len(parts) == 1 {
+				if !IsStringList(s) {
 					continue
 				}
+
+				parts := StringList(s).Slice()
+
+				// otherwise the list is sent down to be indexed
 				varargs[i-1] = parts
+
+				// Check length
 				if n == 0 {
 					// first list we've seen
 					n = len(parts)
@@ -167,7 +194,26 @@ func interpolationFuncFormatList() ast.Function {
 				}
 				list[i] = fmt.Sprintf(format, fmtargs...)
 			}
-			return strings.Join(list, InterpSplitDelim), nil
+			return NewStringList(list).String(), nil
+		},
+	}
+}
+
+// interpolationFuncIndex implements the "index" function that allows one to
+// find the index of a specific element in a list
+func interpolationFuncIndex() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
+		ReturnType: ast.TypeInt,
+		Callback: func(args []interface{}) (interface{}, error) {
+			haystack := StringList(args[0].(string)).Slice()
+			needle := args[1].(string)
+			for index, element := range haystack {
+				if needle == element {
+					return index, nil
+				}
+			}
+			return nil, fmt.Errorf("Could not find '%s' in '%s'", needle, haystack)
 		},
 	}
 }
@@ -181,7 +227,7 @@ func interpolationFuncJoin() ast.Function {
 		Callback: func(args []interface{}) (interface{}, error) {
 			var list []string
 			for _, arg := range args[1:] {
-				parts := strings.Split(arg.(string), InterpSplitDelim)
+				parts := StringList(arg.(string)).Slice()
 				list = append(list, parts...)
 			}
 
@@ -223,18 +269,15 @@ func interpolationFuncLength() ast.Function {
 		ReturnType: ast.TypeInt,
 		Variadic:   false,
 		Callback: func(args []interface{}) (interface{}, error) {
-			if !strings.Contains(args[0].(string), InterpSplitDelim) {
+			if !IsStringList(args[0].(string)) {
 				return len(args[0].(string)), nil
 			}
 
-			var list []string
+			length := 0
 			for _, arg := range args {
-				parts := strings.Split(arg.(string), InterpSplitDelim)
-				for _, part := range parts {
-					list = append(list, part)
-				}
+				length += StringList(arg.(string)).Length()
 			}
-			return len(list), nil
+			return length, nil
 		},
 	}
 }
@@ -246,7 +289,9 @@ func interpolationFuncSplit() ast.Function {
 		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
 		ReturnType: ast.TypeString,
 		Callback: func(args []interface{}) (interface{}, error) {
-			return strings.Replace(args[1].(string), args[0].(string), InterpSplitDelim, -1), nil
+			sep := args[0].(string)
+			s := args[1].(string)
+			return NewStringList(strings.Split(s, sep)).String(), nil
 		},
 	}
 }
@@ -284,7 +329,7 @@ func interpolationFuncElement() ast.Function {
 		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
 		ReturnType: ast.TypeString,
 		Callback: func(args []interface{}) (interface{}, error) {
-			list := strings.Split(args[0].(string), InterpSplitDelim)
+			list := StringList(args[0].(string))
 
 			index, err := strconv.Atoi(args[1].(string))
 			if err != nil {
@@ -292,7 +337,7 @@ func interpolationFuncElement() ast.Function {
 					"invalid number for index, got %s", args[1])
 			}
 
-			v := list[index%len(list)]
+			v := list.Element(index)
 			return v, nil
 		},
 	}
@@ -323,7 +368,7 @@ func interpolationFuncKeys(vs map[string]ast.Variable) ast.Function {
 
 			sort.Strings(keys)
 
-			return strings.Join(keys, InterpSplitDelim), nil
+			return NewStringList(keys).String(), nil
 		},
 	}
 }
@@ -363,7 +408,37 @@ func interpolationFuncValues(vs map[string]ast.Variable) ast.Function {
 				vals = append(vals, vs[k].Value.(string))
 			}
 
-			return strings.Join(vals, InterpSplitDelim), nil
+			return NewStringList(vals).String(), nil
+		},
+	}
+}
+
+// interpolationFuncBase64Encode implements the "base64encode" function that
+// allows Base64 encoding.
+func interpolationFuncBase64Encode() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+			return base64.StdEncoding.EncodeToString([]byte(s)), nil
+		},
+	}
+}
+
+// interpolationFuncBase64Decode implements the "base64decode" function that
+// allows Base64 decoding.
+func interpolationFuncBase64Decode() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+			sDec, err := base64.StdEncoding.DecodeString(s)
+			if err != nil {
+				return "", fmt.Errorf("failed to decode base64 data '%s'", s)
+			}
+			return string(sDec), nil
 		},
 	}
 }

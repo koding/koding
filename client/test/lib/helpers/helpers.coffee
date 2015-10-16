@@ -58,7 +58,7 @@ module.exports =
       if result.status is 0
         console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
-        console.log ' ✔ User is not registered yet. Registering...'
+        console.log " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
         @doRegister browser, user
 
 
@@ -493,6 +493,18 @@ module.exports =
       .pause                   5000
       .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
       .pause                   5000
+
+
+  runCommandOnTerminal: (browser, text) ->
+
+    text or= Date.now()
+
+    browser
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{text}')"
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+      .pause                     5000
+      .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
+      .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', text
 
 
   setCookie: (browser, name, value) ->

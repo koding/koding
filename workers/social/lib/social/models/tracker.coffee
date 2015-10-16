@@ -72,14 +72,14 @@ module.exports = class Tracker extends bongo.Base
     @track nickname, event, options
 
 
-  @track = (username, mail, options = {}) ->
+  @track = (username, event, options = {}) ->
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username = forcedRecipient
-      mail.to  = forcedRecipient
+      event.to  = forcedRecipient
 
-    mail.from       or= defaultFromMail
-    mail.properties   = @addDefaults { options, username }
+    event.from       or= defaultFromMail
+    event.properties   = @addDefaults { options, username }
 
     unless mqClient
       return console.error 'RabbitMQ client not found for class `Tracker` @sent-hil'
@@ -89,7 +89,7 @@ module.exports = class Tracker extends bongo.Base
         unless exchange
           return console.error "Exchange not found to queue: #{exchangeName} @sent-hil"
 
-        exchange.publish '', mail, { type:EVENT_TYPE }
+        exchange.publish '', event, { type: EVENT_TYPE }
         exchange.close()
 
     if mqClient.readyEmitted then sendMessage()
