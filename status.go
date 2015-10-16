@@ -120,7 +120,7 @@ Please run the following command:
 			fmt.Println(`Error: You do not appear to have a properly working internet connection.`)
 
 		case ErrHealthNoKontrolHttp:
-			fmt.Printf(`Error: Koding.com does not appear to be responding.
+			fmt.Printf(`Error: koding.com does not appear to be responding.
 If this problem persists, please contact us at: support@koding.com
 `)
 
