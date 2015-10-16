@@ -49,7 +49,7 @@ runTests = -> describe 'workers.social.models.computeproviders.digitalocean', ->
           expect(data.meta.region)     .to.be.equal 'sfo1'
           expect(data.credential)      .to.be.equal options.credential
           done()
-        
+
 
     describe 'when data is provided', ->
 

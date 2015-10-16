@@ -49,7 +49,7 @@ runTests = -> describe 'workers.social.models.computeproviders.rackspace', ->
           expect(data.meta.region)     .to.be.equal 'IAD'
           expect(data.credential)      .to.be.equal options.credential
           done()
-        
+
 
     describe 'when data is provided', ->
 

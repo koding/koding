@@ -81,7 +81,7 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           expect(data.credential)           .to.be.equal options.credential
           expect(data.meta.source_ami)      .to.be.equal options.ami
           done()
-        
+
 
 beforeTests()
 
