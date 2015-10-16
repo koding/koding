@@ -57,6 +57,7 @@ module.exports = class ChatPane extends React.Component
     messagesSize        = @props.thread.get('messages').size
     reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
 
+    # we have always at least one system message
     return null  unless reachedFirstMessage and messagesSize
 
     <ChannelInfoContainer
