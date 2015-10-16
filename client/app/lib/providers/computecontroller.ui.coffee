@@ -3,7 +3,9 @@ _                    = require 'underscore'
 hljs                 = require 'highlight.js'
 Encoder              = require 'htmlencode'
 
+KDView               = kd.View
 KDModalView          = kd.ModalView
+KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
 KDCustomScrollView   = kd.CustomScrollView
 KDFormViewWithFields = kd.FormViewWithFields
@@ -407,11 +409,16 @@ module.exports = class ComputeController_UI
 
     content      = (hljs.highlight 'profile', errorMessage).value
 
-    errorDetails = new KDCustomScrollView
-    errorDetails.wrapper.addSubView new kd.CustomHTMLView
+    errorDetails = new KDView
+    if message
+      errorDetails.setClass 'with-message'
+      errorDetails.addSubView new KDCustomHTMLView
+        partial: "#{message}"
+
+    errorDetails.addSubView scrollView = new KDCustomScrollView
+    scrollView.wrapper.addSubView new KDCustomHTMLView
       cssClass : 'error-content'
       partial  : """
-        #{message}
         <div class='content'>
           <pre><code>#{content}</code></pre>
         </div>
@@ -436,7 +443,7 @@ module.exports = class ComputeController_UI
         content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
 
         stackTemplate = new KDCustomScrollView
-        stackTemplate.wrapper.addSubView new kd.CustomHTMLView
+        stackTemplate.wrapper.addSubView new KDCustomHTMLView
           partial  : "<pre><code>#{content}</code></pre>"
 
         tabView.addPane new kd.TabPaneView
