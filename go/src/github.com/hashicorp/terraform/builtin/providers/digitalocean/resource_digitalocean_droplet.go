@@ -39,6 +39,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"size": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				StateFunc: func(val interface{}) string {
+					// DO API V2 size slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 			},
 
 			"status": &schema.Schema{
@@ -165,6 +169,12 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	// Retrieve the droplet properties for updating the state
 	droplet, err := client.RetrieveDroplet(d.Id())
 	if err != nil {
+		// check if the droplet no longer exists.
+		if err.Error() == "Error retrieving droplet: API Error: 404 Not Found" {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("Error retrieving droplet: %s", err)
 	}
 

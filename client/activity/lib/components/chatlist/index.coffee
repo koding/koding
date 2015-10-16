@@ -127,7 +127,7 @@ module.exports = class ChatList extends React.Component
 
   renderChildren: ->
 
-    { messages, showItemMenu, channelName } = @props
+    { messages, showItemMenu, channelName, channelId } = @props
     { selectedMessageId } = @state
 
     lastDifferentOwnerId = null
@@ -140,6 +140,7 @@ module.exports = class ChatList extends React.Component
         message      : message
         showItemMenu : showItemMenu
         channelName  : channelName
+        channelId    : channelId
 
       if selectedMessageId is message.get 'id'
         itemProps['isSelected'] = yes

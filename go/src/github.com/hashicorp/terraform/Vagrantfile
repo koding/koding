@@ -42,6 +42,7 @@ SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "chef/ubuntu-12.04"
+  config.vm.hostname = "terraform"
 
   config.vm.provision "shell", inline: $script, privileged: false
   config.vm.synced_folder '.', '/opt/gopath/src/github.com/hashicorp/terraform'
@@ -49,8 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   ["vmware_fusion", "vmware_workstation"].each do |p|
     config.vm.provider p do |v|
       v.vmx["memsize"] = "4096"
-      v.vmx["numvcpus"] = "4"
-      v.vmx['cpuid.coresPerSocket'] = '2'
+      v.vmx["numvcpus"] = "2"
     end
   end
 end

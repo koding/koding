@@ -6,14 +6,15 @@ package cloudwatch
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opDeleteAlarms = "DeleteAlarms"
 
 // DeleteAlarmsRequest generates a request for the DeleteAlarms operation.
-func (c *CloudWatch) DeleteAlarmsRequest(input *DeleteAlarmsInput) (req *aws.Request, output *DeleteAlarmsOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) DeleteAlarmsRequest(input *DeleteAlarmsInput) (req *request.Request, output *DeleteAlarmsOutput) {
+	op := &request.Operation{
 		Name:       opDeleteAlarms,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -39,12 +40,12 @@ func (c *CloudWatch) DeleteAlarms(input *DeleteAlarmsInput) (*DeleteAlarmsOutput
 const opDescribeAlarmHistory = "DescribeAlarmHistory"
 
 // DescribeAlarmHistoryRequest generates a request for the DescribeAlarmHistory operation.
-func (c *CloudWatch) DescribeAlarmHistoryRequest(input *DescribeAlarmHistoryInput) (req *aws.Request, output *DescribeAlarmHistoryOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) DescribeAlarmHistoryRequest(input *DescribeAlarmHistoryInput) (req *request.Request, output *DescribeAlarmHistoryOutput) {
+	op := &request.Operation{
 		Name:       opDescribeAlarmHistory,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "MaxRecords",
@@ -65,9 +66,6 @@ func (c *CloudWatch) DescribeAlarmHistoryRequest(input *DescribeAlarmHistoryInpu
 // Retrieves history for the specified alarm. Filter alarms by date range or
 // item type. If an alarm name is not specified, Amazon CloudWatch returns histories
 // for all of the owner's alarms.
-//
-//  Amazon CloudWatch retains the history of an alarm for two weeks, whether
-// or not you delete the alarm.
 func (c *CloudWatch) DescribeAlarmHistory(input *DescribeAlarmHistoryInput) (*DescribeAlarmHistoryOutput, error) {
 	req, out := c.DescribeAlarmHistoryRequest(input)
 	err := req.Send()
@@ -84,12 +82,12 @@ func (c *CloudWatch) DescribeAlarmHistoryPages(input *DescribeAlarmHistoryInput,
 const opDescribeAlarms = "DescribeAlarms"
 
 // DescribeAlarmsRequest generates a request for the DescribeAlarms operation.
-func (c *CloudWatch) DescribeAlarmsRequest(input *DescribeAlarmsInput) (req *aws.Request, output *DescribeAlarmsOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) DescribeAlarmsRequest(input *DescribeAlarmsInput) (req *request.Request, output *DescribeAlarmsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeAlarms,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "MaxRecords",
@@ -126,8 +124,8 @@ func (c *CloudWatch) DescribeAlarmsPages(input *DescribeAlarmsInput, fn func(p *
 const opDescribeAlarmsForMetric = "DescribeAlarmsForMetric"
 
 // DescribeAlarmsForMetricRequest generates a request for the DescribeAlarmsForMetric operation.
-func (c *CloudWatch) DescribeAlarmsForMetricRequest(input *DescribeAlarmsForMetricInput) (req *aws.Request, output *DescribeAlarmsForMetricOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) DescribeAlarmsForMetricRequest(input *DescribeAlarmsForMetricInput) (req *request.Request, output *DescribeAlarmsForMetricOutput) {
+	op := &request.Operation{
 		Name:       opDescribeAlarmsForMetric,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -154,8 +152,8 @@ func (c *CloudWatch) DescribeAlarmsForMetric(input *DescribeAlarmsForMetricInput
 const opDisableAlarmActions = "DisableAlarmActions"
 
 // DisableAlarmActionsRequest generates a request for the DisableAlarmActions operation.
-func (c *CloudWatch) DisableAlarmActionsRequest(input *DisableAlarmActionsInput) (req *aws.Request, output *DisableAlarmActionsOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) DisableAlarmActionsRequest(input *DisableAlarmActionsInput) (req *request.Request, output *DisableAlarmActionsOutput) {
+	op := &request.Operation{
 		Name:       opDisableAlarmActions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -182,8 +180,8 @@ func (c *CloudWatch) DisableAlarmActions(input *DisableAlarmActionsInput) (*Disa
 const opEnableAlarmActions = "EnableAlarmActions"
 
 // EnableAlarmActionsRequest generates a request for the EnableAlarmActions operation.
-func (c *CloudWatch) EnableAlarmActionsRequest(input *EnableAlarmActionsInput) (req *aws.Request, output *EnableAlarmActionsOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) EnableAlarmActionsRequest(input *EnableAlarmActionsInput) (req *request.Request, output *EnableAlarmActionsOutput) {
+	op := &request.Operation{
 		Name:       opEnableAlarmActions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -209,8 +207,8 @@ func (c *CloudWatch) EnableAlarmActions(input *EnableAlarmActionsInput) (*Enable
 const opGetMetricStatistics = "GetMetricStatistics"
 
 // GetMetricStatisticsRequest generates a request for the GetMetricStatistics operation.
-func (c *CloudWatch) GetMetricStatisticsRequest(input *GetMetricStatisticsInput) (req *aws.Request, output *GetMetricStatisticsOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) GetMetricStatisticsRequest(input *GetMetricStatisticsInput) (req *request.Request, output *GetMetricStatisticsOutput) {
+	op := &request.Operation{
 		Name:       opGetMetricStatistics,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -261,12 +259,12 @@ func (c *CloudWatch) GetMetricStatistics(input *GetMetricStatisticsInput) (*GetM
 const opListMetrics = "ListMetrics"
 
 // ListMetricsRequest generates a request for the ListMetrics operation.
-func (c *CloudWatch) ListMetricsRequest(input *ListMetricsInput) (req *aws.Request, output *ListMetricsOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) ListMetricsRequest(input *ListMetricsInput) (req *request.Request, output *ListMetricsOutput) {
+	op := &request.Operation{
 		Name:       opListMetrics,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"NextToken"},
 			OutputTokens:    []string{"NextToken"},
 			LimitToken:      "",
@@ -287,12 +285,6 @@ func (c *CloudWatch) ListMetricsRequest(input *ListMetricsInput) (req *aws.Reque
 // Returns a list of valid metrics stored for the AWS account owner. Returned
 // metrics can be used with GetMetricStatistics to obtain statistical data for
 // a given metric.
-//
-//  Up to 500 results are returned for any one call. To retrieve further results,
-// use returned NextToken values with subsequent ListMetrics operations.   If
-// you create a metric with the PutMetricData action, allow up to fifteen minutes
-// for the metric to appear in calls to the ListMetrics action. Statistics about
-// the metric, however, are available sooner using GetMetricStatistics.
 func (c *CloudWatch) ListMetrics(input *ListMetricsInput) (*ListMetricsOutput, error) {
 	req, out := c.ListMetricsRequest(input)
 	err := req.Send()
@@ -309,8 +301,8 @@ func (c *CloudWatch) ListMetricsPages(input *ListMetricsInput, fn func(p *ListMe
 const opPutMetricAlarm = "PutMetricAlarm"
 
 // PutMetricAlarmRequest generates a request for the PutMetricAlarm operation.
-func (c *CloudWatch) PutMetricAlarmRequest(input *PutMetricAlarmInput) (req *aws.Request, output *PutMetricAlarmOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) PutMetricAlarmRequest(input *PutMetricAlarmInput) (req *request.Request, output *PutMetricAlarmOutput) {
+	op := &request.Operation{
 		Name:       opPutMetricAlarm,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -333,8 +325,6 @@ func (c *CloudWatch) PutMetricAlarmRequest(input *PutMetricAlarmInput) (req *aws
 //  When this operation creates an alarm, the alarm state is immediately set
 // to INSUFFICIENT_DATA. The alarm is evaluated and its StateValue is set appropriately.
 // Any actions associated with the StateValue is then executed.
-//
-//  When updating an existing alarm, its StateValue is left unchanged.
 func (c *CloudWatch) PutMetricAlarm(input *PutMetricAlarmInput) (*PutMetricAlarmOutput, error) {
 	req, out := c.PutMetricAlarmRequest(input)
 	err := req.Send()
@@ -344,8 +334,8 @@ func (c *CloudWatch) PutMetricAlarm(input *PutMetricAlarmInput) (*PutMetricAlarm
 const opPutMetricData = "PutMetricData"
 
 // PutMetricDataRequest generates a request for the PutMetricData operation.
-func (c *CloudWatch) PutMetricDataRequest(input *PutMetricDataInput) (req *aws.Request, output *PutMetricDataOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) PutMetricDataRequest(input *PutMetricDataInput) (req *request.Request, output *PutMetricDataOutput) {
+	op := &request.Operation{
 		Name:       opPutMetricData,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -384,8 +374,8 @@ func (c *CloudWatch) PutMetricData(input *PutMetricDataInput) (*PutMetricDataOut
 const opSetAlarmState = "SetAlarmState"
 
 // SetAlarmStateRequest generates a request for the SetAlarmState operation.
-func (c *CloudWatch) SetAlarmStateRequest(input *SetAlarmStateInput) (req *aws.Request, output *SetAlarmStateOutput) {
-	op := &aws.Operation{
+func (c *CloudWatch) SetAlarmStateRequest(input *SetAlarmStateInput) (req *request.Request, output *SetAlarmStateOutput) {
+	op := &request.Operation{
 		Name:       opSetAlarmState,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -416,16 +406,16 @@ func (c *CloudWatch) SetAlarmState(input *SetAlarmStateInput) (*SetAlarmStateOut
 // returns this data type as part of the DescribeAlarmHistoryResult data type.
 type AlarmHistoryItem struct {
 	// The descriptive name for the alarm.
-	AlarmName *string `type:"string"`
+	AlarmName *string `min:"1" type:"string"`
 
 	// Machine-readable data about the alarm in JSON format.
-	HistoryData *string `type:"string"`
+	HistoryData *string `min:"1" type:"string"`
 
 	// The type of alarm history item.
-	HistoryItemType *string `type:"string"`
+	HistoryItemType *string `type:"string" enum:"HistoryItemType"`
 
 	// A human-readable summary of the alarm history.
-	HistorySummary *string `type:"string"`
+	HistorySummary *string `min:"1" type:"string"`
 
 	// The time stamp for the alarm history item. Amazon CloudWatch uses Coordinated
 	// Universal Time (UTC) when returning time stamps, which do not accommodate
@@ -439,6 +429,16 @@ type AlarmHistoryItem struct {
 
 type metadataAlarmHistoryItem struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AlarmHistoryItem) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AlarmHistoryItem) GoString() string {
+	return s.String()
 }
 
 // The Datapoint data type encapsulates the statistical data that Amazon CloudWatch
@@ -468,13 +468,23 @@ type Datapoint struct {
 	Timestamp *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// The standard unit used for the datapoint.
-	Unit *string `type:"string"`
+	Unit *string `type:"string" enum:"StandardUnit"`
 
 	metadataDatapoint `json:"-" xml:"-"`
 }
 
 type metadataDatapoint struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Datapoint) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Datapoint) GoString() string {
+	return s.String()
 }
 
 type DeleteAlarmsInput struct {
@@ -488,6 +498,16 @@ type metadataDeleteAlarmsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteAlarmsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAlarmsInput) GoString() string {
+	return s.String()
+}
+
 type DeleteAlarmsOutput struct {
 	metadataDeleteAlarmsOutput `json:"-" xml:"-"`
 }
@@ -496,18 +516,28 @@ type metadataDeleteAlarmsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteAlarmsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAlarmsOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeAlarmHistoryInput struct {
 	// The name of the alarm.
-	AlarmName *string `type:"string"`
+	AlarmName *string `min:"1" type:"string"`
 
 	// The ending date to retrieve alarm history.
 	EndDate *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// The type of alarm histories to retrieve.
-	HistoryItemType *string `type:"string"`
+	HistoryItemType *string `type:"string" enum:"HistoryItemType"`
 
 	// The maximum number of alarm history records to retrieve.
-	MaxRecords *int64 `type:"integer"`
+	MaxRecords *int64 `min:"1" type:"integer"`
 
 	// The token returned by a previous call to indicate that there is more data
 	// available.
@@ -521,6 +551,16 @@ type DescribeAlarmHistoryInput struct {
 
 type metadataDescribeAlarmHistoryInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeAlarmHistoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAlarmHistoryInput) GoString() string {
+	return s.String()
 }
 
 // The output for the DescribeAlarmHistory action.
@@ -538,30 +578,50 @@ type metadataDescribeAlarmHistoryOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeAlarmHistoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAlarmHistoryOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeAlarmsForMetricInput struct {
 	// The list of dimensions associated with the metric.
 	Dimensions []*Dimension `type:"list"`
 
 	// The name of the metric.
-	MetricName *string `type:"string" required:"true"`
+	MetricName *string `min:"1" type:"string" required:"true"`
 
 	// The namespace of the metric.
-	Namespace *string `type:"string" required:"true"`
+	Namespace *string `min:"1" type:"string" required:"true"`
 
 	// The period in seconds over which the statistic is applied.
-	Period *int64 `type:"integer"`
+	Period *int64 `min:"60" type:"integer"`
 
 	// The statistic for the metric.
-	Statistic *string `type:"string"`
+	Statistic *string `type:"string" enum:"Statistic"`
 
 	// The unit for the metric.
-	Unit *string `type:"string"`
+	Unit *string `type:"string" enum:"StandardUnit"`
 
 	metadataDescribeAlarmsForMetricInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeAlarmsForMetricInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeAlarmsForMetricInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAlarmsForMetricInput) GoString() string {
+	return s.String()
 }
 
 // The output for the DescribeAlarmsForMetric action.
@@ -576,32 +636,52 @@ type metadataDescribeAlarmsForMetricOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeAlarmsForMetricOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAlarmsForMetricOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeAlarmsInput struct {
 	// The action name prefix.
-	ActionPrefix *string `type:"string"`
+	ActionPrefix *string `min:"1" type:"string"`
 
 	// The alarm name prefix. AlarmNames cannot be specified if this parameter is
 	// specified.
-	AlarmNamePrefix *string `type:"string"`
+	AlarmNamePrefix *string `min:"1" type:"string"`
 
 	// A list of alarm names to retrieve information for.
 	AlarmNames []*string `type:"list"`
 
 	// The maximum number of alarm descriptions to retrieve.
-	MaxRecords *int64 `type:"integer"`
+	MaxRecords *int64 `min:"1" type:"integer"`
 
 	// The token returned by a previous call to indicate that there is more data
 	// available.
 	NextToken *string `type:"string"`
 
 	// The state value to be used in matching alarms.
-	StateValue *string `type:"string"`
+	StateValue *string `type:"string" enum:"StateValue"`
 
 	metadataDescribeAlarmsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeAlarmsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeAlarmsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAlarmsInput) GoString() string {
+	return s.String()
 }
 
 // The output for the DescribeAlarms action.
@@ -619,16 +699,26 @@ type metadataDescribeAlarmsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeAlarmsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAlarmsOutput) GoString() string {
+	return s.String()
+}
+
 // The Dimension data type further expands on the identity of a metric using
 // a Name, Value pair.
 //
 // For examples that use one or more dimensions, see PutMetricData.
 type Dimension struct {
 	// The name of the dimension.
-	Name *string `type:"string" required:"true"`
+	Name *string `min:"1" type:"string" required:"true"`
 
 	// The value representing the dimension measurement
-	Value *string `type:"string" required:"true"`
+	Value *string `min:"1" type:"string" required:"true"`
 
 	metadataDimension `json:"-" xml:"-"`
 }
@@ -637,22 +727,39 @@ type metadataDimension struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Dimension) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Dimension) GoString() string {
+	return s.String()
+}
+
 // The DimensionFilter data type is used to filter ListMetrics results.
 type DimensionFilter struct {
 	// The dimension name to be matched.
-	Name *string `type:"string" required:"true"`
+	Name *string `min:"1" type:"string" required:"true"`
 
 	// The value of the dimension to be matched.
-	//
-	//  Specifying a Name without specifying a Value returns all values associated
-	// with that Name.
-	Value *string `type:"string"`
+	Value *string `min:"1" type:"string"`
 
 	metadataDimensionFilter `json:"-" xml:"-"`
 }
 
 type metadataDimensionFilter struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DimensionFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DimensionFilter) GoString() string {
+	return s.String()
 }
 
 type DisableAlarmActionsInput struct {
@@ -666,12 +773,32 @@ type metadataDisableAlarmActionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DisableAlarmActionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableAlarmActionsInput) GoString() string {
+	return s.String()
+}
+
 type DisableAlarmActionsOutput struct {
 	metadataDisableAlarmActionsOutput `json:"-" xml:"-"`
 }
 
 type metadataDisableAlarmActionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisableAlarmActionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableAlarmActionsOutput) GoString() string {
+	return s.String()
 }
 
 type EnableAlarmActionsInput struct {
@@ -685,12 +812,32 @@ type metadataEnableAlarmActionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnableAlarmActionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableAlarmActionsInput) GoString() string {
+	return s.String()
+}
+
 type EnableAlarmActionsOutput struct {
 	metadataEnableAlarmActionsOutput `json:"-" xml:"-"`
 }
 
 type metadataEnableAlarmActionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnableAlarmActionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableAlarmActionsOutput) GoString() string {
+	return s.String()
 }
 
 type GetMetricStatisticsInput struct {
@@ -703,25 +850,18 @@ type GetMetricStatisticsInput struct {
 	EndTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
 	// The name of the metric, with or without spaces.
-	MetricName *string `type:"string" required:"true"`
+	MetricName *string `min:"1" type:"string" required:"true"`
 
 	// The namespace of the metric, with or without spaces.
-	Namespace *string `type:"string" required:"true"`
+	Namespace *string `min:"1" type:"string" required:"true"`
 
 	// The granularity, in seconds, of the returned datapoints. Period must be at
 	// least 60 seconds and must be a multiple of 60. The default value is 60.
-	Period *int64 `type:"integer" required:"true"`
+	Period *int64 `min:"60" type:"integer" required:"true"`
 
 	// The time stamp to use for determining the first datapoint to return. The
 	// value specified is inclusive; results include datapoints with the time stamp
 	// specified.
-	//
-	//  The specified start time is rounded down to the nearest value. Datapoints
-	// are returned for start times up to two weeks in the past. Specified start
-	// times that are more than two weeks in the past will not return datapoints
-	// for metrics that are older than two weeks. Data that is timestamped 24 hours
-	// or more in the past may take in excess of 48 hours to become available from
-	// submission time using GetMetricStatistics.
 	StartTime *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
 
 	// The metric statistics to return. For information about specific statistics
@@ -729,16 +869,26 @@ type GetMetricStatisticsInput struct {
 	// in the Amazon CloudWatch Developer Guide.
 	//
 	//  Valid Values: Average | Sum | SampleCount | Maximum | Minimum
-	Statistics []*string `type:"list" required:"true"`
+	Statistics []*string `min:"1" type:"list" required:"true"`
 
 	// The unit for the metric.
-	Unit *string `type:"string"`
+	Unit *string `type:"string" enum:"StandardUnit"`
 
 	metadataGetMetricStatisticsInput `json:"-" xml:"-"`
 }
 
 type metadataGetMetricStatisticsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetMetricStatisticsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetMetricStatisticsInput) GoString() string {
+	return s.String()
 }
 
 // The output for the GetMetricStatistics action.
@@ -756,15 +906,25 @@ type metadataGetMetricStatisticsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetMetricStatisticsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetMetricStatisticsOutput) GoString() string {
+	return s.String()
+}
+
 type ListMetricsInput struct {
 	// A list of dimensions to filter against.
 	Dimensions []*DimensionFilter `type:"list"`
 
 	// The name of the metric to filter against.
-	MetricName *string `type:"string"`
+	MetricName *string `min:"1" type:"string"`
 
 	// The namespace to filter against.
-	Namespace *string `type:"string"`
+	Namespace *string `min:"1" type:"string"`
 
 	// The token returned by a previous call to indicate that there is more data
 	// available.
@@ -775,6 +935,16 @@ type ListMetricsInput struct {
 
 type metadataListMetricsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListMetricsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListMetricsInput) GoString() string {
+	return s.String()
 }
 
 // The output for the ListMetrics action.
@@ -792,6 +962,16 @@ type metadataListMetricsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListMetricsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListMetricsOutput) GoString() string {
+	return s.String()
+}
+
 // The Metric data type contains information about a specific metric. If you
 // call ListMetrics, Amazon CloudWatch returns information contained by this
 // data type.
@@ -804,16 +984,26 @@ type Metric struct {
 	Dimensions []*Dimension `type:"list"`
 
 	// The name of the metric.
-	MetricName *string `type:"string"`
+	MetricName *string `min:"1" type:"string"`
 
 	// The namespace of the metric.
-	Namespace *string `type:"string"`
+	Namespace *string `min:"1" type:"string"`
 
 	metadataMetric `json:"-" xml:"-"`
 }
 
 type metadataMetric struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Metric) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Metric) GoString() string {
+	return s.String()
 }
 
 // The MetricAlarm data type represents an alarm. You can use PutMetricAlarm
@@ -823,14 +1013,14 @@ type MetricAlarm struct {
 	// state.
 	ActionsEnabled *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the alarm.
-	AlarmARN *string `locationName:"AlarmArn" type:"string"`
-
 	// The list of actions to execute when this alarm transitions into an ALARM
 	// state from any other state. Each action is specified as an Amazon Resource
 	// Number (ARN). Currently the only actions supported are publishing to an Amazon
 	// SNS topic and triggering an Auto Scaling policy.
 	AlarmActions []*string `type:"list"`
+
+	// The Amazon Resource Name (ARN) of the alarm.
+	AlarmArn *string `min:"1" type:"string"`
 
 	// The time stamp of the last update to the alarm configuration. Amazon CloudWatch
 	// uses Coordinated Universal Time (UTC) when returning time stamps, which do
@@ -843,17 +1033,17 @@ type MetricAlarm struct {
 	AlarmDescription *string `type:"string"`
 
 	// The name of the alarm.
-	AlarmName *string `type:"string"`
+	AlarmName *string `min:"1" type:"string"`
 
 	// The arithmetic operation to use when comparing the specified Statistic and
 	// Threshold. The specified Statistic value is used as the first operand.
-	ComparisonOperator *string `type:"string"`
+	ComparisonOperator *string `type:"string" enum:"ComparisonOperator"`
 
 	// The list of dimensions associated with the alarm's associated metric.
 	Dimensions []*Dimension `type:"list"`
 
 	// The number of periods over which data is compared to the specified threshold.
-	EvaluationPeriods *int64 `type:"integer"`
+	EvaluationPeriods *int64 `min:"1" type:"integer"`
 
 	// The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA
 	// state from any other state. Each action is specified as an Amazon Resource
@@ -864,10 +1054,10 @@ type MetricAlarm struct {
 	InsufficientDataActions []*string `type:"list"`
 
 	// The name of the alarm's metric.
-	MetricName *string `type:"string"`
+	MetricName *string `min:"1" type:"string"`
 
 	// The namespace of alarm's associated metric.
-	Namespace *string `type:"string"`
+	Namespace *string `min:"1" type:"string"`
 
 	// The list of actions to execute when this alarm transitions into an OK state
 	// from any other state. Each action is specified as an Amazon Resource Number
@@ -876,7 +1066,7 @@ type MetricAlarm struct {
 	OKActions []*string `type:"list"`
 
 	// The period in seconds over which the statistic is applied.
-	Period *int64 `type:"integer"`
+	Period *int64 `min:"60" type:"integer"`
 
 	// A human-readable explanation for the alarm's state.
 	StateReason *string `type:"string"`
@@ -892,22 +1082,32 @@ type MetricAlarm struct {
 	StateUpdatedTimestamp *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// The state value for the alarm.
-	StateValue *string `type:"string"`
+	StateValue *string `type:"string" enum:"StateValue"`
 
 	// The statistic to apply to the alarm's associated metric.
-	Statistic *string `type:"string"`
+	Statistic *string `type:"string" enum:"Statistic"`
 
 	// The value against which the specified statistic is compared.
 	Threshold *float64 `type:"double"`
 
 	// The unit of the alarm's associated metric.
-	Unit *string `type:"string"`
+	Unit *string `type:"string" enum:"StandardUnit"`
 
 	metadataMetricAlarm `json:"-" xml:"-"`
 }
 
 type metadataMetricAlarm struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s MetricAlarm) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MetricAlarm) GoString() string {
+	return s.String()
 }
 
 // The MetricDatum data type encapsulates the information sent with PutMetricData
@@ -919,7 +1119,7 @@ type MetricDatum struct {
 	Dimensions []*Dimension `type:"list"`
 
 	// The name of the metric.
-	MetricName *string `type:"string" required:"true"`
+	MetricName *string `min:"1" type:"string" required:"true"`
 
 	// A set of statistical values describing the metric.
 	StatisticValues *StatisticSet `type:"structure"`
@@ -933,7 +1133,7 @@ type MetricDatum struct {
 	Timestamp *time.Time `type:"timestamp" timestampFormat:"iso8601"`
 
 	// The unit of the metric.
-	Unit *string `type:"string"`
+	Unit *string `type:"string" enum:"StandardUnit"`
 
 	// The value for the metric.
 	//
@@ -948,6 +1148,16 @@ type MetricDatum struct {
 
 type metadataMetricDatum struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s MetricDatum) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MetricDatum) GoString() string {
+	return s.String()
 }
 
 type PutMetricAlarmInput struct {
@@ -966,17 +1176,17 @@ type PutMetricAlarmInput struct {
 
 	// The descriptive name for the alarm. This name must be unique within the user's
 	// AWS account
-	AlarmName *string `type:"string" required:"true"`
+	AlarmName *string `min:"1" type:"string" required:"true"`
 
 	// The arithmetic operation to use when comparing the specified Statistic and
 	// Threshold. The specified Statistic value is used as the first operand.
-	ComparisonOperator *string `type:"string" required:"true"`
+	ComparisonOperator *string `type:"string" required:"true" enum:"ComparisonOperator"`
 
 	// The dimensions for the alarm's associated metric.
 	Dimensions []*Dimension `type:"list"`
 
 	// The number of periods over which data is compared to the specified threshold.
-	EvaluationPeriods *int64 `type:"integer" required:"true"`
+	EvaluationPeriods *int64 `min:"1" type:"integer" required:"true"`
 
 	// The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA
 	// state from any other state. Each action is specified as an Amazon Resource
@@ -985,10 +1195,10 @@ type PutMetricAlarmInput struct {
 	InsufficientDataActions []*string `type:"list"`
 
 	// The name for the alarm's associated metric.
-	MetricName *string `type:"string" required:"true"`
+	MetricName *string `min:"1" type:"string" required:"true"`
 
 	// The namespace for the alarm's associated metric.
-	Namespace *string `type:"string" required:"true"`
+	Namespace *string `min:"1" type:"string" required:"true"`
 
 	// The list of actions to execute when this alarm transitions into an OK state
 	// from any other state. Each action is specified as an Amazon Resource Number
@@ -997,22 +1207,32 @@ type PutMetricAlarmInput struct {
 	OKActions []*string `type:"list"`
 
 	// The period in seconds over which the specified statistic is applied.
-	Period *int64 `type:"integer" required:"true"`
+	Period *int64 `min:"60" type:"integer" required:"true"`
 
 	// The statistic to apply to the alarm's associated metric.
-	Statistic *string `type:"string" required:"true"`
+	Statistic *string `type:"string" required:"true" enum:"Statistic"`
 
 	// The value against which the specified statistic is compared.
 	Threshold *float64 `type:"double" required:"true"`
 
 	// The unit for the alarm's associated metric.
-	Unit *string `type:"string"`
+	Unit *string `type:"string" enum:"StandardUnit"`
 
 	metadataPutMetricAlarmInput `json:"-" xml:"-"`
 }
 
 type metadataPutMetricAlarmInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s PutMetricAlarmInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutMetricAlarmInput) GoString() string {
+	return s.String()
 }
 
 type PutMetricAlarmOutput struct {
@@ -1023,22 +1243,38 @@ type metadataPutMetricAlarmOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s PutMetricAlarmOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutMetricAlarmOutput) GoString() string {
+	return s.String()
+}
+
 type PutMetricDataInput struct {
 	// A list of data describing the metric.
 	MetricData []*MetricDatum `type:"list" required:"true"`
 
 	// The namespace for the metric data.
-	//
-	//  You cannot specify a namespace that begins with "AWS/". Namespaces that
-	// begin with "AWS/" are reserved for other Amazon Web Services products that
-	// send metrics to Amazon CloudWatch.
-	Namespace *string `type:"string" required:"true"`
+	Namespace *string `min:"1" type:"string" required:"true"`
 
 	metadataPutMetricDataInput `json:"-" xml:"-"`
 }
 
 type metadataPutMetricDataInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s PutMetricDataInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutMetricDataInput) GoString() string {
+	return s.String()
 }
 
 type PutMetricDataOutput struct {
@@ -1049,10 +1285,20 @@ type metadataPutMetricDataOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s PutMetricDataOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutMetricDataOutput) GoString() string {
+	return s.String()
+}
+
 type SetAlarmStateInput struct {
 	// The descriptive name for the alarm. This name must be unique within the user's
 	// AWS account. The maximum length is 255 characters.
-	AlarmName *string `type:"string" required:"true"`
+	AlarmName *string `min:"1" type:"string" required:"true"`
 
 	// The reason that this alarm is set to this specific state (in human-readable
 	// text format)
@@ -1063,7 +1309,7 @@ type SetAlarmStateInput struct {
 	StateReasonData *string `type:"string"`
 
 	// The value of the state.
-	StateValue *string `type:"string" required:"true"`
+	StateValue *string `type:"string" required:"true" enum:"StateValue"`
 
 	metadataSetAlarmStateInput `json:"-" xml:"-"`
 }
@@ -1072,12 +1318,32 @@ type metadataSetAlarmStateInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s SetAlarmStateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SetAlarmStateInput) GoString() string {
+	return s.String()
+}
+
 type SetAlarmStateOutput struct {
 	metadataSetAlarmStateOutput `json:"-" xml:"-"`
 }
 
 type metadataSetAlarmStateOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s SetAlarmStateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SetAlarmStateOutput) GoString() string {
+	return s.String()
 }
 
 // The StatisticSet data type describes the StatisticValues component of MetricDatum,
@@ -1101,3 +1367,112 @@ type StatisticSet struct {
 type metadataStatisticSet struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s StatisticSet) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StatisticSet) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum ComparisonOperator
+	ComparisonOperatorGreaterThanOrEqualToThreshold = "GreaterThanOrEqualToThreshold"
+	// @enum ComparisonOperator
+	ComparisonOperatorGreaterThanThreshold = "GreaterThanThreshold"
+	// @enum ComparisonOperator
+	ComparisonOperatorLessThanThreshold = "LessThanThreshold"
+	// @enum ComparisonOperator
+	ComparisonOperatorLessThanOrEqualToThreshold = "LessThanOrEqualToThreshold"
+)
+
+const (
+	// @enum HistoryItemType
+	HistoryItemTypeConfigurationUpdate = "ConfigurationUpdate"
+	// @enum HistoryItemType
+	HistoryItemTypeStateUpdate = "StateUpdate"
+	// @enum HistoryItemType
+	HistoryItemTypeAction = "Action"
+)
+
+const (
+	// @enum StandardUnit
+	StandardUnitSeconds = "Seconds"
+	// @enum StandardUnit
+	StandardUnitMicroseconds = "Microseconds"
+	// @enum StandardUnit
+	StandardUnitMilliseconds = "Milliseconds"
+	// @enum StandardUnit
+	StandardUnitBytes = "Bytes"
+	// @enum StandardUnit
+	StandardUnitKilobytes = "Kilobytes"
+	// @enum StandardUnit
+	StandardUnitMegabytes = "Megabytes"
+	// @enum StandardUnit
+	StandardUnitGigabytes = "Gigabytes"
+	// @enum StandardUnit
+	StandardUnitTerabytes = "Terabytes"
+	// @enum StandardUnit
+	StandardUnitBits = "Bits"
+	// @enum StandardUnit
+	StandardUnitKilobits = "Kilobits"
+	// @enum StandardUnit
+	StandardUnitMegabits = "Megabits"
+	// @enum StandardUnit
+	StandardUnitGigabits = "Gigabits"
+	// @enum StandardUnit
+	StandardUnitTerabits = "Terabits"
+	// @enum StandardUnit
+	StandardUnitPercent = "Percent"
+	// @enum StandardUnit
+	StandardUnitCount = "Count"
+	// @enum StandardUnit
+	StandardUnitBytesSecond = "Bytes/Second"
+	// @enum StandardUnit
+	StandardUnitKilobytesSecond = "Kilobytes/Second"
+	// @enum StandardUnit
+	StandardUnitMegabytesSecond = "Megabytes/Second"
+	// @enum StandardUnit
+	StandardUnitGigabytesSecond = "Gigabytes/Second"
+	// @enum StandardUnit
+	StandardUnitTerabytesSecond = "Terabytes/Second"
+	// @enum StandardUnit
+	StandardUnitBitsSecond = "Bits/Second"
+	// @enum StandardUnit
+	StandardUnitKilobitsSecond = "Kilobits/Second"
+	// @enum StandardUnit
+	StandardUnitMegabitsSecond = "Megabits/Second"
+	// @enum StandardUnit
+	StandardUnitGigabitsSecond = "Gigabits/Second"
+	// @enum StandardUnit
+	StandardUnitTerabitsSecond = "Terabits/Second"
+	// @enum StandardUnit
+	StandardUnitCountSecond = "Count/Second"
+	// @enum StandardUnit
+	StandardUnitNone = "None"
+)
+
+const (
+	// @enum StateValue
+	StateValueOk = "OK"
+	// @enum StateValue
+	StateValueAlarm = "ALARM"
+	// @enum StateValue
+	StateValueInsufficientData = "INSUFFICIENT_DATA"
+)
+
+const (
+	// @enum Statistic
+	StatisticSampleCount = "SampleCount"
+	// @enum Statistic
+	StatisticAverage = "Average"
+	// @enum Statistic
+	StatisticSum = "Sum"
+	// @enum Statistic
+	StatisticMinimum = "Minimum"
+	// @enum Statistic
+	StatisticMaximum = "Maximum"
+)

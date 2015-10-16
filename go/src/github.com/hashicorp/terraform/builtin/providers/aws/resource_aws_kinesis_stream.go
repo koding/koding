@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,6 +16,7 @@ func resourceAwsKinesisStream() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsKinesisStreamCreate,
 		Read:   resourceAwsKinesisStreamRead,
+		Update: resourceAwsKinesisStreamUpdate,
 		Delete: resourceAwsKinesisStreamDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -35,6 +37,7 @@ func resourceAwsKinesisStream() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -43,7 +46,7 @@ func resourceAwsKinesisStreamCreate(d *schema.ResourceData, meta interface{}) er
 	conn := meta.(*AWSClient).kinesisconn
 	sn := d.Get("name").(string)
 	createOpts := &kinesis.CreateStreamInput{
-		ShardCount: aws.Long(int64(d.Get("shard_count").(int))),
+		ShardCount: aws.Int64(int64(d.Get("shard_count").(int))),
 		StreamName: aws.String(sn),
 	}
 
@@ -75,14 +78,28 @@ func resourceAwsKinesisStreamCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*s.StreamARN)
 	d.Set("arn", s.StreamARN)
 
-	return nil
+	return resourceAwsKinesisStreamUpdate(d, meta)
+}
+
+func resourceAwsKinesisStreamUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).kinesisconn
+
+	d.Partial(true)
+	if err := setTagsKinesis(conn, d); err != nil {
+		return err
+	}
+
+	d.SetPartial("tags")
+	d.Partial(false)
+
+	return resourceAwsKinesisStreamRead(d, meta)
 }
 
 func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisconn
+	sn := d.Get("name").(string)
 	describeOpts := &kinesis.DescribeStreamInput{
-		StreamName: aws.String(d.Get("name").(string)),
-		Limit:      aws.Long(1),
+		StreamName: aws.String(sn),
 	}
 	resp, err := conn.DescribeStream(describeOpts)
 	if err != nil {
@@ -99,6 +116,17 @@ func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) erro
 	s := resp.StreamDescription
 	d.Set("arn", *s.StreamARN)
 	d.Set("shard_count", len(s.Shards))
+
+	// set tags
+	describeTagsOpts := &kinesis.ListTagsForStreamInput{
+		StreamName: aws.String(sn),
+	}
+	tagsResp, err := conn.ListTagsForStream(describeTagsOpts)
+	if err != nil {
+		log.Printf("[DEBUG] Error retrieving tags for Stream: %s. %s", sn, err)
+	} else {
+		d.Set("tags", tagsToMapKinesis(tagsResp.Tags))
+	}
 
 	return nil
 }
@@ -138,7 +166,6 @@ func streamStateRefreshFunc(conn *kinesis.Kinesis, sn string) resource.StateRefr
 	return func() (interface{}, string, error) {
 		describeOpts := &kinesis.DescribeStreamInput{
 			StreamName: aws.String(sn),
-			Limit:      aws.Long(1),
 		}
 		resp, err := conn.DescribeStream(describeOpts)
 		if err != nil {

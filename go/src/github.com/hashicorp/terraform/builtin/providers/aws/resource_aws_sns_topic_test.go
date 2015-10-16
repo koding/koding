@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 func TestAccAWSSNSTopic_basic(t *testing.T) {
@@ -27,7 +27,6 @@ func TestAccAWSSNSTopic_basic(t *testing.T) {
 	})
 }
 
-
 func testAccCheckAWSSNSTopicDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).snsconn
 
@@ -38,7 +37,7 @@ func testAccCheckAWSSNSTopicDestroy(s *terraform.State) error {
 
 		// Check if the topic exists by fetching its attributes
 		params := &sns.GetTopicAttributesInput{
-			TopicARN: aws.String(rs.Primary.ID),
+			TopicArn: aws.String(rs.Primary.ID),
 		}
 		_, err := conn.GetTopicAttributes(params)
 		if err == nil {
@@ -55,7 +54,6 @@ func testAccCheckAWSSNSTopicDestroy(s *terraform.State) error {
 	return nil
 }
 
-
 func testAccCheckAWSSNSTopicExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -70,7 +68,7 @@ func testAccCheckAWSSNSTopicExists(n string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*AWSClient).snsconn
 
 		params := &sns.GetTopicAttributesInput{
-			TopicARN: aws.String(rs.Primary.ID),
+			TopicArn: aws.String(rs.Primary.ID),
 		}
 		_, err := conn.GetTopicAttributes(params)
 

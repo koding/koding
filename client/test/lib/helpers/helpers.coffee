@@ -58,7 +58,7 @@ module.exports =
       if result.status is 0
         console.log " ✔ Successfully logged in with username: #{user.username} and password: #{user.password}"
       else
-        console.log ' ✔ User is not registered yet. Registering...'
+        console.log " ✔ User is not registered yet. Registering... username: #{user.username} and password: #{user.password}"
         @doRegister browser, user
 
 

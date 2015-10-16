@@ -165,7 +165,7 @@ users = (stateId) -> [
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
   usersQuery stateId
-  currentCommand
+  currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
   (allUsers, participants, query, command, notParticipants) ->
     unless query
@@ -251,15 +251,15 @@ searchFlags = (stateId) -> [
 ]
 
 
-currentValue = [
+currentValue = (stateId) -> [
   ValueStore
   ActivityFluxGetters.selectedChannelThreadId
-  (values, channelId) -> values.get channelId, ''
+  (values, channelId) -> values.getIn [channelId, stateId], ''
 ]
 
 
-currentCommand = [
-  currentValue
+currentCommand = (stateId) -> [
+  currentValue stateId
   (value) -> parseStringToCommand value
 ]
 
@@ -270,13 +270,19 @@ commandsQuery = (stateId) -> [
 ]
 
 
-commands = (stateId) -> [
+commands = (stateId, disabledFeatures = []) -> [
   CommandsStore
   commandsQuery stateId
   (allCommands, query) ->
-    return allCommands  if query is '/'
+    return immutable.List()  if disabledFeatures.indexOf('commands') > -1
 
-    allCommands.filter (command) ->
+    availableCommands = allCommands.filterNot (command) ->
+      featureName = command.get('name').replace '/', ''
+      return disabledFeatures.indexOf(featureName) > -1
+
+    return availableCommands  if query is '/'
+
+    availableCommands.filter (command) ->
       commandName = command.get 'name'
       return commandName.indexOf(query) is 0
 ]
@@ -288,16 +294,16 @@ commandsRawIndex = (stateId) -> [
 ]
 
 
-commandsSelectedIndex = (stateId) -> [
-  commands stateId
+commandsSelectedIndex = (stateId, disabledFeatures) -> [
+  commands stateId, disabledFeatures
   commandsRawIndex stateId
   calculateListSelectedIndex
 ]
 
 
-commandsSelectedItem = (stateId) -> [
-  commands stateId
-  commandsSelectedIndex stateId
+commandsSelectedItem = (stateId, disabledFeatures) -> [
+  commands stateId, disabledFeatures
+  commandsSelectedIndex stateId, disabledFeatures
   getListSelectedItem
 ]
 

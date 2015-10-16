@@ -47,7 +47,9 @@ module.exports = class PrivateChannelListItem extends React.Component
 
   renderDeleteChannelConfirmButtons: ->
 
-    if @state.isDeleting
+    return null  unless @state.isDeleting
+
+    return \
       <div>
         <Button
           className="ChannelListItem-button confirm"

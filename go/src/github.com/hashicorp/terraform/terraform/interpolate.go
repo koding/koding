@@ -2,7 +2,10 @@ package terraform
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"regexp"
+	"sort"
 	"strings"
 	"sync"
 
@@ -327,6 +330,11 @@ func (i *Interpolater) computeResourceVariable(
 		return attr, nil
 	}
 
+	// computed list attribute
+	if _, ok := r.Primary.Attributes[v.Field+".#"]; ok {
+		return i.interpolateListAttribute(v.Field, r.Primary.Attributes)
+	}
+
 	// At apply time, we can't do the "maybe has it" check below
 	// that we need for plans since parent elements might be computed.
 	// Therefore, it is an error and we're missing the key.
@@ -334,7 +342,7 @@ func (i *Interpolater) computeResourceVariable(
 	// TODO: test by creating a state and configuration that is referencing
 	// a non-existent variable "foo.bar" where the state only has "foo"
 	// and verify plan works, but apply doesn't.
-	if i.Operation == walkApply {
+	if i.Operation == walkApply || i.Operation == walkDestroy {
 		goto MISSING
 	}
 
@@ -362,7 +370,7 @@ MISSING:
 	// Validation for missing interpolations should happen at a higher
 	// semantic level. If we reached this point and don't have variables,
 	// just return the computed value.
-	if scope == nil || scope.Resource == nil {
+	if scope == nil && scope.Resource == nil {
 		return config.UnknownVariableValue, nil
 	}
 
@@ -370,7 +378,13 @@ MISSING:
 	// be unknown. Instead, we return that the value is computed so
 	// that the graph can continue to refresh other nodes. It doesn't
 	// matter because the config isn't interpolated anyways.
-	if i.Operation == walkRefresh {
+	//
+	// For a Destroy, we're also fine with computed values, since our goal is
+	// only to get destroy nodes for existing resources.
+	//
+	// For an input walk, computed values are okay to return because we're only
+	// looking for missing variables to prompt the user for.
+	if i.Operation == walkRefresh || i.Operation == walkPlanDestroy || i.Operation == walkDestroy || i.Operation == walkInput {
 		return config.UnknownVariableValue, nil
 	}
 
@@ -410,8 +424,8 @@ func (i *Interpolater) computeResourceMultiVariable(
 	}
 
 	var values []string
-	for i := 0; i < count; i++ {
-		id := fmt.Sprintf("%s.%d", v.ResourceId(), i)
+	for j := 0; j < count; j++ {
+		id := fmt.Sprintf("%s.%d", v.ResourceId(), j)
 
 		// If we're dealing with only a single resource, then the
 		// ID doesn't have a trailing index.
@@ -430,13 +444,47 @@ func (i *Interpolater) computeResourceMultiVariable(
 
 		attr, ok := r.Primary.Attributes[v.Field]
 		if !ok {
+			// computed list attribute
+			_, ok := r.Primary.Attributes[v.Field+".#"]
+			if !ok {
+				continue
+			}
+			attr, err = i.interpolateListAttribute(v.Field, r.Primary.Attributes)
+			if err != nil {
+				return "", err
+			}
+		}
+
+		if config.IsStringList(attr) {
+			for _, s := range config.StringList(attr).Slice() {
+				values = append(values, s)
+			}
 			continue
+		}
+
+		// If any value is unknown, the whole thing is unknown
+		if attr == config.UnknownVariableValue {
+			return config.UnknownVariableValue, nil
 		}
 
 		values = append(values, attr)
 	}
 
 	if len(values) == 0 {
+		// If the operation is refresh, it isn't an error for a value to
+		// be unknown. Instead, we return that the value is computed so
+		// that the graph can continue to refresh other nodes. It doesn't
+		// matter because the config isn't interpolated anyways.
+		//
+		// For a Destroy, we're also fine with computed values, since our goal is
+		// only to get destroy nodes for existing resources.
+		//
+		// For an input walk, computed values are okay to return because we're only
+		// looking for missing variables to prompt the user for.
+		if i.Operation == walkRefresh || i.Operation == walkPlanDestroy || i.Operation == walkDestroy || i.Operation == walkInput {
+			return config.UnknownVariableValue, nil
+		}
+
 		return "", fmt.Errorf(
 			"Resource '%s' does not have attribute '%s' "+
 				"for variable '%s'",
@@ -445,7 +493,27 @@ func (i *Interpolater) computeResourceMultiVariable(
 			v.FullKey())
 	}
 
-	return strings.Join(values, config.InterpSplitDelim), nil
+	return config.NewStringList(values).String(), nil
+}
+
+func (i *Interpolater) interpolateListAttribute(
+	resourceID string,
+	attributes map[string]string) (string, error) {
+
+	attr := attributes[resourceID+".#"]
+	log.Printf("[DEBUG] Interpolating computed list attribute %s (%s)",
+		resourceID, attr)
+
+	var members []string
+	numberedListMember := regexp.MustCompile("^" + resourceID + "\\.[0-9]+$")
+	for id, value := range attributes {
+		if numberedListMember.MatchString(id) {
+			members = append(members, value)
+		}
+	}
+
+	sort.Strings(members)
+	return config.NewStringList(members).String(), nil
 }
 
 func (i *Interpolater) resourceVariableInfo(

@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 )
 
-func TestAccRoute53ZoneAssociation_basic(t *testing.T) {
+func TestAccAWSRoute53ZoneAssociation_basic(t *testing.T) {
 	var zone route53.HostedZone
 
 	resource.Test(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccRoute53ZoneAssociation_basic(t *testing.T) {
 	})
 }
 
-func TestAccRoute53ZoneAssociation_region(t *testing.T) {
+func TestAccAWSRoute53ZoneAssociation_region(t *testing.T) {
 	var zone route53.HostedZone
 
 	// record the initialized providers so that we can use them to
@@ -86,11 +86,11 @@ func testAccCheckRoute53ZoneAssociationDestroyWithProvider(s *terraform.State, p
 
 		zone_id, vpc_id := resourceAwsRoute53ZoneAssociationParseId(rs.Primary.ID)
 
-		resp, err := conn.GetHostedZone(&route53.GetHostedZoneInput{ID: aws.String(zone_id)})
+		resp, err := conn.GetHostedZone(&route53.GetHostedZoneInput{Id: aws.String(zone_id)})
 		if err != nil {
 			exists := false
 			for _, vpc := range resp.VPCs {
-				if vpc_id == *vpc.VPCID {
+				if vpc_id == *vpc.VPCId {
 					exists = true
 				}
 			}
@@ -135,14 +135,14 @@ func testAccCheckRoute53ZoneAssociationExistsWithProvider(s *terraform.State, n 
 	zone_id, vpc_id := resourceAwsRoute53ZoneAssociationParseId(rs.Primary.ID)
 
 	conn := provider.Meta().(*AWSClient).r53conn
-	resp, err := conn.GetHostedZone(&route53.GetHostedZoneInput{ID: aws.String(zone_id)})
+	resp, err := conn.GetHostedZone(&route53.GetHostedZoneInput{Id: aws.String(zone_id)})
 	if err != nil {
 		return fmt.Errorf("Hosted zone err: %v", err)
 	}
 
 	exists := false
 	for _, vpc := range resp.VPCs {
-		if vpc_id == *vpc.VPCID {
+		if vpc_id == *vpc.VPCId {
 			exists = true
 		}
 	}

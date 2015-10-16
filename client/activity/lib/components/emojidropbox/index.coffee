@@ -5,7 +5,7 @@ immutable            = require 'immutable'
 classnames           = require 'classnames'
 formatEmojiName      = require 'activity/util/formatEmojiName'
 ChatInputFlux        = require 'activity/flux/chatinput'
-Dropbox              = require 'activity/components/dropbox'
+Dropbox              = require 'activity/components/dropbox/portaldropbox'
 EmojiDropboxItem     = require 'activity/components/emojidropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
@@ -107,13 +107,13 @@ module.exports = class EmojiDropbox extends React.Component
     { query } = @props
 
     <Dropbox
-      className    = 'EmojiDropbox'
-      visible      = { @isActive() }
-      onOuterClick = { @bound 'close' }
-      direction    = 'up'
-      title        = 'Emojis matching '
-      subtitle     = { ":#{query}" }
-      ref          = 'dropbox'
+      className = 'EmojiDropbox'
+      visible   = { @isActive() }
+      onClose   = { @bound 'close' }
+      type      = 'dropup'
+      title     = 'Emojis matching '
+      subtitle  = { ":#{query}" }
+      ref       = 'dropbox'
     >
       {@renderList()}
       <div className="clearfix" />

@@ -23,9 +23,10 @@ module.exports = DropboxWrapperMixin =
 
   componentDidUpdate: (prevProps, prevState) ->
 
-    { selectedItem } = @props
+    { selectedItem, visible } = @props
 
     return  if prevProps.selectedItem is selectedItem or not selectedItem
+    return  if visible? and not visible
 
     containerElement = @refs.dropbox.getContentElement()
     itemElement      = React.findDOMNode @refs[@getItemKey selectedItem]
@@ -60,4 +61,7 @@ module.exports = DropboxWrapperMixin =
 
 
   getItemKey: (item) -> item.get 'id'
+
+
+  updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
 

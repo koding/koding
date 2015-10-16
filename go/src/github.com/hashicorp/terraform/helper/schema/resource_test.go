@@ -180,6 +180,7 @@ func TestResourceApply_destroyPartial(t *testing.T) {
 				Optional: true,
 			},
 		},
+		SchemaVersion: 3,
 	}
 
 	r.Delete = func(d *ResourceData, m interface{}) error {
@@ -209,10 +210,13 @@ func TestResourceApply_destroyPartial(t *testing.T) {
 			"id":  "bar",
 			"foo": "42",
 		},
+		Meta: map[string]string{
+			"schema_version": "3",
+		},
 	}
 
 	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("bad: %#v", actual)
+		t.Fatalf("expected:\n%#v\n\ngot:\n%#v", expected, actual)
 	}
 }
 
@@ -331,11 +335,41 @@ func TestResourceInternalValidate(t *testing.T) {
 			},
 			true,
 		},
+
+		// Update undefined for non-ForceNew field
+		{
+			&Resource{
+				Create: func(d *ResourceData, meta interface{}) error { return nil },
+				Schema: map[string]*Schema{
+					"boo": &Schema{
+						Type:     TypeInt,
+						Optional: true,
+					},
+				},
+			},
+			true,
+		},
+
+		// Update defined for ForceNew field
+		{
+			&Resource{
+				Create: func(d *ResourceData, meta interface{}) error { return nil },
+				Update: func(d *ResourceData, meta interface{}) error { return nil },
+				Schema: map[string]*Schema{
+					"goo": &Schema{
+						Type:     TypeInt,
+						Optional: true,
+						ForceNew: true,
+					},
+				},
+			},
+			true,
+		},
 	}
 
 	for i, tc := range cases {
 		err := tc.In.InternalValidate(schemaMap{})
-		if (err != nil) != tc.Err {
+		if err != nil != tc.Err {
 			t.Fatalf("%d: bad: %s", i, err)
 		}
 	}
@@ -551,7 +585,7 @@ func TestResourceRefresh_needsMigration(t *testing.T) {
 		if err != nil {
 			t.Fatalf("err: %#v", err)
 		}
-		s.Attributes["newfoo"] = strconv.Itoa((int(oldfoo * 10)))
+		s.Attributes["newfoo"] = strconv.Itoa(int(oldfoo * 10))
 		delete(s.Attributes, "oldfoo")
 
 		return s, nil
