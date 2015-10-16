@@ -24,7 +24,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
   describe '#fetchProviders()', ->
 
     it 'should fetch providers successfully', (done) ->
-      
+
       client = null
 
       ComputeProvider.fetchProviders client, (err, providers) ->
@@ -36,16 +36,14 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
   describe '#ping()', ->
 
     it 'should be able to ping for the given provider', (done) ->
-      
+
       withConvertedUser {}, ({ client, account }) ->
         client.r  = { account }
-        options   = { provider }
-      
-        queue = []
+        queue     = []
 
         for providerSlug, provider of PROVIDERS
           queue.push ->
-
+            options = { provider }
             ComputeProvider.ping client, options, (err, data) ->
               expect(err).to.not.exist
               expect(data).to.be.a 'string'
@@ -67,15 +65,12 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           done()
 
 
-  describe '#create()', ->
+  describe.skip '#create()', ->
 
     it 'should fail when user is not registered', (done) ->
 
       withDummyClient { group : 'koding' }, ({ client }) ->
 
-        ComputeProvider.create client, { provider : 'google' }, (err, machineData) ->
-          expect(err?.message).to.be.equal 13
-          done()
 
 
 
