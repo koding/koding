@@ -11,7 +11,6 @@ import (
 )
 
 func TestHealthCheckRemote(t *testing.T) {
-
 	Convey("Should return no errors for working http servers", t, func() {
 		ts := httptest.NewServer(http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
