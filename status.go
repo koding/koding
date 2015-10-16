@@ -9,6 +9,10 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+const (
+	kiteHttpResponse = "Welcome to SockJS!\n"
+)
+
 var (
 	defaultHealthChecker *HealthChecker
 )
@@ -181,7 +185,7 @@ func (c *HealthChecker) CheckLocal() error {
 	// since we just want to check the data itself. Handling the error
 	// might aid with debugging any problems though.
 	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != "Welcome to SockJS!\n" {
+	if string(resData) != kiteHttpResponse {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The klient /kite route is returning an unexpected response: '%s'",
 			string(resData),
@@ -247,7 +251,7 @@ func (c *HealthChecker) CheckRemote() error {
 	// TODO: Log the response if it's not as expected, to help
 	// debug Cloudflare/nginx issues.
 	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != "Welcome to SockJS!\n" {
+	if string(resData) != kiteHttpResponse {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The '%s' route is returning an unexpected response: '%s'",
 			c.RemoteKiteAddress, string(resData),
@@ -280,7 +284,7 @@ func IsKlientRunning(a string) bool {
 	// since we just want to check the data itself. Handling the error
 	// might aid with debugging any problems though.
 	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != "Welcome to SockJS!\n" {
+	if string(resData) != kiteHttpResponse {
 		return false
 	}
 
