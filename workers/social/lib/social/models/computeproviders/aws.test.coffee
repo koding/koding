@@ -83,18 +83,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           done()
         
 
-  describe '#fetchAvailable()', ->
-
-    it 'should fetch aws pricing', (done) ->
-
-      client = null
-
-      Aws.fetchAvailable client, {}, (err, data) ->
-        expect(err).to.not.exist
-        expect(data).to.be.an 'array'
-        done()
-
-
 beforeTests()
 
 runTests()
