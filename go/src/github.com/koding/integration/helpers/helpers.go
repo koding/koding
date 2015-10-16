@@ -45,8 +45,6 @@ type PushRequest struct {
 	Token      string      `json:"token"`
 	FallbackFn Fallback    `json:"-"`
 	Payload    gorm.Hstore `json:"payload"`
-	// EventType  map[string]*string `json:"eventType"`
-
 }
 
 // NewPushRequest creates a new PushRequest instance with Fallback function
@@ -84,6 +82,14 @@ func (pr *PushRequest) Fallback(token, rootPath string) error {
 	}
 
 	return pr.FallbackFn(string(body))
+}
+
+func (pr *PushRequest) SetPayload(key string, value string) {
+	if pr.Payload == nil {
+		pr.Payload = gorm.Hstore{}
+	}
+
+	pr.Payload[key] = &value
 }
 
 func FallbackHandler(message *string) error {
