@@ -36,5 +36,5 @@ do ->
 
   KD.registerRoutes 'Teams',
 
-    '/Teams'       : -> KD.singletons.router.handleRoute '/'
+    '/Teams'       : handleRoute
     '/Teams/:token': handleInvitation
