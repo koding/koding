@@ -69,7 +69,9 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
             loader   : yes
             callback : =>
               stackTemplate.clone (err, cloneStackTemplate) =>
-                @_itemSelected cloneStackTemplate  unless showError err
+                unless showError err
+                  @_itemCloned()
+                  @_itemSelected cloneStackTemplate
                 modal.destroy()
 
           "I know what I'm doing, Open Editor":
@@ -80,6 +82,10 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
 
     else
       @_itemSelected()
+
+
+  _itemCloned: (data) ->
+    @getDelegate().emit 'ItemCloned', data ? @getData()
 
 
   _itemSelected: (data) ->
