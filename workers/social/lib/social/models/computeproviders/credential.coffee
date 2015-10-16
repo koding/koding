@@ -337,7 +337,7 @@ module.exports = class JCredential extends jraphical.Module
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
 
-  fetchData: (callback) ->
+  fetchData: (callback, shadowSensitiveData = yes) ->
 
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
@@ -349,9 +349,10 @@ module.exports = class JCredential extends jraphical.Module
       rel.fetchTarget (err, data) ->
         return callback err  if err
 
-        meta = data?.data?.meta or {}
-        sensitiveKeys.forEach (key) ->
-          meta[key] = shadowed meta[key]
+        if shadowSensitiveData
+          meta = data?.data?.meta or {}
+          sensitiveKeys.forEach (key) ->
+            meta[key] = shadowed meta[key]
 
         callback null, data
 
