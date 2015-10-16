@@ -35,8 +35,9 @@ withConvertedUserAndCredential = (opts, callback) ->
         queue.next()
 
     ->
-      opts.meta  ?= populateMetaData opts.provider
-      opts.title ?= "test#{opts.provider}#{generateRandomString()}"
+      opts.provider ?= 'aws'
+      opts.meta     ?= populateMetaData opts.provider
+      opts.title    ?= "test#{opts.provider}#{generateRandomString()}"
 
       JCredential.create data.client, opts, (err, credential) ->
 
