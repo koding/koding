@@ -144,7 +144,7 @@ createRootLocation = (KONFIG) ->
           proxy_next_upstream   error timeout   invalid_header http_500;
           proxy_connect_timeout 3;
 
-          proxy_pass http://teams-koding.hs-sites.com;
+          proxy_pass #{KONFIG.hubspotPageURL};
       }
       """
 
