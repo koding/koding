@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klient/cmd/klientctl/util"
 	"github.com/koding/sshkey"
 
 	"golang.org/x/crypto/ssh"
@@ -86,7 +87,7 @@ func (s *SSHCommand) Run(c *cli.Context) int {
 	}
 
 	if !s.keysExist() {
-		MustConfirm("'ssh' command needs to create public/private rsa key pair. Continue? [Y|n]")
+		util.MustConfirm("'ssh' command needs to create public/private rsa key pair. Continue? [Y|n]")
 	}
 
 	sshKey, err := s.getSSHIp(c.Args()[0])
