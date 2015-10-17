@@ -138,11 +138,11 @@ createRootLocation = (KONFIG) ->
 
   environment = KONFIG.environment
   return """
-      location ~*(^\/*$|$)|(\/(|Pricing|About|Legal|Features)(\/[A-Za-z]*$|$)) {
+      location ~*(Pricing|About|Legal|Features) {
           proxy_set_header      X-Real-IP       $remote_addr;
           proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
           proxy_next_upstream   error timeout   invalid_header http_500;
-          proxy_connect_timeout 1;
+          proxy_connect_timeout 3;
 
           proxy_pass http://teams-koding.hs-sites.com;
       }
