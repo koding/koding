@@ -142,11 +142,11 @@ createRootLocation = (KONFIG) ->
 
   return """
       location ~*(Pricing|About|Legal|Features|Blog|Learn) {
+
           proxy_set_header      X-Real-IP       $remote_addr;
           proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
           proxy_next_upstream   error timeout   invalid_header http_500;
           proxy_connect_timeout 3;
-
 
           proxy_pass #{proxy};
       }
