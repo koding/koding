@@ -11,7 +11,6 @@ module.exports = class Metrics extends MetricsBase
   @populateTags : (tags) ->
 
     tags ?= []
-    tags  = @populateCommonTags tags
     tags.push "version:#{KONFIG.version}"
 
     return tags

@@ -31,7 +31,6 @@ module.exports = class MetricsMiddleware extends MetricsBase
   @populateTags : (req, res, tags) ->
 
     tags ?= []
-    tags  = @populateCommonTags tags
     tags.push "version:#{KONFIG.version}"
     tags.push "http_method:#{req.method}"
     tags.push "http_response_code:#{res.statusCode}"
