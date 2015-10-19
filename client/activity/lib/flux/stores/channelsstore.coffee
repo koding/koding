@@ -39,6 +39,11 @@ module.exports = class ChannelsStore extends KodingFluxStore
 
   handleLoadChannelSuccess: (channels, { channel }) ->
 
+    # if channel comes from backend without unreadCount data,
+    # we use it from the store if it exists
+    if channels.has(channel.id) and not channel.unreadCount
+      channel.unreadCount = channels.getIn [channel.id, 'unreadCount']
+
     return channels.set channel.id, toImmutable channel
 
 
