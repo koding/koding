@@ -63,6 +63,7 @@ module.exports = [
 
   [
     { name : 'ide terminal' }
+    { name : 'pricing invalidCardDetails' }
   ]
 
   [

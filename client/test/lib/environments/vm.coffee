@@ -122,6 +122,7 @@ module.exports =
           browser.click upgradeSelector
           helpers.selectPlan(browser)
           helpers.fillPaymentForm(browser)
+          helpers.submitForm(browser, yes)
           browser.url helpers.getUrl() + "/IDE"
           environmentHelpers.openResizeVmModal(browser)
 

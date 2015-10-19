@@ -51,7 +51,10 @@ terminateAll = (browser) ->
   browser
     .waitForElementVisible   'li.terminate-all', 20000
     .click                   'li.terminate-all'
-    .pause 30000 # required, wait to terminate all open sessions
+    .pause                   10000 # required, wait to terminate all open sessions
+    .element                 'css selector', '.autoremovepane-confirm', (result) ->
+      if result.status is 0
+        browser.click        '.autoremovepane-confirm button.red'
 
   openNewTerminalMenu(browser)
 

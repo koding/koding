@@ -4,6 +4,8 @@ bongo    = require 'bongo'
 
 { argv } = require 'optimist'
 
+_ = require 'lodash'
+
 KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
 { socialapi } = KONFIG
 exchangeName  = "#{socialapi.eventExchangeName}:0"
@@ -21,7 +23,7 @@ module.exports = class Tracker extends bongo.Base
   @set
     sharedMethods:
       static:
-        track: (signature String, Object)
+        track: (signature String, Object, Function)
 
   KodingError = require '../error'
 
@@ -42,6 +44,11 @@ module.exports = class Tracker extends bongo.Base
     INVITED_CREATE_TEAM  : 'was invited to create a team'
     SENT_FEEDBACK        : 'sent feedback'
 
+  @properties = {}
+
+  @properties[@types.FINISH_REGISTER] = {
+    category: 'NewAccount', label: 'VerifyAccount'
+  }
 
   @identifyAndTrack = (username, event, eventProperties = {}) ->
     @identify username
@@ -63,7 +70,7 @@ module.exports = class Tracker extends bongo.Base
       console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
-  @track$ = secure (client, subject, options = {}) ->
+  @track$ = secure (client, subject, options = {}, callback) ->
 
     { profile: { nickname } } = client.connection.delegate
 
@@ -71,8 +78,12 @@ module.exports = class Tracker extends bongo.Base
 
     @track nickname, event, options
 
+    callback()
+
 
   @track = (username, event, options = {}) ->
+    _.extend options, @properties[event.subject]
+
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username = forcedRecipient
