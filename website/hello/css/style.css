@@ -89,6 +89,7 @@ header a {
 	text-align:center;
 	-webkit-animation:fadeIn 1s;
 	background:#000 no-repeat center bottom;
+	background-size: cover;
 	border-top: 1px solid transparent
 }
 .html .hellobox {
