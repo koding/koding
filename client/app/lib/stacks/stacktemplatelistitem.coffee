@@ -55,12 +55,11 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
           cssClass     : 'second-overlay'
           overlayClick : yes
         content        : "
-          This stack template is currently using by the Team, if you continue
-          to edit, all the changes you've made will be applied to all members,
-          we highly recommend you to create a clone of this stack template
-          first and do your updates on that clone. Once you finish your work
-          with the cloned version, you can easily apply the changes to your
-          team.
+          This stack template is currently used by your team. If you continue
+          to edit, all of your changes will be applied to all team members directly.
+          We highly recommend you to clone this stack template
+          first and work on the cloned version. Once you finish your work, 
+          you can easily apply your changes for all team members.
         "
         buttons      :
 
