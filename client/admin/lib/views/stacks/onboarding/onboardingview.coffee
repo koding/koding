@@ -268,7 +268,10 @@ module.exports = class OnboardingView extends JView
     elements.block = elements.line
 
     el = elements[type]?() or elements[type]
-    el.setTooltip title: messages[type]?() or messages[type]
+    el.setTooltip
+      title    : messages[type]?() or messages[type]
+      cssClass : 'stack-tooltip'
+
     el.tooltip.show()
 
     @parent.once 'scroll', -> el.tooltip?.hide()
