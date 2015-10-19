@@ -189,7 +189,7 @@ Configuration = (options={}) ->
     janitor                 : { port: "6700", secretKey: "janitorsecretkey-dev" }
 
   userSitesDomain     = "dev.koding.io"
-  hubspotPageURL      = "http://teams-koding.hs-sites.com"
+  hubspotPageURL      = "https://teams-koding.hs-sites.com"
 
   socialQueueName     = "koding-social-#{configName}"
   autoConfirmAccounts = yes

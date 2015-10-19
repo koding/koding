@@ -168,7 +168,7 @@ Configuration = (options={}) ->
     github                  : github
 
   userSitesDomain     = "sandbox.koding.io"
-  hubspotPageURL      = "http://teams-koding.hs-sites.com"
+  hubspotPageURL      = "https://teams-koding.hs-sites.com"
 
   socialQueueName     = "koding-social-#{configName}"
 
