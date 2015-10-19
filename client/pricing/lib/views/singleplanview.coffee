@@ -4,6 +4,7 @@ KDCustomHTMLView      = kd.CustomHTMLView
 KDHeaderView          = kd.HeaderView
 KDView                = kd.View
 PaymentConstants      = require 'app/payment/paymentconstants'
+Tracker               = require 'app/util/tracker'
 
 
 module.exports = class SinglePlanView extends KDView
@@ -105,6 +106,11 @@ module.exports = class SinglePlanView extends KDView
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
       reducedMonth, discount, planInterval
+    }
+
+    Tracker.track Tracker.PLAN_SELECTED, {
+      category : planTitle
+      label    : planInterval
     }
 
 
