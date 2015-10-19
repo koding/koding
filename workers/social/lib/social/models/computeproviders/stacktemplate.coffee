@@ -188,6 +188,26 @@ module.exports = class JStackTemplate extends Module
       @some$ client, selector, options, callback
 
 
+  checkUsage: (callback) ->
+
+    slug   = @getAt 'group'
+
+    JGroup = require '../group'
+    JGroup.one { slug }, (err, group) =>
+      console.error "Group #{slug} not found!"  unless group
+
+      # If there is an error with group fetching, we assume that
+      # this stack template is not in use by that group to not prevent
+      # removal of non-used stack templates ~ GG
+      return callback no  if err or not group
+
+      templateId = @getId()
+      for stackTemplateId in group.stackTemplates ? []
+        return callback yes  if templateId.equals stackTemplateId
+
+      callback no
+
+
   delete: permit
 
     advanced: [
@@ -195,7 +215,15 @@ module.exports = class JStackTemplate extends Module
       { permission: 'delete stack template' }
     ]
 
-    success: (client, callback) -> @remove callback
+    success: (client, callback) ->
+
+      @checkUsage (stackIsInUse) =>
+
+        if stackIsInUse
+          return callback new KodingError \
+            "It's not allowed to delete in-use stack templates!", 'InUseByGroup'
+
+        @remove callback
 
 
   setAccess: permit
