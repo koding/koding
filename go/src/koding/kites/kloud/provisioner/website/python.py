@@ -9,7 +9,7 @@ print """\
 <head>  <meta charset="utf-8">
   <title>Hello World from Python by Koding</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="//koding.com/hello/css/style.css">
   <!--[if IE]>
       	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
