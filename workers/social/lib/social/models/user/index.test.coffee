@@ -961,7 +961,7 @@ runTests = -> describe 'workers.social.user.index', ->
         queue = [
 
           ->
-            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
               queue.next()
