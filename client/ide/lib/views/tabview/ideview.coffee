@@ -113,40 +113,37 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           tabHandle.makeEditable()
 
 
-    @tabView.on 'PaneRemoved', ({ pane, handle }) =>
-
-      { frontApp } = kd.singletons.appManager
-
+    @tabView.on 'PaneRemoved', ({ pane, handle }) ->
       { options : { paneType } } = pane.view
       handle.off 'RenamingRequested'  if paneType is 'terminal'
-
-      @handleCloseSplitView handle  if frontApp.fakeViewsDestroyed
 
 
     # This is a custom event for IDEApplicationTabView
     # to distinguish between user actions and programmed actions
-    @tabView.on 'PaneRemovedByUserAction', (pane)=>
-      {view} = pane
+    @tabView.on 'PaneRemovedByUserAction', (pane) =>
+      { view } = pane
+
       if view instanceof IDETerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
+      @handleCloseSplitView pane.tabHandle
+
 
   handleCloseSplitView: (handle) ->
 
-    { frontApp } = kd.singletons.appManager
-    appStorage   = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
-    paneLength   = handle.getDelegate().panes.length
+    appStorage = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+    paneLength = handle.getDelegate().panes.length
 
-    if not paneLength and not frontApp.targetTabView
+    return if paneLength > 1 # remove pane when there is only one pane left
 
-      appStorage.ready =>
+    appStorage.ready =>
 
-        if not appStorage.getValue 'IsAutoRemovePaneSuggested'
-          appStorage.setValue 'IsAutoRemovePaneSuggested', yes
-          return @showSuggestAutoRemovePaneModal()
+      if not appStorage.getValue 'IsAutoRemovePaneSuggested'
+        appStorage.setValue 'IsAutoRemovePaneSuggested', yes
+        return @showSuggestAutoRemovePaneModal()
 
-        @closeSplitView()  if appStorage.getValue 'enableAutoRemovePane'
+      @closeSplitView()  if appStorage.getValue 'enableAutoRemovePane'
 
 
   showSuggestAutoRemovePaneModal: ->
