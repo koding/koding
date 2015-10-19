@@ -4,7 +4,6 @@ import (
 	"socialapi/models"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -15,10 +14,10 @@ type Bot struct {
 }
 
 type Message struct {
-	Body                 string      `json:"body"`
-	ChannelId            int64       `json:"channelId,string"`
-	ChannelIntegrationId int64       `json:"channelIntegrationId,string"`
-	Payload              gorm.Hstore `json:"payload"`
+	Body                 string             `json:"body"`
+	ChannelId            int64              `json:"channelId,string"`
+	ChannelIntegrationId int64              `json:"channelIntegrationId,string"`
+	Payload              map[string]*string `json:"payload"`
 }
 
 func NewBot() (*Bot, error) {
