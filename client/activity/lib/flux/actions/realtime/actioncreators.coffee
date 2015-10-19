@@ -1,5 +1,6 @@
 kd = require 'kd'
 actions = require '../actiontypes'
+isPublicChannel = require 'app/util/isPublicChannel'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -81,6 +82,16 @@ bindNotificationEvents = ->
         return  if err
 
         bindChannelEvents _channel
+
+        actionType = if isPublicChannel _channel
+        then actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS
+        else actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS
+
+        dispatch actionType, { channel : _channel, channelId: _channel.id }
+
+        { unreadCount } = data
+        _dispatchFn { unreadCount, channel : _channel }
+
         socialapi.message.byId { id: channelMessage.id }, (err, _message) ->
           return  if err
 
