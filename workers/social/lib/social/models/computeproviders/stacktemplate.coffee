@@ -208,6 +208,22 @@ module.exports = class JStackTemplate extends Module
       callback no
 
 
+  removeCustomCredentials = (client, credentials, callback) ->
+
+    JCredential = require './credential'
+    queue       = []
+
+    credentials.forEach (identifier) -> queue.push ->
+      JCredential.fetchByIdentifier client, identifier, (err, credential) ->
+        if not err and credential
+        then credential.delete client, -> queue.next()
+        else queue.next()
+
+    queue.push -> callback null
+
+    daisy queue
+
+
   delete: permit
 
     advanced: [
@@ -223,7 +239,13 @@ module.exports = class JStackTemplate extends Module
           return callback new KodingError \
             "It's not allowed to delete in-use stack templates!", 'InUseByGroup'
 
-        @remove callback
+        customCredentials = @getAt('credentials.custom') ? []
+
+        @remove (err) ->
+          return callback err  if err
+
+          # delete custom credentials if exists ~ GG
+          removeCustomCredentials client, customCredentials, callback
 
 
   setAccess: permit
