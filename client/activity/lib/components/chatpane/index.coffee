@@ -27,6 +27,9 @@ module.exports = class ChatPane extends React.Component
 
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
+    scrollContainer = React.findDOMNode @refs.scrollContainer
+    scrollContainer?.classList.remove 'padded'
+
 
   onTopThresholdReached: (event) ->
 
@@ -49,15 +52,22 @@ module.exports = class ChatPane extends React.Component
 
   renderChannelInfoContainer: ->
 
-    if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
-      <ChannelInfoContainer
-        ref='ChannelInfoContainer'
-        key={@channel 'id'}
-        thread={@props.thread}
-        afterInviteOthers={@bound 'afterInviteOthers'} />
+    return null  unless @props.thread
+
+    messagesSize        = @props.thread.get('messages').size
+    reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
+
+    # we have always at least one system message
+    return null  unless reachedFirstMessage and messagesSize
+
+    <ChannelInfoContainer
+      ref='ChannelInfoContainer'
+      key={@channel 'id'}
+      thread={@props.thread}
+      afterInviteOthers={@bound 'afterInviteOthers'} />
 
 
-  beforeScrollDidUpdate: ->
+  afterScrollDidUpdate: ->
 
     @setPaddedClassName()
 
@@ -71,7 +81,7 @@ module.exports = class ChatPane extends React.Component
     scrollContainerClientHeight = scrollContainer.clientHeight
     channelInfoContainerHeight  = 0
 
-    return  if scrollContainerClientHeight is 0
+    return  if scrollContainerClientHeight is 0 or listHeight is 0
 
     if channelInfoContainer
       channelInfoContainerHeight = channelInfoContainer.offsetHeight
@@ -79,9 +89,9 @@ module.exports = class ChatPane extends React.Component
     diff      = scrollContainerClientHeight - (channelInfoContainerHeight + listHeight)
     hasPadded = scrollContainer.className.indexOf('padded') > -1
 
-    if diff <= 0
-    then scrollContainer.classList.remove 'padded'
-    else scrollContainer.classList.add 'padded'
+    if diff >= 0
+    then scrollContainer.classList.add 'padded'
+    else scrollContainer.classList.remove 'padded'
 
 
   renderBody: ->
