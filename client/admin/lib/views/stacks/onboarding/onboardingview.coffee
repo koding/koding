@@ -247,7 +247,7 @@ module.exports = class OnboardingView extends JView
 
   showStackTemplateTooltip: (type, keyword) ->
 
-    return unless not type
+    return  unless type
 
     messages =
       all    : 'This is the initial stack template to build your AWS instances.'
