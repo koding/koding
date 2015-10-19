@@ -2,7 +2,7 @@ koding = require './bongo'
 
 { argv } = require 'optimist'
 KONFIG  = require('koding-config-manager').load "main.#{argv.c}"
-request = require('request');
+request = require 'request'
 
 error_messages =
   404: 'Page not found'
@@ -113,7 +113,7 @@ serveHome = (req, res, next) ->
 
       # if user is not logged in and requests the root page, serve the content
       # of hubspot
-      if not state and req.path is "/"
+      if not state and req.path is '/'
 
         # pipe incoming request directly to hubspot and pipe the response from
         # hubspot as our response
