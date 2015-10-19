@@ -95,16 +95,27 @@ module.exports = class NFinderItem extends JTreeItemView
     return  if @renameView
 
     @setClass "being-edited"
-    @beingEdited = yes
-    @callback = callback
+
+    @beingEdited  = yes
+    @callback     = callback
+    data          = @getData()
+
     @childView.hide()
-    data = @getData()
+
     @addSubView @renameView = new NFinderItemRenameView {}, data
     @renameView.$().css "margin-left", ((data.depth+1)*10)+2
+
     @renameView.on "FinderRenameConfirmation", (newValue)=>
       @callback? newValue
       @resetView()
-    @renameView.input.setFocus()
+
+    ext = '.' + FSHelper.getFileExtension data.name
+
+    if (index = data.name.indexOf ext) > 0
+      @renameView.input.getElement().setSelectionRange 0, index
+    else
+      @renameView.input.setFocus()
+
 
   showProgressView: (progress, determinate=yes)->
 
