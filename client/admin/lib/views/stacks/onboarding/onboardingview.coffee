@@ -206,14 +206,18 @@ module.exports = class OnboardingView extends JView
     templateLines = content.split '\n'
 
     @stackContent.destroySubViews()
+    @stackPreviewLines = []
 
     for line, index in templateLines when line
-      @stackContent.addSubView new kd.CustomHTMLView
+      line = new kd.CustomHTMLView
         cssClass : 'line'
         partial  : """
           <div class="number">#{++index}</div>
           <pre><code class="coffee">#{line}</code></pre>
         """
+
+      @stackContent.addSubView line
+      @stackPreviewLines.push line
 
     hljs.highlightBlock line  for line in document.querySelectorAll '.line code'
 
@@ -237,6 +241,40 @@ module.exports = class OnboardingView extends JView
 
     else if type is 'block'
       commonSelector.prev().nextAll().addClass 'hilite'
+
+    @showStackTemplateTooltip type, keyword
+
+
+  showStackTemplateTooltip: (type, keyword) ->
+
+    return  unless type
+
+    messages =
+      all    : 'This is the initial stack template to build your AWS instances.'
+      block  : 'This is the lines to add another machine to your stack.'
+      line   : ->
+        if keyword in [ 'github', 'gitlab', 'yourgitserver', 'bitbucket' ]
+          return 'You can clone any git repository to your machines when the stack is built.'
+        else
+          return 'You can install any package to machines when stack is built.'
+
+    elements =
+      all    : @stackPreviewLines.first
+      line   : =>
+        for line in @stackPreviewLines
+          if line.getElement().innerHTML.indexOf(keyword) > -1
+            return line
+
+    elements.block = elements.line
+
+    el = elements[type]?() or elements[type]
+    el.setTooltip
+      title    : messages[type]?() or messages[type]
+      cssClass : 'stack-tooltip'
+
+    el.tooltip.show()
+
+    @parent.once 'scroll', -> el.tooltip?.hide()
 
 
   pistachio: ->
