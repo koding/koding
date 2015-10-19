@@ -284,7 +284,7 @@ module.exports = class JStackTemplate extends Module
         if not err and credential
           credential.clone client, (err, cloneCredential) ->
             if err
-              console.warn "Clone failed:", err
+              console.warn 'Clone failed:', err
             else
               clonedCreds.push cloneCredential.identifier
             queue.next()
