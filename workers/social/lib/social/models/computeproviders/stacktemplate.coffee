@@ -307,7 +307,7 @@ module.exports = class JStackTemplate extends Module
     success: (client, callback) ->
 
       cloneData         =
-        title           : @getAt 'title'
+        title           : "#{@getAt 'title'} - clone"
         description     : @getAt 'description'
 
         config          : @getAt 'config'
