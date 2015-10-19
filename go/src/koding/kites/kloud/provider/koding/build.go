@@ -193,13 +193,11 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if err != nil {
 		// In the event of a new instance and checkbuild failing, log more
 		// verbose information for metrics.
-		if creatingNewInstance {
-			m.Log.Warning(
-				"CheckBuild failed on a new instance. (username: %s, instanceId: %s, region: %s, provider: %s, CheckBuild duration: %fs) err: %s",
-				m.Credential, m.Meta.InstanceId, m.Meta.Region, m.Provider,
-				checkBuildDur.Seconds(), err.Error(),
-			)
-		}
+		m.Log.Warning(
+			"CheckBuild failed. (newInstance: %t, username: %s, instanceId: %s, region: %s, provider: %s, CheckBuild duration: %fs) err: %s",
+			creatingNewInstance, m.Credential, m.Meta.InstanceId,
+			m.Meta.Region, m.Provider, checkBuildDur.Seconds(), err.Error(),
+		)
 
 		return err
 	}
