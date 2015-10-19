@@ -99,11 +99,17 @@ body.ide
       label
         color               white
       button.kdbutton
+        height              18px
+        line-height         15px
         margin              3px 15px 0 0
-        padding             2px 4px 2px 4px
+        padding             0 2px 0 2px
         width               auto
         font-weight         normal
         fr()
+
+        span
+          rel()
+          top               -1px
 
     &.items-hovering
       background            rgba(136, 183, 214, 0.25)
@@ -121,6 +127,11 @@ body.ide
       right                 5px
       top                   4px
       r-sprite              finder '16-close-white'
+      opacity               .3
+      vendor                transition, opacity .3s ease
+
+      &:hover
+        opacity             1
 
     > div
       line-height           24px
