@@ -158,7 +158,7 @@ func TestMetaInputMode_defaultVars(t *testing.T) {
 		t.Fatalf("err: %s", err)
 	}
 
-	if m.InputMode()&terraform.InputModeVar != 0 {
+	if m.InputMode()&terraform.InputModeVar == 0 {
 		t.Fatalf("bad: %#v", m.InputMode())
 	}
 }
@@ -190,7 +190,7 @@ func TestMeta_initStatePaths(t *testing.T) {
 	if m.stateOutPath != DefaultStateFilename {
 		t.Fatalf("bad: %#v", m)
 	}
-	if m.backupPath != DefaultStateFilename+DefaultBackupExtention {
+	if m.backupPath != DefaultStateFilename+DefaultBackupExtension {
 		t.Fatalf("bad: %#v", m)
 	}
 
@@ -201,7 +201,7 @@ func TestMeta_initStatePaths(t *testing.T) {
 	if m.stateOutPath != "foo" {
 		t.Fatalf("bad: %#v", m)
 	}
-	if m.backupPath != "foo"+DefaultBackupExtention {
+	if m.backupPath != "foo"+DefaultBackupExtension {
 		t.Fatalf("bad: %#v", m)
 	}
 
@@ -212,7 +212,7 @@ func TestMeta_initStatePaths(t *testing.T) {
 	if m.statePath != DefaultStateFilename {
 		t.Fatalf("bad: %#v", m)
 	}
-	if m.backupPath != "foo"+DefaultBackupExtention {
+	if m.backupPath != "foo"+DefaultBackupExtension {
 		t.Fatalf("bad: %#v", m)
 	}
 }

@@ -32,7 +32,7 @@ func TestAccComputeInstance_basic_deprecated_network(t *testing.T) {
 	})
 }
 
-func TestAccComputeInstance_basic(t *testing.T) {
+func TestAccComputeInstance_basic1(t *testing.T) {
 	var instance compute.Instance
 
 	resource.Test(t, resource.TestCase{
@@ -332,11 +332,11 @@ func testAccCheckComputeInstanceMetadata(
 				continue
 			}
 
-			if v == item.Value {
+			if item.Value != nil && v == *item.Value {
 				return nil
 			}
 
-			return fmt.Errorf("bad value for %s: %s", k, item.Value)
+			return fmt.Errorf("bad value for %s: %s", k, *item.Value)
 		}
 
 		return fmt.Errorf("metadata not found: %s", k)
@@ -376,7 +376,7 @@ func testAccCheckComputeInstanceDisk(instance *compute.Instance, source string, 
 		}
 
 		for _, disk := range instance.Disks {
-			if strings.LastIndex(disk.Source, "/"+source) == (len(disk.Source)-len(source)-1) && disk.AutoDelete == delete && disk.Boot == boot {
+			if strings.LastIndex(disk.Source, "/"+source) == len(disk.Source)-len(source)-1 && disk.AutoDelete == delete && disk.Boot == boot {
 				return nil
 			}
 		}
@@ -476,10 +476,10 @@ resource "google_compute_instance" "foobar" {
 
 	metadata {
 		foo = "bar"
-	}
-	metadata {
 		baz = "qux"
 	}
+
+	metadata_startup_script = "echo Hello"
 }`
 
 const testAccComputeInstance_basic2 = `

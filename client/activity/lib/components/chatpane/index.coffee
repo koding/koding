@@ -25,15 +25,12 @@ module.exports = class ChatPane extends React.Component
 
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
 
-    if isMessageBeingSubmitted
-      @shouldScrollToBottom   = yes
-      @isPageLoaded           = no
+    @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
 
   onTopThresholdReached: (event) ->
 
     messages = @props.thread.get 'messages'
-    @isPageLoaded = no
 
     return  if @isThresholdReached
 
@@ -54,9 +51,37 @@ module.exports = class ChatPane extends React.Component
 
     if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
       <ChannelInfoContainer
+        ref='ChannelInfoContainer'
         key={@channel 'id'}
         thread={@props.thread}
         afterInviteOthers={@bound 'afterInviteOthers'} />
+
+
+  beforeScrollDidUpdate: ->
+
+    @setPaddedClassName()
+
+
+  setPaddedClassName: ->
+
+    list                        = React.findDOMNode @refs.ChatList
+    scrollContainer             = React.findDOMNode @refs.scrollContainer
+    channelInfoContainer        = React.findDOMNode @refs.ChannelInfoContainer
+    listHeight                  = list.offsetHeight
+    scrollContainerClientHeight = scrollContainer.clientHeight
+    channelInfoContainerHeight  = 0
+
+    return  if scrollContainerClientHeight is 0
+
+    if channelInfoContainer
+      channelInfoContainerHeight = channelInfoContainer.offsetHeight
+
+    diff      = scrollContainerClientHeight - (channelInfoContainerHeight + listHeight)
+    hasPadded = scrollContainer.className.indexOf('padded') > -1
+
+    if diff <= 0
+    then scrollContainer.classList.remove 'padded'
+    else scrollContainer.classList.add 'padded'
 
 
   renderBody: ->
@@ -68,6 +93,7 @@ module.exports = class ChatPane extends React.Component
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
+        ref='ChatList'
         isMessagesLoading={@isThresholdReached}
         messages={@props.thread.get 'messages'}
         showItemMenu={@props.showItemMenu}

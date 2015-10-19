@@ -85,7 +85,7 @@ func (l *LifeCycle) createQueue(sqsLogger logging.Logger, queueName string) erro
 		return err
 	}
 
-	l.queueURL = createQueueResp.QueueURL // dont forget to assign queue url
+	l.queueURL = createQueueResp.QueueUrl // dont forget to assign queue url
 
 	sqsLogger.Debug("SQS Queue is created")
 	return nil
@@ -119,7 +119,7 @@ func (l *LifeCycle) configureQueue(sqsLogger logging.Logger) error {
 		Attributes: map[string]*string{
 			"Policy": aws.String(b),
 		},
-		QueueURL: l.queueURL,
+		QueueUrl: l.queueURL,
 	})
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (l *LifeCycle) getQueueAttributes() (*sqs.GetQueueAttributesOutput, error) 
 
 	resp, err := l.sqs.GetQueueAttributes(
 		&sqs.GetQueueAttributesInput{
-			QueueURL: l.queueURL, // Required
+			QueueUrl: l.queueURL, // Required
 			AttributeNames: []*string{
 				// specify which ones you need in response
 				aws.String("QueueArn"),

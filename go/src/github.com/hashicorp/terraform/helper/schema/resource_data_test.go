@@ -688,6 +688,50 @@ func TestResourceDataGet(t *testing.T) {
 
 			Value: 33.0,
 		},
+
+		// #23 Sets with removed elements
+		{
+			Schema: map[string]*Schema{
+				"ports": &Schema{
+					Type:     TypeSet,
+					Optional: true,
+					Computed: true,
+					Elem:     &Schema{Type: TypeInt},
+					Set: func(a interface{}) int {
+						return a.(int)
+					},
+				},
+			},
+
+			State: &terraform.InstanceState{
+				Attributes: map[string]string{
+					"ports.#":  "1",
+					"ports.80": "80",
+				},
+			},
+
+			Diff: &terraform.InstanceDiff{
+				Attributes: map[string]*terraform.ResourceAttrDiff{
+					"ports.#": &terraform.ResourceAttrDiff{
+						Old: "2",
+						New: "1",
+					},
+					"ports.80": &terraform.ResourceAttrDiff{
+						Old: "80",
+						New: "80",
+					},
+					"ports.8080": &terraform.ResourceAttrDiff{
+						Old:        "8080",
+						New:        "0",
+						NewRemoved: true,
+					},
+				},
+			},
+
+			Key: "ports",
+
+			Value: []interface{}{80},
+		},
 	}
 
 	for i, tc := range cases {
@@ -1692,7 +1736,7 @@ func TestResourceDataSet(t *testing.T) {
 		}
 
 		err = d.Set(tc.Key, tc.Value)
-		if (err != nil) != tc.Err {
+		if err != nil != tc.Err {
 			t.Fatalf("%d err: %s", i, err)
 		}
 

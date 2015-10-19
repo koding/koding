@@ -6,14 +6,15 @@ package efs
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opCreateFileSystem = "CreateFileSystem"
 
 // CreateFileSystemRequest generates a request for the CreateFileSystem operation.
-func (c *EFS) CreateFileSystemRequest(input *CreateFileSystemInput) (req *aws.Request, output *FileSystemDescription) {
-	op := &aws.Operation{
+func (c *EFS) CreateFileSystemRequest(input *CreateFileSystemInput) (req *request.Request, output *FileSystemDescription) {
+	op := &request.Operation{
 		Name:       opCreateFileSystem,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2015-02-01/file-systems",
@@ -69,8 +70,8 @@ func (c *EFS) CreateFileSystem(input *CreateFileSystemInput) (*FileSystemDescrip
 const opCreateMountTarget = "CreateMountTarget"
 
 // CreateMountTargetRequest generates a request for the CreateMountTarget operation.
-func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *aws.Request, output *MountTargetDescription) {
-	op := &aws.Operation{
+func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *request.Request, output *MountTargetDescription) {
+	op := &request.Operation{
 		Name:       opCreateMountTarget,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2015-02-01/mount-targets",
@@ -112,7 +113,7 @@ func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *aws.
 // when mounting the file system. The EC2 instance on which you mount the file
 // system via the mount target can resolve the mount target's DNS name to its
 // IP address. For more information, see How it Works: Implementation Overview
-// (http://docs.aws.amazon.com/efs/latest/ug/how-it-works.html#how-it-works-implementation)
+// (http://docs.aws.amazon.com/efs/latest/ug/how-it-works.html#how-it-works-implementation).
 //
 //  Note that you can create mount targets for a file system in only one VPC,
 // and there can be only one mount target per Availability Zone. That is, if
@@ -152,16 +153,16 @@ func (c *EFS) CreateMountTargetRequest(input *CreateMountTargetInput) (req *aws.
 // in another Availability Zone. For more information, go to Amazon EFS (http://aws.amazon.com/efs/)
 // product detail page. In addition, by always using a mount target local to
 // the instance's Availability Zone, you eliminate a partial failure scenario;
-// if the Availablity Zone in which your mount target is created goes down,
+// if the Availability Zone in which your mount target is created goes down,
 // then you won't be able to access your file system through that mount target.
 //
 // This operation requires permission for the following action on the file
 // system:
 //
-//  elasticfilesystem:CreateMountTarget  This operation also requires permission
+//   elasticfilesystem:CreateMountTarget   This operation also requires permission
 // for the following Amazon EC2 actions:
 //
-//  ec2:DescribeSubnets ec2:DescribeNetworkInterfaces ec2:CreateNetworkInterface
+//   ec2:DescribeSubnets   ec2:DescribeNetworkInterfaces   ec2:CreateNetworkInterface
 func (c *EFS) CreateMountTarget(input *CreateMountTargetInput) (*MountTargetDescription, error) {
 	req, out := c.CreateMountTargetRequest(input)
 	err := req.Send()
@@ -171,8 +172,8 @@ func (c *EFS) CreateMountTarget(input *CreateMountTargetInput) (*MountTargetDesc
 const opCreateTags = "CreateTags"
 
 // CreateTagsRequest generates a request for the CreateTags operation.
-func (c *EFS) CreateTagsRequest(input *CreateTagsInput) (req *aws.Request, output *CreateTagsOutput) {
-	op := &aws.Operation{
+func (c *EFS) CreateTagsRequest(input *CreateTagsInput) (req *request.Request, output *CreateTagsOutput) {
+	op := &request.Operation{
 		Name:       opCreateTags,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2015-02-01/create-tags/{FileSystemId}",
@@ -205,8 +206,8 @@ func (c *EFS) CreateTags(input *CreateTagsInput) (*CreateTagsOutput, error) {
 const opDeleteFileSystem = "DeleteFileSystem"
 
 // DeleteFileSystemRequest generates a request for the DeleteFileSystem operation.
-func (c *EFS) DeleteFileSystemRequest(input *DeleteFileSystemInput) (req *aws.Request, output *DeleteFileSystemOutput) {
-	op := &aws.Operation{
+func (c *EFS) DeleteFileSystemRequest(input *DeleteFileSystemInput) (req *request.Request, output *DeleteFileSystemOutput) {
+	op := &request.Operation{
 		Name:       opDeleteFileSystem,
 		HTTPMethod: "DELETE",
 		HTTPPath:   "/2015-02-01/file-systems/{FileSystemId}",
@@ -245,8 +246,8 @@ func (c *EFS) DeleteFileSystem(input *DeleteFileSystemInput) (*DeleteFileSystemO
 const opDeleteMountTarget = "DeleteMountTarget"
 
 // DeleteMountTargetRequest generates a request for the DeleteMountTarget operation.
-func (c *EFS) DeleteMountTargetRequest(input *DeleteMountTargetInput) (req *aws.Request, output *DeleteMountTargetOutput) {
-	op := &aws.Operation{
+func (c *EFS) DeleteMountTargetRequest(input *DeleteMountTargetInput) (req *request.Request, output *DeleteMountTargetOutput) {
+	op := &request.Operation{
 		Name:       opDeleteMountTarget,
 		HTTPMethod: "DELETE",
 		HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}",
@@ -276,14 +277,14 @@ func (c *EFS) DeleteMountTargetRequest(input *DeleteMountTargetInput) (req *aws.
 //  This operation requires permission for the following action on the file
 // system:
 //
-//  elasticfilesystem:DeleteMountTarget  The DeleteMountTarget call returns
+//   elasticfilesystem:DeleteMountTarget   The DeleteMountTarget call returns
 // while the mount target state is still "deleting". You can check the mount
 // target deletion by calling the DescribeMountTargets API, which returns a
 // list of mount target descriptions for the given file system.  The operation
 // also requires permission for the following Amazon EC2 action on the mount
 // target's network interface:
 //
-//  ec2:DeleteNetworkInterface
+//   ec2:DeleteNetworkInterface
 func (c *EFS) DeleteMountTarget(input *DeleteMountTargetInput) (*DeleteMountTargetOutput, error) {
 	req, out := c.DeleteMountTargetRequest(input)
 	err := req.Send()
@@ -293,8 +294,8 @@ func (c *EFS) DeleteMountTarget(input *DeleteMountTargetInput) (*DeleteMountTarg
 const opDeleteTags = "DeleteTags"
 
 // DeleteTagsRequest generates a request for the DeleteTags operation.
-func (c *EFS) DeleteTagsRequest(input *DeleteTagsInput) (req *aws.Request, output *DeleteTagsOutput) {
-	op := &aws.Operation{
+func (c *EFS) DeleteTagsRequest(input *DeleteTagsInput) (req *request.Request, output *DeleteTagsOutput) {
+	op := &request.Operation{
 		Name:       opDeleteTags,
 		HTTPMethod: "POST",
 		HTTPPath:   "/2015-02-01/delete-tags/{FileSystemId}",
@@ -327,8 +328,8 @@ func (c *EFS) DeleteTags(input *DeleteTagsInput) (*DeleteTagsOutput, error) {
 const opDescribeFileSystems = "DescribeFileSystems"
 
 // DescribeFileSystemsRequest generates a request for the DescribeFileSystems operation.
-func (c *EFS) DescribeFileSystemsRequest(input *DescribeFileSystemsInput) (req *aws.Request, output *DescribeFileSystemsOutput) {
-	op := &aws.Operation{
+func (c *EFS) DescribeFileSystemsRequest(input *DescribeFileSystemsInput) (req *request.Request, output *DescribeFileSystemsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeFileSystems,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2015-02-01/file-systems",
@@ -379,8 +380,8 @@ func (c *EFS) DescribeFileSystems(input *DescribeFileSystemsInput) (*DescribeFil
 const opDescribeMountTargetSecurityGroups = "DescribeMountTargetSecurityGroups"
 
 // DescribeMountTargetSecurityGroupsRequest generates a request for the DescribeMountTargetSecurityGroups operation.
-func (c *EFS) DescribeMountTargetSecurityGroupsRequest(input *DescribeMountTargetSecurityGroupsInput) (req *aws.Request, output *DescribeMountTargetSecurityGroupsOutput) {
-	op := &aws.Operation{
+func (c *EFS) DescribeMountTargetSecurityGroupsRequest(input *DescribeMountTargetSecurityGroupsInput) (req *request.Request, output *DescribeMountTargetSecurityGroupsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeMountTargetSecurityGroups,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}/security-groups",
@@ -414,8 +415,8 @@ func (c *EFS) DescribeMountTargetSecurityGroups(input *DescribeMountTargetSecuri
 const opDescribeMountTargets = "DescribeMountTargets"
 
 // DescribeMountTargetsRequest generates a request for the DescribeMountTargets operation.
-func (c *EFS) DescribeMountTargetsRequest(input *DescribeMountTargetsInput) (req *aws.Request, output *DescribeMountTargetsOutput) {
-	op := &aws.Operation{
+func (c *EFS) DescribeMountTargetsRequest(input *DescribeMountTargetsInput) (req *request.Request, output *DescribeMountTargetsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeMountTargets,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2015-02-01/mount-targets",
@@ -431,11 +432,13 @@ func (c *EFS) DescribeMountTargetsRequest(input *DescribeMountTargetsInput) (req
 	return
 }
 
-// Returns the descriptions of the current mount targets for a file system.
-// The order of mount targets returned in the response is unspecified.
+// Returns the descriptions of all the current mount targets, or a specific
+// mount target, for a file system. When requesting all of the current mount
+// targets, the order of mount targets returned in the response is unspecified.
 //
-//  This operation requires permission for the elasticfilesystem:DescribeMountTargets
-// action on the file system FileSystemId.
+// This operation requires permission for the elasticfilesystem:DescribeMountTargets
+// action, on either the file system id that you specify in FileSystemId, or
+// on the file system of the mount target that you specify in MountTargetId.
 func (c *EFS) DescribeMountTargets(input *DescribeMountTargetsInput) (*DescribeMountTargetsOutput, error) {
 	req, out := c.DescribeMountTargetsRequest(input)
 	err := req.Send()
@@ -445,8 +448,8 @@ func (c *EFS) DescribeMountTargets(input *DescribeMountTargetsInput) (*DescribeM
 const opDescribeTags = "DescribeTags"
 
 // DescribeTagsRequest generates a request for the DescribeTags operation.
-func (c *EFS) DescribeTagsRequest(input *DescribeTagsInput) (req *aws.Request, output *DescribeTagsOutput) {
-	op := &aws.Operation{
+func (c *EFS) DescribeTagsRequest(input *DescribeTagsInput) (req *request.Request, output *DescribeTagsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeTags,
 		HTTPMethod: "GET",
 		HTTPPath:   "/2015-02-01/tags/{FileSystemId}/",
@@ -478,8 +481,8 @@ func (c *EFS) DescribeTags(input *DescribeTagsInput) (*DescribeTagsOutput, error
 const opModifyMountTargetSecurityGroups = "ModifyMountTargetSecurityGroups"
 
 // ModifyMountTargetSecurityGroupsRequest generates a request for the ModifyMountTargetSecurityGroups operation.
-func (c *EFS) ModifyMountTargetSecurityGroupsRequest(input *ModifyMountTargetSecurityGroupsInput) (req *aws.Request, output *ModifyMountTargetSecurityGroupsOutput) {
-	op := &aws.Operation{
+func (c *EFS) ModifyMountTargetSecurityGroupsRequest(input *ModifyMountTargetSecurityGroupsInput) (req *request.Request, output *ModifyMountTargetSecurityGroupsOutput) {
+	op := &request.Operation{
 		Name:       opModifyMountTargetSecurityGroups,
 		HTTPMethod: "PUT",
 		HTTPPath:   "/2015-02-01/mount-targets/{MountTargetId}/security-groups",
@@ -518,7 +521,7 @@ func (c *EFS) ModifyMountTargetSecurityGroups(input *ModifyMountTargetSecurityGr
 type CreateFileSystemInput struct {
 	// String of up to 64 ASCII characters. Amazon EFS uses this to ensure idempotent
 	// creation.
-	CreationToken *string `type:"string" required:"true"`
+	CreationToken *string `min:"1" type:"string" required:"true"`
 
 	metadataCreateFileSystemInput `json:"-" xml:"-"`
 }
@@ -527,19 +530,29 @@ type metadataCreateFileSystemInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateFileSystemInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateFileSystemInput) GoString() string {
+	return s.String()
+}
+
 type CreateMountTargetInput struct {
 	// The ID of the file system for which to create the mount target.
-	FileSystemID *string `locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `type:"string" required:"true"`
 
 	// A valid IPv4 address within the address range of the specified subnet.
-	IPAddress *string `locationName:"IpAddress" type:"string"`
+	IpAddress *string `type:"string"`
 
 	// Up to 5 VPC security group IDs, of the form "sg-xxxxxxxx". These must be
 	// for the same VPC as subnet specified.
 	SecurityGroups []*string `type:"list"`
 
 	// The ID of the subnet to add the mount target in.
-	SubnetID *string `locationName:"SubnetId" type:"string" required:"true"`
+	SubnetId *string `type:"string" required:"true"`
 
 	metadataCreateMountTargetInput `json:"-" xml:"-"`
 }
@@ -548,10 +561,20 @@ type metadataCreateMountTargetInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateMountTargetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateMountTargetInput) GoString() string {
+	return s.String()
+}
+
 type CreateTagsInput struct {
 	// String. The ID of the file system whose tags you want to modify. This operation
 	// modifies only the tags and not the file system.
-	FileSystemID *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
 
 	// An array of Tag objects to add. Each Tag object is a key-value pair.
 	Tags []*Tag `type:"list" required:"true"`
@@ -563,6 +586,16 @@ type metadataCreateTagsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateTagsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateTagsInput) GoString() string {
+	return s.String()
+}
+
 type CreateTagsOutput struct {
 	metadataCreateTagsOutput `json:"-" xml:"-"`
 }
@@ -571,15 +604,35 @@ type metadataCreateTagsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s CreateTagsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateTagsOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteFileSystemInput struct {
 	// The ID of the file system you want to delete.
-	FileSystemID *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
 
 	metadataDeleteFileSystemInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteFileSystemInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteFileSystemInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteFileSystemInput) GoString() string {
+	return s.String()
 }
 
 type DeleteFileSystemOutput struct {
@@ -590,15 +643,35 @@ type metadataDeleteFileSystemOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteFileSystemOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteFileSystemOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteMountTargetInput struct {
 	// String. The ID of the mount target to delete.
-	MountTargetID *string `location:"uri" locationName:"MountTargetId" type:"string" required:"true"`
+	MountTargetId *string `location:"uri" locationName:"MountTargetId" type:"string" required:"true"`
 
 	metadataDeleteMountTargetInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteMountTargetInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteMountTargetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteMountTargetInput) GoString() string {
+	return s.String()
 }
 
 type DeleteMountTargetOutput struct {
@@ -609,9 +682,19 @@ type metadataDeleteMountTargetOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteMountTargetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteMountTargetOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteTagsInput struct {
 	// String. The ID of the file system whose tags you want to delete.
-	FileSystemID *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
 
 	// A list of tag keys to delete.
 	TagKeys []*string `type:"list" required:"true"`
@@ -623,6 +706,16 @@ type metadataDeleteTagsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteTagsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteTagsInput) GoString() string {
+	return s.String()
+}
+
 type DeleteTagsOutput struct {
 	metadataDeleteTagsOutput `json:"-" xml:"-"`
 }
@@ -631,14 +724,24 @@ type metadataDeleteTagsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteTagsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteTagsOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeFileSystemsInput struct {
 	// Optional string. Restricts the list to the file system with this creation
 	// token (you specify a creation token at the time of creating an Amazon EFS
 	// file system).
-	CreationToken *string `location:"querystring" locationName:"CreationToken" type:"string"`
+	CreationToken *string `location:"querystring" locationName:"CreationToken" min:"1" type:"string"`
 
 	// Optional string. File system ID whose description you want to retrieve.
-	FileSystemID *string `location:"querystring" locationName:"FileSystemId" type:"string"`
+	FileSystemId *string `location:"querystring" locationName:"FileSystemId" type:"string"`
 
 	// Optional string. Opaque pagination token returned from a previous DescribeFileSystems
 	// operation. If present, specifies to continue the list from where the returning
@@ -650,13 +753,23 @@ type DescribeFileSystemsInput struct {
 	// of items Amazon EFS returns will be the minimum of the MaxItems parameter
 	// specified in the request and the service's internal maximum number of items
 	// per page.
-	MaxItems *int64 `location:"querystring" locationName:"MaxItems" type:"integer"`
+	MaxItems *int64 `location:"querystring" locationName:"MaxItems" min:"1" type:"integer"`
 
 	metadataDescribeFileSystemsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeFileSystemsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeFileSystemsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeFileSystemsInput) GoString() string {
+	return s.String()
 }
 
 type DescribeFileSystemsOutput struct {
@@ -677,15 +790,35 @@ type metadataDescribeFileSystemsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeFileSystemsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeFileSystemsOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeMountTargetSecurityGroupsInput struct {
 	// The ID of the mount target whose security groups you want to retrieve.
-	MountTargetID *string `location:"uri" locationName:"MountTargetId" type:"string" required:"true"`
+	MountTargetId *string `location:"uri" locationName:"MountTargetId" type:"string" required:"true"`
 
 	metadataDescribeMountTargetSecurityGroupsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeMountTargetSecurityGroupsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeMountTargetSecurityGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeMountTargetSecurityGroupsInput) GoString() string {
+	return s.String()
 }
 
 type DescribeMountTargetSecurityGroupsOutput struct {
@@ -699,9 +832,20 @@ type metadataDescribeMountTargetSecurityGroupsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeMountTargetSecurityGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeMountTargetSecurityGroupsOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeMountTargetsInput struct {
-	// String. The ID of the file system whose mount targets you want to list.
-	FileSystemID *string `location:"querystring" locationName:"FileSystemId" type:"string" required:"true"`
+	// Optional. String. The ID of the file system whose mount targets you want
+	// to list. It must be included in your request if MountTargetId is not included.
+	FileSystemId *string `location:"querystring" locationName:"FileSystemId" type:"string"`
 
 	// Optional. String. Opaque pagination token returned from a previous DescribeMountTargets
 	// operation. If present, it specifies to continue the list from where the previous
@@ -710,13 +854,27 @@ type DescribeMountTargetsInput struct {
 
 	// Optional. Maximum number of mount targets to return in the response. It must
 	// be an integer with a value greater than zero.
-	MaxItems *int64 `location:"querystring" locationName:"MaxItems" type:"integer"`
+	MaxItems *int64 `location:"querystring" locationName:"MaxItems" min:"1" type:"integer"`
+
+	// Optional. String. The ID of the mount target that you want to have described.
+	// It must be included in your request if FileSystemId is not included.
+	MountTargetId *string `location:"querystring" locationName:"MountTargetId" type:"string"`
 
 	metadataDescribeMountTargetsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeMountTargetsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeMountTargetsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeMountTargetsInput) GoString() string {
+	return s.String()
 }
 
 type DescribeMountTargetsOutput struct {
@@ -740,9 +898,19 @@ type metadataDescribeMountTargetsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeMountTargetsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeMountTargetsOutput) GoString() string {
+	return s.String()
+}
+
 type DescribeTagsInput struct {
 	// The ID of the file system whose tag set you want to retrieve.
-	FileSystemID *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `location:"uri" locationName:"FileSystemId" type:"string" required:"true"`
 
 	// Optional. String. Opaque pagination token returned from a previous DescribeTags
 	// operation. If present, it specifies to continue the list from where the previous
@@ -751,13 +919,23 @@ type DescribeTagsInput struct {
 
 	// Optional. Maximum number of file system tags to return in the response. It
 	// must be an integer with a value greater than zero.
-	MaxItems *int64 `location:"querystring" locationName:"MaxItems" type:"integer"`
+	MaxItems *int64 `location:"querystring" locationName:"MaxItems" min:"1" type:"integer"`
 
 	metadataDescribeTagsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeTagsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeTagsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeTagsInput) GoString() string {
+	return s.String()
 }
 
 type DescribeTagsOutput struct {
@@ -780,20 +958,30 @@ type metadataDescribeTagsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeTagsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeTagsOutput) GoString() string {
+	return s.String()
+}
+
 // This object provides description of a file system.
 type FileSystemDescription struct {
 	// The time at which the file system was created, in seconds, since 1970-01-01T00:00:00Z.
 	CreationTime *time.Time `type:"timestamp" timestampFormat:"unix" required:"true"`
 
 	// Opaque string specified in the request.
-	CreationToken *string `type:"string" required:"true"`
+	CreationToken *string `min:"1" type:"string" required:"true"`
 
 	// The file system ID assigned by Amazon EFS.
-	FileSystemID *string `locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `type:"string" required:"true"`
 
 	// A predefined string value that indicates the lifecycle phase of the file
 	// system.
-	LifeCycleState *string `type:"string" required:"true"`
+	LifeCycleState *string `type:"string" required:"true" enum:"LifeCycleState"`
 
 	// You can add tags to a file system (see CreateTags) including a "Name" tag.
 	// If the file system has a "Name" tag, Amazon EFS returns the value in this
@@ -806,7 +994,7 @@ type FileSystemDescription struct {
 
 	// The AWS account that created the file system. If the file system was created
 	// by an IAM user, the parent account to which the user belongs is the owner.
-	OwnerID *string `locationName:"OwnerId" type:"string" required:"true"`
+	OwnerId *string `type:"string" required:"true"`
 
 	// This object provides the latest known metered size of data stored in the
 	// file system, in bytes, in its Value field, and the time at which that size
@@ -824,6 +1012,16 @@ type FileSystemDescription struct {
 
 type metadataFileSystemDescription struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s FileSystemDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemDescription) GoString() string {
+	return s.String()
 }
 
 // This object provides the latest known metered size, in bytes, of data stored
@@ -849,9 +1047,19 @@ type metadataFileSystemSize struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s FileSystemSize) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FileSystemSize) GoString() string {
+	return s.String()
+}
+
 type ModifyMountTargetSecurityGroupsInput struct {
 	// The ID of the mount target whose security groups you want to modify.
-	MountTargetID *string `location:"uri" locationName:"MountTargetId" type:"string" required:"true"`
+	MountTargetId *string `location:"uri" locationName:"MountTargetId" type:"string" required:"true"`
 
 	// An array of up to five VPC security group IDs.
 	SecurityGroups []*string `type:"list"`
@@ -863,6 +1071,16 @@ type metadataModifyMountTargetSecurityGroupsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ModifyMountTargetSecurityGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyMountTargetSecurityGroupsInput) GoString() string {
+	return s.String()
+}
+
 type ModifyMountTargetSecurityGroupsOutput struct {
 	metadataModifyMountTargetSecurityGroupsOutput `json:"-" xml:"-"`
 }
@@ -871,29 +1089,39 @@ type metadataModifyMountTargetSecurityGroupsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ModifyMountTargetSecurityGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ModifyMountTargetSecurityGroupsOutput) GoString() string {
+	return s.String()
+}
+
 // This object provides description of a mount target.
 type MountTargetDescription struct {
 	// The ID of the file system for which the mount target is intended.
-	FileSystemID *string `locationName:"FileSystemId" type:"string" required:"true"`
+	FileSystemId *string `type:"string" required:"true"`
 
 	// The address at which the file system may be mounted via the mount target.
-	IPAddress *string `locationName:"IpAddress" type:"string"`
+	IpAddress *string `type:"string"`
 
 	// The lifecycle state the mount target is in.
-	LifeCycleState *string `type:"string" required:"true"`
+	LifeCycleState *string `type:"string" required:"true" enum:"LifeCycleState"`
 
 	// The system-assigned mount target ID.
-	MountTargetID *string `locationName:"MountTargetId" type:"string" required:"true"`
+	MountTargetId *string `type:"string" required:"true"`
 
 	// The ID of the network interface that Amazon EFS created when it created the
 	// mount target.
-	NetworkInterfaceID *string `locationName:"NetworkInterfaceId" type:"string"`
+	NetworkInterfaceId *string `type:"string"`
 
 	// The AWS account ID that owns the resource.
-	OwnerID *string `locationName:"OwnerId" type:"string"`
+	OwnerId *string `type:"string"`
 
 	// The ID of the subnet that the mount target is in.
-	SubnetID *string `locationName:"SubnetId" type:"string" required:"true"`
+	SubnetId *string `type:"string" required:"true"`
 
 	metadataMountTargetDescription `json:"-" xml:"-"`
 }
@@ -902,12 +1130,22 @@ type metadataMountTargetDescription struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s MountTargetDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MountTargetDescription) GoString() string {
+	return s.String()
+}
+
 // A tag is a pair of key and value. The allowed characters in keys and values
 // are letters, whitespace, and numbers, representable in UTF-8, and the characters
 // '+', '-', '=', '.', '_', ':', and '/'.
 type Tag struct {
 	// Tag key, a string. The key must not start with "aws:".
-	Key *string `type:"string" required:"true"`
+	Key *string `min:"1" type:"string" required:"true"`
 
 	// Value of the tag key.
 	Value *string `type:"string" required:"true"`
@@ -918,3 +1156,24 @@ type Tag struct {
 type metadataTag struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum LifeCycleState
+	LifeCycleStateCreating = "creating"
+	// @enum LifeCycleState
+	LifeCycleStateAvailable = "available"
+	// @enum LifeCycleState
+	LifeCycleStateDeleting = "deleting"
+	// @enum LifeCycleState
+	LifeCycleStateDeleted = "deleted"
+)

@@ -39,6 +39,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}
+        <div className='clearfix'></div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>

@@ -6,14 +6,15 @@ package route53domains
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opCheckDomainAvailability = "CheckDomainAvailability"
 
 // CheckDomainAvailabilityRequest generates a request for the CheckDomainAvailability operation.
-func (c *Route53Domains) CheckDomainAvailabilityRequest(input *CheckDomainAvailabilityInput) (req *aws.Request, output *CheckDomainAvailabilityOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) CheckDomainAvailabilityRequest(input *CheckDomainAvailabilityInput) (req *request.Request, output *CheckDomainAvailabilityOutput) {
+	op := &request.Operation{
 		Name:       opCheckDomainAvailability,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -42,8 +43,8 @@ func (c *Route53Domains) CheckDomainAvailability(input *CheckDomainAvailabilityI
 const opDeleteTagsForDomain = "DeleteTagsForDomain"
 
 // DeleteTagsForDomainRequest generates a request for the DeleteTagsForDomain operation.
-func (c *Route53Domains) DeleteTagsForDomainRequest(input *DeleteTagsForDomainInput) (req *aws.Request, output *DeleteTagsForDomainOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) DeleteTagsForDomainRequest(input *DeleteTagsForDomainInput) (req *request.Request, output *DeleteTagsForDomainOutput) {
+	op := &request.Operation{
 		Name:       opDeleteTagsForDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -72,8 +73,8 @@ func (c *Route53Domains) DeleteTagsForDomain(input *DeleteTagsForDomainInput) (*
 const opDisableDomainAutoRenew = "DisableDomainAutoRenew"
 
 // DisableDomainAutoRenewRequest generates a request for the DisableDomainAutoRenew operation.
-func (c *Route53Domains) DisableDomainAutoRenewRequest(input *DisableDomainAutoRenewInput) (req *aws.Request, output *DisableDomainAutoRenewOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) DisableDomainAutoRenewRequest(input *DisableDomainAutoRenewInput) (req *request.Request, output *DisableDomainAutoRenewOutput) {
+	op := &request.Operation{
 		Name:       opDisableDomainAutoRenew,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -105,8 +106,8 @@ func (c *Route53Domains) DisableDomainAutoRenew(input *DisableDomainAutoRenewInp
 const opDisableDomainTransferLock = "DisableDomainTransferLock"
 
 // DisableDomainTransferLockRequest generates a request for the DisableDomainTransferLock operation.
-func (c *Route53Domains) DisableDomainTransferLockRequest(input *DisableDomainTransferLockInput) (req *aws.Request, output *DisableDomainTransferLockOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) DisableDomainTransferLockRequest(input *DisableDomainTransferLockInput) (req *request.Request, output *DisableDomainTransferLockOutput) {
+	op := &request.Operation{
 		Name:       opDisableDomainTransferLock,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -138,8 +139,8 @@ func (c *Route53Domains) DisableDomainTransferLock(input *DisableDomainTransferL
 const opEnableDomainAutoRenew = "EnableDomainAutoRenew"
 
 // EnableDomainAutoRenewRequest generates a request for the EnableDomainAutoRenew operation.
-func (c *Route53Domains) EnableDomainAutoRenewRequest(input *EnableDomainAutoRenewInput) (req *aws.Request, output *EnableDomainAutoRenewOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) EnableDomainAutoRenewRequest(input *EnableDomainAutoRenewInput) (req *request.Request, output *EnableDomainAutoRenewOutput) {
+	op := &request.Operation{
 		Name:       opEnableDomainAutoRenew,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -174,8 +175,8 @@ func (c *Route53Domains) EnableDomainAutoRenew(input *EnableDomainAutoRenewInput
 const opEnableDomainTransferLock = "EnableDomainTransferLock"
 
 // EnableDomainTransferLockRequest generates a request for the EnableDomainTransferLock operation.
-func (c *Route53Domains) EnableDomainTransferLockRequest(input *EnableDomainTransferLockInput) (req *aws.Request, output *EnableDomainTransferLockOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) EnableDomainTransferLockRequest(input *EnableDomainTransferLockInput) (req *request.Request, output *EnableDomainTransferLockOutput) {
+	op := &request.Operation{
 		Name:       opEnableDomainTransferLock,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -205,8 +206,8 @@ func (c *Route53Domains) EnableDomainTransferLock(input *EnableDomainTransferLoc
 const opGetDomainDetail = "GetDomainDetail"
 
 // GetDomainDetailRequest generates a request for the GetDomainDetail operation.
-func (c *Route53Domains) GetDomainDetailRequest(input *GetDomainDetailInput) (req *aws.Request, output *GetDomainDetailOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) GetDomainDetailRequest(input *GetDomainDetailInput) (req *request.Request, output *GetDomainDetailOutput) {
+	op := &request.Operation{
 		Name:       opGetDomainDetail,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -233,8 +234,8 @@ func (c *Route53Domains) GetDomainDetail(input *GetDomainDetailInput) (*GetDomai
 const opGetOperationDetail = "GetOperationDetail"
 
 // GetOperationDetailRequest generates a request for the GetOperationDetail operation.
-func (c *Route53Domains) GetOperationDetailRequest(input *GetOperationDetailInput) (req *aws.Request, output *GetOperationDetailOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) GetOperationDetailRequest(input *GetOperationDetailInput) (req *request.Request, output *GetOperationDetailOutput) {
+	op := &request.Operation{
 		Name:       opGetOperationDetail,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -260,12 +261,12 @@ func (c *Route53Domains) GetOperationDetail(input *GetOperationDetailInput) (*Ge
 const opListDomains = "ListDomains"
 
 // ListDomainsRequest generates a request for the ListDomains operation.
-func (c *Route53Domains) ListDomainsRequest(input *ListDomainsInput) (req *aws.Request, output *ListDomainsOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) ListDomainsRequest(input *ListDomainsInput) (req *request.Request, output *ListDomainsOutput) {
+	op := &request.Operation{
 		Name:       opListDomains,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"NextPageMarker"},
 			LimitToken:      "MaxItems",
@@ -301,12 +302,12 @@ func (c *Route53Domains) ListDomainsPages(input *ListDomainsInput, fn func(p *Li
 const opListOperations = "ListOperations"
 
 // ListOperationsRequest generates a request for the ListOperations operation.
-func (c *Route53Domains) ListOperationsRequest(input *ListOperationsInput) (req *aws.Request, output *ListOperationsOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) ListOperationsRequest(input *ListOperationsInput) (req *request.Request, output *ListOperationsOutput) {
+	op := &request.Operation{
 		Name:       opListOperations,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
-		Paginator: &aws.Paginator{
+		Paginator: &request.Paginator{
 			InputTokens:     []string{"Marker"},
 			OutputTokens:    []string{"NextPageMarker"},
 			LimitToken:      "MaxItems",
@@ -341,8 +342,8 @@ func (c *Route53Domains) ListOperationsPages(input *ListOperationsInput, fn func
 const opListTagsForDomain = "ListTagsForDomain"
 
 // ListTagsForDomainRequest generates a request for the ListTagsForDomain operation.
-func (c *Route53Domains) ListTagsForDomainRequest(input *ListTagsForDomainInput) (req *aws.Request, output *ListTagsForDomainOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) ListTagsForDomainRequest(input *ListTagsForDomainInput) (req *request.Request, output *ListTagsForDomainOutput) {
+	op := &request.Operation{
 		Name:       opListTagsForDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -372,8 +373,8 @@ func (c *Route53Domains) ListTagsForDomain(input *ListTagsForDomainInput) (*List
 const opRegisterDomain = "RegisterDomain"
 
 // RegisterDomainRequest generates a request for the RegisterDomain operation.
-func (c *Route53Domains) RegisterDomainRequest(input *RegisterDomainInput) (req *aws.Request, output *RegisterDomainOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) RegisterDomainRequest(input *RegisterDomainInput) (req *request.Request, output *RegisterDomainOutput) {
+	op := &request.Operation{
 		Name:       opRegisterDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -417,8 +418,8 @@ func (c *Route53Domains) RegisterDomain(input *RegisterDomainInput) (*RegisterDo
 const opRetrieveDomainAuthCode = "RetrieveDomainAuthCode"
 
 // RetrieveDomainAuthCodeRequest generates a request for the RetrieveDomainAuthCode operation.
-func (c *Route53Domains) RetrieveDomainAuthCodeRequest(input *RetrieveDomainAuthCodeInput) (req *aws.Request, output *RetrieveDomainAuthCodeOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) RetrieveDomainAuthCodeRequest(input *RetrieveDomainAuthCodeInput) (req *request.Request, output *RetrieveDomainAuthCodeOutput) {
+	op := &request.Operation{
 		Name:       opRetrieveDomainAuthCode,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -445,8 +446,8 @@ func (c *Route53Domains) RetrieveDomainAuthCode(input *RetrieveDomainAuthCodeInp
 const opTransferDomain = "TransferDomain"
 
 // TransferDomainRequest generates a request for the TransferDomain operation.
-func (c *Route53Domains) TransferDomainRequest(input *TransferDomainInput) (req *aws.Request, output *TransferDomainOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) TransferDomainRequest(input *TransferDomainInput) (req *request.Request, output *TransferDomainOutput) {
+	op := &request.Operation{
 		Name:       opTransferDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -495,8 +496,8 @@ func (c *Route53Domains) TransferDomain(input *TransferDomainInput) (*TransferDo
 const opUpdateDomainContact = "UpdateDomainContact"
 
 // UpdateDomainContactRequest generates a request for the UpdateDomainContact operation.
-func (c *Route53Domains) UpdateDomainContactRequest(input *UpdateDomainContactInput) (req *aws.Request, output *UpdateDomainContactOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) UpdateDomainContactRequest(input *UpdateDomainContactInput) (req *request.Request, output *UpdateDomainContactOutput) {
+	op := &request.Operation{
 		Name:       opUpdateDomainContact,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -529,8 +530,8 @@ func (c *Route53Domains) UpdateDomainContact(input *UpdateDomainContactInput) (*
 const opUpdateDomainContactPrivacy = "UpdateDomainContactPrivacy"
 
 // UpdateDomainContactPrivacyRequest generates a request for the UpdateDomainContactPrivacy operation.
-func (c *Route53Domains) UpdateDomainContactPrivacyRequest(input *UpdateDomainContactPrivacyInput) (req *aws.Request, output *UpdateDomainContactPrivacyOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) UpdateDomainContactPrivacyRequest(input *UpdateDomainContactPrivacyInput) (req *request.Request, output *UpdateDomainContactPrivacyOutput) {
+	op := &request.Operation{
 		Name:       opUpdateDomainContactPrivacy,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -566,8 +567,8 @@ func (c *Route53Domains) UpdateDomainContactPrivacy(input *UpdateDomainContactPr
 const opUpdateDomainNameservers = "UpdateDomainNameservers"
 
 // UpdateDomainNameserversRequest generates a request for the UpdateDomainNameservers operation.
-func (c *Route53Domains) UpdateDomainNameserversRequest(input *UpdateDomainNameserversInput) (req *aws.Request, output *UpdateDomainNameserversOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) UpdateDomainNameserversRequest(input *UpdateDomainNameserversInput) (req *request.Request, output *UpdateDomainNameserversOutput) {
+	op := &request.Operation{
 		Name:       opUpdateDomainNameservers,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -600,8 +601,8 @@ func (c *Route53Domains) UpdateDomainNameservers(input *UpdateDomainNameserversI
 const opUpdateTagsForDomain = "UpdateTagsForDomain"
 
 // UpdateTagsForDomainRequest generates a request for the UpdateTagsForDomain operation.
-func (c *Route53Domains) UpdateTagsForDomainRequest(input *UpdateTagsForDomainInput) (req *aws.Request, output *UpdateTagsForDomainOutput) {
-	op := &aws.Operation{
+func (c *Route53Domains) UpdateTagsForDomainRequest(input *UpdateTagsForDomainInput) (req *request.Request, output *UpdateTagsForDomainOutput) {
+	op := &request.Operation{
 		Name:       opUpdateTagsForDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -643,13 +644,23 @@ type CheckDomainAvailabilityInput struct {
 	DomainName *string `type:"string" required:"true"`
 
 	// Reserved for future use.
-	IDNLangCode *string `locationName:"IdnLangCode" type:"string"`
+	IdnLangCode *string `type:"string"`
 
 	metadataCheckDomainAvailabilityInput `json:"-" xml:"-"`
 }
 
 type metadataCheckDomainAvailabilityInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CheckDomainAvailabilityInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CheckDomainAvailabilityInput) GoString() string {
+	return s.String()
 }
 
 // The CheckDomainAvailability response includes the following elements.
@@ -672,13 +683,23 @@ type CheckDomainAvailabilityOutput struct {
 	// name is available. Amazon Route 53 can return this response for a variety
 	// of reasons, for example, the registry is performing maintenance. Try again
 	// later.
-	Availability *string `type:"string" required:"true"`
+	Availability *string `type:"string" required:"true" enum:"DomainAvailability"`
 
 	metadataCheckDomainAvailabilityOutput `json:"-" xml:"-"`
 }
 
 type metadataCheckDomainAvailabilityOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CheckDomainAvailabilityOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CheckDomainAvailabilityOutput) GoString() string {
+	return s.String()
 }
 
 // ContactDetail includes the following elements.
@@ -737,7 +758,7 @@ type ContactDetail struct {
 	// Parents: RegistrantContact, AdminContact, TechContact
 	//
 	// Required: Yes
-	ContactType *string `type:"string"`
+	ContactType *string `type:"string" enum:"ContactType"`
 
 	// Code for the country of the contact's address.
 	//
@@ -750,7 +771,7 @@ type ContactDetail struct {
 	// Parents: RegistrantContact, AdminContact, TechContact
 	//
 	// Required: Yes
-	CountryCode *string `type:"string"`
+	CountryCode *string `type:"string" enum:"CountryCode"`
 
 	// Email address of the contact.
 	//
@@ -880,6 +901,16 @@ type metadataContactDetail struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ContactDetail) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ContactDetail) GoString() string {
+	return s.String()
+}
+
 // The DeleteTagsForDomainRequest includes the following elements.
 type DeleteTagsForDomainInput struct {
 	// The domain for which you want to delete one or more tags.
@@ -917,12 +948,32 @@ type metadataDeleteTagsForDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteTagsForDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteTagsForDomainInput) GoString() string {
+	return s.String()
+}
+
 type DeleteTagsForDomainOutput struct {
 	metadataDeleteTagsForDomainOutput `json:"-" xml:"-"`
 }
 
 type metadataDeleteTagsForDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteTagsForDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteTagsForDomainOutput) GoString() string {
+	return s.String()
 }
 
 type DisableDomainAutoRenewInput struct {
@@ -935,12 +986,32 @@ type metadataDisableDomainAutoRenewInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DisableDomainAutoRenewInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableDomainAutoRenewInput) GoString() string {
+	return s.String()
+}
+
 type DisableDomainAutoRenewOutput struct {
 	metadataDisableDomainAutoRenewOutput `json:"-" xml:"-"`
 }
 
 type metadataDisableDomainAutoRenewOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisableDomainAutoRenewOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableDomainAutoRenewOutput) GoString() string {
+	return s.String()
 }
 
 // The DisableDomainTransferLock request includes the following element.
@@ -965,6 +1036,16 @@ type metadataDisableDomainTransferLockInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DisableDomainTransferLockInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableDomainTransferLockInput) GoString() string {
+	return s.String()
+}
+
 // The DisableDomainTransferLock response includes the following element.
 type DisableDomainTransferLockOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -975,13 +1056,23 @@ type DisableDomainTransferLockOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataDisableDomainTransferLockOutput `json:"-" xml:"-"`
 }
 
 type metadataDisableDomainTransferLockOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisableDomainTransferLockOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableDomainTransferLockOutput) GoString() string {
+	return s.String()
 }
 
 type DomainSummary struct {
@@ -1017,6 +1108,16 @@ type metadataDomainSummary struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DomainSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainSummary) GoString() string {
+	return s.String()
+}
+
 type EnableDomainAutoRenewInput struct {
 	DomainName *string `type:"string" required:"true"`
 
@@ -1027,12 +1128,32 @@ type metadataEnableDomainAutoRenewInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnableDomainAutoRenewInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableDomainAutoRenewInput) GoString() string {
+	return s.String()
+}
+
 type EnableDomainAutoRenewOutput struct {
 	metadataEnableDomainAutoRenewOutput `json:"-" xml:"-"`
 }
 
 type metadataEnableDomainAutoRenewOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnableDomainAutoRenewOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableDomainAutoRenewOutput) GoString() string {
+	return s.String()
 }
 
 // The EnableDomainTransferLock request includes the following element.
@@ -1057,6 +1178,16 @@ type metadataEnableDomainTransferLockInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s EnableDomainTransferLockInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableDomainTransferLockInput) GoString() string {
+	return s.String()
+}
+
 // The EnableDomainTransferLock response includes the following elements.
 type EnableDomainTransferLockOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -1067,13 +1198,23 @@ type EnableDomainTransferLockOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataEnableDomainTransferLockOutput `json:"-" xml:"-"`
 }
 
 type metadataEnableDomainTransferLockOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnableDomainTransferLockOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableDomainTransferLockOutput) GoString() string {
+	return s.String()
 }
 
 // ExtraParam includes the following elements.
@@ -1093,7 +1234,7 @@ type ExtraParam struct {
 	// Parent: ExtraParams
 	//
 	// Required: Yes
-	Name *string `type:"string" required:"true"`
+	Name *string `type:"string" required:"true" enum:"ExtraParamName"`
 
 	// Values corresponding to the additional parameter names required by some top-level
 	// domains.
@@ -1116,6 +1257,16 @@ type metadataExtraParam struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ExtraParam) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExtraParam) GoString() string {
+	return s.String()
+}
+
 // The GetDomainDetail request includes the following element.
 type GetDomainDetailInput struct {
 	// The name of a domain.
@@ -1136,6 +1287,16 @@ type GetDomainDetailInput struct {
 
 type metadataGetDomainDetailInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetDomainDetailInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDomainDetailInput) GoString() string {
+	return s.String()
 }
 
 // The GetDomainDetail response includes the following elements.
@@ -1179,7 +1340,7 @@ type GetDomainDetailOutput struct {
 	CreationDate *time.Time `type:"timestamp" timestampFormat:"unix"`
 
 	// Reserved for future use.
-	DNSSec *string `locationName:"DnsSec" type:"string"`
+	DnsSec *string `type:"string"`
 
 	// The name of a domain.
 	//
@@ -1221,10 +1382,10 @@ type GetDomainDetailOutput struct {
 	// Web address of the registrar.
 	//
 	// Type: String
-	RegistrarURL *string `locationName:"RegistrarUrl" type:"string"`
+	RegistrarUrl *string `type:"string"`
 
 	// Reserved for future use.
-	RegistryDomainID *string `locationName:"RegistryDomainId" type:"string"`
+	RegistryDomainId *string `type:"string"`
 
 	// Reseller of the domain. Domains registered or transferred using Amazon Route
 	// 53 domains will have "Amazon" as the reseller.
@@ -1284,6 +1445,16 @@ type metadataGetDomainDetailOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s GetDomainDetailOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDomainDetailOutput) GoString() string {
+	return s.String()
+}
+
 // The GetOperationDetail request includes the following element.
 type GetOperationDetailInput struct {
 	// The identifier for the operation for which you want to get the status. Amazon
@@ -1294,13 +1465,23 @@ type GetOperationDetailInput struct {
 	// Default: None
 	//
 	// Required: Yes
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataGetOperationDetailInput `json:"-" xml:"-"`
 }
 
 type metadataGetOperationDetailInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetOperationDetailInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetOperationDetailInput) GoString() string {
+	return s.String()
 }
 
 // The GetOperationDetail response includes the following elements.
@@ -1318,12 +1499,12 @@ type GetOperationDetailOutput struct {
 	// The identifier for the operation.
 	//
 	// Type: String
-	OperationID *string `locationName:"OperationId" type:"string"`
+	OperationId *string `type:"string"`
 
 	// The current status of the requested operation in the system.
 	//
 	// Type: String
-	Status *string `type:"string"`
+	Status *string `type:"string" enum:"OperationStatus"`
 
 	// The date when the request was submitted.
 	SubmittedDate *time.Time `type:"timestamp" timestampFormat:"unix"`
@@ -1331,13 +1512,23 @@ type GetOperationDetailOutput struct {
 	// The type of operation that was requested.
 	//
 	// Type: String
-	Type *string `type:"string"`
+	Type *string `type:"string" enum:"OperationType"`
 
 	metadataGetOperationDetailOutput `json:"-" xml:"-"`
 }
 
 type metadataGetOperationDetailOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetOperationDetailOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetOperationDetailOutput) GoString() string {
+	return s.String()
 }
 
 // The ListDomains request includes the following elements.
@@ -1376,6 +1567,16 @@ type metadataListDomainsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListDomainsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDomainsInput) GoString() string {
+	return s.String()
+}
+
 // The ListDomains response includes the following elements.
 type ListDomainsOutput struct {
 	// A summary of domains.
@@ -1399,6 +1600,16 @@ type ListDomainsOutput struct {
 
 type metadataListDomainsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListDomainsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDomainsOutput) GoString() string {
+	return s.String()
 }
 
 // The ListOperations request includes the following elements.
@@ -1435,6 +1646,16 @@ type metadataListOperationsInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListOperationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListOperationsInput) GoString() string {
+	return s.String()
+}
+
 // The ListOperations response includes the following elements.
 type ListOperationsOutput struct {
 	// If there are more operations than you specified for MaxItems in the request,
@@ -1460,6 +1681,16 @@ type metadataListOperationsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListOperationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListOperationsOutput) GoString() string {
+	return s.String()
+}
+
 // The ListTagsForDomainRequest includes the following elements.
 type ListTagsForDomainInput struct {
 	// The domain for which you want to get a list of tags.
@@ -1470,6 +1701,16 @@ type ListTagsForDomainInput struct {
 
 type metadataListTagsForDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListTagsForDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForDomainInput) GoString() string {
+	return s.String()
 }
 
 // The ListTagsForDomain response includes the following elements.
@@ -1500,6 +1741,16 @@ type metadataListTagsForDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ListTagsForDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForDomainOutput) GoString() string {
+	return s.String()
+}
+
 // Nameserver includes the following elements.
 type Nameserver struct {
 	// Glue IP address of a name server entry. Glue IP addresses are required only
@@ -1512,7 +1763,7 @@ type Nameserver struct {
 	// Constraints: The list can contain only one IPv4 and one IPv6 address.
 	//
 	// Parent: Nameservers
-	GlueIPs []*string `locationName:"GlueIps" type:"list"`
+	GlueIps []*string `type:"list"`
 
 	// The fully qualified host name of the name server.
 	//
@@ -1530,17 +1781,27 @@ type metadataNameserver struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Nameserver) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Nameserver) GoString() string {
+	return s.String()
+}
+
 // OperationSummary includes the following elements.
 type OperationSummary struct {
 	// Identifier returned to track the requested action.
 	//
 	// Type: String
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	// The current status of the requested operation in the system.
 	//
 	// Type: String
-	Status *string `type:"string" required:"true"`
+	Status *string `type:"string" required:"true" enum:"OperationStatus"`
 
 	// The date when the request was submitted.
 	SubmittedDate *time.Time `type:"timestamp" timestampFormat:"unix" required:"true"`
@@ -1551,13 +1812,23 @@ type OperationSummary struct {
 	//
 	// Valid values: REGISTER_DOMAIN | DELETE_DOMAIN | TRANSFER_IN_DOMAIN | UPDATE_DOMAIN_CONTACT
 	// | UPDATE_NAMESERVER | CHANGE_PRIVACY_PROTECTION | DOMAIN_LOCK
-	Type *string `type:"string" required:"true"`
+	Type *string `type:"string" required:"true" enum:"OperationType"`
 
 	metadataOperationSummary `json:"-" xml:"-"`
 }
 
 type metadataOperationSummary struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s OperationSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OperationSummary) GoString() string {
+	return s.String()
 }
 
 // The RegisterDomain request includes the following elements.
@@ -1608,10 +1879,10 @@ type RegisterDomainInput struct {
 	// Valid values: Integer from 1 to 10
 	//
 	// Required: Yes
-	DurationInYears *int64 `type:"integer" required:"true"`
+	DurationInYears *int64 `min:"1" type:"integer" required:"true"`
 
 	// Reserved for future use.
-	IDNLangCode *string `locationName:"IdnLangCode" type:"string"`
+	IdnLangCode *string `type:"string"`
 
 	// Whether you want to conceal contact information from WHOIS queries. If you
 	// specify true, WHOIS ("who is") queries will return contact information for
@@ -1684,6 +1955,16 @@ type metadataRegisterDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RegisterDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterDomainInput) GoString() string {
+	return s.String()
+}
+
 // The RegisterDomain response includes the following element.
 type RegisterDomainOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -1694,13 +1975,23 @@ type RegisterDomainOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataRegisterDomainOutput `json:"-" xml:"-"`
 }
 
 type metadataRegisterDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RegisterDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterDomainOutput) GoString() string {
+	return s.String()
 }
 
 // The RetrieveDomainAuthCode request includes the following element.
@@ -1725,6 +2016,16 @@ type metadataRetrieveDomainAuthCodeInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s RetrieveDomainAuthCodeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetrieveDomainAuthCodeInput) GoString() string {
+	return s.String()
+}
+
 // The RetrieveDomainAuthCode response includes the following element.
 type RetrieveDomainAuthCodeOutput struct {
 	// The authorization code for the domain.
@@ -1737,6 +2038,16 @@ type RetrieveDomainAuthCodeOutput struct {
 
 type metadataRetrieveDomainAuthCodeOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s RetrieveDomainAuthCodeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetrieveDomainAuthCodeOutput) GoString() string {
+	return s.String()
 }
 
 // Each tag includes the following elements.
@@ -1772,6 +2083,16 @@ type Tag struct {
 
 type metadataTag struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
 }
 
 // The TransferDomain request includes the following elements.
@@ -1830,10 +2151,10 @@ type TransferDomainInput struct {
 	// Valid values: Integer from 1 to 10
 	//
 	// Required: Yes
-	DurationInYears *int64 `type:"integer" required:"true"`
+	DurationInYears *int64 `min:"1" type:"integer" required:"true"`
 
 	// Reserved for future use.
-	IDNLangCode *string `locationName:"IdnLangCode" type:"string"`
+	IdnLangCode *string `type:"string"`
 
 	// Contains details for the host and glue IP addresses.
 	//
@@ -1915,6 +2236,16 @@ type metadataTransferDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s TransferDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TransferDomainInput) GoString() string {
+	return s.String()
+}
+
 // The TranserDomain response includes the following element.
 type TransferDomainOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -1925,13 +2256,23 @@ type TransferDomainOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataTransferDomainOutput `json:"-" xml:"-"`
 }
 
 type metadataTransferDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s TransferDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TransferDomainOutput) GoString() string {
+	return s.String()
 }
 
 // The UpdateDomainContact request includes the following elements.
@@ -1989,6 +2330,16 @@ type metadataUpdateDomainContactInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateDomainContactInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainContactInput) GoString() string {
+	return s.String()
+}
+
 // The UpdateDomainContact response includes the following element.
 type UpdateDomainContactOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -1999,13 +2350,23 @@ type UpdateDomainContactOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataUpdateDomainContactOutput `json:"-" xml:"-"`
 }
 
 type metadataUpdateDomainContactOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDomainContactOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainContactOutput) GoString() string {
+	return s.String()
 }
 
 // The UpdateDomainContactPrivacy request includes the following elements.
@@ -2072,6 +2433,16 @@ type metadataUpdateDomainContactPrivacyInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateDomainContactPrivacyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainContactPrivacyInput) GoString() string {
+	return s.String()
+}
+
 // The UpdateDomainContactPrivacy response includes the following element.
 type UpdateDomainContactPrivacyOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -2082,13 +2453,23 @@ type UpdateDomainContactPrivacyOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataUpdateDomainContactPrivacyOutput `json:"-" xml:"-"`
 }
 
 type metadataUpdateDomainContactPrivacyOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDomainContactPrivacyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainContactPrivacyOutput) GoString() string {
+	return s.String()
 }
 
 // The UpdateDomainNameserver request includes the following elements.
@@ -2125,6 +2506,16 @@ type metadataUpdateDomainNameserversInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateDomainNameserversInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainNameserversInput) GoString() string {
+	return s.String()
+}
+
 // The UpdateDomainNameservers response includes the following element.
 type UpdateDomainNameserversOutput struct {
 	// Identifier for tracking the progress of the request. To use this ID to query
@@ -2135,13 +2526,23 @@ type UpdateDomainNameserversOutput struct {
 	// Default: None
 	//
 	// Constraints: Maximum 255 characters.
-	OperationID *string `locationName:"OperationId" type:"string" required:"true"`
+	OperationId *string `type:"string" required:"true"`
 
 	metadataUpdateDomainNameserversOutput `json:"-" xml:"-"`
 }
 
 type metadataUpdateDomainNameserversOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDomainNameserversOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDomainNameserversOutput) GoString() string {
+	return s.String()
 }
 
 // The UpdateTagsForDomainRequest includes the following elements.
@@ -2210,6 +2611,16 @@ type metadataUpdateTagsForDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateTagsForDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateTagsForDomainInput) GoString() string {
+	return s.String()
+}
+
 type UpdateTagsForDomainOutput struct {
 	metadataUpdateTagsForDomainOutput `json:"-" xml:"-"`
 }
@@ -2217,3 +2628,579 @@ type UpdateTagsForDomainOutput struct {
 type metadataUpdateTagsForDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s UpdateTagsForDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateTagsForDomainOutput) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum ContactType
+	ContactTypePerson = "PERSON"
+	// @enum ContactType
+	ContactTypeCompany = "COMPANY"
+	// @enum ContactType
+	ContactTypeAssociation = "ASSOCIATION"
+	// @enum ContactType
+	ContactTypePublicBody = "PUBLIC_BODY"
+	// @enum ContactType
+	ContactTypeReseller = "RESELLER"
+)
+
+const (
+	// @enum CountryCode
+	CountryCodeAd = "AD"
+	// @enum CountryCode
+	CountryCodeAe = "AE"
+	// @enum CountryCode
+	CountryCodeAf = "AF"
+	// @enum CountryCode
+	CountryCodeAg = "AG"
+	// @enum CountryCode
+	CountryCodeAi = "AI"
+	// @enum CountryCode
+	CountryCodeAl = "AL"
+	// @enum CountryCode
+	CountryCodeAm = "AM"
+	// @enum CountryCode
+	CountryCodeAn = "AN"
+	// @enum CountryCode
+	CountryCodeAo = "AO"
+	// @enum CountryCode
+	CountryCodeAq = "AQ"
+	// @enum CountryCode
+	CountryCodeAr = "AR"
+	// @enum CountryCode
+	CountryCodeAs = "AS"
+	// @enum CountryCode
+	CountryCodeAt = "AT"
+	// @enum CountryCode
+	CountryCodeAu = "AU"
+	// @enum CountryCode
+	CountryCodeAw = "AW"
+	// @enum CountryCode
+	CountryCodeAz = "AZ"
+	// @enum CountryCode
+	CountryCodeBa = "BA"
+	// @enum CountryCode
+	CountryCodeBb = "BB"
+	// @enum CountryCode
+	CountryCodeBd = "BD"
+	// @enum CountryCode
+	CountryCodeBe = "BE"
+	// @enum CountryCode
+	CountryCodeBf = "BF"
+	// @enum CountryCode
+	CountryCodeBg = "BG"
+	// @enum CountryCode
+	CountryCodeBh = "BH"
+	// @enum CountryCode
+	CountryCodeBi = "BI"
+	// @enum CountryCode
+	CountryCodeBj = "BJ"
+	// @enum CountryCode
+	CountryCodeBl = "BL"
+	// @enum CountryCode
+	CountryCodeBm = "BM"
+	// @enum CountryCode
+	CountryCodeBn = "BN"
+	// @enum CountryCode
+	CountryCodeBo = "BO"
+	// @enum CountryCode
+	CountryCodeBr = "BR"
+	// @enum CountryCode
+	CountryCodeBs = "BS"
+	// @enum CountryCode
+	CountryCodeBt = "BT"
+	// @enum CountryCode
+	CountryCodeBw = "BW"
+	// @enum CountryCode
+	CountryCodeBy = "BY"
+	// @enum CountryCode
+	CountryCodeBz = "BZ"
+	// @enum CountryCode
+	CountryCodeCa = "CA"
+	// @enum CountryCode
+	CountryCodeCc = "CC"
+	// @enum CountryCode
+	CountryCodeCd = "CD"
+	// @enum CountryCode
+	CountryCodeCf = "CF"
+	// @enum CountryCode
+	CountryCodeCg = "CG"
+	// @enum CountryCode
+	CountryCodeCh = "CH"
+	// @enum CountryCode
+	CountryCodeCi = "CI"
+	// @enum CountryCode
+	CountryCodeCk = "CK"
+	// @enum CountryCode
+	CountryCodeCl = "CL"
+	// @enum CountryCode
+	CountryCodeCm = "CM"
+	// @enum CountryCode
+	CountryCodeCn = "CN"
+	// @enum CountryCode
+	CountryCodeCo = "CO"
+	// @enum CountryCode
+	CountryCodeCr = "CR"
+	// @enum CountryCode
+	CountryCodeCu = "CU"
+	// @enum CountryCode
+	CountryCodeCv = "CV"
+	// @enum CountryCode
+	CountryCodeCx = "CX"
+	// @enum CountryCode
+	CountryCodeCy = "CY"
+	// @enum CountryCode
+	CountryCodeCz = "CZ"
+	// @enum CountryCode
+	CountryCodeDe = "DE"
+	// @enum CountryCode
+	CountryCodeDj = "DJ"
+	// @enum CountryCode
+	CountryCodeDk = "DK"
+	// @enum CountryCode
+	CountryCodeDm = "DM"
+	// @enum CountryCode
+	CountryCodeDo = "DO"
+	// @enum CountryCode
+	CountryCodeDz = "DZ"
+	// @enum CountryCode
+	CountryCodeEc = "EC"
+	// @enum CountryCode
+	CountryCodeEe = "EE"
+	// @enum CountryCode
+	CountryCodeEg = "EG"
+	// @enum CountryCode
+	CountryCodeEr = "ER"
+	// @enum CountryCode
+	CountryCodeEs = "ES"
+	// @enum CountryCode
+	CountryCodeEt = "ET"
+	// @enum CountryCode
+	CountryCodeFi = "FI"
+	// @enum CountryCode
+	CountryCodeFj = "FJ"
+	// @enum CountryCode
+	CountryCodeFk = "FK"
+	// @enum CountryCode
+	CountryCodeFm = "FM"
+	// @enum CountryCode
+	CountryCodeFo = "FO"
+	// @enum CountryCode
+	CountryCodeFr = "FR"
+	// @enum CountryCode
+	CountryCodeGa = "GA"
+	// @enum CountryCode
+	CountryCodeGb = "GB"
+	// @enum CountryCode
+	CountryCodeGd = "GD"
+	// @enum CountryCode
+	CountryCodeGe = "GE"
+	// @enum CountryCode
+	CountryCodeGh = "GH"
+	// @enum CountryCode
+	CountryCodeGi = "GI"
+	// @enum CountryCode
+	CountryCodeGl = "GL"
+	// @enum CountryCode
+	CountryCodeGm = "GM"
+	// @enum CountryCode
+	CountryCodeGn = "GN"
+	// @enum CountryCode
+	CountryCodeGq = "GQ"
+	// @enum CountryCode
+	CountryCodeGr = "GR"
+	// @enum CountryCode
+	CountryCodeGt = "GT"
+	// @enum CountryCode
+	CountryCodeGu = "GU"
+	// @enum CountryCode
+	CountryCodeGw = "GW"
+	// @enum CountryCode
+	CountryCodeGy = "GY"
+	// @enum CountryCode
+	CountryCodeHk = "HK"
+	// @enum CountryCode
+	CountryCodeHn = "HN"
+	// @enum CountryCode
+	CountryCodeHr = "HR"
+	// @enum CountryCode
+	CountryCodeHt = "HT"
+	// @enum CountryCode
+	CountryCodeHu = "HU"
+	// @enum CountryCode
+	CountryCodeId = "ID"
+	// @enum CountryCode
+	CountryCodeIe = "IE"
+	// @enum CountryCode
+	CountryCodeIl = "IL"
+	// @enum CountryCode
+	CountryCodeIm = "IM"
+	// @enum CountryCode
+	CountryCodeIn = "IN"
+	// @enum CountryCode
+	CountryCodeIq = "IQ"
+	// @enum CountryCode
+	CountryCodeIr = "IR"
+	// @enum CountryCode
+	CountryCodeIs = "IS"
+	// @enum CountryCode
+	CountryCodeIt = "IT"
+	// @enum CountryCode
+	CountryCodeJm = "JM"
+	// @enum CountryCode
+	CountryCodeJo = "JO"
+	// @enum CountryCode
+	CountryCodeJp = "JP"
+	// @enum CountryCode
+	CountryCodeKe = "KE"
+	// @enum CountryCode
+	CountryCodeKg = "KG"
+	// @enum CountryCode
+	CountryCodeKh = "KH"
+	// @enum CountryCode
+	CountryCodeKi = "KI"
+	// @enum CountryCode
+	CountryCodeKm = "KM"
+	// @enum CountryCode
+	CountryCodeKn = "KN"
+	// @enum CountryCode
+	CountryCodeKp = "KP"
+	// @enum CountryCode
+	CountryCodeKr = "KR"
+	// @enum CountryCode
+	CountryCodeKw = "KW"
+	// @enum CountryCode
+	CountryCodeKy = "KY"
+	// @enum CountryCode
+	CountryCodeKz = "KZ"
+	// @enum CountryCode
+	CountryCodeLa = "LA"
+	// @enum CountryCode
+	CountryCodeLb = "LB"
+	// @enum CountryCode
+	CountryCodeLc = "LC"
+	// @enum CountryCode
+	CountryCodeLi = "LI"
+	// @enum CountryCode
+	CountryCodeLk = "LK"
+	// @enum CountryCode
+	CountryCodeLr = "LR"
+	// @enum CountryCode
+	CountryCodeLs = "LS"
+	// @enum CountryCode
+	CountryCodeLt = "LT"
+	// @enum CountryCode
+	CountryCodeLu = "LU"
+	// @enum CountryCode
+	CountryCodeLv = "LV"
+	// @enum CountryCode
+	CountryCodeLy = "LY"
+	// @enum CountryCode
+	CountryCodeMa = "MA"
+	// @enum CountryCode
+	CountryCodeMc = "MC"
+	// @enum CountryCode
+	CountryCodeMd = "MD"
+	// @enum CountryCode
+	CountryCodeMe = "ME"
+	// @enum CountryCode
+	CountryCodeMf = "MF"
+	// @enum CountryCode
+	CountryCodeMg = "MG"
+	// @enum CountryCode
+	CountryCodeMh = "MH"
+	// @enum CountryCode
+	CountryCodeMk = "MK"
+	// @enum CountryCode
+	CountryCodeMl = "ML"
+	// @enum CountryCode
+	CountryCodeMm = "MM"
+	// @enum CountryCode
+	CountryCodeMn = "MN"
+	// @enum CountryCode
+	CountryCodeMo = "MO"
+	// @enum CountryCode
+	CountryCodeMp = "MP"
+	// @enum CountryCode
+	CountryCodeMr = "MR"
+	// @enum CountryCode
+	CountryCodeMs = "MS"
+	// @enum CountryCode
+	CountryCodeMt = "MT"
+	// @enum CountryCode
+	CountryCodeMu = "MU"
+	// @enum CountryCode
+	CountryCodeMv = "MV"
+	// @enum CountryCode
+	CountryCodeMw = "MW"
+	// @enum CountryCode
+	CountryCodeMx = "MX"
+	// @enum CountryCode
+	CountryCodeMy = "MY"
+	// @enum CountryCode
+	CountryCodeMz = "MZ"
+	// @enum CountryCode
+	CountryCodeNa = "NA"
+	// @enum CountryCode
+	CountryCodeNc = "NC"
+	// @enum CountryCode
+	CountryCodeNe = "NE"
+	// @enum CountryCode
+	CountryCodeNg = "NG"
+	// @enum CountryCode
+	CountryCodeNi = "NI"
+	// @enum CountryCode
+	CountryCodeNl = "NL"
+	// @enum CountryCode
+	CountryCodeNo = "NO"
+	// @enum CountryCode
+	CountryCodeNp = "NP"
+	// @enum CountryCode
+	CountryCodeNr = "NR"
+	// @enum CountryCode
+	CountryCodeNu = "NU"
+	// @enum CountryCode
+	CountryCodeNz = "NZ"
+	// @enum CountryCode
+	CountryCodeOm = "OM"
+	// @enum CountryCode
+	CountryCodePa = "PA"
+	// @enum CountryCode
+	CountryCodePe = "PE"
+	// @enum CountryCode
+	CountryCodePf = "PF"
+	// @enum CountryCode
+	CountryCodePg = "PG"
+	// @enum CountryCode
+	CountryCodePh = "PH"
+	// @enum CountryCode
+	CountryCodePk = "PK"
+	// @enum CountryCode
+	CountryCodePl = "PL"
+	// @enum CountryCode
+	CountryCodePm = "PM"
+	// @enum CountryCode
+	CountryCodePn = "PN"
+	// @enum CountryCode
+	CountryCodePr = "PR"
+	// @enum CountryCode
+	CountryCodePt = "PT"
+	// @enum CountryCode
+	CountryCodePw = "PW"
+	// @enum CountryCode
+	CountryCodePy = "PY"
+	// @enum CountryCode
+	CountryCodeQa = "QA"
+	// @enum CountryCode
+	CountryCodeRo = "RO"
+	// @enum CountryCode
+	CountryCodeRs = "RS"
+	// @enum CountryCode
+	CountryCodeRu = "RU"
+	// @enum CountryCode
+	CountryCodeRw = "RW"
+	// @enum CountryCode
+	CountryCodeSa = "SA"
+	// @enum CountryCode
+	CountryCodeSb = "SB"
+	// @enum CountryCode
+	CountryCodeSc = "SC"
+	// @enum CountryCode
+	CountryCodeSd = "SD"
+	// @enum CountryCode
+	CountryCodeSe = "SE"
+	// @enum CountryCode
+	CountryCodeSg = "SG"
+	// @enum CountryCode
+	CountryCodeSh = "SH"
+	// @enum CountryCode
+	CountryCodeSi = "SI"
+	// @enum CountryCode
+	CountryCodeSk = "SK"
+	// @enum CountryCode
+	CountryCodeSl = "SL"
+	// @enum CountryCode
+	CountryCodeSm = "SM"
+	// @enum CountryCode
+	CountryCodeSn = "SN"
+	// @enum CountryCode
+	CountryCodeSo = "SO"
+	// @enum CountryCode
+	CountryCodeSr = "SR"
+	// @enum CountryCode
+	CountryCodeSt = "ST"
+	// @enum CountryCode
+	CountryCodeSv = "SV"
+	// @enum CountryCode
+	CountryCodeSy = "SY"
+	// @enum CountryCode
+	CountryCodeSz = "SZ"
+	// @enum CountryCode
+	CountryCodeTc = "TC"
+	// @enum CountryCode
+	CountryCodeTd = "TD"
+	// @enum CountryCode
+	CountryCodeTg = "TG"
+	// @enum CountryCode
+	CountryCodeTh = "TH"
+	// @enum CountryCode
+	CountryCodeTj = "TJ"
+	// @enum CountryCode
+	CountryCodeTk = "TK"
+	// @enum CountryCode
+	CountryCodeTl = "TL"
+	// @enum CountryCode
+	CountryCodeTm = "TM"
+	// @enum CountryCode
+	CountryCodeTn = "TN"
+	// @enum CountryCode
+	CountryCodeTo = "TO"
+	// @enum CountryCode
+	CountryCodeTr = "TR"
+	// @enum CountryCode
+	CountryCodeTt = "TT"
+	// @enum CountryCode
+	CountryCodeTv = "TV"
+	// @enum CountryCode
+	CountryCodeTw = "TW"
+	// @enum CountryCode
+	CountryCodeTz = "TZ"
+	// @enum CountryCode
+	CountryCodeUa = "UA"
+	// @enum CountryCode
+	CountryCodeUg = "UG"
+	// @enum CountryCode
+	CountryCodeUs = "US"
+	// @enum CountryCode
+	CountryCodeUy = "UY"
+	// @enum CountryCode
+	CountryCodeUz = "UZ"
+	// @enum CountryCode
+	CountryCodeVa = "VA"
+	// @enum CountryCode
+	CountryCodeVc = "VC"
+	// @enum CountryCode
+	CountryCodeVe = "VE"
+	// @enum CountryCode
+	CountryCodeVg = "VG"
+	// @enum CountryCode
+	CountryCodeVi = "VI"
+	// @enum CountryCode
+	CountryCodeVn = "VN"
+	// @enum CountryCode
+	CountryCodeVu = "VU"
+	// @enum CountryCode
+	CountryCodeWf = "WF"
+	// @enum CountryCode
+	CountryCodeWs = "WS"
+	// @enum CountryCode
+	CountryCodeYe = "YE"
+	// @enum CountryCode
+	CountryCodeYt = "YT"
+	// @enum CountryCode
+	CountryCodeZa = "ZA"
+	// @enum CountryCode
+	CountryCodeZm = "ZM"
+	// @enum CountryCode
+	CountryCodeZw = "ZW"
+)
+
+const (
+	// @enum DomainAvailability
+	DomainAvailabilityAvailable = "AVAILABLE"
+	// @enum DomainAvailability
+	DomainAvailabilityAvailableReserved = "AVAILABLE_RESERVED"
+	// @enum DomainAvailability
+	DomainAvailabilityAvailablePreorder = "AVAILABLE_PREORDER"
+	// @enum DomainAvailability
+	DomainAvailabilityUnavailable = "UNAVAILABLE"
+	// @enum DomainAvailability
+	DomainAvailabilityUnavailablePremium = "UNAVAILABLE_PREMIUM"
+	// @enum DomainAvailability
+	DomainAvailabilityUnavailableRestricted = "UNAVAILABLE_RESTRICTED"
+	// @enum DomainAvailability
+	DomainAvailabilityReserved = "RESERVED"
+	// @enum DomainAvailability
+	DomainAvailabilityDontKnow = "DONT_KNOW"
+)
+
+const (
+	// @enum ExtraParamName
+	ExtraParamNameDunsNumber = "DUNS_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameBrandNumber = "BRAND_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameBirthDepartment = "BIRTH_DEPARTMENT"
+	// @enum ExtraParamName
+	ExtraParamNameBirthDateInYyyyMmDd = "BIRTH_DATE_IN_YYYY_MM_DD"
+	// @enum ExtraParamName
+	ExtraParamNameBirthCountry = "BIRTH_COUNTRY"
+	// @enum ExtraParamName
+	ExtraParamNameBirthCity = "BIRTH_CITY"
+	// @enum ExtraParamName
+	ExtraParamNameDocumentNumber = "DOCUMENT_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameAuIdNumber = "AU_ID_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameAuIdType = "AU_ID_TYPE"
+	// @enum ExtraParamName
+	ExtraParamNameCaLegalType = "CA_LEGAL_TYPE"
+	// @enum ExtraParamName
+	ExtraParamNameEsIdentification = "ES_IDENTIFICATION"
+	// @enum ExtraParamName
+	ExtraParamNameEsIdentificationType = "ES_IDENTIFICATION_TYPE"
+	// @enum ExtraParamName
+	ExtraParamNameEsLegalForm = "ES_LEGAL_FORM"
+	// @enum ExtraParamName
+	ExtraParamNameFiBusinessNumber = "FI_BUSINESS_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameFiIdNumber = "FI_ID_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameItPin = "IT_PIN"
+	// @enum ExtraParamName
+	ExtraParamNameRuPassportData = "RU_PASSPORT_DATA"
+	// @enum ExtraParamName
+	ExtraParamNameSeIdNumber = "SE_ID_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameSgIdNumber = "SG_ID_NUMBER"
+	// @enum ExtraParamName
+	ExtraParamNameVatNumber = "VAT_NUMBER"
+)
+
+const (
+	// @enum OperationStatus
+	OperationStatusSubmitted = "SUBMITTED"
+	// @enum OperationStatus
+	OperationStatusInProgress = "IN_PROGRESS"
+	// @enum OperationStatus
+	OperationStatusError = "ERROR"
+	// @enum OperationStatus
+	OperationStatusSuccessful = "SUCCESSFUL"
+	// @enum OperationStatus
+	OperationStatusFailed = "FAILED"
+)
+
+const (
+	// @enum OperationType
+	OperationTypeRegisterDomain = "REGISTER_DOMAIN"
+	// @enum OperationType
+	OperationTypeDeleteDomain = "DELETE_DOMAIN"
+	// @enum OperationType
+	OperationTypeTransferInDomain = "TRANSFER_IN_DOMAIN"
+	// @enum OperationType
+	OperationTypeUpdateDomainContact = "UPDATE_DOMAIN_CONTACT"
+	// @enum OperationType
+	OperationTypeUpdateNameserver = "UPDATE_NAMESERVER"
+	// @enum OperationType
+	OperationTypeChangePrivacyProtection = "CHANGE_PRIVACY_PROTECTION"
+	// @enum OperationType
+	OperationTypeDomainLock = "DOMAIN_LOCK"
+)
