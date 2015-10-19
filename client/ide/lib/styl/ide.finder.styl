@@ -99,11 +99,17 @@ body.ide
       label
         color               white
       button.kdbutton
+        height              18px
+        line-height         15px
         margin              3px 15px 0 0
-        padding             2px 4px 2px 4px
+        padding             0 2px 0 2px
         width               auto
         font-weight         normal
         fr()
+
+        span
+          rel()
+          top               -1px
 
     &.items-hovering
       background            rgba(136, 183, 214, 0.25)
@@ -118,12 +124,14 @@ body.ide
       abs()
       size                  15px, 15px
       bg                    position, -82px -222px
-      right                 7px
-      top                   3px
-      kdfsprite()
-      &:focus
-      &:active
-        bg                  position, -62px -242px
+      right                 5px
+      top                   4px
+      r-sprite              finder '16-close-white'
+      opacity               .3
+      vendor                transition, opacity .3s ease
+
+      &:hover
+        opacity             1
 
     > div
       line-height           24px
@@ -165,16 +173,16 @@ body.ide
         height        24px
         padding-right 25px
         input.hitenterview
-          bg          image, none
-          width       100%
-          margin      2px 0
-          padding     0 0 0 7px
-          font-size   13px
-          font-weight 400
+          bg                image, none
+          width             100%
+          margin            0
+          padding           0 0 0 7px
+          font-size         13px
+          font-weight       400
         a.cancel
-          top         6px
-          right       4px
-          r-sprite      finder '16-close-white'
+          top               4px
+          right             4px
+          r-sprite          finder '16-close-white'
 
     .progressbar-container
       hidden()
