@@ -91,20 +91,23 @@ header a {
 	background:#000 no-repeat center bottom;
 	border-top: 1px solid transparent
 }
-.python .hellobox {
-	background-image:url('../img/hellopython.jpg');
+.html .hellobox {
+	background-image:url('../img/hellohtml.png');
 }
 .php .hellobox {
-	background-image:url('html.png');
+	background-image:url('../img/hellophp.png');
+}
+.python .hellobox {
+	background-image:url('../img/hellopython.png');
+}
+.perl .hellobox {
+	background-image:url('../img/helloperl.png');
 }
 .ruby .hellobox {
-	background:#000 url('../img/hellojtree2.jpg') no-repeat center top;
+	background-image:url('../img/helloruby.png');
 }
 .node .hellobox {
 	background:#000 url('../img/cloudy.jpg') no-repeat center top;
-}
-.perl .hellobox {
-	background:#000 url('../img/hellodesert.jpg') no-repeat center top;
 }
 .wrap {
 	width: 660px;
@@ -272,13 +275,13 @@ footer #facebook:before {
     left: 50%;
 }
 footer #twitter:before {
-    background-image: url('twitter.png');
+    background-image: url('../img/twitter.png');
     height: 20px;
     width: 25px;
     margin-left: -12.5px;
 }
 footer #facebook:before {
-    background-image: url('facebook.png');
+    background-image: url('../img/facebook.png');
     height: 23px;
     width: 13px;
     margin-left: -6.5px;
