@@ -235,9 +235,7 @@ func githubContextCreator(req *http.Request) context.Context {
 		eventType: event,
 	}
 
-	// headerEventType := req.Header.Get("X-Hithub-Event")
 	return context.WithValue(context.Background(), githubInfoKey, gi)
-	// return context.WithValue(ctx, githubEventType, headerEventType)
 }
 
 // Push is triggered when a repository branch is pushed to.
