@@ -1,6 +1,6 @@
-utils = require '../utils/utils.js'
+utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-
+HUBSPOT = yes
 
 expectValidationError = (browser) ->
 
@@ -31,8 +31,10 @@ module.exports =
         else
           helpers.attemptEnterUsernameOnRegister(browser, user)
 
+          unless HUBSPOT
+            browser.waitForElementVisible '[testpath=main-header]', 50000 # Assertion
+
           browser
-            .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
             .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
             .end()
 
@@ -43,7 +45,7 @@ module.exports =
     browser.end()
 
 
-  registerWithInvalidUsername: (browser) ->
+  tryRegisterWithInvalidUsername: (browser) ->
 
     user = utils.getUser(yes)
     user.username = '{r2d2}'
@@ -54,7 +56,7 @@ module.exports =
     expectValidationError(browser)
 
 
-  registerWithInvalidEmail: (browser) ->
+  tryRegisterWithInvalidEmail: (browser) ->
 
     user = utils.getUser(yes)
     user.email = 'r2d2.kd.io'
@@ -64,7 +66,7 @@ module.exports =
     expectValidationError(browser)
 
 
-  registerWithInvalidPassword: (browser) ->
+  tryRegisterWithInvalidPassword: (browser) ->
 
     user = utils.getUser(yes)
     user.password = '123456'
