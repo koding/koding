@@ -361,6 +361,7 @@ module.exports           = class MainController extends KDController
 
       notification = new KDNotificationView
         title         : "Couldn't connect to backend!"
+        cssClass      : 'disconnection'
         type          : "tray"
         closeManually : no
         content       : """We don't know why, but your browser couldn't reach our server.
