@@ -11,53 +11,7 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    { rootPath } = data.workspace
-
-    options.cssClass        = 'content-search-modal'
-    options.tabs            =
-      forms                 :
-        Search              :
-          buttons           :
-            searchButton    :
-              title         : 'Search'
-              style         : 'search solid green medium'
-              domId         : 'search-button'
-              type          : 'submit'
-              loader        :
-                color       : '#FFFFFF'
-              callback      : @bound 'search'
-            cancel          :
-              title         : 'Close'
-              style         : 'solid cancel medium'
-              domId         : 'cancel-button'
-              callback      : @bound 'destroy'
-          fields            :
-            findInput       :
-              type          : 'text'
-              label         : 'Find'
-              placeholder   : 'Find'
-              keydown       : _.bind @handleKeyDown, this
-            whereInput      :
-              type          : 'text'
-              label         : 'Where'
-              placeholder   : rootPath
-              defaultValue  : rootPath
-              keydown       : _.bind @handleKeyDown, this
-            caseToggle      :
-              cssClass      : 'checkbox'
-              label         : 'Case Sensitive'
-              itemClass     : kd.CustomCheckBox
-            wholeWordToggle :
-              cssClass      : 'checkbox'
-              label         : 'Whole Word'
-              itemClass     : kd.CustomCheckBox
-            regExpToggle    :
-              cssClass      : 'checkbox'
-              label         : 'Use regexp'
-              itemClass     : kd.CustomCheckBox
-            warningView     :
-              itemClass     : kd.View
-              cssClass      : 'hidden notification'
+    @setFormOptions options, data
 
     super options, data
 
@@ -221,3 +175,54 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
           label.on 'click', =>
             if checkbox.getValue() then checkbox.setValue 0 else checkbox.setValue 1
+
+
+  setFormOptions: (options, data) ->
+
+    { rootPath } = data.workspace
+
+    options.cssClass        = 'content-search-modal'
+    options.tabs            =
+      forms                 :
+        Search              :
+          buttons           :
+            searchButton    :
+              title         : 'Search'
+              style         : 'search solid green medium'
+              domId         : 'search-button'
+              type          : 'submit'
+              loader        :
+                color       : '#FFFFFF'
+              callback      : @bound 'search'
+            cancel          :
+              title         : 'Close'
+              style         : 'solid cancel medium'
+              domId         : 'cancel-button'
+              callback      : @bound 'destroy'
+          fields            :
+            findInput       :
+              type          : 'text'
+              label         : 'Find'
+              placeholder   : 'Find'
+              keydown       : _.bind @handleKeyDown, this
+            whereInput      :
+              type          : 'text'
+              label         : 'Where'
+              placeholder   : rootPath
+              defaultValue  : rootPath
+              keydown       : _.bind @handleKeyDown, this
+            caseToggle      :
+              cssClass      : 'checkbox'
+              label         : 'Case Sensitive'
+              itemClass     : kd.CustomCheckBox
+            wholeWordToggle :
+              cssClass      : 'checkbox'
+              label         : 'Whole Word'
+              itemClass     : kd.CustomCheckBox
+            regExpToggle    :
+              cssClass      : 'checkbox'
+              label         : 'Use regexp'
+              itemClass     : kd.CustomCheckBox
+            warningView     :
+              itemClass     : kd.View
+              cssClass      : 'hidden notification'
