@@ -109,10 +109,9 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
     command = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{searchText}' \"#{@escapeShell @rootPath}\""
 
-    appManager = kd.getSingleton 'appManager'
-    appManager.tell 'IDE', 'getMountedMachine', (err, machine) =>
-      machine.getBaseKite().exec({ command })
-      .then  (res) => @formatOutput machine, res.stdout, @bound 'createResultsView'
+    { machine } = @getData()
+    machine.getBaseKite().exec({ command })
+      .then  (res) => @formatOutput res.stdout, @bound 'createResultsView'
       .catch (err) =>
         @showWarning 'Something went wrong, please try again.'
         kd.warn err
@@ -125,11 +124,9 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
   grepEscapeRegExp: (str) -> str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
 
 
-  formatOutput: (machine, output, callback = kd.noop) ->
+  formatOutput: (output, callback = kd.noop) ->
 
     return @showWarning 'Something went wrong, please try again.', yes  if output.stderr
-
-    @machine = machine
 
     # Regexes
     mainLineRegex           = /^:?([\s\S]+):(\d+):([\s\S]*)$/
@@ -177,9 +174,10 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
   createResultsView: (result, stats) ->
 
-    {searchText}    = this
+    { searchText }  = this
     isCaseSensitive = @caseToggle.getValue()
-    resultsView     = new IDEContentSearchResultView { result, stats, searchText, isCaseSensitive, @machine }
+    { machine }     = @getData()
+    resultsView     = new IDEContentSearchResultView { result, stats, searchText, isCaseSensitive, machine }
 
     @emit 'ViewNeedsToBeShown', resultsView
     @destroy()
