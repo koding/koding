@@ -1059,7 +1059,8 @@ class IDEAppController extends AppController
 
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
-    @contentSearch = new IDEContentSearch
+    data = machine: @mountedMachine, workspace: @workspaceData
+    @contentSearch = new IDEContentSearch {}, data
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
