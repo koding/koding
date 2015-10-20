@@ -5,7 +5,7 @@ JCredential = require './credential.coffee'
   withConvertedUser
   checkBongoConnectivity
   generateDummyUserFormData }      = require '../../../../testhelper'
-{ withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders'
+{ withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders/credentialhelper'
 
 
 # this function will be called once before running any test

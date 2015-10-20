@@ -63,7 +63,7 @@ module.exports = class Managed extends ProviderInterface
             """, 'UsageLimitReached'
 
           meta =
-            type          : @providerSlug
+            type          : Managed.providerSlug
             storage_size  : 0 # sky is the limit.
             alwaysOn      : no
 

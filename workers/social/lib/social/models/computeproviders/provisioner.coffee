@@ -263,6 +263,7 @@ module.exports = class JProvisioner extends jraphical.Module
         return callback new KodingError 'Nothing to update'
 
       fieldsToUpdate = { 'meta.modifiedAt' : new Date }
+      { delegate }   = client.connection
 
       if content?
 

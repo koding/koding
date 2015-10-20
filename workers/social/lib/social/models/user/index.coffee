@@ -677,6 +677,8 @@ module.exports = class JUser extends jraphical.Module
         { account } = response
         return logout 'guest account not found'  if not response?.account
 
+        account.profile.nickname = username
+
         return callback null, { account, session }
 
       return
@@ -861,10 +863,13 @@ module.exports = class JUser extends jraphical.Module
           $unset          :
             guestId       : 1
 
+        guestUsername = session.username
+
         session.update sessionUpdateOptions, (err) ->
           return callback err  if err
 
           Tracker.identify username, { lastLoginDate }
+          Tracker.alias guestUsername, username
 
           queue.next()
 
@@ -1657,6 +1662,7 @@ module.exports = class JUser extends jraphical.Module
         }
 
         Tracker.identify username, traits
+        Tracker.alias oldUsername, username
 
         queue.next()
 
@@ -1671,7 +1677,7 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         # don't block register
-        callback error, { account, newToken }
+        callback error, { account, newToken, user }
         queue.next()
 
       ->
