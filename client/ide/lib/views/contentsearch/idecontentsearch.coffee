@@ -11,6 +11,8 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
   constructor: (options = {}, data) ->
 
+    { rootPath } = data.workspace
+
     options.cssClass        = 'content-search-modal'
     options.tabs            =
       forms                 :
@@ -38,8 +40,8 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
             whereInput      :
               type          : 'text'
               label         : 'Where'
-              placeholder   : "/home/#{nick()}"
-              defaultValue  : "/home/#{nick()}"
+              placeholder   : rootPath
+              defaultValue  : rootPath
               keydown       : _.bind @handleKeyDown, this
             caseToggle      :
               cssClass      : 'checkbox'
