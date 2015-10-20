@@ -3,10 +3,10 @@ hat        = require 'hat'
 { daisy }  = require 'bongo'
 { expect } = require 'chai'
 
-JUser      = require '../../lib/social/models/user/index'
-JMachine   = require '../../lib/social/models/computeproviders/machine'
+JUser      = require '../../../lib/social/models/user/index'
+JMachine   = require '../../../lib/social/models/computeproviders/machine'
 
-{ reviveClient } = require '../../../social/lib/social/models/computeproviders/computeutils'
+{ reviveClient } = require '../../../../social/lib/social/models/computeproviders/computeutils'
 
 
 generateMachineParams = (client, opts, callback) ->

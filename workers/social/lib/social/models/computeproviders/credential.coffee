@@ -43,6 +43,8 @@ module.exports = class JCredential extends jraphical.Module
       instance        :
         delete        :
           (signature Function)
+        clone         :
+          (signature Function)
         shareWith     :
           (signature Object, Function)
         fetchUsers    :
@@ -95,7 +97,7 @@ module.exports = class JCredential extends jraphical.Module
     relationships     :
 
       data            :
-        targetType    : 'JCredentialData'
+        targetType    : JCredentialData
         as            : 'data'
 
   @getName = -> 'JCredential'
@@ -330,13 +332,40 @@ module.exports = class JCredential extends jraphical.Module
 
           rel.remove callback
 
+
+  clone: permit
+
+    advanced: [
+      { permission: 'modify credential' }
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      { delegate } = client.connection
+
+      cloneData  =
+        title    : @getAt 'title'
+        provider : @getAt 'provider'
+
+      @fetchData (err, data) ->
+
+        return callback err  if err
+
+        cloneData.meta = data.meta  if data?.meta
+        JCredential.create client, cloneData, callback
+
+      , shadowSensitiveData = no
+
+
   # Poor man's shadow function ~ GG
   shadowed = (c) ->
+    return  unless c
     r = (c) -> Math.ceil c.length / 1.5
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
 
-  fetchData: (callback) ->
+  fetchData: (callback, shadowSensitiveData = yes) ->
 
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
@@ -348,9 +377,10 @@ module.exports = class JCredential extends jraphical.Module
       rel.fetchTarget (err, data) ->
         return callback err  if err
 
-        meta = data?.data?.meta or {}
-        sensitiveKeys.forEach (key) ->
-          meta[key] = shadowed meta[key]
+        if shadowSensitiveData
+          meta = data?.data?.meta or {}
+          sensitiveKeys.forEach (key) ->
+            meta[key] = shadowed meta[key]
 
         callback null, data
 

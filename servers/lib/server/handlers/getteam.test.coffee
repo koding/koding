@@ -45,9 +45,8 @@ runTests = -> describe 'server.handlers.getteam', ->
     groupSlug                 = generateRandomString()
 
     queue.push ->
-      generateCreateTeamRequestParams {
-        body : { slug : groupSlug }
-      }, (createTeamRequestParams) ->
+      options = { body : { slug : groupSlug } }
+      generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
         request.post createTeamRequestParams, (err, res, body) ->
           expect(err)             .to.not.exist

@@ -130,9 +130,8 @@ runTests = -> describe 'server.handlers.verifyslug', ->
       queue = [
 
         ->
-          generateCreateTeamRequestParams {
-            body : { slug }
-          }, (createTeamRequestParams) ->
+          options = { body : { slug } }
+          generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
             # expecting team to be created
             request.post createTeamRequestParams, (err, res, body) ->
