@@ -8,36 +8,7 @@ utils.extend utils,
         delete window.localStorage[kite]
 
 
-  trackEvent: (args...) ->
-
-    return  unless @trackEligible()
-
-    # send event#action as event for GA
-    if args.length > 1
-      {action} = args[1]
-      args[1].event = args[0]  unless args[1].event
-
-    # if event#action, send that or fallback to event
-    event = if action? then action else args[0]
-    analytics.track event, args[1]
-
-
-  trackPage: (args) ->
-
-    return  unless @trackEligible()
-
-    {path} = args
-    return  unless path
-
-    title = @getFirstPartOfpath(path)
-    analytics.page(title, {title:document.title, path})
-
-
-  trackEligible: ->
-
-    return analytics? and KD.config.environment is "production"
-
-  getFirstPartOfpath: (path)-> return path.split('/')[1] or '/'
+  analytics: require './analytics'
 
 
   getReferrer: ->
