@@ -1,17 +1,14 @@
+_                          = require 'lodash'
 kd                         = require 'kd'
-KDCustomHTMLView           = kd.CustomHTMLView
-KDModalViewWithForms       = kd.ModalViewWithForms
-KDView                     = kd.View
 nick                       = require 'app/util/nick'
 KodingSwitch               = require 'app/commonviews/kodingswitch'
-IDEContentSearchResultView = require './idecontentsearchresultview'
+keycode                    = require 'keycode'
 Encoder                    = require 'htmlencode'
 editorSettings             = require '../../workspace/panes/settings/editorsettings'
-_                          = require 'lodash'
-keycode                    = require 'keycode'
+IDEContentSearchResultView = require './idecontentsearchresultview'
 
 
-module.exports = class IDEContentSearch extends KDModalViewWithForms
+module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
   constructor: (options = {}, data) ->
 
@@ -61,7 +58,7 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
                defaultValue : no
                cssClass     : 'tiny switch'
             warningView     :
-              itemClass     : KDView
+              itemClass     : kd.View
               cssClass      : 'hidden notification'
 
     super options, data
@@ -76,6 +73,7 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
 
 
   search: ->
+
     @warningView.hide()
 
     @searchText     = Encoder.XSSEncode @findInput.getValue()
@@ -123,16 +121,16 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
         @showWarning 'Something went wrong, please try again.'
         kd.warn err
 
-  escapeRegExp: (str) ->
-    str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
 
-  escapeShell: (str) ->
-    str.replace /([\\"'`$\s\(\)<>])/g, '\\$1'
+  escapeRegExp: (str) -> str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
 
-  grepEscapeRegExp: (str) ->
-    str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
+  escapeShell: (str) -> str.replace /([\\"'`$\s\(\)<>])/g, '\\$1'
+
+  grepEscapeRegExp: (str) -> str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
+
 
   formatOutput: (machine, output, callback = kd.noop) ->
+
     return @showWarning 'Something went wrong, please try again.', yes  if output.stderr
 
     @machine = machine
@@ -180,7 +178,9 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
     # Send results
     callback formatted, stats
 
+
   createResultsView: (result, stats) ->
+
     {searchText}    = this
     isCaseSensitive = @caseToggle.getValue()
     resultsView     = new IDEContentSearchResultView { result, stats, searchText, isCaseSensitive, @machine }
@@ -188,7 +188,9 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
     @emit 'ViewNeedsToBeShown', resultsView
     @destroy()
 
+
   showWarning: (text, isError) ->
+
     view = @warningView
 
     view.unsetClass 'error'
@@ -197,15 +199,17 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
     view.show()
     @searchButton.hideLoader()
 
+
   viewAppended: ->
+
     super
 
-    @addSubView new KDCustomHTMLView cssClass: 'icon'
+    @addSubView new kd.CustomHTMLView cssClass: 'icon'
 
-    searchForm      = @modalTabs.forms.Search
-    {@warningView}  = searchForm.fields
-    {@searchButton} = searchForm.buttons
-    {@findInput,  @whereInput} = searchForm.inputs
-    {@caseToggle, @regExpToggle, @wholeWordToggle} = searchForm.inputs
+    searchForm        = @modalTabs.forms.Search
+    { @warningView  } = searchForm.fields
+    { @searchButton } = searchForm.buttons
+    { @findInput,  @whereInput } = searchForm.inputs
+    { @caseToggle, @regExpToggle, @wholeWordToggle } = searchForm.inputs
 
     @findInput.setFocus()
