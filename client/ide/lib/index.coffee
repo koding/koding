@@ -384,11 +384,24 @@ class IDEAppController extends AppController
   ###
   openFile: (options, callback = kd.noop) ->
 
-    { file, contents, emitChange, targetTabView } = options
+    { file, contents, emitChange, targetTabView, switchIfOpen } = options
 
     kallback = (pane) =>
       @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
       callback pane
+
+
+    if switchIfOpen
+      wasOpen = no
+
+      @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
+        if editorPane.file.path is file.path
+          editorPane.emit 'ShowMeAsActive'
+          kallback editorPane
+          wasOpen = yes
+
+      return if wasOpen
+
 
     @setActiveTabView targetTabView  if targetTabView
 

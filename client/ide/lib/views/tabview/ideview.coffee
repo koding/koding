@@ -268,6 +268,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       editor    : editorPane
       aceView   : editorPane.aceView
 
+    editorPane.on 'ShowMeAsActive', => @switchToEditorTabByFile file
+
     editorPane.once 'EditorIsReady', =>
       ace        = editorPane.getAce()
       appManager = kd.getSingleton 'appManager'
