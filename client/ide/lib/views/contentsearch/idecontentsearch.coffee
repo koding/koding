@@ -15,13 +15,54 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
     super options, data
 
+    @localStorageController = kd.singletons.localStorageController.storage 'IDEContentSearch'
+
 
   handleKeyDown: (e) ->
 
-    code = e.which or e.keyCode
-    key  = keycode code
+    key = keycode e.which or e.keyCode
 
-    @destroy()  if key is 'esc'
+    return @destroy()  if key is 'esc'
+
+    if e.target is @findInput.getElement()
+      if key in [ 'up', 'down' ]
+        @showPreviousSearchLocations key
+
+
+  showPreviousSearchLocations: (direction) ->
+
+    previousTerms = @localStorageController.getValue 'PreviousSearchTerms'
+    currentTerm   = @findInput.getValue()
+
+    return unless previousTerms
+
+    if currentTerm is ''
+      if direction is 'up'
+        @setSearchText previousTerms.last or ''
+    else
+      currentIndex = previousTerms.indexOf currentTerm
+
+      if currentIndex is -1 and direction is 'up'
+        return @setSearchText previousTerms.last or ''
+
+      if currentIndex is 0 and direction is 'up'
+        return
+
+      targetIndex = if direction is 'up' then currentIndex - 1 else currentIndex + 1
+      nextTerm    = previousTerms[targetIndex]
+
+      if not nextTerm and direction is 'down'
+        return @findInput.setValue ''
+
+      @setSearchText nextTerm
+
+
+  setSearchText: (text) ->
+
+    @findInput.setValue text
+
+    kd.utils.defer =>
+      kd.utils.moveCaretToEnd @findInput.getElement()
 
 
   search: ->
@@ -74,6 +115,11 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
       .catch (err) =>
         @showWarning 'Something went wrong, please try again.'
         kd.warn err
+
+    terms = @localStorageController.getValue('PreviousSearchTerms') or []
+
+    terms.push searchText
+    @localStorageController.setValue 'PreviousSearchTerms', terms
 
 
   escapeRegExp: (str) -> str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
