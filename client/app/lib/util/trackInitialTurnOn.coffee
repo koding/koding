@@ -7,6 +7,7 @@ Tracker = require 'app/util/tracker'
 module.exports = (machine) ->
 
   return  unless analytics
+  return  unless typeof analytics.user is 'function'
 
   { initialTurnOn } = analytics.user().traits()
   return  if initialTurnOn
