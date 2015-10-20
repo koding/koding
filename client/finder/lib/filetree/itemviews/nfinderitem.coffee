@@ -109,7 +109,7 @@ module.exports = class NFinderItem extends JTreeItemView
       @callback? newValue
       @resetView()
 
-    ext = '.' + FSHelper.getFileExtension data.name
+    ext = ".#{FSHelper.getFileExtension data.name}"
 
     if (index = data.name.indexOf ext) > 0
       @renameView.input.getElement().setSelectionRange 0, index
