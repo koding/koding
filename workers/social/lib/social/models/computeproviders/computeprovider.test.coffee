@@ -102,7 +102,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
   describe '#create$()', ->
 
-    it 'should fail if use doesnt have permission', (done) ->
+    it 'should fail if user doesnt have permission', (done) ->
 
       expectAccessDenied ComputeProvider, 'create$', {}, done
 
