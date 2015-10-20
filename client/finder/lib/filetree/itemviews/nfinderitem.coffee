@@ -1,15 +1,15 @@
-kd = require 'kd'
-JTreeItemView = kd.JTreeItemView
-KDProgressBarView = kd.ProgressBarView
-FSHelper = require 'app/util/fs/fshelper'
-NBrokenLinkItemView = require './nbrokenlinkitemview'
-NFileItemView = require './nfileitemview'
+kd                    = require 'kd'
+JTreeItemView         = kd.JTreeItemView
+KDProgressBarView     = kd.ProgressBarView
+FSHelper              = require 'app/util/fs/fshelper'
+NBrokenLinkItemView   = require './nbrokenlinkitemview'
+NFileItemView         = require './nfileitemview'
 NFinderItemDeleteView = require '../itemsubviews/nfinderitemdeleteview'
 NFinderItemRenameView = require '../itemsubviews/nfinderitemrenameview'
-NFolderItemView = require './nfolderitemview'
-NMachineItemView = require './nmachineitemview'
-NMountItemView = require './nmountitemview'
-NSectionItemView = require './nsectionitemview'
+NFolderItemView       = require './nfolderitemview'
+NMachineItemView      = require './nmachineitemview'
+NMountItemView        = require './nmountitemview'
+NSectionItemView      = require './nsectionitemview'
 
 
 module.exports = class NFinderItem extends JTreeItemView
@@ -92,18 +92,30 @@ module.exports = class NFinderItem extends JTreeItemView
 
   showRenameView:(callback)->
 
-    return if @renameView
+    return  if @renameView
+
     @setClass "being-edited"
-    @beingEdited = yes
-    @callback = callback
+
+    @beingEdited  = yes
+    @callback     = callback
+    data          = @getData()
+
     @childView.hide()
-    data = @getData()
+
     @addSubView @renameView = new NFinderItemRenameView {}, data
     @renameView.$().css "margin-left", ((data.depth+1)*10)+2
+
     @renameView.on "FinderRenameConfirmation", (newValue)=>
       @callback? newValue
       @resetView()
-    @renameView.input.setFocus()
+
+    ext = ".#{FSHelper.getFileExtension data.name}"
+
+    if (index = data.name.indexOf ext) > 0
+      @renameView.input.getElement().setSelectionRange 0, index
+    else
+      @renameView.input.setFocus()
+
 
   showProgressView: (progress, determinate=yes)->
 
