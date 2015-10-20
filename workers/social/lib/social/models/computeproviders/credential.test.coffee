@@ -335,16 +335,21 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
     testFetchDataFailure = (method, done) ->
       withConvertedUserAndCredential ({ client, credential }) ->
 
+        # adding client to args array, if method is for remote api
+        # a client argument will be passed before callback
+        args  = [client]  if method.slice(-1) is '$'
+        args ?= []
+
         queue = [
 
           ->
-            credential[method] (err, credData) ->
+            credential[method] args..., (err, credData) ->
               credData.remove (err) ->
                 expect(err).to.not.exist
                 queue.next()
 
           ->
-            credential[method] (err, data) ->
+            credential[method] args..., (err, data) ->
               expect(err?.message).to.be.equal 'No data found'
               queue.next()
 
@@ -357,11 +362,16 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
     testFetchDataSuccess = (method, done) ->
       withConvertedUserAndCredential ({ client, credential }) ->
-        credential[method] (err, credData) ->
+
+        checkCredData = (err, credData) ->
           expect(err).to.not.exist
           expect(credData).to.be.an 'object'
           expect(credData.identifier).to.be.equal credential.identifier
           done()
+
+        if   method.slice(-1) is '$'
+        then credential[method] client, checkCredData
+        else credential[method] checkCredData
 
 
     describe 'fetchData()', ->
@@ -386,12 +396,12 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       it 'should fail if there is no data', (done) ->
 
-        testFetchDataFailure 'fetchData', done
+        testFetchDataFailure 'fetchData$', done
 
 
       it 'should be able to fetch credential data', (done) ->
 
-        testFetchDataSuccess 'fetchData', done
+        testFetchDataSuccess 'fetchData$', done
 
 
   describe 'update$', ->
