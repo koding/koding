@@ -74,12 +74,15 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
     @warningView.hide()
 
-    @searchText     = Encoder.XSSEncode @findInput.getValue()
+    searchText = Encoder.XSSEncode @findInput.getValue()
+
+    return @searchButton.hideLoader()  if searchText is ''
+
+    @searchText     = searchText
     @rootPath       = Encoder.XSSEncode @whereInput.getValue()
     isCaseSensitive = @caseToggle.getValue()
     isWholeWord     = @wholeWordToggle.getValue()
     isRegExp        = @regExpToggle.getValue()
-
     exts            = editorSettings.getAllExts()
     include         = "\\*{#{exts.join ','}}"
     exclureDirs     = Object.keys editorSettings.ignoreDirectories
@@ -94,7 +97,7 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
     searchText      = searchText.replace (new RegExp "\\\'", 'g'), "'\\''"
     searchText      = searchText.replace /-/g, '\\-'
 
-    flags           = [
+    flags = [
       '-s'                           # Silent mode
       '-r'                           # Recursively search subdirectories listed.
       '-n'                           # Each output line is preceded by its relative line number in the file
