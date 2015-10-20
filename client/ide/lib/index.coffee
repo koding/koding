@@ -395,7 +395,7 @@ class IDEAppController extends AppController
       wasOpen = no
 
       @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
-        if editorPane.file.path is file.path
+        if FSHelper.plainPath(editorPane.file.path) is file.path
           editorPane.emit 'ShowMeAsActive'
           kallback editorPane
           wasOpen = yes
