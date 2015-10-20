@@ -143,6 +143,14 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
     """
 
     @setClass 'error'
+    @content.$('a').on 'click', =>
+
+      ComputeHelpers  = require '../computehelpers'
+
+      kd.singletons.paymentController.once 'PaymentWorkflowFinishedSuccessfully', ->
+        ComputeHelpers.handleNewMachineRequest provider: 'managed'
+
+      @destroy()
 
 
   destroy: ->
