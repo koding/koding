@@ -7,7 +7,7 @@
 JCredential = require '../../../lib/social/models/computeproviders/credential'
 
 
-populateMetaData = (provider) ->
+generateMetaData = (provider) ->
 
   meta = switch provider
 
@@ -21,37 +21,22 @@ populateMetaData = (provider) ->
       instance_type        : 't2.micro'
       storage_size         : 2
 
+  return meta
 
-withConvertedUserAndCredential = (opts, callback) ->
 
-  data   = {}
-  client = null
+withConvertedUserAndCredential = (options, callback) ->
 
-  queue = [
+  withConvertedUser options, (data) ->
+    options.meta  ?= generateMetaData options.provider
+    options.title ?= "test#{options.provider}#{generateRandomString()}"
 
-    ->
-      withConvertedUser opts, (data_) ->
-        data = data_
-        queue.next()
-
-    ->
-      opts.provider ?= 'aws'
-      opts.meta     ?= populateMetaData opts.provider
-      opts.title    ?= "test#{opts.provider}#{generateRandomString()}"
-
-      JCredential.create data.client, opts, (err, credential) ->
-
-        expect(err).to.not.exist
-        data.credential = credential
-        queue.next()
-
-    -> callback data
-
-  ]
-
-  daisy queue
+    JCredential.create data.client, options, (err, credential) ->
+      expect(err).to.not.exist
+      data.credential = credential
+      callback data
 
 
 module.exports = {
+  generateMetaData
   withConvertedUserAndCredential
 }
