@@ -39,7 +39,7 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
   render: ->
 
     title = 'Other Messages:'
-    <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal className='ChannelList-Modal PrivateChannelListModal' isOpen={yes} onClose={@bound 'onClose'}>
       <SidebarModalList
         title={title}
         searchProp='name'

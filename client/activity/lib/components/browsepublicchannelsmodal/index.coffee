@@ -143,7 +143,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
       'ChannelListWrapper' : yes
       'active-search'      : @isSearchActive()
 
-    <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal className='ChannelList-Modal PublicChannelListModal' isOpen={yes} onClose={@bound 'onClose'}>
       <div className={className}>
         { @renderHeader() }
         { @renderTabs() }
