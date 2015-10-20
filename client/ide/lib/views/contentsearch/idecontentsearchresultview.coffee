@@ -68,15 +68,19 @@ module.exports = class IDEContentSearchResultView extends KDView
 
   openFile: (target) ->
 
-    path       = target.getAttribute 'data-file-path'
-    lineNumber = target.getAttribute('data-line-number') or 0
-    file       = FSHelper.createFileInstance { path, @machine }
+    path         = target.getAttribute 'data-file-path'
+    file         = FSHelper.createFileInstance { path, @machine }
+    lineNumber   = target.getAttribute('data-line-number') or 0
+    switchIfOpen = yes
+
 
     file.fetchContents (err, contents) ->
 
       if err
         console.error err
-        return (IDEHelpers.showPermissionErrorOnOpeningFile err) or showError err
+        return IDEHelpers.showPermissionErrorOnOpeningFile(err) or showError err
 
-      kd.getSingleton('appManager').tell 'IDE', 'openFile', { file, contents }, (editorPane) ->
+      fileOptions  = { file, contents, switchIfOpen: yes }
+
+      kd.getSingleton('appManager').tell 'IDE', 'openFile', fileOptions, (editorPane) ->
         editorPane?.goToLine lineNumber
