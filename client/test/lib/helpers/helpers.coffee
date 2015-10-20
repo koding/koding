@@ -13,10 +13,6 @@ module.exports =
   beginTest: (browser, user) ->
 
     url = @getUrl()
-
-    if HUBSPOT
-       url = "#{url}/Login"
-
     user ?= utils.getUser()
 
     browser.url url
@@ -34,10 +30,6 @@ module.exports =
   assertNotLoggedIn: (browser, user) ->
 
     url = @getUrl()
-
-    if HUBSPOT
-       url = "#{url}/Login"
-
     browser.url(url)
     browser.maximizeWindow()
 
@@ -53,7 +45,11 @@ module.exports =
 
   attemptLogin: (browser, user) ->
 
-    unless HUBSPOT
+    if HUBSPOT
+      browser
+        .waitForElementVisible  '.hero.block .container', 50000
+        .click                  '.header__nav .hs-menu-wrapper a[href="/Login"]'
+    else
       browser
         .waitForElementVisible  '[testpath=main-header]', 50000
         .click                  'nav:not(.mobile-menu) [testpath=login-link]'
@@ -85,25 +81,28 @@ module.exports =
       .click                  '[testpath=AvatarAreaIconLink]'
       .click                  '[testpath=logout-link]'
       .pause                  3000
-      .waitForElementVisible  '[testpath=main-header]', 30000 # Assertion
+      if HUBSPOT
+        browser.waitForElementVisible  '.hero.block .container', 20000
+      else
+        browser.waitForElementVisible  '[testpath=main-header]', 30000 # Assertion
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
 
     url = @getUrl()
-
-    if HUBSPOT
-      url = "#{url}/Register"
-
     browser.url url
 
-    unless HUBSPOT
-      browser.waitForElementVisible  '[testpath=main-header]', 30000
-
-    browser.setValue    '[testpath=register-form-email]', user.email
+    homePageSelector = '.hero.block .container'
 
     if HUBSPOT
-      browser.setValue  '.login-form .password input[name=password]', user.password
+      browser
+        .waitForElementVisible  homePageSelector, 20000
+        .waitForElementVisible  "#{homePageSelector} a[href='/Register']", 20000
+        .click                  "#{homePageSelector} a[href='/Register']"
+        .pause 3000
+        .waitForElementVisible  '.form-area .main-part', 20000
+        .setValue               '.login-form .email input[name=email]', user.email
+        .setValue               '.login-form .password input[name=password]', user.password
     else
       browser.setValue  'input[name=password]', user.password
 
@@ -505,7 +504,6 @@ module.exports =
       .click                   'input[name=cardName]'
       .clearValue              'input[name=cardName]'
       .setValue                'input[name=cardName]', name
-
 
   submitForm: (browser, validCardDetails = yes) ->
 
