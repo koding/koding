@@ -1,5 +1,5 @@
 actions        = require 'activity/flux/createchannel/actions/actiontypes'
-KodingFluxStore = require 'app/flux/store'
+KodingFluxStore = require 'app/flux/base/store'
 
 ###*
  * Store to handle participants-dropdown of create new channel modal visibility flag

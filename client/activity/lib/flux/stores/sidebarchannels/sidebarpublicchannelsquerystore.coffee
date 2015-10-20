@@ -1,5 +1,5 @@
 actions         = require 'activity/flux/actions/actiontypes'
-KodingFluxStore = require 'app/flux/store'
+KodingFluxStore = require 'app/flux/base/store'
 
 ###*
  * Store to handle current query of sidebar public channels.

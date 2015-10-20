@@ -1,7 +1,7 @@
 actions              = require '../actions/actiontypes'
 immutable            = require 'immutable'
 toImmutable          = require 'app/util/toImmutable'
-KodingFluxStore      = require 'app/flux/store'
+KodingFluxStore      = require 'app/flux/base/store'
 createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 module.exports = class FollowedPrivateChannelIdsStore extends KodingFluxStore
