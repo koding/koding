@@ -863,10 +863,13 @@ module.exports = class JUser extends jraphical.Module
           $unset          :
             guestId       : 1
 
+        guestUsername = session.username
+
         session.update sessionUpdateOptions, (err) ->
           return callback err  if err
 
           Tracker.identify username, { lastLoginDate }
+          Tracker.alias guestUsername, username
 
           queue.next()
 
@@ -1659,6 +1662,7 @@ module.exports = class JUser extends jraphical.Module
         }
 
         Tracker.identify username, traits
+        Tracker.alias oldUsername, username
 
         queue.next()
 

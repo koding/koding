@@ -70,6 +70,9 @@ app.all  '/-/team/:name'                         , require './handlers/getteam'
 app.all  '/-/profile/:email'                     , require './handlers/getprofile'
 # temp endpoints ends
 
+app.post '/-/analytics/track'                    , require './handlers/analytics/track'
+app.post '/-/analytics/page'                     , require './handlers/analytics/page'
+
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/video-chat/session'                 , require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
