@@ -3,7 +3,7 @@ JMachine                      = require './machine'
 
 { createUserAndMachine
   generateMachineParams
-  fetchMachinesByUsername }   = require '../../../../testhelper/models/machinehelper'
+  fetchMachinesByUsername }   = require '../../../../testhelper/models/computeproviders/machinehelper'
 
 { daisy
   expect
