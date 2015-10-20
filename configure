@@ -33,6 +33,7 @@ options = o =
   deploy           : argv.deploy         or no
   host             : argv.host
   ebEnvName        : argv.ebEnvName      or "dev"
+  sendEventsToSegment : if argv['disable-segment'] then off else on
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
