@@ -173,7 +173,7 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
 
     # No results
     if stats.numberOfMatches is 0
-      return @showWarning 'No results found, refine your search.'
+      return @showWarning 'No results found, please refine your search.'
 
     # Send results
     callback formatted, stats
