@@ -1,14 +1,11 @@
-kd                  = require 'kd'
-KDView              = kd.View
-FSHelper            = require 'app/util/fs/fshelper'
-Encoder             = require 'htmlencode'
-IDEHelpers          = require '../../idehelpers'
-showError           = require 'app/util/showError'
-KDCustomHTMLView    = kd.CustomHTMLView
-KDCustomScrollView  = kd.CustomScrollView
+kd         = require 'kd'
+Encoder    = require 'htmlencode'
+FSHelper   = require 'app/util/fs/fshelper'
+showError  = require 'app/util/showError'
+IDEHelpers = require '../../idehelpers'
 
 
-module.exports = class IDEContentSearchResultView extends KDView
+module.exports = class IDEContentSearchResultView extends kd.View
 
 
   constructor: (options = {}, data) ->
@@ -18,12 +15,17 @@ module.exports = class IDEContentSearchResultView extends KDView
 
     super options, data
 
-    @addSubView @scrollView = new KDCustomScrollView
-
     { result, stats, searchText, isCaseSensitive, @machine } = options
 
+    @addSubView @scrollView = new kd.CustomScrollView
+
+    @scrollView.wrapper.addSubView new kd.CustomHTMLView
+      partial  : "Showing search results for \"#{searchText}\""
+      cssClass : 'results-for'
+
+
     for fileName, lines of result
-      @scrollView.wrapper.addSubView fileItem = new KDCustomHTMLView
+      @scrollView.wrapper.addSubView fileItem = new kd.CustomHTMLView
         partial     : "<span>#{fileName}</span>"
         cssClass    : 'filename'
         dblclick    : ->
@@ -37,11 +39,11 @@ module.exports = class IDEContentSearchResultView extends KDView
 
       for line in lines
         if previousLine and line.lineNumber - previousLine.lineNumber > 1
-          @scrollView.wrapper.addSubView new KDCustomHTMLView
+          @scrollView.wrapper.addSubView new kd.CustomHTMLView
             cssClass : 'separator'
             partial  : '...'
 
-        view = fileItem.addSubView new KDCustomHTMLView
+        view = fileItem.addSubView new kd.CustomHTMLView
           tagName  : 'pre'
           cssClass : 'line'
 
