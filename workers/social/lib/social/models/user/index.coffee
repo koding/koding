@@ -677,6 +677,8 @@ module.exports = class JUser extends jraphical.Module
         { account } = response
         return logout 'guest account not found'  if not response?.account
 
+        account.profile.nickname = username
+
         return callback null, { account, session }
 
       return
