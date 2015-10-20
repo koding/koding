@@ -58,10 +58,36 @@ bindMessageEvents = (message) ->
 
 bindNotificationEvents = ->
 
-  _dispatchFn = _createUnreadCountDispatchFn kd.singletons.reactor
+  { reactor, socialapi } = kd.singletons
+
+  # create specialized functions for dispatching into reactor. These functions
+  # will be bound to the reactor instance that is passed.
+  _dispatchFn = _createUnreadCountDispatchFn reactor
+  _loadMessageFn = _createLoadMessageFn reactor
 
   kd.singletons.notificationController
-    .on 'MessageAddedToChannel', _dispatchFn
+    .on 'MessageAddedToChannel', (payload) ->
+      { channel, channelMessage } = payload
+
+      # TODO: FIXME
+      # The reason we are doing these extra fetches is that right now backend
+      # doesn't send us extra information about channel (it already shouldn't).
+      # But for private messages the events from `SocialChannel` instance
+      # itself is not arriving to participants. So we are making sure that
+      # everything is in place before doing anything. This will be fixed once
+      # instance events of `SocialChannel` instances for private messages are
+      # fixed. ~Umut
+      socialapi.channel.byId { id: channel.id }, (err, _channel) ->
+        return  if err
+
+        bindChannelEvents _channel
+        socialapi.message.byId { id: channelMessage.id }, (err, _message) ->
+          return  if err
+
+          bindMessageEvents _message
+          _loadMessageFn { channel, channelMessage: _message }
+          _dispatchFn { unreadCount: payload.unreadCount, channel }
+
     .on 'MessageRemovedFromChannel', _dispatchFn
     .on 'RemovedFromChannel', _dispatchFn
     .on 'ReplyAdded', _dispatchFn
