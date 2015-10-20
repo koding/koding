@@ -847,6 +847,9 @@ class IDEAppController extends AppController
     ideView.on 'PaneRemoved', (pane) =>
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
+
+      return unless pane.view?.hash
+
       delete @generatedPanes[pane.view.hash]
 
       if session = pane.view.remote?.session
