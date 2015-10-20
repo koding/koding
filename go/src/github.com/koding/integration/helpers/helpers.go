@@ -37,11 +37,12 @@ type BotChannelData struct {
 //////////// PushRequest //////////////
 
 type PushRequest struct {
-	Body       string   `json:"body"`
-	ChannelId  int64    `json:"channelId,string"`
-	GroupName  string   `json:"groupName"`
-	Token      string   `json:"token"`
-	FallbackFn Fallback `json:"-"`
+	Body       string             `json:"body"`
+	ChannelId  int64              `json:"channelId,string"`
+	GroupName  string             `json:"groupName"`
+	Token      string             `json:"token"`
+	FallbackFn Fallback           `json:"-"`
+	Payload    map[string]*string `json:"payload"`
 }
 
 // NewPushRequest creates a new PushRequest instance with Fallback function
@@ -79,6 +80,13 @@ func (pr *PushRequest) Fallback(token, rootPath string) error {
 	}
 
 	return pr.FallbackFn(string(body))
+}
+
+func (pr *PushRequest) SetPayload(key string, value string) {
+	if pr.Payload == nil {
+		pr.Payload = make(map[string]*string)
+	}
+	pr.Payload[key] = &value
 }
 
 func FallbackHandler(message *string) error {

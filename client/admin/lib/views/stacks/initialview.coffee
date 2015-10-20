@@ -35,6 +35,8 @@ module.exports = class InitialView extends kd.View
       .on 'ItemDeleted', =>
         @_stackTemplatesLength = @stackTemplateList.listView.items.length - 1
 
+      .on 'ItemCloned', @bound 'reload'
+
       .on 'ItemSelectedAsDefault', @bound 'setDefaultTemplate'
 
     @stackTemplateList.listController.on 'ItemsLoaded', (stackTemplates) =>

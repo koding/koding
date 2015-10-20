@@ -272,6 +272,7 @@ module.exports = class JAccount extends jraphical.Module
 
       # requiring JStackTemplate here solved problems after turning stacktemplate's
       # targetType from string to object.
+      JCredential      = require './computeproviders/credential'
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
@@ -319,7 +320,7 @@ module.exports = class JAccount extends jraphical.Module
 
         credential    :
           as          : ['owner', 'user']
-          targetType  : 'JCredential'
+          targetType  : JCredential
 
         stackTemplate :
           as          : 'user'
