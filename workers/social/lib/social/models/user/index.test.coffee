@@ -961,7 +961,7 @@ runTests = -> describe 'workers.social.user.index', ->
         queue = [
 
           ->
-            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
               queue.next()
@@ -978,7 +978,7 @@ runTests = -> describe 'workers.social.user.index', ->
               expect(err).to.not.exist
               expect(data.session).to.be.an 'object'
               expect(data.account).to.be.an 'object'
-              expect(data.account.profile.nickname).not.to.be.equal guestUsername
+              expect(data.account.profile.nickname).to.be.equal guestUsername
               expect(data.account.type).to.be.equal 'unregistered'
               queue.next()
 

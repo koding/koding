@@ -102,8 +102,14 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
+	// Keep track of whether or not this build process is creating a new
+	// instanceId, or creating a pre-existing image.
+	var creatingNewInstance bool
+
 	// if there is already a machine just check it again
 	if m.Meta.InstanceId == "" {
+		creatingNewInstance = true
+
 		m.push("Generating and fetching build data", 10, machinestate.Building)
 
 		m.Log.Debug("Generating and fetching build data")
@@ -150,7 +156,12 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.push("Checking build process", 40, machinestate.Building)
 	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
 
+	// In the event that checkBuild fails, we can log to see how long it took
+	// with this var.
+	checkBuildStart := time.Now()
 	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
+	checkBuildDur := time.Since(checkBuildStart)
+
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
@@ -180,6 +191,14 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// if it's something else return it!
 	if err != nil {
+		// In the event of a new instance and checkbuild failing, log more
+		// verbose information for metrics.
+		m.Log.Warning(
+			"CheckBuild failed. (newInstance: %t, username: %s, instanceId: %s, region: %s, provider: %s, CheckBuild duration: %fs) err: %s",
+			creatingNewInstance, m.Credential, m.Meta.InstanceId,
+			m.Meta.Region, m.Provider, checkBuildDur.Seconds(), err.Error(),
+		)
+
 		return err
 	}
 
