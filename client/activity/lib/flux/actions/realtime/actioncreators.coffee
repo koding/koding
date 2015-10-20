@@ -93,6 +93,24 @@ _createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
     channelId   : channel.id
 
 
+###*
+ * Takes a dispatcher and returns a function that will dispatch a load message
+ * event to that dispatcher.
+ *
+ * @param {KodingFluxReactor} _reactor
+ * @param {function}
+###
+_createLoadMessageFn = (_reactor) -> (payload) ->
+  {channel, channelMessage} = payload
+
+  dispatch actions.LOAD_MESSAGE_SUCCESS,
+    channel   : channel
+    channelId : channel.id
+    message   : channelMessage
+
+  return payload
+
+
 module.exports = {
   bindChannelEvents
   bindMessageEvents
