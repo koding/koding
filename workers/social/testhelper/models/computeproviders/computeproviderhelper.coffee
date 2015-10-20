@@ -14,7 +14,7 @@ JStackTemplate  = require '../../../../social/lib/social/models/computeproviders
 ComputeProvider = require '../../../../social/lib/social/models/computeproviders/computeprovider'
 
 
-# this helper registers a new user and creates request models
+# this helper registers a new user and creates requested models
 withConvertedUserAnd = (models, options, callback) ->
 
   [options, callback] = [callback, options]  unless callback
@@ -152,7 +152,7 @@ withConvertedUserAnd = (models, options, callback) ->
         when 'StackTemplate'    then _createStackTemplate
         when 'Stack'            then _createStack
         when 'ComputeProvider'  then _createComputeProvider
-        else                         callback 'invalid request'
+        else                      -> callback 'invalid request'
 
       queue.push ->
         fn client, options, (data_) ->
