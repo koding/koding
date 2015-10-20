@@ -4,17 +4,17 @@ rootPath        = helpers.getUrl()
 
 pages = [
   "#{rootPath}/"
-  "#{rootPath}/features"
-  "#{rootPath}/features/ide"
-  "#{rootPath}/features/terminal"
-  "#{rootPath}/features/community"
-  "#{rootPath}/pricing/teams"
-  "#{rootPath}/pricing/individuals"
-  "#{rootPath}/about"
-  "#{rootPath}/legal"
-  "#{rootPath}/legal/privacy"
-  "#{rootPath}/legal/terms"
-  "#{rootPath}/legal/copyright"
+  "#{rootPath}/Features"
+  "#{rootPath}/Features/IDE"
+  "#{rootPath}/Features/Terminal"
+  "#{rootPath}/Features/Community"
+  "#{rootPath}/Pricing/Teams"
+  "#{rootPath}/Pricing/Individuals"
+  "#{rootPath}/About"
+  "#{rootPath}/Legal"
+  "#{rootPath}/Legal/Privacy"
+  "#{rootPath}/Legal/Terms"
+  "#{rootPath}/Legal/Copyright"
 ]
 
 module.exports =
