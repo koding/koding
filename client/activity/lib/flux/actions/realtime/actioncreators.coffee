@@ -80,6 +80,13 @@ bindNotificationEvents = ->
       _dispatchFn { unreadCount, channel }
 
 
+###*
+ * Takes a dispatcher and returns a function that will dispatch a unread count
+ * event to that dispatcher.
+ *
+ * @param {KodingFluxReactor} _reactor
+ * @param {function}
+###
 _createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
   _reactor.dispatch actions.SET_CHANNEL_UNREAD_COUNT,
     unreadCount : unreadCount
