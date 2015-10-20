@@ -1,7 +1,6 @@
 _                          = require 'lodash'
 kd                         = require 'kd'
 nick                       = require 'app/util/nick'
-KodingSwitch               = require 'app/commonviews/kodingswitch'
 keycode                    = require 'keycode'
 Encoder                    = require 'htmlencode'
 editorSettings             = require '../../workspace/panes/settings/editorsettings'
@@ -43,20 +42,17 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
               defaultValue  : "/home/#{nick()}"
               keydown       : _.bind @handleKeyDown, this
             caseToggle      :
+              cssClass      : 'checkbox'
               label         : 'Case Sensitive'
-              itemClass     : KodingSwitch
-              defaultValue  : yes
-              cssClass      : 'tiny switch'
+              itemClass     : kd.CustomCheckBox
             wholeWordToggle :
+              cssClass      : 'checkbox'
               label         : 'Whole Word'
-              itemClass     : KodingSwitch
-              defaultValue  : no
-              cssClass      : 'tiny switch'
-             regExpToggle   :
-               label        : 'Use regexp'
-               itemClass    : KodingSwitch
-               defaultValue : no
-               cssClass     : 'tiny switch'
+              itemClass     : kd.CustomCheckBox
+            regExpToggle    :
+              cssClass      : 'checkbox'
+              label         : 'Use regexp'
+              itemClass     : kd.CustomCheckBox
             warningView     :
               itemClass     : kd.View
               cssClass      : 'hidden notification'
@@ -213,3 +209,12 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
     { @caseToggle, @regExpToggle, @wholeWordToggle } = searchForm.inputs
 
     @findInput.setFocus()
+
+    for name, view of searchForm.fields
+      do (name, view) ->
+        if name in [ 'caseToggle', 'regExpToggle', 'wholeWordToggle' ]
+          [ label, wrapper ] = view.getSubViews()
+          [ checkbox ]       = wrapper.getSubViews()
+
+          label.on 'click', =>
+            if checkbox.getValue() then checkbox.setValue 0 else checkbox.setValue 1

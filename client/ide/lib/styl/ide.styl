@@ -918,7 +918,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     padding                 25px 32px
     width                   auto
 
-  label
+  .kdlabel
     font-size               14px
     margin                  0 0 4px 0
 
@@ -943,18 +943,17 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     &:focus
       box-shadow            none
 
-  .formline.switch
+  .formline.checkbox
     size                    180px, 35px
 
-    label
+    .kdlabel
       fl()
-      left                  45px
+      left                  27px
       position              relative
-      top                   -2px
+      vendor                user-select, none
 
-  .switch
+  .checkbox
     .input-wrapper
-      width                 45px !important
       abs()
 
   .warningview
