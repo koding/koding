@@ -7,11 +7,26 @@
 { createProvisioner }    = require './provisionerhelper'
 { createStackTemplate }  = require './stacktemplatehelper'
 { createCredential }     = require './credentialhelper'
+{ PROVIDERS } = require './../../../../social/lib/social/models/computeproviders/computeutils'
 
 JGroup          = require '../../../../social/lib/social/models/group'
 JProvisioner    = require '../../../../social/lib/social/models/computeproviders/provisioner'
 JStackTemplate  = require '../../../../social/lib/social/models/computeproviders/stacktemplate'
 ComputeProvider = require '../../../../social/lib/social/models/computeproviders/computeprovider'
+
+
+forEachProvider = (fn, callback) ->
+
+  queue = []
+
+  for providerSlug, provider of PROVIDERS
+    queue.push ->
+      fn providerSlug, provider
+      queue.next()
+
+  queue.push -> callback()
+
+  daisy queue
 
 
 # this helper registers a new user and creates requested models
@@ -166,6 +181,7 @@ withConvertedUserAnd = (models, options, callback) ->
 
 
 module.exports = {
+  forEachProvider
   withConvertedUserAnd
 }
 
