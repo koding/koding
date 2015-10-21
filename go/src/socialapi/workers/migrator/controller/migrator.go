@@ -185,6 +185,21 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	pivotalInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/pivotaltracker.png"
 	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Koding whenever a story activity occurs in Pivotal Tracker."
 	pivotalInt.TypeConstant = webhookmodels.Integration_TYPE_INCOMING
+	pivotalInt.Instructions = `
+#### Step 1
+
+In your Pivotal Tracker project, click on **Settings** menu and the **Configure Integrations** option.
+
+// Need a photo for pivotal settings 
+
+
+#### Step 2
+
+Go to **Activity Web Hook** section on that page. Copy Webhook URL that we generated for you, and add this url to Webhook  URL field. Ensure that the API Version is set to v5 and then click **Save Web Hook Settings**.
+
+// Need a photo for Activity webhook URL
+
+`
 
 	integrations = append(integrations, pivotalInt)
 
