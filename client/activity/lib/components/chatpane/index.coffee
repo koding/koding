@@ -28,7 +28,7 @@ module.exports = class ChatPane extends React.Component
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
     scrollContainer = React.findDOMNode @refs.scrollContainer
-    @resetPaddedClassName()
+    @unsetPaddedClassName()
 
 
   onTopThresholdReached: (event) ->
@@ -68,7 +68,7 @@ module.exports = class ChatPane extends React.Component
 
   beforeScrollToBottom: ->
 
-    @resetPaddedClassName()
+    @unsetPaddedClassName()
     @setPaddedClassName()
 
 
@@ -77,7 +77,7 @@ module.exports = class ChatPane extends React.Component
     @setPaddedClassName()
 
 
-  resetPaddedClassName: ->
+  unsetPaddedClassName: ->
 
     scrollContainer = React.findDOMNode @refs.scrollContainer
     scrollContainer?.classList.remove 'padded'
