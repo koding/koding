@@ -144,7 +144,7 @@ withConvertedUserAnd = (models, options, callback) ->
           computeProviderOptions = {
             client, stack, provider, label, generatedFrom
             users : []
-            provisioners : [data.provisioner ? 'test_provisioner']
+            provisioners : [data.provisioner ? 'devrim/koding-base']
           }
 
           ComputeProvider.create client, computeProviderOptions, (err, machine) ->
