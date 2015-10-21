@@ -169,8 +169,6 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	if m.Payment.Plan != "free" { // check this first to avoid an additional AWS call
 		_, err = m.Session.AWSClient.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter())
 		if isAddressNotFoundError(err) {
-			m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
-
 			oldIp := m.IpAddress
 			elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
 			if err != nil {
