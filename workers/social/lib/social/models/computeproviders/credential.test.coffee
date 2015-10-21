@@ -11,7 +11,7 @@ JCredentialData  = require './credentialdata'
 { generateMetaData
   withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
-{ withConvertedUserAnd  } = require \
+{ withConvertedUserAnd } = require \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
 
