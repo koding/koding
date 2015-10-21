@@ -394,7 +394,7 @@ class IDEAppController extends AppController
     if switchIfOpen
       wasOpen = no
 
-      @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
+      @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
         if FSHelper.plainPath(editorPane.file.path) is file.path
           editorPane.emit 'ShowMeAsActive'
           kallback editorPane
@@ -1525,7 +1525,7 @@ class IDEAppController extends AppController
 
   removeParticipantCursorWidget: (targetUser) ->
 
-    @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.removeParticipantCursorWidget targetUser
 
 

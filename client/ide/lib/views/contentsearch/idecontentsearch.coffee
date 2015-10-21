@@ -219,7 +219,7 @@ module.exports = class IDEContentSearch extends kd.ModalViewWithForms
           [ label, wrapper ] = view.getSubViews()
           [ checkbox ]       = wrapper.getSubViews()
 
-          label.on 'click', =>
+          label.on 'click', ->
             if checkbox.getValue() then checkbox.setValue 0 else checkbox.setValue 1
 
 
