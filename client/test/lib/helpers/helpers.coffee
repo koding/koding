@@ -104,7 +104,9 @@ module.exports =
         .setValue               '.login-form .email input[name=email]', user.email
         .setValue               '.login-form .password input[name=password]', user.password
     else
-      browser.setValue  'input[name=password]', user.password
+      browser
+        .setValue  'input[name=email]', user.email
+        .setValue  'input[name=password]', user.password
 
     browser.click       '[testpath=signup-button]'
 
