@@ -105,8 +105,9 @@ module.exports = class ChatListItem extends React.Component
       'is-selected'   : @props.isSelected
     onMouseEnter      : =>
       @setState hover : yes
-    onMouseLeave      : =>
-      @setState hover : no
+    onMouseLeave      : ->
+      kd.utils.debounce 10, =>
+        @setState hover : no
 
 
   getMenuItems: ->
