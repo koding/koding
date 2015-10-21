@@ -64,9 +64,7 @@ module.exports = class LoginInputView extends JView
 
     @resetDecoration()
 
-    return  unless @input.getValue().length
-
-    {stickyTooltip} = @getOptions()
+    { stickyTooltip } = @getOptions()
 
     if err
       @icon.setTooltip

@@ -1,52 +1,54 @@
-JView = require './../../core/jview'
+LoginViewInlineForm = require './../../login/loginviewinlineform'
+LoginInputView      = require './../../login/logininputview'
 
-module.exports = class TeamLoginAndCreateTabForm extends KDFormView
 
-  JView.mixin @prototype
+module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data)->
 
-    options.cssClass = 'clearfix'
+    options.cssClass = 'clearfix login-form'
 
     super options, data
 
     { username, email } = KD.utils.getTeamData().signup
 
-    @username = new KDInputView
-      placeholder      : 'email or username'
-      name             : 'username'
-      defaultValue     : email or username
-      validate         :
-        rules          :
-          required     : yes
-        messages       :
-          required     : 'Please enter a username.'
-        events         :
-          required     : 'blur'
+    @username = new LoginInputView
+      inputOptions        :
+        placeholder       : 'Email or username'
+        name              : 'username'
+        defaultValue      : email or username
+        validate          :
+          event           : 'blur'
+          rules           :
+            required      : yes
+          messages        :
+            required      : 'Please enter a username.'
 
-    @password = new KDInputView
-      type          : 'password'
-      name          : 'password'
-      placeholder   : 'your password'
-      validate      :
-        event       : 'blur'
-        rules       :
-          required  : yes
-        messages    :
-          required  : 'Please enter a password.'
+    @password = new LoginInputView
+      inputOptions        :
+        type              : 'password'
+        name              : 'password'
+        placeholder       : 'your password'
+        validate          :
+          event           : 'blur'
+          rules           :
+            required      : yes
+          messages        :
+            required      : 'Please enter a password.'
 
-    @tfcode = new KDInputView
-      name          : 'tfcode'
-      placeholder   : 'authentication code'
-      testPath      : 'login-form-tfcode'
-      attributes    :
-        testpath    : 'login-form-tfcode'
+    @tfcode = new LoginInputView
+      cssClass            : 'hidden'
+      inputOptions        :
+        name              : 'tfcode'
+        placeholder       : 'authentication code'
+        testPath          : 'login-form-tfcode'
+        attributes        :
+          testpath        : 'login-form-tfcode'
 
     @backLink = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link back'
       partial  : '<i></i> <a href="/Team/Domain">Back</a>'
-
 
     @button = new KDButtonView
       title      : 'Sign in'
@@ -57,16 +59,14 @@ module.exports = class TeamLoginAndCreateTabForm extends KDFormView
 
   showTwoFactor: ->
 
-    @$('.two-factor').removeClass 'hidden'
+    @tfcode.show()
     @tfcode.setFocus()
 
 
   pistachio: ->
 
     """
-    <div class='login-input-view'><span>Username</span>{{> @username}}</div>
-    <div class='login-input-view'><span>Password</span>{{> @password}}</div>
-    <div class='login-input-view two-factor hidden'><span>2-Factor</span>{{> @tfcode}}</div>
+    {{> @username}}{{> @password}}{{> @tfcode}}
     <div class='TeamsModal-button-separator'></div>
     {{> @button}}
     {{> @backLink}}
