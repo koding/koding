@@ -33,5 +33,5 @@ module.exports = ChatPaneWrapperMixin =
 
     return  unless input = @refs.chatInputWidget
 
-    input.setValue '/invite @'
+    input.setCommand '/invite @'
 
