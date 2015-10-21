@@ -78,6 +78,12 @@ module.exports = class ChatPane extends React.Component
 
 
   setPaddedClassName: (shouldPaddedClass = no) ->
+  resetPaddedClassName: ->
+
+    scrollContainer = React.findDOMNode @refs.scrollContainer
+    scrollContainer?.classList.remove 'padded'
+
+
 
     list                        = React.findDOMNode @refs.ChatList
     scrollContainer             = React.findDOMNode @refs.scrollContainer
