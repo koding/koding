@@ -30,6 +30,3 @@ module.exports =
         .waitForElementPresent '#hs-analytics', 25000
 
     browser.end()
-
-
-require('../helpers/hooks.js').init(module.exports)
