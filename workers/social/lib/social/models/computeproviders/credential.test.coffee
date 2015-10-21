@@ -1,8 +1,8 @@
 JCredential      = require './credential'
 JCredentialData  = require './credentialdata'
-{ Relationship } = require 'jraphical'
 { daisy
   expect
+  expectRelation
   withDummyClient
   withConvertedUser
   expectAccessDenied
@@ -93,9 +93,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               targetName : 'JCredential'
               sourceName : 'JAccount'
 
-            Relationship.one options, (err, relationship) ->
-              expect(err).to.not.exist
-              expect(relationship).to.exist
+            expectRelation.toExist options, ->
               queue.next()
 
           ->
@@ -107,9 +105,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               targetName : 'JCredentialData'
               sourceName : 'JCredential'
 
-            Relationship.one options, (err, relationship) ->
-              expect(err).to.not.exist
-              expect(relationship).to.exist
+            expectRelation.toExist options, ->
               queue.next()
 
           -> done()
@@ -297,9 +293,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             targetName : 'JCredential'
             sourceName : 'JAccount'
 
-          Relationship.one options, (err, relationship) ->
-            expect(err).to.not.exist
-            expect(relationship).to.exist
+          expectRelation.toExist options, (relationship) ->
             expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
             queue.next()
 
@@ -348,9 +342,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
             targetName : 'JCredential'
             sourceName : 'JAccount'
 
-          Relationship.one options, (err, relationship) ->
-            expect(err).to.not.exist
-            expect(relationship).to.exist
+          expectRelation.toExist options, (relationship) ->
             expect(relationship.sourceId).to.be.deep.equal anotherAccount._id
             queue.next()
 
