@@ -12,3 +12,6 @@ module.exports = class TeamsAppController extends KDViewController
     else options.view = new TeamsWaitListView { cssClass: 'content-page teams' }
 
     super options, data
+
+
+  handleQuery: (query) ->
