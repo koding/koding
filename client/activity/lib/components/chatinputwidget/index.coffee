@@ -229,17 +229,16 @@ module.exports = class ChatInputWidget extends React.Component
       ChatInputFlux.actions.message.setLastMessageEditMode accountId
 
 
-  onDropboxItemConfirmed: (item, addWhitespace = yes, callback = kd.noop) ->
+  onDropboxItemConfirmed: (item) ->
 
     textInput = React.findDOMNode @refs.textInput
 
-    item += ' '  if addWhitespace
+    item += ' '
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
     @setValue value
 
     kd.utils.defer ->
       helpers.setCursorPosition textInput, cursorPosition
-      callback value
 
 
   onSelectorItemConfirmed: (item) ->
@@ -259,9 +258,11 @@ module.exports = class ChatInputWidget extends React.Component
       kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
 
 
-  onCommandItemConfirmed: (item) ->
+  setCommand: (value) ->
 
-    @onDropboxItemConfirmed item, no, (value) =>
+    @setValue value
+
+    kd.utils.defer =>
       @runDropboxChecks value
 
 
@@ -373,7 +374,7 @@ module.exports = class ChatInputWidget extends React.Component
       selectedItem    = { commandsSelectedItem }
       query           = { commandsQuery }
       visible         = { commandsVisibility }
-      onItemConfirmed = { @bound 'onCommandItemConfirmed' }
+      onItemConfirmed = { @bound 'setCommand' }
       ref             = 'commandDropbox'
       stateId         = { @stateId }
     />

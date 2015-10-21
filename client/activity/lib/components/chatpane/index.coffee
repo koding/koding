@@ -10,11 +10,11 @@ ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title             : null
-    messages          : null
-    isDataLoading     : no
-    afterInviteOthers : kd.noop
-    showItemMenu      : yes
+    title          : null
+    messages       : null
+    isDataLoading  : no
+    onInviteOthers : kd.noop
+    showItemMenu   : yes
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -44,9 +44,6 @@ module.exports = class ChatPane extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
-  afterInviteOthers: -> @props.afterInviteOthers()
-
-
   channel: (key) -> @props.thread.getIn ['channel', key]
 
 
@@ -64,7 +61,7 @@ module.exports = class ChatPane extends React.Component
       ref='ChannelInfoContainer'
       key={@channel 'id'}
       thread={@props.thread}
-      afterInviteOthers={@bound 'afterInviteOthers'} />
+      onInviteOthers={@props.onInviteOthers} />
 
 
   afterScrollDidUpdate: ->
