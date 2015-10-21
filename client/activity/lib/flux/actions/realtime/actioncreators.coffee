@@ -58,10 +58,36 @@ bindMessageEvents = (message) ->
 
 bindNotificationEvents = ->
 
-  _dispatchFn = _createUnreadCountDispatchFn kd.singletons.reactor
+  { reactor, socialapi } = kd.singletons
+
+  # create specialized functions for dispatching into reactor. These functions
+  # will be bound to the reactor instance that is passed.
+  _dispatchFn = _createUnreadCountDispatchFn reactor
+  _loadMessageFn = _createLoadMessageFn reactor
 
   kd.singletons.notificationController
-    .on 'MessageAddedToChannel', _dispatchFn
+    .on 'MessageAddedToChannel', (payload) ->
+      { channel, channelMessage } = payload
+
+      # TODO: FIXME
+      # The reason we are doing these extra fetches is that right now backend
+      # doesn't send us extra information about channel (it already shouldn't).
+      # But for private messages the events from `SocialChannel` instance
+      # itself is not arriving to participants. So we are making sure that
+      # everything is in place before doing anything. This will be fixed once
+      # instance events of `SocialChannel` instances for private messages are
+      # fixed. ~Umut
+      socialapi.channel.byId { id: channel.id }, (err, _channel) ->
+        return  if err
+
+        bindChannelEvents _channel
+        socialapi.message.byId { id: channelMessage.id }, (err, _message) ->
+          return  if err
+
+          bindMessageEvents _message
+          _loadMessageFn { channel, channelMessage: _message }
+          _dispatchFn { unreadCount: payload.unreadCount, channel }
+
     .on 'MessageRemovedFromChannel', _dispatchFn
     .on 'RemovedFromChannel', _dispatchFn
     .on 'ReplyAdded', _dispatchFn
@@ -80,10 +106,35 @@ bindNotificationEvents = ->
       _dispatchFn { unreadCount, channel }
 
 
+###*
+ * Takes a dispatcher and returns a function that will dispatch a unread count
+ * event to that dispatcher.
+ *
+ * @param {KodingFluxReactor} _reactor
+ * @param {function}
+###
 _createUnreadCountDispatchFn = (_reactor) -> ({unreadCount, channel}) ->
   _reactor.dispatch actions.SET_CHANNEL_UNREAD_COUNT,
     unreadCount : unreadCount
     channelId   : channel.id
+
+
+###*
+ * Takes a dispatcher and returns a function that will dispatch a load message
+ * event to that dispatcher.
+ *
+ * @param {KodingFluxReactor} _reactor
+ * @param {function}
+###
+_createLoadMessageFn = (_reactor) -> (payload) ->
+  {channel, channelMessage} = payload
+
+  dispatch actions.LOAD_MESSAGE_SUCCESS,
+    channel   : channel
+    channelId : channel.id
+    message   : channelMessage
+
+  return payload
 
 
 module.exports = {
