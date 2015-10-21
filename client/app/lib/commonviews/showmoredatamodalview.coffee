@@ -74,7 +74,7 @@ module.exports = class ShowMoreDataModalView extends KDModalView
       useCustomScrollView : yes
       view                : new KDListView
         itemClass         : listItemMap()[@type]
-        cssClass          : "modal-topic-list"
+        cssClass          : 'modal-topic-list'
     , items               : participants
 
     @controller.getListView().on "CloseTopicsModal", =>
