@@ -424,13 +424,35 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
 
-        options =
-          title : 'newTitle'
-          meta  : { data : 'newMeta' }
+        queue = [
 
-        credential.update$ client, options, (err) ->
-          expect(err).to.not.exist
-          done()
+          ->
+            options =
+              title : 'newTitle'
+              meta  : { data : 'newMeta' }
+
+            credential.update$ client, options, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JCredential.one { _id : credential._id }, (err, credential_) ->
+              expect(err).to.not.exist
+              expect(credential_.title).to.be.equal 'newTitle'
+              queue.next()
+
+          ->
+            options = { identifier : credential.identifier }
+            JCredentialData.one options, (err, credData) ->
+              expect(err).to.not.exist
+              expect(credData.meta).to.be.deep.equal { data : 'newMeta' }
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
 
 
   describe 'isBootstrapped()', ->
@@ -441,7 +463,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
         expectAccessDenied credential, 'isBootstrapped', done
 
 
-    it 'should if credential is bootstrapped', (done) ->
+    it 'should be able to check if credential is bootstrapped', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
         credential.isBootstrapped client, (err, result) ->
