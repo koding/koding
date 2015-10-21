@@ -5,6 +5,7 @@ JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
 
+{ Relationship }        = require 'jraphical'
 { expect }              = require 'chai'
 { daisy, ObjectId }     = Bongo
 { argv }                = require 'optimist'
@@ -169,11 +170,34 @@ expectAccessDenied = (caller, callee, args..., callback) ->
     else  caller[callee] client, kallback
 
 
+fetchRelation = (options, callback) ->
+
+  Relationship.one options, (err, relationship) ->
+    expect(err).to.not.exist
+    callback relationship
+
+
+expectRelation = {
+
+  toExist : (options, callback) ->
+    fetchRelation options, (relationship) ->
+      expect(relationship).to.exist
+      callback relationship
+
+  toNotExist : (options, callback) ->
+    fetchRelation options, (relationship) ->
+      expect(relationship).to.not.exist
+      callback relationship
+
+}
+
+
 module.exports = {
   _
   daisy
   expect
   ObjectId
+  expectRelation
   withDummyClient
   generateUserInfo
   withConvertedUser
