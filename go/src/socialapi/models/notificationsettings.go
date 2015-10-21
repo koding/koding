@@ -33,3 +33,13 @@ type NotificationSettings struct {
 	// Modification date of the notification settings
 	UpdatedAt time.Time `json:"updatedAt"          sql:"NOT NULL"`
 }
+
+const (
+	// Describes that user want to be notified for all notifications
+	NotificationSettings_STATUS_ALL = "all"
+	// Describes that user want to be notified
+	// for user's own name or with highlighted words
+	NotificationSettings_STATUS_PERSONAL = "personal"
+	// Describes that user doesn't want to get any notification
+	NotificationSettings_STATUS_NEVER = "never"
+)
