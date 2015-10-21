@@ -211,6 +211,27 @@ Go to **Activity Web Hook** section on that page. Copy Webhook URL that we gener
 	pagerdutyInt.IconPath = "https://s3.amazonaws.com/koding-cdn/temp-images/pagerduty.png"
 	pagerdutyInt.Description = "PagerDuty provides IT alert monitoring, on-call scheduling, escalation policies and incident tracking to fix problems in your apps, servers and websites."
 	pagerdutyInt.TypeConstant = webhookmodels.Integration_TYPE_INCOMING
+	pagerdutyInt.Instructions = `
+#### Step 1
+
+In your PagerDuty account, click on **Services** in the top navigation bar. Next, click on the service you would like to monitor and press the **Add a webhook** button further down the page.
+
+// Add a photo 
+
+
+#### Step 2
+
+Give it a name and add **Webhook URL** that we generated for you as the Endpoint URL. Press the **Save** button to finish adding the Webhook.
+
+// Need a photo for Activity webhook URL
+
+
+#### Step 3
+
+Return to the Koding Integration page (this page) and choose the PagerDuty incidents to monitor by selecting the checkboxes. Press the **SAVE INTEGRATION** button.
+
+
+`
 
 	pagerdutyInt.Settings = gorm.Hstore{}
 
