@@ -9,11 +9,13 @@
   generateDummyUserFormData } = require '../../../../testhelper'
 { withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
-{ withConvertedUserAnd } = require  \
+{ forEachProvider
+  withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
-{ PROVIDERS, revive }   = require './computeutils'
-ComputeProvider         = require './computeprovider'
+{ notImplementedMessage } = require './providerinterface'
+{ PROVIDERS, revive }     = require './computeutils'
+ComputeProvider           = require './computeprovider'
 
 
 # this function will be called once before running any test
@@ -45,25 +47,20 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         client.r  = { account }
         queue     = []
 
-        for providerSlug, provider of PROVIDERS
+        forEachProvider (providerSlug, provider) ->
           options = { provider }
-          queue.push ->
-            options = { provider }
-            ComputeProvider.ping client, options, (err, data) ->
-              expect(err).to.not.exist
-              expect(data).to.be.a 'string'
-              queue.next()
 
-        queue.push -> done()
-
-        daisy queue
+          ComputeProvider.ping client, options, (err, data) ->
+            expect(err).to.not.exist
+            expect(data).to.be.a 'string'
+        , done
 
 
   describe '#ping$()', ->
 
     it 'should not be able to ping if user doesnt have the right to ping', (done) ->
 
-      expectAccessDenied ComputeProvider, 'ping$', { provider : PROVIDERS.google }, done
+      expectAccessDenied ComputeProvider, 'ping$', { provider : PROVIDERS.aws }, done
 
 
   describe '#create()', ->
@@ -112,48 +109,53 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
     it 'should be able to fetch availabe object', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
+        forEachProvider (providerSlug) ->
 
-        options =
-          provider: 'google'
-          credential : credential
+          options =
+            provider   : providerSlug
+            credential : credential
 
-        ComputeProvider.fetchAvailable client, options, (err, data) ->
-          expect(err?.message).to.not.exist
-          expect(data).to.be.an 'array'
-          done()
+          ComputeProvider.fetchAvailable client, options, (err, data) ->
+            return expect(err.message).to.be.equal 'Not implemented yet.'  if err
+            expect(err).to.not.exist
+            expect(data).to.be.an 'array'
+        , done
 
 
     it 'should fail if no provider is given', (done) ->
 
       withDummyClient ({ client }) ->
-        ComputeProvider.fetchAvailable client, { provider : null }, (err, data) ->
-          expect(err?.message).to.be.equal 'No such provider.'
-          done()
+        forEachProvider (providerSlug) ->
+          ComputeProvider.fetchAvailable client, { provider : null }, (err, data) ->
+            expect(err?.message).to.be.equal 'No such provider.'
+        , done
 
 
     it 'should fail if credential is not provided', (done) ->
 
       withDummyClient ({ client }) ->
+        forEachProvider (providerSlug) ->
+          options = { provider : providerSlug }
 
-        options =
-          provider: 'google'
-
-        ComputeProvider.fetchAvailable client, options, (err, data) ->
-          expect(err?.message).to.be.equal 'Credential is required.'
-          done()
+          ComputeProvider.fetchAvailable client, options, (err, data) ->
+            expect(err?.message).to.satisfy (msg) ->
+              return msg in [notImplementedMessage, 'Credential is required.']
+        , done
 
 
     it 'should fail if given credential is not valid', (done) ->
 
       withDummyClient ({ client }) ->
+        forEachProvider (providerSlug) ->
 
-        options =
-          provider: 'google'
-          credential : 'invalid'
+          options =
+            provider   : providerSlug
+            credential : 'invalid'
 
-        ComputeProvider.fetchAvailable client, options, (err, data) ->
-          expect(err?.message).to.be.equal 'Credential failed.'
-          done()
+          ComputeProvider.fetchAvailable client, options, (err, data) ->
+            expect(err?.message).to.satisfy (msg) ->
+              return msg in [notImplementedMessage, 'Credential failed.']
+        , done
 
 
   describe '#fetchUsage', ->
