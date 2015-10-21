@@ -57,7 +57,7 @@ module.exports = class ChatPane extends React.Component
 
     return null  unless scrollContainer or reachedFirstMessage
 
-    @setPaddedClassName yes  unless messagesSize
+    @setPaddedClassName force: yes  unless messagesSize
 
     <ChannelInfoContainer
       ref='ChannelInfoContainer'
@@ -77,13 +77,13 @@ module.exports = class ChatPane extends React.Component
     @setPaddedClassName()
 
 
-  setPaddedClassName: (shouldPaddedClass = no) ->
   resetPaddedClassName: ->
 
     scrollContainer = React.findDOMNode @refs.scrollContainer
     scrollContainer?.classList.remove 'padded'
 
 
+  setPaddedClassName: (options = {}) ->
 
     list                        = React.findDOMNode @refs.ChatList
     scrollContainer             = React.findDOMNode @refs.scrollContainer
