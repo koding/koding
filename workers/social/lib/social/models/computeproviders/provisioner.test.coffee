@@ -113,7 +113,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
       expectAccessDenied JProvisioner, 'some$', selector = {}, options = {}, done
 
 
-  it 'should be able to fetch provisioner data', (done) ->
+  it 'should be able to fetch provisioner data with valid request', (done) ->
 
     withConvertedUserAndProvisioner ({ client, provisioner }) ->
       selector = { slug : provisioner.slug }
@@ -131,7 +131,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
       expectAccessDenied JProvisioner, 'one$', selector = {}, options = {}, done
 
 
-  it 'should be able to fetch provisioner data', (done) ->
+  it 'should be able to fetch provisioner data with valid request', (done) ->
 
     withConvertedUserAndProvisioner ({ client, provisioner }) ->
       selector = { slug : provisioner.slug }
@@ -221,7 +221,7 @@ runTests = -> describe 'workers.social.models.computeproviders.provisioner', ->
         expectAccessDenied provisioner, 'update$', data = {}, done
 
 
-  it 'should be able to update provisioner data', (done) ->
+  it 'should be able to update provisioner data with valid request', (done) ->
 
     withConvertedUserAndProvisioner ({ client, account, provisioner }) ->
 
