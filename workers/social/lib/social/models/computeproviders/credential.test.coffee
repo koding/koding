@@ -9,7 +9,10 @@ JCredentialData  = require './credentialdata'
   generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
 { generateMetaData
-  withConvertedUserAndCredential } = require '../../../../testhelper/models/computeproviders/credentialhelper'
+  withConvertedUserAndCredential } = require \
+  '../../../../testhelper/models/computeproviders/credentialhelper'
+{ withConvertedUserAnd  } = require \
+  '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
 
 # this function will be called once before running any test
@@ -172,7 +175,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
         expectAccessDenied credential, 'fetchUsers', done
 
 
-    it 'should be able to fetch users', (done) ->
+    it 'should be able to fetch users with valid request', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
         credential.fetchUsers client, (err, users) ->
@@ -180,6 +183,83 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           expect(users).to.be.an 'array'
           expect(users).to.have.length.above 0
           done()
+
+
+    it 'should be able to fetch users after sharing with a user', (done) ->
+
+      withConvertedUserAndCredential ({ client, account, credential }) ->
+        ownerClient  = client
+        ownerAccount = account
+        otherAccount = null
+
+        queue = [
+
+          ->
+            withConvertedUser ({ userFormData, account }) ->
+              otherAccount = account
+              options = { target : userFormData.username, user : yes, owner : yes }
+
+              credential.shareWith ownerClient, options, (err) ->
+                expect(err).to.not.exist
+                queue.next()
+
+          ->
+            credential.fetchUsers ownerClient, (err, users) ->
+              expect(err).to.not.exist
+              expect(users).to.be.an 'array'
+              expect(users).to.have.length 2
+              expect(users[0]).to.be.an 'object'
+              expect(users[0].constructorName).to.be.equal 'JAccount'
+              expect(users[0]._id.toString()).to.be.equal ownerAccount._id.toString()
+              expect(users[1]).to.be.an 'object'
+              expect(users[1].constructorName).to.be.equal 'JAccount'
+              expect(users[1]._id.toString()).to.be.equal otherAccount._id.toString()
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+    it 'should be able to fetch users after sharing with a group', (done) ->
+
+      withConvertedUserAndCredential ({ client, account, credential }) ->
+        group = null
+
+        queue = [
+
+          ->
+            groupSlug   = generateRandomString()
+            options     = { context : { group : groupSlug } }
+
+            withConvertedUserAnd ['Group'], options, (data) ->
+              { group } = data
+              options   = { target : groupSlug, user : yes, owner : yes }
+
+              credential.shareWith client, options, (err) ->
+                expect(err).to.not.exist
+                queue.next()
+
+          ->
+            credential.fetchUsers client, (err, users) ->
+              expect(err).to.not.exist
+              expect(users).to.be.an 'array'
+              expect(users).to.have.length 2
+              expect(users[0]).to.be.an 'object'
+              expect(users[0].constructorName).to.be.equal 'JAccount'
+              expect(users[0]._id.toString()).to.be.equal account._id.toString()
+              expect(users[1]).to.be.an 'object'
+              expect(users[1].constructorName).to.be.equal 'JGroup'
+              expect(users[1]._id.toString()).to.be.equal group._id.toString()
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
 
 
   describe 'setPermissionFor()', ->
