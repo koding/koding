@@ -6,15 +6,22 @@ Tracker = require 'app/util/tracker'
 
 module.exports = (machine) ->
 
-  return  unless analytics
-  return  unless typeof analytics.user is 'function'
+  fetchStorage (storage) ->
 
-  { initialTurnOn } = analytics.user().traits()
-  return  if initialTurnOn
+    turnedOnMachine = storage.getValue 'TurnedOnMachine'
 
-  initialTurnOn = yes
-  analytics.identify nick(), { initialTurnOn }
-  execute machine
+    return  if turnedOnMachine
+
+    storage.setValue 'TurnedOnMachine', yes
+    execute machine
+
+
+fetchStorage = (callback) ->
+
+  { appStorageController } = kd.singletons
+  storage = appStorageController.storage 'Environments', '1.0'
+
+  storage.ready -> callback storage
 
 
 execute = (machine) ->
