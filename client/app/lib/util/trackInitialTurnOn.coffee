@@ -14,6 +14,10 @@ module.exports = (machine) ->
 
   initialTurnOn = yes
   analytics.identify nick(), { initialTurnOn }
+  execute machine
+
+
+execute = (machine) ->
 
   track Tracker.BUTTON_CLICKED
 
