@@ -1,6 +1,6 @@
 ProviderInterface = require './providerinterface'
 { updateMachine } = require './helpers'
-
+KodingError       = require '../../error'
 
 module.exports = class Aws extends ProviderInterface
 

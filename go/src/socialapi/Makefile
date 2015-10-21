@@ -43,6 +43,7 @@ PACKAGES = \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
 	socialapi/workers/sitemap/sitemapinitializer \
+	socialapi/workers/integration \
 	socialapi/workers/algoliaconnector
 
 
@@ -51,7 +52,7 @@ all: testapi
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
 	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
-	teamdev eventsenderdev
+	teamdev eventsenderdev integrationdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 

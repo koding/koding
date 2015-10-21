@@ -3,8 +3,11 @@ _                    = require 'underscore'
 hljs                 = require 'highlight.js'
 Encoder              = require 'htmlencode'
 
+KDView               = kd.View
 KDModalView          = kd.ModalView
+KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
+KDCustomScrollView   = kd.CustomScrollView
 KDFormViewWithFields = kd.FormViewWithFields
 
 globals              = require 'globals'
@@ -389,6 +392,7 @@ module.exports = class ComputeController_UI
   @showComputeError = (options) ->
 
     { stack, errorMessage, title, subtitle, cssClass, message } = options
+
     cssClass ?= ''
     message   = if message then "<div class='message'>#{message}</div>" else ''
 
@@ -404,16 +408,23 @@ module.exports = class ComputeController_UI
         cssClass     : 'second-overlay'
 
     content      = (hljs.highlight 'profile', errorMessage).value
-    errorDetails = new kd.CustomHTMLView
+
+    errorDetails = new KDView
+    if message
+      errorDetails.setClass 'with-message'
+      errorDetails.addSubView new KDCustomHTMLView
+        partial: "#{message}"
+
+    errorDetails.addSubView scrollView = new KDCustomScrollView
+    scrollView.wrapper.addSubView new KDCustomHTMLView
       cssClass : 'error-content'
       partial  : """
-        #{message}
         <div class='content'>
           <pre><code>#{content}</code></pre>
         </div>
       """
 
-    if stack?
+    if stack
 
       modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
 
@@ -431,10 +442,13 @@ module.exports = class ComputeController_UI
         content   = Encoder.htmlDecode content or ''
         content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
 
+        stackTemplate = new KDCustomScrollView
+        stackTemplate.wrapper.addSubView new KDCustomHTMLView
+          partial  : "<pre><code>#{content}</code></pre>"
+
         tabView.addPane new kd.TabPaneView
           name       : 'Stack Template'
-          view       : new kd.CustomHTMLView
-            partial  : "<pre><code>#{content}</code></pre>"
+          view       : stackTemplate
 
         tabView.showPaneByIndex 0
 

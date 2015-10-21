@@ -5,7 +5,6 @@ KDCustomHTMLView            = kd.CustomHTMLView
 KDCustomScrollView          = kd.CustomScrollView
 KDListViewController        = kd.ListViewController
 AdminIntegrationItemView    = require './adminintegrationitemview'
-AdminIntegrationSetupView   = require './adminintegrationsetupview'
 AdminIntegrationDetailsView = require './adminintegrationdetailsview'
 integrationHelpers          = require 'app/helpers/integration'
 

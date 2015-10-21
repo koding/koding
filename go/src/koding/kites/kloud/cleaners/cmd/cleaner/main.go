@@ -133,10 +133,10 @@ func (c *Cleaner) collectAndProcess() error {
 	}
 
 	c.process(
-		&TagInstances{
-			Instances: artifacts.Instances,
-			Machines:  artifacts.MongodbUsers,
-		},
+		//&TagInstances{
+		//	Instances: artifacts.Instances,
+		//	Machines:  artifacts.MongodbUsers,
+		//},
 		&TestVMS{
 			Instances: artifacts.Instances,
 		},
@@ -157,10 +157,10 @@ func (c *Cleaner) collectAndProcess() error {
 			Instances: artifacts.Instances,
 			Cleaner:   c,
 		},
-		&GhostVMs{
-			Instances: artifacts.Instances,
-			Ids:       artifacts.MongodbUsers,
-		},
+		//&GhostVMs{
+		//	Instances: artifacts.Instances,
+		//	Ids:       artifacts.MongodbUsers,
+		//},
 		&MultipleVMs{
 			Instances:     artifacts.Instances,
 			UsersMultiple: artifacts.UsersMultiple,

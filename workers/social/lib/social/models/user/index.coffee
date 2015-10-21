@@ -592,7 +592,7 @@ module.exports = class JUser extends jraphical.Module
         if err
           callback err
         else if confirmed
-          @confirmEmail (err) -> callback err
+          @confirmEmail callback
         else
           callback new KodingError 'PIN is not confirmed.'
 
@@ -676,6 +676,8 @@ module.exports = class JUser extends jraphical.Module
 
         { account } = response
         return logout 'guest account not found'  if not response?.account
+
+        account.profile.nickname = username
 
         return callback null, { account, session }
 
@@ -861,10 +863,13 @@ module.exports = class JUser extends jraphical.Module
           $unset          :
             guestId       : 1
 
+        guestUsername = session.username
+
         session.update sessionUpdateOptions, (err) ->
           return callback err  if err
 
           Tracker.identify username, { lastLoginDate }
+          Tracker.alias guestUsername, username
 
           queue.next()
 
@@ -1549,8 +1554,8 @@ module.exports = class JUser extends jraphical.Module
     { nickname : oldUsername }  = account.profile
 
     # if firstname is not received use username as firstname
-    userFormData.firstName = username  if not firstName or firstName is ''
-    userFormData.lastName  = ''        if not lastName
+    userFormData.firstName = username  unless firstName
+    userFormData.lastName  = ''        unless lastName
 
     email = userFormData.email = emailsanitize email
 
@@ -1572,14 +1577,16 @@ module.exports = class JUser extends jraphical.Module
 
       =>
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo) ->
-          console.log 'Error while getting oauth data from session', err  if err
+          if err
+            console.log 'Error while getting oauth data from session', err
+            return queue.next()
 
-          foreignAuthType = foreignAuthInfo?.foreignAuthType
+          return queue.next()  unless foreignAuthInfo
 
           # Password is not required for GitHub users since they are authorized via GitHub.
           # To prevent having the same password for all GitHub users since it may be
           # a security hole, let's auto generate it if it's not provided in request
-          if foreignAuthInfo?.foreignAuthType and not password?
+          unless password
             password        = userFormData.password        = createId()
             passwordConfirm = userFormData.passwordConfirm = password
 
@@ -1655,6 +1662,7 @@ module.exports = class JUser extends jraphical.Module
         }
 
         Tracker.identify username, traits
+        Tracker.alias oldUsername, username
 
         queue.next()
 
@@ -1669,7 +1677,7 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         # don't block register
-        callback error, { account, newToken }
+        callback error, { account, newToken, user }
         queue.next()
 
       ->
@@ -1930,7 +1938,7 @@ module.exports = class JUser extends jraphical.Module
 
       Tracker.identify username, modifier
 
-      Tracker.track username, { subject : Tracker.types.FINISH_REGISTER }
+      Tracker.track username, { subject: Tracker.types.FINISH_REGISTER }
 
 
   block: (blockedUntil, callback) ->
