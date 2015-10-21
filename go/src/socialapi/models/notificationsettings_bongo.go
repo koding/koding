@@ -40,6 +40,23 @@ func (n *NotificationSettings) BeforeCreate() error {
 	return
 }
 
+func (n *NotificationSettings) One(q *bongo.Query) error {
+	return bongo.B.One(n, n, q)
+}
+
+func (n *NotificationSettings) ById(id int64) error {
+	return bongo.B.ById(n, id)
+}
+
+func (n *NotificationSettings) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(n, data, q)
+}
+
+// BeforeUpdate runs before updating struct
+func (n *NotificationSettings) BeforeUpdate() error {
+	return n.validateBeforeOps()
+}
+
 func (n *NotificationSettings) validateBeforeOps() error {
 	if n.AccountId == 0 {
 		return ErrAccountIdIsNotSet
