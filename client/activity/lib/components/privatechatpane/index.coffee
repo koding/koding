@@ -36,11 +36,11 @@ module.exports = class PrivateChatPane extends React.Component
     kd.utils.defer => ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
-  afterInviteOthers: ->
+  onInviteOthers: ->
 
     return  unless input = @refs.chatInputWidget
 
-    input.focus()
+    input.setValue '/invite @'
 
 
   render: ->
@@ -50,7 +50,7 @@ module.exports = class PrivateChatPane extends React.Component
       className  = 'PrivateChatPane'
       messages   = { @props.messages }
       onSubmit   = { @bound 'onSubmit' }
-      afterInviteOthers = {@bound 'afterInviteOthers'}
+      onInviteOthers = {@bound 'onInviteOthers'}
       onLoadMore = { @bound 'onLoadMore' }
     >
       <footer className='PrivateChatPane-footer'>
@@ -59,6 +59,7 @@ module.exports = class PrivateChatPane extends React.Component
           onCommand        = { @bound 'onCommand' }
           channelId        = { @channel 'id' }
           disabledFeatures = { ['search'] }
+          ref              = 'chatInputWidget'
         />
       </footer>
     </ChatPane>

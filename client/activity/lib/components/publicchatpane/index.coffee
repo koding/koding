@@ -41,11 +41,11 @@ module.exports = class PublicChatPane extends React.Component
     ActivityFlux.actions.channel.followChannel @channel 'id'
 
 
-  afterInviteOthers: ->
+  onInviteOthers: ->
 
     return  unless input = @refs.chatInputWidget
 
-    input.focus()
+    input.setValue '/invite @'
 
 
   onLoadMore: ->
@@ -94,7 +94,7 @@ module.exports = class PublicChatPane extends React.Component
       className  = "PublicChatPane"
       onSubmit   = { @bound 'onSubmit' }
       onLoadMore = { @bound 'onLoadMore' }
-      afterInviteOthers = {@bound 'afterInviteOthers'}>
+      onInviteOthers = {@bound 'onInviteOthers'}>
       {@renderFooter()}
     </ChatPane>
 
