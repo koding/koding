@@ -13,9 +13,10 @@
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
-{ notImplementedMessage } = require './providerinterface'
-{ PROVIDERS, revive }     = require './computeutils'
+JMachine                  = require './machine'
 ComputeProvider           = require './computeprovider'
+{ PROVIDERS, revive }     = require './computeutils'
+{ notImplementedMessage } = require './providerinterface'
 
 
 # this function will be called once before running any test
@@ -116,7 +117,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
             credential : credential
 
           ComputeProvider.fetchAvailable client, options, (err, data) ->
-            return expect(err.message).to.be.equal 'Not implemented yet.'  if err
+            return expect(err.message).to.be.equal notImplementedMessage  if err
             expect(err).to.not.exist
             expect(data).to.be.an 'array'
         , done
@@ -221,16 +222,37 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
     it 'should fail if not implemented yet', (done) ->
 
-      withConvertedUserAnd ['Credential', 'ComputeProvider'], (data) ->
-        { client, credential } = data
+      forEachProvider (providerSlug) ->
 
-        options =
-          provider   : 'aws'
-          credential : credential
+        options = { provider : providerSlug }
+        withConvertedUserAnd ['ComputeProvider'], options, (data) ->
+          { client, machine } = data
 
-        ComputeProvider.remove client, options, (err) ->
-          expect(err?.message).to.be.equal 'Not implemented yet.'
-          done()
+          queue = [
+
+            ->
+              JMachine.one { _id : machine._id }, (err, machine) ->
+                expect(err).to.not.exist
+                expect(machine).to.exist
+                queue.next()
+
+            ->
+              options = { provider : providerSlug, machineId : machine._id.toString() }
+              ComputeProvider.remove client, options, (err) ->
+                if err
+                  return expect(err.message).to.be.equal notImplementedMessage
+                queue.next()
+
+            ->
+              JMachine.one { _id : machine._id }, (err, machine) ->
+                expect(err).to.not.exist
+                expect(machine).to.not.exist
+                queue.next()
+
+          ]
+
+          daisy queue
+      , done
 
 
   describe '#createStackFromTemplate', ->
