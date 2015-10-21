@@ -52,10 +52,12 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     messagesSize        = @props.thread.get('messages').size
+    scrollContainer     = React.findDOMNode @refs.scrollContainer
     reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
 
-    # we have always at least one system message
-    return null  unless reachedFirstMessage and messagesSize
+    return null  unless scrollContainer or reachedFirstMessage
+
+    @setPaddedClassName yes  unless messagesSize
 
     <ChannelInfoContainer
       ref='ChannelInfoContainer'
@@ -69,7 +71,7 @@ module.exports = class ChatPane extends React.Component
     @setPaddedClassName()
 
 
-  setPaddedClassName: ->
+  setPaddedClassName: (shouldPaddedClass = no) ->
 
     list                        = React.findDOMNode @refs.ChatList
     scrollContainer             = React.findDOMNode @refs.scrollContainer
@@ -77,6 +79,8 @@ module.exports = class ChatPane extends React.Component
     listHeight                  = list.offsetHeight
     scrollContainerClientHeight = scrollContainer.clientHeight
     channelInfoContainerHeight  = 0
+
+    return scrollContainer.classList.add 'padded' if shouldPaddedClass and scrollContainer
 
     return  if scrollContainerClientHeight is 0 or listHeight is 0
 
