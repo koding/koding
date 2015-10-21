@@ -15,3 +15,9 @@ module.exports = class TeamsAppController extends KDViewController
 
 
   handleQuery: (query) ->
+
+    return  if not query or not query.group
+
+    { input } = @getView().form.companyName
+    input.setValue query.group.capitalize()
+    @getView().form.companyName.inputReceivedKeyup()
