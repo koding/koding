@@ -1,4 +1,4 @@
-JProviderInterface = require './providerinterface'
+ProviderInterface = require './providerinterface'
 
 { expect
   checkBongoConnectivity }         = require '../../../../testhelper'
@@ -18,7 +18,7 @@ runTests = -> describe 'workers.social.models.computeproviders.providerinterface
     it 'it should be able fetch credential data ', (done) ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
-        JProviderInterface.fetchCredentialData credential, (err, credData) ->
+        ProviderInterface.fetchCredentialData credential, (err, credData) ->
           expect(err).to.not.exist
           expect(credData).to.be.an 'object'
           expect(credData.meta).to.be.an 'object'
