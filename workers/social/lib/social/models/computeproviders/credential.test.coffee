@@ -66,7 +66,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           ->
             # expecting credential to be created
             JCredential.create client, options, (err, credential_) ->
-              expect(err?.message).to.not.exist
+              expect(err).to.not.exist
               credential = credential_
               expect(credential.provider).to.be.equal provider
               expect(credential.title).to.be.equal title
@@ -125,7 +125,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
         JCredential.fetchByIdentifier client, credential.identifier, (err, credential_) ->
-          expect(err?.message).to.not.exist
+          expect(err).to.not.exist
           expect(credential_).to.exist
           expect(credential_._id).to.be.deep.equal credential._id
           done()
@@ -142,7 +142,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       withConvertedUserAndCredential ({ client, credential }) ->
         JCredential.one$ client, credential.identifier, (err, credential_) ->
-          expect(err?.message).to.not.exist
+          expect(err).to.not.exist
           expect(credential_).to.exist
           expect(credential_._id).to.be.deep.equal credential._id
           done()
@@ -161,7 +161,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
         selector = { _id : credential._id }
         options  = {}
         JCredential.some$ client, selector, options, (err, credentials) ->
-          expect(err?.message).to.not.exist
+          expect(err).to.not.exist
           expect(credentials).to.be.an 'array'
           expect(credentials).to.have.length 1
           done()
