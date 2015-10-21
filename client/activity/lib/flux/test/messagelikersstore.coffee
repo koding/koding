@@ -1,5 +1,5 @@
 { expect } = require 'chai'
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 actions = require '../actions/actiontypes'
 MessageLikersStore = require '../stores/messagelikerssstore'
 

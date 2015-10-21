@@ -1,6 +1,6 @@
 kd                           = require 'kd'
 React                        = require 'kd-react'
-KDReactorMixin               = require 'app/flux/reactormixin'
+KDReactorMixin               = require 'app/flux/base/reactormixin'
 ActivityFlux                 = require 'activity/flux'
 immutable                    = require 'immutable'
 getGroup                     = require 'app/util/getGroup'

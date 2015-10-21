@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 CommonEmojiListVisibilityStore = require 'activity/flux/chatinput/stores/emoji/commonemojilistvisibilitystore'
 actions = require 'activity/flux/chatinput/actions/actiontypes'

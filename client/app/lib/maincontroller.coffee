@@ -47,7 +47,7 @@ PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
 MarketingController      = require './marketing/marketingcontroller'
 MachineShareManager      = require './machinesharemanager'
-KodingFluxReactor        = require './flux/reactor'
+KodingFluxReactor        = require './flux/base/reactor'
 
 
 module.exports           = class MainController extends KDController
