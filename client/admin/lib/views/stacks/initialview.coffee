@@ -18,13 +18,7 @@ module.exports = class InitialView extends kd.View
     @createStackButton = new kd.ButtonView
       title    : 'Create new Stack'
       cssClass : 'solid compact green action hidden'
-      callback : (event) =>
-        if @_stackTemplatesLength >= 1 and not event?.shiftKey
-          @showWarning "Multiple Stack Template support will be
-                        provided soon. You still can modify your
-                        existing stack templates."
-        else
-          @emit 'CreateNewStack', skipOnboarding: yes
+      callback : @lazyBound 'emit', 'CreateNewStack'
 
     @stackTemplateList = new StackTemplateListView
 
@@ -43,6 +37,7 @@ module.exports = class InitialView extends kd.View
       @emit 'NoTemplatesFound'  if stackTemplates.length is 0
       @_stackTemplatesLength = stackTemplates.length
       @createStackButton.show()
+      @emit 'ready'
 
 
   reload: ->
