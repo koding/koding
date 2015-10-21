@@ -12,7 +12,7 @@ import (
 // If not , think about more for it about pros and cons
 //
 //~Mehmet Ali
-const NotificationSettingsBongoName = "api.channel"
+const NotificationSettingsBongoName = "api.notification_settings"
 
 func (n NotificationSettings) GetId() int64 {
 	return n.Id
@@ -37,7 +37,12 @@ func (n *NotificationSettings) BeforeCreate() error {
 	n.CreatedAt = time.Now().UTC()
 	n.UpdatedAt = time.Now().UTC()
 
-	return
+	return nil
+}
+
+// BeforeUpdate runs before updating struct
+func (n *NotificationSettings) BeforeUpdate() error {
+	return n.validateBeforeOps()
 }
 
 func (n *NotificationSettings) One(q *bongo.Query) error {
@@ -50,11 +55,6 @@ func (n *NotificationSettings) ById(id int64) error {
 
 func (n *NotificationSettings) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(n, data, q)
-}
-
-// BeforeUpdate runs before updating struct
-func (n *NotificationSettings) BeforeUpdate() error {
-	return n.validateBeforeOps()
 }
 
 func (n *NotificationSettings) validateBeforeOps() error {
