@@ -66,6 +66,12 @@ module.exports = class ChatPane extends React.Component
       onInviteOthers={@props.onInviteOthers} />
 
 
+  beforeScrollToBottom: ->
+
+    @resetPaddedClassName()
+    @setPaddedClassName()
+
+
   afterScrollDidUpdate: ->
 
     @setPaddedClassName()
