@@ -171,12 +171,18 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		if isAddressNotFoundError(err) {
 			m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
+			oldIp := m.IpAddress
 			elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
 			if err != nil {
 				m.Log.Warning("couldn't not create elastic IP: %s", err)
 			} else {
 				m.IpAddress = elasticIp
 			}
+
+			m.Log.Info(
+				"Paying user without Elastic IP detected. Assigning IP. (username: %s, instanceId: %s, region: %s, oldIp: %s, newIp: %s)",
+				m.Credential, m.Meta.InstanceId, m.Meta.Region, oldIp, elasticIp,
+			)
 		}
 	}
 
