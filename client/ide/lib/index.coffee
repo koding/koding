@@ -384,11 +384,24 @@ class IDEAppController extends AppController
   ###
   openFile: (options, callback = kd.noop) ->
 
-    { file, contents, emitChange, targetTabView } = options
+    { file, contents, emitChange, targetTabView, switchIfOpen } = options
 
     kallback = (pane) =>
       @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
       callback pane
+
+
+    if switchIfOpen
+      wasOpen = no
+
+      @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
+        if FSHelper.plainPath(editorPane.file.path) is file.path
+          editorPane.emit 'ShowMeAsActive'
+          kallback editorPane
+          wasOpen = yes
+
+      return if wasOpen
+
 
     @setActiveTabView targetTabView  if targetTabView
 
@@ -834,6 +847,9 @@ class IDEAppController extends AppController
     ideView.on 'PaneRemoved', (pane) =>
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
+
+      return unless pane.view?.hash
+
       delete @generatedPanes[pane.view.hash]
 
       if session = pane.view.remote?.session
@@ -1046,7 +1062,8 @@ class IDEAppController extends AppController
 
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
-    @contentSearch = new IDEContentSearch
+    data = machine: @mountedMachine, workspace: @workspaceData
+    @contentSearch = new IDEContentSearch {}, data
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
@@ -1508,7 +1525,7 @@ class IDEAppController extends AppController
 
   removeParticipantCursorWidget: (targetUser) ->
 
-    @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       editorPane.removeParticipantCursorWidget targetUser
 
 

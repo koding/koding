@@ -866,6 +866,11 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
 .ide .search-result
   styleScrollBars(0,0,0,.15)
 
+  .results-for
+    font-size               14px
+    color                   #d4cfc9
+    margin                  20px 20px 0
+
   .filename
     color                   #858585
     margin                  30px 0 20px 20px
@@ -918,7 +923,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     padding                 25px 32px
     width                   auto
 
-  label
+  .kdlabel
     font-size               14px
     margin                  0 0 4px 0
 
@@ -943,18 +948,17 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     &:focus
       box-shadow            none
 
-  .formline.switch
+  .formline.checkbox
     size                    180px, 35px
 
-    label
+    .kdlabel
       fl()
-      left                  45px
+      left                  27px
       position              relative
-      top                   -2px
+      vendor                user-select, none
 
-  .switch
+  .checkbox
     .input-wrapper
-      width                 45px !important
       abs()
 
   .warningview
@@ -976,7 +980,6 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       color                 #FFF
 
   .kdbutton#cancel-button
-    text-transform          capitalize
     background              transparent
     padding                 0
     margin                  0 25px 0 0
@@ -986,8 +989,7 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
       box-shadow            none
 
     .button-title
-      text-decoration       underline
-      color                 #767676
+      color                 #bbb
 
   .kdbutton#search-button
     rounded                 5px !important
