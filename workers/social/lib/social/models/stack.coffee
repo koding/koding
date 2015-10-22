@@ -264,7 +264,40 @@ module.exports = class JComputeStack extends jraphical.Module
     daisy queue
 
 
-  delete: permit
+  delete: (owner, callback) ->
+
+    # TODO Implement delete methods.
+    @update { $set: { status: 'Terminating' } }
+
+    JProposedDomain  = require './domain'
+    JMachine = require './computeproviders/machine'
+
+    @domains?.forEach (_id) ->
+      JProposedDomain.one { _id }, (err, domain) ->
+        if not err? and domain?
+          domain.remove (err) ->
+            if err then console.error \
+              "Failed to remove domain: #{domain.domain}", err
+
+    @machines?.forEach (_id) ->
+      JMachine.one { _id }, (err, machine) ->
+        if not err? and machine?
+          machine.remove (err) ->
+            if err then console.error \
+              "Failed to remove machine: #{machine.title}", err
+
+    Relationship.remove {
+      targetName : 'JStackTemplate'
+      targetId   : @baseStackId
+      sourceId   : owner.getId()
+      sourceName : 'JAccount'
+      as         : 'user'
+    }, (err) =>
+
+      @remove callback
+
+
+  delete$: permit
 
     # TODO Add password check for stack delete
     #
@@ -275,37 +308,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, callback) ->
 
-      # TODO Implement delete methods.
-      @update { $set: { status: 'Terminating' } }
-
-      JProposedDomain  = require './domain'
-      JMachine = require './computeproviders/machine'
-
       { delegate } = client.connection
 
-      @domains?.forEach (_id) ->
-        JProposedDomain.one { _id }, (err, domain) ->
-          if not err? and domain?
-            domain.remove (err) ->
-              if err then console.error \
-                "Failed to remove domain: #{domain.domain}", err
-
-      @machines?.forEach (_id) ->
-        JMachine.one { _id }, (err, machine) ->
-          if not err? and machine?
-            machine.remove (err) ->
-              if err then console.error \
-                "Failed to remove machine: #{machine.title}", err
-
-      Relationship.remove {
-        targetName : 'JStackTemplate'
-        targetId   : @baseStackId
-        sourceId   : delegate.getId()
-        sourceName : 'JAccount'
-        as         : 'user'
-      }, (err) =>
-
-        @remove callback
+      @delete owner = delegate, callback
 
 
   SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']
