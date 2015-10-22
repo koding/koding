@@ -1,53 +1,16 @@
-$            = require 'jquery'
 kd           = require 'kd'
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
-KeyboardKeys = require 'app/util/keyboardKeys'
 
 module.exports = class DropboxBody extends React.Component
 
   @defaultProps =
-    visible   : no
     className : ''
     type      : 'dropdown'
 
 
-  componentDidMount: ->
-
-    document.addEventListener 'mousedown', @bound 'handleMouseClick'
-    document.addEventListener 'keydown', @bound 'handleKeyDown'
-
-
-  componentWillUnmount: ->
-
-    document.removeEventListener 'mousedown', @bound 'handleMouseClick'
-    document.removeEventListener 'keydown', @bound 'handleKeyDown'
-
-
   getContentElement: -> React.findDOMNode @refs.content
-
-
-  handleMouseClick: (event) ->
-
-    { visible, onClose } = @props
-
-    return  unless visible
-
-    { target } = event
-    dropbox    = React.findDOMNode this
-    innerClick = $.contains dropbox, target
-
-    onClose?()  unless innerClick
-
-
-  handleKeyDown: (event) ->
-
-    { visible, onClose } = @props
-
-    return  unless @props.visible
-
-    onClose?()  if event.which is KeyboardKeys.ESC
 
 
   getContainerClassName: ->
@@ -95,8 +58,6 @@ module.exports = class DropboxBody extends React.Component
 
 
   render: ->
-
-    { visible } = @props
 
     containerClassName = @getContainerClassName()
     contentClassName   = @getContentClassName()
