@@ -332,4 +332,6 @@ module.exports = class ComputeProvider extends Base
     JAccount = require '../account'
 
     JGroup.on   'MemberAdded',     require './handlers/memberadded'
+    JGroup.on   'MemberRemoved',   require './handlers/memberremoved'
+
     JAccount.on 'UsernameChanged', require './handlers/usernamechanged'
