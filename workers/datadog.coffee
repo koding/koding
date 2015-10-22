@@ -1,6 +1,5 @@
 { argv }        = require 'optimist'
 KONFIG          = require('koding-config-manager').load("main.#{argv.c}")
-os              = require 'os'
 { MetricsBase } = require 'koding-datadog'
 
 module.exports = class Metrics extends MetricsBase
@@ -18,10 +17,14 @@ module.exports = class Metrics extends MetricsBase
 
   @generateName : (opts) ->
 
-    { method } = opts
-    { constructorName, method, type } = method
+    notDefined      = 'notDefined'
+    method          = opts.method           ? {}
 
-    return "#{@prefix}.#{constructorName}.#{method}.#{type}"
+    type            = method.type           ? notDefined
+    methodName      = method.method         ? notDefined
+    constructorName = method.contructorName ? notDefined
+
+    return "#{@prefix}.#{constructorName}.#{methodName}.#{type}"
 
 
   @methodMetrics : (opts) ->
