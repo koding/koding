@@ -65,19 +65,20 @@ sidebarTextShadow()
       top                   -1px
 
   .more-items
-    size              238px 20px
-    line-height       20px
-    color             #fff
-    font-size         10px
-    font-weight       700
-    background        #E06F6F
-    shadow            0 0 10px 10px #323232
-    text-align        center
+    size                    238px 20px
+    line-height             20px
+    color                   #fff
+    font-size               10px
+    font-weight             700
+    background              #E06F6F
+    shadow                  0 0 5px 5px #323232
+    text-align              center
+    vendor                  transition, all .2s ease
 
     &:after
-      content         ' '
-      border          5px solid transparent
-      size            10px 10px
+      content               ' '
+      border                5px solid transparent
+      size                  10px 10px
       borderBox()
 
     &.above
@@ -94,7 +95,7 @@ sidebarTextShadow()
       z-index         1
       &:after
         border-top-color white
-        abs           8px 0 0 8px
+        abs           8px 0 0 10px
 
 
 #sidebar-toggle
