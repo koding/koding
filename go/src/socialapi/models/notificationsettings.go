@@ -43,3 +43,7 @@ const (
 	// Describes that user doesn't want to get any notification
 	NotificationSettings_STATUS_NEVER = "never"
 )
+
+func NewNotificationSettings() *NotificationSettings {
+	return &NotificationSettings{}
+}
