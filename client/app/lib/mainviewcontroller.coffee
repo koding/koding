@@ -82,23 +82,16 @@ module.exports = class MainViewController extends KDViewController
 
   setViewState: (options = {}) ->
 
-    {behavior, name} = options
+    { behavior, name } = options
 
     html     = global.document.documentElement
     mainView = @getView()
 
-    fullSizeApps    = [ 'Login', 'Pricing', 'Activity', 'Teams', 'Welcome' ]
     appsWithSidebar = [
       'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
       'Environments', 'Bugs', 'Welcome'
     ]
 
-    if (isApp = behavior is 'application') or (name in fullSizeApps)
-    then KDView.setElementClass html, 'add', 'app'
-    else KDView.setElementClass html, 'remove', 'app'
-
-    if isApp or name in appsWithSidebar
+    if behavior is 'application' or name in appsWithSidebar
     then mainView.setClass 'with-sidebar'
     else mainView.unsetClass 'with-sidebar'
-
-

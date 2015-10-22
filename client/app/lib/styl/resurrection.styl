@@ -7,31 +7,26 @@ resurrection.styl
 */
 }
 
-// When app class is added to html tag
-// layout becomes 100% width and height
-// so that apps can control their own
-// scrollviews and add their chrome frames
-html.app
-  height            100%
+html
+  height                    100%
+
   body
-    height          100%
-    overflow        hidden  // this is to avoid rubber-band/elastic scroll on macs
+    font-family             openSansFamily
+    font-weight             400
+    -webkit-font-smoothing  subpixel-antialiased
+    height                  100%
+    overflow                hidden  // this is to avoid rubber-band/elastic scroll on macs
 
-body
-  font-family             openSansFamily
-  font-weight             400
-  -webkit-font-smoothing  subpixel-antialiased
+    &.noscroll
+      overflow              hidden
 
-  &.noscroll
-    overflow        hidden
+    &.logged-in
+      #main-header
+        nav
+          hidden()
 
-  &.logged-in
-    #main-header
-      nav
-        hidden()
-
-  > .invisible
-    abs             -1000% 0 0 -1000%
+    > .invisible
+      abs                   -1000% 0 0 -1000%
 
 input
 textarea
