@@ -1,12 +1,12 @@
-kd = require 'kd'
-KDContextMenu = kd.ContextMenu
-KDLoaderView = kd.LoaderView
-ActivityCommentCount = require './comments/activitycommentcount'
-ActivityLikeView = require './activitylikeview'
-ActivitySharePopup = require './activitysharepopup'
-groupifyLink = require 'app/util/groupifyLink'
-JView = require 'app/jview'
-CustomLinkView = require 'app/customlinkview'
+kd                    = require 'kd'
+KDContextMenu         = kd.ContextMenu
+KDLoaderView          = kd.LoaderView
+ActivityCommentCount  = require './comments/activitycommentcount'
+ActivityLikeView      = require './activitylikeview'
+ActivitySharePopup    = require './activitysharepopup'
+groupifyLink          = require 'app/util/groupifyLink'
+JView                 = require 'app/jview'
+CustomLinkView        = require 'app/customlinkview'
 
 
 module.exports = class ActivityActionsView extends JView
@@ -52,8 +52,10 @@ module.exports = class ActivityActionsView extends JView
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
-        pane = kd.singletons.appManager.frontApp.getView().tabs.getActivePane()
+        { frontApp } = kd.singletons.appManager
+        return  if frontApp.options.name isnt 'Activity'
 
+        pane = frontApp.getView().tabs.getActivePane()
         pane.scrollView.wrapper.once 'scroll', @sharePopup.bound 'destroy'
 
     @likeView = new ActivityLikeView {}, data
