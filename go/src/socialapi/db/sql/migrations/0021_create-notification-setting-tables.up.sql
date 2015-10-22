@@ -20,13 +20,13 @@ $$;
 
 GRANT USAGE ON SEQUENCE "notification"."notification_settings_id_seq" TO "social";
 
-CREATE TYPE "notification"."notification_settings_type_constant_enum" AS ENUM (
+CREATE TYPE "notification"."notification_settings_status_constant_enum" AS ENUM (
     'all',
     'personal',
     'never'
 );
 
-ALTER TYPE "notification"."notification_settings_type_constant_enum" OWNER TO "social";
+ALTER TYPE "notification"."notification_settings_status_constant_enum" OWNER TO "social";
 
 CREATE TABLE IF NOT EXISTS "notification"."notification_settings"  (
     "id" BIGINT NOT NULL DEFAULT nextval(
@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS "notification"."notification_settings"  (
     ),
     "channel_id" BIGINT NOT NULL,
     "account_id" BIGINT NOT NULL,
-    "desktop_setting" "notification"."notification_settings_type_constant_enum"
-    "mobile_setting" "notification"."notification_settings_type_constant_enum"
+    "desktop_setting" "notification"."notification_settings_status_constant_enum",
+    "mobile_setting" "notification"."notification_settings_status_constant_enum",
     "is_muted" BOOLEAN NOT NULL DEFAULT FALSE,
     "is_suppressed" BOOLEAN NOT NULL DEFAULT FALSE,
     "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS "notification"."notification_settings"  (
     -- create constraints along with table creation
     PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE,
     CONSTRAINT "notification_settings_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
-    CONSTRAINT "notification_settings_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
-) WITH (OIDS=FALSE);
+    CONSTRAINT "notification_settings_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE
+) WITH (OIDS = FALSE);
 
 -- give required notification_settings permissions
 GRANT SELECT, INSERT,UPDATE ON "notification"."notification_settings" TO "social";
