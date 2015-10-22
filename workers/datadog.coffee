@@ -17,12 +17,12 @@ module.exports = class Metrics extends MetricsBase
 
   @generateName : (opts) ->
 
-    notDefined      = 'notDefined'
-    method          = opts.method           ? {}
+    notDefined      = 'undefined'
+    method          = opts.method            ? {}
 
-    type            = method.type           ? notDefined
-    methodName      = method.method         ? notDefined
-    constructorName = method.contructorName ? notDefined
+    type            = method.type            ? notDefined
+    methodName      = method.method          ? notDefined
+    constructorName = method.constructorName ? notDefined
 
     return "#{@prefix}.#{constructorName}.#{methodName}.#{type}"
 
