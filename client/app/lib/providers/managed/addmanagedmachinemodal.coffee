@@ -139,8 +139,22 @@ module.exports = class AddManagedMachineModal extends kd.ModalView
         Free Koding accounts are limited to adding one external machine and
         you already have one connected. Paid accounts are allowed to add unlimited external machines.
       </p>
-      <p>Please <a href="/Pricing">upgrade</a> to be able to add more.</p>
     """
+
+    @content.addSubView new kd.CustomHTMLView
+      tagName : 'p'
+      partial : 'Please <a href="/Pricing">upgrade</a> to be able to add more.'
+      click   : (event) =>
+        return  unless event.target.tagName is 'A'
+
+        # Don't require 'ComputeHelpers' on top. If you do that,
+        # you will get a circular dependency error from browserify.
+        ComputeHelpers  = require '../computehelpers'
+
+        kd.singletons.paymentController.once 'PaymentWorkflowFinishedSuccessfully', ->
+          ComputeHelpers.handleNewMachineRequest provider: 'managed'
+
+        @destroy()
 
     @setClass 'error'
 

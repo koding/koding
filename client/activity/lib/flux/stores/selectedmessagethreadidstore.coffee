@@ -1,6 +1,6 @@
 actions         = require '../actions/actiontypes'
 toImmutable     = require 'app/util/toImmutable'
-KodingFluxStore = require 'app/flux/store'
+KodingFluxStore = require 'app/flux/base/store'
 
 module.exports = class SelectedMessageThreadIdStore extends KodingFluxStore
 

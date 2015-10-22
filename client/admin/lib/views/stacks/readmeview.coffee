@@ -1,7 +1,8 @@
 kd                      = require 'kd'
-KDCustomHTMLView        = kd.CustomHTMLView
-StackBaseEditorTabView  = require './stackbaseeditortabview'
+Encoder                 = require 'htmlencode'
+
 MarkdownEditorView      = require './editors/markdowneditorview'
+StackBaseEditorTabView  = require './stackbaseeditortabview'
 
 
 module.exports = class ReadmeView extends StackBaseEditorTabView
@@ -23,9 +24,11 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
 
     """
 
+    content = if stackTemplate?.description \
+      then Encoder.htmlDecode stackTemplate?.description
+      else defaultContent
+
     @editorView   = @addSubView new MarkdownEditorView
-      content     : stackTemplate?.description or defaultContent
+      content     : content
       delegate    : this
       contentType : 'md'
-
-

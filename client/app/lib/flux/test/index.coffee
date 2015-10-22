@@ -1,2 +1,2 @@
-require './reactor'
+require '../base/test/reactor'
 require './stores/usersstore'

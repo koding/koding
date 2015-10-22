@@ -358,7 +358,8 @@ notSelectedChannelParticipants = [
     return list  unless participants
 
     list.filterNot (user) ->
-      return participants.get user.get '_id'
+      userId = user.get '_id'
+      return participants.get(userId) or whoami()._id is userId
 ]
 
 

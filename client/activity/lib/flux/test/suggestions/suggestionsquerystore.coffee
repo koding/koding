@@ -1,9 +1,9 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 SuggestionsQueryStore = require 'activity/flux/stores/suggestions/suggestionsquerystore'
-actionTypes = require 'activity/flux//actions/actiontypes'
+actionTypes = require 'activity/flux/actions/actiontypes'
 
 describe 'SuggestionsQueryStore', ->
 

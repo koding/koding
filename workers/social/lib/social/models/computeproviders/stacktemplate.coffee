@@ -182,10 +182,14 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, selector, options, callback) ->
 
+      [options, callback] = [callback, options]  unless callback
+
       options ?= {}
       options.limit = 1
 
-      @some$ client, selector, options, callback
+      @some$ client, selector, options, (err, templates) ->
+        [template] = templates ? []
+        callback err, template
 
 
   checkUsage: (callback) ->

@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 ChatInputCommandsQueryStore = require 'activity/flux/chatinput/stores/command/querystore'
 actions = require 'activity/flux/chatinput/actions/actiontypes'

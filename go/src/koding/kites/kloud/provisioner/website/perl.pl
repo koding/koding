@@ -10,7 +10,7 @@ print <<HTML;
   <!--[if IE]>
           <script src=\"//html5shiv.googlecode.com/svn/trunk/html5.js\"></script>
   	<![endif]-->
-  <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 </head>
 <body class=\"perl\">
   <div id=\"container\">
@@ -24,19 +24,18 @@ print <<HTML;
     <li><a href="index.html">HTML</a></li>
 		<li><a href=\"php.php\">PHP</a></li>
 		<li><a href=\"python.py\">Python</a></li>
-		<li><a class=\"active\" href=\"perl.pl\">Perl</a></li>
+		<li class=\"active\"><a href=\"perl.pl\">Perl</a></li>
 		<li><a href=\"ruby.rb\">ruby</a></li>
-	</ul>    
+	</ul>
 </nav>
 <footer>
-	<h4>This is an example page running Perl on your Koding Virtual Machine (VM).
+	<h4>This is an example page running Perl on your Koding Virtual Machine (VM).</h4>
 	<p>
 		You can create your own Perl based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/perl/" target=_blank>simple guide</a> over at Koding University.
 	</p>
-	</h4>
-	<p><a href="https://twitter.com/koding" target=_blank>Koding on Twitter</a> | <a href="https://facebook.com/koding" target=_blank>Koding on Facebook</a></p>
+	<p id=\"social\"><a id=\"twitter\" href="https://twitter.com/koding" target=_blank>Twitter</a><a id=\"facebook\" href="https://facebook.com/koding" target=_blank>Facebook</a></p>
 </footer>
-</div> 
+</div>
 </body>
 </html>
 HTML

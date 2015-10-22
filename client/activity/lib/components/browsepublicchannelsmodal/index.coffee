@@ -2,7 +2,7 @@ kd = require 'kd'
 React = require 'kd-react'
 SidebarModalList = require 'activity/components/sidebarmodallist'
 Modal = require 'app/components/modal'
-KDReactorMixin = require 'app/flux/reactormixin'
+KDReactorMixin = require 'app/flux/base/reactormixin'
 ActivityFlux = require 'activity/flux'
 isPublicChannel = require 'app/util/isPublicChannel'
 PublicChannelListItem = require 'activity/components/publicchannellistitem'
@@ -143,7 +143,7 @@ module.exports = class BrowsePublicChannelsModal extends React.Component
       'ChannelListWrapper' : yes
       'active-search'      : @isSearchActive()
 
-    <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal className='ChannelList-Modal PublicChannelListModal' isOpen={yes} onClose={@bound 'onClose'}>
       <div className={className}>
         { @renderHeader() }
         { @renderTabs() }
