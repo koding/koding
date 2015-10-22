@@ -63,7 +63,7 @@ module.exports = class AdminAppController extends AppController
     data         or= kd.singletons.groupsController.getCurrentGroup()
     options.view   = new AdminAppView
       title        : 'Team Settings'
-      cssClass     : 'AppModal AppModal--admin'
+      cssClass     : 'AppModal AppModal--admin team-settings'
       width        : 1000
       height       : '90%'
       overlay      : yes
