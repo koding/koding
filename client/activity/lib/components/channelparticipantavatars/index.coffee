@@ -259,7 +259,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
         onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @bound 'onChange' }
         placeholder = { @getPlaceHolder() }
-        value       = { @state.query }
+        value       = { @state.value }
         ref         = 'textInput'
       />
     </div>
