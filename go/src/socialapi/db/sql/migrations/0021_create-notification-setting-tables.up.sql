@@ -37,8 +37,7 @@ CREATE TABLE IF NOT EXISTS "notification"."notification_settings"  (
     PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE,
     CONSTRAINT "notification_settings_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "notification"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
     CONSTRAINT "notification_settings_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "notification"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
-    CONSTRAINT "channel_link_root_id_leaf_id_key" UNIQUE ("root_id","leaf_id") NOT DEFERRABLE INITIALLY IMMEDIATE
 ) WITH (OIDS=FALSE);
 
--- give required channel_link permissions
-GRANT SELECT, INSERT, DELETE ON "notification"."channel_link" TO "social";
+-- give required notification_settings permissions
+GRANT SELECT, INSERT,UPDATE, DELETE ON "notification"."notification_settings" TO "social";
