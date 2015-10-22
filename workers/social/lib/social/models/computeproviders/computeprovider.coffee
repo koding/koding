@@ -330,29 +330,6 @@ module.exports = class ComputeProvider extends Base
 
     JGroup   = require '../group'
     JAccount = require '../account'
-    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration }) ->
-
-      return  unless oldUsername and username
-      return  if isRegistration
-
-      JMachine = require './machine'
-
-      console.log "Removing user #{oldUsername} vms..."
-
-      JMachine.update
-        provider      : { $in: ['koding', 'managed'] }
-        credential    : oldUsername
-      ,
-        $set          :
-          userDeleted : yes
-      ,
-        multi         : yes
-      , (err) ->
-        if err?
-          console.error \
-            "Failed to mark them as deleted for #{oldUsername}:", err
-
-      return
-
 
     JGroup.on   'MemberAdded',     require './handlers/memberadded'
+    JAccount.on 'UsernameChanged', require './handlers/usernamechanged'
