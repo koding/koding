@@ -310,7 +310,8 @@ module.exports = class JGroup extends Module
       'owner', 'tag', 'role'
     ]
     relationships : ->
-      JAccount = require '../account'
+      JAccount    = require '../account'
+      JCredential = require '../computeproviders/credential'
 
       return {
         bundle        :
@@ -369,7 +370,7 @@ module.exports = class JGroup extends Module
           as          : 'payment plan subscription'
         credential    :
           as          : ['owner', 'user']
-          targetType  : 'JCredential'
+          targetType  : JCredential
       }
 
 
