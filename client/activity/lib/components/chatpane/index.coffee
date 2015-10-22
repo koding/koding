@@ -28,7 +28,7 @@ module.exports = class ChatPane extends React.Component
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
     scrollContainer = React.findDOMNode @refs.scrollContainer
-    scrollContainer?.classList.remove 'padded'
+    @unsetPaddedClassName()
 
 
   onTopThresholdReached: (event) ->
@@ -52,10 +52,12 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     messagesSize        = @props.thread.get('messages').size
+    scrollContainer     = React.findDOMNode @refs.scrollContainer
     reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
 
-    # we have always at least one system message
-    return null  unless reachedFirstMessage and messagesSize
+    return null  unless scrollContainer or reachedFirstMessage
+
+    @setPaddedClassName force: yes  unless messagesSize
 
     <ChannelInfoContainer
       ref='ChannelInfoContainer'
@@ -64,12 +66,24 @@ module.exports = class ChatPane extends React.Component
       onInviteOthers={@props.onInviteOthers} />
 
 
+  beforeScrollToBottom: ->
+
+    @unsetPaddedClassName()
+    @setPaddedClassName()
+
+
   afterScrollDidUpdate: ->
 
     @setPaddedClassName()
 
 
-  setPaddedClassName: ->
+  unsetPaddedClassName: ->
+
+    scrollContainer = React.findDOMNode @refs.scrollContainer
+    scrollContainer?.classList.remove 'padded'
+
+
+  setPaddedClassName: (options = {}) ->
 
     list                        = React.findDOMNode @refs.ChatList
     scrollContainer             = React.findDOMNode @refs.scrollContainer
@@ -78,7 +92,9 @@ module.exports = class ChatPane extends React.Component
     scrollContainerClientHeight = scrollContainer.clientHeight
     channelInfoContainerHeight  = 0
 
-    return  if scrollContainerClientHeight is 0 or listHeight is 0
+    return scrollContainer.classList.add 'padded' if options.force and scrollContainer
+
+    return  if scrollContainerClientHeight is 0 and listHeight is 0
 
     if channelInfoContainer
       channelInfoContainerHeight = channelInfoContainer.offsetHeight
