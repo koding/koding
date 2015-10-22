@@ -55,6 +55,8 @@ setupRollbar = ->
 
 module.exports = ->
 
-  setupIdentify()
-  setupPageAnalyticsEvent()
+  if globals.config.sendEventsToSegment
+    setupIdentify()
+    setupPageAnalyticsEvent()
+
   setupRollbar()

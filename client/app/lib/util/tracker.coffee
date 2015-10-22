@@ -12,7 +12,7 @@ module.exports = class Tracker
 
   @track = (action, properties = {}) ->
 
-    return  unless globals.config.logToExternal
+    return  unless globals.config.sendEventsToSegment
 
     @assignDefaultProperties action, properties
     remote.api.Tracker.track action, properties, kd.noop

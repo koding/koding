@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 ParticipantIdsStore = require 'activity/flux/createchannel/stores/participantidsstore'
 actions = require 'activity/flux/createchannel/actions/actiontypes'

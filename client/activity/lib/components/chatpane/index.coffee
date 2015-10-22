@@ -10,11 +10,11 @@ ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title             : null
-    messages          : null
-    isDataLoading     : no
-    afterInviteOthers : kd.noop
-    showItemMenu      : yes
+    title          : null
+    messages       : null
+    isDataLoading  : no
+    onInviteOthers : kd.noop
+    showItemMenu   : yes
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -28,7 +28,7 @@ module.exports = class ChatPane extends React.Component
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
     scrollContainer = React.findDOMNode @refs.scrollContainer
-    scrollContainer?.classList.remove 'padded'
+    @unsetPaddedClassName()
 
 
   onTopThresholdReached: (event) ->
@@ -44,9 +44,6 @@ module.exports = class ChatPane extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
-  afterInviteOthers: -> @props.afterInviteOthers()
-
-
   channel: (key) -> @props.thread.getIn ['channel', key]
 
 
@@ -55,16 +52,24 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     messagesSize        = @props.thread.get('messages').size
+    scrollContainer     = React.findDOMNode @refs.scrollContainer
     reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
 
-    # we have always at least one system message
-    return null  unless reachedFirstMessage and messagesSize
+    return null  unless scrollContainer or reachedFirstMessage
+
+    @setPaddedClassName force: yes  unless messagesSize
 
     <ChannelInfoContainer
       ref='ChannelInfoContainer'
       key={@channel 'id'}
       thread={@props.thread}
-      afterInviteOthers={@bound 'afterInviteOthers'} />
+      onInviteOthers={@props.onInviteOthers} />
+
+
+  beforeScrollToBottom: ->
+
+    @unsetPaddedClassName()
+    @setPaddedClassName()
 
 
   afterScrollDidUpdate: ->
@@ -72,7 +77,13 @@ module.exports = class ChatPane extends React.Component
     @setPaddedClassName()
 
 
-  setPaddedClassName: ->
+  unsetPaddedClassName: ->
+
+    scrollContainer = React.findDOMNode @refs.scrollContainer
+    scrollContainer?.classList.remove 'padded'
+
+
+  setPaddedClassName: (options = {}) ->
 
     list                        = React.findDOMNode @refs.ChatList
     scrollContainer             = React.findDOMNode @refs.scrollContainer
@@ -81,7 +92,9 @@ module.exports = class ChatPane extends React.Component
     scrollContainerClientHeight = scrollContainer.clientHeight
     channelInfoContainerHeight  = 0
 
-    return  if scrollContainerClientHeight is 0 or listHeight is 0
+    return scrollContainer.classList.add 'padded' if options.force and scrollContainer
+
+    return  if scrollContainerClientHeight is 0 and listHeight is 0
 
     if channelInfoContainer
       channelInfoContainerHeight = channelInfoContainer.offsetHeight

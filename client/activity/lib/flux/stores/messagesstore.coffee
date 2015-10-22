@@ -2,7 +2,7 @@ whoami                   = require 'app/util/whoami'
 actions                  = require '../actions/actiontypes'
 chatinputActions         = require '../chatinput/actions/actiontypes'
 toImmutable              = require 'app/util/toImmutable'
-KodingFluxStore          = require 'app/flux/store'
+KodingFluxStore          = require 'app/flux/base/store'
 MessageCollectionHelpers = require '../helpers/messagecollection'
 
 

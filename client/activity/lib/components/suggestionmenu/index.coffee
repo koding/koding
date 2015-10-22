@@ -3,7 +3,7 @@ React     = require 'kd-react'
 immutable = require 'immutable'
 
 ActivityFlux   = require 'activity/flux'
-KDReactorMixin = require 'app/flux/reactormixin'
+KDReactorMixin = require 'app/flux/base/reactormixin'
 SuggestionList = require 'activity/components/suggestionlist'
 
 module.exports = class SuggestionMenu extends React.Component

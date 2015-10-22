@@ -129,10 +129,11 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
             ->
               selector = { '_id' : stackTemplate._id }
-              StackTemplate.one$ client, selector, null, (err, templates) ->
+              StackTemplate.one$ client, selector, null, (err, template) ->
                 expect(err?.message).to.not.exist
-                expect(templates[0].title).to.be.equal stackTemplateData.title
-                expect(templates[0].template.content).to.be.deep.equal stackTemplateData.template
+                expect(template).to.exist
+                expect(template.title).to.be.equal stackTemplateData.title
+                expect(template.template.content).to.be.deep.equal stackTemplateData.template
                 queue.next()
 
             -> done()
