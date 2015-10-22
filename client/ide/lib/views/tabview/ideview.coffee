@@ -180,6 +180,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   ensureSplitHandlers: ->
 
+    return # Disable this feature for now, see #106093732
+
     @verticalSplitHandle?.destroy()
 
     @tabView.addSubView @verticalSplitHandle = createSplitHandle 'vertical'
