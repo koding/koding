@@ -387,8 +387,9 @@ module.exports = class JGroup extends Module
         @broadcast 'MemberJoinedGroup',
           member : ObjectRef(member).data
 
-    @on 'MemberRemoved', (member) ->
-      @constructor.emit 'MemberRemoved', { group: this, member }
+    @on 'MemberRemoved', (member, requester) ->
+      requester ?= member
+      @constructor.emit 'MemberRemoved', { group: this, member, requester }
       unless @slug is 'guests'
         @sendNotificationToAdmins 'GroupLeft',
           actionType : 'groupLeft'
@@ -1149,16 +1150,17 @@ module.exports = class JGroup extends Module
 
   kickMember: permit 'grant permissions',
     success: (client, accountId, callback) ->
-      { connection:{ delegate } } = client
-      JAccount = require '../account'
+
+      { connection: { delegate } } = client
 
       if @slug is 'koding'
         return callback new KodingError 'Koding group is mandatory'
 
+      JAccount = require '../account'
       JAccount.one { _id:accountId }, (err, account) =>
         return callback err if err
 
-        if client.connection.delegate.getId().equals account._id
+        if delegate.getId().equals account._id
           return callback new KodingError 'You cannot kick yourself, try leaving the group!'
 
         @fetchRolesByAccount account, (err, roles) =>
@@ -1172,7 +1174,7 @@ module.exports = class JGroup extends Module
             contents = { group: client.context.group }
 
             # send this event for artifact removal
-            @emit 'MemberRemoved', account
+            @emit 'MemberRemoved', account, requester = delegate
 
             # send notification for kicking
             account.sendNotification 'UserKicked', contents
