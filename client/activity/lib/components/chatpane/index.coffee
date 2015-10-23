@@ -108,7 +108,7 @@ module.exports = class ChatPane extends React.Component
     else scrollContainer.classList.remove 'padded'
 
 
-  onItemEditStarted: (itemElement)->
+  onItemEditStarted: (itemElement) ->
 
     return  unless itemElement
 
