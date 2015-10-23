@@ -80,6 +80,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
       KD.utils.storeNewTeamData 'username', formData
       KD.utils.createTeam
         success : (data) ->
+          track 'succeeded to create a team'
           KD.utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
@@ -88,6 +89,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
             track 'requires two-factor authentication'
             @form.showTwoFactor()
           else
+            track 'failed to create a team'
             new KDNotificationView title : responseText
 
 
