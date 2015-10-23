@@ -61,7 +61,7 @@ app.use require './setsession'
 # temp endpoints @cihangir will reorganize these - SY
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
 app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
-app.post '/-/teams/join'                         , require './handlers/jointeam'
+app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
 app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
