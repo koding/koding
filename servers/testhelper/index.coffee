@@ -89,7 +89,6 @@ generateDefaultBodyObject = -> {}
 generateDefaultRequestParams = (opts = {}) ->
 
   defaultBodyObject    = generateDefaultBodyObject()
-
   defaultHeadersObject = generateDefaultHeadersObject()
 
   defaultParams        =
@@ -100,6 +99,17 @@ generateDefaultRequestParams = (opts = {}) ->
   defaultParams = deepObjectExtend defaultParams, opts
 
   return defaultParams
+
+
+generateRequestParamsEncodeBody = (params, opts = {}) ->
+
+  defaultRequestParams  = generateDefaultRequestParams params
+  requestParams         = deepObjectExtend defaultRequestParams, opts
+  # after deep extending object, encodes body param to a query string
+  if requestParams.body
+    requestParams.body = querystring.stringify requestParams.body
+
+  return requestParams
 
 
 # _.extend didn't help with deep extend
@@ -144,4 +154,5 @@ module.exports = {
   generateRandomUsername
   checkBongoConnectivity
   generateDefaultRequestParams
+  generateRequestParamsEncodeBody
 }
