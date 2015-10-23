@@ -197,8 +197,6 @@ module.exports = class JMachine extends Module
 
   addUser = (users, options) ->
 
-    # asOwner option is disabled for now ~ GG
-    # passing False for owner
     { user, asOwner, permanent } = options
 
     newUsers = excludeUser { users, user, permanent }
@@ -211,7 +209,7 @@ module.exports = class JMachine extends Module
       newUsers.push {
         id       : user.getId()
         username : user.username
-        owner    : no
+        owner    : asOwner
         approved : no
         permanent
       }
