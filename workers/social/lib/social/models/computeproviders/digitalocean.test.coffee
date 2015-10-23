@@ -2,8 +2,7 @@ DigitalOcean      = require './digitalocean'
 
 { expect
   withConvertedUser
-  checkBongoConnectivity
-  generateDummyUserFormData } = require '../../../../testhelper'
+  checkBongoConnectivity } = require '../../../../testhelper'
 
 
 # this function will be called once before running any test
@@ -19,12 +18,8 @@ runTests = -> describe 'workers.social.models.computeproviders.digitalocean', ->
 
     it 'should reply to ping request', (done) ->
 
-      userFormData = generateDummyUserFormData()
-
-      withConvertedUser { userFormData }, (data) ->
-
-        { client, account } = data
-        client.r            = { account }
+      withConvertedUser ({ client, account }) ->
+        client.r = { account }
 
         DigitalOcean.ping client, {}, (err, data) ->
           expect(err?.message).to.not.exist

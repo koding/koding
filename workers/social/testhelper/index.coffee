@@ -4,10 +4,10 @@ JUser                   = require '../lib/social/models/user'
 JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
-ObjectId                = require('mongodb').BSONPure.ObjectID
 
+{ Relationship }        = require 'jraphical'
 { expect }              = require 'chai'
-{ daisy }               = Bongo
+{ daisy, ObjectId }     = Bongo
 { argv }                = require 'optimist'
 { env : { MONGO_URL } } = process
 KONFIG                  = require('koding-config-manager').load("main.#{argv.c}")
@@ -157,12 +157,39 @@ generateRandomUserArray =  (count, callback) ->
   daisy queue
 
 
-expectAccessDenied = (done, caller, callee, args...) ->
+expectAccessDenied = (caller, callee, args..., callback) ->
 
   withDummyClient ({ client }) ->
-    caller[callee] client, args..., (err) ->
+
+    kallback = (err) ->
       expect(err?.message).to.be.equal 'Access denied'
-      done()
+      callback()
+
+    if    args.length > 0
+    then  caller[callee] client, args..., kallback
+    else  caller[callee] client, kallback
+
+
+fetchRelation = (options, callback) ->
+
+  Relationship.one options, (err, relationship) ->
+    expect(err).to.not.exist
+    callback relationship
+
+
+expectRelation = {
+
+  toExist : (options, callback) ->
+    fetchRelation options, (relationship) ->
+      expect(relationship).to.exist
+      callback relationship
+
+  toNotExist : (options, callback) ->
+    fetchRelation options, (relationship) ->
+      expect(relationship).to.not.exist
+      callback relationship
+
+}
 
 
 module.exports = {
@@ -170,6 +197,7 @@ module.exports = {
   daisy
   expect
   ObjectId
+  expectRelation
   withDummyClient
   generateUserInfo
   withConvertedUser
