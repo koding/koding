@@ -5,7 +5,8 @@
   generateRandomString } = require '../../index'
 
 crypto       = require 'crypto'
-JProvisioner = require '../../../../social/lib/social/models/computeproviders/provisioner'
+JProvisioner = require \
+  '../../../../social/lib/social/models/computeproviders/provisioner'
 
 
 generateProvisionerData = (data = {}) ->
@@ -29,11 +30,12 @@ generateProvisionerData = (data = {}) ->
   return provisionerData
 
 
-createProvisioner = (data, callback) ->
+createProvisioner = (client, options, callback) ->
 
-  provisioner = new JProvisioner generateProvisionerData data
-  provisioner.save (err) ->
-    return callback err, provisioner
+  provisionerData = generateProvisionerData options
+
+  JProvisioner.create client, provisionerData, (err, provisioner) ->
+    callback err, { provisioner }
 
 
 withConvertedUserAndProvisioner = (options, callback) ->
@@ -46,13 +48,14 @@ withConvertedUserAndProvisioner = (options, callback) ->
     options.originId = account?.getId() ? new ObjectId
     options.group    = client?.context?.group
 
-    createProvisioner options, (err, provisioner) ->
+    createProvisioner client, options, (err, { provisioner }) ->
       expect(err).to.not.exist
       data.provisioner = provisioner
       return callback data
 
 
 module.exports = {
+  createProvisioner
   generateProvisionerData
   withConvertedUserAndProvisioner
 }

@@ -115,6 +115,8 @@ module.exports = class Tracker extends bongo.Base
 
     return  unless KONFIG.sendEventsToSegment
 
+    userId = KONFIG.forcedRecipient or userId
+
     options = { userId, name, category, properties }
     @addDefaults options
     analytics.page options
@@ -123,6 +125,8 @@ module.exports = class Tracker extends bongo.Base
   @alias = (previousId, userId) ->
 
     return  unless KONFIG.sendEventsToSegment
+
+    userId = KONFIG.forcedRecipient or userId
 
     options = { previousId, userId }
     @addDefaults options

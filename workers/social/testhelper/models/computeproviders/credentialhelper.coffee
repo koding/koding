@@ -18,25 +18,50 @@ generateMetaData = (provider) ->
 
     when 'aws'
       region               : 'us-east-1'
-      instance_type        : 't2.micro'
+      access_key           : generateRandomString()
+      secret_key           : generateRandomString()
       storage_size         : 2
+      instance_type        : 't2.micro'
+
+    when 'koding'
+      type                 : 'aws'
+      region               : region ? SUPPORTED_REGIONS[0]
+      source_ami           : ''
+      instance_type        : 't2.micro'
+      storage_size         : storage
+      alwaysOn             : no
+
+    else 'unimplemented provider'
 
   return meta
 
 
+createCredential = (client, options, callback) ->
+
+  options.provider ?= 'aws'
+  options.meta     ?= generateMetaData options.provider
+  options.title    ?= 'koding'
+
+  JCredential.create client, options, (err, credential) ->
+    callback err, { credential }
+
+
 withConvertedUserAndCredential = (options, callback) ->
 
-  withConvertedUser options, (data) ->
-    options.meta  ?= generateMetaData options.provider
-    options.title ?= "test#{options.provider}#{generateRandomString()}"
+  [options, callback] = [callback, options]  unless callback
+  options            ?= {}
 
-    JCredential.create data.client, options, (err, credential) ->
+  withConvertedUser options, (data) ->
+    { client } = data
+
+    createCredential client, options, (err, { credential }) ->
       expect(err).to.not.exist
       data.credential = credential
       callback data
 
 
 module.exports = {
+  createCredential
   generateMetaData
   withConvertedUserAndCredential
 }

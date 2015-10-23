@@ -22,19 +22,18 @@
 	<nav>
 	<ul>
 		<li><a href="index.html">HTML</a></li>
-		<li><a class="active" href="php.php">PHP</a></li>
+		<li class="active"><a href="php.php">PHP</a></li>
 		<li><a href="python.py">Python</a></li>
 		<li><a href="perl.pl">Perl</a></li>
 		<li><a href="ruby.rb">ruby</a></li>
 	</ul>
 	</nav>
 	<footer>
-	<h4>This is an example page running PHP on your Koding Virtual Machine (VM).
+	<h4>This is an example page running PHP on your Koding Virtual Machine (VM).</h4>
 	<p>
 		You can create your own PHP based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/php/" target=_blank>simple guide</a> over at Koding University.
 	</p>
-	</h4>
-	<p><a href="https://twitter.com/koding" target=_blank>Koding on Twitter</a> | <a href="https://facebook.com/koding" target=_blank>Koding on Facebook</a></p>
+	<p id="social"><a id="twitter" href="https://twitter.com/koding" target=_blank>Twitter</a><a id="facebook" href="https://facebook.com/koding" target=_blank>Facebook</a></p>
 	<!-- pre>&lt;?php echo 'Hello World from PHP'; ?&gt;</pre -->
 	</footer>
 </div>

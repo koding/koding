@@ -38,7 +38,6 @@ module.exports = class ChatListItem extends React.Component
     hover                         : no
     account                       : null
     isDeleting                    : no
-    isMenuOpen                    : no
     channelName                   : ''
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
@@ -56,7 +55,6 @@ module.exports = class ChatListItem extends React.Component
       account                       : @props.account
       editMode                      : @props.message.get '__isEditing'
       isDeleting                    : @props.isDeleting
-      isMenuOpen                    : @props.isMenuOpen
       isUserMarkedAsTroll           : @props.message.get('account').isExempt
       isBlockUserModalVisible       : @props.isBlockUserModalVisible
       isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
@@ -100,14 +98,7 @@ module.exports = class ChatListItem extends React.Component
     key               : @props.message.get 'id'
     className         : classnames
       'ChatItem'      : yes
-      'mouse-enter'   : @state.hover
-      'is-menuOpen'   : @state.isMenuOpen
       'is-selected'   : @props.isSelected
-    onMouseEnter      : =>
-      @setState hover : yes
-    onMouseLeave      : =>
-      @setState hover : no
-
 
   getMenuItems: ->
 
@@ -274,9 +265,6 @@ module.exports = class ChatListItem extends React.Component
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
 
-  onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
-
-
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
     'hidden' : not @props.message.get '__isEditing'
@@ -327,11 +315,7 @@ module.exports = class ChatListItem extends React.Component
 
     { message } = @props
     if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
-      <ButtonWithMenu
-        items       = {@getMenuItems()}
-        onMenuOpen  = {=> @onMenuToggle yes}
-        onMenuClose = {=> @onMenuToggle no}
-      />
+      <ButtonWithMenu items={@getMenuItems()} />
 
 
   renderEmbedBox: ->

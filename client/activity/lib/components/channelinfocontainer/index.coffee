@@ -1,6 +1,5 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-ChatInputFlux        = require 'activity/flux/chatinput'
 classnames           = require 'classnames'
 whoami               = require 'app/util/whoami'
 Link                 = require 'app/components/common/link'
@@ -13,7 +12,7 @@ immutable            = require 'immutable'
 module.exports = class ChannelInfoContainer extends React.Component
 
   @defaultProps =
-    afterInviteOthers: kd.noop
+    onInviteOthers: kd.noop
     thread: immutable.Map()
 
 
@@ -49,9 +48,7 @@ module.exports = class ChannelInfoContainer extends React.Component
 
     kd.utils.stopDOMEvent event
 
-    ChatInputFlux.actions.value.setValue @props.thread.get('channelId'), '/invite @'
-
-    @props.afterInviteOthers()
+    @props.onInviteOthers?()
 
 
   renderChannelName: ->
