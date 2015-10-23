@@ -1140,7 +1140,13 @@ module.exports = class JGroup extends Module
       kallback = (err) =>
         @updateCounts()
         @cycleChannel()
-        callback err
+
+        { profile: nickname } = client.connection.delegate
+
+        return  unless nickname
+
+        JSession = require '../session'
+        JSession.remove { username: nickname, groupName: @slug }, callback
 
       queue = roles.map (role) => =>
         Joinable::leave.call this, client, { as:role }, (err) ->
