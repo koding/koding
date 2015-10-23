@@ -3,6 +3,7 @@
 log = ->
   console.log '[handlers:memberremoved]', arguments...
 
+
 checkOwnership = (machine, user) ->
 
   userId = user.getId()
@@ -14,6 +15,32 @@ checkOwnership = (machine, user) ->
       break
 
   return owner
+
+
+changeOwnershipOfMachine = (machine, newOwner) ->
+
+  # Move machine ownership to the admin who kicked the member
+  machine.addUsers {
+    targets: [ newOwner ], asOwner: yes
+  }, (err) ->
+    log 'Failed to change ownership:', err  if err
+
+
+updateMachineUsers = (machines, user, requester, reason) ->
+
+  machines.forEach (machine) ->
+    # Check if the user is owner of the machine
+    owner = checkOwnership machine, user
+
+    machine.removeUsers { targets: [ user ] }, (err) ->
+      log "Couldn't remove user from users:", err  if err
+
+      # if not owner this machine we leave it to existing owner
+      # if user is left on by own we leave the users list as is
+      return  if not owner or reason is 'leave'
+
+      # otherwise we move the ownership of the machine to the requester
+      changeOwnershipOfMachine machine, requester
 
 
 module.exports = memberRemoved = ({ group, member, requester }) ->
@@ -28,7 +55,7 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
   requesterJUser = null
   memberMachines = []
 
-  queue  = [
+  queue = [
 
     ->
       member.fetchUser (err, user) ->
@@ -68,21 +95,9 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
         queue.next()
 
     ->
-      memberMachines.forEach (machine) ->
-        # Make sure the user is owner of the machine
-        owner = checkOwnership machine, memberJUser
-
-        machine.removeUsers { targets: [ memberJUser ] }, (err) ->
-          log "Couldn't remove user from users:", err  if err
-          return  if not owner or reason is 'leave'
-
-          # Move machine ownership to the admin who kicked the member
-          machine.addUsers {
-            targets: [ requesterJUser ], asOwner: yes
-          }, (err) ->
-            log 'Failed to change ownership:', err  if err
-
+      updateMachineUsers memberMachines, memberJUser, requesterJUser, reason
       queue.next()
+
   ]
 
   daisy queue
