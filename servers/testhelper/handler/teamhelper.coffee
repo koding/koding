@@ -43,6 +43,7 @@ generateJoinTeamRequestBody = (opts = {}) ->
 
   defaultBodyObject =
     slug                : "testcompany#{generateRandomString(10)}"
+    _csrf               : generateRandomString()
     email               : generateRandomEmail()
     token               : ''
     allow               : 'true'
@@ -61,16 +62,15 @@ generateJoinTeamRequestBody = (opts = {}) ->
 
 generateJoinTeamRequestParams = (opts = {}) ->
 
-  url  = generateUrl
-    route : '-/teams/join'
-
   body = generateJoinTeamRequestBody()
 
-  params               = { url, body }
-  defaultRequestParams = generateDefaultRequestParams params
-  requestParams        = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body   = querystring.stringify requestParams.body
+  params =
+    url        : generateUrl { route : '-/teams/join' }
+    body       : body
+    csrfCookie : body._csrf
+
+  requestParams = generateRequestParamsEncodeBody params, opts
+  console.log requestParams
 
   return requestParams
 
