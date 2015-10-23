@@ -105,14 +105,15 @@ generateRequestParamsEncodeBody = (params, opts = {}) ->
 
   defaultRequestParams  = generateDefaultRequestParams params
   requestParams         = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  if requestParams.body
-    requestParams.body = querystring.stringify requestParams.body
 
-  if params.csrfCookie
-    cookie             = generateCsrfTokenCookie()
+  if csrfCookieValue = requestParams.csrfCookie
+    cookie             = generateCsrfTokenCookie csrfCookieValue
     requestParams.jar ?= request.jar()
     requestParams.jar.setCookie cookie, requestParams.url
+
+  if requestParams.body
+    # after deep extending object, encodes body param to a query string
+    requestParams.body    = querystring.stringify requestParams.body
 
   return requestParams
 
