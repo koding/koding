@@ -16,6 +16,22 @@ checkOwnership = (machine, user) ->
 
   return owner
 
+setOwnerOfStack = (stack, newOwnerId) ->
+
+  stack.update { $set : { originId: newOwnerId } }, (err) ->
+    log 'Failed to change ownership of stack:', err  if err
+
+
+updateStacks = ({ reason, stacks, memberId, requesterId }) ->
+
+  if reason is 'kick'
+    stacks.forEach (stack) ->
+      setOwnerOfStack stack, requesterId
+  else
+    stacks.forEach (stack) ->
+      stack.delete memberId, (err) ->
+        log 'Failed to delete stack:', err  if err
+
 
 setOwnerOfMachine = (machine, { account, user }) ->
 
@@ -62,12 +78,16 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
   # Ignore kicks for guests and koding
   return  if group.slug in ['guests', 'koding']
 
+  memberId       = member.getId()
+  requesterId    = requester.getId()
   # Find the reason of removal
-  reason = if member.getId().equals requester.getId() then 'leave' else 'kick'
+  reason         = if memberId.equals requesterId then 'leave' else 'kick'
 
+  # Globals with-in queue
   memberJUser    = null
   requesterJUser = null
   memberMachines = []
+  memberStacks   = []
 
   queue = [
 
@@ -119,6 +139,23 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
       }
       queue.next()
 
+    ->
+      JComputeStack = require '../../stack'
+      JComputeStack.some
+        originId : member.getId()
+        group    : group.slug
+      , {}
+      , (err, stacks = []) ->
+
+        log 'Failed to fetch stacks:', err  if err
+        memberStacks = stacks
+        queue.next()
+
+    ->
+      updateStacks {
+        stacks: memberStacks
+        memberId, requesterId, reason
+      }
       queue.next()
 
   ]
