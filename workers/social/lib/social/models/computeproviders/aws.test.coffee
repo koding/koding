@@ -3,6 +3,8 @@
   withConvertedUser
   checkBongoConnectivity } = require '../../../../testhelper'
 
+{ withConvertedUserAnd } = require \
+  '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
 Aws      = require './aws'
 JGroup   = require '../group'
@@ -117,7 +119,7 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           done()
 
 
-    it.skip 'should be able to update machine when valid data provided', (done) ->
+    it 'should be able to update machine when valid data provided', (done) ->
 
       withConvertedUserAnd ['ComputeProvider'], (data) ->
         { client, account, user, machine } = data
@@ -162,7 +164,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
         ]
 
         daisy queue
-
 
 
 beforeTests()

@@ -1,6 +1,6 @@
 # How to contribute
 
-etcd is Apache 2.0 licensed and accepts contributions via Github pull requests. This document outlines some of the conventions on commit message formatting, contact points for developers and other resources to make getting your contribution into etcd easier.
+etcd is Apache 2.0 licensed and accepts contributions via GitHub pull requests. This document outlines some of the conventions on commit message formatting, contact points for developers and other resources to make getting your contribution into etcd easier.
 
 # Email and chat
 
@@ -12,6 +12,14 @@ etcd is Apache 2.0 licensed and accepts contributions via Github pull requests. 
 - Fork the repository on GitHub
 - Read the README.md for build instructions
 
+## Reporting Bugs and Creating Issues
+
+Reporting bugs is one of the best ways to contribute. However, a good bug report
+has some very specific qualities, so please read over our short document on
+[reporting bugs](https://github.com/coreos/etcd/blob/master/Documentation/reporting_bugs.md)
+before you submit your bug report. This document might contain links known
+issues, another good reason to take a look there, before reporting your bug.
+
 ## Contribution flow
 
 This is a rough outline of what a contributor's workflow looks like:
@@ -21,12 +29,13 @@ This is a rough outline of what a contributor's workflow looks like:
 - Make sure your commit messages are in the proper format (see below).
 - Push your changes to a topic branch in your fork of the repository.
 - Submit a pull request to coreos/etcd.
+- Your PR must receive a LGTM from two maintainers found in the MAINTAINERS file.
 
 Thanks for your contributions!
 
 ### Code style
 
-The coding style suggested by the Golang community is used in etcd. See [style doc](https://code.google.com/p/go-wiki/wiki/Style) for details.
+The coding style suggested by the Golang community is used in etcd. See the [style doc](https://code.google.com/p/go-wiki/wiki/CodeReviewComments) for details.
 
 Please follow this style to make etcd easy to review, maintain and develop.
 
