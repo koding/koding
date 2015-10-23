@@ -96,7 +96,7 @@ app.post '/Impersonate/:nickname'                , require './handlers/impersona
 app.post '/:name?/Recover'                       , require './handlers/recover'
 app.post '/:name?/Reset'                         , require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
-app.all  '/:name?/Logout'                        , require './handlers/logout'
+app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
 app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
