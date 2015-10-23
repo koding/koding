@@ -14,7 +14,6 @@ KDReactorMixin       = require 'app/flux/base/reactormixin'
 formatEmojiName      = require 'activity/util/formatEmojiName'
 KeyboardKeys         = require 'app/util/keyboardKeys'
 Link                 = require 'app/components/common/link'
-whoami               = require 'app/util/whoami'
 helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
@@ -225,8 +224,7 @@ module.exports = class ChatInputWidget extends React.Component
 
       return  unless keyInfo.isUpArrow
 
-      accountId = whoami()._id
-      ChatInputFlux.actions.message.setLastMessageEditMode accountId
+      ChatInputFlux.actions.message.setLastMessageEditMode()
 
 
   onDropboxItemConfirmed: (item) ->
