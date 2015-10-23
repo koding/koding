@@ -28,8 +28,10 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       cssClass : 'login-form clearfix'
       testPath : 'login-form'
       callback : (formData) =>
+        track 'submitted login form'
         mainController.on 'LoginFailed', => @form.button.hideLoader()
         mainController.login formData, (err) =>
+          track 'failed to login'  if err
           @form.button.hideLoader()
           @form.tfcode.show()
           @form.tfcode.setFocus()
@@ -73,3 +75,10 @@ module.exports = class TeamLoginTab extends KDTabPaneView
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
+
+
+track = (action) ->
+
+  category = 'Team'
+  label    = 'LoginForm'
+  KD.utils.analytics.track action, { category, label }
