@@ -204,7 +204,6 @@ module.exports = class JComputeStack extends jraphical.Module
 
       selector = @getSelector client, selector
 
-
       JComputeStack.some selector, options, (err, _stacks) ->
 
         if err
@@ -264,7 +263,7 @@ module.exports = class JComputeStack extends jraphical.Module
     daisy queue
 
 
-  delete: (owner, callback) ->
+  delete: (callback) ->
 
     # TODO Implement delete methods.
     @update { $set: { status: 'Terminating' } }
@@ -289,7 +288,7 @@ module.exports = class JComputeStack extends jraphical.Module
     Relationship.remove {
       targetName : 'JStackTemplate'
       targetId   : @baseStackId
-      sourceId   : owner.getId()
+      sourceId   : @originId
       sourceName : 'JAccount'
       as         : 'user'
     }, (err) =>
@@ -308,9 +307,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, callback) ->
 
-      { delegate } = client.connection
-
-      @delete owner = delegate, callback
+      @delete callback
 
 
   SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']
