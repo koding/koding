@@ -5,6 +5,7 @@ ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
 ScrollerMixin        = require 'app/components/scroller/scrollermixin'
 ChannelInfoContainer = require 'activity/components/channelinfocontainer'
+scrollToTarget       = require 'app/util/scrollToTarget'
 
 
 module.exports = class ChatPane extends React.Component
@@ -107,6 +108,17 @@ module.exports = class ChatPane extends React.Component
     else scrollContainer.classList.remove 'padded'
 
 
+  onItemEditStarted: (itemElement)->
+
+    return  unless itemElement
+
+    # this delay is a time needed to chat input
+    # in order to resize its textarea
+    kd.utils.wait 50, =>
+      scrollContainer = React.findDOMNode @refs.scrollContainer
+      scrollToTarget scrollContainer, itemElement
+
+
   renderBody: ->
 
     return null  unless @props.thread
@@ -123,6 +135,7 @@ module.exports = class ChatPane extends React.Component
         channelId={@channel 'id'}
         channelName={@channel 'name'}
         unreadCount={@channel 'unreadCount'}
+        onItemEditStarted={@bound 'onItemEditStarted'}
       />
     </Scroller>
 
