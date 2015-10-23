@@ -96,9 +96,9 @@ module.exports = class NFinderItem extends JTreeItemView
 
     @setClass "being-edited"
 
-    @beingEdited  = yes
-    @callback     = callback
-    data          = @getData()
+    @beingEdited = yes
+    @callback    = callback
+    data         = @getData()
 
     @childView.hide()
 
@@ -109,12 +109,13 @@ module.exports = class NFinderItem extends JTreeItemView
       @callback? newValue
       @resetView()
 
-    ext = ".#{FSHelper.getFileExtension data.name}"
+    ext       = ".#{FSHelper.getFileExtension data.name}"
+    { input } = @renameView
 
     if (index = data.name.indexOf ext) > 0
-      @renameView.input.getElement().setSelectionRange 0, index
-    else
-      @renameView.input.setFocus()
+      input.getElement().setSelectionRange 0, index
+
+    input.setFocus()
 
 
   showProgressView: (progress, determinate=yes)->
