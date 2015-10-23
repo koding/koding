@@ -17,13 +17,17 @@ testCsrfToken = (generateHandlerRequestParams, method, options, callback) ->
 
   [options, callback] = [callback, options]  unless callback
 
+  # various csrf token cases those are expected to fail
   paramsObjects = [
     {
-      csrfCookie : false
+      body       :
+        _csrf    : generateRandomString()
+      csrfCookie : ''
     }
     {
       body       :
         _csrf    : ''
+      csrfCookie : generateRandomString()
     }
     {
       body       :
@@ -36,12 +40,14 @@ testCsrfToken = (generateHandlerRequestParams, method, options, callback) ->
 
   paramsObjects.forEach (params) ->
 
+    # if generateHandlerRequestParams fires a callback
     if options?.generateParamsAsync
       queue.push ->
         generateHandlerRequestParams params, (requestParams) ->
           request[method] requestParams, expect403 ->
             queue.next()
 
+    # else generate params synchronously
     else
       queue.push ->
         requestParams = generateHandlerRequestParams params
