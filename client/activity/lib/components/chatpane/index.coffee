@@ -124,7 +124,8 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     <Scroller
-      ref="scrollContainer"
+      ref='scrollContainer'
+      className='padded'
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
