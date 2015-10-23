@@ -17,16 +17,17 @@ checkOwnership = (machine, user) ->
   return owner
 
 
-changeOwnershipOfMachine = (machine, newOwner) ->
+setOwnerOfMachine = (machine, { account, user }) ->
 
   # Move machine ownership to the admin who kicked the member
   machine.addUsers {
-    targets: [ newOwner ], asOwner: yes
+    targets: [ user ], asOwner: yes, sudo: yes
   }, (err) ->
-    log 'Failed to change ownership:', err  if err
+    log 'Failed to change ownership of machine:', err  if err
 
+updateMachineUsers = ({ machines, user, requester, reason }) ->
 
-updateMachineUsers = (machines, user, requester, reason) ->
+  return  unless reason is 'kick'
 
   machines.forEach (machine) ->
     # Check if the user is owner of the machine
@@ -36,11 +37,10 @@ updateMachineUsers = (machines, user, requester, reason) ->
       log "Couldn't remove user from users:", err  if err
 
       # if not owner this machine we leave it to existing owner
-      # if user is left on by own we leave the users list as is
-      return  if not owner or reason is 'leave'
+      return  if not owner
 
       # otherwise we move the ownership of the machine to the requester
-      changeOwnershipOfMachine machine, requester
+      setOwnerOfMachine machine, requester
 
 
 module.exports = memberRemoved = ({ group, member, requester }) ->
@@ -95,7 +95,16 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
         queue.next()
 
     ->
-      updateMachineUsers memberMachines, memberJUser, requesterJUser, reason
+      updateMachineUsers {
+        user      : memberJUser
+        machines  : memberMachines
+        requester :
+          user    : requesterJUser
+          account : requester
+        reason
+      }
+      queue.next()
+
       queue.next()
 
   ]
