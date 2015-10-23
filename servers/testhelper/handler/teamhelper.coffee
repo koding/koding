@@ -7,7 +7,8 @@ JTeamInvitation = require '../../../workers/social/lib/social/models/teamtoken'
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDefaultRequestParams } = require '../index'
+  generateDefaultRequestParams
+  generateRequestParamsEncodeBody} = require '../index'
 
 
 generateCheckTokenRequestBody = (opts = {}) ->
@@ -127,6 +128,7 @@ generateCreateTeamRequestBody = (opts = {}) ->
 
   defaultBodyObject =
     slug           : companyName
+    _csrf          : generateRandomString()
     email          : generateRandomEmail()
     agree          : 'on'
     allow          : 'true'
@@ -149,19 +151,16 @@ generateCreateTeamRequestBody = (opts = {}) ->
 # overwrites given options in the default params
 generateCreateTeamRequestParams = (opts = {}, callback) ->
 
-  url  = generateUrl
-    route : '-/teams/create'
-
   body = generateCreateTeamRequestBody()
 
-  params               = { url, body }
-  defaultRequestParams = generateDefaultRequestParams params
-  requestParams        = deepObjectExtend defaultRequestParams, opts
+  params =
+    url        : generateUrl { route : '-/teams/create' }
+    body       : body
+    csrfCookie : body._csrf
 
   # return without creating a team invitation
   if opts.createTeamInvitation is no
-    # after deep extending object, encodes body param to a query string
-    requestParams.body = querystring.stringify requestParams.body
+    requestParams = generateRequestParamsEncodeBody params, opts
     return callback requestParams
 
   slug  = opts.body ? body.slug
@@ -169,8 +168,8 @@ generateCreateTeamRequestParams = (opts = {}, callback) ->
 
   JTeamInvitation.create { groupName : slug, email }, (err, teamInvitation) ->
     expect(err).to.not.exist
-    requestParams.body.teamAccessCode = teamInvitation.code
-    requestParams.body                = querystring.stringify requestParams.body
+    params.body.teamAccessCode = teamInvitation.code
+    requestParams = generateRequestParamsEncodeBody params, opts
     return callback requestParams
 
 
