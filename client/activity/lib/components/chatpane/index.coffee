@@ -86,12 +86,12 @@ module.exports = class ChatPane extends React.Component
 
   setPaddedClassName: (options = {}) ->
 
+    channelInfoContainerHeight  = 0
     list                        = React.findDOMNode @refs.ChatList
     scrollContainer             = React.findDOMNode @refs.scrollContainer
     channelInfoContainer        = React.findDOMNode @refs.ChannelInfoContainer
-    listHeight                  = list.offsetHeight
-    scrollContainerClientHeight = scrollContainer.clientHeight
-    channelInfoContainerHeight  = 0
+    listHeight                  = if list then list.offsetHeight else 0
+    scrollContainerClientHeight = if scrollContainer then scrollContainer.clientHeight else 0
 
     return scrollContainer.classList.add 'padded' if options.force and scrollContainer
 
