@@ -151,6 +151,24 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	} else {
 		m.Log.Debug("Continue build process with data, instanceId: '%s' and queryString: '%s'",
 			m.Meta.InstanceId, m.QueryString)
+
+		// If this is not the first attempt to build, the first attempt may
+		// have timed out or failed in some other way. To heal this and
+		// continue the build normally, we call buildRecovery()
+		if err := m.buildRecovery(); err != nil {
+			// If there was an error during build recovery, we can log
+			// it but we don't *need* to fail. The CheckBuild() usage
+			// below will attempt to wait for a status from AWS for X minutes.
+			//
+			// AWS may return success within that timeframe, so if we return
+			// an error here we do not give AWS a chance to return
+			// successfully.
+			m.Log.Warning(
+				"Failed to recover for pre-existing instance. (username: %s, instanceId: %s, region: %s)",
+				m.Credential, m.Meta.InstanceId, m.Meta.Region,
+			)
+		}
+
 	}
 
 	m.push("Checking build process", 40, machinestate.Building)
@@ -656,4 +674,74 @@ func (m *Machine) addDomainAndTags() {
 	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
+}
+
+// buildRecovery attempts to get the status of the machine from AWS
+// and handle any oddities that may have came up during any previous
+// build processes.
+//
+// It does not inherently handle all edge cases, but simply the ones we
+// expect. For reference, the following URL describes the AWS API
+// endpoint for the initial creation of an ec2 instance:
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RunInstances.html
+//
+// The following scenarios are currently handled and/or expected:
+//
+// 1. Stopped (stopped): An AWS status of Stopped typically means that
+// 	the build process failed last time, and the machine was eventually
+// 	turned off. In this event, we must make a Start call. We do need
+// 	to wait for the machine to finish starting, as the normal
+// 	`Kloud.Build()` methods handle that - recovery just starts it.
+// 2. Starting (pending): An AWS status of Pending typically means that
+// 	the machine is still building from its initial attempt, and is
+// 	being retried by the user. No action is needed.
+// 3. Running (running): An AWS state of Running typically means that
+// 	the machine building was completed. No action is needed.
+func (m *Machine) buildRecovery() error {
+	// If there is no instanceId, we shouldn't be recovering from anything,
+	// we should be creating the instance. Return an error.
+	if m.Meta.InstanceId == "" {
+		return errors.New(
+			"buildRecovery: Unable to recover from build if InstanceId has not been created",
+		)
+	}
+
+	instance, err := m.Session.AWSClient.Instance()
+
+	// If we fail to get the instance, there's nothing we can do
+	// for recovery.
+	if err != nil {
+		return err
+	}
+
+	awsState := amazon.StatusToState(instance.State.Name)
+	switch awsState {
+	// No action needed, build method expects these states
+	case machinestate.Starting, machinestate.Running:
+
+	// Start the machine, to let build continue like normal.
+	case machinestate.Stopped:
+		m.Log.Info(
+			"Manually starting previously stopped instance. (username: %s, instanceId: %s, region: %s)",
+			m.Credential, m.Meta.InstanceId, m.Meta.Region,
+		)
+
+		// We're calling the client start api directly, rather than
+		// using `api/amazon.Start()` because we don't want or need to
+		// wait for the vm to finish starting. The build method
+		// already does that.
+		//
+		// Note that we are *not* locking here. The caller of this
+		// is expected to be Kloud.Build, which will already have
+		// this machine locked.
+		_, err := m.Session.AWSClient.Client.StartInstances(
+			m.Session.AWSClient.Id(),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

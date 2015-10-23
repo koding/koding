@@ -1,4 +1,33 @@
-## 0.6.4 (unreleased)
+## 0.6.6 (Unreleased)
+
+FEATURES:
+
+  * New interpolation functions: `cidrhost`, `cidrnetmask` and `cidrsubnet` [GH-3127]
+
+IMPROVEMENTS:
+
+  * "forces new resource" now highlighted in plan output [GH-3136]
+
+## 0.6.5 (October 21, 2015)
+
+FEATURES:
+
+  * **New resources: `aws_codeploy_app` and `aws_codeploy_deployment_group`** [GH-2783]
+  * New remote state backend: `etcd` [GH-3487]
+  * New interpolation functions: `upper` and `lower` [GH-3558]
+
+BUG FIXES:
+
+  * core: Fix remote state conflicts caused by ambiguity in ordering of deeply nested modules [GH-3573]
+  * core: Fix remote state conflicts caused by state metadata differences [GH-3569]
+  * core: Avoid using http.DefaultClient [GH-3532]
+
+INTERNAL IMPROVEMENTS:
+
+  * provider/digitalocean: use official Go client [GH-3333]
+  * core: extract module fetching to external library [GH-3516]
+
+## 0.6.4 (October 15, 2015)
 
 FEATURES:
 
@@ -78,6 +107,7 @@ BUG FIXES:
   * provider/aws: Migrate KeyPair to version 1, fixing issue with using `file()` [GH-3470]
   * provider/aws: Fix force_delete on autoscaling groups [GH-3485]
   * provider/aws: Fix crash with VPC Peering connections [GH-3490]
+  * provider/aws: fix bug with reading GSIs from dynamodb [GH-3300]
   * provider/docker: Fix issue preventing private images from being referenced [GH-2619]
   * provider/digitalocean: Fix issue causing unnecessary diffs based on droplet slugsize case [GH-3284]
   * provider/openstack: add state 'downloading' to list of expected states in

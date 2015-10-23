@@ -19,15 +19,12 @@ runTests = -> describe 'workers.social.models.computeproviders.azure', ->
 
     it 'should reply to ping request', (done) ->
 
-      userFormData = generateDummyUserFormData()
+      withConvertedUser ({ client, account }) ->
 
-      withConvertedUser { userFormData }, (data) ->
-
-        { client, account } = data
-
+        expectedPong = "Azure is cool #{client.connection.delegate.profile.nickname}!"
         Azure.ping client, (err, data) ->
           expect(err?.message).to.not.exist
-          expect(data).to.be.equal "Azure is cool #{client.connection.delegate.profile.nickname}!"
+          expect(data).to.be.equal expectedPong
           done()
 
 
