@@ -90,7 +90,7 @@ app.post '/-/validate/username'                  , require './handlers/validateu
 app.post '/-/validate/email'                     , require './handlers/validateemail'
 app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
-app.post '/:name?/Register'                      , require './handlers/register'
+app.post '/:name?/Register'                      , csrf,   require './handlers/register'
 app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , require './handlers/impersonate'
 app.post '/:name?/Recover'                       , require './handlers/recover'
