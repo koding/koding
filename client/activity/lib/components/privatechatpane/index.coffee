@@ -17,7 +17,6 @@ module.exports = class PrivateChatPane extends React.Component
     <ChatPane
       thread     = { @props.thread }
       className  = 'PrivateChatPane'
-      messages   = { @props.messages }
       onSubmit   = { @bound 'onSubmit' }
       onInviteOthers = {@bound 'onInviteOthers'}
       onLoadMore = { @bound 'onLoadMore' }
