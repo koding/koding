@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/common/response"
 )
 
@@ -27,4 +28,27 @@ func Create(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *mo
 	}
 
 	return response.NewOK(response.NewSuccessResponse(req))
+}
+
+func fetchChannelId(u *url.URL, context *models.Context) (int64, error) {
+	channelId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return 0, err
+	}
+
+	c, err := models.Cache.Channel.ById(channelId)
+	if err != nil {
+		return 0, err
+	}
+
+	canOpen, err := c.CanOpen(context.Client.Account.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	if !canOpen {
+		return 0, models.ErrCannotOpenChannel
+	}
+
+	return c.Id, nil
 }
