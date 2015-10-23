@@ -1,18 +1,22 @@
-Bongo                             = require 'bongo'
 koding                            = require './../bongo'
 
-{ daisy }                         = Bongo
-{ expect }                        = require 'chai'
-{ generateRandomString }          = require '../../../testhelper'
+{ daisy
+  expect
+  request
+  querystring
+  generateRandomString }          = require '../../../testhelper'
+{ testCsrfToken }                 = require '../../../testhelper/handler'
 { generateRegisterRequestParams } = require '../../../testhelper/handler/registerhelper'
 
-hat                               = require 'hat'
-request                           = require 'request'
-querystring                       = require 'querystring'
 
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.register', ->
+
+  it 'should send HTTP 403 if _csrf token is invalid', (done) ->
+
+    testCsrfToken generateRegisterRequestParams, 'post', done
+
 
   it 'should send HTTP 404 if method is not allowed', (done) ->
 
