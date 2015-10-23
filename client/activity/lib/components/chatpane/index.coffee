@@ -29,7 +29,6 @@ module.exports = class ChatPane extends React.Component
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
 
     scrollContainer = React.findDOMNode @refs.scrollContainer
-    @unsetPaddedClassName()
 
 
   onTopThresholdReached: (event) ->
@@ -58,54 +57,12 @@ module.exports = class ChatPane extends React.Component
 
     return null  unless scrollContainer or reachedFirstMessage
 
-    @setPaddedClassName force: yes  unless messagesSize
 
     <ChannelInfoContainer
       ref='ChannelInfoContainer'
       key={@channel 'id'}
       thread={@props.thread}
       onInviteOthers={@props.onInviteOthers} />
-
-
-  beforeScrollToBottom: ->
-
-    @unsetPaddedClassName()
-    @setPaddedClassName()
-
-
-  afterScrollDidUpdate: ->
-
-    @setPaddedClassName()
-
-
-  unsetPaddedClassName: ->
-
-    scrollContainer = React.findDOMNode @refs.scrollContainer
-    scrollContainer?.classList.remove 'padded'
-
-
-  setPaddedClassName: (options = {}) ->
-
-    list                        = React.findDOMNode @refs.ChatList
-    scrollContainer             = React.findDOMNode @refs.scrollContainer
-    channelInfoContainer        = React.findDOMNode @refs.ChannelInfoContainer
-    listHeight                  = list.offsetHeight
-    scrollContainerClientHeight = scrollContainer.clientHeight
-    channelInfoContainerHeight  = 0
-
-    return scrollContainer.classList.add 'padded' if options.force and scrollContainer
-
-    return  if scrollContainerClientHeight is 0 and listHeight is 0
-
-    if channelInfoContainer
-      channelInfoContainerHeight = channelInfoContainer.offsetHeight
-
-    diff      = scrollContainerClientHeight - (channelInfoContainerHeight + listHeight)
-    hasPadded = scrollContainer.className.indexOf('padded') > -1
-
-    if diff >= 0
-    then scrollContainer.classList.add 'padded'
-    else scrollContainer.classList.remove 'padded'
 
 
   onItemEditStarted: (itemElement) ->
@@ -124,7 +81,7 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     <Scroller
-      ref="scrollContainer"
+      ref='scrollContainer'
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
