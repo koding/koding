@@ -14,6 +14,7 @@ KONFIG                              = require('koding-config-manager').load "mai
   generateRandomString
   checkBongoConnectivity
   generateRandomUsername }          = require '../../../testhelper'
+{ testCsrfToken }                   = require '../../../testhelper/handler'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 
 { generateCreateTeamRequestBody
@@ -51,6 +52,12 @@ runTests = -> describe 'server.handlers.createteam', ->
       JDomainAlias } = koding.models
 
     done()
+
+
+  it 'should fail when csrf token is invalid', (done) ->
+
+    options = { generateParamsAsync : true }
+    testCsrfToken generateCreateTeamRequestParams, 'post', options, done
 
 
   # creating team with an unregistered user
