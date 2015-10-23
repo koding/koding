@@ -19,11 +19,25 @@ checkOwnership = (machine, user) ->
 
 setOwnerOfMachine = (machine, { account, user }) ->
 
-  # Move machine ownership to the admin who kicked the member
+  # Update machine ownership to the admin who kicked the member
   machine.addUsers {
     targets: [ user ], asOwner: yes, sudo: yes
   }, (err) ->
     log 'Failed to change ownership of machine:', err  if err
+
+  # Update workspace ownerships
+  JWorkspace = require '../../workspace'
+  JWorkspace.update
+    machineUId    : machine.uid
+  ,
+    $set          :
+      originId    : account.getId()
+  ,
+    multi         : yes
+  , (err) ->
+    log 'Failed to change ownership of workspace:', err  if err
+
+
 
 updateMachineUsers = ({ machines, user, requester, reason }) ->
 
