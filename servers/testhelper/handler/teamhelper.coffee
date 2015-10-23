@@ -8,7 +8,7 @@ JTeamInvitation = require '../../../workers/social/lib/social/models/teamtoken'
   generateRandomString
   generateRandomUsername
   generateDefaultRequestParams
-  generateRequestParamsEncodeBody} = require '../index'
+  generateRequestParamsEncodeBody } = require '../index'
 
 
 generateCheckTokenRequestBody = (opts = {}) ->
