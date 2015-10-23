@@ -3,7 +3,7 @@ module.exports = usernameChanged = ({ oldUsername, username, isRegistration }) -
   return  unless oldUsername and username
   return  if isRegistration
 
-  JMachine = require './machine'
+  JMachine = require '../machine'
 
   console.log "Removing user #{oldUsername} vms..."
 
