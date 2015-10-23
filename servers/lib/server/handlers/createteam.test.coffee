@@ -4,11 +4,9 @@ KONFIG                              = require('koding-config-manager').load "mai
 
 { hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
-{ hat
-  daisy
+{ daisy
   expect
   request
-  querystring
   convertToArray
   generateRandomEmail
   generateRandomString
@@ -16,9 +14,7 @@ KONFIG                              = require('koding-config-manager').load "mai
   generateRandomUsername }          = require '../../../testhelper'
 { testCsrfToken }                   = require '../../../testhelper/handler'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
-
-{ generateCreateTeamRequestBody
-  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
+{ generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 reservedTeamDomains = require '../../../../workers/social/lib/social/models/user/reservedteamdomains'
 
