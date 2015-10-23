@@ -2,6 +2,7 @@ package githubprovider
 
 import (
 	"fmt"
+        "strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -160,7 +161,7 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	// If SSH key is already set up, when u try to add same SSHKEY then
 	//you are gonna get 422: Validation error.
 	_, _, err = client.Users.CreateKey(key)
-	if err != nil {
+	if err != nil && !isErr422ValidationFailed(err) {
 		return err
 	}
 
@@ -227,4 +228,11 @@ func interfaceToStringSlice(s interface{}) []string {
 	}
 
 	return sslice
+}
+
+// isErr422ValidationFailed return true if error contains the string:
+// '422 Validation Failed'. This error is special cased so we can ignore it on
+// when it occurs during rebuilding of stack template.
+func isErr422ValidationFailed(err error) bool {
+       return err != nil && strings.Contains(err.Error(), "422 Validation Failed")
 }
