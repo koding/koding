@@ -109,6 +109,11 @@ generateRequestParamsEncodeBody = (params, opts = {}) ->
   if requestParams.body
     requestParams.body = querystring.stringify requestParams.body
 
+  if params.csrfCookie
+    cookie             = generateCsrfTokenCookie()
+    requestParams.jar ?= request.jar()
+    requestParams.jar.setCookie cookie, requestParams.url
+
   return requestParams
 
 
@@ -126,6 +131,15 @@ deepObjectExtend = (target, source) ->
       target[prop] = source[prop]
 
   return target
+
+
+generateCsrfTokenCookie = (csrfToken = null) ->
+
+  csrfToken ?= generateRandomString()
+  cookie     = request.cookie "_csrf=#{csrfToken}"
+
+  return cookie
+
 
 convertToArray = (commaSeparatedData = '') ->
 
