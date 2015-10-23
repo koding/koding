@@ -3,52 +3,52 @@
   request
   generateRandomString } = require '../index'
 
-testCsrfToken = (generateHandlerRequestParams, method, callback) ->
 
-  [method, callback] = [callback, method]  unless callback
-  method ?= 'post'
+expect403 = (callback) ->
 
-  queue = [
+  return (err, res, body) ->
+    expect(err).to.not.exist
+    expect(res.statusCode).to.be.equal 403
+    expect(body).to.be.equal '_csrf token is not valid'
+    callback()
 
-    ->
-      # sending _csrf parameter in body, but csrf cookie is not set
-      handlerRequestParams = generateHandlerRequestParams
-        csrfCookie : false
 
-      request[method] handlerRequestParams, (err, res, body) ->
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 403
-        expect(body).to.be.equal '_csrf token is not valid'
-        queue.next()
+testCsrfToken = (generateHandlerRequestParams, method, options, callback) ->
 
-    ->
-      # sending csrf cookie but not sending _csrf parameter in the body
-      handlerRequestParams = generateHandlerRequestParams
-        body    :
-          _csrf : ''
+  [options, callback] = [callback, options]  unless callback
 
-      request[method] handlerRequestParams, (err, res, body) ->
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 403
-        expect(body).to.be.equal '_csrf token is not valid'
-        queue.next()
-
-    ->
-      # sending different csrf tokens
-      handlerRequestParams = generateHandlerRequestParams
-        body       :
-          _csrf    : generateRandomString()
-        csrfCookie : generateRandomString()
-
-      request[method] handlerRequestParams, (err, res, body) ->
-        expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 403
-        expect(body).to.be.equal '_csrf token is not valid'
-        queue.next()
-
-    -> callback()
-
+  paramsObjects = [
+    {
+      csrfCookie : false
+    }
+    {
+      body       :
+        _csrf    : ''
+    }
+    {
+      body       :
+        _csrf    : generateRandomString()
+      csrfCookie : generateRandomString()
+    }
   ]
+
+  queue = []
+
+  paramsObjects.forEach (params) ->
+
+    if options?.generateParamsAsync
+      queue.push ->
+        generateHandlerRequestParams params, (requestParams) ->
+          request[method] requestParams, expect403 ->
+            queue.next()
+
+    else
+      queue.push ->
+        requestParams = generateHandlerRequestParams params
+        request[method] requestParams, expect403 ->
+          queue.next()
+
+  queue.push -> callback()
 
   daisy queue
 
@@ -56,3 +56,5 @@ testCsrfToken = (generateHandlerRequestParams, method, callback) ->
 module.exports = {
   testCsrfToken
 }
+
+
