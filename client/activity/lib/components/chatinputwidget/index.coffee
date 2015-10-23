@@ -14,7 +14,6 @@ KDReactorMixin       = require 'app/flux/base/reactormixin'
 formatEmojiName      = require 'activity/util/formatEmojiName'
 KeyboardKeys         = require 'app/util/keyboardKeys'
 Link                 = require 'app/components/common/link'
-whoami               = require 'app/util/whoami'
 helpers              = require './helpers'
 focusOnGlobalKeyDown = require 'activity/util/focusOnGlobalKeyDown'
 parseStringToCommand = require 'activity/util/parseStringToCommand'
@@ -26,6 +25,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   @defaultProps =
     disabledFeatures : []
+    onReady          : kd.noop
 
 
   getDataBindings: ->
@@ -79,11 +79,21 @@ module.exports = class ChatInputWidget extends React.Component
     scrollContainer = $(textInput).closest '.Scrollable'
     scrollContainer.on 'scroll', @bound 'closeDropboxes'
 
+    # Mark as ready if no value is provided in props.
+    # Otherwise, we need to wait till value prop is set to state
+    @ready()  unless value
+
 
   componentDidUpdate: (oldProps, oldState) ->
 
-    @focus()  if oldState.value isnt @state.value
+    isValueChanged = oldState.value isnt @state.value
+    @focus()  if isValueChanged
     @updateDropboxPositions()
+
+    # This line actually is needed for the case
+    # when value prop is set to state.
+    # In other cases ready() does nothing
+    @ready()  if isValueChanged
 
 
   componentWillUnmount: ->
@@ -93,6 +103,14 @@ module.exports = class ChatInputWidget extends React.Component
     textInput = React.findDOMNode this.refs.textInput
     scrollContainer = $(textInput).closest '.Scrollable'
     scrollContainer.off 'scroll', @bound 'closeDropboxes'
+
+
+  ready: ->
+
+    return  if @isReady
+
+    @isReady = yes
+    @props.onReady?()
 
 
   updateDropboxPositions: ->
@@ -225,8 +243,7 @@ module.exports = class ChatInputWidget extends React.Component
 
       return  unless keyInfo.isUpArrow
 
-      accountId = whoami()._id
-      ChatInputFlux.actions.message.setLastMessageEditMode accountId
+      ChatInputFlux.actions.message.setLastMessageEditMode()
 
 
   onDropboxItemConfirmed: (item) ->

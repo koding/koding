@@ -23,16 +23,21 @@ module.exports = class MessageBody extends React.Component
     @state = { message: @props.message }
 
 
+  componentDidMount: ->
+
+    @transformChannelHashtags @state.message
+
+
   contentDidMount: (content) ->
 
     @content = content
     @renderEmojis()
-    @transformChannelHashtags @state.message
 
 
   componentDidUpdate: (prevProps, prevState) ->
 
     { message } = @props
+
     # if message body is updated in props, we need to process hashtags
     # and update state with a new message body
     unless prevProps.message.get('body') is message.get('body')
