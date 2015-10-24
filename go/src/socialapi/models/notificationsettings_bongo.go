@@ -34,8 +34,9 @@ func (n *NotificationSettings) BeforeCreate() error {
 	if err := n.validateBeforeOps(); err != nil {
 		return err
 	}
-	n.CreatedAt = time.Now().UTC()
-	n.UpdatedAt = time.Now().UTC()
+	now := time.Now().UTC()
+	n.CreatedAt = now
+	n.UpdatedAt = now
 
 	return nil
 }
@@ -66,15 +67,17 @@ func (n *NotificationSettings) validateBeforeOps() error {
 		return ErrChannelIdIsNotSet
 	}
 
-	a := NewAccount()
-	if err := a.ById(n.AccountId); err != nil {
+	// a := NewAccount()
+	_, err := Cache.Account.ById(n.AccountId)
+	if err != nil {
 		return err
 	}
 
-	l := NewChannel()
-	if err := l.ById(n.ChannelId); err != nil {
+	_, err = Cache.Channel.ById(n.ChannelId)
+	if err != nil {
 		return err
 	}
+
 	// We should add group && group control ??
 
 	return nil
