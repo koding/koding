@@ -19,9 +19,9 @@ func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  Get,
-			Name:     "notification-settings-list",
+			Name:     "notification-settings-get",
 			Type:     handler.GetRequest,
-			Endpoint: "/notificationsettings/{id}",
+			Endpoint: "/channel/{id}/notificationsettings",
 		},
 	)
 
@@ -31,6 +31,15 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "notification-settings-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/notificationsettings/{id}",
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  Delete,
+			Name:     "notification-settings-delete",
+			Type:     handler.DeleteRequest,
+			Endpoint: "/channel/{id}/notificationsettings",
 		},
 	)
 }
