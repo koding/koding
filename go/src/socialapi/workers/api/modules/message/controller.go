@@ -58,7 +58,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	cml.ChannelId = channelId
 	cml.MessageId = req.Id
 	cml.ClientRequestId = req.ClientRequestId
-	if err := cml.Create(); err != nil {
+	if err := cml.Create(); err != nil && !models.IsUniqueConstraintError(err) {
 		// todo this should be internal server error
 		return response.NewBadRequest(err)
 	}
