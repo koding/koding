@@ -102,6 +102,23 @@ func TestChannelCreation(t *testing.T) {
 						So(channel1.Id, ShouldEqual, channel2.Id)
 						So(channel1.Name, ShouldEqual, channel2.Name)
 						So(channel1.GroupName, ShouldEqual, channel2.GroupName)
+						So(channel1.GroupName, ShouldEqual, channel2.GroupName)
+					})
+
+					Convey("unread count should be set", func() {
+						channelContainer, err := rest.FetchChannelContainerByName(account.Id, channel1.Name, channel1.GroupName, channel1.TypeConstant, ses.ClientId)
+						So(err, ShouldBeNil)
+						So(channelContainer, ShouldNotBeNil)
+						So(channelContainer.UnreadCount, ShouldEqual, 0)
+
+						post, err := rest.CreatePost(channel1.Id, nonOwnerAccount.Id)
+						So(err, ShouldBeNil)
+						So(post, ShouldNotBeNil)
+
+						channelContainer, err = rest.FetchChannelContainerByName(account.Id, channel1.Name, channel1.GroupName, channel1.TypeConstant, ses.ClientId)
+						So(err, ShouldBeNil)
+						So(channelContainer, ShouldNotBeNil)
+						So(channelContainer.UnreadCount, ShouldEqual, 1)
 					})
 
 					Convey("non-owner should not be able to update it", func() {
