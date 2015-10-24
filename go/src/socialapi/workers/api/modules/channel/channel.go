@@ -263,7 +263,7 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 
 	// TODO this should be in the channel cache by default
 	cc.AddLastMessage(q.AccountId)
-
+	cc.AddUnreadCount(q.AccountId)
 	return response.HandleResultAndError(cc, cc.Err)
 }
 
