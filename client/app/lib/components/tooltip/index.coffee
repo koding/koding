@@ -6,12 +6,12 @@ module.exports = class Tooltip extends React.Component
 
   @propTypes =
     text     : React.PropTypes.string.isRequired
-    position : 'top'
 
 
   @defaultProps =
-    tooltipY: 0
-    tooltipX: 0
+    tooltipY : 0
+    tooltipX : 0
+    position : 'top'
 
 
   componentDidMount: ->
