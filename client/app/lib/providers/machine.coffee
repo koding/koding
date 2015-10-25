@@ -133,7 +133,7 @@ module.exports = class Machine extends KDObject
     return no
 
 
-  isMine      : -> @_ruleChecker ['owner', 'sudo']
+  isMine      : -> @_ruleChecker ['owner']
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
   isManaged   : -> @provider is 'managed'

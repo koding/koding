@@ -685,8 +685,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         for node in environmentDataProvider.getMyMachines()
           environmentMap[node.machine._id] = node
 
-        stackEnvironment = stack.machines.map (machine) ->
-          environmentMap[machine._id]
+        stackEnvironment = stack.machines
+          .map (machine) -> environmentMap[machine._id]
+          .filter Boolean
 
         type = switch
           when title is 'Managed VMs' then 'own'
