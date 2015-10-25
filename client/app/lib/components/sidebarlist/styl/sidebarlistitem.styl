@@ -15,14 +15,12 @@
     .SidebarListItem-icon:before
       color                 $white
 
-.SidebarListItem-link
+.SidebarListItem-title
   display                   inline-block
-  color                     $gray-14
-  text-decoration           none
-  font-weight               $fw-regular
-  width                     75%
-  min-height                20px
   ellipsis()
+  kalc                      width, (100% \- 40px)
+  vertical-align            top
+
 
 .SidebarListItem-unreadCount
   abs                       0 -5px 0 0
