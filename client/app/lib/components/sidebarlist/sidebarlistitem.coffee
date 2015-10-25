@@ -9,8 +9,8 @@ module.exports = class SidebarListItem extends React.Component
 
   getClassName: ->
     classnames
-      SidebarListItem : yes
-      active          : @props.active
+      SidebarListItem        : yes
+      active                 : @props.active
 
 
   renderUnreadCount: ->
@@ -24,12 +24,10 @@ module.exports = class SidebarListItem extends React.Component
 
   render: ->
 
-    <div className={@getClassName()} onClick={@props.onClick}>
+    <Link className={@getClassName()} href={@props.href} onClick={@props.onClick}>
       <cite className='SidebarListItem-icon' />
-      <Link className='SidebarListItem-link' href={@props.href}>
-        {@props.title}
-      </Link>
+      <span className='SidebarListItem-title'>{@props.title}</span>
       {@renderUnreadCount()}
-    </div>
+    </Link>
 
 
