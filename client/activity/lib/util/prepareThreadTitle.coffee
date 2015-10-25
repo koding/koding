@@ -37,8 +37,7 @@ module.exports = prepareThreadTitle = (thread) ->
   else
     children = makeProfileText sample.get 0
 
-  return \
-    <span>{children}</span>
+  return children
 
 helper =
 
@@ -56,5 +55,4 @@ helper =
   getPlusMorePartial: (participantCount, nameCount) ->
     text = " #{participantCount - nameCount - 1} more"
 
-    return \
-      <span>{text}</span>
+    return text
