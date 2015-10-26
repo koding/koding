@@ -3,4 +3,9 @@ amqp     = require 'amqp'
 KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 { mq }   = KONFIG
 
-module.exports = amqp.createConnection mq, { reconnect: no }
+conn = amqp.createConnection mq, { reconnect: yes }
+conn.on 'error', (err) ->
+  console.error "Error: connecting to RabbitMQ", err
+  process.exit(1)
+
+module.exports = conn
