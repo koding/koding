@@ -33,13 +33,21 @@ updateStacks = ({ reason, stacks, memberId, requesterId }) ->
         log 'Failed to delete stack:', err  if err
 
 
-setOwnerOfMachine = (machine, { account, user }) ->
+setOwnerOfMachine = (machine, { account, user, oldOwner }) ->
 
   # Update machine ownership to the admin who kicked the member
   machine.addUsers {
     targets: [ user ], asOwner: yes, sudo: yes
   }, (err) ->
     log 'Failed to change ownership of machine:', err  if err
+
+    machine.update {
+      $set: {
+        'meta.oldOwner': oldOwner
+      }
+    }, (err) ->
+      log 'Failed to set oldOwner of machine:', err  if err
+
 
   # Update workspace ownerships
   JWorkspace = require '../../workspace'
@@ -70,6 +78,7 @@ updateMachineUsers = ({ machines, user, requester, reason }) ->
       return  if not owner
 
       # otherwise we move the ownership of the machine to the requester
+      requester.oldOwner = user.getAt 'username'
       setOwnerOfMachine machine, requester
 
 
