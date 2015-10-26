@@ -178,6 +178,50 @@ func (c *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 
 func (c *Controller) handleUsernameMentions(reply *socialapimodels.ChannelMessage, targetId int64, mentionedUsers []socialapimodels.Account) ([]int64, error) {
 	groupChannel, err := reply.FetchParentChannel()
+// clean up removes duplicate mentions from usernames. eg: team and all
+// essentially same mentions
+func cleanup(usernames []string) []string {
+	cleanUsernames := make(map[string]struct{})
+
+	for _, username := range usernames {
+		// check if the username is in global mention list first
+		for mention, aliases := range globalAliases {
+			if socialapimodels.IsIn(username, aliases...) {
+				// if we have "all" mention (or any other all `alias`), no need
+				// for further process
+				if mention == "all" {
+					return []string{"all"}
+				}
+
+				// if the username is one the keywords, just use the general keyword
+				cleanUsernames[mention] = struct{}{}
+			} else {
+				// if username is not one of the keywords, use it directly
+				cleanUsernames[username] = struct{}{}
+			}
+		}
+	}
+
+	// then check if the username is in
+	for cleaned := range cleanUsernames {
+		for mention, aliases := range roleAliases {
+			if socialapimodels.IsIn(cleaned, aliases...) {
+				delete(cleanUsernames, cleaned)      // delete the alias from clean
+				cleanUsernames[mention] = struct{}{} // set mention to clean
+			} else {
+				cleanUsernames[cleaned] = struct{}{}
+			}
+		}
+	}
+
+	// convert it to string slice
+	res := make([]string, 0)
+	for username := range cleanUsernames {
+		res = append(res, username)
+	}
+
+	return res
+}
 	if err != nil {
 		return nil, err
 	}
