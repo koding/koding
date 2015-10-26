@@ -111,9 +111,8 @@ module.exports = class TeamMembersCommonView extends KDView
 
       return @handleError err  if err
 
-      @fetchUserRoles members, (members) =>
-        @listMembers members
-        @isFetching = no
+      @listMembers members
+      @isFetching = no
 
 
   fetchUserRoles: (members, callback) ->
