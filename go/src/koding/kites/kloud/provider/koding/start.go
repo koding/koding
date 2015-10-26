@@ -192,6 +192,24 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		}
 	}
 
+	// Assign a Elastic IP for a paying customer if it doesn't have any
+	// assigned yet (Elastic IP's are assigned only during the Build). We
+	// lookup the IP from the Elastic IPs, if it's not available (returns an
+	// error) we proceed and create it.
+	if m.Payment.Plan != "free" { // check this first to avoid an additional AWS call
+		_, err = m.Session.AWSClient.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter())
+		if isAddressNotFoundError(err) {
+			m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
+
+			elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
+			if err != nil {
+				m.Log.Warning("couldn't not create elastic IP: %s", err)
+			} else {
+				m.IpAddress = elasticIp
+			}
+		}
+	}
+
 	m.push("Initializing domain instance", 65, machinestate.Starting)
 	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
