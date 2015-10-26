@@ -9,7 +9,6 @@ import (
 )
 
 func TestAdminRequired(t *testing.T) {
-
 	Convey("If the user has permissions, it", t, func() {
 		p := &util.Permissions{
 			AdminChecker: func() (bool, error) { return true, nil },
