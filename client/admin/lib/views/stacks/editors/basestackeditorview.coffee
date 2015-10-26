@@ -41,6 +41,7 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       ace.setTabSize 2, no
       ace.setShowPrintMargin no, no
       ace.setEnableAutocomplete no, no
+      ace.setUseSoftTabs yes, no
 
       kd.utils.defer =>
         @getEditorSession().setScrollTop 0

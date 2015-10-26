@@ -1,19 +1,31 @@
-kd                     = require 'kd'
-actionTypes            = require './actiontypes'
+kd             = require 'kd'
+actionTypes    = require './actiontypes'
+Getters        = require 'activity/flux/getters'
+MessageActions = require 'activity/flux/actions/message'
+whoami         = require 'app/util/whoami'
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
 ###*
- * Sets last message edit mode
- *
- * @param {string} accountId
+ * Sets edit mode for last message in current thread
 ###
-setLastMessageEditMode = (accountId) ->
+setLastMessageEditMode = ->
 
-  { SET_LAST_MESSAGE_EDIT_MODE } = actionTypes
-  dispatch SET_LAST_MESSAGE_EDIT_MODE, { accountId }
+  { reactor } = kd.singletons
+
+  accountId = whoami()._id
+  thread    = reactor.evaluate Getters.selectedChannelThread
+  messages  = thread.get 'messages'
+
+  lastMessage = messages.findLast (message) ->
+    message.getIn(['account', '_id']) is accountId and
+    message.get('typeConstant') isnt 'system'
+
+  return  unless lastMessage
+
+  MessageActions.setMessageEditMode lastMessage.get '_id'
 
 
 module.exports = {

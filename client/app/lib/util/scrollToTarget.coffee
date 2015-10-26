@@ -29,7 +29,7 @@ module.exports = (container, target) ->
   targetPosition        = target.position()
   return  unless targetPosition
 
-  targetTop             = targetPosition.top
+  targetTop             = targetPosition.top + containerScrollTop
   targetHeight          = target.outerHeight yes
   targetBottom          = targetTop + targetHeight
 
@@ -49,3 +49,4 @@ module.exports = (container, target) ->
     hasPrevSibling = target.prev().length > 0
     scrollTop = if hasPrevSibling then targetTop else 0
     container.scrollTop scrollTop
+

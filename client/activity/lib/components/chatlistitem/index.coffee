@@ -45,6 +45,7 @@ module.exports = class ChatListItem extends React.Component
     showItemMenu                  : yes
     isSelected                    : no
     channelId                     : ''
+    onEditStarted                 : kd.noop
 
   constructor: (props) ->
 
@@ -265,6 +266,12 @@ module.exports = class ChatListItem extends React.Component
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
 
+  onEditStarted: ->
+
+    element = React.findDOMNode this
+    @props.onEditStarted? element
+
+
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
     'hidden' : not @props.message.get '__isEditing'
@@ -304,6 +311,7 @@ module.exports = class ChatListItem extends React.Component
         onEsc            = { @bound 'cancelEdit' }
         ref              = 'editInput'
         disabledFeatures = { ['commands'] }
+        onReady          = { @bound 'onEditStarted' }
       />
       <div className='clearfix'></div>
     </div>

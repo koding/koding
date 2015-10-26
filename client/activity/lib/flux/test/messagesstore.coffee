@@ -270,28 +270,3 @@ describe 'MessagesStore', ->
       message = storeState.get messageId
       expect(message.get '__isEditing').to.equal no
 
-
-  describe '#handleSetLastMessageEditMode', ->
-
-    message_1       = null
-    message_2       = null
-    clientRequestId = 'test'
-    accountId       = whoami()._id
-    messageId_1     = 'setLastEditMode_1'
-    messageId_2     = 'setLastEditMode_2'
-    message_1       = MessageCollectionHelpers.createFakeMessage messageId_1, 'hello world 1'
-    message_2       = MessageCollectionHelpers.createFakeMessage messageId_2, 'hello world 2'
-
-    it 'sets message __isEditing value to yes', ->
-
-      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_1 }
-      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message: message_2 }
-      reactor.dispatch chatInputActionTypes.SET_LAST_MESSAGE_EDIT_MODE, { accountId }
-
-      storeState = reactor.evaluate ['messages']
-      message_1 = storeState.get messageId_1
-      message_2 = storeState.get messageId_2
-
-      expect(message_1.get '__isEditing').to.equal undefined
-      expect(message_2.get '__isEditing').to.equal yes
-
