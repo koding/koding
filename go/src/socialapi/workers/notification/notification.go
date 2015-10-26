@@ -2,10 +2,13 @@ package notification
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/notification/models"
 	"time"
 
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -94,7 +97,7 @@ func (c *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		if recipient == rn.NotifierId {
 			notifierSubscribed = true
 		}
-		c.notify(nc.Id, recipient, groupChannel)
+		c.notify(nc.Id, recipient, groupChannel, true)
 	}
 
 	if !notifierSubscribed {
@@ -136,13 +139,12 @@ func (c *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 //}
 
 func (c *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
-	switch cm.TypeConstant {
-	case socialapimodels.ChannelMessage_TYPE_POST:
-		_, err := c.CreateMentionNotification(cm, cm.Id)
-		return err
-	default:
+	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
 		return nil
 	}
+
+	_, err := c.CreateMentionNotification(cm, cm.Id)
+	return err
 }
 
 func (c *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) error {
@@ -160,8 +162,8 @@ func (c *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) erro
 }
 
 // CreateMentionNotification creates mention notifications for the related channel messages
-func (c *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage, targetId int64) ([]int64, error) {
-	usernames := reply.GetMentionedUsernames()
+func (c *Controller) CreateMentionNotification(cm *socialapimodels.ChannelMessage, targetId int64) ([]int64, error) {
+	usernames := cm.GetMentionedUsernames()
 
 	// message does not contain any mentioned users
 	if len(usernames) == 0 {
@@ -173,11 +175,132 @@ func (c *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 		return nil, err
 	}
 
-	return c.handleUsernameMentions(reply, targetId, mentionedUsers)
+	return c.handleUsernameMentions(cm, targetId, mentionedUsers)
 }
 
-func (c *Controller) handleUsernameMentions(reply *socialapimodels.ChannelMessage, targetId int64, mentionedUsers []socialapimodels.Account) ([]int64, error) {
-	groupChannel, err := reply.FetchParentChannel()
+// normalizeUsernames converts aliases to their respective usernames
+func normalizeUsernames(cm *socialapimodels.ChannelMessage, usernames []string) ([]string, error) {
+	normalizeUsernames := make([]string, 0)
+
+	for alias := range globalAliases {
+		for _, username := range usernames {
+			if alias == username {
+				channelUsers, err := fetchAllMembersOfAGroup(cm)
+				if err != nil {
+					return nil, err
+				}
+				normalizeUsernames = append(normalizeUsernames, channelUsers...)
+			} else {
+				normalizeUsernames = append(normalizeUsernames, username)
+			}
+		}
+	}
+
+	for alias := range roleAliases {
+		for _, username := range usernames {
+			if alias == username {
+				channelUsers, err := fetchAllMembersOfChannel(cm)
+				if err != nil {
+					return nil, err
+				}
+				normalizeUsernames = append(normalizeUsernames, channelUsers...)
+			} else {
+				normalizeUsernames = append(normalizeUsernames, username)
+			}
+		}
+	}
+
+	return socialapimodels.UnifyStringSlice(normalizeUsernames), nil
+}
+
+// fetchAllMembersOfAGroup gets the group name from the channel message and
+// returns all the user's nicknames of that group
+func fetchAllMembersOfAGroup(cm *socialapimodels.ChannelMessage) ([]string, error) {
+	groupChannel, err := cm.FetchParentChannel() // it has internal caching
+	if err != nil {
+		return nil, err
+	}
+
+	return fetchChannelParticipants(groupChannel)
+}
+
+// fetchAllMembersOfChannel gets the channel id from ChannelMessage and fetches
+// all the participants of that channel, returns only the usernames
+func fetchAllMembersOfChannel(cm *socialapimodels.ChannelMessage) ([]string, error) {
+	c, err := socialapimodels.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	return fetchChannelParticipants(c)
+}
+
+// fetchAllAdminsOfChannel fetches all the admins of a group and return their
+// usernames
+func fetchAllAdminsOfChannel(cm *socialapimodels.ChannelMessage) ([]string, error) {
+	c, err := socialapimodels.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	admins, err := modelhelper.FetchAdminAccounts(c.GroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	adminNicknames := make([]string, len(admins))
+	for i, admin := range admins {
+		adminNicknames[i] = admin.Profile.Nickname
+	}
+
+	return adminNicknames, nil
+}
+
+// fetchChannelParticipants fetches all the participants of the given channel,
+// returns only the usernames of the account
+func fetchChannelParticipants(c *socialapimodels.Channel) ([]string, error) {
+	q := request.NewQuery()
+	ids, err := c.FetchParticipantIds(q)
+	if err != nil {
+		return nil, err
+	}
+
+	var errs *multierror.Error
+
+	usernames := make([]string, 0)
+	for _, id := range ids {
+		acc, err := socialapimodels.Cache.Account.ById(id)
+		if err != nil {
+			errs = multierror.Append(errs, err)
+		}
+
+		usernames = append(usernames, acc.Nick)
+	}
+
+	if errs.ErrorOrNil() != nil {
+		return nil, errs
+	}
+
+	return usernames, nil
+}
+
+var globalAliases = map[string][]string{
+	"all":     []string{"team", "all", "group"},
+	"channel": []string{"channel"},
+}
+
+var roleAliases = map[string][]string{
+	"admins": []string{"admins"},
+}
+
+type aliasNormalizerFunc func(*socialapimodels.ChannelMessage) ([]string, error)
+
+var aliasNormalier = map[string]aliasNormalizerFunc{
+	"all":     fetchAllMembersOfAGroup,
+	"channel": fetchAllMembersOfChannel,
+	"admins":  fetchAllAdminsOfChannel,
+}
+
 // clean up removes duplicate mentions from usernames. eg: team and all
 // essentially same mentions
 func cleanup(usernames []string) []string {
@@ -222,6 +345,9 @@ func cleanup(usernames []string) []string {
 
 	return res
 }
+
+func (c *Controller) handleUsernameMentions(cm *socialapimodels.ChannelMessage, targetId int64, mentionedUsers []socialapimodels.Account) ([]int64, error) {
+	groupChannel, err := cm.FetchParentChannel() // it has internal caching
 	if err != nil {
 		return nil, err
 	}
@@ -230,13 +356,14 @@ func cleanup(usernames []string) []string {
 
 	for _, mentionedUser := range mentionedUsers {
 		// if user mentions herself ignore it
-		if mentionedUser.Id == reply.AccountId {
+		if mentionedUser.Id == cm.AccountId {
 			continue
 		}
+
 		mn := models.NewMentionNotification()
 		mn.TargetId = targetId
-		mn.MessageId = reply.Id
-		mn.NotifierId = reply.AccountId
+		mn.MessageId = cm.Id
+		mn.NotifierId = cm.AccountId
 		nc, err := models.CreateNotificationContent(mn)
 		if err != nil {
 			return nil, err
@@ -308,28 +435,28 @@ func (c *Controller) notifyOnce(contentId, notifierId int64) {
 }
 
 func prepareActiveNotification(contentId, notifierId int64) *models.Notification {
-	notification := newNotification(contentId, notifierId, time.Now().UTC())
-	notification.ActivatedAt = time.Now().UTC()
+	n := newNotification(contentId, notifierId, time.Now().UTC())
+	n.ActivatedAt = time.Now().UTC()
 
-	return notification
+	return n
 }
 
 func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time, c *socialapimodels.Channel) {
-	notification := newNotification(contentId, notifierId, subscribedAt)
-	notification.SubscribeOnly = true
-	notification.ContextChannelId = c.Id
-	if err := notification.Create(); err != nil {
-		n.log.Error("An error occurred while subscribing user %d: %s", notification.AccountId, err.Error())
+	nn := newNotification(contentId, notifierId, subscribedAt)
+	nn.SubscribeOnly = true
+	nn.ContextChannelId = c.Id
+	if err := nn.Create(); err != nil {
+		n.log.Error("An error occurred while subscribing user %d: %s", nn.AccountId, err.Error())
 	}
 }
 
 func newNotification(contentId, notifierId int64, subscribedAt time.Time) *models.Notification {
-	notification := models.NewNotification()
-	notification.NotificationContentId = contentId
-	notification.AccountId = notifierId
-	notification.SubscribedAt = subscribedAt
+	n := models.NewNotification()
+	n.NotificationContentId = contentId
+	n.AccountId = notifierId
+	n.SubscribedAt = subscribedAt
 
-	return notification
+	return n
 }
 
 func (c *Controller) CreateInteractionNotification(i *socialapimodels.Interaction) error {
