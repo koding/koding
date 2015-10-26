@@ -49,6 +49,7 @@ var _ json.Marshaler
 var _ time.Time
 var _ xmlutil.XMLNode
 var _ xml.Attr
+var _ utilassert.Imported
 var _ = ioutil.Discard
 var _ = util.Trim("")
 var _ = url.Values{}
@@ -76,6 +77,7 @@ var extraImports = []string{
 	"",
 	"github.com/aws/aws-sdk-go/internal/protocol/xml/xmlutil",
 	"github.com/aws/aws-sdk-go/internal/util",
+	"github.com/aws/aws-sdk-go/internal/util/utilassert",
 	"github.com/stretchr/testify/assert",
 }
 
@@ -103,7 +105,7 @@ func (t *testSuite) TestSuite() string {
 		c.TestSuite = t
 		buf.WriteString(c.TestCase(idx) + "\n")
 	}
-	return util.GoFmt(buf.String())
+	return buf.String()
 }
 
 var tplInputTestCase = template.Must(template.New("inputcase").Parse(`
@@ -124,7 +126,7 @@ func Test{{ .OpName }}(t *testing.T) {
 	{{ .BodyAssertions }}{{ end }}
 
 	{{ if ne .TestCase.InputTest.URI "" }}// assert URL
-	assert.Equal(t, "https://test{{ .TestCase.InputTest.URI }}", r.URL.String()){{ end }}
+	utilassert.AssertURL(t, "https://test{{ .TestCase.InputTest.URI }}", r.URL.String()){{ end }}
 
 	// assert headers
 {{ range $k, $v := .TestCase.InputTest.Headers }}assert.Equal(t, "{{ $v }}", r.Header.Get("{{ $k }}"))
@@ -138,16 +140,45 @@ type tplInputTestCaseData struct {
 }
 
 func (t tplInputTestCaseData) BodyAssertions() string {
-	protocol, code := t.TestCase.TestSuite.API.Metadata.Protocol, ""
+	code := &bytes.Buffer{}
+	protocol := t.TestCase.TestSuite.API.Metadata.Protocol
+
+	// Extract the body bytes
 	switch protocol {
 	case "rest-xml":
-		code += "body := util.SortXML(r.Body)\n"
+		fmt.Fprintln(code, "body := util.SortXML(r.Body)")
 	default:
-		code += "body, _ := ioutil.ReadAll(r.Body)\n"
+		fmt.Fprintln(code, "body, _ := ioutil.ReadAll(r.Body)")
 	}
 
-	code += "assert.Equal(t, util.Trim(`" + t.TestCase.InputTest.Body + "`), util.Trim(string(body)))"
-	return code
+	// Generate the body verification code
+	expectedBody := util.Trim(t.TestCase.InputTest.Body)
+	switch protocol {
+	case "ec2", "query":
+		fmt.Fprintf(code, "utilassert.AssertQuery(t, `%s`, util.Trim(string(body)))",
+			expectedBody)
+	case "rest-xml":
+		if strings.HasPrefix(expectedBody, "<") {
+			fmt.Fprintf(code, "utilassert.AssertXML(t, `%s`, util.Trim(string(body)), %s{})",
+				expectedBody, t.TestCase.Given.InputRef.ShapeName)
+		} else {
+			fmt.Fprintf(code, "assert.Equal(t, `%s`, util.Trim(string(body)))",
+				expectedBody)
+		}
+	case "json", "jsonrpc", "rest-json":
+		if strings.HasPrefix(expectedBody, "{") {
+			fmt.Fprintf(code, "utilassert.AssertJSON(t, `%s`, util.Trim(string(body)))",
+				expectedBody)
+		} else {
+			fmt.Fprintf(code, "assert.Equal(t, `%s`, util.Trim(string(body)))",
+				expectedBody)
+		}
+	default:
+		fmt.Fprintf(code, "assert.Equal(t, `%s`, util.Trim(string(body)))",
+			expectedBody)
+	}
+
+	return code.String()
 }
 
 var tplOutputTestCase = template.Must(template.New("outputcase").Parse(`
@@ -217,7 +248,7 @@ func (i *testCase) TestCase(idx int) string {
 		}
 	}
 
-	return util.GoFmt(buf.String())
+	return buf.String()
 }
 
 // generateTestSuite generates a protocol test suite for a given configuration
@@ -254,8 +285,8 @@ func generateTestSuite(filename string) string {
 			suite.API.Operations[c.Given.ExportedName] = c.Given
 		}
 
-		suite.API.NoInflections = true // don't require inflections
-		suite.API.NoInitMethods = true // don't generate init methods
+		suite.API.NoInitMethods = true     // don't generate init methods
+		suite.API.NoStringerMethods = true // don't generate stringer methods
 		suite.API.Setup()
 		suite.API.Metadata.EndpointPrefix = suite.API.PackageName()
 
@@ -289,7 +320,7 @@ func generateTestSuite(filename string) string {
 		innerBuf.WriteString(suite.TestSuite() + "\n")
 	}
 
-	return util.GoFmt(buf.String() + innerBuf.String())
+	return buf.String() + innerBuf.String()
 }
 
 func main() {

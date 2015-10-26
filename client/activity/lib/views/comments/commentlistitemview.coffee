@@ -3,7 +3,7 @@ KDButtonView              = kd.ButtonView
 KDCustomHTMLView          = kd.CustomHTMLView
 KDTimeAgoView             = kd.TimeAgoView
 KDView                    = kd.View
-emojify                   = require 'emojify.js'
+emojifyMarkdown           = require 'activity/util/emojifyMarkdown'
 CommentDeleteModal        = require './commentdeletemodal'
 CommentInputEditWidget    = require './commentinputeditwidget'
 CommentLikeView           = require './commentlikeview'
@@ -22,6 +22,7 @@ updateEmbedBox            = require 'activity/mixins/updateembedbox'
 animatedRemoveMixin       = require 'activity/mixins/animatedremove'
 handleUpdate              = require 'activity/mixins/handleupdate'
 ActivityBaseListItemView  = require '../activitybaselistitemview'
+
 
 module.exports = class CommentListItemView extends ActivityBaseListItemView
 
@@ -49,7 +50,7 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
   handleDataUpdate: ->
 
     handleUpdate.call this
-    emojify.run @getElement()
+    emojifyMarkdown @getElement()
 
 
   handleInternalLink: (event) ->
@@ -266,9 +267,18 @@ module.exports = class CommentListItemView extends ActivityBaseListItemView
 
     kd.utils.defer =>
       @checkIfItsTooTall()
-      emojify.run @getElement()
+      emojifyMarkdown @getElement()
 
-    # @setAnchors()
+    @listenImageLoad()
+
+
+  listenImageLoad: ->
+
+    selector  = @getOption('showMoreWrapperSelector') + ' img'
+    images    = @$ selector
+
+    for image in images
+      image.onload = => @checkIfItsTooTall()
 
 
   # updateTemplate: (force = no) ->

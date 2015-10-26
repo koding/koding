@@ -93,7 +93,6 @@ module.exports = class JPaymentCharge extends jraphical.Module
     #       console.log 'transaction created', arguments
     #       callback err, unless err then pay
 
-  # coffeelint: disable=no_implicit_braces
   cancel: secure ({ connection:{ client } }, callback) ->
     recurly.deleteTransaction @paymentMethodId, { @uuid, @amount },
       (err, charge) =>

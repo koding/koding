@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical = require 'jraphical'
 
 emailsanitize = require './user/emailsanitize'
@@ -71,7 +70,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
     JReferrableEmail.remove { username }, callback
 
   invite: secure (client, callback) ->
-    { delegate: profile: { firstName, lastName, nickname } } = client.connection
+    { delegate: { profile: { firstName, lastName, nickname } } } = client.connection
 
     shareUrl  = "https://koding.com/R/#{@username}"
 
@@ -80,7 +79,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
       subject    : Tracker.types.INVITED_GROUP
     }, { firstName, lastName, shareUrl }
 
-    @update $set: invited: true, callback
+    @update { $set: { invited: true } }, callback
 
   @invite: secure (client, email, callback) ->
     { connection: { delegate: { profile: { nickname } } } } = client

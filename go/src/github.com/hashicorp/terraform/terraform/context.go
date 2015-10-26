@@ -194,7 +194,7 @@ func (c *Context) Input(mode InputMode) error {
 		}
 		sort.Strings(names)
 		for _, n := range names {
-			// If we only care about unset variables, then if the variabel
+			// If we only care about unset variables, then if the variable
 			// is set, continue on.
 			if mode&InputModeVarUnset != 0 {
 				if _, ok := c.variables[n]; ok {
@@ -214,9 +214,13 @@ func (c *Context) Input(mode InputMode) error {
 				panic(fmt.Sprintf("Unknown variable type: %#v", v.Type()))
 			}
 
-			var defaultString string
-			if v.Default != nil {
-				defaultString = v.Default.(string)
+			// If the variable is not already set, and the variable defines a
+			// default, use that for the value.
+			if _, ok := c.variables[n]; !ok {
+				if v.Default != nil {
+					c.variables[n] = v.Default.(string)
+					continue
+				}
 			}
 
 			// Ask the user for a value for this variable
@@ -226,7 +230,6 @@ func (c *Context) Input(mode InputMode) error {
 				value, err = c.uiInput.Input(&InputOpts{
 					Id:          fmt.Sprintf("var.%s", n),
 					Query:       fmt.Sprintf("var.%s", n),
-					Default:     defaultString,
 					Description: v.Description,
 				})
 				if err != nil {
@@ -289,7 +292,11 @@ func (c *Context) Apply() (*State, error) {
 	}
 
 	// Do the walk
-	_, err = c.walk(graph, walkApply)
+	if c.destroy {
+		_, err = c.walk(graph, walkDestroy)
+	} else {
+		_, err = c.walk(graph, walkApply)
+	}
 
 	// Clean out any unused things
 	c.state.prune()
@@ -434,6 +441,12 @@ func (c *Context) Validate() ([]string, []error) {
 		}
 	}
 
+	// If we have errors at this point, the graphing has no chance,
+	// so just bail early.
+	if errs != nil {
+		return nil, []error{errs}
+	}
+
 	// Build the graph so we can walk it and run Validate on nodes.
 	// We also validate the graph generated here, but this graph doesn't
 	// necessarily match the graph that Plan will generate, so we'll validate the
@@ -500,7 +513,7 @@ func (c *Context) releaseRun(ch chan<- struct{}) {
 func (c *Context) walk(
 	graph *Graph, operation walkOperation) (*ContextGraphWalker, error) {
 	// Walk the graph
-	log.Printf("[INFO] Starting graph walk: %s", operation.String())
+	log.Printf("[DEBUG] Starting graph walk: %s", operation.String())
 	walker := &ContextGraphWalker{Context: c, Operation: operation}
 	return walker, graph.Walk(walker)
 }

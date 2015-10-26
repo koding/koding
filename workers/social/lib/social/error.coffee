@@ -4,7 +4,7 @@ KnownErrors =
 
 module.exports = class KodingError extends Error
 
-  constructor:(message, name) ->
+  constructor: (message, name, errorObject) ->
 
     return new KodingError message  unless this instanceof KodingError
 
@@ -12,5 +12,4 @@ module.exports = class KodingError extends Error
 
     @message = message
     @name    = name or KnownErrors[message] or 'KodingError'
-
-
+    @error   = errorObject  if errorObject

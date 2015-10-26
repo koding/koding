@@ -6,6 +6,17 @@ that with time there are many options how to populate a set of configs.
 Multiconfig makes it easy by dynamically creating all necessary options.
 Checkout the example below to see it in action.
 
+## Features
+
+Multiconfig is able to read configuration automatically based on the given struct's field names from the following sources:
+
+* Struct tags
+* TOML file
+* JSON file
+* Environment variables
+* Flags
+
+
 ## Install
 
 ```bash

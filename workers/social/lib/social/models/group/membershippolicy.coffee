@@ -40,7 +40,6 @@ module.exports = class JMembershipPolicy extends Module
         callback new KodingError "Unknown slug: #{slug}"
       else group.fetchMembershipPolicy callback
 
-  # coffeelint: disable=no_implicit_braces
   explain: ->
     return @explanation if @explanation?
     if @invitationsEnabled

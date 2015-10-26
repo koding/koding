@@ -32,7 +32,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       callback : @bound 'verifyCredential'
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'inuse-tag hidden'
+      cssClass : 'custom-tag hidden'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This stack template currently using this credential'
@@ -50,12 +50,14 @@ module.exports = class CredentialListItem extends kd.ListItemView
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
 
+    delegate.on 'ResetInuseStates', @inuseView.bound 'hide'
+
 
   setVerified: (state, reason) ->
 
     if state
       @warningView.hide()
-      @getDelegate().emit 'ItemSelected', @getData()
+      @getDelegate().emit 'ItemSelected', this
     else
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"

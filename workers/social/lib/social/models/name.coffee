@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { Model, Base } = require 'bongo'
 
 module.exports = class JName extends Model

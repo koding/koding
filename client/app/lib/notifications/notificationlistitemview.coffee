@@ -8,6 +8,7 @@ groupifyLink            = require '../util/groupifyLink'
 getFullnameFromAccount  = require '../util/getFullnameFromAccount'
 remote                  = require('../remote').getInstance()
 whoami                  = require '../util/whoami'
+isKoding                = require '../util/isKoding'
 AvatarView              = require '../commonviews/avatarviews/avatarview'
 JView                   = require '../jview'
 LinkGroup               = require '../commonviews/linkviews/linkgroup'
@@ -78,7 +79,9 @@ module.exports = class NotificationListItemView extends KDListItemView
       when 'comment', 'like', 'mention'
         socialapi.message.byId { id: @getData().targetId }, (err, post) =>
           return kd.warn err  if err
-          @setAttribute 'href', groupifyLink "/Activity/Post/#{post.slug}"
+          if isKoding()
+          then @setAttribute 'href', groupifyLink "/Activity/Post/#{post.slug}"
+          else @setAttribute 'href', calculateReactivityLink post
       when 'follow'
         @setAttribute 'href', groupifyLink "/#{@actors.first.profile.nickname}"
       when 'join', 'leave'
@@ -94,7 +97,9 @@ module.exports = class NotificationListItemView extends KDListItemView
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        kd.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
+        if isKoding()
+        then kd.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
+        else kd.singletons.router.handleRoute calculateReactivityLink post
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -189,5 +194,11 @@ module.exports = class NotificationListItemView extends KDListItemView
     """
 
 
+
+
+calculateReactivityLink = (post) ->
+
+  channel = kd.singletons.socialapi.retrieveCachedItemById post.initialChannelId
+  return "/Channels/#{channel.name.toLowerCase()}/#{post.id}"
 
 

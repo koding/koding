@@ -6,14 +6,15 @@ package cloudsearch
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
 const opBuildSuggesters = "BuildSuggesters"
 
 // BuildSuggestersRequest generates a request for the BuildSuggesters operation.
-func (c *CloudSearch) BuildSuggestersRequest(input *BuildSuggestersInput) (req *aws.Request, output *BuildSuggestersOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) BuildSuggestersRequest(input *BuildSuggestersInput) (req *request.Request, output *BuildSuggestersOutput) {
+	op := &request.Operation{
 		Name:       opBuildSuggesters,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -41,8 +42,8 @@ func (c *CloudSearch) BuildSuggesters(input *BuildSuggestersInput) (*BuildSugges
 const opCreateDomain = "CreateDomain"
 
 // CreateDomainRequest generates a request for the CreateDomain operation.
-func (c *CloudSearch) CreateDomainRequest(input *CreateDomainInput) (req *aws.Request, output *CreateDomainOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) CreateDomainRequest(input *CreateDomainInput) (req *request.Request, output *CreateDomainOutput) {
+	op := &request.Operation{
 		Name:       opCreateDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -70,8 +71,8 @@ func (c *CloudSearch) CreateDomain(input *CreateDomainInput) (*CreateDomainOutpu
 const opDefineAnalysisScheme = "DefineAnalysisScheme"
 
 // DefineAnalysisSchemeRequest generates a request for the DefineAnalysisScheme operation.
-func (c *CloudSearch) DefineAnalysisSchemeRequest(input *DefineAnalysisSchemeInput) (req *aws.Request, output *DefineAnalysisSchemeOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DefineAnalysisSchemeRequest(input *DefineAnalysisSchemeInput) (req *request.Request, output *DefineAnalysisSchemeOutput) {
+	op := &request.Operation{
 		Name:       opDefineAnalysisScheme,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -100,8 +101,8 @@ func (c *CloudSearch) DefineAnalysisScheme(input *DefineAnalysisSchemeInput) (*D
 const opDefineExpression = "DefineExpression"
 
 // DefineExpressionRequest generates a request for the DefineExpression operation.
-func (c *CloudSearch) DefineExpressionRequest(input *DefineExpressionInput) (req *aws.Request, output *DefineExpressionOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DefineExpressionRequest(input *DefineExpressionInput) (req *request.Request, output *DefineExpressionOutput) {
+	op := &request.Operation{
 		Name:       opDefineExpression,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -130,8 +131,8 @@ func (c *CloudSearch) DefineExpression(input *DefineExpressionInput) (*DefineExp
 const opDefineIndexField = "DefineIndexField"
 
 // DefineIndexFieldRequest generates a request for the DefineIndexField operation.
-func (c *CloudSearch) DefineIndexFieldRequest(input *DefineIndexFieldInput) (req *aws.Request, output *DefineIndexFieldOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DefineIndexFieldRequest(input *DefineIndexFieldInput) (req *request.Request, output *DefineIndexFieldOutput) {
+	op := &request.Operation{
 		Name:       opDefineIndexField,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -164,8 +165,8 @@ func (c *CloudSearch) DefineIndexField(input *DefineIndexFieldInput) (*DefineInd
 const opDefineSuggester = "DefineSuggester"
 
 // DefineSuggesterRequest generates a request for the DefineSuggester operation.
-func (c *CloudSearch) DefineSuggesterRequest(input *DefineSuggesterInput) (req *aws.Request, output *DefineSuggesterOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DefineSuggesterRequest(input *DefineSuggesterInput) (req *request.Request, output *DefineSuggesterOutput) {
+	op := &request.Operation{
 		Name:       opDefineSuggester,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -196,8 +197,8 @@ func (c *CloudSearch) DefineSuggester(input *DefineSuggesterInput) (*DefineSugge
 const opDeleteAnalysisScheme = "DeleteAnalysisScheme"
 
 // DeleteAnalysisSchemeRequest generates a request for the DeleteAnalysisScheme operation.
-func (c *CloudSearch) DeleteAnalysisSchemeRequest(input *DeleteAnalysisSchemeInput) (req *aws.Request, output *DeleteAnalysisSchemeOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DeleteAnalysisSchemeRequest(input *DeleteAnalysisSchemeInput) (req *request.Request, output *DeleteAnalysisSchemeOutput) {
+	op := &request.Operation{
 		Name:       opDeleteAnalysisScheme,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -225,8 +226,8 @@ func (c *CloudSearch) DeleteAnalysisScheme(input *DeleteAnalysisSchemeInput) (*D
 const opDeleteDomain = "DeleteDomain"
 
 // DeleteDomainRequest generates a request for the DeleteDomain operation.
-func (c *CloudSearch) DeleteDomainRequest(input *DeleteDomainInput) (req *aws.Request, output *DeleteDomainOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DeleteDomainRequest(input *DeleteDomainInput) (req *request.Request, output *DeleteDomainOutput) {
+	op := &request.Operation{
 		Name:       opDeleteDomain,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -255,8 +256,8 @@ func (c *CloudSearch) DeleteDomain(input *DeleteDomainInput) (*DeleteDomainOutpu
 const opDeleteExpression = "DeleteExpression"
 
 // DeleteExpressionRequest generates a request for the DeleteExpression operation.
-func (c *CloudSearch) DeleteExpressionRequest(input *DeleteExpressionInput) (req *aws.Request, output *DeleteExpressionOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DeleteExpressionRequest(input *DeleteExpressionInput) (req *request.Request, output *DeleteExpressionOutput) {
+	op := &request.Operation{
 		Name:       opDeleteExpression,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -284,8 +285,8 @@ func (c *CloudSearch) DeleteExpression(input *DeleteExpressionInput) (*DeleteExp
 const opDeleteIndexField = "DeleteIndexField"
 
 // DeleteIndexFieldRequest generates a request for the DeleteIndexField operation.
-func (c *CloudSearch) DeleteIndexFieldRequest(input *DeleteIndexFieldInput) (req *aws.Request, output *DeleteIndexFieldOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DeleteIndexFieldRequest(input *DeleteIndexFieldInput) (req *request.Request, output *DeleteIndexFieldOutput) {
+	op := &request.Operation{
 		Name:       opDeleteIndexField,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -313,8 +314,8 @@ func (c *CloudSearch) DeleteIndexField(input *DeleteIndexFieldInput) (*DeleteInd
 const opDeleteSuggester = "DeleteSuggester"
 
 // DeleteSuggesterRequest generates a request for the DeleteSuggester operation.
-func (c *CloudSearch) DeleteSuggesterRequest(input *DeleteSuggesterInput) (req *aws.Request, output *DeleteSuggesterOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DeleteSuggesterRequest(input *DeleteSuggesterInput) (req *request.Request, output *DeleteSuggesterOutput) {
+	op := &request.Operation{
 		Name:       opDeleteSuggester,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -342,8 +343,8 @@ func (c *CloudSearch) DeleteSuggester(input *DeleteSuggesterInput) (*DeleteSugge
 const opDescribeAnalysisSchemes = "DescribeAnalysisSchemes"
 
 // DescribeAnalysisSchemesRequest generates a request for the DescribeAnalysisSchemes operation.
-func (c *CloudSearch) DescribeAnalysisSchemesRequest(input *DescribeAnalysisSchemesInput) (req *aws.Request, output *DescribeAnalysisSchemesOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeAnalysisSchemesRequest(input *DescribeAnalysisSchemesInput) (req *request.Request, output *DescribeAnalysisSchemesOutput) {
+	op := &request.Operation{
 		Name:       opDescribeAnalysisSchemes,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -375,8 +376,8 @@ func (c *CloudSearch) DescribeAnalysisSchemes(input *DescribeAnalysisSchemesInpu
 const opDescribeAvailabilityOptions = "DescribeAvailabilityOptions"
 
 // DescribeAvailabilityOptionsRequest generates a request for the DescribeAvailabilityOptions operation.
-func (c *CloudSearch) DescribeAvailabilityOptionsRequest(input *DescribeAvailabilityOptionsInput) (req *aws.Request, output *DescribeAvailabilityOptionsOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeAvailabilityOptionsRequest(input *DescribeAvailabilityOptionsInput) (req *request.Request, output *DescribeAvailabilityOptionsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeAvailabilityOptions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -406,8 +407,8 @@ func (c *CloudSearch) DescribeAvailabilityOptions(input *DescribeAvailabilityOpt
 const opDescribeDomains = "DescribeDomains"
 
 // DescribeDomainsRequest generates a request for the DescribeDomains operation.
-func (c *CloudSearch) DescribeDomainsRequest(input *DescribeDomainsInput) (req *aws.Request, output *DescribeDomainsOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeDomainsRequest(input *DescribeDomainsInput) (req *request.Request, output *DescribeDomainsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeDomains,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -438,8 +439,8 @@ func (c *CloudSearch) DescribeDomains(input *DescribeDomainsInput) (*DescribeDom
 const opDescribeExpressions = "DescribeExpressions"
 
 // DescribeExpressionsRequest generates a request for the DescribeExpressions operation.
-func (c *CloudSearch) DescribeExpressionsRequest(input *DescribeExpressionsInput) (req *aws.Request, output *DescribeExpressionsOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeExpressionsRequest(input *DescribeExpressionsInput) (req *request.Request, output *DescribeExpressionsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeExpressions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -470,8 +471,8 @@ func (c *CloudSearch) DescribeExpressions(input *DescribeExpressionsInput) (*Des
 const opDescribeIndexFields = "DescribeIndexFields"
 
 // DescribeIndexFieldsRequest generates a request for the DescribeIndexFields operation.
-func (c *CloudSearch) DescribeIndexFieldsRequest(input *DescribeIndexFieldsInput) (req *aws.Request, output *DescribeIndexFieldsOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeIndexFieldsRequest(input *DescribeIndexFieldsInput) (req *request.Request, output *DescribeIndexFieldsOutput) {
+	op := &request.Operation{
 		Name:       opDescribeIndexFields,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -502,8 +503,8 @@ func (c *CloudSearch) DescribeIndexFields(input *DescribeIndexFieldsInput) (*Des
 const opDescribeScalingParameters = "DescribeScalingParameters"
 
 // DescribeScalingParametersRequest generates a request for the DescribeScalingParameters operation.
-func (c *CloudSearch) DescribeScalingParametersRequest(input *DescribeScalingParametersInput) (req *aws.Request, output *DescribeScalingParametersOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeScalingParametersRequest(input *DescribeScalingParametersInput) (req *request.Request, output *DescribeScalingParametersOutput) {
+	op := &request.Operation{
 		Name:       opDescribeScalingParameters,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -532,8 +533,8 @@ func (c *CloudSearch) DescribeScalingParameters(input *DescribeScalingParameters
 const opDescribeServiceAccessPolicies = "DescribeServiceAccessPolicies"
 
 // DescribeServiceAccessPoliciesRequest generates a request for the DescribeServiceAccessPolicies operation.
-func (c *CloudSearch) DescribeServiceAccessPoliciesRequest(input *DescribeServiceAccessPoliciesInput) (req *aws.Request, output *DescribeServiceAccessPoliciesOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeServiceAccessPoliciesRequest(input *DescribeServiceAccessPoliciesInput) (req *request.Request, output *DescribeServiceAccessPoliciesOutput) {
+	op := &request.Operation{
 		Name:       opDescribeServiceAccessPolicies,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -564,8 +565,8 @@ func (c *CloudSearch) DescribeServiceAccessPolicies(input *DescribeServiceAccess
 const opDescribeSuggesters = "DescribeSuggesters"
 
 // DescribeSuggestersRequest generates a request for the DescribeSuggesters operation.
-func (c *CloudSearch) DescribeSuggestersRequest(input *DescribeSuggestersInput) (req *aws.Request, output *DescribeSuggestersOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) DescribeSuggestersRequest(input *DescribeSuggestersInput) (req *request.Request, output *DescribeSuggestersOutput) {
+	op := &request.Operation{
 		Name:       opDescribeSuggesters,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -597,8 +598,8 @@ func (c *CloudSearch) DescribeSuggesters(input *DescribeSuggestersInput) (*Descr
 const opIndexDocuments = "IndexDocuments"
 
 // IndexDocumentsRequest generates a request for the IndexDocuments operation.
-func (c *CloudSearch) IndexDocumentsRequest(input *IndexDocumentsInput) (req *aws.Request, output *IndexDocumentsOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) IndexDocumentsRequest(input *IndexDocumentsInput) (req *request.Request, output *IndexDocumentsOutput) {
+	op := &request.Operation{
 		Name:       opIndexDocuments,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -626,8 +627,8 @@ func (c *CloudSearch) IndexDocuments(input *IndexDocumentsInput) (*IndexDocument
 const opListDomainNames = "ListDomainNames"
 
 // ListDomainNamesRequest generates a request for the ListDomainNames operation.
-func (c *CloudSearch) ListDomainNamesRequest(input *ListDomainNamesInput) (req *aws.Request, output *ListDomainNamesOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) ListDomainNamesRequest(input *ListDomainNamesInput) (req *request.Request, output *ListDomainNamesOutput) {
+	op := &request.Operation{
 		Name:       opListDomainNames,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -653,8 +654,8 @@ func (c *CloudSearch) ListDomainNames(input *ListDomainNamesInput) (*ListDomainN
 const opUpdateAvailabilityOptions = "UpdateAvailabilityOptions"
 
 // UpdateAvailabilityOptionsRequest generates a request for the UpdateAvailabilityOptions operation.
-func (c *CloudSearch) UpdateAvailabilityOptionsRequest(input *UpdateAvailabilityOptionsInput) (req *aws.Request, output *UpdateAvailabilityOptionsOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) UpdateAvailabilityOptionsRequest(input *UpdateAvailabilityOptionsInput) (req *request.Request, output *UpdateAvailabilityOptionsOutput) {
+	op := &request.Operation{
 		Name:       opUpdateAvailabilityOptions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -685,8 +686,8 @@ func (c *CloudSearch) UpdateAvailabilityOptions(input *UpdateAvailabilityOptions
 const opUpdateScalingParameters = "UpdateScalingParameters"
 
 // UpdateScalingParametersRequest generates a request for the UpdateScalingParameters operation.
-func (c *CloudSearch) UpdateScalingParametersRequest(input *UpdateScalingParametersInput) (req *aws.Request, output *UpdateScalingParametersOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) UpdateScalingParametersRequest(input *UpdateScalingParametersInput) (req *request.Request, output *UpdateScalingParametersOutput) {
+	op := &request.Operation{
 		Name:       opUpdateScalingParameters,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -719,8 +720,8 @@ func (c *CloudSearch) UpdateScalingParameters(input *UpdateScalingParametersInpu
 const opUpdateServiceAccessPolicies = "UpdateServiceAccessPolicies"
 
 // UpdateServiceAccessPoliciesRequest generates a request for the UpdateServiceAccessPolicies operation.
-func (c *CloudSearch) UpdateServiceAccessPoliciesRequest(input *UpdateServiceAccessPoliciesInput) (req *aws.Request, output *UpdateServiceAccessPoliciesOutput) {
-	op := &aws.Operation{
+func (c *CloudSearch) UpdateServiceAccessPoliciesRequest(input *UpdateServiceAccessPoliciesInput) (req *request.Request, output *UpdateServiceAccessPoliciesOutput) {
+	op := &request.Operation{
 		Name:       opUpdateServiceAccessPolicies,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
@@ -765,6 +766,16 @@ type metadataAccessPoliciesStatus struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AccessPoliciesStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessPoliciesStatus) GoString() string {
+	return s.String()
+}
+
 // Synonyms, stopwords, and stemming options for an analysis scheme. Includes
 // tokenization dictionary for Japanese.
 type AnalysisOptions struct {
@@ -772,7 +783,7 @@ type AnalysisOptions struct {
 	// The available levels vary depending on the language. For more information,
 	// see Language Specific Text Processing Settings (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/text-processing.html#text-processing-settings"
 	// target="_blank) in the Amazon CloudSearch Developer Guide
-	AlgorithmicStemming *string `type:"string"`
+	AlgorithmicStemming *string `type:"string" enum:"AlgorithmicStemming"`
 
 	// A JSON array that contains a collection of terms, tokens, readings and part
 	// of speech for Japanese Tokenizaiton. The Japanese tokenization dictionary
@@ -811,6 +822,16 @@ type metadataAnalysisOptions struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AnalysisOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AnalysisOptions) GoString() string {
+	return s.String()
+}
+
 // Configuration information for an analysis scheme. Each analysis scheme has
 // a unique name and specifies the language of the text to be processed. The
 // following options can be configured for an analysis scheme: Synonyms, Stopwords,
@@ -822,17 +843,27 @@ type AnalysisScheme struct {
 
 	// An IETF RFC 4646 (http://tools.ietf.org/html/rfc4646" target="_blank) language
 	// code or mul for multiple languages.
-	AnalysisSchemeLanguage *string `type:"string" required:"true"`
+	AnalysisSchemeLanguage *string `type:"string" required:"true" enum:"AnalysisSchemeLanguage"`
 
 	// Names must begin with a letter and can contain the following characters:
 	// a-z (lowercase), 0-9, and _ (underscore).
-	AnalysisSchemeName *string `type:"string" required:"true"`
+	AnalysisSchemeName *string `min:"1" type:"string" required:"true"`
 
 	metadataAnalysisScheme `json:"-" xml:"-"`
 }
 
 type metadataAnalysisScheme struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s AnalysisScheme) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AnalysisScheme) GoString() string {
+	return s.String()
 }
 
 // The status and configuration of an AnalysisScheme.
@@ -853,6 +884,16 @@ type metadataAnalysisSchemeStatus struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AnalysisSchemeStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AnalysisSchemeStatus) GoString() string {
+	return s.String()
+}
+
 // The status and configuration of the domain's availability options.
 type AvailabilityOptionsStatus struct {
 	// The availability options configured for the domain.
@@ -868,6 +909,16 @@ type metadataAvailabilityOptionsStatus struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s AvailabilityOptionsStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AvailabilityOptionsStatus) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the BuildSuggester operation. Specifies the
 // name of the domain you want to update.
 type BuildSuggestersInput struct {
@@ -875,13 +926,23 @@ type BuildSuggestersInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataBuildSuggestersInput `json:"-" xml:"-"`
 }
 
 type metadataBuildSuggestersInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s BuildSuggestersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildSuggestersInput) GoString() string {
+	return s.String()
 }
 
 // The result of a BuildSuggester request. Contains a list of the fields used
@@ -897,19 +958,39 @@ type metadataBuildSuggestersOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s BuildSuggestersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildSuggestersOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the CreateDomain operation. Specifies a name
 // for the new search domain.
 type CreateDomainInput struct {
 	// A name for the domain you are creating. Allowed characters are a-z (lower-case
 	// letters), 0-9, and hyphen (-). Domain names must start with a letter or number
 	// and be at least 3 and no more than 28 characters long.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataCreateDomainInput `json:"-" xml:"-"`
 }
 
 type metadataCreateDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDomainInput) GoString() string {
+	return s.String()
 }
 
 // The result of a CreateDomainRequest. Contains the status of a newly created
@@ -923,6 +1004,16 @@ type CreateDomainOutput struct {
 
 type metadataCreateDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDomainOutput) GoString() string {
+	return s.String()
 }
 
 // Options for a field that contains an array of dates. Present if IndexFieldType
@@ -948,6 +1039,16 @@ type DateArrayOptions struct {
 
 type metadataDateArrayOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DateArrayOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DateArrayOptions) GoString() string {
+	return s.String()
 }
 
 // Options for a date field. Dates and times are specified in UTC (Coordinated
@@ -984,13 +1085,23 @@ type DateOptions struct {
 	//
 	// The name score is reserved and cannot be used as a field name. To reference
 	// a document's ID, you can use the name _id.
-	SourceField *string `type:"string"`
+	SourceField *string `min:"1" type:"string"`
 
 	metadataDateOptions `json:"-" xml:"-"`
 }
 
 type metadataDateOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DateOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DateOptions) GoString() string {
+	return s.String()
 }
 
 // Container for the parameters to the DefineAnalysisScheme operation. Specifies
@@ -1006,13 +1117,23 @@ type DefineAnalysisSchemeInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDefineAnalysisSchemeInput `json:"-" xml:"-"`
 }
 
 type metadataDefineAnalysisSchemeInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DefineAnalysisSchemeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineAnalysisSchemeInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DefineAnalysisScheme request. Contains the status of the
@@ -1028,6 +1149,16 @@ type metadataDefineAnalysisSchemeOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DefineAnalysisSchemeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineAnalysisSchemeOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DefineExpression operation. Specifies
 // the name of the domain you want to update and the expression you want to
 // configure.
@@ -1036,7 +1167,7 @@ type DefineExpressionInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// A named expression that can be evaluated at search time. Can be used to sort
 	// the search results, define other expressions, or return computed information
@@ -1048,6 +1179,16 @@ type DefineExpressionInput struct {
 
 type metadataDefineExpressionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DefineExpressionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineExpressionInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DefineExpression request. Contains the status of the newly-configured
@@ -1063,6 +1204,16 @@ type metadataDefineExpressionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DefineExpressionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineExpressionOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DefineIndexField operation. Specifies
 // the name of the domain you want to update and the index field configuration.
 type DefineIndexFieldInput struct {
@@ -1070,7 +1221,7 @@ type DefineIndexFieldInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// The index field and field options you want to configure.
 	IndexField *IndexField `type:"structure" required:"true"`
@@ -1080,6 +1231,16 @@ type DefineIndexFieldInput struct {
 
 type metadataDefineIndexFieldInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DefineIndexFieldInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineIndexFieldInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DefineIndexField request. Contains the status of the newly-configured
@@ -1095,6 +1256,16 @@ type metadataDefineIndexFieldOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DefineIndexFieldOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineIndexFieldOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DefineSuggester operation. Specifies
 // the name of the domain you want to update and the suggester configuration.
 type DefineSuggesterInput struct {
@@ -1102,7 +1273,7 @@ type DefineSuggesterInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// Configuration information for a search suggester. Each suggester has a unique
 	// name and specifies the text field you want to use for suggestions. The following
@@ -1114,6 +1285,16 @@ type DefineSuggesterInput struct {
 
 type metadataDefineSuggesterInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DefineSuggesterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineSuggesterInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DefineSuggester request. Contains the status of the newly-configured
@@ -1129,24 +1310,44 @@ type metadataDefineSuggesterOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DefineSuggesterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefineSuggesterOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DeleteAnalysisScheme operation. Specifies
 // the name of the domain you want to update and the analysis scheme you want
 // to delete.
 type DeleteAnalysisSchemeInput struct {
 	// The name of the analysis scheme you want to delete.
-	AnalysisSchemeName *string `type:"string" required:"true"`
+	AnalysisSchemeName *string `min:"1" type:"string" required:"true"`
 
 	// A string that represents the name of a domain. Domain names are unique across
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDeleteAnalysisSchemeInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteAnalysisSchemeInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteAnalysisSchemeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAnalysisSchemeInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DeleteAnalysisScheme request. Contains the status of the
@@ -1162,17 +1363,37 @@ type metadataDeleteAnalysisSchemeOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteAnalysisSchemeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAnalysisSchemeOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DeleteDomain operation. Specifies the
 // name of the domain you want to delete.
 type DeleteDomainInput struct {
 	// The name of the domain you want to permanently delete.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDeleteDomainInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteDomainInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteDomainInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDomainInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DeleteDomain request. Contains the status of a newly deleted
@@ -1188,6 +1409,16 @@ type metadataDeleteDomainOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteDomainOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDomainOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DeleteExpression operation. Specifies
 // the name of the domain you want to update and the name of the expression
 // you want to delete.
@@ -1196,16 +1427,26 @@ type DeleteExpressionInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// The name of the Expression to delete.
-	ExpressionName *string `type:"string" required:"true"`
+	ExpressionName *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteExpressionInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteExpressionInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteExpressionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteExpressionInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DeleteExpression request. Specifies the expression being
@@ -1221,6 +1462,16 @@ type metadataDeleteExpressionOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteExpressionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteExpressionOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DeleteIndexField operation. Specifies
 // the name of the domain you want to update and the name of the index field
 // you want to delete.
@@ -1229,17 +1480,27 @@ type DeleteIndexFieldInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// The name of the index field your want to remove from the domain's indexing
 	// options.
-	IndexFieldName *string `type:"string" required:"true"`
+	IndexFieldName *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteIndexFieldInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteIndexFieldInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteIndexFieldInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteIndexFieldInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DeleteIndexField request.
@@ -1254,6 +1515,16 @@ type metadataDeleteIndexFieldOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DeleteIndexFieldOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteIndexFieldOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DeleteSuggester operation. Specifies
 // the name of the domain you want to update and name of the suggester you want
 // to delete.
@@ -1262,16 +1533,26 @@ type DeleteSuggesterInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// Specifies the name of the suggester you want to delete.
-	SuggesterName *string `type:"string" required:"true"`
+	SuggesterName *string `min:"1" type:"string" required:"true"`
 
 	metadataDeleteSuggesterInput `json:"-" xml:"-"`
 }
 
 type metadataDeleteSuggesterInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteSuggesterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteSuggesterInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DeleteSuggester request. Contains the status of the deleted
@@ -1285,6 +1566,16 @@ type DeleteSuggesterOutput struct {
 
 type metadataDeleteSuggesterOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteSuggesterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteSuggesterOutput) GoString() string {
+	return s.String()
 }
 
 // Container for the parameters to the DescribeAnalysisSchemes operation. Specifies
@@ -1301,13 +1592,23 @@ type DescribeAnalysisSchemesInput struct {
 	Deployed *bool `type:"boolean"`
 
 	// The name of the domain you want to describe.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDescribeAnalysisSchemesInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeAnalysisSchemesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeAnalysisSchemesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAnalysisSchemesInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeAnalysisSchemes request. Contains the analysis schemes
@@ -1323,6 +1624,16 @@ type metadataDescribeAnalysisSchemesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeAnalysisSchemesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAnalysisSchemesOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeAvailabilityOptions operation.
 // Specifies the name of the domain you want to describe. To show the active
 // configuration and exclude any pending changes, set the Deployed option to
@@ -1333,13 +1644,23 @@ type DescribeAvailabilityOptionsInput struct {
 	Deployed *bool `type:"boolean"`
 
 	// The name of the domain you want to describe.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDescribeAvailabilityOptionsInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeAvailabilityOptionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeAvailabilityOptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAvailabilityOptionsInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeAvailabilityOptions request. Indicates whether or
@@ -1356,6 +1677,16 @@ type metadataDescribeAvailabilityOptionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeAvailabilityOptionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAvailabilityOptionsOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeDomains operation. By default
 // shows the status of all domains. To restrict the response to particular domains,
 // specify the names of the domains you want to describe.
@@ -1368,6 +1699,16 @@ type DescribeDomainsInput struct {
 
 type metadataDescribeDomainsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeDomainsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDomainsInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeDomains request. Contains the status of the domains
@@ -1383,6 +1724,16 @@ type metadataDescribeDomainsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeDomainsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDomainsOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeDomains operation. Specifies
 // the name of the domain you want to describe. To restrict the response to
 // particular expressions, specify the names of the expressions you want to
@@ -1394,7 +1745,7 @@ type DescribeExpressionsInput struct {
 	Deployed *bool `type:"boolean"`
 
 	// The name of the domain you want to describe.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// Limits the DescribeExpressions response to the specified expressions. If
 	// not specified, all expressions are shown.
@@ -1405,6 +1756,16 @@ type DescribeExpressionsInput struct {
 
 type metadataDescribeExpressionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeExpressionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeExpressionsInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeExpressions request. Contains the expressions configured
@@ -1420,6 +1781,16 @@ type metadataDescribeExpressionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeExpressionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeExpressionsOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeIndexFields operation. Specifies
 // the name of the domain you want to describe. To restrict the response to
 // particular index fields, specify the names of the index fields you want to
@@ -1431,7 +1802,7 @@ type DescribeIndexFieldsInput struct {
 	Deployed *bool `type:"boolean"`
 
 	// The name of the domain you want to describe.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// A list of the index fields you want to describe. If not specified, information
 	// is returned for all configured index fields.
@@ -1442,6 +1813,16 @@ type DescribeIndexFieldsInput struct {
 
 type metadataDescribeIndexFieldsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeIndexFieldsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeIndexFieldsInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeIndexFields request. Contains the index fields configured
@@ -1457,6 +1838,16 @@ type metadataDescribeIndexFieldsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeIndexFieldsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeIndexFieldsOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeScalingParameters operation.
 // Specifies the name of the domain you want to describe.
 type DescribeScalingParametersInput struct {
@@ -1464,13 +1855,23 @@ type DescribeScalingParametersInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDescribeScalingParametersInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeScalingParametersInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeScalingParametersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeScalingParametersInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeScalingParameters request. Contains the scaling parameters
@@ -1486,6 +1887,16 @@ type metadataDescribeScalingParametersOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeScalingParametersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeScalingParametersOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeServiceAccessPolicies operation.
 // Specifies the name of the domain you want to describe. To show the active
 // configuration and exclude any pending changes, set the Deployed option to
@@ -1496,13 +1907,23 @@ type DescribeServiceAccessPoliciesInput struct {
 	Deployed *bool `type:"boolean"`
 
 	// The name of the domain you want to describe.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataDescribeServiceAccessPoliciesInput `json:"-" xml:"-"`
 }
 
 type metadataDescribeServiceAccessPoliciesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeServiceAccessPoliciesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeServiceAccessPoliciesInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeServiceAccessPolicies request.
@@ -1517,6 +1938,16 @@ type metadataDescribeServiceAccessPoliciesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeServiceAccessPoliciesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeServiceAccessPoliciesOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the DescribeSuggester operation. Specifies
 // the name of the domain you want to describe. To restrict the response to
 // particular suggesters, specify the names of the suggesters you want to describe.
@@ -1528,7 +1959,7 @@ type DescribeSuggestersInput struct {
 	Deployed *bool `type:"boolean"`
 
 	// The name of the domain you want to describe.
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// The suggesters you want to describe.
 	SuggesterNames []*string `type:"list"`
@@ -1538,6 +1969,16 @@ type DescribeSuggestersInput struct {
 
 type metadataDescribeSuggestersInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeSuggestersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSuggestersInput) GoString() string {
+	return s.String()
 }
 
 // The result of a DescribeSuggesters request.
@@ -1552,6 +1993,16 @@ type metadataDescribeSuggestersOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DescribeSuggestersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSuggestersOutput) GoString() string {
+	return s.String()
+}
+
 // Options for a search suggester.
 type DocumentSuggesterOptions struct {
 	// The level of fuzziness allowed when suggesting matches for a string: none,
@@ -1559,7 +2010,7 @@ type DocumentSuggesterOptions struct {
 	// With low, suggestions must differ from the specified string by no more than
 	// one character. With high, suggestions can differ by up to two characters.
 	// The default is none.
-	FuzzyMatching *string `type:"string"`
+	FuzzyMatching *string `type:"string" enum:"SuggesterFuzzyMatching"`
 
 	// An expression that computes a score for each suggestion to control how they
 	// are sorted. The scores are rounded to the nearest integer, with a floor of
@@ -1571,13 +2022,23 @@ type DocumentSuggesterOptions struct {
 	SortExpression *string `type:"string"`
 
 	// The name of the index field you want to use for suggestions.
-	SourceField *string `type:"string" required:"true"`
+	SourceField *string `min:"1" type:"string" required:"true"`
 
 	metadataDocumentSuggesterOptions `json:"-" xml:"-"`
 }
 
 type metadataDocumentSuggesterOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DocumentSuggesterOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DocumentSuggesterOptions) GoString() string {
+	return s.String()
 }
 
 // The current status of the search domain.
@@ -1603,13 +2064,13 @@ type DomainStatus struct {
 	DocService *ServiceEndpoint `type:"structure"`
 
 	// An internally generated unique identifier for a domain.
-	DomainID *string `locationName:"DomainId" type:"string" required:"true"`
+	DomainId *string `min:"1" type:"string" required:"true"`
 
 	// A string that represents the name of a domain. Domain names are unique across
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	Limits *Limits `type:"structure"`
 
@@ -1621,13 +2082,13 @@ type DomainStatus struct {
 	RequiresIndexDocuments *bool `type:"boolean" required:"true"`
 
 	// The number of search instances that are available to process search requests.
-	SearchInstanceCount *int64 `type:"integer"`
+	SearchInstanceCount *int64 `min:"1" type:"integer"`
 
 	// The instance type that is being used to process search requests.
 	SearchInstanceType *string `type:"string"`
 
 	// The number of partitions across which the search index is spread.
-	SearchPartitionCount *int64 `type:"integer"`
+	SearchPartitionCount *int64 `min:"1" type:"integer"`
 
 	// The service endpoint for requesting search results from a search domain.
 	SearchService *ServiceEndpoint `type:"structure"`
@@ -1637,6 +2098,16 @@ type DomainStatus struct {
 
 type metadataDomainStatus struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s DomainStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainStatus) GoString() string {
+	return s.String()
 }
 
 // Options for a field that contains an array of double-precision 64-bit floating
@@ -1665,6 +2136,16 @@ type metadataDoubleArrayOptions struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DoubleArrayOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DoubleArrayOptions) GoString() string {
+	return s.String()
+}
+
 // Options for a double-precision 64-bit floating point field. Present if IndexFieldType
 // specifies the field is of type double. All options are enabled by default.
 type DoubleOptions struct {
@@ -1686,7 +2167,7 @@ type DoubleOptions struct {
 	SortEnabled *bool `type:"boolean"`
 
 	// The name of the source field to map to the field.
-	SourceField *string `type:"string"`
+	SourceField *string `min:"1" type:"string"`
 
 	metadataDoubleOptions `json:"-" xml:"-"`
 }
@@ -1695,25 +2176,45 @@ type metadataDoubleOptions struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s DoubleOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DoubleOptions) GoString() string {
+	return s.String()
+}
+
 // A named expression that can be evaluated at search time. Can be used to sort
 // the search results, define other expressions, or return computed information
 // in the search results.
 type Expression struct {
 	// Names must begin with a letter and can contain the following characters:
 	// a-z (lowercase), 0-9, and _ (underscore).
-	ExpressionName *string `type:"string" required:"true"`
+	ExpressionName *string `min:"1" type:"string" required:"true"`
 
 	// The expression to evaluate for sorting while processing a search request.
 	// The Expression syntax is based on JavaScript expressions. For more information,
 	// see Configuring Expressions (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-expressions.html"
 	// target="_blank) in the Amazon CloudSearch Developer Guide.
-	ExpressionValue *string `type:"string" required:"true"`
+	ExpressionValue *string `min:"1" type:"string" required:"true"`
 
 	metadataExpression `json:"-" xml:"-"`
 }
 
 type metadataExpression struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Expression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Expression) GoString() string {
+	return s.String()
 }
 
 // The value of an Expression and its current status.
@@ -1731,6 +2232,16 @@ type metadataExpressionStatus struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ExpressionStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExpressionStatus) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the IndexDocuments operation. Specifies the
 // name of the domain you want to re-index.
 type IndexDocumentsInput struct {
@@ -1738,13 +2249,23 @@ type IndexDocumentsInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataIndexDocumentsInput `json:"-" xml:"-"`
 }
 
 type metadataIndexDocumentsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s IndexDocumentsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IndexDocumentsInput) GoString() string {
+	return s.String()
 }
 
 // The result of an IndexDocuments request. Contains the status of the indexing
@@ -1758,6 +2279,16 @@ type IndexDocumentsOutput struct {
 
 type metadataIndexDocumentsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s IndexDocumentsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IndexDocumentsOutput) GoString() string {
+	return s.String()
 }
 
 // Configuration information for a field in the index, including its name, type,
@@ -1796,13 +2327,13 @@ type IndexField struct {
 	//
 	// The name score is reserved and cannot be used as a field name. To reference
 	// a document's ID, you can use the name _id.
-	IndexFieldName *string `type:"string" required:"true"`
+	IndexFieldName *string `min:"1" type:"string" required:"true"`
 
 	// The type of field. The valid options for a field depend on the field type.
 	// For more information about the supported field types, see Configuring Index
 	// Fields (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-index-fields.html"
 	// target="_blank) in the Amazon CloudSearch Developer Guide.
-	IndexFieldType *string `type:"string" required:"true"`
+	IndexFieldType *string `type:"string" required:"true" enum:"IndexFieldType"`
 
 	// Options for a field that contains an array of 64-bit signed integers. Present
 	// if IndexFieldType specifies the field is of type int-array. All options are
@@ -1844,6 +2375,16 @@ type metadataIndexField struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s IndexField) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IndexField) GoString() string {
+	return s.String()
+}
+
 // The value of an IndexField and its current status.
 type IndexFieldStatus struct {
 	// Configuration information for a field in the index, including its name, type,
@@ -1858,6 +2399,16 @@ type IndexFieldStatus struct {
 
 type metadataIndexFieldStatus struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s IndexFieldStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IndexFieldStatus) GoString() string {
+	return s.String()
 }
 
 // Options for a field that contains an array of 64-bit signed integers. Present
@@ -1886,6 +2437,16 @@ type metadataIntArrayOptions struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s IntArrayOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IntArrayOptions) GoString() string {
+	return s.String()
+}
+
 // Options for a 64-bit signed integer field. Present if IndexFieldType specifies
 // the field is of type int. All options are enabled by default.
 type IntOptions struct {
@@ -1907,13 +2468,23 @@ type IntOptions struct {
 	SortEnabled *bool `type:"boolean"`
 
 	// The name of the source field to map to the field.
-	SourceField *string `type:"string"`
+	SourceField *string `min:"1" type:"string"`
 
 	metadataIntOptions `json:"-" xml:"-"`
 }
 
 type metadataIntOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s IntOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IntOptions) GoString() string {
+	return s.String()
 }
 
 // Options for a latlon field. A latlon field contains a location stored as
@@ -1949,7 +2520,7 @@ type LatLonOptions struct {
 	//
 	// The name score is reserved and cannot be used as a field name. To reference
 	// a document's ID, you can use the name _id.
-	SourceField *string `type:"string"`
+	SourceField *string `min:"1" type:"string"`
 
 	metadataLatLonOptions `json:"-" xml:"-"`
 }
@@ -1958,10 +2529,20 @@ type metadataLatLonOptions struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type Limits struct {
-	MaximumPartitionCount *int64 `type:"integer" required:"true"`
+// String returns the string representation
+func (s LatLonOptions) String() string {
+	return awsutil.Prettify(s)
+}
 
-	MaximumReplicationCount *int64 `type:"integer" required:"true"`
+// GoString returns the string representation
+func (s LatLonOptions) GoString() string {
+	return s.String()
+}
+
+type Limits struct {
+	MaximumPartitionCount *int64 `min:"1" type:"integer" required:"true"`
+
+	MaximumReplicationCount *int64 `min:"1" type:"integer" required:"true"`
 
 	metadataLimits `json:"-" xml:"-"`
 }
@@ -1970,12 +2551,32 @@ type metadataLimits struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s Limits) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Limits) GoString() string {
+	return s.String()
+}
+
 type ListDomainNamesInput struct {
 	metadataListDomainNamesInput `json:"-" xml:"-"`
 }
 
 type metadataListDomainNamesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListDomainNamesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDomainNamesInput) GoString() string {
+	return s.String()
 }
 
 // The result of a ListDomainNames request. Contains a list of the domains owned
@@ -1989,6 +2590,16 @@ type ListDomainNamesOutput struct {
 
 type metadataListDomainNamesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ListDomainNamesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDomainNamesOutput) GoString() string {
+	return s.String()
 }
 
 // Options for a field that contains an array of literal strings. Present if
@@ -2015,6 +2626,16 @@ type LiteralArrayOptions struct {
 
 type metadataLiteralArrayOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s LiteralArrayOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LiteralArrayOptions) GoString() string {
+	return s.String()
 }
 
 // Options for literal field. Present if IndexFieldType specifies the field
@@ -2049,13 +2670,23 @@ type LiteralOptions struct {
 	//
 	// The name score is reserved and cannot be used as a field name. To reference
 	// a document's ID, you can use the name _id.
-	SourceField *string `type:"string"`
+	SourceField *string `min:"1" type:"string"`
 
 	metadataLiteralOptions `json:"-" xml:"-"`
 }
 
 type metadataLiteralOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s LiteralOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LiteralOptions) GoString() string {
+	return s.String()
 }
 
 // The status of domain configuration option.
@@ -2075,7 +2706,7 @@ type OptionStatus struct {
 	// option value is not compatible with the domain's data and cannot be used
 	// to index the data. You must either modify the option value or update or remove
 	// the incompatible documents.
-	State *string `type:"string" required:"true"`
+	State *string `type:"string" required:"true" enum:"OptionState"`
 
 	// A timestamp for when this option was last updated.
 	UpdateDate *time.Time `type:"timestamp" timestampFormat:"iso8601" required:"true"`
@@ -2090,11 +2721,21 @@ type metadataOptionStatus struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s OptionStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OptionStatus) GoString() string {
+	return s.String()
+}
+
 // The desired instance type and desired number of replicas of each index partition.
 type ScalingParameters struct {
 	// The instance type that you want to preconfigure for your domain. For example,
 	// search.m1.small.
-	DesiredInstanceType *string `type:"string"`
+	DesiredInstanceType *string `type:"string" enum:"PartitionInstanceType"`
 
 	// The number of partitions you want to preconfigure for your domain. Only valid
 	// when you select m2.2xlarge as the desired instance type.
@@ -2108,6 +2749,16 @@ type ScalingParameters struct {
 
 type metadataScalingParameters struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s ScalingParameters) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScalingParameters) GoString() string {
+	return s.String()
 }
 
 // The status and configuration of a search domain's scaling parameters.
@@ -2125,6 +2776,16 @@ type metadataScalingParametersStatus struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ScalingParametersStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ScalingParametersStatus) GoString() string {
+	return s.String()
+}
+
 // The endpoint to which service requests can be submitted.
 type ServiceEndpoint struct {
 	// The endpoint to which service requests can be submitted. For example, search-imdb-movies-oopcnjfn6ugofer3zx5iadxxca.eu-west-1.cloudsearch.amazonaws.com
@@ -2138,6 +2799,16 @@ type metadataServiceEndpoint struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s ServiceEndpoint) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceEndpoint) GoString() string {
+	return s.String()
+}
+
 // Configuration information for a search suggester. Each suggester has a unique
 // name and specifies the text field you want to use for suggestions. The following
 // options can be configured for a suggester: FuzzyMatching, SortExpression.
@@ -2147,13 +2818,23 @@ type Suggester struct {
 
 	// Names must begin with a letter and can contain the following characters:
 	// a-z (lowercase), 0-9, and _ (underscore).
-	SuggesterName *string `type:"string" required:"true"`
+	SuggesterName *string `min:"1" type:"string" required:"true"`
 
 	metadataSuggester `json:"-" xml:"-"`
 }
 
 type metadataSuggester struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s Suggester) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Suggester) GoString() string {
+	return s.String()
 }
 
 // The value of a Suggester and its current status.
@@ -2171,6 +2852,16 @@ type SuggesterStatus struct {
 
 type metadataSuggesterStatus struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s SuggesterStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SuggesterStatus) GoString() string {
+	return s.String()
 }
 
 // Options for a field that contains an array of text strings. Present if IndexFieldType
@@ -2197,6 +2888,16 @@ type TextArrayOptions struct {
 
 type metadataTextArrayOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s TextArrayOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TextArrayOptions) GoString() string {
+	return s.String()
 }
 
 // Options for text field. Present if IndexFieldType specifies the field is
@@ -2232,13 +2933,23 @@ type TextOptions struct {
 	//
 	// The name score is reserved and cannot be used as a field name. To reference
 	// a document's ID, you can use the name _id.
-	SourceField *string `type:"string"`
+	SourceField *string `min:"1" type:"string"`
 
 	metadataTextOptions `json:"-" xml:"-"`
 }
 
 type metadataTextOptions struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s TextOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TextOptions) GoString() string {
+	return s.String()
 }
 
 // Container for the parameters to the UpdateAvailabilityOptions operation.
@@ -2249,7 +2960,7 @@ type UpdateAvailabilityOptionsInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// You expand an existing search domain to a second Availability Zone by setting
 	// the Multi-AZ option to true. Similarly, you can turn off the Multi-AZ option
@@ -2262,6 +2973,16 @@ type UpdateAvailabilityOptionsInput struct {
 
 type metadataUpdateAvailabilityOptionsInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateAvailabilityOptionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAvailabilityOptionsInput) GoString() string {
+	return s.String()
 }
 
 // The result of a UpdateAvailabilityOptions request. Contains the status of
@@ -2278,6 +2999,16 @@ type metadataUpdateAvailabilityOptionsOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateAvailabilityOptionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAvailabilityOptionsOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the UpdateScalingParameters operation. Specifies
 // the name of the domain you want to update and the scaling parameters you
 // want to configure.
@@ -2286,7 +3017,7 @@ type UpdateScalingParametersInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	// The desired instance type and desired number of replicas of each index partition.
 	ScalingParameters *ScalingParameters `type:"structure" required:"true"`
@@ -2296,6 +3027,16 @@ type UpdateScalingParametersInput struct {
 
 type metadataUpdateScalingParametersInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateScalingParametersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateScalingParametersInput) GoString() string {
+	return s.String()
 }
 
 // The result of a UpdateScalingParameters request. Contains the status of the
@@ -2311,6 +3052,16 @@ type metadataUpdateScalingParametersOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
+// String returns the string representation
+func (s UpdateScalingParametersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateScalingParametersOutput) GoString() string {
+	return s.String()
+}
+
 // Container for the parameters to the UpdateServiceAccessPolicies operation.
 // Specifies the name of the domain you want to update and the access rules
 // you want to configure.
@@ -2323,13 +3074,23 @@ type UpdateServiceAccessPoliciesInput struct {
 	// the domains owned by an account within an AWS region. Domain names start
 	// with a letter or number and can contain the following characters: a-z (lowercase),
 	// 0-9, and - (hyphen).
-	DomainName *string `type:"string" required:"true"`
+	DomainName *string `min:"3" type:"string" required:"true"`
 
 	metadataUpdateServiceAccessPoliciesInput `json:"-" xml:"-"`
 }
 
 type metadataUpdateServiceAccessPoliciesInput struct {
 	SDKShapeTraits bool `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateServiceAccessPoliciesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateServiceAccessPoliciesInput) GoString() string {
+	return s.String()
 }
 
 // The result of an UpdateServiceAccessPolicies request. Contains the new access
@@ -2344,3 +3105,178 @@ type UpdateServiceAccessPoliciesOutput struct {
 type metadataUpdateServiceAccessPoliciesOutput struct {
 	SDKShapeTraits bool `type:"structure"`
 }
+
+// String returns the string representation
+func (s UpdateServiceAccessPoliciesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateServiceAccessPoliciesOutput) GoString() string {
+	return s.String()
+}
+
+const (
+	// @enum AlgorithmicStemming
+	AlgorithmicStemmingNone = "none"
+	// @enum AlgorithmicStemming
+	AlgorithmicStemmingMinimal = "minimal"
+	// @enum AlgorithmicStemming
+	AlgorithmicStemmingLight = "light"
+	// @enum AlgorithmicStemming
+	AlgorithmicStemmingFull = "full"
+)
+
+// An IETF RFC 4646 (http://tools.ietf.org/html/rfc4646" target="_blank) language
+// code or mul for multiple languages.
+const (
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageAr = "ar"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageBg = "bg"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageCa = "ca"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageCs = "cs"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageDa = "da"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageDe = "de"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageEl = "el"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageEn = "en"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageEs = "es"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageEu = "eu"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageFa = "fa"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageFi = "fi"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageFr = "fr"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageGa = "ga"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageGl = "gl"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageHe = "he"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageHi = "hi"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageHu = "hu"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageHy = "hy"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageId = "id"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageIt = "it"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageJa = "ja"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageKo = "ko"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageLv = "lv"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageMul = "mul"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageNl = "nl"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageNo = "no"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguagePt = "pt"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageRo = "ro"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageRu = "ru"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageSv = "sv"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageTh = "th"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageTr = "tr"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageZhHans = "zh-Hans"
+	// @enum AnalysisSchemeLanguage
+	AnalysisSchemeLanguageZhHant = "zh-Hant"
+)
+
+// The type of field. The valid options for a field depend on the field type.
+// For more information about the supported field types, see Configuring Index
+// Fields (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-index-fields.html"
+// target="_blank) in the Amazon CloudSearch Developer Guide.
+const (
+	// @enum IndexFieldType
+	IndexFieldTypeInt = "int"
+	// @enum IndexFieldType
+	IndexFieldTypeDouble = "double"
+	// @enum IndexFieldType
+	IndexFieldTypeLiteral = "literal"
+	// @enum IndexFieldType
+	IndexFieldTypeText = "text"
+	// @enum IndexFieldType
+	IndexFieldTypeDate = "date"
+	// @enum IndexFieldType
+	IndexFieldTypeLatlon = "latlon"
+	// @enum IndexFieldType
+	IndexFieldTypeIntArray = "int-array"
+	// @enum IndexFieldType
+	IndexFieldTypeDoubleArray = "double-array"
+	// @enum IndexFieldType
+	IndexFieldTypeLiteralArray = "literal-array"
+	// @enum IndexFieldType
+	IndexFieldTypeTextArray = "text-array"
+	// @enum IndexFieldType
+	IndexFieldTypeDateArray = "date-array"
+)
+
+// The state of processing a change to an option. One of:
+//
+//  RequiresIndexDocuments: The option's latest value will not be deployed
+// until IndexDocuments has been called and indexing is complete. Processing:
+// The option's latest value is in the process of being activated. Active: The
+// option's latest value is fully deployed.  FailedToValidate: The option value
+// is not compatible with the domain's data and cannot be used to index the
+// data. You must either modify the option value or update or remove the incompatible
+// documents.
+const (
+	// @enum OptionState
+	OptionStateRequiresIndexDocuments = "RequiresIndexDocuments"
+	// @enum OptionState
+	OptionStateProcessing = "Processing"
+	// @enum OptionState
+	OptionStateActive = "Active"
+	// @enum OptionState
+	OptionStateFailedToValidate = "FailedToValidate"
+)
+
+// The instance type (such as search.m1.small) on which an index partition is
+// hosted.
+const (
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM1Small = "search.m1.small"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM1Large = "search.m1.large"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM2Xlarge = "search.m2.xlarge"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM22xlarge = "search.m2.2xlarge"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM3Medium = "search.m3.medium"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM3Large = "search.m3.large"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM3Xlarge = "search.m3.xlarge"
+	// @enum PartitionInstanceType
+	PartitionInstanceTypeSearchM32xlarge = "search.m3.2xlarge"
+)
+
+const (
+	// @enum SuggesterFuzzyMatching
+	SuggesterFuzzyMatchingNone = "none"
+	// @enum SuggesterFuzzyMatching
+	SuggesterFuzzyMatchingLow = "low"
+	// @enum SuggesterFuzzyMatching
+	SuggesterFuzzyMatchingHigh = "high"
+)

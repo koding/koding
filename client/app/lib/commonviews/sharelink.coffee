@@ -1,6 +1,5 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
-trackEvent = require '../util/trackEvent'
 nick = require '../util/nick'
 
 
@@ -22,5 +21,3 @@ module.exports = class ShareLink extends KDButtonView
       "#{provider}-share-dialog",
       "width=626,height=436,left=#{Math.floor (global.screen.width/2) - (500/2)},top=#{Math.floor (global.screen.height/2) - (350/2)}"
     )
-
-    trackEvent "#{provider} share link, click in #{trackingName}", user: nick()

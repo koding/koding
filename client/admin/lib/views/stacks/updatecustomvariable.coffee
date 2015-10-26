@@ -1,4 +1,15 @@
+kd     = require 'kd'
 remote = require('app/remote').getInstance()
+
+shareWithGroup = (credential, callback) ->
+
+  # After adding custom variable, we are sharing it with the current
+  # group, so anyone in this group can reach these custom variables ~ GG
+  { slug } = kd.singletons.groupsController.getCurrentGroup()
+
+  credential.shareWith { target: slug }, (err) ->
+    console.warn 'Failed to share credential:', err  if err
+    callback err
 
 
 setStackTemplateCredential = (options, callback) ->
@@ -7,8 +18,9 @@ setStackTemplateCredential = (options, callback) ->
   { credentials }    = stackTemplate
   credentials.custom = [credential.identifier]
 
-  stackTemplate.update { credentials }, (err) ->
-    callback err, stackTemplate
+  shareWithGroup credential, ->
+    stackTemplate.update { credentials }, (err) ->
+      callback err, stackTemplate
 
 
 createAndUpdate = (options, callback) ->
@@ -34,6 +46,9 @@ module.exports = updateCustomVariable = (options, callback) ->
   title      = "Custom variables for #{stackTemplate.title}"
   provider   = 'custom'
 
+  if not meta or (Object.keys meta).length is 0
+    return callback null, stackTemplate
+
   if identifier
 
     JCredential.one identifier, (err, credential) ->
@@ -41,7 +56,8 @@ module.exports = updateCustomVariable = (options, callback) ->
         createAndUpdate { provider, title, meta, stackTemplate }, callback
       else
         credential.update { meta, title }, (err) ->
-          callback err, stackTemplate
+          shareWithGroup credential, ->
+            callback err, stackTemplate
 
   else
     createAndUpdate { provider, title, meta, stackTemplate }, callback

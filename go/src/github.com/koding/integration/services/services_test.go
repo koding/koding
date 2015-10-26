@@ -18,4 +18,9 @@ func TestServices(t *testing.T) {
 	if err != ErrServiceNotFound {
 		t.Errorf("expected %s, but got %v", ErrServiceNotFound, err)
 	}
+
+	_, err = sf.Get("pagerduty")
+	if err != ErrServiceNotFound {
+		t.Errorf("expected %s, but got %v", ErrServiceNotFound, err)
+	}
 }

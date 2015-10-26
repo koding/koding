@@ -1,0 +1,38 @@
+.PublicChatPane .ChatInputWidget
+  borderBox()
+  bg                        color, #FCFCFC
+  border                    none
+  size                      100%, 100%
+  padding                   0 25px 15px 25px
+
+  &:before
+    left                    37px
+
+  > textarea
+    borderBox()
+    padding-left            44px
+    size                    100%, 42px
+    min-height              0
+    border                  1px solid #dfdfdf
+
+.PublicChatPane-subscribeContainer
+  borderBox()
+  color                     $gray-2
+  bg                        color, $gray-19
+  margin                    0 40px
+  height                    60px
+  padding                   15px 0 0
+  font-size                 14px
+  text-align                center
+  text-transform            uppercase
+
+  .Button-followChannel
+    border                  none
+    color                   #fff
+    margin-left             20px
+    size                    90px, 33px
+    bg                      color, $indigo-blue
+    text-transform          uppercase
+
+.PublicChatPane-footer
+  height                    70px

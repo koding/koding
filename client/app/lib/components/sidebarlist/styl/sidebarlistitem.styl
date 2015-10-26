@@ -2,23 +2,38 @@
   font-size                 $fs-regular
   line-height               $fs-big
   color                     $gray-14
-  margin                    10px 0
-  ellipsis()
+  margin                    6px 0
+  -moz-osx-font-smoothing   grayscale
+  -webkit-font-smoothing    antialiased
+
+  &.active
+    .SidebarListItem-icon:before
+    .SidebarListItem-link
+      color                 $white
+
+  &:hover
+    .SidebarListItem-icon:before
+    .SidebarListItem-link
+      color                 $white
 
 .SidebarListItem-link
   display                   inline-block
   color                     $gray-14
-  text-shadow               1px 1px 1px $gray-1
   text-decoration           none
+  font-weight               $fw-regular
+  width                     75%
+  min-height                20px
+  ellipsis()
 
 .SidebarListItem-unreadCount
   position                  absolute
-  margin-top                4px
-  right                     20px
+  margin-top                0
+  right                     -5px
   padding                   0 2px
   background-color          $red
   color                     white
   border-radius             3px
-  font-size                 $fs-extra-small
+  font-size                 11px
+  font-weight               $fw-bold
   min-width                 20px
   text-align                center

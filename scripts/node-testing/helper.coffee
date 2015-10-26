@@ -1,15 +1,24 @@
 fs = require 'fs'
 
-module.exports =
+getNthInstanceData = (instanceData, n) ->
   
-  getNthInstanceData : (instanceData, n) ->
+  # getting nth test instance's id and public ip
+  instance = {}
+  
+  [ instance.instanceId, instance.publicIpAddress ] = fs.readFileSync instanceData
+    .toString().split("\n")[n].split(' ')
     
-    # getting nth test instance's id and public ip
-    instance = {}
+  return instance
+
+
+getNthInstancePublicIpAddress = (instanceData, n) ->
+
+  return getNthInstanceData(instanceData, n).publicIpAddress
+
     
-    [ instance.instanceId, instance.publicIpAddress ] = fs.readFileSync instanceData
-      .toString().split("\n")[n].split(' ')
-      
-    return instance
-    
+module.exports = {
+  getNthInstanceData
+  getNthInstancePublicIpAddress
+}
+  
 

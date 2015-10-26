@@ -92,7 +92,7 @@ func PinnedActivityReadSecurer(permissionName string, context *Context) error {
 	return nil
 }
 
-func PrivateMessageSecurer(permissionName string, request *PrivateChannelRequest, context *Context) error {
+func PrivateMessageSecurer(permissionName string, request *ChannelRequest, context *Context) error {
 	return nil
 }
 

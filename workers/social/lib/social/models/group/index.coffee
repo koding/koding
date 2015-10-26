@@ -110,6 +110,7 @@ module.exports = class JGroup extends Module
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
+        { name: 'messageBusEvent' }
       ]
     sharedMethods   :
       static        :
@@ -186,6 +187,16 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        fetchBlockedAccounts: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchBlockedAccountsWithEmail: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         searchMembers: [
           (signature String, Object, Function)
         ]
@@ -214,6 +225,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         kickMember:
           (signature String, Function)
+        unblockMember:
+          (signature String, Function)
         transferOwnership:
           (signature String, Function)
         remove:
@@ -230,6 +243,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         toggleFeature:
           (signature Object, Function)
+        sendNotification:
+          (signature String, String, Function)
     schema          :
       title         :
         type        : String
@@ -241,6 +256,8 @@ module.exports = class JGroup extends Module
       socialApiChannelId             : String
       # channel id for announcements of a group
       socialApiAnnouncementChannelId : String
+      # channel id for default of a non-koding group
+      socialApiDefaultChannelId : String
       avatar        : String
       slug          :
         type        : String
@@ -293,7 +310,8 @@ module.exports = class JGroup extends Module
       'owner', 'tag', 'role'
     ]
     relationships : ->
-      JAccount = require '../account'
+      JAccount    = require '../account'
+      JCredential = require '../computeproviders/credential'
 
       return {
         bundle        :
@@ -317,6 +335,9 @@ module.exports = class JGroup extends Module
         owner         :
           targetType  : JAccount
           as          : 'owner'
+        blockedAccount:
+          targetType  : JAccount
+          as          : 'blockedAccount'
         subgroup      :
           targetType  : 'JGroup'
           as          : 'parent'
@@ -349,12 +370,10 @@ module.exports = class JGroup extends Module
           as          : 'payment plan subscription'
         credential    :
           as          : ['owner', 'user']
-          targetType  : 'JCredential'
+          targetType  : JCredential
       }
 
 
-  # due to a bug in coffeelint 1.10.1
-  # coffeelint: disable=no_implicit_braces
   constructor: ->
     super
 
@@ -393,101 +412,107 @@ module.exports = class JGroup extends Module
       kodingHome : require '../../render/loggedout/kodinghome'
       subPage    : require '../../render/loggedout/subpage'
 
-  @create = do ->
 
-    save_ = (label, model, queue, callback) ->
-      model.save (err) ->
-        return callback err  if err
-        console.log "#{label} is saved"
-        queue.next()
+  save_ = (label, model, queue, callback) ->
+    model.save (err) ->
+      return callback err  if err
+      console.log "#{label} is saved"
+      queue.next()
 
-    create = (client, groupData, owner, callback) ->
-      JPermissionSet        = require './permissionset'
-      JMembershipPolicy     = require './membershippolicy'
-      JSession              = require '../session'
-      JName                 = require '../name'
-      group                 = new this groupData
-      group.privacy         = 'private'
-      defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
-      { sessionToken }      = client
 
-      queue = [
+  @create = (client, groupData, owner, callback) ->
 
-        ->
-          group.useSlug group.slug, (err, slug) ->
-            return callback err  if err
-            return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+    # bongo doesnt set array values as their defaults
+    groupData.defaultChannels or= []
 
-            console.log "created a slug #{slug.slug}"
-            group.slug  = slug.slug
-            group.slug_ = slug.slug
+    JPermissionSet        = require './permissionset'
+    JMembershipPolicy     = require './membershippolicy'
+    JSession              = require '../session'
+    JName                 = require '../name'
+
+    group                 = new this groupData
+    group.privacy         = 'private'
+    defaultPermissionSet  = new JPermissionSet {}, { privacy: group.privacy }
+    { sessionToken }      = client
+
+    queue = [
+
+      ->
+        group.useSlug group.slug, (err, slug) ->
+          return callback err  if err
+          return callback new KodingError 'Couldn\'t claim the slug!'  unless slug?
+
+          console.log "created a slug #{slug.slug}"
+          group.slug  = slug.slug
+          group.slug_ = slug.slug
+          queue.next()
+
+      ->
+        save_ 'group', group, queue, (err) ->
+          if err
+            JName.release group.slug, -> callback err
+          else
             queue.next()
 
-        ->
-          save_ 'group', group, queue, (err) ->
-            if err
-              JName.release group.slug, -> callback err
-            else
-              queue.next()
+      ->
+        selector = { clientId : sessionToken }
+        params   = { $set : { groupName : group.slug } }
 
-        ->
-          selector = { clientId : sessionToken }
-          params   = { $set : { groupName : group.slug } }
+        JSession.update selector, params, (err) ->
+         return callback err  if err
+         queue.next()
 
-          JSession.update selector, params, (err) ->
-           return callback err  if err
-           queue.next()
+      ->
+        group.addMember owner, (err) ->
+          return callback err  if err
+          console.log 'member is added'
+          queue.next()
 
-        ->
-          group.addMember owner, (err) ->
-            return callback err  if err
-            console.log 'member is added'
-            queue.next()
+      ->
+        group.addAdmin owner, (err) ->
+          return callback err  if err
+          console.log 'admin is added'
+          queue.next()
 
-        ->
-          group.addAdmin owner, (err) ->
-            return callback err  if err
-            console.log 'admin is added'
-            queue.next()
+      ->
+        group.addOwner owner, (err) ->
+          return callback err  if err
+          console.log 'owner is added'
+          queue.next()
 
-        ->
-          group.addOwner owner, (err) ->
-            return callback err  if err
-            console.log 'owner is added'
-            queue.next()
+      ->
+        save_ 'default permission set', defaultPermissionSet, queue, callback
 
-        ->
-          save_ 'default permission set', defaultPermissionSet, queue, callback
+      ->
+        group.addDefaultPermissionSet defaultPermissionSet, (err) ->
+          return callback err  if err
+          console.log 'permissionSet is added'
+          queue.next()
 
-        ->
-          group.addDefaultPermissionSet defaultPermissionSet, (err) ->
-            return callback err  if err
-            console.log 'permissionSet is added'
-            queue.next()
+      ->
+        group.addDefaultRoles (err) ->
+          return callback err  if err
+          console.log 'roles are added'
+          queue.next()
 
-        ->
-          group.addDefaultRoles (err) ->
-            return callback err  if err
-            console.log 'roles are added'
-            queue.next()
+      ->
+        group.createSocialApiChannels client, (err) ->
+          console.error err  if err
+          console.log 'created socialApiId ids'
+          queue.next()
 
-        ->
-          group.createSocialApiChannels client, (err) ->
-            console.error err  if err
-            console.log 'created socialApiId ids'
-            queue.next()
+    ]
 
-      ]
+    if 'private' is group.privacy
+      queue.push ->
+        group.createMembershipPolicy groupData.requestType, -> queue.next()
 
-      if 'private' is group.privacy
-        queue.push ->
-          group.createMembershipPolicy groupData.requestType, -> queue.next()
+    queue.push =>
+      @emit 'GroupCreated', { group, creator: owner }
+      callback null, group
 
-      queue.push =>
-        @emit 'GroupCreated', { group, creator: owner }
-        callback null, group
+    daisy queue
 
-      daisy queue
 
   @create$ = secure (client, formData, callback) ->
     { delegate } = client.connection
@@ -515,7 +540,7 @@ module.exports = class JGroup extends Module
     ,
       skip
       limit
-      sort       : 'title' : 1
+      sort       : { 'title' : 1 }
     , callback
 
   # currently groups in a group show global groups, so it does not
@@ -561,25 +586,68 @@ module.exports = class JGroup extends Module
           event       : 'feed-new'
         }
 
+
+  sendNotification: (event, contents, callback) ->
+
+    message = {
+      groupName  : @slug
+      eventName  : event
+      body       :
+        event    : event
+        context  : @slug
+        contents : contents
+    }
+
+    @emit 'messageBusEvent', { type: 'dispatcher_notify_group', message }
+
+    callback null
+
+
+  sendNotification$: permit 'grant permissions',
+    success: (client, event, contents, callback) ->
+      @sendNotification event, contents, callback
+
+
   broadcast:(message, event) ->
     @constructor.broadcast @slug, message, event
 
   changeMemberRoles: permit 'grant permissions',
     success:(client, targetId, roles, callback) ->
       remove = []
+      revokedRoles = []
       sourceId = @getId()
       roles.push 'member'  unless 'member' in roles
-      Relationship.some { targetId, sourceId }, {}, (err, rels) ->
+      Relationship.some { targetId, sourceId }, {}, (err, rels) =>
         return callback err  if err
 
         for rel in rels
           if rel.as in roles then roles.splice roles.indexOf(rel.as), 1
-          else remove.push rel._id
+          else
+            remove.push rel._id
+            revokedRoles.push rel.as
 
-        if remove.length > 0
-          Relationship.remove _id: $in: remove, (err) -> console.log 'removed'; callback err  if err
+        queue = [
+          =>
+            @countAdmins (err, count) ->
+              return callback err  if err
 
-        queue = roles.map (role) -> ->
+              if count > 1 # this means we have more than one admin account
+                queue.next()
+              else
+                # get the diff between revokedRoles and roles, because revoked
+                # roles should not have admin role in this case
+                diff = difference revokedRoles, roles
+
+                # check if the diff has admin role
+                if diff.indexOf('admin') > -1
+                  return callback new KodingError 'There should be at least one admin'
+
+                queue.next()
+
+        ]
+
+        # create new roles
+        queue = queue.concat roles.map (role) -> ->
           (new Relationship
             targetName  : 'JAccount'
             targetId    : targetId
@@ -587,9 +655,35 @@ module.exports = class JGroup extends Module
             sourceId    : sourceId
             as          : role
           ).save (err) ->
-            callback err  if err
-            queue.fin()
-        dash queue, callback
+            return callback err  if err
+            queue.next()
+
+        # remove existing ones
+        queue = queue.concat [
+          ->
+            if remove.length > 0
+              Relationship.remove { _id: { $in: remove } }, (err) ->
+                return callback err  if err
+                queue.next()
+            else
+              queue.next()
+          ->
+            notifyAccountOnRoleChange client, targetId, roles, queue.next
+          ->
+            callback null
+        ]
+
+        daisy queue
+
+  notifyAccountOnRoleChange = (client, id, roles, callback) ->
+    JAccount.one { _id: id }, (err, account) ->
+      return callback err  if err or not account
+
+      role = if roles?.length > 0 then roles[0] else 'member'
+      contents = { role, group: client.context.group, adminNick: client.connection.delegate.profile.nickname }
+      account.sendNotification 'MembershipRoleChanged', contents
+      callback null
+
 
   addDefaultRoles:(callback) ->
     group = this
@@ -619,7 +713,7 @@ module.exports = class JGroup extends Module
       @fetchPermissionSet (err, permissionSet) =>
         return callback err if err
         if permissionSet
-          permissionSet.update $set:{ permissions }, callback
+          permissionSet.update { $set:{ permissions } }, callback
         else
           permissionSet = new JPermissionSet { permissions, isCustom: true }
           permissionSet.save (err) =>
@@ -702,7 +796,7 @@ module.exports = class JGroup extends Module
           sourceId    : @getId()
           as          : { $in: roleTitles }
         }
-        selector.targetId = $in: ids  if ids
+        selector.targetId = { $in: ids }  if ids
         Relationship.someData selector, { as:1, targetId:1 }, (err, cursor) ->
           if err then callback err
           else
@@ -713,7 +807,7 @@ module.exports = class JGroup extends Module
   fetchUserStatus: permit 'grant permissions',
     success:(client, nicknames, callback) ->
       JUser    = require '../user'
-      JUser.someData username: $in: nicknames, { status:1, username:1 }, (err, cursor) ->
+      JUser.someData { username: { $in: nicknames } }, { status:1, username:1 }, (err, cursor) ->
         return callback err  if err
         cursor.toArray callback
 
@@ -768,6 +862,23 @@ module.exports = class JGroup extends Module
         rest
       }
 
+  fetchBlockedAccounts$: permit 'list members',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method: @fetchBlockedAccounts
+        client
+        rest
+      }
+
+  fetchBlockedAccountsWithEmail$: permit 'grant permissions',
+    success:(client, rest...) ->
+      @baseFetcherOfGroupStaff {
+        method      : @fetchBlockedAccounts
+        fetchEmail  : yes
+        client
+        rest
+      }
+
   baseFetcherOfGroupStaff: (options) ->
 
     { method, client, rest, fetchEmail }  = options
@@ -797,9 +908,9 @@ module.exports = class JGroup extends Module
 
       selector =
         $or : [
-            ( 'profile.nickname'  : seed )
-            ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
-            ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
+            ({ 'profile.nickname'  : seed })
+            ({ 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' })
+            ({ 'profile.lastName'  : new RegExp '^'+names.last, 'i' })
           ]
         type    :
           $in   : ['registered', null]
@@ -807,7 +918,7 @@ module.exports = class JGroup extends Module
           # probably jraphical problem, because the query correctly works in mongo
 
       { limit, skip } = options
-      options.sort  = 'meta.createdAt' : -1
+      options.sort  = { 'meta.createdAt' : -1 }
       options.limit = Math.min limit ? 10, 15
       # CtF @fetchMembers first fetches all group-member relationships, and then filters accounts with found targetIds.
       # As a result searching groups with large number of members is very time consuming. For now the only group
@@ -892,7 +1003,7 @@ module.exports = class JGroup extends Module
     success: (client, formData, callback) ->
       @fetchMembershipPolicy (err, policy) ->
         if err then callback err
-        else policy.update $set: formData, callback
+        else policy.update { $set: formData }, callback
 
 
   toggleFeature: permit 'grant permissions',
@@ -945,10 +1056,11 @@ module.exports = class JGroup extends Module
 
 
   isMember: (account, callback) ->
+
     return callback new Error 'No account found!'  unless account
     selector =
       sourceId  : @getId()
-      targetId  : account.getId()
+      targetId  : account._id
       as        : 'member'
     Relationship.count selector, (err, count) ->
       if err then callback err
@@ -959,17 +1071,21 @@ module.exports = class JGroup extends Module
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
 
-    kallback = =>
-      callback()
-      @updateCounts()
-      @emit 'MemberAdded', member  if 'member' in roles
+    @fetchBlockedAccount { targetId: member.getId() }, (err, account_) =>
+      return callback err if err
+      return callback new KodingError 'This account is blocked'  if account_
 
-    queue = roles.map (role) => =>
-      @addMember member, role, queue.fin.bind queue
+      kallback = =>
+        callback()
+        @updateCounts()
+        @emit 'MemberAdded', member  if 'member' in roles
 
-    # We were creating group member VMs here before
-    # I've deleted them, ask me if you need more information ~ GG
-    dash queue, -> kallback()
+      queue = roles.map (role) => =>
+        @addMember member, role, queue.fin.bind queue
+
+      # We were creating group member VMs here before
+      # I've deleted them, ask me if you need more information ~ GG
+      dash queue, -> kallback()
 
   each:(selector, rest...) ->
     selector.visibility = 'visible'
@@ -977,14 +1093,15 @@ module.exports = class JGroup extends Module
 
 
   fetchRolesHelper: (account, callback) ->
-    client = connection: delegate : account
+    client = { connection: { delegate : account } }
     @fetchMyRoles client, (err, roles) =>
       if err then callback err
       else if 'member' in roles or 'admin' in roles
         callback null, roles
       else
-        options = targetOptions:
-          selector: { koding: username: account.profile.nickname }
+        options =
+          targetOptions:
+            selector   : { koding: { username: account.profile.nickname } }
         @fetchInvitationRequest {}, options, (err, request) ->
           if err then callback err
           else unless request? then callback null, ['guest']
@@ -1002,7 +1119,7 @@ module.exports = class JGroup extends Module
       sourceId   : @getId()
       sourceName : 'JGroup'
     , (err, count) =>
-      @update ($set: 'counts.members': count), ->
+      @update ({ $set: { 'counts.members': count } }), ->
 
   leave: secure (client, options, callback) ->
 
@@ -1039,7 +1156,7 @@ module.exports = class JGroup extends Module
       if @slug is 'koding'
         return callback new KodingError 'Koding group is mandatory'
 
-      JAccount.one _id:accountId, (err, account) =>
+      JAccount.one { _id:accountId }, (err, account) =>
         return callback err if err
 
         if client.connection.delegate.getId().equals account._id
@@ -1075,7 +1192,31 @@ module.exports = class JGroup extends Module
               @cycleChannel()
               queue.fin()
 
+          # add current user into blocked accounts
+          queue.push =>
+
+            # addBlockedAccount is generated by bongo
+            @addBlockedAccount account, (err) ->
+              return callback err  if err
+              queue.fin()
+
+
           dash queue, kallback
+  ###*
+   * UnblockMember removes the blockage on the member for joining to a group.
+   *
+   * @param {Object} client - Session context.
+   * @param {String} accountId - Id of the account for unblocking.
+   * @param {Function} callback - Callback.
+  ###
+  unblockMember: permit 'grant permissions',
+    success: (client, accountId, callback) ->
+      JAccount = require '../account'
+      JAccount.one { _id: accountId }, (err, account) =>
+        return callback err  if err
+
+        # removeBlockedAccount is generated by bongo
+        @removeBlockedAccount account, callback
 
   transferOwnership: permit 'grant permissions',
     success: (client, accountId, callback) ->
@@ -1093,7 +1234,7 @@ module.exports = class JGroup extends Module
         return callback err if err
         return callback new KodingError 'You must be the owner to perform this action!' unless owner
 
-        JAccount.one _id:accountId, (err, account) =>
+        JAccount.one { _id:accountId }, (err, account) =>
           return callback err if err
 
           @fetchRolesByAccount account, (err, newOwnersRoles) =>
@@ -1112,7 +1253,7 @@ module.exports = class JGroup extends Module
 
             dash queue, ->
               # transfer ownership
-              owner.update $set: targetId: account.getId(), kallback
+              owner.update { $set: { targetId: account.getId() } }, kallback
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->
     unless callback
@@ -1182,12 +1323,12 @@ module.exports = class JGroup extends Module
         return callback err if err
         return queue.next() if not models or models.length < 1
         ids = (model._id for model in models)
-        klass.remove (_id: $in: ids), (err) ->
+        klass.remove ({ _id: { $in: ids } }), (err) ->
           return callback err if err
           queue.next()
 
       daisy queue = [
-        => JName.one name:@slug, (err, name) ->
+        => JName.one { name:@slug }, (err, name) ->
           removeHelper name, err, callback, queue
 
         => @fetchPermissionSet (err, permSet) ->
@@ -1251,7 +1392,7 @@ module.exports = class JGroup extends Module
   addSubscription$: permit 'edit own groups',
     success: (client, id, callback) ->
       JPaymentSubscription = require '../payment/subscription'
-      JPaymentSubscription.one _id: id, (err, subscription) =>
+      JPaymentSubscription.one { _id: id }, (err, subscription) =>
         @addSubscription subscription, callback
 
   fetchPermissionSetOrDefault : (callback) ->
@@ -1265,16 +1406,11 @@ module.exports = class JGroup extends Module
 
   createSocialApiChannels: (client, callback) ->
 
-    if @socialApiChannelId and @socialApiAnnouncementChannelId
-      return callback null, {
-        @socialApiChannelId,
-        @socialApiAnnouncementChannelId
-      }
-
     @fetchOwner (err, owner) =>
       return callback err if err?
       unless owner
         return callback { message: "Owner not found for #{@slug} group" }
+
       owner.createSocialApiId (err, socialApiId) =>
         return callback err if err?
         # required data for creating a channel
@@ -1285,17 +1421,29 @@ module.exports = class JGroup extends Module
           privacyConstant : privacy
 
         @createGroupChannel client, options, (err, groupChannelId) =>
-          return callback err if err?
+          return callback err  if err?
 
-          @createAnnouncementChannel client, options, (err, announcementChannelId) ->
-            return callback err if err?
+          # announcement channel will only be created for koding channel
+          if @slug is 'koding'
 
-            return callback null, {
-              # channel id for #public - used as group channel
-              socialApiChannelId             : groupChannelId,
-              # channel id for #koding - used for announcements
-              socialApiAnnouncementChannelId : announcementChannelId
-            }
+            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
+              return callback err if err?
+
+              return callback null, {
+                # channel id for #public - used as group channel
+                socialApiChannelId             : groupChannelId,
+                # channel id for #koding - used for announcements
+                socialApiAnnouncementChannelId : announcementChannelId
+              }
+
+          else
+            @createDefaultChannel client, options, (err, defaultChannelId) ->
+              return callback err if err?
+
+              return callback null, {
+                socialApiChannelId: groupChannelId
+                socialApiDefaultChannelId: defaultChannelId
+              }
 
 
   createGroupChannel:(client, options, callback) ->
@@ -1306,9 +1454,16 @@ module.exports = class JGroup extends Module
     return @createSocialAPIChannel client, options, callback
 
   createAnnouncementChannel:(client, options, callback) ->
-    options.name = if @slug is 'koding' then 'changelog' else @slug
+    options.name = 'changelog'
     options.varName = 'socialApiAnnouncementChannelId'
     options.typeConstant = 'announcement'
+
+    return @createSocialAPIChannel client, options, callback
+
+  createDefaultChannel:(client, options, callback) ->
+    options.name = @slug
+    options.varName = 'socialApiDefaultChannelId'
+    options.typeConstant = 'topic'
 
     return @createSocialAPIChannel client, options, callback
 
@@ -1329,8 +1484,9 @@ module.exports = class JGroup extends Module
     doRequest 'createChannel', client, defaultChannel, (err, channel) =>
       return callback err if err
 
-      op = $set:{}
+      op = { $set: {}, $push: {} }
       op.$set[varName] = channel.channel.id
+      op.$push['defaultChannels'] = channel.channel.id
 
       @update op, (err) ->
         return callback err if err
@@ -1352,3 +1508,5 @@ module.exports = class JGroup extends Module
             account.profile.email = user.email
 
       return callback null, accounts
+
+

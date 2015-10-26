@@ -169,8 +169,8 @@ It's necessary to keep track of versions both on `npm` registry and
 repository tags.  Please follow patterns used in prior versions of
 that package to name versions.
 
-Module versions needs to be updated after are accepted.  Process to do
-this is explained in following steps:
+Module version needs to be updated after changes are accepted.
+Process to do this is explained in following steps:
 
 - Version in `package.json` file needs to be increased, committed and
   pushed to upstream repository

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SCRIPTS=$(dirname ${BASH_SOURCE[0]})
+
+COLLECTOR_NAME=$1
+COLLECTOR_ACCESS_ID=$2
+COLLECTOR_ACCESS_KEY=$3
+
+cat - <<EOF
+name=$COLLECTOR_NAME
+accessid=$COLLECTOR_ACCESS_ID
+accesskey=$COLLECTOR_ACCESS_KEY
+sources=/etc/sumologic_sources.json
+ephemeral=true
+EOF

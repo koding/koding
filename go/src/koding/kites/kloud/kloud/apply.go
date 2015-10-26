@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/generic"
+	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
 	"strconv"
@@ -101,15 +102,23 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 
 		var err error
 		if args.Destroy {
+			modelhelper.SetStackState(args.StackId, "Stack destroying started", stackstate.Destroying)
+
 			k.Log.New(args.StackId).Info("======> %s (destroy) started <======", strings.ToUpper(r.Method))
 			finalEvent.Status = machinestate.Terminated
 			err = destroy(ctx, r.Username, args.GroupName, args.StackId)
 		} else {
+			modelhelper.SetStackState(args.StackId, "Stack building started", stackstate.Building)
+
 			k.Log.New(args.StackId).Info("======> %s started <======", strings.ToUpper(r.Method))
 			err = apply(ctx, r.Username, args.GroupName, args.StackId)
 			if err != nil {
+				modelhelper.SetStackState(args.StackId, "Stack building failed", stackstate.NotInitialized)
 				finalEvent.Status = machinestate.NotInitialized
+			} else {
+				modelhelper.SetStackState(args.StackId, "Stack building finished", stackstate.Initialized)
 			}
+
 		}
 
 		if err != nil {
@@ -118,10 +127,12 @@ func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
 			k.Log.New(args.StackId).Error("%s error: %s", r.Method, err)
 
 			finalEvent.Error = err.Error()
+			k.Log.New(args.StackId).Error("======> %s finished with error (time: %s): '%s' <======",
+				strings.ToUpper(r.Method), time.Since(start), err.Error())
+		} else {
+			k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
+				strings.ToUpper(r.Method), time.Since(start))
 		}
-
-		k.Log.New(args.StackId).Info("======> %s finished (time: %s) <======",
-			strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 	}()
@@ -189,6 +200,20 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
 			return err
 		}
+
+		// rest is aws related
+		if cred.Provider != "aws" {
+			continue
+		}
+
+		region, ok := cred.Data["region"]
+		if !ok {
+			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
+		}
+
+		if err := template.setAwsRegion(region); err != nil {
+			return err
+		}
 	}
 
 	buildData, err := injectKodingData(ctx, template, username, data)
@@ -209,12 +234,6 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	}
 
 	for _, m := range machines {
-		if err := sess.DNSClient.Delete(m.Domain); err != nil {
-			// if it's already deleted, for example because of a STOP, than we just
-			// log it here instead of returning the error
-			sess.Log.Error("deleting domain during destroying err: %s", err.Error())
-		}
-
 		if err := modelhelper.DeleteMachine(m.Id); err != nil {
 			return err
 		}
@@ -271,6 +290,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	defer tfKite.Close()
 
 	sess.Log.Debug("Parsing the template")
+	sess.Log.Debug("%s", stack.Template)
 	template, err := newTerraformTemplate(stack.Template)
 	if err != nil {
 		return err
@@ -280,6 +300,8 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	sess.Log.Debug("%s", template)
 
 	sess.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+
+	var region string
 	for _, cred := range data.Creds {
 		sess.Log.Debug("Appending %s provider variables", cred.Provider)
 		if err := template.injectCustomVariables(cred.Provider, cred.Data); err != nil {
@@ -291,10 +313,19 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 			continue
 		}
 
-		region, ok := cred.Data["region"]
+		credRegion, ok := cred.Data["region"]
 		if !ok {
 			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
+
+		// check if this a second round and it's using a different region, we
+		// shouldn't allow it.
+		if region != "" && region != credRegion {
+			return fmt.Errorf("multiple credentials with multiple regions detected: %s and %s. Aborting",
+				region, credRegion)
+		}
+
+		region = credRegion
 
 		if err := template.setAwsRegion(region); err != nil {
 			return err
@@ -358,11 +389,15 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	if err != nil {
 		return err
 	}
-	output.AppendRegion(buildData.Region)
+
+	sess.Log.Debug("Machines from state: %+v", output)
+	sess.Log.Debug("Build region: %+v", region)
+	sess.Log.Debug("Build data kiteIDS: %+v", buildData.KiteIds)
+	output.AppendRegion(region)
 	output.AppendQueryString(buildData.KiteIds)
 
 	ev.Push(&eventer.Event{
-		Message:    "Updating domains and machine settings",
+		Message:    "Updating machine settings",
 		Percentage: 80,
 		Status:     machinestate.Building,
 	})
@@ -484,11 +519,6 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 		return errors.New("session context is not passed")
 	}
 
-	req, ok := request.FromContext(ctx)
-	if !ok {
-		return errors.New("request context is not passed")
-	}
-
 	for _, machine := range jMachines {
 		tf, err := data.WithLabel(machine.Label)
 		if err != nil {
@@ -501,17 +531,6 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 		}
 
 		ipAddress := tf.Attributes["public_ip"]
-
-		// create domains
-		for _, m := range jMachines {
-			if err := sess.DNSClient.Validate(m.Domain, req.Username); err != nil {
-				sess.Log.Error("couldn't validate machine domain: %s", err.Error())
-			}
-
-			if err := sess.DNSClient.Upsert(m.Domain, ipAddress); err != nil {
-				sess.Log.Error("couldn't update machine domain: %s", err.Error())
-			}
-		}
 
 		if err := sess.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(

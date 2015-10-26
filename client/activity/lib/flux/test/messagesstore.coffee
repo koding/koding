@@ -1,10 +1,11 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 whoami = require 'app/util/whoami'
 
 MessagesStore = require '../stores/messagesstore'
 actionTypes = require '../actions/actiontypes'
+chatInputActionTypes = require '../chatinput/actions/actiontypes'
 
 MessageCollectionHelpers = require '../helpers/messagecollection'
 
@@ -233,4 +234,39 @@ describe 'MessagesStore', ->
 
       expect(storeState.has messageId).to.equal no
 
+
+  describe '#handleSetMessageEditMode', ->
+
+    message         = null
+    messageId       = 'setEditMode'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
+
+    it 'sets message __isEditing value to yes', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.SET_MESSAGE_EDIT_MODE, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+
+      message = storeState.get messageId
+      expect(message.get '__isEditing').to.equal yes
+
+
+  describe '#handleUnsetMessageEditMode', ->
+
+    message         = null
+    messageId       = 'unsetEditMode'
+    clientRequestId = 'testclient'
+    message         = MessageCollectionHelpers.createFakeMessage messageId, 'hello world'
+
+    it 'sets message __isEditing value to no', ->
+
+      reactor.dispatch actionTypes.CREATE_MESSAGE_SUCCESS, { clientRequestId, message }
+      reactor.dispatch actionTypes.UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+      storeState = reactor.evaluate ['messages']
+
+      message = storeState.get messageId
+      expect(message.get '__isEditing').to.equal no
 

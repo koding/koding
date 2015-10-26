@@ -10,6 +10,7 @@ MoreWorkspacesModal     = require 'app/activity/sidebar/moreworkspacesmodal'
 AddWorkspaceView        = require 'app/addworkspaceview'
 IDEAppController        = require 'ide'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+isKoding                = require 'app/util/isKoding'
 
 
 module.exports = class SidebarMachineBox extends KDView
@@ -42,10 +43,17 @@ module.exports = class SidebarMachineBox extends KDView
     computeController = kd.getSingleton 'computeController'
     computeController.on "stateChanged-#{@machine._id}", @bound 'handleStateChanged'
 
+    if stack = computeController.findStackFromMachineId @machine._id
+      visibility = stack.config?.sidebar?[@machine.uid]?.visibility
+
+    @setVisibility visibility ? on
+
 
   handleStateChanged: (state) ->
 
-    @machineItem.settingsIcon.show()  if state is Machine.State.Running
+    if state is Machine.State.Running
+      kd.singletons.mainView.sidebar.emit 'ShowCloseHandle'
+      @machineItem.settingsIcon.show()
 
 
   createMachineItem: ->
@@ -260,7 +268,8 @@ module.exports = class SidebarMachineBox extends KDView
 
       switch state
         when Stopping, Terminating then @deselect()
-        when Terminated then @destroy()
+        when Terminated
+          @destroy()  if isKoding()
 
 
   setUnreadCount: (channelId, count) ->
@@ -291,3 +300,9 @@ module.exports = class SidebarMachineBox extends KDView
   isMachineRunning: ->
 
     return @machine.status.state is Machine.State.Running
+
+
+  setVisibility: (state) ->
+
+    if state then @show() else @hide()
+    @emit 'SetVisibility', state

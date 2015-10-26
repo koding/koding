@@ -12,29 +12,29 @@ expectValidationError = (browser) ->
 module.exports =
 
 
-  # registerWithGravatarEmail: (browser) ->
+  registerWithGravatarEmail: (browser) ->
 
-  #   user =
-  #     email    : 'kodingtestuser@gmail.com'
-  #     username : 'kodingtestuser'
-  #     password : 'passwordfortestuser'
-  #     gravatar : yes
+    user =
+      email    : 'kodingtester@gmail.com'
+      username : 'kodingqa'
+      password : 'passwordfortestuser' # gmail and gravatar pass is the same
+      gravatar : yes
 
-  #   helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
+    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
 
-  #   browser
-  #     .pause   5000
-  #     .element 'css selector', '[testpath=main-sidebar]', (result) =>
+    browser
+      .pause   5000
+      .element 'css selector', '[testpath=main-sidebar]', (result) =>
 
-  #       if result.status is 0
-  #         browser.end()
-  #       else
-  #         helpers.attemptEnterUsernameOnRegister(browser, user)
+        if result.status is 0
+          browser.end()
+        else
+          helpers.attemptEnterUsernameOnRegister(browser, user)
 
-  #         browser
-  #           .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
-  #           .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
-  #           .end()
+          browser
+            .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
+            .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
+            .end()
 
 
   registerWithoutGravatarEmail: (browser) ->

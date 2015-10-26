@@ -1,0 +1,66 @@
+#!/usr/bin/env coffee
+
+_    = require 'lodash'
+argv = require('minimist')(process.argv.slice 1)
+
+generateLocalFileSource = do (options = {}) ->
+
+  options.hostName = argv.hostname
+  options.sourceType = 'LocalFile'
+
+  return (config = {}) ->
+    _.assign config, options
+    config.category = "#{argv.env}/#{config.category}"
+    return config
+
+configs = [
+  generateLocalFileSource
+    name: 'workers'
+    description: 'koding workers'
+    category: "workers"
+    pathExpression: '/var/log/koding/*.log'
+    blacklist: [
+      '/var/log/supervisord.log'
+      '/var/log/koding/memmon-*'
+    ]
+
+  generateLocalFileSource
+    name: 'supervisord'
+    description: 'Process manager'
+    category: "service"
+    pathExpression: '/var/log/koding/supervisord.log'
+
+  generateLocalFileSource
+    name: 'memmon'
+    description: 'Memory Monitor plugin for Supervisord'
+    category: "service"
+    pathExpression: '/var/log/koding/memmon-*.log'
+
+  generateLocalFileSource
+    name: 'nginx'
+    description: 'nginx web server'
+    category: "service"
+    pathExpression: '/var/log/nginx/*.log'
+
+  generateLocalFileSource
+    name: 'cron'
+    category: "system"
+    pathExpression: '/var/log/cron'
+
+  generateLocalFileSource
+    name: 'dmesg'
+    category: "dmesg"
+    pathExpression: '/var/log/dmesg'
+
+  generateLocalFileSource
+    name: 'secure'
+    description: 'authentication and authorization'
+    category: "system"
+    pathExpression: '/var/log/secure'
+]
+
+config =
+  'api.version' : 'v1'
+  'sources': configs
+
+process.stdout.write JSON.stringify config

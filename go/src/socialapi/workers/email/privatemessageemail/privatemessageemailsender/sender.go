@@ -141,7 +141,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 			continue
 		}
 
-		privatemsgchannels := []emailmodels.Message{}
+		privatemsgchannels := []emailmodels.Messager{}
 
 		for _, channel := range channels {
 			messages := []*emailmodels.PrivateMessage{}

@@ -3,7 +3,7 @@ React     = require 'kd-react'
 immutable = require 'immutable'
 
 SuggestionItem = require 'activity/components/suggestionitem'
-scrollToTarget = require 'activity/util/scrollToTarget'
+scrollToTarget = require 'app/util/scrollToTarget'
 
 
 module.exports = class SuggestionList extends React.Component

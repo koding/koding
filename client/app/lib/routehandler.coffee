@@ -6,7 +6,6 @@ remote         = require('./remote').getInstance()
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
-trackEvent     = require './util/trackEvent'
 registerRoutes = require './util/registerRoutes'
 
 
@@ -69,7 +68,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'referrer'
       {params:{username}} = info
-      trackEvent "Visit referrer url, success", {username}
       # give a notification to tell that this is a referral link here - SY
       handleRoot()
 

@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"errors"
 	"koding/db/models"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -52,7 +53,8 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 }
 
 var (
-	MachineStateRunning = "Running"
+	MachineStateRunning   = "Running"
+	MachineProviderKoding = "koding"
 )
 
 func GetRunningVms(provider string) ([]*models.Machine, error) {
@@ -90,9 +92,32 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 }
 
 func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
-	query := bson.M{"users": bson.M{
-		"$elemMatch": bson.M{"id": userId, "owner": true},
-	}}
+	query := bson.M{
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":    userId,
+				"owner": true,
+			},
+		},
+	}
+
+	return findMachineContainers(query)
+}
+
+func GetOwnGroupMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
+	query := bson.M{
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":    userId,
+				"owner": true,
+			},
+		},
+		"groups": bson.M{
+			"$elemMatch": bson.M{
+				"id": group.Id,
+			},
+		},
+	}
 
 	return findMachineContainers(query)
 }
@@ -107,8 +132,18 @@ func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 
 func GetCollabMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
 	query := bson.M{
-		"users":  bson.M{"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": bson.M{"$ne": true}}},
-		"groups": bson.M{"$elemMatch": bson.M{"id": group.Id}},
+		"users": bson.M{
+			"$elemMatch": bson.M{
+				"id":        userId,
+				"owner":     false,
+				"permanent": bson.M{"$ne": true},
+			},
+		},
+		"groups": bson.M{
+			"$elemMatch": bson.M{
+				"id": group.Id,
+			},
+		},
 	}
 
 	return findMachineContainers(query)
@@ -253,7 +288,12 @@ func ChangeMachineState(machineId bson.ObjectId, state string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
 			bson.M{"_id": machineId},
-			bson.M{"$set": bson.M{"status.state": state}},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state,
+					"status.modifiedAt": time.Now().UTC(),
+				},
+			},
 		)
 	}
 
@@ -295,6 +335,17 @@ func RemoveAllMachinesForUser(userId bson.ObjectId) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(selector)
 		return err
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
+
+func UnsetKlientMissingAt(userId bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.UpdateId(
+			userId,
+			bson.M{"$unset": bson.M{"assignee.klientMissingAt": ""}},
+		)
 	}
 
 	return Mongo.Run(MachinesColl, query)

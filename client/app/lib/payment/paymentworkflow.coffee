@@ -19,7 +19,6 @@ PaymentConstants                    = require './paymentconstants'
 PaymentModal                        = require './paymentmodal'
 whoami                              = require 'app/util/whoami'
 showError                           = require 'app/util/showError'
-trackEvent                          = require 'app/util/trackEvent'
 _                                   = require 'lodash'
 ComputeHelpers                      = require 'app/providers/computehelpers'
 
@@ -219,11 +218,6 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
     unless @startingState.currentPlan is PaymentConstants.planTitle.FREE
       return
 
-    trackEvent 'Account upgrade plan, success',
-      category : 'userInteraction'
-      action   : 'microConversions'
-      label    : 'upgradeFreeAccount'
-
     {planTitle, provider, planInterval} = @state
     planId  = "#{planTitle}-#{planInterval}"
 
@@ -235,19 +229,6 @@ module.exports = class PaymentWorkflow extends BaseWorkFlow
       amount = monthPrice
     else
       amount = yearPrice
-
-    trackEvent 'Completed Order',
-      orderId  : orderId
-      products : [{
-        id       : planId
-        title    : planTitle
-        interval : planInterval
-        category : provider
-        quantity : 1
-        total    : amount
-        revenue  : amount
-        currency : 'USD'
-    }]
 
 
   failedAttemptLimitReached: (blockUser) ->

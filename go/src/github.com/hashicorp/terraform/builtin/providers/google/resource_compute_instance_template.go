@@ -2,7 +2,6 @@ package google
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -227,7 +226,9 @@ func resourceComputeInstanceTemplate() *schema.Resource {
 	}
 }
 
-func buildDisks(d *schema.ResourceData, meta interface{}) []*compute.AttachedDisk {
+func buildDisks(d *schema.ResourceData, meta interface{}) ([]*compute.AttachedDisk, error) {
+	config := meta.(*Config)
+
 	disksCount := d.Get("disk.#").(int)
 
 	disks := make([]*compute.AttachedDisk, 0, disksCount)
@@ -259,7 +260,7 @@ func buildDisks(d *schema.ResourceData, meta interface{}) []*compute.AttachedDis
 				disk.InitializeParams.DiskName = v.(string)
 			}
 			if v, ok := d.GetOk(prefix + ".disk_size_gb"); ok {
-				disk.InitializeParams.DiskSizeGb = v.(int64)
+				disk.InitializeParams.DiskSizeGb = int64(v.(int))
 			}
 			disk.InitializeParams.DiskType = "pd-standard"
 			if v, ok := d.GetOk(prefix + ".disk_type"); ok {
@@ -267,7 +268,14 @@ func buildDisks(d *schema.ResourceData, meta interface{}) []*compute.AttachedDis
 			}
 
 			if v, ok := d.GetOk(prefix + ".source_image"); ok {
-				disk.InitializeParams.SourceImage = v.(string)
+				imageName := v.(string)
+				imageUrl, err := resolveImage(config, imageName)
+				if err != nil {
+					return nil, fmt.Errorf(
+						"Error resolving image name '%s': %s",
+						imageName, err)
+				}
+				disk.InitializeParams.SourceImage = imageUrl
 			}
 		}
 
@@ -286,7 +294,7 @@ func buildDisks(d *schema.ResourceData, meta interface{}) []*compute.AttachedDis
 		disks = append(disks, &disk)
 	}
 
-	return disks
+	return disks, nil
 }
 
 func buildNetworks(d *schema.ResourceData, meta interface{}) (error, []*compute.NetworkInterface) {
@@ -296,11 +304,9 @@ func buildNetworks(d *schema.ResourceData, meta interface{}) (error, []*compute.
 	for i := 0; i < networksCount; i++ {
 		prefix := fmt.Sprintf("network_interface.%d", i)
 
-		source := "global/networks/default"
+		source := "global/networks/"
 		if v, ok := d.GetOk(prefix + ".network"); ok {
-			if v.(string) != "default" {
-				source = v.(string)
-			}
+			source += v.(string)
 		}
 
 		// Build the networkInterface
@@ -330,8 +336,16 @@ func resourceComputeInstanceTemplateCreate(d *schema.ResourceData, meta interfac
 	instanceProperties.CanIpForward = d.Get("can_ip_forward").(bool)
 	instanceProperties.Description = d.Get("instance_description").(string)
 	instanceProperties.MachineType = d.Get("machine_type").(string)
-	instanceProperties.Disks = buildDisks(d, meta)
-	instanceProperties.Metadata = resourceInstanceMetadata(d)
+	disks, err := buildDisks(d, meta)
+	if err != nil {
+		return err
+	}
+	instanceProperties.Disks = disks
+	metadata, err := resourceInstanceMetadata(d)
+	if err != nil {
+		return err
+	}
+	instanceProperties.Metadata = metadata
 	err, networks := buildNetworks(d, meta)
 	if err != nil {
 		return err
@@ -384,28 +398,9 @@ func resourceComputeInstanceTemplateCreate(d *schema.ResourceData, meta interfac
 	// Store the ID now
 	d.SetId(instanceTemplate.Name)
 
-	// Wait for the operation to complete
-	w := &OperationWaiter{
-		Service: config.clientCompute,
-		Op:      op,
-		Project: config.Project,
-		Type:    OperationWaitGlobal,
-	}
-	state := w.Conf()
-	state.Delay = 10 * time.Second
-	state.Timeout = 10 * time.Minute
-	state.MinTimeout = 2 * time.Second
-	opRaw, err := state.WaitForState()
+	err = computeOperationWaitGlobal(config, op, "Creating Instance Template")
 	if err != nil {
-		return fmt.Errorf("Error waiting for instance template to create: %s", err)
-	}
-	op = opRaw.(*compute.Operation)
-	if op.Error != nil {
-		// The resource didn't actually create
-		d.SetId("")
-
-		// Return the error
-		return OperationError(*op.Error)
+		return err
 	}
 
 	return resourceComputeInstanceTemplateRead(d, meta)
@@ -450,25 +445,9 @@ func resourceComputeInstanceTemplateDelete(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error deleting instance template: %s", err)
 	}
 
-	// Wait for the operation to complete
-	w := &OperationWaiter{
-		Service: config.clientCompute,
-		Op:      op,
-		Project: config.Project,
-		Type:    OperationWaitGlobal,
-	}
-	state := w.Conf()
-	state.Delay = 5 * time.Second
-	state.Timeout = 5 * time.Minute
-	state.MinTimeout = 2 * time.Second
-	opRaw, err := state.WaitForState()
+	err = computeOperationWaitGlobal(config, op, "Deleting Instance Template")
 	if err != nil {
-		return fmt.Errorf("Error waiting for instance template to delete: %s", err)
-	}
-	op = opRaw.(*compute.Operation)
-	if op.Error != nil {
-		// Return the error
-		return OperationError(*op.Error)
+		return err
 	}
 
 	d.SetId("")

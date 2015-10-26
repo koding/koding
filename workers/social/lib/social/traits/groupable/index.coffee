@@ -1,5 +1,3 @@
-# due to a bug in coffeelint 1.10.1
-# coffeelint: disable=no_implicit_braces
 module.exports = class Groupable
 
   @inCollectionBySource = require './in-collection-by-source'

@@ -25,8 +25,19 @@ module.exports = class AdminAppView extends kd.ModalView
 
     @setListeners()
 
+    @overlay.once 'click', @bound 'handleOverlayClick'
+
+
+  _windowDidResize: (e) ->
+
+    height = if window.innerHeight < 600 then 100 else 90
+    @setHeight height, '%'
+    @setPositions()
+
 
   setListeners: ->
+
+    @listenWindowResize()
 
     @on 'groupSettingsUpdated', (group)->
       @setData group
@@ -120,3 +131,16 @@ module.exports = class AdminAppView extends kd.ModalView
       @tabs.showPane pane
 
     pane?.mainView?.emit 'SearchInputChanged', searchValue
+
+
+  handleOverlayClick: ->
+
+    stacksPane = @tabs.getPaneByName 'Stacks'
+
+    return @destroy()  unless stacksPane
+
+    { mainView }    = stacksPane
+    { editorView }  = mainView?.defineStackView?.stackTemplateView
+
+    unless editorView?.getAce().isContentChanged()
+      @destroy()

@@ -24,37 +24,44 @@ module.exports = class InviteSomeoneView extends KDView
 
     @createInformationView()
     @scrollView.wrapper.addSubView @inputWrapper = new KDCustomHTMLView cssClass: 'input-wrapper'
-    @createInvitationView no
-    @createAddMoreButton()
+    @createInitialInputs()
     @createMainButtons()
 
 
-  createInvitationView: (cancellable) ->
+  createInitialInputs: ->
 
-    view = new InvitationInputView { cancellable }
+    @createInvitationView no, yes, yes
+    @createInvitationView no
+    @createInvitationView yes
+
+
+  createInvitationView: (addNewOnInput, setFocus, setAdmin) ->
+
+    view = new InvitationInputView
+
+    if addNewOnInput
+      view.email.on 'input', =>
+
+        if view.next and view.email.getValue() is '' and view.next.email.getValue() is ''
+          view.next.destroy()
+          return view.next = null
+
+        return  if view.next
+        view.next = @createInvitationView yes, no
 
     view.once 'KDObjectWillBeDestroyed', =>
       @inputViews.splice @inputViews.indexOf(view), 1
 
     @inputWrapper.addSubView view
-    view.email.setFocus()
+    if setFocus
+      kd.utils.defer -> view.email.setFocus()
+    view.admin.setValue yes  if setAdmin
     @inputViews.push view
 
-
-  createAddMoreButton: ->
-
-    @scrollView.wrapper.addSubView new KDButtonView
-      cssClass : 'compact solid add-more'
-      title    : 'ADD INVITATION'
-      callback : @bound 'createInvitationView'
+    return view
 
 
   createMainButtons: ->
-
-    @addSubView new KDButtonView
-      title    : 'CANCEL'
-      cssClass : 'solid medium cancel'
-      callback : => @emit 'InvitationViewCancelled'
 
     @addSubView new KDButtonView
       title    : 'INVITE MEMBERS'
@@ -67,7 +74,10 @@ module.exports = class InviteSomeoneView extends KDView
     invites = []
 
     for view in @inputViews
-      value  = view.email.getValue().trim()
+      value = view.email.getValue().trim()
+
+      continue  unless value
+
       result = if not value then no else view.email.validate()
 
       if value and not result
@@ -83,10 +93,9 @@ module.exports = class InviteSomeoneView extends KDView
           title    : 'Failed to send some invites, please try again.'
           duration : 5000
 
-      for view in @inputViews by -1
-        if view.getOptions().cancellable then view.destroy()
-        else
-          input.setValue ''  for input in view.inputs
+      view.destroy()  for view in @inputViews by -1
+
+      @createInitialInputs()
 
       new KDNotificationView
         title    : 'All invites sent.'
@@ -100,16 +109,6 @@ module.exports = class InviteSomeoneView extends KDView
     @scrollView.wrapper.addSubView new KDCustomHTMLView
       cssClass : 'information'
       partial  : """
-        <p>Invite others to join your team. You can also allow team members to sign up using your company's email domain.</p>
-
-        <p>People you invite as full team members have the following capabilities:</p>
-
-        <ul>
-          <li>- Create and join any channel on your team</li>
-          <li>- Create or be invited to private groups on your team</li>
-          <li>- Exchange direct messages with any member of your team</li>
-          <li>- Collaborate with other team members</li>
-          <li>- Have access to shared resources</li>
-          <li>- Provisioning new machines</li>
-        </ul>
-      """
+        <p>Invite other teammates to your team. You can change admin rights for your teammates in the Members tab once they accept your invitation.</p>
+        <label>Email</label><label>First Name</label><label>Last Name<span>Admin</span></label>
+        """

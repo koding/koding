@@ -11,7 +11,6 @@ JView             = require 'app/jview'
 FooterView        = require 'app/commonviews/footerview'
 CustomLinkView    = require 'app/customlinkview'
 globals           = require 'globals'
-trackEvent        = require 'app/util/trackEvent'
 
 
 module.exports = class PricingAppView extends KDView
@@ -161,13 +160,6 @@ module.exports = class PricingAppView extends KDView
 
     @plans.switchTo planInterval
 
-    trackEvent 'Plan interval toggle, click', {
-      category : 'userInteraction'
-      action   : 'clicks'
-      label    : 'PricingTimeFrameSwitch'
-      planInterval
-    }
-
 
   loadPlan: (callback = kd.noop) ->
 
@@ -194,31 +186,33 @@ module.exports = class PricingAppView extends KDView
 
   preventBlockedUser: (options, callback) ->
 
-    @appStorage.fetchValue KEY, (result) =>
+    kd.utils.defer =>
 
-      return callback()  unless result
+      @appStorage.fetchValue KEY, (result) =>
 
-      difference = Date.now() - result.timestamp
+        return callback()  unless result
 
-      if difference < DURATION
+        difference = Date.now() - result.timestamp
 
-        @workflowController = new PaymentWorkflow { state: options, delegate: this }
+        if difference < DURATION
 
-        @workflowController.on PaymentConstants.events.WORKFLOW_STARTED, =>
-          @state.inProcess = no
-          @workflowController.failedAttemptLimitReached no
+          @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
-        workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
+          @workflowController.on PaymentConstants.events.WORKFLOW_STARTED, =>
+            @state.inProcess = no
+            @workflowController.failedAttemptLimitReached no
 
-        @workflowController.on workflowCouldNotStart, =>
-          @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
-          @state.inProcess = no
+          workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
-        return
+          @workflowController.on workflowCouldNotStart, =>
+            @emit PaymentConstants.events.WORKFLOW_COULD_NOT_START
+            @state.inProcess = no
 
-      @removeBlockFromUser()
+          return
 
-      return callback()
+        @removeBlockFromUser()
+
+        return callback()
 
 
   removeBlockFromUser: ->
@@ -287,6 +281,8 @@ module.exports = class PricingAppView extends KDView
         @plans.setState @state
 
         kd.singletons.router.handleRoute '/'
+        kd.utils.defer ->
+          kd.singletons.paymentController.emit 'PaymentWorkflowFinishedSuccessfully'
 
 
   continueFrom: (planTitle, planInterval) ->

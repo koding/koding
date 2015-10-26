@@ -70,7 +70,7 @@ func (p *Provider) CleanDeletedVMs() error {
 
 	deleteMachine := func(m Machine) error {
 		ctx := context.Background()
-		if err := p.attachSession(ctx, &m); err != nil {
+		if err := p.AttachSession(ctx, &m); err != nil {
 			return err
 		}
 

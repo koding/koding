@@ -1,4 +1,3 @@
-trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDSlideShowView = kd.SlideShowView
@@ -76,7 +75,6 @@ module.exports = class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "new to<br/>programming"
       click      : (event)->
-        trackEvent "Help modal subsection, click", title:"new"
         kd.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
@@ -87,7 +85,6 @@ module.exports = class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "an experienced<br/>developer"
       click      : (event)->
-        trackEvent "Help modal subsection, click", title:"experienced"
         kd.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
@@ -98,7 +95,6 @@ module.exports = class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "an advanced<br/>programmer"
       click      : (event)->
-        trackEvent "Help modal subsection, click", title:"advanced"
         kd.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'

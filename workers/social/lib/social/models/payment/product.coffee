@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 JPaymentBase = require './base'
 
 module.exports = class JPaymentProduct extends JPaymentBase

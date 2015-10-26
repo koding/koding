@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type Message interface {
+type Messager interface {
 	ToMap() map[string]interface{}
 }
 
@@ -18,7 +18,7 @@ type MailerNotification struct {
 	Email            string
 	MessageType      string
 	UnsubscribeToken string
-	Messages         []Message
+	Messages         []Messager
 }
 
 func (m *MailerNotification) ToMap() map[string]interface{} {
@@ -40,7 +40,7 @@ func (m *MailerNotification) ToMap() map[string]interface{} {
 }
 
 //----------------------------------------------------------
-// Implementations of `Message`
+// Implementations of `Messager`
 //----------------------------------------------------------
 
 type NotificationMessage struct {

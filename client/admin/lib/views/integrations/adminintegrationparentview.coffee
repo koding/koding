@@ -35,6 +35,10 @@ module.exports = class AdminIntegrationParentView extends JView
       return @handleError err  if err
 
       @addSubView @mainView = new AdminIntegrationSetupView {}, data
+      @mainView.on 'NewIntegrationAdded', =>
+        integrationsTab = @getDelegate().getPaneByName 'Integrations'
+        integrationsTab.mainView.configuredListView.refresh()
+
       @loader?.destroy()
 
 

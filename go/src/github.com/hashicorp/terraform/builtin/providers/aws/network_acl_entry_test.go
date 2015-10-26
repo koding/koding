@@ -37,39 +37,39 @@ func Test_expandNetworkACLEntry(t *testing.T) {
 	}
 	expanded, _ := expandNetworkAclEntries(input, "egress")
 
-	expected := []*ec2.NetworkACLEntry{
-		&ec2.NetworkACLEntry{
+	expected := []*ec2.NetworkAclEntry{
+		&ec2.NetworkAclEntry{
 			Protocol: aws.String("6"),
 			PortRange: &ec2.PortRange{
-				From: aws.Long(22),
-				To:   aws.Long(22),
+				From: aws.Int64(22),
+				To:   aws.Int64(22),
 			},
 			RuleAction: aws.String("deny"),
-			RuleNumber: aws.Long(1),
-			CIDRBlock:  aws.String("0.0.0.0/0"),
-			Egress:     aws.Boolean(true),
+			RuleNumber: aws.Int64(1),
+			CidrBlock:  aws.String("0.0.0.0/0"),
+			Egress:     aws.Bool(true),
 		},
-		&ec2.NetworkACLEntry{
+		&ec2.NetworkAclEntry{
 			Protocol: aws.String("6"),
 			PortRange: &ec2.PortRange{
-				From: aws.Long(443),
-				To:   aws.Long(443),
+				From: aws.Int64(443),
+				To:   aws.Int64(443),
 			},
 			RuleAction: aws.String("deny"),
-			RuleNumber: aws.Long(2),
-			CIDRBlock:  aws.String("0.0.0.0/0"),
-			Egress:     aws.Boolean(true),
+			RuleNumber: aws.Int64(2),
+			CidrBlock:  aws.String("0.0.0.0/0"),
+			Egress:     aws.Bool(true),
 		},
-		&ec2.NetworkACLEntry{
+		&ec2.NetworkAclEntry{
 			Protocol: aws.String("-1"),
 			PortRange: &ec2.PortRange{
-				From: aws.Long(443),
-				To:   aws.Long(443),
+				From: aws.Int64(443),
+				To:   aws.Int64(443),
 			},
 			RuleAction: aws.String("deny"),
-			RuleNumber: aws.Long(2),
-			CIDRBlock:  aws.String("0.0.0.0/0"),
-			Egress:     aws.Boolean(true),
+			RuleNumber: aws.Int64(2),
+			CidrBlock:  aws.String("0.0.0.0/0"),
+			Egress:     aws.Bool(true),
 		},
 	}
 
@@ -84,26 +84,26 @@ func Test_expandNetworkACLEntry(t *testing.T) {
 
 func Test_flattenNetworkACLEntry(t *testing.T) {
 
-	apiInput := []*ec2.NetworkACLEntry{
-		&ec2.NetworkACLEntry{
+	apiInput := []*ec2.NetworkAclEntry{
+		&ec2.NetworkAclEntry{
 			Protocol: aws.String("tcp"),
 			PortRange: &ec2.PortRange{
-				From: aws.Long(22),
-				To:   aws.Long(22),
+				From: aws.Int64(22),
+				To:   aws.Int64(22),
 			},
 			RuleAction: aws.String("deny"),
-			RuleNumber: aws.Long(1),
-			CIDRBlock:  aws.String("0.0.0.0/0"),
+			RuleNumber: aws.Int64(1),
+			CidrBlock:  aws.String("0.0.0.0/0"),
 		},
-		&ec2.NetworkACLEntry{
+		&ec2.NetworkAclEntry{
 			Protocol: aws.String("tcp"),
 			PortRange: &ec2.PortRange{
-				From: aws.Long(443),
-				To:   aws.Long(443),
+				From: aws.Int64(443),
+				To:   aws.Int64(443),
 			},
 			RuleAction: aws.String("deny"),
-			RuleNumber: aws.Long(2),
-			CIDRBlock:  aws.String("0.0.0.0/0"),
+			RuleNumber: aws.Int64(2),
+			CidrBlock:  aws.String("0.0.0.0/0"),
 		},
 	}
 	flattened := flattenNetworkAclEntries(apiInput)

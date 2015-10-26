@@ -40,10 +40,29 @@ changeSelectedThreadByName = (name) ->
     dispatch SET_SELECTED_CHANNEL_THREAD, { channelId: channel.id }
 
 
+switchToDefaultChannelForStackRequest = ->
+
+  getGroup().fetchAdmins (err, admins) ->
+
+    { slug, socialApiDefaultChannelId } = getGroup()
+
+    kd.singletons.router.handleRoute "/Channels/#{slug}"
+
+    nicknames = admins.map (a) -> "@#{a.profile.nickname}"
+    suffix = if nicknames.length > 1 then 's' else ''
+    inputValue = """
+      Hi #{suffix} #{nicknames.join ' '}, I don't have my VMs. Can you please create a stack?
+    """
+
+    ChatInputFlux = require 'activity/flux/chatinput'
+    ChatInputFlux.actions.value.setValue socialApiDefaultChannelId, inputValue
+
+
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
 
 module.exports = {
   changeSelectedThread
   changeSelectedThreadByName
+  switchToDefaultChannelForStackRequest
 }

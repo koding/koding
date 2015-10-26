@@ -1,8 +1,13 @@
 kd                   = require 'kd'
 _                    = require 'underscore'
+hljs                 = require 'highlight.js'
+Encoder              = require 'htmlencode'
 
+KDView               = kd.View
 KDModalView          = kd.ModalView
+KDCustomHTMLView     = kd.CustomHTMLView
 KDNotificationView   = kd.NotificationView
+KDCustomScrollView   = kd.CustomScrollView
 KDFormViewWithFields = kd.FormViewWithFields
 
 globals              = require 'globals'
@@ -16,6 +21,8 @@ applyMarkdown        = require 'app/util/applyMarkdown'
 TerminalModal        = require '../terminal/terminalmodal'
 
 MissingDataView      = require './missingdataview'
+
+{ jsonToYaml }       = require 'admin/views/stacks/yamlutils'
 
 
 module.exports = class ComputeController_UI
@@ -31,7 +38,9 @@ module.exports = class ComputeController_UI
 
   @generateAddCredentialFormFor = (options) ->
 
-    { provider, requiredFields, defaultTitle } = options
+    { provider, requiredFields, defaultTitle, defaultValues, callback } = options
+
+    defaultValues ?= []
 
     fields           =
       title          :
@@ -61,13 +70,17 @@ module.exports = class ComputeController_UI
     credentialFields.forEach (field) ->
 
       _field = fields[field] = _.clone currentProvider.credentialFields[field]
-      _field.required = yes
+
+      _field.required     = yes
+      _field.defaultValue = defaultValues[field]  if defaultValues[field]?
 
       if _field.type is 'selection'
-        {values}             = _field
+        { values }           = _field
         _field.itemClass     = kd.SelectBox
         _field.defaultValue ?= values.first.value
+
         selectOptions.push { field, values }
+
 
     buttons      =
       Save       :
@@ -90,6 +103,9 @@ module.exports = class ComputeController_UI
           placeholder : field
           cssClass    : 'advanced-field'
 
+        fields[field].defaultValue = defaultValues[field]  if defaultValues[field]?
+
+
       buttons['Advanced Mode'] =
         style    : "solid medium"
         type     : "button"
@@ -101,10 +117,9 @@ module.exports = class ComputeController_UI
       cssClass     : "form-view"
       fields       : fields
       buttons      : buttons
-      callback     : (data)->
+      callback     : (data) ->
 
-        { Save } = @buttons
-        Save.showLoader()
+        @buttons.Save.showLoader()
 
         { title } = data
         delete data.title
@@ -113,14 +128,17 @@ module.exports = class ComputeController_UI
         for field, value of data
           delete data[field]  if value is ''
 
-        remote.api.JCredential.create {
-          provider, title, meta: data
-        }, (err, credential)=>
+        if callback
+          callback title, data
+        else
+          remote.api.JCredential.create {
+            provider, title, meta: data
+          }, (err, credential) =>
+            @buttons.Save.hideLoader()
 
-          Save.hideLoader()
+            unless showError err
+              @emit "CredentialAdded", credential
 
-          unless showError err
-            @emit "CredentialAdded", credential
 
     selectOptions.forEach (select) ->
       { field, values } = select
@@ -369,3 +387,72 @@ module.exports = class ComputeController_UI
                     showInlineInformation provisioner, modal
 
       showInlineInformation provisioner, modal
+
+
+  @showComputeError = (options) ->
+
+    { stack, errorMessage, title, subtitle, cssClass, message } = options
+
+    cssClass ?= ''
+    message   = if message then "<div class='message'>#{message}</div>" else ''
+
+    modal     = new kd.ModalView
+      title          : title    ? "An error occured"
+      subtitle       : subtitle ? ""
+      draggable      : no
+      height         : 600
+      cssClass       : "AppModal AppModal--admin has-markdown
+                        compute-error-modal #{cssClass}"
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+
+    content      = (hljs.highlight 'profile', errorMessage).value
+
+    errorDetails = new KDView
+    if message
+      errorDetails.setClass 'with-message'
+      errorDetails.addSubView new KDCustomHTMLView
+        partial: "#{message}"
+
+    errorDetails.addSubView scrollView = new KDCustomScrollView
+    scrollView.wrapper.addSubView new KDCustomHTMLView
+      cssClass : 'error-content'
+      partial  : """
+        <div class='content'>
+          <pre><code>#{content}</code></pre>
+        </div>
+      """
+
+    if stack
+
+      modal.addSubView tabView = new kd.TabView hideHandleCloseIcons: yes
+
+      tabView.addPane new kd.TabPaneView
+        name : 'Error Details'
+        view : errorDetails
+
+      # Fetch stack template, coming from remote.cacheable ~ GG
+      { computeController } = kd.singletons
+      computeController.fetchBaseStackTemplate stack, (err, template) ->
+
+        return kd.warn err  if err
+
+        {content} = template.template
+        content   = Encoder.htmlDecode content or ''
+        content   = (hljs.highlight 'coffee', (jsonToYaml content).content).value
+
+        stackTemplate = new KDCustomScrollView
+        stackTemplate.wrapper.addSubView new KDCustomHTMLView
+          partial  : "<pre><code>#{content}</code></pre>"
+
+        tabView.addPane new kd.TabPaneView
+          name       : 'Stack Template'
+          view       : stackTemplate
+
+        tabView.showPaneByIndex 0
+
+    else
+
+      modal.addSubView errorDetails
+

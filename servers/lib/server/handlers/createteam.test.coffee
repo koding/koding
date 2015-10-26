@@ -1,23 +1,25 @@
-Bongo                               = require 'bongo'
 koding                              = require './../bongo'
 { argv }                            = require 'optimist'
 KONFIG                              = require('koding-config-manager').load "main.#{argv.c}"
 
-{ daisy }                           = Bongo
-{ expect }                          = require 'chai'
 { hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
-{ convertToArray
+{ hat
+  daisy
+  expect
+  request
+  querystring
+  convertToArray
   generateRandomEmail
-  generateRandomString }            = require '../../../testhelper'
+  generateRandomString
+  checkBongoConnectivity
+  generateRandomUsername }          = require '../../../testhelper'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 
 { generateCreateTeamRequestBody
   generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
-hat                                 = require 'hat'
-request                             = require 'request'
-querystring                         = require 'querystring'
+reservedTeamDomains = require '../../../../workers/social/lib/social/models/user/reservedteamdomains'
 
 JUser                               = null
 JName                               = null
@@ -26,6 +28,11 @@ JAccount                            = null
 JSession                            = null
 JInvitation                         = null
 JDomainAlias                        = null
+
+
+beforeTests = -> before (done) ->
+
+  checkBongoConnectivity done
 
 
 # here we have actual tests
@@ -49,30 +56,29 @@ runTests = -> describe 'server.handlers.createteam', ->
   # creating team with an unregistered user
   it 'should handle team creation correctly when valid data provided', (done) ->
 
-    inviteeEmail            = generateRandomEmail()
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body        :
-        invitees  : inviteeEmail
+    createTeamRequestParams = null
 
-    # parsing default request parameters
-    { slug
-      email
-      domains
-      username
-      companyName } = querystring.parse createTeamRequestParams.body
+    companyName = "testcompany#{generateRandomString(10)}"
+
+    slug               = companyName
+    email              = generateRandomEmail()
+    domains            = 'koding.com, gmail.com'
+    username           = generateRandomUsername()
+    inviteeEmail       = generateRandomEmail()
+    invitees           = inviteeEmail
+    companyName        = companyName
 
     queue = [
 
       ->
-        # expecting HTTP 200 status code on team create request
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
+        options = { body : { slug, email, domains, username, invitees, companyName } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-          b = try JSON.parse body
-          expect(b.token).to.exist
-
-          queue.next()
+          # expecting HTTP 200 status code on team create request
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting user to be saved
@@ -160,19 +166,18 @@ runTests = -> describe 'server.handlers.createteam', ->
     groupId                 = ''
     username                = generateRandomString()
     accountId               = ''
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body        :
-        username  : username
-        slug      : slug
 
     queue = [
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        options = { body : { username, slug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting user to be saved and holding userId
@@ -257,12 +262,7 @@ runTests = -> describe 'server.handlers.createteam', ->
 
     username                = generateRandomString()
     password                = 'testpass'
-
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body            :
-        username      : username
-        password      : password
-        alreadyMember : 'true'
+    createTeamRequestParams = null
 
     registerRequestParams   = generateRegisterRequestParams
       body       :
@@ -270,6 +270,12 @@ runTests = -> describe 'server.handlers.createteam', ->
         password : password
 
     queue = [
+
+      ->
+        options = { body : { username, password, alreadyMember : 'true' } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams_) ->
+          createTeamRequestParams = createTeamRequestParams_
+          queue.next()
 
       ->
         # sending alreadyMember:true with unregistered username
@@ -302,28 +308,25 @@ runTests = -> describe 'server.handlers.createteam', ->
 
   it 'should send HTTP 200 when invitees is not set', (done) ->
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body       :
-        invitees : ''
+    options = { body : { invitees : '' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 200
-      done()
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 200
+        done()
 
 
   it 'should save emailFrequency.marketing according to newsletter param', (done) ->
 
     makeCreateTeamRequest = (username, newsletter) ->
-      createTeamRequestParams = generateCreateTeamRequestParams
-        body         :
-          username   : username
-          newsletter : newsletter
+      options = { body : { username, newsletter } }
+      generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-      request.post createTeamRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 200
-        queue.next()
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
 
     username = ''
 
@@ -364,68 +367,104 @@ runTests = -> describe 'server.handlers.createteam', ->
 
   it 'should send HTTP 400 when company is not set', (done) ->
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body          :
-        companyName : ''
+    options = { body : { companyName : '' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Company name can not be empty.'
-      done()
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal 'Company name can not be empty.'
+        done()
 
 
   it 'should send HTTP 400 when slug is not set', (done) ->
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body   :
-        slug : ''
+    options = { body : { slug : '' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Group slug can not be empty.'
-      done()
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal 'Group slug can not be empty.'
+        done()
+
+
+  it 'should send HTTP 400 when slug is invalid or a reserved one', (done) ->
+
+    invalidTeamDomains = [
+      # testing invalid domains
+      '-'
+      '-domain'
+      'domain-'
+      'domainCamelCase'
+      'domain.with.dots'
+      'domain with whitespaces'
+      # testing some reserved domains
+      reservedTeamDomains[0]
+      reservedTeamDomains[Math.round(reservedTeamDomains.length / 2)]
+      reservedTeamDomains[reservedTeamDomains.length - 1]
+    ]
+
+    queue = []
+
+    invalidTeamDomains.forEach (teamDomain) ->
+
+      queue.push ->
+        options = { body : { slug : teamDomain } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 400
+            expect(body)            .to.be.equal 'Invalid group slug.'
+            queue.next()
+
+    queue.push -> done()
+
+    daisy queue
 
 
   it 'should send HTTP 403 when slug is set as koding', (done) ->
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body   :
-        slug : 'koding'
+    options = { body : { slug : 'koding' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-    expectedBody = "Sorry, Team URL 'koding.#{hostname}' is already in use"
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 403
-      expect(body)            .to.be.equal expectedBody
-      done()
+      expectedBody = "Sorry, Team URL 'koding.#{hostname}' is already in use"
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 403
+        expect(body)            .to.be.equal expectedBody
+        done()
 
 
   it 'should send HTTP 403 when slug is set as an already used one', (done) ->
 
     slug                    = generateRandomString()
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body   :
-        slug : slug
 
     queue = [
 
       ->
-        # expecting first team create request to be successful
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        options = { body : { slug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          # expecting first team create request to be successful
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
-        # expecting second team crete request with the same slug to fail
-        expectedBody = "Sorry, Team URL '#{slug}.#{hostname}' is already in use"
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 403
-          expect(body)            .to.be.equal expectedBody
-          queue.next()
+        options = { body : { slug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          # expecting second team crete request with the same slug to fail
+          expectedBody = "Sorry, Team URL '#{slug}.#{hostname}' is already in use"
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(body)            .to.be.equal expectedBody
+            expect(res.statusCode)  .to.be.equal 403
+            expect(body)            .to.be.equal expectedBody
+            queue.next()
 
       -> done()
 
@@ -447,14 +486,6 @@ runTests = -> describe 'server.handlers.createteam', ->
         password        : password
         passwordConfirm : password
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body              :
-        email           : email
-        alreadyMember   : 'false'
-        username        : username
-        password        : password
-        passwordConfirm : password
-
     queue = [
 
       ->
@@ -465,11 +496,20 @@ runTests = -> describe 'server.handlers.createteam', ->
           queue.next()
 
       ->
-        # expecting user to create team when alreadyMember has wrong value
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        options = {
+          body : {
+            email, username, password
+            passwordConfirm : password
+            alreadyMember : 'false'
+          }
+        }
+
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+          # expecting user to create team when alreadyMember has wrong value
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       -> done()
 
@@ -480,30 +520,27 @@ runTests = -> describe 'server.handlers.createteam', ->
 
   it 'should send HTTP 400 when user is unregistered but alreadyMember set to true', (done) ->
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body            :
-        alreadyMember : 'true'
+    options = { body : { alreadyMember : 'true' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-    # expecting user to create team when alreadyMember has wrong value
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Unknown user name'
-      done()
+      # expecting user to create team when alreadyMember has wrong value
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal 'Unknown user name'
+        done()
 
 
-  # TODO: this somehow returns 200, needs to be investigated
-  it.skip 'should send HTTP 400 when email is not valid', (done) ->
+  it 'should send HTTP 400 when email is not valid', (done) ->
 
     # setting email as random string
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body    :
-        email : generateRandomString 10
+    options = { body : { email : generateRandomString(10) } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      done()
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        done()
 
 
   it 'should send HTTP 400 when email is in use and username is not in use', (done) ->
@@ -517,11 +554,6 @@ runTests = -> describe 'server.handlers.createteam', ->
         email     : email
         username  : username
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body        :
-        email     : email
-        username  : anotherUsername
-
     queue = [
 
       ->
@@ -532,13 +564,16 @@ runTests = -> describe 'server.handlers.createteam', ->
           queue.next()
 
       ->
-        # expecting HTTP 400 from juser.convert
-        expectedBody = 'Email is already in use!'
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 400
-          expect(body)            .to.be.equal expectedBody
-          queue.next()
+        options = { body : { email, username : anotherUsername } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+        #
+          # expecting HTTP 400 from juser.convert
+          expectedBody = 'Email is already in use!'
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 400
+            expect(body)            .to.be.equal expectedBody
+            queue.next()
 
       -> done()
 
@@ -550,45 +585,69 @@ runTests = -> describe 'server.handlers.createteam', ->
   it 'should send HTTP 400 when username is not set', (done) ->
 
     expectedBody            = 'Errors were encountered during validation: username'
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body        :
-        username  : ''
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal expectedBody
-      done()
+    options = { body : { username : '' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal expectedBody
+        done()
 
 
   it 'should send HTTP 400 when passwords does not match', (done) ->
 
     # sending different passwords
-    createTeamRequestParams = generateCreateTeamRequestParams
+    options =
       body              :
         password        : 'somePassword'
         passwordConfirm : 'anotherPassword'
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal 'Passwords must match!'
-      done()
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal 'Passwords must match!'
+        done()
 
 
   it 'should send HTTP 400 when agree is set as false', (done) ->
 
-    expectedBody            = 'Errors were encountered during validation: agree'
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body    :
-        agree : 'false'
+    expectedBody = 'Errors were encountered during validation: agree'
 
-    request.post createTeamRequestParams, (err, res, body) ->
-      expect(err)             .to.not.exist
-      expect(res.statusCode)  .to.be.equal 400
-      expect(body)            .to.be.equal expectedBody
-      done()
+    options = { body : { agree : 'false' } }
+    generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
+      request.post createTeamRequestParams, (err, res, body) ->
+        expect(err)             .to.not.exist
+        expect(res.statusCode)  .to.be.equal 400
+        expect(body)            .to.be.equal expectedBody
+        done()
+
+
+  describe 'when teamAccessCode is provided', ->
+
+    it 'should send HTTP 400 if teamAccessCode non-existent', (done) ->
+
+      expectedBody = 'Team Invitation is not found'
+
+      options =
+        body                 :
+          teamAccessCode     : 'someNonExistentTeamAccessCode'
+        createTeamInvitation : no
+
+      generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 400
+          expect(body)            .to.be.equal expectedBody
+          done()
+
+
+beforeTests()
 
 runTests()
 

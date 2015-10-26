@@ -44,15 +44,14 @@ runTests = -> describe 'server.handlers.getteam', ->
     methods                   = ['post', 'get', 'put', 'patch']
     groupSlug                 = generateRandomString()
 
-    createTeamRequestParams   = generateCreateTeamRequestParams
-      body    :
-        slug  : groupSlug
-
     queue.push ->
-      request.post createTeamRequestParams, (err, res, body) ->
-        expect(err)             .to.not.exist
-        expect(res.statusCode)  .to.be.equal 200
-        queue.next()
+      options = { body : { slug : groupSlug } }
+      generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+        request.post createTeamRequestParams, (err, res, body) ->
+          expect(err)             .to.not.exist
+          expect(res.statusCode)  .to.be.equal 200
+          queue.next()
 
     methods.forEach (method) ->
       getTeamRequestParams = generateGetTeamRequestParams { method, groupSlug }

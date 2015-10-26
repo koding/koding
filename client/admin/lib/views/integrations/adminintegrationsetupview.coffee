@@ -43,6 +43,7 @@ module.exports = class AdminIntegrationSetupView extends JView
     integrationHelpers.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
+      @emit 'NewIntegrationAdded'
       kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{response.id}"
 
 

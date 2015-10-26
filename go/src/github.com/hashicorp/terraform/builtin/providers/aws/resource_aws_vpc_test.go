@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccVpc_basic(t *testing.T) {
-	var vpc ec2.VPC
+func TestAccAWSVpc_basic(t *testing.T) {
+	var vpc ec2.Vpc
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -32,8 +32,8 @@ func TestAccVpc_basic(t *testing.T) {
 	})
 }
 
-func TestAccVpc_dedicatedTenancy(t *testing.T) {
-	var vpc ec2.VPC
+func TestAccAWSVpc_dedicatedTenancy(t *testing.T) {
+	var vpc ec2.Vpc
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,8 +52,8 @@ func TestAccVpc_dedicatedTenancy(t *testing.T) {
 	})
 }
 
-func TestAccVpc_tags(t *testing.T) {
-	var vpc ec2.VPC
+func TestAccAWSVpc_tags(t *testing.T) {
+	var vpc ec2.Vpc
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -83,8 +83,8 @@ func TestAccVpc_tags(t *testing.T) {
 	})
 }
 
-func TestAccVpcUpdate(t *testing.T) {
-	var vpc ec2.VPC
+func TestAccAWSVpc_update(t *testing.T) {
+	var vpc ec2.Vpc
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -121,12 +121,12 @@ func testAccCheckVpcDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the VPC
-		DescribeVpcOpts := &ec2.DescribeVPCsInput{
-			VPCIDs: []*string{aws.String(rs.Primary.ID)},
+		DescribeVpcOpts := &ec2.DescribeVpcsInput{
+			VpcIds: []*string{aws.String(rs.Primary.ID)},
 		}
-		resp, err := conn.DescribeVPCs(DescribeVpcOpts)
+		resp, err := conn.DescribeVpcs(DescribeVpcOpts)
 		if err == nil {
-			if len(resp.VPCs) > 0 {
+			if len(resp.Vpcs) > 0 {
 				return fmt.Errorf("VPCs still exist.")
 			}
 
@@ -146,18 +146,18 @@ func testAccCheckVpcDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckVpcCidr(vpc *ec2.VPC, expected string) resource.TestCheckFunc {
+func testAccCheckVpcCidr(vpc *ec2.Vpc, expected string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		CIDRBlock := vpc.CIDRBlock
+		CIDRBlock := vpc.CidrBlock
 		if *CIDRBlock != expected {
-			return fmt.Errorf("Bad cidr: %s", *vpc.CIDRBlock)
+			return fmt.Errorf("Bad cidr: %s", *vpc.CidrBlock)
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckVpcExists(n string, vpc *ec2.VPC) resource.TestCheckFunc {
+func testAccCheckVpcExists(n string, vpc *ec2.Vpc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -169,25 +169,25 @@ func testAccCheckVpcExists(n string, vpc *ec2.VPC) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		DescribeVpcOpts := &ec2.DescribeVPCsInput{
-			VPCIDs: []*string{aws.String(rs.Primary.ID)},
+		DescribeVpcOpts := &ec2.DescribeVpcsInput{
+			VpcIds: []*string{aws.String(rs.Primary.ID)},
 		}
-		resp, err := conn.DescribeVPCs(DescribeVpcOpts)
+		resp, err := conn.DescribeVpcs(DescribeVpcOpts)
 		if err != nil {
 			return err
 		}
-		if len(resp.VPCs) == 0 {
+		if len(resp.Vpcs) == 0 {
 			return fmt.Errorf("VPC not found")
 		}
 
-		*vpc = *resp.VPCs[0]
+		*vpc = *resp.Vpcs[0]
 
 		return nil
 	}
 }
 
 // https://github.com/hashicorp/terraform/issues/1301
-func TestAccVpc_bothDnsOptionsSet(t *testing.T) {
+func TestAccAWSVpc_bothDnsOptionsSet(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,

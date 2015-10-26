@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform/helper/hashcode"
 )
 
 func resourceAwsS3Bucket() *schema.Resource {
@@ -77,11 +79,36 @@ func resourceAwsS3Bucket() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-
 			"website_endpoint": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			},
+			"website_domain": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"versioning": &schema.Schema{
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+				Set: func(v interface{}) int {
+					var buf bytes.Buffer
+					m := v.(map[string]interface{})
+					buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
+
+					return hashcode.String(buf.String())
+				},
 			},
 
 			"tags": tagsSchema(),
@@ -147,6 +174,12 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if d.HasChange("versioning") {
+		if err := resourceAwsS3BucketVersioningUpdate(s3conn, d); err != nil {
+			return err
+		}
+	}
+
 	return resourceAwsS3BucketRead(d, meta)
 }
 
@@ -159,7 +192,9 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	})
 	if err != nil {
 		if awsError, ok := err.(awserr.RequestFailure); ok && awsError.StatusCode() == 404 {
+			log.Printf("[WARN] S3 Bucket (%s) not found, error code (404)", d.Id())
 			d.SetId("")
+			return nil
 		} else {
 			// some of the AWS SDK's errors can be empty strings, so let's add
 			// some additional context.
@@ -212,6 +247,28 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	// Read the versioning configuration
+	versioning, err := s3conn.GetBucketVersioning(&s3.GetBucketVersioningInput{
+		Bucket: aws.String(d.Id()),
+	})
+	if err != nil {
+		return err
+	}
+	log.Printf("[DEBUG] S3 Bucket: %s, versioning: %v", d.Id(), versioning)
+	if versioning.Status != nil && *versioning.Status == s3.BucketVersioningStatusEnabled {
+		vcl := make([]map[string]interface{}, 0, 1)
+		vc := make(map[string]interface{})
+		if *versioning.Status == s3.BucketVersioningStatusEnabled {
+			vc["enabled"] = true
+		} else {
+			vc["enabled"] = false
+		}
+		vcl = append(vcl, vc)
+		if err := d.Set("versioning", vcl); err != nil {
+			return err
+		}
+	}
+
 	// Add the region as an attribute
 	location, err := s3conn.GetBucketLocation(
 		&s3.GetBucketLocationInput{
@@ -237,12 +294,17 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Add website_endpoint as an attribute
-	endpoint, err := websiteEndpoint(s3conn, d)
+	websiteEndpoint, err := websiteEndpoint(s3conn, d)
 	if err != nil {
 		return err
 	}
-	if err := d.Set("website_endpoint", endpoint); err != nil {
-		return err
+	if websiteEndpoint != nil {
+		if err := d.Set("website_endpoint", websiteEndpoint.Endpoint); err != nil {
+			return err
+		}
+		if err := d.Set("website_domain", websiteEndpoint.Domain); err != nil {
+			return err
+		}
 	}
 
 	tagSet, err := getTagSetS3(s3conn, d.Id())
@@ -402,14 +464,17 @@ func resourceAwsS3BucketWebsiteDelete(s3conn *s3.S3, d *schema.ResourceData) err
 		return fmt.Errorf("Error deleting S3 website: %s", err)
 	}
 
+	d.Set("website_endpoint", "")
+	d.Set("website_domain", "")
+
 	return nil
 }
 
-func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (string, error) {
+func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) {
 	// If the bucket doesn't have a website configuration, return an empty
 	// endpoint
 	if _, ok := d.GetOk("website"); !ok {
-		return "", nil
+		return nil, nil
 	}
 
 	bucket := d.Get("bucket").(string)
@@ -421,26 +486,62 @@ func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (string, error) {
 		},
 	)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var region string
 	if location.LocationConstraint != nil {
 		region = *location.LocationConstraint
 	}
 
-	return WebsiteEndpointUrl(bucket, region), nil
+	return WebsiteEndpoint(bucket, region), nil
 }
 
-func WebsiteEndpointUrl(bucket string, region string) string {
+func WebsiteEndpoint(bucket string, region string) *S3Website {
+	domain := WebsiteDomainUrl(region)
+	return &S3Website{Endpoint: fmt.Sprintf("%s.%s", bucket, domain), Domain: domain}
+}
+
+func WebsiteDomainUrl(region string) string {
 	region = normalizeRegion(region)
 
 	// Frankfurt(and probably future) regions uses different syntax for website endpoints
 	// http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html
 	if region == "eu-central-1" {
-		return fmt.Sprintf("%s.s3-website.%s.amazonaws.com", bucket, region)
+		return fmt.Sprintf("s3-website.%s.amazonaws.com", region)
 	}
 
-	return fmt.Sprintf("%s.s3-website-%s.amazonaws.com", bucket, region)
+	return fmt.Sprintf("s3-website-%s.amazonaws.com", region)
+}
+
+func resourceAwsS3BucketVersioningUpdate(s3conn *s3.S3, d *schema.ResourceData) error {
+	v := d.Get("versioning").(*schema.Set).List()
+	bucket := d.Get("bucket").(string)
+	vc := &s3.VersioningConfiguration{}
+
+	if len(v) > 0 {
+		c := v[0].(map[string]interface{})
+
+		if c["enabled"].(bool) {
+			vc.Status = aws.String(s3.BucketVersioningStatusEnabled)
+		} else {
+			vc.Status = aws.String(s3.BucketVersioningStatusSuspended)
+		}
+	} else {
+		vc.Status = aws.String(s3.BucketVersioningStatusSuspended)
+	}
+
+	i := &s3.PutBucketVersioningInput{
+		Bucket:                  aws.String(bucket),
+		VersioningConfiguration: vc,
+	}
+	log.Printf("[DEBUG] S3 put bucket versioning: %#v", i)
+
+	_, err := s3conn.PutBucketVersioning(i)
+	if err != nil {
+		return fmt.Errorf("Error putting S3 versioning: %s", err)
+	}
+
+	return nil
 }
 
 func normalizeJson(jsonString interface{}) string {
@@ -464,4 +565,8 @@ func normalizeRegion(region string) string {
 	}
 
 	return region
+}
+
+type S3Website struct {
+	Endpoint, Domain string
 }

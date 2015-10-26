@@ -1,7 +1,7 @@
 actions         = require '../actions/actiontypes'
 immutable       = require 'immutable'
 toImmutable     = require 'app/util/toImmutable'
-KodingFluxStore = require 'app/flux/store'
+KodingFluxStore = require 'app/flux/base/store'
 
 module.exports = class UsersStore extends KodingFluxStore
 
@@ -26,6 +26,8 @@ module.exports = class UsersStore extends KodingFluxStore
     @on actions.BLOCK_USER_SUCCESS, @handleBlockUserSuccess
     @on actions.BLOCK_USER_FAIL, @handleBlockUserFail
 
+    @on actions.SET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, @handleSetParticipantDeleteFlag
+    @on actions.UNSET_CREATE_CHANNEL_PARTICIPANT_DELETE_FLAG, @handleUnsetParticipantDeleteFlag
 
   ###*
    * Load account.
@@ -160,4 +162,31 @@ module.exports = class UsersStore extends KodingFluxStore
    * @param {object} account
   ###
   handleBlockUserFail: (users, account) -> users
+
+
+  ###*
+   * It sets _mayDelete value by given accountId.
+   *
+   * @param {Immutable.Map} users
+   * @param {object} payload
+   * @param {string} payload.accountId
+  ###
+  handleSetParticipantDeleteFlag: (users, { accountId }) ->
+
+    return users = users.setIn [accountId, '_mayDelete'], yes
+
+
+  ###*
+   * It removes _mayDelete value by given accountId.
+   *
+   * @param {Immutable.Map} users
+   * @param {object} payload
+   * @param {string} payload.accountId
+  ###
+  handleUnsetParticipantDeleteFlag: (users, { accountId }) ->
+
+    user = users.get accountId
+    user = user.remove '_mayDelete'
+    users = users.set accountId, user
+    return users
 

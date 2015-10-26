@@ -15,6 +15,7 @@ app                   = express()
 webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require './humanstxt'
+csrf                  = require './csrf'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -69,10 +70,12 @@ app.all  '/-/team/:name'                         , require './handlers/getteam'
 app.all  '/-/profile/:email'                     , require './handlers/getprofile'
 # temp endpoints ends
 
+app.post '/-/analytics/track'                    , require './handlers/analytics/track'
+app.post '/-/analytics/page'                     , require './handlers/analytics/page'
+
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/video-chat/session'                 , require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
-app.get  '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handlers/kitesubscription'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
 app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
@@ -86,7 +89,7 @@ app.post '/-/validate/email'                     , require './handlers/validatee
 app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
 app.post '/:name?/Register'                      , require './handlers/register'
-app.post '/:name?/Login'                         , require './handlers/login'
+app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , require './handlers/impersonate'
 app.post '/:name?/Recover'                       , require './handlers/recover'
 app.post '/:name?/Reset'                         , require './handlers/reset'

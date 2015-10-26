@@ -1,5 +1,4 @@
 ReplyLikeView = require './replylikeview'
-trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class ActivityLikeCount extends ReplyLikeView
@@ -43,8 +42,6 @@ module.exports = class ActivityLikeCount extends ReplyLikeView
 
     @show()
 
-    trackEvent "Activity like, success"
-
 
   removeLike: ->
 
@@ -52,11 +49,6 @@ module.exports = class ActivityLikeCount extends ReplyLikeView
 
     @hide()  unless @actorsCount
 
-    trackEvent "Activity unlike, success"
-
 
   pistachio: ->
     "#{ @actorsCount }"
-
-
-

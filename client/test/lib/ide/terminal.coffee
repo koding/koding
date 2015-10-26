@@ -51,7 +51,10 @@ terminateAll = (browser) ->
   browser
     .waitForElementVisible   'li.terminate-all', 20000
     .click                   'li.terminate-all'
-    .pause 30000 # required, wait to terminate all open sessions
+    .pause                   10000 # required, wait to terminate all open sessions
+    .element                 'css selector', '.autoremovepane-confirm', (result) ->
+      if result.status is 0
+        browser.click        '.autoremovepane-confirm button.red'
 
   openNewTerminalMenu(browser)
 
@@ -119,19 +122,13 @@ module.exports =
 
   runCommandOnTerminal: (browser) ->
 
-    time = Date.now()
     user = helpers.beginTest(browser)
 
     helpers.waitForVMRunning(browser)
     createTerminalSession(browser, user)
 
-    browser
-      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
-      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
-      .pause                     5000
-      .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
-      .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
-      .end()
+    helpers.runCommandOnTerminal(browser)
+    browser.end()
 
 
   renameTerminalTab: (browser) ->

@@ -30,6 +30,7 @@ throttle      = require 'throttleit'
 child_process = require 'child_process'
 collapse      = require 'bundle-collapser/plugin'
 convert       = require 'convert-source-map'
+globby        = require 'globby'
 
 
 JS_OUTFILE                  = 'bundle.js'
@@ -325,7 +326,7 @@ class Haydar extends events.EventEmitter
 
             s.once 'finish', ->
               secs = ((Date.now() - start)/1000).toFixed 2
-              msg = "written #{outfile} (#{secs})"
+              msg = "written #{outfile} (#{secs} secs)"
               console.log msg
               console.log "extracted source maps to #{opts.jsSourcemapsOutfile}"
               if not opts.watchJs
@@ -460,7 +461,7 @@ class Haydar extends events.EventEmitter
         return  unless file
 
         if e in ['change','modified','deleted']
-          console.log "updated #{globs}"
+          console.log "New '#{e}' event on #{file}"
           start = Date.now()
           styl manifest, globs
 
@@ -468,11 +469,14 @@ class Haydar extends events.EventEmitter
 
       styl manifest, globs
 
+      files = globs.reduce (acc, glob) ->
+        acc.concat globby.sync glob
+      , []
 
       if opts.watchCss and not watchedGlobs[globs.join()]
         watchedGlobs[globs.join()] = yes
-        console.log "watching #{globs}"
-        w = chokidar.watch globs, persistent: yes
+        globs.forEach (glob) -> console.log "watching #{glob}"
+        w = chokidar.watch files, persistent: yes
         w.on 'ready', -> w.on 'raw', onRaw
 
 

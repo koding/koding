@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 jraphical   = require 'jraphical'
 payment     = require 'koding-payment'
 KodingError = require '../../error'
@@ -121,7 +120,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     return Math.ceil ratio * @feeAmount # cents
 
   updateStatus: (status, callback) ->
-    @update $set: { status }, callback
+    @update { $set: { status } }, callback
 
   invokeMethod: (method, options, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -222,30 +221,31 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     multiplyFactor    ?= 1
     shouldCreateNonce ?= no
 
-    @update $set: transactionLock: yes, (err) =>
+    @update { $set: { transactionLock: yes } }, (err) =>
       return callback err  if err
 
       @checkUsage pack, multiplyFactor, (err, usage) =>
         if err
           callback err  if err
-          @update $set: transactionLock: no, (err) ->
+          @update { $set: { transactionLock: no } }, (err) ->
             console.warn 'Transaction lock reset failed'  if err
           return
 
         { quantities } = pack
 
-        op = $set: (Object.keys quantities).reduce( (memo, key) =>
-          memo["usage.#{ key }"] =
-            (@usage[key] ? 0) + quantities[key] * multiplyFactor
-          memo
-        , {})
+        op =
+          $set: (Object.keys quantities).reduce( (memo, key) =>
+            memo["usage.#{ key }"] =
+              (@usage[key] ? 0) + quantities[key] * multiplyFactor
+            memo
+          , {})
 
         op.$set.transactionLock = no
 
         @update op, (err) =>
           if err
             callback err  if err
-            @update $set: transactionLock: no, (err) ->
+            @update { $set: { transactionLock: no } }, (err) ->
               console.warn 'Transaction lock reset failed'  if err
             return
 
@@ -305,7 +305,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         account.addSubscription newSubscription, (err) -> queue.next err
       =>
         { quantities } = newPlan
-        newSubscription.update $set: { @usage, quantities }, (err) -> queue.next err
+        newSubscription.update { $set: { @usage, quantities } }, (err) -> queue.next err
       ->
         callback null, newSubscription
     ]
@@ -337,7 +337,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     { delegate } = client.connection
 
     delegate.fetchPaymentMethods {},
-      targetOptions: selector: { paymentMethodId }
+      { targetOptions: { selector: { paymentMethodId } } }
     , (err, paymentMethods) =>
       return callback err  if err
       unless paymentMethods?.length is 1
@@ -375,7 +375,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   debitPack: ({ tag, multiplyFactor }, callback) ->
     multiplyFactor ?= 1
     JPaymentPack = require './pack'
-    JPaymentPack.one tags: $in: [tag], {}, (err, pack) =>
+    JPaymentPack.one { tags: { $in: [tag] } }, {}, (err, pack) =>
       return callback err  if err
       return callback new KodingError 'pack not found'  unless pack
       @debit { pack, multiplyFactor }, callback
@@ -387,7 +387,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
   @createFreeSubscription = (account, callback) ->
     JPaymentPlan = require './plan'
-    JPaymentPlan.one tags: 'nosync', (err, plan) ->
+    JPaymentPlan.one { tags: 'nosync' }, (err, plan) ->
       return \
         if err then callback err
         else if not plan then callback new KodingError 'nosync plan not found'

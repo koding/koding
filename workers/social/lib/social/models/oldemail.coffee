@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 # We're not longer using JMail to send emails. See `email.coffee`,
 # this is here just for legacy reasons.
 { Model, signature } = require 'bongo'
@@ -79,9 +78,10 @@ module.exports = class JMail extends Model
       return callback err  if err
       return callback { message: 'Unrecognized SMTP id' }  unless mail?
 
-      operation = $set  :
-        status          : 'delivered'
-        dateDelivered   : status.timestamp * 1000 # milliseconds
+      operation =
+        $set              :
+          status          : 'delivered'
+          dateDelivered   : status.timestamp * 1000 # milliseconds
 
       mail.update operation, callback
 

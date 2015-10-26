@@ -3,7 +3,6 @@ package tunnelproxymanager
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -61,9 +60,8 @@ func Configure() (*Config, *aws.Config, error) {
 			c.SecretAccessKey,
 			"",
 		),
-		Region:     c.Region,
-		Logger:     ioutil.Discard, // we are not using aws logger
-		MaxRetries: 5,
+		Region:     aws.String(c.Region),
+		MaxRetries: aws.Int(5),
 	}
 
 	// decide on autoscaling name
@@ -127,7 +125,7 @@ func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 
 	resp, err := asg.DescribeAutoScalingInstances(
 		&autoscaling.DescribeAutoScalingInstancesInput{
-			InstanceIDs: []*string{
+			InstanceIds: []*string{
 				aws.String(instanceID),
 			},
 		},
@@ -137,7 +135,7 @@ func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 	}
 
 	for _, instance := range resp.AutoScalingInstances {
-		if *instance.InstanceID == instanceID {
+		if *instance.InstanceId == instanceID {
 			return *instance.AutoScalingGroupName, nil
 		}
 	}

@@ -1,5 +1,10 @@
 bongo    = require 'bongo'
+
+{ secure, signature } = bongo
+
 { argv } = require 'optimist'
+
+_ = require 'lodash'
 
 KONFIG        = require('koding-config-manager').load("main.#{argv.c}")
 { socialapi } = KONFIG
@@ -11,7 +16,14 @@ analytics = new Analytics(KONFIG.segment)
 
 mqClient = null
 
-module.exports = class Tracker
+module.exports = class Tracker extends bongo.Base
+
+  @share()
+
+  @set
+    sharedMethods:
+      static:
+        track: (signature String, Object, Function)
 
   KodingError = require '../error'
 
@@ -29,8 +41,14 @@ module.exports = class Tracker
     REQUEST_EMAIL_CHANGE : 'requested pin to change email'
     CHANGED_EMAIL        : 'changed their email'
     INVITED_GROUP        : 'was invited to a group'
+    INVITED_CREATE_TEAM  : 'was invited to create a team'
     SENT_FEEDBACK        : 'sent feedback'
 
+  @properties = {}
+
+  @properties[@types.FINISH_REGISTER] = {
+    category: 'NewAccount', label: 'VerifyAccount'
+  }
 
   @identifyAndTrack = (username, event, eventProperties = {}) ->
     @identify username
@@ -38,6 +56,8 @@ module.exports = class Tracker
 
 
   @identify = (username, traits = {}) ->
+    return  unless KONFIG.sendEventsToSegment
+
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username     = forcedRecipient
@@ -52,14 +72,29 @@ module.exports = class Tracker
       console.error "flushing identify failed: #{err} @sent-hil"  if err
 
 
-  @track = (username, mail, options = {}) ->
+  @track$ = secure (client, subject, options = {}, callback) ->
+
+    { profile: { nickname } } = client.connection.delegate
+
+    event = { subject }
+
+    @track nickname, event, options
+
+    callback()
+
+
+  @track = (username, event, options = {}) ->
+    return  unless KONFIG.sendEventsToSegment
+
+    _.extend options, @properties[event.subject]
+
     # use `forcedRecipient` for both username and email
     if forcedRecipient
       username = forcedRecipient
-      mail.to  = forcedRecipient
+      event.to  = forcedRecipient
 
-    mail.from       or= defaultFromMail
-    mail.properties   = @addDefaults { options, username }
+    event.from       or= defaultFromMail
+    event.properties   = @addDefaults { options, username }
 
     unless mqClient
       return console.error 'RabbitMQ client not found for class `Tracker` @sent-hil'
@@ -69,11 +104,33 @@ module.exports = class Tracker
         unless exchange
           return console.error "Exchange not found to queue: #{exchangeName} @sent-hil"
 
-        exchange.publish '', mail, { type:EVENT_TYPE }
+        exchange.publish '', event, { type: EVENT_TYPE }
         exchange.close()
 
     if mqClient.readyEmitted then sendMessage()
     else mqClient.on 'ready', -> sendMessage()
+
+
+  @page = (userId, name, category, properties) ->
+
+    return  unless KONFIG.sendEventsToSegment
+
+    userId = KONFIG.forcedRecipient or userId
+
+    options = { userId, name, category, properties }
+    @addDefaults options
+    analytics.page options
+
+
+  @alias = (previousId, userId) ->
+
+    return  unless KONFIG.sendEventsToSegment
+
+    userId = KONFIG.forcedRecipient or userId
+
+    options = { previousId, userId }
+    @addDefaults options
+    analytics.alias options
 
 
   @addDefaults = (opts) ->
@@ -83,5 +140,3 @@ module.exports = class Tracker
 
 
   @setMqClient = (m) -> mqClient = m
-
-

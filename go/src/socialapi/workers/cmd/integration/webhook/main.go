@@ -6,6 +6,8 @@ import (
 	"socialapi/config"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/integration/webhook/api"
+	"socialapi/workers/migrator/controller"
+	"socialapi/workers/realtime/models"
 
 	"github.com/koding/runner"
 )
@@ -37,6 +39,16 @@ func main() {
 	if err != nil {
 		r.Log.Fatal("Could not initialize webhook worker: %s", err)
 	}
+
+	pubnub := models.NewPubNub(appConfig.GateKeeper.Pubnub, r.Log)
+	defer pubnub.Close()
+
+	mwc, err := controller.New(r.Log, pubnub)
+	if err != nil {
+		panic(err)
+	}
+
+	go mwc.EnsureIntegrations()
 
 	h.AddHandlers(m)
 

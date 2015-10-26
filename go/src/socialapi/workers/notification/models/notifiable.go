@@ -10,7 +10,7 @@ var (
 	NOTIFIER_LIMIT = 3
 )
 
-type Notifiable interface {
+type Notifier interface {
 	// users that will be notified are fetched while creating notification
 	GetNotifiedUsers(notificationContentId int64) ([]int64, error)
 	GetType() string

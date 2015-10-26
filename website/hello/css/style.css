@@ -8,10 +8,11 @@ body {
 	margin:0;
 	font-size:13px;
 	line-height:1.231;
-	background:#393630;
+	background:#ffffff;
 }
 body,button,input,select,textarea {
-	font-family: 'Helvetica Neue', Helvetica, Arial, 'sans-serif';
+	/*font-family: 'Helvetica Neue', Helvetica, Arial, 'sans-serif';*/
+	font-family: 'Source Sans Pro', sans-serif;
 	color:#222;
 }
 /*a {
@@ -24,6 +25,9 @@ a:hover {
 	color: #06e;
 }
 */
+a {
+  color: #4A90E2;
+}
 a:focus {
 	outline:thin dotted;
 }
@@ -80,27 +84,31 @@ header a {
 	}
 }
 .hellobox {
-	height:520px;
+	height:411px;
 	margin:0;
 	text-align:center;
 	-webkit-animation:fadeIn 1s;
 	background:#000 no-repeat center bottom;
+	background-size: cover;
 	border-top: 1px solid transparent
 }
-.python .hellobox {
-	background-image:url('../img/hellopython.jpg');
+.html .hellobox {
+	background-image:url('../img/hellohtml.png');
 }
 .php .hellobox {
-	background:#000 url('../img/hellojtree.jpg') no-repeat center top;
+	background-image:url('../img/hellophp.png');
+}
+.python .hellobox {
+	background-image:url('../img/hellopython.png');
+}
+.perl .hellobox {
+	background-image:url('../img/helloperl.png');
 }
 .ruby .hellobox {
-	background:#000 url('../img/hellojtree2.jpg') no-repeat center top;
+	background-image:url('../img/helloruby.png');
 }
 .node .hellobox {
 	background:#000 url('../img/cloudy.jpg') no-repeat center top;
-}
-.perl .hellobox {
-	background:#000 url('../img/hellodesert.jpg') no-repeat center top;
 }
 .wrap {
 	width: 660px;
@@ -138,11 +146,11 @@ header a {
 h1 {
 	font-weight:900;
 	font-size:8em;
+	font-style: italic;
 	letter-spacing:-5px;
 	color:#fff;
 	text-align:center;
 	margin:0 0 10px 0;
-	padding:135px 0 0 0;
 	text-shadow:0 0 30px rgba(58,93,125,0.67);
 	line-height:1em;
 	-webkit-animation:shakey .2s ease-in-out alternate;
@@ -166,7 +174,6 @@ h2 {
 	border-radius:4px;
 	padding:0;
 	margin:0;
-	margin: 2em 0;
 	line-height: 3em;
 	text-shadow:0 0 5px rgba(58,93,125,1);
 	transition:all .2s linear;
@@ -184,12 +191,14 @@ h4 {
 	-webkit-transition:all .2s linear;
 }
 nav {
-	background:rgba(0,0,0,0.4);
+	background:#f7f7f7;
 	text-align:center;
 }
 p {
-	color:rgba(255,255,255,0.5);
+	color:#6d6d6d;
 	font-size:1.1em;
+	line-height: 25px;
+	margin: 35px 0;
 }
 nav ul li {
 	display:inline-block;
@@ -200,28 +209,85 @@ nav ul li {
 	color:#999;
 	text-transform:uppercase;
 	font-size:.9em;
+	position: relative;
 }
 nav ul li a {
-	color:#fff;
+	color:#B3B3B3;
 	text-decoration:none;
 	font-size:1.4em;
+	font-weight: bolder;
 	padding:6px 12px;
-	border-radius:4px;
 	transition:all .2s linear;
 	-o-transition:all .2s linear;
 	-moz-transition:all .2s linear;
 	-webkit-transition:all .2s linear;
 }
-nav ul li a.active {
-	color:#ff9200;
-	background:rgba(255,255,255,0.3);
+nav ul li.active:after {
+    content: '';
+    display: block;
+    height: 4px;
+    width: 100%;
+    background-color: #4A90E2;
+    border-radius: 2px;
+    position: absolute;
+    bottom: -23px;
+    left: 0;
+}
+nav ul li.active a{
+	color:#4A90E2;
 }
 .navbar {
 }
 footer {
-	color:#fff;
+	color:#6d6d6d;
 	text-align:center;
+	font-size: 1.1em;
+	line-height: 25px;
+	max-width: 980px;
+    margin: 0 auto;
 }
+footer a {
+    text-decoration: none;
+}
+footer h4 {
+    color: #313131;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+footer #social {
+    width: 225px;
+    margin: 75px auto 50px auto;
+}
+footer #social a {
+    padding: 35px 21px 0px 21px;
+    position: relative;
+}
+footer #social #twitter {
+    border-right: 2px solid #e6e6e6;
+}
+footer #twitter:before,
+footer #facebook:before {
+    content: '';
+    display: block;
+    background-size: 100%;
+    background-position: center;
+    position: absolute;
+    top: 0;
+    left: 50%;
+}
+footer #twitter:before {
+    background-image: url('../img/twitter.png');
+    height: 20px;
+    width: 25px;
+    margin-left: -12.5px;
+}
+footer #facebook:before {
+    background-image: url('../img/facebook.png');
+    height: 23px;
+    width: 13px;
+    margin-left: -6.5px;
+}
+
 pre {
 	margin:20px auto 40px;
 	width:70%;
@@ -269,10 +335,6 @@ dl dd {
   margin-left: 0;
   font-size: 1.1em;
   line-height: 1.4em;
-}
-
-a, a:link {
-  color: #ff9400;
 }
 
 /* 404 page */

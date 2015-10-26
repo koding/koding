@@ -13,6 +13,7 @@ type Group struct {
 	Visibility                     string                   `bson:"visibility" json:"visibility"`
 	SocialApiChannelId             string                   `bson:"socialApiChannelId" json:"socialApiChannelId"`
 	SocialApiAnnouncementChannelId string                   `bson:"socialApiAnnouncementChannelId" json:"socialApiAnnouncementChannelId"`
+	SocialApiDefaultChannelId      string                   `bson:"socialApiDefaultChannelId" json:"socialApiDefaultChannelId"`
 	Parent                         []map[string]interface{} `bson:"parent" json:"parent"`
 	Customize                      map[string]interface{}   `bson:"customize" json:"customize"`
 	Counts                         map[string]interface{}   `bson:"counts" json:"counts"`

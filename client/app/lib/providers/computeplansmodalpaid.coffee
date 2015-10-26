@@ -7,7 +7,6 @@ KDView                  = kd.View
 ComputePlansModal       = require './computeplansmodal'
 CustomLinkView          = require '../customlinkview'
 CustomPlanStorageSlider = require './customplanstorageslider'
-trackEvent              = require 'app/util/trackEvent'
 remote                  = require('../remote').getInstance()
 
 
@@ -123,12 +122,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       content.addSubView new CustomLinkView
         title : 'Upgrade your account for more VMs RAM and Storage'
         href  : '/Pricing'
-        click : ->
-          trackEvent 'Upgrade your account, click',
-            category : 'userInteraction'
-            action   : 'clicks'
-            label    : 'upgradeAccountOverlay'
-            origin   : 'paidModal'
 
     @populateSnapshotsSelector()
 
@@ -275,5 +268,3 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       @createVMButton.hideLoader()
       @destroy()
-
-

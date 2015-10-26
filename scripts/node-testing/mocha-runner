@@ -1,8 +1,5 @@
 #!/usr/bin/env coffee
-
-###
 # this file instantiates mocha runner and runs test.coffee files in a directory
-###
 
 { join }  = require('path')
 

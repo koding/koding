@@ -57,7 +57,7 @@ func testAccCheckAWSElasticacheClusterDestroy(s *terraform.State) error {
 			continue
 		}
 		res, err := conn.DescribeCacheClusters(&elasticache.DescribeCacheClustersInput{
-			CacheClusterID: aws.String(rs.Primary.ID),
+			CacheClusterId: aws.String(rs.Primary.ID),
 		})
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func testAccCheckAWSElasticacheClusterExists(n string) resource.TestCheckFunc {
 
 		conn := testAccProvider.Meta().(*AWSClient).elasticacheconn
 		_, err := conn.DescribeCacheClusters(&elasticache.DescribeCacheClustersInput{
-			CacheClusterID: aws.String(rs.Primary.ID),
+			CacheClusterId: aws.String(rs.Primary.ID),
 		})
 		if err != nil {
 			return fmt.Errorf("Elasticache error: %v", err)
@@ -163,7 +163,10 @@ resource "aws_security_group" "bar" {
 }
 
 resource "aws_elasticache_cluster" "bar" {
-    cluster_id = "tf-test-%03d"
+    // Including uppercase letters in this name to ensure
+    // that we correctly handle the fact that the API
+    // normalizes names to lowercase.
+    cluster_id = "tf-TEST-%03d"
     node_type = "cache.m1.small"
     num_cache_nodes = 1
     engine = "redis"

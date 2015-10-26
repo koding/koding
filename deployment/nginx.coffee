@@ -302,6 +302,18 @@ module.exports.create = (KONFIG, environment)->
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
       }
+
+      # redirect /d/* to koding-dl S3 bucket; used to distributed
+      # // kd/klient installers
+      location ~^/d/(.*)$ {
+        proxy_pass            "https://s3.amazonaws.com/koding-dl/$1";
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 1;
+
+        resolver 8.8.8.8;
+      }
+
       #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
 

@@ -44,6 +44,8 @@ resource "google_compute_instance" "default" {
 		foo = "bar"
 	}
 
+    metadata_startup_script = "echo hi > /test.txt"
+
 	service_account {
 		scopes = ["userinfo-email", "compute-ro", "storage-ro"]
 	}
@@ -73,9 +75,15 @@ The following arguments are supported:
 * `metadata` - (Optional) Metadata key/value pairs to make available from
     within the instance.
 
+* `metadata_startup_script` - (Optional) An alternative to using the
+  startup-script metadata key, except this one forces the instance to be
+  recreated (thus re-running the script) if it is changed.  This replaces the
+  startup-script metadata key on the created instance and thus the two mechanisms
+  are not allowed to be used simultaneously.
+
 * `network_interface` - (Required) Networks to attach to the instance. This can be
-    specified multiple times for multiple networks. Structure is documented
-    below.
+    specified multiple times for multiple networks, but GCE is currently limited
+    to just 1. Structure is documented below.
 
 * `network` - (DEPRECATED, Required) Networks to attach to the instance. This can be
     specified multiple times for multiple networks. Structure is documented

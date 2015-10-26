@@ -51,14 +51,13 @@ runTests = -> describe 'server.handlers.getteammembers', ->
     queue = [
 
       ->
-        createTeamRequestParams = generateCreateTeamRequestParams
-          body    :
-            slug  : groupSlug
+        options = { body : { slug : groupSlug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         getTeamMembersRequestParams = generateGetTeamMembersRequestParams
@@ -86,14 +85,13 @@ runTests = -> describe 'server.handlers.getteammembers', ->
     queue = [
 
       ->
-        createTeamRequestParams = generateCreateTeamRequestParams
-          body    :
-            slug  : groupSlug
+        options = { body : { slug : groupSlug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         getTeamMembersRequestParams = generateGetTeamMembersRequestParams
@@ -126,7 +124,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting team to be created
-        createTeamRequestParams = generateCreateTeamRequestParams
+        options =
           body              :
             slug            : groupSlug
             invitees        : inviteeEmail
@@ -134,10 +132,12 @@ runTests = -> describe 'server.handlers.getteammembers', ->
             password        : groupOwnerPassword
             passwordConfirm : groupOwnerPassword
 
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting group to be crated
@@ -229,7 +229,7 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting team to be created
-        createTeamRequestParams = generateCreateTeamRequestParams
+        options =
           body              :
             slug            : groupSlug
             email           : groupOwnerEmail
@@ -240,10 +240,12 @@ runTests = -> describe 'server.handlers.getteammembers', ->
             passwordConfirm : groupOwnerPassword
 
 
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting group to be crated

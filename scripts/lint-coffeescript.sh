@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 ROOT_DIR=$(dirname $0)/..
 COFFEELINT_BIN="$ROOT_DIR/node_modules/coffeelint/bin/coffeelint"
 WORKERS_DIR="$ROOT_DIR/workers"

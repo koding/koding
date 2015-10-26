@@ -28,7 +28,7 @@ module.exports = class OAuth extends bongo.Base
         callback null, url
       when 'facebook'
         { clientId } = KONFIG.facebook
-        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}"
+        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
         callback null, url
       when 'google'
         { client_id } = KONFIG.google

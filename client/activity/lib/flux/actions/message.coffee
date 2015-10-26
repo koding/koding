@@ -5,7 +5,8 @@ actionTypes            = require './actiontypes'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 messageHelpers         = require '../helpers/message'
 realtimeActionCreators = require './realtime/actioncreators'
-getGroup = require 'app/util/getGroup'
+embedlyHelpers         = require '../helpers/embedly'
+Promise                = require 'bluebird'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -16,68 +17,37 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 ###
 loadMessages = (channelId, options = {}) ->
 
-  # if given channel is group channel, special case it for fetching activities
-  # with comments.
-  if getGroup().socialApiChannelId is channelId
-    return loadPublicChannelMessages channelId, options
-
-  options.limit ?= 25
+  options.limit ?= 50
   { socialapi } = kd.singletons
   { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
-    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
-
-  dispatch LOAD_MESSAGES_BEGIN, { channelId }
-
-  _options = _.assign {}, options, { id: channelId }
-
-  socialapi.channel.fetchActivities _options, (err, messages) ->
-    if err
-      dispatch LOAD_MESSAGES_FAIL, { err, channelId }
-      return
-
-    dispatch LOAD_MESSAGES_SUCCESS, { channelId }
-
-    kd.singletons.reactor.batch ->
-      messages.forEach (message) ->
-        dispatchLoadMessageSuccess channelId, message
-
-
-###*
- * Loads public/group channel messages, with comments of them.
- *
- * @param {string} channelId
- * @param {object=} options
-###
-loadPublicChannelMessages = (channelId, options = {}) ->
-
-  options.limit ?= 25
-  { socialapi, reactor } = kd.singletons
-  { LOAD_MESSAGES_BEGIN, LOAD_MESSAGES_FAIL,
-    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS } = actionTypes
+    LOAD_MESSAGES_SUCCESS, LOAD_MESSAGE_SUCCESS
+    SET_ALL_MESSAGES_LOADED, UNSET_ALL_MESSAGES_LOADED } = actionTypes
 
   dispatch LOAD_MESSAGES_BEGIN, { channelId, options }
 
   _options = _.assign {}, options, { id: channelId }
 
-  socialapi.channel.fetchActivitiesWithComments _options, (err, messages) ->
-    if err
-      dispatch LOAD_MESSAGES_FAIL, { err, channelId }
-      return
+  new Promise (resolve, reject) ->
+    socialapi.channel.fetchActivities _options, (err, messages) ->
+      if err
+        dispatch LOAD_MESSAGES_FAIL, { err, channelId }
+        return reject err
 
-    dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+      # clean load more markers of given messages first.
+      # kd.utils.defer -> cleanLoaderMarkers channelId, messages
 
-    kd.singletons.reactor.batch ->
-      messages.forEach (message) ->
-        if message.typeConstant is 'post'
-          return dispatchLoadMessageSuccess channelId, message
+      if messages.length < options.limit
+        dispatch SET_ALL_MESSAGES_LOADED, { channelId }
+      else
+        dispatch UNSET_ALL_MESSAGES_LOADED, { channelId }
 
-        _messages = reactor.evaluate ['MessagesStore']
-        parentMessage = _messages.get message.parentId
-        if parentMessage
-          dispatchLoadMessageSuccess channelId, message
-        else
-          loadMessage(message.parentId).then ->
+      kd.utils.defer ->
+        kd.singletons.reactor.batch ->
+          for message in messages
             dispatchLoadMessageSuccess channelId, message
+
+          dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+        resolve { messages }
 
 
 ###*
@@ -101,7 +71,7 @@ dispatchLoadMessageSuccess = (channelId, message) ->
  * An empty promise resolver. It's being used for default cases that returns
  * promise to keep API consistent.
 ###
-emptyPromise = new Promise (resolve) -> resolve()
+emptyPromise = new Promise (resolve) -> resolve {}
 
 
 ###*
@@ -136,6 +106,79 @@ loadMessage = do (fetchingMap = {}) -> (messageId) ->
     # unmark this message for being fetched.
     loadComments message.id
     fetchingMap[messageId] = no
+
+    return { message }
+
+
+###*
+ * Ensures a message is there and it also has enough surrounding message
+ * siblings so that scrolling into a single post would make much more sense.
+ *
+ * @param {string} messageId
+ * @return {Promise}
+###
+ensureMessage = (messageId) ->
+
+  { reactor } = kd.singletons
+
+  loadMessage(messageId).then ({ message }) ->
+    channelId = message.initialChannelId
+    loadMessages(channelId, { from: message.createdAt }).then ({ messages }) ->
+      messagesBefore = reactor.evaluate ['MessagesStore']
+      loadMessages(channelId, { from: message.createdAt, sortOrder: 'ASC' }).then ({ messages }) ->
+        [..., last] = messages
+        return { message }  unless last
+
+        # put a loader marker only if this message was not here before.
+        unless messagesBefore.has last.id
+          putLoaderMarker channelId, last.id, { position: 'after', autoload: no }
+
+        return { message }
+
+###*
+ * Action to put a loader marker to a certain position to a channel.
+ *
+ * @param {string} channelId
+ * @param {string} messageId
+ * @param {object} options
+ * @param {string} options.position - either 'before' or 'after'
+ * @param {boolean} options.autoload
+###
+putLoaderMarker = (channelId, messageId, options) ->
+
+  dispatch actionTypes.ACTIVATE_LOADER_MARKER,
+    channelId : channelId
+    messageId : messageId
+    position  : options.position
+    autoload  : options.autoload
+
+
+###*
+ * Removes a message's loader marker in a channel with given options.
+ *
+ * @param {string} channelId
+ * @param {string} messageId
+ * @param {object} options
+ * @param {string} options.position - either 'before' or after
+###
+removeLoaderMarker = (channelId, messageId, options) ->
+
+  dispatch actionTypes.DEACTIVATE_LOADER_MARKER, { channelId, messageId, position: options.position }
+
+
+###*
+ * Removes given messages' loader markers in that channel. Both 'before' and
+ * 'after' markers.
+ *
+ * @param {string} channelId
+ * @param {Array.<SocialMessage>} messages
+###
+cleanLoaderMarkers = (channelId, messages) ->
+
+  kd.singletons.reactor.batch ->
+    messages.forEach (message) ->
+      removeLoaderMarker channelId, message.id, { position: 'before' }
+      removeLoaderMarker channelId, message.id, { position: 'after' }
 
 
 ###*
@@ -183,19 +226,28 @@ createMessage = (channelId, body, payload) ->
     channelId, clientRequestId, body
   }
 
-  socialapi.message.post { channelId, clientRequestId, body }, (err, message) ->
-    if err
-      dispatch CREATE_MESSAGE_FAIL, {
-        err, channelId, clientRequestId
+  # since this action works for all types of channel, we need to specify the
+  # type when we are posting.
+  channel = socialapi.retrieveCachedItemById channelId
+  type = channel.typeConstant
+
+  fetchEmbedPayload { body, payload }, (embedPayload) ->
+    payload = _.assign {}, payload, embedPayload
+
+    options = { channelId, clientRequestId, body, payload, type }
+    socialapi.message.sendPrivateMessage options, (err, [channel]) ->
+      if err
+        dispatch CREATE_MESSAGE_FAIL, {
+          err, channelId, clientRequestId
+        }
+        return
+
+      { lastMessage: message } = channel
+
+      realtimeActionCreators.bindMessageEvents message
+      dispatch CREATE_MESSAGE_SUCCESS, {
+        message, channelId, clientRequestId, channel
       }
-      return
-
-    channel = socialapi.retrieveCachedItemById channelId
-
-    realtimeActionCreators.bindMessageEvents message
-    dispatch CREATE_MESSAGE_SUCCESS, {
-      message, channelId, clientRequestId, channel
-    }
 
 
 ###*
@@ -290,13 +342,20 @@ editMessage = (messageId, body, payload) ->
 
   dispatch EDIT_MESSAGE_BEGIN, { messageId, body, payload }
 
-  socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
-    if err
-      dispatch EDIT_MESSAGE_FAIL, { err, messageId }
-      return
+  fetchEmbedPayload { body, payload }, (embedPayload) ->
+    if payload and not embedPayload
+      # if payload link has been removed, it's necessary
+      # to clear link fields from message payload
+      embedPayload = { link_url : null, link_embed : null }
+    payload = _.assign {}, payload, embedPayload
 
-    realtimeActionCreators.bindMessageEvents message
-    dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
+    socialapi.message.edit {id: messageId, body, payload}, (err, message) ->
+      if err
+        dispatch EDIT_MESSAGE_FAIL, { err, messageId }
+        return
+
+      realtimeActionCreators.bindMessageEvents message
+      dispatch EDIT_MESSAGE_SUCCESS, { message, messageId }
 
 
 ###*
@@ -307,6 +366,8 @@ editMessage = (messageId, body, payload) ->
  * @param {number} limit
 ###
 loadComments = (messageId, options = {}) ->
+
+  return
 
   options.limit ?= 25
   { socialapi } = kd.singletons
@@ -372,7 +433,11 @@ createComment = (messageId, body, payload) ->
 ###
 changeSelectedMessage = (messageId) ->
 
-  dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
+  unless messageId
+    return dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId: null }
+
+  ensureMessage(messageId).then ({ message }) ->
+    dispatch actionTypes.SET_SELECTED_MESSAGE_THREAD, { messageId }
 
 
 ###*
@@ -393,10 +458,57 @@ changeSelectedMessageBySlug = (slug) ->
     dispatch SET_SELECTED_MESSAGE_THREAD, { messageId: message.id }
 
 
+###*
+ * Sets message edit mode
+ *
+ * @param {string} messageId
+###
+setMessageEditMode = (messageId) ->
+
+  { SET_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch SET_MESSAGE_EDIT_MODE, { messageId }
+
+
+###*
+ * Unsets message edit mode
+ *
+ * @param {string} messageId
+###
+unsetMessageEditMode = (messageId) ->
+
+  { UNSET_MESSAGE_EDIT_MODE } = actionTypes
+  dispatch UNSET_MESSAGE_EDIT_MODE, { messageId }
+
+
+fetchEmbedPayload = (messageData, callback = kd.noop) ->
+
+  url = embedlyHelpers.extractUrl messageData.body
+  return callback()  unless url
+  return callback()  if messageData.payload?.link_url is url
+
+  options = {
+    maxWidth  : 530
+    maxHeight : 200
+    wmode     : 'transparent'
+  }
+
+  { fetchDataFromEmbedly } = kd.singletons.socialapi.message
+
+  fetchDataFromEmbedly url, options, (err, result) ->
+
+    if err
+      kd.log 'Embed.ly error!', err
+    else if result
+      data    = result.first
+      payload = embedlyHelpers.createMessagePayload data
+
+    callback payload
+
+
 module.exports = {
   loadMessages
-  loadPublicChannelMessages
   loadMessageBySlug
+  ensureMessage
   createMessage
   likeMessage
   unlikeMessage
@@ -405,6 +517,10 @@ module.exports = {
   loadComments
   createComment
   changeSelectedMessage
+  setMessageEditMode
+  unsetMessageEditMode
   changeSelectedMessageBySlug
+  putLoaderMarker
+  removeLoaderMarker
 }
 

@@ -16,7 +16,8 @@ module.exports =
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
-          helpers.fillPaymentForm(browser)
+          helpers.fillPaymentForm(browser, 'developer')
+          helpers.submitForm(browser, yes)
           browser.end()
         else
           browser.end()

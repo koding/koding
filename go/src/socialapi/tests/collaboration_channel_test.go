@@ -53,7 +53,7 @@ func TestCollaborationChannels(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(recipient2, err)
 
 			Convey("one can send initiate the collaboration channel with only him", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message"
 				pmr.GroupName = groupName
@@ -67,7 +67,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("one can send initiate the collaboration channel with 2 participants", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body message for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -96,7 +96,7 @@ func TestCollaborationChannels(t *testing.T) {
 				groupChannel.AddParticipant(account.Id) // ignore error
 				groupChannel.AddParticipant(sinan.Id)   // ignore error
 
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @devrim @sinan"
 				pmr.GroupName = ""
@@ -109,7 +109,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("if sender is not defined should fail to create collaboration channel", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = 0
 				pmr.Body = "this is a body for private message"
 				pmr.GroupName = ""
@@ -122,7 +122,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("one can send private message to multiple person", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @sinan"
 				pmr.GroupName = groupName
@@ -136,7 +136,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("response should have created channel", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -154,7 +154,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("send response should have participant status data", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for private message @devrim @sinan"
 				pmr.GroupName = groupName
@@ -168,7 +168,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("send response should have participant count", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is a body for @sinan private message @devrim"
 				pmr.GroupName = groupName
@@ -182,7 +182,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("send response should have participant preview", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "this is @sinan a body for @devrim private message"
 				pmr.GroupName = groupName
@@ -197,7 +197,7 @@ func TestCollaborationChannels(t *testing.T) {
 
 			Convey("send response should have last Message", func() {
 				body := "hi @devrim this is a body for private message also for @sinan"
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = body
 				pmr.GroupName = groupName
@@ -216,7 +216,7 @@ func TestCollaborationChannels(t *testing.T) {
 				// groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 				body := "hi @devrim this is a body for private message also for @sinan"
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = body
 				pmr.GroupName = groupName
@@ -249,7 +249,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("user should be able to search collaboration channels via purpose field", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "search collaboration channel"
 				pmr.GroupName = groupName
@@ -311,7 +311,7 @@ func TestCollaborationChannels(t *testing.T) {
 				_, err = groupChannel.AddParticipant(recipient.Id)
 				So(err, ShouldBeNil)
 
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "test collaboration channel participants"
 				pmr.GroupName = groupName
@@ -360,7 +360,7 @@ func TestCollaborationChannels(t *testing.T) {
 
 				systemType, ok := history.MessageList[0].Message.Payload["systemType"]
 				So(ok, ShouldBeTrue)
-				So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_JOIN)
+				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_JOIN)
 
 				// try to add same participant
 				_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
@@ -381,7 +381,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("user should not be able to edit join messages", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "test collaboration channel participants again"
 				pmr.GroupName = groupName
@@ -419,7 +419,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("first chat message should include initial participants", func() {
-				pmr := models.PrivateChannelRequest{}
+				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
 				pmr.Body = "test initial participation message"
 				pmr.GroupName = groupName
@@ -454,7 +454,7 @@ func TestCollaborationChannels(t *testing.T) {
 
 				systemType, ok := history.MessageList[1].Message.Payload["systemType"]
 				So(ok, ShouldBeTrue)
-				So(*systemType, ShouldEqual, models.PrivateMessageSystem_TYPE_INIT)
+				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_INIT)
 
 				participants := make([]string, 0)
 				err = json.Unmarshal([]byte(*initialParticipants), &participants)

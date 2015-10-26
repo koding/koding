@@ -20,13 +20,13 @@ import (
 
 	"koding/db/mongodb/modelhelper"
 
-	"github.com/PuerkitoBio/throttled"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	kmetrics "github.com/koding/metrics"
 	"github.com/koding/redis"
 	"github.com/koding/runner"
 	tigertonic "github.com/rcrowley/go-tigertonic"
+	"gopkg.in/throttled/throttled.v2"
 
 	gometrics "github.com/rcrowley/go-metrics"
 )
@@ -60,7 +60,7 @@ type Request struct {
 	Cookies   []*http.Cookie
 	Body      interface{}
 	Headers   map[string]string
-	Ratelimit *throttled.Throttler
+	Ratelimit *throttled.HTTPRateLimiter
 }
 
 var throttleErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
@@ -282,11 +282,11 @@ func BuildHandlerWithContext(handler http.Handler, redis *redis.RedisSession, lo
 	)
 }
 
-func BuildHandlerWithRateLimit(handler http.Handler, t *throttled.Throttler) http.Handler {
-	throttled.Error = throttleErrorHandler
-	throttled.DefaultDeniedHandler = throttleDenyHandler
+func BuildHandlerWithRateLimit(handler http.Handler, t *throttled.HTTPRateLimiter) http.Handler {
+	t.Error = throttleErrorHandler
+	t.DeniedHandler = throttleDenyHandler
 
-	return t.Throttle(handler)
+	return t.RateLimit(handler)
 }
 
 func DoRequest(request *Request) (*http.Response, error) {

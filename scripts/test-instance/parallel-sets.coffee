@@ -63,6 +63,7 @@ module.exports = [
 
   [
     { name : 'ide terminal' }
+    { name : 'pricing invalidCardDetails' }
   ]
 
   [
@@ -72,6 +73,7 @@ module.exports = [
 
   [
     { name : 'collaboration collaboration' }
+    { name : 'environments snapshot' }
   ]
 
   [

@@ -90,13 +90,13 @@ Configuration = (options={}) ->
   algolia             = { appId:    'DYVV81J2S1'                             , indexSuffix:        '.sandbox'                             }
   algoliaSecret       = { appId:    algolia.appId                            , indexSuffix:        algolia.indexSuffix                   , apiSecretKey:    '682e02a34e2a65dc774f5ec355ceca33'                                             , apiSearchOnlyKey: "8dc0b0dc39282effe9305981d427fec7" }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               "5432"                                , username:        "socialapp201506"      , password:        "socialapp201506"                    , dbname:   "social"             }
-  kontrolPostgres     = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "kontrolapp201506"     , password:        "kontrolapp201506"                   , dbname:   "social"             }
+  kontrolPostgres     = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "kontrolapp201506"     , password:        "kontrolapp201506"                   , dbname:   "social"             , connecttimeout: 20 }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-5b987056-ef0f-457a-aadf-87b0488c1da1", subscribekey:       "sub-c-70ab5d36-0b13-11e5-8104-0619f8945a4f"  , secretkey: "sec-c-MWFhYTAzZWUtYzg4My00ZjAyLThiODEtZmI0OTFkOTk0YTE0"                , serverAuthKey: "46fae3cc-9344-4edb-b152-864ba567980c7960b1d8-31dd-4722-b0a1-59bf878bd551"                , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                        , pubnub: pubnub                                }
   integration         = { host:     "localhost"                                   , port:               "7300"                                        , url: "#{customDomain.public}/api/integration" }
-  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                  }
-  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-sandbox"       }
+  webhookMiddleware   = { host:     "localhost"                                   , port:               "7350"                                        , url: "#{customDomain.public}/api/webhook"     }
+  paymentwebhook      = { port:     "6600"                                        , debug:              false                                         , secretKey: "paymentwebhooksecretkey-sandbox"  }
   tokbox              = { apiKey:   "45253342"                                    , apiSecret:          "e834f7f61bd2b3fafc36d258da92413cebb5ce6e" }
   recaptcha           = { enabled:  yes }
 
@@ -116,8 +116,7 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
-  segment                 = 'swZaC1nE4sYPLjkGTKsNpmGAkYmPcFtx'
-
+  segment = 'swZaC1nE4sYPLjkGTKsNpmGAkYmPcFtx'
 
   disabledFeatures =
     moderation : yes
@@ -253,6 +252,7 @@ Configuration = (options={}) ->
     collaboration                  : {timeout: 1 * 60 * 1000}
     client                         : {watch: yes                                                     , version: version                                             , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
     jwt                            : {secret: "ac25b4e6009c1b6ba336a3eb17fbc3b7"                     , confirmExpiresInMinutes: 10080  } # 7 days
+    sendEventsToSegment            : options.sendEventsToSegment
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -298,8 +298,10 @@ Configuration = (options={}) ->
     disabledFeatures     : disabledFeatures
     contentRotatorUrl    : 'http://koding.github.io'
     integration          : { url: "#{integration.url}" }
+    webhookMiddleware    : { url: "#{webhookMiddleware.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
     recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
+    sendEventsToSegment  : KONFIG.sendEventsToSegment
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
@@ -333,7 +335,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password} -postgres-connecttimeout #{kontrolPostgres.connecttimeout}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -521,6 +523,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/channel/(.*)/list"
             proxyPass   : "http://socialapi/channel/$1/list$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/by/(.*)"
+            proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
           }
           {
             location    : "~ /api/social/collaboration/ping"
@@ -787,7 +793,7 @@ Configuration = (options={}) ->
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
 
   KONFIG.supervisord.memmon =
-    limit : '3072MB'
+    limit : '1536MB'
     email : 'sysops+supervisord-sandbox@koding.com'
 
 

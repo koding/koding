@@ -7,6 +7,7 @@ getRoles = (permission, permissionSet) ->
   roles.push 'admin' # admin can do anything!
   return roles
 
+
 getRoleSelector = (delegate, group, permission, permissionSet) ->
   roles       = getRoles permission, permissionSet
   return -1   if 'guest' in roles # everyone is (at least) guest!
@@ -16,16 +17,30 @@ getRoleSelector = (delegate, group, permission, permissionSet) ->
     as        : { $in: roles }
   }
 
+
 createExistenceCallback = (callback) -> (err, count) ->
   if err then callback err, no
   else if count > 0 then callback null, yes
   else callback null, no
 
+
+hasDelegate = (delegate, callback) ->
+
+  unless delegate
+    console.warn 'Delegate cannot be null for checking permissions, request is denied'
+    callback null, no
+    return no
+
+  return yes
+
+
 module.exports =
 
-  own:(client, group, permission, permissionSet, _, callback) ->
+  own: (client, group, permission, permissionSet, _, callback) ->
+
     { delegate } = client.connection
 
+    return  unless hasDelegate delegate, callback
     return callback null, yes  if delegate.equals this
 
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
@@ -46,13 +61,12 @@ module.exports =
           }
           Relationship.count ownerSelector, createExistenceCallback callback
 
-  any:(client, group, permission, permissionSet, _, callback) ->
+
+  any: (client, group, permission, permissionSet, _, callback) ->
+
     { delegate } = client.connection
-    unless delegate
-      console.warn 'Delegate cannot be null for checking permissions, request is denied'
-      return callback null, no
+    return unless hasDelegate delegate, callback
+
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
     return callback null, yes  if roleSelector is -1
     Relationship.count roleSelector, createExistenceCallback callback
-
-

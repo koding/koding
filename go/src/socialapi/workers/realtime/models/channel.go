@@ -26,7 +26,7 @@ func (c *Channel) IsPrivateChannel() bool {
 		c.Type == "bot"
 }
 
-type ChannelInterface interface {
+type ChannelManager interface {
 	PrepareName() string
 	GrantAccess(p *PubNub, a *Authenticate) error
 }

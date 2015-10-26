@@ -109,6 +109,36 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			time.Sleep(time.Second * 20)
 		}
 
+		// Assign a Elastic IP for a paying customer if it doesn't have any
+		// assigned yet (Elastic IP's are assigned only during the Build). We
+		// lookup the IP from the Elastic IPs, if it's not available (returns an
+		// error) we proceed and create it.
+		if m.Payment.Plan != "free" { // check this first to avoid an additional AWS call
+			m.Log.Debug("Checking if IP is an Elastic IP for paying user: (ip: %s)", m.IpAddress)
+
+			_, err = m.Session.AWSClient.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter())
+			if isAddressNotFoundError(err) {
+				oldIp := m.IpAddress
+				elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
+
+				m.Log.Info(
+					"Paying user without Elastic IP detected. Assigning IP. (username: %s, instanceId: %s, region: %s, oldIp: %s, newIp: %s)",
+					m.Credential, m.Meta.InstanceId, m.Meta.Region, oldIp, elasticIp,
+				)
+
+				if err != nil {
+					m.Log.Error("couldn't not create elastic IP: %s", err)
+				} else {
+					m.IpAddress = elasticIp
+				}
+			} else if err != nil {
+				m.Log.Error(
+					"Failed to retrieve Elastic IP information: %s (username: %s, instanceId: %s, region: %s, ip: %s)",
+					err.Error(), m.Credential, m.Meta.InstanceId, m.Meta.Region, m.IpAddress,
+				)
+			}
+		}
+
 		startFunc := func() error {
 			instance, err := m.Session.AWSClient.Start(ctx)
 			if err == nil {

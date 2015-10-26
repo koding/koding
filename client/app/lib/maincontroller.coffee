@@ -6,14 +6,15 @@ Promise                  = require 'bluebird'
 kookies                  = require 'kookies'
 globals                  = require 'globals'
 remote                   = require('./remote').getInstance()
+checkGuestUser           = require './util/checkGuestUser'
 getGroup                 = require './util/getGroup'
 setPreferredDomain       = require './util/setPreferredDomain'
-logout                   = require './util/logout'
 logToExternalWithTime    = require './util/logToExternalWithTime'
 isLoggedIn               = require './util/isLoggedIn'
 whoami                   = require './util/whoami'
 checkFlag                = require './util/checkFlag'
 setVersionCookie         = require './util/setVersionCookie'
+expireClientId           = require './util/expireClientId'
 ActivityController       = require './activitycontroller'
 AppStorageController     = require './appstoragecontroller'
 ApplicationManager       = require './applicationmanager'
@@ -46,11 +47,10 @@ PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
 MarketingController      = require './marketing/marketingcontroller'
 MachineShareManager      = require './machinesharemanager'
-KodingFluxReactor        = require './flux/reactor'
+KodingFluxReactor        = require './flux/base/reactor'
 
-module.exports =
 
-class MainController extends KDController
+module.exports           = class MainController extends KDController
 
   ###
 
@@ -145,9 +145,9 @@ class MainController extends KDController
     kd.registerSingleton 'marketingController',       new MarketingController
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
-    kd.registerSingleton 'reactor',                   new KodingFluxReactor { debug: yes }
+    kd.registerSingleton 'reactor',                   new KodingFluxReactor
 
-    @registerFluxStores()
+    @registerFluxModules()
 
     shortcuts.addEventListeners()
 
@@ -200,11 +200,12 @@ class MainController extends KDController
     unless account instanceof remote.api.JAccount
       account = remote.revive account
 
-    # this is last guard that we can take for guestuser issue ~ GG
-    if account.profile?.nickname is "guestuser"
-      kookies.expire 'clientId'
-      global.location.href = '/'
-      return
+    matchIds = account._id is globals.userAccount?._id
+    return  if not firstLoad and matchIds
+
+    clientExpirationValidators = [checkGuestUser, checkLoggedOut]
+    for validator in clientExpirationValidators when validator account
+      return expireClientId()
 
     globals.userAccount = account
     connectedState.connected = yes
@@ -246,7 +247,8 @@ class MainController extends KDController
 
     mainView = kd.getSingleton 'mainView'
 
-    logout()
+    @isLoggingIn on
+    delete globals.userAccount
 
     storage = new LocalStorage 'Koding', '1.0'
 
@@ -291,7 +293,7 @@ class MainController extends KDController
       cookieMatches     = cookie is (kookies.get 'clientId')
 
       if not cookieExists or (cookieExists and not cookieMatches)
-        global.location.href = '/'
+        return global.location.href = '/'
 
       kd.utils.wait 1000, cookieChangeHandler
 
@@ -359,6 +361,7 @@ class MainController extends KDController
 
       notification = new KDNotificationView
         title         : "Couldn't connect to backend!"
+        cssClass      : 'disconnected'
         type          : "tray"
         closeManually : no
         content       : """We don't know why, but your browser couldn't reach our server.
@@ -426,7 +429,7 @@ class MainController extends KDController
         image.src = src
 
 
-  registerFluxStores: ->
+  registerFluxModules: ->
 
     fluxModules = [
       require 'activity/flux'
@@ -434,6 +437,14 @@ class MainController extends KDController
     ]
 
     fluxModules.forEach (fluxModule) ->
-      kd.singletons.reactor.registerStores fluxModule.stores
+      fluxModule.register kd.singletons.reactor
 
 
+# This function compares type of given account with global user
+# account to determine whether user is logged out or not.
+checkLoggedOut = (account) ->
+  return no  unless globals.userAccount
+
+  if globals.userAccount.type is 'registered'
+    if account.type is 'unregistered'
+      return yes

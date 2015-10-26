@@ -210,7 +210,9 @@ func makeSureAccount(handler *Controller, id string, f func(map[string]interface
 				return nil
 			}
 		case <-deadLine:
-			return errDeadline
+			handler.log.Critical("deadline reached on account but not returning an error")
+			// return errDeadline
+			return nil
 		}
 	}
 }

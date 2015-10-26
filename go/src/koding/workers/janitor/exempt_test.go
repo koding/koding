@@ -133,6 +133,22 @@ func TestIsUserVMsEmpty(t *testing.T) {
 			deleteUserWithUsername(user)
 		})
 	})
+
+	Convey("Given user who has only managed vms", t, func() {
+		user, err := createUserWithManagedVM()
+
+		So(err, ShouldBeNil)
+		Convey("Then it returns true for 'no vm' exempt", func() {
+			noVms, err := IsUserVMsEmptyFn(user, warning)
+
+			So(err, ShouldBeNil)
+			So(noVms, ShouldBeTrue)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
 }
 
 func TestIsTooSoon(t *testing.T) {

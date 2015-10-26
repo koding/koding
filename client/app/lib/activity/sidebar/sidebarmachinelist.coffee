@@ -43,14 +43,13 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @addSubView @header
 
 
-  headerClickHandler: -> new EnvironmentsModal
+  headerClickHandler: -> new EnvironmentsModal selected: @getOption 'stack'
+
 
   addMachineBoxes: (boxes) ->
 
     data = boxes or @getData()
-
-    for obj in data
-      @addMachineBox obj
+    data.forEach @bound 'addMachineBox'
 
 
   addMachineBox: (machineAndWorkspaceData) ->
@@ -59,19 +58,22 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     return no  if @machineBoxesByMachineUId[uid]
 
-    machineBox = new SidebarMachineBox {}, machineAndWorkspaceData
-    @addSubView machineBox
-    @machineBoxes.push machineBox
-    @machineBoxesByMachineUId[uid] = machineBox
+    box = new SidebarMachineBox {}, machineAndWorkspaceData
 
-    @show() if @machineBoxes.length is 1
+    box.once 'KDObjectWillBeDestroyed', @lazyBound 'handleMachineBoxDestroy', box
 
-    machineBox.once 'KDObjectWillBeDestroyed', =>
-      @machineBoxes.splice @machineBoxes.indexOf(machineBox), 1
-      delete @machineBoxesByMachineUId[machineBox.machine.uid]
-      @emit 'MachineBoxDestroyed', machineBox
+    @forwardEvent box, 'ListStateChanged'
 
-    machineBox.on 'ListStateChanged', => @emit 'ListStateChanged'
+    @addSubView box
+    @machineBoxes.push box
+    @machineBoxesByMachineUId[uid] = box
+
+
+  handleMachineBoxDestroy: (box) ->
+
+    @machineBoxes.splice @machineBoxes.indexOf(box), 1
+    delete @machineBoxesByMachineUId[box.machine.uid]
+    @emit 'MachineBoxDestroyed', box
 
 
   removeWorkspaceByChannelId: (channelId) ->
@@ -123,3 +125,12 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @forEachMachineBoxes (box) -> machines.push box.machine
 
     return machines
+
+
+  updateVisibility: ->
+
+    shownBoxes = @machineBoxes.filter (box) -> not box.hasClass 'hidden'
+
+    if shownBoxes.length is 0
+    then @hide()
+    else @show()

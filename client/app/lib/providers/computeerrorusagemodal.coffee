@@ -35,3 +35,4 @@ module.exports = class ComputeErrorUsageModal extends ComputeErrorModal
     @addSubView new CustomLinkView
       title    : upgradeMessage
       href     : upgradeLink ? '/Pricing'
+      click    : @bound 'destroy'

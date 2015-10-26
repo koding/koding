@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { Model, Base, secure, daisy, signature } = require 'bongo'
 KodingError = require '../error'
 

@@ -1,6 +1,6 @@
-{ ObjectId, signature }  = require 'bongo'
-{ Module, Relationship } = require 'jraphical'
-KodingError              = require '../../error'
+{ ObjectId, signature, daisy }  = require 'bongo'
+{ Module, Relationship }        = require 'jraphical'
+KodingError                     = require '../../error'
 
 
 module.exports = class JStackTemplate extends Module
@@ -18,11 +18,11 @@ module.exports = class JStackTemplate extends Module
 
     permissions       :
 
-      'create stack template'     : []
-      'list stack templates'      : []
+      'create stack template'     : ['member', 'moderator']
+      'list stack templates'      : ['member', 'moderator']
 
-      'delete own stack template' : []
-      'update own stack template' : []
+      'delete own stack template' : ['member', 'moderator']
+      'update own stack template' : ['member', 'moderator']
 
       'delete stack template'     : []
       'update stack template'     : []
@@ -32,6 +32,10 @@ module.exports = class JStackTemplate extends Module
       static          :
         create        :
           (signature Object, Function)
+        one           : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
         some          : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -44,6 +48,8 @@ module.exports = class JStackTemplate extends Module
           (signature String, Function)
         update        :
           (signature Object, Function)
+        clone         :
+          (signature Function)
 
     sharedEvents      :
       static          : [ ]
@@ -75,12 +81,15 @@ module.exports = class JStackTemplate extends Module
 
       meta            : require 'bongo/bundles/meta'
 
-      group           : String
+      group           :
+        type          : String
+        required      : yes
 
       template        :
         content       : String
         sum           : String
         details       : Object
+        rawContent    : String
 
       # Identifiers of JCredentials
       # structured like following;
@@ -95,15 +104,18 @@ module.exports = class JStackTemplate extends Module
         default       : -> {}
 
 
-  generateTemplateObject = (content, details) ->
+  generateTemplateObject = (content, rawContent, details) ->
 
-    crypto   = require 'crypto'
-    content  = ''  unless typeof content is 'string'
+    crypto     = require 'crypto'
+    content    = ''  unless typeof content is 'string'
+    rawContent = ''  unless typeof rawContent is 'string'
+
     details ?= {}
 
     return {
       content
       details
+      rawContent
       sum: crypto.createHash 'sha1'
         .update content
         .digest 'hex'
@@ -127,7 +139,8 @@ module.exports = class JStackTemplate extends Module
         description : data.description ? ''
         machines    : data.machines    ? []
         accessLevel : data.accessLevel ? 'private'
-        template    : generateTemplateObject data.template, data.templateDetails
+        template    : generateTemplateObject \
+          data.template, data.rawContent, data.templateDetails
         credentials : data.credentials
 
       stackTemplate.save (err) ->
@@ -135,7 +148,7 @@ module.exports = class JStackTemplate extends Module
         then callback new KodingError 'Failed to save stack template', err
         else callback null, stackTemplate
 
-  # coffeelint: disable=no_implicit_braces
+
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -165,6 +178,56 @@ module.exports = class JStackTemplate extends Module
         callback err, templates
 
 
+  @one$: permit 'list stack templates',
+
+    success: (client, selector, options, callback) ->
+
+      [options, callback] = [callback, options]  unless callback
+
+      options ?= {}
+      options.limit = 1
+
+      @some$ client, selector, options, (err, templates) ->
+        [template] = templates ? []
+        callback err, template
+
+
+  checkUsage: (callback) ->
+
+    slug   = @getAt 'group'
+
+    JGroup = require '../group'
+    JGroup.one { slug }, (err, group) =>
+      console.error "Group #{slug} not found!"  unless group
+
+      # If there is an error with group fetching, we assume that
+      # this stack template is not in use by that group to not prevent
+      # removal of non-used stack templates ~ GG
+      return callback no  if err or not group
+
+      templateId = @getId()
+      for stackTemplateId in group.stackTemplates ? []
+        return callback yes  if templateId.equals stackTemplateId
+
+      callback no
+
+
+  removeCustomCredentials = (client, credentials, callback) ->
+
+    JCredential = require './credential'
+    queue       = []
+
+    credentials.forEach (identifier) -> queue.push ->
+      JCredential.fetchByIdentifier client, identifier, (err, credential) ->
+        if not err and credential
+        then credential.delete client, -> queue.next()
+        else queue.next()
+
+    queue.push -> callback null
+
+    daisy queue
+
+
   delete: permit
 
     advanced: [
@@ -172,7 +235,21 @@ module.exports = class JStackTemplate extends Module
       { permission: 'delete stack template' }
     ]
 
-    success: (client, callback) -> @remove callback
+    success: (client, callback) ->
+
+      @checkUsage (stackIsInUse) =>
+
+        if stackIsInUse
+          return callback new KodingError \
+            "It's not allowed to delete in-use stack templates!", 'InUseByGroup'
+
+        customCredentials = @getAt('credentials.custom') ? []
+
+        @remove (err) ->
+          return callback err  if err
+
+          # delete custom credentials if exists ~ GG
+          removeCustomCredentials client, customCredentials, callback
 
 
   setAccess: permit
@@ -184,7 +261,7 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, accessLevel, callback) ->
 
-      @update $set: { accessLevel }, callback
+      @update { $set: { accessLevel } }, callback
 
 
   update$: permit
@@ -196,20 +273,90 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, data, callback) ->
 
+      { delegate } = client.connection
+
       # It's not allowed to change a stack template group or owner
       delete data.originId
       delete data.group
 
       # Update template sum if template update requested
-      { template, templateDetails } = data
+      { template, templateDetails, rawContent } = data
+
       if template?
-        data.template = generateTemplateObject template, templateDetails
+        data.template = generateTemplateObject \
+          template, rawContent, templateDetails
 
         # Keep the existing template details if not provided
         if not templateDetails?
           data.template.details = @getAt 'template.details'
 
-      @update $set: data, (err) -> callback err
+        delete data.templateDetails
+        delete data.rawContent
+
+        # Keep last updater info in the template details
+        data.template.details.lastUpdaterId = delegate.getId()
+
+      @update { $set: data }, (err) => callback err, this
+
+
+  cloneCustomCredentials = (client, credentials, callback) ->
+
+    JCredential = require './credential'
+    clonedCreds = []
+    queue       = []
+
+    credentials.forEach (identifier) -> queue.push ->
+      JCredential.fetchByIdentifier client, identifier, (err, credential) ->
+        if not err and credential
+          credential.clone client, (err, cloneCredential) ->
+            if err
+              console.warn 'Clone failed:', err
+            else
+              clonedCreds.push cloneCredential.identifier
+            queue.next()
+        else
+          queue.next()
+
+    queue.push ->
+      callback null, clonedCreds
+
+    daisy queue
+
+
+  clone: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: (client, callback) ->
+
+      cloneData         =
+        title           : "#{@getAt 'title'} - clone"
+        description     : @getAt 'description'
+
+        config          : @getAt 'config'
+        machines        : @getAt 'machines'
+        credentials     : @getAt 'credentials'
+
+        template        : @getAt 'template.content'
+        rawContent      : @getAt 'template.rawContent'
+        templateDetails : @getAt 'template.details'
+
+      cloneData.config           ?= {}
+      cloneData.config.clonedFrom = @getId()
+
+      { custom } = cloneData.credentials or {}
+      custom    ?= []
+
+      if custom.length > 0
+        cloneCustomCredentials client, custom, (err, creds) ->
+          return callback new KodingError 'Failed to clone credentials'  if err
+          cloneData.credentials.custom = creds
+          JStackTemplate.create client, cloneData, callback
+      else
+        JStackTemplate.create client, cloneData, callback
 
 
 # Base StackTemplate example for koding group
@@ -297,5 +444,3 @@ Default Template ---
 }
 
 ###
-
-

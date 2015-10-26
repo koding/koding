@@ -28,6 +28,14 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(string)
+					if len(value) > 255 {
+						errors = append(errors, fmt.Errorf(
+							"%q cannot be longer than 255 characters", k))
+					}
+					return
+				},
 			},
 
 			"description": &schema.Schema{
@@ -35,6 +43,14 @@ func resourceAwsSecurityGroup() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "Managed by Terraform",
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(string)
+					if len(value) > 255 {
+						errors = append(errors, fmt.Errorf(
+							"%q cannot be longer than 255 characters", k))
+					}
+					return
+				},
 			},
 
 			"vpc_id": &schema.Schema{
@@ -152,7 +168,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 	securityGroupOpts := &ec2.CreateSecurityGroupInput{}
 
 	if v, ok := d.GetOk("vpc_id"); ok {
-		securityGroupOpts.VPCID = aws.String(v.(string))
+		securityGroupOpts.VpcId = aws.String(v.(string))
 	}
 
 	if v := d.Get("description"); v != nil {
@@ -175,7 +191,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Security Group: %s", err)
 	}
 
-	d.SetId(*createResp.GroupID)
+	d.SetId(*createResp.GroupId)
 
 	log.Printf("[INFO] Security Group ID: %s", d.Id())
 
@@ -200,21 +216,21 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 	// AWS defaults all Security Groups to have an ALLOW ALL egress rule. Here we
 	// revoke that rule, so users don't unknowningly have/use it.
 	group := resp.(*ec2.SecurityGroup)
-	if group.VPCID != nil && *group.VPCID != "" {
+	if group.VpcId != nil && *group.VpcId != "" {
 		log.Printf("[DEBUG] Revoking default egress rule for Security Group for %s", d.Id())
 
 		req := &ec2.RevokeSecurityGroupEgressInput{
-			GroupID: createResp.GroupID,
-			IPPermissions: []*ec2.IPPermission{
-				&ec2.IPPermission{
-					FromPort: aws.Long(int64(0)),
-					ToPort:   aws.Long(int64(0)),
-					IPRanges: []*ec2.IPRange{
-						&ec2.IPRange{
-							CIDRIP: aws.String("0.0.0.0/0"),
+			GroupId: createResp.GroupId,
+			IpPermissions: []*ec2.IpPermission{
+				&ec2.IpPermission{
+					FromPort: aws.Int64(int64(0)),
+					ToPort:   aws.Int64(int64(0)),
+					IpRanges: []*ec2.IpRange{
+						&ec2.IpRange{
+							CidrIp: aws.String("0.0.0.0/0"),
 						},
 					},
-					IPProtocol: aws.String("-1"),
+					IpProtocol: aws.String("-1"),
 				},
 			},
 		}
@@ -244,13 +260,13 @@ func resourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	sg := sgRaw.(*ec2.SecurityGroup)
 
-	ingressRules := resourceAwsSecurityGroupIPPermGather(d, sg.IPPermissions)
-	egressRules := resourceAwsSecurityGroupIPPermGather(d, sg.IPPermissionsEgress)
+	ingressRules := resourceAwsSecurityGroupIPPermGather(d, sg.IpPermissions)
+	egressRules := resourceAwsSecurityGroupIPPermGather(d, sg.IpPermissionsEgress)
 
 	d.Set("description", sg.Description)
 	d.Set("name", sg.GroupName)
-	d.Set("vpc_id", sg.VPCID)
-	d.Set("owner_id", sg.OwnerID)
+	d.Set("vpc_id", sg.VpcId)
+	d.Set("owner_id", sg.OwnerId)
 	d.Set("ingress", ingressRules)
 	d.Set("egress", egressRules)
 	d.Set("tags", tagsToMap(sg.Tags))
@@ -299,7 +315,7 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 
 	return resource.Retry(5*time.Minute, func() error {
 		_, err := conn.DeleteSecurityGroup(&ec2.DeleteSecurityGroupInput{
-			GroupID: aws.String(d.Id()),
+			GroupId: aws.String(d.Id()),
 		})
 		if err != nil {
 			ec2err, ok := err.(awserr.Error)
@@ -310,9 +326,6 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 			switch ec2err.Code() {
 			case "InvalidGroup.NotFound":
 				return nil
-			case "DependencyViolation":
-				// If it is a dependency violation, we want to retry
-				return err
 			default:
 				// Any other error, we want to quit the retry loop immediately
 				return resource.RetryError{Err: err}
@@ -361,7 +374,7 @@ func resourceAwsSecurityGroupRuleHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceAwsSecurityGroupIPPermGather(d *schema.ResourceData, permissions []*ec2.IPPermission) []map[string]interface{} {
+func resourceAwsSecurityGroupIPPermGather(d *schema.ResourceData, permissions []*ec2.IpPermission) []map[string]interface{} {
 	ruleMap := make(map[string]map[string]interface{})
 	for _, perm := range permissions {
 		var fromPort, toPort int64
@@ -372,7 +385,7 @@ func resourceAwsSecurityGroupIPPermGather(d *schema.ResourceData, permissions []
 			toPort = *v
 		}
 
-		k := fmt.Sprintf("%s-%d-%d", *perm.IPProtocol, fromPort, toPort)
+		k := fmt.Sprintf("%s-%d-%d", *perm.IpProtocol, fromPort, toPort)
 		m, ok := ruleMap[k]
 		if !ok {
 			m = make(map[string]interface{})
@@ -381,25 +394,25 @@ func resourceAwsSecurityGroupIPPermGather(d *schema.ResourceData, permissions []
 
 		m["from_port"] = fromPort
 		m["to_port"] = toPort
-		m["protocol"] = *perm.IPProtocol
+		m["protocol"] = *perm.IpProtocol
 
-		if len(perm.IPRanges) > 0 {
+		if len(perm.IpRanges) > 0 {
 			raw, ok := m["cidr_blocks"]
 			if !ok {
-				raw = make([]string, 0, len(perm.IPRanges))
+				raw = make([]string, 0, len(perm.IpRanges))
 			}
 			list := raw.([]string)
 
-			for _, ip := range perm.IPRanges {
-				list = append(list, *ip.CIDRIP)
+			for _, ip := range perm.IpRanges {
+				list = append(list, *ip.CidrIp)
 			}
 
 			m["cidr_blocks"] = list
 		}
 
 		var groups []string
-		if len(perm.UserIDGroupPairs) > 0 {
-			groups = flattenSecurityGroups(perm.UserIDGroupPairs)
+		if len(perm.UserIdGroupPairs) > 0 {
+			groups = flattenSecurityGroups(perm.UserIdGroupPairs)
 		}
 		for i, id := range groups {
 			if id == d.Id() {
@@ -470,14 +483,14 @@ func resourceAwsSecurityGroupUpdateRules(
 
 				if ruleset == "egress" {
 					req := &ec2.RevokeSecurityGroupEgressInput{
-						GroupID:       group.GroupID,
-						IPPermissions: remove,
+						GroupId:       group.GroupId,
+						IpPermissions: remove,
 					}
 					_, err = conn.RevokeSecurityGroupEgress(req)
 				} else {
 					req := &ec2.RevokeSecurityGroupIngressInput{
-						GroupID:       group.GroupID,
-						IPPermissions: remove,
+						GroupId:       group.GroupId,
+						IpPermissions: remove,
 					}
 					_, err = conn.RevokeSecurityGroupIngress(req)
 				}
@@ -495,17 +508,17 @@ func resourceAwsSecurityGroupUpdateRules(
 				// Authorize the new rules
 				if ruleset == "egress" {
 					req := &ec2.AuthorizeSecurityGroupEgressInput{
-						GroupID:       group.GroupID,
-						IPPermissions: add,
+						GroupId:       group.GroupId,
+						IpPermissions: add,
 					}
 					_, err = conn.AuthorizeSecurityGroupEgress(req)
 				} else {
 					req := &ec2.AuthorizeSecurityGroupIngressInput{
-						GroupID:       group.GroupID,
-						IPPermissions: add,
+						GroupId:       group.GroupId,
+						IpPermissions: add,
 					}
-					if group.VPCID == nil || *group.VPCID == "" {
-						req.GroupID = nil
+					if group.VpcId == nil || *group.VpcId == "" {
+						req.GroupId = nil
 						req.GroupName = group.GroupName
 					}
 
@@ -528,7 +541,7 @@ func resourceAwsSecurityGroupUpdateRules(
 func SGStateRefreshFunc(conn *ec2.EC2, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		req := &ec2.DescribeSecurityGroupsInput{
-			GroupIDs: []*string{aws.String(id)},
+			GroupIds: []*string{aws.String(id)},
 		}
 		resp, err := conn.DescribeSecurityGroups(req)
 		if err != nil {

@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/multierror"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -149,8 +149,8 @@ func resourceAwsDbSecurityGroupRead(d *schema.ResourceData, meta interface{}) er
 	for _, g := range sg.EC2SecurityGroups {
 		rule := map[string]interface{}{
 			"security_group_name":     *g.EC2SecurityGroupName,
-			"security_group_id":       *g.EC2SecurityGroupID,
-			"security_group_owner_id": *g.EC2SecurityGroupOwnerID,
+			"security_group_id":       *g.EC2SecurityGroupId,
+			"security_group_owner_id": *g.EC2SecurityGroupOwnerId,
 		}
 		rules.Add(rule)
 	}
@@ -221,11 +221,11 @@ func resourceAwsDbSecurityGroupAuthorizeRule(ingress interface{}, dbSecurityGrou
 	}
 
 	if attr, ok := ing["security_group_id"]; ok && attr != "" {
-		opts.EC2SecurityGroupID = aws.String(attr.(string))
+		opts.EC2SecurityGroupId = aws.String(attr.(string))
 	}
 
 	if attr, ok := ing["security_group_owner_id"]; ok && attr != "" {
-		opts.EC2SecurityGroupOwnerID = aws.String(attr.(string))
+		opts.EC2SecurityGroupOwnerId = aws.String(attr.(string))
 	}
 
 	log.Printf("[DEBUG] Authorize ingress rule configuration: %#v", opts)

@@ -38,73 +38,211 @@ textarea
 button
   font-family       openSansFamily
 
+input[type=checkbox]:checked + label:after
+  border-right              3px solid #00B057 !important
+  border-top                3px solid #00B057 !important
+
 pre
-  font-family       monoFamily
+  font-family               monoFamily
 
 .kdview
-  overflow          visible
+  overflow                  visible
 
 .no-anim
   noAnim()
 
 #kdmaincontainer
-  width             auto
-  // vendor            transform, translateX(0)
+  width                     auto
+
   #main-sidebar
-    z-index           0
+    z-index                 0
+    vendor                  transition, width .3s ease
     hidden()
 
   &.fullscreen
-    width             100%!important
-    left              0!important
-    top               0!important
-    bottom            0!important
-    right             0!important
-    z-index           10
+    width                   100%!important
+    left                    0!important
+    top                     0!important
+    bottom                  0!important
+    right                   0!important
+    z-index                 10
     .application-page
-      padding         0!important
+      padding               0!important
     .app-settings-menu
-      top             0
-      right           0
+      top                   0
+      right                 0
     #main-header
       hidden()
-
 
   &.with-sidebar
+    #main-panel-wrapper
+      fr()
+      vendor                transition, margin-left .3s ease
+      margin-left           sidebarWidth + 1
+      width                 calc(100% - 258px)
 
     #main-sidebar
+      z-index               2
       visible()
+
+      .SidebarListItem
+        rel()
+
+      .logo-wrapper
+        a
+          vendor            transition, width .3s ease
+
+      > .kdcustomscrollview
+        .kdscrolltrack.horizontal
+          hidden()
+
+      .count
+      .SidebarListItem-unreadCount
+        vendor            transition, font-size .3s ease
+
+      .sidebar-title
+      .sidebar-machine-box
+        > cite, div
+          vendor            transition, opacity .3s ease
+
+      .SidebarSection-header
+        vendor              transition, opacity .3s ease
 
     #main-header
       hidden()
 
-    #main-panel-wrapper
-      kalc            width, 100% \- sidebarWidth
-      margin-left     sidebarWidth
+    &.hover
+    &.collapsed
 
+      #main-sidebar
+        border-right        2px solid #131313
+
+        .sidebar-message-text > .profile
+          abs()
+          top               -2px
+
+        .sidebar-title
+          white-space       nowrap
+
+          &:hover
+            white-space     normal
+
+        .progressbar-container
+          hidden()
+
+      #main-panel-wrapper
+        width               calc(100% - 50px)
+        margin-left         50px
+
+    &.hover
+      #main-sidebar
+        width               sidebarWidth + 1
+
+        .sidebar-machine-box
+          .kdscrollview
+            overflow        hidden
+
+      .sidebar-close-handle
+        vendor              transform, scaleX(-1)
+
+    &.collapsed
+
+      #main-sidebar
+        .logo-wrapper
+          padding           0
+
+          a
+            rel()
+            r-sprite        'app', 'logo-full'
+            width           18px
+            vendor          transform, translateY(-50%)
+            top             50%
+            left            17px
+
+        .sidebar-close-handle
+          display           none !important
+
+        .SidebarSection-header
+        .sidebar-title
+          opacity           0
+
+        .sidebar-machine-box
+          width             20px
+
+          .kdscrollview
+            overflow        hidden
+
+          a.vm
+            width           13px
+            padding-right   0
+
+            div
+            span
+              hidden()
+
+          .listview-wrapper
+          > cite, div
+            opacity         0
+
+        .kdlistitemview-sidebar-item
+          .sidebar-message-text
+            text-indent     9999px
+
+          .ttag em
+            opacity         0
+
+        .count
+        .SidebarListItem-unreadCount
+          right             13px
+          top               -2px
+          size              8px 8px
+          rounded(50%)
+          font-size         0
+          padding           0
+          border            1px solid #393233
+
+        .SidebarListItem-unreadCount
+          right             -1px
+          top               1px
+          min-width         auto
+
+        .account-area
+          width             50px
+
+          .profile
+          .notifications .icon
+            hidden()
+
+          .notifications .count
+            top             8px
+            left            31px
+
+          .acc-dropdown-icon
+            opacity         0
+
+        .more-items
+          width             30px
+          font-size         0
+          left              10px
+          vendor            box-shadow, 0 0 5px 5px #323232
 
 #main-panel-wrapper
-  min-height          100%
-  z-index             1
-  bg                  color, white
-  vendor              transition, box-shadow .177s ease
-
-// #main-panel-wrapper
-// aside.app-sidebar
-//   vendor              transition, width .177s ease \,
-//                                   left .177s ease
+  min-height                100%
+  z-index                   1
+  bg                        color, white
+  vendor                    transition, box-shadow .177s ease
 
 #main-header
-  margin                0
-  size                  100%,55px
-  z-index               1000
-  overflow              visible
-  max-width             1290px
-  shadow                none
-  padding               0 45px
-  abs                   48px 0 0 50%
-  vendor                transform, translateX(-50%)
-  z-index               15
+  margin                    0
+  size                      100%,55px
+  z-index                   1000
+  overflow                  visible
+  max-width                 1290px
+  shadow                    none
+  padding                   0 45px
+  abs                       48px 0 0 50%
+  vendor                    transform, translateX(-50%)
+  z-index                   15
   borderBox()
 
 
@@ -117,7 +255,6 @@ pre
     font-weight             700
     line-height             16px
     color                   #fff
-    font-family             asapFamily
     -webkit-font-smoothing  antialiased
     noTextDeco()
     visible()
@@ -766,9 +903,25 @@ paymentGrayLighter  = #f8f8f8
           opacity       .99
 
     .divider
-      font-size         12px
-      margin            18px auto
-      dividerWithText()
+      font-size             12px
+      margin                18px auto
+      color                 #a8a8a8
+      width                 80%
+      overflow              hidden
+      text-align            center
+      line-height           20px
+
+      &:before, &:after
+        content             ''
+        vertical-align      top
+        display             inline-block
+        width               50%
+        height              10px
+        border-bottom       1px solid #e8e8e8
+        margin              0 2% 0 -55%
+
+      &:after
+        margin              0 -55% 0 2%
 
     .submit-btn.paypal
       bg              color, paymentGrayLighter !important
@@ -1081,40 +1234,95 @@ paymentGrayLighter  = #f8f8f8
 
 .kdmodal.env-modal
   .kdmodal-inner
-    margin              0
+    margin                  0
 
   .content-container
-    text-align          center
+    text-align              center
 
   .kdbutton
-    rounded             4px !important
-    bg                  color, #4EA04C !important
-    height              40px !important
+    rounded                 4px !important
+    bg                      color, #4EA04C !important
+    height                  40px !important
     &:focus
-      vendor            box-shadow, none !important
+      vendor                box-shadow, none !important
 
   .footer
-    bg                  color, #f3f3f3
-    font-size           14px
-    color               #5E5E5E
-    padding             25px 30px
-    rounded             0 0 3px 3px
+    bg                      color, #f3f3f3
+    font-size               14px
+    color                   #5E5E5E
+    padding                 25px 30px
+    rounded                 0 0 3px 3px
+
+
+.kdmodal.compute-error-modal
+  overflow                  hidden !important
+
+  .kdtabhandle
+    max-width               250px !important
+
+  .kdmodal-content
+    margin-top              -10px !important
+    height                  calc(100% \- 20px) !important
+
+  .kdmodal-inner
+    height                  calc(100% \- 55px) !important
+
+  .kdtabpaneview
+    height                  calc(100% \- 65px) !important
+
+  .kdcustomscrollview
+    styleScrollBars         rgba(0,0,0,.15)
+
+  .with-message
+    .kdcustomscrollview
+      height                calc(100% \- 100px) !important
+
+  .error-content
+    height                  100%
+    vendor                  flex-direction, column
+    dFlex()
+
+    .content
+      flex                  1 1 auto
+
+  .message
+    flex-shrink             0
+    font-size               13px
+
+.kdmodal.env-ide-error-modal
+  left                      50% !important
+  margin-left               -172px
+  overflow                  scroll
 
 
 .kdmodal.env-machine-state
-  left                  50% !important
-  margin-left           -91px
+  left                      50% !important
+  margin-left               -91px
 
   .kdmodal-content
-    overflow            visible
+    overflow                visible
 
   .kdbutton
    &.turn-on
-     padding            0 20px 0 14px
+     padding                0 20px 0 14px
      .icon
-       r-sprite         'ide', 'turn-on'
-       margin           12px 12px 0 0 !important
-       padding          0
+       r-sprite             'ide', 'turn-on'
+       margin               12px 12px 0 0 !important
+       padding              0
+
+
+  .content-readme
+    border-bottom           1px solid #eee
+    styleScrollBars         rgba 0,0,0,.15
+
+    &.has-vertical
+      shadow                inset 0 -5px 15px -5px #eee
+
+    .has-markdown
+      padding               0 20px
+      font-size             14px
+      max-height            200px
+
 
   .content-container
     margin-bottom       30px
@@ -1131,6 +1339,7 @@ paymentGrayLighter  = #f8f8f8
         font-size       12px
         line-height     17px
       span.close
+      span.error-details
       span.contact-support
         text-decoration  underline
         cursor           pointer
@@ -1702,7 +1911,7 @@ paymentGrayLighter  = #f8f8f8
     font-size               42px
 
   .usage-info
-    width                   260px
+    width                   270px
     border                  1px solid #F0F0F0
     padding                 15px
     text-align              right
@@ -1713,8 +1922,7 @@ paymentGrayLighter  = #f8f8f8
       display               inline
       font-size             16px
       font-weight           400
-      position              relative
-      left                  -50px
+      float                 left
 
     span
       display               inline
@@ -2155,3 +2363,56 @@ paymentGrayLighter  = #f8f8f8
 .kdmodal.delete-files-modal
   .kdmodal-content
     max-height              200px
+
+
+// Admin modal specific styling
+.AppModal--admin
+
+  &.kdmodal .kdmodal-inner .kdmodal-content
+    overflow                hidden
+
+  // common tab styling
+  .AppModal-content.kdtabview
+    overflow                hidden
+
+  .kdtabhandlecontainer
+    background              none
+    padding                 0
+    height                  62px
+    line-height             62px
+    box-shadow              inset 0 -3px 0 #f2f2f2
+    border                  none
+
+    .kdtabhandle-tabs
+      size                  auto, auto
+      fl()
+
+    .kdtabhandle
+      padding               0 23px
+      margin                0
+      border                none
+      line-height           inherit
+      height                62px
+      background            none
+      color                 #969696
+      opacity               0.99
+      font-size             14px
+      font-weight           600
+
+      a
+        display             inline-block
+        ellipsis()
+        font-weight         400
+        width               100%
+        color               #969696
+
+      &.active
+        box-shadow          inset 0 -3px 0 #01b05a
+        color               #575757 !important
+        bg                  color, transparent !important
+        a
+          color             #575757
+
+.kdnotification.tray.disconnected
+  pointer()
+

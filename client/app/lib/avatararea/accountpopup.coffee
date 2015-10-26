@@ -2,7 +2,6 @@ kd                        = require 'kd'
 AvatarPopup               = require './avatarpopup'
 CustomLinkView            = require '../customlinkview'
 HelpSupportModal          = require '../commonviews/helpsupportmodal'
-trackEvent                = require 'app/util/trackEvent'
 
 module.exports = class AccountPopup extends AvatarPopup
 
@@ -107,22 +106,12 @@ module.exports = class AccountPopup extends AvatarPopup
     kd.singletons.router.handleRoute '/Pricing'
     @hide()
 
-    trackEvent 'Account upgrade plan, click',
-      category : 'userInteraction'
-      action   : 'clicks'
-      label    : 'settingsUpgradePlan'
-
 
   goToSupport: (event) ->
 
     kd.utils.stopDOMEvent event
     new HelpSupportModal
     @hide()
-
-    trackEvent 'Contact support, click',
-      category : 'userInteraction'
-      action   : 'formsubmits'
-      label    : 'contactKodingSupport'
 
 
   goToAccountSettings: (event) ->

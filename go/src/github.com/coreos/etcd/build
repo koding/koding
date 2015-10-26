@@ -1,18 +1,26 @@
 #!/bin/sh -e
 
-if [ ! -h gopath/src/github.com/coreos/etcd ]; then
-	mkdir -p gopath/src/github.com/coreos/
-	ln -s ../../../.. gopath/src/github.com/coreos/etcd
-fi
+ORG_PATH="github.com/coreos"
+REPO_PATH="${ORG_PATH}/etcd"
 
-export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
-export GOFMTPATH="./bench ./config ./discovery ./etcd ./error ./http ./log main.go ./metrics ./mod ./server ./store ./tests"
 
-# Don't surprise user by formatting their codes by stealth
-if [ "--fmt" = "$1" ]; then
-	gofmt -s -w -l $GOFMTPATH
+rm -f $GOPATH/src/${REPO_PATH}
+mkdir -p $GOPATH/src/${ORG_PATH}
+ln -s ${PWD} $GOPATH/src/${REPO_PATH}
+
+eval $(go env)
+
+GIT_SHA=`git rev-parse --short HEAD || echo "GitNotFound"`
+
+val=$(go version)
+ver=$(echo $val | awk -F ' ' '{print $3}' | awk -F '.' '{print $2}')
+if [ $ver -gt 4 ]; then
+	LINK_OPERATOR="="
+else
+	LINK_OPERATOR=" "
 fi
 
-go install github.com/coreos/etcd
-go install github.com/coreos/etcd/bench
+# Static compilation is useful when etcd is run in a container
+CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags "-s -X ${REPO_PATH}/version.GitSHA${LINK_OPERATOR}${GIT_SHA}" -o bin/etcd ${REPO_PATH}
+CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags "-s" -o bin/etcdctl ${REPO_PATH}/etcdctl

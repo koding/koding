@@ -1,11 +1,16 @@
-kd                     = require 'kd'
-JView                  = require 'app/jview'
-isKoding               = require 'app/util/isKoding'
+kd                        = require 'kd'
+JView                     = require 'app/jview'
+isKoding                  = require 'app/util/isKoding'
 
-MachinesList           = require './machineslist'
-MachinesListController = require './machineslistcontroller'
+remote                    = require('app/remote').getInstance()
 
-ComputeHelpers         = require '../providers/computehelpers'
+MachinesList              = require './machineslist'
+MachinesListController    = require './machineslistcontroller'
+
+KodingSwitch              = require 'app/commonviews/kodingswitch'
+ComputeHelpers            = require '../providers/computehelpers'
+showNotification          = require 'app/util/showNotification'
+StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
 module.exports = class EnvironmentListItem extends kd.ListItemView
@@ -38,14 +43,13 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @addVMButton      = new kd.CustomHTMLView cssClass: 'hidden'
     @addManagedButton = new kd.CustomHTMLView cssClass: 'hidden'
 
-    unless isKoding()
+    { title } = @getData()
+
+    unless isKoding() or title is 'Managed VMs'
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
-        callback    : =>
-          { ui }    = kd.singletons.computeController
-          ui.askFor 'reinitStack', {}, =>
-            @getDelegate().emit 'StackReinitRequested', @getData()
+        callback    : @bound 'handleStackReinit'
 
     if isKoding()
       @addVMButton = new kd.ButtonView
@@ -59,35 +63,63 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
       callback        : => @handleMachineRequest 'managed'
 
 
+  handleStackReinit: ->
+
+    { ui } = kd.singletons.computeController
+
+    ui.askFor 'reinitStack', {}, =>
+      @getDelegate().emit 'StackReinitRequested', @getData()
+
+
   handleMachineRequest: (provider) ->
 
-      @getDelegate().emit 'ModalDestroyRequested'
-      ComputeHelpers.handleNewMachineRequest { provider }
+    @getDelegate().emit 'ModalDestroyRequested'
+    ComputeHelpers.handleNewMachineRequest { provider }
 
 
   createExtraViews: ->
 
-    { group, stackRevision, _revisionStatus, machines, title } = @getData()
+    { title } = @getData()
 
-
-    @title = new kd.CustomHTMLView
+    @header = new kd.CustomHTMLView
       cssClass : 'stack-info clearfix hidden'
-      partial  : "<div class='title'>#{title}</div>"
+      click    : @lazyBound 'toggleClass', 'collapsed'
 
-    @warningIcon = new kd.CustomHTMLView
-      cssClass   : 'warning-icon hidden'
-      tooltip    :
-        title    : """Base stack template has been updated, please
-                      re-init this stack to get latest changes."""
+    @header.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'arrow'
+
+    @header.addSubView new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'title'
+      partial  : title
+
+    @updateNotification = new kd.CustomHTMLView
+      cssClass : 'update-notification hidden'
+
+    @stackStateToggle = new kd.CustomHTMLView
+      cssClass : 'stack-state-toggle'
+
+    if isKoding() or title is 'Managed VMs'
+      @infoIcon = new kd.CustomHTMLView
+    else
+      @createInfoIcon()
+      @createStackStateToggle()
+
+
+  createInfoIcon: ->
+
+    { group, stackRevision, _revisionStatus, machines } = @getData()
 
     if _revisionStatus?.status? and _revisionStatus.status.code > 0
-      @warningIcon.show()
+      @showUpdateNotification()
       revisionMessage = ''
     else
       revisionMessage = "You're currently using the latest revision."
 
     @infoIcon     = new kd.CustomHTMLView
       cssClass    : 'info-icon'
+      click       : @bound 'showStackTemplateContent'
       tooltip     :
         placement : 'right'
         cssClass  : 'info-tooltip'
@@ -98,18 +130,112 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           #{revisionMessage}
         "
 
-    @infoIcon.hide()  if isKoding()
+  createStackStateToggle: ->
+
+    { machines } = stack = @getData()
+    { computeController, router } = kd.singletons
+
+    notready     = no
+    state        = no
+
+    for machine in machines
+      unless machine.isUsable()
+        notready = yes
+        state    = no
+        break
+
+      state |= machine.isRunning()
+
+    toggle = new KodingSwitch
+      cssClass      : 'tiny'
+      defaultValue  : state
+      disabled      : notready
+      callback      : =>
+
+        router.handleRoute '/IDE'
+
+        if state
+        then computeController.stopStack  stack
+        else computeController.startStack stack
+
+        @getDelegate().emit 'ModalDestroyRequested'
+
+    if notready
+      @stackStateToggle.setTooltip
+        title : 'Machines are not ready'
+
+    nextState = if state then 'off' else 'on'
+
+    label = new kd.LabelView
+      title     : "Turn #{nextState} all vms in this stack"
+      mousedown : toggle.bound 'mouseDown'
+
+    @stackStateToggle.addSubView toggle
+    @stackStateToggle.addSubView label
+
+
+  showUpdateNotification: ->
+
+    @reinitButton.hide()
+
+    @updateNotification.destroySubViews()
+
+    @fetchStackTemplate (err, stackTemplate) =>
+
+      return showNotification err  if err
+
+      { template: { details } } = stackTemplate
+      lastUpdaterId = details?.lastUpdaterId ? stackTemplate.originId
+
+      remote.cacheable 'JAccount', lastUpdaterId, (err, account) =>
+
+        @updateNotification.addSubView description = new kd.CustomHTMLView
+          tagName  : 'div'
+          cssClass : 'description'
+
+        description.addSubView new kd.CustomHTMLView
+          tagName  : 'span'
+          partial  : "#{account.profile.firstName} has updated this stack"
+
+        description.addSubView new kd.CustomHTMLView
+          tagName  : 'span'
+          partial  : ' (<a href="#">see details</a>).'
+          click    : @bound 'showStackTemplateContent'
+
+        @updateNotification.addSubView new kd.ButtonView
+          title    : 'Update Your Machines'
+          cssClass : 'reinit-stack solid green compact'
+          callback : @bound 'handleStackReinit'
+
+        @updateNotification.show()
+
+
+  fetchStackTemplate: (callback) ->
+
+    { computeController } = kd.singletons
+
+    computeController.fetchBaseStackTemplate @getData(), callback
+
+
+  showStackTemplateContent: ->
+
+    @fetchStackTemplate (err, template) ->
+
+      return showNotification err  if err
+
+      new StackTemplateContentModal {}, template
 
 
   pistachio: ->
     """
-      {{> @title}}
+      {{> @header}}
       {{> @machinesList}}
+      {{> @updateNotification}}
       <div class="footer">
         <div class="icons">
-          {{> @warningIcon}}
           {{> @infoIcon}}
         </div>
+        {{> @stackStateToggle}}
         <div class="button-container">
           {{> @reinitButton}}
           {{> @addManagedButton}}

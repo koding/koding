@@ -12,10 +12,15 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/defaults"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/service"
+	"github.com/aws/aws-sdk-go/aws/service/serviceinfo"
 	"github.com/aws/aws-sdk-go/internal/protocol/jsonrpc"
 	"github.com/aws/aws-sdk-go/internal/protocol/xml/xmlutil"
 	"github.com/aws/aws-sdk-go/internal/signer/v4"
 	"github.com/aws/aws-sdk-go/internal/util"
+	"github.com/aws/aws-sdk-go/internal/util/utilassert"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,24 +30,26 @@ var _ json.Marshaler
 var _ time.Time
 var _ xmlutil.XMLNode
 var _ xml.Attr
+var _ utilassert.Imported
 var _ = ioutil.Discard
 var _ = util.Trim("")
 var _ = url.Values{}
 var _ = io.EOF
 
-// OutputService1ProtocolTest is a client for OutputService1ProtocolTest.
 type OutputService1ProtocolTest struct {
-	*aws.Service
+	*service.Service
 }
 
 // New returns a new OutputService1ProtocolTest client.
 func NewOutputService1ProtocolTest(config *aws.Config) *OutputService1ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice1protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
+	service := &service.Service{
+		ServiceInfo: serviceinfo.ServiceInfo{
+			Config:       defaults.DefaultConfig.Merge(config),
+			ServiceName:  "outputservice1protocoltest",
+			APIVersion:   "",
+			JSONVersion:  "",
+			TargetPrefix: "",
+		},
 	}
 	service.Initialize()
 
@@ -58,8 +65,8 @@ func NewOutputService1ProtocolTest(config *aws.Config) *OutputService1ProtocolTe
 
 // newRequest creates a new request for a OutputService1ProtocolTest operation and runs any
 // custom request initialization.
-func (c *OutputService1ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *OutputService1ProtocolTest) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	return req
 }
@@ -67,8 +74,8 @@ func (c *OutputService1ProtocolTest) newRequest(op *aws.Operation, params, data 
 const opOutputService1TestCaseOperation1 = "OperationName"
 
 // OutputService1TestCaseOperation1Request generates a request for the OutputService1TestCaseOperation1 operation.
-func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1Request(input *OutputService1TestShapeOutputService1TestCaseOperation1Input) (req *aws.Request, output *OutputService1TestShapeOutputShape) {
-	op := &aws.Operation{
+func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1Request(input *OutputService1TestShapeOutputService1TestCaseOperation1Input) (req *request.Request, output *OutputService1TestShapeOutputService1TestCaseOperation1Output) {
+	op := &request.Operation{
 		Name: opOutputService1TestCaseOperation1,
 	}
 
@@ -77,12 +84,12 @@ func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1Request(inp
 	}
 
 	req = c.newRequest(op, input, output)
-	output = &OutputService1TestShapeOutputShape{}
+	output = &OutputService1TestShapeOutputService1TestCaseOperation1Output{}
 	req.Data = output
 	return
 }
 
-func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1(input *OutputService1TestShapeOutputService1TestCaseOperation1Input) (*OutputService1TestShapeOutputShape, error) {
+func (c *OutputService1ProtocolTest) OutputService1TestCaseOperation1(input *OutputService1TestShapeOutputService1TestCaseOperation1Input) (*OutputService1TestShapeOutputService1TestCaseOperation1Output, error) {
 	req, out := c.OutputService1TestCaseOperation1Request(input)
 	err := req.Send()
 	return out, err
@@ -96,81 +103,7 @@ type metadataOutputService1TestShapeOutputService1TestCaseOperation1Input struct
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type OutputService1TestShapeOutputShape struct {
-	metadataOutputService1TestShapeOutputShape `json:"-" xml:"-"`
-}
-
-type metadataOutputService1TestShapeOutputShape struct {
-	SDKShapeTraits bool `type:"structure"`
-}
-
-// OutputService2ProtocolTest is a client for OutputService2ProtocolTest.
-type OutputService2ProtocolTest struct {
-	*aws.Service
-}
-
-// New returns a new OutputService2ProtocolTest client.
-func NewOutputService2ProtocolTest(config *aws.Config) *OutputService2ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice2protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
-	}
-	service.Initialize()
-
-	// Handlers
-	service.Handlers.Sign.PushBack(v4.Sign)
-	service.Handlers.Build.PushBack(jsonrpc.Build)
-	service.Handlers.Unmarshal.PushBack(jsonrpc.Unmarshal)
-	service.Handlers.UnmarshalMeta.PushBack(jsonrpc.UnmarshalMeta)
-	service.Handlers.UnmarshalError.PushBack(jsonrpc.UnmarshalError)
-
-	return &OutputService2ProtocolTest{service}
-}
-
-// newRequest creates a new request for a OutputService2ProtocolTest operation and runs any
-// custom request initialization.
-func (c *OutputService2ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
-
-	return req
-}
-
-const opOutputService2TestCaseOperation1 = "OperationName"
-
-// OutputService2TestCaseOperation1Request generates a request for the OutputService2TestCaseOperation1 operation.
-func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1Request(input *OutputService2TestShapeOutputService2TestCaseOperation1Input) (req *aws.Request, output *OutputService2TestShapeOutputShape) {
-	op := &aws.Operation{
-		Name: opOutputService2TestCaseOperation1,
-	}
-
-	if input == nil {
-		input = &OutputService2TestShapeOutputService2TestCaseOperation1Input{}
-	}
-
-	req = c.newRequest(op, input, output)
-	output = &OutputService2TestShapeOutputShape{}
-	req.Data = output
-	return
-}
-
-func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1(input *OutputService2TestShapeOutputService2TestCaseOperation1Input) (*OutputService2TestShapeOutputShape, error) {
-	req, out := c.OutputService2TestCaseOperation1Request(input)
-	err := req.Send()
-	return out, err
-}
-
-type OutputService2TestShapeOutputService2TestCaseOperation1Input struct {
-	metadataOutputService2TestShapeOutputService2TestCaseOperation1Input `json:"-" xml:"-"`
-}
-
-type metadataOutputService2TestShapeOutputService2TestCaseOperation1Input struct {
-	SDKShapeTraits bool `type:"structure"`
-}
-
-type OutputService2TestShapeOutputShape struct {
+type OutputService1TestShapeOutputService1TestCaseOperation1Output struct {
 	Char *string `type:"character"`
 
 	Double *float64 `type:"double"`
@@ -187,26 +120,116 @@ type OutputService2TestShapeOutputShape struct {
 
 	TrueBool *bool `type:"boolean"`
 
-	metadataOutputService2TestShapeOutputShape `json:"-" xml:"-"`
+	metadataOutputService1TestShapeOutputService1TestCaseOperation1Output `json:"-" xml:"-"`
 }
 
-type metadataOutputService2TestShapeOutputShape struct {
+type metadataOutputService1TestShapeOutputService1TestCaseOperation1Output struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-// OutputService3ProtocolTest is a client for OutputService3ProtocolTest.
+type OutputService2ProtocolTest struct {
+	*service.Service
+}
+
+// New returns a new OutputService2ProtocolTest client.
+func NewOutputService2ProtocolTest(config *aws.Config) *OutputService2ProtocolTest {
+	service := &service.Service{
+		ServiceInfo: serviceinfo.ServiceInfo{
+			Config:       defaults.DefaultConfig.Merge(config),
+			ServiceName:  "outputservice2protocoltest",
+			APIVersion:   "",
+			JSONVersion:  "",
+			TargetPrefix: "",
+		},
+	}
+	service.Initialize()
+
+	// Handlers
+	service.Handlers.Sign.PushBack(v4.Sign)
+	service.Handlers.Build.PushBack(jsonrpc.Build)
+	service.Handlers.Unmarshal.PushBack(jsonrpc.Unmarshal)
+	service.Handlers.UnmarshalMeta.PushBack(jsonrpc.UnmarshalMeta)
+	service.Handlers.UnmarshalError.PushBack(jsonrpc.UnmarshalError)
+
+	return &OutputService2ProtocolTest{service}
+}
+
+// newRequest creates a new request for a OutputService2ProtocolTest operation and runs any
+// custom request initialization.
+func (c *OutputService2ProtocolTest) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
+
+	return req
+}
+
+const opOutputService2TestCaseOperation1 = "OperationName"
+
+// OutputService2TestCaseOperation1Request generates a request for the OutputService2TestCaseOperation1 operation.
+func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1Request(input *OutputService2TestShapeOutputService2TestCaseOperation1Input) (req *request.Request, output *OutputService2TestShapeOutputService2TestCaseOperation1Output) {
+	op := &request.Operation{
+		Name: opOutputService2TestCaseOperation1,
+	}
+
+	if input == nil {
+		input = &OutputService2TestShapeOutputService2TestCaseOperation1Input{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &OutputService2TestShapeOutputService2TestCaseOperation1Output{}
+	req.Data = output
+	return
+}
+
+func (c *OutputService2ProtocolTest) OutputService2TestCaseOperation1(input *OutputService2TestShapeOutputService2TestCaseOperation1Input) (*OutputService2TestShapeOutputService2TestCaseOperation1Output, error) {
+	req, out := c.OutputService2TestCaseOperation1Request(input)
+	err := req.Send()
+	return out, err
+}
+
+type OutputService2TestShapeBlobContainer struct {
+	Foo []byte `locationName:"foo" type:"blob"`
+
+	metadataOutputService2TestShapeBlobContainer `json:"-" xml:"-"`
+}
+
+type metadataOutputService2TestShapeBlobContainer struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+type OutputService2TestShapeOutputService2TestCaseOperation1Input struct {
+	metadataOutputService2TestShapeOutputService2TestCaseOperation1Input `json:"-" xml:"-"`
+}
+
+type metadataOutputService2TestShapeOutputService2TestCaseOperation1Input struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+type OutputService2TestShapeOutputService2TestCaseOperation1Output struct {
+	BlobMember []byte `type:"blob"`
+
+	StructMember *OutputService2TestShapeBlobContainer `type:"structure"`
+
+	metadataOutputService2TestShapeOutputService2TestCaseOperation1Output `json:"-" xml:"-"`
+}
+
+type metadataOutputService2TestShapeOutputService2TestCaseOperation1Output struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
 type OutputService3ProtocolTest struct {
-	*aws.Service
+	*service.Service
 }
 
 // New returns a new OutputService3ProtocolTest client.
 func NewOutputService3ProtocolTest(config *aws.Config) *OutputService3ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice3protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
+	service := &service.Service{
+		ServiceInfo: serviceinfo.ServiceInfo{
+			Config:       defaults.DefaultConfig.Merge(config),
+			ServiceName:  "outputservice3protocoltest",
+			APIVersion:   "",
+			JSONVersion:  "",
+			TargetPrefix: "",
+		},
 	}
 	service.Initialize()
 
@@ -222,8 +245,8 @@ func NewOutputService3ProtocolTest(config *aws.Config) *OutputService3ProtocolTe
 
 // newRequest creates a new request for a OutputService3ProtocolTest operation and runs any
 // custom request initialization.
-func (c *OutputService3ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *OutputService3ProtocolTest) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	return req
 }
@@ -231,8 +254,8 @@ func (c *OutputService3ProtocolTest) newRequest(op *aws.Operation, params, data 
 const opOutputService3TestCaseOperation1 = "OperationName"
 
 // OutputService3TestCaseOperation1Request generates a request for the OutputService3TestCaseOperation1 operation.
-func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1Request(input *OutputService3TestShapeOutputService3TestCaseOperation1Input) (req *aws.Request, output *OutputService3TestShapeOutputShape) {
-	op := &aws.Operation{
+func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1Request(input *OutputService3TestShapeOutputService3TestCaseOperation1Input) (req *request.Request, output *OutputService3TestShapeOutputService3TestCaseOperation1Output) {
+	op := &request.Operation{
 		Name: opOutputService3TestCaseOperation1,
 	}
 
@@ -241,25 +264,15 @@ func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1Request(inp
 	}
 
 	req = c.newRequest(op, input, output)
-	output = &OutputService3TestShapeOutputShape{}
+	output = &OutputService3TestShapeOutputService3TestCaseOperation1Output{}
 	req.Data = output
 	return
 }
 
-func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1(input *OutputService3TestShapeOutputService3TestCaseOperation1Input) (*OutputService3TestShapeOutputShape, error) {
+func (c *OutputService3ProtocolTest) OutputService3TestCaseOperation1(input *OutputService3TestShapeOutputService3TestCaseOperation1Input) (*OutputService3TestShapeOutputService3TestCaseOperation1Output, error) {
 	req, out := c.OutputService3TestCaseOperation1Request(input)
 	err := req.Send()
 	return out, err
-}
-
-type OutputService3TestShapeBlobContainer struct {
-	Foo []byte `locationName:"foo" type:"blob"`
-
-	metadataOutputService3TestShapeBlobContainer `json:"-" xml:"-"`
-}
-
-type metadataOutputService3TestShapeBlobContainer struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 type OutputService3TestShapeOutputService3TestCaseOperation1Input struct {
@@ -270,31 +283,42 @@ type metadataOutputService3TestShapeOutputService3TestCaseOperation1Input struct
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type OutputService3TestShapeOutputShape struct {
-	BlobMember []byte `type:"blob"`
+type OutputService3TestShapeOutputService3TestCaseOperation1Output struct {
+	StructMember *OutputService3TestShapeTimeContainer `type:"structure"`
 
-	StructMember *OutputService3TestShapeBlobContainer `type:"structure"`
+	TimeMember *time.Time `type:"timestamp" timestampFormat:"unix"`
 
-	metadataOutputService3TestShapeOutputShape `json:"-" xml:"-"`
+	metadataOutputService3TestShapeOutputService3TestCaseOperation1Output `json:"-" xml:"-"`
 }
 
-type metadataOutputService3TestShapeOutputShape struct {
+type metadataOutputService3TestShapeOutputService3TestCaseOperation1Output struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-// OutputService4ProtocolTest is a client for OutputService4ProtocolTest.
+type OutputService3TestShapeTimeContainer struct {
+	Foo *time.Time `locationName:"foo" type:"timestamp" timestampFormat:"unix"`
+
+	metadataOutputService3TestShapeTimeContainer `json:"-" xml:"-"`
+}
+
+type metadataOutputService3TestShapeTimeContainer struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
 type OutputService4ProtocolTest struct {
-	*aws.Service
+	*service.Service
 }
 
 // New returns a new OutputService4ProtocolTest client.
 func NewOutputService4ProtocolTest(config *aws.Config) *OutputService4ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice4protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
+	service := &service.Service{
+		ServiceInfo: serviceinfo.ServiceInfo{
+			Config:       defaults.DefaultConfig.Merge(config),
+			ServiceName:  "outputservice4protocoltest",
+			APIVersion:   "",
+			JSONVersion:  "",
+			TargetPrefix: "",
+		},
 	}
 	service.Initialize()
 
@@ -310,8 +334,8 @@ func NewOutputService4ProtocolTest(config *aws.Config) *OutputService4ProtocolTe
 
 // newRequest creates a new request for a OutputService4ProtocolTest operation and runs any
 // custom request initialization.
-func (c *OutputService4ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *OutputService4ProtocolTest) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	return req
 }
@@ -319,8 +343,8 @@ func (c *OutputService4ProtocolTest) newRequest(op *aws.Operation, params, data 
 const opOutputService4TestCaseOperation1 = "OperationName"
 
 // OutputService4TestCaseOperation1Request generates a request for the OutputService4TestCaseOperation1 operation.
-func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation1Request(input *OutputService4TestShapeOutputService4TestCaseOperation1Input) (req *aws.Request, output *OutputService4TestShapeOutputShape) {
-	op := &aws.Operation{
+func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation1Request(input *OutputService4TestShapeOutputService4TestCaseOperation1Input) (req *request.Request, output *OutputService4TestShapeOutputShape) {
+	op := &request.Operation{
 		Name: opOutputService4TestCaseOperation1,
 	}
 
@@ -340,6 +364,30 @@ func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation1(input *Out
 	return out, err
 }
 
+const opOutputService4TestCaseOperation2 = "OperationName"
+
+// OutputService4TestCaseOperation2Request generates a request for the OutputService4TestCaseOperation2 operation.
+func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation2Request(input *OutputService4TestShapeOutputService4TestCaseOperation2Input) (req *request.Request, output *OutputService4TestShapeOutputShape) {
+	op := &request.Operation{
+		Name: opOutputService4TestCaseOperation2,
+	}
+
+	if input == nil {
+		input = &OutputService4TestShapeOutputService4TestCaseOperation2Input{}
+	}
+
+	req = c.newRequest(op, input, output)
+	output = &OutputService4TestShapeOutputShape{}
+	req.Data = output
+	return
+}
+
+func (c *OutputService4ProtocolTest) OutputService4TestCaseOperation2(input *OutputService4TestShapeOutputService4TestCaseOperation2Input) (*OutputService4TestShapeOutputShape, error) {
+	req, out := c.OutputService4TestCaseOperation2Request(input)
+	err := req.Send()
+	return out, err
+}
+
 type OutputService4TestShapeOutputService4TestCaseOperation1Input struct {
 	metadataOutputService4TestShapeOutputService4TestCaseOperation1Input `json:"-" xml:"-"`
 }
@@ -348,10 +396,20 @@ type metadataOutputService4TestShapeOutputService4TestCaseOperation1Input struct
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type OutputService4TestShapeOutputShape struct {
-	StructMember *OutputService4TestShapeTimeContainer `type:"structure"`
+type OutputService4TestShapeOutputService4TestCaseOperation2Input struct {
+	metadataOutputService4TestShapeOutputService4TestCaseOperation2Input `json:"-" xml:"-"`
+}
 
-	TimeMember *time.Time `type:"timestamp" timestampFormat:"unix"`
+type metadataOutputService4TestShapeOutputService4TestCaseOperation2Input struct {
+	SDKShapeTraits bool `type:"structure"`
+}
+
+type OutputService4TestShapeOutputShape struct {
+	ListMember []*string `type:"list"`
+
+	ListMemberMap []map[string]*string `type:"list"`
+
+	ListMemberStruct []*OutputService4TestShapeStructType `type:"list"`
 
 	metadataOutputService4TestShapeOutputShape `json:"-" xml:"-"`
 }
@@ -360,29 +418,28 @@ type metadataOutputService4TestShapeOutputShape struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type OutputService4TestShapeTimeContainer struct {
-	Foo *time.Time `locationName:"foo" type:"timestamp" timestampFormat:"unix"`
-
-	metadataOutputService4TestShapeTimeContainer `json:"-" xml:"-"`
+type OutputService4TestShapeStructType struct {
+	metadataOutputService4TestShapeStructType `json:"-" xml:"-"`
 }
 
-type metadataOutputService4TestShapeTimeContainer struct {
+type metadataOutputService4TestShapeStructType struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-// OutputService5ProtocolTest is a client for OutputService5ProtocolTest.
 type OutputService5ProtocolTest struct {
-	*aws.Service
+	*service.Service
 }
 
 // New returns a new OutputService5ProtocolTest client.
 func NewOutputService5ProtocolTest(config *aws.Config) *OutputService5ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice5protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
+	service := &service.Service{
+		ServiceInfo: serviceinfo.ServiceInfo{
+			Config:       defaults.DefaultConfig.Merge(config),
+			ServiceName:  "outputservice5protocoltest",
+			APIVersion:   "",
+			JSONVersion:  "",
+			TargetPrefix: "",
+		},
 	}
 	service.Initialize()
 
@@ -398,8 +455,8 @@ func NewOutputService5ProtocolTest(config *aws.Config) *OutputService5ProtocolTe
 
 // newRequest creates a new request for a OutputService5ProtocolTest operation and runs any
 // custom request initialization.
-func (c *OutputService5ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *OutputService5ProtocolTest) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	return req
 }
@@ -407,8 +464,8 @@ func (c *OutputService5ProtocolTest) newRequest(op *aws.Operation, params, data 
 const opOutputService5TestCaseOperation1 = "OperationName"
 
 // OutputService5TestCaseOperation1Request generates a request for the OutputService5TestCaseOperation1 operation.
-func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1Request(input *OutputService5TestShapeOutputService5TestCaseOperation1Input) (req *aws.Request, output *OutputService5TestShapeOutputShape) {
-	op := &aws.Operation{
+func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1Request(input *OutputService5TestShapeOutputService5TestCaseOperation1Input) (req *request.Request, output *OutputService5TestShapeOutputService5TestCaseOperation1Output) {
+	op := &request.Operation{
 		Name: opOutputService5TestCaseOperation1,
 	}
 
@@ -417,12 +474,12 @@ func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1Request(inp
 	}
 
 	req = c.newRequest(op, input, output)
-	output = &OutputService5TestShapeOutputShape{}
+	output = &OutputService5TestShapeOutputService5TestCaseOperation1Output{}
 	req.Data = output
 	return
 }
 
-func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1(input *OutputService5TestShapeOutputService5TestCaseOperation1Input) (*OutputService5TestShapeOutputShape, error) {
+func (c *OutputService5ProtocolTest) OutputService5TestCaseOperation1(input *OutputService5TestShapeOutputService5TestCaseOperation1Input) (*OutputService5TestShapeOutputService5TestCaseOperation1Output, error) {
 	req, out := c.OutputService5TestCaseOperation1Request(input)
 	err := req.Send()
 	return out, err
@@ -436,29 +493,30 @@ type metadataOutputService5TestShapeOutputService5TestCaseOperation1Input struct
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type OutputService5TestShapeOutputShape struct {
-	ListMember []*string `type:"list"`
+type OutputService5TestShapeOutputService5TestCaseOperation1Output struct {
+	MapMember map[string][]*int64 `type:"map"`
 
-	metadataOutputService5TestShapeOutputShape `json:"-" xml:"-"`
+	metadataOutputService5TestShapeOutputService5TestCaseOperation1Output `json:"-" xml:"-"`
 }
 
-type metadataOutputService5TestShapeOutputShape struct {
+type metadataOutputService5TestShapeOutputService5TestCaseOperation1Output struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
-// OutputService6ProtocolTest is a client for OutputService6ProtocolTest.
 type OutputService6ProtocolTest struct {
-	*aws.Service
+	*service.Service
 }
 
 // New returns a new OutputService6ProtocolTest client.
 func NewOutputService6ProtocolTest(config *aws.Config) *OutputService6ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice6protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
+	service := &service.Service{
+		ServiceInfo: serviceinfo.ServiceInfo{
+			Config:       defaults.DefaultConfig.Merge(config),
+			ServiceName:  "outputservice6protocoltest",
+			APIVersion:   "",
+			JSONVersion:  "",
+			TargetPrefix: "",
+		},
 	}
 	service.Initialize()
 
@@ -474,8 +532,8 @@ func NewOutputService6ProtocolTest(config *aws.Config) *OutputService6ProtocolTe
 
 // newRequest creates a new request for a OutputService6ProtocolTest operation and runs any
 // custom request initialization.
-func (c *OutputService6ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *OutputService6ProtocolTest) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	return req
 }
@@ -483,8 +541,8 @@ func (c *OutputService6ProtocolTest) newRequest(op *aws.Operation, params, data 
 const opOutputService6TestCaseOperation1 = "OperationName"
 
 // OutputService6TestCaseOperation1Request generates a request for the OutputService6TestCaseOperation1 operation.
-func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1Request(input *OutputService6TestShapeOutputService6TestCaseOperation1Input) (req *aws.Request, output *OutputService6TestShapeOutputShape) {
-	op := &aws.Operation{
+func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1Request(input *OutputService6TestShapeOutputService6TestCaseOperation1Input) (req *request.Request, output *OutputService6TestShapeOutputService6TestCaseOperation1Output) {
+	op := &request.Operation{
 		Name: opOutputService6TestCaseOperation1,
 	}
 
@@ -493,12 +551,12 @@ func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1Request(inp
 	}
 
 	req = c.newRequest(op, input, output)
-	output = &OutputService6TestShapeOutputShape{}
+	output = &OutputService6TestShapeOutputService6TestCaseOperation1Output{}
 	req.Data = output
 	return
 }
 
-func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1(input *OutputService6TestShapeOutputService6TestCaseOperation1Input) (*OutputService6TestShapeOutputShape, error) {
+func (c *OutputService6ProtocolTest) OutputService6TestCaseOperation1(input *OutputService6TestShapeOutputService6TestCaseOperation1Input) (*OutputService6TestShapeOutputService6TestCaseOperation1Output, error) {
 	req, out := c.OutputService6TestCaseOperation1Request(input)
 	err := req.Send()
 	return out, err
@@ -512,89 +570,13 @@ type metadataOutputService6TestShapeOutputService6TestCaseOperation1Input struct
 	SDKShapeTraits bool `type:"structure"`
 }
 
-type OutputService6TestShapeOutputShape struct {
-	MapMember map[string][]*int64 `type:"map"`
-
-	metadataOutputService6TestShapeOutputShape `json:"-" xml:"-"`
-}
-
-type metadataOutputService6TestShapeOutputShape struct {
-	SDKShapeTraits bool `type:"structure"`
-}
-
-// OutputService7ProtocolTest is a client for OutputService7ProtocolTest.
-type OutputService7ProtocolTest struct {
-	*aws.Service
-}
-
-// New returns a new OutputService7ProtocolTest client.
-func NewOutputService7ProtocolTest(config *aws.Config) *OutputService7ProtocolTest {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "outputservice7protocoltest",
-		APIVersion:   "",
-		JSONVersion:  "",
-		TargetPrefix: "",
-	}
-	service.Initialize()
-
-	// Handlers
-	service.Handlers.Sign.PushBack(v4.Sign)
-	service.Handlers.Build.PushBack(jsonrpc.Build)
-	service.Handlers.Unmarshal.PushBack(jsonrpc.Unmarshal)
-	service.Handlers.UnmarshalMeta.PushBack(jsonrpc.UnmarshalMeta)
-	service.Handlers.UnmarshalError.PushBack(jsonrpc.UnmarshalError)
-
-	return &OutputService7ProtocolTest{service}
-}
-
-// newRequest creates a new request for a OutputService7ProtocolTest operation and runs any
-// custom request initialization.
-func (c *OutputService7ProtocolTest) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
-
-	return req
-}
-
-const opOutputService7TestCaseOperation1 = "OperationName"
-
-// OutputService7TestCaseOperation1Request generates a request for the OutputService7TestCaseOperation1 operation.
-func (c *OutputService7ProtocolTest) OutputService7TestCaseOperation1Request(input *OutputService7TestShapeOutputService7TestCaseOperation1Input) (req *aws.Request, output *OutputService7TestShapeOutputShape) {
-	op := &aws.Operation{
-		Name: opOutputService7TestCaseOperation1,
-	}
-
-	if input == nil {
-		input = &OutputService7TestShapeOutputService7TestCaseOperation1Input{}
-	}
-
-	req = c.newRequest(op, input, output)
-	output = &OutputService7TestShapeOutputShape{}
-	req.Data = output
-	return
-}
-
-func (c *OutputService7ProtocolTest) OutputService7TestCaseOperation1(input *OutputService7TestShapeOutputService7TestCaseOperation1Input) (*OutputService7TestShapeOutputShape, error) {
-	req, out := c.OutputService7TestCaseOperation1Request(input)
-	err := req.Send()
-	return out, err
-}
-
-type OutputService7TestShapeOutputService7TestCaseOperation1Input struct {
-	metadataOutputService7TestShapeOutputService7TestCaseOperation1Input `json:"-" xml:"-"`
-}
-
-type metadataOutputService7TestShapeOutputService7TestCaseOperation1Input struct {
-	SDKShapeTraits bool `type:"structure"`
-}
-
-type OutputService7TestShapeOutputShape struct {
+type OutputService6TestShapeOutputService6TestCaseOperation1Output struct {
 	StrType *string `type:"string"`
 
-	metadataOutputService7TestShapeOutputShape `json:"-" xml:"-"`
+	metadataOutputService6TestShapeOutputService6TestCaseOperation1Output `json:"-" xml:"-"`
 }
 
-type metadataOutputService7TestShapeOutputShape struct {
+type metadataOutputService6TestShapeOutputService6TestCaseOperation1Output struct {
 	SDKShapeTraits bool `type:"structure"`
 }
 
@@ -602,30 +584,11 @@ type metadataOutputService7TestShapeOutputShape struct {
 // Tests begin here
 //
 
-func TestOutputService1ProtocolTestEmptyBodyCase1(t *testing.T) {
+func TestOutputService1ProtocolTestScalarMembersCase1(t *testing.T) {
 	svc := NewOutputService1ProtocolTest(nil)
 
-	buf := bytes.NewReader([]byte(""))
-	req, out := svc.OutputService1TestCaseOperation1Request(nil)
-	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
-
-	// set headers
-
-	// unmarshal response
-	jsonrpc.UnmarshalMeta(req)
-	jsonrpc.Unmarshal(req)
-	assert.NoError(t, req.Error)
-
-	// assert response
-	assert.NotNil(t, out) // ensure out variable is used
-
-}
-
-func TestOutputService2ProtocolTestScalarMembersCase1(t *testing.T) {
-	svc := NewOutputService2ProtocolTest(nil)
-
 	buf := bytes.NewReader([]byte("{\"Str\": \"myname\", \"Num\": 123, \"FalseBool\": false, \"TrueBool\": true, \"Float\": 1.2, \"Double\": 1.3, \"Long\": 200, \"Char\": \"a\"}"))
-	req, out := svc.OutputService2TestCaseOperation1Request(nil)
+	req, out := svc.OutputService1TestCaseOperation1Request(nil)
 	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
 
 	// set headers
@@ -648,11 +611,11 @@ func TestOutputService2ProtocolTestScalarMembersCase1(t *testing.T) {
 
 }
 
-func TestOutputService3ProtocolTestBlobMembersCase1(t *testing.T) {
-	svc := NewOutputService3ProtocolTest(nil)
+func TestOutputService2ProtocolTestBlobMembersCase1(t *testing.T) {
+	svc := NewOutputService2ProtocolTest(nil)
 
 	buf := bytes.NewReader([]byte("{\"BlobMember\": \"aGkh\", \"StructMember\": {\"foo\": \"dGhlcmUh\"}}"))
-	req, out := svc.OutputService3TestCaseOperation1Request(nil)
+	req, out := svc.OutputService2TestCaseOperation1Request(nil)
 	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
 
 	// set headers
@@ -669,11 +632,11 @@ func TestOutputService3ProtocolTestBlobMembersCase1(t *testing.T) {
 
 }
 
-func TestOutputService4ProtocolTestTimestampMembersCase1(t *testing.T) {
-	svc := NewOutputService4ProtocolTest(nil)
+func TestOutputService3ProtocolTestTimestampMembersCase1(t *testing.T) {
+	svc := NewOutputService3ProtocolTest(nil)
 
 	buf := bytes.NewReader([]byte("{\"TimeMember\": 1398796238, \"StructMember\": {\"foo\": 1398796238}}"))
-	req, out := svc.OutputService4TestCaseOperation1Request(nil)
+	req, out := svc.OutputService3TestCaseOperation1Request(nil)
 	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
 
 	// set headers
@@ -690,11 +653,11 @@ func TestOutputService4ProtocolTestTimestampMembersCase1(t *testing.T) {
 
 }
 
-func TestOutputService5ProtocolTestListsCase1(t *testing.T) {
-	svc := NewOutputService5ProtocolTest(nil)
+func TestOutputService4ProtocolTestListsCase1(t *testing.T) {
+	svc := NewOutputService4ProtocolTest(nil)
 
 	buf := bytes.NewReader([]byte("{\"ListMember\": [\"a\", \"b\"]}"))
-	req, out := svc.OutputService5TestCaseOperation1Request(nil)
+	req, out := svc.OutputService4TestCaseOperation1Request(nil)
 	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
 
 	// set headers
@@ -711,11 +674,36 @@ func TestOutputService5ProtocolTestListsCase1(t *testing.T) {
 
 }
 
-func TestOutputService6ProtocolTestMapsCase1(t *testing.T) {
-	svc := NewOutputService6ProtocolTest(nil)
+func TestOutputService4ProtocolTestListsCase2(t *testing.T) {
+	svc := NewOutputService4ProtocolTest(nil)
+
+	buf := bytes.NewReader([]byte("{\"ListMember\": [\"a\", null], \"ListMemberMap\": [{}, null, null, {}], \"ListMemberStruct\": [{}, null, null, {}]}"))
+	req, out := svc.OutputService4TestCaseOperation2Request(nil)
+	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
+
+	// set headers
+
+	// unmarshal response
+	jsonrpc.UnmarshalMeta(req)
+	jsonrpc.Unmarshal(req)
+	assert.NoError(t, req.Error)
+
+	// assert response
+	assert.NotNil(t, out) // ensure out variable is used
+	assert.Equal(t, "a", *out.ListMember[0])
+	assert.Nil(t, out.ListMember[1])
+	assert.Nil(t, out.ListMemberMap[1])
+	assert.Nil(t, out.ListMemberMap[2])
+	assert.Nil(t, out.ListMemberStruct[1])
+	assert.Nil(t, out.ListMemberStruct[2])
+
+}
+
+func TestOutputService5ProtocolTestMapsCase1(t *testing.T) {
+	svc := NewOutputService5ProtocolTest(nil)
 
 	buf := bytes.NewReader([]byte("{\"MapMember\": {\"a\": [1, 2], \"b\": [3, 4]}}"))
-	req, out := svc.OutputService6TestCaseOperation1Request(nil)
+	req, out := svc.OutputService5TestCaseOperation1Request(nil)
 	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
 
 	// set headers
@@ -734,11 +722,11 @@ func TestOutputService6ProtocolTestMapsCase1(t *testing.T) {
 
 }
 
-func TestOutputService7ProtocolTestIgnoresExtraDataCase1(t *testing.T) {
-	svc := NewOutputService7ProtocolTest(nil)
+func TestOutputService6ProtocolTestIgnoresExtraDataCase1(t *testing.T) {
+	svc := NewOutputService6ProtocolTest(nil)
 
 	buf := bytes.NewReader([]byte("{\"foo\": \"bar\"}"))
-	req, out := svc.OutputService7TestCaseOperation1Request(nil)
+	req, out := svc.OutputService6TestCaseOperation1Request(nil)
 	req.HTTPResponse = &http.Response{StatusCode: 200, Body: ioutil.NopCloser(buf), Header: http.Header{}}
 
 	// set headers

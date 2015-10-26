@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -99,6 +100,13 @@ func (t *terraformTemplate) jsonOutput() (string, error) {
 		return "", err
 	}
 
+	// replace escaped brackets and ampersand. the marshal package is encoding
+	// them automtically so it can be safely processed inside HTML scripts, but
+	// we don't need it.
+	out = bytes.Replace(out, []byte("\\u003c"), []byte("<"), -1)
+	out = bytes.Replace(out, []byte("\\u003e"), []byte(">"), -1)
+	out = bytes.Replace(out, []byte("\\u0026"), []byte("&"), -1)
+
 	return string(out), nil
 }
 
@@ -168,7 +176,7 @@ func (t *terraformTemplate) setAwsRegion(region string) error {
 			"access_key": provider.Aws.AccessKey,
 			"secret_key": provider.Aws.SecretKey,
 		}
-	} else if provider.Aws.Region != region {
+	} else if !isVariable(provider.Aws.Region) && provider.Aws.Region != region {
 		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
 			provider.Aws.Region, region)
 	}

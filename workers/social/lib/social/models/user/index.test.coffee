@@ -7,6 +7,7 @@ KONFIG                        = require('koding-config-manager').load("main.#{ar
 JLog                          = require '../log/index'
 Bongo                         = require 'bongo'
 JUser                         = require './index'
+JName                         = require '../name'
 mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
 JAccount                      = require '../account'
 JSession                      = require '../session'
@@ -638,10 +639,10 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # sending a different email address, username will remain same(duplicate)
-          userFormData.email = 'kodingtestuser@koding.com'
+          userFormData.email = generateRandomEmail()
 
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
+            expect(err.message).to.be.equal 'Errors were encountered during validation'
             queue.next()
 
         -> done()
@@ -662,10 +663,10 @@ runTests = -> describe 'workers.social.user.index', ->
 
         ->
           # sending a different username, email address will remain same(duplicate)
-          userFormData.username = 'kodingtestuser'
+          userFormData.username = generateRandomUsername()
 
           JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
+            expect(err?.message).to.be.equal 'Email is already in use!'
             queue.next()
 
         -> done()
@@ -711,6 +712,156 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
+  describe '#unregister()', ->
+
+    describe 'when user is not registered', ->
+
+      it 'should return err', (done) ->
+
+        client = {}
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            # username won't matter, only client's account will be checked
+            JUser.unregister client, generateRandomUsername(), (err) ->
+              expect(err?.message).to.be.equal 'You are not registered!'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+    describe 'when user is registered', ->
+
+      it 'should return error if requester doesnt have right to unregister', (done) ->
+
+        client       = {}
+        userFormData = generateDummyUserFormData()
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+
+              # set credentials
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
+
+          ->
+            # username won't matter, only client's account will be checked
+            JUser.unregister client, generateRandomUsername(), (err) ->
+              expect(err?.message).to.be.equal 'You must confirm this action!'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'user should be updated if requester has the right to unregister', (done) ->
+
+        client              = {}
+        userFormData        = generateDummyUserFormData()
+        { email, username } = userFormData
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              client = client_
+              queue.next()
+
+          ->
+            # registering user
+            JUser.convert client, userFormData, (err, data) ->
+              expect(err).to.not.exist
+
+              # set credentials
+              { account, newToken }      = data
+              client.sessionToken        = newToken
+              client.connection.delegate = account
+              queue.next()
+
+          ->
+            # expecting user to exist before unregister
+            JUser.one { username }, (err, user) ->
+              expect(err)           .to.not.exist
+              expect(user)          .to.exist
+              expect(user.email)    .to.be.equal email
+              expect(user.username) .to.be.equal username
+              queue.next()
+
+          ->
+            # expecting name to exist before unregister
+            JName.one { name : username }, (err, name) ->
+              expect(err)  .to.not.exist
+              expect(name) .to.exist
+              queue.next()
+
+          ->
+            # expecting user account to exist before unregister
+            JAccount.one { 'profile.nickname' : username }, (err, account) ->
+              expect(err)                  .to.not.exist
+              expect(account)              .to.exist
+              expect(account.type)         .to.be.equal 'registered'
+              expect(account.onlineStatus) .to.be.equal 'online'
+              queue.next()
+
+          ->
+            # expecting successful unregister
+            JUser.unregister client, username, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            # expecting user to be deleted after unregister
+            JUser.one { username }, (err, user) ->
+              expect(err)   .to.not.exist
+              expect(user)  .to.not.exist
+              queue.next()
+
+          ->
+            # expecting name to be deleted
+            JName.one { name : username }, (err, name) ->
+              expect(err)  .to.not.exist
+              expect(name) .to.not.exist
+              queue.next()
+          ->
+            # expecting user account to be deleted after unregister
+            JAccount.one { 'profile.nickname' : username }, (err, account) ->
+              expect(err)     .to.not.exist
+              expect(account) .to.not.exist
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
   describe '#verifyRecaptcha()', ->
 
     it 'should pass error if captcha code is empty', (done) ->
@@ -751,6 +902,154 @@ runTests = -> describe 'workers.social.user.index', ->
         expect(err).to.not.exist
         done()
 
+
+  describe '#authenticateClient()', ->
+
+    describe 'when there is no session for the given clientId', ->
+
+      it 'should create a new session', (done) ->
+
+        JUser.authenticateClient 'someInvalidClientId', (err, data) ->
+          expect(err).to.not.exist
+          expect(data.session).to.be.an 'object'
+          expect(data.session).to.have.property 'clientId'
+          expect(data.session).to.have.property 'username'
+          expect(data.account).to.be.an 'object'
+          expect(data.account).to.have.property 'socialApiId'
+          expect(data.account).to.have.property 'profile'
+          done()
+
+
+    describe 'when there is a session for the given clientId', ->
+
+      it 'should return error if username doesnt exist in session', (done) ->
+
+        sessionToken = null
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            selector = { clientId : sessionToken }
+            modifier = { $unset : { username : 1 } }
+            JSession.update selector, modifier, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err?.message).to.be.equal 'no username found'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should be handle guest user if username starts with guest-', (done) ->
+
+        guestUsername = "guest-#{generateRandomString 10}"
+        sessionToken  = null
+
+        queue = [
+
+          ->
+            generateDummyClient { group : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            selector = { clientId : sessionToken }
+            modifier = { $set : { username : guestUsername } }
+            JSession.update selector, modifier, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err).to.not.exist
+              expect(data.session).to.be.an 'object'
+              expect(data.account).to.be.an 'object'
+              expect(data.account.profile.nickname).to.be.equal guestUsername
+              expect(data.account.type).to.be.equal 'unregistered'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should return error if username doesnt match any user', (done) ->
+
+        sessionToken    = null
+        invalidUsername = 'someInvalidUsername'
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            selector = { clientId : sessionToken }
+            modifier = { $set : { username : invalidUsername } }
+            JSession.update selector, modifier, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err?.message).to.be.equal "no user found with
+                                  #{invalidUsername} and sessionId"
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+      it 'should return session and account if session is valid', (done) ->
+
+        sessionToken = null
+
+        queue = [
+
+          ->
+            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+              expect(err).to.not.exist
+              { sessionToken } = client_
+              queue.next()
+
+          ->
+            JUser.authenticateClient sessionToken, (err, data) ->
+              expect(err).to.not.exist
+              expect(data.session).to.be.an 'object'
+              expect(data.session).to.have.property 'clientId'
+              expect(data.session).to.have.property 'username'
+              expect(data.account).to.be.an 'object'
+              expect(data.account).to.have.property 'socialApiId'
+              expect(data.account).to.have.property 'profile'
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
 
 beforeTests()
 

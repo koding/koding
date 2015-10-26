@@ -8,24 +8,44 @@ module.exports =
 
   createTeam: (browser) ->
 
-    user = utils.getUser(yes)
+    modalSelector             = '.TeamsModal.TeamsModal--create'
+    emailSelector             = "#{modalSelector} input[name=email]"
+    companyNameSelector       = "#{modalSelector} input[name=companyName]"
+    signUpButton              = "#{modalSelector} button[type=submit]"
+    user                      = utils.getUser(yes)
+    welcomeModal              = '.welcome-modal'
+    welcomeModalCloseSelector = "#{welcomeModal} .closeModal"
+    adminUser                 =
+      username                : 'devrim'
+      password                : 'devrim'
 
-    browser.url helpers.getUrl()
-    browser.maximizeWindow()
+    helpers.beginTest(browser, adminUser)
+    browser.pause 5000 # wait for welcome modal
 
-    teamsHelpers.setCookie(browser)
+    browser.element 'css selector', welcomeModal, (result) =>
+      if result.status is 0
+        browser
+          .waitForElementVisible  welcomeModalCloseSelector, 20000
+          .click                  welcomeModalCloseSelector
 
-    teamsHelpers.openTeamsPage(browser)
-    teamsHelpers.fillSignUpFormOnTeamsHomePage(browser, user)
-    teamsHelpers.enterTeamURL(browser)
-    # teamsHelpers.enterEmailDomains(browser)
-    # teamsHelpers.enterInvites(browser)
-    teamsHelpers.fillUsernamePasswordForm(browser, user)
-    # teamsHelpers.setupStackPage(browser)
-    # teamsHelpers.congratulationsPage(browser)
-    # teamsHelpers.loginToTeam(browser, user)
+    teamsHelpers.createInvitation browser, user, (invitationLink) ->
+      browser.click '.close-icon.closeModal'
 
-    browser.end()
+      helpers.doLogout(browser)
+
+      browser
+        .url                   invitationLink
+        .waitForElementVisible modalSelector, 20000
+        .waitForElementVisible emailSelector, 20000
+        .waitForElementVisible companyNameSelector, 20000
+        .assert.valueContains  emailSelector, user.email
+        .setValue              companyNameSelector, user.teamSlug
+        .click                 signUpButton
+        .pause                 2500
+
+      teamsHelpers.enterTeamURL(browser)
+      teamsHelpers.fillUsernamePasswordForm(browser, user)
+      browser.end()
 
 
   loginTeam: (browser) ->
@@ -60,8 +80,96 @@ module.exports =
     browser
       .waitForElementVisible  teamSettingsSelector, 20000
       .waitForElementVisible  'input[name=title]', 20000
-      .assert.valueContains   'input[name=title]', user.name
+      .assert.valueContains   'input[name=title]', user.teamSlug
       .waitForElementVisible  'input[name=url]', 20000
       .assert.valueContains   'input[name=url]', user.teamSlug
       .waitForElementVisible  '.avatar-upload .avatar', 20000
+      .end()
+
+
+  stacks: (browser) ->
+
+    modalSelector         = '.kdmodal-content .AppModal-content'
+    providerSelector      = "#{modalSelector} .stack-onboarding .provider-selection"
+    machineSelector       = "#{providerSelector} .providers"
+    stackPreview          = "#{modalSelector} .stack-preview"
+    codeSelector          = "#{stackPreview} .has-markdown"
+    footerSelector        = "#{modalSelector} .stacks .footer"
+    nextButtonSelector    = "#{footerSelector} button.next"
+    awsSelector           = "#{machineSelector} .aws"
+    configurationSelector = "#{modalSelector} .configuration .server-configuration"
+    inputSelector         = "#{configurationSelector} .Database"
+    mysqlSelector         = "#{inputSelector} .mysql input.checkbox + label"
+    postgresqlSelector    = "#{inputSelector} .postgresql input.checkbox + label"
+    server1PageSelector   = "#{modalSelector} .code-setup .server-1"
+    githubSelector        = "#{server1PageSelector} .box-wrapper .github"
+    bitbucketSelector     = "#{server1PageSelector} .box-wrapper .bitbucket"
+    editorSelector        = "#{modalSelector} .editor-main"
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.startStackCreate(browser)
+
+    browser
+      .waitForElementVisible  providerSelector, 20000
+      .waitForElementVisible  awsSelector, 20000
+      .waitForElementVisible  "#{machineSelector} .koding" , 20000 # Assertion
+      .click                  awsSelector
+      .waitForElementVisible  stackPreview, 20000
+      .waitForElementVisible  codeSelector, 20000
+      .assert.containsText    codeSelector, 'koding_group_slug'
+      .waitForElementVisible  footerSelector, 20000
+      .waitForElementVisible  nextButtonSelector, 20000
+      .pause                  2000 # wait for animation
+      .click                  nextButtonSelector
+      .waitForElementVisible  configurationSelector, 20000
+      .pause                  2000 # wait for animation
+      .waitForElementVisible  mysqlSelector, 20000
+      .click                  mysqlSelector
+      .pause                  2000 # wait for animation
+      .waitForElementVisible  postgresqlSelector, 20000
+      .click                  postgresqlSelector
+      .waitForElementVisible  stackPreview, 20000
+      .assert.containsText    codeSelector, 'mysql postgresql'
+      .waitForElementVisible  nextButtonSelector, 20000
+      .pause                  2000 # wait for animation
+      .click                  nextButtonSelector
+      .waitForElementVisible  server1PageSelector, 20000
+      .waitForElementVisible  githubSelector, 20000 # Assertion
+      .waitForElementVisible  bitbucketSelector, 20000 # Assertion
+      .waitForElementVisible  nextButtonSelector, 20000
+      .click                  nextButtonSelector
+      .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
+      .waitForElementVisible  editorSelector, 20000
+      .pause                  1000
+      .assert.containsText    editorSelector, 'aws_instance'
+      .end()
+
+
+  inviteUser: (browser) ->
+
+    invitationsModalSelector = ".kdmodal-content  .AppModal--admin-tabs .invitations"
+    inviteUserView           = "#{invitationsModalSelector} .invite-view"
+    emailInputSelector       = "#{inviteUserView} .invite-inputs input.user-email"
+    userEmail                = "#{helpers.getFakeText().split(' ')[0]}@kd.io"
+    inviteMemberButton       = "#{invitationsModalSelector} button.invite-members"
+    notificationView         = '.kdnotification'
+    pendingMembersTab        = "#{invitationsModalSelector} .kdtabhandle.pending-invitations"
+    pendingMemberView        = "#{invitationsModalSelector} .kdlistitemview-member.pending"
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.clickTeamSettings(browser)
+
+    teamsHelpers.openInvitationsTab(browser)
+
+    browser
+      .waitForElementVisible  inviteUserView, 20000
+      .waitForElementVisible  emailInputSelector, 20000
+      .setValue               emailInputSelector, userEmail
+      .waitForElementVisible  inviteMemberButton, 20000
+      .click                  inviteMemberButton
+      .waitForElementVisible  notificationView, 20000
+      .assert.containsText    notificationView, 'All invites sent'
+      .click                  pendingMembersTab
+      .waitForElementVisible  pendingMemberView, 20000
+      .assert.containsText    pendingMemberView, userEmail
       .end()

@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 )
 
-func TestAccRoute53HealthCheck_basic(t *testing.T) {
+func TestAccAWSRoute53HealthCheck_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -34,7 +34,7 @@ func TestAccRoute53HealthCheck_basic(t *testing.T) {
 	})
 }
 
-func TestAccRoute53HealthCheck_IpConfig(t *testing.T) {
+func TestAccAWSRoute53HealthCheck_IpConfig(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -68,7 +68,7 @@ func testAccCheckRoute53HealthCheckDestroy(s *terraform.State) error {
 		}
 
 		for _, check := range resp.HealthChecks {
-			if *check.ID == rs.Primary.ID {
+			if *check.Id == rs.Primary.ID {
 				return fmt.Errorf("Record still exists: %#v", check)
 			}
 
@@ -103,7 +103,7 @@ func testAccCheckRoute53HealthCheckExists(n string) resource.TestCheckFunc {
 		}
 
 		for _, check := range resp.HealthChecks {
-			if *check.ID == rs.Primary.ID {
+			if *check.Id == rs.Primary.ID {
 				return nil
 			}
 

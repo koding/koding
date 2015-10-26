@@ -66,8 +66,8 @@ module.exports = class Machine extends KDObject
         computeController.reset yes
 
 
-  updateLocalData:->
-    { @label, @ipAddress, @_id, @provisioners, @provider
+  updateLocalData: ->
+    { @label, @ipAddress, @_id, @provisioners, @provider, @credential
       @status, @uid, @domain, @queryString, @slug } = @jMachine
     @alwaysOn = @jMachine.meta.alwaysOn ? no
 
@@ -118,15 +118,17 @@ module.exports = class Machine extends KDObject
     switch @provider
       when 'koding', 'managed'
         return @data.credential
+      else # Use users array for other types of providers ~ GG
+        for user in @jMachine.users when user.owner
+          return user.username
 
 
   _ruleChecker: (rules) ->
 
-    for user in @jMachine.users
-      if user.id is globals.userId
-        for rule in rules
-          return no  unless user[rule]
-        return yes
+    for user in @jMachine.users when user.id is globals.userId
+      for rule in rules
+        return no  unless user[rule]
+      return yes
 
     return no
 
@@ -136,3 +138,5 @@ module.exports = class Machine extends KDObject
   isPermanent : -> @_ruleChecker ['permanent']
   isManaged   : -> @provider is 'managed'
   isRunning   : -> @status.state is Machine.State.Running
+  isStopped   : -> @status.state is Machine.State.Stopped
+  isUsable    : -> @isRunning() or @isStopped()

@@ -6,12 +6,13 @@ import (
 	"golang.org/x/net/context"
 )
 
+// Stop is a wrapper arround StopMachine, which also updates the mongoDB state.
 func (m *Machine) Stop(ctx context.Context) (err error) {
 	if err := m.UpdateState("Machine is stopping", machinestate.Stopping); err != nil {
 		return err
 	}
 
-	if err := m.stop(ctx); err != nil {
+	if err := m.StopMachine(ctx); err != nil {
 		// update the state to intial state if something goes wrong, we are going
 		// to change latestate to a more safe state if we passed a certain step
 		// below
@@ -22,7 +23,8 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 	return m.markAsStopped()
 }
 
-func (m *Machine) stop(ctx context.Context) (err error) {
+// StopMachine stops the given machine.
+func (m *Machine) StopMachine(ctx context.Context) (err error) {
 	err = m.Session.AWSClient.Stop(ctx)
 	if err != nil {
 		return err

@@ -1,22 +1,17 @@
 .ChatList
-  overflow                    auto
-  margin-bottom               10px
+  overflow                    hidden
 
 .ChatItem
   rel()
 
-  .MessageBody > p
-    dInline()
-
-  .MessageBody .InReplyToLink
-    color                   $gray-17
-    margin-left             3px
-    font-size               $fs-smaller
+  &:last-child
+    margin-bottom           10px
 
   .ChatItem-authorName
     display                 inline-block
-    font-size               12px
+    font-size               16px
     margin                  4px 10px 2px 0
+    font-weight             bold
 
   time
     color                   #999
@@ -26,7 +21,7 @@
   .ChatItem-likeLink
     abs()
     pointer()
-    top                     12px
+    top                     15px
     display                 none
     vertical-align          text-bottom
     padding                 5px
@@ -60,13 +55,14 @@
         visible()
 
   .emoji
-    size                    16px 16px
+    size                    20px 20px
+    vertical-align          text-bottom
 
   .SettingsMenuWrapper
     abs()
     hidden()
     top                     0px
-    right                   20px
+    right                   10px
 
     button
       pointer()
@@ -82,14 +78,11 @@
     overflow                visible
 
     &.editing
-      height                59px
+      overflow              hidden
       rounded               3px 3px 0 0
       padding               10px 0 6px 34px
       bg                    color, $light-yellow
-      overflow              hidden
-
-      > div
-        max-width           485px
+      margin-top            5px !important
 
       .SettingsMenuWrapper
         hidden()
@@ -102,13 +95,23 @@
             display         inline
             font-size       11px
             color           #CCC
+    &.MediaObject
+      article
+        padding-left        52px
 
     .ChatItem-contentBody
       article
         margin-top          7px
+        margin-right        24px
 
         p
           padding           0 0 2px
+
+        pre
+          max-width         701px
+          max-height        300px
+          overflow          auto
+          borderBox()
 
 
   &:hover
@@ -122,32 +125,39 @@
     fl()
     rel()
     z-index                 1
-    width                   calc(100% \- 55px)
+    width                   calc(100% \- 59px)
 
     .ChatItem-authorName
       abs()
       margin-top            2px
 
-    textarea
-      borderBox()
-      outline               none
-      rounded               3px
-      font-size             14px
-      color                 #4C4C4C
-      line-height           26px
-      border                2px solid $gray-18
-      padding               0 6px
-      size                  100%, 30px
-      resize                none
-      display               block
-      margin-top            24px
+  .EmbedBox-container
+    padding-left            52px
 
-      &:focus
-        shadow              0 0 3px rgba(125,190,241,.7)
+  .ChatInputWidget
+    padding                   0px !important
+
+    textarea
+      resize                  none
+      display                 block
+      margin-top              24px
+      padding-left            12px !important
+
+  .ChatInputWidget:before
+    display                   none
+
+  .ChatInputWidget-emojiButton
+    right                     21px
+
+.ChatItem.is-selected
+  .ChatListItem-itemBodyContainer
+    bg                        color, #FFFBD5
 
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
   padding                     0 0 0 86px !important
+  article
+    padding-left              0 !important
 
 
   .ChatItem-messageDate
@@ -157,7 +167,7 @@
     left                      15px
 
   .ChatItem-likeLink
-    top                       0
+    top                       2px
     left                      63px
 
   &:hover
@@ -165,13 +175,17 @@
       visible()
 
   &.editing
-    padding                   8px 0 6px 19px !important
+    overflow                  hidden
+    padding                   8px 0 6px 85px !important
 
     .ChatItem-updateMessageForm
-      margin-left             64px
+      width                   calc(100% \- 8px)
 
       .ChatItem-authorName
         hidden()
+
+  .EmbedBox-container
+    padding-left              0px
 
 .ChatItem-editActions
   abs()

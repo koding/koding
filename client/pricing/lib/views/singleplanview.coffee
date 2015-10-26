@@ -3,8 +3,8 @@ KDButtonView          = kd.ButtonView
 KDCustomHTMLView      = kd.CustomHTMLView
 KDHeaderView          = kd.HeaderView
 KDView                = kd.View
-trackEvent            = require 'app/util/trackEvent'
 PaymentConstants      = require 'app/payment/paymentconstants'
+Tracker               = require 'app/util/tracker'
 
 
 module.exports = class SinglePlanView extends KDView
@@ -108,12 +108,9 @@ module.exports = class SinglePlanView extends KDView
       reducedMonth, discount, planInterval
     }
 
-    trackEvent 'Plan select, click', {
-      category : 'userInteraction'
-      action   : 'clicks'
-      label    : 'PricingSelect'
-      planInterval
-      planTitle
+    Tracker.track Tracker.PLAN_SELECTED, {
+      category : planTitle
+      label    : planInterval
     }
 
 
@@ -156,4 +153,3 @@ module.exports = class SinglePlanView extends KDView
     @buyButton.enable()
 
     @setAttribute 'disabled', 'false'
-

@@ -1,5 +1,8 @@
 { getClientId
-  handleClientIdNotFound } = require './../helpers'
+  handleClientIdNotFound
+  setSessionCookie
+} = require './../helpers'
+
 koding                     = require './../bongo'
 
 module.exports = (req, res) ->
@@ -20,5 +23,6 @@ module.exports = (req, res) ->
     else if not info
       return res.status(500).send 'An error occurred'
 
-    res.cookie 'clientId', info.replacementToken, { path : '/' }
+    setSessionCookie res, info.replacementToken
+
     res.status(200).end()

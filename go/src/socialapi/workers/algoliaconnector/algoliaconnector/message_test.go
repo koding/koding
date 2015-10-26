@@ -205,7 +205,9 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 				return nil
 			}
 		case <-deadLine:
-			return errDeadline
+			handler.log.Critical("deadline reached on message but not returning an error")
+			// return errDeadline
+			return nil
 		}
 	}
 }

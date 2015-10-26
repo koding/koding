@@ -1,14 +1,21 @@
 package multiconfig
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 type (
 	Server struct {
-		Name     string `required:"true"`
-		Port     int    `default:"6060"`
-		Enabled  bool
-		Users    []string
-		Postgres Postgres
+		Name       string `required:"true"`
+		Port       int    `default:"6060"`
+		ID         int64
+		Labels     []int
+		Enabled    bool
+		Users      []string
+		Postgres   Postgres
+		unexported string
+		Interval   time.Duration
 	}
 
 	// Postgres holds Postgresql database related configuration
@@ -18,6 +25,7 @@ type (
 		Hosts             []string `required:"true"`
 		DBName            string   `default:"configdb"`
 		AvailabilityRatio float64
+		unexported        string
 	}
 )
 
@@ -39,10 +47,13 @@ var (
 
 func getDefaultServer() *Server {
 	return &Server{
-		Name:    "koding",
-		Port:    6060,
-		Enabled: true,
-		Users:   []string{"ankara", "istanbul"},
+		Name:     "koding",
+		Port:     6060,
+		Enabled:  true,
+		ID:       1234567890,
+		Labels:   []int{123, 456},
+		Users:    []string{"ankara", "istanbul"},
+		Interval: 10 * time.Second,
 		Postgres: Postgres{
 			Enabled:           true,
 			Port:              5432,
@@ -107,6 +118,24 @@ func testStruct(t *testing.T, s *Server, d *Server) {
 
 	if s.Enabled != d.Enabled {
 		t.Errorf("Enabled value is wrong: %t, want: %t", s.Enabled, d.Enabled)
+	}
+
+	if s.Interval != d.Interval {
+		t.Errorf("Interval value is wrong: %v, want: %v", s.Interval, d.Interval)
+	}
+
+	if s.ID != d.ID {
+		t.Errorf("ID value is wrong: %v, want: %v", s.ID, d.ID)
+	}
+
+	if len(s.Labels) != len(d.Labels) {
+		t.Errorf("Labels value is wrong: %d, want: %d", len(s.Labels), len(d.Labels))
+	} else {
+		for i, label := range d.Labels {
+			if s.Labels[i] != label {
+				t.Errorf("Label is wrong for index: %d, label: %s, want: %s", i, s.Labels[i], label)
+			}
+		}
 	}
 
 	if len(s.Users) != len(d.Users) {

@@ -14,8 +14,7 @@ module.exports = (text, options = {})->
   options.paragraphs?= true
   options.tables    ?= true
   options.highlight ?= (text, lang) ->
-    if hljs.getLanguage lang
-    then hljs.highlight(lang,text).value
-    else text
+
+    return hljs.highlightAuto(text).value
 
   marked text, options

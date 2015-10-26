@@ -14,9 +14,10 @@ type Bot struct {
 }
 
 type Message struct {
-	Body                 string `json:"body"`
-	ChannelId            int64  `json:"channelId,string"`
-	ChannelIntegrationId int64  `json:"channelIntegrationId,string"`
+	Body                 string             `json:"body"`
+	ChannelId            int64              `json:"channelId,string"`
+	ChannelIntegrationId int64              `json:"channelIntegrationId,string"`
+	Payload              map[string]*string `json:"payload"`
 }
 
 func NewBot() (*Bot, error) {
@@ -28,7 +29,7 @@ func NewBot() (*Bot, error) {
 	return &Bot{account: acc}, nil
 }
 
-func (b *Bot) SendMessage(m *Message) error {
+func (b *Bot) SaveMessage(m *Message) error {
 	cm, err := b.createMessage(m)
 	if err != nil {
 		return err
@@ -43,6 +44,7 @@ func (b *Bot) createMessage(m *Message) (*models.ChannelMessage, error) {
 	cm.InitialChannelId = m.ChannelId
 	cm.Body = m.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_BOT
+	cm.Payload = m.Payload
 	tid := strconv.FormatInt(m.ChannelIntegrationId, 10)
 	cm.SetPayload("channelIntegrationId", tid)
 
@@ -58,7 +60,6 @@ func (b *Bot) createMessageList(cm *models.ChannelMessage, channelId int64) erro
 }
 
 func (b *Bot) FetchBotChannel(a *models.Account, group *models.Channel) (*models.Channel, error) {
-
 	c, err := b.fetchOrCreateChannel(a, group.GroupName)
 	if err != nil {
 		return nil, err
@@ -99,8 +100,7 @@ func fetchBotChannel(a *models.Account, groupName string) (*models.Channel, erro
 		"group_name":    groupName,
 	}
 
-	// if err is nil
-	// it means we already have that channel
+	// if err is nil it means we already have that channel
 	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return nil, err

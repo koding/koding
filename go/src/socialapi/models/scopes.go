@@ -55,6 +55,9 @@ func Paginated(limit, skip int) bongo.Scope {
 func SortedByAddedAt(d *gorm.DB) *gorm.DB {
 	return d.Order("added_at DESC")
 }
+func SortedByAddedAtASC(d *gorm.DB) *gorm.DB {
+	return d.Order("added_at ASC")
+}
 
 func SortedByCreatedAt(d *gorm.DB) *gorm.DB {
 	return d.Order("created_at DESC")

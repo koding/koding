@@ -63,7 +63,7 @@ module.exports = class Managed extends ProviderInterface
             """, 'UsageLimitReached'
 
           meta =
-            type          : @providerSlug
+            type          : Managed.providerSlug
             storage_size  : 0 # sky is the limit.
             alwaysOn      : no
 
@@ -105,6 +105,17 @@ module.exports = class Managed extends ProviderInterface
       else machine.destroy client, callback
 
 
+  updateMachine = (selector, fieldsToUpdate, callback) ->
+    JMachine    = require './machine'
+    JMachine.one selector, (err, machine) ->
+
+      if err? or not machine?
+        return callback err or new KodingError 'Machine object not found.'
+
+      machine.update { $set: fieldsToUpdate }, (err) ->
+        callback err
+
+
   @update = (client, options, callback) ->
 
     { machineId, queryString, ipAddress, storage, managedProvider } = options
@@ -130,13 +141,8 @@ module.exports = class Managed extends ProviderInterface
     JMachine = require './machine'
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
     selector.provider = @providerSlug
+    updateMachine selector, fieldsToUpdate, callback
 
-    JMachine.one selector, (err, machine) ->
 
-      if err? or not machine?
-        return callback err or new KodingError 'Machine object not found.'
-
-      machine.update { $set: fieldsToUpdate }, (err) ->
-        callback err
 
 

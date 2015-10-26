@@ -26,6 +26,8 @@ module.exports = class AccountSshMachineListItem extends KDListItemView
       disabled     : not active
       label        : @label
 
+    @setClass 'disabled-ssh-machine-item'  unless active
+
 
   pistachio: ->
     """

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -350,6 +351,52 @@ func TestTerraformTemplate_SetAWSRegion(t *testing.T) {
 	equals(t, "${var.aws_access_key}", provider.Aws.AccessKey)
 	equals(t, "${var.aws_secret_key}", provider.Aws.SecretKey)
 	equals(t, "us-east-1", provider.Aws.Region)
+}
+
+func TestTerraformTemplate_Encoding(t *testing.T) {
+	userTestTemplate := `{
+	    "variable": {
+	        "username": {
+	            "default": "fatih"
+	        }
+	    },
+	    "provider": {
+	        "aws": {
+	            "access_key": "${var.aws_access_key}",
+	            "secret_key": "${var.aws_secret_key}",
+	            "region": "${var.aws_region}"
+	        }
+	    },
+	    "resource": {
+	        "aws_instance": {
+	            "example": {
+	                "instance_type": "t2.micro",
+	                "user_data": "echo 'fatih' > /tmp/hello.txt\necho 'arslan' > /tmp/${var.username}.txt"
+	            }
+	        }
+	    }
+	}`
+
+	template, err := newTerraformTemplate(userTestTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var resource struct {
+		AwsInstance struct {
+			Example struct {
+				UserData string `hcl:"user_data"`
+			} `hcl:"example"`
+		} `hcl:"aws_instance"`
+	}
+
+	if err := template.DecodeResource(&resource); err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(resource.AwsInstance.Example.UserData, `>`) {
+		t.Errorf("Brackets should be encoded\n\tOutput: %s\n", resource.AwsInstance.Example.UserData)
+	}
 }
 
 // equals fails the test if exp is not equal to act.

@@ -71,12 +71,12 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     #     tagName    : 'span'
     #     partial    : 'Please add channel names separated by commas.'
 
-    @addInput form,
-      label        : 'Allowed Domains'
-      description  : 'Allow anyone to sign up with an email address from a domain you specify here. If you need to enter multiple domains, please separate them by commas. e.g. acme.com, acme-inc.com'
-      name         : 'domains'
-      placeholder  : 'domain.com, other.edu'
-      defaultValue : Encoder.htmlDecode group.allowedDomains?.join(', ') ? ''
+    # @addInput form,
+    #   label        : 'Allowed Domains'
+    #   description  : 'Allow anyone to sign up with an email address from a domain you specify here. If you need to enter multiple domains, please separate them by commas. e.g. acme.com, acme-inc.com'
+    #   name         : 'domains'
+    #   placeholder  : 'domain.com, other.edu'
+    #   defaultValue : Encoder.htmlDecode group.allowedDomains?.join(', ') ? ''
 
     form.addSubView new KDButtonView
       title    : 'Save Changes'
@@ -204,7 +204,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     formData     = @generalSettingsForm.getFormData()
     jGroup       = @getData()
     # newChannels  = @separateCommas channels
-    newDomains   = @separateCommas domains
+    # newDomains   = @separateCommas domains
     dataToUpdate = {}
 
     unless formData.title is jGroup.title
@@ -213,11 +213,11 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
     # unless _.isEqual newChannels, jGroup.defaultChannels
     #   dataToUpdate.defaultChannels = newChannels
 
-    unless _.isEqual newDomains, jGroup.allowedDomains
-      for domain in newDomains when not validator.isURL domain
-        return @notify 'Please check allowed domains again'
+    # unless _.isEqual newDomains, jGroup.allowedDomains
+    #   for domain in newDomains when not validator.isURL domain
+    #     return @notify 'Please check allowed domains again'
 
-      dataToUpdate.allowedDomains = newDomains
+    #   dataToUpdate.allowedDomains = newDomains
 
     return if _.isEmpty dataToUpdate
 

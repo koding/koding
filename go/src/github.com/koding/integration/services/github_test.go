@@ -33,6 +33,22 @@ func TestGithubPush(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubPushWithoutCommit(t *testing.T) {
+	whd := &webhook.PushEvent{}
+	err := json.Unmarshal([]byte(pushTestWithoutCommitData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.push(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := ""
+	equals(t, exp, d)
+}
+
 func TestGithubIssueComment(t *testing.T) {
 	whd := &webhook.IssueCommentEvent{}
 	err := json.Unmarshal([]byte(issueCommentTestData), whd)
@@ -64,6 +80,54 @@ func TestGithubCommitComment(t *testing.T) {
 	}
 	exp := `[baxterthehacker](https://github.com/baxterthehacker) [commented](https://github.com/baxterthehacker/public-repo/commit/9049f1265b7d61be4a8904a9a27120d2064dab3b#commitcomment-11056394) on commit [9049f1](https://github.com/baxterthehacker/public-repo/commit/9049f1265b7d61be4a8904a9a27120d2064dab3b#commitcomment-11056394) at [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)
 >This is a really good change! :+1:`
+	equals(t, exp, d)
+}
+
+func TestGithubCreateBranch(t *testing.T) {
+	whd := &webhook.CreateEvent{}
+	err := json.Unmarshal([]byte(createBranchData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.create(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[mehmetalisavas](https://github.com/mehmetalisavas) created branch `createdBranch` at [mehmetalisavas/webhook](https://github.com/mehmetalisavas/webhook)"
+	equals(t, exp, d)
+}
+
+func TestGithubDeleteBranch(t *testing.T) {
+	whd := &webhook.DeleteEvent{}
+	err := json.Unmarshal([]byte(deleteBranchData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.delete(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[mehmetalisavas](https://github.com/mehmetalisavas) deleted branch `test4` at [mehmetalisavas/webhook](https://github.com/mehmetalisavas/webhook)"
+	equals(t, exp, d)
+}
+
+func TestGithubDeleteTag(t *testing.T) {
+	whd := &webhook.DeleteEvent{}
+	err := json.Unmarshal([]byte(deleteTagData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.delete(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[baxterthehacker](https://github.com/baxterthehacker) deleted tag `simple-tag` at [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)"
 	equals(t, exp, d)
 }
 

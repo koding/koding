@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -13,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccKinesisStream_basic(t *testing.T) {
+func TestAccAWSKinesisStream_basic(t *testing.T) {
 	var stream kinesis.StreamDescription
 
 	resource.Test(t, resource.TestCase{
@@ -46,7 +47,6 @@ func testAccCheckKinesisStreamExists(n string, stream *kinesis.StreamDescription
 		conn := testAccProvider.Meta().(*AWSClient).kinesisconn
 		describeOpts := &kinesis.DescribeStreamInput{
 			StreamName: aws.String(rs.Primary.Attributes["name"]),
-			Limit:      aws.Long(1),
 		}
 		resp, err := conn.DescribeStream(describeOpts)
 		if err != nil {
@@ -71,6 +71,10 @@ func testAccCheckAWSKinesisStreamAttributes(stream *kinesis.StreamDescription) r
 			if *stream.StreamARN != rs.Primary.Attributes["arn"] {
 				return fmt.Errorf("Bad Stream ARN\n\t expected: %s\n\tgot: %s\n", rs.Primary.Attributes["arn"], *stream.StreamARN)
 			}
+			shard_count := strconv.Itoa(len(stream.Shards))
+			if shard_count != rs.Primary.Attributes["shard_count"] {
+				return fmt.Errorf("Bad Stream Shard Count\n\t expected: %s\n\tgot: %s\n", rs.Primary.Attributes["shard_count"], shard_count)
+			}
 		}
 		return nil
 	}
@@ -84,7 +88,6 @@ func testAccCheckKinesisStreamDestroy(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).kinesisconn
 		describeOpts := &kinesis.DescribeStreamInput{
 			StreamName: aws.String(rs.Primary.Attributes["name"]),
-			Limit:      aws.Long(1),
 		}
 		resp, err := conn.DescribeStream(describeOpts)
 		if err == nil {
@@ -103,6 +106,9 @@ func testAccCheckKinesisStreamDestroy(s *terraform.State) error {
 var testAccKinesisStreamConfig = fmt.Sprintf(`
 resource "aws_kinesis_stream" "test_stream" {
 	name = "terraform-kinesis-test-%d"
-	shard_count = 1
+	shard_count = 2
+	tags {
+		Name = "tf-test"
+	}
 }
 `, rand.New(rand.NewSource(time.Now().UnixNano())).Int())

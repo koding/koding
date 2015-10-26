@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 JPaymentBase = require './base'
 
 module.exports = class JPaymentPlan extends JPaymentBase
@@ -141,7 +140,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
   fetchToken: secure (client, data, callback) ->
-    JPaymentToken.createToken client, planCode: @planCode, callback
+    JPaymentToken.createToken client, { planCode: @planCode }, callback
 
   subscribe: (paymentMethodId, options = {}, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -180,7 +179,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
         recurly.updateSubscription paymentMethodId, update, (err) ->
           return callback err  if err
 
-          subscription.update $set: { quantity }, (err) ->
+          subscription.update { $set: { quantity } }, (err) ->
             if err
             then callback err
             else callback null, subscription
@@ -258,7 +257,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
       callback null, 'koding'
     else
       JGroup = require '../group'
-      JGroup.one _id: @product.category, (err, group) ->
+      JGroup.one { _id: @product.category }, (err, group) ->
         callback err, unless err then group.slug
 
   checkQuota: (options, callback) ->

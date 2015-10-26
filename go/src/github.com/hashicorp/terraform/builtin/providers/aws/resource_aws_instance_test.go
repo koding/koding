@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -47,7 +46,7 @@ func TestAccAWSInstance_basic(t *testing.T) {
 					var err error
 					vol, err = conn.CreateVolume(&ec2.CreateVolumeInput{
 						AvailabilityZone: aws.String("us-west-2a"),
-						Size:             aws.Long(int64(5)),
+						Size:             aws.Int64(int64(5)),
 					})
 					return err
 				},
@@ -91,7 +90,7 @@ func TestAccAWSInstance_basic(t *testing.T) {
 				Config: testAccInstanceConfig,
 				Check: func(*terraform.State) error {
 					conn := testAccProvider.Meta().(*AWSClient).ec2conn
-					_, err := conn.DeleteVolume(&ec2.DeleteVolumeInput{VolumeID: vol.VolumeID})
+					_, err := conn.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: vol.VolumeId})
 					return err
 				},
 			},
@@ -191,6 +190,9 @@ func TestAccAWSInstance_sourceDestCheck(t *testing.T) {
 
 	testCheck := func(enabled bool) resource.TestCheckFunc {
 		return func(*terraform.State) error {
+			if v.SourceDestCheck == nil {
+				return fmt.Errorf("bad source_dest_check: got nil")
+			}
 			if *v.SourceDestCheck != enabled {
 				return fmt.Errorf("bad source_dest_check: %#v", *v.SourceDestCheck)
 			}
@@ -238,13 +240,13 @@ func TestAccAWSInstance_disableApiTermination(t *testing.T) {
 		return func(*terraform.State) error {
 			conn := testAccProvider.Meta().(*AWSClient).ec2conn
 			r, err := conn.DescribeInstanceAttribute(&ec2.DescribeInstanceAttributeInput{
-				InstanceID: v.InstanceID,
+				InstanceId: v.InstanceId,
 				Attribute:  aws.String("disableApiTermination"),
 			})
 			if err != nil {
 				return err
 			}
-			got := *r.DisableAPITermination.Value
+			got := *r.DisableApiTermination.Value
 			if got != expected {
 				return fmt.Errorf("expected: %t, got: %t", expected, got)
 			}
@@ -404,8 +406,8 @@ func TestAccAWSInstance_privateIP(t *testing.T) {
 
 	testCheckPrivateIP := func() resource.TestCheckFunc {
 		return func(*terraform.State) error {
-			if *v.PrivateIPAddress != "10.1.1.42" {
-				return fmt.Errorf("bad private IP: %s", *v.PrivateIPAddress)
+			if *v.PrivateIpAddress != "10.1.1.42" {
+				return fmt.Errorf("bad private IP: %s", *v.PrivateIpAddress)
 			}
 
 			return nil
@@ -433,8 +435,8 @@ func TestAccAWSInstance_associatePublicIPAndPrivateIP(t *testing.T) {
 
 	testCheckPrivateIP := func() resource.TestCheckFunc {
 		return func(*terraform.State) error {
-			if *v.PrivateIPAddress != "10.1.1.42" {
-				return fmt.Errorf("bad private IP: %s", *v.PrivateIPAddress)
+			if *v.PrivateIpAddress != "10.1.1.42" {
+				return fmt.Errorf("bad private IP: %s", *v.PrivateIpAddress)
 			}
 
 			return nil
@@ -467,8 +469,8 @@ func TestAccAWSInstance_keyPairCheck(t *testing.T) {
 			if v.KeyName == nil {
 				return fmt.Errorf("No Key Pair found, expected(%s)", keyName)
 			}
-			if *v.KeyName != keyName {
-				return fmt.Errorf("Bad key name, expected (%s), got (%s)", keyName, awsutil.StringValue(v.KeyName))
+			if v.KeyName != nil && *v.KeyName != keyName {
+				return fmt.Errorf("Bad key name, expected (%s), got (%s)", keyName, *v.KeyName)
 			}
 
 			return nil
@@ -540,7 +542,7 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 		// Try to find the resource
 		var err error
 		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIDs: []*string{aws.String(rs.Primary.ID)},
+			InstanceIds: []*string{aws.String(rs.Primary.ID)},
 		})
 		if err == nil {
 			if len(resp.Reservations) > 0 {
@@ -579,9 +581,14 @@ func testAccCheckInstanceExistsWithProviders(n string, i *ec2.Instance, provider
 			return fmt.Errorf("No ID is set")
 		}
 		for _, provider := range *providers {
+			// Ignore if Meta is empty, this can happen for validation providers
+			if provider.Meta() == nil {
+				continue
+			}
+
 			conn := provider.Meta().(*AWSClient).ec2conn
 			resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-				InstanceIDs: []*string{aws.String(rs.Primary.ID)},
+				InstanceIds: []*string{aws.String(rs.Primary.ID)},
 			})
 			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
 				continue

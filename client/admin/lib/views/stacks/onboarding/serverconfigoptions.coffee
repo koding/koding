@@ -1,15 +1,15 @@
 module.exports =
   Database     :
-    mysql      : title: 'MySQL',    package: 'mysql',       command: 'service mysql start'
-    redis      : title: 'Redis',    package: 'redis',       command: ''
-    mongodb    : title: 'Mongo DB', package: 'mongodb',     command: ''
-    postgre    : title: 'Postgre',  package: 'postgre-sql', command: ''
-    sqlite     : title: 'SQLite',   package: 'sqlite',      command: ''
+    mysql      : title: 'MySQL',      package: 'mysql',             command: 'service mysql start'
+    # redis      : title: 'Redis',      package: 'redis-server',      command: 'apt-get install -y python-software-properties && add-apt-repository -y ppa:rwky/redis && sudo apt-get update && sudo apt-get install -y redis-server'
+    mongodb    : title: 'Mongo DB',   package: 'mongodb',           command: ''
+    postgresql : title: 'PostgreSQL', package: 'postgresql-9.4',    command: ''
+    sqlite     : title: 'SQLite',     package: 'sqlite',            command: ''
   Language     :
-    node       : title: 'Node.js',  package: 'node',        command: ''
-    ruby       : title: 'Ruby',     package: 'ruby',        command: ''
-    python     : title: 'Python',   package: 'python',      command: ''
-    php        : title: 'PHP',      package: 'php',         command: ''
+    node       : title: 'Node.js',    package: 'node',              command: ''
+    ruby       : title: 'Ruby',       package: 'ruby',              command: ''
+    python     : title: 'Python',     package: 'python',            command: ''
+    php        : title: 'PHP',        package: 'php',               command: ''
   'Web Server' :
-    apache     : title: 'Apache',   package: 'apache',      command: ''
-    nginx      : title: 'Nginx',    package: 'nginx',       command: 'nginx start'
+    apache     : title: 'Apache',     package: 'apache',            command: ''
+    nginx      : title: 'Nginx',      package: 'nginx',             command: 'nginx start'

@@ -1,4 +1,4 @@
-
+# coffeelint: disable=cyclomatic_complexity
 KodingError = require '../../error'
 
 PROVIDERS =
@@ -6,7 +6,7 @@ PROVIDERS =
   koding       : require './koding'
   rackspace    : require './rackspace'
   digitalocean : require './digitalocean'
-  engineyard   : require './engineyard'
+  azure        : require './azure'
   google       : require './google'
   managed      : require './managed'
 
@@ -158,7 +158,6 @@ revive = do -> (
 
       return callback err       if err
       client.r = revivedClient  if revivedClient?
-
 
       # OAUTH Check
 

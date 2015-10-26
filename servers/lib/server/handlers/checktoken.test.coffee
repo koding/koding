@@ -57,18 +57,17 @@ runTests = -> describe 'server.handlers.checktoken', ->
     token                   = ''
     inviteeEmail            = generateRandomEmail()
 
-    createTeamRequestParams = generateCreateTeamRequestParams
-      body          :
-        invitees    : inviteeEmail
-
     queue = [
 
       ->
-        # expecting HTTP 200 status code
-        request.post createTeamRequestParams, (err, res, body) ->
-          expect(err)             .to.not.exist
-          expect(res.statusCode)  .to.be.equal 200
-          queue.next()
+        options = { body : { invitees : inviteeEmail } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          # expecting HTTP 200 status code
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err)             .to.not.exist
+            expect(res.statusCode)  .to.be.equal 200
+            queue.next()
 
       ->
         # expecting invitation to be created

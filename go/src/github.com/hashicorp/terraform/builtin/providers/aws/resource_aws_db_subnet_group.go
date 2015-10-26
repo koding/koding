@@ -3,11 +3,13 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -17,6 +19,7 @@ func resourceAwsDbSubnetGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsDbSubnetGroupCreate,
 		Read:   resourceAwsDbSubnetGroupRead,
+		Update: resourceAwsDbSubnetGroupUpdate,
 		Delete: resourceAwsDbSubnetGroupDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -24,6 +27,22 @@ func resourceAwsDbSubnetGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(string)
+					if !regexp.MustCompile(`^[.0-9A-Za-z-_]+$`).MatchString(value) {
+						errors = append(errors, fmt.Errorf(
+							"only alphanumeric characters, hyphens, underscores, and periods allowed in %q", k))
+					}
+					if len(value) > 255 {
+						errors = append(errors, fmt.Errorf(
+							"%q cannot be longer than 255 characters", k))
+					}
+					if regexp.MustCompile(`(?i)^default$`).MatchString(value) {
+						errors = append(errors, fmt.Errorf(
+							"%q is not allowed as %q", "Default", k))
+					}
+					return
+				},
 			},
 
 			"description": &schema.Schema{
@@ -35,16 +54,18 @@ func resourceAwsDbSubnetGroup() *schema.Resource {
 			"subnet_ids": &schema.Schema{
 				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceAwsDbSubnetGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
+	tags := tagsFromMapRDS(d.Get("tags").(map[string]interface{}))
 
 	subnetIdsSet := d.Get("subnet_ids").(*schema.Set)
 	subnetIds := make([]*string, subnetIdsSet.Len())
@@ -55,7 +76,8 @@ func resourceAwsDbSubnetGroupCreate(d *schema.ResourceData, meta interface{}) er
 	createOpts := rds.CreateDBSubnetGroupInput{
 		DBSubnetGroupName:        aws.String(d.Get("name").(string)),
 		DBSubnetGroupDescription: aws.String(d.Get("description").(string)),
-		SubnetIDs:                subnetIds,
+		SubnetIds:                subnetIds,
+		Tags:                     tags,
 	}
 
 	log.Printf("[DEBUG] Create DB Subnet Group: %#v", createOpts)
@@ -113,7 +135,64 @@ func resourceAwsDbSubnetGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.Set("subnet_ids", subnets)
 
+	// list tags for resource
+	// set tags
+	conn := meta.(*AWSClient).rdsconn
+	arn, err := buildRDSsubgrpARN(d, meta)
+	if err != nil {
+		log.Printf("[DEBUG] Error building ARN for DB Subnet Group, not setting Tags for group %s", *subnetGroup.DBSubnetGroupName)
+	} else {
+		resp, err := conn.ListTagsForResource(&rds.ListTagsForResourceInput{
+			ResourceName: aws.String(arn),
+		})
+
+		if err != nil {
+			log.Printf("[DEBUG] Error retreiving tags for ARN: %s", arn)
+		}
+
+		var dt []*rds.Tag
+		if len(resp.TagList) > 0 {
+			dt = resp.TagList
+		}
+		d.Set("tags", tagsToMapRDS(dt))
+	}
+
 	return nil
+}
+
+func resourceAwsDbSubnetGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).rdsconn
+	if d.HasChange("subnet_ids") {
+		_, n := d.GetChange("subnet_ids")
+		if n == nil {
+			n = new(schema.Set)
+		}
+		ns := n.(*schema.Set)
+
+		var sIds []*string
+		for _, s := range ns.List() {
+			sIds = append(sIds, aws.String(s.(string)))
+		}
+
+		_, err := conn.ModifyDBSubnetGroup(&rds.ModifyDBSubnetGroupInput{
+			DBSubnetGroupName: aws.String(d.Id()),
+			SubnetIds:         sIds,
+		})
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if arn, err := buildRDSsubgrpARN(d, meta); err == nil {
+		if err := setTagsRDS(conn, d, arn); err != nil {
+			return err
+		} else {
+			d.SetPartial("tags")
+		}
+	}
+
+	return resourceAwsDbSubnetGroupRead(d, meta)
 }
 
 func resourceAwsDbSubnetGroupDelete(d *schema.ResourceData, meta interface{}) error {
@@ -152,4 +231,18 @@ func resourceAwsDbSubnetGroupDeleteRefreshFunc(
 
 		return d, "destroyed", nil
 	}
+}
+
+func buildRDSsubgrpARN(d *schema.ResourceData, meta interface{}) (string, error) {
+	iamconn := meta.(*AWSClient).iamconn
+	region := meta.(*AWSClient).region
+	// An zero value GetUserInput{} defers to the currently logged in user
+	resp, err := iamconn.GetUser(&iam.GetUserInput{})
+	if err != nil {
+		return "", err
+	}
+	userARN := *resp.User.Arn
+	accountID := strings.Split(userARN, ":")[4]
+	arn := fmt.Sprintf("arn:aws:rds:%s:%s:subgrp:%s", region, accountID, d.Id())
+	return arn, nil
 }

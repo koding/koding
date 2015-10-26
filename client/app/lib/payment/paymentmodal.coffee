@@ -4,7 +4,7 @@ PaymentBaseModal  = require './paymentbasemodal'
 PaymentForm       = require './paymentform'
 PaymentConstants  = require './paymentconstants'
 showError         = require '../util/showError'
-trackEvent        = require 'app/util/trackEvent'
+Tracker           = require 'app/util/tracker'
 
 
 # This class is the modal view.
@@ -42,11 +42,6 @@ module.exports = class PaymentModal extends PaymentBaseModal
     super options, data
 
     { planTitle, planInterval } = @state
-
-    trackEvent 'Viewed Product',
-      id       : "#{planTitle}-#{planInterval}"
-      title    : planTitle
-      interval : planInterval
 
 
   initViews: ->
@@ -132,7 +127,7 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
   handleSuccess: ->
 
-    { currentPlan, planTitle } = @state
+    { currentPlan, planInterval, planTitle } = @state
 
     operation = PaymentConstants.getOperation currentPlan, planTitle
 
@@ -140,10 +135,14 @@ module.exports = class PaymentModal extends PaymentBaseModal
       when UPGRADE
         @setTitle 'Congratulations! Upgrade successful.'
         @setSubtitle 'Your account has been upgraded to the plan below.'
+        action = Tracker.PLAN_UPGRADED
       when INTERVAL_CHANGE
         @setTitle 'Billing cycle changed'
+        action = Tracker.BILLING_CYCLE_CHANGED
       when DOWNGRADE
         @setTitle 'Downgrade complete.'
+        action = Tracker.PLAN_DOWNGRADED
+
+    Tracker.track action, { category: planTitle, label: planInterval }
 
     @form.showSuccess operation
-

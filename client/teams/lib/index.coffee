@@ -15,4 +15,7 @@ module.exports = class TeamsAppController extends AppController
 
     super options, data
 
+    document.cookie = 'clientId=false'
+    location.reload()
+
 

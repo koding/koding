@@ -9,7 +9,6 @@ Admin main styles
   overflow                  visible
 
 .AppModal.AppModal--admin
-  rounded                   0
 
   .kdcustomscrollview
     styleScrollBars         rgba(0, 0, 0, .15)
@@ -442,46 +441,6 @@ Admin main styles
       font-style          normal
 
 
-
-// Admin modal specific styling
-.AppModal--admin
-
-  &.kdmodal .kdmodal-inner .kdmodal-content
-    overflow                hidden
-
-  // common tab styling
-  .AppModal-content.kdtabview
-    overflow                hidden
-
-  .kdtabhandlecontainer
-    background              none
-    padding                 0
-    height                  62px
-    line-height             62px
-    box-shadow              inset 0 -3px 0 #f2f2f2
-    border                  none
-
-    .kdtabhandle-tabs
-      size                  auto, auto
-      fl()
-
-    .kdtabhandle
-      padding               0 23px
-      margin                0
-      border                none
-      line-height           inherit
-      height                62px
-      background            none
-      color                 #969696
-      opacity               0.99
-      font-size             14px
-      font-weight           600
-
-      &.active
-        box-shadow          inset 0 -3px 0 #01b05a
-        color               #575757 !important
-        bg                  color, transparent !important
-
 // outline button styling
 .AppModal--admin
 
@@ -517,7 +476,15 @@ Admin main styles
     kalc                    height, (100% \- 91px)
 
   .members-commonview
-    overflow                hidden
+
+    main.kdscrollview > .kdlistview
+      padding-right         25px
+      borderBox()
+
+  .clear-search
+    font-size               13px
+    color                   #8d8d8d
+    pointer()
 
   .search
     margin                  25px 0
@@ -595,6 +562,7 @@ Admin main styles
   .role.active
   .settings-visible
     .settings-icon
+      bg                    position, -190px -473px
       vendor                transform, rotate(270deg)
       width                 10px
       margin-left           6px
@@ -888,9 +856,6 @@ Admin main styles
 
   .define-stack-view
 
-    .kdtabhandlecontainer
-      margin-bottom         25px
-
     .kdtabhandle-tabs
       width                 100%
 
@@ -903,22 +868,22 @@ Admin main styles
         margin-bottom       15px
 
     .buttons
-      size                  100%, 30px
-      z-index               16
       text-align            right
-      rel()
+      size                  202px, 30px
 
-      .kdbutton
-        z-index             1
-
-      .prev-button
-        right               110px !important
-
-      .setasdefault-button
-        right               265px !important
-
+    .credential-list
+      .credential-item
+        .inuse-tag
+          margin-top        -10px
 
 .AppModal--admin .invitations
+
+  .invite-view
+    height                  calc(100% \- 40px)
+
+    main
+      padding               5px 25px 5px 5px
+      borderBox()
 
   .kdlistitemview-member
     height                  40px
@@ -927,40 +892,63 @@ Admin main styles
       height                85px
 
   .kdbutton
-    &.invite
-      abs()
-      top                   15px
-      right                 0
 
-    &.add-more
-      height                24px
-      bg                    color, #BDC3C7
-      display               block
-      margin-bottom         50px
-
-      span
-        line-height         24px
-        font-size           10px
-        color               #FFF
-
-    &.cancel
-      margin                0 10px 0 440px // hmm
-
+    &.invite-members
+      margin-right          25px
+      fr()
 
   .information
     font-size               14px
     color                   #3E3E3E
-    margin                  20px 0 40px 0
+    margin                  20px 0 0
 
     p
-      margin-bottom         15px
+      color                 #7B7B7B
+      font-size             15px
+      line-height           1.5em
+      margin-bottom         25px
+      max-width             550px
+      text-rendering        geometricPrecision
+
+    label
+      color                 #929292
+      display               inline-block
+      font-size             11px
+      font-family           Soleil
+      letter-spacing        0.05em
+      size                  30%, 20px
+      text-transform        uppercase
+      text-rendering        geometricPrecision
+      &:first-of-type
+        width               40%
+      &:last-of-type
+        width               30%
+
+      span
+        fr()
 
   .invite-inputs
     margin-bottom           10px
+    rel()
+
+    .kdcustomcheckbox
+      abs                   10px 10px
+      z-index               1
 
     .kdinput
-      size                  160px, 40px
-      margin-right          10px
+      border-color          #DDDCDD
+      size                  30%, 40px
+      margin-right          0
+      rounded               0
+      z-index               0
+      &:first-of-type
+        border-right-width  0
+        rounded             3px 0 0 3px
+        width               40%
+      &:last-of-type
+        border-left-width   0
+        rounded             0 3px 3px 0
+        padding-right       37px
 
     .user-email
       width                 240px
@@ -1041,19 +1029,13 @@ Admin main styles
 
 
   button.solid.compact.nav
-    right                   0
-    bottom                  0
-    abs()
+    margin-left             10px
 
     &[disabled]
       opacity               .4
 
     &.prev
       right                 80px
-
-    &.cancel
-      right                 initial
-      left                  0
 
   form
     .formline
@@ -1152,7 +1134,8 @@ Admin main styles
     height                  100%
 
     .kdformview
-      height                calc(100% \- 50px)
+      height                100%
+      border-bottom         none
       overflow              auto
 
       .advanced-field
@@ -1162,31 +1145,33 @@ Admin main styles
         .advanced-field
           display           block
 
+    .listview-wrapper
+      .kdscrollview
+        height              calc(100% \- 30px)
+
+  &.form-open
+    .listview-wrapper
+      display               none
+
 
   .kdscrollview > .define-stack-view
-    height                  calc(100% \- 160px)
+    overflow                hidden
 
-  .step-define-stack
-    height                  calc(100% \- 270px)
-
-    .editor-view
-      height                calc(100% \+ 116px)
+    > .kdscrollview
+      height                calc(100% \- 193px)
 
   .kdcustomscrollview main .define-stack-view
     height                  calc(100% \- 150px)
 
   .kdtabpaneview.stack-template
-    height                  calc(100% \- 87px)
-
-  .edit-mode
-    .step-define-stack .editor-view
-      height                calc(100% \+ 220px)
+    height                  calc(100% \- 43px)
 
 
   .stack-editor-footer
     height                  90px
-    border-top              1px solid #D9D7D7
-    background              #EFEFEF
+    background              #FFF
+    border                  1px solid #e4e4e4
+    border-top              none
     margin-bottom           25px
     rounded                 0 0 4px 4px
 
@@ -1198,7 +1183,7 @@ Admin main styles
 
       &:last-child
 
-        border-left         1px solid #D9D7D7
+        border-left         1px solid #e4e4e4
 
         .icon
           r-sprite          'admin', 'manual'
@@ -1309,35 +1294,33 @@ Admin main styles
 
 .AppModal--admin .stacks-v2
 
-  .variables
+  .private-variables
+
+    &.kdtabhandle.private-variables.notification
+      b
+        rel()
+        left                -10px
 
     .indicator
-      width                 auto
-      height                14px
-
+      size                  18px, 18px
       color                 white
-      bg                    color, orange
-
+      bg                    color, #F76E6E
+      text-align            center
       font-size             11px
-      line-height           12px
+      line-height           18px
       font-weight           200
-
-      padding               1px 4px 0px 3px
-      rounded               2px
-
+      rounded               18px
       vendor                transition, top .2s ease
-      abs                   66px 2px 0 0
+      abs                   66px 10px 0 0
 
       &.in
-        top                 24px
+        top                 11px
 
       &.red
         bg                  color, darkred
 
   .readme
-  .variables
     .editor-view
-      height                calc(100% \- 170px)
       rounded               4px 4px 0 0
 
   .readme
@@ -1369,10 +1352,17 @@ Admin main styles
       rounded               4px 4px 0 0
 
     .showlogs-link
+    .template-preview-link
       z-index               13
       right                 0
       bottom                0
+      margin                0 15px 15px 0
       abs()
+      &:focus
+        vendor              box-shadow, none
+
+    .template-preview-link
+      right                 78px
 
   .kdview.credential-status
     width                   200px
@@ -1406,33 +1396,28 @@ Admin main styles
         r-sprite            account, 'check-8'
 
   .kdview.output
-    bottom                  -90px
+    bottom                  0
     vendor                  transition, height .2s ease
     background-color        rgb(250, 250, 250)
     border-radius           0 0 2px 2px
     z-index                 15
-    height                  0
+    height                  0 !important
+    rounded                 0 0 4px 4px
+    borderBox()
     abs()
 
     &.raise
-      height                calc(50% - 33px)
+      height                calc(70% - 33px) !important
+      border-top            1px solid #e4e4e4
 
     pre.output-view
       height                auto
-
-  .template-title-form
-    height                  49px
-    // bg                      color, #EFEFEF
-    // border-bottom           1px solid #979797
+      margin                0 10px
 
     .kdlabel
       line-height           49px
       text-indent           17px
       margin                0
-
-  .template-title
-    margin-top              5px !important
-
 
 .AppModal--admin .members
   .label
@@ -1446,6 +1431,9 @@ Admin main styles
 
   .integration-details
     overflow-y              scroll
+
+  .all-integrations
+    height                  calc(100% \- 100px)
 
   .kdtabhandle
     max-width               230px !important // override element style
@@ -1756,6 +1744,9 @@ Admin main styles
     overflow                hidden
     margin                  57px 0 0 123px !important
 
+    &.services
+      margin                28px 0 0 39px !important
+
   .box
     size                    256px, 112px
     rounded                 4px
@@ -1776,6 +1767,10 @@ Admin main styles
       text-align            center
       font-weight           300
       margin-top            13px
+
+  .services
+    .box
+      size                  227px, 95px
 
   .coming-soon
     cursor                  not-allowed
@@ -1855,6 +1850,16 @@ Admin main styles
         .label
           margin-top        4px
 
+      &.azure
+        rel()
+        top                 -9px
+
+        img
+          margin            25px 0 0 63px
+
+        .label
+          margin-top        10px
+
       &.digitalocean
         rel()
         top                 -9px
@@ -1883,6 +1888,11 @@ Admin main styles
 
     height                  auto
 
+    .kdtabhandle .title
+      position              relative
+      top                   15px
+      left                  22px
+
     .description
       width                 350px
 
@@ -1894,31 +1904,25 @@ Admin main styles
 
     .github
       img
-        margin              35px 0 0 67px
+        margin              31px 0 0 54px
 
     .bitbucket
       img
-        margin              26px 0 0 51px
-
-      .label
-        margin-top          6px
+        margin              27px 0 0 37px
 
     .gitlab
       top                   11px
       rel()
 
       img
-        margin              4px 0 0 56px
+        margin              9px 0 0 42px
 
-      .label
-        margin-top          17px
-
-    .owngitserver
+    .yourgitserver
       top                   11px
       rel()
 
       img
-        margin              11px 0 0 113px
+        margin              3px 0 0 98px
 
       .label
         margin              15px 0 0 -3px
@@ -1966,15 +1970,19 @@ Admin main styles
         left                45px
         abs()
 
+      .title
+        margin              0
+        padding             0 25px 0 10px
+        font-size           12px
+        font-weight         200
+        color               #606060
+        line-height         34px
+
       .kdselectbox
         border              none
         top                 15px
         left                15px
         rel()
-
-        .title
-          margin            0
-          padding           0 25px 0 10px
 
         .arrows
           height            6px
@@ -2033,7 +2041,7 @@ Admin main styles
       overflow              hidden
       margin-bottom         10px
 
-      .koding-on-off
+      .kdcustomcheckbox
         fl()
 
       .label
@@ -2043,13 +2051,13 @@ Admin main styles
         line-height         22px
         color               #434343
         font-weight         100
-        top                 -3px
+        top                 -1px
         pointer()
         rel()
 
   .stack-preview
 
-    width                   526px
+    width                   626px
     min-height              320px
     padding-bottom          20px
     margin                  0 auto
@@ -2062,6 +2070,9 @@ Admin main styles
     left                    11px
     rel()
 
+    .line
+      overflow              hidden
+
     .header
       line-height           45px
       height                45px
@@ -2071,28 +2082,221 @@ Admin main styles
       border-bottom         1px solid #DEDEDE
       text-indent           16px
 
-    .lines
+    .number
       color                 #C5C5C5
       width                 28px
       text-align            right
       margin-right          15px
       font-size             12px
-      margin-top            10px
       line-height           18px
       fl()
 
     .has-markdown
       pre
         padding             0
+        font-size           12px
+        line-height         18px
+        fl()
 
       code
         bg                  color, transparent
         border              none
         line-height         18px
-        padding             10px
+        padding             0
 
 
   &.main-content.get-started
     .footer
     .stack-preview
       hidden()
+
+.AppModal.AppModal--admin
+  .TeamInvite
+    padding                 5px
+    borderBox()
+    textarea
+      size                  100% 300px
+
+    button
+      display               block
+      margin                20px 0
+
+    .kdscrollview
+      kalc                  height, (100% \- 80px)
+
+    .red
+      margin-right          20px
+
+@keyframes hilite
+
+  0%
+    background              rgba(249, 230, 182, .40)
+  25%
+    background              rgba(249, 230, 182, .80)
+  50%
+    background              rgb(249, 230, 182)
+  75%
+    background              rgba(249, 230, 182, .80)
+  100%
+    background              none
+
+.hilite
+  vendor                    animation, hilite 1.5s
+
+
+// white stack, beware !importants here..
+
+.AppModal--admin
+
+  &.team-settings
+    .kdmodal-content
+       margin-top           -40px !important
+
+  .kdmodal-content
+    height                  100% !important
+
+  .AppModal-nav
+    margin-top              40px
+
+  .kdtabpaneview
+    &.general
+    &.members
+    &.invitations
+    &.integrations
+      padding-top           40px
+
+  .breadcrumb
+    font-size               18px
+    color                   #00B057
+
+    .active
+      font-weight           bold
+
+.stacks
+
+  .stack-onboarding.main-content
+    padding-top             40px
+
+  .ace_gutter-layer
+    bg                      color, #FFF
+
+  .define-stack-view
+    .kdtabhandle
+    .kdtabhandlecontainer
+      height                42px !important
+      line-height           42px
+      box-shadow            none
+
+    .kdtabpaneview
+      bg                    color, #FFF
+      border                1px solid #E4E4E4
+      border-top            none
+      borderBox()
+
+      > div
+        padding             15px
+        borderBox()
+
+      .define-stack-view
+        padding             0
+
+    .kdtabhandlecontainer .kdtabhandle.active
+      box-shadow            none !important
+      bg                    color, #FFF !important
+      border                1px solid #E4E4E4
+      border-bottom         1px solid #FFF
+      top                   1px
+      rounded               4px 0 4px 0
+
+    .kdtabhandlecontainer
+      border-bottom         1px solid #E4E4E4
+
+  .credential-creation-intro
+    margin                  20px 0 40px 160px !important
+    hidden()
+
+    p:first-child
+      font-size             16px
+      font-weight           bold
+
+    + .kdformview
+      border-bottom         none !important
+      height                calc(100% \- 180px) !important
+
+  .credentials-form-view
+    label
+      text-align            right
+      margin-right          10px !important
+
+  .kdtabpaneview
+    &.private-variables
+    &.readme
+    &.credentials
+      height                calc(100% \- 43px)
+
+  .stack-name
+    min-width               100px !important
+    line-height             30px !important
+    height                  30px
+
+
+  .template-title-form
+    overflow                hidden
+
+    &.three-buttons
+      input.template-title
+        width               295px
+
+      .buttons
+        width               324px
+
+  .formline.template-title
+  .formline.template-title + .buttons
+    fl()
+
+  input.template-title
+    width                   417px
+    height                  30px
+    line-height             30px
+    margin-right            10px !important
+
+  .stacktemplates
+    padding-top             40px
+    borderBox()
+
+  .kdtabhandle.credentials
+    // left                    213px
+    // rel()
+
+    &.warning
+      width                 154px
+
+    .warning
+      display               inline-block
+      r-sprite              'admin', 'warning'
+      top                   11px
+      left                  110px
+      abs()
+
+  .credential-item .buttons
+    width                   370px
+    text-align              right
+
+  .define-stack-view.edit-mode
+    .step-define-stack .editor-pane.editor-view
+      margin-top            20px
+
+  .step-creds.form-open
+    .credential-creation-intro
+      visible()
+
+  .editor-main > .kdview
+    height                  100% !important
+
+
+.kdtooltip.stack-tooltip > .wrapper
+  font-size                 13px !important
+  font-weight               400 !important
+  border-radius             6px !important
+  padding                   10px 15px
+  line-height               18px
