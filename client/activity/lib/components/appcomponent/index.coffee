@@ -1,7 +1,7 @@
 _ = require 'lodash'
 kd             = require 'kd'
 React          = require 'kd-react'
-KDReactorMixin = require 'app/flux/reactormixin'
+KDReactorMixin = require 'app/flux/base/reactormixin'
 classnames     = require 'classnames'
 
 

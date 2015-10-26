@@ -444,43 +444,56 @@ module.exports =
         .waitForElementVisible   '.avatararea-popup.active .content', 20000 # Assertion
 
 
-  fillPaymentForm: (browser, planType = 'developer') ->
+  fillPaymentForm: (browser, planType = 'developer', cardDetails = {}) ->
 
-    user          = utils.getUser()
-    name          = user.username
-    paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
-    cardNumber    = '4111 1111 1111 1111'
-    cvc           = '123'
-    month         = '12'
-    year          = '2017'
+    defaultCard  =
+      cardNumber : cardDetails.cardNumber or "4111 1111 1111 1111"
+      cvc        : cardDetails.cvc        or 123
+      month      : cardDetails.month      or 12
+      year       : cardDetails.year       or 2019
+
+    user         = utils.getUser()
+    name         = user.username
+    paymentModal = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
 
     browser
       .waitForElementVisible   '.payment-modal', 20000
       .waitForElementVisible   paymentModal, 20000
       .waitForElementVisible   paymentModal + ' .cardnumber', 20000
       .click                   'input[name=cardNumber]'
-      .setValue                'input[name=cardNumber]', cardNumber
+      .setValue                'input[name=cardNumber]', defaultCard.cardNumber
       .waitForElementVisible   paymentModal + ' .cardcvc', 20000
       .click                   'input[name=cardCVC]'
-      .setValue                'input[name=cardCVC]', cvc
+      .setValue                'input[name=cardCVC]', defaultCard.cvc
       .waitForElementVisible   paymentModal + ' .cardmonth', 20000
       .click                   'input[name=cardMonth]'
-      .setValue                'input[name=cardMonth]', month
+      .setValue                'input[name=cardMonth]', defaultCard.month
       .waitForElementVisible   paymentModal + ' .cardyear', 20000
       .click                   'input[name=cardYear]'
-      .setValue                'input[name=cardYear]', year
+      .setValue                'input[name=cardYear]', defaultCard.year
       .waitForElementVisible   paymentModal + ' .cardname', 20000
       .click                   'input[name=cardName]'
-      .setValue                'input[name=cardName]', name
-      .click                   '.year-price-msg'
-      .waitForElementVisible   'button.submit-btn', 20000
-      .click                   'button.submit-btn'
-      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
-      .click                   'button.submit-btn'
-      .waitForElementVisible   '[testpath=main-sidebar]', 20000
-      .url                     @getUrl() + '/Pricing'
-      .waitForElementVisible   '.content-page.pricing', 20000
-      .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
+      .clearValue              'input[name=cardName]'
+      .setValue                'input[name=cardName]', name  
+
+  submitForm: (browser, validCardDetails = yes) ->
+  
+    upgradePlanButton = '.kdmodal-inner .green'
+    planType          = 'developer'
+
+    if validCardDetails
+      browser
+        .waitForElementVisible   'button.submit-btn', 20000
+        .click                   'button.submit-btn'
+        .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+        .click                   'button.submit-btn'
+        .waitForElementVisible   '[testpath=main-sidebar]', 20000
+        .url                     "#{@getUrl()}/Pricing"
+        .waitForElementVisible   '.content-page.pricing', 20000
+        .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
+    else
+      browser
+        .expect.element(upgradePlanButton).to.not.be.enabled
 
 
   selectPlan: (browser, planType = 'developer') ->
@@ -494,6 +507,23 @@ module.exports =
       .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
       .pause                   5000
 
+
+  checkInvalidCardDetails: (browser, cardDetails, submit) ->
+
+    freePlanSelector = '.single-plan.free.current'
+
+    browser
+      .url                     "#{@getUrl()}/Pricing"
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.kdtabpaneview .kdview .current', 20000
+      .element 'css selector', freePlanSelector, (result) =>
+        if result.status is 0
+          @selectPlan(browser)
+          @fillPaymentForm(browser, 'developer', cardDetails)
+          @submitForm(browser, submit)
+          browser.end()
+        else
+          browser.end()
 
   runCommandOnTerminal: (browser, text) ->
 

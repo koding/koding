@@ -25,17 +25,17 @@ module.exports = class AdminMembersView extends KDView
     tabView.addPane all        = new KDTabPaneView name: 'All Services'
     tabView.addPane configured = new KDTabPaneView name: 'Configured Integrations'
 
-    allListView        = new AdminIntegrationsListView           integrationType: 'new'
-    configuredListView = new AdminConfiguredIntegrationsListView integrationType: 'configured'
+    @allListView        = new AdminIntegrationsListView           integrationType: 'new'
+    @configuredListView = new AdminConfiguredIntegrationsListView integrationType: 'configured'
 
-    all.addSubView allListView
-    configured.addSubView configuredListView
+    all.addSubView @allListView
+    configured.addSubView @configuredListView
 
     tabView.showPaneByIndex 0
 
-    allListView.on 'ShowConfiguredTab', =>
+    @allListView.on 'ShowConfiguredTab', =>
       tabView.showPaneByIndex 1
-      configuredListView.refresh()
+      @configuredListView.refresh()
 
 
   handleAction: (action) ->

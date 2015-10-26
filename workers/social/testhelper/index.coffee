@@ -5,8 +5,9 @@ JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
 
+{ Relationship }        = require 'jraphical'
 { expect }              = require 'chai'
-{ daisy }               = Bongo
+{ daisy, ObjectId }     = Bongo
 { argv }                = require 'optimist'
 { env : { MONGO_URL } } = process
 KONFIG                  = require('koding-config-manager').load("main.#{argv.c}")
@@ -45,27 +46,28 @@ generateDummyClient = (context, callback) ->
     { session, account } = data
     context ?= { group: session?.groupName ? 'koding' }
 
-    if account instanceof JAccount
-      { clientIP, clientId } = session
+    return callback 'session error'  unless account instanceof JAccount
 
-      # replace token with session.clientid
-      sessionToken = clientId
+    { clientIP, clientId } = session
 
-      # setting client data
-      client =
-        sessionToken : sessionToken
-        context      : context
-        clientIP     : '127.0.0.1'
-        connection   :
-          delegate   : account
+    # replace token with session.clientid
+    sessionToken = clientId
 
-      callback null, client
+    # setting client data
+    client =
+      sessionToken : sessionToken
+      context      : context
+      clientIP     : '127.0.0.1'
+      connection   :
+        delegate   : account
 
-    else
-      callback 'session error'
+    callback null, client
 
 
 withDummyClient = (context, callback) ->
+
+  [context, callback] = [callback, context]  unless callback
+  context         ?= { group : 'koding' }
 
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
@@ -74,6 +76,7 @@ withDummyClient = (context, callback) ->
 
 withConvertedUser = (opts, callback) ->
 
+  [opts, callback]          = [callback, opts]  unless callback
   { context, userFormData } = opts  if opts
 
   context      ?= { group : 'koding' }
@@ -82,13 +85,13 @@ withConvertedUser = (opts, callback) ->
   withDummyClient context, ({ client }) ->
     JUser.convert client, userFormData, (err, data) ->
       expect(err).to.not.exist
-      { account, newToken }      = data
-      client.sessionToken        = newToken
-      client.connection.delegate = account
+      { account, newToken, user } = data
+      client.sessionToken         = newToken
+      client.connection.delegate  = account
 
-      if opts.userFormData?
-      then callback { client, account, sessionToken : newToken }
-      else callback { client, account, sessionToken : newToken, userFormData }
+      if opts?.userFormData?
+      then callback { client, user, account, sessionToken : newToken }
+      else callback { client, user, account, sessionToken : newToken, userFormData }
 
 
 generateDummyUserFormData = (opts = {}) ->
@@ -154,13 +157,51 @@ generateRandomUserArray =  (count, callback) ->
   daisy queue
 
 
+expectAccessDenied = (caller, callee, args..., callback) ->
+
+  withDummyClient ({ client }) ->
+
+    kallback = (err) ->
+      expect(err?.message).to.be.equal 'Access denied'
+      callback()
+
+    if    args.length > 0
+    then  caller[callee] client, args..., kallback
+    else  caller[callee] client, kallback
+
+
+fetchRelation = (options, callback) ->
+
+  Relationship.one options, (err, relationship) ->
+    expect(err).to.not.exist
+    callback relationship
+
+
+expectRelation = {
+
+  toExist : (options, callback) ->
+    fetchRelation options, (relationship) ->
+      expect(relationship).to.exist
+      callback relationship
+
+  toNotExist : (options, callback) ->
+    fetchRelation options, (relationship) ->
+      expect(relationship).to.not.exist
+      callback relationship
+
+}
+
 
 module.exports = {
+  _
   daisy
   expect
+  ObjectId
+  expectRelation
   withDummyClient
   generateUserInfo
   withConvertedUser
+  expectAccessDenied
   generateDummyClient
   generateCredentials
   generateRandomEmail

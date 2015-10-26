@@ -80,7 +80,8 @@ type Config struct {
 }
 
 type GithubInfo struct {
-	token string
+	token     string
+	eventType string
 }
 
 func NewGithub(conf GithubConfig) (Github, error) {
@@ -228,8 +229,10 @@ func (g Github) configure(cr *helpers.ConfigureRequest, method, url string) (hel
 
 func githubContextCreator(req *http.Request) context.Context {
 	token := req.URL.Query().Get("token")
+	event := req.Header.Get("X-Github-Event")
 	gi := &GithubInfo{
-		token: token,
+		token:     token,
+		eventType: event,
 	}
 
 	return context.WithValue(context.Background(), githubInfoKey, gi)
@@ -465,6 +468,7 @@ func (g GithubListener) output(ctx context.Context, str string) {
 	}
 
 	pr := helpers.NewPushRequest(str)
+	pr.SetPayload("eventType", gi.eventType)
 
 	if err := helpers.Push(gi.token, pr, g.IntegrationUrl); err != nil {
 		g.Log.Error("Could not push message: %s", err)

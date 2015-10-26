@@ -60,9 +60,8 @@ runTests = -> describe 'server.handlers.checktoken', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { invitees : inviteeEmail }
-        }, (createTeamRequestParams) ->
+        options = { body : { invitees : inviteeEmail } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting HTTP 200 status code
           request.post createTeamRequestParams, (err, res, body) ->

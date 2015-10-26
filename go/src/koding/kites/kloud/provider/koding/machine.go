@@ -167,7 +167,6 @@ func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 		return c.UpdateId(
 			m.Id,
 			bson.M{"$set": bson.M{
-				"ipAddress":         "",
 				"status.state":      machinestate.Stopped.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     reason,
@@ -179,7 +178,6 @@ func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 
 	// so any State() method returns the correct status
 	m.Status.State = machinestate.Stopped.String()
-	m.IpAddress = ""
 	return nil
 }
 

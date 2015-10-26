@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 SuggestionsStore = require 'activity/flux/stores/suggestions/suggestionsstore'
 SuggestionsSelectedIndexStore = require 'activity/flux/stores/suggestions/suggestionsselectedindexstore'

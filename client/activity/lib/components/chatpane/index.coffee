@@ -5,16 +5,17 @@ ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
 ScrollerMixin        = require 'app/components/scroller/scrollermixin'
 ChannelInfoContainer = require 'activity/components/channelinfocontainer'
+scrollToTarget       = require 'app/util/scrollToTarget'
 
 
 module.exports = class ChatPane extends React.Component
 
   @defaultProps =
-    title             : null
-    messages          : null
-    isDataLoading     : no
-    afterInviteOthers : kd.noop
-    showItemMenu      : yes
+    title          : null
+    messages       : null
+    isDataLoading  : no
+    onInviteOthers : kd.noop
+    showItemMenu   : yes
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -26,6 +27,8 @@ module.exports = class ChatPane extends React.Component
     isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
 
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
+
+    scrollContainer = React.findDOMNode @refs.scrollContainer
 
 
   onTopThresholdReached: (event) ->
@@ -41,47 +44,36 @@ module.exports = class ChatPane extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
-  afterInviteOthers: -> @props.afterInviteOthers()
-
-
   channel: (key) -> @props.thread.getIn ['channel', key]
 
 
   renderChannelInfoContainer: ->
 
-    if @props.thread?.getIn(['flags', 'reachedFirstMessage'])
-      <ChannelInfoContainer
-        ref='ChannelInfoContainer'
-        key={@channel 'id'}
-        thread={@props.thread}
-        afterInviteOthers={@bound 'afterInviteOthers'} />
+    return null  unless @props.thread
+
+    messagesSize        = @props.thread.get('messages').size
+    scrollContainer     = React.findDOMNode @refs.scrollContainer
+    reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
+
+    return null  unless scrollContainer or reachedFirstMessage
 
 
-  beforeScrollDidUpdate: ->
+    <ChannelInfoContainer
+      ref='ChannelInfoContainer'
+      key={@channel 'id'}
+      thread={@props.thread}
+      onInviteOthers={@props.onInviteOthers} />
 
-    @setPaddedClassName()
 
+  onItemEditStarted: (itemElement) ->
 
-  setPaddedClassName: ->
+    return  unless itemElement
 
-    list                        = React.findDOMNode @refs.ChatList
-    scrollContainer             = React.findDOMNode @refs.scrollContainer
-    channelInfoContainer        = React.findDOMNode @refs.ChannelInfoContainer
-    listHeight                  = list.offsetHeight
-    scrollContainerClientHeight = scrollContainer.clientHeight
-    channelInfoContainerHeight  = 0
-
-    return  if scrollContainerClientHeight is 0
-
-    if channelInfoContainer
-      channelInfoContainerHeight = channelInfoContainer.offsetHeight
-
-    diff      = scrollContainerClientHeight - (channelInfoContainerHeight + listHeight)
-    hasPadded = scrollContainer.className.indexOf('padded') > -1
-
-    if diff <= 0
-    then scrollContainer.classList.remove 'padded'
-    else scrollContainer.classList.add 'padded'
+    # this delay is a time needed to chat input
+    # in order to resize its textarea
+    kd.utils.wait 50, =>
+      scrollContainer = React.findDOMNode @refs.scrollContainer
+      scrollToTarget scrollContainer, itemElement
 
 
   renderBody: ->
@@ -89,7 +81,7 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     <Scroller
-      ref="scrollContainer"
+      ref='scrollContainer'
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
@@ -100,6 +92,7 @@ module.exports = class ChatPane extends React.Component
         channelId={@channel 'id'}
         channelName={@channel 'name'}
         unreadCount={@channel 'unreadCount'}
+        onItemEditStarted={@bound 'onItemEditStarted'}
       />
     </Scroller>
 

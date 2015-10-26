@@ -129,9 +129,12 @@ Configuration = (options={}) ->
     serviceAccountEmail   : "1044469742845-kaqlodvc8me89f5r6ljfjvp5deku4ee0@developer.gserviceaccount.com"
     serviceAccountKeyFile : "#{projectRoot}/keys/KodingCollaborationDev201506.pem"
 
-  segment                 = 'kb2hfdgf20'
+  segment = 'kb2hfdgf20'
 
-  github                  = { clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"   , redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback" }
+  github =
+    clientId     : "f8e440b796d953ea01e5"
+    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
+    redirectUri  : "http://dev.koding.com:8090/-/oauth/github/callback"
 
 
   # if you want to disable a feature add here with "true" value do not forget to
@@ -264,6 +267,7 @@ Configuration = (options={}) ->
     collaboration                  : {timeout: 1 * 60 * 1000}
     client                         : {watch: yes                                                     , version: version                                              , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
     jwt                            : {secret: "71c25e4dc728431b88f82bd3e7a600c9"                     , confirmExpiresInMinutes: 10080  } # 7 days
+    sendEventsToSegment            : options.sendEventsToSegment
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   # NOTE: when you add to runtime options below, be sure to modify
@@ -312,6 +316,7 @@ Configuration = (options={}) ->
     webhookMiddleware    : { url: "#{webhookMiddleware.url}" }
     google               : apiKey: 'AIzaSyDiLjJIdZcXvSnIwTGIg0kZ8qGO3QyNnpo'
     recaptcha            : { enabled : recaptcha.enabled, key : "6Ld8wwkTAAAAAArpF62KStLaMgiZvE69xY-5G6ax"}
+    sendEventsToSegment  : KONFIG.sendEventsToSegment
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`

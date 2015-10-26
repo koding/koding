@@ -1,5 +1,8 @@
 kd              = require 'kd'
+remote          = require('app/remote').getInstance()
+
 curryIn         = require 'app/util/curryIn'
+showError       = require 'app/util/showError'
 
 InitialView     = require './stacks/initialview'
 DefineStackView = require './stacks/definestackview'
@@ -21,6 +24,20 @@ module.exports = class GroupStackSettings extends kd.View
 
     kd.singletons.appStorageController.storage 'Ace', '1.0.1'
 
+    @on 'SubTabRequested', (action, identifier) ->
+      return  unless action
+
+      @initialView.ready =>
+        switch action
+          when 'welcome'
+            @createOnboardingView()
+          when 'new'
+            @createOnboardingView skipOnboarding: yes
+          when 'edit'
+            @requestEditStack identifier
+          else
+            @setRoute()
+
 
   createOnboardingView: (options = {}) ->
 
@@ -38,12 +55,36 @@ module.exports = class GroupStackSettings extends kd.View
       @scrollView.scrollTo { top, duration }
 
 
+  setRoute: (route = '') ->
+    kd.singletons.router.handleRoute "/Admin/Stacks#{route}"
+
+
   createInitialView: ->
 
     @initialView = @scrollView.addSubView new InitialView
 
-    @initialView.on 'EditStack', (template) => @showEditor template, yes
-    @initialView.on [ 'CreateNewStack', 'NoTemplatesFound' ], @bound 'createOnboardingView'
+    @initialView.on 'EditStack', (stackTemplate) =>
+      return  unless stackTemplate
+      @setRoute "/edit/#{stackTemplate._id}"
+
+    @initialView.on 'CreateNewStack',   @lazyBound 'setRoute', '/new'
+    @initialView.on 'NoTemplatesFound', @lazyBound 'setRoute', '/welcome'
+
+
+  requestEditStack: (stackTemplate) ->
+
+    return  unless stackTemplate
+
+    if typeof stackTemplate is 'string'
+
+      remote.api.JStackTemplate.one { _id: stackTemplate }, (err, template) =>
+        if not (showError err) and template
+        then @showEditor template, inEditMode = yes
+        else
+          showError 'Stack Template not found!'
+          @setRoute()
+    else
+      @showEditor stackTemplate, inEditMode = yes
 
 
   showEditor: (stackTemplate, inEditMode, showHelpContent) ->
@@ -56,5 +97,6 @@ module.exports = class GroupStackSettings extends kd.View
     @defineStackView.on 'Reload', => @initialView.reload()
 
     @defineStackView.on [ 'Cancel', 'Completed' ], =>
-      @initialView.show()
       @defineStackView.destroy()
+      @initialView.show()
+      @setRoute()

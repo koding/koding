@@ -8,16 +8,26 @@ module.exports =
 
   createTeam: (browser) ->
 
-    modalSelector       = '.TeamsModal.TeamsModal--create'
-    emailSelector       = "#{modalSelector} input[name=email]"
-    companyNameSelector = "#{modalSelector} input[name=companyName]"
-    signUpButton        = "#{modalSelector} button[type=submit]"
-    user                = utils.getUser(yes)
-    adminUser           =
-      username          : 'devrim'
-      password          : 'devrim'
+    modalSelector             = '.TeamsModal.TeamsModal--create'
+    emailSelector             = "#{modalSelector} input[name=email]"
+    companyNameSelector       = "#{modalSelector} input[name=companyName]"
+    signUpButton              = "#{modalSelector} button[type=submit]"
+    user                      = utils.getUser(yes)
+    welcomeModal              = '.welcome-modal'
+    welcomeModalCloseSelector = "#{welcomeModal} .closeModal"
+    adminUser                 =
+      username                : 'devrim'
+      password                : 'devrim'
 
     helpers.beginTest(browser, adminUser)
+    browser.pause 5000 # wait for welcome modal
+
+    browser.element 'css selector', welcomeModal, (result) =>
+      if result.status is 0
+        browser
+          .waitForElementVisible  welcomeModalCloseSelector, 20000
+          .click                  welcomeModalCloseSelector
+
     teamsHelpers.createInvitation browser, user, (invitationLink) ->
       browser.click '.close-icon.closeModal'
 

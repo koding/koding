@@ -2,7 +2,7 @@ kd                          = require 'kd'
 whoami                      = require 'app/util/whoami'
 React                       = require 'kd-react'
 Avatar                      = require 'app/components/profile/avatar'
-KDReactorMixin              = require 'app/flux/reactormixin'
+KDReactorMixin              = require 'app/flux/base/reactormixin'
 immutable                   = require 'immutable'
 classnames                  = require 'classnames'
 AppFlux                     = require 'app/flux'
@@ -259,7 +259,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
         onKeyDown   = { @bound 'onKeyDown' }
         onChange    = { @bound 'onChange' }
         placeholder = { @getPlaceHolder() }
-        value       = { @state.query }
+        value       = { @state.value }
         ref         = 'textInput'
       />
     </div>

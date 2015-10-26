@@ -1432,6 +1432,9 @@ Admin main styles
   .integration-details
     overflow-y              scroll
 
+  .all-integrations
+    height                  calc(100% \- 100px)
+
   .kdtabhandle
     max-width               230px !important // override element style
 
@@ -2145,8 +2148,11 @@ Admin main styles
 
 .AppModal--admin
 
+  &.team-settings
+    .kdmodal-content
+       margin-top           -40px !important
+
   .kdmodal-content
-    margin-top              -40px !important
     height                  100% !important
 
   .AppModal-nav
@@ -2274,6 +2280,7 @@ Admin main styles
 
   .credential-item .buttons
     width                   370px
+    text-align              right
 
   .define-stack-view.edit-mode
     .step-define-stack .editor-pane.editor-view
@@ -2285,3 +2292,11 @@ Admin main styles
 
   .editor-main > .kdview
     height                  100% !important
+
+
+.kdtooltip.stack-tooltip > .wrapper
+  font-size                 13px !important
+  font-weight               400 !important
+  border-radius             6px !important
+  padding                   10px 15px
+  line-height               18px

@@ -1,6 +1,6 @@
 actions              = require '../../actions/actiontypes'
 { expect }           = require 'chai'
-Reactor              = require 'app/flux/reactor'
+Reactor              = require 'app/flux/base/reactor'
 UsersStore           = require '../../stores/usersstore'
 generateDummyAccount = require 'app/util/generateDummyAccount'
 

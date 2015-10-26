@@ -30,7 +30,7 @@ func SendEmail(user *models.User, warningID string) error {
 		return err
 	}
 
-	machines, err := modelhelper.GetMachinesByUsername(user.Name)
+	machines, err := modelhelper.GetMachinesByUsernameAndProvider(user.Name, modelhelper.MachineProviderKoding)
 	if err != nil {
 		return err
 	}

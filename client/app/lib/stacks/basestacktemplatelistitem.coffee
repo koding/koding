@@ -38,7 +38,7 @@ module.exports = class BaseStackTemplateListItem extends kd.ListItemView
     @menu    ?= {}
 
     @addMenuItem 'Show', listView.lazyBound 'showItemContent', this
-    @addMenuItem 'Edit', @bound 'updateStackTemplate'
+    @addMenuItem 'Edit', @bound 'editStackTemplate'
 
     if listView.items.length > 1
       @addMenuItem 'Delete',  listView.lazyBound 'deleteItem', this

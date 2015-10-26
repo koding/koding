@@ -14,9 +14,10 @@ type Bot struct {
 }
 
 type Message struct {
-	Body                 string `json:"body"`
-	ChannelId            int64  `json:"channelId,string"`
-	ChannelIntegrationId int64  `json:"channelIntegrationId,string"`
+	Body                 string             `json:"body"`
+	ChannelId            int64              `json:"channelId,string"`
+	ChannelIntegrationId int64              `json:"channelIntegrationId,string"`
+	Payload              map[string]*string `json:"payload"`
 }
 
 func NewBot() (*Bot, error) {
@@ -43,6 +44,7 @@ func (b *Bot) createMessage(m *Message) (*models.ChannelMessage, error) {
 	cm.InitialChannelId = m.ChannelId
 	cm.Body = m.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_BOT
+	cm.Payload = m.Payload
 	tid := strconv.FormatInt(m.ChannelIntegrationId, 10)
 	cm.SetPayload("channelIntegrationId", tid)
 

@@ -90,6 +90,7 @@ module.exports =
 
             helpers.selectPlan(browser)
             helpers.fillPaymentForm(browser)
+            helpers.submitForm(browser, yes)
 
             browser
               .url helpers.getUrl() + '/IDE'

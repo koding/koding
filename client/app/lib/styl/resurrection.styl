@@ -220,6 +220,12 @@ pre
           .acc-dropdown-icon
             opacity         0
 
+        .more-items
+          width             30px
+          font-size         0
+          left              10px
+          vendor            box-shadow, 0 0 5px 5px #323232
+
 #main-panel-wrapper
   min-height                100%
   z-index                   1
@@ -1249,6 +1255,7 @@ paymentGrayLighter  = #f8f8f8
 
 
 .kdmodal.compute-error-modal
+  overflow                  hidden !important
 
   .kdtabhandle
     max-width               250px !important
@@ -1260,19 +1267,27 @@ paymentGrayLighter  = #f8f8f8
   .kdmodal-inner
     height                  calc(100% \- 55px) !important
 
+  .kdtabpaneview
+    height                  calc(100% \- 65px) !important
+
+  .kdcustomscrollview
+    styleScrollBars         rgba(0,0,0,.15)
+
+  .with-message
+    .kdcustomscrollview
+      height                calc(100% \- 100px) !important
+
   .error-content
     height                  100%
     vendor                  flex-direction, column
     dFlex()
 
-    .message
-      flex-shrink           0
-      font-size             13px
-
     .content
       flex                  1 1 auto
-      overflow              auto
 
+  .message
+    flex-shrink             0
+    font-size               13px
 
 .kdmodal.env-ide-error-modal
   left                      50% !important
@@ -2397,3 +2412,7 @@ paymentGrayLighter  = #f8f8f8
         bg                  color, transparent !important
         a
           color             #575757
+
+.kdnotification.tray.disconnected
+  pointer()
+

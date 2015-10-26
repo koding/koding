@@ -1,7 +1,7 @@
 kd                     = require 'kd'
 React                  = require 'kd-react'
 ActivityFlux           = require 'activity/flux'
-KDReactorMixin         = require 'app/flux/reactormixin'
+KDReactorMixin         = require 'app/flux/base/reactormixin'
 SidebarChannelsSection = require 'app/components/sidebarchannelssection'
 SidebarMessagesSection = require 'app/components/sidebarmessagessection'
 

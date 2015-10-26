@@ -26,6 +26,7 @@ isKoding                = require 'app/util/isKoding'
 showError               = require 'app/util/showError'
 applyMarkdown           = require 'app/util/applyMarkdown'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
+trackInitialTurnOn      = require 'app/util/trackInitialTurnOn'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -93,6 +94,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     @on 'MachineTurnOnStarted', (machine) ->
       sendDataDogEvent 'MachineTurnedOn', tags: {label: machine.label}
+      trackInitialTurnOn machine
 
 
   triggerEventTimer: (percentage) ->

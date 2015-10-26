@@ -1,4 +1,4 @@
-KodingFluxStore = require 'app/flux/store'
+KodingFluxStore = require 'app/flux/base/store'
 actions        = require 'activity/flux/createchannel/actions/actiontypes'
 
 ###*

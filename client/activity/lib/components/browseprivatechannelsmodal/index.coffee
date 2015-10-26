@@ -2,7 +2,7 @@ kd = require 'kd'
 React = require 'kd-react'
 SidebarModalList = require 'activity/components/sidebarmodallist'
 Modal = require 'app/components/modal'
-KDReactorMixin = require 'app/flux/reactormixin'
+KDReactorMixin = require 'app/flux/base/reactormixin'
 ActivityFlux = require 'activity/flux'
 isPublicChannel = require 'app/util/isPublicChannel'
 PrivateChannelListItem = require 'activity/components/privatechannellistitem'
@@ -39,7 +39,7 @@ module.exports = class BrowsePrivateChannelsModal extends React.Component
   render: ->
 
     title = 'Other Messages:'
-    <Modal className='ChannelList-Modal' isOpen={yes} onClose={@bound 'onClose'}>
+    <Modal className='ChannelList-Modal PrivateChannelListModal' isOpen={yes} onClose={@bound 'onClose'}>
       <SidebarModalList
         title={title}
         searchProp='name'

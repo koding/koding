@@ -62,7 +62,7 @@
     abs()
     hidden()
     top                     0px
-    right                   5px
+    right                   10px
 
     button
       pointer()
@@ -78,6 +78,7 @@
     overflow                visible
 
     &.editing
+      overflow              hidden
       rounded               3px 3px 0 0
       padding               10px 0 6px 34px
       bg                    color, $light-yellow
@@ -134,29 +135,29 @@
     padding-left            52px
 
   .ChatInputWidget
-    padding                 0px !important
+    padding                   0px !important
 
     textarea
-      resize                none
-      display               block
-      margin-top            24px
-      padding-left          12px !important
+      resize                  none
+      display                 block
+      margin-top              24px
+      padding-left            12px !important
 
   .ChatInputWidget:before
-    display                 none
+    display                   none
 
   .ChatInputWidget-emojiButton
-    right                   21px
+    right                     21px
 
 .ChatItem.is-selected
   .ChatListItem-itemBodyContainer
-    bg                      color, #FFFBD5
+    bg                        color, #FFFBD5
 
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
   padding                     0 0 0 86px !important
   article
-    padding-left            0 !important
+    padding-left              0 !important
 
 
   .ChatItem-messageDate
@@ -166,18 +167,19 @@
     left                      15px
 
   .ChatItem-likeLink
-    top                     2px
-    left                    63px
+    top                       2px
+    left                      63px
 
   &:hover
     .ChatItem-messageDate
       visible()
 
   &.editing
-    padding                 8px 0 6px 85px !important
+    overflow                  hidden
+    padding                   8px 0 6px 85px !important
 
     .ChatItem-updateMessageForm
-      width                 calc(100% \- 8px)
+      width                   calc(100% \- 8px)
 
       .ChatItem-authorName
         hidden()

@@ -1,6 +1,6 @@
 kd                           = require 'kd'
 React                        = require 'kd-react'
-KDReactorMixin               = require 'app/flux/reactormixin'
+KDReactorMixin               = require 'app/flux/base/reactormixin'
 ActivityFlux                 = require 'activity/flux'
 immutable                    = require 'immutable'
 classnames                   = require 'classnames'
@@ -26,7 +26,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
     return {
       channelThread         : getters.selectedChannelThread
-      channelThreadMessages : getters.selectedChannelThreadMessages
       channelParticipants   : getters.selectedChannelParticipants
       followedChannels      : getters.followedPrivateChannelThreads
     }
@@ -39,7 +38,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     @state =
       showDropTarget        : no
       channelThread         : immutable.Map()
-      channelThreadMessages : immutable.List()
       channelParticipants   : immutable.List()
       isComingSoonModalOpen : no
 
@@ -69,10 +67,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 
   renderChat: ->
 
-    <PrivateChatPane
-      thread   = { @state.channelThread }
-      messages = { @state.channelThreadMessages }
-    />
+    <PrivateChatPane thread={ @state.channelThread }/>
 
 
   onDragEnter: (event) ->

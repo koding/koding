@@ -1,10 +1,10 @@
-remote = require('../remote').getInstance()
-kd = require 'kd'
-KDListView = kd.ListView
-KDListViewController = kd.ListViewController
-KDLoaderView = kd.LoaderView
-KDModalView = kd.ModalView
-MembersListItemView = require './memberslistitemview'
+remote                = require('../remote').getInstance()
+kd                    = require 'kd'
+KDListView            = kd.ListView
+KDModalView           = kd.ModalView
+KDLoaderView          = kd.LoaderView
+MembersListItemView   = require './memberslistitemview'
+KDListViewController  = kd.ListViewController
 ModalAppsListItemView = require './modalappslistitemview'
 
 
@@ -71,10 +71,11 @@ module.exports = class ShowMoreDataModalView extends KDModalView
 
   putList: (participants) ->
     @controller = new KDListViewController
-      view              : new KDListView
-        itemClass       : listItemMap()[@type]
-        cssClass        : "modal-topic-list"
-    , items             : participants
+      useCustomScrollView : yes
+      view                : new KDListView
+        itemClass         : listItemMap()[@type]
+        cssClass          : 'modal-topic-list'
+    , items               : participants
 
     @controller.getListView().on "CloseTopicsModal", =>
       @destroy()

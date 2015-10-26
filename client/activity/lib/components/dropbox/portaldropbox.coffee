@@ -89,11 +89,16 @@ module.exports = class PortalDropbox extends React.Component
 
     { visible, resize } = @props
 
-    <Portal isOpened={visible} className='PortalDropbox'>
-      <Dropbox {...@props}
-        contentClassName={if resize is 'content' then 'Dropbox-resizable'}
-        ref='dropbox'>
-          { @props.children }
-      </Dropbox>
+    <Portal
+      isOpened            = { visible }
+      className           = 'PortalDropbox'
+      closeOnEsc          = yes
+      onClose             = { @props.onClose }
+      closeOnOutsideClick = yes>
+        <Dropbox {...@props}
+          contentClassName={if resize is 'content' then 'Dropbox-resizable'}
+          ref='dropbox'>
+            { @props.children }
+        </Dropbox>
     </Portal>
 

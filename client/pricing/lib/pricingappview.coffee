@@ -281,6 +281,8 @@ module.exports = class PricingAppView extends KDView
         @plans.setState @state
 
         kd.singletons.router.handleRoute '/'
+        kd.utils.defer ->
+          kd.singletons.paymentController.emit 'PaymentWorkflowFinishedSuccessfully'
 
 
   continueFrom: (planTitle, planInterval) ->

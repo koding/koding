@@ -64,9 +64,8 @@ runTests = -> describe 'server.handlers.jointeam', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug, companyName : slug, invitees : inviteeEmail }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug, companyName : slug, invitees : inviteeEmail } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting HTTP 200 status code
           request.post createTeamRequestParams, (err, res, body) ->
@@ -191,9 +190,8 @@ runTests = -> describe 'server.handlers.jointeam', ->
           queue.next()
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug, invitees : inviteeEmail, companyName : slug }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug, invitees : inviteeEmail, companyName : slug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting team to be created successfully
           request.post createTeamRequestParams, (err, res, body) ->
@@ -271,9 +269,8 @@ runTests = -> describe 'server.handlers.jointeam', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug, domains }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug, domains } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting HTTP 200 status code
           request.post createTeamRequestParams, (err, res, body) ->
@@ -315,9 +312,8 @@ runTests = -> describe 'server.handlers.jointeam', ->
           queue.next()
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug, domains : allowedDomain }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug, domains : allowedDomain } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting HTTP 200 status code
           request.post createTeamRequestParams, (err, res, body) ->
@@ -372,9 +368,8 @@ runTests = -> describe 'server.handlers.jointeam', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug, domains }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug, domains } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting HTTP 200 status code
           request.post createTeamRequestParams, (err, res, body) ->
@@ -415,9 +410,8 @@ runTests = -> describe 'server.handlers.jointeam', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug, companyName : slug, invitees : inviteeEmail }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug, companyName : slug, invitees : inviteeEmail } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           # expecting HTTP 200 status code
           request.post createTeamRequestParams, (err, res, body) ->

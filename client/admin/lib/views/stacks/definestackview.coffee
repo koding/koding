@@ -461,6 +461,10 @@ module.exports = class DefineStackView extends KDView
     # Generate config data from parsed values
     config = { requiredData, requiredProviders }
 
+    # Keep clone info if exists
+    if clonedFrom = @stackTemplate?.config?.clonedFrom
+      config.clonedFrom = clonedFrom
+
     # TODO this needs to be filled in when we implement
     # Github flow for new stack editor
     templateDetails = null

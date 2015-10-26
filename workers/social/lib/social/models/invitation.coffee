@@ -247,13 +247,23 @@ module.exports = class JInvitation extends jraphical.Module
 
   # sendInvitationEmail sends email according to given JInvitation
   @sendInvitationEmail: (client, invitation, callback) ->
-    inviter      = getName client.connection.delegate
+
+    { delegate }  = client.connection
+    { profile }   = delegate
+
+    inviter       = getName delegate
+    groupLink     = "#{protocol}//#{invitation.groupName}.#{hostname}/"
+
+    imgURL   = "#{protocol}//gravatar.com/avatar/#{profile.hash}?size=65&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+
+    if profile.avatar
+      imgURL = "#{protocol}//#{hostname}/-/image/cache?endpoint=crop&grow=false&width=65&height=65&url=#{encodeURIComponent profile.avatar}"
 
     properties =
-      groupName: invitation.groupName
-      inviter  : inviter
-      invitee  : inviter # TODO: this field is deprecated, remove after updating template
-      link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
+      groupName    : invitation.groupName
+      inviter      : inviter
+      inviterImage : imgURL
+      link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
 
     Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
 
@@ -269,5 +279,3 @@ module.exports = class JInvitation extends jraphical.Module
     name = "#{name} #{lastName}"  if firstName and lastName
 
     return name
-
-

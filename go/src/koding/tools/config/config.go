@@ -177,6 +177,7 @@ type Config struct {
 	GatherIngestor struct {
 		Port int
 	}
+	SendEventsToSegment bool `json:"sendEventsToSegment"`
 }
 
 type RuntimeOptions struct {
@@ -312,6 +313,7 @@ type RuntimeOptions struct {
 		Key     string `json:"key"`
 		Enabled bool   `json:"enabled"`
 	} `json:"recaptcha"`
+	SendEventsToSegment bool `json:"sendEventsToSegment"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

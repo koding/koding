@@ -1,16 +1,15 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-immutable       = require 'immutable'
-ActivityFlux    = require 'activity/flux'
-ChatPane        = require 'activity/components/chatpane'
-ChatInputWidget = require 'activity/components/chatinputwidget'
-
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+ActivityFlux         = require 'activity/flux'
+ChatPane             = require 'activity/components/chatpane'
+ChatInputWidget      = require 'activity/components/chatinputwidget'
+ChatPaneWrapperMixin = require 'activity/components/chatpane/chatpanewrappermixin'
 
 module.exports = class PublicChatPane extends React.Component
 
   @defaultProps =
     thread   : immutable.Map()
-    padded   : no
 
   constructor: (props) ->
 
@@ -21,39 +20,9 @@ module.exports = class PublicChatPane extends React.Component
       showCollaborationTooltip : no
 
 
-  channel: (key) -> @props.thread?.getIn ['channel', key]
-
-
-  onSubmit: ({ value }) ->
-
-    return  unless body = value
-
-    ActivityFlux.actions.message.createMessage @channel('id'), body
-
-
-  onCommand: ({ command }) ->
-
-    ActivityFlux.actions.command.executeCommand command, @props.thread.get 'channel'
-
-
   onFollowChannel: ->
 
     ActivityFlux.actions.channel.followChannel @channel 'id'
-
-
-  afterInviteOthers: ->
-
-    return  unless input = @refs.chatInputWidget
-
-    input.focus()
-
-
-  onLoadMore: ->
-
-    messages = @props.thread.get 'messages'
-    from     = messages.first().get 'createdAt'
-
-    ActivityFlux.actions.message.loadMessages @channel('id'), { from }
 
 
   renderFollowChannel: ->
@@ -94,8 +63,10 @@ module.exports = class PublicChatPane extends React.Component
       className  = "PublicChatPane"
       onSubmit   = { @bound 'onSubmit' }
       onLoadMore = { @bound 'onLoadMore' }
-      afterInviteOthers = {@bound 'afterInviteOthers'}>
+      onInviteOthers = {@bound 'onInviteOthers'}>
       {@renderFooter()}
     </ChatPane>
 
+
+React.Component.include.call PublicChatPane, [ChatPaneWrapperMixin]
 

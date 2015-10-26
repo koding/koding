@@ -51,9 +51,8 @@ runTests = -> describe 'server.handlers.getteammembers', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug : groupSlug }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug : groupSlug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           request.post createTeamRequestParams, (err, res, body) ->
             expect(err)             .to.not.exist
@@ -86,9 +85,8 @@ runTests = -> describe 'server.handlers.getteammembers', ->
     queue = [
 
       ->
-        generateCreateTeamRequestParams {
-          body : { slug : groupSlug }
-        }, (createTeamRequestParams) ->
+        options = { body : { slug : groupSlug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           request.post createTeamRequestParams, (err, res, body) ->
             expect(err)             .to.not.exist
@@ -126,15 +124,15 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting team to be created
-        generateCreateTeamRequestParams {
-          body : {
+        options =
+          body              :
             slug            : groupSlug
             invitees        : inviteeEmail
             username        : groupOwnerUsername
             password        : groupOwnerPassword
             passwordConfirm : groupOwnerPassword
-          }
-        }, (createTeamRequestParams) ->
+
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           request.post createTeamRequestParams, (err, res, body) ->
             expect(err)             .to.not.exist
@@ -231,8 +229,8 @@ runTests = -> describe 'server.handlers.getteammembers', ->
 
       ->
         # expecting team to be created
-        generateCreateTeamRequestParams {
-          body : {
+        options =
+          body              :
             slug            : groupSlug
             email           : groupOwnerEmail
             invitees        : inviteeEmail
@@ -241,8 +239,8 @@ runTests = -> describe 'server.handlers.getteammembers', ->
             alreadyMember   : 'true'
             passwordConfirm : groupOwnerPassword
 
-          }
-        }, (createTeamRequestParams) ->
+
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
 
           request.post createTeamRequestParams, (err, res, body) ->
             expect(err)             .to.not.exist

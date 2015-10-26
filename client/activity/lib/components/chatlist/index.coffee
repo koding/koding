@@ -8,7 +8,7 @@ SimpleChatListItem     = require 'activity/components/chatlistitem/simplechatlis
 DateMarker             = require 'activity/components/datemarker'
 NewMessageMarker       = require 'activity/components/newmessagemarker'
 LoadMoreMessagesMarker = require 'activity/components/loadmoremessagesmarker'
-KDReactorMixin         = require 'app/flux/reactormixin'
+KDReactorMixin         = require 'app/flux/base/reactormixin'
 ActivityFlux           = require 'activity/flux'
 Waypoint               = require 'react-waypoint'
 scrollToElement        = require 'app/util/scrollToElement'
@@ -27,6 +27,7 @@ module.exports = class ChatList extends React.Component
     unreadCount       : 0
     isMessagesLoading : no
     selectedMessageId : null
+    onItemEditStarted : kd.noop
 
   constructor: (props) ->
 
@@ -127,7 +128,7 @@ module.exports = class ChatList extends React.Component
 
   renderChildren: ->
 
-    { messages, showItemMenu, channelName, channelId } = @props
+    { messages, showItemMenu, channelName, channelId, onItemEditStarted } = @props
     { selectedMessageId } = @state
 
     lastDifferentOwnerId = null
@@ -136,11 +137,12 @@ module.exports = class ChatList extends React.Component
     children = messages.toList().reduce (children, message, i) =>
 
       itemProps =
-        key          : message.get 'id'
-        message      : message
-        showItemMenu : showItemMenu
-        channelName  : channelName
-        channelId    : channelId
+        key           : message.get 'id'
+        message       : message
+        showItemMenu  : showItemMenu
+        channelName   : channelName
+        channelId     : channelId
+        onEditStarted : onItemEditStarted
 
       if selectedMessageId is message.get 'id'
         itemProps['isSelected'] = yes

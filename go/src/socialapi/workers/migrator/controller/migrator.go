@@ -185,6 +185,22 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	pivotalInt.IconPath = "https://koding-cdn.s3.amazonaws.com/temp-images/pivotaltracker.png"
 	pivotalInt.Description = "Pivotal Tracker is an agile project management tool that shows software teams their work in progress and allows them to track upcoming milestones. This integration will post updates to a channel in Koding whenever a story activity occurs in Pivotal Tracker."
 	pivotalInt.TypeConstant = webhookmodels.Integration_TYPE_INCOMING
+	pivotalInt.Instructions = `
+#### Step 1
+
+In your Pivotal Tracker project, click on **Settings** menu and the **Configure Integrations** option.
+
+![pivotal_step1.png](https://s3.amazonaws.com/koding-cdn/temp-images/pivotal_settings.png)
+
+
+#### Step 2
+
+Go to **Activity Web Hook** section on that page. Copy Webhook URL that we generated for you, and add this url to Webhook  URL field. Ensure that the API Version is set to v5 and then click **Save Web Hook Settings**.
+
+![pivotal_step2.png](https://s3.amazonaws.com/koding-cdn/temp-images/pivotal-add.png)
+
+
+`
 
 	integrations = append(integrations, pivotalInt)
 
@@ -196,6 +212,27 @@ Click on **Webhooks & Services** in the left navigation, and then press the **Ad
 	pagerdutyInt.IconPath = "https://s3.amazonaws.com/koding-cdn/temp-images/pagerduty.png"
 	pagerdutyInt.Description = "PagerDuty provides IT alert monitoring, on-call scheduling, escalation policies and incident tracking to fix problems in your apps, servers and websites."
 	pagerdutyInt.TypeConstant = webhookmodels.Integration_TYPE_INCOMING
+	pagerdutyInt.Instructions = `
+#### Step 1
+
+In your PagerDuty account, click on **Services** in the top navigation bar. Next, click on the service you would like to monitor and press the **Add a webhook** button further down the page.
+
+![pagerduty_step1.png](https://s3.amazonaws.com/koding-cdn/temp-images/pagerduty-add.png)
+
+
+#### Step 2
+
+Give it a name and add **Webhook URL** that we generated for you as the Endpoint URL. Press the **Save** button to finish adding the Webhook.
+
+![pagerduty_step2.png](https://s3.amazonaws.com/koding-cdn/temp-images/pagerduty-webhook.png)
+
+
+#### Step 3
+
+Return to the Koding Integration page (this page) and choose the PagerDuty incidents to monitor by selecting the checkboxes. Press the **SAVE INTEGRATION** button.
+
+
+`
 
 	pagerdutyInt.Settings = gorm.Hstore{}
 
