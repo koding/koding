@@ -185,15 +185,23 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     </div>
 
 
-  getAddNewParticipantButtonClassNames: -> classnames
-    'ChannelParticipantAvatars-newParticipantBox': yes
-    'cross': @state.addNewParticipantMode
+  getAddNewParticipantButtonClassNames: ->
+
+    isParticipant = @props.channelThread.getIn ['channel', 'isParticipant']
+
+    return classnames
+      'ChannelParticipantAvatars-newParticipantBox': yes
+      'cross': @state.addNewParticipantMode
+      'hidden': not isParticipant
 
 
   renderNewParticipantButton: ->
 
-    <div className='ChannelParticipantAvatars-singleBox' onClick={@bound 'onNewParticipantButtonClick'}>
-      <div className={@getAddNewParticipantButtonClassNames()}></div>
+    <div className='ChannelParticipantAvatars-singleBox'>
+      <div
+        className={@getAddNewParticipantButtonClassNames()}
+        onClick={@bound 'onNewParticipantButtonClick'}
+       />
     </div>
 
 
