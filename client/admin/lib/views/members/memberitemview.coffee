@@ -150,6 +150,7 @@ module.exports = class MemberItemView extends kd.ListItemView
         return @handleError @actionButtons.kick, customErr
 
       @destroy()
+      @emit 'UserKicked'
 
 
   toggleSettings: ->

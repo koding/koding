@@ -167,10 +167,14 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip += members.length
 
-    @fetchUserRoles members, (members) =>
+    if @getOptions().memberType is 'Blocked'
       for member in members
-        member.loggedInUserRoles = @loggedInUserRoles # FIXME
         @listController.addItem member
+    else
+      @fetchUserRoles members, (members) =>
+        members.forEach (member) =>
+          member.loggedInUserRoles = @loggedInUserRoles # FIXME
+          item = @listController.addItem member
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
