@@ -254,16 +254,16 @@ sidebarTextShadow()
       // copy paste - SY
       // temp fix
       cite.count
-        size            24px 20px
-        line-height     20px
-        color           #fff
+        size                24px 19px
+        line-height         17px
+        color               #fff
         abs()
-        font-size       10px
-        font-weight     700
-        background      sidebarCountBg
-        rounded         3px
-        text-align      center
-        vendor          transition, all .354s .177s ease
+        font-size           10px
+        font-weight         400
+        background          sidebarCountBg
+        rounded             3px
+        text-align          center
+        vendor              transition, all .354s .177s ease
 
         fr()
 
@@ -439,6 +439,9 @@ sidebarTextShadow()
 
       .listview-wrapper
         margin-bottom   8px
+
+        .kdscrollview
+          overflow          hidden
 
     .kdlistview
       margin-top      6px
@@ -840,6 +843,7 @@ h3.sidebar-title
   pointer()
   position                  relative
   -webkit-font-smoothing    antialiased
+  white-space               nowrap
 
   a
     font-size               10px
