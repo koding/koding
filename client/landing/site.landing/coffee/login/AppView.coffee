@@ -527,7 +527,8 @@ module.exports = class LoginView extends JView
 
   doRegister: (formData, form) ->
 
-    formData.agree    = 'on'
+    formData.agree = 'on'
+    formData._csrf = Cookies.get '_csrf'
 
     unless formData.referrer
       {mainController}  = KD.singletons
