@@ -117,7 +117,11 @@ routeToMachineWorkspace = (machine) ->
   then {workspaceSlug} = latestWorkspace
   else workspaceSlug   = 'my-workspace'
 
-  identifier = if machine.isPermanent() then machine.uid else machine.slug
+  identifier = machine.slug
+
+  if machine.isPermanent() or machine.jMachine.meta?.oldOwner
+    identifier = machine.uid
+
   kd.getSingleton('router').handleRoute "/IDE/#{identifier}/#{workspaceSlug}"
 
 
