@@ -24,8 +24,8 @@ func isAdmin(bin string, args ...string) Checker {
 
 		if string(o) == "0" {
 			return true, nil
-		} else {
-			return false, nil
 		}
+
+		return false, nil
 	}
 }
