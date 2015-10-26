@@ -23,7 +23,7 @@ func main() {
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
 		// and exit.
-		fmt.Println("Error:", err.Error())
+		fmt.Println("Error: this command requires sudo")
 		os.Exit(10)
 	}
 

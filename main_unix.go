@@ -4,7 +4,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/koding/klient/cmd/klientctl/util"
 )
@@ -37,10 +36,7 @@ func AdminRequired(args, reqs []string, p *util.Permissions) error {
 	for _, r := range reqs {
 		if c == r {
 			// Use sudo terminology, for unix
-			err = errors.New(fmt.Sprintf(
-				`The command %s requires sudo privileges. Please re-run this command with sudo.`,
-				c,
-			))
+			err = errors.New("Command requires sudo")
 		}
 	}
 
