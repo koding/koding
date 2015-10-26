@@ -37,6 +37,7 @@ func AdminRequired(args, reqs []string, p *util.Permissions) error {
 		if c == r {
 			// Use sudo terminology, for unix
 			err = errors.New("Command requires sudo")
+			break
 		}
 	}
 
