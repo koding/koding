@@ -250,17 +250,18 @@ func cleanup(usernames []string) []string {
 	return mentionedUserIds, nil
 }
 
-func (c *Controller) notify(contentId, notifierId int64, contextChannel *socialapimodels.Channel) {
-	isParticipant, err := isParticipant(notifierId, contextChannel)
-	if err != nil {
-		c.log.Error("Could not check participation info for user %d: %s", notifierId, err)
-		return
-	}
+func (c *Controller) notify(contentId, notifierId int64, contextChannel *socialapimodels.Channel, checkForParticipation bool) {
+	if checkForParticipation {
+		isParticipant, err := isParticipant(notifierId, contextChannel)
+		if err != nil {
+			c.log.Error("Could not check participation info for user %d: %s", notifierId, err)
+			return
+		}
 
-	// this can be a message of an old participant, and we do not want to send
-	// further notifications
-	if !isParticipant {
-		return
+		// when mentioned user does not exist within the group, do not send notification
+		if !isParticipant {
+			return
+		}
 	}
 
 	notification := newNotification(contentId, notifierId, time.Now().UTC())
