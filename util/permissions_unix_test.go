@@ -7,14 +7,16 @@ import (
 )
 
 func TestIsAdmin(t *testing.T) {
-	Convey("isAdmin", t, func() {
-		Convey("Should return admin if response is 0", func() {
+	Convey("Given the bin response is 0", t, func() {
+		Convey("Then the user is admin", func() {
 			admin, err := isAdmin("echo", "-n", "0")()
 			So(err, ShouldBeNil)
 			So(admin, ShouldBeTrue)
 		})
+	})
 
-		Convey("Should return not admin if response is not zero", func() {
+	Convey("Given the bin response is not 0", t, func() {
+		Convey("Then the user is not an admin", func() {
 			admin, err := isAdmin("echo", "-n", "501")()
 			So(err, ShouldBeNil)
 			So(admin, ShouldBeFalse)
