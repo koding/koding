@@ -1,14 +1,10 @@
 kd                    = require 'kd'
-KDView                = kd.View
-KDCustomHTMLView      = kd.CustomHTMLView
 isKoding              = require 'app/util/isKoding'
-KDTabView             = kd.TabView
-KDTabPaneView         = kd.TabPaneView
 TeamMembersCommonView = require './teammemberscommonview'
 GroupsBlockedUserView = require '../groupsblockeduserview'
 
 
-module.exports = class AdminMembersView extends KDView
+module.exports = class AdminMembersView extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -22,29 +18,29 @@ module.exports = class AdminMembersView extends KDView
   createTabView: ->
 
     data    = @getData()
-    tabView = new KDTabView hideHandleCloseIcons: yes
+    tabView = new kd.TabView hideHandleCloseIcons: yes
 
-    tabView.addPane all    = new KDTabPaneView name: 'All Members'
-    tabView.addPane admins = new KDTabPaneView name: 'Admins'
-    tabView.addPane mods   = new KDTabPaneView name: 'Moderators'
+    tabView.addPane all     = new kd.TabPaneView name: 'All Members'
+    tabView.addPane admins  = new kd.TabPaneView name: 'Admins'
+    tabView.addPane mods    = new kd.TabPaneView name: 'Moderators'
 
     all.addSubView @allView = new TeamMembersCommonView
       fetcherMethod     : 'fetchMembersWithEmail'
-      noItemFoundWidget : new KDCustomHTMLView
+      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No members found!'
         cssClass        : 'no-item-view'
     , data
 
     admins.addSubView @adminsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchAdminsWithEmail'
-      noItemFoundWidget : new KDCustomHTMLView
+      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No admins found!'
         cssClass        : 'no-item-view'
     , data
 
     mods.addSubView @modsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchModeratorsWithEmail'
-      noItemFoundWidget : new KDCustomHTMLView
+      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No moderators found!'
         cssClass        : 'no-item-view'
     , data
