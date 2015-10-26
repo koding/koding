@@ -19,12 +19,15 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 1}
+		u := CheckUpdate{
+			LocalVersion:       1,
+			Location:           server.URL,
+			RandomSeededNumber: 1,
+		}
 
 		yesUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(yesUpdate, ShouldBeTrue)
-		So(Version, ShouldBeLessThan, 2)
 	})
 
 	Convey("It should return false if latest version is less or equal to than current version", t, func() {
@@ -36,12 +39,15 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 1}
+		u := CheckUpdate{
+			LocalVersion:       1,
+			Location:           server.URL,
+			RandomSeededNumber: 1,
+		}
 
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(noUpdate, ShouldBeFalse)
-		So(Version, ShouldEqual, 1)
 	})
 
 	Convey("It should check for update if ForceCheck is enabled", t, func() {
@@ -53,16 +59,23 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 2}
+		u := CheckUpdate{
+			LocalVersion:       1,
+			Location:           server.URL,
+			RandomSeededNumber: 2,
+		}
 
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
 		So(noUpdate, ShouldBeFalse)
-		So(Version, ShouldEqual, 1)
 	})
 
 	Convey("It shouldn't update if randomly seeded number is not 1", t, func() {
-		u := CheckUpdate{Location: "http://location:9999", RandomSeededNumber: 2}
+		u := CheckUpdate{
+			LocalVersion:       1,
+			Location:           "http://location:9999",
+			RandomSeededNumber: 2,
+		}
 
 		noUpdate, err := u.IsUpdateAvailable()
 		So(err, ShouldBeNil)
@@ -85,7 +98,11 @@ func TestIsUpdateAvailable(t *testing.T) {
 		server := httptest.NewServer(mux)
 		defer server.Close()
 
-		u := CheckUpdate{Location: server.URL, RandomSeededNumber: 1}
+		u := CheckUpdate{
+			LocalVersion:       1,
+			Location:           server.URL,
+			RandomSeededNumber: 1,
+		}
 
 		_, err := u.IsUpdateAvailable()
 		So(err, ShouldNotBeNil)

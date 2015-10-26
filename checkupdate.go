@@ -42,11 +42,16 @@ type CheckUpdate struct {
 	// ForceCheck forces checking of update regardless of the value of above
 	// random number.
 	ForceCheck bool
+
+	// LocalVersion is the version which CheckUpdate will compare against.
+	// Typically, the binary version itself.
+	LocalVersion int
 }
 
 // NewCheckUpdate is the required initializer for CheckUpdate.
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
+		LocalVersion:       Version,
 		Location:           S3UpdateLocation,
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,
@@ -77,5 +82,5 @@ func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 		return false, err
 	}
 
-	return newVersion > Version, nil
+	return newVersion > c.LocalVersion, nil
 }
