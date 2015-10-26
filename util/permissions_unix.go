@@ -15,7 +15,7 @@ func NewPermissions() *Permissions {
 // isAdmin implements an AdminChecker based on the response from the given
 // from an id binary on unix systems. It is expected to be zero for a
 // root user.
-func isAdmin(bin string, args ...string) AdminChecker {
+func isAdmin(bin string, args ...string) Checker {
 	return func() (bool, error) {
 		o, err := exec.Command(bin, args...).CombinedOutput()
 		if err != nil {

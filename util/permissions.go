@@ -2,12 +2,13 @@ package util
 
 import "errors"
 
-type AdminChecker func() (bool, error)
+// Checker is a generic boolean checking signature
+type Checker func() (bool, error)
 
 // Permissions is a struct containing tools for testing and/or verifying
 // the current users permissions in a mockable fashion.
 type Permissions struct {
-	AdminChecker AdminChecker
+	AdminChecker Checker
 }
 
 // IsAdmin checks whether or not the current user has admin privelages.
