@@ -16,17 +16,22 @@ checkOwnership = (machine, user) ->
 
   return owner
 
-setOwnerOfStack = (stack, newOwnerId) ->
+setOwnerOfStack = (stack, newOwnerId, oldOwner) ->
 
-  stack.update { $set : { originId: newOwnerId } }, (err) ->
+  stack.update {
+    $set : {
+      originId : newOwnerId
+      title    : "#{stack.getAt 'title'} (@#{oldOwner})"
+    }
+  }, (err) ->
     log 'Failed to change ownership of stack:', err  if err
 
 
-updateStacks = ({ reason, stacks, memberId, requesterId }) ->
+updateStacks = ({ reason, stacks, oldOwner, requesterId }) ->
 
   if reason is 'kick'
     stacks.forEach (stack) ->
-      setOwnerOfStack stack, requesterId
+      setOwnerOfStack stack, requesterId, oldOwner
   else
     stacks.forEach (stack) ->
       stack.delete memberId, (err) ->
@@ -162,8 +167,9 @@ module.exports = memberRemoved = ({ group, member, requester }) ->
 
     ->
       updateStacks {
-        stacks: memberStacks
-        memberId, requesterId, reason
+        stacks   : memberStacks
+        oldOwner : memberJUser.getAt 'username'
+        requesterId, reason
       }
       queue.next()
 
