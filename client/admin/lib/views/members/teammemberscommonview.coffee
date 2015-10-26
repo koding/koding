@@ -227,6 +227,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
   resetListItems: (showLoader = yes) ->
 
+    @skip = 0
     @listController.removeAllItems()
     @listController.lazyLoader.show()
 
