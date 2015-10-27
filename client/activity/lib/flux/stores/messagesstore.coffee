@@ -42,8 +42,6 @@ module.exports = class MessagesStore extends KodingFluxStore
     @on actions.SET_MESSAGE_EDIT_MODE, @handleSetMessageEditMode
     @on actions.UNSET_MESSAGE_EDIT_MODE, @handleUnsetMessageEditMode
 
-    @on chatinputActions.SET_LAST_MESSAGE_EDIT_MODE, @handleSetLastMessageEditMode
-
     @on actions.REMOVE_MESSAGE_BEGIN, @handleRemoveMessageBegin
     @on actions.REMOVE_MESSAGE_SUCCESS, @handleRemoveMessageSuccess
     @on actions.REMOVE_MESSAGE_FAIL, @handleRemoveMessageFail
@@ -216,29 +214,6 @@ module.exports = class MessagesStore extends KodingFluxStore
   handleUnsetMessageEditMode: (messages, { messageId }) ->
 
     return messages = messages.setIn [messageId, '__isEditing'], no
-
-
-  ###*
-   * It sets last message editing mode
-   *
-   * @param {IMMessageCollection} messages
-   * @param {object} payload
-   * @param {string} payload.accountId
-   * @return {IMMessageCollection} nextState
-  ###
-  handleSetLastMessageEditMode: (messages, { accountId }) ->
-
-    isLastMessageSetFound = no
-
-    return messages
-      .sortBy (message) -> message.get 'createdAt'
-      .reverse()
-      .map (message) ->
-        if (message.getIn(['account', '_id']) is accountId) and (isLastMessageSetFound is no)
-          isLastMessageSetFound = yes
-          return message.set '__isEditing', yes
-        else
-          return message
 
 
   ###*

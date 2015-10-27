@@ -85,6 +85,14 @@ module.exports = class PortalDropbox extends React.Component
     resizable.css { height : resizeHeight }
 
 
+  onClose: ->
+
+    { visible, onClose } = @props
+
+    return  unless visible
+    @props.onClose?()
+
+
   render: ->
 
     { visible, resize } = @props
@@ -93,7 +101,7 @@ module.exports = class PortalDropbox extends React.Component
       isOpened            = { visible }
       className           = 'PortalDropbox'
       closeOnEsc          = yes
-      onClose             = { @props.onClose }
+      onClose             = { @bound 'onClose' }
       closeOnOutsideClick = yes>
         <Dropbox {...@props}
           contentClassName={if resize is 'content' then 'Dropbox-resizable'}

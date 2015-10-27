@@ -10,7 +10,6 @@ module.exports = class PublicChatPane extends React.Component
 
   @defaultProps =
     thread   : immutable.Map()
-    padded   : no
 
   constructor: (props) ->
 

@@ -45,6 +45,7 @@ module.exports = class ChatListItem extends React.Component
     showItemMenu                  : yes
     isSelected                    : no
     channelId                     : ''
+    onEditStarted                 : kd.noop
 
   constructor: (props) ->
 
@@ -63,14 +64,6 @@ module.exports = class ChatListItem extends React.Component
   componentDidMount: ->
 
     @getAccountInfo()
-
-
-  componentDidUpdate: (prevProps, prevState) ->
-
-    isEditing  = @props.message.get '__isEditing'
-    wasEditing = prevProps.message.get '__isEditing'
-
-    @focusInputOnEdit()  if isEditing and not wasEditing
 
 
   getAccountInfo: ->
@@ -185,11 +178,6 @@ module.exports = class ChatListItem extends React.Component
     @setState isDeleting: no
 
 
-  focusInputOnEdit: ->
-
-    kd.utils.wait 100, => @refs.editInput.focus()
-
-
   editPost: ->
 
     messageId = @props.message.get '_id'
@@ -265,6 +253,12 @@ module.exports = class ChatListItem extends React.Component
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
 
+  onEditStarted: ->
+
+    element = React.findDOMNode this
+    @props.onEditStarted? element
+
+
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
     'hidden' : not @props.message.get '__isEditing'
@@ -304,6 +298,7 @@ module.exports = class ChatListItem extends React.Component
         onEsc            = { @bound 'cancelEdit' }
         ref              = 'editInput'
         disabledFeatures = { ['commands'] }
+        onReady          = { @bound 'onEditStarted' }
       />
       <div className='clearfix'></div>
     </div>

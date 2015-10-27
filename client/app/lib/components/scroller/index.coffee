@@ -23,7 +23,7 @@ module.exports = class Scroller extends React.Component
 
   render: ->
 
-    <div className="Scrollable" ref="scrollContainer">
+    <div className='Scrollable' ref='scrollContainer'>
       {@renderTopWaypoint()}
       {@props.children}
       {@renderBottomWaypoint()}

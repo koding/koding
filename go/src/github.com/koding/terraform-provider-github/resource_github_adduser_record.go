@@ -2,7 +2,7 @@ package githubprovider
 
 import (
 	"fmt"
-        "strings"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -110,18 +110,22 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	org := d.Get("organization").(string)
 	user := d.Get("username").(string)
 	teamNames := interfaceToStringSlice(d.Get("teams"))
+	role := d.Get("role").(string)
 
 	teamIDs, err := GetTeamIDs(clientOrg, org, teamNames)
 
+	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
+		Role: role,
+	}
+
 	for _, teamID := range teamIDs {
-		_, _, err := clientOrg.Organizations.AddTeamMembership(teamID, user)
+		_, _, err := clientOrg.Organizations.AddTeamMembership(teamID, user, optAddOrgMembership)
 		if err != nil {
 			return err
 		}
 	}
 
 	active := "active"
-	role := d.Get("role").(string)
 
 	membership := &github.Membership{
 		// state should be active to add the user into organization
@@ -134,7 +138,7 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*Clients).UserClient
 
 	// EditOrgMembership edits the membership for user in specified organization.
-	_, _, err = client.Organizations.EditOrgMembership(org, membership)
+	_, _, err = client.Organizations.EditOrgMembership(user, org, membership)
 	if err != nil {
 		return err
 	}
@@ -234,5 +238,5 @@ func interfaceToStringSlice(s interface{}) []string {
 // '422 Validation Failed'. This error is special cased so we can ignore it on
 // when it occurs during rebuilding of stack template.
 func isErr422ValidationFailed(err error) bool {
-       return err != nil && strings.Contains(err.Error(), "422 Validation Failed")
+	return err != nil && strings.Contains(err.Error(), "422 Validation Failed")
 }
