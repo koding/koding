@@ -8,7 +8,8 @@ log = -> console.log arguments...
 { extend }         = require 'underscore'
 { join: joinPath } = require 'path'
 
-usertracker = require('../../../usertracker')
+usertracker = require '../../../usertracker'
+datadog     = require '../../../datadog'
 
 process.on 'uncaughtException', (err) ->
   exec './beep'
@@ -43,6 +44,7 @@ koding = new Bongo {
   resourceName: social.queueName
   mq          : broker
   mqConfig    : mqConfig
+  metrics     : datadog
 
 
   kite          :

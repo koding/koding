@@ -243,6 +243,7 @@ module.exports = class ChatInputWidget extends React.Component
 
       return  unless keyInfo.isUpArrow
 
+      kd.utils.stopDOMEvent event
       ChatInputFlux.actions.message.setLastMessageEditMode()
 
 

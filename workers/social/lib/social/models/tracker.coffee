@@ -25,8 +25,6 @@ module.exports = class Tracker extends bongo.Base
       static:
         track: (signature String, Object, Function)
 
-  KodingError = require '../error'
-
   { forcedRecipient, defaultFromMail } = KONFIG.email
 
   EVENT_TYPE = 'api.mail_send'
@@ -97,12 +95,12 @@ module.exports = class Tracker extends bongo.Base
     event.properties   = @addDefaults { options, username }
 
     unless mqClient
-      return console.error 'RabbitMQ client not found for class `Tracker` @sent-hil'
+      return console.error 'Tracker: RabbitMQ client not set'
 
     sendMessage = ->
       mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) ->
         unless exchange
-          return console.error "Exchange not found to queue: #{exchangeName} @sent-hil"
+          return console.error "Tracker: Exchange not found to queue: #{exchangeName}"
 
         exchange.publish '', event, { type: EVENT_TYPE }
         exchange.close()

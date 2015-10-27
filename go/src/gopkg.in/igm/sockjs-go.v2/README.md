@@ -10,10 +10,10 @@ channel between the browser and the web server, with WebSockets or without.
 This necessitates the use of a server, which this is one version of, for GO.
 
 
-SockJS-Go server
+SockJS-Go server library
 =
 
-SockJS-Go is a [SockJS](https://github.com/sockjs/sockjs-client) server written in Go.
+SockJS-Go is a [SockJS](https://github.com/sockjs/sockjs-client) server library written in Go.
 
 To use current stable version **v2**
 
@@ -34,14 +34,6 @@ Versioning
 SockJS-Go project adopted [gopkg.in](http://gopkg.in) approach for versioning. SockJS-Go library details can be found [here](https://gopkg.in/igm/sockjs-go.v2/sockjs)
 
 
-Live Demo
--
-
-There's a live demo running at [Pivotal Web Services](http://run.pivotal.io). Depending on the URL and port various load ballancers process the request wich results in sockjs choosing different connection method:
-* WebSockets: https://sockjs-chat.cfapps.io:4443
-* Non WebSockets: https://sockjs-chat.cfapps.io or http://sockjs-chat.cfapps.io
-
-
 Example
 -
 
