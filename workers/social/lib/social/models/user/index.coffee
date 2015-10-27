@@ -1840,6 +1840,7 @@ module.exports = class JUser extends jraphical.Module
 
       @fetchAccount 'koding', (err, account) =>
         return callback err  if err
+        return callback new KodingError "Account not found" unless account
 
         { firstName } = account.profile
         sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password'
