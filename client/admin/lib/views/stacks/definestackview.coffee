@@ -304,6 +304,9 @@ module.exports = class DefineStackView extends KDView
 
           @outputView.add """
             Your stack script has been successfully saved.
+            
+            If you want your team members to use this template you need to
+            apply it for your team.
 
             You can now close the stack editor or continue editing your stack.
           """
