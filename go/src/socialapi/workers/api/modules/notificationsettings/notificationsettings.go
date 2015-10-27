@@ -52,6 +52,44 @@ func Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, inter
 	return response.NewOK(response.NewSuccessResponse(n))
 }
 
+func Update(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *models.Context) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
+	desktopSetting := req.DesktopSetting
+	mobileSetting := req.MobileSetting
+	isMuted := req.IsMuted
+	isSuppressed := req.IsSuppressed
+
+	if err := req.ById(id); err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
+		return response.NewBadRequest(err)
+	}
+
+	if req.Id == 0 {
+		return response.NewBadRequest(err)
+	}
+
+	req.DesktopSetting = desktopSetting
+	req.MobileSetting = mobileSetting
+	req.IsMuted = isMuted
+	req.IsSuppressed = isSuppressed
+
+	if err := req.Update(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(req))
+}
+
 func fetchChannelId(u *url.URL, context *models.Context) (int64, error) {
 	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
