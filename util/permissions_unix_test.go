@@ -20,9 +20,11 @@ func TestIsAdmin(t *testing.T) {
 			admin, err := isAdmin("echo", "-n", "501")()
 			So(err, ShouldBeNil)
 			So(admin, ShouldBeFalse)
+
 			admin, err = isAdmin("echo", "-n", "-1")()
 			So(err, ShouldBeNil)
 			So(admin, ShouldBeFalse)
+
 			admin, err = isAdmin("echo", "-n", "01")()
 			So(err, ShouldBeNil)
 			So(admin, ShouldBeFalse)
