@@ -102,8 +102,7 @@ koding = new Bongo {
 }
 
 koding.on 'authenticateUser', (client, callback) ->
-  { delegate } = client.connection
-  callback delegate
+  callback client?.connection?.delegate
 
 koding.on 'errFirstDetected', (err) -> console.error err
 
