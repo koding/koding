@@ -240,6 +240,9 @@ module.exports = class SocialApiController extends KDController
     return mappedAccounts
 
 
+  isIntegrationMessage = (message) -> !!message.payload?.integrationTitle
+
+
   mapChannel = (channel) ->
     { socialapi } = kd.singletons
 
