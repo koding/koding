@@ -125,7 +125,7 @@ module.exports = class JInvitation extends jraphical.Module
       options.sort  or= { createdAt : -1 }
       options.limit or= 25
       options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
-      options.skip    = 0
+      options.skip   ?= 0
 
       JInvitation.some selector, options, callback
 

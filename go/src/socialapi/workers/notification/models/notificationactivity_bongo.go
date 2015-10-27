@@ -7,7 +7,7 @@ import (
 )
 
 func (a *NotificationActivity) BeforeCreate() {
-	a.CreatedAt = time.Now()
+	a.CreatedAt = time.Now().UTC()
 }
 
 func (a *NotificationActivity) BeforeUpdate() {

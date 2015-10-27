@@ -37,6 +37,12 @@ module.exports = class CreatePublicChannelModal extends React.Component
       placeholder         : 'type a @username and hit enter'
 
 
+  componentDidMount: ->
+
+    channelNameInput = React.findDOMNode @refs.channelNameInput
+    channelNameInput.focus()
+
+
   componentWillUnmount: ->
 
     CreateChannelFlux.actions.user.resetSelectedIndex()
@@ -281,6 +287,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
         placeholder = { @state.placeholder }
         value       = { @state.query }
         ref         = 'textInput'
+        tabIndex    = 3
         className   = {'Reactivity-input'}
       />
       {@renderAddNewChannelParticipantsDropdown()}
@@ -311,7 +318,15 @@ module.exports = class CreatePublicChannelModal extends React.Component
         </div>
         <div className={@getNameFieldClassnames()}>
           <label className='Reactivity-label channelName'>Name</label>
-          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input
+            tabIndex=1
+            ref='channelNameInput'
+            autoFocus=yes
+            maxlength='20'
+            className='Reactivity-input'
+            value={@state.name}
+            onChange={@bound 'setName'}
+            onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             This is how this thread is going to appear on your sidebar.
           </span>
@@ -321,7 +336,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input'value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input tabIndex=2 className='Reactivity-input'value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             Give your channel a purpose that describes what it will be used for.
           </span>
