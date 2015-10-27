@@ -34,7 +34,7 @@ updateStacks = ({ reason, stacks, oldOwner, requesterId }) ->
       setOwnerOfStack stack, requesterId, oldOwner
   else
     stacks.forEach (stack) ->
-      stack.delete memberId, (err) ->
+      stack.delete (err) ->
         log 'Failed to delete stack:', err  if err
 
 
