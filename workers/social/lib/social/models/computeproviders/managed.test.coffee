@@ -115,6 +115,39 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
   describe '#remove()', ->
 
+    it 'should be able to remove machine with valid request', (done) ->
+
+      options = { provider : 'managed' }
+      withConvertedUserAnd ['Machine'], options, ({ client, account, user, machine }) ->
+
+        queue = [
+
+          ->
+            fetchGroup client, (group) ->
+              client.r = { account, user, group }
+              queue.next()
+
+          ->
+            Managed.remove client, { machineId : machine._id.toString() }, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            # expecting machine to be destroyed
+            JMachine.one { _id : machine._id }, (err, machine) ->
+              expect(err).to.not.exist
+              expect(machine).to.not.exist
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+  describe '#update()', ->
+
     it 'should be able to update machine with valid request', (done) ->
 
       options = { provider : 'managed' }
@@ -147,39 +180,6 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               expect(machine_.meta?.storage).to.be.equal updateOptions.storage
               expect(machine_.ipAddress).to.be.equal updateOptions.ipAddress
               expect(machine_.queryString).to.be.equal expectedQueryString
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
-
-
-  describe '#update()', ->
-
-    it 'should be able to remove machine with valid request', (done) ->
-
-      options = { provider : 'managed' }
-      withConvertedUserAnd ['Machine'], options, ({ client, account, user, machine }) ->
-
-        queue = [
-
-          ->
-            fetchGroup client, (group) ->
-              client.r = { account, user, group }
-              queue.next()
-
-          ->
-            Managed.remove client, { machineId : machine._id.toString() }, (err) ->
-              expect(err).to.not.exist
-              queue.next()
-
-          ->
-            # expecting machine to be destroyed
-            JMachine.one { _id : machine._id }, (err, machine) ->
-              expect(err).to.not.exist
-              expect(machine).to.not.exist
               queue.next()
 
           -> done()
