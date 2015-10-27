@@ -170,6 +170,12 @@ func (c *Controller) CreateMentionNotification(cm *socialapimodels.ChannelMessag
 		return nil, nil
 	}
 
+	var err error
+	usernames, err = normalizeUsernames(cm, usernames)
+	if err != nil {
+		return nil, err
+	}
+
 	mentionedUsers, err := socialapimodels.FetchAccountsByNicks(usernames)
 	if err != nil {
 		return nil, err
@@ -180,37 +186,34 @@ func (c *Controller) CreateMentionNotification(cm *socialapimodels.ChannelMessag
 
 // normalizeUsernames converts aliases to their respective usernames
 func normalizeUsernames(cm *socialapimodels.ChannelMessage, usernames []string) ([]string, error) {
-	normalizeUsernames := make([]string, 0)
+	usernames = cleanup(usernames)
 
-	for alias := range globalAliases {
-		for _, username := range usernames {
-			if alias == username {
-				channelUsers, err := fetchAllMembersOfAGroup(cm)
-				if err != nil {
-					return nil, err
-				}
-				normalizeUsernames = append(normalizeUsernames, channelUsers...)
-			} else {
-				normalizeUsernames = append(normalizeUsernames, username)
+	normalizedUsernames := make([]string, 0)
+
+	for alias, normalizer := range aliasNormalizers {
+		if socialapimodels.IsIn(alias, usernames...) {
+			channelUsers, err := normalizer(cm)
+			if err != nil {
+				return nil, err
 			}
+			normalizedUsernames = append(normalizedUsernames, channelUsers...)
 		}
 	}
 
-	for alias := range roleAliases {
-		for _, username := range usernames {
-			if alias == username {
-				channelUsers, err := fetchAllMembersOfChannel(cm)
-				if err != nil {
-					return nil, err
-				}
-				normalizeUsernames = append(normalizeUsernames, channelUsers...)
-			} else {
-				normalizeUsernames = append(normalizeUsernames, username)
-			}
+	owner, err := socialapimodels.Cache.Account.ById(cm.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	// search for the owner username in mention list and remove it if necessary
+	for i, normalizedUsername := range normalizedUsernames {
+		if normalizedUsername == owner.Nick {
+			// delete an item from a slice
+			normalizedUsernames = append(normalizedUsernames[:i], normalizedUsernames[i+1:]...)
 		}
 	}
 
-	return socialapimodels.UnifyStringSlice(normalizeUsernames), nil
+	return socialapimodels.StringSliceUnique(normalizedUsernames), nil
 }
 
 // fetchAllMembersOfAGroup gets the group name from the channel message and
@@ -295,7 +298,7 @@ var roleAliases = map[string][]string{
 
 type aliasNormalizerFunc func(*socialapimodels.ChannelMessage) ([]string, error)
 
-var aliasNormalier = map[string]aliasNormalizerFunc{
+var aliasNormalizers = map[string]aliasNormalizerFunc{
 	"all":     fetchAllMembersOfAGroup,
 	"channel": fetchAllMembersOfChannel,
 	"admins":  fetchAllAdminsOfChannel,
@@ -304,14 +307,18 @@ var aliasNormalier = map[string]aliasNormalizerFunc{
 // clean up removes duplicate mentions from usernames. eg: team and all
 // essentially same mentions
 func cleanup(usernames []string) []string {
+	// do first clean up with removing duplicates
+	usernames = socialapimodels.StringSliceUnique(usernames)
+
+	// reduce aliases to their parent representation eg:@everyone->@all
 	cleanUsernames := make(map[string]struct{})
 
 	for _, username := range usernames {
 		// check if the username is in global mention list first
 		for mention, aliases := range globalAliases {
 			if socialapimodels.IsIn(username, aliases...) {
-				// if we have "all" mention (or any other all `alias`), no need
-				// for further process
+				// Special Case - if we have "all" mention (or any other all
+				// `alias`), no need for further process
 				if mention == "all" {
 					return []string{"all"}
 				}
