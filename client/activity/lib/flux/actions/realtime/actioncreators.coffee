@@ -88,13 +88,13 @@ bindNotificationEvents = ->
         else actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS
 
         dispatch actionType, { channel, channelId: channel.id }
+        _dispatchFn { unreadCount, channel }
 
         socialapi.message.byId { id: channelMessage.id }, (err, message) ->
           return  if err
 
           bindMessageEvents message
           _loadMessageFn { channel, channelMessage: message }
-          _dispatchFn { unreadCount, channel }
 
     .on 'MessageRemovedFromChannel', _dispatchFn
     .on 'RemovedFromChannel', _dispatchFn
