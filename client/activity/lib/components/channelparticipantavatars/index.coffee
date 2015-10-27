@@ -14,6 +14,7 @@ getGroup                    = require 'app/util/getGroup'
 isUserGroupAdmin            = require 'app/util/isusergroupadmin'
 validator                   = require 'validator'
 showErrorNotification       = require 'app/util/showErrorNotification'
+Tooltip                     = require 'app/components/tooltip'
 
 
 module.exports = class ChannelParticipantAvatars extends React.Component
@@ -135,6 +136,13 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     <span>{nickname}</span>
 
 
+  renderTooltip: (participant) ->
+
+    nickname = participant.getIn ['profile', 'nickname']
+
+    <Tooltip text={nickname} position='bottom' />
+
+
   renderAvatars: (participants, isNicknameVisible) ->
 
     participants.toList().map (participant) =>
@@ -147,6 +155,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
               account={participant.toJS()}
               height={30} />
             {@renderNickname participant, isNicknameVisible }
+            {@renderTooltip participant}
           </div>
         </ProfileLinkContainer>
       </div>
@@ -185,15 +194,23 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     </div>
 
 
-  getAddNewParticipantButtonClassNames: -> classnames
-    'ChannelParticipantAvatars-newParticipantBox': yes
-    'cross': @state.addNewParticipantMode
+  getAddNewParticipantButtonClassNames: ->
+
+    isParticipant = @props.channelThread.getIn ['channel', 'isParticipant']
+
+    return classnames
+      'ChannelParticipantAvatars-newParticipantBox': yes
+      'cross': @state.addNewParticipantMode
+      'hidden': not isParticipant
 
 
   renderNewParticipantButton: ->
 
-    <div className='ChannelParticipantAvatars-singleBox' onClick={@bound 'onNewParticipantButtonClick'}>
-      <div className={@getAddNewParticipantButtonClassNames()}></div>
+    <div className='ChannelParticipantAvatars-singleBox'>
+      <div
+        className={@getAddNewParticipantButtonClassNames()}
+        onClick={@bound 'onNewParticipantButtonClick'}
+       />
     </div>
 
 

@@ -36,6 +36,11 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       preExistingChannel  : null
 
 
+  componentDidMount: ->
+
+    @focusOnParticipantsInput()
+
+
   componentWillUnmount: ->
 
     CreateChannelFlux.actions.user.resetSelectedIndex()
@@ -317,6 +322,8 @@ module.exports = class CreatePrivateChannelModal extends React.Component
         placeholder = { @state.placeholder }
         value       = { @state.query }
         ref         = 'textInput'
+        tabIndex    = 1
+        autoFocus   = yes
         className   = {'Reactivity-input'}
       />
       {@renderAddNewChannelParticipantsDropdown()}
@@ -367,7 +374,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
             Name
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input tabIndex=2 className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             This is how this conversation is going to appear on your sidebar.
           </span>
@@ -377,7 +384,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input tabIndex=3 className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             Set a purpose to your conversation that describes what it will be used for.
           </span>
