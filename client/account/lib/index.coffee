@@ -134,8 +134,10 @@ module.exports = class AccountAppController extends AppController
     groupSlug  = kd.singletons.groupsController.getGroupSlug()
     items = []
 
+    dangerItems = NAV_ITEMS.danger.items
+
     index = if isKoding() then 1 else 0
-    NAV_ITEMS.danger.items.splice index, 1 # remove leave or danger
+    dangerItems.slice index, 1 # remove leave or danger
 
     for own sectionKey, section of NAV_ITEMS
       mergeables = []
