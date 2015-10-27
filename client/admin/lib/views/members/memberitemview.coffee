@@ -133,6 +133,8 @@ module.exports = class MemberItemView extends kd.ListItemView
 
   handleError: (button, err) ->
 
+    @isInProgress = no
+
     if err?.message is 'Access denied'
       return global.location.href = '/Activity'
 
