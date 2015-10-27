@@ -22,7 +22,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
         KD.utils.verifySlug formData.slug,
           success : =>
-            @form.input.unsetClass 'validation-error'
+            @form.input.parent.unsetClass 'validation-error'
             KD.utils.storeNewTeamData name, formData
             # removed these steps
             # temp putting these empty values here to not break stuff - SY
@@ -30,10 +30,14 @@ module.exports = class TeamDomainTab extends KDTabPaneView
             KD.utils.storeNewTeamData 'invite', invitee1 : '', invitee2 : '', invitee3 : ''
             KD.singletons.router.handleRoute '/Team/Username'
 
-          error    : =>
-            @form.input.setClass 'validation-error'
-            error = 'That domain is invalid or taken, please try another one.'
-            new KDNotificationView { title : error }
+          error   : (error) =>
+            @showError error or 'That domain is invalid or taken, please try another one.'
+
+
+  showError: (error) ->
+
+    @form.input.parent.setClass 'validation-error'
+    new KDNotificationView { title : error }
 
 
   pistachio: ->
