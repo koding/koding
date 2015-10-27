@@ -1,5 +1,9 @@
 koding = require './../bongo'
 
+{
+  setSessionCookie
+} = require '../helpers'
+
 module.exports = (req, res) ->
   { JAccount, JSession } = koding.models
   { nickname }           = req.params
@@ -27,6 +31,7 @@ module.exports = (req, res) ->
         JSession.remove { clientId }, (err) ->
           console.error 'Could not remove session:', err  if err
 
-          res.cookie 'clientId', session.clientId, { path : '/'  if session.clientId }
+          setSessionCookie res, session.clientId
+
           res.clearCookie 'realtimeToken'
           res.status(200).send { success: yes }
