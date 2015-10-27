@@ -8,7 +8,9 @@ module.exports = (req, res) ->
   JSession.fetchSession clientId, (err, result) ->
     return res.status(400).end()  if err or not result
 
-    { username } = result.session
+    { session } = result
+
+    { username } = session
     JAccount.one { 'profile.nickname' : username }, (err, account) ->
       return res.status(400).end()  if err or not account
 
@@ -17,8 +19,7 @@ module.exports = (req, res) ->
 
       createSessionParams =
         username  : nickname
-        # set parent group name into kookie
-        groupName : result.groupName or 'koding'
+        groupName : session.groupName or 'koding'
 
       JSession.createNewSession createSessionParams, (err, session) ->
         return res.status(400).send err.message  if err
