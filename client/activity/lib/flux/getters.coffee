@@ -235,24 +235,6 @@ followedPrivateChannelThreads = [
       return thread.set 'channel', channel
 ]
 
-
-# Aggregates selected channel thread's messages from multiple getters & stores.
-selectedChannelThreadMessages = [
-  selectedChannelThread
-  MessageLikersStore
-  allUsers
-  (thread, likers, users) ->
-    return null  unless thread
-    thread.get('messages').map (message) ->
-      message.updateIn ['interactions', 'like'], (like) ->
-        like.withMutations (like) ->
-          messageLikers = likers.get (message.get 'id'), immutable.Map()
-          like
-            .set 'actorsPreview', messageLikers.map (id) -> users.get id
-            .set 'actorsCount', messageLikers.size
-            .set 'isInteracted', messageLikers.contains whoami()._id
-]
-
 selectedChannelPopularMessages = [
   channelPopularMessages
   selectedChannelThreadId
@@ -406,7 +388,6 @@ module.exports = {
 
   selectedChannelThreadId
   selectedChannelThread
-  selectedChannelThreadMessages
 
   channelByName
 
