@@ -206,7 +206,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
       withConvertedUser ({ client, account, user }) ->
 
-        defaultOptions = (options) ->
+        generateDefaultOptions = (options) ->
 
           _options =
             storage     : '1'
@@ -227,19 +227,19 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               queue.next()
 
           ->
-            options = defaultOptions { storage : 'invalidStorage' }
+            options = generateDefaultOptions { storage : 'invalidStorage' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided storage is not valid'
               queue.next()
 
           ->
-            options = defaultOptions { ipAddress : 'invalidIP' }
+            options = generateDefaultOptions { ipAddress : 'invalidIP' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided IP is not valid'
               queue.next()
 
           ->
-            options = defaultOptions { queryString : 'invalidQueryString' }
+            options = generateDefaultOptions { queryString : 'invalidQueryString' }
             Managed.update client, options, (err) ->
               expect(err?.message).to.be.equal 'Provided queryString is not valid'
               queue.next()
