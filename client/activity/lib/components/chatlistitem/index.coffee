@@ -66,14 +66,6 @@ module.exports = class ChatListItem extends React.Component
     @getAccountInfo()
 
 
-  componentDidUpdate: (prevProps, prevState) ->
-
-    isEditing  = @props.message.get '__isEditing'
-    wasEditing = prevProps.message.get '__isEditing'
-
-    @focusInputOnEdit()  if isEditing and not wasEditing
-
-
   getAccountInfo: ->
 
     { message } = @props
@@ -184,11 +176,6 @@ module.exports = class ChatListItem extends React.Component
   closeDeletePostModal: ->
 
     @setState isDeleting: no
-
-
-  focusInputOnEdit: ->
-
-    kd.utils.wait 100, => @refs.editInput.focus()
 
 
   editPost: ->

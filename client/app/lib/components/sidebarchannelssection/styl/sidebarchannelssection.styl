@@ -1,19 +1,16 @@
-$lh-channels = 20px
+$fs-channels = 20px
 
 .SidebarChannelsSection .SidebarListItem
-  line-height               $lh-channels
-  margin                    4px 0
-  min-height                24px
+  margin                    0
 
 .SidebarChannelsSection .SidebarListItem-icon
+  vertical-align            top
   display                   inline-block
   margin-right              7px
   rel()
-  float                     left
 
   &:before
-    display                 block
     content                 '#'
-    font-size               $lh-channels
+    font-size               $fs-channels
     color                   $gray-10
     text-shadow             none

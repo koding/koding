@@ -66,7 +66,7 @@ func (n *Notification) Subscribe(nc *NotificationContent) error {
 }
 
 func (n *Notification) Unsubscribe(nc *NotificationContent) error {
-	n.UnsubscribedAt = time.Now()
+	n.UnsubscribedAt = time.Now().UTC()
 
 	return n.subscription(nc)
 }

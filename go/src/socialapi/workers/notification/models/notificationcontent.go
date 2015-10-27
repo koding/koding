@@ -57,20 +57,41 @@ func CreateNotificationContent(i Notifier) (*NotificationContent, error) {
 		return nil, errors.New("ActorId must be set")
 	}
 
-	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
-	nc := NewNotificationContent()
-	nc.TypeConstant = i.GetType()
-	nc.TargetId = i.GetTargetId()
-
-	if err := nc.Create(); err != nil {
+	nc, err := ensureNotificationContent(i)
+	if err != nil {
 		return nil, err
 	}
+
 	a := NewNotificationActivity()
 	a.NotificationContentId = nc.Id
 	a.ActorId = i.GetActorId()
 	a.MessageId = i.GetMessageId()
 
 	if err := a.Create(); err != nil {
+		return nil, err
+	}
+
+	return nc, nil
+}
+
+// ensureNotificationContent adds caching layer on top of notification content fetching, if it doesnt
+func ensureNotificationContent(i Notifiable) (*NotificationContent, error) {
+	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
+	nc, err := Cache.NotificationContent.ByTypeConstantAndTargetID(i.GetType(), i.GetTargetId())
+	if err == nil {
+		return nc, nil
+	}
+
+	nc = NewNotificationContent()
+	nc.TypeConstant = i.GetType()
+	nc.TargetId = i.GetTargetId()
+	if err := nc.Create(); err != nil {
+		return nil, err
+	}
+
+	// after creating the notificationcontent we can set it to cache for future
+	// usage
+	if err := Cache.NotificationContent.SetToCache(nc); err != nil {
 		return nil, err
 	}
 

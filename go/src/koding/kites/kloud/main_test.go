@@ -90,10 +90,12 @@ var (
 	conf           *config.Config
 	kodingProvider *koding.Provider
 	awsProvider    *awsprovider.Provider
+	// testRegion     = "us-east-1"
+	testRegion = "ap-northeast-1"
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 
-	machineCount      = 2
+	machineCount      = 1
 	terraformTemplate = `{
     "variable": {
         "username": {
@@ -236,7 +238,7 @@ func init() {
 func TestTerraformAuthenticate(t *testing.T) {
 	username := "testuser12"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, "ap-northeast-1")
+	userData, err := createUser(username, groupname, testRegion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +259,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, "ap-northeast-1")
+	userData, err := createUser(username, groupname, testRegion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -292,7 +294,7 @@ func TestTerraformStack(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, "ap-northeast-1")
+	userData, err := createUser(username, groupname, testRegion)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -347,8 +349,8 @@ func TestTerraformStack(t *testing.T) {
 			t.Errorf("plan label: have: %+v got: %s\n", userData.MachineLabels, machine.Label)
 		}
 
-		if machine.Region != "ap-northeast-1" {
-			t.Errorf("plan region: want: ap-northeast-1 got: %s\n", machine.Region)
+		if machine.Region != testRegion {
+			t.Errorf("plan region: want: us-east-1 got: %s\n", machine.Region)
 		}
 	}
 
@@ -809,6 +811,7 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 		Credentials: credentials,
 	}
 	stackTemplate.Template.Content = fmt.Sprintf(terraformTemplate, machineCount)
+	//stackTemplate.Template.Content = terraformTemplate
 
 	if err := awsProvider.DB.Run("jStackTemplates", func(c *mgo.Collection) error {
 		return c.Insert(&stackTemplate)
