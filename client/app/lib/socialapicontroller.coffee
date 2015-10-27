@@ -138,7 +138,13 @@ module.exports = class SocialApiController extends KDController
     {payload} = plain
 
     m = new remote.api.SocialMessage plain
-    m.account = mapAccounts(accountOldId)[0]
+
+    m.account = if isKoding()
+      mapAccounts(accountOldId)[0]
+    else
+      if isIntegrationMessage m
+      then mapIntegration m
+      else mapAccounts(accountOldId)[0]
 
     # since node.js(realtime) and golang(regular fetch) is returning different
     # timestamps, these are to unify all timestamp values. ~Umut
