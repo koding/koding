@@ -24,7 +24,7 @@ func (n NotificationSettings) BongoName() string {
 }
 
 func (n *NotificationSettings) Update() error {
-	if n.ChannelId == "" || n.AccountId == "" {
+	if n.ChannelId == 0 || n.AccountId == 0 {
 		return fmt.Errorf("Validation failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)
 	}
 
