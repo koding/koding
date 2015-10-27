@@ -1,15 +1,18 @@
 package notification
 
 import (
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/common/tests"
 	"testing"
+	"time"
 
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo/bson"
 )
 
 func TestCleanup(t *testing.T) {
@@ -167,6 +170,50 @@ func TestNormalizeUsernames(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
+
+			Convey("@admins should return all the admins of the team", func() {
+
+				// create the group
+				group, err := createGroup(groupChannel.GroupName)
+				So(err, ShouldBeNil)
+
+				err = makeAdmin(bson.ObjectIdHex(account1.OldId), group.Id)
+				So(err, ShouldBeNil)
+
+				body := "hi @admins make me mod plzz"
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := normalizeUsernames(cm, []string{"admins"})
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 1)
+				So(usernames[0], ShouldEqual, account1.Nick)
+			})
 		})
 	})
+}
+
+func createGroup(groupName string) (*mongomodels.Group, error) {
+	g := &mongomodels.Group{
+		Id:         bson.NewObjectId(),
+		Body:       bson.NewObjectId().Hex(),
+		Title:      bson.NewObjectId().Hex(),
+		Slug:       groupName,
+		Privacy:    "private",
+		Visibility: "hidden",
+	}
+	return g, modelhelper.CreateGroup(g)
+}
+
+func makeAdmin(accountId, groupId bson.ObjectId) error {
+	r := &mongomodels.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   accountId,
+		TargetName: "JAccount",
+		SourceId:   groupId,
+		SourceName: "JGroup",
+		As:         "admin",
+		TimeStamp:  time.Now().UTC(),
+	}
+
+	return modelhelper.AddRelationship(r)
 }

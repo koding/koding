@@ -210,6 +210,7 @@ func normalizeUsernames(cm *socialapimodels.ChannelMessage, usernames []string) 
 		if normalizedUsername == owner.Nick {
 			// delete an item from a slice
 			normalizedUsernames = append(normalizedUsernames[:i], normalizedUsernames[i+1:]...)
+			break
 		}
 	}
 
