@@ -160,7 +160,9 @@ followedPublicChannels = [
 selectedChannelThread = [
   channelThreads
   selectedChannel
-  (threads, channel) ->
+  MessageLikersStore
+  allUsers
+  (threads, channel, likers, users) ->
     return null  unless channel
     thread = threads.get channel.get('id')
     thread = thread.update 'messages', (messages) ->
@@ -168,6 +170,15 @@ selectedChannelThread = [
         msg.update 'body', (body) ->
           # don't show channel name on post body.
           body.replace(///\##{channel.get('name')}($|\s)///, '').trim()
+
+        msg.updateIn ['interactions', 'like'], (like) ->
+          like.withMutations (like) ->
+            messageLikers = likers.get (msg.get 'id'), immutable.Map()
+            like
+              .set 'actorsPreview', messageLikers.map (id) -> users.get id
+              .set 'actorsCount', messageLikers.size
+              .set 'isInteracted', messageLikers.contains whoami()._id
+
     return thread.set 'channel', channel
 ]
 
