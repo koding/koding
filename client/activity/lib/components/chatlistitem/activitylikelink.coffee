@@ -31,11 +31,9 @@ module.exports = class ActivityLikeLink extends React.Component
 
     { actorsPreview } = @props.interactions.like
 
-    for participant of actorsPreview
+    for id, account of actorsPreview when account
 
-      if actorsPreview[participant]
-
-        <ProfileText account={actorsPreview[participant]} />
+      <ProfileText account={account} />
 
 
   renderTooltip: ->

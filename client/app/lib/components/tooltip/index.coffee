@@ -14,30 +14,21 @@ module.exports = class Tooltip extends React.Component
     position : 'top'
 
 
-  componentDidMount: ->
-
-    TooltipWrapperDOMNode = @refs.TooltipWrapper.getDOMNode()
-
-    if @props.tooltipY
-      TooltipWrapperDOMNode.style.top  = "#{@props.tooltipY}px"
-
-    if @props.tooltipX
-      TooltipWrapperDOMNode.style.left = "#{@props.tooltipX}px"
-
-
   renderChildren: ->
 
     if @props.text
       return <span>{ @props.text }</span>
-    else if @props.children
-      return @props.children
 
-    return null
+    return @props.children
 
 
   render: ->
 
-    <div className={kd.utils.curry 'Tooltip-wrapper', @props.position} ref='TooltipWrapper'>
+    style = {}
+    style['top'] = @props.tooltipY  if @props.tooltipY
+    style['left'] = @props.tooltipX  if @props.tooltipX
+
+    <div className={kd.utils.curry 'Tooltip-wrapper', @props.position} style={style}>
       {@renderChildren()}
     </div>
 
