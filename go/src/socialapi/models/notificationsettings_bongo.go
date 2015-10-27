@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/koding/bongo"
@@ -20,6 +21,14 @@ func (n NotificationSettings) GetId() int64 {
 
 func (n NotificationSettings) BongoName() string {
 	return NotificationSettingsBongoName
+}
+
+func (n *NotificationSettings) Update() error {
+	if n.ChannelId == "" || n.AccountId == "" {
+		return fmt.Errorf("Validation failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)
+	}
+
+	return bongo.B.Update(n)
 }
 
 func (n *NotificationSettings) AfterCreate() {
