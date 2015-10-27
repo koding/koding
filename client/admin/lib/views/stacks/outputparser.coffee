@@ -4,10 +4,22 @@ objectToString = require 'app/util/objectToString'
 
 # You can find the list of AWS error messages here
 # http://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html
+VPC_WIKI_URL = 'http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Appendix_Limits.html'
+VPC_FORM_URL = 'https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&limitType=service-code-vpc'
 
 HANDLED_ERRORS =
-  VpcLimitExceeded: "You've reached the limit on the number of VPCs that you can create in the region. For more information about VPC limits, see Amazon VPC Limits To request an increase on your VPC limit, complete the Amazon VPC Limits form."
-  InternetGatewayLimitExceeded: "You've reached the limit on the number of Internet gateways that you can create. For more information, see Amazon VPC Limits. To request an increase on the Internet gateway limit, complete the Amazon VPC Limits form."
+  VpcLimitExceeded: "
+    You've reached the limit on the number of VPCs that you can create in this region.
+    For more information, see <a href='#{VPC_WIKI_URL}' target='_blank'>Amazon VPC Limits</a>.
+    Unless indicated otherwise, you can request an increase by using the
+    <a href='#{VPC_FORM_URL}' target='_blank'>Amazon VPC Limits form</a>.
+    "
+  InternetGatewayLimitExceeded: "
+    You've reached the limit on the number of Internet gateways that you can create.
+    For more information, see <a href='#{VPC_WIKI_URL}' target='_blank'>Amazon VPC Limits</a>.
+    Unless indicated otherwise, you can request an increase by using the
+    <a href='#{VPC_FORM_URL}' target='_blank'>Amazon VPC Limits form</a>.
+    "
 
 
 module.exports = outputParser =
