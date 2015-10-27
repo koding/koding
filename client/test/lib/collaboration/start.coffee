@@ -2,6 +2,9 @@ utils                = require '../utils/utils.js'
 helpers              = require '../helpers/helpers.js'
 ideHelpers           = require '../helpers/idehelpers.js'
 collaborationHelpers = require '../helpers/collaborationhelpers.js'
+terminalHelpers      = require '../helpers/terminalhelpers.js'
+assert               = require 'assert'
+
 
 chatBox  = '.collaboration.message-pane'
 
@@ -181,6 +184,37 @@ module.exports =
     # assert no line widget after participant left
     # browser.waitForElementNotPresent "#{lineWidgetSelector}#{participant.username}", 60000
 
+    waitAndEndSession(browser)
+    browser.end()
+
+
+  openTerminalForInviteUser: (browser) ->
+
+    host         = utils.getUser no, 0
+    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant  = utils.getUser no, 1
+    paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
+    terminalTabs = "#{paneSelector} .terminal"
+
+    start(browser)
+    collaborationHelpers.closeChatPage(browser)
+
+    browser.elements 'css selector', terminalTabs, (result) =>
+      length = result.value.length
+
+      if hostBrowser
+        browser.pause 10000
+
+      else
+        terminalHelpers.openNewTerminalMenu(browser)
+        terminalHelpers.openTerminal(browser)
+
+      browser.elements 'css selector', terminalTabs, (result) =>
+        newLength = result.value.length
+
+        assert.equal newLength, length + 1
+
+    leave(browser)
     waitAndEndSession(browser)
     browser.end()
 
