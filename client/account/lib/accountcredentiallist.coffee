@@ -26,6 +26,12 @@ module.exports = class AccountCredentialList extends KDListView
   deleteItem: (item) ->
 
     credential = item.getData()
+
+    if credential.inuse
+      new kd.NotificationView
+        title: 'This credential is currently in-use'
+      return
+
     credential.isBootstrapped (err, bootstrapped) =>
 
       kd.warn "Bootstrap check failed:", { credential, err }  if err
@@ -42,7 +48,17 @@ module.exports = class AccountCredentialList extends KDListView
         **WARNING!** destroying resources includes **ALL RESOURCES**; your
         team member's instances, volumes, keypairs and **everything else we've
         created on your account**.
-      " else "Do you want to remove **#{credential.title}** ?"
+        \n\n
+        **WARNING!** removing a credential can cause your stacks or instances
+        to stop working properly, please make sure that you don't have any
+        stacktemplates relying on this credential.
+      " else "
+        **WARNING!** removing a credential can cause your stacks or instances
+        to stop working properly, please make sure that you don't have any
+        stacktemplates relying on this credential.
+        \n\n
+        Do you want to remove **#{credential.title}** ?
+      "
 
       removeCredential = =>
         credential.delete (err) =>
