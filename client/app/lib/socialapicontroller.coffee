@@ -243,6 +243,20 @@ module.exports = class SocialApiController extends KDController
   isIntegrationMessage = (message) -> !!message.payload?.integrationTitle
 
 
+  mapIntegration = (message) ->
+
+    return {
+      id            : message.payload.channelIntegrationId
+      isIntegration : yes
+      profile       : {
+        nickname    : message.payload.integrationTitle
+        avatar      : message.payload.integrationIconPath
+        firstName   : ''
+        lastName    : ''
+      }
+    }
+
+
   mapChannel = (channel) ->
     { socialapi } = kd.singletons
 
