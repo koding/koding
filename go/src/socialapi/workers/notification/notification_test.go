@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
@@ -187,6 +188,44 @@ func TestNormalizeUsernames(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 1)
 				So(usernames[0], ShouldEqual, account1.Nick)
+
+				Convey("adding another user to mention list should work", func() {
+					_, err := topicChan.AddParticipant(account2.Id)
+					So(err, ShouldBeNil)
+
+					body := fmt.Sprintf("hi @%s do you know who are in @admins ? i believe @%s is in", account3.Nick, account2.Nick)
+					cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+
+					usernames, err := normalizeUsernames(cm, []string{"admins", account3.Nick})
+					So(err, ShouldBeNil)
+					So(len(usernames), ShouldEqual, 2)
+				})
+			})
+
+			Convey("non members of channel should not be in mention list", func() {
+				_, err := topicChan.AddParticipant(adminAccount.Id)
+				So(err, ShouldBeNil)
+
+				_, err = topicChan.AddParticipant(account1.Id)
+				So(err, ShouldBeNil)
+
+				body := fmt.Sprintf("hi @%s i heard that @%s is not in this channel?", account1.Nick, account2.Nick)
+
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := normalizeUsernames(cm, []string{account1.Nick, account2.Nick})
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 2)
+				fmt.Println("usernames-->", usernames)
+			})
+
+			Convey("non members of team should not be in mention list", func() {
+				body := "hi @nonmember how are things with your @girlfriend?"
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := normalizeUsernames(cm, []string{"nonmember", "girlfriend"})
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 0)
 			})
 		})
 	})

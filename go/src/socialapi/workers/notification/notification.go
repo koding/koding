@@ -9,6 +9,7 @@ import (
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -191,12 +192,43 @@ func normalizeUsernames(cm *socialapimodels.ChannelMessage, usernames []string) 
 	normalizedUsernames := make([]string, 0)
 
 	for alias, normalizer := range aliasNormalizers {
-		if socialapimodels.IsIn(alias, usernames...) {
-			channelUsers, err := normalizer(cm)
-			if err != nil {
-				return nil, err
+
+		for i, username := range usernames {
+			if username == alias {
+				// delete the alias from slice
+				usernames = append(usernames[:i], usernames[i+1:]...)
+
+				channelUsers, err := normalizer(cm)
+				if err != nil {
+					return nil, err
+				}
+
+				normalizedUsernames = append(normalizedUsernames, channelUsers...)
 			}
-			normalizedUsernames = append(normalizedUsernames, channelUsers...)
+		}
+	}
+
+	channel, err := socialapimodels.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, username := range usernames {
+		acc, err := socialapimodels.Cache.Account.ByNick(username)
+		if err != nil && err != bongo.RecordNotFound {
+			return nil, err
+		}
+
+		if err == bongo.RecordNotFound {
+			fmt.Println("username not found-->", username)
+			continue
+		}
+
+		canOpen, err := channel.CanOpen(acc.Id)
+		if canOpen {
+			normalizedUsernames = append(normalizedUsernames, username)
+		} else {
+			fmt.Println("can not open--> username ", username, " channel id ", cm.InitialChannelId)
 		}
 	}
 
