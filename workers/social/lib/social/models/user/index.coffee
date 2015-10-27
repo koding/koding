@@ -1092,7 +1092,7 @@ module.exports = class JUser extends jraphical.Module
   @fetchUserByProvider = (provider, session, callback) ->
 
     { foreignAuth } = session
-    unless foreignAuth
+    unless foreignAuth?[provider]?.foreignId
       return callback new KodingError "No foreignAuth:#{provider} info in session"
 
     query                                      = {}
