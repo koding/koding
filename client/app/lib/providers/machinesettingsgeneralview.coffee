@@ -112,7 +112,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
   bindViewEvents: ->
 
-    { nickname, nickEdit } = @form.inputs
+    { nickname, nickEdit, buildlogs } = @form.inputs
 
     nickname.on 'click', (e) =>
 
@@ -125,18 +125,30 @@ module.exports = class MachineSettingsGeneralView extends KDView
         nickEdit.hide()
         nickname.show()
 
-      nickEdit.setValue Encoder.htmlDecode @machine.label
+      nickEdit.setValue Encoder.htmlDecode machine.label
       nickEdit.show()
 
       kd.utils.defer -> nickEdit.setFocus()
 
+    buildlogs.on 'click', (e) =>
+
+      return  unless @machine.isRunning()
+      return  unless e.target.tagName is 'SPAN'
+
+      buildlogs.updatePartial 'loading...'
+      kd.singletons.computeController.showBuildLogs @machine
+      kd.utils.wait 1000, @lazyBound 'emit', 'ModalDestroyRequested'
+
 
   createForm: ->
 
-    isAws     = @machine.provider is 'aws'
-    running   = @machine.status.state in [ Running, Starting ]
-    accessUri = "http://#{@machine.domain}"
-    isManaged = @machine.isManaged()
+    isAws       = @machine.provider is 'aws'
+    running     = @machine.status.state in [ Running, Starting ]
+    accessUri   = "http://#{@machine.domain}"
+    isManaged   = @machine.isManaged()
+    logsMessage = if @machine.isRunning() \
+      then "<span class='logs-link'>show logs</span>"
+      else "Please turn on the machine to see logs"
 
     @addSubView @form = new KDFormViewWithFields
       cssClass          : 'AppModal-form'
@@ -189,3 +201,8 @@ module.exports = class MachineSettingsGeneralView extends KDView
           title         : @machine.domain
           href          : accessUri
           target        : '_blank'
+        buildlogs       :
+          label         : 'Build logs'
+          cssClass      : if isAws then 'custom-link-view' else 'hidden'
+          itemClass     : KDView
+          partial       : logsMessage
