@@ -5,9 +5,28 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/klient/cmd/klientctl/util"
 )
 
+// sudoRequiredFor is the default list of commands that require sudo.
+// The actual handling of this list is done in the SudoRequired func.
+var sudoRequiredFor = []string{
+	"install",
+	"uninstall",
+	"start",
+	"stop",
+	"update",
+}
+
 func main() {
+	// Check if the command the user is giving requires sudo.
+	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
+		// In the event of an error, simply print the error to the user
+		// and exit.
+		fmt.Println("Error: this command requires sudo.")
+		os.Exit(10)
+	}
+
 	app := cli.NewApp()
 	app.Name = Name
 	app.Version = fmt.Sprintf("%d", Version)
