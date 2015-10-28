@@ -143,7 +143,7 @@ reset = (props, state) ->
 
     channelActions.loadChannel('public', channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
-      channelActions.loadParticipants channel.id, channel.participantsPreview
+      channelActions.loadParticipants channel.id
 
       if postId
         messageActions.changeSelectedMessage postId

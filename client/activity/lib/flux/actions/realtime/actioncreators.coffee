@@ -26,6 +26,13 @@ bindChannelEvents = (channel) ->
     channel.on 'MessageRemoved', (message) ->
       dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: message.id }
 
+    channel.on 'RemovedFromChannel', (account) ->
+
+      channelId = channel.id
+      accountId = account._id
+
+      dispatch actions.REMOVE_PARTICIPANT_FROM_CHANNEL, { channelId, accountId }
+
 
 bindMessageEvents = (message) ->
 
