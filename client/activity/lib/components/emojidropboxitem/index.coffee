@@ -1,9 +1,10 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-immutable       = require 'immutable'
-formatEmojiName = require 'activity/util/formatEmojiName'
-DropboxItem     = require 'activity/components/dropboxitem'
-emojify         = require 'emojify.js'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+immutable             = require 'immutable'
+formatEmojiName       = require 'activity/util/formatEmojiName'
+DropboxItem           = require 'activity/components/dropboxitem'
+emojify               = require 'emojify.js'
+renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
 
 
 module.exports = class EmojiDropboxItem extends React.Component
@@ -15,7 +16,10 @@ module.exports = class EmojiDropboxItem extends React.Component
     query      : ''
 
 
-  componentDidMount: -> emojify.run React.findDOMNode @refs.icon
+  componentDidMount: ->
+
+    icon = React.findDOMNode @refs.icon
+    emojify.run icon, renderEmojiSpriteIcon
 
 
   renderEmojiName: ->
@@ -37,7 +41,9 @@ module.exports = class EmojiDropboxItem extends React.Component
 
     { item } = @props
     <DropboxItem {...@props} className="EmojiDropboxItem">
-      <span ref='icon'>{formatEmojiName item}</span>
+      <span className='emojiSpriteIconWrapper'>
+        <span ref='icon'>{formatEmojiName item}</span>
+      </span>
       {@renderEmojiName()}
     </DropboxItem>
 
