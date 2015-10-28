@@ -13,7 +13,7 @@ module.exports = (machine) ->
     return  if turnedOnMachine
 
     storage.setValue 'TurnedOnMachine', yes
-    execute machine
+    track machine
 
 
 fetchStorage = (callback) ->
@@ -24,9 +24,9 @@ fetchStorage = (callback) ->
   storage.ready -> callback storage
 
 
-execute = (machine) ->
+track = (machine) ->
 
-  track Tracker.BUTTON_CLICKED
+  track_ Tracker.BUTTON_CLICKED
 
   kd.singletons.computeController.once 'MachineBuilt', (event) ->
 
@@ -34,8 +34,8 @@ execute = (machine) ->
 
     return  if machineId isnt machine._id
 
-    track Tracker.MODAL_DISPLAYED
+    track_ Tracker.MODAL_DISPLAYED
 
 
-track = (action) ->
+track_ = (action) ->
   Tracker.track action, { category: Tracker.CATEGORY_TURN_ON_VM }
