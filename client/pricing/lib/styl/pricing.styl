@@ -80,6 +80,13 @@ body.pricing
     opacity             .99
     text-align          center
     margin              0 auto 40px
+    .onboarding
+      bg                    image, url("/a/images/pricing/onboarding1x.png")
+      bg                    position, right bottom
+      bg                    repeat, no-repeat
+      bg                    size, contain
+      height                25.25vw
+      margin                3.5625rem 0 0 3%
 
   .pricing-footer
     margin             75px auto 117px
@@ -368,3 +375,9 @@ body.pricing
 
         &.loading
           bg            color #37B542
+// Handle retina screens
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)
+  .content-page.pricing
+    .for-teams
+      .onboarding
+        bg                  image, url("/a/images/pricing/onboarding2x.png")
