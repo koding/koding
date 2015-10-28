@@ -82,6 +82,18 @@ noTextDeco()
     &:hover
       text-decoration       none
 
+noAppearance()
+  -webkit-appearance        none
+  -moz-appearance           none
+  appearance                none
+  border                    0
+  background                none
+
+columns()
+  -webkit-columns           arguments[0]
+  -moz-columns              arguments[0]
+  columns                   arguments[0]
+
 _applyCoordinates()
   t = arguments[0]
   r = arguments[1]
@@ -135,6 +147,11 @@ dFlex()
   display                    -webkit-flex
   display                    -moz-flex
   display                   flex
+
+flexWrap()
+  -webkit-flex-wrap         wrap
+  -ms-flex-wrap             wrap
+  flex-wrap                 wrap
 
 cf()
   /**
