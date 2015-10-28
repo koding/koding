@@ -1,15 +1,19 @@
 kd                           = require 'kd'
-nick                         = require '../util/nick'
-JView                        = require '../jview'
-Machine                      = require '../providers/machine'
 globals                      = require 'globals'
 htmlencode                   = require 'htmlencode'
-groupifyLink                 = require '../util/groupifyLink'
+
+JView                        = require 'app/jview'
 KDCustomHTMLView             = kd.CustomHTMLView
 KDProgressBarView            = kd.ProgressBarView
-MachineSettingsModal         = require '../providers/machinesettingsmodal'
-SidebarMachineSharePopup     = require 'app/activity/sidebar/sidebarmachinesharepopup'
+
+nick                         = require 'app/util/nick'
+Machine                      = require 'app/providers/machine'
+isKoding                     = require 'app/util/isKoding'
+groupifyLink                 = require 'app/util/groupifyLink'
 userEnvironmentDataProvider  = require 'app/userenvironmentdataprovider'
+
+MachineSettingsModal         = require 'app/providers/machinesettingsmodal'
+SidebarMachineSharePopup     = require 'app/activity/sidebar/sidebarmachinesharepopup'
 SidebarMachineConnectedPopup = require 'app/activity/sidebar/sidebarmachineconnectedpopup'
 
 
@@ -128,6 +132,9 @@ module.exports = class NavigationMachineItem extends JView
 
     { status: { state } } = @machine
     { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
+
+    unless isKoding()
+      return state in [ Running, Stopped ]
 
     return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
 
