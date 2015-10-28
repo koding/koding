@@ -82,6 +82,7 @@ func (a *NotificationActivity) FetchMapByContentIds(ids []int64) (map[int64][]No
 	if len(ids) == 0 {
 		return make(map[int64][]NotificationActivity), nil
 	}
+
 	aList, err := a.FetchByContentIds(ids)
 	if err != nil {
 		return nil, err
