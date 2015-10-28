@@ -85,21 +85,19 @@ func (n *normalizer) UnifyAliases() *normalizer {
 	return n
 }
 
+// ConvertAliases replaces the aliases with their actual usernames, removes the
+// alias from username list
 func (n *normalizer) ConvertAliases() *normalizer {
 	if n.err != nil {
 		return n
 	}
 
-	usernames := n.usernames
-
 	normalizedUsernames := make([]string, 0)
-
-	for alias, normalizer := range aliasNormalizers {
-
-		for i, username := range usernames {
+	for _, username := range n.usernames {
+		found := false
+		for alias, normalizer := range aliasNormalizers {
 			if username == alias {
-
-				usernames = append(usernames[:i], usernames[i+1:]...)
+				found = true
 
 				channelUsers, err := normalizer(n.cm)
 				if err != nil {
@@ -110,39 +108,15 @@ func (n *normalizer) ConvertAliases() *normalizer {
 				normalizedUsernames = append(normalizedUsernames, channelUsers...)
 			}
 		}
-	n.log.Debug("usernames after ConvertAliases %+v", n.usernames)
-	n.log.Debug("usernames after RemoveOwner %+v", n.usernames)
-	}
 
-	channel, err := socialapimodels.Cache.Channel.ById(n.cm.InitialChannelId)
-	if err != nil {
-		n.err = err
-		return n
-	}
-
-	for _, username := range usernames {
-		acc, err := socialapimodels.Cache.Account.ByNick(username)
-		if err != nil && err != bongo.RecordNotFound {
-			n.err = err
-			return n
-		}
-
-		if err == bongo.RecordNotFound {
-			n.failedUsernames = append(n.failedUsernames, username)
-			n.log.New("username", username).Debug(err.Error())
-			continue
-		}
-
-		canOpen, err := channel.CanOpen(acc.Id)
-		if canOpen {
+		// if this is not a alias, put it back to normalized users
+		if !found {
 			normalizedUsernames = append(normalizedUsernames, username)
-		} else {
-			n.failedUsernames = append(n.failedUsernames, username)
-			n.log.New("username", username, "channelId", channel.Id).Debug("ignoring notification due to not sufficient access level")
 		}
 	}
 
 	n.usernames = normalizedUsernames
+	n.log.Debug("usernames after ConvertAliases %+v", n.usernames)
 	return n
 }
 
@@ -164,33 +138,65 @@ func (n *normalizer) RemoveOwner() *normalizer {
 			break
 		}
 	}
+	n.log.Debug("usernames after RemoveOwner %+v", n.usernames)
+	return n
+}
+
+// FilterParticipants removes unauthorized people from username list
+func (n *normalizer) FilterParticipants() *normalizer {
+	if n.err != nil {
+		return n
+	}
+
+	channel, err := socialapimodels.Cache.Channel.ById(n.cm.InitialChannelId)
+	if err != nil {
+		n.err = err
+		return n
+	}
+
+	participants := make([]string, 0)
+
+	for _, username := range n.usernames {
+		acc, err := socialapimodels.Cache.Account.ByNick(username)
+		if err != nil && err != bongo.RecordNotFound {
+			n.err = err
+			return n
+		}
+
+		if err == bongo.RecordNotFound {
+			n.failedUsernames = append(n.failedUsernames, username)
+			n.log.New("username", username).Debug(err.Error())
+			continue
+		}
+
+		canOpen, err := channel.IsParticipant(acc.Id)
+		if canOpen {
+			participants = append(participants, username)
+		} else {
+			n.failedUsernames = append(n.failedUsernames, username)
+			n.log.New("username", username, "channelId", channel.Id).Debug("ignoring notification due to not sufficient access level")
+		}
+	}
+
+	n.usernames = participants
 	n.log.Debug("usernames after FilterParticipants %+v", n.usernames)
 
 	return n
 }
 
+// Do operates the required filterings on username list
 func (n *normalizer) Do() ([]string, error) {
 	n.UnifyUsernames().
 		UnifyAliases().
 		ConvertAliases().
-		RemoveOwner()
+		RemoveOwner().
+		FilterParticipants()
 
 	if n.err != nil {
 		return nil, n.err
 	}
 
 	return n.usernames, nil
-}
-
-// fetchAllMembersOfAGroup gets the group name from the channel message and
-// returns all the user's nicknames of that group
-func fetchAllMembersOfAGroup(cm *socialapimodels.ChannelMessage) ([]string, error) {
-	groupChannel, err := cm.FetchParentChannel() // it has internal caching
-	if err != nil {
-		return nil, err
-	}
-
-	return fetchChannelParticipants(groupChannel)
 }
 
 // fetchAllMembersOfChannel gets the channel id from ChannelMessage and fetches
@@ -254,8 +260,7 @@ func fetchChannelParticipants(c *socialapimodels.Channel) ([]string, error) {
 }
 
 var globalAliases = map[string][]string{
-	"all":     []string{"team", "all", "group"},
-	"channel": []string{"channel"},
+	"all": []string{"channel", "team", "all", "group"},
 }
 
 var roleAliases = map[string][]string{
@@ -265,9 +270,8 @@ var roleAliases = map[string][]string{
 type aliasNormalizerFunc func(*socialapimodels.ChannelMessage) ([]string, error)
 
 var aliasNormalizers = map[string]aliasNormalizerFunc{
-	"all":     fetchAllMembersOfAGroup,
-	"channel": fetchAllMembersOfChannel,
-	"admins":  fetchAllAdminsOfChannel,
+	"all":    fetchAllMembersOfChannel,
+	"admins": fetchAllAdminsOfChannel,
 }
 
 // clean up removes duplicate mentions from usernames. eg: team and all
