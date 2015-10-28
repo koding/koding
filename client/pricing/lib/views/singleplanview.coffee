@@ -56,7 +56,7 @@ module.exports = class SinglePlanView extends KDView
       cssClass : 'plan-price'
       title    : "
         <cite>#{if price is '0' then 'Free' else price}</cite>
-        <span class='interval-text'>MONTHLY</span>
+        <span class='interval-text'>PER MONTH</span>
       "
 
     @overflowHidden.addSubView @price
@@ -126,7 +126,7 @@ module.exports = class SinglePlanView extends KDView
 
     @price.updatePartial "
       <cite>#{(price)}</cite>
-      <span class='interval-text'>MONTHLY</span>
+      <span class='interval-text'>PER MONTH</span>
     "
 
 
