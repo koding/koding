@@ -53,8 +53,8 @@ module.exports = class ChatPane extends React.Component
     { className } = @props
 
     classes =
-      'ChatPane'             : yes
-      'emojiSpritePreloader' : yes
+      'ChatPane'               : yes
+      'emoji-sprite-preloader' : yes
     classes[className]       = yes  if className
 
     return classnames classes

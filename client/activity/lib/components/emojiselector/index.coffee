@@ -3,14 +3,12 @@ kd                    = require 'kd'
 React                 = require 'kd-react'
 classnames            = require 'classnames'
 immutable             = require 'immutable'
-emojify               = require 'emojify.js'
 formatEmojiName       = require 'activity/util/formatEmojiName'
 ChatInputFlux         = require 'activity/flux/chatinput'
 Dropbox               = require 'activity/components/dropbox/portaldropbox'
 EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
 EmojiIcon             = require 'activity/components/emojiicon'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
 
 
 module.exports = class EmojiSelector extends React.Component

@@ -4,8 +4,6 @@ immutable             = require 'immutable'
 formatEmojiName       = require 'activity/util/formatEmojiName'
 DropboxItem           = require 'activity/components/dropboxitem'
 EmojiIcon             = require 'activity/components/emojiicon'
-emojify               = require 'emojify.js'
-renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
 
 
 module.exports = class EmojiDropboxItem extends React.Component

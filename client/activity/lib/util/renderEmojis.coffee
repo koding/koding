@@ -1,3 +1,5 @@
+emojify = require 'emojify.js'
+
 IMAGE_EMOJIS = [
   'broken_heart'
   'confounded'
@@ -19,16 +21,19 @@ IMAGE_EMOJIS = [
   'wink'
 ]
 
-module.exports = renderEmojiSpriteIcon = (emoji, emojiName) ->
+renderEmojiIcon = (emoji, emojiName) ->
 
   element = document.createElement 'span'
-  element.className = 'emojiIconWrapper'
+  element.className = 'emoji-wrapper'
 
   if emojiName in IMAGE_EMOJIS
     imagePath = 'https://s3.amazonaws.com/koding-cdn/emojis/'
-    element.innerHTML = "<img src='#{imagePath}#{emojiName}.png' class='emojiIcon' title='#{emoji}' />"
+    element.innerHTML = "<img src='#{imagePath}#{emojiName}.png' class='emoji' title='#{emoji}' />"
   else
-    element.innerHTML = "<span class='emojiSpriteIcon emoji-#{emojiName}' title='#{emoji}' />"
+    element.innerHTML = "<span class='emoji-sprite emoji-#{emojiName}' title='#{emoji}' />"
 
   return element
+
+
+module.exports = renderEmojis = (element) -> emojify.run element, renderEmojiIcon
 

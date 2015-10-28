@@ -1,11 +1,10 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-classnames            = require 'classnames'
-formatEmojiName       = require 'activity/util/formatEmojiName'
-ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-emojify               = require 'emojify.js'
-renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+formatEmojiName      = require 'activity/util/formatEmojiName'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+renderEmojis         = require 'activity/util/renderEmojis'
 
 module.exports = class EmojiIcon extends React.Component
 
@@ -15,16 +14,16 @@ module.exports = class EmojiIcon extends React.Component
     emoji : ''
 
 
-  runEmojify: ->
+  emojifyIcon: ->
 
     icon = React.findDOMNode @refs.icon
-    emojify.run icon, renderEmojiSpriteIcon
+    renderEmojis icon
 
 
-  componentDidMount: -> @runEmojify()
+  componentDidMount: -> @emojifyIcon()
 
 
-  componentDidUpdate: -> @runEmojify()
+  componentDidUpdate: -> @emojifyIcon()
 
 
   render: ->
