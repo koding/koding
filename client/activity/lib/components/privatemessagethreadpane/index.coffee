@@ -139,7 +139,7 @@ reset = (props, state) ->
       privateChannelId = botChannel.id
 
   if privateChannelId
-    channelActions.loadChannel('private', privateChannelId).then ({ channel }) ->
+    channelActions.loadChannel(privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
   else if not channelThread

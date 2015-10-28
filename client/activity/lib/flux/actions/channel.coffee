@@ -19,47 +19,17 @@ Promise                 = require 'bluebird'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
-###*
- * Action to load channel with given slug.
- *
- * @param {string} name - slug of the channel
- * @param {bool} loadMessages - yes if loading channel messages is needed
-###
-loadChannelByName = (name, loadMessages) ->
-
-  name   = name.toLowerCase()
-  type   = getChannelTypeByName name
-  params = { name, type }
-  func   = kd.singletons.socialapi.channel.byName
-
-  loadChannelWithFunc func, params, loadMessages
-
-
-###*
- * Action to load channel with given id.
- *
- * @param {string} id - id of the channel
- * @param {bool} loadMessages - yes if loading channel messages is needed
-###
-loadChannelById = (id, loadMessages) ->
-
-  func   = kd.singletons.socialapi.channel.byId
-  params = { id }
-
-  loadChannelWithFunc func, params, loadMessages
-
 
 ###*
  * Helper function to load channel with given function and parameters
  * After channel is loaded it binds to channel events,
- * emits LOAD_CHANNEL_SUCCESS event and load channel messages if needed
+ * emits LOAD_CHANNEL_SUCCESS event and load channel messages
  *
  * @param {function} func - function which loads a channel
  * @param {object} params - func parameters
- * @param {bool} loadMessages - yes if loading channel messages is needed
  * @return {Promise}
 ###
-loadChannelWithFunc = (func, params, loadMessages) ->
+loadChannelWithFunc = (func, params) ->
 
   { LOAD_CHANNEL_BEGIN
     LOAD_CHANNEL_FAIL
@@ -78,7 +48,7 @@ loadChannelWithFunc = (func, params, loadMessages) ->
       realtimeActionCreators.bindChannelEvents channel
       dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
 
-      MessageActions.loadMessages channel.id  if loadMessages
+      MessageActions.loadMessages channel.id
 
       resolve { channel }
 
@@ -134,23 +104,33 @@ sanitizeTypeAndId = (type, id) ->
 
 
 ###*
- * Generic loadChannel action. It reduces the type confusion and handles
- * internal type conversion itself and loads given channel.
+ * Loads channel by given id
  *
- * It works for 2 different types:
- *  - public: use this type to load a public channel (group, announcement, topic)
- *  - private: use this type to load a private channel (privatemessage, bot)
- *
- * @param {string} type - either 'public' or 'private'
- * @param {string} id - 'channel name' for public channels,
- *   'channel id' for private channels.
+ * @param {string} id - channel id
  * @return {Promise}
 ###
-loadChannel = (type, id) ->
+loadChannel = (id) ->
 
-  if type is 'public'
-  then loadChannelByName id, yes
-  else loadChannelById id, yes
+  func   = kd.singletons.socialapi.channel.byId
+  params = { id }
+
+  loadChannelWithFunc func, params
+
+
+###*
+ * Loads channel by given name
+ *
+ * @param {string} name - channel name
+ * @return {Promise}
+###
+loadChannelByName = (name) ->
+
+  name   = name.toLowerCase()
+  type   = getChannelTypeByName name
+  params = { name, type }
+  func   = kd.singletons.socialapi.channel.byName
+
+  loadChannelWithFunc func, params
 
 
 ###*
@@ -518,10 +498,9 @@ module.exports = {
   unfollowChannel
   addParticipants
   addParticipantsByNames
-  loadChannelByName
-  loadChannelById
   loadChannelByParticipants
   loadChannel
+  loadChannelByName
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
   loadChannels

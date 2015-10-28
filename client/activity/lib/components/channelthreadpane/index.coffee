@@ -141,7 +141,7 @@ reset = (props, state) ->
     channel = ActivityFlux.getters.channelByName channelName
     thread.changeSelectedThread channel.id  if channel
 
-    channelActions.loadChannel('public', channelName).then ({ channel }) ->
+    channelActions.loadChannelByName(channelName).then ({ channel }) ->
       thread.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id
 
