@@ -15,7 +15,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func TestCleanup(t *testing.T) {
+func TestUnifyAliases(t *testing.T) {
 	testData := []struct {
 		definition string
 		usernames  []string
@@ -54,7 +54,7 @@ func TestCleanup(t *testing.T) {
 	}
 
 	for _, test := range testData {
-		responses := cleanup(test.usernames)
+		responses := unifyAliases(test.usernames)
 		exists := false
 		for _, response := range responses {
 			for _, exc := range test.expected {

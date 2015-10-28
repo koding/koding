@@ -44,7 +44,7 @@ func (n *mentionExtractor) UnifyUsernames() *mentionExtractor {
 // UnifyAliases changes alias usernames to their respective usernames
 func (n *mentionExtractor) UnifyAliases() *mentionExtractor {
 	return n.afterChecks(func() {
-		n.usernames = cleanup(n.usernames)
+		n.usernames = unifyAliases(n.usernames)
 		n.log.Debug("usernames after UnifyAliases %+v", n.usernames)
 	})
 }
@@ -256,9 +256,9 @@ var aliasNormalizers = map[string]aliasNormalizerFunc{
 	"admins": fetchAllAdminsOfChannel,
 }
 
-// clean up removes duplicate mentions from usernames. eg: team and all
+// unifyAliases removes duplicate mentions from usernames. eg: team and all
 // essentially same mentions
-func cleanup(usernames []string) []string {
+func unifyAliases(usernames []string) []string {
 	// do first clean up with removing duplicates
 	usernames = socialapimodels.StringSliceUnique(usernames)
 
