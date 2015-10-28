@@ -205,6 +205,7 @@ module.exports = {
   _
   daisy
   expect
+  KONFIG
   ObjectId
   fetchGroup
   expectRelation
