@@ -1839,7 +1839,6 @@ footer.main-footer
     borderBox()
 
   .footer-block
-    width                   50%
     font-size               0
     borderBox()
     fl()
@@ -1852,6 +1851,7 @@ footer.main-footer
 
     &:last-child
       text-align            right
+      fr()
 
       a
         margin              0 18px
@@ -1963,12 +1963,12 @@ footer.main-footer
 @media only screen and (min-width : 320px) and (max-width : 568px)
   footer.main-footer
     .footer-block
-      width             100%
-      float             none
+      margin-top            0
 
-      &~.footer-block
-        margin-top      18px
-        border-top      1px solid rgba(255,255,255,.05)
+      &:last-child
+        a
+          margin            0 5px
+
 
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)
   .avatarview
