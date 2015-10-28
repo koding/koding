@@ -30,4 +30,20 @@ func TestIsAdmin(t *testing.T) {
 			So(admin, ShouldBeFalse)
 		})
 	})
+
+	Convey("Given the bin response ends in whitespace", t, func() {
+		Convey("Then it should still respond properly", func() {
+			admin, err := isAdmin("echo", "-en", "0\n")()
+			So(err, ShouldBeNil)
+			So(admin, ShouldBeTrue)
+
+			admin, err = isAdmin("echo", "-en", "  \n0  \n ")()
+			So(err, ShouldBeNil)
+			So(admin, ShouldBeTrue)
+
+			admin, err = isAdmin("echo", "-en", " 501 \n")()
+			So(err, ShouldBeNil)
+			So(admin, ShouldBeFalse)
+		})
+	})
 }

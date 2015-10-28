@@ -1,6 +1,9 @@
 package util
 
-import "os/exec"
+import (
+	"os/exec"
+	"strings"
+)
 
 // +build linux darwin
 
@@ -22,7 +25,7 @@ func isAdmin(bin string, args ...string) Checker {
 			return false, err
 		}
 
-		if string(o) == "0" {
+		if strings.TrimSpace(string(o)) == "0" {
 			return true, nil
 		}
 
