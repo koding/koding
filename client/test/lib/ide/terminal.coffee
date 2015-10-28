@@ -5,45 +5,6 @@ terminalHelpers = require '../helpers/terminalhelpers.js'
 paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 
-createTerminalSession = (browser, user) ->
-
-  userName                   = user.username
-  notActiveTerminalSelector  = paneSelector + ' .terminal:not(.active)'
-  terminalTextAssertSelector = '.application-tabview .terminal.active .terminal-pane'
-
-  terminalHelpers.openNewTerminalMenu(browser)
-  terminalHelpers.openTerminal(browser)
-
-  browser.element 'css selector', notActiveTerminalSelector, (result) =>
-    if result.status isnt 0
-      terminalHelpers.openNewTerminalMenu(browser)
-      terminalHelpers.openTerminal(browser)
-
-    browser
-      .waitForElementVisible   notActiveTerminalSelector, 20000 # Assertion
-      .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
-      .pause 6000 # required for the Connecting...
-      .assert.containsText     terminalTextAssertSelector, userName # Assertion
-
-
-terminateAll = (browser) ->
-
-  terminalHelpers.openNewTerminalMenu(browser)
-
-  browser
-    .waitForElementVisible   'li.terminate-all', 20000
-    .click                   'li.terminate-all'
-    .pause                   10000 # required, wait to terminate all open sessions
-    .element                 'css selector', '.autoremovepane-confirm', (result) ->
-      if result.status is 0
-        browser.click        '.autoremovepane-confirm button.red'
-
-  terminalHelpers.openNewTerminalMenu(browser)
-
-  browser
-    .assert.elementNotPresent   'li.terminate-all' # Assertion
-
-
 module.exports =
 
   terminateAll: (browser) ->
@@ -51,9 +12,9 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
 
-    terminateAll(browser)
+    terminalHelpers.terminateAll(browser)
     browser.end()
 
 
@@ -62,7 +23,7 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
     browser.end()
 
 
@@ -107,7 +68,7 @@ module.exports =
     user = helpers.beginTest(browser)
 
     helpers.waitForVMRunning(browser)
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
 
     helpers.runCommandOnTerminal(browser)
     browser.end()
@@ -124,7 +85,7 @@ module.exports =
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
 
     browser
       .waitForElementVisible    tabSelector, 20000
