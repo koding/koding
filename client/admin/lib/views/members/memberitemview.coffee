@@ -3,10 +3,6 @@ JView                  = require 'app/jview'
 whoami                 = require 'app/util/whoami'
 isKoding               = require 'app/util/isKoding'
 AvatarView             = require 'app/commonviews/avatarviews/avatarview'
-KDButtonView           = kd.ButtonView
-KDListItemView         = kd.ListItemView
-KDCustomHTMLView       = kd.CustomHTMLView
-KDNotificationView     = kd.NotificationView
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 
 
@@ -35,7 +31,7 @@ buttonSet     =
     owner     : []
 
 
-module.exports = class MemberItemView extends KDListItemView
+module.exports = class MemberItemView extends kd.ListItemView
 
   JView.mixin @prototype
 
@@ -53,7 +49,7 @@ module.exports = class MemberItemView extends KDListItemView
       size  : width: 40, height : 40
     , @getData()
 
-    @roleLabel = new KDCustomHTMLView
+    @roleLabel = new kd.CustomHTMLView
       cssClass : 'role'
       partial  : "#{@memberRole.label} <span class='settings-icon'></span>"
       click    : @bound 'toggleSettings'
@@ -78,7 +74,7 @@ module.exports = class MemberItemView extends KDListItemView
   createSettingsView: ->
 
     unless @settings
-      @settings  = new KDCustomHTMLView
+      @settings  = new kd.CustomHTMLView
         cssClass : 'settings hidden'
 
     buttons = buttonSet[@loggedInUserRole.slug][@memberRole.slug]
@@ -86,7 +82,7 @@ module.exports = class MemberItemView extends KDListItemView
     buttons.forEach (button) =>
       return if isKoding() and button.slug is 'kick'
 
-      buttonView = new KDButtonView
+      buttonView = new kd.ButtonView
         cssClass : kd.utils.curry 'solid compact outline', button.extraClass
         title    : button.buttonTitle
         loader   : color: "#444444"
@@ -136,21 +132,27 @@ module.exports = class MemberItemView extends KDListItemView
 
 
   handleError: (button, err) ->
+
+    @isInProgress = no
+
     if err?.message is 'Access denied'
       return global.location.href = '/Activity'
 
     button.hideLoader()
     message = err?.message or 'Failed to change user role. Please try again.'
-    return new KDNotificationView title: message, duration: 5000
+    return new kd.NotificationView title: message, duration: 5000
 
 
   kick: ->
 
     kd.singletons.groupsController.getCurrentGroup().kickMember @getData().getId(), (err) =>
 
-      return @handleError @actionButtons.kick, new Error 'Failed to kick user. Please try again.'  if err
+      if err
+        customErr = new Error 'Failed to kick user. Please try again.'
+        return @handleError @actionButtons.kick, customErr
 
       @destroy()
+      @emit 'UserKicked'
 
 
   toggleSettings: ->

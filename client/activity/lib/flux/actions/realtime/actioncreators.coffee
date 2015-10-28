@@ -88,7 +88,11 @@ bindNotificationEvents = ->
           _loadMessageFn { channel, channelMessage: _message }
           _dispatchFn { unreadCount: payload.unreadCount, channel }
 
-    .on 'MessageRemovedFromChannel', _dispatchFn
+    .on 'MessageRemovedFromChannel', (payload) ->
+      { channel, channelMessage, unreadCount } = payload
+      dispatch actions.REMOVE_MESSAGE_SUCCESS, { messageId: channelMessage.id }
+      _dispatchFn { unreadCount, channel }
+
     .on 'RemovedFromChannel', _dispatchFn
     .on 'ReplyAdded', _dispatchFn
     .on 'ParticipantUpdated', _dispatchFn
