@@ -772,6 +772,8 @@ module.exports = class JGroup extends Module
         ]
 
   fetchRolesByAccount:(account, callback) ->
+    return callback new KodingError 'Account not found'  unless account
+
     Relationship.someData {
       targetId: account.getId()
       sourceId: @getId()
