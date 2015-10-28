@@ -77,9 +77,9 @@ module.exports = class SinglePlanView extends KDView
         tagName  : 'dd'
         partial  : partial
 
-    @addSubView @buyButton = new KDButtonView
+    @overflowHidden.addSubView @buyButton = new KDButtonView
       style     : 'plan-buy-button'
-      title     : 'SELECT'
+      title     : 'Select'
       state     : { title, monthPrice, yearPrice }
       loader    : yes
       callback  : @bound 'select'
