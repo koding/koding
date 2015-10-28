@@ -8,8 +8,12 @@ globals = require 'globals'
 module.exports = class PricingAppController extends KDViewController
 
   @options =
-    name  : 'Pricing'
-    route : '/:name?/Pricing'
+    name    : 'Pricing'
+    routes  :
+      '/:name?/Pricing'             : null
+      '/:name?/Pricing/Teams'       : null
+      '/:name?/Pricing/Individuals' : null
+
 
   constructor: (options = {}, data) ->
 
