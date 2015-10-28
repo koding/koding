@@ -29,7 +29,7 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  * @param {object} params - func parameters
  * @return {Promise}
 ###
-loadChannelWithFunc = (func, params) ->
+loadChannelWithFn = (func, params) ->
 
   { LOAD_CHANNEL_BEGIN
     LOAD_CHANNEL_FAIL
@@ -114,7 +114,7 @@ loadChannel = (id) ->
   func   = kd.singletons.socialapi.channel.byId
   params = { id }
 
-  loadChannelWithFunc func, params
+  loadChannelWithFn func, params
 
 
 ###*
@@ -130,7 +130,7 @@ loadChannelByName = (name) ->
   params = { name, type }
   func   = kd.singletons.socialapi.channel.byName
 
-  loadChannelWithFunc func, params
+  loadChannelWithFn func, params
 
 
 ###*
@@ -277,7 +277,7 @@ loadChannelsByQuery = (query, options = {}) ->
 
   options.name = query
   func = kd.singletons.socialapi.channel.searchTopics
-  loadChannelsWithFunc func, options
+  loadChannelsWithFn func, options
 
 
 ###*
@@ -288,10 +288,10 @@ loadChannelsByQuery = (query, options = {}) ->
 loadChannels = (options = {}) ->
 
   func = kd.singletons.socialapi.channel.list
-  loadChannelsWithFunc func, options
+  loadChannelsWithFn func, options
 
 
-loadChannelsWithFunc = (func, options) ->
+loadChannelsWithFn = (func, options) ->
 
   { LOAD_CHANNELS_BEGIN
     LOAD_CHANNELS_SUCCESS
