@@ -66,7 +66,6 @@ module.exports = class PricingAppView extends KDView
 
     { router } = kd.singletons
 
-    # TODO: Turunc
     [firstPath, ..., lastPath] = router.getCurrentPath().split '/'
     @featureTabView.showPaneByIndex 0  if lastPath is 'Teams'
 
