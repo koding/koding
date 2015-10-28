@@ -231,6 +231,16 @@ module.exports = class AdminIntegrationDetailsView extends JView
         status.updatePartial 'Disable Integration'
 
 
+  removeIntegration: ->
+
+    integrationHelpers.remove @getData().id, (err, response) =>
+      return showError err  if err
+
+      if response.status
+        kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
+        @emit 'IntegrationRemoved'
+
+
   getFormOptions: ->
 
     data            = @getData()
@@ -301,19 +311,26 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { integrationType, isDisabled } = @getData()
 
     if integrationType isnt 'new'
-      cssClass = 'disable status'
-      title    = 'Disable Integration'
+      cssClass     = 'disable status'
+      disableTitle = 'Disable Integration'
 
       if isDisabled
-        cssClass = 'enable status'
-        title    = 'Enable Integration'
+        cssClass     = 'enable status'
+        disableTitle = 'Enable Integration'
 
       formOptions.fields.status =
         label     : '<p>Integration Status</p><span>You can enable/disable your integration here.</span>'
-        itemClass : KDCustomHTMLView
-        partial   : title
+        itemClass : kd.CustomHTMLView
+        partial   : disableTitle
         cssClass  : cssClass
         click     : @bound 'handleStatusChange'
+
+      formOptions.fields.remove =
+        label     : '<p>Remove Integration</p><span>You can remove your integration here. Please note that, this action cannot be undone.</span>'
+        itemClass : kd.CustomHTMLView
+        partial   : 'REMOVE INTEGRATION'
+        cssClass  : 'disable status'
+        click     : @bound 'removeIntegration'
 
     return formOptions
 
