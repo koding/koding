@@ -1,5 +1,5 @@
-kd = require 'kd'
-KDView = kd.View
+kd      = require 'kd'
+KDView  = kd.View
 
 
 module.exports = class FooterView extends KDView
