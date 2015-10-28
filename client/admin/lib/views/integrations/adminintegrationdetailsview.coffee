@@ -1,17 +1,12 @@
 kd                   = require 'kd'
 JView                = require 'app/jview'
+whoami               = require 'app/util/whoami'
 remote               = require('app/remote').getInstance()
 globals              = require 'globals'
 showError            = require 'app/util/showError'
-KDInputView          = kd.InputView
-KDLabelView          = kd.LabelView
-KDButtonView         = kd.ButtonView
 applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
-KDCustomHTMLView     = kd.CustomHTMLView
 integrationHelpers   = require 'app/helpers/integration'
-KDFormViewWithFields = kd.FormViewWithFields
-whoami               = require 'app/util/whoami'
 
 
 module.exports = class AdminIntegrationDetailsView extends JView
@@ -26,7 +21,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     @createInstructionsView()
 
-    @settingsForm = new KDFormViewWithFields @getFormOptions()
+    @settingsForm = new kd.FormViewWithFields @getFormOptions()
 
     @createEventCheckboxes()
 
@@ -40,7 +35,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { instructions } = integration
 
     if instructions
-      @instructionsView = new KDCustomHTMLView
+      @instructionsView = new kd.CustomHTMLView
         tagName  : 'section'
         cssClass : 'has-markdown instructions container'
         partial  : """
@@ -48,10 +43,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
           <p class='subtitle'>Here are the steps necessary to add the #{integration.title} integration.</p>
           <hr />
         """
-      @instructionsView.addSubView new KDCustomHTMLView
+      @instructionsView.addSubView new kd.CustomHTMLView
         partial  : applyMarkdown instructions
     else
-      @instructionsView = new KDCustomHTMLView cssClass: 'hidden'
+      @instructionsView = new kd.CustomHTMLView cssClass: 'hidden'
 
 
   createAuthView: ->
@@ -59,12 +54,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { authorizable, isAuthorized } = @getData()
 
     unless authorizable
-      @authView = new KDCustomHTMLView cssClass: 'hidden'
+      @authView = new kd.CustomHTMLView cssClass: 'hidden'
       return
 
     @setClass 'authorizable'
 
-    @authView = new KDCustomHTMLView
+    @authView = new kd.CustomHTMLView
       tagName  : 'section'
       cssClass : 'auth container'
       partial  : """
@@ -80,7 +75,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       buttonTitle = 'Remove your authorization'
       buttonClass = 'red'
 
-    @authButton = new KDButtonView
+    @authButton = new kd.ButtonView
       title     : buttonTitle
       cssClass  : "solid compact #{buttonClass}"
       loader    : yes
@@ -126,16 +121,16 @@ module.exports = class AdminIntegrationDetailsView extends JView
   createEventCheckboxes: ->
 
     selectedEvents = @getData().selectedEvents or []
-    mainWrapper    = new KDCustomHTMLView cssClass: 'event-cbes'
+    mainWrapper    = new kd.CustomHTMLView cssClass: 'event-cbes'
 
     return  unless @data.settings?.events
 
     for item in @data.settings.events
 
       { name } = item
-      wrapper  = new KDCustomHTMLView cssClass: 'event-cb'
-      label    = new KDLabelView title: item.description
-      checkbox = new KDInputView
+      wrapper  = new kd.CustomHTMLView cssClass: 'event-cb'
+      label    = new kd.LabelView title: item.description
+      checkbox = new kd.InputView
         type         : 'checkbox'
         name         : name
         label        : label
@@ -270,7 +265,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
           click         : -> @selectAll()
           nextElement   :
             regenerate  :
-              itemClass : KDCustomHTMLView
+              itemClass : kd.CustomHTMLView
               partial   : 'Regenerate'
               cssClass  : 'link'
               click     : @bound 'regenerateToken'
