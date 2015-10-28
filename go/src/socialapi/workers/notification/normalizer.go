@@ -32,6 +32,7 @@ func (n *normalizer) UnifyUsernames() *normalizer {
 	}
 
 	n.usernames = socialapimodels.StringSliceUnique(n.usernames)
+	n.log.Debug("usernames after UnifyUsernames %+v", n.usernames)
 	return n
 }
 
@@ -79,6 +80,8 @@ func (n *normalizer) UnifyAliases() *normalizer {
 	}
 
 	n.usernames = res
+	n.log.Debug("usernames after UnifyAliases %+v", n.usernames)
+
 	return n
 }
 
@@ -107,6 +110,8 @@ func (n *normalizer) ConvertAliases() *normalizer {
 				normalizedUsernames = append(normalizedUsernames, channelUsers...)
 			}
 		}
+	n.log.Debug("usernames after ConvertAliases %+v", n.usernames)
+	n.log.Debug("usernames after RemoveOwner %+v", n.usernames)
 	}
 
 	channel, err := socialapimodels.Cache.Channel.ById(n.cm.InitialChannelId)
@@ -159,6 +164,7 @@ func (n *normalizer) RemoveOwner() *normalizer {
 			break
 		}
 	}
+	n.log.Debug("usernames after FilterParticipants %+v", n.usernames)
 
 	return n
 }
