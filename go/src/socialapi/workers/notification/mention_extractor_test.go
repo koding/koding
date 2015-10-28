@@ -308,6 +308,34 @@ func TestNormalize(t *testing.T) {
 				So(usernames, ShouldContain, account1.Nick)
 			})
 
+			Convey("aliases should not work for koding group", func() {
+				account := socialapimodels.CreateAccountWithTest()
+				groupChannel := socialapimodels.CreateTypedGroupedChannelWithTest(account.Id, socialapimodels.Channel_TYPE_GROUP, socialapimodels.Channel_KODING_NAME)
+				_, err := groupChannel.AddParticipant(account.Id)
+				So(err, ShouldBeNil)
+
+				// add more members
+				account1 := socialapimodels.CreateAccountInBothDbsWithCheck()
+				account2 := socialapimodels.CreateAccountInBothDbsWithCheck()
+				account3 := socialapimodels.CreateAccountInBothDbsWithCheck()
+
+				_, err = groupChannel.AddParticipant(account1.Id)
+				So(err, ShouldBeNil)
+				_, err = groupChannel.AddParticipant(account2.Id)
+				So(err, ShouldBeNil)
+				_, err = groupChannel.AddParticipant(account3.Id)
+				So(err, ShouldBeNil)
+
+				body := "hi @all"
+
+				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, account.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 1)
+				So(usernames, ShouldContain, "all")
+			})
+
 		})
 	})
 }

@@ -18,14 +18,19 @@ type mentionExtractor struct {
 	failedUsernames []string
 }
 
+// NewMentionExtractor extracts mentioned usernames from a channel message
 func NewMentionExtractor(cm *socialapimodels.ChannelMessage, log logging.Logger) *mentionExtractor {
+	usernames := cm.GetMentionedUsernames()
+	log.Debug("usernames before extracts %+v", usernames)
+
 	return &mentionExtractor{
-		usernames: cm.GetMentionedUsernames(),
+		usernames: usernames,
 		cm:        cm,
 		log:       log,
 	}
 }
 
+// UnifyUsernames removes duplicate mentions from the username
 func (n *mentionExtractor) UnifyUsernames() *mentionExtractor {
 	if n.err != nil {
 		return n
@@ -36,90 +41,48 @@ func (n *mentionExtractor) UnifyUsernames() *mentionExtractor {
 	return n
 }
 
+// UnifyAliases changes alias usernames to their respective usernames
 func (n *mentionExtractor) UnifyAliases() *mentionExtractor {
-	if n.err != nil {
-		return n
-	}
-
-	usernames := n.usernames
-
-	cleanUsernames := make(map[string]struct{})
-
-	for _, username := range usernames {
-
-		for mention, aliases := range globalAliases {
-			if socialapimodels.IsIn(username, aliases...) {
-
-				if mention == "all" {
-					n.usernames = []string{"all"}
-					return n
-				}
-
-				cleanUsernames[mention] = struct{}{}
-			} else {
-
-				cleanUsernames[username] = struct{}{}
-			}
-		}
-	}
-
-	for cleaned := range cleanUsernames {
-		for mention, aliases := range roleAliases {
-			if socialapimodels.IsIn(cleaned, aliases...) {
-				delete(cleanUsernames, cleaned)
-				cleanUsernames[mention] = struct{}{}
-			} else {
-				cleanUsernames[cleaned] = struct{}{}
-			}
-		}
-	}
-
-	res := make([]string, 0)
-	for username := range cleanUsernames {
-		res = append(res, username)
-	}
-
-	n.usernames = res
-	n.log.Debug("usernames after UnifyAliases %+v", n.usernames)
-
-	return n
+	return n.afterChecks(func() {
+		n.usernames = cleanup(n.usernames)
+		n.log.Debug("usernames after UnifyAliases %+v", n.usernames)
+	})
 }
 
 // ConvertAliases replaces the aliases with their actual usernames, removes the
 // alias from username list
 func (n *mentionExtractor) ConvertAliases() *mentionExtractor {
-	if n.err != nil {
-		return n
-	}
+	return n.afterChecks(func() {
+		normalizedUsernames := make([]string, 0)
+		for _, username := range n.usernames {
+			found := false
+			for alias, normalizer := range aliasNormalizers {
+				if username == alias {
+					found = true
 
-	normalizedUsernames := make([]string, 0)
-	for _, username := range n.usernames {
-		found := false
-		for alias, normalizer := range aliasNormalizers {
-			if username == alias {
-				found = true
+					channelUsers, err := normalizer(n.cm)
+					if err != nil {
+						n.err = err
+						return
+					}
 
-				channelUsers, err := normalizer(n.cm)
-				if err != nil {
-					n.err = err
-					return n
+					normalizedUsernames = append(normalizedUsernames, channelUsers...)
 				}
+			}
 
-				normalizedUsernames = append(normalizedUsernames, channelUsers...)
+			// if this is not a alias, put it back to normalized users
+			if !found {
+				normalizedUsernames = append(normalizedUsernames, username)
 			}
 		}
 
-		// if this is not a alias, put it back to normalized users
-		if !found {
-			normalizedUsernames = append(normalizedUsernames, username)
-		}
-	}
+		n.usernames = normalizedUsernames
+		n.log.Debug("usernames after ConvertAliases %+v", n.usernames)
+	})
 
-	n.usernames = normalizedUsernames
-	n.log.Debug("usernames after ConvertAliases %+v", n.usernames)
-	return n
 }
 
+// RemoveOwner removes the owner from mention list
 func (n *mentionExtractor) RemoveOwner() *mentionExtractor {
 	if n.err != nil {
 		return n
@@ -133,17 +96,71 @@ func (n *mentionExtractor) RemoveOwner() *mentionExtractor {
 
 	for i, username := range n.usernames {
 		if username == owner.Nick {
-
+			// delete username from the list
 			n.usernames = append(n.usernames[:i], n.usernames[i+1:]...)
 			break
 		}
 	}
+
 	n.log.Debug("usernames after RemoveOwner %+v", n.usernames)
 	return n
 }
 
-// FilterParticipants removes unauthorized people from username list
-func (n *mentionExtractor) FilterParticipants() *mentionExtractor {
+// RemoveNonParticipants removes non participants people from username list
+func (n *mentionExtractor) RemoveNonParticipants() *mentionExtractor {
+	return n.afterChecks(func() {
+		channel, err := socialapimodels.Cache.Channel.ById(n.cm.InitialChannelId)
+		if err != nil {
+			n.err = err
+			return
+		}
+
+		participants := make([]string, 0)
+
+		for _, username := range n.usernames {
+			acc, err := socialapimodels.Cache.Account.ByNick(username)
+			if err != nil && err != bongo.RecordNotFound {
+				n.err = err
+				return
+			}
+
+			if err == bongo.RecordNotFound {
+				n.failedUsernames = append(n.failedUsernames, username)
+				n.log.New("username", username).Debug(err.Error())
+				continue
+			}
+
+			canOpen, err := channel.IsParticipant(acc.Id)
+			if canOpen {
+				participants = append(participants, username)
+			} else {
+				n.failedUsernames = append(n.failedUsernames, username)
+				n.log.New("username", username, "channelId", channel.Id).Debug("ignoring notification due to not sufficient access level")
+			}
+		}
+
+		n.usernames = participants
+		n.log.Debug("usernames after RemoveNonParticipants %+v", n.usernames)
+	})
+}
+
+// Do operates the required filterings on username list
+func (n *mentionExtractor) Do() ([]string, error) {
+	n.UnifyUsernames().
+		UnifyAliases().
+		ConvertAliases().
+		RemoveOwner().
+		RemoveNonParticipants()
+
+	if n.err != nil {
+		return nil, n.err
+	}
+
+	return n.usernames, nil
+}
+
+// afterChecks does the required validation and check, if successful, runs the given function
+func (n *mentionExtractor) afterChecks(f func()) *mentionExtractor {
 	if n.err != nil {
 		return n
 	}
@@ -154,49 +171,14 @@ func (n *mentionExtractor) FilterParticipants() *mentionExtractor {
 		return n
 	}
 
-	participants := make([]string, 0)
-
-	for _, username := range n.usernames {
-		acc, err := socialapimodels.Cache.Account.ByNick(username)
-		if err != nil && err != bongo.RecordNotFound {
-			n.err = err
-			return n
-		}
-
-		if err == bongo.RecordNotFound {
-			n.failedUsernames = append(n.failedUsernames, username)
-			n.log.New("username", username).Debug(err.Error())
-			continue
-		}
-
-		canOpen, err := channel.IsParticipant(acc.Id)
-		if canOpen {
-			participants = append(participants, username)
-		} else {
-			n.failedUsernames = append(n.failedUsernames, username)
-			n.log.New("username", username, "channelId", channel.Id).Debug("ignoring notification due to not sufficient access level")
-		}
+	// do not convert aliases for koding group
+	if channel.GroupName == socialapimodels.Channel_KODING_NAME {
+		return n
 	}
 
-	n.usernames = participants
-	n.log.Debug("usernames after FilterParticipants %+v", n.usernames)
+	f()
 
 	return n
-}
-
-// Do operates the required filterings on username list
-func (n *mentionExtractor) Do() ([]string, error) {
-	n.UnifyUsernames().
-		UnifyAliases().
-		ConvertAliases().
-		RemoveOwner().
-		FilterParticipants()
-
-	if n.err != nil {
-		return nil, n.err
-	}
-
-	return n.usernames, nil
 }
 
 // fetchAllMembersOfChannel gets the channel id from ChannelMessage and fetches
