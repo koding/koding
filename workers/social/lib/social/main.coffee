@@ -97,13 +97,12 @@ koding = new Bongo {
 
       else
         console.error 'this is not a proper account', { sessionToken }
-        console.error 'constructor is JAccount', JAccount is account.constructor
+        console.error 'constructor is JAccount', JAccount is account?.constructor
         callback null
 }
 
 koding.on 'authenticateUser', (client, callback) ->
-  { delegate } = client.connection
-  callback delegate
+  callback client?.connection?.delegate
 
 koding.on 'errFirstDetected', (err) -> console.error err
 
