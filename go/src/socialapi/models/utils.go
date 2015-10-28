@@ -20,7 +20,7 @@ func StringSliceUnique(ss []string) []string {
 	}
 
 	// convert it to string slice
-	res := make([]string, 0)
+	res := make([]string, 0, len(mss))
 	for ms := range mss {
 		res = append(res, ms)
 	}
