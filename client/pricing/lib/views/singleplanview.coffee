@@ -90,18 +90,15 @@ module.exports = class SinglePlanView extends KDView
     { title, monthPrice, yearPrice
       reducedMonth, discount } = @getOptions()
 
-    { planInterval } = @state
+    { planInterval }  = @state
+    planTitle         = title.toLowerCase()
+    parentView        = @getIndividualsView()
 
-    planTitle = title.toLowerCase()
-
-    { appManager } = kd.singletons
-    pricingView = appManager.get('Pricing').getView()
-
-    workflowStarted = PaymentConstants.events.WORKFLOW_STARTED
+    workflowStarted       = PaymentConstants.events.WORKFLOW_STARTED
     workflowCouldNotStart = PaymentConstants.events.WORKFLOW_COULD_NOT_START
 
-    pricingView.once workflowStarted, @buyButton.bound 'hideLoader'
-    pricingView.once workflowCouldNotStart, @buyButton.bound 'hideLoader'
+    parentView.once workflowStarted,        @buyButton.bound 'hideLoader'
+    parentView.once workflowCouldNotStart,  @buyButton.bound 'hideLoader'
 
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
@@ -137,6 +134,9 @@ module.exports = class SinglePlanView extends KDView
       year  : @getOption 'reducedMonth'
 
     return price = priceMap[planInterval]
+
+
+  getIndividualsView: -> @parent.parent
 
 
   disable: (isCurrent = yes) ->
