@@ -185,6 +185,161 @@ func (c *Controller) CreateMentionNotification(cm *socialapimodels.ChannelMessag
 	return c.handleUsernameMentions(cm, targetId, mentionedUsers)
 }
 
+type normalizer struct {
+	err             error
+	usernames       []string
+	log             logging.Logger
+	cm              *models.ChannelMessage
+	failedUsernames []string
+}
+
+func NewNormalizer(cm *socialapimodels.ChannelMessage, usernames []string, log logging.Logger) *normalizer {
+	return normalizer{
+		usernames: usernames,
+		cm:        cm,
+		log:       log,
+	}
+}
+
+func (n *normalizer) UnifyUsernames() *normalizer {
+	if n.err != nil {
+		return n
+	}
+
+	n.usernames = socialapimodels.StringSliceUnique(usernames)
+	return n
+}
+
+func (n *normalizer) UnifyAliases() *normalizer {
+	if n.err != nil {
+		return n
+	}
+
+	usernames := n.usernames
+
+	// reduce aliases to their parent representation eg:@everyone->@all
+	cleanUsernames := make(map[string]struct{})
+
+	for _, username := range usernames {
+		// check if the username is in global mention list first
+		for mention, aliases := range globalAliases {
+			if socialapimodels.IsIn(username, aliases...) {
+				// Special Case - if we have "all" mention (or any other all
+				// `alias`), no need for further process
+				if mention == "all" {
+					return []string{"all"}
+				}
+
+				// if the username is one the keywords, just use the general keyword
+				cleanUsernames[mention] = struct{}{}
+			} else {
+				// if username is not one of the keywords, use it directly
+				cleanUsernames[username] = struct{}{}
+			}
+		}
+	}
+
+	// then check if the username is in
+	for cleaned := range cleanUsernames {
+		for mention, aliases := range roleAliases {
+			if socialapimodels.IsIn(cleaned, aliases...) {
+				delete(cleanUsernames, cleaned)      // delete the alias from clean
+				cleanUsernames[mention] = struct{}{} // set mention to clean
+			} else {
+				cleanUsernames[cleaned] = struct{}{}
+			}
+		}
+	}
+
+	// convert it to string slice
+	res := make([]string, 0)
+	for username := range cleanUsernames {
+		res = append(res, username)
+	}
+
+	n.usernames = res
+	return n
+}
+
+func (n *normalizer) ConvertAliases() *normalizer {
+	if n.err != nil {
+		return n
+	}
+
+	usernames := n.usernames
+
+	normalizedUsernames := make([]string, 0)
+
+	for alias, normalizer := range aliasNormalizers {
+
+		for i, username := range usernames {
+			if username == alias {
+				// delete the alias from slice
+				usernames = append(usernames[:i], usernames[i+1:]...)
+
+				channelUsers, err := normalizer(cm)
+				if err != nil {
+					n.err = err
+					return n
+				}
+
+				normalizedUsernames = append(normalizedUsernames, channelUsers...)
+			}
+		}
+	}
+
+	channel, err := socialapimodels.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		n.err = err
+		return n
+	}
+
+	for _, username := range usernames {
+		acc, err := socialapimodels.Cache.Account.ByNick(username)
+		if err != nil && err != bongo.RecordNotFound {
+			n.err = err
+			return n
+		}
+
+		if err == bongo.RecordNotFound {
+			n.failedUsernames = append(n.failedUsernames, username)
+			n.log.New("username", username).Debug(err.Error())
+			continue
+		}
+
+		canOpen, err := channel.CanOpen(acc.Id)
+		if canOpen {
+			normalizedUsernames = append(normalizedUsernames, username)
+		} else {
+			n.failedUsernames = append(n.failedUsernames, username)
+			n.log.New("username", username, "channelId", channel.Id).Debug("ignoring notification due to not sufficient access level")
+		}
+	}
+
+	return n
+}
+
+func (n *normalizer) RemoveOwner() *normalizer {
+	if n.err != nil {
+		return n
+	}
+
+	owner, err := socialapimodels.Cache.Account.ById(n.cm.AccountId)
+	if err != nil {
+		n.err = err
+		return n
+	}
+
+	// search for the owner username in mention list and remove it if necessary
+	for i, normalizedUsername := range normalizedUsernames {
+		if normalizedUsername == owner.Nick {
+			// delete an item from a slice
+			normalizedUsernames = append(normalizedUsernames[:i], normalizedUsernames[i+1:]...)
+			break
+		}
+	}
+}
+
 // normalizeUsernames converts aliases to their respective usernames
 func normalizeUsernames(cm *socialapimodels.ChannelMessage, usernames []string) ([]string, error) {
 	usernames = cleanup(usernames)

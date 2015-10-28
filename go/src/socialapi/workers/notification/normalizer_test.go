@@ -77,7 +77,7 @@ func TestCleanup(t *testing.T) {
 	}
 }
 
-func TestNormalizeUsernames(t *testing.T) {
+func TestNormalize(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 
 		appConfig := config.MustRead(r.Conf.Path)
@@ -103,7 +103,7 @@ func TestNormalizeUsernames(t *testing.T) {
 				body := "hi @all i am really excited to join this team!"
 				cm := models.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{"all"})
+				usernames, err := NewNormalizer(cm, []string{"all"}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 
@@ -123,7 +123,7 @@ func TestNormalizeUsernames(t *testing.T) {
 				body := "hi @team i am really excited to join this chan!"
 				cm := models.CreateMessageWithBody(topicChan.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{"team"})
+				usernames, err := NewNormalizer(cm, []string{"team"}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
@@ -132,7 +132,7 @@ func TestNormalizeUsernames(t *testing.T) {
 				body := "hi @all i am really excited to join this team! how are you @" + account3.Nick
 				cm := models.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{"all", account3.Nick})
+				usernames, err := NewNormalizer(cm, []string{"all", account3.Nick}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
@@ -144,7 +144,7 @@ func TestNormalizeUsernames(t *testing.T) {
 
 				Convey("if channel doesnt have any members", func() {
 					Convey("should return 0 username", func() {
-						usernames, err := normalizeUsernames(cm, []string{"channel"})
+						usernames, err := NewNormalizer(cm, []string{"channel"}, r.Log).Do()
 						So(err, ShouldBeNil)
 						So(len(usernames), ShouldEqual, 0)
 					})
@@ -155,7 +155,7 @@ func TestNormalizeUsernames(t *testing.T) {
 						_, err := topicChan.AddParticipant(account2.Id)
 						So(err, ShouldBeNil)
 
-						usernames, err := normalizeUsernames(cm, []string{"channel"})
+						usernames, err := NewNormalizer(cm, []string{"channel"}, r.Log).Do()
 						So(err, ShouldBeNil)
 						So(len(usernames), ShouldEqual, 1)
 						So(usernames[0], ShouldEqual, account2.Nick)
@@ -167,7 +167,7 @@ func TestNormalizeUsernames(t *testing.T) {
 				body := "hi @channel i am glad that i joined @group"
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account1.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{"channel", "group"})
+				usernames, err := NewNormalizer(cm, []string{"channel", "group"}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
@@ -184,7 +184,7 @@ func TestNormalizeUsernames(t *testing.T) {
 				body := "hi @admins make me mod plzz"
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{"admins"})
+				usernames, err := NewNormalizer(cm, []string{"admins"}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 1)
 				So(usernames[0], ShouldEqual, account1.Nick)
@@ -196,7 +196,7 @@ func TestNormalizeUsernames(t *testing.T) {
 					body := fmt.Sprintf("hi @%s do you know who are in @admins ? i believe @%s is in", account3.Nick, account2.Nick)
 					cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
 
-					usernames, err := normalizeUsernames(cm, []string{"admins", account3.Nick})
+					usernames, err := NewNormalizer(cm, []string{"admins", account3.Nick}, r.Log).Do()
 					So(err, ShouldBeNil)
 					So(len(usernames), ShouldEqual, 2)
 				})
@@ -213,17 +213,16 @@ func TestNormalizeUsernames(t *testing.T) {
 
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{account1.Nick, account2.Nick})
+				usernames, err := NewNormalizer(cm, []string{account1.Nick, account2.Nick}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 2)
-				fmt.Println("usernames-->", usernames)
 			})
 
 			Convey("non members of team should not be in mention list", func() {
 				body := "hi @nonmember how are things with your @girlfriend?"
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := normalizeUsernames(cm, []string{"nonmember", "girlfriend"})
+				usernames, err := NewNormalizer(cm, []string{"nonmember", "girlfriend"}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 0)
 			})
