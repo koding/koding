@@ -1,6 +1,7 @@
 kd                        = require 'kd'
 JView                     = require 'app/jview'
 isKoding                  = require 'app/util/isKoding'
+showError                 = require 'app/util/showError'
 
 remote                    = require('app/remote').getInstance()
 
@@ -39,9 +40,10 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createButtons: ->
 
-    @reinitButton     = new kd.CustomHTMLView cssClass: 'hidden'
-    @addVMButton      = new kd.CustomHTMLView cssClass: 'hidden'
-    @addManagedButton = new kd.CustomHTMLView cssClass: 'hidden'
+    @reinitButton      = new kd.CustomHTMLView cssClass: 'hidden'
+    @addVMButton       = new kd.CustomHTMLView cssClass: 'hidden'
+    @addManagedButton  = new kd.CustomHTMLView cssClass: 'hidden'
+    @deleteStackButton = new kd.CustomHTMLView cssClass: 'hidden'
 
     { title } = @getData()
 
@@ -50,6 +52,12 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
         callback    : @bound 'handleStackReinit'
+
+      @deleteStackButton = new kd.ButtonView
+        cssClass : 'solid compact red delete-stack'
+        title    : 'Delete Stack'
+        loader   : yes
+        callback : @bound 'handleStackDelete'
 
     if isKoding()
       @addVMButton = new kd.ButtonView
@@ -69,6 +77,14 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     ui.askFor 'reinitStack', {}, =>
       @getDelegate().emit 'StackReinitRequested', @getData()
+
+
+  handleStackDelete: ->
+
+    { computeController } = kd.singletons
+
+    computeController.ui.askFor 'deleteStack', {}, =>
+      @getDelegate().emit 'StackDeleteRequested', @getData()
 
 
   handleMachineRequest: (provider) ->
@@ -237,6 +253,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         </div>
         {{> @stackStateToggle}}
         <div class="button-container">
+          {{> @deleteStackButton}}
           {{> @reinitButton}}
           {{> @addManagedButton}}
           {{> @addVMButton}}

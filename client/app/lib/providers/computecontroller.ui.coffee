@@ -227,6 +227,15 @@ module.exports = class ComputeController_UI
             of your data.
           "
           button  : "Proceed"
+        deleteStack :
+          title   : "Delete Stack?"
+          message : "
+            If you choose to proceed, this stack and all the VMs will be
+            deleted, and you won't be able to revert this.
+            You will lose all of your existing files, workspaces, VMs and all
+            of your data.
+          "
+          button  : "Proceed"
         reinitNoSnapshot :
           title   : "Cannot proceed with reinitialization!"
           message : "

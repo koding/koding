@@ -27,15 +27,20 @@ module.exports = class NavigationMachineItem extends JView
 
     @alias           = machine.slug or machine.label
     machineOwner     = machine.getOwner()
+    reassigned       = machine.jMachine.meta?.oldOwner?
+    oldOwner         = machine.jMachine.meta?.oldOwner ? machineOwner
     isMyMachine      = machine.isMine()
     machineRoutes    =
       own            : "/IDE/#{@alias}"
       collaboration  : "/IDE/#{@getChannelId data}"
       permanentShare : "/IDE/#{machine.uid}"
+      reassigned     : "/IDE/#{machine.uid}"
 
     machineType = 'own'
 
-    unless isMyMachine
+    if reassigned
+      machineType = 'reassigned'
+    else if not isMyMachine
       machineType = if machine.isPermanent() then 'permanentShare' else 'collaboration'
 
     @machineRoute = groupifyLink machineRoutes[machineType]
@@ -56,11 +61,11 @@ module.exports = class NavigationMachineItem extends JView
     { @machine } = @getData()
     labelPartial = machine.label or @alias
 
-    unless isMyMachine
+    if not isMyMachine or reassigned
       labelPartial = """
         #{labelPartial}
         <cite class='shared-by'>
-          (@#{htmlencode.htmlDecode machineOwner})
+          (@#{htmlencode.htmlDecode oldOwner})
         </cite>
       """
 
