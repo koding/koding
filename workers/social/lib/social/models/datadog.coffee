@@ -85,7 +85,7 @@ module.exports = class DataDog extends Base
 
     { connection:{ delegate } } = client
 
-    unless delegate.type is 'registered'
+    unless delegate?.type is 'registered'
       return callback new KodingError 'Not allowed'
 
     { eventName, logs, tags } = data
