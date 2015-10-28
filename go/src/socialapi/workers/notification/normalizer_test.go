@@ -112,7 +112,7 @@ func TestNormalize(t *testing.T) {
 				})
 			})
 
-			Convey("@team should return all the members of the team", func() {
+			Convey("@team should return all the members of the team in a non-group channel", func() {
 				_, err := topicChan.AddParticipant(adminAccount.Id)
 				So(err, ShouldBeNil)
 				_, err = topicChan.AddParticipant(account2.Id)
@@ -219,6 +219,17 @@ func TestNormalize(t *testing.T) {
 			})
 
 			Convey("non members of team should not be in mention list", func() {
+				nonmember := models.CreateAccountInBothDbsWithCheck()
+
+				body := "hi @" + nonmember.Nick
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := NewNormalizer(cm, []string{nonmember.Nick}, r.Log).Do()
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 0)
+			})
+
+			Convey("non existing members of team should not be in mention list", func() {
 				body := "hi @nonmember how are things with your @girlfriend?"
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
 
@@ -226,6 +237,26 @@ func TestNormalize(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 0)
 			})
+
+			Convey("non members of a private channel should not be in mention list", func() {
+				nonmember := models.CreateAccountInBothDbsWithCheck()
+				_, err := groupChannel.AddParticipant(nonmember.Id)
+				So(err, ShouldBeNil)
+
+				pmChan := socialapimodels.CreateTypedGroupedChannelWithTest(account1.Id, socialapimodels.Channel_TYPE_PRIVATE_MESSAGE, groupChannel.GroupName)
+				_, err = pmChan.AddParticipant(account1.Id)
+				So(err, ShouldBeNil)
+				_, err = pmChan.AddParticipant(account2.Id)
+				So(err, ShouldBeNil)
+
+				body := "hi @" + nonmember.Nick + " and @" + account1.Nick
+				cm := socialapimodels.CreateMessageWithBody(pmChan.Id, account2.Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE, body)
+
+				usernames, err := NewNormalizer(cm, []string{nonmember.Nick, account1.Nick}, r.Log).Do()
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 1)
+			})
+
 		})
 	})
 }
