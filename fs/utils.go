@@ -70,8 +70,8 @@ func readFile(path string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if fi.Size() > 10*1024*1024 {
-		return nil, fmt.Errorf("File larger than 10MiB.")
+	if fi.Size() > 50*1024*1024 {
+		return nil, fmt.Errorf("File larger than 50MiB.")
 	}
 
 	buf := make([]byte, fi.Size())
