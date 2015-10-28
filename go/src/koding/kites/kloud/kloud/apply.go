@@ -520,9 +520,14 @@ func updateMachines(ctx context.Context, data *Machines, jMachines []*generic.Ma
 	}
 
 	for _, machine := range jMachines {
-		tf, err := data.WithLabel(machine.Label)
+		label := machine.GetMetaValue("assignedLabel")
+		if label == "" {
+			label = machine.Label
+		}
+
+		tf, err := data.WithLabel(label)
 		if err != nil {
-			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", machine.Label)
+			return fmt.Errorf("machine label '%s' doesn't exist in terraform output", label)
 		}
 
 		size, err := strconv.Atoi(tf.Attributes["root_block_device.0.volume_size"])
