@@ -160,17 +160,14 @@ func (c *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) erro
 
 // CreateMentionNotification creates mention notifications for the related channel messages
 func (c *Controller) CreateMentionNotification(cm *socialapimodels.ChannelMessage, targetId int64) ([]int64, error) {
-	usernames := cm.GetMentionedUsernames()
+	usernames, err := NewMentionExtractor(cm, c.log).Do()
+	if err != nil {
+		return nil, err
+	}
 
 	// message does not contain any mentioned users
 	if len(usernames) == 0 {
 		return nil, nil
-	}
-
-	var err error
-	usernames, err = NewNormalizer(cm, usernames, c.log).Do()
-	if err != nil {
-		return nil, err
 	}
 
 	mentionedUsers, err := socialapimodels.FetchAccountsByNicks(usernames)

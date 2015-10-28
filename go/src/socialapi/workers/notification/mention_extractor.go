@@ -10,7 +10,7 @@ import (
 	"github.com/koding/logging"
 )
 
-type normalizer struct {
+type mentionExtractor struct {
 	err             error
 	usernames       []string
 	log             logging.Logger
@@ -18,15 +18,15 @@ type normalizer struct {
 	failedUsernames []string
 }
 
-func NewNormalizer(cm *socialapimodels.ChannelMessage, usernames []string, log logging.Logger) *normalizer {
-	return &normalizer{
-		usernames: usernames,
+func NewMentionExtractor(cm *socialapimodels.ChannelMessage, log logging.Logger) *mentionExtractor {
+	return &mentionExtractor{
+		usernames: cm.GetMentionedUsernames(),
 		cm:        cm,
 		log:       log,
 	}
 }
 
-func (n *normalizer) UnifyUsernames() *normalizer {
+func (n *mentionExtractor) UnifyUsernames() *mentionExtractor {
 	if n.err != nil {
 		return n
 	}
@@ -36,7 +36,7 @@ func (n *normalizer) UnifyUsernames() *normalizer {
 	return n
 }
 
-func (n *normalizer) UnifyAliases() *normalizer {
+func (n *mentionExtractor) UnifyAliases() *mentionExtractor {
 	if n.err != nil {
 		return n
 	}
@@ -87,7 +87,7 @@ func (n *normalizer) UnifyAliases() *normalizer {
 
 // ConvertAliases replaces the aliases with their actual usernames, removes the
 // alias from username list
-func (n *normalizer) ConvertAliases() *normalizer {
+func (n *mentionExtractor) ConvertAliases() *mentionExtractor {
 	if n.err != nil {
 		return n
 	}
@@ -120,7 +120,7 @@ func (n *normalizer) ConvertAliases() *normalizer {
 	return n
 }
 
-func (n *normalizer) RemoveOwner() *normalizer {
+func (n *mentionExtractor) RemoveOwner() *mentionExtractor {
 	if n.err != nil {
 		return n
 	}
@@ -143,7 +143,7 @@ func (n *normalizer) RemoveOwner() *normalizer {
 }
 
 // FilterParticipants removes unauthorized people from username list
-func (n *normalizer) FilterParticipants() *normalizer {
+func (n *mentionExtractor) FilterParticipants() *mentionExtractor {
 	if n.err != nil {
 		return n
 	}
@@ -185,7 +185,7 @@ func (n *normalizer) FilterParticipants() *normalizer {
 }
 
 // Do operates the required filterings on username list
-func (n *normalizer) Do() ([]string, error) {
+func (n *mentionExtractor) Do() ([]string, error) {
 	n.UnifyUsernames().
 		UnifyAliases().
 		ConvertAliases().

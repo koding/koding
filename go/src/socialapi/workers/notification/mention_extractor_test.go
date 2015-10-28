@@ -97,11 +97,11 @@ func TestNormalize(t *testing.T) {
 
 			topicChan := socialapimodels.CreateTypedGroupedChannelWithTest(account1.Id, socialapimodels.Channel_TYPE_TOPIC, groupChannel.GroupName)
 
-			Convey("@all should return all the members of the team", func() {
+			Convey("@all should return all the members of the posted channel", func() {
 				body := "hi @all i am really excited to join this team!"
 				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"all"}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 
@@ -110,20 +110,20 @@ func TestNormalize(t *testing.T) {
 				})
 			})
 
-			Convey("multiple @all should return all the members of the team", func() {
+			Convey("multiple @all should return all the members of the channel", func() {
 				body := "hi @all i am really excited to join this team! @team @all"
 				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"team", "all", "all"}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
 
-			Convey("@all should return all the members of the team even if it has @channel", func() {
+			Convey("@all + @channel should return all the members of the channel", func() {
 				body := "hi @all i am really excited to join this team! @all"
 				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"all", "channel"}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
@@ -139,7 +139,7 @@ func TestNormalize(t *testing.T) {
 				body := "hi @team i am really excited to join this chan!"
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"team"}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 2)
 				So(usernames, ShouldContain, account2.Nick)
@@ -152,9 +152,13 @@ func TestNormalize(t *testing.T) {
 				body := "hi @all i am really excited to join this team! how are you @" + account3.Nick + " @" + account3.Nick
 				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"all", account3.Nick, account3.Nick}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
+				So(usernames, ShouldContain, account1.Nick)
+				So(usernames, ShouldContain, account2.Nick)
+				So(usernames, ShouldContain, account3.Nick)
+				So(usernames, ShouldNotContain, adminAccount.Nick) // poster should not be in the list
 			})
 
 			// UnifyUsernames
@@ -162,9 +166,10 @@ func TestNormalize(t *testing.T) {
 				body := "hi, i am really excited to join this team! how are you @" + account3.Nick + " @" + account3.Nick
 				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{account3.Nick, account3.Nick}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 1)
+				So(usernames, ShouldContain, account3.Nick)
 			})
 
 			// ConvertAliases
@@ -175,7 +180,7 @@ func TestNormalize(t *testing.T) {
 
 				Convey("if channel doesnt have any members", func() {
 					Convey("should return 0 username", func() {
-						usernames, err := NewNormalizer(cm, []string{"channel"}, r.Log).Do()
+						usernames, err := NewMentionExtractor(cm, r.Log).Do()
 						So(err, ShouldBeNil)
 						So(len(usernames), ShouldEqual, 0)
 					})
@@ -186,7 +191,7 @@ func TestNormalize(t *testing.T) {
 						_, err := topicChan.AddParticipant(account2.Id)
 						So(err, ShouldBeNil)
 
-						usernames, err := NewNormalizer(cm, []string{"channel"}, r.Log).Do()
+						usernames, err := NewMentionExtractor(cm, r.Log).Do()
 						So(err, ShouldBeNil)
 						So(len(usernames), ShouldEqual, 1)
 						So(usernames[0], ShouldEqual, account2.Nick)
@@ -208,7 +213,7 @@ func TestNormalize(t *testing.T) {
 
 				Convey("if topic channel doesnt have any admin members", func() {
 					Convey("should return 0 username", func() {
-						usernames, err := NewNormalizer(cm, []string{"admins"}, r.Log).Do()
+						usernames, err := NewMentionExtractor(cm, r.Log).Do()
 						So(err, ShouldBeNil)
 						So(len(usernames), ShouldEqual, 0)
 					})
@@ -218,7 +223,7 @@ func TestNormalize(t *testing.T) {
 						_, err := topicChan.AddParticipant(account1.Id)
 						So(err, ShouldBeNil)
 
-						usernames, err := NewNormalizer(cm, []string{"admins"}, r.Log).Do()
+						usernames, err := NewMentionExtractor(cm, r.Log).Do()
 						So(err, ShouldBeNil)
 						So(len(usernames), ShouldEqual, 1)
 						So(usernames[0], ShouldEqual, account1.Nick)
@@ -235,7 +240,7 @@ func TestNormalize(t *testing.T) {
 					body := fmt.Sprintf("hi @%s do you know who are in @admins ? i believe @%s is in", account2.Nick, account3.Nick)
 					cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-					usernames, err := NewNormalizer(cm, []string{"admins", account2.Nick, account3.Nick}, r.Log).Do()
+					usernames, err := NewMentionExtractor(cm, r.Log).Do()
 					So(err, ShouldBeNil)
 					So(len(usernames), ShouldEqual, 2)
 					So(usernames, ShouldContain, account1.Nick)
@@ -252,11 +257,11 @@ func TestNormalize(t *testing.T) {
 				_, err = topicChan.AddParticipant(account1.Id)
 				So(err, ShouldBeNil)
 
-				body := fmt.Sprintf("hi @%s i heard that @%s is not in this channel? but can get the notification", account1.Nick, account2.Nick)
+				body := fmt.Sprintf("hi @%s i heard that @%s is not in this channel? but can get the notification? no way right?", account1.Nick, account2.Nick)
 
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{account1.Nick, account2.Nick}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 1)
 				So(usernames, ShouldContain, account1.Nick)
@@ -269,7 +274,7 @@ func TestNormalize(t *testing.T) {
 				body := "hi @" + nonmember.Nick
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{nonmember.Nick}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 0)
 			})
@@ -278,7 +283,7 @@ func TestNormalize(t *testing.T) {
 				body := "hi @nonmember how are things with your @girlfriend?"
 				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"nonmember", "girlfriend"}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 0)
 			})
@@ -297,9 +302,10 @@ func TestNormalize(t *testing.T) {
 				body := "hi @" + nonmember.Nick + " and @" + account1.Nick
 				cm := socialapimodels.CreateMessageWithBody(pmChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE, body)
 
-				usernames, err := NewNormalizer(cm, []string{nonmember.Nick, account1.Nick}, r.Log).Do()
+				usernames, err := NewMentionExtractor(cm, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 1)
+				So(usernames, ShouldContain, account1.Nick)
 			})
 
 		})
