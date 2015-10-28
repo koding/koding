@@ -136,7 +136,7 @@ func (c *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 //}
 
 func (c *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
-	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
+	if !socialapimodels.IsIn(cm.TypeConstant, socialapimodels.ChannelMessage_TYPE_POST, socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE) {
 		return nil
 	}
 
@@ -179,7 +179,12 @@ func (c *Controller) CreateMentionNotification(cm *socialapimodels.ChannelMessag
 }
 
 func (c *Controller) handleUsernameMentions(cm *socialapimodels.ChannelMessage, targetId int64, mentionedUsers []socialapimodels.Account) ([]int64, error) {
-	groupChannel, err := cm.FetchParentChannel() // it has internal caching
+	initialChannel, err := socialapimodels.Cache.Channel.ById(cm.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	groupChannel, err := socialapimodels.Cache.Channel.ByGroupName(initialChannel.GroupName) // it has internal caching
 	if err != nil {
 		return nil, err
 	}
