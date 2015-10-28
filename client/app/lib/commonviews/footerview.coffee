@@ -17,17 +17,15 @@ module.exports = class FooterView extends KDView
   partial: ->
     """
     <div class="inner-container clearfix">
-
       <nav class="footer-block">
-        <a href="/Pricing">Pricing</a>
-        <a href="/Activity">Community</a>
-        <a href="/About">About</a>
-        <a href="/Legal">Legal</a>
+        <a href="/">Koding.com</a>
       </nav>
 
       <nav class="footer-block">
-        <a class='social tw' href="http://twitter.com/koding"></a><a class='social fb' href="http://facebook.com/koding"></a>
-        <a href="/">Copyright © #{(new Date).getFullYear()} Koding, Inc</a>
+        <a href="#">Blog</a>
+        <a href="/Activity">Community</a>
+        <a href="/About">About</a>
+        <a href="/Legal">Legal</a>
       </nav>
     </div>
     """

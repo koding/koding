@@ -1825,67 +1825,47 @@ FOOTER VIEW
 
 
 footer.main-footer
-  padding               56px 0
-  font-family           openSansFamily
-  font-weight           400
-  background            #F0F0F0
-  border-top            1px solid #E8E8E8
-  height                auto
+  padding                   31px 0
+  font-family               SoleilFamily
+  font-weight               400
+  height                    auto
 
   .inner-container
-    max-width           1290px
-    padding             0px 45px
-    margin              0 auto
-    display             block
-    position            relative
+    max-width               1170px
+    padding                 0px 36px
+    margin                  0 auto
+    display                 block
+    position                relative
     borderBox()
 
   .footer-block
-    width               50%
-    font-size           0
+    width                   50%
+    font-size               0
     borderBox()
     fl()
+
+    &:first-child
+      a
+        font-weight         600
+        color               #32435c
+        font-size           14px
+
     &:last-child
-      text-align        right
+      text-align            right
+
+      a
+        margin              0 18px
+        color               #32435c
+        opacity             .5
 
     a
-      vertical-align     middle
-      font-size          14px
-      line-height        22px
-      color              #747474
-      display            inline
-      margin-right       12px
+      vertical-align        middle
+      font-size             14px
+      line-height           22px
+      color                 #747474
+      display               inline
+      margin-right          12px
       noTextDeco()
-
-  a.social
-    display             inline-block
-    margin-right        8px
-    size                32px, 32px
-    background          #cacaca
-    rounded             50%
-    text-align          center
-    padding             8px 0 0 0
-    borderBox()
-
-    &:after
-      content           ''
-      display           inline-block
-      width             16px
-      height            16px
-
-    &.tw
-      &:hover
-        background      #55acee
-
-      &:after
-        r-sprite        app 'social-tw'
-
-    &.fb
-      &:hover
-        background      #3b5998
-
-      &:after
-        r-sprite        app 'social-fb'
 
 
 // new private message and topics modal common styles
