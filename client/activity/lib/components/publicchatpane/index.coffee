@@ -57,15 +57,16 @@ module.exports = class PublicChatPane extends React.Component
 
 
   render: ->
-
-    <ChatPane
-      thread     = { @props.thread }
-      className  = "PublicChatPane"
-      onSubmit   = { @bound 'onSubmit' }
-      onLoadMore = { @bound 'onLoadMore' }
-      onInviteOthers = {@bound 'onInviteOthers'}>
+    <div>
+      <ChatPane
+        thread     = { @props.thread }
+        className  = "PublicChatPane"
+        onSubmit   = { @bound 'onSubmit' }
+        onLoadMore = { @bound 'onLoadMore' }
+        onInviteOthers = {@bound 'onInviteOthers'}>
+      </ChatPane>
       {@renderFooter()}
-    </ChatPane>
+    </div>
 
 
 React.Component.include.call PublicChatPane, [ChatPaneWrapperMixin]
