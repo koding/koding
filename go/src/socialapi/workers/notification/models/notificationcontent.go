@@ -75,7 +75,7 @@ func CreateNotificationContent(i Notifier) (*NotificationContent, error) {
 }
 
 // ensureNotificationContent adds caching layer on top of notification content fetching
-func ensureNotificationContent(i Notifiable) (*NotificationContent, error) {
+func ensureNotificationContent(i Notifier) (*NotificationContent, error) {
 	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
 	nc, err := Cache.NotificationContent.ByTypeConstantAndTargetID(i.GetType(), i.GetTargetId())
 	if err == nil {
