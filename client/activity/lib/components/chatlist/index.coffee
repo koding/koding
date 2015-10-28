@@ -34,6 +34,7 @@ module.exports = class ChatList extends React.Component
     super props
 
     @state = { selectedMessageId: @props.selectedMessageId }
+    kd.singletons.windowController.addFocusListener @bound 'handleFocus'
 
 
   getDataBindings: ->
@@ -56,6 +57,11 @@ module.exports = class ChatList extends React.Component
 
     if kd.singletons.windowController.isFocused()
       ActivityFlux.actions.channel.glance @props.channelId
+
+
+  handleFocus: (focused) ->
+
+    @glance()  if focused and @props.unreadCount
 
 
   onGlancerEnter: -> @glance()

@@ -1,5 +1,6 @@
 kd = require 'kd'
 actions = require '../actiontypes'
+isPublicChannel = require 'app/util/isPublicChannel'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
@@ -67,7 +68,7 @@ bindNotificationEvents = ->
 
   kd.singletons.notificationController
     .on 'MessageAddedToChannel', (payload) ->
-      { channel, channelMessage } = payload
+      { channel : { id }, channelMessage, unreadCount } = payload
 
       # TODO: FIXME
       # The reason we are doing these extra fetches is that right now backend
@@ -77,16 +78,23 @@ bindNotificationEvents = ->
       # everything is in place before doing anything. This will be fixed once
       # instance events of `SocialChannel` instances for private messages are
       # fixed. ~Umut
-      socialapi.channel.byId { id: channel.id }, (err, _channel) ->
+      socialapi.channel.byId { id }, (err, channel) ->
         return  if err
 
-        bindChannelEvents _channel
-        socialapi.message.byId { id: channelMessage.id }, (err, _message) ->
+        bindChannelEvents channel
+
+        actionType = if isPublicChannel channel
+        then actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS
+        else actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS
+
+        dispatch actionType, { channel, channelId: channel.id }
+        _dispatchFn { unreadCount, channel }
+
+        socialapi.message.byId { id: channelMessage.id }, (err, message) ->
           return  if err
 
-          bindMessageEvents _message
-          _loadMessageFn { channel, channelMessage: _message }
-          _dispatchFn { unreadCount: payload.unreadCount, channel }
+          bindMessageEvents message
+          _loadMessageFn { channel, channelMessage: message }
 
     .on 'MessageRemovedFromChannel', (payload) ->
       { channel, channelMessage, unreadCount } = payload
