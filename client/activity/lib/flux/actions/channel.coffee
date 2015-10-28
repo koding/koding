@@ -25,11 +25,11 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  * After channel is loaded it binds to channel events,
  * emits LOAD_CHANNEL_SUCCESS event and load channel messages
  *
- * @param {function} func - function which loads a channel
- * @param {object} params - func parameters
+ * @param {function} fn - function which loads a channel
+ * @param {object} params - fn parameters
  * @return {Promise}
 ###
-loadChannelWithFn = (func, params) ->
+loadChannelWithFn = (fn, params) ->
 
   { LOAD_CHANNEL_BEGIN
     LOAD_CHANNEL_FAIL
@@ -39,7 +39,7 @@ loadChannelWithFn = (func, params) ->
 
     dispatch LOAD_CHANNEL_BEGIN, params
 
-    func params, (err, channel) ->
+    fn params, (err, channel) ->
       if err
         dispatch LOAD_CHANNEL_FAIL, { err }
         reject err
@@ -111,10 +111,10 @@ sanitizeTypeAndId = (type, id) ->
 ###
 loadChannel = (id) ->
 
-  func   = kd.singletons.socialapi.channel.byId
+  fn     = kd.singletons.socialapi.channel.byId
   params = { id }
 
-  loadChannelWithFn func, params
+  loadChannelWithFn fn, params
 
 
 ###*
@@ -128,9 +128,9 @@ loadChannelByName = (name) ->
   name   = name.toLowerCase()
   type   = getChannelTypeByName name
   params = { name, type }
-  func   = kd.singletons.socialapi.channel.byName
+  fn     = kd.singletons.socialapi.channel.byName
 
-  loadChannelWithFn func, params
+  loadChannelWithFn fn, params
 
 
 ###*
@@ -276,8 +276,8 @@ loadPopularChannels = (options = {}) ->
 loadChannelsByQuery = (query, options = {}) ->
 
   options.name = query
-  func = kd.singletons.socialapi.channel.searchTopics
-  loadChannelsWithFn func, options
+  fn = kd.singletons.socialapi.channel.searchTopics
+  loadChannelsWithFn fn, options
 
 
 ###*
@@ -287,11 +287,11 @@ loadChannelsByQuery = (query, options = {}) ->
 ###
 loadChannels = (options = {}) ->
 
-  func = kd.singletons.socialapi.channel.list
-  loadChannelsWithFn func, options
+  fn = kd.singletons.socialapi.channel.list
+  loadChannelsWithFn fn, options
 
 
-loadChannelsWithFn = (func, options) ->
+loadChannelsWithFn = (fn, options) ->
 
   { LOAD_CHANNELS_BEGIN
     LOAD_CHANNELS_SUCCESS
@@ -301,7 +301,7 @@ loadChannelsWithFn = (func, options) ->
   dispatch LOAD_CHANNELS_BEGIN
 
   new Promise (resolve, reject) ->
-    func options, (err, channels) ->
+    fn options, (err, channels) ->
       if err
         dispatch LOAD_CHANNELS_FAIL, { err }
         return reject err
