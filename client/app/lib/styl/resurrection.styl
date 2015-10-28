@@ -86,6 +86,7 @@ pre
       visible()
 
       .SidebarListItem
+        white-space         nowrap
         rel()
 
       .logo-wrapper
@@ -121,7 +122,7 @@ pre
           abs()
           top               -2px
 
-        .sidebar-title
+        .SidebarListItem
           white-space       nowrap
 
           &:hover
@@ -138,16 +139,23 @@ pre
       #main-sidebar
         width               sidebarWidth + 1
 
-        .sidebar-machine-box
-          .kdscrollview
-            overflow        hidden
-
       .sidebar-close-handle
         vendor              transform, scaleX(-1)
 
     &.collapsed
-
       #main-sidebar
+        &.team
+          .logo-wrapper.group
+            > a
+              display       none
+
+          .account-area
+            .notifications
+              bg            image, none
+
+          .SidebarListItem
+            overflow        hidden
+
         .logo-wrapper
           padding           0
 
@@ -170,7 +178,7 @@ pre
           width             20px
 
           .kdscrollview
-            overflow        hidden
+            overflow        hidden !important
 
           a.vm
             width           13px
@@ -184,6 +192,9 @@ pre
           > cite, div
             opacity         0
 
+          cite.count
+            display         none
+
         .kdlistitemview-sidebar-item
           .sidebar-message-text
             text-indent     9999px
@@ -193,8 +204,8 @@ pre
 
         .count
         .SidebarListItem-unreadCount
-          right             13px
-          top               -2px
+          right             16px
+          top               -1px
           size              8px 8px
           rounded(50%)
           font-size         0
@@ -204,7 +215,7 @@ pre
         .SidebarListItem-unreadCount
           right             -1px
           top               1px
-          min-width         auto
+          min-width         0
 
         .account-area
           width             50px
