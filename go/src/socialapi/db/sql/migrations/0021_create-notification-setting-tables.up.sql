@@ -20,11 +20,40 @@ $$;
 
 GRANT USAGE ON SEQUENCE "notification"."notification_settings_id_seq" TO "social";
 
-CREATE TYPE "notification"."notification_settings_status_constant_enum" AS ENUM (
-    'all',
-    'personal',
-    'never'
-);
+-- All of this to create a type if it does not exist
+CREATE OR REPLACE FUNCTION create_notification_settings_status_constant_enum_type() RETURNS integer AS $$
+DECLARE v_exists INTEGER;
+
+BEGIN
+    SELECT into v_exists (SELECT 1 FROM pg_type WHERE typname = 'notification_settings_status_constant_enum');
+    IF v_exists IS NULL THEN
+      CREATE TYPE "notification"."notification_settings_status_constant_enum" AS ENUM (
+        'all',
+        'personal',
+        'never'
+      );
+    END IF;
+    RETURN v_exists;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function
+SELECT create_notification_settings_status_constant_enum_type();
+-- Remove the function
+DROP function create_notification_settings_status_constant_enum_type();
+
+
+DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'notification_settings_status_constant_enum') THEN
+      CREATE TYPE "integration"."notification_settings_status_constant_enum" AS ENUM (
+        'all',
+        'personal',
+        'never'
+      );
+    END IF;
+  END;
+$$;
 
 ALTER TYPE "notification"."notification_settings_status_constant_enum" OWNER TO "social";
 
