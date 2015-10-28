@@ -6,16 +6,27 @@ Tracker = require 'app/util/tracker'
 
 module.exports = (machine) ->
 
-  return  unless analytics
-  return  unless typeof analytics.user is 'function'
+  fetchStorage (storage) ->
 
-  { initialTurnOn } = analytics.user().traits()
-  return  if initialTurnOn
+    turnedOnMachine = storage.getValue 'TurnedOnMachine'
 
-  initialTurnOn = yes
-  analytics.identify nick(), { initialTurnOn }
+    return  if turnedOnMachine
 
-  track Tracker.BUTTON_CLICKED
+    storage.setValue 'TurnedOnMachine', yes
+    track machine
+
+
+fetchStorage = (callback) ->
+
+  { appStorageController } = kd.singletons
+  storage = appStorageController.storage 'Environments', '1.0'
+
+  storage.ready -> callback storage
+
+
+track = (machine) ->
+
+  track_ Tracker.BUTTON_CLICKED
 
   kd.singletons.computeController.once 'MachineBuilt', (event) ->
 
@@ -23,8 +34,8 @@ module.exports = (machine) ->
 
     return  if machineId isnt machine._id
 
-    track Tracker.MODAL_DISPLAYED
+    track_ Tracker.MODAL_DISPLAYED
 
 
-track = (action) ->
+track_ = (action) ->
   Tracker.track action, { category: Tracker.CATEGORY_TURN_ON_VM }
