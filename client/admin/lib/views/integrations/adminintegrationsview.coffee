@@ -37,5 +37,5 @@ module.exports = class AdminMembersView extends kd.View
 
   handleAction: (action) ->
 
-    index = if action is 'Configure' then 1 else 0
+    index = if action is 'Configured' then 1 else 0
     @tabView.showPaneByIndex index
