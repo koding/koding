@@ -99,19 +99,25 @@ module.exports = class TeamJoinTab extends KDTabPaneView
 
     { username } = formData
     success      = =>
+      track 'submitted join a team form'
       KD.utils.storeNewTeamData 'join', formData
       KD.utils.joinTeam
         error : ({responseText}) =>
           if /TwoFactor/.test responseText
+            track 'needed two factor authentication'
             @form.showTwoFactor()
           else
+            track 'failed to join a team'
             new KDNotificationView title : responseText
 
     if @alreadyMember then success()
     else
       KD.utils.usernameCheck username,
-        success : success
+        success : ->
+          track 'entered a valid username'
+          success()
         error   : ({responseJSON}) =>
+          track 'entered an invalid username'
 
           unless responseJSON
             return new KDNotificationView
@@ -123,3 +129,10 @@ module.exports = class TeamJoinTab extends KDTabPaneView
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
           new KDNotificationView title : msg
+
+
+track = (action) ->
+
+  category = 'TeamJoin'
+  label    = 'JoinTab'
+  KD.utils.analytics.track action, { category, label }

@@ -36,6 +36,7 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
 
       wrapper.addSubView @form = new TeamLoginAndCreateTabForm
         callback : (formData) =>
+          track 'submitted login form'
           @createTeam formData, no
 
     else
@@ -49,7 +50,9 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
         partial : 'Pick a username and a password to log in with. Or use your existing Koding login.'
 
       wrapper.addSubView @form = new TeamUsernameTabForm
-        callback    : @bound 'createTeam'
+        callback : (formData) =>
+          track 'submitted register form'
+          @createTeam formData
 
 
   show: ->
@@ -77,13 +80,16 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
       KD.utils.storeNewTeamData 'username', formData
       KD.utils.createTeam
         success : (data) ->
+          track 'succeeded to create a team'
           KD.utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
         error : ({responseText}) =>
           if /TwoFactor/.test responseText
+            track 'requires two-factor authentication'
             @form.showTwoFactor()
           else
+            track 'failed to create a team'
             new KDNotificationView title : responseText
 
 
@@ -91,8 +97,11 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
     then success()
     else
       KD.utils.usernameCheck username,
-        success : success
+        success : ->
+          track 'entered a valid username'
+          success()
         error   : ({responseJSON}) =>
+          track 'entered an invalid username'
 
           unless responseJSON
             return new KDNotificationView
@@ -104,3 +113,10 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
           else                    "Sorry, there is a problem with \"#{username}\"!"
 
           new KDNotificationView title : msg
+
+
+track = (action) ->
+
+  category = 'TeamSignup'
+  label    = 'AccountTab'
+  KD.utils.analytics.track action, { category, label }

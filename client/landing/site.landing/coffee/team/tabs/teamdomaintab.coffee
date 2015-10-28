@@ -20,8 +20,11 @@ module.exports = class TeamDomainTab extends KDTabPaneView
     @form = new TeamDomainTabForm
       callback: (formData) =>
 
+        track 'submitted domain form'
+
         KD.utils.verifySlug formData.slug,
           success : =>
+            track 'entered a valid domain'
             @form.input.parent.unsetClass 'validation-error'
             KD.utils.storeNewTeamData name, formData
             # removed these steps
@@ -36,6 +39,7 @@ module.exports = class TeamDomainTab extends KDTabPaneView
 
   showError: (error) ->
 
+    track 'entered an invalid domain'
     @form.input.parent.setClass 'validation-error'
     new KDNotificationView { title : error }
 
@@ -50,3 +54,11 @@ module.exports = class TeamDomainTab extends KDTabPaneView
       {{> @form}}
     </div>
     """
+
+
+track = (action) ->
+
+  category = 'TeamSignup'
+  label    = 'DomainTab'
+
+  KD.utils.analytics.track action, { category, label }

@@ -25,6 +25,8 @@ module.exports = class TeamsView extends JView
       cssClass : 'login-form'
       callback : (formData) ->
 
+        track 'submitted signup form', { category: 'TeamSignUp' }
+
         finalize = (email) ->
           KD.utils.storeNewTeamData 'signup', formData
           KD.singletons.router.handleRoute '/Team/Domain'
@@ -39,8 +41,16 @@ module.exports = class TeamsView extends JView
 
         { email } = formData
         KD.utils.validateEmail { email },
-          success : -> formData.alreadyMember = no; do finalize
-          error   : -> formData.alreadyMember = yes; finalize email
+          success : ->
+            track 'entered an unregistered email'
+            formData.alreadyMember = no
+            finalize()
+
+          error : ->
+            track 'entered a registered email'
+            formData.alreadyMember = yes
+            finalize email
+
 
   pistachio: ->
 
@@ -54,3 +64,10 @@ module.exports = class TeamsView extends JView
       <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a>
     </footer>
     """
+
+
+track = (action) ->
+
+  category = 'TeamSignup'
+  label    = 'SignupForm'
+  KD.utils.analytics.track action, { category, label }
