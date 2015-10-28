@@ -5,7 +5,6 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/models"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/common/tests"
 	"testing"
@@ -48,10 +47,9 @@ func TestCleanup(t *testing.T) {
 			[]string{"all"},
 		},
 		{
-			// some of the admins may not be in the channel
-			"should keep channel and admins",
-			[]string{"channel", "bar", "admins"},
-			[]string{"channel", "bar", "admins"},
+			"should keep team",
+			[]string{"channel", "bar", "admins", "team"},
+			[]string{"all"},
 		},
 	}
 
@@ -85,10 +83,10 @@ func TestNormalize(t *testing.T) {
 		defer modelhelper.Close()
 
 		Convey("while normalizing the usernames to their original nicks", t, func() {
-			adminAccount, groupChannel, _ := models.CreateRandomGroupDataWithChecks()
-			account1 := models.CreateAccountInBothDbsWithCheck()
-			account2 := models.CreateAccountInBothDbsWithCheck()
-			account3 := models.CreateAccountInBothDbsWithCheck()
+			adminAccount, groupChannel, _ := socialapimodels.CreateRandomGroupDataWithChecks()
+			account1 := socialapimodels.CreateAccountInBothDbsWithCheck()
+			account2 := socialapimodels.CreateAccountInBothDbsWithCheck()
+			account3 := socialapimodels.CreateAccountInBothDbsWithCheck()
 
 			_, err := groupChannel.AddParticipant(account1.Id)
 			So(err, ShouldBeNil)
@@ -101,7 +99,7 @@ func TestNormalize(t *testing.T) {
 
 			Convey("@all should return all the members of the team", func() {
 				body := "hi @all i am really excited to join this team!"
-				cm := models.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
 				usernames, err := NewNormalizer(cm, []string{"all"}, r.Log).Do()
 				So(err, ShouldBeNil)
@@ -110,6 +108,24 @@ func TestNormalize(t *testing.T) {
 				Convey("poster should not be in the mention list", func() {
 					So(socialapimodels.IsIn(adminAccount.Nick, usernames...), ShouldBeFalse)
 				})
+			})
+
+			Convey("multiple @all should return all the members of the team", func() {
+				body := "hi @all i am really excited to join this team! @team @all"
+				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := NewNormalizer(cm, []string{"team", "all", "all"}, r.Log).Do()
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 3)
+			})
+
+			Convey("@all should return all the members of the team even if it has @channel", func() {
+				body := "hi @all i am really excited to join this team! @all"
+				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := NewNormalizer(cm, []string{"all", "channel"}, r.Log).Do()
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 3)
 			})
 
 			Convey("@team should return all the members of the team in a non-group channel", func() {
@@ -121,26 +137,41 @@ func TestNormalize(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				body := "hi @team i am really excited to join this chan!"
-				cm := models.CreateMessageWithBody(topicChan.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
 				usernames, err := NewNormalizer(cm, []string{"team"}, r.Log).Do()
 				So(err, ShouldBeNil)
-				So(len(usernames), ShouldEqual, 3)
+				So(len(usernames), ShouldEqual, 2)
+				So(usernames, ShouldContain, account2.Nick)
+				So(usernames, ShouldContain, account3.Nick)
+				So(usernames, ShouldNotContain, adminAccount.Nick) // poster should not be in the list
 			})
 
-			Convey("@all + any username should return all the members of the team", func() {
-				body := "hi @all i am really excited to join this team! how are you @" + account3.Nick
-				cm := models.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
+			// UnifyAliases
+			Convey("@all + any multiple username should return all the members of the team", func() {
+				body := "hi @all i am really excited to join this team! how are you @" + account3.Nick + " @" + account3.Nick
+				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"all", account3.Nick}, r.Log).Do()
+				usernames, err := NewNormalizer(cm, []string{"all", account3.Nick, account3.Nick}, r.Log).Do()
 				So(err, ShouldBeNil)
 				So(len(usernames), ShouldEqual, 3)
 			})
 
+			// UnifyUsernames
+			Convey("any multiple username should return one of them", func() {
+				body := "hi, i am really excited to join this team! how are you @" + account3.Nick + " @" + account3.Nick
+				cm := socialapimodels.CreateMessageWithBody(groupChannel.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
+
+				usernames, err := NewNormalizer(cm, []string{account3.Nick, account3.Nick}, r.Log).Do()
+				So(err, ShouldBeNil)
+				So(len(usernames), ShouldEqual, 1)
+			})
+
+			// ConvertAliases
 			Convey("@channel should return all the members of the channel", func() {
 
 				body := "hi @channel"
-				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account1.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account1.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
 				Convey("if channel doesnt have any members", func() {
 					Convey("should return 0 username", func() {
@@ -163,15 +194,6 @@ func TestNormalize(t *testing.T) {
 				})
 			})
 
-			Convey("@channel + @group should return all the members of the team", func() {
-				body := "hi @channel i am glad that i joined @group"
-				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account1.Id, models.ChannelMessage_TYPE_POST, body)
-
-				usernames, err := NewNormalizer(cm, []string{"channel", "group"}, r.Log).Do()
-				So(err, ShouldBeNil)
-				So(len(usernames), ShouldEqual, 3)
-			})
-
 			Convey("@admins should return all the admins of the team", func() {
 
 				// create the group
@@ -182,47 +204,70 @@ func TestNormalize(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				body := "hi @admins make me mod plzz"
-				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
-				usernames, err := NewNormalizer(cm, []string{"admins"}, r.Log).Do()
-				So(err, ShouldBeNil)
-				So(len(usernames), ShouldEqual, 1)
-				So(usernames[0], ShouldEqual, account1.Nick)
+				Convey("if topic channel doesnt have any admin members", func() {
+					Convey("should return 0 username", func() {
+						usernames, err := NewNormalizer(cm, []string{"admins"}, r.Log).Do()
+						So(err, ShouldBeNil)
+						So(len(usernames), ShouldEqual, 0)
+					})
+				})
+				Convey("if channel have member", func() {
+					Convey("should return them", func() {
+						_, err := topicChan.AddParticipant(account1.Id)
+						So(err, ShouldBeNil)
+
+						usernames, err := NewNormalizer(cm, []string{"admins"}, r.Log).Do()
+						So(err, ShouldBeNil)
+						So(len(usernames), ShouldEqual, 1)
+						So(usernames[0], ShouldEqual, account1.Nick)
+					})
+				})
 
 				Convey("adding another user to mention list should work", func() {
-					_, err := topicChan.AddParticipant(account2.Id)
+					_, err := topicChan.AddParticipant(account1.Id)
 					So(err, ShouldBeNil)
 
-					body := fmt.Sprintf("hi @%s do you know who are in @admins ? i believe @%s is in", account3.Nick, account2.Nick)
-					cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+					_, err = topicChan.AddParticipant(account3.Id)
+					So(err, ShouldBeNil)
 
-					usernames, err := NewNormalizer(cm, []string{"admins", account3.Nick}, r.Log).Do()
+					body := fmt.Sprintf("hi @%s do you know who are in @admins ? i believe @%s is in", account2.Nick, account3.Nick)
+					cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
+
+					usernames, err := NewNormalizer(cm, []string{"admins", account2.Nick, account3.Nick}, r.Log).Do()
 					So(err, ShouldBeNil)
 					So(len(usernames), ShouldEqual, 2)
+					So(usernames, ShouldContain, account1.Nick)
+					So(usernames, ShouldContain, account3.Nick)
+
 				})
 			})
 
-			Convey("non members of channel should not be in mention list", func() {
+			// FilterParticipants
+			Convey("non members of public channel should not be in mention list", func() {
 				_, err := topicChan.AddParticipant(adminAccount.Id)
 				So(err, ShouldBeNil)
 
 				_, err = topicChan.AddParticipant(account1.Id)
 				So(err, ShouldBeNil)
 
-				body := fmt.Sprintf("hi @%s i heard that @%s is not in this channel?", account1.Nick, account2.Nick)
+				body := fmt.Sprintf("hi @%s i heard that @%s is not in this channel? but can get the notification", account1.Nick, account2.Nick)
 
-				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, adminAccount.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
 				usernames, err := NewNormalizer(cm, []string{account1.Nick, account2.Nick}, r.Log).Do()
 				So(err, ShouldBeNil)
-				So(len(usernames), ShouldEqual, 2)
+				So(len(usernames), ShouldEqual, 1)
+				So(usernames, ShouldContain, account1.Nick)
+				So(usernames, ShouldNotContain, account2.Nick)
 			})
 
 			Convey("non members of team should not be in mention list", func() {
-				nonmember := models.CreateAccountInBothDbsWithCheck()
+				nonmember := socialapimodels.CreateAccountInBothDbsWithCheck()
 
 				body := "hi @" + nonmember.Nick
-				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
 				usernames, err := NewNormalizer(cm, []string{nonmember.Nick}, r.Log).Do()
 				So(err, ShouldBeNil)
@@ -231,7 +276,7 @@ func TestNormalize(t *testing.T) {
 
 			Convey("non existing members of team should not be in mention list", func() {
 				body := "hi @nonmember how are things with your @girlfriend?"
-				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, models.ChannelMessage_TYPE_POST, body)
+				cm := socialapimodels.CreateMessageWithBody(topicChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_POST, body)
 
 				usernames, err := NewNormalizer(cm, []string{"nonmember", "girlfriend"}, r.Log).Do()
 				So(err, ShouldBeNil)
@@ -239,7 +284,7 @@ func TestNormalize(t *testing.T) {
 			})
 
 			Convey("non members of a private channel should not be in mention list", func() {
-				nonmember := models.CreateAccountInBothDbsWithCheck()
+				nonmember := socialapimodels.CreateAccountInBothDbsWithCheck()
 				_, err := groupChannel.AddParticipant(nonmember.Id)
 				So(err, ShouldBeNil)
 
@@ -250,7 +295,7 @@ func TestNormalize(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				body := "hi @" + nonmember.Nick + " and @" + account1.Nick
-				cm := socialapimodels.CreateMessageWithBody(pmChan.Id, account2.Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE, body)
+				cm := socialapimodels.CreateMessageWithBody(pmChan.Id, account2.Id, socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE, body)
 
 				usernames, err := NewNormalizer(cm, []string{nonmember.Nick, account1.Nick}, r.Log).Do()
 				So(err, ShouldBeNil)
