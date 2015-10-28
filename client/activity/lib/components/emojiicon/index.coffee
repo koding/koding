@@ -31,7 +31,7 @@ module.exports = class EmojiIcon extends React.Component
 
     { emoji } = @props
 
-    <span className='emojiIconWrapper' ref='icon'>
+    <span ref='icon'>
       {formatEmojiName emoji}
     </span>
 

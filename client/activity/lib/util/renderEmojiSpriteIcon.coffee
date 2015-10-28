@@ -21,15 +21,14 @@ IMAGE_EMOJIS = [
 
 module.exports = renderEmojiSpriteIcon = (emoji, emojiName) ->
 
+  element = document.createElement 'span'
+  element.className = 'emojiIconWrapper'
+
   if emojiName in IMAGE_EMOJIS
-    emojiElement = document.createElement 'img'
-    emojiElement.className = 'emojiIcon'
-    emojiElement.setAttribute 'src', "https://s3.amazonaws.com/koding-cdn/emojis/#{emojiName}.png"
+    imagePath = 'https://s3.amazonaws.com/koding-cdn/emojis/'
+    element.innerHTML = "<img src='#{imagePath}#{emojiName}.png' class='emojiIcon' title='#{emoji}' />"
   else
-    emojiElement = document.createElement 'span'
-    emojiElement.className = "emojiSpriteIcon emoji-#{emojiName}"
+    element.innerHTML = "<span class='emojiSpriteIcon emoji-#{emojiName}' title='#{emoji}' />"
 
-  emojiElement.setAttribute 'title', emoji
-
-  return emojiElement
+  return element
 
