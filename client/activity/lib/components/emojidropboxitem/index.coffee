@@ -3,6 +3,7 @@ React                 = require 'kd-react'
 immutable             = require 'immutable'
 formatEmojiName       = require 'activity/util/formatEmojiName'
 DropboxItem           = require 'activity/components/dropboxitem'
+EmojiIcon             = require 'activity/components/emojiicon'
 emojify               = require 'emojify.js'
 renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
 
@@ -10,16 +11,10 @@ renderEmojiSpriteIcon = require 'activity/util/renderEmojiSpriteIcon'
 module.exports = class EmojiDropboxItem extends React.Component
 
   @defaultProps =
-    item       : immutable.Map()
+    item       : ''
     isSelected : no
     index      : 0
     query      : ''
-
-
-  componentDidMount: ->
-
-    icon = React.findDOMNode @refs.icon
-    emojify.run icon, renderEmojiSpriteIcon
 
 
   renderEmojiName: ->
@@ -41,9 +36,7 @@ module.exports = class EmojiDropboxItem extends React.Component
 
     { item } = @props
     <DropboxItem {...@props} className="EmojiDropboxItem">
-      <span className='emojiSpriteIconWrapper'>
-        <span ref='icon'>{formatEmojiName item}</span>
-      </span>
+      <EmojiIcon emoji={item} />
       {@renderEmojiName()}
     </DropboxItem>
 
