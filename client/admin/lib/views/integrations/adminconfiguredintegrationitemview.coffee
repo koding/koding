@@ -57,19 +57,25 @@ module.exports = class AdminConfiguredIntegrationItemView extends AdminIntegrati
 
   createSubItem: (data, account) ->
 
+    { id, createdAt, isDisabled } = data.channelIntegration
+
+    disabledMarkup = ''
+
+    if isDisabled
+      disabledMarkup = '<span class="tag">DISABLED</span>'
+
     @listView.addSubView subview = new KDCustomHTMLView
       cssClass : 'integration'
       partial  : """
-        <p>posts to ##{data.channel.name} channel</p>
+        <p>posts to ##{data.channel.name} channel#{disabledMarkup}</p>
         <p class="by">added by #{account.profile.nickname}</p>
       """
 
-    subview.addSubView new KDTimeAgoView {}, data.channelIntegration.createdAt
+    subview.addSubView new KDTimeAgoView {}, createdAt
     subview.addSubView new KDCustomHTMLView
       cssClass : 'edit'
       partial  : 'Customize <span></span>'
-      click    : =>
-        { id } = data.channelIntegration
+      click    : ->
         kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{id}"
 
 

@@ -180,6 +180,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       @settingsForm.buttons.Save.hideLoader()
       new kd.NotificationView title : 'Integration is successfully saved!'
       kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
+      @emit 'IntegrationUpdated'
 
 
   regenerateToken: ->
@@ -218,6 +219,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
       return showError  if err
 
+      @emit 'IntegrationUpdated'
+
       @getData().isDisabled = newState
       { status } = @settingsForm.inputs
 
@@ -238,7 +241,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
       if response.status
         kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
-        @emit 'IntegrationRemoved'
+        @emit 'IntegrationUpdated'
 
 
   getFormOptions: ->

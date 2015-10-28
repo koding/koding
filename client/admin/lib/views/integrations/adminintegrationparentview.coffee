@@ -55,7 +55,7 @@ module.exports = class AdminIntegrationParentView extends JView
       @loader?.destroy()
       @addSubView @mainView = new AdminIntegrationDetailsView {}, data
 
-      @mainView.on 'IntegrationRemoved', =>
+      @mainView.on 'IntegrationUpdated', =>
         adminTabView           = @getDelegate()
         { configuredListView } = adminTabView.getPaneByName('Integrations').mainView
 
