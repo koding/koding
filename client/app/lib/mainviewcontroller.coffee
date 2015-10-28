@@ -87,7 +87,7 @@ module.exports = class MainViewController extends KDViewController
     html     = global.document.documentElement
     mainView = @getView()
 
-    fullSizeApps    = [ 'Login', 'Pricing', 'Activity', 'Teams', 'Welcome' ]
+    fullSizeApps    = [ 'Login', 'Activity', 'Teams', 'Welcome' ]
     appsWithSidebar = [
       'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
       'Environments', 'Bugs', 'Welcome'
