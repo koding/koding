@@ -14,26 +14,23 @@ body.pricing
   height                    100%
 
   #main-header
+    max-width               100%
+    top                     0
+    padding-right           calc((100% \- 1200px) / 2)
+    height                  73px
+    background              #fff
+    position                fixed
+    shadow                  0 1px 16px rgba(0,0,0,.1)
+
     .inner-container
       -webkit-font-smoothing  antialiased
 
-    .logotype
-      color             #424242
-      line-height       20px
-      font-size         26px
-
     nav
       a
-        color           #3B3B3B
+        color               #3B3B3B
 
         &.login
-          border-color  #ADADAD
-
-    #koding-logo
-      margin            0 7px 0 0
-
-      cite
-        r-sprite        app, 'logo-black'
+          border-color      #ADADAD
 
   .input-validation
     margin-left         30px !important
