@@ -75,7 +75,7 @@ module.exports = class MachineSettingsModal extends KDModalView
     isMachineRunning            = machine.status.state is Machine.State.Running
     disabledTabsForNotRunningVM = [ 'Disk Usage', 'Domains', 'VM Sharing', 'Snapshots' ]
     disabledTabsForManagedVM    = [ 'Specs', 'Domains', 'Snapshots' ]
-    disabledTabsForTeams        = [ 'Domains', 'Advanced' ]
+    disabledTabsForTeams        = [ 'Domains', 'Advanced', 'Snapshots' ]
 
     for item in PANE_CONFIG when item.title and item.viewClass
 

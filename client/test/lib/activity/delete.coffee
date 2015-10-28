@@ -16,7 +16,9 @@ module.exports =
     browser
       .waitForElementVisible        activitySelector + ' .settings-menu-wrapper', 25000
       .click                        activitySelector + ' .settings-menu-wrapper'
+      .waitForElementVisible        '.kdcontextmenu .delete-post', 20000
       .click                        '.kdcontextmenu .delete-post'
+      .waitForElementVisible        '.kdmodal-inner .solid.red.medium', 20000
       .click                        '.kdmodal-inner .solid.red.medium'
       .pause                        20000, ->
         text = browser.getText activitySelector
@@ -36,6 +38,7 @@ module.exports =
       .click                    commentSelector
       .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
       .click                    '.kdcontextmenu .delete-comment'
+      .waitForElementVisible    '.kdmodal-inner .solid.red.medium', 20000
       .click                    '.kdmodal-inner .solid.red.medium'
       .pause                    20000, ->
         text = browser.getText activitySelector + ' .comment-container'
@@ -53,6 +56,7 @@ module.exports =
       .click                    commentSelector
       .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
       .click                    '.kdcontextmenu .delete-comment'
+      .waitForElementVisible    '.kdmodal-inner .solid.light-gray.medium', 200000
       .click                    '.kdmodal-inner .solid.light-gray.medium'
       .waitForElementNotPresent '.kdoverlay', 25000
       .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
@@ -70,6 +74,7 @@ module.exports =
       .click                    settingsWrapperSelector
       .waitForElementVisible    '.kdcontextmenu .delete-post', 20000
       .click                    '.kdcontextmenu .delete-post'
+      .waitForElementVisible    '.kdmodal-inner .solid.light-gray.medium', 20000
       .click                    '.kdmodal-inner .solid.light-gray.medium'
       .waitForElementNotPresent '.kdoverlay', 25000
       .pause 3000

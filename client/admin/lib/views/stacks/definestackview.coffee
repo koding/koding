@@ -288,8 +288,7 @@ module.exports = class DefineStackView extends KDView
       @emit 'Reload'
 
       if err
-        @outputView.add "Parsing failed, please check your
-                         template and try again"
+        @outputView.add "Parsing failed, please check your template and try again"
         return
 
       { groupsController } = kd.singletons
@@ -304,13 +303,12 @@ module.exports = class DefineStackView extends KDView
           @inputTitle.setClass 'three-buttons'
 
           @outputView.add """
-
             Your stack script has been successfully saved.
-
+            
             If you want your team members to use this template you need to
             apply it for your team.
 
-            You can now close this window or continue working with your stack.
+            You can now close the stack editor or continue editing your stack.
           """
 
         else
@@ -319,7 +317,7 @@ module.exports = class DefineStackView extends KDView
       else
         setToGroup 'addAndWarn'
 
-      @cancelButton.setTitle 'Close'
+      @cancelButton.setTitle 'Ok'
 
 
   checkAndBootstrapCredentials: (callback) ->
