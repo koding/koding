@@ -59,12 +59,13 @@ module.exports = class PublicChatPane extends React.Component
   render: ->
     <div>
       <ChatPane
-        thread     = { @props.thread }
-        className  = "PublicChatPane"
-        onSubmit   = { @bound 'onSubmit' }
-        onLoadMore = { @bound 'onLoadMore' }
-        onInviteOthers = {@bound 'onInviteOthers'}>
-      </ChatPane>
+        thread         = { @props.thread }
+        className      = 'PublicChatPane'
+        onSubmit       = { @bound 'onSubmit' }
+        onLoadMore     = { @bound 'onLoadMore' }
+        onInviteOthers = {@bound 'onInviteOthers'}
+        ref            = 'chatPane'
+      />
       {@renderFooter()}
     </div>
 
