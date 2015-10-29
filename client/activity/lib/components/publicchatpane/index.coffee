@@ -44,11 +44,11 @@ module.exports = class PublicChatPane extends React.Component
 
     footerInnerComponent = if @channel 'isParticipant'
     then <ChatInputWidget
-           ref          = 'chatInputWidget'
-           onSubmit     = { @bound 'onSubmit' }
-           onCommand    = { @bound 'onCommand' }
-           channelId    = { @channel 'id' }
-         />
+           ref       = 'chatInputWidget'
+           onSubmit  = { @bound 'onSubmit' }
+           onCommand = { @bound 'onCommand' }
+           channelId = { @channel 'id' }
+           onResize  = { @bound 'onResize' }/>
     else @renderFollowChannel()
 
     <footer className="PublicChatPane-footer">
