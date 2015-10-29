@@ -1,24 +1,24 @@
-kd = require 'kd'
-KDViewController = kd.ViewController
-PricingAppView = require './pricingappview'
-KodingAppsController = require 'app/kodingappscontroller'
-globals = require 'globals'
+kd                    = require 'kd'
+KDViewController      = kd.ViewController
+PricingAppView        = require './pricingappview'
+KodingAppsController  = require 'app/kodingappscontroller'
+globals               = require 'globals'
+
+
+require('./routehandler')()
 
 
 module.exports = class PricingAppController extends KDViewController
 
-  @options =
-    name    : 'Pricing'
-    routes  :
-      '/:name?/Pricing'             : null
-      '/:name?/Pricing/Teams'       : null
-      '/:name?/Pricing/Individuals' : null
+
+  @options = name : 'Pricing'
 
 
   constructor: (options = {}, data) ->
 
-    options.appInfo = title: "Pricing"
+    options.appInfo = title: 'Pricing'
     options.view    = new PricingAppView params: options.params
+
     super options, data
 
     stripeOptions =
