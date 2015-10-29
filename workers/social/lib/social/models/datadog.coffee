@@ -85,6 +85,9 @@ module.exports = class DataDog extends Base
 
     { connection:{ delegate } } = client
 
+    unless delegate
+      return callback new KodingError 'Account not found'
+
     unless delegate?.type is 'registered'
       return callback new KodingError 'Not allowed'
 
@@ -127,6 +130,9 @@ module.exports = class DataDog extends Base
   @sendMetrics = secure (client, _metrics, callback = -> ) ->
 
     { connection: { delegate } } = client
+
+    unless delegate
+      return callback new KodingError 'Account not found'
 
     unless delegate.type is 'registered'
       return callback new KodingError 'Not allowed'
