@@ -17,7 +17,7 @@ import (
 var NOTIFICATION_LIMIT = 8
 
 func List(u *url.URL, h http.Header, _ interface{}, context *apimodels.Context) (int, http.Header, interface{}, error) {
-	// only logged in users can create a channel
+	// only logged in users can list notifications
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(apimodels.ErrNotLoggedIn)
 	}

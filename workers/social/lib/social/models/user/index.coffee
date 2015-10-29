@@ -1092,7 +1092,7 @@ module.exports = class JUser extends jraphical.Module
   @fetchUserByProvider = (provider, session, callback) ->
 
     { foreignAuth } = session
-    unless foreignAuth
+    unless foreignAuth?[provider]?.foreignId
       return callback new KodingError "No foreignAuth:#{provider} info in session"
 
     query                                      = {}
@@ -1840,6 +1840,7 @@ module.exports = class JUser extends jraphical.Module
 
       @fetchAccount 'koding', (err, account) =>
         return callback err  if err
+        return callback new KodingError 'Account not found' unless account
 
         { firstName } = account.profile
         sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password'

@@ -31,7 +31,8 @@ module.exports = ScrollerMixin =
       element.scrollTop = element.scrollHeight
     else if @isThresholdReached
       element.scrollTop = @scrollTop + (element.scrollHeight - @scrollHeight)
-      @isThresholdReached = no
+
+    @isThresholdReached = no
 
     @afterScrollDidUpdate?()
 

@@ -1,6 +1,8 @@
 React        = require 'kd-react'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
+Tooltip      = require 'app/components/tooltip'
+ProfileText  = require 'app/components/profile/profiletext'
 
 
 module.exports = class ActivityLikeLink extends React.Component
@@ -25,9 +27,31 @@ module.exports = class ActivityLikeLink extends React.Component
       likeMessage @props.messageId
 
 
+  renderTooltipItems: (participant) ->
+
+    { actorsPreview } = @props.interactions.like
+
+    for id, account of actorsPreview when account
+
+      <ProfileText account={account} />
+
+
+  renderTooltip: ->
+
+    { actorsCount } = @props.interactions.like
+
+    return null  unless actorsCount
+
+    <Tooltip>
+      {@renderTooltipItems()}
+    </Tooltip>
+
+
   render: ->
 
-    <a className={@getClassName()} onClick={ @bound 'onClick'} ></a>
+    <a className={@getClassName()} onClick={ @bound 'onClick' } >
+      {@renderTooltip()}
+    </a>
 
 
 

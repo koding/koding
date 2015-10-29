@@ -15,6 +15,17 @@ func GetAccountById(id string) (*models.Account, error) {
 	return account, Mongo.One(AccountsColl, id, account)
 }
 
+// GetAccountsByIds fetches all the accounts given by their IDs
+func GetAccountsByIds(ids []bson.ObjectId) ([]models.Account, error) {
+	accounts := make([]models.Account, 0)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&accounts)
+	}
+
+	return accounts, Mongo.Run(AccountsColl, query)
+}
+
 func GetAccount(username string) (*models.Account, error) {
 	account := new(models.Account)
 	query := func(c *mgo.Collection) error {

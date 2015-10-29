@@ -26,23 +26,39 @@ module.exports = class AccountCredentialList extends KDListView
   deleteItem: (item) ->
 
     credential = item.getData()
+
+    if credential.inuse
+      new kd.NotificationView
+        title: 'This credential is currently in-use'
+      return
+
     credential.isBootstrapped (err, bootstrapped) =>
 
       kd.warn "Bootstrap check failed:", { credential, err }  if err
 
       description = applyMarkdown if bootstrapped then "
-        This **#{credential.title}** credential is bootstrapped before which
+        This **#{credential.title}** credential is bootstrapped before. It
         means that you have modified data on your **#{credential.provider}**
         account.
         \n\n
-        You can remove this credential from Koding and manually cleanup
-        the resources created on your provider or you can **destroy** all
-        bootstrapped data and resources along with credential.
+        You can remove this credential here and manually cleanup the resources
+        which are created on your provider. Or you can **destroy** all
+        bootstrapped data and resources along with this credential.
         \n\n
-        **WARNING!** destroying resources includes **ALL RESOURCES**; your
-        team member's instances, volumes, keypairs and **everything else we've
-        created on your account**.
-      " else "Do you want to remove **#{credential.title}** ?"
+        **WARNING!** by destroying resources you'd destroy **ALL RESOURCES**;
+        your team members' instances, volumes, keypairs, and **everything else
+        we've created on their accounts**.
+        \n\n
+        **WARNING!** removing a credential can cause your stacks or instances
+        to stop working properly, please make sure that you don't have any
+        stack or stack templates that depend on this credential.
+      " else "
+        **WARNING!** removing a credential can cause your stacks or instances
+        to stop working properly, please make sure that you don't have any
+        stack or stack templates that depend on this credential.
+        \n\n
+        Do you want to remove **#{credential.title}** ?
+      "
 
       removeCredential = =>
         credential.delete (err) =>

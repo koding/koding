@@ -39,6 +39,8 @@ excludePlus = (username) ->
 
 module.exports = (email, options = {}) ->
 
+  return ''  unless email
+
   email = email.trim().toLowerCase()
 
   if checkKoding email

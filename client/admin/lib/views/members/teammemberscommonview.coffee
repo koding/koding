@@ -111,9 +111,8 @@ module.exports = class TeamMembersCommonView extends KDView
 
       return @handleError err  if err
 
-      @fetchUserRoles members, (members) =>
-        @listMembers members
-        @isFetching = no
+      @listMembers members
+      @isFetching = no
 
 
   fetchUserRoles: (members, callback) ->
@@ -168,10 +167,14 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip += members.length
 
-    @fetchUserRoles members, (members) =>
+    if @getOptions().memberType is 'Blocked'
       for member in members
-        member.loggedInUserRoles = @loggedInUserRoles # FIXME
         @listController.addItem member
+    else
+      @fetchUserRoles members, (members) =>
+        members.forEach (member) =>
+          member.loggedInUserRoles = @loggedInUserRoles # FIXME
+          item = @listController.addItem member
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
@@ -228,6 +231,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
   resetListItems: (showLoader = yes) ->
 
+    @skip = 0
     @listController.removeAllItems()
     @listController.lazyLoader.show()
 
