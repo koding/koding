@@ -139,8 +139,9 @@ reset = (props, state, callback = kd.noop) ->
     channelActions.loadChannel(privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
-      callback()
+      kd.utils.defer callback
   else if not channelThread
     threadActions.changeSelectedThread null
-    callback()
+    kd.utils.defer callback
+
 

@@ -151,9 +151,10 @@ reset = (props, state, callback = kd.noop) ->
       else
         messageActions.changeSelectedMessage null
 
-      callback()
+      kd.utils.defer callback
 
   else if not state.channelThread
     thread.changeSelectedThread null
-    callback()
+    kd.utils.defer callback
+
 
