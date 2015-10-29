@@ -43,6 +43,19 @@ func (n *NotificationSettings) Update() error {
 	return bongo.B.Update(n)
 }
 
+func (n *NotificationSettings) Delete() error {
+	selector := map[string]interface{}{
+		"channel_id": n.ChannelId,
+		"account_id": n.AccountId,
+	}
+
+	if err := n.One(bongo.NewQS(selector)); err != nil {
+		return err
+	}
+
+	return bongo.B.Delete(n)
+}
+
 func (n *NotificationSettings) AfterCreate() {
 	bongo.B.AfterCreate(n)
 }
