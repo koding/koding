@@ -1,11 +1,11 @@
 $                    = require 'jquery'
 React                = require 'kd-react'
-emojify              = require 'emojify.js'
 formatContent        = require 'app/util/formatReactivityContent'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 transformTags        = require 'app/util/transformReactivityTags'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
+renderEmojis         = require 'activity/util/renderEmojis'
 
 
 module.exports = class MessageBody extends React.Component
@@ -49,7 +49,7 @@ module.exports = class MessageBody extends React.Component
   renderEmojis: ->
 
     contentElement = React.findDOMNode @content
-    emojify.run contentElement  if contentElement
+    renderEmojis contentElement  if contentElement
 
 
   transformChannelHashtags: (message) ->
