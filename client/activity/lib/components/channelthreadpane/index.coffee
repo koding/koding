@@ -14,7 +14,7 @@ showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
-
+threadPaneMount              = require 'activity/mixins/threadpanemount'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -44,13 +44,11 @@ module.exports = class ChannelThreadPane extends React.Component
       channelParticipants   : immutable.List()
 
 
-  componentDidMount: -> reset @props, @state
+  componentDidMount: -> threadPaneMount.componentDidMount.call this, reset
 
+  componentWillReceiveProps: (nextProps) -> threadPaneMount.componentWillReceiveProps.call this, reset, nextProps
 
-  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
-
-
-  componentWillUnmount: -> ActivityFlux.actions.thread.changeSelectedThread null
+  componentWillUnmount: -> threadPaneMount.componentWillUnmount.call this
 
 
   onStart: ->
