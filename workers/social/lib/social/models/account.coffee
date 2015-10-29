@@ -711,7 +711,7 @@ module.exports = class JAccount extends jraphical.Module
   isEmailVerified: (callback) ->
     @fetchUser (err, user) ->
       return callback err if err
-      callback null, (user.status is 'confirmed')
+      callback null, (user?.status is 'confirmed')
 
   markUserAsExempt: secure (client, exempt, callback) ->
     { delegate } = client.connection

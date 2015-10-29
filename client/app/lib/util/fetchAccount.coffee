@@ -28,6 +28,8 @@ module.exports = fetchAccount = (origin, callback) ->
     remote.cacheable origin, (err, [account]) -> callback err, account
   else if origin?.bongo_?.constructorName is 'JAccount'
     callback null, origin
+  else if origin?.isIntegration
+    callback null, origin
   else
     callback { message: 'utils.fetchAccount: wrong type of argument - origin' }
 

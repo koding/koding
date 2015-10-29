@@ -58,7 +58,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
           This stack template is currently used by your team. If you continue
           to edit, all of your changes will be applied to all team members directly.
           We highly recommend you to clone this stack template
-          first and work on the cloned version. Once you finish your work, 
+          first and work on the cloned version. Once you finish your work,
           you can easily apply your changes for all team members.
         "
         buttons      :
@@ -110,7 +110,7 @@ module.exports = class StackTemplateListItem extends BaseStackTemplateListItem
     """
     <div class='stacktemplate-info clearfix'>
       {div.title{#(title)}} {{> @inuseView}} {{> @notReadyView}} {{> @accessLevelView}}
-      <cite>#{timeago meta.createdAt}</cite>
+      <cite>Last updated #{timeago meta.modifiedAt}</cite>
     </div>
     <div class='buttons'>{{> @settings}}</div>
     """

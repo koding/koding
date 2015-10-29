@@ -1,6 +1,3 @@
-.ChatList
-  overflow                    hidden
-
 .ChatItem
   rel()
 
@@ -25,6 +22,17 @@
     display                 none
     vertical-align          text-bottom
     padding                 5px
+
+    .Tooltip-wrapper
+      bottom                  22px
+      display                 none
+      opacity                 0
+      vendor                  transition, opacity .3s ease
+
+    &:hover
+      .Tooltip-wrapper
+        visible()
+        opacity               1
 
     &:after
       content               ''

@@ -42,12 +42,23 @@ module.exports = class EnvironmentsModal extends kd.ModalView
     @addSubView controller.getView()
 
     listView.on 'ModalDestroyRequested', @bound 'destroy'
+
+    { computeController, appManager } = kd.singletons
+
+    listView.on 'StackDeleteRequested', (stack) =>
+      stack.delete (err) =>
+        return  if showError err
+
+        new kd.NotificationView
+          title : 'Stack deleted'
+
+        computeController.reset yes
+        @destroy()
+
     listView.on 'StackReinitRequested', (stack) =>
 
       stack.delete (err) =>
         return showError err  if err
-
-        { computeController, appManager } = kd.singletons
 
         computeController
           .reset()

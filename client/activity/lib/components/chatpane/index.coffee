@@ -55,8 +55,7 @@ module.exports = class ChatPane extends React.Component
     scrollContainer     = React.findDOMNode @refs.scrollContainer
     reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
 
-    return null  unless scrollContainer or reachedFirstMessage
-
+    return null  unless scrollContainer and reachedFirstMessage
 
     <ChannelInfoContainer
       ref='ChannelInfoContainer'

@@ -296,6 +296,9 @@ module.exports = class JStackTemplate extends Module
         # Keep last updater info in the template details
         data.template.details.lastUpdaterId = delegate.getId()
 
+        data.meta = @getAt 'meta'
+        data.meta.modifiedAt = new Date
+
       @update { $set: data }, (err) => callback err, this
 
 
