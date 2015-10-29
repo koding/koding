@@ -14,12 +14,10 @@ StartVideoCallLink           = require 'activity/components/common/startvideocal
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 showNotification             = require 'app/util/showNotification'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
-threadPaneMount              = require 'activity/mixins/threadpanemount'
+ThreadPaneLifecycleMixin     = require 'activity/mixins/threadpanelifecycle'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
-
-  @include [ImmutableRenderMixin]
 
   { getters } = ActivityFlux
 
@@ -41,13 +39,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       channelThread         : immutable.Map()
       channelParticipants   : immutable.List()
       isComingSoonModalOpen : no
-
-
-  componentDidMount: -> threadPaneMount.componentDidMount.call this, reset
-
-  componentWillReceiveProps: (nextProps) -> threadPaneMount.componentWillReceiveProps.call this, reset, nextProps
-
-  componentWillUnmount: -> threadPaneMount.componentWillUnmount.call this
 
 
   onStart: ->
@@ -119,8 +110,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     </div>
 
 
-React.Component.include.call PrivateMessageThreadPane, [KDReactorMixin]
-
 reset = (props, state, callback = kd.noop) ->
 
   { followedChannels, channelThread } = state
@@ -144,4 +133,8 @@ reset = (props, state, callback = kd.noop) ->
     threadActions.changeSelectedThread null
     kd.utils.defer callback
 
+
+React.Component.include.call PrivateMessageThreadPane, [
+  ThreadPaneLifecycleMixin(reset), KDReactorMixin, ImmutableRenderMixin
+]
 
