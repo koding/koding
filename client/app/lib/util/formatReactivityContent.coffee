@@ -3,7 +3,7 @@ transformEmails = require './transformEmails'
 formatQuotes = require './formatQuotes'
 formatBlockquotes = require './formatBlockquotes'
 applyMarkdown = require './applyMarkdown'
-expandUsernames = require './expandUsernames'
+expandUsernames = require './expandReactivityUsernames'
 markdownUrls = require './markdownUrls'
 
 module.exports = (body = '', markdownOptions = {}) ->
@@ -18,6 +18,7 @@ module.exports = (body = '', markdownOptions = {}) ->
 
   body = fn body for fn in fns
   body = applyMarkdown body, markdownOptions
+  body = expandUsernames body, 'code, a'
 
   return body
 

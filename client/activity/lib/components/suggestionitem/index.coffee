@@ -35,7 +35,7 @@ module.exports = class SuggestionItem extends React.Component
         {makeAvatar message.get('account')}
       </div>
       <div className="ActivitySuggestionItem-messageBody">
-        <SearchItemBody source={messageBody} formatContentFn={formatContent} />
+        <SearchItemBody source={messageBody} contentFormatter={formatContent} />
       </div>
       <div>
         <span className="ActivitySuggestionItem-info ActivitySuggestionItem-profileLink">

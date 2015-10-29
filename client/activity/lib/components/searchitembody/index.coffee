@@ -1,9 +1,14 @@
-$             = require 'jquery'
-React         = require 'kd-react'
-Constants     = require 'activity/flux/actions/searchconstants'
-emojify       = require 'emojify.js'
+kd        = require 'kd'
+$         = require 'jquery'
+React     = require 'kd-react'
+Constants = require 'activity/flux/actions/searchconstants'
+emojify   = require 'emojify.js'
 
 module.exports = class SearchItemBody extends React.Component
+
+  @defaultProps =
+    contentFormatter : kd.noop
+
 
   ###*
    * Renders search item body
@@ -30,11 +35,11 @@ module.exports = class SearchItemBody extends React.Component
     startTag = '<span class="SearchItemBody-matchedWord">'
     endTag   = '</span>'
 
-    { source, formatContentFn } = @props
+    { source, contentFormatter } = @props
 
     content = source
 
-    content = formatContentFn content, { highlight : no }  if @props.formatContentFn
+    content = contentFormatter content, { highlight : no }
 
     content = helper.cleanUselessMarkers content
     content = helper.replaceMarkers content, startTag, endTag

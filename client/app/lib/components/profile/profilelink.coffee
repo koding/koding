@@ -12,7 +12,7 @@ module.exports = class ProfileLink extends React.Component
   getHref: ->
     if @props.account.isIntegration
     then "/Admin/Integrations/Configure/#{@props.account.id}"
-    else ''
+    else '#'
 
 
   render: ->
