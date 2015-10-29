@@ -76,7 +76,7 @@ func main() {
 		cli.Command{
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s. sudo is required.", KlientName),
-			Description: fmt.Sprintf("Install the %s. sudo is required.", KlientName),
+			Description: cmdDescriptions["install"],
 			//HideHelp: true,
 			Action: Exit(InstallCommand),
 		},

@@ -44,6 +44,21 @@ func (p *serviceProgram) Stop(s service.Service) error {
 }
 
 func InstallCommand(c *cli.Context) int {
+	if len(c.Args()) < 1 {
+		cli.ShowCommandHelp(c, "install")
+		return 1
+	}
+
+	authToken := c.Args().Get(0)
+
+	// We need to check if the authToken is somehow empty, because klient
+	// will default to user/pass if there is no auth token (despite setting
+	// the token flag)
+	if authToken == "" {
+		cli.ShowCommandHelp(c, "install")
+		return 1
+	}
+
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
 	if err != nil {
 		fmt.Printf("Error getting %s wrapper path: '%s'\n", KlientName, err)
@@ -105,17 +120,19 @@ func InstallCommand(c *cli.Context) int {
 		}
 	}
 
+	fmt.Println("Downloading...")
+
 	if err = downloadRemoteToLocal(S3KlientPath, klientBinPath); err != nil {
-		fmt.Printf("Error donwloading %s: '%s'\n", KlientName, err)
+		fmt.Printf("Error downloading %s: '%s'\n", KlientName, err)
 		return 1
 	}
 
 	fmt.Printf(`Authenticating you to the %s
-Please provide your Koding Username and Password when prompted..
 
 `, KlientName)
 
 	cmd := exec.Command(klientBinPath, "-register",
+		"-token", authToken,
 		"--kontrol-url", KontrolUrl, "--kite-home", KiteHome)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
