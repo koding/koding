@@ -20,9 +20,8 @@ module.exports = class PrivateChatPane extends React.Component
         onSubmit   = { @bound 'onSubmit' }
         onInviteOthers = {@bound 'onInviteOthers'}
         onLoadMore = { @bound 'onLoadMore' }
-      >
-      </ChatPane>
-      <footer className='PrivateChatPane-footer ChatPaneFooter'>
+      />
+      <footer className='PrivateChatPane-footer'>
         <ChatInputWidget
           onSubmit         = { @bound 'onSubmit' }
           onCommand        = { @bound 'onCommand' }

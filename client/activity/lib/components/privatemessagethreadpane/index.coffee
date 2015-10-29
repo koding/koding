@@ -65,11 +65,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     prepareThreadTitle @state.channelThread
 
 
-  renderChat: ->
-
-    <PrivateChatPane thread={ @state.channelThread }/>
-
-
   onDragEnter: (event) ->
 
     kd.utils.stopDOMEvent event
@@ -110,7 +105,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
         </header>
         <div className='PrivateMessageThreadPane-body'>
           <section className='PrivateMessageThreadPane-chatWrapper'>
-            {@renderChat()}
+            <PrivateChatPane ref='pane' thread={ @state.channelThread }/>
           </section>
         </div>
       </section>
