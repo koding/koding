@@ -39,7 +39,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Delete,
 			Name:     "notification-settings-delete",
 			Type:     handler.DeleteRequest,
-			Endpoint: "/channel/{id}/notificationsettings",
+			Endpoint: "/notificationsettings/{id}",
 		},
 	)
 }
