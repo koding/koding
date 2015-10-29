@@ -50,6 +50,9 @@ module.exports = class ChannelThreadPane extends React.Component
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
+  componentWillUnmount: -> ActivityFlux.actions.thread.changeSelectedThread null
+
+
   onStart: ->
 
     @setState isComingSoonModalOpen: yes
