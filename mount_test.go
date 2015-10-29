@@ -17,6 +17,7 @@ func exists(p string) bool {
 	if _, err := os.Stat(p); os.IsNotExist(err) {
 		return false
 	}
+
 	return true
 }
 
@@ -27,7 +28,7 @@ func TestAskToCreate(t *testing.T) {
 	Convey("askToCreate", t, func() {
 		Convey("Should not do anything if the folder already exists", func() {
 			os.RemoveAll(askDir)
-			os.MkdirAll(askDir, 0655)
+			os.MkdirAll(askDir, 0755)
 
 			var in, out bytes.Buffer
 			// We're giving it an invalid input, so it would normally error out.
@@ -76,6 +77,5 @@ func TestAskToCreate(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(exists(askDir), ShouldBeFalse)
 		})
-
 	})
 }
