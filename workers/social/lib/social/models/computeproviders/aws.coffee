@@ -17,7 +17,7 @@ module.exports = class Aws extends ProviderInterface
 
   @create = (client, options, callback) ->
 
-    { credential, instanceType, region, ami, storage } = options
+    { credential, instanceType, region, ami, storage, label } = options
 
     storage ?= 8
     if isNaN storage
@@ -29,6 +29,7 @@ module.exports = class Aws extends ProviderInterface
       region        : region ? 'us-east-1'
       instance_type : instanceType ? 't2.micro'
       storage_size  : storage
+      assignedLabel : label
 
     if ami?
       meta.source_ami = ami
