@@ -10,6 +10,28 @@ import (
 	"github.com/koding/logging"
 )
 
+const (
+	allAlias    = "all"
+	adminsAlias = "admins"
+)
+
+var (
+	globalAliases = map[string]bool{
+		"all":     true,
+		"channel": true,
+		"team":    true,
+		"group":   true,
+	}
+	roleAliases = map[string]bool{
+		"admins": true,
+	}
+
+	aliasNormalizers = map[string]aliasNormalizerFunc{
+		allAlias:    fetchAllMembersOfChannel,
+		adminsAlias: fetchAllAdminsOfChannel,
+	}
+)
+
 type mentionExtractor struct {
 	err             error
 	usernames       []string
@@ -17,6 +39,8 @@ type mentionExtractor struct {
 	cm              *socialapimodels.ChannelMessage
 	failedUsernames []string
 }
+
+type aliasNormalizerFunc func(*socialapimodels.ChannelMessage) ([]string, error)
 
 // NewMentionExtractor extracts mentioned usernames from a channel message
 func NewMentionExtractor(cm *socialapimodels.ChannelMessage, log logging.Logger) *mentionExtractor {
@@ -43,16 +67,19 @@ func (n *mentionExtractor) UnifyUsernames() *mentionExtractor {
 
 // UnifyAliases changes alias usernames to their respective usernames
 func (n *mentionExtractor) UnifyAliases() *mentionExtractor {
-	return n.afterChecks(func() {
+	n.err = n.afterChecks(func() error {
 		n.usernames = unifyAliases(n.usernames)
 		n.log.Debug("usernames after UnifyAliases %+v", n.usernames)
+		return nil
 	})
+
+	return n
 }
 
 // ConvertAliases replaces the aliases with their actual usernames, removes the
 // alias from username list
 func (n *mentionExtractor) ConvertAliases() *mentionExtractor {
-	return n.afterChecks(func() {
+	n.err = n.afterChecks(func() error {
 		normalizedUsernames := make([]string, 0)
 		for _, username := range n.usernames {
 			found := false
@@ -62,8 +89,7 @@ func (n *mentionExtractor) ConvertAliases() *mentionExtractor {
 
 					channelUsers, err := normalizer(n.cm)
 					if err != nil {
-						n.err = err
-						return
+						return err
 					}
 
 					normalizedUsernames = append(normalizedUsernames, channelUsers...)
@@ -78,8 +104,10 @@ func (n *mentionExtractor) ConvertAliases() *mentionExtractor {
 
 		n.usernames = normalizedUsernames
 		n.log.Debug("usernames after ConvertAliases %+v", n.usernames)
+		return nil
 	})
 
+	return n
 }
 
 // RemoveOwner removes the owner from mention list
@@ -108,11 +136,10 @@ func (n *mentionExtractor) RemoveOwner() *mentionExtractor {
 
 // RemoveNonParticipants removes non participants people from username list
 func (n *mentionExtractor) RemoveNonParticipants() *mentionExtractor {
-	return n.afterChecks(func() {
+	n.err = n.afterChecks(func() error {
 		channel, err := socialapimodels.Cache.Channel.ById(n.cm.InitialChannelId)
 		if err != nil {
-			n.err = err
-			return
+			return err
 		}
 
 		participants := make([]string, 0)
@@ -120,8 +147,7 @@ func (n *mentionExtractor) RemoveNonParticipants() *mentionExtractor {
 		for _, username := range n.usernames {
 			acc, err := socialapimodels.Cache.Account.ByNick(username)
 			if err != nil && err != bongo.RecordNotFound {
-				n.err = err
-				return
+				return err
 			}
 
 			if err == bongo.RecordNotFound {
@@ -141,7 +167,10 @@ func (n *mentionExtractor) RemoveNonParticipants() *mentionExtractor {
 
 		n.usernames = participants
 		n.log.Debug("usernames after RemoveNonParticipants %+v", n.usernames)
+		return nil
 	})
+
+	return n
 }
 
 // Do operates the required filterings on username list
@@ -160,25 +189,22 @@ func (n *mentionExtractor) Do() ([]string, error) {
 }
 
 // afterChecks does the required validation and check, if successful, runs the given function
-func (n *mentionExtractor) afterChecks(f func()) *mentionExtractor {
+func (n *mentionExtractor) afterChecks(f func() error) error {
 	if n.err != nil {
-		return n
+		return n.err
 	}
 
 	channel, err := socialapimodels.Cache.Channel.ById(n.cm.InitialChannelId)
 	if err != nil {
-		n.err = err
-		return n
+		return err
 	}
 
 	// do not operate for koding group
 	if channel.GroupName == socialapimodels.Channel_KODING_NAME {
-		return n
+		return nil
 	}
 
-	f()
-
-	return n
+	return f()
 }
 
 // fetchAllMembersOfChannel gets the channel id from ChannelMessage and fetches
@@ -241,66 +267,29 @@ func fetchChannelParticipants(c *socialapimodels.Channel) ([]string, error) {
 	return usernames, nil
 }
 
-var globalAliases = map[string][]string{
-	"all": []string{"channel", "team", "all", "group"},
-}
-
-var roleAliases = map[string][]string{
-	"admins": []string{"admins"},
-}
-
-type aliasNormalizerFunc func(*socialapimodels.ChannelMessage) ([]string, error)
-
-var aliasNormalizers = map[string]aliasNormalizerFunc{
-	"all":    fetchAllMembersOfChannel,
-	"admins": fetchAllAdminsOfChannel,
-}
-
 // unifyAliases removes duplicate mentions from usernames. eg: team and all
 // essentially same mentions
 func unifyAliases(usernames []string) []string {
-	// do first clean up with removing duplicates
-	usernames = socialapimodels.StringSliceUnique(usernames)
+	cleaned := make(map[string]struct{})
 
-	// reduce aliases to their parent representation eg:@everyone->@all
-	cleanUsernames := make(map[string]struct{})
-
-	for _, username := range usernames {
-		// check if the username is in global mention list first
-		for mention, aliases := range globalAliases {
-			if socialapimodels.IsIn(username, aliases...) {
-				// Special Case - if we have "all" mention (or any other all
-				// `alias`), no need for further process
-				if mention == "all" {
-					return []string{"all"}
-				}
-
-				// if the username is one the keywords, just use the general keyword
-				cleanUsernames[mention] = struct{}{}
-			} else {
-				// if username is not one of the keywords, use it directly
-				cleanUsernames[username] = struct{}{}
-			}
+	for _, user := range usernames {
+		if globalAliases[user] {
+			return []string{allAlias} // shortcut
 		}
-	}
 
-	// then check if the username is in
-	for cleaned := range cleanUsernames {
-		for mention, aliases := range roleAliases {
-			if socialapimodels.IsIn(cleaned, aliases...) {
-				delete(cleanUsernames, cleaned)      // delete the alias from clean
-				cleanUsernames[mention] = struct{}{} // set mention to clean
-			} else {
-				cleanUsernames[cleaned] = struct{}{}
-			}
+		// if it's one of the role aliases, set it to "admins" directly. This
+		// will also clean up duplicates and there will be only one role.
+		if roleAliases[user] {
+			cleaned[adminsAlias] = struct{}{}
+		} else {
+			cleaned[user] = struct{}{}
 		}
 	}
 
 	// convert it to string slice
 	res := make([]string, 0)
-	for username := range cleanUsernames {
+	for username := range cleaned {
 		res = append(res, username)
 	}
-
 	return res
 }

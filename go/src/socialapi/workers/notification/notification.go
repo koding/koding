@@ -279,11 +279,11 @@ func prepareActiveNotification(contentId, notifierId int64) *models.Notification
 }
 
 func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time, c *socialapimodels.Channel) {
-	nn := newNotification(contentId, notifierId, subscribedAt)
-	nn.SubscribeOnly = true
-	nn.ContextChannelId = c.Id
-	if err := nn.Create(); err != nil {
-		n.log.Error("An error occurred while subscribing user %d: %s", nn.AccountId, err.Error())
+	ntf := newNotification(contentId, notifierId, subscribedAt)
+	ntf.SubscribeOnly = true
+	ntf.ContextChannelId = c.Id
+	if err := ntf.Create(); err != nil {
+		n.log.Error("An error occurred while subscribing user %d: %s", ntf.AccountId, err.Error())
 	}
 }
 
