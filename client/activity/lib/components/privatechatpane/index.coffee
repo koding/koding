@@ -28,6 +28,7 @@ module.exports = class PrivateChatPane extends React.Component
           onCommand        = { @bound 'onCommand' }
           channelId        = { @channel 'id' }
           disabledFeatures = { ['search'] }
+          onResize         = { @bound 'onResize' }
           ref              = 'chatInputWidget'
         />
       </footer>
