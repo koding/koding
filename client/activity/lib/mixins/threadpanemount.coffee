@@ -7,6 +7,7 @@ componentDidMount = (reset) ->
     scrollTop              = @state.channelThread.getIn [ 'flags', 'scrollPosition' ]
     scroller               = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
     scroller.scrollTop     = scrollTop  if scrollTop
+    scroller.style.opacity = 1
 
 
 componentWillReceiveProps = (reset, nextProps) -> reset nextProps, @state
@@ -19,6 +20,7 @@ componentWillUnmount = ->
   { scrollTop }       = scroller
   { channel, thread } = ActivityFlux.actions
 
+  scroller.style.opacity = 0
   channel.setScrollPosition (@state.channelThread.getIn [ 'channel', 'id' ]), scrollTop
   thread.changeSelectedThread null
 
