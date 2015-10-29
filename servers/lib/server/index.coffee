@@ -134,22 +134,25 @@ app.all  '/:name/:section?/:slug?'               , require './handlers/main.coff
 app.get  '/'                                     , require './handlers/root.coffee'
 app.get  '*'                                     , require './handlers/rest.coffee'
 
-# start webserver
-app.listen webPort
-console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+# once bongo is ready we can start listening
+koding.once 'dbClientReady', ->
 
-# start user tracking
-usertracker.start()
+  # start webserver
+  app.listen webPort
+  console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
 
-# init rabbitmq client for Email to use to queue emails
-mqClient = require './amqp'
-Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
-Tracker.setMqClient mqClient
+  # start user tracking
+  usertracker.start()
 
-# NOTE: in the event of errors, send 500 to the client rather
-#       than the stack trace.
-app.use (err, req, res, next) ->
-  console.error 'request error'
-  console.error err
-  console.error err.stack
-  res.status(500).send error_500()
+  # init rabbitmq client for Email to use to queue emails
+  mqClient = require './amqp'
+  Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
+  Tracker.setMqClient mqClient
+
+  # NOTE: in the event of errors, send 500 to the client rather
+  #       than the stack trace.
+  app.use (err, req, res, next) ->
+    console.error 'request error'
+    console.error err
+    console.error err.stack
+    res.status(500).send error_500()
