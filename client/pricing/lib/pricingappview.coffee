@@ -70,6 +70,12 @@ module.exports = class PricingAppView extends KDView
     @featureTabView.showPaneByIndex 0  if lastPath is 'Teams'
 
 
+  switchBranch: (type) ->
+
+    index = if type is 'teams' then 0 else 1
+    @featureTabView.showPaneByIndex index
+
+
   initFooter: ->
 
     features = [
