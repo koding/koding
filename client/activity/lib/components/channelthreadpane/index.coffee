@@ -129,7 +129,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
 React.Component.include.call ChannelThreadPane, [KDReactorMixin]
 
-reset = (props, state) ->
+reset = (props, state, callback = kd.noop) ->
 
   { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
@@ -153,6 +153,9 @@ reset = (props, state) ->
       else
         messageActions.changeSelectedMessage null
 
+      callback()
+
   else if not state.channelThread
     thread.changeSelectedThread null
+    callback()
 
