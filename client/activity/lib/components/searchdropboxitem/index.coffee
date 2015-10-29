@@ -3,6 +3,7 @@ React                = require 'kd-react'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 formatPlural         = kd.utils.formatPlural
+formatContent        = require 'app/util/formatReactivityContent'
 DropboxItem          = require 'activity/components/dropboxitem'
 SearchItemBody       = require 'activity/components/searchitembody'
 ProfileText          = require 'app/components/profile/profiletext'
@@ -27,7 +28,7 @@ module.exports = class SearchDropboxItem extends React.Component
     { renderProfileLink, renderLikesCount, renderCommentsCount } = helper
 
     <DropboxItem {...@props} className="DropboxItem-separated SearchDropboxItem">
-      <SearchItemBody source={messageBody} />
+      <SearchItemBody source={messageBody} formatContentFn={formatContent} />
       <div>
         <span className="SearchDropboxItem-info SearchDropboxItem-profileLink">
           by { renderProfileLink message }
