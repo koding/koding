@@ -49,7 +49,7 @@ type KodingNetworkFS struct {
 	Ctx context.Context
 
 	// ignoredList is list of folders for which all operations will return empty
-	// response.
+	// response. If a file has same name as entry in list, it'll NOT be ignored.
 	ignoredList map[string]struct{}
 
 	// RWMutex protects the fields below.
@@ -205,10 +205,6 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
 	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
 
-	if k.isIgnored(op.Name) {
-		return fuse.ENOENT
-	}
-
 	dir, err := k.getDir(op.Parent)
 	if err != nil {
 		return err
@@ -258,7 +254,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	var bytesRead int
 	for _, e := range entries {
-		if k.isIgnored(e.Name) {
+		if k.isIgnoredDir(e.Type, e.Name) {
 			continue
 		}
 
@@ -610,6 +606,12 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 	k.Unlock()
 }
 
+// isIgnoredDir returns true if entry is a directory and is ignored.
+func (k *KodingNetworkFS) isIgnoredDir(et fuseutil.DirentType, name string) bool {
+	return et == fuseutil.DT_Directory && k.isIgnored(name)
+}
+
+// isIgnored return true if entry name is in list of ignored list of entries.
 func (k *KodingNetworkFS) isIgnored(name string) bool {
 	_, ok := k.ignoredList[name]
 	return ok
