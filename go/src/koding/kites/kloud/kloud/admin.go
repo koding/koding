@@ -4,6 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/klient"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
 )
@@ -66,10 +72,25 @@ func (k *Kloud) AdminAdd(r *kite.Request) (interface{}, error) {
 	if !isGroupMember {
 		return nil, fmt.Errorf("Group '%s' is not a member of machine '%s'", args.GroupName, args.MachineId)
 	}
-
 	// Now we are ready to go
-	return nil, errors.New("not implemented yet")
 
+	ctx := request.NewContext(context.Background(), r)
+	ctx = k.ContextCreator(ctx)
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("session context is not passed")
+	}
+
+	kl, err := klient.NewWithTimeout(sess.Kite, machine.QueryString, time.Second*10)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := kl.AddUser(r.Username); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 // func (k *Kloud) AdminRemove(r *kite.Request) (interface{}, error) {
