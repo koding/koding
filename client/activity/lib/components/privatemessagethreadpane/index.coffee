@@ -14,6 +14,7 @@ StartVideoCallLink           = require 'activity/components/common/startvideocal
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 showNotification             = require 'app/util/showNotification'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
+threadPaneMount              = require 'activity/mixins/threadpanemount'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -42,25 +43,11 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       isComingSoonModalOpen : no
 
 
-  componentDidMount: ->
+  componentDidMount: -> threadPaneMount.componentDidMount.call this, reset
 
-    reset @props, @state, =>
-      scrollTop          = @state.channelThread.getIn [ 'flags', 'scrollPosition' ]
-      scroller           = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
-      scroller.scrollTop = scrollTop  if scrollTop
+  componentWillReceiveProps: (nextProps) -> threadPaneMount.componentWillReceiveProps.call this, reset, nextProps
 
-
-  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
-
-
-  componentWillUnmount: ->
-
-    # terrifying drill - SY
-    { scrollTop }       = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
-    { channel, thread } = ActivityFlux.actions
-
-    channel.setScrollPosition (@state.channelThread.getIn [ 'channel', 'id' ]), scrollTop
-    thread.changeSelectedThread null
+  componentWillUnmount: -> threadPaneMount.componentWillUnmount.call this
 
 
   onStart: ->
