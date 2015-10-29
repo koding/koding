@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -65,6 +66,15 @@ func TestKodingNetworkFS(tt *testing.T) {
 							IsDir:    false,
 							FullPath: "/remote/file",
 							Name:     "file",
+							Mode:     os.FileMode(0700),
+							Time:     millenium,
+							Size:     uint64(len(s)),
+						},
+						fktransport.FsGetInfoRes{
+							Exists:   true,
+							IsDir:    true,
+							FullPath: "/remote/node_modules",
+							Name:     "node_modules",
 							Mode:     os.FileMode(0700),
 							Time:     millenium,
 							Size:     uint64(len(s)),
@@ -140,8 +150,13 @@ func TestKodingNetworkFS(tt *testing.T) {
 			})
 		})
 
-		// Convey("LookUpInode", func() {
-		// })
+		Convey("LookUpInode", func() {
+			Convey("It should return error if directory is ignored", func() {
+				_, err := os.Open(filepath.Join(k.MountPath, "node_modules"))
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "no such file or directory")
+			})
+		})
 
 		Convey("OpenDir", func() {
 			Convey("It should open root directory", func() {
@@ -169,12 +184,22 @@ func TestKodingNetworkFS(tt *testing.T) {
 		})
 
 		Convey("ReadDir", func() {
-			Convey("It should return no entries when directory is empty", func() {
+			files, err := ioutil.ReadDir(k.MountPath)
+			So(err, ShouldBeNil)
+
+			Convey("It should return entries", func() {
 				fi, err := os.Stat(k.MountPath)
 				So(err, ShouldBeNil)
 
 				So(fi.IsDir(), ShouldBeTrue)
 				So(fi.Mode(), ShouldEqual, 0700|os.ModeDir)
+
+				So(len(files), ShouldEqual, 1)
+				So(files[0].Name(), ShouldEqual, "file")
+
+				Convey("It should not return ignored entries", func() {
+					So(files[0].Name(), ShouldNotEqual, "node_modules")
+				})
 			})
 		})
 
@@ -690,6 +715,18 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		_, ok := k.liveNodes[i]
 		So(ok, ShouldBeFalse)
 	})
+
+	Convey("KodingNetworkFS#isIgnored", t, func() {
+		k := newknfs(f)
+		k.ignoredList["ignored/"] = struct{}{}
+
+		So(k.isIgnored("ignored/"), ShouldBeTrue)
+		So(k.isIgnored("notignored/"), ShouldBeFalse)
+
+		Convey("It should ignore only if matches full string", func() {
+			So(k.isIgnored("ignored"), ShouldBeFalse)
+		})
+	})
 }
 
 func _unmount(k *KodingNetworkFS) error {
@@ -706,7 +743,9 @@ func newknfs(t fktransport.Transport) *KodingNetworkFS {
 		panic(err)
 	}
 
-	c := &fkconfig.Config{LocalPath: mountDir}
+	c := &fkconfig.Config{
+		LocalPath: mountDir, IgnoreFolders: []string{"node_modules"},
+	}
 	k, err := NewKodingNetworkFS(t, c)
 	if err != nil {
 		panic(err)

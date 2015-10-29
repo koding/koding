@@ -48,6 +48,10 @@ type KodingNetworkFS struct {
 	// TODO: I'm not sure what to do with this yet, saving it for future.
 	Ctx context.Context
 
+	// ignoredList is list of folders for which all operations will return empty
+	// response.
+	ignoredList map[string]struct{}
+
 	// RWMutex protects the fields below.
 	sync.RWMutex
 
@@ -65,7 +69,6 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	}
 
 	mountConfig := &fuse.MountConfig{
-
 		// Name of mount; required to be non empty or `umount` command will
 		// require root to unmount the folder.
 		FSName: c.MountName,
@@ -129,10 +132,18 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
+	// clean ignore paths and save it in map for easy lookup
+	ignoredList := map[string]struct{}{}
+	for index := range c.IgnoreFolders {
+		ignore := c.IgnoreFolders[index]
+		ignoredList[ignore] = struct{}{}
+	}
+
 	return &KodingNetworkFS{
 		MountPath:   c.LocalPath,
 		MountConfig: mountConfig,
 		RWMutex:     sync.RWMutex{},
+		ignoredList: ignoredList,
 		liveNodes:   liveNodes,
 	}, nil
 }
@@ -194,6 +205,10 @@ func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.Ge
 func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
 	defer debug(time.Now(), "ParentID=%d Name=%s", op.Parent, op.Name)
 
+	if k.isIgnored(op.Name) {
+		return fuse.ENOENT
+	}
+
 	dir, err := k.getDir(op.Parent)
 	if err != nil {
 		return err
@@ -243,6 +258,10 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	var bytesRead int
 	for _, e := range entries {
+		if k.isIgnored(e.Name) {
+			continue
+		}
+
 		c := fuseutil.WriteDirent(op.Dst[bytesRead:], e)
 		if c == 0 {
 			break
@@ -589,4 +608,9 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 	k.Lock()
 	delete(k.liveNodes, id)
 	k.Unlock()
+}
+
+func (k *KodingNetworkFS) isIgnored(name string) bool {
+	_, ok := k.ignoredList[name]
+	return ok
 }
