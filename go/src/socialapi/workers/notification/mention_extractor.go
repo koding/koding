@@ -171,7 +171,7 @@ func (n *mentionExtractor) afterChecks(f func()) *mentionExtractor {
 		return n
 	}
 
-	// do not convert aliases for koding group
+	// do not operate for koding group
 	if channel.GroupName == socialapimodels.Channel_KODING_NAME {
 		return n
 	}
