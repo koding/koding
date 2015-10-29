@@ -493,6 +493,18 @@ setSidebarPublicChannelsTab = (tab) ->
   dispatch SET_SIDEBAR_PUBLIC_CHANNELS_TAB, { tab }
 
 
+###*
+ * Action to set current scroll position of a chat pane
+ *
+ * @param {string} channelId
+ * @param {number} position
+###
+setScrollPosition = (channelId, position) ->
+
+  { SET_CHANNEL_SCROLL_POSITION } = actionTypes
+  dispatch SET_CHANNEL_SCROLL_POSITION, { channelId, position }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -515,5 +527,6 @@ module.exports = {
   inviteMember
   setSidebarPublicChannelsQuery
   setSidebarPublicChannelsTab
+  setScrollPosition
 }
 
