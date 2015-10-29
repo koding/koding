@@ -26,6 +26,7 @@ module.exports = class ChatInputWidget extends React.Component
   @defaultProps =
     disabledFeatures : []
     onReady          : kd.noop
+    onResize         : kd.noop
 
 
   getDataBindings: ->
@@ -156,6 +157,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     @setValue value
     @runDropboxChecks value
+    @props.onResize()
 
 
   runDropboxChecks: (value) ->
@@ -300,6 +302,9 @@ module.exports = class ChatInputWidget extends React.Component
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
+  onResize: -> @props.onResize()
+
+
   renderEmojiDropbox: ->
 
     { filteredEmojiList, filteredEmojiListSelectedIndex, filteredEmojiListSelectedItem, filteredEmojiListQuery } = @state
@@ -411,6 +416,7 @@ module.exports = class ChatInputWidget extends React.Component
         value     = { @state.value }
         onChange  = { @bound 'onChange' }
         onKeyDown = { @bound 'onKeyDown' }
+        onResize  = { @bound 'onResize' }
         ref       = 'textInput'
       />
       <Link
