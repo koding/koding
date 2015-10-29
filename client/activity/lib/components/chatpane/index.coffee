@@ -4,6 +4,7 @@ ChatList             = require 'activity/components/chatlist'
 ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
 ScrollerMixin        = require 'app/components/scroller/scrollermixin'
+EmojiPreloaderMixin  = require 'activity/components/emojipreloadermixin'
 ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 scrollToTarget       = require 'app/util/scrollToTarget'
 classnames           = require 'classnames'
@@ -52,10 +53,8 @@ module.exports = class ChatPane extends React.Component
 
     { className } = @props
 
-    classes =
-      'ChatPane'               : yes
-      'emoji-sprite-preloader' : yes
-    classes[className]       = yes  if className
+    classes = { 'ChatPane' : yes }
+    classes[className] = yes  if className
 
     return classnames classes
 
@@ -121,5 +120,5 @@ module.exports = class ChatPane extends React.Component
     </div>
 
 
-React.Component.include.call ChatPane, [ScrollerMixin]
+React.Component.include.call ChatPane, [ScrollerMixin, EmojiPreloaderMixin]
 
