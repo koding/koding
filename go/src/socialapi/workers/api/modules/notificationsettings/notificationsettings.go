@@ -90,6 +90,29 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *mo
 	return response.NewOK(response.NewSuccessResponse(req))
 }
 
+func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	id, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ns := models.NotificationSettings()
+	ns.Id = id
+
+	if err := ns.ById(id); err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
+		return response.NewBadRequest(err)
+	}
+
+	if err := ns.Delete(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewDeleted()
+}
+
 func fetchChannelId(u *url.URL, context *models.Context) (int64, error) {
 	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
