@@ -115,7 +115,7 @@ module.exports = class ChannelThreadPane extends React.Component
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
-            <PublicChatPane thread={@state.channelThread}/>
+            <PublicChatPane ref='pane' thread={@state.channelThread}/>
           </section>
         </div>
       </section>
