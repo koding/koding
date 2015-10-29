@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -150,13 +149,8 @@ func TestKodingNetworkFS(tt *testing.T) {
 			})
 		})
 
-		Convey("LookUpInode", func() {
-			Convey("It should return error if directory is ignored", func() {
-				_, err := os.Open(filepath.Join(k.MountPath, "node_modules"))
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "no such file or directory")
-			})
-		})
+		//Convey("LookUpInode", func() {
+		//})
 
 		Convey("OpenDir", func() {
 			Convey("It should open root directory", func() {
@@ -716,15 +710,15 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		So(ok, ShouldBeFalse)
 	})
 
-	Convey("KodingNetworkFS#isIgnored", t, func() {
+	Convey("KodingNetworkFS#isDirIgnored", t, func() {
 		k := newknfs(f)
-		k.ignoredList["ignored/"] = struct{}{}
+		k.ignoredFolderList["ignored"] = struct{}{}
 
-		So(k.isIgnored("ignored/"), ShouldBeTrue)
-		So(k.isIgnored("notignored/"), ShouldBeFalse)
+		So(k.isDirIgnored(fuseutil.DT_Directory, "ignored"), ShouldBeTrue)
+		So(k.isDirIgnored(fuseutil.DT_Directory, "notignored"), ShouldBeFalse)
 
-		Convey("It should ignore only if matches full string", func() {
-			So(k.isIgnored("ignored"), ShouldBeFalse)
+		Convey("It should only ignore folders", func() {
+			So(k.isDirIgnored(fuseutil.DT_File, "ignored"), ShouldBeFalse)
 		})
 	})
 }

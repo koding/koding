@@ -48,9 +48,9 @@ type KodingNetworkFS struct {
 	// TODO: I'm not sure what to do with this yet, saving it for future.
 	Ctx context.Context
 
-	// ignoredList is list of folders for which all operations will return empty
+	// ignoredFolderList is folders for which all operations will return empty
 	// response. If a file has same name as entry in list, it'll NOT be ignored.
-	ignoredList map[string]struct{}
+	ignoredFolderList map[string]struct{}
 
 	// RWMutex protects the fields below.
 	sync.RWMutex
@@ -132,19 +132,19 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	// save root directory
 	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
-	// clean ignore paths and save it in map for easy lookup
-	ignoredList := map[string]struct{}{}
-	for index := range c.IgnoreFolders {
-		ignore := c.IgnoreFolders[index]
-		ignoredList[ignore] = struct{}{}
+	// add default and user specified list of folders to ignore
+	ignoreFolders := append(DefaultFolderIgnoreList, c.IgnoreFolders...)
+	ignoredFolderList := map[string]struct{}{}
+	for index := range ignoreFolders {
+		ignoredFolderList[ignoreFolders[index]] = struct{}{}
 	}
 
 	return &KodingNetworkFS{
-		MountPath:   c.LocalPath,
-		MountConfig: mountConfig,
-		RWMutex:     sync.RWMutex{},
-		ignoredList: ignoredList,
-		liveNodes:   liveNodes,
+		MountPath:         c.LocalPath,
+		MountConfig:       mountConfig,
+		RWMutex:           sync.RWMutex{},
+		ignoredFolderList: ignoredFolderList,
+		liveNodes:         liveNodes,
 	}, nil
 }
 
@@ -254,7 +254,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 
 	var bytesRead int
 	for _, e := range entries {
-		if k.isIgnoredDir(e.Type, e.Name) {
+		if k.isDirIgnored(e.Type, e.Name) {
 			continue
 		}
 
@@ -606,13 +606,9 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 	k.Unlock()
 }
 
-// isIgnoredDir returns true if entry is a directory and is ignored.
-func (k *KodingNetworkFS) isIgnoredDir(et fuseutil.DirentType, name string) bool {
-	return et == fuseutil.DT_Directory && k.isIgnored(name)
-}
-
-// isIgnored return true if entry name is in list of ignored list of entries.
-func (k *KodingNetworkFS) isIgnored(name string) bool {
-	_, ok := k.ignoredList[name]
-	return ok
+// isIgnoredDir returns true if entry is a directory and is in list of ignored
+// list of entries.
+func (k *KodingNetworkFS) isDirIgnored(t fuseutil.DirentType, name string) bool {
+	_, ok := k.ignoredFolderList[name]
+	return ok && t == fuseutil.DT_Directory
 }
