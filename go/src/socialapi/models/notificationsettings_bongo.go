@@ -13,7 +13,7 @@ import (
 // If not , think about more for it about pros and cons
 //
 //~Mehmet Ali
-const NotificationSettingsBongoName = "api.notification_settings"
+const NotificationSettingsBongoName = "notification.notification_settings"
 
 func (n NotificationSettings) GetId() int64 {
 	return n.Id
@@ -37,7 +37,7 @@ func (n *NotificationSettings) Create() error {
 
 func (n *NotificationSettings) Update() error {
 	if n.ChannelId == 0 || n.AccountId == 0 {
-		return fmt.Errorf("Validation failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)
+		return fmt.Errorf("Update failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)
 	}
 
 	return bongo.B.Update(n)
