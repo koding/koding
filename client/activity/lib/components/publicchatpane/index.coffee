@@ -51,7 +51,7 @@ module.exports = class PublicChatPane extends React.Component
            onResize  = { @bound 'onResize' }/>
     else @renderFollowChannel()
 
-    <footer className="PublicChatPane-footer">
+    <footer className="PublicChatPane-footer ChatPaneFooter">
       {footerInnerComponent}
     </footer>
 
