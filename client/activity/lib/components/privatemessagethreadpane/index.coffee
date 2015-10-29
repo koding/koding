@@ -59,7 +59,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     { scrollTop }       = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
     { channel, thread } = ActivityFlux.actions
 
-    channel.setScrollPosition @state.channelThread.getIn [ 'channel', 'id' ], scrollTop
+    channel.setScrollPosition (@state.channelThread.getIn [ 'channel', 'id' ]), scrollTop
     thread.changeSelectedThread null
 
 
