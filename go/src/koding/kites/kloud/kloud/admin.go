@@ -20,6 +20,32 @@ type AdminRequest struct {
 }
 
 func (k *Kloud) AdminAdd(r *kite.Request) (interface{}, error) {
+	kl, err := k.authorizedKlient(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := kl.AddUser(r.Username); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func (k *Kloud) AdminRemove(r *kite.Request) (interface{}, error) {
+	kl, err := k.authorizedKlient(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := kl.RemoveUser(r.Username); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 	if r.Args == nil {
 		return nil, NewError(ErrNoArguments)
 	}
@@ -36,6 +62,8 @@ func (k *Kloud) AdminAdd(r *kite.Request) (interface{}, error) {
 	if args.GroupName == "" {
 		return nil, errors.New("group name is not passed")
 	}
+
+	k.Log.Debug("Got arguments %+v for method: %s", args, r.Method)
 
 	admins, err := modelhelper.FetchAdminAccounts(args.GroupName)
 	if err != nil {
@@ -57,7 +85,6 @@ func (k *Kloud) AdminAdd(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// fetch jGroup from group slug name
 	g, err := modelhelper.GetGroup(args.GroupName)
 	if err != nil {
 		return nil, err
@@ -72,8 +99,8 @@ func (k *Kloud) AdminAdd(r *kite.Request) (interface{}, error) {
 	if !isGroupMember {
 		return nil, fmt.Errorf("Group '%s' is not a member of machine '%s'", args.GroupName, args.MachineId)
 	}
-	// Now we are ready to go
 
+	// Now we are ready to go.
 	ctx := request.NewContext(context.Background(), r)
 	ctx = k.ContextCreator(ctx)
 	sess, ok := session.FromContext(ctx)
@@ -81,33 +108,5 @@ func (k *Kloud) AdminAdd(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	kl, err := klient.NewWithTimeout(sess.Kite, machine.QueryString, time.Second*10)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := kl.AddUser(r.Username); err != nil {
-		return nil, err
-	}
-
-	return true, nil
+	return klient.NewWithTimeout(sess.Kite, machine.QueryString, time.Second*10)
 }
-
-// func (k *Kloud) AdminRemove(r *kite.Request) (interface{}, error) {
-// 	if r.Args == nil {
-// 		return nil, NewError(ErrNoArguments)
-// 	}
-//
-// 	var args *AdminRequest
-// 	if err := r.Args.One().Unmarshal(&args); err != nil {
-// 		return nil, err
-// 	}
-//
-// 	if args.MachineId == "" {
-// 		return nil, errors.New("machineId is not passed")
-// 	}
-//
-// 	if args.GroupName == "" {
-// 		return nil, errors.New("group name is not passed")
-// 	}
-// }
