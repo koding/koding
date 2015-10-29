@@ -4,6 +4,8 @@ immutable                 = require 'immutable'
 ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox'
 ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
 ChannelMessagesList       = require 'activity/components/channelmessageslist'
+Link                      = require 'app/components/common/link'
+GenerateNewTokenModal     = require 'app/providers/managed/generatenewtokenmodal'
 isGroupChannel            = require 'app/util/isgroupchannel'
 
 
@@ -13,6 +15,9 @@ module.exports = class ThreadSidebar extends React.Component
     channelThread: immutable.Map()
     messageThread: immutable.Map()
     channelParticipants: immutable.Map()
+
+
+  showKdModal: -> new GenerateNewTokenModal
 
 
   renderInviteSection: ->
@@ -34,6 +39,14 @@ module.exports = class ThreadSidebar extends React.Component
     </p>
 
 
+  renderKdSection: ->
+    #TODO: Figure out if this onClick should be a prop or not,
+    #and if so, where does it come from?
+    <Link className='show-kd-modal' onClick={@showKdModal}>
+      <span>New! Use your local IDEs with Koding VMs</span>
+    </Link>
+
+
   render: ->
     <div className="ThreadSidebar">
       <ThreadSidebarContentBox title="PARTICIPANTS">
@@ -43,8 +56,12 @@ module.exports = class ThreadSidebar extends React.Component
         <p className="ThreadSidebarContentBox-info">Drag a VM to share it with your teammates</p>
         <p className="ThreadSidebarContentBox-info">Drag a Workspace to collaborate</p>
       </ThreadSidebarContentBox>
+
+      <ThreadSidebarContentBox className="kd" title="TOOLS">
+        {@renderKdSection()}
+      </ThreadSidebarContentBox>
+
       <ThreadSidebarContentBox className="help-support" title="HELP & SUPPORT">
-        <a href="http://learn.koding.com/guides/kdfs">New! Use your own IDEs with KDFS</a>
         <a href="http://learn.koding.com/guides/collaboration/">Using collaboration</a>
         <a href="http://learn.koding.com/categories/ssh/">How to ssh into your VMs?</a>
         <a href="http://learn.koding.com"><i>See more...</i></a>
