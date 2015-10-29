@@ -42,10 +42,25 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       isComingSoonModalOpen : no
 
 
-  componentDidMount: -> reset @props, @state
+  componentDidMount: ->
+
+    reset @props, @state, =>
+      scrollTop          = @state.channelThread.getIn [ 'flags', 'scrollPosition' ]
+      scroller           = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
+      scroller.scrollTop = scrollTop  if scrollTop
 
 
   componentWillReceiveProps: (nextProps) -> reset nextProps, @state
+
+
+  componentWillUnmount: ->
+
+    # terrifying drill - SY
+    { scrollTop }       = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
+    { channel, thread } = ActivityFlux.actions
+
+    channel.setScrollPosition @state.channelThread.getIn [ 'channel', 'id' ], scrollTop
+    thread.changeSelectedThread null
 
 
   onStart: ->
