@@ -18,7 +18,6 @@ module.exports = (body = '', markdownOptions = {}) ->
 
   body = fn body for fn in fns
   body = applyMarkdown body, markdownOptions
-  body = expandUsernames body, 'code, a'
 
   return body
 
