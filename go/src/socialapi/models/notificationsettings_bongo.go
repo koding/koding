@@ -23,6 +23,18 @@ func (n NotificationSettings) BongoName() string {
 	return NotificationSettingsBongoName
 }
 
+func (n *NotificationSettings) Create() error {
+	if n.AccountId == 0 {
+		return ErrAccountIdIsNotSet
+	}
+
+	if n.ChannelId == 0 {
+		return ErrChannelIdIsNotSet
+	}
+
+	return bongo.B.Create(n)
+}
+
 func (n *NotificationSettings) Update() error {
 	if n.ChannelId == 0 || n.AccountId == 0 {
 		return fmt.Errorf("Validation failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)

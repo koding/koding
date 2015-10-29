@@ -45,5 +45,11 @@ const (
 )
 
 func NewNotificationSettings() *NotificationSettings {
-	return &NotificationSettings{}
+	now := time.Now().UTC()
+	return &NotificationSettings{
+		DesktopSetting: NotificationSettings_STATUS_ALL,
+		MobileSetting:  NotificationSettings_STATUS_ALL,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+	}
 }
