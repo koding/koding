@@ -286,6 +286,7 @@ module.exports = class SocialApiController extends KDController
     item.payload             = data.payload
 
     if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
+      item._originalName = item.name
       item.name = data.purpose
       item.purpose = item.payload?.description or ''
     else
@@ -425,12 +426,12 @@ module.exports = class SocialApiController extends KDController
     socialapi.cacheItem socialApiChannel
     socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
-    {name, typeConstant, token, id} = socialApiChannel
+    {name, typeConstant, token, id, _originalName} = socialApiChannel
 
     subscriptionData =
       group      : group.slug
       channelType: typeConstant
-      channelName: name
+      channelName: _originalName or name
       channelId  : id
       token      : token
 
@@ -456,8 +457,8 @@ module.exports = class SocialApiController extends KDController
       socialApiChannels.forEach (socialApiChannel) ->
         registerAndOpenChannel group, socialApiChannel, kd.noop
 
-  generateChannelName = ({name, typeConstant, groupName}) ->
-    return "socialapi.#{groupName}-#{typeConstant}-#{name}"
+  generateChannelName = ({name, typeConstant, groupName, _originalName}) ->
+    return "socialapi.#{groupName}-#{typeConstant}-#{_originalName or name}"
 
 
   addToScreenMap = (options) ->
