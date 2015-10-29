@@ -40,8 +40,6 @@ module.exports = class ThreadSidebar extends React.Component
 
 
   renderKdSection: ->
-    #TODO: Figure out if this onClick should be a prop or not,
-    #and if so, where does it come from?
     <Link className='show-kd-modal' onClick={@showKdModal}>
       <span>New! Use your local IDEs with Koding VMs</span>
     </Link>

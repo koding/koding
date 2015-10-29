@@ -7,8 +7,6 @@ module.exports = class GenerateNewTokenModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    kd.warn 'Constructing new token modal'
-
     options.cssClass = 'generate-new-token'
     options.title    = 'Install kd'
     options.width    = 690
