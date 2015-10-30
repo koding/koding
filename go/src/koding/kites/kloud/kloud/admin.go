@@ -74,6 +74,8 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 		return nil, fmt.Errorf("User '%s' is not an admin of group '%s'", r.Username, args.GroupName)
 	}
 
+	k.Log.Debug("User '%s' is an admin. Checking for machine permission", r.Username)
+
 	machine, err := modelhelper.GetMachine(args.MachineId)
 	if err != nil {
 		return nil, fmt.Errorf("getMachine err: %s", err)
@@ -95,6 +97,8 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 			args.MachineId, args.GroupName)
 	}
 
+	k.Log.Debug("Incoming user is authorized, setting up DB and Klient connection")
+
 	// Now we are ready to go.
 	ctx := request.NewContext(context.Background(), r)
 	ctx = k.ContextCreator(ctx)
@@ -103,5 +107,6 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 		return nil, errors.New("internal server error (err: session context is not available)")
 	}
 
+	k.Log.Debug("Calling Klient method: %s", r.Method)
 	return klient.NewWithTimeout(sess.Kite, machine.QueryString, time.Second*10)
 }
