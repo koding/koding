@@ -139,14 +139,14 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	// TODO: this is no longer required since above DirInitializer gets this
 	//       however tests fail if you remove this; fix tests then remove.
 	// update entries for root directory
-	if err := rootDir.updateEntriesFromRemote(); err != nil {
-		return nil, err
-	}
+	//if err := rootDir.updateEntriesFromRemote(); err != nil {
+	//  return nil, err
+	//}
 
-	// update info about root directory
-	if err := rootDir.updateAttrsFromRemote(); err != nil {
-		return nil, err
-	}
+	//// update info about root directory
+	//if err := rootDir.updateAttrsFromRemote(); err != nil {
+	//  return nil, err
+	//}
 	///////
 
 	// save root directory
