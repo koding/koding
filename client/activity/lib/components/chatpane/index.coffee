@@ -7,7 +7,6 @@ ScrollerMixin        = require 'app/components/scroller/scrollermixin'
 EmojiPreloaderMixin  = require 'activity/components/emojipreloadermixin'
 ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 scrollToTarget       = require 'app/util/scrollToTarget'
-classnames           = require 'classnames'
 
 
 module.exports = class ChatPane extends React.Component
@@ -20,17 +19,39 @@ module.exports = class ChatPane extends React.Component
     showItemMenu   : yes
 
 
+  flag: (key) -> @props.thread?.getIn ['flags', key]
+  channel: (key) -> @props.thread?.getIn ['channel', key]
+
+
+  componentDidMount: ->
+
+    scroller = React.findDOMNode @refs.scrollContainer
+    scrollTop = @flag 'scrollPosition'
+
+    scroller.scrollTop  = scrollTop  if scrollTop
+    kd.utils.wait 50, -> _showScroller scroller
+
+
+  componentWillUnmount: ->
+
+    scroller = React.findDOMNode @refs.scrollContainer
+
+    { scrollTop } = scroller
+    { channel }   = ActivityFlux.actions
+
+    _hideScroller scroller
+    channel.setScrollPosition (@channel 'id'), scrollTop
+
+
   componentWillUpdate: (nextProps, nextState) ->
 
     return  unless nextProps?.thread
 
     { thread } = nextProps
 
-    isMessageBeingSubmitted = thread.getIn ['flags', 'isMessageBeingSubmitted']
+    isMessageBeingSubmitted = @flag 'isMessageBeingSubmitted'
 
     @shouldScrollToBottom = yes  if isMessageBeingSubmitted
-
-    scrollContainer = React.findDOMNode @refs.scrollContainer
 
 
   onTopThresholdReached: (event) ->
@@ -46,28 +67,15 @@ module.exports = class ChatPane extends React.Component
     kd.utils.wait 500, => @props.onLoadMore()
 
 
-  channel: (key) -> @props.thread.getIn ['channel', key]
-
-
-  getClassName: ->
-
-    { className } = @props
-
-    classes = { 'ChatPane' : yes }
-    classes[className] = yes  if className
-
-    return classnames classes
-
-
   renderChannelInfoContainer: ->
 
     return null  unless @props.thread
 
     messagesSize        = @props.thread.get('messages').size
     scrollContainer     = React.findDOMNode @refs.scrollContainer
-    reachedFirstMessage = @props.thread.getIn(['flags', 'reachedFirstMessage'])
+    reachedFirstMessage = @flag 'reachedFirstMessage'
 
-    if scrollContainer and not reachedFirstMessage
+    if not reachedFirstMessage
       return null
 
     <ChannelInfoContainer
@@ -94,6 +102,7 @@ module.exports = class ChatPane extends React.Component
 
     <Scroller
       ref='scrollContainer'
+      hasMore={@props.thread.get('messages').size}
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}
       <ChatList
@@ -110,8 +119,7 @@ module.exports = class ChatPane extends React.Component
 
 
   render: ->
-
-    <div className={@getClassName()}>
+    <div className={kd.utils.curry 'ChatPane', @props.className}>
       <section className="ChatPane-contentWrapper">
         <section className="ChatPane-body" ref="ChatPaneBody">
           {@renderBody()}
@@ -122,4 +130,11 @@ module.exports = class ChatPane extends React.Component
 
 
 React.Component.include.call ChatPane, [ScrollerMixin, EmojiPreloaderMixin]
+
+
+_hideScroller = (scroller) -> scroller?.style.opacity = 0
+
+
+_showScroller = (scroller) -> scroller?.style.opacity = 1
+
 
