@@ -86,3 +86,17 @@ describe 'ChannelFlagsStore', ->
 
       expect(storeState.mockChannelFlagsForSuccessId.reachedFirstMessage).to.eql no
 
+
+  describe 'handleSetScrollPosition', ->
+
+    it 'sets scrollPosition flag to channel', ->
+
+      @reactor.dispatch actionTypes.SET_CHANNEL_SCROLL_POSITION, {
+        channelId: 42
+        position: 177
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState[42].scrollPosition).to.eql 177
+

@@ -14,11 +14,9 @@ showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
-
+ThreadPaneLifecycleMixin     = require 'activity/mixins/threadpanelifecycle'
 
 module.exports = class ChannelThreadPane extends React.Component
-
-  @include [ ImmutableRenderMixin ]
 
   { getters } = ActivityFlux
 
@@ -42,12 +40,6 @@ module.exports = class ChannelThreadPane extends React.Component
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
       channelParticipants   : immutable.List()
-
-
-  componentDidMount: -> reset @props, @state
-
-
-  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
 
 
   onStart: ->
@@ -112,7 +104,7 @@ module.exports = class ChannelThreadPane extends React.Component
         </header>
         <div className="ChannelThreadPane-body">
           <section className="ChannelThreadPane-chatWrapper">
-            <PublicChatPane thread={@state.channelThread}/>
+            <PublicChatPane ref='pane' thread={@state.channelThread}/>
           </section>
         </div>
       </section>
@@ -124,9 +116,7 @@ module.exports = class ChannelThreadPane extends React.Component
     </div>
 
 
-React.Component.include.call ChannelThreadPane, [KDReactorMixin]
-
-reset = (props, state) ->
+reset = (props, state, callback = kd.noop) ->
 
   { channelName, postId } = props.routeParams
   { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
@@ -150,6 +140,14 @@ reset = (props, state) ->
       else
         messageActions.changeSelectedMessage null
 
+      kd.utils.defer callback
+
   else if not state.channelThread
     thread.changeSelectedThread null
+    kd.utils.defer callback
+
+
+React.Component.include.call ChannelThreadPane, [
+  ThreadPaneLifecycleMixin(reset), KDReactorMixin, ImmutableRenderMixin
+]
 
