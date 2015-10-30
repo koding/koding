@@ -137,7 +137,6 @@ module.exports = class DefineStackView extends KDView
 
     ace.on 'FileContentChanged', =>
       @setAsDefaultButton.hide()
-      @inputTitle.unsetClass 'three-buttons'
       @saveButton.show()
 
 
@@ -235,7 +234,6 @@ module.exports = class DefineStackView extends KDView
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
-    @inputTitle.unsetClass 'three-buttons'
 
     @saveTemplate (err, stackTemplate) =>
 
@@ -300,11 +298,10 @@ module.exports = class DefineStackView extends KDView
         unless stackTemplate.inuse
 
           @setAsDefaultButton.show()
-          @inputTitle.setClass 'three-buttons'
 
           @outputView.add """
             Your stack script has been successfully saved.
-            
+
             If you want your team members to use this template you need to
             apply it for your team.
 

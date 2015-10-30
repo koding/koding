@@ -869,7 +869,6 @@ Admin main styles
 
     .buttons
       text-align            right
-      size                  202px, 30px
 
     .credential-list
       .credential-item
@@ -2254,23 +2253,17 @@ Admin main styles
     line-height             30px !important
     height                  30px
 
-
   .template-title-form
     overflow                hidden
-
-    &.three-buttons
-      input.template-title
-        width               295px
-
-      .buttons
-        width               324px
+    display                 flex
 
   .formline.template-title
+    flex-grow               1
+
   .formline.template-title + .buttons
     fl()
 
   input.template-title
-    width                   417px
     height                  30px
     line-height             30px
     margin-right            10px !important
@@ -2280,8 +2273,6 @@ Admin main styles
     borderBox()
 
   .kdtabhandle.credentials
-    // left                    213px
-    // rel()
 
     &.warning
       width                 154px
