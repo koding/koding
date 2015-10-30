@@ -1008,3 +1008,24 @@ module.exports = class ComputeController extends KDController
         "Your Koding Stack has successfully been initialized. The log here
          describes each executed step of the Stack creation process."
     }
+
+
+  ###*
+   * Returns the stack which generated from Group's default stack template
+  ###
+  getGroupStack: ->
+
+    return null  if isKoding() # we may need this for Koding group as well ~ GG
+    return null  if not @stacks?.length
+
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
+    { stackTemplates }   = currentGroup
+
+    return null  if not stackTemplates?.length
+
+    for stackTemplate in stackTemplates
+      for stack in @stacks when stack.baseStackId is stackTemplate
+        return stack
+
+    return null
