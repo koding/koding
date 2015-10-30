@@ -22,7 +22,7 @@ module.exports = class PrivateChatPane extends React.Component
         thread         = { @props.thread }
         className      = 'PrivateChatPane'
         onSubmit       = { @bound 'onSubmit' }
-        onInviteOthers = {@bound 'onInviteOthers'}
+        onInviteOthers = { @bound 'onInviteOthers'}
         onLoadMore     = { @bound 'onLoadMore' }
       />
       <footer className='PrivateChatPane-footer ChatPaneFooter'>
