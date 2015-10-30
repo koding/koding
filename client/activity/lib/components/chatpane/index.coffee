@@ -29,7 +29,7 @@ module.exports = class ChatPane extends React.Component
     scrollTop = @flag 'scrollPosition'
 
     scroller.scrollTop  = scrollTop  if scrollTop
-    kd.utils.wait 50, -> _showScroller scroller
+    _showScroller scroller
 
 
   componentWillUnmount: ->
