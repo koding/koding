@@ -16,7 +16,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
         validate      :
           rules       : { required: yes }
           messages    : { required: 'Please enter a username.' }
-          events      : { required: 'blur' }
+          # events      : { required: 'blur' }
 
 
     teamData                = KD.utils.getTeamData()
