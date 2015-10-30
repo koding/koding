@@ -189,20 +189,20 @@ module.exports = class DefineStackView extends KDView
 
   createMainButtons: ->
 
-    @inputTitle.addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
+    @inputTitle.addSubView @buttons = new kd.CustomHTMLView cssClass: 'buttons'
 
-    @buttons.addSubView @cancelButton = new KDButtonView
+    @buttons.addSubView @cancelButton = new kd.ButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
-    @buttons.addSubView @setAsDefaultButton = new KDButtonView
+    @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
       title          : 'Apply to Team'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : => @handleSetDefaultTemplate()
+      callback       : @bound 'handleSetDefaultTemplate'
 
-    @buttons.addSubView @saveButton = new KDButtonView
+    @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       loader         : yes
