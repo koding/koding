@@ -67,7 +67,7 @@ func TestHealthCheckRemote(t *testing.T) {
 
 		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHttp{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHttpResponse{})
 	})
 
 	Convey("Should return unexpected response if the kontrol response is.. unexpected", t, func() {

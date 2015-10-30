@@ -48,12 +48,12 @@ type HealthChecker struct {
 type ErrHealthDialFailed struct{ Message string }
 
 // The local klient is not returning an http response.
-type ErrHealthNoHttp struct{ Message string }
+type ErrHealthNoHttpReponse struct{ Message string }
 
 // We are unable to Read the kite.key, so it either doesn't exist at the
 // specified location or the permissions are broken relative to the
 // current user.
-type ErrHealthUnableReadKey struct{ Message string }
+type ErrHealthUnreadableKiteKey struct{ Message string }
 
 // The http response on /kite does not match the "Welcome to SockJS!"
 // klient response.
@@ -66,14 +66,14 @@ type ErrHealthNoInternet struct{ Message string }
 
 // The http response from https://koding.com/kontrol/kite failed. Koding
 // itself might be down, or the users internet might be spotty.
-type ErrHealthNoKontrolHttp struct{ Message string }
+type ErrHealthNoKontrolHttpResponse struct{ Message string }
 
-func (e ErrHealthDialFailed) Error() string         { return e.Message }
-func (e ErrHealthNoHttp) Error() string             { return e.Message }
-func (e ErrHealthUnableReadKey) Error() string      { return e.Message }
-func (e ErrHealthUnexpectedResponse) Error() string { return e.Message }
-func (e ErrHealthNoInternet) Error() string         { return e.Message }
-func (e ErrHealthNoKontrolHttp) Error() string      { return e.Message }
+func (e ErrHealthDialFailed) Error() string            { return e.Message }
+func (e ErrHealthNoHttpReponse) Error() string         { return e.Message }
+func (e ErrHealthUnreadableKiteKey) Error() string     { return e.Message }
+func (e ErrHealthUnexpectedResponse) Error() string    { return e.Message }
+func (e ErrHealthNoInternet) Error() string            { return e.Message }
+func (e ErrHealthNoKontrolHttpResponse) Error() string { return e.Message }
 
 // Status informs the user about the status of the Klient service. It
 // does this in multiple stages, to help identify specific problems.
@@ -98,7 +98,7 @@ func StatusCommand(c *cli.Context) int {
 
 		// Print a friendly message for each of the given health responses.
 		switch err.(type) {
-		case ErrHealthNoHttp:
+		case ErrHealthNoHttpReponse:
 			fmt.Printf(
 				`Error: The %s does not appear to be running. Please run
 the following command to start it:
@@ -115,7 +115,7 @@ following command to restart it:
 `,
 				KlientName)
 
-		case ErrHealthUnableReadKey:
+		case ErrHealthUnreadableKiteKey:
 			fmt.Printf(`Error: The authorization file for the %s is malformed
 or missing. Please run the following command:
 
@@ -148,7 +148,7 @@ Please run the following command:
 		case ErrHealthNoInternet:
 			fmt.Println(`Error: You do not appear to have a properly working internet connection.`)
 
-		case ErrHealthNoKontrolHttp:
+		case ErrHealthNoKontrolHttpResponse:
 			fmt.Printf(`Error: koding.com does not appear to be responding.
 If this problem persists, please contact us at: support@koding.com
 `)
@@ -175,7 +175,7 @@ func (c *HealthChecker) CheckLocal() error {
 	res, err := c.HttpClient.Get(c.LocalKiteAddress)
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
-		return ErrHealthNoHttp{Message: fmt.Sprintf(
+		return ErrHealthNoHttpReponse{Message: fmt.Sprintf(
 			"The klient /kite route is returning an error: '%s'", err.Error(),
 		)}
 	}
@@ -196,7 +196,7 @@ func (c *HealthChecker) CheckLocal() error {
 	// error, so we can handle that.
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		return ErrHealthUnableReadKey{Message: fmt.Sprintf(
+		return ErrHealthUnreadableKiteKey{Message: fmt.Sprintf(
 			"The klient kite key is unable to be read. Reason: '%s'", err.Error(),
 		)}
 	}
@@ -230,7 +230,7 @@ func (c *HealthChecker) CheckRemote() error {
 	// if Koding is running or not.
 	res, err = c.HttpClient.Get(c.RemoteKiteAddress)
 	if err != nil {
-		return ErrHealthNoKontrolHttp{Message: fmt.Sprintf(
+		return ErrHealthNoKontrolHttpResponse{Message: fmt.Sprintf(
 			"A http request to Kontrol failed. Reason: %s", err.Error(),
 		)}
 	}
@@ -238,7 +238,7 @@ func (c *HealthChecker) CheckRemote() error {
 
 	// Kontrol should return a 200 response.
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return ErrHealthNoKontrolHttp{Message: fmt.Sprintf(
+		return ErrHealthNoKontrolHttpResponse{Message: fmt.Sprintf(
 			"A http request to Kontrol returned bad status code. Code: %d",
 			res.StatusCode,
 		)}
