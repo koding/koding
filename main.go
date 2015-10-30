@@ -77,6 +77,12 @@ func main() {
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s. sudo is required.", KlientName),
 			Description: cmdDescriptions["install"],
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "kontrol, k",
+					Usage: "Specify an alternate Kontrol",
+				},
+			},
 			//HideHelp: true,
 			Action: Exit(InstallCommand),
 		},

@@ -44,7 +44,7 @@ func (p *serviceProgram) Stop(s service.Service) error {
 }
 
 func InstallCommand(c *cli.Context) int {
-	if len(c.Args()) < 1 {
+	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "install")
 		return 1
 	}
@@ -57,6 +57,14 @@ func InstallCommand(c *cli.Context) int {
 	if strings.TrimSpace(authToken) == "" {
 		cli.ShowCommandHelp(c, "install")
 		return 1
+	}
+
+	// Get the supplied kontrolUrl, defaulting to the prod kontrol if
+	// empty.
+	kontrolUrl := strings.TrimSpace(c.String("kontrol"))
+	if kontrolUrl == "" {
+		// Default to the config's url
+		kontrolUrl = KontrolUrl
 	}
 
 	klientShPath, err := filepath.Abs(filepath.Join(KlientDirectory, "klient.sh"))
@@ -103,7 +111,7 @@ func InstallCommand(c *cli.Context) int {
 			klientShFile := []byte(fmt.Sprintf(`#!/bin/sh
 %sKITE_HOME=%s %s --kontrol-url=%s -debug
 `,
-				sudoCmd, KiteHome, klientBinPath, KontrolUrl))
+				sudoCmd, KiteHome, klientBinPath, kontrolUrl))
 
 			// perm -rwr-xr-x, same as klient
 			err := ioutil.WriteFile(klientShPath, klientShFile, 0755)
@@ -133,7 +141,7 @@ func InstallCommand(c *cli.Context) int {
 
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
-		"--kontrol-url", KontrolUrl, "--kite-home", KiteHome)
+		"--kontrol-url", kontrolUrl, "--kite-home", KiteHome)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
