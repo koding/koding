@@ -33,11 +33,11 @@ module.exports = class GenerateNewTokenModal extends kd.ModalView
         <p class='middle'>1. sudo permission required.</p>
         <p class='middle'>2. Works only on OSX and Linux.</p>
         <p class='middle'>3. kd is currently in beta.</p>
-
-        <span>
-          <a href="http://learn.koding.com/guides/kd" target="_blank">Learn more about this feature.</a>
-        </span>
       """
+    # Commenting out learn, until the article is ready.
+    #<span>
+    #  <a href="http://learn.koding.com/guides/kd" target="_blank">Learn more about this feature.</a>
+    #</span>
 
     @addSubView @code = new kd.CustomHTMLView
       tagName  : 'div'
