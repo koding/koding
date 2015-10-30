@@ -12,24 +12,7 @@ BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsm
 
 ActivityAppComponent = require 'activity/components/appcomponent'
 
-# module.exports = [
-#   {
-#     path: '/Channels'
-#     component: ChannelThreadPane
-#     childRoutes: [
-#       path: ':channelName(/:postId)'
-#       components:
-#         chat: PublicChatPane
-#     ]
-#   },
-#   {
-#     path: '/Messages/:privateChannelId'
-#     component: PrivateMessageThreadPane
-#   }
-# ]
-
-
-module.exports = newRoutes = [
+module.exports = [
   path: '/Channels'
   component: ActivityAppComponent
   childRoutes: [

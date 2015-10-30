@@ -17,7 +17,7 @@ module.exports = class ThreadSidebar extends React.Component
 
   renderInviteSection: ->
 
-    return  unless @props.channelParticipants
+    return  unless @props.channelThread and @props.channelParticipants
 
     { channel } = @props.channelThread.toJS()
 
