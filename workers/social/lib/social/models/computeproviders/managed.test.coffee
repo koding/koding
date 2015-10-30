@@ -1,7 +1,6 @@
 { _
   daisy
   expect
-  fetchGroup
   withConvertedUser
   generateRandomString
   checkBongoConnectivity } = require '../../../../testhelper'
@@ -118,14 +117,11 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
     it 'should be able to remove machine with valid request', (done) ->
 
       options = { provider : 'managed' }
-      withConvertedUserAnd ['Machine'], options, ({ client, account, user, machine }) ->
+      withConvertedUserAnd ['Machine'], options, (data) ->
+        { client, account, user, machine, group } = data
+        client.r = { account, user, group }
 
         queue = [
-
-          ->
-            fetchGroup client, (group) ->
-              client.r = { account, user, group }
-              queue.next()
 
           ->
             Managed.remove client, { machineId : machine._id.toString() }, (err) ->
@@ -151,7 +147,9 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
     it 'should be able to update machine with valid request', (done) ->
 
       options = { provider : 'managed' }
-      withConvertedUserAnd ['Machine'], options, ({ client, account, user, machine }) ->
+      withConvertedUserAnd ['Machine'], options, (data) ->
+        { client, account, user, machine, group } = data
+        client.r = { account, user, group }
 
         updateOptions =
           storage     : '1'
@@ -162,11 +160,6 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
         expectedQueryString = "///////#{updateOptions.queryString.split('/').reverse()[0]}"
 
         queue = [
-
-          ->
-            fetchGroup client, (group) ->
-              client.r = { account, user, group }
-              queue.next()
 
           ->
             Managed.update client, updateOptions, (err) ->
@@ -191,20 +184,18 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
     it 'should fail when required options not provided', (done) ->
 
-      withConvertedUser ({ client, account, user }) ->
+      withConvertedUser ({ client, account, user, group }) ->
+        client.r      = { account, user, group }
         expectedError = 'A valid machineId and an update option is required.'
 
-        fetchGroup client, (group) ->
-
-          client.r = { account, user, group }
-          Managed.update client, {}, (err) ->
-            expect(err?.message).to.be.equal expectedError
-            done()
+        Managed.update client, {}, (err) ->
+          expect(err?.message).to.be.equal expectedError
+          done()
 
 
     it 'should fail if provided some options are not valid', (done) ->
 
-      withConvertedUser ({ client, account, user }) ->
+      withConvertedUser ({ client, account, user, group }) ->
 
         generateDefaultOptions = (options) ->
 
@@ -218,13 +209,9 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
 
           return _options
 
+        client.r = { account, user, group }
 
         queue = [
-
-          ->
-            fetchGroup client, (group) ->
-              client.r = { account, user, group }
-              queue.next()
 
           ->
             options = generateDefaultOptions { storage : 'invalidStorage' }
