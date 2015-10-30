@@ -54,7 +54,7 @@ func InstallCommand(c *cli.Context) int {
 	// We need to check if the authToken is somehow empty, because klient
 	// will default to user/pass if there is no auth token (despite setting
 	// the token flag)
-	if authToken == "" {
+	if strings.TrimSpace(authToken) == "" {
 		cli.ShowCommandHelp(c, "install")
 		return 1
 	}
