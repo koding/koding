@@ -119,11 +119,14 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
 
-	// add default and user specified list of folders to ignore
-	ignoreFolders := append(DefaultFolderIgnoreList, c.IgnoreFolders...)
 	ignoredFolderList := map[string]struct{}{}
-	for index := range ignoreFolders {
-		ignoredFolderList[ignoreFolders[index]] = struct{}{}
+	ignoreFolders := append(DefaultFolderIgnoreList, c.IgnoreFolders...)
+
+	if !c.NoIgnore {
+		// add default and user specified list of folders to map for easy checking
+		for index := range ignoreFolders {
+			ignoredFolderList[ignoreFolders[index]] = struct{}{}
+		}
 	}
 
 	dirInit := NewDirInitializer(t, rootDir, ignoreFolders)

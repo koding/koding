@@ -20,7 +20,10 @@ type Config struct {
 	// FuseConfig determines if fuse library debug logs are turned on.
 	FuseDebug bool `default:false`
 
-	// IgnoreFolders are the folders for which all operations will return empty
-	// response.
+	// IgnoreFolders are the remote folders which will be ignored, ie not
+	// downloaded or be available for folder operations.
 	IgnoreFolders []string
+
+	// NoIgnore determines whether to ignore default or user specified folders.
+	NoIgnore bool `default:false`
 }
