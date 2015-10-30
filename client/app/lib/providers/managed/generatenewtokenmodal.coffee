@@ -27,8 +27,9 @@ module.exports = class GenerateNewTokenModal extends kd.ModalView
 
     @addSubView @content = new kd.CustomHTMLView
       tagName: 'section'
+      cssClass: 'has-markdown'
       partial: """
-        <p>kd is a command line program that lets you use your local IDEs with your VMs. Copy and paste the command below in your PC's terminal. Please note:</p>
+        <p><code>kd</code> is a command line program that lets you use your local IDEs with your VMs. Copy and paste the command below in your PC's terminal. Please note:</p>
         <p class='middle'>1. sudo permission required.</p>
         <p class='middle'>2. Works only on OSX and Linux.</p>
         <p class='middle'>3. kd is currently in beta.</p>
