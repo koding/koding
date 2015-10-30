@@ -4,6 +4,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 AvatarTooltipView = require '../avatarviews/avatartooltipview'
 JView = require '../../jview'
 LinkView = require './linkview'
+isKoding = require 'app/util/isKoding'
 
 
 module.exports = class ProfileLinkView extends LinkView
@@ -45,8 +46,14 @@ module.exports = class ProfileLinkView extends LinkView
   updateHref: ->
     { payload } = @getOptions()
     nickname = @getData().profile?.nickname
-    href = if payload?.channelIntegrationId then "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
-    else if nickname then "/#{nickname}"
+
+    href = if payload?.channelIntegrationId
+      "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
+    else
+      if isKoding() and nickname
+      then "/#{nickname}"
+      else "/#"
+
 
     @setAttribute "href", href  if href
 
