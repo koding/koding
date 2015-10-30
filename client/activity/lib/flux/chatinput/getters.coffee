@@ -1,5 +1,6 @@
 kd                         = require 'kd'
 immutable                  = require 'immutable'
+toImmutable                = require 'app/util/toImmutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
@@ -172,13 +173,28 @@ users = (stateId) -> [
       list = if command?.name is '/invite'
       then notParticipants
       else participants?.toList()
-      return list ? immutable.List()
+      return addUserMentions list ? immutable.List()
 
     query = query.toLowerCase()
-    allUsers.toList().filter (user) ->
-      userName = user.getIn(['profile', 'nickname']).toLowerCase()
-      return userName.indexOf(query) is 0
+    addUserMentions(allUsers.toList()).filter (item) ->
+      itemName = if item.get 'isMention'
+      then item.get 'name'
+      else item.getIn ['profile', 'nickname']
+      return itemName.toLowerCase().indexOf(query) is 0
 ]
+
+
+addUserMentions = (list) ->
+
+  mentions = [ 'all', 'channel', 'team', 'group', 'admins' ]
+
+  for mention in mentions
+    item = toImmutable
+      isMention : yes
+      name      : mention
+    list = list.push item
+
+  return list
 
 
 usersRawIndex = (stateId) -> [

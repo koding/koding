@@ -22,10 +22,10 @@ module.exports = class UserDropbox extends React.Component
     selectedItem   : null
 
 
-  formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
+  formatSelectedValue: -> "@#{helper.getItemName @props.selectedItem}"
 
 
-  getItemKey: (item) -> item.get '_id'
+  getItemKey: (item) -> helper.getItemName item
 
 
   close: ->
@@ -114,3 +114,11 @@ module.exports = class UserDropbox extends React.Component
       {@renderList()}
     </Dropbox>
 
+
+  helper =
+
+    getItemName: (item) ->
+
+      if item.get 'isMention'
+      then item.get 'name'
+      else item.getIn ['profile', 'nickname']
