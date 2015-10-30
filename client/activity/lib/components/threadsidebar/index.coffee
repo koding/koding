@@ -41,7 +41,7 @@ module.exports = class ThreadSidebar extends React.Component
 
   renderKdSection: ->
     <Link className='show-kd-modal' onClick={@bound 'showKdModal'}>
-      <span>New! Use your local IDE with your Koding VMs</span>
+      <span className="new">New!</span> <span>Use your local IDE with your Koding VMs</span>
     </Link>
 
 

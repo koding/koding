@@ -1,6 +1,6 @@
-kd        = require 'kd'
-globals   = require 'globals'
-whoami    = require 'app/util/whoami'
+kd            = require 'kd'
+globals       = require 'globals'
+whoami        = require 'app/util/whoami'
 
 
 module.exports = class GenerateNewTokenModal extends kd.ModalView
@@ -28,7 +28,7 @@ module.exports = class GenerateNewTokenModal extends kd.ModalView
     @addSubView @content = new kd.CustomHTMLView
       tagName: 'section'
       partial: """
-        <p>kd is a command line program that lets you use your local IDEs with your VMs. Copy and paste the command below in a terminal. Please note:</p>
+        <p>kd is a command line program that lets you use your local IDEs with your VMs. Copy and paste the command below in your PC's terminal. Please note:</p>
         <p class='middle'>1. sudo permission required.</p>
         <p class='middle'>2. Works only on OSX and Linux.</p>
         <p class='middle'>3. kd is currently in beta.</p>
