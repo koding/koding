@@ -1029,3 +1029,49 @@ module.exports = class ComputeController extends KDController
         return stack
 
     return null
+
+
+  ###*
+   * Reinit's given stack or groups default stack
+   * If stack given, it asks for re-init and first deletes and then calls
+   * createDefaultStack again.
+   * If not given it tries to find default one and does the same thing, if it
+   * can't find the default one, asks to user what to do next.
+  ###
+  reinitGroupStack: (stack) ->
+
+    stack ?= @getGroupStack()
+
+    if not stack
+
+      if @stacks?.length
+        new kd.NotificationView
+          title   : "Couldn't find default stack"
+          content : 'Please re-init manually'
+
+        EnvironmentsModal = require 'app/environment/environmentsmodal'
+        new EnvironmentsModal
+
+      else
+        @createDefaultStack()
+
+      return
+
+    @ui.askFor 'reinitStack', {}, =>
+
+      stack.delete (err) =>
+        return showError err  if err
+
+        @reset()
+
+          .once 'RenderStacks', (stacks) ->
+
+            new kd.NotificationView
+              title : 'Stack reinitialized'
+
+            # We need to quit here to be able to re-load
+            # IDE with new machine stack, there might be better solution ~ GG
+            frontApp = kd.singletons.appManager.getFrontApp()
+            frontApp.quit()  if frontApp?.options.name is 'IDE'
+
+          .createDefaultStack()
