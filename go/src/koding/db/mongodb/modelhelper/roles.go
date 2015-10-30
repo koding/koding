@@ -1,6 +1,7 @@
 package modelhelper
 
 import (
+	"fmt"
 	"koding/db/models"
 
 	"labix.org/v2/mgo/bson"
@@ -36,25 +37,25 @@ func FetchAdminAccounts(groupName string) ([]models.Account, error) {
 func IsAdmin(username, groupName string) (bool, error) {
 	group, err := GetGroup(groupName)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("getGroup err: %s", err)
 	}
 
 	account, err := GetAccount(username)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("getAccount err: %s", err)
 	}
 
 	selector := Selector{
 		"sourceId":   group.Id,
 		"sourceName": "JGroup",
 		"targetId":   account.Id,
-		"targetName": "JAdmin",
+		"targetName": "JAccount",
 		"as":         "admin",
 	}
 
 	count, err := RelationshipCount(selector)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("checkAdminRelationship err: %s", err)
 	}
 
 	return count == 1, nil

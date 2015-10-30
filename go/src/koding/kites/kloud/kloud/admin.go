@@ -76,7 +76,7 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 
 	machine, err := modelhelper.GetMachine(args.MachineId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getMachine err: %s", err)
 	}
 
 	g, err := modelhelper.GetGroup(args.GroupName)
