@@ -160,6 +160,6 @@ helper =
 
     options =
       identifier : 'emojis'
-      url        : '/a/static/emojify/emojify.css'
+      url        : '/a/static/emojify/emojify.css?v=1'
 
     KodingAppsController.appendHeadElement 'style', options

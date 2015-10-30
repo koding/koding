@@ -52,8 +52,14 @@ module.exports = class AdminIntegrationParentView extends JView
     integrationHelpers.fetchConfigureData options, (err, data) =>
       return @handleError err  if err
 
-      @addSubView @mainView = new AdminIntegrationDetailsView {}, data
       @loader?.destroy()
+      @addSubView @mainView = new AdminIntegrationDetailsView {}, data
+
+      @mainView.on 'IntegrationUpdated', =>
+        adminTabView           = @getDelegate()
+        { configuredListView } = adminTabView.getPaneByName('Integrations').mainView
+
+        configuredListView.refresh()
 
 
   handleError: (err) ->

@@ -146,7 +146,8 @@ do ->
   bodyParser = require 'body-parser'
 
   app.use compression()
-  app.use bodyParser.json()
+  app.use bodyParser.json { limit: '2mb' }
+
   helmet.defaults app
   app.use cors()
 

@@ -610,6 +610,15 @@ module.exports = class ComputeController extends KDController
 
     return  unless @verifyStackRequirements stack
 
+    state = stack.status?.state ? 'Unknown'
+
+    unless state is 'NotInitialized'
+      if state is 'Building'
+        @eventListener.addListener 'apply', stack._id
+      else
+        kd.warn 'Stack already initialized, skipping.', stack
+      return
+
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 

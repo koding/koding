@@ -380,10 +380,15 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	close(done)
 
 	ev.Push(&eventer.Event{
-		Message:    "Updating final results",
+		Message:    "Checking VM connections",
 		Percentage: 70,
 		Status:     machinestate.Building,
 	})
+
+	sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
+	if err := checkKlients(ctx, buildData.KiteIds); err != nil {
+		return err
+	}
 
 	output, err := machinesFromState(state)
 	if err != nil {
@@ -396,32 +401,19 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	output.AppendRegion(region)
 	output.AppendQueryString(buildData.KiteIds)
 
-	ev.Push(&eventer.Event{
-		Message:    "Updating machine settings",
-		Percentage: 80,
-		Status:     machinestate.Building,
-	})
-
-	sess.Log.Debug("Updating and syncing terraform output to jMachine documents")
-	if err := updateMachines(ctx, output, machines); err != nil {
-		return err
-	}
-
 	d, err := json.MarshalIndent(output, "", " ")
 	if err != nil {
 		return err
 	}
-
 	sess.Log.Debug("Updated machines\n%s", string(d))
 
+	sess.Log.Debug("Updating and syncing terraform output to jMachine documents")
 	ev.Push(&eventer.Event{
-		Message:    "Checking VM connections",
+		Message:    "Updating machine settings",
 		Percentage: 90,
 		Status:     machinestate.Building,
 	})
-
-	sess.Log.Debug("Checking total '%d' klients", len(buildData.KiteIds))
-	return checkKlients(ctx, buildData.KiteIds)
+	return updateMachines(ctx, output, machines)
 }
 
 func fetchStack(stackId string) (*Stack, error) {

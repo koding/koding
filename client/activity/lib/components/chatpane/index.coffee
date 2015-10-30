@@ -4,8 +4,10 @@ ChatList             = require 'activity/components/chatlist'
 ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
 ScrollerMixin        = require 'app/components/scroller/scrollermixin'
+EmojiPreloaderMixin  = require 'activity/components/emojipreloadermixin'
 ChannelInfoContainer = require 'activity/components/channelinfocontainer'
 scrollToTarget       = require 'app/util/scrollToTarget'
+classnames           = require 'classnames'
 
 
 module.exports = class ChatPane extends React.Component
@@ -45,6 +47,16 @@ module.exports = class ChatPane extends React.Component
 
 
   channel: (key) -> @props.thread.getIn ['channel', key]
+
+
+  getClassName: ->
+
+    { className } = @props
+
+    classes = { 'ChatPane' : yes }
+    classes[className] = yes  if className
+
+    return classnames classes
 
 
   renderChannelInfoContainer: ->
@@ -97,7 +109,8 @@ module.exports = class ChatPane extends React.Component
 
 
   render: ->
-    <div className={kd.utils.curry 'ChatPane', @props.className}>
+
+    <div className={@getClassName()}>
       <section className="ChatPane-contentWrapper">
         <section className="ChatPane-body" ref="ChatPaneBody">
           {@renderBody()}
@@ -107,5 +120,5 @@ module.exports = class ChatPane extends React.Component
     </div>
 
 
-React.Component.include.call ChatPane, [ScrollerMixin]
+React.Component.include.call ChatPane, [ScrollerMixin, EmojiPreloaderMixin]
 
