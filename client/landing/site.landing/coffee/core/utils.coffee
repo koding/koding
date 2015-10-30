@@ -129,8 +129,8 @@ utils.extend utils,
 
   clearTeamData: ->
 
-    localStorage.teamData = null
-    KD.team               = null
+    delete localStorage.teamData
+    delete KD.team
 
 
   getTeamData: ->
