@@ -7,8 +7,7 @@
   generateRandomString
   checkBongoConnectivity }  = require '../../../../testhelper'
 { fetchUserPlan }           = require './computeutils'
-{ createUserAndMachine
-  fetchMachinesByUsername } = require \
+{ fetchMachinesByUsername } = require \
   '../../../../testhelper/models/computeproviders/machinehelper'
 { createSnapshot }          = require \
   '../../../../testhelper/models/computeproviders/snapshothelper'
