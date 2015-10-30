@@ -291,6 +291,7 @@ module.exports = class DefineStackView extends KDView
 
       { groupsController } = kd.singletons
       { stackTemplates }   = groupsController.getCurrentGroup()
+      stackTemplate.inuse ?= stackTemplate._id in (stackTemplates or [])
       templateSetBefore    = stackTemplates?.length
 
       if templateSetBefore
