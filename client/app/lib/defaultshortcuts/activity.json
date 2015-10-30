@@ -22,5 +22,17 @@
       ]
     ],
     "description": "Next window"
+  },
+  {
+    "name": "glance",
+    "binding": [
+      [
+        "esc"
+      ],
+      [
+        "esc"
+      ]
+    ],
+    "description": "Glance new messages"
   }
 ]

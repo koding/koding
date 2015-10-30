@@ -1,12 +1,13 @@
-kd              = require 'kd'
-ActivityAppView = require './activityappview'
-remote          = require('app/remote').getInstance()
-globals         = require 'globals'
-getGroup        = require 'app/util/getGroup'
-checkFlag       = require 'app/util/checkFlag'
-isKoding        = require 'app/util/isKoding'
-AppStorage      = require 'app/appstorage'
-AppController   = require 'app/appcontroller'
+kd                   = require 'kd'
+ActivityAppView      = require './activityappview'
+ActivityFlux         = require 'activity/flux'
+remote               = require('app/remote').getInstance()
+globals              = require 'globals'
+getGroup             = require 'app/util/getGroup'
+checkFlag            = require 'app/util/checkFlag'
+isKoding             = require 'app/util/isKoding'
+AppStorage           = require 'app/appstorage'
+AppController        = require 'app/appcontroller'
 KodingAppsController = require 'app/kodingappscontroller'
 
 require('./routehandler')()
@@ -141,6 +142,9 @@ module.exports = class ActivityAppController extends AppController
         when 'nextwindow' then @getView().openNext()
     # else
     #   throw 'flux action'
+        when 'glance'
+          channelId = kd.singletons.reactor.evaluate getters.selectedChannelThreadId
+          actions.channel.glance channelId
 
 helper =
 
