@@ -30,9 +30,9 @@ module.exports = class GenerateNewTokenModal extends kd.ModalView
       cssClass: 'has-markdown'
       partial: """
         <p><code>kd</code> is a command line program that lets you use your local IDEs with your VMs. Copy and paste the command below in your PC's terminal. Please note:</p>
-        <p class='middle'>1. sudo permission required.</p>
+        <p class='middle'>1. <code>sudo</code> permission required.</p>
         <p class='middle'>2. Works only on OSX and Linux.</p>
-        <p class='middle'>3. kd is currently in beta.</p>
+        <p class='middle'>3. <code>kd</code> is currently in beta.</p>
       """
     # Commenting out learn, until the article is ready.
     #<span>
