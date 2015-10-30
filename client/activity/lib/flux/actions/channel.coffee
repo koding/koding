@@ -23,49 +23,64 @@ dispatch = (args...) -> kd.singletons.reactor.dispatch args...
  * Action to load channel with given slug.
  *
  * @param {string} name - slug of the channel
+ * @param {bool} loadMessages - yes if loading channel messages is needed
 ###
-loadChannelByName = (name) ->
+loadChannelByName = (name, loadMessages) ->
 
-  { LOAD_CHANNEL_BY_NAME_BEGIN
-    LOAD_CHANNEL_BY_NAME_FAIL
-    LOAD_CHANNEL_SUCCESS } = actionTypes
+  name   = name.toLowerCase()
+  type   = getChannelTypeByName name
+  params = { name, type }
+  func   = kd.singletons.socialapi.channel.byName
 
-  name = name.toLowerCase()
-
-  type = getChannelTypeByName name
-
-  dispatch LOAD_CHANNEL_BY_NAME_BEGIN, { name, type }
-
-  kd.singletons.socialapi.channel.byName { name, type }, (err, channel) ->
-    if err
-      dispatch LOAD_CHANNEL_BY_NAME_FAIL, { err }
-      return
-
-    realtimeActionCreators.bindChannelEvents channel
-    dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
-    MessageActions.loadMessages channel.id
+  loadChannelWithFunc func, params, loadMessages
 
 
 ###*
  * Action to load channel with given id.
  *
  * @param {string} id - id of the channel
+ * @param {bool} loadMessages - yes if loading channel messages is needed
 ###
-loadChannelById = (id) ->
+loadChannelById = (id, loadMessages) ->
 
-  { LOAD_CHANNEL_BY_ID_BEGIN
-    LOAD_CHANNEL_BY_ID_FAIL
+  func   = kd.singletons.socialapi.channel.byId
+  params = { id }
+
+  loadChannelWithFunc func, params, loadMessages
+
+
+###*
+ * Helper function to load channel with given function and parameters
+ * After channel is loaded it binds to channel events,
+ * emits LOAD_CHANNEL_SUCCESS event and load channel messages if needed
+ *
+ * @param {function} func - function which loads a channel
+ * @param {object} params - func parameters
+ * @param {bool} loadMessages - yes if loading channel messages is needed
+ * @return {Promise}
+###
+loadChannelWithFunc = (func, params, loadMessages) ->
+
+  { LOAD_CHANNEL_BEGIN
+    LOAD_CHANNEL_FAIL
     LOAD_CHANNEL_SUCCESS } = actionTypes
 
-  dispatch LOAD_CHANNEL_BY_ID_BEGIN, { id }
+  new Promise (resolve, reject) -> kd.singletons.mainController.ready ->
 
-  kd.singletons.socialapi.channel.byId { id }, (err, channel) ->
-    if err
-      dispatch LOAD_CHANNEL_BY_ID_FAIL, { err }
-      return
+    dispatch LOAD_CHANNEL_BEGIN, params
 
-    realtimeActionCreators.bindChannelEvents channel
-    dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+    func params, (err, channel) ->
+      if err
+        dispatch LOAD_CHANNEL_FAIL, { err }
+        reject err
+        return
+
+      realtimeActionCreators.bindChannelEvents channel
+      dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
+
+      MessageActions.loadMessages channel.id  if loadMessages
+
+      resolve { channel }
 
 
 loadChannelByParticipants = (participants, options = {}) ->
@@ -133,25 +148,9 @@ sanitizeTypeAndId = (type, id) ->
 ###
 loadChannel = (type, id) ->
 
-  { LOAD_CHANNEL_BEGIN
-    LOAD_CHANNEL_SUCCESS
-    LOAD_CHANNEL_FAIL } = actionTypes
-
-  [type, id] = sanitizeTypeAndId type, id
-
-  dispatch LOAD_CHANNEL_BEGIN, { type, id }
-
-  new Promise (resolve, reject) -> kd.singletons.mainController.ready ->
-    kd.singletons.socialapi.cacheable type, id, (err, channel) ->
-      if err
-        dispatch LOAD_CHANNEL_FAIL, { type, id }
-        reject err
-        return
-
-      realtimeActionCreators.bindChannelEvents channel
-      dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
-      MessageActions.loadMessages channel.id
-      resolve { channel }
+  if type is 'public'
+  then loadChannelByName id, yes
+  else loadChannelById id, yes
 
 
 ###*

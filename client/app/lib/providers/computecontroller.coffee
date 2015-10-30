@@ -913,8 +913,9 @@ module.exports = class ComputeController extends KDController
     existents = 0
 
     for stackTemplate in stackTemplates
-      for stack in @stacks
-        existents++  if stack.baseStackId is stackTemplate
+      for stack in @stacks when stack.baseStackId is stackTemplate
+        existents++
+        break # only count one matched stack ~ GG
 
     if existents isnt stackTemplates.length
     then @emit 'GroupStacksInconsistent'

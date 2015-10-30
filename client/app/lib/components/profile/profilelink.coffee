@@ -9,7 +9,10 @@ module.exports = class ProfileLink extends React.Component
     onClick  : kd.noop
 
 
-  getHref: -> "/#{@props.account.profile.nickname}"
+  getHref: ->
+    if @props.account.isIntegration
+    then "/Admin/Integrations/Configure/#{@props.account.id}"
+    else "/#{@props.account.profile.nickname}"
 
 
   render: ->

@@ -126,6 +126,9 @@ module.exports = class Payment extends Base
   @canUserPurchase = secure (client, callback) ->
     { connection : { delegate } } = client
 
+    unless delegate
+      return callback new KodingError 'Account not found'
+
     if delegate.type isnt 'registered'
       return callback new KodingError 'guests are not allowed'
 
@@ -141,10 +144,10 @@ module.exports = class Payment extends Base
     callback null
 
   getAccountId = (client) ->
-    return client.connection.delegate.getId()
+    return client?.connection?.delegate?.getId()
 
   getUserName = (client) ->
-    return client.connection.delegate.profile.nickname
+    return client?.connection?.delegate?.profile?.nickname
 
   prettifyFeature = (name) ->
     switch name

@@ -34,6 +34,8 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.GLANCE_CHANNEL_BEGIN, @handleGlanceChannel
     @on actions.GLANCE_CHANNEL_SUCCESS, @handleGlanceChannel
 
+    @on actions.REMOVE_PARTICIPANT_FROM_CHANNEL, @handleRemoveParticipantFromChannel
+
     @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 
@@ -79,6 +81,21 @@ module.exports = class ChannelsStore extends KodingFluxStore
   handleGlanceChannel: (channels, { channelId }) ->
 
     channels.setIn [channelId, 'unreadCount'], 0
+
+
+  handleRemoveParticipantFromChannel: (channels, { channelId, accountId }) ->
+
+    channel = channels.get channelId
+
+    participantCount    = channel.get 'participantCount'
+    participantsPreview = channel.get 'participantsPreview'
+
+    participantsPreview = participantsPreview.filter (participant) ->
+
+      participant.get('_id') isnt accountId
+
+    channels = channels.setIn [channelId, 'participantCount'], participantCount - 1
+    channels = channels.setIn [channelId, 'participantsPreview'], participantsPreview
 
 
 initChannel = (channels, id) ->

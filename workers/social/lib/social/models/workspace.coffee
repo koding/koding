@@ -178,7 +178,7 @@ module.exports = class JWorkspace extends Module
     @remove callback
 
 
-  @update: secure (client, id, options, callback) ->
+  @update$ = secure (client, id, options, callback) ->
 
     selector   =
       originId : client.connection.delegate._id
@@ -191,7 +191,7 @@ module.exports = class JWorkspace extends Module
       ws.update options, callback
 
 
-  @createDefault: secure (client, machineUId, callback) ->
+  @createDefault = secure (client, machineUId, callback) ->
 
     JMachine.one$ client, machineUId, (err, machine) =>
 

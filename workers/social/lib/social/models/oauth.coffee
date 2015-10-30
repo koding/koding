@@ -66,8 +66,9 @@ module.exports = class OAuth extends bongo.Base
     return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"
 
   @saveTokensAndReturnUrl = (client, provider, callback) ->
-    @getTokens provider, (err, { requestToken, requestTokenSecret, url }) =>
+    @getTokens provider, (err, data) =>
       return callback err  if err
+      { requestToken, requestTokenSecret, url } = data
 
       credentials = { requestToken, requestTokenSecret }
       @saveTokens client, provider, credentials, (err) ->

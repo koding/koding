@@ -7,6 +7,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const RelationshipColl = "relationships"
+
 func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
 	relationships := make([]models.Relationship, 0)
 
@@ -14,7 +16,7 @@ func GetAllRelationships(selector Selector) ([]models.Relationship, error) {
 		return c.Find(selector).All(&relationships)
 	}
 
-	err := Mongo.Run("relationships", query)
+	err := Mongo.Run(RelationshipColl, query)
 
 	return relationships, err
 }
@@ -26,7 +28,7 @@ func GetSomeRelationships(selector Selector, limit int) ([]models.Relationship, 
 		return c.Find(selector).Limit(limit).All(&relationships)
 	}
 
-	err := Mongo.Run("relationships", query)
+	err := Mongo.Run(RelationshipColl, query)
 
 	return relationships, err
 }
@@ -38,30 +40,30 @@ func GetRelationship(selector Selector) (models.Relationship, error) {
 		return c.Find(selector).One(&relationship)
 	}
 
-	err := Mongo.Run("relationships", query)
+	err := Mongo.Run(RelationshipColl, query)
 
 	return relationship, err
 }
 
 // Deletes all relationships satisfying the selector
 func DeleteRelationships(selector Selector) error {
-	return RemoveAllDocuments("relationships", selector)
+	return RemoveAllDocuments(RelationshipColl, selector)
 }
 
 // Deletes relationships with the given id
 func DeleteRelationship(id bson.ObjectId) error {
-	return RemoveDocument("relationships", id)
+	return RemoveDocument(RelationshipColl, id)
 }
 
 func AddRelationship(r *models.Relationship) error {
 	query := insertQuery(r)
 
-	return Mongo.Run("relationships", query)
+	return Mongo.Run(RelationshipColl, query)
 }
 
 func UpdateRelationship(r *models.Relationship) error {
 	query := updateByIdQuery(r.Id.Hex(), r)
-	return Mongo.Run("relationships", query)
+	return Mongo.Run(RelationshipColl, query)
 }
 
 func UpdateRelationships(selector, options Selector) error {
@@ -69,7 +71,7 @@ func UpdateRelationships(selector, options Selector) error {
 		_, err := c.UpdateAll(selector, options)
 		return err
 	}
-	return Mongo.Run("relationships", query)
+	return Mongo.Run(RelationshipColl, query)
 }
 
 func RelationshipCount(selector Selector) (int, error) {
@@ -79,5 +81,5 @@ func RelationshipCount(selector Selector) (int, error) {
 		count, err = c.Find(selector).Count()
 		return err
 	}
-	return count, Mongo.Run("relationships", query)
+	return count, Mongo.Run(RelationshipColl, query)
 }

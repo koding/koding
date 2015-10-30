@@ -13,14 +13,15 @@ module.exports = class PrivateChatPane extends React.Component
 
 
   render: ->
-
-    <ChatPane
-      thread     = { @props.thread }
-      className  = 'PrivateChatPane'
-      onSubmit   = { @bound 'onSubmit' }
-      onInviteOthers = {@bound 'onInviteOthers'}
-      onLoadMore = { @bound 'onLoadMore' }
-    >
+    <div>
+      <ChatPane
+        thread     = { @props.thread }
+        className  = 'PrivateChatPane'
+        onSubmit   = { @bound 'onSubmit' }
+        onInviteOthers = {@bound 'onInviteOthers'}
+        onLoadMore = { @bound 'onLoadMore' }
+      >
+      </ChatPane>
       <footer className='PrivateChatPane-footer'>
         <ChatInputWidget
           onSubmit         = { @bound 'onSubmit' }
@@ -30,8 +31,7 @@ module.exports = class PrivateChatPane extends React.Component
           ref              = 'chatInputWidget'
         />
       </footer>
-    </ChatPane>
-
+    </div>
 
 React.Component.include.call PrivateChatPane, [ChatPaneWrapperMixin]
 

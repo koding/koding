@@ -1,14 +1,11 @@
 kd                    = require 'kd'
-KDView                = kd.View
-KDCustomHTMLView      = kd.CustomHTMLView
 isKoding              = require 'app/util/isKoding'
-KDTabView             = kd.TabView
-KDTabPaneView         = kd.TabPaneView
 TeamMembersCommonView = require './teammemberscommonview'
 GroupsBlockedUserView = require '../groupsblockeduserview'
+BlockedMemberItemView = require './blockedmemberitemview'
 
 
-module.exports = class AdminMembersView extends KDView
+module.exports = class AdminMembersView extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -22,37 +19,45 @@ module.exports = class AdminMembersView extends KDView
   createTabView: ->
 
     data    = @getData()
-    tabView = new KDTabView hideHandleCloseIcons: yes
+    tabView = new kd.TabView hideHandleCloseIcons: yes
 
-    tabView.addPane all    = new KDTabPaneView name: 'All Members'
-    tabView.addPane admins = new KDTabPaneView name: 'Admins'
-    tabView.addPane mods   = new KDTabPaneView name: 'Moderators'
+    tabView.addPane all     = new kd.TabPaneView name: 'All Members'
+    tabView.addPane admins  = new kd.TabPaneView name: 'Admins'
+    tabView.addPane mods    = new kd.TabPaneView name: 'Moderators'
+    tabView.addPane blocked = new kd.TabPaneView name: 'Blocked'
 
     all.addSubView @allView = new TeamMembersCommonView
       fetcherMethod     : 'fetchMembersWithEmail'
-      noItemFoundWidget : new KDCustomHTMLView
+      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No members found!'
         cssClass        : 'no-item-view'
     , data
 
     admins.addSubView @adminsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchAdminsWithEmail'
-      noItemFoundWidget : new KDCustomHTMLView
+      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No admins found!'
         cssClass        : 'no-item-view'
     , data
 
     mods.addSubView @modsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchModeratorsWithEmail'
-      noItemFoundWidget : new KDCustomHTMLView
+      noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No moderators found!'
         cssClass        : 'no-item-view'
     , data
 
 
     if isKoding()
-      tabView.addPane blockedMembersPane = new KDTabPaneView name: 'Blocked'
-      blockedMembersPane.addSubView new GroupsBlockedUserView {}, data
+      blocked.addSubView new GroupsBlockedUserView {}, data
+    else
+      blocked.addSubView @blockedView = new TeamMembersCommonView
+        fetcherMethod     : 'fetchBlockedAccountsWithEmail'
+        listViewItemClass : BlockedMemberItemView
+        noItemFoundWidget : new kd.CustomHTMLView
+          partial         : 'No blocked user found!'
+          cssClass        : 'no-item-view'
+      , data
 
     tabView.showPaneByIndex 0
     @addSubView tabView
@@ -69,13 +74,20 @@ module.exports = class AdminMembersView extends KDView
         item.on 'MemberRoleChanged', (oldRole, newRole) =>
           @listenForRoleChange item, view, oldRole, newRole
 
+        item.on 'UserKicked', =>
+          @blockedView.refresh()
+          @listenForRoleChange item, view
+
+
 
   listenForRoleChange: (memberItemView, parentView, oldRole, newRole) ->
 
-    views       = [ @allView, @adminsView, @modsView ]
-    becameMod   = oldRole.slug in [ 'admin', 'member' ]    and newRole.slug is 'moderator'
-    becameAdmin = oldRole.slug in [ 'moderator', 'member'] and newRole.slug is 'admin'
-    targetView  = if becameMod then @modsView else if becameAdmin then @adminsView
+    views = [ @allView, @adminsView, @modsView ]
+
+    if oldRole and newRole
+      becameMod   = oldRole.slug in [ 'admin', 'member' ]    and newRole.slug is 'moderator'
+      becameAdmin = oldRole.slug in [ 'moderator', 'member'] and newRole.slug is 'admin'
+      targetView  = if becameMod then @modsView else if becameAdmin then @adminsView
 
     if parentView is @allView
       views.shift() # don't update view on all members tab, it will update itself.
@@ -84,7 +96,7 @@ module.exports = class AdminMembersView extends KDView
       for memberItem in view.listController.getItemsOrdered()
         if memberItem.data.profile.nickname is memberItemView.data.profile.nickname
           # update member view if it's owner or in all members tab
-          if view is @allView or newRole.slug is 'owner'
+          if view is @allView or newRole?.slug is 'owner'
             memberItem.memberRole = newRole
             memberItem.handleRoleChangeOnUI newRole.label
           else

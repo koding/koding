@@ -1,7 +1,11 @@
 .Tooltip-wrapper
   abs()
+  left                          50%
   margin-top                    -24px
   z-index                       2
+  rounded                       3px
+  vendor                        transform, translateX(-50%)
+  bg                            color, rgba(0,0,0,.65)
 
   &:after
     abs()
@@ -17,16 +21,13 @@
     borderBox()
     display                     block
     line-height                 22px
-    height                      22px
     padding                     0 5px
-    rounded                     3px
     color                       #FFF
     text-align                  center
     word-wrap                   break-word
     white-space                 nowrap
     font-size                   12px
     font-weight                 300
-    bg                          color, rgba(0,0,0,.65)
 
   &.bottom
     &:after
