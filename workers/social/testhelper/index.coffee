@@ -90,9 +90,10 @@ withConvertedUser = (opts, callback) ->
       client.sessionToken         = newToken
       client.connection.delegate  = account
 
-      if opts?.userFormData?
-      then callback { client, user, account, sessionToken : newToken }
-      else callback { client, user, account, sessionToken : newToken, userFormData }
+      fetchGroup client, (group) ->
+        if opts?.userFormData?
+        then callback { client, user, account, group, sessionToken : newToken }
+        else callback { client, user, account, group, sessionToken : newToken, userFormData }
 
 
 generateDummyUserFormData = (opts = {}) ->
