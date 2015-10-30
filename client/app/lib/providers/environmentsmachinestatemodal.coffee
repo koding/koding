@@ -846,6 +846,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @readmeView.wrapper.addSubView readmeContent
       @readmeView.show()
       @readmeView.getDomElement().find('a').attr('target', '_blank')
+      @setClass 'has-readme'
+      @setWidth 540
 
 
   showErrorDetails: (errorMessage) ->
