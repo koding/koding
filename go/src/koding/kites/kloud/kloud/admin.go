@@ -60,22 +60,16 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 	}
 
 	if args.GroupName == "" {
-		return nil, errors.New("group name is not passed")
+		return nil, errors.New("groupName is not passed")
 	}
 
 	k.Log.Debug("Got arguments %+v for method: %s", args, r.Method)
 
-	admins, err := modelhelper.FetchAdminAccounts(args.GroupName)
+	isAdmin, err := modelhelper.IsAdmin(args.GroupName, r.Username)
 	if err != nil {
 		return nil, err
 	}
 
-	isAdmin := false
-	for _, admin := range admins {
-		if admin.Profile.Nickname == r.Username {
-			isAdmin = true
-		}
-	}
 	if !isAdmin {
 		return nil, fmt.Errorf("User '%s' is not an admin of group '%s'", r.Username, args.GroupName)
 	}
@@ -97,7 +91,8 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 		}
 	}
 	if !isGroupMember {
-		return nil, fmt.Errorf("Group '%s' is not a member of machine '%s'", args.GroupName, args.MachineId)
+		return nil, fmt.Errorf("'%s' machine does not belong to '%s' group",
+			args.MachineId, args.GroupName)
 	}
 
 	// Now we are ready to go.
@@ -105,7 +100,7 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 	ctx = k.ContextCreator(ctx)
 	sess, ok := session.FromContext(ctx)
 	if !ok {
-		return nil, errors.New("session context is not passed")
+		return nil, errors.New("internal server error (err: session context is not available)")
 	}
 
 	return klient.NewWithTimeout(sess.Kite, machine.QueryString, time.Second*10)
