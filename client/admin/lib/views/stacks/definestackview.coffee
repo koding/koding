@@ -177,12 +177,15 @@ module.exports = class DefineStackView extends KDView
 
   createOutputView: ->
 
-    @stackTemplateView.addSubView @outputView = view =  new OutputView
-    @stackTemplateView.on 'ShowOutputView', view.bound 'raise'
-    @stackTemplateView.on 'HideOutputView', view.bound 'fall'
+    @stackTemplateView.addSubView @outputView = new OutputView
+    @stackTemplateView.on 'ShowOutputView', @outputView.bound 'raise'
+    @stackTemplateView.on 'HideOutputView', @outputView.bound 'fall'
+
     @stackTemplateView.on 'ShowTemplatePreview', @bound 'handlePreview'
+    @stackTemplateView.on 'ReinitStack',         @bound 'handleReinit'
 
     @previewButton = @stackTemplateView.previewButton
+    @reinitButton  = @outputView.reinitButton
 
     @outputView.add 'Welcome to Stack Template Editor'
 
@@ -190,6 +193,13 @@ module.exports = class DefineStackView extends KDView
   createMainButtons: ->
 
     @inputTitle.addSubView @buttons = new kd.CustomHTMLView cssClass: 'buttons'
+
+    @buttons.addSubView @reinitButton = new kd.ButtonView
+      title          : 'Re-Init'
+      cssClass       : 'solid compact nav hidden'
+      tooltip        :
+        title        : "Destroy's existing stack, and re-creates it"
+      callback       : @bound 'handleReinit'
 
     @buttons.addSubView @cancelButton = new kd.ButtonView
       title          : 'Cancel'
@@ -234,6 +244,7 @@ module.exports = class DefineStackView extends KDView
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
+    @reinitButton.hide()
 
     @saveTemplate (err, stackTemplate) =>
 
@@ -279,6 +290,9 @@ module.exports = class DefineStackView extends KDView
 
         You can now close this window or continue working with your stack.
       """
+
+      @reinitButton.show()
+
 
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
@@ -590,6 +604,10 @@ module.exports = class DefineStackView extends KDView
         #{template}
         ```
       """
+
+
+  handleReinit: ->
+    kd.singletons.computeController.reinitGroupStack()
 
 
   handleSetDefaultTemplate: (completed = yes) ->
