@@ -9,27 +9,14 @@ ActivityFlux = require 'activity/flux'
 ###
 module.exports = ThreadPaneLifecycleMixin = (reset) ->
 
-  componentDidMount = ->
-
-    reset @props, @state, =>
-      scrollTop              = @state.channelThread.getIn [ 'flags', 'scrollPosition' ]
-      scroller               = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
-      scroller.scrollTop     = scrollTop  if scrollTop
-      scroller.style.opacity = 1
-
+  componentDidMount = -> reset @props, @state
 
   componentWillReceiveProps = (nextProps) -> reset nextProps, @state
 
-
   componentWillUnmount = ->
 
-    # terrifying drill - SY
-    scroller            = React.findDOMNode @refs.pane.refs.chatPane.refs.scrollContainer
-    { scrollTop }       = scroller
-    { channel, thread } = ActivityFlux.actions
+    { thread } = ActivityFlux.actions
 
-    scroller.style.opacity = 0
-    channel.setScrollPosition (@state.channelThread.getIn [ 'channel', 'id' ]), scrollTop
     thread.changeSelectedThread null
 
 
@@ -38,3 +25,5 @@ module.exports = ThreadPaneLifecycleMixin = (reset) ->
     componentWillReceiveProps
     componentWillUnmount
   }
+
+
