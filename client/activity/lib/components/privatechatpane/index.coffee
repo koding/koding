@@ -22,12 +22,13 @@ module.exports = class PrivateChatPane extends React.Component
         onLoadMore = { @bound 'onLoadMore' }
       >
       </ChatPane>
-      <footer className='PrivateChatPane-footer'>
+      <footer className='PrivateChatPane-footer ChatPaneFooter'>
         <ChatInputWidget
           onSubmit         = { @bound 'onSubmit' }
           onCommand        = { @bound 'onCommand' }
           channelId        = { @channel 'id' }
           disabledFeatures = { ['search'] }
+          onResize         = { @bound 'onResize' }
           ref              = 'chatInputWidget'
         />
       </footer>
