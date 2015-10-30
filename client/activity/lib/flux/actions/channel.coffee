@@ -19,47 +19,17 @@ Promise                 = require 'bluebird'
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
 
-###*
- * Action to load channel with given slug.
- *
- * @param {string} name - slug of the channel
- * @param {bool} loadMessages - yes if loading channel messages is needed
-###
-loadChannelByName = (name, loadMessages) ->
-
-  name   = name.toLowerCase()
-  type   = getChannelTypeByName name
-  params = { name, type }
-  func   = kd.singletons.socialapi.channel.byName
-
-  loadChannelWithFunc func, params, loadMessages
-
-
-###*
- * Action to load channel with given id.
- *
- * @param {string} id - id of the channel
- * @param {bool} loadMessages - yes if loading channel messages is needed
-###
-loadChannelById = (id, loadMessages) ->
-
-  func   = kd.singletons.socialapi.channel.byId
-  params = { id }
-
-  loadChannelWithFunc func, params, loadMessages
-
 
 ###*
  * Helper function to load channel with given function and parameters
  * After channel is loaded it binds to channel events,
- * emits LOAD_CHANNEL_SUCCESS event and load channel messages if needed
+ * emits LOAD_CHANNEL_SUCCESS event and load channel messages
  *
- * @param {function} func - function which loads a channel
- * @param {object} params - func parameters
- * @param {bool} loadMessages - yes if loading channel messages is needed
+ * @param {function} fn - function which loads a channel
+ * @param {object} params - fn parameters
  * @return {Promise}
 ###
-loadChannelWithFunc = (func, params, loadMessages) ->
+loadChannelWithFn = (fn, params) ->
 
   { LOAD_CHANNEL_BEGIN
     LOAD_CHANNEL_FAIL
@@ -69,7 +39,7 @@ loadChannelWithFunc = (func, params, loadMessages) ->
 
     dispatch LOAD_CHANNEL_BEGIN, params
 
-    func params, (err, channel) ->
+    fn params, (err, channel) ->
       if err
         dispatch LOAD_CHANNEL_FAIL, { err }
         reject err
@@ -78,7 +48,7 @@ loadChannelWithFunc = (func, params, loadMessages) ->
       realtimeActionCreators.bindChannelEvents channel
       dispatch LOAD_CHANNEL_SUCCESS, { channelId: channel.id, channel }
 
-      MessageActions.loadMessages channel.id  if loadMessages
+      MessageActions.loadMessages channel.id
 
       resolve { channel }
 
@@ -134,23 +104,33 @@ sanitizeTypeAndId = (type, id) ->
 
 
 ###*
- * Generic loadChannel action. It reduces the type confusion and handles
- * internal type conversion itself and loads given channel.
+ * Loads channel by given id
  *
- * It works for 2 different types:
- *  - public: use this type to load a public channel (group, announcement, topic)
- *  - private: use this type to load a private channel (privatemessage, bot)
- *
- * @param {string} type - either 'public' or 'private'
- * @param {string} id - 'channel name' for public channels,
- *   'channel id' for private channels.
+ * @param {string} id - channel id
  * @return {Promise}
 ###
-loadChannel = (type, id) ->
+loadChannel = (id) ->
 
-  if type is 'public'
-  then loadChannelByName id, yes
-  else loadChannelById id, yes
+  fn     = kd.singletons.socialapi.channel.byId
+  params = { id }
+
+  loadChannelWithFn fn, params
+
+
+###*
+ * Loads channel by given name
+ *
+ * @param {string} name - channel name
+ * @return {Promise}
+###
+loadChannelByName = (name) ->
+
+  name   = name.toLowerCase()
+  type   = getChannelTypeByName name
+  params = { name, type }
+  fn     = kd.singletons.socialapi.channel.byName
+
+  loadChannelWithFn fn, params
 
 
 ###*
@@ -296,8 +276,8 @@ loadPopularChannels = (options = {}) ->
 loadChannelsByQuery = (query, options = {}) ->
 
   options.name = query
-  func = kd.singletons.socialapi.channel.searchTopics
-  loadChannelsWithFunc func, options
+  fn = kd.singletons.socialapi.channel.searchTopics
+  loadChannelsWithFn fn, options
 
 
 ###*
@@ -307,11 +287,11 @@ loadChannelsByQuery = (query, options = {}) ->
 ###
 loadChannels = (options = {}) ->
 
-  func = kd.singletons.socialapi.channel.list
-  loadChannelsWithFunc func, options
+  fn = kd.singletons.socialapi.channel.list
+  loadChannelsWithFn fn, options
 
 
-loadChannelsWithFunc = (func, options) ->
+loadChannelsWithFn = (fn, options) ->
 
   { LOAD_CHANNELS_BEGIN
     LOAD_CHANNELS_SUCCESS
@@ -321,7 +301,7 @@ loadChannelsWithFunc = (func, options) ->
   dispatch LOAD_CHANNELS_BEGIN
 
   new Promise (resolve, reject) ->
-    func options, (err, channels) ->
+    fn options, (err, channels) ->
       if err
         dispatch LOAD_CHANNELS_FAIL, { err }
         return reject err
@@ -518,10 +498,9 @@ module.exports = {
   unfollowChannel
   addParticipants
   addParticipantsByNames
-  loadChannelByName
-  loadChannelById
   loadChannelByParticipants
   loadChannel
+  loadChannelByName
   loadFollowedPrivateChannels
   loadFollowedPublicChannels
   loadChannels

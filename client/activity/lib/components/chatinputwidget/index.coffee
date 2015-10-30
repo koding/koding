@@ -274,7 +274,7 @@ module.exports = class ChatInputWidget extends React.Component
   onSearchItemConfirmed: (message) ->
 
     { initialChannelId, id } = message
-    ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
+    ActivityFlux.actions.channel.loadChannel(initialChannelId).then ({ channel }) ->
       kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
 
 
