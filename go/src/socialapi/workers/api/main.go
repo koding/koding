@@ -12,6 +12,7 @@ import (
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
+	"socialapi/workers/api/modules/notificationsettings"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/pinnedactivity"
 	"socialapi/workers/api/modules/popular"
@@ -78,6 +79,7 @@ func main() {
 	popular.AddHandlers(m)
 	privatechannel.AddHandlers(m)
 	reply.AddHandlers(m)
+	notificationsettings.AddHandlers(m)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

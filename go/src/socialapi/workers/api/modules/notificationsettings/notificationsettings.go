@@ -16,7 +16,7 @@ func Create(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *mo
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
-	channelId, err := fetchChannelId(u, c)
+	channelId, err := fetchChannelId(u, ctx)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -40,7 +40,7 @@ func Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, inter
 	}
 
 	n := models.NewNotificationSettings()
-	err := n.ById(id)
+	err = n.ById(id)
 	if err == bongo.RecordNotFound {
 		return response.NewNotFound()
 	}
@@ -96,7 +96,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(err)
 	}
 
-	ns := models.NotificationSettings()
+	ns := models.NewNotificationSettings()
 	ns.Id = id
 
 	if err := ns.ById(id); err != nil {
