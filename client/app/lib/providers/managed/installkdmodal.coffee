@@ -3,11 +3,11 @@ globals       = require 'globals'
 whoami        = require 'app/util/whoami'
 
 
-module.exports = class GenerateNewTokenModal extends kd.ModalView
+module.exports = class InstallKdModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'generate-new-token'
+    options.cssClass = 'install-kd-modal'
     options.title    = 'Install kd'
     options.width    = 690
     options.height   = 310

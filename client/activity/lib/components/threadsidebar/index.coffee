@@ -5,7 +5,7 @@ ThreadSidebarContentBox   = require 'activity/components/threadsidebarcontentbox
 ChannelParticipantAvatars = require 'activity/components/channelparticipantavatars'
 ChannelMessagesList       = require 'activity/components/channelmessageslist'
 Link                      = require 'app/components/common/link'
-GenerateNewTokenModal     = require 'app/providers/managed/generatenewtokenmodal'
+InstallKdModal            = require 'app/providers/managed/installkdmodal'
 isGroupChannel            = require 'app/util/isgroupchannel'
 
 
@@ -17,7 +17,7 @@ module.exports = class ThreadSidebar extends React.Component
     channelParticipants: immutable.Map()
 
 
-  showKdModal: -> new GenerateNewTokenModal
+  showKdModal: -> new InstallKdModal
 
 
   renderInviteSection: ->
