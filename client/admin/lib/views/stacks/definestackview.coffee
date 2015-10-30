@@ -198,7 +198,7 @@ module.exports = class DefineStackView extends KDView
       title          : 'Re-Init'
       cssClass       : 'solid compact nav hidden'
       tooltip        :
-        title        : "Destroy's existing stack, and re-creates it"
+        title        : "Destroys the existing stack and re-creates it."
       callback       : @bound 'handleReinit'
 
     @buttons.addSubView @cancelButton = new kd.ButtonView
