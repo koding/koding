@@ -7,8 +7,8 @@ module.exports = class TopNavigation extends KDCustomHTMLView
     { title : 'Koding University', href : 'http://learn.koding.com',  name : 'about' }
     { title : 'Teams',             href : '/Teams',                   name : 'teams' }
     { title : 'Features',          href : '/Features',                name : 'features' }
-    { title : 'SIGN IN',           href : '/Login',                   name : 'buttonized white login',  attributes : testpath : 'login-link' }
-    { title : 'SIGN UP',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
+    { title : 'Sign In',           href : '/Login',                   name : 'buttonized white login',  attributes : testpath : 'login-link' }
+    { title : 'Sign Up',           href : '/Register',                name : 'buttonized green signup', attributes : testpath : 'signup-link' }
   ]
 
   constructor: (options = {}, data) ->
