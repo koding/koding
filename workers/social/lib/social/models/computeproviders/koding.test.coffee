@@ -1,12 +1,17 @@
-{ daisy
+{ _
+  daisy
   expect
   KONFIG
-  fetchGroup
+  withCreatedUser
   withConvertedUser
+  generateRandomString
   checkBongoConnectivity }  = require '../../../../testhelper'
 { fetchUserPlan }           = require './computeutils'
-{ fetchMachinesByUsername } = require \
+{ createUserAndMachine
+  fetchMachinesByUsername } = require \
   '../../../../testhelper/models/computeproviders/machinehelper'
+{ createSnapshot }          = require \
+  '../../../../testhelper/models/computeproviders/snapshothelper'
 
 Koding       = require './koding'
 JMachine     = require './machine'
@@ -45,34 +50,96 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
   describe '#create()', ->
 
+    # default options for create test suite
+    generateDefaultOptions = (options) ->
+
+      _options =
+        label        : generateRandomString()
+        region       : 'us-east-1'
+        storage      : '1'
+        snapshotId   : 'someSnapshotId'
+        instanceType : 't2.micro'
+
+      _options = _.extend _options, options
+
+      return _options
+
+
     it 'should be able to succeed with valid request', (done) ->
 
-      withConvertedUser ({ userFormData }) ->
-        fetchMachinesByUsername userFormData.username, (machines) ->
-          machine = machines[0]
-          expect(machine.label).to.exist
-          expect(machine.status).to.be.an 'object'
-          expect(machine.status.state).to.be.equal 'NotInitialized'
-          expect(machine.provider).to.be.equal Koding.providerSlug
-          expect(machine.meta).to.be.an 'object'
-          expect(machine.meta.type).to.be.equal 'aws'
-          expect(machine.meta).to.be.falsy
-          expect(machine.meta.region).to.exist
-          expect(machine.meta.source_ami).to.be.empty
-          expect(machine.meta.storage_size).to.be.a 'number'
-          expect(machine.generatedFrom).to.be.an 'object'
-          expect(machine.generatedFrom.templateId).to.exist
-          expect(machine.users).to.be.an.instanceof Array
-          expect(machine.users[0].username).to.be.equal userFormData.username
-          expect(machine.credential).to.be.equal userFormData.username
-          expect(machine.provisioners).to.be.an.instanceof Array
-          expect(machine.groups).to.be.an.instanceof Array
-          expect(machine.uid).to.exist
-          expect(machine.createdAt).to.be.an.instanceof Date
-          expect(machine.assignee).to.be.an 'object'
-          expect(machine.domain).to.be.a 'string'
-          expect(machine.slug).to.be.a 'string'
+      withCreatedUser ({ client, user, account, group }) ->
+
+        client.r = { user, account, group }
+        snapshot = {}
+
+        queue = [
+
+          ->
+            createSnapshot { originId : account.getId() }, (err, snapshot_) ->
+              expect(err).to.not.exist
+              snapshot = snapshot_
+              queue.next()
+
+          ->
+            options = generateDefaultOptions { snapshotId : snapshot.getId() }
+            Koding.create client, options, (err, data) ->
+              expect(err).to.not.exist
+              expect(data.meta).to.be.an 'object'
+              expect(data.meta.type).to.be.equal 'aws'
+              expect(data.meta.region).to.be.equal options.region
+              expect(data.meta.source_ami).to.be.empty
+              expect(data.meta.storage_size.toString()).to.be.equal options.storage
+              expect(data.meta.alwaysOn).to.be.false
+              expect(data.label).to.be.a 'string'
+              expect(data.credential).to.be.equal user.username
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+    it 'should fail if storage is not valid', (done) ->
+
+      withCreatedUser ({ client, user, account }) ->
+        client.r = {}
+
+        options = generateDefaultOptions { storage : 'notValidStorage' }
+        Koding.create client, options, (err) ->
+          expect(err?.message).to.be.equal 'Requested storage size is not valid.'
           done()
+
+
+    it 'should fail if storage exceeds allowed size', (done) ->
+
+      withCreatedUser ({ client, user, account, group }) ->
+
+        client.r = { user, account, group }
+        userPlan = {}
+
+        queue = [
+
+          ->
+            fetchUserPlan client, (err, userPlan_) ->
+              expect(err).to.not.exist
+              userPlan = userPlan_
+              queue.next()
+
+          ->
+            expectedError = "Total limit of #{userPlan.storage}GB storage
+                              limit has been reached."
+            options = generateDefaultOptions { storage : '1000' }
+            Koding.create client, options, (err) ->
+              expect(err?.message).to.be.equal expectedError
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
 
 
   describe '#postCreate()', ->
@@ -160,20 +227,16 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
     it 'should be able to succeed with valid request', (done) ->
 
-      withConvertedUser ({ client, account, user, userFormData }) ->
+      withConvertedUser ({ client, account, group, user, userFormData }) ->
 
-        machine = {}
+        machine  = {}
+        client.r = { account, user, group }
 
         queue = [
 
           ->
             fetchMachinesByUsername userFormData.username, (machines) ->
               machine = machines[0]
-              queue.next()
-
-          ->
-            fetchGroup client, (group) ->
-              client.r = { account, user, group }
               queue.next()
 
           ->
