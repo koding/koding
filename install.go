@@ -109,7 +109,7 @@ func InstallCommand(c *cli.Context) int {
 	if err != nil {
 		if os.IsNotExist(err) {
 			klientShFile := []byte(fmt.Sprintf(`#!/bin/sh
-%sKITE_HOME=%s %s --kontrol-url=%s -debug
+%sKITE_HOME=%s %s --kontrol-url=%s
 `,
 				sudoCmd, KiteHome, klientBinPath, kontrolUrl))
 
