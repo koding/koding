@@ -168,6 +168,7 @@ utils.extend utils,
 
     formData = createFormData()
 
+    formData._csrf           = Cookies.get '_csrf'
     # manually add legacy fields - SY
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
@@ -227,6 +228,7 @@ utils.extend utils,
 
     formData = createFormData()
 
+    formData._csrf           = Cookies.get '_csrf'
     # manually add legacy fields - SY
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
