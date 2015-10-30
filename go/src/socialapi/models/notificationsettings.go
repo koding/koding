@@ -53,3 +53,18 @@ func NewNotificationSettings() *NotificationSettings {
 		UpdatedAt:      now,
 	}
 }
+
+func (ns *NotificationSettings) Defaults() *NotificationSettings {
+	if ns.DesktopSetting == "" {
+		ns.DesktopSetting = NotificationSettings_STATUS_ALL
+	}
+
+	if ns.MobileSetting == "" {
+		ns.MobileSetting = NotificationSettings_STATUS_ALL
+	}
+
+	ns.IsMuted = false
+	ns.IsSuppressed = false
+
+	return ns
+}
