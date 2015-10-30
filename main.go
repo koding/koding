@@ -15,6 +15,7 @@ var sudoRequiredFor = []string{
 	"uninstall",
 	"start",
 	"stop",
+	"restart",
 	"update",
 }
 
