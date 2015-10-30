@@ -25,8 +25,11 @@ func TestKodingNetworkFS(tt *testing.T) {
 		Convey("It should mount and unmount a directory", func() {
 			t := &fakeTransport{
 				TripResponses: map[string]interface{}{
-					"fs.readDirectory": fktransport.FsReadDirectoryRes{Files: []fktransport.FsGetInfoRes{}},
-					"fs.getInfo":       fktransport.FsGetInfoRes{Exists: true},
+					"fs.readDirectory": fktransport.FsReadDirectoryRes{
+						Files: []fktransport.FsGetInfoRes{},
+					},
+					"fs.getInfo":                fktransport.FsGetInfoRes{Exists: true},
+					"fs.readRecursiveDirectory": fktransport.FsReadDirectoryRes{},
 				},
 			}
 			k := newknfs(t)
@@ -58,6 +61,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 					Mode:     0700 | os.ModeDir,
 					Time:     millenium,
 				},
+				"fs.readRecursiveDirectory": fktransport.FsReadDirectoryRes{},
 				"fs.readDirectory": fktransport.FsReadDirectoryRes{
 					Files: []fktransport.FsGetInfoRes{
 						fktransport.FsGetInfoRes{
@@ -621,21 +625,22 @@ func TestKodingNetworkFS(tt *testing.T) {
 	})
 }
 
-func TestKodingNetworkFSUnit(t *testing.T) {
+func TestKodingNetworkFSUnit(tt *testing.T) {
 	i := fuseops.InodeID(fuseops.RootInodeID + 1)
-	f := &fakeTransport{
+	t := &fakeTransport{
 		TripResponses: map[string]interface{}{
-			"fs.readDirectory": fktransport.FsReadDirectoryRes{},
-			"fs.getInfo":       fktransport.FsGetInfoRes{Exists: true},
+			"fs.readDirectory":          fktransport.FsReadDirectoryRes{},
+			"fs.getInfo":                fktransport.FsGetInfoRes{Exists: true},
+			"fs.readRecursiveDirectory": fktransport.FsReadDirectoryRes{},
 		},
 	}
 
 	// Convey("NewKodingNetworkFS", t, func() {
 	// })
 
-	Convey("KodingNetworkFS#getDir", t, func() {
+	Convey("KodingNetworkFS#getDir", tt, func() {
 		Convey("It should return error if specified id is not a directory", func() {
-			k := newknfs(f)
+			k := newknfs(t)
 			k.liveNodes[i] = newFile()
 
 			_, err := k.getDir(i)
@@ -643,7 +648,7 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		})
 
 		Convey("It should return directory with specified id", func() {
-			k := newknfs(f)
+			k := newknfs(t)
 			k.liveNodes[i] = newDir()
 
 			dir, err := k.getDir(i)
@@ -652,9 +657,9 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		})
 	})
 
-	Convey("KodingNetworkFS#getFile", t, func() {
+	Convey("KodingNetworkFS#getFile", tt, func() {
 		Convey("It should return error if specified id is not a file", func() {
-			k := newknfs(f)
+			k := newknfs(t)
 			k.liveNodes[i] = newDir()
 
 			_, err := k.getFile(i)
@@ -662,7 +667,7 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		})
 
 		Convey("It should return file with specified id", func() {
-			k := newknfs(f)
+			k := newknfs(t)
 			k.liveNodes[i] = newFile()
 
 			file, err := k.getEntry(i)
@@ -671,15 +676,15 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		})
 	})
 
-	Convey("KodingNetworkFS#getEntry", t, func() {
+	Convey("KodingNetworkFS#getEntry", tt, func() {
 		Convey("It should return error if specified id doesn't exit", func() {
-			k := newknfs(f)
+			k := newknfs(t)
 			_, err := k.getEntry(i)
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 
 		Convey("It should return entry with specified id", func() {
-			k := newknfs(f)
+			k := newknfs(t)
 			k.liveNodes[i] = newDir()
 
 			_, err := k.getEntry(i)
@@ -687,8 +692,8 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		})
 	})
 
-	Convey("KodingNetworkFS#setEntry", t, func() {
-		k := newknfs(f)
+	Convey("KodingNetworkFS#setEntry", tt, func() {
+		k := newknfs(t)
 		d := newDir()
 
 		k.setEntry(d.GetID(), d)
@@ -699,8 +704,8 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		So(d, ShouldEqual, dir)
 	})
 
-	Convey("KodingNetworkFS#deleteEntry", t, func() {
-		k := newknfs(f)
+	Convey("KodingNetworkFS#deleteEntry", tt, func() {
+		k := newknfs(t)
 		k.liveNodes[i] = newDir()
 
 		k.deleteEntry(i)
@@ -710,8 +715,8 @@ func TestKodingNetworkFSUnit(t *testing.T) {
 		So(ok, ShouldBeFalse)
 	})
 
-	Convey("KodingNetworkFS#isDirIgnored", t, func() {
-		k := newknfs(f)
+	Convey("KodingNetworkFS#isDirIgnored", tt, func() {
+		k := newknfs(t)
 		k.ignoredFolderList["ignored"] = struct{}{}
 
 		So(k.isDirIgnored(fuseutil.DT_Directory, "ignored"), ShouldBeTrue)

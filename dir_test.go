@@ -339,7 +339,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should remove entry from File", func() {
 			d := newDir()
-			e := &entry{Name: "file", Type: fuseutil.DT_File, Mode: os.FileMode(0755)}
+			e := &tempEntry{Name: "file", Type: fuseutil.DT_File, Mode: os.FileMode(0755)}
 
 			_, err := d.initializeChild(e)
 			So(err, ShouldBeNil)
@@ -421,7 +421,7 @@ func TestDir(t *testing.T) {
 	Convey("Dir#initializeChild", t, func() {
 		Convey("It should return error if specified type is not file or directory", func() {
 			d := newDir()
-			e := &entry{Name: "dir", Type: fuseutil.DT_Unknown}
+			e := &tempEntry{Name: "dir", Type: fuseutil.DT_Unknown}
 
 			_, err := d.initializeChild(e)
 			So(err, ShouldNotBeNil)
@@ -430,7 +430,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should initialize a Dir if specified entry is a directory", func() {
 			d := newDir()
-			e := &entry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
+			e := &tempEntry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
 
 			i, err := d.initializeChild(e)
 			So(err, ShouldBeNil)
@@ -442,7 +442,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should initialize a File if specified entry is a file", func() {
 			d := newDir()
-			e := &entry{Name: "file", Type: fuseutil.DT_File, Mode: os.FileMode(0755)}
+			e := &tempEntry{Name: "file", Type: fuseutil.DT_File, Mode: os.FileMode(0755)}
 
 			i, err := d.initializeChild(e)
 			So(err, ShouldBeNil)
@@ -454,7 +454,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should initialize child entry", func() {
 			d := newDir()
-			e := &entry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir, Size: 1}
+			e := &tempEntry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir, Size: 1}
 
 			i, err := d.initializeChild(e)
 			So(err, ShouldBeNil)
@@ -521,7 +521,7 @@ func TestDir(t *testing.T) {
 	Convey("Dir#removeChild", t, func() {
 		Convey("It should remove an entry", func() {
 			d := newDir()
-			e := &entry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
+			e := &tempEntry{Name: "dir", Type: fuseutil.DT_Directory, Mode: 0700 | os.ModeDir}
 
 			_, err := d.initializeChild(e)
 			So(err, ShouldBeNil)

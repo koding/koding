@@ -13,7 +13,7 @@ import (
 	"github.com/koding/fuseklient/fktransport"
 )
 
-type entry struct {
+type tempEntry struct {
 	Offset fuseops.DirOffset
 	Name   string
 	Type   fuseutil.DirentType
@@ -116,7 +116,7 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 		return nil, err
 	}
 
-	e := &entry{
+	e := &tempEntry{
 		Name: name,
 		Type: fuseutil.DT_Directory,
 		Mode: d.Attrs.Mode,
@@ -154,7 +154,7 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 		return nil, fuse.EEXIST
 	}
 
-	e := &entry{
+	e := &tempEntry{
 		Name: name,
 		Type: fuseutil.DT_File,
 		Mode: d.Attrs.Mode,
@@ -202,7 +202,7 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 		return nil, err
 	}
 
-	e := &entry{
+	e := &tempEntry{
 		Name: newName,
 		Type: child.GetType(),
 		Mode: child.GetAttrs().Mode,
@@ -299,35 +299,38 @@ func (d *Dir) updateEntriesFromRemote() error {
 	return nil
 }
 
-func (d *Dir) getEntriesFromRemote() ([]*entry, error) {
+func newTempEntry(file fktransport.FsGetInfoRes) *tempEntry {
+	var fileType fuseutil.DirentType = fuseutil.DT_File
+	if file.IsDir {
+		fileType = fuseutil.DT_Directory
+	}
+
+	return &tempEntry{
+		Name: file.Name,
+		Type: fileType,
+		Mode: file.Mode,
+		Size: uint64(file.Size),
+		Time: file.Time,
+	}
+}
+
+func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
 	req := struct{ Path string }{d.RemotePath}
 	res := fktransport.FsReadDirectoryRes{}
 	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
 		return nil, err
 	}
 
-	var entries []*entry
+	var entries []*tempEntry
 	for _, file := range res.Files {
-		var fileType fuseutil.DirentType = fuseutil.DT_File
-		if file.IsDir {
-			fileType = fuseutil.DT_Directory
-		}
-
-		e := &entry{
-			Name: file.Name,
-			Type: fileType,
-			Mode: file.Mode,
-			Size: uint64(file.Size),
-			Time: file.Time,
-		}
-
+		e := newTempEntry(file)
 		entries = append(entries, e)
 	}
 
 	return entries, nil
 }
 
-func (d *Dir) initializeChild(e *entry) (Node, error) {
+func (d *Dir) initializeChild(e *tempEntry) (Node, error) {
 	var t = e.Time
 	if t.IsZero() {
 		t = time.Now()

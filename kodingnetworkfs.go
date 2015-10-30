@@ -119,25 +119,34 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
 
-	// update info about root directory
-	if err := rootDir.updateAttrsFromRemote(); err != nil {
-		return nil, err
-	}
-
-	// update entries for root directory
-	if err := rootDir.updateEntriesFromRemote(); err != nil {
-		return nil, err
-	}
-
-	// save root directory
-	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
-
 	// add default and user specified list of folders to ignore
 	ignoreFolders := append(DefaultFolderIgnoreList, c.IgnoreFolders...)
 	ignoredFolderList := map[string]struct{}{}
 	for index := range ignoreFolders {
 		ignoredFolderList[ignoreFolders[index]] = struct{}{}
 	}
+
+	dirInit := NewDirInitializer(t, rootDir, ignoreFolders)
+	if err := dirInit.Initialize(); err != nil {
+		return nil, err
+	}
+
+	///////
+	// TODO: this is no longer required since above DirInitializer gets this
+	//       however tests fail if you remove this; fix tests then remove.
+	// update entries for root directory
+	if err := rootDir.updateEntriesFromRemote(); err != nil {
+		return nil, err
+	}
+
+	// update info about root directory
+	if err := rootDir.updateAttrsFromRemote(); err != nil {
+		return nil, err
+	}
+	///////
+
+	// save root directory
+	liveNodes := map[fuseops.InodeID]Node{fuseops.RootInodeID: rootDir}
 
 	return &KodingNetworkFS{
 		MountPath:         c.LocalPath,

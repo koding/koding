@@ -9,7 +9,5 @@ var DefaultFolderIgnoreList = []string{
 	".logs",
 	"CVS",
 	"logs",
-	"go/pkg",
-	"go/bin",
 	"node_modules",
 }
