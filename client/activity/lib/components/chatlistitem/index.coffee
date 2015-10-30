@@ -233,9 +233,6 @@ module.exports = class ChatListItem extends React.Component
     name  = @props.channelName
     messageId = @props.message.get '_id'
 
-    unless value.match ///\##{name}///
-      value += " ##{name} "
-
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
     ActivityFlux.actions.message.editMessage(
