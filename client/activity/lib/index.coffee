@@ -140,8 +140,14 @@ module.exports = class ActivityAppController extends AppController
       switch e.model.name
         when 'prevwindow' then @getView().openPrev()
         when 'nextwindow' then @getView().openNext()
-    # else
-    #   throw 'flux action'
+    else
+      { actions, getters } = ActivityFlux
+
+      switch e.model.name
+        when 'prevwindow'       then actions.thread.openPrev()
+        when 'nextwindow'       then actions.thread.openNext()
+        when 'prevunreadwindow' then actions.thread.openUnreadPrev()
+        when 'nextunreadwindow' then actions.thread.openUnreadNext()
         when 'glance'
           channelId = kd.singletons.reactor.evaluate getters.selectedChannelThreadId
           actions.channel.glance channelId
