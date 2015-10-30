@@ -53,6 +53,10 @@ func main() {
 					Name:  "remotepath, r",
 					Usage: "Full path of remote folder in machine to mount.",
 				},
+				cli.BoolFlag{
+					Name:  "noignore, n",
+					Usage: "Disable ignoring of default remote folders.",
+				},
 				// TODO: implement this in klient and then enable this
 				// cli.StringFlag{
 				//   Name:  "watch, w",
