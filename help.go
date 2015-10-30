@@ -9,10 +9,16 @@ import (
 // cmdDescriptions is the help text shown to user. Note in addition to adding
 // new text here you'll need to update main.go to use the description.
 var cmdDescriptions = map[string]string{
-	"ssh": fmtDesc("<machine name>", "SSH into the machine."),
+	"install": fmtDesc(
+		"<authToken>",
+		fmt.Sprintf("Install the %s. sudo is required.", KlientName),
+	),
 	"mount": fmtDesc(
 		"<machine name> </path/local/folder>",
 		"Mount folder from remote machine to local folder.",
+	),
+	"ssh": fmtDesc(
+		"<machine name>", "SSH into the machine.",
 	),
 	"unmount": fmtDesc(
 		"<machine name>",
