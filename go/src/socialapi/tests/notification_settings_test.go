@@ -116,47 +116,47 @@ func TestCreateNotificationSetting(t *testing.T) {
 	})
 }
 
-// func TestDeleteNotificationSetting(t *testing.T) {
-// 	tests.WithRunner(t, func(r *runner.Runner) {
-// 		Convey("While deleting notification settings", t, func() {
-// 			Convey("after create channel and account requirements", func() {
-// 				groupName := models.RandomGroupName()
+func TestDeleteNotificationSetting(t *testing.T) {
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("While deleting notification settings", t, func() {
+			Convey("after create channel and account requirements", func() {
+				groupName := models.RandomGroupName()
 
-// 				account, err := models.CreateAccountInBothDbsWithNick("sinan")
-// 				So(err, ShouldBeNil)
-// 				So(account, ShouldNotBeNil)
+				account, err := models.CreateAccountInBothDbsWithNick("sinan")
+				So(err, ShouldBeNil)
+				So(account, ShouldNotBeNil)
 
-// 				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
-// 				So(err, ShouldBeNil)
-// 				So(ses, ShouldNotBeNil)
+				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				So(err, ShouldBeNil)
+				So(ses, ShouldNotBeNil)
 
-// 				channel := models.CreateTypedGroupedChannelWithTest(
-// 					account.Id,
-// 					models.Channel_TYPE_GROUP,
-// 					groupName,
-// 				)
-// 				_, err = channel.AddParticipant(account.Id)
-// 				So(err, ShouldBeNil)
+				channel := models.CreateTypedGroupedChannelWithTest(
+					account.Id,
+					models.Channel_TYPE_GROUP,
+					groupName,
+				)
+				_, err = channel.AddParticipant(account.Id)
+				So(err, ShouldBeNil)
 
-// 				Convey("We should be able to create notification settings", func() {
-// 					n := &models.NotificationSetting{
-// 						ChannelId:      channel.Id,
-// 						AccountId:      account.Id,
-// 						DesktopSetting: models.NotificationSetting_STATUS_ALL,
-// 						MobileSetting:  models.NotificationSetting_STATUS_ALL,
-// 						IsMuted:        false,
-// 						IsSuppressed:   true,
-// 					}
-// 					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
-// 					So(err, ShouldBeNil)
-// 					So(ns.IsMuted, ShouldEqual, false)
-// 					Convey("We should be not able to delete the created notification settings", func() {
-// 						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
-// 						err = rest.DeleteNotificationSetting(ns.Id)
-// 						So(err, ShouldBeNil)
-// 					})
-// 				})
-// 			})
-// 		})
-// 	})
-// }
+				Convey("We should be able to create notification settings", func() {
+					n := &models.NotificationSetting{
+						ChannelId:      channel.Id,
+						AccountId:      account.Id,
+						DesktopSetting: models.NotificationSetting_STATUS_ALL,
+						MobileSetting:  models.NotificationSetting_STATUS_ALL,
+						IsMuted:        false,
+						IsSuppressed:   true,
+					}
+					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
+					So(err, ShouldBeNil)
+					So(ns.IsMuted, ShouldEqual, false)
+					Convey("We should be not able to delete the created notification settings", func() {
+						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
+						err = rest.DeleteNotificationSetting(ns.Id)
+						So(err, ShouldBeNil)
+					})
+				})
+			})
+		})
+	})
+}
