@@ -122,6 +122,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           onButtonExtraClick     : continueButtonOnClick
           buttonConfirmTitle     : createButtonTitle
           buttonConfirmClassName : 'Button--cancel'
+          onConfirm              : @bound 'createChannel'
       else
         props = _.assign {}, props,
           buttonConfirmTitle : continueButtonTitle
