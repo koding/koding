@@ -8,8 +8,8 @@ import (
 
 func GetNotificationSettings(channelId int64, token string) (*models.NotificationSettings, error) {
 	url := fmt.Sprintf("/channel/%d/notificationsettings", channelId)
-
-	ns, err := sendModelWithAuth("GET", url, nil, token)
+	n := models.NewNotificationSettings()
+	ns, err := sendModelWithAuth("GET", url, n, token)
 	if err != nil {
 		return nil, err
 	}
