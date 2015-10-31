@@ -29,18 +29,27 @@ func Create(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *mo
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(response.NewSuccessResponse(req))
+	return response.NewOK(req)
 }
 
 // Get gets the notification settings with id
-func Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Get(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
+	if !ctx.IsLoggedIn() {
+		return response.NewInvalidRequest(models.ErrNotLoggedIn)
+	}
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	n := models.NewNotificationSettings()
-	err = n.ById(id)
+	err = n.One(&bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": id,
+			"account_id": ctx.Client.Account.Id,
+		}},
+	)
 	if err == bongo.RecordNotFound {
 		return response.NewNotFound()
 	}
@@ -49,7 +58,7 @@ func Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, inter
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(response.NewSuccessResponse(n))
+	return response.NewOK(n)
 }
 
 func Update(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *models.Context) (int, http.Header, interface{}, error) {
@@ -87,7 +96,7 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *mo
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(response.NewSuccessResponse(req))
+	return response.NewOK(req)
 }
 
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
