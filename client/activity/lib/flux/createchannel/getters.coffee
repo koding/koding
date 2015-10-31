@@ -21,7 +21,11 @@ createChannelParticipants = [
   CreateNewChannelParticipantIdsStore
   ActivityFluxGetters.allUsers
   (participantIds, users) ->
-    participantIds.map (id) -> users.get id
+    participantIds
+      # filter me out
+      .filter (id) -> id isnt whoami()._id
+      # return instances.
+      .map (id) -> users.get id
 ]
 
 
