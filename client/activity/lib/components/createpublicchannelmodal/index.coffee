@@ -85,13 +85,14 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
 
   getModalProps: ->
-    isOpen             : yes
-    title              : 'Create Channel'
-    className          : 'CreateChannel-Modal'
-    buttonConfirmTitle : 'CREATE'
-    onConfirm          : @bound 'createChannel'
-    onClose            : @bound 'onClose'
-    onAbort            : @bound 'onClose'
+    isOpen                : yes
+    title                 : 'Create Channel'
+    className             : 'CreateChannel-Modal'
+    buttonConfirmTitle    : 'CREATE'
+    onConfirm             : @bound 'createChannel'
+    onClose               : @bound 'onClose'
+    onAbort               : @bound 'onClose'
+    buttonConfirmTabIndex : 4
 
 
   setName: (event) ->

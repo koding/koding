@@ -19,6 +19,8 @@ module.exports = class ActivityModal extends React.Component
     buttonConfirmClassName : 'Button--danger'
     buttonExtraTitle       : null
     buttonExtraClassName   : 'Button--primary'
+    buttonConfirmTabIndex  : null
+    buttonAbortTabIndex    : null
 
 
   renderExtraButton: ->
@@ -37,11 +39,11 @@ module.exports = class ActivityModal extends React.Component
         {@props.children}
       </Modal.Content>
       <Modal.ButtonGroup>
-        <Modal.Button className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
+        <Modal.Button tabIndex={@props.buttonConfirmTabIndex} className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
           {@props.buttonConfirmTitle}
         </Modal.Button>
         {@renderExtraButton()}
-        <Modal.Button className={@props.buttonAbortClassName} onClick={@props.onAbort}>
+        <Modal.Button tabIndex={@props.buttonAbortTabIndex} className={@props.buttonAbortClassName} onClick={@props.onAbort}>
           {@props.buttonAbortTitle}
         </Modal.Button>
       </Modal.ButtonGroup>

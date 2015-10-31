@@ -110,12 +110,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   getModalProps: ->
     props =
-      isOpen             : yes
-      title              : 'Create a Private Conversation'
-      className          : 'CreateChannel-Modal'
-      buttonConfirmTitle : 'CREATE'
-      onClose            : @bound 'onClose'
-      onAbort            : @bound 'onClose'
+      isOpen                : yes
+      title                 : 'Create a Private Conversation'
+      className             : 'CreateChannel-Modal'
+      buttonConfirmTitle    : 'CREATE'
+      onClose               : @bound 'onClose'
+      onAbort               : @bound 'onClose'
+      buttonConfirmTabIndex : 4
 
     continueButtonTitle = 'CONTINUE EXISTING CONVERSATION'
     continueButtonOnClick = (event) =>
