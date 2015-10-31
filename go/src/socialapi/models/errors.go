@@ -48,11 +48,12 @@ var (
 
 	ErrAccessDenied = errors.New("access denied")
 
-	ErrRoleNotSet          = errors.New("role not set")
-	ErrAccountNotFound     = errors.New("account not found")
-	ErrChannelNotFound     = errors.New("channel not found")
-	ErrParticipantNotFound = errors.New("participant not found")
-	ErrParticipantBlocked  = errors.New("participant is blocked")
+	ErrRoleNotSet              = errors.New("role not set")
+	ErrAccountNotFound         = errors.New("account not found")
+	ErrChannelNotFound         = errors.New("channel not found")
+	ErrParticipantNotFound     = errors.New("participant not found")
+	ErrParticipantBlocked      = errors.New("participant is blocked")
+	ErrAccountIsNotParticipant = errors.New("account is not participant of channel")
 
 	// moderation
 	ErrLeafIsNotSet          = errors.New("leaf channel is not set")
