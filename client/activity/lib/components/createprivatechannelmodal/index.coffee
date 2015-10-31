@@ -184,13 +184,22 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   validateParticipants: ->
 
     recipients = @prepareRecipients()
+    myNickname = whoami().profile.nickname
 
-    if recipients.length
-      @setState invalidParticipants: no
+    success = =>
+      @setState { invalidParticipants: no }
       return yes
-    else
-      @setState invalidParticipants: yes
+
+    fail = =>
+      @setState { invalidParticipants: yes }
       return no
+
+    if recipients.length is 0
+      return fail()
+    else if recipients.length is 1 and recipients[0] is myNickname
+      return fail()
+    else
+      return success()
 
 
   createChannel: ->
