@@ -7,12 +7,6 @@ import (
 	"github.com/koding/bongo"
 )
 
-// TO-DO
-//
-// Are you sure to add this notification settings into the api schema
-// If not , think about more for it about pros and cons
-//
-//~Mehmet Ali
 const NotificationSettingsBongoName = "notification.notification_settings"
 
 func (n NotificationSettings) GetId() int64 {
@@ -101,7 +95,6 @@ func (n *NotificationSettings) validateBeforeOps() error {
 		return ErrChannelIdIsNotSet
 	}
 
-	// a := NewAccount()
 	_, err := Cache.Account.ById(n.AccountId)
 	if err != nil {
 		return err
@@ -111,8 +104,6 @@ func (n *NotificationSettings) validateBeforeOps() error {
 	if err != nil {
 		return err
 	}
-
-	// We should add group && group control ??
 
 	return nil
 }

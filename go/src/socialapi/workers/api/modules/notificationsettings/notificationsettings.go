@@ -23,7 +23,6 @@ func Create(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *mo
 
 	req.AccountId = ctx.Client.Account.Id
 	req.ChannelId = channelId
-	// it looks like we need to add groupName into notification settings structure
 
 	if err := req.Create(); err != nil {
 		return response.NewBadRequest(err)
