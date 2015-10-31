@@ -35,7 +35,7 @@ func TestGetNotificationSettings(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("We should be not able to fetch default settings", func() {
-					ns, err := rest.GetNotificationSettings(channel.Id, account.Id)
+					ns, err := rest.GetNotificationSettings(channel.Id, ses.ClientId)
 					So(err, ShouldNotBeNil)
 					fmt.Println("err is : ", err)
 					fmt.Println("notification settings is : ", ns)
@@ -75,17 +75,17 @@ func TestCreateNotificationSettings(t *testing.T) {
 						DesktopSetting: models.NotificationSettings_STATUS_ALL,
 						MobileSetting:  models.NotificationSettings_STATUS_ALL,
 						IsMuted:        false,
-						IsSuppressed:   false,
+						IsSuppressed:   true,
 					}
 					ns, err := rest.CreateNotificationSettings(n, ses.ClientId)
-					So(err, ShouldNotBeNil)
+					So(err, ShouldBeNil)
 					fmt.Println("err is : ", err)
 					fmt.Println("notification settings is : ", ns)
 
 					Convey("We should be not able to update created notification settings", func() {
 						ns.DesktopSetting = models.NotificationSettings_STATUS_PERSONAL
 						newNs, err := rest.UpdateNotificationSettings(ns, ses.ClientId)
-						So(err, ShouldNotBeNil)
+						So(err, ShouldBeNil)
 						So(newNs.DesktopSetting, ShouldEqual, ns.DesktopSetting)
 						fmt.Println("err is : ", err)
 						fmt.Println("notification settings is : ", ns)
