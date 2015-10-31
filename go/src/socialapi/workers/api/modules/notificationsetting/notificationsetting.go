@@ -16,7 +16,7 @@ func Create(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
-	channelId, err := fetchChannelId(u, ctx)
+	channelId, err := fetchChannelIdwithParticipantCheck(u, ctx)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -32,12 +32,14 @@ func Create(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 }
 
 // Get gets the notification settings with id
+// If any notification setting is not found in DB,
+// returns 'Not Found' error , and it means that we'r gonna show default settings
 func Get(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
-	id, err := request.GetURIInt64(u, "id")
+	id, err := fetchChannelIdwithParticipantCheck(u, ctx)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -60,6 +62,7 @@ func Get(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (in
 	return response.NewOK(n)
 }
 
+// Update udpates the notification setting
 func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -86,6 +89,11 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 		return response.NewBadRequest(err)
 	}
 
+	// check if notification setting's account is the same with requester account
+	if req.AccountId != ctx.Client.Account.Id {
+		return response.NewInvalidRequest(models.ErrAccountNotFound)
+	}
+
 	req.DesktopSetting = desktopSetting
 	req.MobileSetting = mobileSetting
 	req.IsMuted = isMuted
@@ -98,6 +106,7 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 	return response.NewOK(req)
 }
 
+// Delete deletes the notification setting of the user
 func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -121,7 +130,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.NewDeleted()
 }
 
-func fetchChannelId(u *url.URL, context *models.Context) (int64, error) {
+func fetchChannelIdwithParticipantCheck(u *url.URL, context *models.Context) (int64, error) {
 	channelId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return 0, err
@@ -132,13 +141,13 @@ func fetchChannelId(u *url.URL, context *models.Context) (int64, error) {
 		return 0, err
 	}
 
-	canOpen, err := c.CanOpen(context.Client.Account.Id)
+	isParticipant, err := c.IsParticipant(context.Client.Account.Id)
 	if err != nil {
 		return 0, err
 	}
 
-	if !canOpen {
-		return 0, models.ErrCannotOpenChannel
+	if !isParticipant {
+		return 0, models.ErrAccountIsNotParticipant
 	}
 
 	return c.Id, nil

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/response"
@@ -54,13 +53,11 @@ func TestGetNotificationSetting(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(ns.AccountId, ShouldEqual, account.Id)
 					So(ns.IsSuppressed, ShouldEqual, true)
-					fmt.Println("Notification setting channel id is --->>", ns.ChannelId)
 
 					Convey("We should be able to get the created notification settings", func() {
 						newNs, err := rest.GetNotificationSetting(ns.ChannelId, ses.ClientId)
 						So(err, ShouldBeNil)
-						fmt.Println("Err is :-->>>>>>", err)
-						fmt.Println("newNotificationSetting is :-->>>>>>", newNs)
+						So(newNs.AccountId, ShouldEqual, account.Id)
 					})
 				})
 			})

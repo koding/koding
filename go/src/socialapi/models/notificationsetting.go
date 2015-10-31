@@ -6,22 +6,22 @@ type NotificationSetting struct {
 	// unique idetifier of the notification setting
 	Id int64 `json:"id,string"`
 
-	// Id of the channel
+	// ChannelId is the id of the channel
 	ChannelId int64 `json:"channelId,string"       sql:"NOT NULL"`
 
-	// Creator of the notification settting
+	// AccountId is the creator of the notification settting
 	AccountId int64 `json:"accountId,string"               sql:"NOT NULL"`
 
-	// Holds dektop setting type
+	// DesktopSetting holds dektop setting type
 	DesktopSetting string `json:"desktopSetting"	sql:"NOT NULL"`
 
-	// Holds mobile setting type
+	// MobileSetting holds mobile setting type
 	MobileSetting string `json:"mobileSetting"			sql:"NOT NULL"`
 
-	// Holds the data if channel is muted or not
+	// IsMuted holds the data if channel is muted or not
 	IsMuted bool `json:"isMuted"`
 
-	// Holds data that getting notification when @channel is written
+	// IsSuppressed holds data that getting notification when @channel is written
 	// If user doesn't want to get notification
 	// when written to channel @channel, @here or name of the user.
 	// User uses 'suppress' feature and doesn't get notification
