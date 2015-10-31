@@ -18,7 +18,7 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
         name              : 'username'
         defaultValue      : email or username
         validate          :
-          event           : 'blur'
+          # event           : 'blur'
           rules           :
             required      : yes
           messages        :
@@ -30,7 +30,7 @@ module.exports = class TeamLoginAndCreateTabForm extends LoginViewInlineForm
         name              : 'password'
         placeholder       : 'your password'
         validate          :
-          event           : 'blur'
+          # event           : 'blur'
           rules           :
             required      : yes
           messages        :

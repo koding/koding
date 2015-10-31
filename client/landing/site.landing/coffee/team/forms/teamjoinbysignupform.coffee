@@ -12,14 +12,17 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
     teamData = KD.utils.getTeamData()
 
     @email = new LoginInputView
-      inputOptions   :
-        name         : 'email'
-        placeholder  : 'your email address'
-        defaultValue : teamData.invitation?.email
-        validate     :
-          rules      : { email: yes }
-          messages   : { email: 'Please type a valid email address.' }
-          events     : { required: 'blur', rangeLength: 'blur', regExp: 'keyup' }
+      inputOptions      :
+        name            : 'email'
+        placeholder     : 'your email address'
+        defaultValue    : teamData.invitation?.email
+        validate        :
+          rules         : { email: yes }
+          messages      : { email: 'Please type a valid email address.' }
+          events        :
+            # required    : 'blur'
+            rangeLength : 'blur'
+            regExp      : 'keyup'
 
     @username = new LoginInputView
       inputOptions       :
@@ -35,7 +38,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             regExp       : 'For username only lowercase letters and numbers are allowed!'
             rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
-            required     : 'blur'
+            # required     : 'blur'
             rangeLength  : 'blur'
             regExp       : 'keyup'
 
@@ -52,7 +55,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
         name          : 'password'
         placeholder   : 'set a password'
         validate      :
-          event       : 'blur'
+          # event       : 'blur'
           container   : this
           rules       :
             required  : yes

@@ -41,7 +41,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
             regExp       : 'For username only lowercase letters and numbers are allowed!'
             rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
-            required     : 'blur'
+            # required     : 'blur'
             rangeLength  : 'blur'
             regExp       : 'keyup'
 
@@ -58,7 +58,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
         name          : 'password'
         placeholder   : 'set a password'
         validate      :
-          event       : 'blur'
+          # event       : 'blur'
           container   : this
           rules       :
             required  : yes
