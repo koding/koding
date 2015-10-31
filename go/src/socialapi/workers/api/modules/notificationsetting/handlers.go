@@ -1,4 +1,4 @@
-package notificationsettings
+package notificationsetting
 
 import (
 	"socialapi/workers/common/handler"
@@ -12,7 +12,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Create,
 			Name:     "notification-settings-create",
 			Type:     handler.PostRequest,
-			Endpoint: "/channel/{id}/notificationsettings",
+			Endpoint: "/channel/{id}/notificationsetting",
 		},
 	)
 
@@ -21,7 +21,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Get,
 			Name:     "notification-settings-get",
 			Type:     handler.GetRequest,
-			Endpoint: "/channel/{id}/notificationsettings",
+			Endpoint: "/channel/{id}/notificationsetting",
 		},
 	)
 
@@ -30,7 +30,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Update,
 			Name:     "notification-settings-update",
 			Type:     handler.PostRequest,
-			Endpoint: "/notificationsettings/{id}",
+			Endpoint: "/notificationsetting/{id}",
 		},
 	)
 
@@ -39,7 +39,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Delete,
 			Name:     "notification-settings-delete",
 			Type:     handler.DeleteRequest,
-			Endpoint: "/notificationsettings/{id}",
+			Endpoint: "/notificationsetting/{id}",
 		},
 	)
 }

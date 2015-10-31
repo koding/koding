@@ -6,25 +6,25 @@ import (
 	"socialapi/models"
 )
 
-func GetNotificationSettings(channelId int64, token string) (*models.NotificationSettings, error) {
-	url := fmt.Sprintf("/channel/%d/notificationsettings", channelId)
-	n := models.NewNotificationSettings()
+func GetNotificationSetting(channelId int64, token string) (*models.NotificationSetting, error) {
+	url := fmt.Sprintf("/channel/%d/notificationsetting", channelId)
+	n := models.NewNotificationSetting()
 	ns, err := sendModelWithAuth("GET", url, n, token)
 	if err != nil {
 		return nil, err
 	}
-	return ns.(*models.NotificationSettings), nil
+	return ns.(*models.NotificationSetting), nil
 }
 
-func CreateNotificationSettings(ns *models.NotificationSettings, token string) (*models.NotificationSettings, error) {
+func CreateNotificationSetting(ns *models.NotificationSetting, token string) (*models.NotificationSetting, error) {
 
-	url := fmt.Sprintf("/channel/%d/notificationsettings", ns.ChannelId)
+	url := fmt.Sprintf("/channel/%d/notificationsetting", ns.ChannelId)
 	res, err := marshallAndSendRequestWithAuth("POST", url, ns, token)
 	if err != nil {
 		return nil, err
 	}
 
-	var notification models.NotificationSettings
+	var notification models.NotificationSetting
 	err = json.Unmarshal(res, &notification)
 	if err != nil {
 		return nil, err
@@ -33,15 +33,15 @@ func CreateNotificationSettings(ns *models.NotificationSettings, token string) (
 	return &notification, nil
 }
 
-func UpdateNotificationSettings(ns *models.NotificationSettings, token string) (*models.NotificationSettings, error) {
+func UpdateNotificationSetting(ns *models.NotificationSetting, token string) (*models.NotificationSetting, error) {
 
-	url := fmt.Sprintf("/notificationsettings/%d", ns.Id)
+	url := fmt.Sprintf("/notificationsetting/%d", ns.Id)
 	res, err := marshallAndSendRequestWithAuth("POST", url, ns, token)
 	if err != nil {
 		return nil, err
 	}
 
-	var notification models.NotificationSettings
+	var notification models.NotificationSetting
 	err = json.Unmarshal(res, &notification)
 	if err != nil {
 		return nil, err
@@ -50,8 +50,8 @@ func UpdateNotificationSettings(ns *models.NotificationSettings, token string) (
 	return &notification, nil
 }
 
-func DeleteNotificationSettings(id int64) error {
-	url := fmt.Sprintf("/notificationsettings/%d", id)
+func DeleteNotificationSetting(id int64) error {
+	url := fmt.Sprintf("/notificationsetting/%d", id)
 
 	_, err := sendRequest("DELETE", url, nil)
 	if err != nil {

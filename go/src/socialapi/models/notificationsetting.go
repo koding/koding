@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type NotificationSettings struct {
+type NotificationSetting struct {
 	// unique idetifier of the notification setting
 	Id int64 `json:"id,string"`
 
@@ -36,31 +36,31 @@ type NotificationSettings struct {
 
 const (
 	// Describes that user want to be notified for all notifications
-	NotificationSettings_STATUS_ALL = "all"
+	NotificationSetting_STATUS_ALL = "all"
 	// Describes that user want to be notified
 	// for user's own name or with highlighted words
-	NotificationSettings_STATUS_PERSONAL = "personal"
+	NotificationSetting_STATUS_PERSONAL = "personal"
 	// Describes that user doesn't want to get any notification
-	NotificationSettings_STATUS_NEVER = "never"
+	NotificationSetting_STATUS_NEVER = "never"
 )
 
-func NewNotificationSettings() *NotificationSettings {
+func NewNotificationSetting() *NotificationSetting {
 	now := time.Now().UTC()
-	return &NotificationSettings{
-		DesktopSetting: NotificationSettings_STATUS_ALL,
-		MobileSetting:  NotificationSettings_STATUS_ALL,
+	return &NotificationSetting{
+		DesktopSetting: NotificationSetting_STATUS_ALL,
+		MobileSetting:  NotificationSetting_STATUS_ALL,
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
 }
 
-func (ns *NotificationSettings) Defaults() *NotificationSettings {
+func (ns *NotificationSetting) Defaults() *NotificationSetting {
 	if ns.DesktopSetting == "" {
-		ns.DesktopSetting = NotificationSettings_STATUS_ALL
+		ns.DesktopSetting = NotificationSetting_STATUS_ALL
 	}
 
 	if ns.MobileSetting == "" {
-		ns.MobileSetting = NotificationSettings_STATUS_ALL
+		ns.MobileSetting = NotificationSetting_STATUS_ALL
 	}
 
 	ns.IsMuted = false

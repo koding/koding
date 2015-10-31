@@ -49,13 +49,13 @@ CREATE INDEX  "notification_activity_actor_id_content_id_obsolete_idx" ON "notif
 CREATE INDEX  "notification_content_type_constant_target_id_idx" ON "notification"."notification_content" USING btree(type_constant DESC, target_id DESC);
 
 -- ----------------------------
---  Primary key structure for table notification_settings
+--  Primary key structure for table notification_setting
 -- ----------------------------
-ALTER TABLE notification.notification_settings ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE notification.notification_setting ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Foreign keys structure for table activity
 -- ----------------------------
 -- account relation is in different schema
-ALTER TABLE notification.notification_settings ADD CONSTRAINT "notification_settings_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
-ALTER TABLE notification.notification_settings ADD CONSTRAINT "notification_settings_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE notification.notification_setting ADD CONSTRAINT "notification_setting_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE notification.notification_setting ADD CONSTRAINT "notification_setting_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "api"."account" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 

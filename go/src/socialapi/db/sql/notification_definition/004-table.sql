@@ -52,28 +52,28 @@ WITH (OIDS=FALSE);
 GRANT SELECT, INSERT, UPDATE ON "notification"."notification_activity" TO "social";
 
 -- ----------------------------
---  Table structure for notification_settings
+--  Table structure for notification_setting
 -- ----------------------------
-CREATE TYPE "notification"."notification_settings_status_constant_enum" AS ENUM (
+CREATE TYPE "notification"."notification_setting_status_constant_enum" AS ENUM (
     'all',
     'personal',
     'never'
 );
-ALTER TYPE "notification"."notification_settings_status_constant_enum" OWNER TO "social";
+ALTER TYPE "notification"."notification_setting_status_constant_enum" OWNER TO "social";
 
-DROP TABLE IF EXISTS "notification"."notification_settings";
+DROP TABLE IF EXISTS "notification"."notification_setting";
 
-CREATE TABLE IF NOT EXISTS "notification"."notification_settings"  (
+CREATE TABLE IF NOT EXISTS "notification"."notification_setting"  (
     "id" BIGINT NOT NULL DEFAULT nextval(
-        'notification.notification_settings_id_seq' :: regclass
+        'notification.notification_setting_id_seq' :: regclass
     ),
     "channel_id" BIGINT NOT NULL,
     "account_id" BIGINT NOT NULL,
-    "desktop_setting" "notification"."notification_settings_status_constant_enum",
-    "mobile_setting" "notification"."notification_settings_status_constant_enum",
+    "desktop_setting" "notification"."notification_setting_status_constant_enum",
+    "mobile_setting" "notification"."notification_setting_status_constant_enum",
     "is_muted" BOOLEAN NOT NULL DEFAULT FALSE,
     "is_suppressed" BOOLEAN NOT NULL DEFAULT FALSE,
     "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     "updated_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
 ) WITH (OIDS = FALSE);
-GRANT SELECT, INSERT,UPDATE ON "notification"."notification_settings" TO "social";
+GRANT SELECT, INSERT,UPDATE ON "notification"."notification_setting" TO "social";

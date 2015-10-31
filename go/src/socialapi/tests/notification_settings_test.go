@@ -13,7 +13,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGetNotificationSettings(t *testing.T) {
+func TestGetNotificationSetting(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("While getting notification settings", t, func() {
 			Convey("after create channel and account requirements", func() {
@@ -36,28 +36,28 @@ func TestGetNotificationSettings(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("We should be able to fetch default settings", func() {
-					ns, err := rest.GetNotificationSettings(channel.Id, ses.ClientId)
+					ns, err := rest.GetNotificationSetting(channel.Id, ses.ClientId)
 					So(err, ShouldNotBeNil)
 					So(err.Error(), ShouldContainSubstring, response.ErrContentNotFound.Error())
 					So(ns, ShouldBeNil)
 				})
 				Convey("We should be able to create notification settings", func() {
-					n := &models.NotificationSettings{
+					n := &models.NotificationSetting{
 						ChannelId:      channel.Id,
 						AccountId:      account.Id,
-						DesktopSetting: models.NotificationSettings_STATUS_ALL,
-						MobileSetting:  models.NotificationSettings_STATUS_ALL,
+						DesktopSetting: models.NotificationSetting_STATUS_ALL,
+						MobileSetting:  models.NotificationSetting_STATUS_ALL,
 						IsMuted:        false,
 						IsSuppressed:   true,
 					}
-					ns, err := rest.CreateNotificationSettings(n, ses.ClientId)
+					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(ns.AccountId, ShouldEqual, account.Id)
 					So(ns.IsSuppressed, ShouldEqual, true)
 					fmt.Println("Notification setting channel id is --->>", ns.ChannelId)
 
 					Convey("We should be able to get the created notification settings", func() {
-						newNs, err := rest.GetNotificationSettings(ns.ChannelId, ses.ClientId)
+						newNs, err := rest.GetNotificationSetting(ns.ChannelId, ses.ClientId)
 						So(err, ShouldBeNil)
 						fmt.Println("Err is :-->>>>>>", err)
 						fmt.Println("newNotificationSetting is :-->>>>>>", newNs)
@@ -68,7 +68,7 @@ func TestGetNotificationSettings(t *testing.T) {
 	})
 }
 
-func TestCreateNotificationSettings(t *testing.T) {
+func TestCreateNotificationSetting(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("While updating notification settings", t, func() {
 			Convey("after create channel and account requirements", func() {
@@ -91,22 +91,22 @@ func TestCreateNotificationSettings(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("We should be able to create notification settings", func() {
-					n := &models.NotificationSettings{
+					n := &models.NotificationSetting{
 						ChannelId:      channel.Id,
 						AccountId:      account.Id,
-						DesktopSetting: models.NotificationSettings_STATUS_ALL,
-						MobileSetting:  models.NotificationSettings_STATUS_ALL,
+						DesktopSetting: models.NotificationSetting_STATUS_ALL,
+						MobileSetting:  models.NotificationSetting_STATUS_ALL,
 						IsMuted:        false,
 						IsSuppressed:   true,
 					}
-					ns, err := rest.CreateNotificationSettings(n, ses.ClientId)
+					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(ns.AccountId, ShouldEqual, account.Id)
 					So(ns.IsSuppressed, ShouldEqual, true)
 
 					Convey("We should be able to update the created notification settings", func() {
-						ns.DesktopSetting = models.NotificationSettings_STATUS_PERSONAL
-						newNs, err := rest.UpdateNotificationSettings(ns, ses.ClientId)
+						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
+						newNs, err := rest.UpdateNotificationSetting(ns, ses.ClientId)
 						So(err, ShouldBeNil)
 						So(newNs.DesktopSetting, ShouldEqual, ns.DesktopSetting)
 					})
@@ -116,7 +116,7 @@ func TestCreateNotificationSettings(t *testing.T) {
 	})
 }
 
-// func TestDeleteNotificationSettings(t *testing.T) {
+// func TestDeleteNotificationSetting(t *testing.T) {
 // 	tests.WithRunner(t, func(r *runner.Runner) {
 // 		Convey("While deleting notification settings", t, func() {
 // 			Convey("after create channel and account requirements", func() {
@@ -139,20 +139,20 @@ func TestCreateNotificationSettings(t *testing.T) {
 // 				So(err, ShouldBeNil)
 
 // 				Convey("We should be able to create notification settings", func() {
-// 					n := &models.NotificationSettings{
+// 					n := &models.NotificationSetting{
 // 						ChannelId:      channel.Id,
 // 						AccountId:      account.Id,
-// 						DesktopSetting: models.NotificationSettings_STATUS_ALL,
-// 						MobileSetting:  models.NotificationSettings_STATUS_ALL,
+// 						DesktopSetting: models.NotificationSetting_STATUS_ALL,
+// 						MobileSetting:  models.NotificationSetting_STATUS_ALL,
 // 						IsMuted:        false,
 // 						IsSuppressed:   true,
 // 					}
-// 					ns, err := rest.CreateNotificationSettings(n, ses.ClientId)
+// 					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
 // 					So(err, ShouldBeNil)
 // 					So(ns.IsMuted, ShouldEqual, false)
 // 					Convey("We should be not able to delete the created notification settings", func() {
-// 						ns.DesktopSetting = models.NotificationSettings_STATUS_PERSONAL
-// 						err = rest.DeleteNotificationSettings(ns.Id)
+// 						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
+// 						err = rest.DeleteNotificationSetting(ns.Id)
 // 						So(err, ShouldBeNil)
 // 					})
 // 				})

@@ -1,4 +1,4 @@
-package notificationsettings
+package notificationsetting
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ import (
 )
 
 // Create creates the notification settings with the channelId and accountId
-func Create(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *models.Context) (int, http.Header, interface{}, error) {
+func Create(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
@@ -42,7 +42,7 @@ func Get(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (in
 		return response.NewBadRequest(err)
 	}
 
-	n := models.NewNotificationSettings()
+	n := models.NewNotificationSetting()
 	err = n.One(&bongo.Query{
 		Selector: map[string]interface{}{
 			"channel_id": id,
@@ -60,7 +60,7 @@ func Get(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (in
 	return response.NewOK(n)
 }
 
-func Update(u *url.URL, h http.Header, req *models.NotificationSettings, ctx *models.Context) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -104,7 +104,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(err)
 	}
 
-	ns := models.NewNotificationSettings()
+	ns := models.NewNotificationSetting()
 	ns.Id = id
 
 	if err := ns.ById(id); err != nil {

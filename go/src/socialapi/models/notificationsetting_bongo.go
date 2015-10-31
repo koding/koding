@@ -7,17 +7,17 @@ import (
 	"github.com/koding/bongo"
 )
 
-const NotificationSettingsBongoName = "notification.notification_settings"
+const NotificationSettingBongoName = "notification.notification_setting"
 
-func (n NotificationSettings) GetId() int64 {
+func (n NotificationSetting) GetId() int64 {
 	return n.Id
 }
 
-func (n NotificationSettings) BongoName() string {
-	return NotificationSettingsBongoName
+func (n NotificationSetting) BongoName() string {
+	return NotificationSettingBongoName
 }
 
-func (n *NotificationSettings) Create() error {
+func (n *NotificationSetting) Create() error {
 	if n.AccountId == 0 {
 		return ErrAccountIdIsNotSet
 	}
@@ -29,7 +29,7 @@ func (n *NotificationSettings) Create() error {
 	return bongo.B.Create(n)
 }
 
-func (n *NotificationSettings) Update() error {
+func (n *NotificationSetting) Update() error {
 	if n.ChannelId == 0 || n.AccountId == 0 {
 		return fmt.Errorf("Update failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)
 	}
@@ -37,7 +37,7 @@ func (n *NotificationSettings) Update() error {
 	return bongo.B.Update(n)
 }
 
-func (n *NotificationSettings) Delete() error {
+func (n *NotificationSetting) Delete() error {
 	selector := map[string]interface{}{
 		"channel_id": n.ChannelId,
 		"account_id": n.AccountId,
@@ -50,15 +50,15 @@ func (n *NotificationSettings) Delete() error {
 	return bongo.B.Delete(n)
 }
 
-func (n *NotificationSettings) AfterCreate() {
+func (n *NotificationSetting) AfterCreate() {
 	bongo.B.AfterCreate(n)
 }
 
-func (n *NotificationSettings) AfterUpdate() {
+func (n *NotificationSetting) AfterUpdate() {
 	bongo.B.AfterUpdate(n)
 }
 
-func (n *NotificationSettings) BeforeCreate() error {
+func (n *NotificationSetting) BeforeCreate() error {
 	if err := n.validateBeforeOps(); err != nil {
 		return err
 	}
@@ -70,23 +70,23 @@ func (n *NotificationSettings) BeforeCreate() error {
 }
 
 // BeforeUpdate runs before updating struct
-func (n *NotificationSettings) BeforeUpdate() error {
+func (n *NotificationSetting) BeforeUpdate() error {
 	return n.validateBeforeOps()
 }
 
-func (n *NotificationSettings) One(q *bongo.Query) error {
+func (n *NotificationSetting) One(q *bongo.Query) error {
 	return bongo.B.One(n, n, q)
 }
 
-func (n *NotificationSettings) ById(id int64) error {
+func (n *NotificationSetting) ById(id int64) error {
 	return bongo.B.ById(n, id)
 }
 
-func (n *NotificationSettings) Some(data interface{}, q *bongo.Query) error {
+func (n *NotificationSetting) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(n, data, q)
 }
 
-func (n *NotificationSettings) validateBeforeOps() error {
+func (n *NotificationSetting) validateBeforeOps() error {
 	if n.AccountId == 0 {
 		return ErrAccountIdIsNotSet
 	}

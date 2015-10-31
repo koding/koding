@@ -1,5 +1,5 @@
 
-DROP TABLE IF EXISTS "notification"."notification_settings";
+DROP TABLE IF EXISTS "notification"."notification_setting";
 
-DROP SEQUENCE IF EXISTS "notification"."notification_settings_id_seq";
-DROP TYPE "notification"."notification_settings_status_constant_enum";
+DROP SEQUENCE IF EXISTS "notification"."notification_setting_id_seq";
+DROP TYPE IF EXISTS "notification"."notification_setting_status_constant_enum";
