@@ -4,6 +4,7 @@ Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
 Portal                            = require 'react-portal'
 Avatar                            = require 'app/components/profile/avatar'
+whoami                            = require 'app/util/whoami'
 AppFlux                           = require 'app/flux'
 TextArea                          = require 'react-autosize-textarea'
 classnames                        = require 'classnames'
@@ -59,6 +60,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
         .map (participant) -> participant.get 'socialApiId'
         .toList()
         .toJS()
+
+      mySocialId = whoami().socialApiId
+
+      # if there is only one participant and that one participant is me, then
+      # don't show pre existing channel.
+      if participants.length is 1 and participants[0] is mySocialId
+        return @setState { preExistingChannel: null }
 
       { loadChannelByParticipants } = ActivityFlux.actions.channel
 
