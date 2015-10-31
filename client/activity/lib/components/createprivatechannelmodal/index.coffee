@@ -53,6 +53,8 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     if oldState.participants isnt @state.participants
 
+      # if there isn't any selected participant don't show pre existing
+      # channel.
       unless @state.participants?.size
         return @setState { preExistingChannel: null }
 
@@ -174,8 +176,8 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   prepareRecipients: ->
 
     @state.participants
-      .toList()
       .map (p) -> p.getIn ['profile', 'nickname']
+      .toList()
       .toJS()
 
 
