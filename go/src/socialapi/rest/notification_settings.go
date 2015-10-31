@@ -49,3 +49,13 @@ func UpdateNotificationSettings(ns *models.NotificationSettings, token string) (
 
 	return &notification, nil
 }
+
+func DeleteNotificationSettings(id int64) error {
+	url := fmt.Sprintf("/notificationsettings/%d", id)
+
+	_, err := sendRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	return err
+}
