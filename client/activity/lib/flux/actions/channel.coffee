@@ -79,31 +79,6 @@ loadChannelByParticipants = (participants, options = {}) ->
 
 
 ###*
- * Helper function to convert 'private' and 'public' types to internally
- * understandable type names.
- *
- * @param {string} type - either 'public' or 'private'
- * @param {string} id
- * @param {Array<String,
-###
-sanitizeTypeAndId = (type, id) ->
-
-  { socialApiChannelId, socialApiAnnouncementChannelId } = getGroup()
-  { getPrefetchedData } = kd.singletons.socialapi
-
-  switch type
-    when 'public'
-      switch getChannelTypeByName id
-        when 'group' then ['group', socialApiChannelId]
-        when 'announcement' then ['announcement', socialApiAnnouncementChannelId]
-        else ['topic', id]
-    when 'private'
-      switch id
-        when getPrefetchedData('bot').id then ['bot', id]
-        else ['privatemessage', id]
-
-
-###*
  * Loads channel by given id
  *
  * @param {string} id - channel id
@@ -456,6 +431,12 @@ inviteMember = (invites) ->
 
 emptyPromise = new Promise (resolve) -> resolve()
 
+
+###*
+ * Glances channel with given channelId.
+ *
+ * @param {string} channelId
+###
 glance = do (glancingMap = {}) -> (channelId) ->
 
   return emptyPromise  if glancingMap[channelId]
