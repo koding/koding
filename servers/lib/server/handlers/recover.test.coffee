@@ -1,19 +1,21 @@
-Bongo                                     = require 'bongo'
-koding                                    = require './../bongo'
-request                                   = require 'request'
-querystring                               = require 'querystring'
-
-{ daisy }                                 = Bongo
-{ expect }                                = require 'chai'
-{ generateRandomEmail
+{ daisy
+  expect
+  request
+  generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
+{ testCsrfToken }                         = require '../../../testhelper/handler'
 { generateRecoverRequestParams }          = require '../../../testhelper/handler/recoverhelper'
 { generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
 
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.recover', ->
+
+  it 'should fail when csrf token is invalid', (done) ->
+
+    testCsrfToken generateRecoverRequestParams, 'post', done
+
 
   it 'should send HTTP 404 if request method is not POST', (done) ->
 
