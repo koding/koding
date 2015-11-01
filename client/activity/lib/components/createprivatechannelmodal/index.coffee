@@ -116,10 +116,11 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       buttonConfirmTitle    : 'CREATE'
       onClose               : @bound 'onClose'
       onAbort               : @bound 'onClose'
-      buttonConfirmTabIndex : 4
+      buttonConfirmTabIndex : 5
 
-    continueButtonTitle = 'CONTINUE EXISTING CONVERSATION'
-    continueButtonOnClick = (event) =>
+    continueButtonTabIndex = 4
+    continueButtonTitle    = 'CONTINUE EXISTING CONVERSATION'
+    continueButtonOnClick  = (event) =>
       kd.utils.stopDOMEvent event
       @_isRouting = yes
       kd.singletons.router.handleRoute "/Messages/#{@state.preExistingChannel.get 'id'}"
@@ -133,17 +134,21 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           onButtonExtraClick     : continueButtonOnClick
           buttonConfirmTitle     : createButtonTitle
           buttonConfirmClassName : 'Button--cancel'
+          buttonExtraTabIndex    : continueButtonTabIndex
+          buttonConfirmTabIndex  : 5
           onConfirm              : @bound 'createChannel'
       else
         props = _.assign {}, props,
-          buttonConfirmTitle : continueButtonTitle
-          onConfirm          : continueButtonOnClick
+          buttonConfirmTitle  : continueButtonTitle
+          onConfirm           : continueButtonOnClick
+          buttonExtraTabIndex : continueButtonTabIndex
     else
       props = _.assign {}, props,
         buttonExtraTitle       : null
         buttonConfirmTitle     : createButtonTitle
         onConfirm              : @bound 'createChannel'
         buttonConfirmClassName : 'Button--primary'
+        buttonConfirmTabIndex  : 4
 
     return props
 

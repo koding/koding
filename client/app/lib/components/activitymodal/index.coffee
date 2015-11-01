@@ -21,13 +21,14 @@ module.exports = class ActivityModal extends React.Component
     buttonExtraClassName   : 'Button--primary'
     buttonConfirmTabIndex  : null
     buttonAbortTabIndex    : null
+    buttonExtraTabIndex    : null
 
 
   renderExtraButton: ->
 
     return null  unless @props.buttonExtraTitle
 
-    <Modal.Button className={@props.buttonExtraClassName} onClick={@props.onButtonExtraClick}>
+    <Modal.Button className={@props.buttonExtraClassName} tabIndex={@props.buttonExtraTabIndex}  onClick={@props.onButtonExtraClick}>
       {@props.buttonExtraTitle}
     </Modal.Button>
 
