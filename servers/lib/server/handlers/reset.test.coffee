@@ -1,31 +1,30 @@
-Bongo                             = require 'bongo'
-koding                            = require './../bongo'
-request                           = require 'request'
-querystring                       = require 'querystring'
-
-{ daisy }                         = Bongo
-{ expect }                        = require 'chai'
-{ generateRandomEmail
+{ daisy
+  expect
+  request
+  generateRandomEmail
   generateRandomString
-  generateRandomUsername }        = require '../../../testhelper'
+  generateRandomUsername
+  checkBongoConnectivity }        = require '../../../testhelper'
+{ testCsrfToken }                 = require '../../../testhelper/handler'
 { defaultExpiryPeriod
   generateResetRequestParams }    = require '../../../testhelper/handler/resethelper'
 { generateRegisterRequestParams } = require '../../../testhelper/handler/registerhelper'
 
-JUser                             = null
-JPasswordRecovery                 = null
+JUser                             = require '../../../models/user'
+JPasswordRecovery                 = require '../../../models/passwordrecovery'
+
+
+beforeTests = before (done) ->
+
+  checkBongoConnectivity done
+
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.reset', ->
 
-  beforeEach (done) ->
+  it 'should fail when csrf token is invalid', (done) ->
 
-    # including models before each test case, requiring them outside of
-    # tests suite is causing undefined errors
-    { JUser
-      JPasswordRecovery } = koding.models
-
-    done()
+    testCsrfToken generateResetRequestParams, 'post', done
 
 
   it 'should send HTTP 404 if request method is not POST', (done) ->
