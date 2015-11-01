@@ -107,9 +107,9 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     if @state.addNewParticipantMode is yes
     then @setState addNewParticipantMode: no
     else
-      @setState addNewParticipantMode: yes
-      textInput = React.findDOMNode @refs.textInput
-      textInput.focus()
+      @setState addNewParticipantMode: yes, ->
+        textInput = React.findDOMNode @refs.textInput
+        textInput.focus()
 
 
   onShowMoreParticipantButtonClick: (event) ->
