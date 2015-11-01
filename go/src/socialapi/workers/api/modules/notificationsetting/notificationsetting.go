@@ -107,7 +107,7 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 }
 
 // Delete deletes the notification setting of the user
-func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Delete(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -121,6 +121,10 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 			return response.NewNotFound()
 		}
 		return response.NewBadRequest(err)
+	}
+
+	if ns.AccountId != ctx.Client.Account.Id {
+		return response.NewInvalidRequest(models.ErrAccountNotFound)
 	}
 
 	if err := ns.Delete(); err != nil {

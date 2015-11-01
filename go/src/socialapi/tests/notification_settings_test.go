@@ -149,7 +149,7 @@ func TestDeleteNotificationSetting(t *testing.T) {
 					So(ns.IsMuted, ShouldEqual, false)
 					Convey("We should be not able to delete the created notification settings", func() {
 						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
-						err = rest.DeleteNotificationSetting(ns.Id)
+						err = rest.DeleteNotificationSetting(ns.Id, ses.ClientId)
 						So(err, ShouldBeNil)
 					})
 				})
