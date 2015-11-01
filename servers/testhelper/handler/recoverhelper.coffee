@@ -4,7 +4,8 @@ querystring = require 'querystring'
   deepObjectExtend
   generateRandomEmail
   generateRandomString
-  generateDefaultRequestParams } = require '../index'
+  generateRequestParamsEncodeBody } = require '../index'
+
 
 
 defaultExpiryPeriod = 5 * 60 * 1000 # 5 minutes
@@ -14,6 +15,7 @@ generateRecoverRequestBody = (opts = {}) ->
 
   defaultBodyObject =
     email : ''
+    _csrf : generateRandomString()
 
   deepObjectExtend defaultBodyObject, opts
 
@@ -23,17 +25,14 @@ generateRecoverRequestBody = (opts = {}) ->
 generateRecoverRequestParams = (opts = {}) ->
 
   email = opts?.body?.email or generateRandomEmail()
+  body  = generateRecoverRequestBody()
 
-  url  = generateUrl
-    route : "#{encodeURIComponent email}/Recover"
+  params =
+    url        : generateUrl { route : "#{encodeURIComponent email}/Recover" }
+    body       : body
+    csrfCookie : body._csrf
 
-  body = generateRecoverRequestBody()
-
-  params               = { url, body }
-  defaultRequestParams = generateDefaultRequestParams params
-  requestParams        = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body   = querystring.stringify requestParams.body
+  requestParams = generateRequestParamsEncodeBody params, opts
 
   return requestParams
 
