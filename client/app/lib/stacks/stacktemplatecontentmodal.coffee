@@ -1,15 +1,16 @@
 kd = require 'kd'
 
-hljs    = require 'highlight.js'
 Encoder = require 'htmlencode'
 
-{ jsonToYaml } = require 'admin/views/stacks/yamlutils'
+StackTemplateEditorView = require 'admin/views/stacks/editors/stacktemplateeditorview'
 
 module.exports = class StackTemplateContentModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
     options.cssClass = 'stack-template-content has-markdown'
+
+    options.width    = 800
 
     options.title    = data.title
     options.subtitle = data.modifiedAt
@@ -20,21 +21,21 @@ module.exports = class StackTemplateContentModal extends kd.ModalView
     super
 
 
-  getContent: ->
+  getEditor: ->
 
-    { template: { content } } = @getData()
+    { template: { rawContent } } = @getData()
 
-    json = Encoder.htmlDecode content
-    yaml = jsonToYaml(json).content
-
-    return hljs.highlight('coffee', yaml).value
+    return new StackTemplateEditorView
+      delegate    : this
+      content     : Encoder.htmlDecode rawContent
+      contentType : 'yaml'
+      readOnly    : yes
+      showHelpContent : no
 
 
   viewAppended: ->
 
-    scrollView = new kd.CustomScrollView tagName: 'pre'
-    scrollView.wrapper.addSubView new kd.CustomHTMLView
-      tagName: 'code'
-      partial: @getContent()
+    @addSubView @tabView = new kd.TabView hideHandleContainer: yes
 
-    @addSubView scrollView
+    editorPane = new kd.TabPaneView view: @getEditor()
+    @tabView.addPane editorPane, yes
