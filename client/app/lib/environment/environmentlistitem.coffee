@@ -1,7 +1,9 @@
 kd                        = require 'kd'
 JView                     = require 'app/jview'
+
 isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
+showNotification          = require 'app/util/showNotification'
 
 remote                    = require('app/remote').getInstance()
 
@@ -10,7 +12,6 @@ MachinesListController    = require './machineslistcontroller'
 
 KodingSwitch              = require 'app/commonviews/kodingswitch'
 ComputeHelpers            = require '../providers/computehelpers'
-showNotification          = require 'app/util/showNotification'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
@@ -65,6 +66,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         cssClass   : 'add-vm-button solid green compact'
         callback   : => @handleMachineRequest 'koding'
 
+    if has
     @addManagedButton = new kd.ButtonView
       title           : 'Add Your Own Machine'
       cssClass        : 'add-managed-button solid green compact'
