@@ -19,16 +19,13 @@ module.exports = class ActivityModal extends React.Component
     buttonConfirmClassName : 'Button--danger'
     buttonExtraTitle       : null
     buttonExtraClassName   : 'Button--primary'
-    buttonConfirmTabIndex  : null
-    buttonAbortTabIndex    : null
-    buttonExtraTabIndex    : null
 
 
   renderExtraButton: ->
 
     return null  unless @props.buttonExtraTitle
 
-    <Modal.Button className={@props.buttonExtraClassName} tabIndex={@props.buttonExtraTabIndex}  onClick={@props.onButtonExtraClick}>
+    <Modal.Button className={@props.buttonExtraClassName} onClick={@props.onButtonExtraClick}>
       {@props.buttonExtraTitle}
     </Modal.Button>
 
@@ -36,18 +33,20 @@ module.exports = class ActivityModal extends React.Component
   render: ->
     <Modal {...@props}>
       <Modal.Title>{@props.title}</Modal.Title>
-      <Modal.Content>
-        {@props.children}
-      </Modal.Content>
-      <Modal.ButtonGroup>
-        <Modal.Button tabIndex={@props.buttonConfirmTabIndex} className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
-          {@props.buttonConfirmTitle}
-        </Modal.Button>
-        {@renderExtraButton()}
-        <Modal.Button tabIndex={@props.buttonAbortTabIndex} className={@props.buttonAbortClassName} onClick={@props.onAbort}>
-          {@props.buttonAbortTitle}
-        </Modal.Button>
-      </Modal.ButtonGroup>
+      <form>
+        <Modal.Content>
+          {@props.children}
+        </Modal.Content>
+        <Modal.ButtonGroup>
+          <Modal.Button className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
+            {@props.buttonConfirmTitle}
+          </Modal.Button>
+          {@renderExtraButton()}
+          <Modal.Button className={@props.buttonAbortClassName} onClick={@props.onAbort}>
+            {@props.buttonAbortTitle}
+          </Modal.Button>
+        </Modal.ButtonGroup>
+      </form>
     </Modal>
 
 
