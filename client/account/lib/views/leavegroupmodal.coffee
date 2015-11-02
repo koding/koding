@@ -28,9 +28,10 @@ module.exports = class LeaveGroupModal extends DeleteModalView
 
   doAction: ->
 
-    kd.singletons.groupsController.getCurrentGroup().leave (err)->
+    kd.singletons.groupsController.getCurrentGroup().leave (err) =>
       if err
-        return new KDNotificationView title : 'There was a problem, please try again!'
+        new kd.NotificationView title : 'There was a problem, please try again!'
+        return @modalTabs.forms.dangerForm.buttons.confirmButton.hideLoader()
 
       kookies.expire 'clientId'
       global.location.replace '/'
