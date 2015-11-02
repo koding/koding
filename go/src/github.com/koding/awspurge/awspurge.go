@@ -33,6 +33,44 @@ type Purge struct {
 	resources map[string]*resources
 }
 
+func New(conf *Config) (*Purge, error) {
+	checkCfg := "Please check your configuration"
+
+	if len(conf.Regions) == 0 {
+		return nil, errors.New("AWS Regions are not set. " + checkCfg)
+	}
+
+	if conf.AccessKey == "" {
+		return nil, errors.New("AWS Access Key is not set. " + checkCfg)
+	}
+
+	if conf.SecretKey == "" {
+		return nil, errors.New("AWS Secret Key is not set. " + checkCfg)
+	}
+
+	if conf.Timeout == 0 {
+		conf.Timeout = time.Second * 30
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{TLSHandshakeTimeout: conf.Timeout},
+		Timeout:   conf.Timeout,
+	}
+
+	creds := credentials.NewStaticCredentials(conf.AccessKey, conf.SecretKey, "")
+	awsCfg := &awsclient.Config{
+		Credentials: creds,
+		HTTPClient:  client,
+		Logger:      awsclient.NewDefaultLogger(),
+	}
+
+	m := newMultiRegion(awsCfg, filterRegions(conf.Regions, conf.RegionsExclude))
+	return &Purge{
+		services:  m,
+		resources: make(map[string]*resources, 0),
+	}, nil
+}
+
 func (p *Purge) Do() error {
 	if err := p.Fetch(); err != nil {
 		return err
@@ -112,42 +150,4 @@ func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
 	wg.Wait()
 
 	return output, multiErrors
-}
-
-func New(conf *Config) (*Purge, error) {
-	checkCfg := "Please check your configuration"
-
-	if len(conf.Regions) == 0 {
-		return nil, errors.New("AWS Regions are not set. " + checkCfg)
-	}
-
-	if conf.AccessKey == "" {
-		return nil, errors.New("AWS Access Key is not set. " + checkCfg)
-	}
-
-	if conf.SecretKey == "" {
-		return nil, errors.New("AWS Secret Key is not set. " + checkCfg)
-	}
-
-	if conf.Timeout == 0 {
-		conf.Timeout = time.Second * 30
-	}
-
-	client := &http.Client{
-		Transport: &http.Transport{TLSHandshakeTimeout: conf.Timeout},
-		Timeout:   conf.Timeout,
-	}
-
-	creds := credentials.NewStaticCredentials(conf.AccessKey, conf.SecretKey, "")
-	awsCfg := &awsclient.Config{
-		Credentials: creds,
-		HTTPClient:  client,
-		Logger:      awsclient.NewDefaultLogger(),
-	}
-
-	m := newMultiRegion(awsCfg, filterRegions(conf.Regions, conf.RegionsExclude))
-	return &Purge{
-		services:  m,
-		resources: make(map[string]*resources, 0),
-	}, nil
 }
