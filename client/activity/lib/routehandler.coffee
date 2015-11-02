@@ -8,11 +8,15 @@ isReactivityEnabled       = require 'app/util/isReactivityEnabled'
 { RoutingContext, match } = require 'react-router'
 
 reactivityRouteTypes = [
+  'NewChannel'
+  'NewMessage'
   'SingleChannel'
   'SinglePost'
   'SingleChannelWithSummary'
   'SinglePostWithSummary'
   'PrivateMessages'
+  'AllPublicChannels'
+  'AllPrivateMessages'
 ]
 
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
