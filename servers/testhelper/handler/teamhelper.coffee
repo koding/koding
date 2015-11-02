@@ -70,7 +70,6 @@ generateJoinTeamRequestParams = (opts = {}) ->
     csrfCookie : body._csrf
 
   requestParams = generateRequestParamsEncodeBody params, opts
-  console.log requestParams
 
   return requestParams
 
