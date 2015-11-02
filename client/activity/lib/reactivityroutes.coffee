@@ -45,7 +45,7 @@ module.exports = [
       content: PrivateMessageThreadPane
       modal: BrowsePrivateChannelsModal
   ,
-    path: ':privateChannelId'
+    path: ':privateChannelId(/:postId)'
     components:
       content: PrivateMessageThreadPane
       modal: null
