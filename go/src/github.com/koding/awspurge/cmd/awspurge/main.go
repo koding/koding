@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/koding/awspurge"
@@ -18,8 +17,6 @@ func runMain() error {
 	conf := &awspurge.Config{}
 	m := multiconfig.New()
 	m.MustLoad(conf)
-
-	fmt.Printf("conf = %+v\n", conf)
 
 	p, err := awspurge.New(conf)
 	if err != nil {
