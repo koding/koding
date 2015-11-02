@@ -116,8 +116,7 @@ func (p *Purge) Fetch() error {
 	return nil
 }
 
-// DescribeVolumes returns all volumes per region.
-func (p *Purge) DescribeVolumes() (map[string][]*ec2.Volume, error) {
+func (p *Purge) describeResources(fn func(*ec2.EC2) (interface{}, error)) (map[string]interface{}, error) {
 	var (
 		wg sync.WaitGroup
 		mu sync.Mutex
@@ -125,13 +124,13 @@ func (p *Purge) DescribeVolumes() (map[string][]*ec2.Volume, error) {
 		multiErrors error
 	)
 
-	output := make(map[string][]*ec2.Volume)
+	output := make(map[string]interface{})
 
 	for r, s := range p.services.regions {
 		wg.Add(1)
 
 		go func(region string, svc *ec2.EC2) {
-			resp, err := svc.DescribeVolumes(nil)
+			out, err := fn(svc)
 			if err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors, err)
@@ -140,11 +139,9 @@ func (p *Purge) DescribeVolumes() (map[string][]*ec2.Volume, error) {
 				return
 			}
 
-			if resp.Volumes != nil && len(resp.Volumes) != 0 {
-				mu.Lock()
-				output[region] = resp.Volumes
-				mu.Unlock()
-			}
+			mu.Lock()
+			output[region] = out
+			mu.Unlock()
 
 			wg.Done()
 		}(r, s)
@@ -155,49 +152,67 @@ func (p *Purge) DescribeVolumes() (map[string][]*ec2.Volume, error) {
 	return output, multiErrors
 }
 
-// DescribeInstances returns all instances per region.
-func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
-	var (
-		wg sync.WaitGroup
-		mu sync.Mutex
+// DescribeVolumes returns all volumes per region.
+func (p *Purge) DescribeVolumes() (map[string][]*ec2.Volume, error) {
+	describeVolumes := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeVolumes(nil)
+		if err != nil {
+			return nil, err
+		}
 
-		multiErrors error
-	)
-
-	output := make(map[string][]*ec2.Instance)
-
-	for r, s := range p.services.regions {
-		wg.Add(1)
-
-		go func(region string, svc *ec2.EC2) {
-			resp, err := svc.DescribeInstances(nil)
-			if err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors, err)
-				mu.Unlock()
-				wg.Done()
-				return
-			}
-
-			if resp.Reservations != nil {
-				instances := make([]*ec2.Instance, 0)
-
-				for _, reserv := range resp.Reservations {
-					if len(reserv.Instances) != 0 {
-						instances = append(instances, reserv.Instances...)
-					}
-				}
-
-				mu.Lock()
-				output[region] = instances
-				mu.Unlock()
-			}
-
-			wg.Done()
-		}(r, s)
+		return resp.Volumes, nil
 	}
 
-	wg.Wait()
+	out, err := p.describeResources(describeVolumes)
+	if err != nil {
+		return nil, err
+	}
 
-	return output, multiErrors
+	volumes := make(map[string][]*ec2.Volume)
+	for region, v := range out {
+		vols, ok := v.([]*ec2.Volume)
+		if !ok {
+			continue
+		}
+		volumes[region] = vols
+	}
+
+	return volumes, nil
+}
+
+// DescribeInstances returns all instances per region.
+func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
+	describeInstances := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeInstances(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		instances := make([]*ec2.Instance, 0)
+		if resp.Reservations != nil {
+			for _, reserv := range resp.Reservations {
+				if len(reserv.Instances) != 0 {
+					instances = append(instances, reserv.Instances...)
+				}
+			}
+		}
+
+		return instances, nil
+	}
+
+	out, err := p.describeResources(describeInstances)
+	if err != nil {
+		return nil, err
+	}
+
+	instances := make(map[string][]*ec2.Instance)
+	for region, i := range out {
+		ins, ok := i.([]*ec2.Instance)
+		if !ok {
+			continue
+		}
+		instances[region] = ins
+	}
+
+	return instances, nil
 }
