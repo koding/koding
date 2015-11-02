@@ -1,5 +1,7 @@
-kd        = require 'kd'
-showError = require 'app/util/showError'
+kd = require 'kd'
+
+showError  = require 'app/util/showError'
+sortStacks = require 'app/util/sortEnvironmentStacks'
 
 
 module.exports = class EnvironmentListController extends kd.ListViewController
@@ -34,6 +36,8 @@ module.exports = class EnvironmentListController extends kd.ListViewController
 
 
   addListItems: (stacks) ->
+
+    stacks = sortStacks stacks
 
     @instantiateListItems stacks
 

@@ -113,7 +113,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
 reset = (props, state, callback = kd.noop) ->
 
   { followedChannels, channelThread } = state
-  { privateChannelId } = props.routeParams
+  { privateChannelId, postId}         = props.routeParams
   {
     thread : threadActions,
     channel : channelActions,
@@ -128,7 +128,13 @@ reset = (props, state, callback = kd.noop) ->
     channelActions.loadChannel(privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
-      kd.utils.defer callback
+    if postId
+      messageActions.changeSelectedMessage postId
+    else
+      messageActions.changeSelectedMessage null
+
+    kd.utils.defer callback
+
   else if not channelThread
     threadActions.changeSelectedThread null
     kd.utils.defer callback

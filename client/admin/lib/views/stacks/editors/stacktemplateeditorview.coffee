@@ -11,21 +11,21 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
 
     super options, data
 
+    if options.showHelpContent
+      @once 'EditorReady', @bound 'insertHelpText'
+
+
+  insertHelpText: ->
+
+    position = row: 0, column: 0
+    content  = """
+      # Here is your stack preview
+      # You can make advanced changes like modifying your VM,
+      # installing packages, and running shell commands.
+
+
+    """
+
     ace = @getAce()
-
-    @once 'EditorReady', =>
-
-      unless options.showHelpContent
-        return ace.contentChanged = no
-
-      position = row: 0, column: 0
-      content  = """
-        # Here is your stack preview
-        # You can make advanced changes like modifying your VM,
-        # installing packages, and running shell commands.
-
-
-      """
-
-      ace.editor.session.insert position, content
-      ace.contentChanged = no
+    ace.editor.session.insert position, content
+    ace.contentChanged = no
