@@ -1,11 +1,9 @@
-querystring = require 'querystring'
-
-{ generateUrl
+{ queryString
+  generateUrl
   deepObjectExtend
   generateRandomEmail
   generateRandomString
   generateRequestParamsEncodeBody } = require '../index'
-
 
 
 defaultExpiryPeriod = 5 * 60 * 1000 # 5 minutes
