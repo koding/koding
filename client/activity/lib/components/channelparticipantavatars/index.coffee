@@ -126,9 +126,12 @@ module.exports = class ChannelParticipantAvatars extends React.Component
 
     { participants } = @props
 
-    participants = participants.slice 0, @getPreviewCount()
+    avatarOptions =
+      participants        : participants.slice 0, @getPreviewCount()
+      isNicknameVisible   : no
+      shouldTooltipRender : yes
 
-    @renderAvatars participants, no
+    @renderAvatars avatarOptions
 
 
   renderNickname: (participant, isNicknameVisible)->
@@ -139,14 +142,18 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     <span>{nickname}</span>
 
 
-  renderTooltip: (participant) ->
+  renderTooltip: (participant, shouldTooltipRender) ->
+
+    return  unless shouldTooltipRender
 
     nickname = participant.getIn ['profile', 'nickname']
 
     <Tooltip text={nickname} position='bottom' />
 
 
-  renderAvatars: (participants, isNicknameVisible) ->
+  renderAvatars: (options={}) ->
+
+    { participants, isNicknameVisible, shouldTooltipRender } = options
 
     participants.toList().map (participant) =>
       <div key={participant.get 'id'} className='ChannelParticipantAvatars-singleBox'>
@@ -158,7 +165,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
               account={participant.toJS()}
               height={30} />
             {@renderNickname participant, isNicknameVisible }
-            {@renderTooltip participant}
+            {@renderTooltip participant, shouldTooltipRender}
           </div>
         </ProfileLinkContainer>
       </div>
@@ -187,12 +194,16 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     return null  unless @props.participants
 
     { participants }  = @props
-    otherParticipants = participants.slice @getPreviewCount()
+
+    avatarOptions =
+      participants        : participants.slice @getPreviewCount()
+      isNicknameVisible   : yes
+      shouldTooltipRender : no
 
     <div className='ChannelParticipantAvatars-allParticipantsMenu' ref='AllParticipantsMenu'>
       <div className='ChannelParticipantAvatars-allParticipantsMenuTitle'>Other participants</div>
       <div className='ChannelParticipantAvatars-allParticipantsMenuContainer'>
-        {@renderAvatars(otherParticipants, yes)}
+        {@renderAvatars avatarOptions }
       </div>
     </div>
 
