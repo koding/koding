@@ -7,6 +7,7 @@ globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
 registerRoutes = require './util/registerRoutes'
+isKoding       = require './util/isKoding'
 
 
 getAction = (formName) -> switch formName
@@ -41,6 +42,10 @@ createContentDisplayHandler = (section, passOptions = no) ->
   ({params:{name, slug}, query}, models, route)->
 
     {router} = kd.singletons
+
+    # don't render profile pages on team contexts.
+    return router.handleNotFound()  unless isKoding()
+
     route = name unless route
 
     if models?

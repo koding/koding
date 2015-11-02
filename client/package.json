@@ -5,7 +5,7 @@
   "dependencies": {
     "@koding/getscript": "0.1.0",
     "@koding/inherits-underscore": "0.2.0",
-    "@koding/kd-react": "git+ssh://git@github.com/koding/kd-react.git#0.1.4",
+    "@koding/kd-react": "git+ssh://git@github.com/koding/kd-react.git#0.1.5",
     "accounting": "0.4.1",
     "backoff": "2.4.1",
     "bluebird": "2.8.2",

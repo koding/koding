@@ -57,22 +57,6 @@ module.exports = class EnvironmentsModal extends kd.ModalView
 
     listView.on 'StackReinitRequested', (stack) =>
 
-      stack.delete (err) =>
-        return showError err  if err
-
-        computeController
-          .reset()
-
-          .once 'RenderStacks', (stacks) =>
-
-            new kd.NotificationView
-              title : 'Stack reinitialized'
-
-            # We need to quit here to be able to re-load
-            # IDE with new machine stack, there might be better solution ~ GG
-            frontApp = appManager.getFrontApp()
-            frontApp.quit()  if frontApp?.options.name is 'IDE'
-
-            @destroy()
-
-          .createDefaultStack()
+      computeController
+        .once 'RenderStacks', @bound 'destroy'
+        .reinitGroupStack stack

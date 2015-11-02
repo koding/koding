@@ -14,11 +14,10 @@ StartVideoCallLink           = require 'activity/components/common/startvideocal
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 showNotification             = require 'app/util/showNotification'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
+ThreadPaneLifecycleMixin     = require 'activity/mixins/threadpanelifecycle'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
-
-  @include [ImmutableRenderMixin]
 
   { getters } = ActivityFlux
 
@@ -42,12 +41,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
       isComingSoonModalOpen : no
 
 
-  componentDidMount: -> reset @props, @state
-
-
-  componentWillReceiveProps: (nextProps) -> reset nextProps, @state
-
-
   onStart: ->
 
     @setState isComingSoonModalOpen: yes
@@ -63,11 +56,6 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     return  unless @state.channelThread
 
     prepareThreadTitle @state.channelThread
-
-
-  renderChat: ->
-
-    <PrivateChatPane thread={ @state.channelThread }/>
 
 
   onDragEnter: (event) ->
@@ -110,7 +98,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
         </header>
         <div className='PrivateMessageThreadPane-body'>
           <section className='PrivateMessageThreadPane-chatWrapper'>
-            {@renderChat()}
+            <PrivateChatPane ref='pane' thread={ @state.channelThread }/>
           </section>
         </div>
       </section>
@@ -122,9 +110,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     </div>
 
 
-React.Component.include.call PrivateMessageThreadPane, [KDReactorMixin]
-
-reset = (props, state) ->
+reset = (props, state, callback = kd.noop) ->
 
   { followedChannels, channelThread } = state
   { privateChannelId } = props.routeParams
@@ -139,9 +125,16 @@ reset = (props, state) ->
       privateChannelId = botChannel.id
 
   if privateChannelId
-    channelActions.loadChannel('private', privateChannelId).then ({ channel }) ->
+    channelActions.loadChannel(privateChannelId).then ({ channel }) ->
       threadActions.changeSelectedThread channel.id
       channelActions.loadParticipants channel.id, channel.participantsPreview
+      kd.utils.defer callback
   else if not channelThread
     threadActions.changeSelectedThread null
+    kd.utils.defer callback
+
+
+React.Component.include.call PrivateMessageThreadPane, [
+  ThreadPaneLifecycleMixin(reset), KDReactorMixin, ImmutableRenderMixin
+]
 
