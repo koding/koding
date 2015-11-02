@@ -37,6 +37,9 @@ module.exports = class UserDropbox extends React.Component
     return (users.size + userMentions.size) is 1
 
 
+  hasUsers: -> @props.users.size > 0
+
+
   formatSelectedValue: ->
 
     { selectedItem, query } = @props
@@ -133,7 +136,7 @@ module.exports = class UserDropbox extends React.Component
   renderMentionListHeader: ->
 
     { userMentions } = @props
-    return  if userMentions.size is 0
+    return  if userMentions.size is 0 or not @hasUsers()
 
     <div className='Dropbox-header UserDropbox-groupsHeader DropboxItem-separated'>
       Groups
@@ -161,12 +164,15 @@ module.exports = class UserDropbox extends React.Component
 
   render: ->
 
+    { users } = @props
+    title     = if @hasUsers() then 'People' else 'Groups'
+
     <Dropbox
       className = 'UserDropbox'
       visible   = { @isActive() }
       onClose   = { @bound 'close' }
       type      = 'dropup'
-      title     = 'People'
+      title     = { title }
       ref       = 'dropbox'
     >
       { @renderUserList() }

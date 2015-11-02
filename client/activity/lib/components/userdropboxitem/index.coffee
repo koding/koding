@@ -21,8 +21,8 @@ module.exports = class UserDropboxItem extends React.Component
     { profile } = account
 
     fullNameClass = classnames
-      'UserDropboxItem-fullName' : yes
-      'hidden'                  : not (profile.firstName and profile.lastName)
+      'UserDropboxItem-secondaryText' : yes
+      'hidden'                        : not (profile.firstName and profile.lastName)
 
     <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated UserDropboxItem">
       <Avatar width='25' height='25' account={account} />

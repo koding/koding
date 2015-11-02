@@ -28,7 +28,7 @@ module.exports = class UserMentionDropboxItem extends React.Component
 
     return  unless description
 
-    <span className='UserDropboxItem-fullName'> ({description})</span>    
+    <span className='UserDropboxItem-secondaryText'>({description})</span>
 
 
   render: ->
