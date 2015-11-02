@@ -23,6 +23,7 @@ type Config struct {
 
 type resources struct {
 	instances []*ec2.Instance
+	volumes   []*ec2.Volume
 }
 
 type Purge struct {
@@ -87,6 +88,7 @@ func (p *Purge) Do() error {
 func (p *Purge) Print() error {
 	for region, resources := range p.resources {
 		fmt.Printf("[%s] found '%d' instances\n", region, len(resources.instances))
+		fmt.Printf("[%s] found '%d' volumes\n", region, len(resources.volumes))
 	}
 	return nil
 }
@@ -99,15 +101,61 @@ func (p *Purge) Fetch() error {
 		return err
 	}
 
-	for region, instances := range allInstances {
+	allVolumes, err := p.DescribeVolumes()
+	if err != nil {
+		return err
+	}
+
+	for _, region := range allRegions {
 		p.resources[region] = &resources{
-			instances: instances,
+			instances: allInstances[region],
+			volumes:   allVolumes[region],
 		}
 	}
 
 	return nil
 }
 
+// DescribeVolumes returns all volumes per region.
+func (p *Purge) DescribeVolumes() (map[string][]*ec2.Volume, error) {
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+
+		multiErrors error
+	)
+
+	output := make(map[string][]*ec2.Volume)
+
+	for r, s := range p.services.regions {
+		wg.Add(1)
+
+		go func(region string, svc *ec2.EC2) {
+			resp, err := svc.DescribeVolumes(nil)
+			if err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors, err)
+				mu.Unlock()
+				wg.Done()
+				return
+			}
+
+			if resp.Volumes != nil && len(resp.Volumes) != 0 {
+				mu.Lock()
+				output[region] = resp.Volumes
+				mu.Unlock()
+			}
+
+			wg.Done()
+		}(r, s)
+	}
+
+	wg.Wait()
+
+	return output, multiErrors
+}
+
+// DescribeInstances returns all instances per region.
 func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
 	var (
 		wg sync.WaitGroup
@@ -122,8 +170,7 @@ func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
 		wg.Add(1)
 
 		go func(region string, svc *ec2.EC2) {
-			input := &ec2.DescribeInstancesInput{}
-			resp, err := svc.DescribeInstances(input)
+			resp, err := svc.DescribeInstances(nil)
 			if err != nil {
 				mu.Lock()
 				multiErrors = multierror.Append(multiErrors, err)
@@ -134,8 +181,11 @@ func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
 
 			if resp.Reservations != nil {
 				instances := make([]*ec2.Instance, 0)
+
 				for _, reserv := range resp.Reservations {
-					instances = append(instances, reserv.Instances...)
+					if len(reserv.Instances) != 0 {
+						instances = append(instances, reserv.Instances...)
+					}
 				}
 
 				mu.Lock()
