@@ -9,13 +9,13 @@ isReactivityEnabled       = require 'app/util/isReactivityEnabled'
 
 reactivityRouteTypes = [
   'NewChannel'
-  'NewMessage'
+  'NewPrivateMessage'
   'SingleChannel'
   'SinglePost'
   'SingleChannelWithSummary'
   'SinglePostWithSummary'
   'PrivateMessages'
-  'AllPublicChannels'
+  'AllChannels'
   'AllPrivateMessages'
 ]
 
