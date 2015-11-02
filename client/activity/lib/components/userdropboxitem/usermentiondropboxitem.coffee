@@ -4,7 +4,7 @@ immutable   = require 'immutable'
 classnames  = require 'classnames'
 DropboxItem = require 'activity/components/dropboxitem'
 
-module.exports = class MentionDropboxItem extends React.Component
+module.exports = class UserMentionDropboxItem extends React.Component
 
   @defaultProps =
     item       : immutable.Map()

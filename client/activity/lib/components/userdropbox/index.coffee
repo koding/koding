@@ -1,15 +1,15 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-Dropbox              = require 'activity/components/dropbox/portaldropbox'
-UserDropboxItem      = require 'activity/components/userdropboxitem'
-MentionDropboxItem   = require 'activity/components/userdropboxitem/mentiondropboxitem'
-DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
-ChatInputFlux        = require 'activity/flux/chatinput'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
-isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
-findNameByQuery      = require 'activity/util/findNameByQuery'
+kd                     = require 'kd'
+React                  = require 'kd-react'
+immutable              = require 'immutable'
+classnames             = require 'classnames'
+Dropbox                = require 'activity/components/dropbox/portaldropbox'
+UserDropboxItem        = require 'activity/components/userdropboxitem'
+UserMentionDropboxItem = require 'activity/components/userdropboxitem/usermentiondropboxitem'
+DropboxWrapperMixin    = require 'activity/components/dropbox/dropboxwrappermixin'
+ChatInputFlux          = require 'activity/flux/chatinput'
+ImmutableRenderMixin   = require 'react-immutable-render-mixin'
+isWithinCodeBlock      = require 'app/util/isWithinCodeBlock'
+findNameByQuery        = require 'activity/util/findNameByQuery'
 
 
 module.exports = class UserDropbox extends React.Component
@@ -18,13 +18,23 @@ module.exports = class UserDropbox extends React.Component
 
 
   @defaultProps =
-    items          : immutable.List()
+    users          : immutable.List()
+    userMentions   : immutable.List()
     visible        : no
     selectedIndex  : 0
     selectedItem   : null
 
 
-  isActive: -> @props.visible
+  isActive: ->
+
+    { users, userMentions, visible } = @props
+    return (users.size + userMentions.size) > 0 and visible
+
+
+  hasSingleItem: ->
+
+    { users, userMentions, visible } = @props
+    return (users.size + userMentions.size) is 1
 
 
   formatSelectedValue: ->
@@ -122,8 +132,8 @@ module.exports = class UserDropbox extends React.Component
 
   renderMentionListHeader: ->
 
-    { mentions } = @props
-    return  if mentions.size is 0
+    { userMentions } = @props
+    return  if userMentions.size is 0
 
     <div className='Dropbox-header UserDropbox-groupsHeader DropboxItem-separated'>
       Groups
@@ -132,13 +142,13 @@ module.exports = class UserDropbox extends React.Component
 
   renderMentionList: ->
 
-    { users, mentions, selectedIndex } = @props
+    { users, userMentions, selectedIndex } = @props
 
-    mentions.map (item, index) =>
+    userMentions.map (item, index) =>
       index += users.size
       isSelected = index is selectedIndex
 
-      <MentionDropboxItem
+      <UserMentionDropboxItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }

@@ -33,7 +33,7 @@ CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList
 CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
 CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
 CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
-MentionsStore                       = [['ChatInputMentionsStore'], withEmptyList]
+UserMentionsStore                   = [['ChatInputUserMentionsStore'], withEmptyList]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -189,14 +189,14 @@ users = (stateId) -> [
 ]
 
 
-mentions = (stateId) -> [
-  MentionsStore
+userMentions = (stateId) -> [
+  UserMentionsStore
   usersQuery stateId
-  (_mentions, query) ->
-    return _mentions  unless query
+  (mentions, query) ->
+    return mentions  unless query
 
     query = query.toLowerCase()
-    _mentions.filter (mention) ->
+    mentions.filter (mention) ->
       return findNameByQuery mention.get('names').toJS(), query
 ]
 
@@ -209,20 +209,20 @@ usersRawIndex = (stateId) -> [
 
 usersSelectedIndex = (stateId) -> [
   users stateId
-  mentions stateId
+  userMentions stateId
   usersRawIndex stateId
-  (_users, _mentions, currentIndex) ->
-    list = _users.toList().concat _mentions
+  (_users, mentions, currentIndex) ->
+    list = _users.toList().concat mentions
     return calculateListSelectedIndex list, currentIndex
 ]
 
 
 usersSelectedItem = (stateId) -> [
   users stateId
-  mentions stateId
+  userMentions stateId
   usersSelectedIndex stateId
-  (_users, _mentions, selectedIndex) ->
-    list = _users.toList().concat _mentions
+  (_users, mentions, selectedIndex) ->
+    list = _users.toList().concat mentions
     return getListSelectedItem list, selectedIndex
 ]
 
@@ -360,7 +360,7 @@ module.exports = {
 
   usersQuery
   users
-  mentions
+  userMentions
   usersRawIndex
   usersSelectedIndex
   usersSelectedItem

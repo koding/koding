@@ -49,7 +49,7 @@ module.exports = class ChatInputWidget extends React.Component
       channelsQuery                  : getters.channelsQuery @stateId
       channelsVisibility             : getters.channelsVisibility @stateId
       users                          : getters.users @stateId
-      mentions                       : getters.mentions @stateId
+      userMentions                   : getters.userMentions @stateId
       usersQuery                     : getters.usersQuery @stateId
       userSelectedIndex              : getters.usersSelectedIndex @stateId
       usersSelectedItem              : getters.usersSelectedItem @stateId
@@ -353,11 +353,11 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderUserDropbox: ->
 
-    { users, mentions, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
+    { users, userMentions, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
 
     <UserDropbox
       users           = { users }
-      mentions        = { mentions }
+      userMentions    = { userMentions }
       selectedIndex   = { userSelectedIndex }
       selectedItem    = { usersSelectedItem }
       query           = { usersQuery }
