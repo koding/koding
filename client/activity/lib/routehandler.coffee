@@ -7,24 +7,24 @@ lazyrouter                = require 'app/lazyrouter'
 isReactivityEnabled       = require 'app/util/isReactivityEnabled'
 { RoutingContext, match } = require 'react-router'
 
+reactivityRouteTypes = [
+  'SingleChannel'
+  'SinglePost'
+  'SingleChannelWithSummary'
+  'SinglePostWithSummary'
+  'PrivateMessages'
+]
+
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
 
   handle = (name) -> handlers["handle#{name}"](info, ctx, path, state)
-
-  reactivityRoutes = [
-    'SingleChannel'
-    'SinglePost'
-    'SingleChannelWithSummary'
-    'SinglePostWithSummary'
-    'PrivateMessages'
-  ]
 
   # since `isReactivityEnabled` flag checks roles from config,
   # wait for mainController to be ready to call `isReactivityEnabled`
   # FIXME: Remove this call before public release. ~Umut
   kd.singletons.mainController.ready ->
 
-    if type in reactivityRoutes
+    if type in reactivityRouteTypes
       if isReactivityEnabled()
       then handleReactivity info, ctx
       # unless reactivity is enabled redirect reactivity routes to `Public`

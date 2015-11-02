@@ -230,11 +230,7 @@ module.exports = class ChatListItem extends React.Component
     value = @refs.editInput.getValue().trim()
     return @setState isDeleting: yes  unless value
 
-    name  = @props.channelName
     messageId = @props.message.get '_id'
-
-    unless value.match ///\##{name}///
-      value += " ##{name} "
 
     ActivityFlux.actions.message.unsetMessageEditMode messageId
 
