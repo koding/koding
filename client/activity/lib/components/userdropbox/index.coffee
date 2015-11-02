@@ -117,7 +117,7 @@ module.exports = class UserDropbox extends React.Component
 
   renderUserList: ->
 
-    { users, selectedIndex } = @props
+    { users, selectedIndex, query } = @props
 
     users.map (item, index) =>
       isSelected = index is selectedIndex
@@ -130,6 +130,7 @@ module.exports = class UserDropbox extends React.Component
         onConfirmed = { @bound 'confirmSelectedItem' }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
+        query       = { query }
       />
 
 
@@ -145,7 +146,7 @@ module.exports = class UserDropbox extends React.Component
 
   renderMentionList: ->
 
-    { users, userMentions, selectedIndex } = @props
+    { users, userMentions, selectedIndex, query } = @props
 
     userMentions.map (item, index) =>
       index += users.size
@@ -159,6 +160,7 @@ module.exports = class UserDropbox extends React.Component
         onConfirmed = { @bound 'confirmSelectedItem' }
         key         = { @getItemKey item }
         ref         = { @getItemKey item }
+        query       = { query }
       />
 
 
