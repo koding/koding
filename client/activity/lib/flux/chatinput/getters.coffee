@@ -5,6 +5,7 @@ ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
+findNameByQuery            = require 'activity/util/findNameByQuery'
 
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
@@ -32,6 +33,7 @@ CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList
 CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
 CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
 CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
+MentionsStore                       = [['ChatInputMentionsStore'], withEmptyList]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -173,28 +175,30 @@ users = (stateId) -> [
       list = if command?.name is '/invite'
       then notParticipants
       else participants?.toList()
-      return addUserMentions list ? immutable.List()
+      return list ? immutable.List()
 
     query = query.toLowerCase()
-    addUserMentions(allUsers.toList()).filter (item) ->
-      itemName = if item.get 'isMention'
-      then item.get 'name'
-      else item.getIn ['profile', 'nickname']
-      return itemName.toLowerCase().indexOf(query) is 0
+    allUsers.toList().filter (user) ->
+      profile = user.get 'profile'
+      names = [
+        profile.get 'nickname'
+        profile.get 'firstName'
+        profile.get 'lastName'
+      ]
+      return findNameByQuery names, query
 ]
 
 
-addUserMentions = (list) ->
+mentions = (stateId) -> [
+  MentionsStore
+  usersQuery stateId
+  (_mentions, query) ->
+    return _mentions  unless query
 
-  mentions = [ 'all', 'channel', 'team', 'group', 'admins' ]
-
-  for mention in mentions
-    item = toImmutable
-      isMention : yes
-      name      : mention
-    list = list.push item
-
-  return list
+    query = query.toLowerCase()
+    _mentions.filter (mention) ->
+      return findNameByQuery mention.get('names').toJS(), query
+]
 
 
 usersRawIndex = (stateId) -> [
@@ -205,15 +209,21 @@ usersRawIndex = (stateId) -> [
 
 usersSelectedIndex = (stateId) -> [
   users stateId
+  mentions stateId
   usersRawIndex stateId
-  calculateListSelectedIndex
+  (_users, _mentions, currentIndex) ->
+    list = _users.toList().concat _mentions
+    return calculateListSelectedIndex list, currentIndex
 ]
 
 
 usersSelectedItem = (stateId) -> [
   users stateId
+  mentions stateId
   usersSelectedIndex stateId
-  getListSelectedItem
+  (_users, _mentions, selectedIndex) ->
+    list = _users.toList().concat _mentions
+    return getListSelectedItem list, selectedIndex
 ]
 
 
@@ -350,6 +360,7 @@ module.exports = {
 
   usersQuery
   users
+  mentions
   usersRawIndex
   usersSelectedIndex
   usersSelectedItem

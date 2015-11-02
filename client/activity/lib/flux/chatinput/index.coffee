@@ -22,6 +22,7 @@ module.exports = {
     require './stores/user/querystore'
     require './stores/user/selectedindexstore'
     require './stores/user/visibilitystore'
+    require './stores/user/mentionsstore'
     require './stores/search/selectedindexstore'
     require './stores/search/querystore'
     require './stores/search/visibilitystore'

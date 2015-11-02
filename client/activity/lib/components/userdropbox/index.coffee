@@ -4,10 +4,12 @@ immutable            = require 'immutable'
 classnames           = require 'classnames'
 Dropbox              = require 'activity/components/dropbox/portaldropbox'
 UserDropboxItem      = require 'activity/components/userdropboxitem'
+MentionDropboxItem   = require 'activity/components/userdropboxitem/mentiondropboxitem'
 DropboxWrapperMixin  = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux        = require 'activity/flux/chatinput'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 isWithinCodeBlock    = require 'app/util/isWithinCodeBlock'
+findNameByQuery      = require 'activity/util/findNameByQuery'
 
 
 module.exports = class UserDropbox extends React.Component
@@ -22,10 +24,27 @@ module.exports = class UserDropbox extends React.Component
     selectedItem   : null
 
 
-  formatSelectedValue: -> "@#{helper.getItemName @props.selectedItem}"
+  isActive: -> @props.visible
 
 
-  getItemKey: (item) -> helper.getItemName item
+  formatSelectedValue: ->
+
+    { selectedItem, query } = @props
+    names = selectedItem.get('names')
+
+    if names
+      name = findNameByQuery(names.toJS(), query) ? names.first()
+    else
+      name = selectedItem.getIn ['profile', 'nickname']
+
+    return "@#{name}"
+
+
+  getItemKey: (item) ->
+
+    names = item.get('names')
+
+    if names then names.first() else item.get '_id'
 
 
   close: ->
@@ -83,14 +102,43 @@ module.exports = class UserDropbox extends React.Component
     ChatInputFlux.actions.user.setSelectedIndex stateId, index
 
 
-  renderList: ->
+  renderUserList: ->
 
-    { items, selectedIndex } = @props
+    { users, selectedIndex } = @props
 
-    items.map (item, index) =>
+    users.map (item, index) =>
       isSelected = index is selectedIndex
 
       <UserDropboxItem
+        isSelected  = { isSelected }
+        index       = { index }
+        item        = { item }
+        onSelected  = { @bound 'onItemSelected' }
+        onConfirmed = { @bound 'confirmSelectedItem' }
+        key         = { @getItemKey item }
+        ref         = { @getItemKey item }
+      />
+
+
+  renderMentionListHeader: ->
+
+    { mentions } = @props
+    return  if mentions.size is 0
+
+    <div className='Dropbox-header UserDropbox-groupsHeader DropboxItem-separated'>
+      Groups
+    </div>
+
+
+  renderMentionList: ->
+
+    { users, mentions, selectedIndex } = @props
+
+    mentions.map (item, index) =>
+      index += users.size
+      isSelected = index is selectedIndex
+
+      <MentionDropboxItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
@@ -111,14 +159,8 @@ module.exports = class UserDropbox extends React.Component
       title     = 'People'
       ref       = 'dropbox'
     >
-      {@renderList()}
+      { @renderUserList() }
+      { @renderMentionListHeader() }
+      { @renderMentionList() }
     </Dropbox>
 
-
-  helper =
-
-    getItemName: (item) ->
-
-      if item.get 'isMention'
-      then item.get 'name'
-      else item.getIn ['profile', 'nickname']

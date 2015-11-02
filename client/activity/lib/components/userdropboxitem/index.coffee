@@ -16,45 +16,24 @@ module.exports = class UserDropboxItem extends React.Component
 
   render: ->
 
-    item = @props.item.toJS()
+    { item }    = @props
+    account     = item.toJS()
+    { profile } = account
+
+    fullNameClass = classnames
+      'UserDropboxItem-fullName' : yes
+      'hidden'                  : not (profile.firstName and profile.lastName)
 
     <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated UserDropboxItem">
-      {
-        if item.isMention
-        then helper.renderMentionItem item
-        else helper.renderUserItem item
-      }
-      <div className='clearfix' />
-    </DropboxItem>
-
-
-  helper =
-
-    renderUserItem: (item) ->
-
-      { profile }   = item
-      fullNameClass = classnames
-        'UserDropboxItem-fullName' : yes
-        'hidden'                   : not (profile.firstName and profile.lastName)
-
-      <div>
-        <Avatar width='25' height='25' account={item} />
-        <div className='UserDropboxItem-names'>
-          <span className='UserDropboxItem-nickname'>
-            {profile.nickname}
-          </span>
-          <span className={fullNameClass}>
-            <ProfileText account={item} />
-          </span>
-        </div>
-      </div>
-
-
-    renderMentionItem: (item) ->
-
+      <Avatar width='25' height='25' account={account} />
       <div className='UserDropboxItem-names'>
         <span className='UserDropboxItem-nickname'>
-          {item.name}
+          {account.profile.nickname}
+        </span>
+        <span className={fullNameClass}>
+          <ProfileText account={account} />
         </span>
       </div>
+      <div className='clearfix' />
+    </DropboxItem>
 
