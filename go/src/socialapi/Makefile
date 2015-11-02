@@ -403,7 +403,7 @@ testrealtime:
 
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
-	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
+	testmoderation testtopicfeeed testnotification testtrollmode \
 	testpayment testteam testintegration testrealtime testwebhook
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
