@@ -43,7 +43,7 @@ module.exports = class UserDropboxItem extends React.Component
         'UserDropboxItem-secondaryText' : yes
         'hidden'                        : not (firstName and lastName)
 
-      shouldHighlight = findNameByQuery([ nickname, firstName, lastName ]) isnt nickname
+      shouldHighlight = findNameByQuery([ nickname, firstName, lastName ], query) isnt nickname
 
       <span className={fullNameClass}>
         { helper.renderFullNameItem "#{firstName} ", shouldHighlight, query }
