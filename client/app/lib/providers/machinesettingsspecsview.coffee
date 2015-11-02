@@ -46,7 +46,7 @@ module.exports = class MachineSettingsSpecsView extends KDView
       partial  : '<p>Do you need more?</p>'
 
     wrapper.addSubView new KDButtonView
-      title    : 'UPGRADE YOUR VM NOW'
+      title    : 'UPGRADE YOUR ACCOUNT'
       cssClass : 'solid green small more'
       callback : =>
         kd.singletons.router.handleRoute '/Pricing'
