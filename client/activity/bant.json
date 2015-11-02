@@ -17,11 +17,15 @@
     "/Activity/Chat/All" : "AllPrivateMessages",
     "/Activity" : "ActivityGeneric",
 
+    "/NewChannel": "NewChannel",
+    "/Channels": "AllPublicChannels",
     "/Channels/:channelName": "SingleChannel",
     "/Channels/:channelName/:postSlug": "SinglePost",
     "/Channels/:channelName/summary": "SingleChannelWithSummary",
     "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary",
 
+    "/NewMessage": "NewMessage",
+    "/Messages": "AllPrivateMessages",
     "/Messages/:privateChannelId": "PrivateMessages",
     "/Messages/:privateChannelId/:postId": "PrivateMessages"
 
