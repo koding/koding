@@ -73,15 +73,6 @@ func TestKodingNetworkFS(tt *testing.T) {
 							Time:     millenium,
 							Size:     uint64(len(s)),
 						},
-						fktransport.FsGetInfoRes{
-							Exists:   true,
-							IsDir:    true,
-							FullPath: "/remote/node_modules",
-							Name:     "node_modules",
-							Mode:     os.FileMode(0700),
-							Time:     millenium,
-							Size:     uint64(len(s)),
-						},
 					},
 				},
 			},
@@ -743,7 +734,9 @@ func newknfs(t fktransport.Transport) *KodingNetworkFS {
 	}
 
 	c := &fkconfig.Config{
-		LocalPath: mountDir, IgnoreFolders: []string{"node_modules"},
+		LocalPath:     mountDir,
+		IgnoreFolders: []string{"node_modules"},
+		Prefetch:      false,
 	}
 	k, err := NewKodingNetworkFS(t, c)
 	if err != nil {

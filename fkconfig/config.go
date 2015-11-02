@@ -21,9 +21,16 @@ type Config struct {
 	FuseDebug bool `default:false`
 
 	// IgnoreFolders are the remote folders which will be ignored, ie not
-	// downloaded or be available for folder operations.
+	// downloaded or be available for folder operations. Use this to ignore
+	// folders like .git, logs/, bin/ etc.
 	IgnoreFolders []string
 
 	// NoIgnore determines whether to ignore default or user specified folders.
+	// Use this to turn off default ignoring of folders.
 	NoIgnore bool `default:false`
+
+	// Prefetch determines if we should fetch metadata on mount time. This makes
+	// mounts slightly slower, however it speeds up regular read directory a LOT.
+	// It fetches metadata recursively directories, but not contents of files.
+	Prefetch bool `default:true`
 }
