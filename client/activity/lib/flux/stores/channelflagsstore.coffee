@@ -13,11 +13,18 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
   initialize: ->
 
+    @on actions.LOAD_CHANNEL_SUCCESS, @handleLoadChannel
     @on actions.CREATE_MESSAGE_BEGIN, @handleCreateMessageBegin
     @on actions.CREATE_MESSAGE_SUCCESS, @handleCreateMessageEnd
     @on actions.CREATE_MESSAGE_FAIL, @handleCreateMessageEnd
     @on actions.SET_ALL_MESSAGES_LOADED, @handleSetAllMessagesLoaded
     @on actions.UNSET_ALL_MESSAGES_LOADED, @handleUnsetAllMessagesLoaded
+    @on actions.SET_CHANNEL_SCROLL_POSITION, @handleSetScrollPosition
+
+
+  handleLoadChannel: (channelFlags, { channelId }) ->
+
+    return helper.ensureChannelMap channelFlags, channelId
 
 
   handleCreateMessageBegin: (channelFlags, { channelId }) ->
@@ -42,6 +49,12 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'reachedFirstMessage'], no
+
+
+  handleSetScrollPosition: (channelFlags, { channelId, position }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'scrollPosition'], position
 
 
 helper =

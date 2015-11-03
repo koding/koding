@@ -99,7 +99,7 @@ module.exports = class ChannelInfoContainer extends React.Component
     switch @channel 'typeConstant'
       when 'bot'
         [
-          "This is the very beginning of your chat history with"
+          "This is the very beginning of your chat history with "
           <strong>Koding Bot</strong>
           ". He is not so smart :)"
         ]

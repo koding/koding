@@ -25,8 +25,6 @@ module.exports = (container, callback = kd.noop, options = {}) ->
           finderController.destroy()
           dialog.hide()
 
-  dialog.on 'KDObjectWillBeDestroyed', -> container.ace?.focus()
-
   dialog.addSubView wrapper = new KDView
     cssClass : "kddialog-wrapper"
 
@@ -40,6 +38,11 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     defaultValue : options.inputDefaultValue or ""
     keydown      : (event) ->
       dialog.buttons.Save.click()  if event.which is 13
+
+  dialog.on 'KDObjectWillBeDestroyed', ->
+    container.ace?.focus()
+    input.blur()
+    input.off 'keydown'
 
   form.addSubView labelFinder = new KDLabelView
     title : options.finderLabel or "Select a folder:"

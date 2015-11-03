@@ -13,21 +13,25 @@ module.exports = class PrivateChatPane extends React.Component
 
 
   render: ->
+
+    return null  unless @props.thread
+
     <div>
       <ChatPane
-        thread     = { @props.thread }
-        className  = 'PrivateChatPane'
-        onSubmit   = { @bound 'onSubmit' }
-        onInviteOthers = {@bound 'onInviteOthers'}
-        onLoadMore = { @bound 'onLoadMore' }
-      >
-      </ChatPane>
-      <footer className='PrivateChatPane-footer'>
+        key            = { @props.thread.get 'channelId' }
+        thread         = { @props.thread }
+        className      = 'PrivateChatPane'
+        onSubmit       = { @bound 'onSubmit' }
+        onInviteOthers = { @bound 'onInviteOthers'}
+        onLoadMore     = { @bound 'onLoadMore' }
+      />
+      <footer className='PrivateChatPane-footer ChatPaneFooter'>
         <ChatInputWidget
           onSubmit         = { @bound 'onSubmit' }
           onCommand        = { @bound 'onCommand' }
           channelId        = { @channel 'id' }
           disabledFeatures = { ['search'] }
+          onResize         = { @bound 'onResize' }
           ref              = 'chatInputWidget'
         />
       </footer>

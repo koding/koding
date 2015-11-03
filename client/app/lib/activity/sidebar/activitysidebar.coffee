@@ -24,6 +24,7 @@ SidebarMessageItem              = require './sidebarmessageitem'
 JTreeViewController             = kd.JTreeViewController
 MoreWorkspacesModal             = require './moreworkspacesmodal'
 fetchChatChannelCount           = require 'activity/util/fetchChatChannelCount'
+sortEnvironmentStacks           = require 'app/util/sortEnvironmentStacks'
 isChannelCollaborative          = require '../../util/isChannelCollaborative'
 SidebarOwnMachinesList          = require './sidebarownmachineslist'
 environmentDataProvider         = require 'app/userenvironmentdataprovider'
@@ -675,6 +676,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     computeController.fetchStacks (err, stacks) =>
 
       return showError err  if err
+
+      stacks = sortEnvironmentStacks stacks
 
       stacks.forEach (stack) =>
 

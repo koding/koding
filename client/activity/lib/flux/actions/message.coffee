@@ -36,10 +36,10 @@ loadMessages = (channelId, options = {}) ->
       # clean load more markers of given messages first.
       # kd.utils.defer -> cleanLoaderMarkers channelId, messages
 
-      if messages.length < options.limit
-        dispatch SET_ALL_MESSAGES_LOADED, { channelId }
-      else
-        dispatch UNSET_ALL_MESSAGES_LOADED, { channelId }
+      channelMessages = kd.singletons.reactor.evaluate ['MessagesStore', channelId]
+
+      limit = Math.max channelMessages?.size or 0, options.limit
+
 
       kd.utils.defer ->
         kd.singletons.reactor.batch ->
@@ -47,6 +47,9 @@ loadMessages = (channelId, options = {}) ->
             dispatchLoadMessageSuccess channelId, message
 
           dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
+          
+          if messages.length < limit
+            dispatch SET_ALL_MESSAGES_LOADED, { channelId }
         resolve { messages }
 
 

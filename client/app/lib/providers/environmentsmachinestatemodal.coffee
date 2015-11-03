@@ -83,6 +83,10 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       if @stack # Stack build events
         computeController.on "apply-#{@stack._id}", @bound 'updateStatus'
 
+        # Follow on-going stack build process
+        if @stack.status?.state is 'Building'
+          computeController.eventListener.addListener 'apply', @stack._id
+
       kd.singletons.paymentController.subscriptions (err, subscription) =>
         kd.warn err  if err?
         if subscription?.state is 'expired'
@@ -842,6 +846,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
       @readmeView.wrapper.addSubView readmeContent
       @readmeView.show()
       @readmeView.getDomElement().find('a').attr('target', '_blank')
+      @setClass 'has-readme'
+      @setWidth 540
 
 
   showErrorDetails: (errorMessage) ->

@@ -73,10 +73,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   handleStackReinit: ->
 
-    { ui } = kd.singletons.computeController
-
-    ui.askFor 'reinitStack', {}, =>
-      @getDelegate().emit 'StackReinitRequested', @getData()
+    @getDelegate().emit 'StackReinitRequested', @getData()
 
 
   handleStackDelete: ->
