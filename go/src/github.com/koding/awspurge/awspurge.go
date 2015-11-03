@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	awsclient "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
@@ -24,6 +24,8 @@ type resources struct {
 	volumes         []*ec2.Volume
 	keyPairs        []*ec2.KeyPairInfo
 	placementGroups []*ec2.PlacementGroup
+	addresses       []*ec2.Address
+	snapshots       []*ec2.Snapshot
 }
 
 type Purge struct {
@@ -59,10 +61,10 @@ func New(conf *Config) (*Purge, error) {
 	}
 
 	creds := credentials.NewStaticCredentials(conf.AccessKey, conf.SecretKey, "")
-	awsCfg := &awsclient.Config{
+	awsCfg := &aws.Config{
 		Credentials: creds,
 		HTTPClient:  client,
-		Logger:      awsclient.NewDefaultLogger(),
+		Logger:      aws.NewDefaultLogger(),
 	}
 
 	m := newMultiRegion(awsCfg, filterRegions(conf.Regions, conf.RegionsExclude))
@@ -92,6 +94,8 @@ func (p *Purge) Print() error {
 		fmt.Printf("\t'%d' volumes\n", len(resources.volumes))
 		fmt.Printf("\t'%d' keyPairs\n", len(resources.keyPairs))
 		fmt.Printf("\t'%d' placementGroups\n", len(resources.placementGroups))
+		fmt.Printf("\t'%d' addresses\n", len(resources.addresses))
+		fmt.Printf("\t'%d' snapshots\n", len(resources.snapshots))
 	}
 	return nil
 }
@@ -99,6 +103,7 @@ func (p *Purge) Print() error {
 // Fetch fetches all given resources and stores them internally. To print them
 // use the Print() method
 func (p *Purge) Fetch() error {
+	// TODO(arslan): fetch resources concurrently
 	allInstances, err := p.DescribeInstances()
 	if err != nil {
 		return err
@@ -119,12 +124,24 @@ func (p *Purge) Fetch() error {
 		return err
 	}
 
+	allAddresses, err := p.DescribeAddresses()
+	if err != nil {
+		return err
+	}
+
+	allSnaphots, err := p.DescribeSnapshots()
+	if err != nil {
+		return err
+	}
+
 	for _, region := range allRegions {
 		p.resources[region] = &resources{
 			instances:       allInstances[region],
 			volumes:         allVolumes[region],
 			keyPairs:        allKeyPairs[region],
 			placementGroups: allPlacementGroups[region],
+			addresses:       allAddresses[region],
+			snapshots:       allSnaphots[region],
 		}
 	}
 

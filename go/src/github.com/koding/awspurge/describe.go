@@ -3,6 +3,7 @@ package awspurge
 import (
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/go-multierror"
 )
@@ -136,7 +137,7 @@ func (p *Purge) DescribeKeyPairs() (map[string][]*ec2.KeyPairInfo, error) {
 	return output, nil
 }
 
-// DescribePlacementGroups returns all key pairs per region
+// DescribePlacementGroups returns all placementGroups per region
 func (p *Purge) DescribePlacementGroups() (map[string][]*ec2.PlacementGroup, error) {
 	fn := func(svc *ec2.EC2) (interface{}, error) {
 		resp, err := svc.DescribePlacementGroups(nil)
@@ -162,4 +163,76 @@ func (p *Purge) DescribePlacementGroups() (map[string][]*ec2.PlacementGroup, err
 	}
 
 	return output, nil
+}
+
+// DescribeAddresses returns all elastic IP's per region
+func (p *Purge) DescribeAddresses() (map[string][]*ec2.Address, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeAddresses(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.Addresses, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.Address)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.Address)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeSnapshots returns all snapshots per region
+func (p *Purge) DescribeSnapshots() (map[string][]*ec2.Snapshot, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		input := &ec2.DescribeSnapshotsInput{
+			OwnerIds: stringSlice("self"),
+		}
+
+		resp, err := svc.DescribeSnapshots(input)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.Snapshots, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.Snapshot)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.Snapshot)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// stringSlice is an helper method to convert a slice of strings into a slice
+// of pointer of strings. Needed for various aws/ec2 commands.
+func stringSlice(vals ...string) []*string {
+	a := make([]*string, len(vals))
+
+	for i, v := range vals {
+		a[i] = aws.String(v)
+	}
+
+	return a
 }
