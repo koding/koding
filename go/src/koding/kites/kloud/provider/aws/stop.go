@@ -1,8 +1,14 @@
 package awsprovider
 
 import (
+	"fmt"
 	"koding/kites/kloud/machinestate"
+	"net/http"
 	"time"
+
+	awsclient "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -25,10 +31,44 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 		}
 	}()
 
-	err = m.Session.AWSClient.Stop(ctx)
+	// err = m.Session.AWSClient.Stop(ctx)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// increase the timeout
+	timeout := time.Second * 30
+	client := &http.Client{
+		Transport: &http.Transport{TLSHandshakeTimeout: timeout},
+		Timeout:   timeout,
+	}
+
+	creds := credentials.NewStaticCredentials(
+		"ACCESSKEY",
+		"SECRETKEY",
+		"",
+	)
+
+	awsCfg := &awsclient.Config{
+		Credentials: creds,
+		HTTPClient:  client,
+	}
+
+	awsCfg.Region = "eu-central-1"
+
+	svc := ec2.New(awsCfg)
+
+	id := m.Meta.InstanceId
+
+	fmt.Println("STOPPPING MACHINEEEEEEE")
+	_, err = svc.StopInstances(&ec2.StopInstancesInput{
+		InstanceIDs: []*string{&id},
+	})
 	if err != nil {
 		return err
 	}
+
+	time.Sleep(time.Second * 30)
 
 	latestState = machinestate.Stopped
 
