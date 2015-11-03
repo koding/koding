@@ -1,9 +1,9 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-classnames            = require 'classnames'
-DropboxItem           = require 'activity/components/dropboxitem'
-renderHighlightedText = require 'activity/util/renderHighlightedText'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+DropboxItem          = require 'activity/components/dropboxitem'
+highlightQueryInWord = require 'activity/util/highlightQueryInWord'
 
 module.exports = class ChannelMentionItem extends React.Component
 
@@ -19,10 +19,13 @@ module.exports = class ChannelMentionItem extends React.Component
     { item, query } = @props
     names = item.get('names')
 
+    # If mention has multiple names, we take names starting from the second one,
+    # separate them with commas and render in square brackets after the first name.
+    # For example, @channel [@all, @team, @group]
     if names.size > 1
       secondaryNames = names.skip(1)
       secondaryItems = secondaryNames.map (name, index) ->
-        name = renderHighlightedText name, query, { isBeginningMatch : yes }
+        name = highlightQueryInWord name, query, { isBeginningMatch : yes }
         <span>
           @{ name }{ if index is secondaryNames.size - 1 then '' else ', ' }
         </span>

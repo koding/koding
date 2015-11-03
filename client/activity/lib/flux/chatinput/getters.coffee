@@ -189,6 +189,9 @@ userMentions = (stateId) -> [
 ]
 
 
+# Returns a list of channel mentions depending on the current query
+# If query is empty, returns all channel mentions
+# Otherwise, returns mentions filtered by query
 channelMentions = (stateId) -> [
   ChannelMentionsStore
   mentionsQuery stateId
@@ -207,6 +210,8 @@ mentionsRawIndex = (stateId) -> [
 ]
 
 
+# Mentions selected index is used for a list
+# which is union of user mentions and channel mentions
 mentionsSelectedIndex = (stateId) -> [
   userMentions stateId
   channelMentions stateId
@@ -217,6 +222,8 @@ mentionsSelectedIndex = (stateId) -> [
 ]
 
 
+# Returns a selected item from a union of user mentions
+# and channel mentions by selected index
 mentionsSelectedItem = (stateId) -> [
   userMentions stateId
   channelMentions stateId

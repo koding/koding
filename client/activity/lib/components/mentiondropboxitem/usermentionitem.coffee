@@ -1,11 +1,11 @@
-kd                    = require 'kd'
-React                 = require 'kd-react'
-immutable             = require 'immutable'
-classnames            = require 'classnames'
-DropboxItem           = require 'activity/components/dropboxitem'
-Avatar                = require 'app/components/profile/avatar'
-renderHighlightedText = require 'activity/util/renderHighlightedText'
-findNameByQuery       = require 'activity/util/findNameByQuery'
+kd                   = require 'kd'
+React                = require 'kd-react'
+immutable            = require 'immutable'
+classnames           = require 'classnames'
+DropboxItem          = require 'activity/components/dropboxitem'
+Avatar               = require 'app/components/profile/avatar'
+highlightQueryInWord = require 'activity/util/highlightQueryInWord'
+findNameByQuery      = require 'activity/util/findNameByQuery'
 
 module.exports = class UserMentionItem extends React.Component
 
@@ -43,6 +43,10 @@ module.exports = class UserMentionItem extends React.Component
         'MentionDropboxItem-secondaryText' : yes
         'hidden'                           : not (firstName and lastName)
 
+      # Do not highlight query in any name, if it's found in nickname.
+      # Highlighting in first and last name is intended to show
+      # why mention is selected via search when it's found not by nickname
+      # but by first or last names
       shouldHighlight = findNameByQuery([ nickname, firstName, lastName ], query) isnt nickname
 
       <span className={fullNameClass}>
@@ -54,6 +58,6 @@ module.exports = class UserMentionItem extends React.Component
     renderFullNameItem: (text, shouldHighlight, query) ->
 
       if shouldHighlight
-      then renderHighlightedText text, query
+      then highlightQueryInWord text, query
       else text
 
