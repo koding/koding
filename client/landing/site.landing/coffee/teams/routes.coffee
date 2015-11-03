@@ -29,12 +29,11 @@ do ->
       success   : ({email}) ->
 
         # Remember already typed companyName when user is seeing "Create a team" page with refresh twice or more
-        if localStorage.teamData
-          storageData = JSON.parse localStorage.teamData
+        if teamData = KD.utils.getTeamData()
 
           # Make sure about invitation is same.
-          if token is storageData.invitation?.teamAccessCode and storageData.signup
-            KD.utils.storeNewTeamData 'signup', storageData.signup
+          if token is teamData.invitation?.teamAccessCode and teamData.signup
+            KD.utils.storeNewTeamData 'signup', teamData.signup
 
         KD.utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
 
