@@ -42,7 +42,7 @@ module.exports = class TeamUsernameTabForm extends KDFormView
             rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
             # required     : 'blur'
-            rangeLength  : 'blur'
+            # rangeLength  : 'blur'
             regExp       : 'keyup'
 
     @passwordStrength = ps = new KDCustomHTMLView
