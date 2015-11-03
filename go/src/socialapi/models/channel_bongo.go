@@ -18,6 +18,10 @@ func (c Channel) BongoName() string {
 	return ChannelBongoName
 }
 
+func (c Channel) TableName() string {
+	return c.BongoName()
+}
+
 func (c *Channel) AfterCreate() {
 	bongo.B.AfterCreate(c)
 }
