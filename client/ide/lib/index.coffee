@@ -1566,6 +1566,8 @@ class IDEAppController extends AppController
 
   handleShortcut: (e) ->
 
+    return  if (not @layoutManager.isRestored and not @initialViewsReady) or not @mountedMachine?.isRunning()
+
     kd.utils.stopDOMEvent e
 
     key = e.model.name
