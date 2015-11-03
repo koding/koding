@@ -2,6 +2,7 @@ package modelhelper
 
 import (
 	"errors"
+	"fmt"
 	"koding/db/models"
 	"time"
 
@@ -24,6 +25,22 @@ var (
 	MachinesColl           = "jMachines"
 	MachineConstructorName = "JMachine"
 )
+
+func GetMachine(id string) (*models.Machine, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, fmt.Errorf("Invalid machine id: %q", id)
+	}
+
+	machine := &models.Machine{}
+	err := Mongo.Run(MachinesColl, func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
 
 func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	machines := []*models.Machine{}
