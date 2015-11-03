@@ -37,9 +37,6 @@ module.exports = class MentionDropbox extends React.Component
     return (userMentions.size + channelMentions.size) is 1
 
 
-  hasUsers: -> @props.userMentions.size > 0
-
-
   formatSelectedValue: ->
 
     { selectedItem, query } = @props
@@ -134,16 +131,6 @@ module.exports = class MentionDropbox extends React.Component
       />
 
 
-  renderChannelMentionsHeader: ->
-
-    { channelMentions } = @props
-    return  if channelMentions.size is 0 or not @hasUsers()
-
-    <div className='Dropbox-header MentionDropbox-groupsHeader DropboxItem-separated'>
-      Groups
-    </div>
-
-
   renderChannelMentions: ->
 
     { userMentions, channelMentions, selectedIndex, query } = @props
@@ -166,20 +153,27 @@ module.exports = class MentionDropbox extends React.Component
 
   render: ->
 
-    { userMentions } = @props
-
-    title = if @hasUsers() then 'People' else 'Groups'
+    { userMentions, channelMentions } = @props
 
     <Dropbox
       className = 'MentionDropbox'
       visible   = { @isActive() }
       onClose   = { @bound 'close' }
       type      = 'dropup'
-      title     = { title }
       ref       = 'dropbox'
     >
+      { helper.renderListHeader 'People'  if userMentions.size > 0 }
       { @renderUserMentions() }
-      { @renderChannelMentionsHeader() }
+      { helper.renderListHeader 'Groups'  if channelMentions.size > 0 }
       { @renderChannelMentions() }
     </Dropbox>
+
+
+  helper =
+
+    renderListHeader: (title) ->
+
+      <div className='Dropbox-header MentionDropbox-listHeader DropboxItem-separated'>
+        { title }
+      </div>
 
