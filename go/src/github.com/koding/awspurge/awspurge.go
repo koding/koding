@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
 )
 
 type Config struct {
@@ -26,6 +27,7 @@ type resources struct {
 	placementGroups []*ec2.PlacementGroup
 	addresses       []*ec2.Address
 	snapshots       []*ec2.Snapshot
+	loadBalancers   []*elb.LoadBalancerDescription
 }
 
 type Purge struct {
@@ -96,6 +98,7 @@ func (p *Purge) Print() error {
 		fmt.Printf("\t'%d' placementGroups\n", len(resources.placementGroups))
 		fmt.Printf("\t'%d' addresses\n", len(resources.addresses))
 		fmt.Printf("\t'%d' snapshots\n", len(resources.snapshots))
+		fmt.Printf("\t'%d' loadbalancers\n", len(resources.loadBalancers))
 	}
 	return nil
 }
@@ -134,6 +137,11 @@ func (p *Purge) Fetch() error {
 		return err
 	}
 
+	allLoadBalancers, err := p.DescribeLoadBalancers()
+	if err != nil {
+		return err
+	}
+
 	for _, region := range allRegions {
 		p.resources[region] = &resources{
 			instances:       allInstances[region],
@@ -142,6 +150,7 @@ func (p *Purge) Fetch() error {
 			placementGroups: allPlacementGroups[region],
 			addresses:       allAddresses[region],
 			snapshots:       allSnaphots[region],
+			loadBalancers:   allLoadBalancers[region],
 		}
 	}
 

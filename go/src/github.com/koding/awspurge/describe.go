@@ -5,8 +5,45 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/hashicorp/go-multierror"
 )
+
+func (p *Purge) describeElbResources(fn func(*elb.ELB) (interface{}, error)) (map[string]interface{}, error) {
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+
+		multiErrors error
+	)
+
+	output := make(map[string]interface{})
+
+	for r, s := range p.services.elb {
+		wg.Add(1)
+
+		go func(region string, svc *elb.ELB) {
+			out, err := fn(svc)
+			if err != nil {
+				mu.Lock()
+				multiErrors = multierror.Append(multiErrors, err)
+				mu.Unlock()
+				wg.Done()
+				return
+			}
+
+			mu.Lock()
+			output[region] = out
+			mu.Unlock()
+
+			wg.Done()
+		}(r, s)
+	}
+
+	wg.Wait()
+
+	return output, multiErrors
+}
 
 func (p *Purge) describeResources(fn func(*ec2.EC2) (interface{}, error)) (map[string]interface{}, error) {
 	var (
@@ -18,7 +55,7 @@ func (p *Purge) describeResources(fn func(*ec2.EC2) (interface{}, error)) (map[s
 
 	output := make(map[string]interface{})
 
-	for r, s := range p.services.regions {
+	for r, s := range p.services.ec2 {
 		wg.Add(1)
 
 		go func(region string, svc *ec2.EC2) {
@@ -216,6 +253,34 @@ func (p *Purge) DescribeSnapshots() (map[string][]*ec2.Snapshot, error) {
 	output := make(map[string][]*ec2.Snapshot)
 	for region, r := range out {
 		resources, ok := r.([]*ec2.Snapshot)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeSnapshots returns all snapshots per region
+func (p *Purge) DescribeLoadBalancers() (map[string][]*elb.LoadBalancerDescription, error) {
+	fn := func(svc *elb.ELB) (interface{}, error) {
+		resp, err := svc.DescribeLoadBalancers(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.LoadBalancerDescriptions, nil
+	}
+
+	out, err := p.describeElbResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*elb.LoadBalancerDescription)
+	for region, r := range out {
+		resources, ok := r.([]*elb.LoadBalancerDescription)
 		if !ok {
 			continue
 		}
