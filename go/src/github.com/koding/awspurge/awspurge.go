@@ -20,9 +20,10 @@ type Config struct {
 }
 
 type resources struct {
-	instances []*ec2.Instance
-	volumes   []*ec2.Volume
-	keyPairs  []*ec2.KeyPairInfo
+	instances       []*ec2.Instance
+	volumes         []*ec2.Volume
+	keyPairs        []*ec2.KeyPairInfo
+	placementGroups []*ec2.PlacementGroup
 }
 
 type Purge struct {
@@ -86,9 +87,11 @@ func (p *Purge) Do() error {
 // Print prints all fetched resources
 func (p *Purge) Print() error {
 	for region, resources := range p.resources {
-		fmt.Printf("[%s] found '%d' instances\n", region, len(resources.instances))
-		fmt.Printf("[%s] found '%d' volumes\n", region, len(resources.volumes))
-		fmt.Printf("[%s] found '%d' keyPairs\n", region, len(resources.keyPairs))
+		fmt.Println("REGION:", region)
+		fmt.Printf("\t'%d' instances\n", len(resources.instances))
+		fmt.Printf("\t'%d' volumes\n", len(resources.volumes))
+		fmt.Printf("\t'%d' keyPairs\n", len(resources.keyPairs))
+		fmt.Printf("\t'%d' placementGroups\n", len(resources.placementGroups))
 	}
 	return nil
 }
@@ -111,11 +114,17 @@ func (p *Purge) Fetch() error {
 		return err
 	}
 
+	allPlacementGroups, err := p.DescribePlacementGroups()
+	if err != nil {
+		return err
+	}
+
 	for _, region := range allRegions {
 		p.resources[region] = &resources{
-			instances: allInstances[region],
-			volumes:   allVolumes[region],
-			keyPairs:  allKeyPairs[region],
+			instances:       allInstances[region],
+			volumes:         allVolumes[region],
+			keyPairs:        allKeyPairs[region],
+			placementGroups: allPlacementGroups[region],
 		}
 	}
 

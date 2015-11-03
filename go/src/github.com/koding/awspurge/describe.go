@@ -110,7 +110,7 @@ func (p *Purge) DescribeInstances() (map[string][]*ec2.Instance, error) {
 
 // DescribePairs returns all key pairs per region
 func (p *Purge) DescribeKeyPairs() (map[string][]*ec2.KeyPairInfo, error) {
-	describeKeyPairs := func(svc *ec2.EC2) (interface{}, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
 		resp, err := svc.DescribeKeyPairs(nil)
 		if err != nil {
 			return nil, err
@@ -119,19 +119,47 @@ func (p *Purge) DescribeKeyPairs() (map[string][]*ec2.KeyPairInfo, error) {
 		return resp.KeyPairs, nil
 	}
 
-	out, err := p.describeResources(describeKeyPairs)
+	out, err := p.describeResources(fn)
 	if err != nil {
 		return nil, err
 	}
 
-	keyPairs := make(map[string][]*ec2.KeyPairInfo)
-	for region, k := range out {
-		keys, ok := k.([]*ec2.KeyPairInfo)
+	output := make(map[string][]*ec2.KeyPairInfo)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.KeyPairInfo)
 		if !ok {
 			continue
 		}
-		keyPairs[region] = keys
+		output[region] = resources
 	}
 
-	return keyPairs, nil
+	return output, nil
+}
+
+// DescribePlacementGroups returns all key pairs per region
+func (p *Purge) DescribePlacementGroups() (map[string][]*ec2.PlacementGroup, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribePlacementGroups(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.PlacementGroups, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.PlacementGroup)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.PlacementGroup)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
 }
