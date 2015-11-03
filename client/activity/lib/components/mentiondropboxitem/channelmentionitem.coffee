@@ -5,7 +5,7 @@ classnames            = require 'classnames'
 DropboxItem           = require 'activity/components/dropboxitem'
 renderHighlightedText = require 'activity/util/renderHighlightedText'
 
-module.exports = class UserMentionDropboxItem extends React.Component
+module.exports = class ChannelMentionItem extends React.Component
 
   @defaultProps =
     item       : immutable.Map()
@@ -40,13 +40,13 @@ module.exports = class UserMentionDropboxItem extends React.Component
 
     return  unless description
 
-    <span className='UserDropboxItem-secondaryText'>({description})</span>
+    <span className='MentionDropboxItem-secondaryText'>({description})</span>
 
 
   render: ->
 
-    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated UserDropboxItem">
-      <div className='UserDropboxItem-names'>
+    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated MentionDropboxItem">
+      <div className='MentionDropboxItem-names'>
         { @renderNames() }
         { @renderDescription() }
       </div>

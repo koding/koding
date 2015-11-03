@@ -2,11 +2,11 @@ KodingFluxStore = require 'app/flux/base/store'
 toImmutable     = require 'app/util/toImmutable'
 
 ###*
- * Store to handle user mentions
+ * Store to handle channel mentions
 ###
-module.exports = class ChatInputUserMentionsStore extends KodingFluxStore
+module.exports = class ChatInputChannelMentionsStore extends KodingFluxStore
 
-  @getterPath = 'ChatInputUserMentionsStore'
+  @getterPath = 'ChatInputChannelMentionsStore'
 
 
   getInitialState: ->

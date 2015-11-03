@@ -20,9 +20,10 @@ CommonEmojiListVisibilityStore      = [['CommonEmojiListVisibilityStore'], withE
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
-UsersQueryStore                     = [['ChatInputUsersQueryStore'], withEmptyMap]
-UsersSelectedIndexStore             = [['ChatInputUsersSelectedIndexStore'], withEmptyMap]
-UsersVisibilityStore                = [['ChatInputUsersVisibilityStore'], withEmptyMap]
+MentionsQueryStore                  = [['ChatInputMentionsQueryStore'], withEmptyMap]
+MentionsSelectedIndexStore          = [['ChatInputMentionsSelectedIndexStore'], withEmptyMap]
+MentionsVisibilityStore             = [['ChatInputMentionsVisibilityStore'], withEmptyMap]
+ChannelMentionsStore                = [['ChatInputChannelMentionsStore'], withEmptyList]
 SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyMap]
 SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
@@ -33,7 +34,6 @@ CommandsStore                       = [['ChatInputCommandsStore'], withEmptyList
 CommandsQueryStore                  = [['ChatInputCommandsQueryStore'], withEmptyMap]
 CommandsSelectedIndexStore          = [['ChatInputCommandsSelectedIndexStore'], withEmptyMap]
 CommandsVisibilityStore             = [['ChatInputCommandsVisibilityStore'], withEmptyMap]
-UserMentionsStore                   = [['ChatInputUserMentionsStore'], withEmptyList]
 
 
 filteredEmojiListQuery = (stateId) -> [
@@ -153,21 +153,21 @@ channelsVisibility = (stateId) -> [
 ]
 
 
-usersQuery = (stateId) -> [
-  UsersQueryStore
+mentionsQuery = (stateId) -> [
+  MentionsQueryStore
   (queries) -> queries.get stateId
 ]
 
 
-# Returns a list of users depending on the current query
+# Returns a list of user mentions depending on the current query
 # If query is empty, returns:
 # - users who are not participants of selected channel if current input command is /invite
 # - otherwise, selected channel participants
 # If query is not empty, returns users filtered by query
-users = (stateId) -> [
+userMentions = (stateId) -> [
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
-  usersQuery stateId
+  mentionsQuery stateId
   currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
   (allUsers, participants, query, command, notParticipants) ->
@@ -189,9 +189,9 @@ users = (stateId) -> [
 ]
 
 
-userMentions = (stateId) -> [
-  UserMentionsStore
-  usersQuery stateId
+channelMentions = (stateId) -> [
+  ChannelMentionsStore
+  mentionsQuery stateId
   (mentions, query) ->
     return mentions  unless query
 
@@ -201,34 +201,34 @@ userMentions = (stateId) -> [
 ]
 
 
-usersRawIndex = (stateId) -> [
-  UsersSelectedIndexStore
+mentionsRawIndex = (stateId) -> [
+  MentionsSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
-usersSelectedIndex = (stateId) -> [
-  users stateId
+mentionsSelectedIndex = (stateId) -> [
   userMentions stateId
-  usersRawIndex stateId
-  (_users, mentions, currentIndex) ->
-    list = _users.toList().concat mentions
+  channelMentions stateId
+  mentionsRawIndex stateId
+  (_userMentions, _channelMentions, currentIndex) ->
+    list = _userMentions.toList().concat _channelMentions
     return calculateListSelectedIndex list, currentIndex
 ]
 
 
-usersSelectedItem = (stateId) -> [
-  users stateId
+mentionsSelectedItem = (stateId) -> [
   userMentions stateId
-  usersSelectedIndex stateId
-  (_users, mentions, selectedIndex) ->
-    list = _users.toList().concat mentions
+  channelMentions stateId
+  mentionsSelectedIndex stateId
+  (_userMentions, _channelMentions, selectedIndex) ->
+    list = _userMentions.toList().concat _channelMentions
     return getListSelectedItem list, selectedIndex
 ]
 
 
-usersVisibility = (stateId) -> [
-  UsersVisibilityStore
+mentionsVisibility = (stateId) -> [
+  MentionsVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 
@@ -358,13 +358,13 @@ module.exports = {
   channelsSelectedItem
   channelsVisibility
 
-  usersQuery
-  users
+  mentionsQuery
   userMentions
-  usersRawIndex
-  usersSelectedIndex
-  usersSelectedItem
-  usersVisibility
+  channelMentions
+  mentionsRawIndex
+  mentionsSelectedIndex
+  mentionsSelectedItem
+  mentionsVisibility
 
   searchItems
   searchQuery

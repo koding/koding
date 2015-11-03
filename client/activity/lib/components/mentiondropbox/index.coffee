@@ -3,8 +3,8 @@ React                  = require 'kd-react'
 immutable              = require 'immutable'
 classnames             = require 'classnames'
 Dropbox                = require 'activity/components/dropbox/portaldropbox'
-UserDropboxItem        = require 'activity/components/userdropboxitem'
-UserMentionDropboxItem = require 'activity/components/userdropboxitem/usermentiondropboxitem'
+UserMentionItem        = require 'activity/components/mentiondropboxitem/usermentionitem'
+ChannelMentionItem     = require 'activity/components/mentiondropboxitem/channelmentionitem'
 DropboxWrapperMixin    = require 'activity/components/dropbox/dropboxwrappermixin'
 ChatInputFlux          = require 'activity/flux/chatinput'
 ImmutableRenderMixin   = require 'react-immutable-render-mixin'
@@ -12,32 +12,32 @@ isWithinCodeBlock      = require 'app/util/isWithinCodeBlock'
 findNameByQuery        = require 'activity/util/findNameByQuery'
 
 
-module.exports = class UserDropbox extends React.Component
+module.exports = class MentionDropbox extends React.Component
 
   @include [ImmutableRenderMixin, DropboxWrapperMixin]
 
 
   @defaultProps =
-    users          : immutable.List()
-    userMentions   : immutable.List()
-    visible        : no
-    selectedIndex  : 0
-    selectedItem   : null
+    userMentions    : immutable.List()
+    channelMentions : immutable.List()
+    visible         : no
+    selectedIndex   : 0
+    selectedItem    : null
 
 
   isActive: ->
 
-    { users, userMentions, visible } = @props
-    return (users.size + userMentions.size) > 0 and visible
+    { userMentions, channelMentions, visible } = @props
+    return (userMentions.size + channelMentions.size) > 0 and visible
 
 
   hasSingleItem: ->
 
-    { users, userMentions, visible } = @props
-    return (users.size + userMentions.size) is 1
+    { userMentions, channelMentions, visible } = @props
+    return (userMentions.size + channelMentions.size) is 1
 
 
-  hasUsers: -> @props.users.size > 0
+  hasUsers: -> @props.userMentions.size > 0
 
 
   formatSelectedValue: ->
@@ -63,7 +63,7 @@ module.exports = class UserDropbox extends React.Component
   close: ->
 
     { stateId } = @props
-    ChatInputFlux.actions.user.setVisibility stateId, no
+    ChatInputFlux.actions.mention.setVisibility stateId, no
 
 
   moveToNextPosition: (keyInfo) ->
@@ -74,7 +74,7 @@ module.exports = class UserDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ChatInputFlux.actions.user.moveToNextIndex stateId
+      ChatInputFlux.actions.mention.moveToNextIndex stateId
 
     return yes
 
@@ -87,7 +87,7 @@ module.exports = class UserDropbox extends React.Component
 
     { stateId } = @props
     unless @hasSingleItem()
-      ChatInputFlux.actions.user.moveToPrevIndex stateId
+      ChatInputFlux.actions.mention.moveToPrevIndex stateId
 
     return yes
 
@@ -103,8 +103,8 @@ module.exports = class UserDropbox extends React.Component
 
     query = matchResult[1]
     { stateId } = @props
-    ChatInputFlux.actions.user.setQuery stateId, query
-    ChatInputFlux.actions.user.setVisibility stateId, yes
+    ChatInputFlux.actions.mention.setQuery stateId, query
+    ChatInputFlux.actions.mention.setVisibility stateId, yes
 
     return yes
 
@@ -112,17 +112,17 @@ module.exports = class UserDropbox extends React.Component
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ChatInputFlux.actions.user.setSelectedIndex stateId, index
+    ChatInputFlux.actions.mention.setSelectedIndex stateId, index
 
 
-  renderUserList: ->
+  renderUserMentions: ->
 
-    { users, selectedIndex, query } = @props
+    { userMentions, selectedIndex, query } = @props
 
-    users.map (item, index) =>
+    userMentions.map (item, index) =>
       isSelected = index is selectedIndex
 
-      <UserDropboxItem
+      <UserMentionItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
@@ -134,25 +134,25 @@ module.exports = class UserDropbox extends React.Component
       />
 
 
-  renderMentionListHeader: ->
+  renderChannelMentionsHeader: ->
 
-    { userMentions } = @props
-    return  if userMentions.size is 0 or not @hasUsers()
+    { channelMentions } = @props
+    return  if channelMentions.size is 0 or not @hasUsers()
 
-    <div className='Dropbox-header UserDropbox-groupsHeader DropboxItem-separated'>
+    <div className='Dropbox-header MentionDropbox-groupsHeader DropboxItem-separated'>
       Groups
     </div>
 
 
-  renderMentionList: ->
+  renderChannelMentions: ->
 
-    { users, userMentions, selectedIndex, query } = @props
+    { userMentions, channelMentions, selectedIndex, query } = @props
 
-    userMentions.map (item, index) =>
-      index += users.size
+    channelMentions.map (item, index) =>
+      index += userMentions.size
       isSelected = index is selectedIndex
 
-      <UserMentionDropboxItem
+      <ChannelMentionItem
         isSelected  = { isSelected }
         index       = { index }
         item        = { item }
@@ -166,19 +166,20 @@ module.exports = class UserDropbox extends React.Component
 
   render: ->
 
-    { users } = @props
-    title     = if @hasUsers() then 'People' else 'Groups'
+    { userMentions } = @props
+
+    title = if @hasUsers() then 'People' else 'Groups'
 
     <Dropbox
-      className = 'UserDropbox'
+      className = 'MentionDropbox'
       visible   = { @isActive() }
       onClose   = { @bound 'close' }
       type      = 'dropup'
       title     = { title }
       ref       = 'dropbox'
     >
-      { @renderUserList() }
-      { @renderMentionListHeader() }
-      { @renderMentionList() }
+      { @renderUserMentions() }
+      { @renderChannelMentionsHeader() }
+      { @renderChannelMentions() }
     </Dropbox>
 

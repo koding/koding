@@ -7,7 +7,7 @@ Avatar                = require 'app/components/profile/avatar'
 renderHighlightedText = require 'activity/util/renderHighlightedText'
 findNameByQuery       = require 'activity/util/findNameByQuery'
 
-module.exports = class UserDropboxItem extends React.Component
+module.exports = class UserMentionItem extends React.Component
 
   @defaultProps =
     item       : immutable.Map()
@@ -21,10 +21,10 @@ module.exports = class UserDropboxItem extends React.Component
     { item, query } = @props
     account         = item.toJS()
 
-    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated UserDropboxItem">
+    <DropboxItem {...@props} className="DropboxItem-singleLine DropboxItem-separated MentionDropboxItem">
       <Avatar width='25' height='25' account={account} />
-      <div className='UserDropboxItem-names'>
-        <span className='UserDropboxItem-nickname'>
+      <div className='MentionDropboxItem-names'>
+        <span className='MentionDropboxItem-nickname'>
           { account.profile.nickname }
         </span>
         { helper.renderFullName account, query }
@@ -40,8 +40,8 @@ module.exports = class UserDropboxItem extends React.Component
       { firstName, lastName, nickname } = account.profile
 
       fullNameClass = classnames
-        'UserDropboxItem-secondaryText' : yes
-        'hidden'                        : not (firstName and lastName)
+        'MentionDropboxItem-secondaryText' : yes
+        'hidden'                           : not (firstName and lastName)
 
       shouldHighlight = findNameByQuery([ nickname, firstName, lastName ], query) isnt nickname
 
