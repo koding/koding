@@ -4,6 +4,7 @@ Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
 Portal                            = require 'react-portal'
 Avatar                            = require 'app/components/profile/avatar'
+whoami                            = require 'app/util/whoami'
 AppFlux                           = require 'app/flux'
 TextArea                          = require 'react-autosize-textarea'
 classnames                        = require 'classnames'
@@ -52,6 +53,8 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
     if oldState.participants isnt @state.participants
 
+      # if there isn't any selected participant don't show pre existing
+      # channel.
       unless @state.participants?.size
         return @setState { preExistingChannel: null }
 
@@ -59,6 +62,13 @@ module.exports = class CreatePrivateChannelModal extends React.Component
         .map (participant) -> participant.get 'socialApiId'
         .toList()
         .toJS()
+
+      mySocialId = whoami().socialApiId
+
+      # if there is only one participant and that one participant is me, then
+      # don't show pre existing channel.
+      if participants.length is 1 and participants[0] is mySocialId
+        return @setState { preExistingChannel: null }
 
       { loadChannelByParticipants } = ActivityFlux.actions.channel
 
@@ -122,6 +132,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           onButtonExtraClick     : continueButtonOnClick
           buttonConfirmTitle     : createButtonTitle
           buttonConfirmClassName : 'Button--cancel'
+          onConfirm              : @bound 'createChannel'
       else
         props = _.assign {}, props,
           buttonConfirmTitle : continueButtonTitle
@@ -165,21 +176,30 @@ module.exports = class CreatePrivateChannelModal extends React.Component
   prepareRecipients: ->
 
     @state.participants
-      .toList()
       .map (p) -> p.getIn ['profile', 'nickname']
+      .toList()
       .toJS()
 
 
   validateParticipants: ->
 
     recipients = @prepareRecipients()
+    myNickname = whoami().profile.nickname
 
-    if recipients.length
-      @setState invalidParticipants: no
+    success = =>
+      @setState { invalidParticipants: no }
       return yes
-    else
-      @setState invalidParticipants: yes
+
+    fail = =>
+      @setState { invalidParticipants: yes }
       return no
+
+    if recipients.length is 0
+      return fail()
+    else if recipients.length is 1 and recipients[0] is myNickname
+      return fail()
+    else
+      return success()
 
 
   createChannel: ->

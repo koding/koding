@@ -314,7 +314,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
       <div className='CreateChannel-content'>
         <div className='CreateChannel-description'>
           <strong>This will create a new public channel that anyone on your team can join.</strong>
-          <div>If you need this conversation to be private, you should create a new Private Group instead.</div>
+          <div>If you want this conversation to be private, you should create a new Private Group instead.</div>
         </div>
         <div className={@getNameFieldClassnames()}>
           <label className='Reactivity-label channelName'>Name</label>

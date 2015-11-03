@@ -137,7 +137,6 @@ module.exports = class DefineStackView extends KDView
 
     ace.on 'FileContentChanged', =>
       @setAsDefaultButton.hide()
-      @inputTitle.unsetClass 'three-buttons'
       @saveButton.show()
 
 
@@ -178,32 +177,42 @@ module.exports = class DefineStackView extends KDView
 
   createOutputView: ->
 
-    @stackTemplateView.addSubView @outputView = view =  new OutputView
-    @stackTemplateView.on 'ShowOutputView', view.bound 'raise'
-    @stackTemplateView.on 'HideOutputView', view.bound 'fall'
+    @stackTemplateView.addSubView @outputView = new OutputView
+    @stackTemplateView.on 'ShowOutputView', @outputView.bound 'raise'
+    @stackTemplateView.on 'HideOutputView', @outputView.bound 'fall'
+
     @stackTemplateView.on 'ShowTemplatePreview', @bound 'handlePreview'
+    @stackTemplateView.on 'ReinitStack',         @bound 'handleReinit'
 
     @previewButton = @stackTemplateView.previewButton
+    @reinitButton  = @outputView.reinitButton
 
     @outputView.add 'Welcome to Stack Template Editor'
 
 
   createMainButtons: ->
 
-    @inputTitle.addSubView @buttons = new KDCustomHTMLView cssClass: 'buttons'
+    @inputTitle.addSubView @buttons = new kd.CustomHTMLView cssClass: 'buttons'
 
-    @buttons.addSubView @cancelButton = new KDButtonView
+    @buttons.addSubView @reinitButton = new kd.ButtonView
+      title          : 'Re-Init'
+      cssClass       : 'solid compact nav hidden'
+      tooltip        :
+        title        : "Destroys the existing stack and re-creates it."
+      callback       : @bound 'handleReinit'
+
+    @buttons.addSubView @cancelButton = new kd.ButtonView
       title          : 'Cancel'
       cssClass       : 'solid compact light-gray nav cancel'
       callback       : => @emit 'Cancel'
 
-    @buttons.addSubView @setAsDefaultButton = new KDButtonView
+    @buttons.addSubView @setAsDefaultButton = new kd.ButtonView
       title          : 'Apply to Team'
       cssClass       : 'solid compact green nav next hidden'
       loader         : yes
-      callback       : => @handleSetDefaultTemplate()
+      callback       : @bound 'handleSetDefaultTemplate'
 
-    @buttons.addSubView @saveButton = new KDButtonView
+    @buttons.addSubView @saveButton = new kd.ButtonView
       title          : 'Save & Test'
       cssClass       : 'solid compact green nav next'
       loader         : yes
@@ -235,7 +244,7 @@ module.exports = class DefineStackView extends KDView
 
     @cancelButton.setTitle 'Cancel'
     @setAsDefaultButton.hide()
-    @inputTitle.unsetClass 'three-buttons'
+    @reinitButton.hide()
 
     @saveTemplate (err, stackTemplate) =>
 
@@ -282,6 +291,9 @@ module.exports = class DefineStackView extends KDView
         You can now close this window or continue working with your stack.
       """
 
+      @reinitButton.show()
+
+
     @handleCheckTemplate { stackTemplate }, (err, machines) =>
 
       @saveButton.hideLoader()
@@ -293,6 +305,7 @@ module.exports = class DefineStackView extends KDView
 
       { groupsController } = kd.singletons
       { stackTemplates }   = groupsController.getCurrentGroup()
+      stackTemplate.inuse ?= stackTemplate._id in (stackTemplates or [])
       templateSetBefore    = stackTemplates?.length
 
       if templateSetBefore
@@ -300,11 +313,10 @@ module.exports = class DefineStackView extends KDView
         unless stackTemplate.inuse
 
           @setAsDefaultButton.show()
-          @inputTitle.setClass 'three-buttons'
 
           @outputView.add """
             Your stack script has been successfully saved.
-            
+
             If you want your team members to use this template you need to
             apply it for your team.
 
@@ -592,6 +604,10 @@ module.exports = class DefineStackView extends KDView
         #{template}
         ```
       """
+
+
+  handleReinit: ->
+    kd.singletons.computeController.reinitGroupStack()
 
 
   handleSetDefaultTemplate: (completed = yes) ->

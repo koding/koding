@@ -156,6 +156,12 @@ followedPublicChannels = [
     ids.map (id) -> channels.get id
 ]
 
+allFollowedChannels = [
+  followedPublicChannels
+  followedPrivateChannels
+  (publics, privates) -> publics.concat privates
+]
+
 # Returns the selected thread mapped with selected channel instance.
 selectedChannelThread = [
   channelThreads
@@ -417,5 +423,7 @@ module.exports = {
   sidebarPublicChannelsQuery
   sidebarPublicChannelsTab
   sidebarPublicChannels
+
+  allFollowedChannels
 }
 

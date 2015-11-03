@@ -3,6 +3,9 @@
 
   &:last-child
     margin-bottom           10px
+    .ChatItem-contentWrapper.editing
+      margin-bottom         -10px
+
 
   .ChatItem-authorName
     display                 inline-block
@@ -62,8 +65,7 @@
       .Tooltip-wrapper
         visible()
 
-  .emoji
-    size                    20px 20px
+  .emoji-wrapper
     vertical-align          text-bottom
 
   .SettingsMenuWrapper
@@ -87,10 +89,9 @@
 
     &.editing
       overflow              hidden
-      rounded               3px 3px 0 0
       padding               10px 0 6px 34px
       bg                    color, $light-yellow
-      margin-top            5px !important
+      margin-bottom         -17px
 
       .SettingsMenuWrapper
         hidden()
@@ -100,9 +101,10 @@
         p
           &:after
             content         ' (edited)'
-            display         inline
             font-size       11px
             color           #CCC
+            margin          1px 0 0 3px
+            abs()
     &.MediaObject
       article
         padding-left        52px
@@ -133,7 +135,7 @@
     fl()
     rel()
     z-index                 1
-    width                   calc(100% \- 59px)
+    width                   calc(100% \- 84px)
 
     .ChatItem-authorName
       abs()
@@ -143,19 +145,21 @@
     padding-left            52px
 
   .ChatInputWidget
-    padding                   0px !important
+    padding                 0px !important
+    margin-left             -6px
+    kalc                    width, (100% \+ 6px)
 
     textarea
-      resize                  none
-      display                 block
-      margin-top              24px
-      padding-left            12px !important
+      resize                none
+      display               block
+      margin-top            24px
+      padding-left          6px !important
 
   .ChatInputWidget:before
     display                   none
 
   .ChatInputWidget-emojiButton
-    right                     21px
+    right                     13px
 
 .ChatItem.is-selected
   .ChatListItem-itemBodyContainer
@@ -184,10 +188,11 @@
 
   &.editing
     overflow                  hidden
-    padding                   8px 0 6px 85px !important
+    padding                   0 25px 6px 73px !important
 
     .ChatItem-updateMessageForm
-      width                   calc(100% \- 8px)
+      width                 calc(100% \- 20px)
+      margin-left           12px
 
       .ChatItem-authorName
         hidden()
@@ -197,7 +202,7 @@
 
 .ChatItem-editActions
   abs()
-  top                         2px
+  top                         4px
   right                       0
   line-height                 12px
   font-size                   11px

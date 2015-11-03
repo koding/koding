@@ -22,7 +22,8 @@
     "/Channels/:channelName/summary": "SingleChannelWithSummary",
     "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary",
 
-    "/Messages/:privateChannelId": "PrivateMessages"
+    "/Messages/:privateChannelId": "PrivateMessages",
+    "/Messages/:privateChannelId/:postId": "PrivateMessages"
 
 
   },

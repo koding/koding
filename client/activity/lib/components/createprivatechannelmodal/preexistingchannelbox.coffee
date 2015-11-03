@@ -5,10 +5,11 @@ ProfileText = require 'app/components/profile/profiletext'
 module.exports = class PreExistingChannelBox extends React.Component
 
 
-  prepareParticipants: ->
+  prepareParticipantText: ->
 
-    @props.participants.toList().toJS()
-      .map (participant) -> <ProfileText account={participant} />
+    if @props.participants.size > 1
+    then text = 'these participants'
+    else text = 'this participant'
 
 
   render: ->
@@ -16,7 +17,7 @@ module.exports = class PreExistingChannelBox extends React.Component
     <div className="PreExistingChannelBox">
       <div className="PreExistingChannelBox-content">
         <p>
-          You already have an existing conversation with {@prepareParticipants()}
+          You already have an existing conversation with {@prepareParticipantText()}
         </p>
       </div>
     </div>

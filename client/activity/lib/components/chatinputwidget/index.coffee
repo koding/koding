@@ -26,6 +26,7 @@ module.exports = class ChatInputWidget extends React.Component
   @defaultProps =
     disabledFeatures : []
     onReady          : kd.noop
+    onResize         : kd.noop
 
 
   getDataBindings: ->
@@ -156,6 +157,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     @setValue value
     @runDropboxChecks value
+    @props.onResize()
 
 
   runDropboxChecks: (value) ->
@@ -272,7 +274,7 @@ module.exports = class ChatInputWidget extends React.Component
   onSearchItemConfirmed: (message) ->
 
     { initialChannelId, id } = message
-    ActivityFlux.actions.channel.loadChannelById(initialChannelId).then ({ channel }) ->
+    ActivityFlux.actions.channel.loadChannel(initialChannelId).then ({ channel }) ->
       kd.singletons.router.handleRoute "/Channels/#{channel.name}/#{id}"
 
 
@@ -298,6 +300,9 @@ module.exports = class ChatInputWidget extends React.Component
   closeDropboxes: ->
 
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
+
+
+  onResize: -> @props.onResize()
 
 
   renderEmojiDropbox: ->
@@ -411,6 +416,7 @@ module.exports = class ChatInputWidget extends React.Component
         value     = { @state.value }
         onChange  = { @bound 'onChange' }
         onKeyDown = { @bound 'onKeyDown' }
+        onResize  = { @bound 'onResize' }
         ref       = 'textInput'
       />
       <Link

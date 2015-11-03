@@ -1,9 +1,7 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
-immutable            = require 'immutable'
-classnames           = require 'classnames'
-formatEmojiName      = require 'activity/util/formatEmojiName'
 DropboxItem          = require 'activity/components/dropboxitem'
+EmojiIcon            = require 'activity/components/emojiicon'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class EmojiSelectorItem extends React.Component
@@ -11,7 +9,7 @@ module.exports = class EmojiSelectorItem extends React.Component
   @include [ ImmutableRenderMixin ]
 
   @defaultProps =
-    item         : immutable.Map()
+    item         : ''
     isSelected   : no
     index        : 0
 
@@ -19,10 +17,8 @@ module.exports = class EmojiSelectorItem extends React.Component
   render: ->
 
     { item } = @props
-    className = classnames
-      'EmojiSelectorItem'            : yes
 
-    <DropboxItem {...@props} className={className}>
-      {formatEmojiName item}
+    <DropboxItem {...@props} className='EmojiSelectorItem'>
+      <EmojiIcon emoji={item} />
     </DropboxItem>
 

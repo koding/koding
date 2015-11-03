@@ -610,6 +610,15 @@ module.exports = class ComputeController extends KDController
 
     return  unless @verifyStackRequirements stack
 
+    state = stack.status?.state ? 'Unknown'
+
+    unless state is 'NotInitialized'
+      if state is 'Building'
+        @eventListener.addListener 'apply', stack._id
+      else
+        kd.warn 'Stack already initialized, skipping.', stack
+      return
+
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 
@@ -999,3 +1008,70 @@ module.exports = class ComputeController extends KDController
         "Your Koding Stack has successfully been initialized. The log here
          describes each executed step of the Stack creation process."
     }
+
+
+  ###*
+   * Returns the stack which generated from Group's default stack template
+  ###
+  getGroupStack: ->
+
+    return null  if isKoding() # we may need this for Koding group as well ~ GG
+    return null  if not @stacks?.length
+
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
+    { stackTemplates }   = currentGroup
+
+    return null  if not stackTemplates?.length
+
+    for stackTemplate in stackTemplates
+      for stack in @stacks when stack.baseStackId is stackTemplate
+        return stack
+
+    return null
+
+
+  ###*
+   * Reinit's given stack or groups default stack
+   * If stack given, it asks for re-init and first deletes and then calls
+   * createDefaultStack again.
+   * If not given it tries to find default one and does the same thing, if it
+   * can't find the default one, asks to user what to do next.
+  ###
+  reinitGroupStack: (stack) ->
+
+    stack ?= @getGroupStack()
+
+    if not stack
+
+      if @stacks?.length
+        new kd.NotificationView
+          title   : "Couldn't find default stack"
+          content : 'Please re-init manually'
+
+        EnvironmentsModal = require 'app/environment/environmentsmodal'
+        new EnvironmentsModal
+
+      else
+        @createDefaultStack()
+
+      return
+
+    @ui.askFor 'reinitStack', {}, =>
+
+      stack.delete (err) =>
+        return showError err  if err
+
+        @reset()
+
+          .once 'RenderStacks', (stacks) ->
+
+            new kd.NotificationView
+              title : 'Stack reinitialized'
+
+            # We need to quit here to be able to re-load
+            # IDE with new machine stack, there might be better solution ~ GG
+            frontApp = kd.singletons.appManager.getFrontApp()
+            frontApp.quit()  if frontApp?.options.name is 'IDE'
+
+          .createDefaultStack()

@@ -13,10 +13,14 @@ module.exports = class Scroller extends React.Component
 
   renderTopWaypoint: ->
 
+    return null  unless @props.hasMore
+
     <Waypoint onEnter={@props.onTopThresholdReached} threshold={@props.threshold} />
 
 
   renderBottomWaypoint: ->
+
+    return null  unless @props.hasMore
 
     <Waypoint onEnter={@props.onThresholdReached} threshold={@props.threshold} />
 
