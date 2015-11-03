@@ -15,6 +15,14 @@ module.exports =
     browser.end()
 
 
+  editMessageWithCode: (browser) ->
+  
+    helpers.beginTest(browser)
+
+    activityHelpers.editMessage(browser, yes, no, no)
+    browser.end()
+
+
   postMessageWithImage: (browser) ->
 
     helpers.beginTest(browser)
@@ -23,11 +31,27 @@ module.exports =
     browser.end()
 
 
+  editMessageWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editMessage(browser, no, yes, no)
+    browser.end()
+
+
   postMessageWithLink: (browser) ->
 
     helpers.beginTest(browser)
 
     activityHelpers.postMessageWithLink(browser)
+    browser.end()
+
+
+  editMessageWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editMessage(browser, no, no, yes)
     browser.end()
 
 
@@ -50,6 +74,14 @@ module.exports =
       .end()
 
 
+  editCommentWithCode: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editComment(browser, yes, no, no)
+    browser.end()
+
+
   postCommentWithImage: (browser) ->
 
     helpers.beginTest(browser)
@@ -69,6 +101,14 @@ module.exports =
       browser.end()
 
 
+  editCommentWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editComment(browser, no, yes, no)
+    browser.end()
+
+
   postCommentWithLink: (browser) ->
 
     helpers.beginTest(browser)
@@ -85,3 +125,11 @@ module.exports =
       assert.equal(link, href)
 
       browser.end()
+
+
+  editCommentWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editComment(browser, no, no, yes)
+    browser.end()
