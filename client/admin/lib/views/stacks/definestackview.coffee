@@ -343,8 +343,11 @@ module.exports = class DefineStackView extends KDView
 
     showCredentialContent = (credential) =>
       credential.fetchData (err, data) =>
-        return failed err  if err
-        @outputView.add JSON.stringify data.meta, null, 2
+        if err?.name is 'AccessDenied'
+          @outputView.add "Couldn't fetch credential data, not shared."
+        else
+          return failed err  if err
+          @outputView.add JSON.stringify data.meta, null, 2
         callback null, [credential]
 
     @outputView
