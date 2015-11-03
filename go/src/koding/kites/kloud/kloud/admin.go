@@ -65,7 +65,7 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 
 	k.Log.Debug("Got arguments %+v for method: %s", args, r.Method)
 
-	isAdmin, err := modelhelper.IsAdmin(args.GroupName, r.Username)
+	isAdmin, err := modelhelper.IsAdmin(r.Username, args.GroupName)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (k *Kloud) authorizedKlient(r *kite.Request) (*klient.Klient, error) {
 
 	machine, err := modelhelper.GetMachine(args.MachineId)
 	if err != nil {
-		return nil, fmt.Errorf("getMachine err: %s", err)
+		return nil, fmt.Errorf("getMachine(%s) err: %s", args.MachineId, err)
 	}
 
 	g, err := modelhelper.GetGroup(args.GroupName)

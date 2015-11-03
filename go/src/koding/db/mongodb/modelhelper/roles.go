@@ -37,12 +37,12 @@ func FetchAdminAccounts(groupName string) ([]models.Account, error) {
 func IsAdmin(username, groupName string) (bool, error) {
 	group, err := GetGroup(groupName)
 	if err != nil {
-		return false, fmt.Errorf("getGroup err: %s", err)
+		return false, fmt.Errorf("getGroup(%s) err: %s", groupName, err)
 	}
 
 	account, err := GetAccount(username)
 	if err != nil {
-		return false, fmt.Errorf("getAccount err: %s", err)
+		return false, fmt.Errorf("getAccount(%s) err: %s", username, err)
 	}
 
 	selector := Selector{
