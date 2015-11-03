@@ -37,7 +37,7 @@ module.exports = class AvatarArea extends KDCustomHTMLView
       @avatar = new AvatarStaticView
         cssClass   : 'avatar-image-wrapper'
         attributes :
-          title    : 'View your public profile'
+          title    : 'View your notifications and account settings'
         size       :
           width    : 25
           height   : 25
