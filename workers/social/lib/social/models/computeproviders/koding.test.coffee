@@ -93,37 +93,37 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
       withCreatedUser ({ client, user, account, group }) ->
 
-          client.r = { user, account, group }
-          snapshot = {}
+        client.r = { user, account, group }
+        snapshot = {}
 
-          queue = [
+        queue = [
 
-            ->
-              createSnapshot { originId : account.getId() }, (err, snapshot_) ->
-                expect(err).to.not.exist
-                snapshot = snapshot_
-                queue.next()
+          ->
+            createSnapshot { originId : account.getId() }, (err, snapshot_) ->
+              expect(err).to.not.exist
+              snapshot = snapshot_
+              queue.next()
 
-            ->
-              options = generateDefaultOptions { snapshotId : snapshot.getId() }
-              Koding.create client, options, (err, data) ->
-                console.log data.meta
-                expect(err).to.not.exist
-                expect(data.meta).to.be.an 'object'
-                expect(data.meta.type).to.be.equal 'aws'
-                expect(data.meta.region).to.be.equal options.region
-                expect(data.meta.source_ami).to.be.empty
-                expect(data.meta.storage_size.toString()).to.be.equal options.storage
-                expect(data.meta.alwaysOn).to.be.false
-                expect(data.label).to.be.a 'string'
-                expect(data.credential).to.be.equal user.username
-                queue.next()
+          ->
+            options = generateDefaultOptions { snapshotId : snapshot.getId() }
+            Koding.create client, options, (err, data) ->
+              console.log data.meta
+              expect(err).to.not.exist
+              expect(data.meta).to.be.an 'object'
+              expect(data.meta.type).to.be.equal 'aws'
+              expect(data.meta.region).to.be.equal options.region
+              expect(data.meta.source_ami).to.be.empty
+              expect(data.meta.storage_size.toString()).to.be.equal options.storage
+              expect(data.meta.alwaysOn).to.be.false
+              expect(data.label).to.be.a 'string'
+              expect(data.credential).to.be.equal user.username
+              queue.next()
 
-            -> done()
+          -> done()
 
-          ]
+        ]
 
-          daisy queue
+        daisy queue
 
 
     it 'should fail if storage is not valid', (done) ->
