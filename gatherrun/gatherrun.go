@@ -34,11 +34,6 @@ func Run(env, username string) {
 
 	exporter := NewKodingExporter()
 
-	go func() {
-		New(fetcher, exporter, env, username, "abuse").Run()
-		New(fetcher, exporter, env, username, "analytics").Run()
-	}()
-
 	abuseTimer := time.NewTimer(abuseInterval)
 	analyticsTimer := time.NewTimer(analyticsInterval)
 
