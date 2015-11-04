@@ -133,6 +133,13 @@ module.exports = class JPermissionSet extends Module
         if 'function' is typeof promise then promise.bind this
         else promise.success.bind this
       failure = promise.failure?.bind this
+
+      module =
+        if 'function' is typeof this then @name
+        else @constructor.name
+
+      permissions = (p.permission for p in advanced).join ', '
+
       JPermissionSet.checkPermission client, advanced, this, rest,
         (err, hasPermission, roles) ->
           client.roles = roles
@@ -143,6 +150,15 @@ module.exports = class JPermissionSet extends Module
           else if failure?
             failure.apply null, args
           else
+
+            try
+              { context: { group }, clientIP, connection } = client
+              { profile: { nickname } } = connection.delegate
+              from = "'#{nickname}' on '#{group}' group. ip: '#{clientIP}'"
+            catch
+              from = "unknown: #{args}"
+
+            console.log \
+              "[#{module}] permission '#{permissions}' denied for #{from}"
+
             callback new KodingError 'Access denied'
-
-
