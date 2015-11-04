@@ -98,7 +98,7 @@ module.exports = class InviteSomeoneView extends KDView
       @createInitialInputs()
 
       new KDNotificationView
-        title    : 'All invites sent.'
+        title    : 'Invitations are sent to new members.'
         duration : 5000
 
       @emit 'NewInvitationsAdded'

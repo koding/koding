@@ -936,3 +936,36 @@ module.exports = class SocialApiController extends KDController
         return callback err  if err
 
         return callback null, mapChannels response
+
+
+  notificationSetting:
+
+    fetch: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/channel/#{channelId}/notificationsetting"
+      , callback
+
+    create: (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/notificationsetting"
+        data     : _.omit options, 'channelId'
+      , callback
+
+    update: (options, callback) ->
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/notificationsetting/#{options.id}"
+        data     : _.omit options, 'id'
+      , callback
+
+    delete: (options, callback) ->
+      doXhrRequest
+        type     : 'DELETE'
+        endPoint : "/api/social/notificationsetting/#{options.id}"
+      , callback
+
+
