@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/workers/common/tests"
 	"testing"
 
 	"github.com/koding/runner"
@@ -74,62 +75,53 @@ func TestChannelMessageContainerBongoName(t *testing.T) {
 }
 
 func TestChannelMessageContainerGetId(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
-
-	Convey("while getting id", t, func() {
-		Convey("it should be zero value if channel message is not exist", func() {
-			cmc := NewChannelMessageContainer()
-
-			gi := cmc.GetId()
-			So(gi, ShouldEqual, 0)
-		})
-		/*
-			Convey("it should not have any error if channel message is exist", func() {
-				// create message
-				c := createMessageWithTest()
-				So(c.Create(), ShouldBeNil)
-
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while getting id", t, func() {
+			Convey("it should be zero value if channel message is not exist", func() {
 				cmc := NewChannelMessageContainer()
-				cmc.Message.Body = c.Body
-				cmc.Message.Id = c.Id
 
 				gi := cmc.GetId()
-				So(gi, ShouldEqual, c.Id)
+				So(gi, ShouldEqual, 0)
 			})
-		*/
+			/*
+				Convey("it should not have any error if channel message is exist", func() {
+					// create message
+					c := CreateMessageWithTest()
+					So(c.Create(), ShouldBeNil)
 
+					cmc := NewChannelMessageContainer()
+					cmc.Message.Body = c.Body
+					cmc.Message.Id = c.Id
+
+					gi := cmc.GetId()
+					So(gi, ShouldEqual, c.Id)
+				})
+			*/
+		})
 	})
 }
 
 func TestChannelMessageContainerAddAccountOldId(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while adding account old id", t, func() {
+			Convey("it should be empty account old if channel is not set", func() {
+				cmc := NewChannelMessageContainer()
 
-	Convey("while adding account old id", t, func() {
-		Convey("it should be empty account old if channel is not set", func() {
-			cmc := NewChannelMessageContainer()
+				gi := cmc.AddAccountOldId()
+				So(gi.AccountOldId, ShouldEqual, "")
+			})
 
-			gi := cmc.AddAccountOldId()
-			So(gi.AccountOldId, ShouldEqual, "")
-		})
+			Convey("it should add account old id successfully ", func() {
+				// create account
+				acc := CreateAccountWithTest()
+				So(acc.Create(), ShouldBeNil)
 
-		Convey("it should add account old id successfully ", func() {
-			// create account
-			acc := CreateAccountWithTest()
-			So(acc.Create(), ShouldBeNil)
+				cmc := NewChannelMessageContainer()
+				cmc.AccountOldId = acc.OldId
 
-			cmc := NewChannelMessageContainer()
-			cmc.AccountOldId = acc.OldId
-
-			gi := cmc.AddAccountOldId()
-			So(gi.AccountOldId, ShouldEqual, cmc.AccountOldId)
+				gi := cmc.AddAccountOldId()
+				So(gi.AccountOldId, ShouldEqual, cmc.AccountOldId)
+			})
 		})
 	})
 }

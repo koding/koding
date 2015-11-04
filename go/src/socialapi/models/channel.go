@@ -388,7 +388,12 @@ func (c *Channel) EnsureMessage(cm *ChannelMessage, force bool) (*ChannelMessage
 	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, cm.Id).First(cml).Error
 
 	if err == bongo.RecordNotFound {
-		return c.AddMessage(cm)
+		_, err := c.AddMessage(cm)
+		if err == ErrMessageAlreadyInTheChannel {
+			return c.FetchMessageList(cm.Id)
+		}
+
+		return nil, err
 	}
 
 	if err != nil {
