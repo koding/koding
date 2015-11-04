@@ -60,34 +60,31 @@ module.exports =
       assert.equal(link, href)
 
 
-  editMessage: (browser, editWithCode = yes, editWithImage = yes, editWithLink = yes) ->
+  editAction: (browser, type, editWithCode = yes, editWithImage = yes, editWithLink = yes) ->
 
     if editWithCode
       @goToMessagesAndCommentSection(browser)
-      @editMessageAction(browser, yes, no, no)
+
+      if type is 'message'
+        @editMessageAction(browser, yes, no, no)
+      else
+        @editCommentAction(browser, yes, no, no)
 
     if editWithImage
       @goToMessagesAndCommentSection(browser)
-      @editMessageAction(browser, no, yes, no)
+
+      if type is 'message'
+        @editMessageAction(browser, no, yes, no)
+      else
+        @editCommentAction(browser, no, yes, no)
 
     if editWithLink
       @goToMessagesAndCommentSection(browser)
-      @editMessageAction(browser, no, no, yes)
 
-
-  editComment: (browser, editWithCode = yes, editWithImage = yes, editWithLink = yes) ->
-
-    if editWithCode
-      @goToMessagesAndCommentSection(browser)
-      @editCommentAction(browser, yes, no, no)
-
-    if editWithImage
-      @goToMessagesAndCommentSection(browser)
-      @editCommentAction(browser, no, yes, no)
-
-    if editWithLink
-      @goToMessagesAndCommentSection(browser)
-      @editCommentAction(browser, no, no, yes)
+      if type is 'message'
+        @editMessageAction(browser, no, no, yes)
+      else
+        @editCommentAction(browser, no, no, yes)
 
 
   editCommentAction: (browser, editWithCode = yes, editWithImage = yes, editWithLink =yes) ->
@@ -105,7 +102,7 @@ module.exports =
       browser 
         .setValue               activitySelector + ' .comment-input-view', editedPost
         .click                  activitySelector + ' .submit-button'
-        .pause                  2000
+        .pause                  5000 # wait for image loading
         .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container p', 2000
         .assert.containsText    activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container p', editedCode
 
@@ -124,10 +121,9 @@ module.exports =
     if editWithLink
       browser
         .setValue               activitySelector + ' .comment-input-view', finalLink
-        .pause                  7500 #for image load
+        .pause                  3500 # wait for image loading
         .click                  activitySelector + ' .submit-button'
-        .refresh()              #in order for the image to resize
-        .pause                  2000
+        .refresh()              #in order for the image thumbnail to regenerate
         .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .title', 5000
         .assert.containsText    activitySelector + ' .comment-container .listview-wrapper .title', 'Google'
 
@@ -166,7 +162,7 @@ module.exports =
     if editLink
       browser
         .setValue               activitySelector + activityInputSelector, finalLink
-        .pause                  7500 # for image preview to load
+        .waitForElementVisible  activitySelector + ' .activity-content-wrapper .edit-widget-wrapper .activity-input-widget .link-embed-box .with-image a[href="https://www.google.com/"]:first-child', 5000
         .click                  activitySelector + ' .done-button'
         .pause                  5000 #for image load
         .assert.containsText    activitySelector + ' .activity-content-wrapper .link-embed-box .title', 'Google'

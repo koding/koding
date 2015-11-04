@@ -6,7 +6,6 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 
 module.exports =
 
-
   postMessageWithCode: (browser) ->
 
     helpers.beginTest(browser)
@@ -19,7 +18,7 @@ module.exports =
   
     helpers.beginTest(browser)
 
-    activityHelpers.editMessage(browser, yes, no, no)
+    activityHelpers.editAction(browser, "message", yes, no, no)
     browser.end()
 
 
@@ -35,7 +34,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    activityHelpers.editMessage(browser, no, yes, no)
+    activityHelpers.editAction(browser, "message", no, yes, no)
     browser.end()
 
 
@@ -51,7 +50,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    activityHelpers.editMessage(browser, no, no, yes)
+    activityHelpers.editAction(browser, "message", no, no, yes)
     browser.end()
 
 
@@ -78,7 +77,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    activityHelpers.editComment(browser, yes, no, no)
+    activityHelpers.editAction(browser, "comment", yes, no, no)
     browser.end()
 
 
@@ -105,7 +104,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    activityHelpers.editComment(browser, no, yes, no)
+    activityHelpers.editAction(browser, "comment", no, yes, no)
     browser.end()
 
 
@@ -131,5 +130,5 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    activityHelpers.editComment(browser, no, no, yes)
+    activityHelpers.editAction(browser, "comment", no, no, yes)
     browser.end()
