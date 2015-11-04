@@ -3,6 +3,7 @@ package awspurge
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -93,7 +94,7 @@ func New(conf *Config) (*Purge, error) {
 
 func (p *Purge) Do() error {
 	if err := p.Fetch(); err != nil {
-		return err
+		log.Println("Fetch err: %s", err)
 	}
 
 	if err := p.Print(); err != nil {
@@ -134,5 +135,5 @@ func (p *Purge) Fetch() error {
 	go p.FetchSecurityGroups()
 
 	p.wg.Wait()
-	return nil
+	return p.errs
 }
