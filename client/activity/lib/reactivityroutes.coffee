@@ -12,6 +12,7 @@ BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsm
 
 ActivityAppComponent = require 'activity/components/appcomponent'
 
+SingleChannelRoute = require 'activity/routes/SingleChannel'
 module.exports = [
   path: '/Channels'
   component: ActivityAppComponent
@@ -28,10 +29,7 @@ module.exports = [
       content: ChannelThreadPane
       modal: CreatePublicChannelModal
   ,
-    path: ':channelName(/:postId)'
-    components:
-      content: ChannelThreadPane
-      modal: null
+    SingleChannelRoute
   ]
 ,
   path: '/Messages'
