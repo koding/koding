@@ -3,12 +3,12 @@
 package session
 
 import (
-	"github.com/aws/aws-sdk-go/private/endpoints"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/client"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/corehandlers"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/defaults"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/request"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/private/endpoints"
 )
 
 // A Session provides a central location to create service clients from and

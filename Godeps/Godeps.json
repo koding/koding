@@ -31,6 +31,11 @@
 			"Rev": "aed0bed4103ed45330f4d116eeb73c88310f5b75"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/endpoints",
+			"Comment": "v0.10.2",
+			"Rev": "aed0bed4103ed45330f4d116eeb73c88310f5b75"
+		},
+		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/query",
 			"Comment": "v0.10.2",
 			"Rev": "aed0bed4103ed45330f4d116eeb73c88310f5b75"
