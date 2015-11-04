@@ -425,24 +425,25 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 func TestChannelMessageListFetchMessageChannelIds(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("while fetching message channel ids", t, func() {
-			Convey("it should have message id otherwise error occurs", func() {
+			Convey("it should have message id", func() {
 				cml := NewChannelMessageList()
-
 				fm, err := cml.FetchMessageChannelIds(0)
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, ErrMessageIdIsNotSet)
 				So(fm, ShouldEqual, nil)
 			})
 
-			// Convey("it should ", func() {
-			// 	cml := NewChannelMessageList()
-			// 	cml.MessageId = 1982
+			Convey("if message doesnt belong to any channel", func() {
+				m := CreateMessageWithTest()
+				So(m.Create(), ShouldBeNil)
 
-			// 	fm, err := cml.FetchMessageChannelIds(cml.MessageId)
-			// 	// So(err, ShouldNotBeNil)
-			// 	So(err, ShouldEqual, bongo.RecordNotFound)
-			// 	So(fm, ShouldEqual, nil)
-			// })
+				cml := NewChannelMessageList()
+				cml.MessageId = m.Id
+
+				fm, err := cml.FetchMessageChannelIds(m.Id)
+				So(err, ShouldBeNil)
+				So(fm, ShouldBeNil)
+			})
 		})
 	})
 }

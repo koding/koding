@@ -221,8 +221,10 @@ func ensureMessageWithTag(handler *Controller, id int64, tag string) error {
 		}
 
 		for _, t := range tis {
-			if t.(string) == tag {
-				return true
+			if s, ok := t.(string); ok {
+				if s == tag {
+					return true
+				}
 			}
 		}
 
