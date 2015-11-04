@@ -19,7 +19,7 @@ module.exports = class SidebarMessagesSection extends React.Component
     { threads, previewCount } = @props
 
     if threads.size > previewCount
-      <Link className='SidebarList-showMore' href="/Messages/All">More ...</Link>
+      <Link className='SidebarList-showMore' href="/Messages">More ...</Link>
 
 
   render: ->
@@ -27,8 +27,8 @@ module.exports = class SidebarMessagesSection extends React.Component
     <div>
       <SidebarSection
         title="Messages"
-        titleLink="/Messages/All"
-        secondaryLink="/Messages/New"
+        titleLink="/Messages"
+        secondaryLink="/NewMessage"
         className="SidebarMessagesSection">
         <SidebarList
           previewCount={@props.previewCount}

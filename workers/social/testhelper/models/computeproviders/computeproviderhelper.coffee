@@ -7,6 +7,7 @@
 { createProvisioner }    = require './provisionerhelper'
 { createStackTemplate }  = require './stacktemplatehelper'
 { createCredential }     = require './credentialhelper'
+{ createMachine }        = require './machinehelper'
 { PROVIDERS } = require './../../../../social/lib/social/models/computeproviders/computeutils'
 
 JGroup          = require '../../../../social/lib/social/models/group'
@@ -92,6 +93,12 @@ withConvertedUserAnd = (models, options, callback) ->
         callback data_
 
 
+    _createMachine = (client, options, callback) ->
+      createMachine client, options, (err, data_) ->
+        expect(err).to.not.exist
+        callback data_
+
+
     _createStack = (client, options, callback) ->
       stackData = { client, user, account, template : data.stackTemplate }
       group             = null
@@ -162,10 +169,11 @@ withConvertedUserAnd = (models, options, callback) ->
       # the created data will be aggregated in the data variable
       fn = switch model
         when 'Group'            then _createGroup
+        when 'Stack'            then _createStack
+        when 'Machine'          then _createMachine
         when 'Credential'       then _createCredential
         when 'Provisioner'      then _createProvisioner
         when 'StackTemplate'    then _createStackTemplate
-        when 'Stack'            then _createStack
         when 'ComputeProvider'  then _createComputeProvider
         else                      -> callback 'invalid request'
 

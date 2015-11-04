@@ -75,7 +75,32 @@ fetchMachinesByUsername = (username, callback) ->
     callback machines
 
 
+
+createMachine = (client, opts, callback) ->
+
+  [opts, callback] = [callback, opts]  unless callback
+  machineParams    = {}
+
+  queue = [
+
+    ->
+      generateMachineParams client, opts, (err, data) ->
+        return callback err  if err
+        machineParams = data
+        queue.next()
+
+    ->
+      JMachine.create machineParams, (err, machine) ->
+        callback err, { machine }
+
+  ]
+
+  daisy queue
+
+
+
 module.exports = {
+  createMachine
   createUserAndMachine
   generateMachineParams
   fetchMachinesByUsername

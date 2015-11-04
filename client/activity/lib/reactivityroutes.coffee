@@ -15,16 +15,15 @@ ActivityAppComponent = require 'activity/components/appcomponent'
 module.exports = [
   path: '/Channels'
   component: ActivityAppComponent
-  childRoutes: [
-    path: 'New'
-    components:
-      content: ChannelThreadPane
-      modal: CreatePublicChannelModal
-  ,
-    path: 'All'
+  indexRoute:
     components:
       content: ChannelThreadPane
       modal: BrowsePublicChannelsModal
+  childRoutes: [
+    path: '/NewChannel'
+    components:
+      content: ChannelThreadPane
+      modal: CreatePublicChannelModal
   ,
     path: ':channelName(/:postId)'
     components:
@@ -34,16 +33,15 @@ module.exports = [
 ,
   path: '/Messages'
   component: ActivityAppComponent
-  childRoutes: [
-    path: 'New'
-    components:
-      content: PrivateMessageThreadPane
-      modal: CreatePrivateChannelModal
-  ,
-    path: 'All'
+  indexRoute:
     components:
       content: PrivateMessageThreadPane
       modal: BrowsePrivateChannelsModal
+  childRoutes: [
+    path: '/NewMessage'
+    components:
+      content: PrivateMessageThreadPane
+      modal: CreatePrivateChannelModal
   ,
     path: ':privateChannelId(/:postId)'
     components:
