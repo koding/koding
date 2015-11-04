@@ -9,23 +9,23 @@ import (
 	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/client"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
 
-// The default range of bytes to get at a time when using Download().
-var DefaultDownloadPartSize int64 = 1024 * 1024 * 5
+// DefaultDownloadPartSize is the default range of bytes to get at a time when
+// using Download().
+const DefaultDownloadPartSize = 1024 * 1024 * 5
 
-// The default number of goroutines to spin up when using Download().
-var DefaultDownloadConcurrency = 5
+// DefaultDownloadConcurrency is the default number of goroutines to spin up
+// when using Download().
+const DefaultDownloadConcurrency = 5
 
-// The default set of options used when opts is nil in Download().
-var DefaultDownloadOptions = &DownloadOptions{
-	PartSize:    DefaultDownloadPartSize,
-	Concurrency: DefaultDownloadConcurrency,
-}
-
-// DownloadOptions keeps tracks of extra options to pass to an Download() call.
-type DownloadOptions struct {
+// The Downloader structure that calls Download(). It is safe to call Download()
+// on this structure for multiple objects and across concurrent goroutines.
+// Mutating the Downloader's properties is not safe to be done concurrently.
+type Downloader struct {
 	// The buffer size (in bytes) to use when buffering data into chunks and
 	// sending them as parts to S3. The minimum allowed part size is 5MB, and
 	// if this value is set to zero, the DefaultPartSize value will be used.
@@ -35,42 +35,96 @@ type DownloadOptions struct {
 	// If this is set to zero, the DefaultConcurrency value will be used.
 	Concurrency int
 
-	// An S3 client to use when performing downloads. Leave this as nil to use
-	// a default client.
-	S3 *s3.S3
+	// An S3 client to use when performing downloads.
+	S3 s3iface.S3API
 }
 
-// NewDownloader creates a new Downloader structure that downloads an object
-// from S3 in concurrent chunks. Pass in an optional DownloadOptions struct
-// to customize the downloader behavior.
-func NewDownloader(opts *DownloadOptions) *Downloader {
-	if opts == nil {
-		opts = DefaultDownloadOptions
+// NewDownloader creates a new Downloader instance to downloads objects from
+// S3 in concurrent chunks. Pass in additional functional options  to customize
+// the downloader behavior. Requires a client.ConfigProvider in order to create
+// a S3 service client. The session.Session satisfies the client.ConfigProvider
+// interface.
+//
+// Example:
+//     // The session the S3 Downloader will use
+//     sess := session.New()
+//
+//     // Create a downloader with the session and default options
+//     downloader := s3manager.NewDownloader(sess)
+//
+//     // Create a downloader with the session and custom options
+//     downloader := s3manager.NewDownloader(sess, func(d *s3manager.Uploader) {
+//          d.PartSize = 64 * 1024 * 1024 // 64MB per part
+//     })
+func NewDownloader(c client.ConfigProvider, options ...func(*Downloader)) *Downloader {
+	d := &Downloader{
+		S3:          s3.New(c),
+		PartSize:    DefaultDownloadPartSize,
+		Concurrency: DefaultDownloadConcurrency,
 	}
-	return &Downloader{opts: opts}
+	for _, option := range options {
+		option(d)
+	}
+
+	return d
 }
 
-// The Downloader structure that calls Download(). It is safe to call Download()
-// on this structure for multiple objects and across concurrent goroutines.
-type Downloader struct {
-	opts *DownloadOptions
+// NewDownloaderWithClient creates a new Downloader instance to downloads
+// objects from S3 in concurrent chunks. Pass in additional functional
+// options to customize the downloader behavior. Requires a S3 service client
+// to make S3 API calls.
+//
+// Example:
+//     // The S3 client the S3 Downloader will use
+//     s3Svc := s3.new(session.New())
+//
+//     // Create a downloader with the s3 client and default options
+//     downloader := s3manager.NewDownloaderWithClient(s3Svc)
+//
+//     // Create a downloader with the s3 client and custom options
+//     downloader := s3manager.NewDownloaderWithClient(s3Svc, func(d *s3manager.Uploader) {
+//          d.PartSize = 64 * 1024 * 1024 // 64MB per part
+//     })
+func NewDownloaderWithClient(svc s3iface.S3API, options ...func(*Downloader)) *Downloader {
+	d := &Downloader{
+		S3:          svc,
+		PartSize:    DefaultDownloadPartSize,
+		Concurrency: DefaultDownloadConcurrency,
+	}
+	for _, option := range options {
+		option(d)
+	}
+
+	return d
 }
 
 // Download downloads an object in S3 and writes the payload into w using
 // concurrent GET requests.
 //
-// It is safe to call this method for multiple objects and across concurrent
-// goroutines.
-func (d *Downloader) Download(w io.WriterAt, input *s3.GetObjectInput) (n int64, err error) {
-	impl := downloader{w: w, in: input, opts: *d.opts}
+// Additional functional options can be provided to configure the individual
+// upload. These options are copies of the Uploader instance Upload is called from.
+// Modifying the options will not impact the original Uploader instance.
+//
+// It is safe to call this method concurrently across goroutines.
+//
+// The w io.WriterAt can be satisfied by an os.File to do multipart concurrent
+// downloads, or in memory []byte wrapper using aws.WriteAtBuffer.
+func (d Downloader) Download(w io.WriterAt, input *s3.GetObjectInput, options ...func(*Downloader)) (n int64, err error) {
+	impl := downloader{w: w, in: input, ctx: d}
+
+	for _, option := range options {
+		option(&impl.ctx)
+	}
+
 	return impl.download()
 }
 
 // downloader is the implementation structure used internally by Downloader.
 type downloader struct {
-	opts DownloadOptions
-	in   *s3.GetObjectInput
-	w    io.WriterAt
+	ctx Downloader
+
+	in *s3.GetObjectInput
+	w  io.WriterAt
 
 	wg sync.WaitGroup
 	m  sync.Mutex
@@ -85,16 +139,12 @@ type downloader struct {
 func (d *downloader) init() {
 	d.totalBytes = -1
 
-	if d.opts.Concurrency == 0 {
-		d.opts.Concurrency = DefaultDownloadConcurrency
+	if d.ctx.Concurrency == 0 {
+		d.ctx.Concurrency = DefaultDownloadConcurrency
 	}
 
-	if d.opts.PartSize == 0 {
-		d.opts.PartSize = DefaultDownloadPartSize
-	}
-
-	if d.opts.S3 == nil {
-		d.opts.S3 = s3.New(nil)
+	if d.ctx.PartSize == 0 {
+		d.ctx.PartSize = DefaultDownloadPartSize
 	}
 }
 
@@ -104,8 +154,8 @@ func (d *downloader) download() (n int64, err error) {
 	d.init()
 
 	// Spin up workers
-	ch := make(chan dlchunk, d.opts.Concurrency)
-	for i := 0; i < d.opts.Concurrency; i++ {
+	ch := make(chan dlchunk, d.ctx.Concurrency)
+	for i := 0; i < d.ctx.Concurrency; i++ {
 		d.wg.Add(1)
 		go d.downloadPart(ch)
 	}
@@ -129,8 +179,8 @@ func (d *downloader) download() (n int64, err error) {
 		}
 
 		// Queue the next range of bytes to read.
-		ch <- dlchunk{w: d.w, start: d.pos, size: d.opts.PartSize}
-		d.pos += d.opts.PartSize
+		ch <- dlchunk{w: d.w, start: d.pos, size: d.ctx.PartSize}
+		d.pos += d.ctx.PartSize
 	}
 
 	// Wait for completion
@@ -151,7 +201,6 @@ func (d *downloader) downloadPart(ch chan dlchunk) {
 
 	for {
 		chunk, ok := <-ch
-
 		if !ok {
 			break
 		}
@@ -164,7 +213,7 @@ func (d *downloader) downloadPart(ch chan dlchunk) {
 				chunk.start, chunk.start+chunk.size-1)
 			in.Range = &rng
 
-			resp, err := d.opts.S3.GetObject(in)
+			resp, err := d.ctx.S3.GetObject(in)
 			if err != nil {
 				d.seterr(err)
 			} else {
@@ -190,12 +239,23 @@ func (d *downloader) getTotalBytes() int64 {
 	return d.totalBytes
 }
 
-// getTotalBytes is a thread-safe setter for setting the total byte status.
+// setTotalBytes is a thread-safe setter for setting the total byte status.
+// Will extract the object's total bytes from the Content-Range if the file
+// will be chunked, or Content-Length. Content-Length is used when the response
+// does not include a Content-Range. Meaning the object was not chunked. This
+// occurs when the full file fits within the PartSize directive.
 func (d *downloader) setTotalBytes(resp *s3.GetObjectOutput) {
 	d.m.Lock()
 	defer d.m.Unlock()
 
 	if d.totalBytes >= 0 {
+		return
+	}
+
+	if resp.ContentRange == nil {
+		// ContentRange is nil when the full file contents is provied, and
+		// is not chunked. Use ContentLength instead.
+		d.totalBytes = *resp.ContentLength
 		return
 	}
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-version"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/hashicorp/go-version"
 )
 
 const testVagrantFile = `# -*- mode: ruby -*-
