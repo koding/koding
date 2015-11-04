@@ -2,17 +2,13 @@ package algoliaconnector
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
-	"strconv"
 	"testing"
 	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-	"github.com/koding/bongo"
 	"github.com/koding/runner"
-	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -268,39 +264,6 @@ func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, 
 	}
 }
 
-func createAccount() (*models.Account, error) {
-	// create and account instance
-	author := models.NewAccount()
-
-	// create a fake mongo id
-	oldId := bson.NewObjectId()
-	// assign it to our test user
-	author.OldId = oldId.Hex()
-
-	// seed the random data generator
-	rand.Seed(time.Now().UnixNano())
-
-	author.Nick = "malitest" + strconv.Itoa(rand.Intn(10e9))
-
-	if err := author.Create(); err != nil {
-		return nil, err
-	}
-
-	return author, nil
-}
-
-func createChannel(accountId int64) (*models.Channel, error) {
-	// create and account instance
-	channel := models.NewChannel()
-	channel.CreatorId = accountId
-
-	if err := channel.Create(); err != nil {
-		return nil, err
-	}
-
-	return channel, nil
-}
-
 func createChannelMessageList(channelId, messageId int64) *models.ChannelMessageList {
 	cml := models.NewChannelMessageList()
 
@@ -310,39 +273,4 @@ func createChannelMessageList(channelId, messageId int64) *models.ChannelMessage
 	So(cml.Create(), ShouldBeNil)
 
 	return cml
-}
-
-func createAndSaveMessage() (*models.ChannelMessage, *models.Account) {
-	cm := models.NewChannelMessage()
-
-	// init account
-	account, err := createAccount()
-	So(err, ShouldBeNil)
-	So(account, ShouldNotBeNil)
-	So(account.Id, ShouldNotEqual, 0)
-	// init channel
-	channel, err := createChannel(account.Id)
-	So(err, ShouldBeNil)
-	So(channel, ShouldNotBeNil)
-	// set account id
-	cm.AccountId = account.Id
-	// set channel id
-	cm.InitialChannelId = channel.Id
-	// set body
-	cm.Body = "5five"
-	So(cm.Create(), ShouldBeNil)
-	// init listing
-	cml := createChannelMessageList(channel.Id, cm.Id)
-	So(cml, ShouldNotBeNil)
-
-	return cm, account
-}
-
-func getListings(message *models.ChannelMessage) []models.ChannelMessageList {
-	mockListing := models.NewChannelMessageList()
-	var listings []models.ChannelMessageList
-	err := mockListing.Some(&listings, &bongo.Query{
-		Selector: map[string]interface{}{"message_id": message.Id}})
-	So(err, ShouldBeNil)
-	return listings
 }
