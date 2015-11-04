@@ -1,7 +1,11 @@
 kd                        = require 'kd'
 JView                     = require 'app/jview'
+
 isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
+showNotification          = require 'app/util/showNotification'
+isManagedVMStack          = require 'app/util/isManagedVMStack'
+hasManagedVMStack         = require 'app/util/hasManagedVMStack'
 
 remote                    = require('app/remote').getInstance()
 
@@ -10,7 +14,6 @@ MachinesListController    = require './machineslistcontroller'
 
 KodingSwitch              = require 'app/commonviews/kodingswitch'
 ComputeHelpers            = require '../providers/computehelpers'
-showNotification          = require 'app/util/showNotification'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
 
 
@@ -45,7 +48,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @addManagedButton  = new kd.CustomHTMLView cssClass: 'hidden'
     @deleteStackButton = new kd.CustomHTMLView cssClass: 'hidden'
 
-    { title } = @getData()
+    { title } = stack = @getData()
 
     unless isKoding() or title is 'Managed VMs'
       @reinitButton = new kd.ButtonView
@@ -64,6 +67,17 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         title      : 'Add a Koding VM'
         cssClass   : 'add-vm-button solid green compact'
         callback   : => @handleMachineRequest 'koding'
+
+    if hasManagedVMStack()
+      if isManagedVMStack stack
+        @createManagedButton()
+      else
+        @addManagedButton = new kd.CustomHTMLView
+    else
+      @createManagedButton()
+
+
+  createManagedButton: ->
 
     @addManagedButton = new kd.ButtonView
       title           : 'Add Your Own Machine'

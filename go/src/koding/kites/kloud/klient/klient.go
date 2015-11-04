@@ -35,6 +35,11 @@ type Klient struct {
 	Username string
 }
 
+// ShareRequest is used for klient's klient.share,klient.unshare methods.
+type ShareRequest struct {
+	Username string
+}
+
 func NewPool(k *kite.Kite) *KlientPool {
 	return &KlientPool{
 		kite:    k,
@@ -190,6 +195,46 @@ func (k *Klient) Ping() error {
 	}
 
 	if out == "pong" {
+		return nil
+	}
+
+	return fmt.Errorf("wrong response %s", out)
+}
+
+// AddUser adds the given username to the klient's permission list. Once added
+// the user is able to make requests to Klient
+func (k *Klient) AddUser(username string) error {
+	resp, err := k.Client.Tell("klient.share", &ShareRequest{username})
+	if err != nil {
+		return err
+	}
+
+	out, err := resp.String()
+	if err != nil {
+		return err
+	}
+
+	if out == "shared" {
+		return nil
+	}
+
+	return fmt.Errorf("wrong response %s", out)
+}
+
+// RemoveUser removes the given username from the klient's permission list.
+// Once removed the user is not able to make requests to Klient anymore.
+func (k *Klient) RemoveUser(username string) error {
+	resp, err := k.Client.Tell("klient.unshare", &ShareRequest{username})
+	if err != nil {
+		return err
+	}
+
+	out, err := resp.String()
+	if err != nil {
+		return err
+	}
+
+	if out == "unshared" {
 		return nil
 	}
 

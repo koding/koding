@@ -301,13 +301,14 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	// Machine handling methods
+	// Teams/stack handling methods
 	k.HandleFunc("plan", kld.Plan)
 	k.HandleFunc("apply", kld.Apply)
 	k.HandleFunc("describeStack", kld.Status)
 	k.HandleFunc("authenticate", kld.Authenticate)
 	k.HandleFunc("bootstrap", kld.Bootstrap)
 
+	// Single machine handling
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("stop", kld.Stop)
@@ -327,6 +328,10 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("domain.unset", kld.DomainUnset)
 	k.HandleFunc("domain.add", kld.DomainAdd)
 	k.HandleFunc("domain.remove", kld.DomainRemove)
+
+	// Klient proxy methods
+	k.HandleFunc("admin.add", kld.AdminAdd)
+	k.HandleFunc("admin.remove", kld.AdminRemove)
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())

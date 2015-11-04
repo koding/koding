@@ -42,6 +42,9 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     @addSubView @header
 
+    if title.length > 20 # css will apply ellipsis so show a tooltip
+      @header.setAttribute 'title', title
+
 
   headerClickHandler: -> new EnvironmentsModal selected: @getOption 'stack'
 
