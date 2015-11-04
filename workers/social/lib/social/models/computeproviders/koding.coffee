@@ -35,7 +35,7 @@ module.exports = class Koding extends ProviderInterface
     storage ?= 3
 
     storage  = +storage
-    if isNaN storage
+    if (isNaN storage) or not (3 <= storage <= 100)
       return callback new KodingError \
       'Requested storage size is not valid.', 'WrongParameter'
 
