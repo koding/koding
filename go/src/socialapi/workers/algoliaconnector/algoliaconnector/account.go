@@ -43,7 +43,7 @@ func (f *Controller) AccountUpdated(data *models.Account) error {
 
 	record, err := f.get(IndexAccounts, data.OldId)
 	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIDNotFoundMsg) &&
 		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
 		return err
 	}
@@ -141,7 +141,7 @@ func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) er
 
 	record, err := f.get(IndexAccounts, a.OldId)
 	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIDNotFoundMsg) &&
 		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
 		return err
 	}

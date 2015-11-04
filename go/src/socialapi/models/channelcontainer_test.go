@@ -35,7 +35,8 @@ func TestChannelContainerGetId(t *testing.T) {
 		})
 
 		Convey("it should have channel id if channel is exist", func() {
-			ch := createNewChannelWithTest()
+			acc := CreateAccountWithTest()
+			ch := CreateChannelWithTest(acc.Id)
 			c := NewChannelContainer()
 			c.Channel = ch
 
