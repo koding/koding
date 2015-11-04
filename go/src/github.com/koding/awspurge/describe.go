@@ -262,7 +262,35 @@ func (p *Purge) DescribeSnapshots() (map[string][]*ec2.Snapshot, error) {
 	return output, nil
 }
 
-// DescribeSnapshots returns all snapshots per region
+// DescribeSecurityGroups returns all security groups per region
+func (p *Purge) DescribeSecurityGroups() (map[string][]*ec2.SecurityGroup, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeSecurityGroups(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.SecurityGroups, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.SecurityGroup)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.SecurityGroup)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeLoadBalancers returns all load balancers per region
 func (p *Purge) DescribeLoadBalancers() (map[string][]*elb.LoadBalancerDescription, error) {
 	fn := func(svc *elb.ELB) (interface{}, error) {
 		resp, err := svc.DescribeLoadBalancers(nil)

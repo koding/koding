@@ -28,6 +28,7 @@ type resources struct {
 	addresses       []*ec2.Address
 	snapshots       []*ec2.Snapshot
 	loadBalancers   []*elb.LoadBalancerDescription
+	securityGroups  []*ec2.SecurityGroup
 }
 
 type Purge struct {
@@ -99,6 +100,7 @@ func (p *Purge) Print() error {
 		fmt.Printf("\t'%d' addresses\n", len(resources.addresses))
 		fmt.Printf("\t'%d' snapshots\n", len(resources.snapshots))
 		fmt.Printf("\t'%d' loadbalancers\n", len(resources.loadBalancers))
+		fmt.Printf("\t'%d' securitygroups\n", len(resources.securityGroups))
 	}
 	return nil
 }
@@ -142,6 +144,11 @@ func (p *Purge) Fetch() error {
 		return err
 	}
 
+	allSecurityGroups, err := p.DescribeSecurityGroups()
+	if err != nil {
+		return err
+	}
+
 	for _, region := range allRegions {
 		p.resources[region] = &resources{
 			instances:       allInstances[region],
@@ -151,6 +158,7 @@ func (p *Purge) Fetch() error {
 			addresses:       allAddresses[region],
 			snapshots:       allSnaphots[region],
 			loadBalancers:   allLoadBalancers[region],
+			securityGroups:  allSecurityGroups[region],
 		}
 	}
 
