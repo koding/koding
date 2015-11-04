@@ -123,16 +123,14 @@ func (p *Purge) Print() error {
 // Fetch fetches all given resources and stores them internally. To print them
 // use the Print() method
 func (p *Purge) Fetch() error {
-	p.wg.Add(8)
-
-	go p.FetchInstances()
-	go p.FetchVolumes()
-	go p.FetchKeyPairs()
-	go p.FetchPlacementGroups()
-	go p.FetchAddresses()
-	go p.FetchSnapshots()
-	go p.FetchLoadBalancers()
-	go p.FetchSecurityGroups()
+	p.FetchInstances()
+	p.FetchVolumes()
+	p.FetchKeyPairs()
+	p.FetchPlacementGroups()
+	p.FetchAddresses()
+	p.FetchSnapshots()
+	p.FetchLoadBalancers()
+	p.FetchSecurityGroups()
 
 	p.wg.Wait()
 	return p.errs
