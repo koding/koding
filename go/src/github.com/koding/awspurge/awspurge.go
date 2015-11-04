@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -36,7 +37,13 @@ type Purge struct {
 
 	// resources represents the current available resources per region. It's
 	// populated by the Fetch() method.
-	resources map[string]*resources
+	resources  map[string]*resources
+	resourceMu sync.Mutex // protects resources
+
+	// fetch synchronization
+	wg   sync.WaitGroup
+	mu   sync.Mutex
+	errs error
 }
 
 func New(conf *Config) (*Purge, error) {
@@ -71,9 +78,16 @@ func New(conf *Config) (*Purge, error) {
 	}
 
 	m := newMultiRegion(awsCfg, filterRegions(conf.Regions, conf.RegionsExclude))
+
+	// initialize resources
+	res := make(map[string]*resources, 0)
+	for _, region := range allRegions {
+		res[region] = &resources{}
+	}
+
 	return &Purge{
 		services:  m,
-		resources: make(map[string]*resources, 0),
+		resources: res,
 	}, nil
 }
 
@@ -108,59 +122,17 @@ func (p *Purge) Print() error {
 // Fetch fetches all given resources and stores them internally. To print them
 // use the Print() method
 func (p *Purge) Fetch() error {
-	// TODO(arslan): fetch resources concurrently
-	allInstances, err := p.DescribeInstances()
-	if err != nil {
-		return err
-	}
+	p.wg.Add(8)
 
-	allVolumes, err := p.DescribeVolumes()
-	if err != nil {
-		return err
-	}
+	go p.FetchInstances()
+	go p.FetchVolumes()
+	go p.FetchKeyPairs()
+	go p.FetchPlacementGroups()
+	go p.FetchAddresses()
+	go p.FetchSnapshots()
+	go p.FetchLoadBalancers()
+	go p.FetchSecurityGroups()
 
-	allKeyPairs, err := p.DescribeKeyPairs()
-	if err != nil {
-		return err
-	}
-
-	allPlacementGroups, err := p.DescribePlacementGroups()
-	if err != nil {
-		return err
-	}
-
-	allAddresses, err := p.DescribeAddresses()
-	if err != nil {
-		return err
-	}
-
-	allSnaphots, err := p.DescribeSnapshots()
-	if err != nil {
-		return err
-	}
-
-	allLoadBalancers, err := p.DescribeLoadBalancers()
-	if err != nil {
-		return err
-	}
-
-	allSecurityGroups, err := p.DescribeSecurityGroups()
-	if err != nil {
-		return err
-	}
-
-	for _, region := range allRegions {
-		p.resources[region] = &resources{
-			instances:       allInstances[region],
-			volumes:         allVolumes[region],
-			keyPairs:        allKeyPairs[region],
-			placementGroups: allPlacementGroups[region],
-			addresses:       allAddresses[region],
-			snapshots:       allSnaphots[region],
-			loadBalancers:   allLoadBalancers[region],
-			securityGroups:  allSecurityGroups[region],
-		}
-	}
-
+	p.wg.Wait()
 	return nil
 }
