@@ -14,7 +14,6 @@ StartVideoCallLink           = require 'activity/components/common/startvideocal
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 showNotification             = require 'app/util/showNotification'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
-ThreadPaneLifecycleMixin     = require 'activity/mixins/threadpanelifecycle'
 
 
 module.exports = class PrivateMessageThreadPane extends React.Component
@@ -110,37 +109,7 @@ module.exports = class PrivateMessageThreadPane extends React.Component
     </div>
 
 
-reset = (props, state, callback = kd.noop) ->
-
-  { followedChannels, channelThread } = state
-  { privateChannelId, postId}         = props.routeParams
-  {
-    thread : threadActions,
-    channel : channelActions,
-    message : messageActions } = ActivityFlux.actions
-
-  unless privateChannelId
-    unless channelThread
-      botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
-      privateChannelId = botChannel.id
-
-  if privateChannelId
-    channelActions.loadChannel(privateChannelId).then ({ channel }) ->
-      threadActions.changeSelectedThread channel.id
-      channelActions.loadParticipants channel.id, channel.participantsPreview
-    if postId
-      messageActions.changeSelectedMessage postId
-    else
-      messageActions.changeSelectedMessage null
-
-    kd.utils.defer callback
-
-  else if not channelThread
-    threadActions.changeSelectedThread null
-    kd.utils.defer callback
-
-
 React.Component.include.call PrivateMessageThreadPane, [
-  ThreadPaneLifecycleMixin(reset), KDReactorMixin, ImmutableRenderMixin
+  KDReactorMixin, ImmutableRenderMixin
 ]
 
