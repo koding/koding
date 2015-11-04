@@ -286,7 +286,7 @@ module.exports = class SocialApiController extends KDController
     item.payload             = data.payload
 
     if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
-      item._originalName = item.name
+      item._originalName = item._originalName or item.name
       item.name = data.purpose
       item.purpose = item.payload?.description or ''
     else
