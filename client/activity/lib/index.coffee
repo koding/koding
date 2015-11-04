@@ -9,6 +9,7 @@ isKoding             = require 'app/util/isKoding'
 AppStorage           = require 'app/appstorage'
 AppController        = require 'app/appcontroller'
 KodingAppsController = require 'app/kodingappscontroller'
+keyboardKeys = require 'app/util/keyboardKeys'
 
 require('./routehandler')()
 
@@ -134,7 +135,8 @@ module.exports = class ActivityAppController extends AppController
 
   handleShortcut: (e) ->
 
-    kd.utils.stopDOMEvent e
+    unless e.which is keyboardKeys.ESC
+      kd.utils.stopDOMEvent e
 
     if isKoding()
       switch e.model.name
@@ -151,6 +153,7 @@ module.exports = class ActivityAppController extends AppController
         when 'glance'
           channelId = kd.singletons.reactor.evaluate getters.selectedChannelThreadId
           actions.channel.glance channelId
+
 
 helper =
 

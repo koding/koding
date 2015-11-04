@@ -9,6 +9,7 @@ getFullnameFromAccount  = require '../util/getFullnameFromAccount'
 remote                  = require('../remote').getInstance()
 whoami                  = require '../util/whoami'
 isKoding                = require '../util/isKoding'
+isPublicChannel         = require '../util/isPublicChannel'
 AvatarView              = require '../commonviews/avatarviews/avatarview'
 JView                   = require '../jview'
 LinkGroup               = require '../commonviews/linkviews/linkgroup'
@@ -199,6 +200,9 @@ module.exports = class NotificationListItemView extends KDListItemView
 calculateReactivityLink = (post) ->
 
   channel = kd.singletons.socialapi.retrieveCachedItemById post.initialChannelId
-  return "/Channels/#{channel.name.toLowerCase()}/#{post.id}"
+
+  if isPublicChannel channel
+  then "/Channels/#{channel.name.toLowerCase()}/#{post.id}"
+  else "/Messages/#{channel.id}/#{post.id}"
 
 

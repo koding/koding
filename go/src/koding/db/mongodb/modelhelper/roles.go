@@ -1,6 +1,7 @@
 package modelhelper
 
 import (
+	"fmt"
 	"koding/db/models"
 
 	"labix.org/v2/mgo/bson"
@@ -30,4 +31,32 @@ func FetchAdminAccounts(groupName string) ([]models.Account, error) {
 	}
 
 	return GetAccountsByIds(ids)
+}
+
+// IsAdmin checks if the given username is an admin of the given groupName
+func IsAdmin(username, groupName string) (bool, error) {
+	group, err := GetGroup(groupName)
+	if err != nil {
+		return false, fmt.Errorf("getGroup(%s) err: %s", groupName, err)
+	}
+
+	account, err := GetAccount(username)
+	if err != nil {
+		return false, fmt.Errorf("getAccount(%s) err: %s", username, err)
+	}
+
+	selector := Selector{
+		"sourceId":   group.Id,
+		"sourceName": "JGroup",
+		"targetId":   account.Id,
+		"targetName": "JAccount",
+		"as":         "admin",
+	}
+
+	count, err := RelationshipCount(selector)
+	if err != nil {
+		return false, fmt.Errorf("checkAdminRelationship err: %s", err)
+	}
+
+	return count == 1, nil
 }

@@ -238,7 +238,7 @@ func init() {
 func TestTerraformAuthenticate(t *testing.T) {
 	username := "testuser12"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, testRegion)
+	userData, err := createUser(username, groupname, testRegion, "aws")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +259,7 @@ func TestTerraformAuthenticate(t *testing.T) {
 func TestTerraformBootstrap(t *testing.T) {
 	username := "testuser11"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, testRegion)
+	userData, err := createUser(username, groupname, testRegion, "aws")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -294,7 +294,7 @@ func TestTerraformStack(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
 	groupname := "koding"
-	userData, err := createUser(username, groupname, testRegion)
+	userData, err := createUser(username, groupname, testRegion, "aws")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -422,7 +422,7 @@ func TestTerraformStack(t *testing.T) {
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username, "koding", "eu-west-1")
+	userData, err := createUser(username, "koding", "eu-west-1", "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -493,7 +493,7 @@ func checkSSHKey(id, privateKey string) error {
 func TestStop(t *testing.T) {
 	t.Parallel()
 	username := "testuser2"
-	userData, err := createUser(username, "koding", "eu-west-1")
+	userData, err := createUser(username, "koding", "eu-west-1", "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -524,7 +524,7 @@ func TestStop(t *testing.T) {
 func TestStart(t *testing.T) {
 	t.Parallel()
 	username := "testuser3"
-	userData, err := createUser(username, "koding", "eu-west-1")
+	userData, err := createUser(username, "koding", "eu-west-1", "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -555,7 +555,7 @@ func TestStart(t *testing.T) {
 func TestSnapshot(t *testing.T) {
 	t.Parallel()
 	username := "testuser4"
-	userData, err := createUser(username, "koding", "eu-west-1")
+	userData, err := createUser(username, "koding", "eu-west-1", "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -601,7 +601,7 @@ func TestSnapshot(t *testing.T) {
 func TestResize(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username, "koding", "eu-west-1")
+	userData, err := createUser(username, "koding", "eu-west-1", "koding")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -655,7 +655,7 @@ func TestResize(t *testing.T) {
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
-func createUser(username, groupname, region string) (*singleUser, error) {
+func createUser(username, groupname, region, provider string) (*singleUser, error) {
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
@@ -839,10 +839,14 @@ func createUser(username, groupname, region string) (*singleUser, error) {
 			Label:      label,
 			Domain:     username + ".dev.koding.io",
 			Credential: credentials["aws"][0], // just pick one
-			Provider:   "aws",
+			Provider:   provider,
 			CreatedAt:  time.Now().UTC(),
 			Users:      users,
 			Groups:     make([]models.Permissions, 0),
+		}
+
+		if provider == "koding" {
+			machine.Credential = username
 		}
 
 		machine.Meta.Region = region

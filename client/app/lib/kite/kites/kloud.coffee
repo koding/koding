@@ -22,12 +22,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) ->
 
-      if payload?.machineId?
-
-        provider = getProvider payload.machineId
+      if payload?.machineId? and provider = getProvider payload.machineId
 
         if provider not in SUPPORTED_PROVIDERS
-          # machine provider is not supported by kloud #{payload.machineId}
+          # machine provider is not supported by kloud #{ payload.machineId }
           return Promise.reject
             name    : 'NotSupported'
             message : 'Operation is not supported for this VM'
@@ -52,6 +50,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     resize          : 'resize'
     restart         : 'restart'
     destroy         : 'destroy'
+
+    # Admin helpers
+    addAdmin        : 'admin.add'
+    removeAdmin     : 'admin.remove'
 
     # Domain managament
     setDomain       : 'domain.set'

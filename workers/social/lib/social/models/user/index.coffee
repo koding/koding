@@ -42,8 +42,10 @@ module.exports = class JUser extends jraphical.Module
                      'fucker', 'admin', 'postfix', 'puppet', 'main', 'invite',
                      'administrator', 'members', 'register', 'activate', 'shared',
                      'groups', 'blogs', 'forums', 'topics', 'develop', 'terminal',
-                     'term', 'twitter', 'facebook', 'google', 'framework', 'kite'
-                     'landing', 'hello', 'dev', 'sandbox', 'latest']
+                     'term', 'twitter', 'facebook', 'google', 'framework', 'kite',
+                     'landing', 'hello', 'dev', 'sandbox', 'latest',
+                     'all', 'channel', 'admins', 'group', 'team'
+                   ]
 
   hashPassword = (value, salt) ->
     require('crypto').createHash('sha1').update(salt + value).digest('hex')
