@@ -6,15 +6,14 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/internal/test/unit"
+	"github.com/aws/aws-sdk-go/awstesting/unit"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws/request"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 )
 
-var _ = unit.Imported
-
-func assertMD5(t *testing.T, req *aws.Request) {
+func assertMD5(t *testing.T, req *request.Request) {
 	err := req.Build()
 	assert.NoError(t, err)
 
@@ -24,13 +23,16 @@ func assertMD5(t *testing.T, req *aws.Request) {
 	assert.Equal(t, base64.StdEncoding.EncodeToString(out[:]), req.HTTPRequest.Header.Get("Content-MD5"))
 }
 
-func TestMD5InPutBucketCORS(t *testing.T) {
-	svc := s3.New(nil)
-	req, _ := svc.PutBucketCORSRequest(&s3.PutBucketCORSInput{
+func TestMD5InPutBucketCors(t *testing.T) {
+	svc := s3.New(unit.Session)
+	req, _ := svc.PutBucketCorsRequest(&s3.PutBucketCorsInput{
 		Bucket: aws.String("bucketname"),
 		CORSConfiguration: &s3.CORSConfiguration{
 			CORSRules: []*s3.CORSRule{
-				{AllowedMethods: []*string{aws.String("GET")}},
+				{
+					AllowedMethods: []*string{aws.String("GET")},
+					AllowedOrigins: []*string{aws.String("*")},
+				},
 			},
 		},
 	})
@@ -38,11 +40,11 @@ func TestMD5InPutBucketCORS(t *testing.T) {
 }
 
 func TestMD5InPutBucketLifecycle(t *testing.T) {
-	svc := s3.New(nil)
+	svc := s3.New(unit.Session)
 	req, _ := svc.PutBucketLifecycleRequest(&s3.PutBucketLifecycleInput{
 		Bucket: aws.String("bucketname"),
 		LifecycleConfiguration: &s3.LifecycleConfiguration{
-			Rules: []*s3.LifecycleRule{
+			Rules: []*s3.Rule{
 				{
 					ID:     aws.String("ID"),
 					Prefix: aws.String("Prefix"),
@@ -55,7 +57,7 @@ func TestMD5InPutBucketLifecycle(t *testing.T) {
 }
 
 func TestMD5InPutBucketPolicy(t *testing.T) {
-	svc := s3.New(nil)
+	svc := s3.New(unit.Session)
 	req, _ := svc.PutBucketPolicyRequest(&s3.PutBucketPolicyInput{
 		Bucket: aws.String("bucketname"),
 		Policy: aws.String("{}"),
@@ -64,7 +66,7 @@ func TestMD5InPutBucketPolicy(t *testing.T) {
 }
 
 func TestMD5InPutBucketTagging(t *testing.T) {
-	svc := s3.New(nil)
+	svc := s3.New(unit.Session)
 	req, _ := svc.PutBucketTaggingRequest(&s3.PutBucketTaggingInput{
 		Bucket: aws.String("bucketname"),
 		Tagging: &s3.Tagging{
@@ -77,7 +79,7 @@ func TestMD5InPutBucketTagging(t *testing.T) {
 }
 
 func TestMD5InDeleteObjects(t *testing.T) {
-	svc := s3.New(nil)
+	svc := s3.New(unit.Session)
 	req, _ := svc.DeleteObjectsRequest(&s3.DeleteObjectsInput{
 		Bucket: aws.String("bucketname"),
 		Delete: &s3.Delete{

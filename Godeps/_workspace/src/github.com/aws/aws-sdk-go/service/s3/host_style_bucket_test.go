@@ -1,12 +1,15 @@
 package s3_test
 
 import (
+	"net/url"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/internal/test/unit"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/aws/aws-sdk-go/awstesting/unit"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/aws/aws-sdk-go/service/s3"
-	"github.com/stretchr/testify/assert"
 )
 
 type s3BucketTest struct {
@@ -15,8 +18,6 @@ type s3BucketTest struct {
 }
 
 var (
-	_ = unit.Imported
-
 	sslTests = []s3BucketTest{
 		{"abc", "https://abc.s3.mock-region.amazonaws.com/"},
 		{"a$b$c", "https://s3.mock-region.amazonaws.com/a%24b%24c"},
@@ -46,16 +47,29 @@ func runTests(t *testing.T, svc *s3.S3, tests []s3BucketTest) {
 }
 
 func TestHostStyleBucketBuild(t *testing.T) {
-	s := s3.New(nil)
+	s := s3.New(unit.Session)
 	runTests(t, s, sslTests)
 }
 
 func TestHostStyleBucketBuildNoSSL(t *testing.T) {
-	s := s3.New(&aws.Config{DisableSSL: true})
+	s := s3.New(unit.Session, &aws.Config{DisableSSL: aws.Bool(true)})
 	runTests(t, s, nosslTests)
 }
 
 func TestPathStyleBucketBuild(t *testing.T) {
-	s := s3.New(&aws.Config{S3ForcePathStyle: true})
+	s := s3.New(unit.Session, &aws.Config{S3ForcePathStyle: aws.Bool(true)})
 	runTests(t, s, forcepathTests)
+}
+
+func TestHostStyleBucketGetBucketLocation(t *testing.T) {
+	s := s3.New(unit.Session)
+	req, _ := s.GetBucketLocationRequest(&s3.GetBucketLocationInput{
+		Bucket: aws.String("bucket"),
+	})
+
+	req.Build()
+	require.NoError(t, req.Error)
+	u, _ := url.Parse(req.HTTPRequest.URL.String())
+	assert.NotContains(t, u.Host, "bucket")
+	assert.Contains(t, u.Path, "bucket")
 }
