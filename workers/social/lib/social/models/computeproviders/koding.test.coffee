@@ -52,35 +52,24 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
     # default options for create test suite
     generateDefaultOptions = (options) ->
 
-      _options =
+      return _.extend
         label        : generateRandomString()
         region       : 'us-east-1'
-        storage      : '1'
+        storage      : '3'
         snapshotId   : 'someSnapshotId'
         instanceType : 't2.micro'
-
-      _options = _.extend _options, options
-
-      return _options
+      , options
 
 
     it 'should be able to succeed with valid request', (done) ->
 
       withCreatedUser ({ client, user, account, group }) ->
-
         client.r = { user, account, group }
-        snapshot = {}
 
         queue = [
 
           ->
-            createSnapshot { originId : account.getId() }, (err, snapshot_) ->
-              expect(err).to.not.exist
-              snapshot = snapshot_
-              queue.next()
-
-          ->
-            options = generateDefaultOptions { snapshotId : snapshot.getId() }
+            options = generateDefaultOptions()
             Koding.create client, options, (err, data) ->
               expect(err).to.not.exist
               expect(data.meta).to.be.an 'object'
@@ -100,15 +89,61 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
         daisy queue
 
 
+    it 'should be able to succeed when snapshotId provided', (done) ->
+
+      withCreatedUser ({ client, user, account, group }) ->
+
+          client.r = { user, account, group }
+          snapshot = {}
+
+          queue = [
+
+            ->
+              createSnapshot { originId : account.getId() }, (err, snapshot_) ->
+                expect(err).to.not.exist
+                snapshot = snapshot_
+                queue.next()
+
+            ->
+              options = generateDefaultOptions { snapshotId : snapshot.getId() }
+              Koding.create client, options, (err, data) ->
+                console.log data.meta
+                expect(err).to.not.exist
+                expect(data.meta).to.be.an 'object'
+                expect(data.meta.type).to.be.equal 'aws'
+                expect(data.meta.region).to.be.equal options.region
+                expect(data.meta.source_ami).to.be.empty
+                expect(data.meta.storage_size.toString()).to.be.equal options.storage
+                expect(data.meta.alwaysOn).to.be.false
+                expect(data.label).to.be.a 'string'
+                expect(data.credential).to.be.equal user.username
+                queue.next()
+
+            -> done()
+
+          ]
+
+          daisy queue
+
+
     it 'should fail if storage is not valid', (done) ->
 
       withCreatedUser ({ client, user, account }) ->
-        client.r = {}
+        client.r = { user, account }
 
-        options = generateDefaultOptions { storage : 'notValidStorage' }
-        Koding.create client, options, (err) ->
-          expect(err?.message).to.be.equal 'Requested storage size is not valid.'
-          done()
+        queue         = []
+        storageValues = ['notValidStorage', '2', '101']
+
+        storageValues.forEach (storageValue) ->
+          queue.push ->
+            options = generateDefaultOptions { storage : storageValue }
+            Koding.create client, options, (err) ->
+              expect(err?.message).to.be.equal 'Requested storage size is not valid.'
+              queue.next()
+
+        queue.push -> done()
+
+        daisy queue
 
 
     it 'should fail if storage exceeds allowed size', (done) ->
@@ -129,7 +164,7 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
           ->
             expectedError = "Total limit of #{userPlan.storage}GB storage
                               limit has been reached."
-            options = generateDefaultOptions { storage : '1000' }
+            options = generateDefaultOptions { storage : '10' }
             Koding.create client, options, (err) ->
               expect(err?.message).to.be.equal expectedError
               queue.next()
