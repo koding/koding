@@ -71,17 +71,24 @@ module.exports = class Koding extends ProviderInterface
           if 't2.medium' in userPlan.allowedInstances
             meta.instance_type = 't2.medium'
 
-          JSnapshot = require './snapshot'
-          JSnapshot.verifySnapshot client, {
-            storage, snapshotId
-          }, (err, snapshot) ->
+          unless snapshotId
+            return callback null, { meta, label, credential: client.r.user.username }
 
-            if err
-              return callback err  if err.name is 'SizeError'
-            else if snapshot
-              meta.snapshotId = snapshotId
+          verifySnapshot client, { storage, snapshotId }, (err, { snapshot }) ->
+            meta.snapshotId = snapshot.snapshotId  if snapshot
+            callback err, { meta, label, credential: client.r.user.username }
 
-            callback null, { meta, label, credential: client.r.user.username }
+
+  verifySnapshot = (client, options, callback) ->
+
+    JSnapshot = require './snapshot'
+    { storage, snapshotId } = options
+    JSnapshot.verifySnapshot client, { storage, snapshotId }, (err, snapshot) ->
+      return callback err  if err?.name is 'SizeError'
+
+      if   snapshot
+      then callback null, { snapshot }
+      else callback null, {}
 
 
   @postCreate = (client, options, callback) ->
