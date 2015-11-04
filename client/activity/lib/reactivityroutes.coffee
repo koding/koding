@@ -19,6 +19,9 @@ module.exports = [
     components:
       content: ChannelThreadPane
       modal: BrowsePublicChannelsModal
+  onLeave: ->
+    threadActions.changeSelectedThread null
+    messageActions.changeSelectedMessage null
   childRoutes: [
     path: '/NewChannel'
     components:
