@@ -25,8 +25,12 @@ func TestChannelMessageListFetchMessageChannels(t *testing.T) {
 				cm.InitialChannelId = c1.Id
 				So(cm.Create(), ShouldBeNil)
 
+				// add to first channel
+				_, err := c1.AddMessage(cm)
+				So(err, ShouldBeNil)
+
 				// add to second channel
-				_, err := c2.AddMessage(cm)
+				_, err = c2.AddMessage(cm)
 				So(err, ShouldBeNil)
 
 				// add to 3rd channel
