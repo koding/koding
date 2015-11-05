@@ -30,7 +30,14 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
     @setClass 'is-hostParticipant'  if @nickname is getNick()
 
 
+  killIntentTimer: ->
+
+    kd.utils.killWait @intentTimer  if @intentTimer
+
+
   click: (event) ->
+
+    @killIntentTimer()
 
     return  unless participant = @getData()
 
@@ -40,14 +47,17 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
 
 
   mouseEnter: ->
-    kd.utils.killWait @intentTimer  if @intentTimer
+
+    @killIntentTimer()
+
     @intentTimer = kd.utils.wait INTENT_DELAY, @bound 'showMenu'
 
 
   mouseLeave: ->
-    kd.utils.killWait @intentTimer  if @intentTimer
-    if MENU
-      @intentTimer = kd.utils.wait INTENT_DELAY, MENU.bound 'destroy'
+
+    @killIntentTimer()
+
+    @intentTimer = kd.utils.wait INTENT_DELAY, MENU.bound 'destroy'  if MENU
 
 
   showMenu: ->
@@ -99,9 +109,9 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
           offset   : { top: 35, left: -78 }
           arrow    : { placement: 'top', margin: menuWidth / 2 }
           mouseenter : =>
-            kd.utils.killWait @intentTimer  if @intentTimer
+            @killIntentTimer()
           mouseleave : =>
-            kd.utils.killWait @intentTimer  if @intentTimer
+            @killIntentTimer()
             kd.utils.wait INTENT_DELAY, MENU.bound 'destroy'
         , items
 
