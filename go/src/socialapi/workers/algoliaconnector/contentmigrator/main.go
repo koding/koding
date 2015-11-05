@@ -48,6 +48,9 @@ func migrateChannels(r *runner.Runner, handler *algoliaconnector.Controller) err
 				Limit: 100,
 				Skip:  b * 100,
 			},
+			Sort: map[string]string{
+				"created_at": "DESC",
+			},
 		})
 		if err != nil {
 			return err
