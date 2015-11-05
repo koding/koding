@@ -3,11 +3,11 @@ KodingFluxStore = require 'app/flux/base/store'
 immutable       = require 'immutable'
 
 ###*
- * Store to handle users visibility flags
+ * Store to handle mentions visibility flags
 ###
-module.exports = class ChatInputUsersVisibilityStore extends KodingFluxStore
+module.exports = class ChatInputMentionsVisibilityStore extends KodingFluxStore
 
-  @getterPath = 'ChatInputUsersVisibilityStore'
+  @getterPath = 'ChatInputMentionsVisibilityStore'
 
 
   getInitialState: -> immutable.Map()
@@ -15,7 +15,7 @@ module.exports = class ChatInputUsersVisibilityStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.SET_CHAT_INPUT_USERS_VISIBILITY, @setVisibility
+    @on actions.SET_CHAT_INPUT_MENTIONS_VISIBILITY, @setVisibility
 
 
   ###*
