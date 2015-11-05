@@ -99,11 +99,20 @@ module.exports = class JPermissionSet extends Module
       if err then callback err
       else callback null, @mainGroupData = res
 
+
+  getGroupnameFrom = (target, client) ->
     JGroup = require '../group'
     advanced = wrapPermission advanced  if 'string' is typeof advanced
     kallback = (group, permissionSet) ->
       queue = advanced.map ({ permission, validateWith }) -> ->
         validateWith ?= (require './validators').any
+    return if 'function' is typeof target
+      client?.context?.group ? MAIN_GROUP
+    else if target instanceof JGroup
+      target.slug
+    else
+      target.group ? client?.context?.group ? MAIN_GROUP
+
         validateWith.call target, client, group, permission, permissionSet, args,
           (err, hasPermission) ->
             if err then queue.next err
@@ -114,16 +123,7 @@ module.exports = class JPermissionSet extends Module
         # if we ever get this far, it means the user doesn't have permission.
         callback null, no
       daisy queue
-    # permission = [permission]  unless Array.isArray permission
-    groupName = \
-      if 'function' is typeof target
-        client?.context?.group ? 'koding'
-      else if target instanceof JGroup
-        target.slug
-      else
-        target.group ? client.context.group ? 'koding'
 
-    client.groupName = groupName
     JGroup.one { slug: groupName }, (err, group) ->
       if err then callback err, no
       else unless group?
@@ -137,6 +137,8 @@ module.exports = class JPermissionSet extends Module
               kallback group, permissionSet
           else
             kallback group, permissionSet
+    # set groupName from given target or client
+    client.groupName = getGroupnameFrom target, client
 
   @permit = (permission, promise) ->
 
