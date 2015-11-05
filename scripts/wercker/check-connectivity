@@ -2,11 +2,19 @@
 
 INSTANCE_DATA_FILE=$1
 
+FAILING_INSTANCES_DATA_FILE=$(mktemp)
+
 SCRIPTS=$(dirname $0)/..
 
-function terminate_instance () {
-  INSTANCE_ID=$1
-  $SCRIPTS/test-instance/terminate $INSTANCE_ID
+function terminate_failing_instances () {
+  INSTANCES=$(cat $FAILING_INSTANCES_DATA_FILE)
+
+  if [ -z "$INSTANCES" ]; then
+    return 0
+  fi
+
+  INSTANCE_IDS=$(cat $FAILING_INSTANCES_DATA_FILE | awk '{print $1}')
+  echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate
 }
 
 function check () {
@@ -22,7 +30,7 @@ function check () {
   EXIT_CODE=$?
 
   if [ $EXIT_CODE -ne 0 ]; then
-    terminate_instance $INSTANCE_ID
+    echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
   fi
 
   return $EXIT_CODE
@@ -60,6 +68,8 @@ for INSTANCE in $INSTANCES; do
 done
 
 wait
+
+terminate_failing_instances
 
 INSTANCE_COUNT=$(cat $INSTANCE_DATA_FILE | wc -l)
 
