@@ -23,14 +23,19 @@ type Config struct {
 }
 
 type resources struct {
-	instances       []*ec2.Instance
-	volumes         []*ec2.Volume
-	keyPairs        []*ec2.KeyPairInfo
-	placementGroups []*ec2.PlacementGroup
-	addresses       []*ec2.Address
-	snapshots       []*ec2.Snapshot
-	loadBalancers   []*elb.LoadBalancerDescription
-	securityGroups  []*ec2.SecurityGroup
+	instances        []*ec2.Instance
+	volumes          []*ec2.Volume
+	keyPairs         []*ec2.KeyPairInfo
+	placementGroups  []*ec2.PlacementGroup
+	addresses        []*ec2.Address
+	snapshots        []*ec2.Snapshot
+	loadBalancers    []*elb.LoadBalancerDescription
+	securityGroups   []*ec2.SecurityGroup
+	vpcs             []*ec2.Vpc
+	subnets          []*ec2.Subnet
+	networkAcls      []*ec2.NetworkAcl
+	internetGateways []*ec2.InternetGateway
+	routeTables      []*ec2.RouteTable
 }
 
 type Purge struct {
@@ -119,6 +124,11 @@ func (p *Purge) Print() error {
 		fmt.Printf("\t'%d' snapshots\n", len(resources.snapshots))
 		fmt.Printf("\t'%d' loadbalancers\n", len(resources.loadBalancers))
 		fmt.Printf("\t'%d' securitygroups\n", len(resources.securityGroups))
+		fmt.Printf("\t'%d' vpcs\n", len(resources.vpcs))
+		fmt.Printf("\t'%d' subnets\n", len(resources.subnets))
+		fmt.Printf("\t'%d' networkAcls\n", len(resources.networkAcls))
+		fmt.Printf("\t'%d' internetGateways\n", len(resources.internetGateways))
+		fmt.Printf("\t'%d' routeTables\n", len(resources.routeTables))
 	}
 	return nil
 }
@@ -126,6 +136,7 @@ func (p *Purge) Print() error {
 // Fetch fetches all given resources and stores them internally. To print them
 // use the Print() method
 func (p *Purge) Fetch() error {
+	// EC2
 	p.FetchInstances()
 	p.FetchVolumes()
 	p.FetchKeyPairs()
@@ -133,7 +144,14 @@ func (p *Purge) Fetch() error {
 	p.FetchAddresses()
 	p.FetchSnapshots()
 	p.FetchLoadBalancers()
+
+	// VPC
+	p.FetchVpcs()
+	p.FetchSubnets()
 	p.FetchSecurityGroups()
+	p.FetchNetworkAcls()
+	p.FetchInternetGateways()
+	p.FetchRouteTables()
 
 	p.wg.Wait()
 	return p.errs

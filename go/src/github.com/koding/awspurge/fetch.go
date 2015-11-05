@@ -2,7 +2,6 @@ package awspurge
 
 import "github.com/hashicorp/go-multierror"
 
-// FetchInstances fetches all instances and stores them into internally
 func (p *Purge) FetchInstances() {
 	p.wg.Add(1)
 	go func() {
@@ -22,7 +21,6 @@ func (p *Purge) FetchInstances() {
 	}()
 }
 
-// FetchVolumes fetches all volumes and stores them into internally
 func (p *Purge) FetchVolumes() {
 	p.wg.Add(1)
 	go func() {
@@ -42,7 +40,6 @@ func (p *Purge) FetchVolumes() {
 	}()
 }
 
-// FetchKeyParis fetches all key pairs and stores them into internally
 func (p *Purge) FetchKeyPairs() {
 	p.wg.Add(1)
 	go func() {
@@ -63,8 +60,6 @@ func (p *Purge) FetchKeyPairs() {
 	}()
 }
 
-// FetchPlacementGroups fetches all placement groups and stores them into
-// internally
 func (p *Purge) FetchPlacementGroups() {
 	p.wg.Add(1)
 	go func() {
@@ -85,7 +80,6 @@ func (p *Purge) FetchPlacementGroups() {
 	}()
 }
 
-// FetchAddresses fetches all addresses and stores them into internally
 func (p *Purge) FetchAddresses() {
 	p.wg.Add(1)
 	go func() {
@@ -106,7 +100,6 @@ func (p *Purge) FetchAddresses() {
 	}()
 }
 
-// FetchSnapshots fetches all snapshots and stores them into internally
 func (p *Purge) FetchSnapshots() {
 	p.wg.Add(1)
 	go func() {
@@ -127,8 +120,6 @@ func (p *Purge) FetchSnapshots() {
 	}()
 }
 
-// FetchLoadBalancers fetches all load balancers and stores them into
-// internally
 func (p *Purge) FetchLoadBalancers() {
 	p.wg.Add(1)
 	go func() {
@@ -149,8 +140,6 @@ func (p *Purge) FetchLoadBalancers() {
 	}()
 }
 
-// FetchSecurityGroups fetches all security groups and stores them into
-// internally
 func (p *Purge) FetchSecurityGroups() {
 	p.wg.Add(1)
 	go func() {
@@ -165,6 +154,106 @@ func (p *Purge) FetchSecurityGroups() {
 		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].securityGroups = allSecurityGroups[region]
+			p.resourceMu.Unlock()
+		}
+		p.wg.Done()
+	}()
+}
+
+func (p *Purge) FetchVpcs() {
+	p.wg.Add(1)
+	go func() {
+		resources, err := p.DescribeVpcs()
+		if err != nil {
+			p.mu.Lock()
+			p.errs = multierror.Append(p.errs, err)
+			p.mu.Unlock()
+			return
+		}
+
+		for _, region := range p.regions {
+			p.resourceMu.Lock()
+			p.resources[region].vpcs = resources[region]
+			p.resourceMu.Unlock()
+		}
+		p.wg.Done()
+	}()
+}
+
+func (p *Purge) FetchSubnets() {
+	p.wg.Add(1)
+	go func() {
+		resources, err := p.DescribeSubnets()
+		if err != nil {
+			p.mu.Lock()
+			p.errs = multierror.Append(p.errs, err)
+			p.mu.Unlock()
+			return
+		}
+
+		for _, region := range p.regions {
+			p.resourceMu.Lock()
+			p.resources[region].subnets = resources[region]
+			p.resourceMu.Unlock()
+		}
+		p.wg.Done()
+	}()
+}
+
+func (p *Purge) FetchNetworkAcls() {
+	p.wg.Add(1)
+	go func() {
+		resources, err := p.DescribeNetworkAcls()
+		if err != nil {
+			p.mu.Lock()
+			p.errs = multierror.Append(p.errs, err)
+			p.mu.Unlock()
+			return
+		}
+
+		for _, region := range p.regions {
+			p.resourceMu.Lock()
+			p.resources[region].networkAcls = resources[region]
+			p.resourceMu.Unlock()
+		}
+		p.wg.Done()
+	}()
+}
+
+func (p *Purge) FetchInternetGateways() {
+	p.wg.Add(1)
+	go func() {
+		resources, err := p.DescribeInternetGateways()
+		if err != nil {
+			p.mu.Lock()
+			p.errs = multierror.Append(p.errs, err)
+			p.mu.Unlock()
+			return
+		}
+
+		for _, region := range p.regions {
+			p.resourceMu.Lock()
+			p.resources[region].internetGateways = resources[region]
+			p.resourceMu.Unlock()
+		}
+		p.wg.Done()
+	}()
+}
+
+func (p *Purge) FetchRouteTables() {
+	p.wg.Add(1)
+	go func() {
+		resources, err := p.DescribeRouteTables()
+		if err != nil {
+			p.mu.Lock()
+			p.errs = multierror.Append(p.errs, err)
+			p.mu.Unlock()
+			return
+		}
+
+		for _, region := range p.regions {
+			p.resourceMu.Lock()
+			p.resources[region].routeTables = resources[region]
 			p.resourceMu.Unlock()
 		}
 		p.wg.Done()
