@@ -74,17 +74,10 @@ module.exports = class Koding extends ProviderInterface
           unless snapshotId
             return callback null, { meta, label, credential: client.r.user.username }
 
-          verifySnapshot client, { storage, snapshotId }, (err, { snapshot }) ->
+          JSnapshot = require './snapshot'
+          JSnapshot.verifySnapshot client, { storage, snapshotId }, (err, snapshot) ->
             meta.snapshotId = snapshot.snapshotId  if snapshot
             callback err, { meta, label, credential: client.r.user.username }
-
-
-  verifySnapshot = (client, options, callback) ->
-
-    JSnapshot = require './snapshot'
-    { storage, snapshotId } = options
-    JSnapshot.verifySnapshot client, { storage, snapshotId }, (err, snapshot) ->
-      callback err, { snapshot }
 
 
   @postCreate = (client, options, callback) ->
