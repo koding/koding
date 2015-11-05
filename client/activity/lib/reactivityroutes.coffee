@@ -1,19 +1,13 @@
-kd                       = require 'kd'
-React                    = require 'kd-react'
-PublicChatPane           = require 'activity/components/publicchatpane'
-PublicFeedPane           = require 'activity/components/publicfeedpane'
+React                     = require 'kd-react'
+ActivityAppComponent      = require 'activity/components/appcomponent'
+SingleChannelRoute        = require 'activity/routes/singlepublicchannel'
+SinglePrivateMessageRoute = require 'activity/routes/singleprivatechannel'
 ChannelThreadPane        = require 'activity/components/channelthreadpane'
-PostPane                 = require 'activity/components/postpane'
 PrivateMessageThreadPane = require 'activity/components/privatemessagethreadpane'
 CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
 CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
 BrowsePublicChannelsModal = require 'activity/components/browsepublicchannelsmodal'
 BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsmodal'
-
-ActivityAppComponent = require 'activity/components/appcomponent'
-
-SingleChannelRoute = require 'activity/routes/SingleChannel'
-SinglePrivateMessageRoute = require 'activity/routes/SinglePrivateMessage'
 
 module.exports = [
   path: '/Channels'
