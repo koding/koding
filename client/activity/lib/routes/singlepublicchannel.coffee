@@ -34,8 +34,6 @@ module.exports = class SingleChannelRoute
 
   onEnter: (nextState, replaceState, done) ->
 
-    console.log 'SingleChannelRoute'
-
     { channelName, postId } = nextState.params
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
