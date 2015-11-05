@@ -39,27 +39,31 @@ module.exports = class JPermissionSet extends Module
   KodingError = require '../../error'
 
   # coffeelint: disable=indentation
-  constructor:(data = {}, options = {}) ->
+  constructor: (data = {}, options = {}) ->
+
     super data
-    unless @isCustom
-      # initialize the permission set with some sane defaults:
-      { permissionDefaultsByModule } = require '../../traits/protected'
-      permissionsByRole = {}
 
-      options.privacy ?= 'public'
-      for own module, modulePerms of permissionDefaultsByModule
-        for own perm, roles of modulePerms
-          if roles.public? or roles.private?
-            roles = roles[options.privacy] ?= []
-          for role in roles
-            permissionsByRole[module]       ?= {}
-            permissionsByRole[module][role] ?= []
-            permissionsByRole[module][role].push perm
+    return  if @isCustom
 
-      @permissions = []
-      for own module, moduleRoles of permissionsByRole
-        for own role, modulePerms of moduleRoles
-          @permissions.push { module, role, permissions: modulePerms }
+    # initialize the permission set with some sane defaults:
+    { permissionDefaultsByModule } = require '../../traits/protected'
+    permissionsByRole = {}
+
+    options.privacy ?= 'public'
+    for own module, modulePerms of permissionDefaultsByModule
+      for own perm, roles of modulePerms
+        if roles.public? or roles.private?
+          roles = roles[options.privacy] ?= []
+        for role in roles
+          permissionsByRole[module]       ?= {}
+          permissionsByRole[module][role] ?= []
+          permissionsByRole[module][role].push perm
+
+    @permissions = []
+    for own module, moduleRoles of permissionsByRole
+      for own role, modulePerms of moduleRoles
+        @permissions.push { module, role, permissions: modulePerms }
+
 
   @wrapPermission = wrapPermission = (permission) ->
     [{ permission, validateWith: require('./validators').any }]
