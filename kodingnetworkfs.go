@@ -227,6 +227,10 @@ func (k *KodingNetworkFS) LookUpInode(ctx context.Context, op *fuseops.LookUpIno
 		return err
 	}
 
+	if k.isDirIgnored(entry.GetType(), op.Name) {
+		return fuse.ENOENT
+	}
+
 	k.setEntry(entry.GetID(), entry)
 
 	op.Entry.Child = entry.GetID()
