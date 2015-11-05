@@ -223,7 +223,7 @@ module.exports = class LoginView extends JView
   doReset:({recoveryToken, password})->
     $.ajax
       url       : '/Reset'
-      data      : { recoveryToken, password }
+      data      : { recoveryToken, password, _csrf : Cookies.get '_csrf' }
       type      : 'POST'
       error     : (xhr) =>
         {responseText} = xhr
@@ -243,7 +243,7 @@ module.exports = class LoginView extends JView
   doRecover:({ email })->
     $.ajax
       url         : '/Recover'
-      data        : { email }
+      data        : { email, _csrf : Cookies.get '_csrf' }
       type        : 'POST'
       error       : (xhr) =>
         {responseText} = xhr
