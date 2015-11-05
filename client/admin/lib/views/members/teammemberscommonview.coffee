@@ -15,7 +15,7 @@ module.exports = class TeamMembersCommonView extends KDView
   constructor: (options = {}, data) ->
 
     options.cssClass                 = 'members-commonview'
-    options.itemLimit               ?= 25
+    options.itemLimit               ?= 10
     options.fetcherMethod          or= 'fetchMembersWithEmail'
     options.noItemFoundWidget      or= new KDCustomHTMLView
     options.listViewItemClass      or= MemberItemView
@@ -33,7 +33,9 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @createSearchView()
     @createListController()
-    @fetchMembers()
+
+    @listController.getView().once 'viewAppended', =>
+      @fetchMembers yes
 
 
   createSearchView: ->
@@ -93,7 +95,7 @@ module.exports = class TeamMembersCommonView extends KDView
         @fetchMembers()
 
 
-  fetchMembers: ->
+  fetchMembers: (isInitialFetch) ->
 
     return if @isFetching
 
@@ -102,7 +104,7 @@ module.exports = class TeamMembersCommonView extends KDView
     group    = @getData()
     method   = @getOption 'fetcherMethod'
     options  =
-      limit  : @getOptions().itemLimit
+      limit  : @getFetcherLimit isInitialFetch
       sort   : timestamp: -1 # timestamp is at relationship collection
       skip   : @skip
 
@@ -240,3 +242,22 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @resetListItems()
     @fetchMembers()
+
+
+  # return the ideal number of list items limit to ensure that there will be
+  # always a scroller when list controller added.
+  #
+  # get list view height and divide it to item height then add it to 2
+  # to make sure that there will be a scroller. finally choose the calculated
+  # number or the default item limit if it's bigger than calculated one.
+  getFetcherLimit: (isInitialFetch) ->
+
+    limit = @getOption 'itemLimit'
+
+    return limit unless isInitialFetch
+
+    itemHeight   = 71
+    viewHeight   = @listController.getView().getHeight()
+    initialLimit = Math.ceil(viewHeight / itemHeight) + 2
+
+    return limit = Math.max initialLimit, limit
