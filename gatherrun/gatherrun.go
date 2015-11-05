@@ -28,7 +28,7 @@ type GatherRun struct {
 func Run(env, username string) {
 	fetcher := &S3Fetcher{
 		BucketName: "koding-gather",
-		FileName:   "koding-kernel.tar",
+		FileName:   "koding-kernel-1.tar",
 		Region:     "us-east-1",
 	}
 
