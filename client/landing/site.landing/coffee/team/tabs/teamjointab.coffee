@@ -48,10 +48,20 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     @form?.destroy()
     @form = new TeamJoinTabFormClass { callback: @bound 'joinTeam' }
     @wrapper.addSubView @form
+
     @form.once 'FormNeedsToBeChanged', (isMember, needsDifferentAccount) =>
       @alreadyMember = isMember
       @wantsToUseDifferentAccount = needsDifferentAccount
+      @clearValidations()
       @addForm()
+
+
+  clearValidations: ->
+
+    inputs = KDFormView.findChildInputs this
+
+    _.each inputs, (input) ->
+        input.emit 'ValidationFeedbackCleared' # Reset the validations
 
 
   hideAvatar: ->
