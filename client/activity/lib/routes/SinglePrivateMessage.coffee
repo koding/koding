@@ -9,8 +9,7 @@ changeToChannel          = require 'activity/util/changeToChannel'
   channel : channelActions,
   message : messageActions } = ActivityFlux.actions
 
-{ selectedChannelThread
-  channelByName } = ActivityFlux.getters
+{ selectedChannelThread, channelByName } = ActivityFlux.getters
 
 
 module.exports =
