@@ -17,21 +17,20 @@ SinglePrivateMessageRoute = require 'activity/routes/SinglePrivateMessage'
 
 module.exports = [
   path: '/Channels'
+
   component: ActivityAppComponent
+
+  onLeave: ->
+    threadActions.changeSelectedThread null
+    messageActions.changeSelectedMessage null
+
   indexRoute:
     components:
       content: ChannelThreadPane
       modal: BrowsePublicChannelsModal
-  onLeave: ->
-    threadActions.changeSelectedThread null
-    messageActions.changeSelectedMessage null
+
   childRoutes: [
-    path: '/NewChannel'
-    components:
-      content: ChannelThreadPane
-      modal: CreatePublicChannelModal
-  ,
-    SingleChannelRoute
+    new SingleChannelRoute
   ]
 ,
   path: '/Messages'
@@ -41,12 +40,11 @@ module.exports = [
       content: PrivateMessageThreadPane
       modal: BrowsePrivateChannelsModal
   childRoutes: [
+    new SinglePrivateMessageRoute
     path: '/NewMessage'
     components:
       content: PrivateMessageThreadPane
       modal: CreatePrivateChannelModal
-  ,
-    SinglePrivateMessageRoute
   ]
 ]
 
