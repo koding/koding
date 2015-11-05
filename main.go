@@ -15,6 +15,7 @@ var sudoRequiredFor = []string{
 	"uninstall",
 	"start",
 	"stop",
+	"restart",
 	"update",
 }
 
@@ -53,6 +54,10 @@ func main() {
 					Name:  "remotepath, r",
 					Usage: "Full path of remote folder in machine to mount.",
 				},
+				cli.BoolFlag{
+					Name:  "noignore, n",
+					Usage: "Disable ignoring of default remote folders.",
+				},
 				// TODO: implement this in klient and then enable this
 				// cli.StringFlag{
 				//   Name:  "watch, w",
@@ -75,7 +80,7 @@ func main() {
 		},
 		cli.Command{
 			Name:        "install",
-			Usage:       fmt.Sprintf("Install the %s. sudo is required.", KlientName),
+			Usage:       fmt.Sprintf("Install the %s.", KlientName),
 			Description: cmdDescriptions["install"],
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -88,8 +93,8 @@ func main() {
 		},
 		cli.Command{
 			Name:        "uninstall",
-			Usage:       fmt.Sprintf("Uninstall the %s. sudo is required.", KlientName),
-			Description: fmt.Sprintf("Uninstall the %s. sudo is required.", KlientName),
+			Usage:       fmt.Sprintf("Uninstall the %s.", KlientName),
+			Description: fmt.Sprintf("Uninstall the %s.", KlientName),
 			Action:      Exit(UninstallCommand),
 		},
 		cli.Command{
@@ -100,26 +105,26 @@ func main() {
 		},
 		cli.Command{
 			Name:        "start",
-			Usage:       fmt.Sprintf("Start the %s. sudo is required.", KlientName),
-			Description: fmt.Sprintf("Start the %s. sudo is required.", KlientName),
+			Usage:       fmt.Sprintf("Start the %s.", KlientName),
+			Description: fmt.Sprintf("Start the %s.", KlientName),
 			Action:      Exit(StartCommand),
 		},
 		cli.Command{
 			Name:        "stop",
-			Usage:       fmt.Sprintf("Stop the %s. sudo is required.", KlientName),
-			Description: fmt.Sprintf("Stop the %s. sudo is required.", KlientName),
+			Usage:       fmt.Sprintf("Stop the %s.", KlientName),
+			Description: fmt.Sprintf("Stop the %s.", KlientName),
 			Action:      Exit(StopCommand),
 		},
 		cli.Command{
 			Name:        "restart",
-			Usage:       fmt.Sprintf("Restart the %s. sudo is required.", KlientName),
-			Description: fmt.Sprintf("Restart the %s. sudo is required.", KlientName),
+			Usage:       fmt.Sprintf("Restart the %s.", KlientName),
+			Description: fmt.Sprintf("Restart the %s.", KlientName),
 			Action:      Exit(RestartCommand),
 		},
 		cli.Command{
 			Name:        "update",
-			Usage:       "Update to latest version. sudo is required.",
-			Description: "Update to latest version. sudo is required.",
+			Usage:       "Update to latest version.",
+			Description: "Update to latest version.",
 			Action:      Exit(UpdateCommand),
 		},
 	}

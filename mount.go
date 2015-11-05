@@ -25,6 +25,7 @@ func MountCommand(c *cli.Context) int {
 		name       = c.Args()[0]
 		localPath  = c.Args()[1]
 		remotePath = c.String("remotepath") // note the lowercase of all chars
+		noIgnore   = c.Bool("noignore")
 	)
 
 	// allow scp like declaration, ie `<machine name>:/path/to/remote`
@@ -49,9 +50,7 @@ func MountCommand(c *cli.Context) int {
 			return 0
 		}
 
-		fmt.Printf(
-			"Error: Unable to create specified localPath '%s'",
-			localPath)
+		fmt.Printf("Error: Unable to create specified localPath '%s'", localPath)
 		return 1
 	}
 
@@ -61,9 +60,11 @@ func MountCommand(c *cli.Context) int {
 		Name       string `json:"name"`
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
+		NoIgnore   bool   `json:"noIgnore"`
 	}{
 		Name:      name,
 		LocalPath: localPath,
+		NoIgnore:  noIgnore,
 	}
 
 	// RemotePath is optional
