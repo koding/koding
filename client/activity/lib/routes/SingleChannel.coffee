@@ -27,12 +27,12 @@ module.exports = SingleChannelRoute =
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
     unless channelName
-      unless selectedChannelThread
+      unless thread
         channelName = getGroup().slug
 
     if channelName
       transitionToChannel channelName, postId, done
-    else if not selectedChannelThread
+    else if not thread
       threadActions.changeSelectedThread null
       done()
 

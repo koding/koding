@@ -24,13 +24,13 @@ module.exports =
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
     unless privateChannelId
-      unless selectedChannelThread
+      unless thread
         botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
         privateChannelId = botChannel.id
 
     if privateChannelId
       transitionToChannel privateChannelId, postId, done
-    else if not selectedChannelThread
+    else if not thread
       threadActions.changeSelectedThread null
       done()
 
