@@ -4,7 +4,7 @@ $                    = require 'jquery'
 TextArea             = require 'react-autosize-textarea'
 EmojiDropbox         = require 'activity/components/emojidropbox'
 ChannelDropbox       = require 'activity/components/channeldropbox'
-UserDropbox          = require 'activity/components/userdropbox'
+MentionDropbox       = require 'activity/components/mentiondropbox'
 EmojiSelector        = require 'activity/components/emojiselector'
 SearchDropbox        = require 'activity/components/searchdropbox'
 CommandDropbox       = require 'activity/components/commanddropbox'
@@ -48,11 +48,12 @@ module.exports = class ChatInputWidget extends React.Component
       channelsSelectedItem           : getters.channelsSelectedItem @stateId
       channelsQuery                  : getters.channelsQuery @stateId
       channelsVisibility             : getters.channelsVisibility @stateId
-      users                          : getters.users @stateId
-      usersQuery                     : getters.usersQuery @stateId
-      userSelectedIndex              : getters.usersSelectedIndex @stateId
-      usersSelectedItem              : getters.usersSelectedItem @stateId
-      usersVisibility                : getters.usersVisibility @stateId
+      userMentions                   : getters.userMentions @stateId
+      channelMentions                : getters.channelMentions @stateId
+      mentionsQuery                  : getters.mentionsQuery @stateId
+      mentionsSelectedIndex          : getters.mentionsSelectedIndex @stateId
+      mentionsSelectedItem           : getters.mentionsSelectedItem @stateId
+      mentionsVisibility             : getters.mentionsVisibility @stateId
       searchItems                    : getters.searchItems @stateId
       searchQuery                    : getters.searchQuery @stateId
       searchSelectedIndex            : getters.searchSelectedIndex @stateId
@@ -130,7 +131,7 @@ module.exports = class ChatInputWidget extends React.Component
   isFeatureDisabled: (feature) -> @props.disabledFeatures.indexOf(feature) > -1
 
 
-  getInputDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.userDropbox, @refs.searchDropbox, @refs.commandDropbox ]
+  getInputDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.mentionDropbox, @refs.searchDropbox, @refs.commandDropbox ]
 
 
   getDropboxes: -> @getInputDropboxes().concat @refs.emojiSelector
@@ -350,18 +351,20 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
-  renderUserDropbox: ->
+  renderMentionDropbox: ->
 
-    { users, userSelectedIndex, usersSelectedItem, usersQuery, usersVisibility } = @state
+    { userMentions, channelMentions, mentionsSelectedIndex, mentionsSelectedItem } = @state
+    { mentionsQuery, mentionsVisibility } = @state
 
-    <UserDropbox
-      items           = { users }
-      selectedIndex   = { userSelectedIndex }
-      selectedItem    = { usersSelectedItem }
-      query           = { usersQuery }
-      visible         = { usersVisibility }
+    <MentionDropbox
+      userMentions    = { userMentions }
+      channelMentions = { channelMentions }
+      selectedIndex   = { mentionsSelectedIndex }
+      selectedItem    = { mentionsSelectedItem }
+      query           = { mentionsQuery }
+      visible         = { mentionsVisibility }
       onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
-      ref             = 'userDropbox'
+      ref             = 'mentionDropbox'
       stateId         = { @stateId }
     />
 
@@ -409,7 +412,7 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderEmojiDropbox() }
       { @renderEmojiSelector() }
       { @renderChannelDropbox() }
-      { @renderUserDropbox() }
+      { @renderMentionDropbox() }
       { @renderSearchDropbox() }
       { @renderCommandDropbox() }
       <TextArea
