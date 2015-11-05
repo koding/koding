@@ -11,12 +11,19 @@ changeToChannel          = require 'activity/util/changeToChannel'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
+NewPrivateChannelRoute = require './newprivatechannel'
+AllPrivateChannelsRoute = require './allprivatechannels'
+
 
 module.exports = class SinglePrivateMessageRoute
 
   constructor: ->
 
     @path = ':privateChannelId(/:postId)'
+    @childRoutes = [
+      new NewPrivateChannelRoute
+      new AllPrivateChannelsRoute
+    ]
 
 
   getComponents: (state, callback) ->
@@ -44,6 +51,8 @@ module.exports = class SinglePrivateMessageRoute
       transitionToChannel privateChannelId, postId, done
     else if not thread
       threadActions.changeSelectedThread null
+      done()
+    else
       done()
 
 
