@@ -25,29 +25,29 @@ module.exports = [
     { name: 'register' }
     { name: 'login' }
     { name: 'logout' }
-    # { name: 'activity likeunlike' }
+    { name: 'activity likeunlike' }
   ]
 
   [
     { name: 'pricing payment' }
-    # { name: 'activity post' }
+    { name: 'activity post' }
     { name: 'staticpages loggedout' }
   ]
 
   [
-    # { name: 'messages privatemessage' }
+    { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
-    # { name: 'activity postwith' }
+    { name: 'activity postwith' }
   ]
 
-  # [
-  #   { name : 'activity edit' }
-  #   { name : 'activity delete' }
-  # ]
+  [
+    { name : 'activity edit' }
+    { name : 'activity delete' }
+  ]
 
   [
     { name : 'unittests' }
-    # { name : 'activity others' }
+    { name : 'activity others' }
     { name : 'account accountpage' }
   ]
 
@@ -72,12 +72,12 @@ module.exports = [
   ]
 
   [
-    # { name : 'collaboration collaboration' }
+    { name : 'collaboration collaboration' }
     { name : 'environments snapshot' }
   ]
 
   [
-    # { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
