@@ -38,30 +38,35 @@ func main() {
 }
 
 func migrateChannels(r *runner.Runner, handler *algoliaconnector.Controller) error {
-	var messages []models.ChannelMessageList
+	count := 0
 	for b := 0; ; b++ {
+
+		var messages []models.ChannelMessage
+
 		err := models.NewChannelMessage().Some(&messages, &bongo.Query{
 			Pagination: bongo.Pagination{
 				Limit: 100,
 				Skip:  b * 100,
-			}})
+			},
+		})
 		if err != nil {
 			return err
 		}
 
 		for _, message := range messages {
-			listing := models.NewChannelMessageList()
-
-			if err := listing.One(&bongo.Query{
-				Selector: map[string]interface{}{"message_id": message.Id}}); err != nil {
+			cmls, err := message.GetChannelMessageLists()
+			if err != nil {
 				return err
 			}
 
-			r.Log.Info(fmt.Sprintf("currently migrating ChannelMessageList: '%v'", listing.Id))
-
-			if err := handler.MessageListSaved(listing); err != nil {
-				return err
+			for _, cml := range cmls {
+				count++
+				r.Log.Info("[%d]: currently migrating channel.Id: %d message.Id: %d", count, cml.ChannelId, cml.MessageId)
+				if err := handler.MessageListSaved(&cml); err != nil {
+					return err
+				}
 			}
+
 		}
 
 		if len(messages) < 100 {

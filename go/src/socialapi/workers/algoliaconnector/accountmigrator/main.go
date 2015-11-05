@@ -35,7 +35,7 @@ func main() {
 
 	// create message handler
 	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
-
+	counter := 0
 	for b := 0; ; b++ {
 		var accounts []models.Account
 
@@ -48,7 +48,8 @@ func main() {
 		}
 
 		for _, account := range accounts {
-			r.Log.Info(fmt.Sprintf("currently migrating: '%v'", account.Nick))
+			counter++
+			r.Log.Info("[%d]: currently migrating: '%v'", counter, account.Nick)
 			if err := handler.AccountUpdated(&account); err != nil {
 				r.Log.Error(err.Error())
 				continue
