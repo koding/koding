@@ -318,6 +318,142 @@ func (p *Purge) DescribeLoadBalancers() (map[string][]*elb.LoadBalancerDescripti
 	return output, nil
 }
 
+// DescribeVpcs all vpcs per region
+func (p *Purge) DescribeVpcs() (map[string][]*ec2.Vpc, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeVpcs(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp.Vpcs, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.Vpc)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.Vpc)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeSubnets all subnets per region
+func (p *Purge) DescribeSubnets() (map[string][]*ec2.Subnet, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeSubnets(nil)
+		if err != nil {
+			return nil, err
+		}
+		return resp.Subnets, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.Subnet)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.Subnet)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeNetworkAcls all network acls per region
+func (p *Purge) DescribeNetworkAcls() (map[string][]*ec2.NetworkAcl, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeNetworkAcls(nil)
+		if err != nil {
+			return nil, err
+		}
+		return resp.NetworkAcls, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.NetworkAcl)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.NetworkAcl)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeInternetGatewats all internet gateways per region
+func (p *Purge) DescribeInternetGateways() (map[string][]*ec2.InternetGateway, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeInternetGateways(nil)
+		if err != nil {
+			return nil, err
+		}
+		return resp.InternetGateways, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.InternetGateway)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.InternetGateway)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
+// DescribeRouteTables all internet gateways per region
+func (p *Purge) DescribeRouteTables() (map[string][]*ec2.RouteTable, error) {
+	fn := func(svc *ec2.EC2) (interface{}, error) {
+		resp, err := svc.DescribeRouteTables(nil)
+		if err != nil {
+			return nil, err
+		}
+		return resp.RouteTables, nil
+	}
+
+	out, err := p.describeResources(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	output := make(map[string][]*ec2.RouteTable)
+	for region, r := range out {
+		resources, ok := r.([]*ec2.RouteTable)
+		if !ok {
+			continue
+		}
+		output[region] = resources
+	}
+
+	return output, nil
+}
+
 // stringSlice is an helper method to convert a slice of strings into a slice
 // of pointer of strings. Needed for various aws/ec2 commands.
 func stringSlice(vals ...string) []*string {
