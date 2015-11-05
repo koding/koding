@@ -106,6 +106,8 @@ module.exports = class PrivateMessageThreadPane extends React.Component
           channelThread={@state.channelThread}
           channelParticipants={@state.channelParticipants}/>
       </aside>
+
+      {@props.children}
     </div>
 
 
