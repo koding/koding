@@ -84,11 +84,7 @@ module.exports = class Koding extends ProviderInterface
     JSnapshot = require './snapshot'
     { storage, snapshotId } = options
     JSnapshot.verifySnapshot client, { storage, snapshotId }, (err, snapshot) ->
-      return callback err  if err?.name is 'SizeError'
-
-      if   snapshot
-      then callback null, { snapshot }
-      else callback null, {}
+      callback err, { snapshot }
 
 
   @postCreate = (client, options, callback) ->
