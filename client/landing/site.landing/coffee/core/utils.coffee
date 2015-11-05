@@ -284,7 +284,8 @@ utils.extend utils,
       type        : 'POST'
       data        : { name }
       success     : callbacks.success
-      error       : callbacks.error
+      error       : (xhr) ->
+        callbacks.error.call this, xhr.responseText
 
 
   getGravatarUrl : (size = 80, hash) ->
