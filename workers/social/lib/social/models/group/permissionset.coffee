@@ -38,6 +38,8 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
+  MAIN_GROUP = 'koding'
+
   # coffeelint: disable=indentation
   constructor: (data = {}, options = {}) ->
 
@@ -81,6 +83,16 @@ module.exports = class JPermissionSet extends Module
         group.fetchPermissionSetOrDefault (err, permissionSet) ->
           if err then callback err
           else callback null, { group, permissionSet }
+
+
+  @fetchMainGroupAndPermissionSet = (callback) ->
+
+    return callback null, @mainGroupData  if @mainGroupData
+
+    fetchGroupAndPermissionSet MAIN_GROUP, (err, res) =>
+      if err then callback err
+      else callback null, @mainGroupData = res
+
     JGroup = require '../group'
     advanced = wrapPermission advanced  if 'string' is typeof advanced
     kallback = (group, permissionSet) ->
