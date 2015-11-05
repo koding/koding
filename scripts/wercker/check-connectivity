@@ -63,6 +63,8 @@ for INSTANCE in $INSTANCES; do
 
     if health_check $INSTANCE; then
       echo $INSTANCE >> $INSTANCE_DATA_FILE
+    else
+      echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
     fi
   ) &
 done
