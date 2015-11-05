@@ -27,7 +27,16 @@ do ->
 
     KD.utils.routeIfInvitationTokenIsValid token,
       success   : ({email}) ->
+
+        # Remember already typed companyName when user is seeing "Create a team" page with refresh twice or more
+        if teamData = KD.utils.getTeamData()
+
+          # Make sure about invitation is same.
+          if token is teamData.invitation?.teamAccessCode and teamData.signup
+            KD.utils.storeNewTeamData 'signup', teamData.signup
+
         KD.utils.storeNewTeamData 'invitation', { teamAccessCode: token, email }
+
         handleRoute { params, query }
       error     : ({responseText}) ->
         new KDNotificationView title : responseText

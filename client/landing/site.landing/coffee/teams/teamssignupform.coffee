@@ -10,7 +10,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
     team        = KD.utils.getTeamData()
     email       = team.invitation?.email
-
+    companyName = team.signup?.companyName
 
     @email = new LoginInputViewWithLoader
       inputOptions   :
@@ -28,6 +28,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'companyName'
         placeholder   : 'Name your team'
+        defaultValue  : companyName  if companyName
         attributes    : testpath : 'company-name'
         validate      :
           # event       : 'blur'
@@ -38,6 +39,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
     # make the placeholders go away
     @email.inputReceivedKeyup()        if email
+    @companyName.inputReceivedKeyup()  if companyName
 
     @button = new KDButtonView
       title       : 'Sign up'
