@@ -74,7 +74,6 @@ module.exports = class JPermissionSet extends Module
   @wrapPermission = wrapPermission = (permission) ->
     [{ permission, validateWith: require('./validators').any }]
 
-  @checkPermission = (client, advanced, target, args, callback) ->
 
   fetchGroupAndPermissionSet = (groupName, callback) ->
 
@@ -102,10 +101,6 @@ module.exports = class JPermissionSet extends Module
 
   getGroupnameFrom = (target, client) ->
     JGroup = require '../group'
-    advanced = wrapPermission advanced  if 'string' is typeof advanced
-    kallback = (group, permissionSet) ->
-      queue = advanced.map ({ permission, validateWith }) -> ->
-        validateWith ?= (require './validators').any
     return if 'function' is typeof target
       client?.context?.group ? MAIN_GROUP
     else if target instanceof JGroup
@@ -113,32 +108,54 @@ module.exports = class JPermissionSet extends Module
     else
       target.group ? client?.context?.group ? MAIN_GROUP
 
+
+  @checkPermission = (client, advanced, target, args, callback) ->
+
+    advanced     = wrapPermission advanced  if 'string' is typeof advanced
+    anyValidator = (require './validators').any
+
+    # permission checker helper, walks on the all required permissions
+    # if one of them passes, breaks the loop and returns true
+    kallback = (current, main) ->
+
+      queue = advanced.map ({ permission, validateWith, superadmin }) -> ->
+        # use Validators.any if it's not provided
+        validateWith ?= anyValidator
+
         validateWith.call target, client, group, permission, permissionSet, args,
           (err, hasPermission) ->
             if err then queue.next err
             else if hasPermission
               callback null, yes  # we can stop here.  One permission is enough.
             else queue.next()
+
       queue.push ->
         # if we ever get this far, it means the user doesn't have permission.
         callback null, no
+
       daisy queue
 
-    JGroup.one { slug: groupName }, (err, group) ->
-      if err then callback err, no
-      else unless group?
-        callback new KodingError "Unknown group! #{groupName}"
-      else
-        group.fetchPermissionSet (err, permissionSet) ->
-          if err then callback err, no
-          else unless permissionSet
-            group.fetchDefaultPermissionSet (err, permissionSet) ->
-              return callback err if err
-              kallback group, permissionSet
-          else
-            kallback group, permissionSet
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client
+
+    # if it's the main group fetch it from cached helper
+    if client.groupName is MAIN_GROUP
+
+      @fetchMainGroupAndPermissionSet (err, main) ->
+        if err or not main then callback err, no
+        else kallback main, main # pass same group and permissionSet for
+                                 # current and the main group ~ GG
+
+    else
+
+      # fetch permission set for the given group and start checking permissions
+      fetchGroupAndPermissionSet client.groupName, (err, current) =>
+        if err or not current then callback err, no
+        else
+          @fetchMainGroupAndPermissionSet (err, main) ->
+            if err or not main then callback err, no
+            else kallback current, main
+
 
   @permit = (permission, promise) ->
 
