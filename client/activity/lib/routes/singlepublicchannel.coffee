@@ -4,8 +4,6 @@ ActivityFlux      = require 'activity/flux'
 getGroup          = require 'app/util/getGroup'
 changeToChannel   = require 'activity/util/changeToChannel'
 
-NewChannelRoute = require './NewChannel'
-
 {
   thread  : threadActions,
   channel : channelActions,
@@ -13,6 +11,8 @@ NewChannelRoute = require './NewChannel'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
+NewPublicChannelRoute = require './newpublicchannel'
+AllPublicChannelsRoute = require './allpublicchannels'
 
 module.exports = class SingleChannelRoute
 
@@ -20,7 +20,8 @@ module.exports = class SingleChannelRoute
 
     @path = ':channelName(:/postId)'
     @childRoutes = [
-      new NewChannelRoute
+      new NewPublicChannelRoute
+      new AllPublicChannelsRoute
     ]
 
 
@@ -32,6 +33,8 @@ module.exports = class SingleChannelRoute
 
 
   onEnter: (nextState, replaceState, done) ->
+
+    console.log 'SingleChannelRoute'
 
     { channelName, postId } = nextState.params
     thread = kd.singletons.reactor.evaluate selectedChannelThread
