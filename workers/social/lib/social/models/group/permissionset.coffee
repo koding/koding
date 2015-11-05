@@ -119,6 +119,16 @@ module.exports = class JPermissionSet extends Module
     kallback = (current, main) ->
 
       queue = advanced.map ({ permission, validateWith, superadmin }) -> ->
+
+        # if permission requires superadmin and current group is not 'koding'
+        # or if somehow 'koding' group (main) not exists then pass ~ GG
+        if superadmin and current.group.slug isnt MAIN_GROUP or not main
+          return queue.next()
+
+        # if permission requires superadmin then do the permission check on
+        # main group and permissionSet (which is 'koding' group) ~ GG
+        { group, permissionSet } = if superadmin then main else current
+
         # use Validators.any if it's not provided
         validateWith ?= anyValidator
 
