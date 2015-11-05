@@ -37,12 +37,15 @@ func Run(env, username string) {
 	abuseTimer := time.NewTimer(abuseInterval)
 	analyticsTimer := time.NewTimer(analyticsInterval)
 
-	// run analytics in initial since free vms turn off in <1 hr
-	// we sleep a slight time to make sure this doesn't disrupt klient updates
-	go func() {
-		time.Sleep(10 * time.Minute)
-		New(fetcher, exporter, env, username, "analytics").Run()
-	}()
+	// run analytics when starting since free vms turn off in <1 hr;
+	// sleep a little and fire in own goroutine ot make sure this
+	// doesn't disrupt klient updates
+	time.AfterFunc(
+		time.Minute*10,
+		func() {
+			New(fetcher, exporter, env, username, "analytics").Run()
+		},
+	)
 
 	for {
 		select {
