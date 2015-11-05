@@ -69,6 +69,18 @@ module.exports = class JPermissionSet extends Module
     [{ permission, validateWith: require('./validators').any }]
 
   @checkPermission = (client, advanced, target, args, callback) ->
+
+  fetchGroupAndPermissionSet = (groupName, callback) ->
+
+    JGroup = require '../group'
+    JGroup.one { slug: groupName }, (err, group) ->
+      if err then callback err
+      else unless group?
+        callback new KodingError "Unknown group! #{groupName}"
+      else
+        group.fetchPermissionSetOrDefault (err, permissionSet) ->
+          if err then callback err
+          else callback null, { group, permissionSet }
     JGroup = require '../group'
     advanced = wrapPermission advanced  if 'string' is typeof advanced
     kallback = (group, permissionSet) ->
