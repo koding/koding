@@ -2,7 +2,7 @@
 
 Staying true to our tagline of “Say goodbye to localhost”, we’ve moved development of koding.com from our local machines to team on koding.com. It’s a big undertaking, but it’s necessary to do it to understand the day to day experience of using teams on koding.com. Support for local development (boot2docker) is now deprecated and will be removed very soon.
 
-You should have been invited to https://team.koding.com already. Please do the following:
+You should have been invited to [team.koding.com](https://team.koding.com) already. Please do the following:
 
 * [Build your stack](http://take.ms/GxI9N) on https://team.koding.com and follow instructions there to get a working version of koding on your VM.
 * [Add your team](https://monosnap.com/file/vq1fJe8508BZp5zTb7CBNeK2zUnwJo) `5... foo.dev.koding.com` if you want to develop teams product. The first part, `5...` is the ip address of your VM. The second part `foo` is the name of the team.
@@ -16,7 +16,7 @@ You should have been invited to https://team.koding.com already. Please do the f
 
 ## kd
 
-To connect your Koding VMs to your local IDE, we’ll use a command line program called: `kd` To get started, login to https://team.koding.com/Channels/team and click on http://take.ms/rB1Jm to get link to download kd.
+To connect your Koding VMs to your local IDE, we’ll use a command line program called: `kd` To get started, login to [team.koding.com](https://team.koding.com/Channels/team) and click on http://take.ms/rB1Jm to get link to download kd.
 
 Currently only OSX and Linux are supported. Once it's done installing, `kd` should be available in your path and you can do `kd -h` to see list of help topics.
 
