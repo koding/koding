@@ -130,18 +130,18 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	}
 
 	ignoredFolderList := map[string]struct{}{}
+	ignoreFolders := []string{}
+
+	if !c.NoIgnore {
+		ignoreFolders = append(DefaultFolderIgnoreList, c.IgnoreFolders...)
+
+		// add default and user specified list of folders to map for easy checking
+		for index := range ignoreFolders {
+			ignoredFolderList[ignoreFolders[index]] = struct{}{}
+		}
+	}
 
 	if c.Prefetch {
-		ignoreFolders := []string{}
-
-		if !c.NoIgnore {
-			ignoreFolders = append(DefaultFolderIgnoreList, c.IgnoreFolders...)
-			// add default and user specified list of folders to map for easy checking
-			for index := range ignoreFolders {
-				ignoredFolderList[ignoreFolders[index]] = struct{}{}
-			}
-		}
-
 		dirInit := NewDirInitializer(t, rootDir, ignoreFolders)
 		if err := dirInit.Initialize(); err != nil {
 			return nil, err
