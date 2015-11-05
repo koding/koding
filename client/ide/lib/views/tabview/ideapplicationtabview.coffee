@@ -110,12 +110,17 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
 
   dragEnter: (event) ->
 
+    # frontApp references to IDEAppController
+    { frontApp } = kd.singletons.appManager
+
     return  if @splitRegions
+
+    # Return if there isn't any dragging tab.
+    return  unless frontApp.targetTabView
 
     @addSubView @splitRegions = new SplitRegionView
 
     @splitRegions.on 'TabDropped', (direction) =>
-      { frontApp }  = kd.singletons.appManager
       frontApp.handleTabDropToRegion direction, @parent
 
 
