@@ -188,7 +188,7 @@ module.exports =
     browser.end()
 
 
-  openTerminalForInviteUser: (browser) ->
+  openTerminalWithInvitedUser: (browser) ->
 
     host         = utils.getUser no, 0
     hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
@@ -202,9 +202,7 @@ module.exports =
     browser.elements 'css selector', terminalTabs, (result) =>
       length = result.value.length
 
-      if hostBrowser
-        browser.pause 10000
-
+      if hostBrowser then browser.pause 10000
       else
         terminalHelpers.openNewTerminalMenu(browser)
         terminalHelpers.openTerminal(browser)
