@@ -1,6 +1,6 @@
 origin      = 'koding.com'
 title       = 'World\'s First Virtual Global Hackathon | Koding'
-shareUrl    = "https://#{origin}/Hackathon"
+shareUrl    = "https://#{origin}/Hackathon2014"
 description = 'This event is intended to connect developers across the globe and get them to  code together irrespective of their locations. You will problem solve and build with old or new team members and try to win!'
 gpImage     = "#{origin}/a/site.hackathon/images/share.hackathon.g+.jpg?#{KONFIG.version}"
 fbImage     = "#{origin}/a/site.hackathon/images/share.hackathon.fb.jpg?#{KONFIG.version}"
