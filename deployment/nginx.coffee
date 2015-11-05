@@ -323,6 +323,10 @@ module.exports.create = (KONFIG, environment)->
         proxy_pass https://teams-koding.hs-sites.com;
       }
 
+      location /hackathon {
+        return 301 /Hackathon ;
+      }
+
       #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
 

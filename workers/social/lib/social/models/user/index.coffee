@@ -1720,17 +1720,17 @@ module.exports = class JUser extends jraphical.Module
     JSession.one { clientId: client.sessionToken }, (err, session) ->
       return callback err  if err
 
-      noUserError = new KodingError \
+      noUserError = -> new KodingError \
         'No user found! Not logged in or session expired'
 
       if not session or not session.username
-        return callback noUserError
+        return callback noUserError()
 
       JUser.one { username: session.username }, (err, user) ->
 
         if err or not user
           console.log '[JUser::fetchUser]', err  if err?
-          callback noUserError
+          callback noUserError()
         else
           callback null, user
 
