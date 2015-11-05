@@ -56,7 +56,6 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
         label        : generateRandomString()
         region       : 'us-east-1'
         storage      : '3'
-        snapshotId   : 'someSnapshotId'
         instanceType : 't2.micro'
       , options
 
@@ -91,7 +90,7 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
 
     it 'should be able to succeed when snapshotId provided', (done) ->
 
-      withCreatedUser ({ client, user, account, group }) ->
+      withConvertedUser ({ client, user, account, group }) ->
 
         client.r = { user, account, group }
         snapshot = {}
@@ -105,9 +104,17 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
               queue.next()
 
           ->
-            options = generateDefaultOptions { snapshotId : snapshot.getId() }
+            # removing existing machine to be able to create a new Koding machine
+            fetchMachinesByUsername user.username, (machines) ->
+              machine = machines[0]
+
+              JMachine.remove { _id : machine._id }, (err) ->
+                expect(err).to.not.exist
+                queue.next()
+
+          ->
+            options = generateDefaultOptions { snapshotId : snapshot.snapshotId }
             Koding.create client, options, (err, data) ->
-              console.log data.meta
               expect(err).to.not.exist
               expect(data.meta).to.be.an 'object'
               expect(data.meta.type).to.be.equal 'aws'
@@ -115,6 +122,7 @@ runTests = -> describe 'workers.social.models.computeproviders.koding', ->
               expect(data.meta.source_ami).to.be.empty
               expect(data.meta.storage_size.toString()).to.be.equal options.storage
               expect(data.meta.alwaysOn).to.be.false
+              expect(data.meta.snapshotId).to.be.equal options.snapshotId
               expect(data.label).to.be.a 'string'
               expect(data.credential).to.be.equal user.username
               queue.next()
