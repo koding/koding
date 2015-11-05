@@ -4,6 +4,8 @@ ActivityFlux      = require 'activity/flux'
 getGroup          = require 'app/util/getGroup'
 changeToChannel   = require 'activity/util/changeToChannel'
 
+NewChannelRoute = require './NewChannel'
+
 {
   thread  : threadActions,
   channel : channelActions,
@@ -18,6 +20,7 @@ module.exports = class SingleChannelRoute
 
     @path = ':channelName(:/postId)'
     @childRoutes = [
+      new NewChannelRoute
     ]
 
 
