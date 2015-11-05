@@ -35,7 +35,7 @@ module.exports = class Koding extends ProviderInterface
     storage ?= 3
 
     storage  = +storage
-    if isNaN storage
+    if (isNaN storage) or not (3 <= storage <= 100)
       return callback new KodingError \
       'Requested storage size is not valid.', 'WrongParameter'
 
@@ -71,17 +71,13 @@ module.exports = class Koding extends ProviderInterface
           if 't2.medium' in userPlan.allowedInstances
             meta.instance_type = 't2.medium'
 
+          unless snapshotId
+            return callback null, { meta, label, credential: client.r.user.username }
+
           JSnapshot = require './snapshot'
-          JSnapshot.verifySnapshot client, {
-            storage, snapshotId
-          }, (err, snapshot) ->
-
-            if err
-              return callback err  if err.name is 'SizeError'
-            else if snapshot
-              meta.snapshotId = snapshotId
-
-            callback null, { meta, label, credential: client.r.user.username }
+          JSnapshot.verifySnapshot client, { storage, snapshotId }, (err, snapshot) ->
+            meta.snapshotId = snapshot.snapshotId  if snapshot
+            callback err, { meta, label, credential: client.r.user.username }
 
 
   @postCreate = (client, options, callback) ->
