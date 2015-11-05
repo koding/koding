@@ -1,10 +1,11 @@
-articlize                      = require 'indefinite-article'
-MainHeaderView                 = require './../../core/mainheaderview'
-TeamJoinByLoginForm            = require './../forms/teamjoinbyloginform'
-TeamJoinBySignupForm           = require './../forms/teamjoinbysignupform'
-TeamJoinWithInvitedAccountForm = require './../forms/teamjoinwithinvitedaccountform'
+_                               = require 'lodash'
+articlize                       = require 'indefinite-article'
+MainHeaderView                  = require './../../core/mainheaderview'
+TeamJoinByLoginForm             = require './../forms/teamjoinbyloginform'
+TeamJoinBySignupForm            = require './../forms/teamjoinbysignupform'
+TeamJoinWithInvitedAccountForm  = require './../forms/teamjoinwithinvitedaccountform'
+TeamLoginAndCreateTabForm       = require './../forms/teamloginandcreatetabform'
 
-TeamLoginAndCreateTabForm = require './../forms/teamloginandcreatetabform'
 
 module.exports = class TeamJoinTab extends KDTabPaneView
 
