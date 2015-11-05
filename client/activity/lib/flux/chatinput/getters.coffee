@@ -1,9 +1,11 @@
 kd                         = require 'kd'
 immutable                  = require 'immutable'
+toImmutable                = require 'app/util/toImmutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
+findNameByQuery            = require 'activity/util/findNameByQuery'
 
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
@@ -18,9 +20,10 @@ CommonEmojiListVisibilityStore      = [['CommonEmojiListVisibilityStore'], withE
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
-UsersQueryStore                     = [['ChatInputUsersQueryStore'], withEmptyMap]
-UsersSelectedIndexStore             = [['ChatInputUsersSelectedIndexStore'], withEmptyMap]
-UsersVisibilityStore                = [['ChatInputUsersVisibilityStore'], withEmptyMap]
+MentionsQueryStore                  = [['ChatInputMentionsQueryStore'], withEmptyMap]
+MentionsSelectedIndexStore          = [['ChatInputMentionsSelectedIndexStore'], withEmptyMap]
+MentionsVisibilityStore             = [['ChatInputMentionsVisibilityStore'], withEmptyMap]
+ChannelMentionsStore                = [['ChatInputChannelMentionsStore'], withEmptyList]
 SearchQueryStore                    = [['ChatInputSearchQueryStore'], withEmptyMap]
 SearchSelectedIndexStore            = [['ChatInputSearchSelectedIndexStore'], withEmptyMap]
 SearchVisibilityStore               = [['ChatInputSearchVisibilityStore'], withEmptyMap]
@@ -150,21 +153,21 @@ channelsVisibility = (stateId) -> [
 ]
 
 
-usersQuery = (stateId) -> [
-  UsersQueryStore
+mentionsQuery = (stateId) -> [
+  MentionsQueryStore
   (queries) -> queries.get stateId
 ]
 
 
-# Returns a list of users depending on the current query
+# Returns a list of user mentions depending on the current query
 # If query is empty, returns:
 # - users who are not participants of selected channel if current input command is /invite
 # - otherwise, selected channel participants
 # If query is not empty, returns users filtered by query
-users = (stateId) -> [
+userMentions = (stateId) -> [
   ActivityFluxGetters.allUsers
   ActivityFluxGetters.selectedChannelParticipants
-  usersQuery stateId
+  mentionsQuery stateId
   currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
   (allUsers, participants, query, command, notParticipants) ->
@@ -176,33 +179,63 @@ users = (stateId) -> [
 
     query = query.toLowerCase()
     allUsers.toList().filter (user) ->
-      userName = user.getIn(['profile', 'nickname']).toLowerCase()
-      return userName.indexOf(query) is 0
+      profile = user.get 'profile'
+      names = [
+        profile.get 'nickname'
+        profile.get 'firstName'
+        profile.get 'lastName'
+      ]
+      return findNameByQuery names, query
 ]
 
 
-usersRawIndex = (stateId) -> [
-  UsersSelectedIndexStore
+# Returns a list of channel mentions depending on the current query
+# If query is empty, returns all channel mentions
+# Otherwise, returns mentions filtered by query
+channelMentions = (stateId) -> [
+  ChannelMentionsStore
+  mentionsQuery stateId
+  (mentions, query) ->
+    return mentions  unless query
+
+    query = query.toLowerCase()
+    mentions.filter (mention) ->
+      return findNameByQuery mention.get('names').toJS(), query
+]
+
+
+mentionsRawIndex = (stateId) -> [
+  MentionsSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
-usersSelectedIndex = (stateId) -> [
-  users stateId
-  usersRawIndex stateId
-  calculateListSelectedIndex
+# Mentions selected index is used for a list
+# which is union of user mentions and channel mentions
+mentionsSelectedIndex = (stateId) -> [
+  userMentions stateId
+  channelMentions stateId
+  mentionsRawIndex stateId
+  (_userMentions, _channelMentions, currentIndex) ->
+    list = _userMentions.toList().concat _channelMentions
+    return calculateListSelectedIndex list, currentIndex
 ]
 
 
-usersSelectedItem = (stateId) -> [
-  users stateId
-  usersSelectedIndex stateId
-  getListSelectedItem
+# Returns a selected item from a union of user mentions
+# and channel mentions by selected index
+mentionsSelectedItem = (stateId) -> [
+  userMentions stateId
+  channelMentions stateId
+  mentionsSelectedIndex stateId
+  (_userMentions, _channelMentions, selectedIndex) ->
+    list = _userMentions.toList().concat _channelMentions
+    return getListSelectedItem list, selectedIndex
 ]
 
 
-usersVisibility = (stateId) -> [
-  UsersVisibilityStore
+mentionsVisibility = (stateId) -> [
+  MentionsVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 
@@ -332,12 +365,13 @@ module.exports = {
   channelsSelectedItem
   channelsVisibility
 
-  usersQuery
-  users
-  usersRawIndex
-  usersSelectedIndex
-  usersSelectedItem
-  usersVisibility
+  mentionsQuery
+  userMentions
+  channelMentions
+  mentionsRawIndex
+  mentionsSelectedIndex
+  mentionsSelectedItem
+  mentionsVisibility
 
   searchItems
   searchQuery
