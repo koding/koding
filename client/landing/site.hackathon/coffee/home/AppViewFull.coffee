@@ -2,7 +2,7 @@ CustomLinkView   = require './../core/customlinkview'
 HomeRegisterForm = require './registerform'
 
 TWEET_TEXT       = 'I\'ve applied for the world\'s first global virtual #hackathon by @koding. Join my team!'
-SHARE_URL        = 'https://koding.com/Hackathon'
+SHARE_URL        = 'https://koding.com/Hackathon2014'
 
 VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.webm'
 VIDEO_URL_MP4    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
@@ -107,19 +107,19 @@ module.exports = class HomeViewFull extends KDView
   apply: ->
 
     $.ajax
-      url         : '/Hackathon/Apply'
+      url         : '/Hackathon2014/Apply'
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : (stats) =>
         # @button.hideLoader()
         KD.campaignStats = stats
         @updateWidget()
-        KD.singletons.router.handleRoute '/Hackathon'
+        KD.singletons.router.handleRoute '/Hackathon2014'
       error       : (xhr) =>
         {responseText} = xhr
         # @button?.hideLoader()
         new KDNotificationView title : responseText
-        KD.singletons.router.handleRoute '/Hackathon'
+        KD.singletons.router.handleRoute '/Hackathon2014'
 
 
   updateWidget : ->
