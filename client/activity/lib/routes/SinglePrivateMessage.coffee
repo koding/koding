@@ -35,6 +35,12 @@ module.exports =
       done()
 
 
+  onLeave: ->
+
+    threadActions.changeSelectedThread null
+    messageActions.changeSelectedMessage null
+
+
 transitionToChannel = (channelId, postId, done) ->
 
   successFn = ({ channel }) -> changeToChannel channel, postId, done

@@ -18,11 +18,7 @@ module.exports = SingleChannelRoute =
     content: ChannelThreadPane
     modal: null
 
-  onLeave: ->
-    threadActions.changeSelectedThread null
-    messageActions.changeSelectedMessage null
   onEnter: (nextState, replaceState, done) ->
-    { channelName, postId } = nextState.params
 
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
@@ -35,6 +31,10 @@ module.exports = SingleChannelRoute =
     else if not thread
       threadActions.changeSelectedThread null
       done()
+  onLeave: ->
+
+    threadActions.changeSelectedThread null
+    messageActions.changeSelectedMessage null
 
 
 transitionToChannel = (channelName, postId, done) ->
