@@ -21,25 +21,6 @@ module.exports = class KodingRouter extends kd.Router
 
     @on 'AlreadyHere', -> kd.log "You're already here!"
 
-    @on 'RouteInfoHandled', do (lastPath = '') -> ({ path }) ->
-
-      reactivityRouteRegex = /^\/(Channels|Messages)/
-
-      # check if current path is a reactivity route
-      isGood = path.match reactivityRouteRegex
-
-      # check if last path was a reactivity route
-      wasGood = lastPath.match reactivityRouteRegex
-
-      lastPath = path
-
-      # if we were in a reactivity route and we are going to a non reactivity
-      # route, we are unsetting selected channel thread to trigger unmount of
-      # the chat pane, so that scroll position will be saved.
-      if wasGood and not isGood
-        ActivityFlux = require 'activity/flux'
-        ActivityFlux.actions.thread.changeSelectedThread null
-
 
   listen: ->
 
