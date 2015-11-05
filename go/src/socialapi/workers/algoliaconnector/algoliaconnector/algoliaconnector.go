@@ -83,6 +83,8 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 					AttributesToIndex: []string{
 						"nick",
 						"email",
+						"firstName",
+						"lastName",
 						"_tags",
 					},
 					UnretrievableAttributes: []string{"email"},
