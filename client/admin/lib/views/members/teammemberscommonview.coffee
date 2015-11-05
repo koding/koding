@@ -33,9 +33,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @createSearchView()
     @createListController()
-
-    @listController.getView().once 'viewAppended', =>
-      @fetchMembers yes
+    @fetchMembers()
 
 
   createSearchView: ->
@@ -95,21 +93,22 @@ module.exports = class TeamMembersCommonView extends KDView
         @fetchMembers()
 
 
-  fetchMembers: (isInitialFetch) ->
+  fetchMembers: ->
 
     return if @isFetching
 
     @isFetching = yes
 
-    group    = @getData()
-    method   = @getOption 'fetcherMethod'
-    options  =
-      limit  : @getFetcherLimit isInitialFetch
-      sort   : timestamp: -1 # timestamp is at relationship collection
-      skip   : @skip
+    { fetcherMethod, itemLimit } = @getOptions()
+
+    group   = @getData()
+    options =
+      limit : itemLimit
+      sort  : timestamp: -1 # timestamp is at relationship collection
+      skip  : @skip
 
     # fetch members as jAccount
-    group[method] {}, options, (err, members) =>
+    group[fetcherMethod] {}, options, (err, members) =>
 
       return @handleError err  if err
 
@@ -170,16 +169,30 @@ module.exports = class TeamMembersCommonView extends KDView
     @skip += members.length
 
     if @getOptions().memberType is 'Blocked'
-      for member in members
-        @listController.addItem member
+      @listController.addItem member  for member in members
+      @calculateAndFetchMoreIfNeeded()  if members.length
     else
       @fetchUserRoles members, (members) =>
         members.forEach (member) =>
           member.loggedInUserRoles = @loggedInUserRoles # FIXME
           item = @listController.addItem member
 
+        @calculateAndFetchMoreIfNeeded()  if members.length
+
     @listController.lazyLoader.hide()
     @searchContainer.show()
+
+
+  calculateAndFetchMoreIfNeeded: ->
+
+    listCtrl = @listController
+
+    viewHeight = listCtrl.getView().getHeight()
+    listHeight = listCtrl.getListView().getHeight()
+
+    if listHeight <= viewHeight
+      listCtrl.lazyLoader.show()
+      @fetchMembers yes
 
 
   search: (useSearchMembersMethod = no) ->
@@ -242,22 +255,3 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @resetListItems()
     @fetchMembers()
-
-
-  # return the ideal number of list items limit to ensure that there will be
-  # always a scroller when list controller added.
-  #
-  # get list view height and divide it to item height then add it to 2
-  # to make sure that there will be a scroller. finally choose the calculated
-  # number or the default item limit if it's bigger than calculated one.
-  getFetcherLimit: (isInitialFetch) ->
-
-    limit = @getOption 'itemLimit'
-
-    return limit unless isInitialFetch
-
-    itemHeight   = 71
-    viewHeight   = @listController.getView().getHeight()
-    initialLimit = Math.ceil(viewHeight / itemHeight) + 2
-
-    return limit = Math.max initialLimit, limit
