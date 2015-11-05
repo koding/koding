@@ -17,15 +17,15 @@
     "/Activity/Chat/All" : "AllPrivateMessages",
     "/Activity" : "ActivityGeneric",
 
-    "/Channels/:channelName": "SingleChannel",
-    "/Channels/:channelName/:postSlug": "SinglePost",
-    "/Channels/:channelName/summary": "SingleChannelWithSummary",
-    "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary",
+    "/NewChannel": "NewPublicChannel",
+    "/Channels": "AllPublicChannels",
+    "/Channels/:channelName": "SinglePublicChannel",
+    "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
 
-    "/Messages/:privateChannelId": "PrivateMessages",
-    "/Messages/:privateChannelId/:postId": "PrivateMessages"
-
-
+    "/NewMessage": "NewPrivateChannel",
+    "/Messages": "AllPrivateChannels",
+    "/Messages/:privateChannelId": "SinglePrivateChannel",
+    "/Messages/:privateChannelId/:postId": "SinglePrivateChannelPost"
   },
   "sprites": [
     "./lib/sprites"

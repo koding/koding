@@ -401,6 +401,22 @@ checkOwnership = (data, callback) ->
   url = "#{socialProxyUrl}/account/#{data.accountId}/owns"
   get url, data, callback
 
+createNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/notificationsetting"
+  post url, data, callback
+
+getNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/notificationsetting"
+  get url, data, callback
+
+updateNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/notificationsetting/#{data.id}"
+  post url, data, callback
+
+deleteNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/notificationsetting/#{data.id}"
+  deleteReq url, data, callback
+
 expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
   post url, {}, callback
@@ -536,6 +552,10 @@ module.exports = {
   updateChannel
   createChannel
   checkOwnership
+  createNotificationSetting
+  getNotificationSetting
+  updateNotificationSetting
+  deleteNotificationSetting
   expireSubscription
   fetchBotChannel
   post

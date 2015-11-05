@@ -104,10 +104,10 @@ func CreateMessageWithBody(channelId, accountId int64, typeConstant, body string
 	err := cm.Create()
 	So(err, ShouldBeNil)
 
-	cml := NewChannelMessageList()
-	cml.MessageId = cm.Id
-	cml.ChannelId = channelId
-	So(cml.Create(), ShouldBeNil)
+	c := NewChannel()
+	c.Id = channelId
+	_, err = c.EnsureMessage(cm, false)
+	So(err, ShouldBeNil)
 
 	return cm
 }
@@ -182,24 +182,13 @@ func createChannel(accountId int64) (*Channel, error) {
 	return channel, nil
 }
 
-func createMessageWithTest() *ChannelMessage {
+func CreateMessageWithTest() *ChannelMessage {
+	account := CreateAccountWithTest()
+	channel := CreateChannelWithTest(account.Id)
+
 	cm := NewChannelMessage()
-
-	// init account
-	account, err := createAccount()
-	So(err, ShouldBeNil)
-	So(account, ShouldNotBeNil)
-	So(account.Id, ShouldNotEqual, 0)
-	// init channel
-	channel, err := createChannel(account.Id)
-	So(err, ShouldBeNil)
-	So(channel, ShouldNotBeNil)
-
-	// set account id
 	cm.AccountId = account.Id
-	// set channel id
 	cm.InitialChannelId = channel.Id
-	// set body
 	cm.Body = "5five"
 	return cm
 }
