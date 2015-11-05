@@ -45,7 +45,7 @@ func TestGithubAddAndRemoveUser(t *testing.T) {
 	for _, teamID := range teamIDs {
 		_, _, err := orgClient.Organizations.AddTeamMembership(teamID, user, optAddOrgMembership)
 		if err != nil {
-			t.Fatalf("Error while adding user to team ", err)
+			t.Fatalf("Error while adding user to team: %+v ", err)
 		}
 	}
 
@@ -54,7 +54,7 @@ func TestGithubAddAndRemoveUser(t *testing.T) {
 	for _, teamID := range teamIDs {
 		_, _, err := orgClient.Organizations.AddTeamMembership(teamID, user, optAddOrgMembership)
 		if err != nil {
-			t.Fatalf("Error while adding user to team ", err)
+			t.Fatalf("Error while adding user to team: %+v ", err)
 		}
 	}
 
@@ -68,20 +68,20 @@ func TestGithubAddAndRemoveUser(t *testing.T) {
 
 	_, _, err = userClient.Organizations.EditOrgMembership("", org, membership)
 	if err != nil {
-		t.Fatalf("Error while adding user to organization ", err)
+		t.Fatalf("Error while adding user to organization: %+v ", err)
 	}
 
 	// When you try to add a user to an organization twice,
 	// it doesn't return any error
 	_, _, err = userClient.Organizations.EditOrgMembership("", org, membership)
 	if err != nil {
-		t.Fatalf("Error while adding user to organization ", err)
+		t.Fatalf("Error while adding user to organization: %+v ", err)
 	}
 
 	// You can remove a member from organization
 	_, err = orgClient.Organizations.RemoveMember(org, user)
 	if err != nil {
-		t.Fatalf("Error while removing user from organization and teams of the organization ", err)
+		t.Fatalf("Error while removing user from organization and teams of the organization: %+v", err)
 	}
 
 }
