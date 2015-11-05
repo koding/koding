@@ -11,19 +11,33 @@ changeToChannel   = require 'activity/util/changeToChannel'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
-module.exports = SingleChannelRoute =
 
-  path: ':channelName(/:postId)'
-  components:
-    content: ChannelThreadPane
-    modal: null
+module.exports = class SingleChannelRoute
+
+  constructor: ->
+
+    @path = ':channelName(:/postId)'
+    @childRoutes = [
+    ]
+
+
+  getComponents: (state, callback) ->
+
+    callback null,
+      content: ChannelThreadPane
+      modal: null
+
 
   onEnter: (nextState, replaceState, done) ->
 
+    { channelName, postId } = nextState.params
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
+    # if there is no channel name set on the route (/NewChannel, /Channels)
     unless channelName
+      # if there is not a selected chat
       unless thread
+        # set channel name to group channel name.
         channelName = getGroup().slug
 
     if channelName
@@ -31,6 +45,10 @@ module.exports = SingleChannelRoute =
     else if not thread
       threadActions.changeSelectedThread null
       done()
+    else
+      done()
+
+
   onLeave: ->
 
     threadActions.changeSelectedThread null

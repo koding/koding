@@ -12,20 +12,32 @@ changeToChannel          = require 'activity/util/changeToChannel'
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
 
-module.exports =
-  path: ':privateChannelId(/:postId)'
-  components:
-    content: PrivateMessageThreadPane
-    modal: null
+module.exports = class SinglePrivateMessageRoute
+
+  constructor: ->
+
+    @path = ':privateChannelId(/:postId)'
+
+
+  getComponents: (state, callback) ->
+
+    callback null,
+      content: PrivateMessageThreadPane
+      modal: null
+
 
   onEnter: (nextState, replaceState, done) ->
+
     { privateChannelId, postId } = nextState.params
 
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
+    # if there is no channel id set on the route (/Messages, /NewMessage)
     unless privateChannelId
+      # if there is not a selected chat
       unless thread
         botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
+        # set channel id to bot channel id.
         privateChannelId = botChannel.id
 
     if privateChannelId
