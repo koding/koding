@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"socialapi/models"
 	"strconv"
 	"testing"
 	"time"
@@ -12,131 +13,134 @@ func TestMessageListSaved(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	Convey("messages can be saved", t, func() {
-		mockMessage, _ := createAndSaveMessage()
-		mockListing := getListings(mockMessage)[0]
+	Convey("while testing message list save", t, func() {
+		account := models.CreateAccountWithTest()
+		channel := models.CreateChannelWithTest(account.Id)
+		cm := models.CreateMessage(channel.Id, account.Id, models.ChannelMessage_TYPE_POST)
 
-		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
-		So(doBasicTestForMessage(handler, mockListing.MessageId), ShouldBeNil)
-	})
+		Convey("messages can be saved", func() {
+			cmls, err := cm.GetChannelMessageLists()
+			So(err, ShouldBeNil)
+			So(len(cmls), ShouldBeGreaterThan, 0)
 
-	Convey("messages can be cross-indexed", t, func() {
-		mockMessage, owner := createAndSaveMessage()
-
-		// init channel
-		cm, err := createChannel(owner.Id)
-		So(err, ShouldBeNil)
-		So(cm, ShouldNotBeNil)
-		// init channel message list
-		cml := createChannelMessageList(cm.Id, mockMessage.Id)
-		So(cml, ShouldNotBeNil)
-
-		listings := getListings(mockMessage)
-		So(len(listings), ShouldEqual, 2)
-
-		So(handler.MessageListSaved(&listings[0]), ShouldBeNil)
-		So(doBasicTestForMessage(handler, listings[0].MessageId), ShouldBeNil)
-
-		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
-		err = makeSureMessage(handler, listings[1].MessageId, func(record map[string]interface{}, err error) bool {
-			if err != nil {
-				return false
-			}
-
-			if len((record["_tags"]).([]interface{})) != 2 {
-				return false
-			}
-
-			return true
+			So(handler.MessageListSaved(&cmls[0]), ShouldBeNil)
+			So(doBasicTestForMessage(handler, cmls[0].MessageId), ShouldBeNil)
 		})
-		So(err, ShouldBeNil)
+
+		Convey("messages can be cross-indexed", func() {
+			c1 := models.CreateChannelWithTest(account.Id)
+			_, err := c1.AddMessage(cm)
+			So(err, ShouldBeNil)
+
+			cmls, err := cm.GetChannelMessageLists()
+			So(err, ShouldBeNil)
+			So(len(cmls), ShouldEqual, 2)
+
+			So(handler.MessageListSaved(&cmls[0]), ShouldBeNil)
+			So(doBasicTestForMessage(handler, cmls[0].MessageId), ShouldBeNil)
+
+			So(handler.MessageListSaved(&cmls[1]), ShouldBeNil)
+			err = makeSureMessage(handler, cmls[1].MessageId, func(record map[string]interface{}, err error) bool {
+				if err != nil {
+					return false
+				}
+
+				if len((record["_tags"]).([]interface{})) != 2 {
+					return false
+				}
+
+				return true
+			})
+			So(err, ShouldBeNil)
+		})
 	})
 }
 
 func TestMessageListDeleted(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
+	Convey("while testing message list delete", t, func() {
 
-	Convey("messages can be deleted", t, func() {
-		mockMessage, _ := createAndSaveMessage()
-		mockListing := getListings(mockMessage)[0]
+		account := models.CreateAccountWithTest()
+		channel := models.CreateChannelWithTest(account.Id)
+		cm := models.CreateMessage(channel.Id, account.Id, models.ChannelMessage_TYPE_POST)
 
-		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
-		So(doBasicTestForMessage(handler, mockListing.MessageId), ShouldBeNil)
+		Convey("messages can be deleted", func() {
+			cmls, err := cm.GetChannelMessageLists()
+			So(err, ShouldBeNil)
+			So(len(cmls), ShouldBeGreaterThan, 0)
 
-		So(handler.MessageListDeleted(&mockListing), ShouldBeNil)
-		err := makeSureMessage(handler, mockListing.MessageId, func(record map[string]interface{}, err error) bool {
-			if err == nil {
-				return false
-			}
+			So(handler.MessageListSaved(&cmls[0]), ShouldBeNil)
+			So(doBasicTestForMessage(handler, cmls[0].MessageId), ShouldBeNil)
 
-			if record != nil {
-				return false
-			}
+			So(handler.MessageListDeleted(&cmls[0]), ShouldBeNil)
+			err = makeSureMessage(handler, cmls[0].MessageId, func(record map[string]interface{}, err error) bool {
+				if err == nil {
+					return false
+				}
 
-			return true
-		})
-		So(err, ShouldBeNil)
-	})
+				if record != nil {
+					return false
+				}
 
-	Convey("cross-indexed messages will not be deleted", t, func() {
-		mockMessage, owner := createAndSaveMessage()
-
-		// init channel
-		cm, err := createChannel(owner.Id)
-		So(err, ShouldBeNil)
-		So(cm, ShouldNotBeNil)
-		// init channel message list
-		cml := createChannelMessageList(cm.Id, mockMessage.Id)
-		So(cml, ShouldNotBeNil)
-
-		listings := getListings(mockMessage)
-		So(len(listings), ShouldEqual, 2)
-
-		So(handler.MessageListSaved(&listings[0]), ShouldBeNil)
-		err = makeSureMessage(handler, listings[0].MessageId, func(record map[string]interface{}, err error) bool {
-			if err != nil {
-				return false
-			}
-
-			if len((record["_tags"]).([]interface{})) != 1 {
-				return false
-			}
-
-			return true
-		})
-		So(err, ShouldBeNil)
-
-		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
-
-		err = makeSureMessage(handler, listings[1].MessageId, func(record map[string]interface{}, err error) bool {
-			if err != nil {
-				return false
-			}
-
-			if len((record["_tags"]).([]interface{})) != 2 {
-				return false
-			}
-
-			return true
-		})
-		So(err, ShouldBeNil)
-
-		So(handler.MessageListDeleted(&listings[1]), ShouldBeNil)
-
-		err = makeSureMessage(handler, listings[1].MessageId, func(record map[string]interface{}, err error) bool {
-			if err != nil {
-				return false
-			}
-
-			if len((record["_tags"]).([]interface{})) != 1 {
-				return false
-			}
-
-			return true
+				return true
+			})
+			So(err, ShouldBeNil)
 		})
 
-		So(err, ShouldBeNil)
+		Convey("cross-indexed messages will not be deleted", func() {
+			channel := models.CreateChannelWithTest(account.Id)
+			channel.AddMessage(cm)
+
+			cmls, err := cm.GetChannelMessageLists()
+			So(err, ShouldBeNil)
+			So(len(cmls), ShouldEqual, 2)
+
+			So(handler.MessageListSaved(&cmls[0]), ShouldBeNil)
+			err = makeSureMessage(handler, cmls[0].MessageId, func(record map[string]interface{}, err error) bool {
+				if err != nil {
+					return false
+				}
+
+				if len((record["_tags"]).([]interface{})) != 1 {
+					return false
+				}
+
+				return true
+			})
+			So(err, ShouldBeNil)
+
+			So(handler.MessageListSaved(&cmls[1]), ShouldBeNil)
+
+			err = makeSureMessage(handler, cmls[1].MessageId, func(record map[string]interface{}, err error) bool {
+				if err != nil {
+					return false
+				}
+
+				if len((record["_tags"]).([]interface{})) != 2 {
+					return false
+				}
+
+				return true
+			})
+			So(err, ShouldBeNil)
+
+			So(handler.MessageListDeleted(&cmls[1]), ShouldBeNil)
+
+			err = makeSureMessage(handler, cmls[1].MessageId, func(record map[string]interface{}, err error) bool {
+				if err != nil {
+					return false
+				}
+
+				if len((record["_tags"]).([]interface{})) != 1 {
+					return false
+				}
+
+				return true
+			})
+
+			So(err, ShouldBeNil)
+		})
 	})
 }
 
@@ -145,11 +149,16 @@ func TestMessageUpdated(t *testing.T) {
 	defer runner.Close()
 
 	Convey("messages can be updated", t, func() {
-		mockMessage, _ := createAndSaveMessage()
-		mockListing := getListings(mockMessage)[0]
+		account := models.CreateAccountWithTest()
+		channel := models.CreateChannelWithTest(account.Id)
+		cm := models.CreateMessage(channel.Id, account.Id, models.ChannelMessage_TYPE_POST)
 
-		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
-		err := makeSureMessage(handler, mockListing.MessageId, func(record map[string]interface{}, err error) bool {
+		cmls, err := cm.GetChannelMessageLists()
+		So(err, ShouldBeNil)
+		So(len(cmls), ShouldBeGreaterThan, 0)
+
+		So(handler.MessageListSaved(&cmls[0]), ShouldBeNil)
+		err = makeSureMessage(handler, cmls[0].MessageId, func(record map[string]interface{}, err error) bool {
 			if err != nil {
 				return false
 			}
@@ -158,11 +167,11 @@ func TestMessageUpdated(t *testing.T) {
 		})
 		So(err, ShouldBeNil)
 
-		mockMessage.Body = "updated body"
+		cm.Body = "updated body"
 
-		So(mockMessage.Update(), ShouldBeNil)
-		So(handler.MessageUpdated(mockMessage), ShouldBeNil)
-		err = makeSureMessage(handler, mockListing.MessageId, func(record map[string]interface{}, err error) bool {
+		So(cm.Update(), ShouldBeNil)
+		So(handler.MessageUpdated(cm), ShouldBeNil)
+		err = makeSureMessage(handler, cmls[0].MessageId, func(record map[string]interface{}, err error) bool {
 			if err != nil {
 				return false
 			}
@@ -191,6 +200,38 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 	})
 }
 
+func ensureMessageWithTag(handler *Controller, id int64, tag string) error {
+	return makeSureMessage(handler, id, func(record map[string]interface{}, err error) bool {
+		if err != nil {
+			return false
+		}
+
+		if record == nil {
+			return false
+		}
+
+		tags, ok := record["_tags"]
+		if !ok {
+			return false
+		}
+
+		tis, ok := tags.([]interface{})
+		if !ok {
+			return false
+		}
+
+		for _, t := range tis {
+			if s, ok := t.(string); ok {
+				if s == tag {
+					return true
+				}
+			}
+		}
+
+		return false
+	})
+}
+
 // makeSureMessage checks if the given id's get request returns the desired err, it
 // will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
@@ -206,8 +247,7 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 			}
 		case <-deadLine:
 			handler.log.Critical("deadline reached on message but not returning an error")
-			// return errDeadline
-			return nil
+			return errDeadline
 		}
 	}
 }

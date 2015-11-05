@@ -29,3 +29,25 @@ module.exports = class StackTemplateEditorView extends BaseStackEditorView
     ace = @getAce()
     ace.editor.session.insert position, content
     ace.contentChanged = no
+
+
+  createEditor: ->
+
+    super
+
+    { ace } = @aceView
+
+    if descriptionView = @getOption 'descriptionView'
+      ace.ready =>
+        ace.descriptionView = descriptionView
+        ace.prepend descriptionView
+        @resize()
+
+
+  resize: ->
+
+    height = @getHeight()
+    ace    = @getAce()
+
+    ace.setHeight height
+    ace.editor.resize()

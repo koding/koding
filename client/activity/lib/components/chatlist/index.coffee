@@ -137,8 +137,11 @@ module.exports = class ChatList extends React.Component
     { messages, showItemMenu, channelName, channelId, onItemEditStarted } = @props
     { selectedMessageId } = @state
 
-    lastDifferentOwnerId = null
-    prevMessage = null
+    lastDifferentOwnerId     = null
+    prevMessage              = null
+    lastMessageCreatedAt     = null
+    timeDiff                 = 0
+    isLessThanFiveMinutes    = no
 
     children = messages.toList().reduce (children, message, i) =>
 
@@ -150,19 +153,26 @@ module.exports = class ChatList extends React.Component
         channelId     : channelId
         onEditStarted : onItemEditStarted
 
+      createdAt = message.get 'createdAt'
+
+      timeDiff  = new Date(createdAt).getTime() - lastMessageCreatedAt  if lastMessageCreatedAt
+      isLessThanFiveMinutes = timeDiff < (5 * 60 * 1000)
+
       if selectedMessageId is message.get 'id'
         itemProps['isSelected'] = yes
         itemProps['ref'] = 'selectedComponent'
 
       children = children.concat @getBeforeMarkers message, prevMessage, i
 
-      if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
+      if lastDifferentOwnerId and lastDifferentOwnerId is message.get('accountId') and isLessThanFiveMinutes
         children.push \
           <SimpleChatListItem {...itemProps } />
       else
         lastDifferentOwnerId = message.get 'accountId'
         children.push \
           <ChatListItem {...itemProps} />
+
+      lastMessageCreatedAt = new Date(createdAt).getTime()
 
       children = children.concat @getAfterMarkers message, prevMessage, i
 

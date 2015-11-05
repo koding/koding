@@ -33,18 +33,20 @@ module.exports = class ActivityModal extends React.Component
   render: ->
     <Modal {...@props}>
       <Modal.Title>{@props.title}</Modal.Title>
-      <Modal.Content>
-        {@props.children}
-      </Modal.Content>
-      <Modal.ButtonGroup>
-        <Modal.Button className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
-          {@props.buttonConfirmTitle}
-        </Modal.Button>
-        {@renderExtraButton()}
-        <Modal.Button className={@props.buttonAbortClassName} onClick={@props.onAbort}>
-          {@props.buttonAbortTitle}
-        </Modal.Button>
-      </Modal.ButtonGroup>
+      <form>
+        <Modal.Content>
+          {@props.children}
+        </Modal.Content>
+        <Modal.ButtonGroup>
+          <Modal.Button className={@props.buttonConfirmClassName} onClick={@props.onConfirm}>
+            {@props.buttonConfirmTitle}
+          </Modal.Button>
+          {@renderExtraButton()}
+          <Modal.Button className={@props.buttonAbortClassName} onClick={@props.onAbort}>
+            {@props.buttonAbortTitle}
+          </Modal.Button>
+        </Modal.ButtonGroup>
+      </form>
     </Modal>
 
 

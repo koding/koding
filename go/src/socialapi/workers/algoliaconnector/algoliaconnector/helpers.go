@@ -55,6 +55,31 @@ func (f *Controller) partialUpdate(indexName string, record map[string]interface
 	return nil
 }
 
+// AddUniqueTag Adds a number or string element to an array based-attribute if it doesn’t exist
+func (f *Controller) AddUniqueTag(indexName string, objectID, value interface{}) error {
+	return f.tagAction("AddUnique", indexName, objectID, value)
+}
+
+// RemoveTag Removes the first element from an array-based attribute
+func (f *Controller) RemoveTag(indexName string, objectID, value interface{}) error {
+	return f.tagAction("Remove", indexName, objectID, value)
+}
+
+// AddTag Appends a number or string element to an array-based attribute
+func (f *Controller) AddTag(indexName string, objectID, value interface{}) error {
+	return f.tagAction("Add", indexName, objectID, value)
+}
+
+func (f *Controller) tagAction(action, indexName string, objectID, value interface{}) error {
+	return f.partialUpdate(indexName, map[string]interface{}{
+		"objectID": objectID,
+		"_tags": map[string]interface{}{
+			"_operation": action,
+			"value":      value,
+		},
+	})
+}
+
 func appendTag(record map[string]interface{}, channelId string) []interface{} {
 	if record == nil {
 		return []interface{}{channelId}

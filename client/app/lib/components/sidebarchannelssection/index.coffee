@@ -20,7 +20,7 @@ module.exports = class SidebarChannelsSection extends React.Component
     { threads, previewCount } = @props
 
     if threads.size > previewCount
-      <Link className="SidebarList-showMore" href="/Channels/All">More ...</Link>
+      <Link className="SidebarList-showMore" href="/Channels">More ...</Link>
 
 
   render: ->
@@ -28,8 +28,8 @@ module.exports = class SidebarChannelsSection extends React.Component
     <div>
       <SidebarSection
         title="Channels"
-        titleLink="/Channels/All"
-        secondaryLink="/Channels/New"
+        titleLink="/Channels"
+        secondaryLink="/NewChannel"
         className="SidebarChannelsSection">
         <SidebarList
           previewCount={@props.previewCount}

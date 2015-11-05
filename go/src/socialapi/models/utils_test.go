@@ -3,7 +3,6 @@ package models
 import "testing"
 
 func TestUnifyStringSlice(t *testing.T) {
-
 	testData := []struct {
 		slice    []string
 		expected []string
