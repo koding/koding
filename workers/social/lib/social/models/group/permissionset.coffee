@@ -45,6 +45,10 @@ module.exports = class JPermissionSet extends Module
 
     super data
 
+    # Flush mainGroupData cache on update
+    @on 'updateInstance', =>
+      @constructor.mainGroupData = null
+
     return  if @isCustom
 
     # initialize the permission set with some sane defaults:
@@ -87,6 +91,8 @@ module.exports = class JPermissionSet extends Module
 
   @fetchMainGroupAndPermissionSet = (callback) ->
 
+    # We do have a in memory cache here for `MAIN_GROUP` which will be
+    # flushed once a JPermissionSet is getting updated ~ GG
     return callback null, @mainGroupData  if @mainGroupData
 
     fetchGroupAndPermissionSet MAIN_GROUP, (err, res) =>
