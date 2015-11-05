@@ -35,6 +35,7 @@ type resources struct {
 
 type Purge struct {
 	services *multiRegion
+	regions  []string // our own defined regions
 
 	// resources represents the current available resources per region. It's
 	// populated by the Fetch() method.
@@ -78,17 +79,19 @@ func New(conf *Config) (*Purge, error) {
 		Logger:      aws.NewDefaultLogger(),
 	}
 
-	m := newMultiRegion(awsCfg, filterRegions(conf.Regions, conf.RegionsExclude))
+	regions := filterRegions(conf.Regions, conf.RegionsExclude)
+	m := newMultiRegion(awsCfg, regions)
 
 	// initialize resources
 	res := make(map[string]*resources, 0)
-	for _, region := range allRegions {
+	for _, region := range regions {
 		res[region] = &resources{}
 	}
 
 	return &Purge{
 		services:  m,
 		resources: res,
+		regions:   regions,
 	}, nil
 }
 

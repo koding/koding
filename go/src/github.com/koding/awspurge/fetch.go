@@ -13,7 +13,7 @@ func (p *Purge) FetchInstances() {
 			p.mu.Unlock()
 			return
 		}
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].instances = allInstances[region]
 			p.resourceMu.Unlock()
@@ -33,7 +33,7 @@ func (p *Purge) FetchVolumes() {
 			p.mu.Unlock()
 			return
 		}
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].volumes = allVolumes[region]
 			p.resourceMu.Unlock()
@@ -54,7 +54,7 @@ func (p *Purge) FetchKeyPairs() {
 			return
 		}
 
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].keyPairs = allKeyPairs[region]
 			p.resourceMu.Unlock()
@@ -76,7 +76,7 @@ func (p *Purge) FetchPlacementGroups() {
 			return
 		}
 
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].placementGroups = allPlacementGroups[region]
 			p.resourceMu.Unlock()
@@ -97,7 +97,7 @@ func (p *Purge) FetchAddresses() {
 			return
 		}
 
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].addresses = allAddresses[region]
 			p.resourceMu.Unlock()
@@ -118,7 +118,7 @@ func (p *Purge) FetchSnapshots() {
 			return
 		}
 
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].snapshots = allSnaphots[region]
 			p.resourceMu.Unlock()
@@ -140,7 +140,7 @@ func (p *Purge) FetchLoadBalancers() {
 			return
 		}
 
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].loadBalancers = allLoadBalancers[region]
 			p.resourceMu.Unlock()
@@ -162,7 +162,7 @@ func (p *Purge) FetchSecurityGroups() {
 			return
 		}
 
-		for _, region := range allRegions {
+		for _, region := range p.regions {
 			p.resourceMu.Lock()
 			p.resources[region].securityGroups = allSecurityGroups[region]
 			p.resourceMu.Unlock()
