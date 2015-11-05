@@ -1,3 +1,71 @@
+  * [Getting started for local deployment](#getting-started-for-local-deployment)
+      * [Prerequisites](#prerequisites)
+      * [Install dependencies](#install-dependencies)
+      * [Deploy Koding locally](#deploy-koding-locally)
+  * [Life cycle of a development task](#life-cycle-of-a-development-task)
+    * [Story types](#story-types)
+        * [Feature](#feature)
+        * [Bug](#bug)
+        * [Chore](#chore)
+        * [Epic](#epic)
+    * [Estimation](#estimation)
+    * [Starting](#starting)
+    * [Development](#development)
+      * [Making changes in submodules](#making-changes-in-submodules)
+      * [Making changes in a node module](#making-changes-in-a-node-module)
+        * [Versioning of node modules](#versioning-of-node-modules)
+    * [Submitting a pull request &amp; review](#submitting-a-pull-request--review)
+      * [Submitting a pull request to a submodule](#submitting-a-pull-request-to-a-submodule)
+    * [Deployment](#deployment)
+    * [Testing](#testing)
+    * [Amazon Server Management](#amazon-server-management)
+      * [VPC](#vpc)
+      * [Subnets](#subnets)
+      * [Routing Tables](#routing-tables)
+      * [Internet Gateways](#internet-gateways)
+      * [Elastic IPs](#elastic-ips)
+      * [Network ACLs](#network-acls)
+      * [Security Group](#security-group)
+
+# Getting started for local deployment
+
+### Prerequisites
+
+- [Homebrew](http://brew.sh/)
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+- [Go](https://golang.org/dl/) (**Mac users**: use official installer)
+
+### Install dependencies
+
+Supported `node.js` and `npm` versions are respectively `0.10` and `2.x` - if you have already newer version installed, remember to force remove it first:
+
+```
+$ brew remove node --force
+$ brew tap homebrew/versions
+$ brew homebrew/versions/node010
+```
+
+```
+$ brew install boot2docker docker graphicsmagick mongodb nginx postgresql
+$ npm i coffee-script@1.8.0 gulp -g
+$ boot2docker init && boot2docker up
+$ cat >>~/.bash_profile <<EOF
+eval $(boot2docker shellinit)
+EOF
+$ . ~/.bash_profile
+```
+
+### Deploy Koding locally
+
+```
+koding $ ./configure
+koding $ ./run buildservices force
+koding $ ./run install
+koding $ ./run backend
+```
+
+Access your local deployment under `dev.koding.com:8090` (`dev.koding.com` is added to your routing table during deploy and routes to `localhost`).
+
 # Life cycle of a development task
 
 It consists of following steps:

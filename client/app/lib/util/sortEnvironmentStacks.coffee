@@ -1,10 +1,10 @@
-MANAGED_VMS = 'Managed VMs'
+isManagedVMStack = require './isManagedVMStack'
 
 module.exports = (stacks = []) ->
 
   stacks.sort (a, b) ->
 
-    return  1  if a.title is MANAGED_VMS
-    return -1  if b.title is MANAGED_VMS
+    return  1  if isManagedVMStack a
+    return -1  if isManagedVMStack b
 
     return new Date(a.meta.createdAt) - new Date(b.meta.createdAt)

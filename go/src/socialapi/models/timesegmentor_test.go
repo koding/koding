@@ -9,7 +9,6 @@ import (
 )
 
 func TestTimeSegmentor(t *testing.T) {
-
 	Convey("time segmentor should not fail", t, func() {
 		ts := NewTimeSegmentor(30)
 		expectedSegment := time.Now().Minute() / 30

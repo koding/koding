@@ -1,6 +1,7 @@
 _                       = require 'underscore'
 hat                     = require 'hat'
 JUser                   = require '../lib/social/models/user'
+JGroup                  = require '../lib/social/models/group'
 JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
@@ -89,9 +90,10 @@ withConvertedUser = (opts, callback) ->
       client.sessionToken         = newToken
       client.connection.delegate  = account
 
-      if opts?.userFormData?
-      then callback { client, user, account, sessionToken : newToken }
-      else callback { client, user, account, sessionToken : newToken, userFormData }
+      fetchGroup client, (group) ->
+        if opts?.userFormData?
+        then callback { client, user, account, group, sessionToken : newToken }
+        else callback { client, user, account, group, sessionToken : newToken, userFormData }
 
 
 generateDummyUserFormData = (opts = {}) ->
@@ -177,6 +179,13 @@ fetchRelation = (options, callback) ->
     callback relationship
 
 
+fetchGroup = (client, callback) ->
+
+  JGroup.one { slug : client?.context?.group }, (err, group) ->
+    expect(err).to.not.exist
+    callback group
+
+
 expectRelation = {
 
   toExist : (options, callback) ->
@@ -197,6 +206,7 @@ module.exports = {
   daisy
   expect
   ObjectId
+  fetchGroup
   expectRelation
   withDummyClient
   generateUserInfo

@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	ErrAlgoliaObjectIdNotFoundMsg = "ObjectID does not exist"
+	ErrAlgoliaObjectIDNotFoundMsg = "ObjectID does not exist"
 	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
 
 	ErrTimeoutForSettings = errors.New("settings timed out")

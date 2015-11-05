@@ -83,13 +83,10 @@ module.exports = class JPermissionSet extends Module
     # permission = [permission]  unless Array.isArray permission
     groupName = \
       if 'function' is typeof target
-        module = target.name
         client?.context?.group ? 'koding'
       else if target instanceof JGroup
-        module = 'JGroup'
         target.slug
       else
-        module = target.constructor.name
         target.group ? client.context.group ? 'koding'
 
     client.groupName = groupName
@@ -108,28 +105,41 @@ module.exports = class JPermissionSet extends Module
             kallback group, permissionSet
 
   @permit = (permission, promise) ->
+
     # parameter hockey to allow either parameter to be optional
     if arguments.length is 1 and 'string' isnt typeof permission
-      [promise, permission] = [permission, promise]
+      [ promise, permission ] = [ permission, promise ]
     promise ?= {}
+
     # convert simple rules to complex rules:
     advanced =
       if promise.advanced then promise.advanced
       else wrapPermission permission
+
     # Support a "stub" form of permit that simply calls back with yes if the
     # permission is supported:
     promise.success ?= (client, callback) -> callback null, yes
+
     # return the validator:
     permit = secure (client, rest...) ->
+
       if 'function' is typeof rest[rest.length - 1]
         [rest..., callback] = rest
       else
         callback = (->)
+
+      # success/failure functions assignment
       success =
         if 'function' is typeof promise then promise.bind this
         else promise.success.bind this
       failure = promise.failure?.bind this
-      { delegate } = client.connection
+
+      module =
+        if 'function' is typeof this then @name
+        else @constructor.name
+
+      permissions = (p.permission for p in advanced).join ', '
+
       JPermissionSet.checkPermission client, advanced, this, rest,
         (err, hasPermission, roles) ->
           client.roles = roles
@@ -140,6 +150,15 @@ module.exports = class JPermissionSet extends Module
           else if failure?
             failure.apply null, args
           else
+
+            try
+              { context: { group }, clientIP, connection } = client
+              { profile: { nickname } } = connection.delegate
+              from = "'#{nickname}' on '#{group}' group. ip: '#{clientIP}'"
+            catch
+              from = "unknown: #{args}"
+
+            console.log \
+              "[#{module}] permission '#{permissions}' denied for #{from}"
+
             callback new KodingError 'Access denied'
-
-

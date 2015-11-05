@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/workers/common/tests"
 	"testing"
 
 	"github.com/koding/bongo"
@@ -10,493 +11,439 @@ import (
 )
 
 func TestChannelMessageListFetchMessageChannels(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while fethcing channel message of a message", t, func() {
+			Convey("channels should be valid", func() {
+				acc := CreateAccountWithTest()
+				c1 := CreateChannelWithTest(acc.Id)
+				c2 := CreateChannelWithTest(acc.Id)
+				c3 := CreateChannelWithTest(acc.Id)
 
-	Convey("while fethcing channel message of a message", t, func() {
-		Convey("channels should be valid", func() {
-			c1 := createNewChannelWithTest()
-			So(c1.Create(), ShouldBeNil)
+				cm := NewChannelMessage()
+				cm.Body = "gel beri abi"
+				cm.AccountId = c1.CreatorId
+				cm.InitialChannelId = c1.Id
+				So(cm.Create(), ShouldBeNil)
 
-			c2 := createNewChannelWithTest()
-			So(c2.Create(), ShouldBeNil)
+				// add to first channel
+				_, err := c1.AddMessage(cm)
+				So(err, ShouldBeNil)
 
-			c3 := createNewChannelWithTest()
-			So(c3.Create(), ShouldBeNil)
+				// add to second channel
+				_, err = c2.AddMessage(cm)
+				So(err, ShouldBeNil)
 
-			cm := NewChannelMessage()
-			cm.Body = "gel beri abi"
-			cm.AccountId = c1.CreatorId
-			cm.InitialChannelId = c1.Id
-			So(cm.Create(), ShouldBeNil)
+				// add to 3rd channel
+				_, err = c3.AddMessage(cm)
+				So(err, ShouldBeNil)
 
-			// add to first channel
-			_, err := c1.AddMessage(cm)
-			So(err, ShouldBeNil)
+				channels, err := NewChannelMessageList().FetchMessageChannels(cm.Id)
+				So(err, ShouldBeNil)
+				So(len(channels), ShouldEqual, 3)
 
-			// add to second channel
-			_, err = c2.AddMessage(cm)
-			So(err, ShouldBeNil)
+				So(c1.Name, ShouldEqual, channels[0].Name)
+				So(c2.Name, ShouldEqual, channels[1].Name)
+				So(c3.Name, ShouldEqual, channels[2].Name)
 
-			// add to 3rd channel
-			_, err = c3.AddMessage(cm)
-			So(err, ShouldBeNil)
-
-			channels, err := NewChannelMessageList().FetchMessageChannels(cm.Id)
-			So(err, ShouldBeNil)
-			So(len(channels), ShouldEqual, 3)
-
-			So(c1.Name, ShouldEqual, channels[0].Name)
-			So(c2.Name, ShouldEqual, channels[1].Name)
-			So(c3.Name, ShouldEqual, channels[2].Name)
-
-			So(c1.GroupName, ShouldEqual, channels[0].GroupName)
-			So(c2.GroupName, ShouldEqual, channels[1].GroupName)
-			So(c3.GroupName, ShouldEqual, channels[2].GroupName)
+				So(c1.GroupName, ShouldEqual, channels[0].GroupName)
+				So(c2.GroupName, ShouldEqual, channels[1].GroupName)
+				So(c3.GroupName, ShouldEqual, channels[2].GroupName)
+			})
 		})
 	})
 }
 
 func TestChannelMessageListCount(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while counting messages", t, func() {
+			Convey("it should error if channel id is not set", func() {
+				cml := NewChannelMessageList()
 
-	Convey("while counting messages", t, func() {
-		Convey("it should error if channel id is not set", func() {
-			cml := NewChannelMessageList()
+				c, err := cml.Count(0)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrChannelIdIsNotSet)
+				So(c, ShouldEqual, 0)
+			})
 
-			c, err := cml.Count(0)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			So(c, ShouldEqual, 0)
-		})
+			Convey("it should not error if message in the channel", func() {
+				// create message
+				cm := CreateMessageWithTest()
+				So(cm.Create(), ShouldBeNil)
 
-		Convey("it should not error if message in the channel", func() {
-			// create message
-			cm := createMessageWithTest()
-			So(cm.Create(), ShouldBeNil)
+				acc := CreateAccountWithTest()
+				c := CreateChannelWithTest(acc.Id)
 
-			c := createNewChannelWithTest()
-			So(c.Create(), ShouldBeNil)
+				_, err := c.AddMessage(cm)
+				So(err, ShouldBeNil)
 
-			_, err := c.AddMessage(cm)
-			So(err, ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
 
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
+				cnt, err := cml.Count(cml.ChannelId)
+				So(err, ShouldBeNil)
+				So(cnt, ShouldEqual, 1)
+			})
 
-			cnt, err := cml.Count(cml.ChannelId)
-			So(err, ShouldBeNil)
-			So(cnt, ShouldEqual, 1)
-		})
+			Convey("it should not count message if account of message is troll ", func() {
+				// create channel
+				acc := CreateAccountWithTest()
+				c := CreateChannelWithTest(acc.Id)
 
-		Convey("it should not count message if account of message is troll ", func() {
-			// create channel
-			c := createNewChannelWithTest()
-			So(c.Create(), ShouldBeNil)
+				// create account as troll
+				acc1 := CreateAccountWithTest()
+				err := acc1.MarkAsTroll()
+				So(err, ShouldBeNil)
 
-			// create account as troll
-			acc1 := CreateAccountWithTest()
-			err := acc1.MarkAsTroll()
-			So(err, ShouldBeNil)
+				acc2 := CreateAccountWithTest()
 
-			acc2 := CreateAccountWithTest()
+				// create message that creator is troll
+				msg := CreateMessageWithTest()
+				msg.AccountId = acc1.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create message that creator is troll
-			msg := createMessageWithTest()
-			msg.AccountId = acc1.Id
-			So(msg.Create(), ShouldBeNil)
+				msg2 := CreateMessageWithTest()
+				msg2.AccountId = acc2.Id
+				So(msg2.Create(), ShouldBeNil)
 
-			msg2 := createMessageWithTest()
-			msg2.AccountId = acc2.Id
-			So(msg2.Create(), ShouldBeNil)
+				// add message to the channel
+				// account is troll !!
+				_, erro := c.AddMessage(msg)
+				So(erro, ShouldBeNil)
 
-			// add message to the channel
-			// account is troll !!
-			_, erro := c.AddMessage(msg)
-			So(erro, ShouldBeNil)
+				_, erre := c.AddMessage(msg2)
+				So(erre, ShouldBeNil)
 
-			_, erre := c.AddMessage(msg2)
-			So(erre, ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
 
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-
-			// there is 2 message in the channel
-			// but one of the account of message is troll so;
-			// Count will not count this message
-			// messages of troll is not valid to count
-			cnt, err := cml.Count(cml.ChannelId)
-			So(err, ShouldBeNil)
-			So(cnt, ShouldEqual, 1)
+				// there is 2 message in the channel
+				// but one of the account of message is troll so;
+				// Count will not count this message
+				// messages of troll is not valid to count
+				cnt, err := cml.Count(cml.ChannelId)
+				So(err, ShouldBeNil)
+				So(cnt, ShouldEqual, 1)
+			})
 		})
 	})
 }
 
 func TestChannelMessageListisExempt(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while testing is exempt", t, func() {
+			Convey("it should have error if message id is not set ", func() {
+				cml := NewChannelMessageList()
 
-	Convey("while testing is exempt", t, func() {
-		Convey("it should have error if message id is not set ", func() {
-			cml := NewChannelMessageList()
+				is, err := cml.isExempt()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrMessageIdIsNotSet)
+				So(is, ShouldEqual, false)
+			})
 
-			is, err := cml.isExempt()
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrMessageIdIsNotSet)
-			So(is, ShouldEqual, false)
-		})
+			Convey("it should return true is channel is exempt", func() {
+				// create account as troll
+				acc := CreateAccountWithTest()
+				So(acc.MarkAsTroll(), ShouldBeNil)
 
-		Convey("it should return true is channel is exempt", func() {
-			// create account as troll
-			acc := CreateAccountWithTest()
-			err := acc.MarkAsTroll()
-			So(err, ShouldBeNil)
+				c := CreateChannelWithTest(acc.Id)
 
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = acc.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
-			So(msg.Create(), ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
 
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
+				is, err := cml.isExempt()
+				So(err, ShouldBeNil)
+				So(is, ShouldEqual, true)
+			})
 
-			is, err := cml.isExempt()
-			So(err, ShouldBeNil)
-			So(is, ShouldEqual, true)
-		})
+			Convey("it should return false is channel is not exempt", func() {
+				// create account as not troll
+				acc := CreateAccountWithTest()
+				acc.IsTroll = false
 
-		Convey("it should return false is channel is not exempt", func() {
-			// create account as not troll
-			acc := CreateAccountWithTest()
-			acc.IsTroll = false
+				c := CreateChannelWithTest(acc.Id)
+				c.CreatorId = acc.Id
 
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = acc.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
-			So(msg.Create(), ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
 
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
-
-			is, err := cml.isExempt()
-			So(err, ShouldBeNil)
-			So(is, ShouldEqual, false)
+				is, err := cml.isExempt()
+				So(err, ShouldBeNil)
+				So(is, ShouldEqual, false)
+			})
 		})
 	})
 }
 
 func TestChannelMessageListMarkIfExempt(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while marking if channel is exempt", t, func() {
+			Convey("it should have error if message id is not set", func() {
+				cml := NewChannelMessageList()
 
-	Convey("while marking if channel is exempt", t, func() {
-		Convey("it should have error if message id is not set", func() {
-			cml := NewChannelMessageList()
+				err := cml.MarkIfExempt()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			})
 
-			err := cml.MarkIfExempt()
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			Convey("it should mark as exempt if channel is exempt", func() {
+				// create account as troll
+				acc := CreateAccountWithTest()
+				err := acc.MarkAsTroll()
+				So(err, ShouldBeNil)
+
+				// create channel
+				c := CreateChannelWithTest(acc.Id)
+
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = acc.Id
+				So(msg.Create(), ShouldBeNil)
+
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
+
+				errr := cml.MarkIfExempt()
+				So(errr, ShouldBeNil)
+			})
 		})
-
-		Convey("it should mark as exempt if channel is exempt", func() {
-			// create account as troll
-			acc := CreateAccountWithTest()
-			err := acc.MarkAsTroll()
-			So(err, ShouldBeNil)
-
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
-
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
-			So(msg.Create(), ShouldBeNil)
-
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
-
-			errr := cml.MarkIfExempt()
-			So(errr, ShouldBeNil)
-		})
-
 	})
 }
 
 func TestChannelMessageListUpdateAddedAt(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while updating addedAt", t, func() {
+			Convey("it should have message id otherwise error occurs", func() {
+				cml := NewChannelMessageList()
 
-	Convey("while updating addedAt", t, func() {
-		Convey("it should have message id otherwise error occurs", func() {
-			cml := NewChannelMessageList()
+				err := cml.UpdateAddedAt(0, 1092)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+			})
 
-			err := cml.UpdateAddedAt(0, 1092)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
-		})
+			Convey("it should have channel id otherwise error occurs", func() {
+				cml := NewChannelMessageList()
 
-		Convey("it should have channel id otherwise error occurs", func() {
-			cml := NewChannelMessageList()
+				err := cml.UpdateAddedAt(1091, 0)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+			})
 
-			err := cml.UpdateAddedAt(1091, 0)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
-		})
+			Convey("it should have record not found error if channel id or message id does not exist", func() {
+				cml := NewChannelMessageList()
 
-		Convey("it should have record not found error if channel id or message id does not exist", func() {
-			cml := NewChannelMessageList()
+				err := cml.UpdateAddedAt(1091, 1092)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, bongo.RecordNotFound)
+			})
 
-			err := cml.UpdateAddedAt(1091, 1092)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, bongo.RecordNotFound)
-		})
+			Convey("it should not have error if update is done successfuly", func() {
+				acc := CreateAccountWithTest()
+				c := CreateChannelWithTest(acc.Id)
 
-		Convey("it should not have error if update is done successfuly", func() {
-			// create account
-			acc := CreateAccountWithTest()
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = acc.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
-			So(c.Create(), ShouldBeNil)
+				_, erro := c.AddMessage(msg)
+				So(erro, ShouldBeNil)
 
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
-			So(msg.Create(), ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
 
-			_, erro := c.AddMessage(msg)
-			So(erro, ShouldBeNil)
-
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
-
-			err := cml.UpdateAddedAt(cml.ChannelId, cml.MessageId)
-			So(err, ShouldBeNil)
+				err := cml.UpdateAddedAt(cml.ChannelId, cml.MessageId)
+				So(err, ShouldBeNil)
+			})
 		})
 	})
 }
 
 func TestChannelMessageListUnreadCount(t *testing.T) {
-	r := runner.New("test")
-	defer r.Close()
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while counting unread messages", t, func() {
+			Convey("it should have error if channel id is not set", func() {
+				cml := NewChannelMessageList()
+				cp := NewChannelParticipant()
 
-	Convey("while counting unread messages", t, func() {
-		Convey("it should have error if channel id is not set", func() {
-			cml := NewChannelMessageList()
-			cp := NewChannelParticipant()
+				cnt, err := cml.UnreadCount(cp)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrChannelIdIsNotSet)
+				So(cnt, ShouldEqual, 0)
+			})
 
-			cnt, err := cml.UnreadCount(cp)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			So(cnt, ShouldEqual, 0)
-		})
+			Convey("it should have error if account id doesn't exist", func() {
+				cp := NewChannelParticipant()
+				cml := NewChannelMessageList()
+				cp.ChannelId = 1920
 
-		Convey("it should have error if account id doesn't exist", func() {
-			cp := NewChannelParticipant()
-			cml := NewChannelMessageList()
-			cp.ChannelId = 1920
+				cnt, err := cml.UnreadCount(cp)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrAccountIdIsNotSet)
+				So(cnt, ShouldEqual, 0)
+			})
 
-			cnt, err := cml.UnreadCount(cp)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAccountIdIsNotSet)
-			So(cnt, ShouldEqual, 0)
-		})
+			Convey("it should have error if last seen time is zero", func() {
+				cml := NewChannelMessageList()
+				cp := NewChannelParticipant()
+				cp.ChannelId = 1920
+				cp.AccountId = 1903
+				cp.LastSeenAt = ZeroDate()
 
-		Convey("it should have error if last seen time is zero", func() {
-			cml := NewChannelMessageList()
-			cp := NewChannelParticipant()
-			cp.ChannelId = 1920
-			cp.AccountId = 1903
-			cp.LastSeenAt = ZeroDate()
+				cnt, err := cml.UnreadCount(cp)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrLastSeenAtIsNotSet)
+				So(cnt, ShouldEqual, 0)
+			})
 
-			cnt, err := cml.UnreadCount(cp)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrLastSeenAtIsNotSet)
-			So(cnt, ShouldEqual, 0)
-		})
+			Convey("it should count if participant is troll", func() {
+				// create account as troll
+				accTroll := CreateAccountWithTest()
+				So(accTroll.MarkAsTroll(), ShouldBeNil)
 
-		Convey("it should count if participant is troll", func() {
-			// create account as troll
-			accTroll := CreateAccountWithTest()
-			err := accTroll.MarkAsTroll()
-			So(err, ShouldBeNil)
+				c := CreateChannelWithTest(accTroll.Id)
 
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = accTroll.Id
-			So(c.Create(), ShouldBeNil)
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = accTroll.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = accTroll.Id
-			So(msg.Create(), ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
 
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
+				_, errs := c.AddParticipant(accTroll.Id)
+				So(errs, ShouldBeNil)
 
-			_, errs := c.AddParticipant(accTroll.Id)
-			So(errs, ShouldBeNil)
+				cp := NewChannelParticipant()
+				cp.ChannelId = c.Id
+				cp.AccountId = accTroll.Id
 
-			cp := NewChannelParticipant()
-			cp.ChannelId = c.Id
-			cp.AccountId = accTroll.Id
+				_, erre := c.AddMessage(msg)
+				So(erre, ShouldBeNil)
 
-			_, erre := c.AddMessage(msg)
-			So(erre, ShouldBeNil)
-
-			cnt, err := cml.UnreadCount(cp)
-			So(err, ShouldBeNil)
-			So(cnt, ShouldEqual, 1)
+				cnt, err := cml.UnreadCount(cp)
+				So(err, ShouldBeNil)
+				So(cnt, ShouldEqual, 1)
+			})
 		})
 	})
 }
 
 func TestChannelMessageListIsInChannel(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while testing message is in channel", t, func() {
+			Convey("it should have error if message id doesn't exist", func() {
+				cml := NewChannelMessageList()
 
-	Convey("while testing message is in channel", t, func() {
-		Convey("it should have error if message id doesn't exist", func() {
-			cml := NewChannelMessageList()
+				ch, err := cml.IsInChannel(0, 1020)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+				So(ch, ShouldEqual, false)
+			})
 
-			ch, err := cml.IsInChannel(0, 1020)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
-			So(ch, ShouldEqual, false)
-		})
+			Convey("it should have channel id, otherwise error occurs", func() {
+				cml := NewChannelMessageList()
 
-		Convey("it should have channel id, otherwise error occurs", func() {
-			cml := NewChannelMessageList()
+				ch, err := cml.IsInChannel(1040, 0)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+				So(ch, ShouldEqual, false)
+			})
 
-			ch, err := cml.IsInChannel(1040, 0)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
-			So(ch, ShouldEqual, false)
-		})
+			Convey("it should have record not found error if message or channel id doesn't exist in db", func() {
+				cml := NewChannelMessageList()
 
-		Convey("it should have record not found error if message or channel id doesn't exist in db", func() {
-			cml := NewChannelMessageList()
+				ch, err := cml.IsInChannel(1091, 1092)
+				So(err, ShouldBeNil)
+				So(ch, ShouldEqual, false)
+			})
 
-			ch, err := cml.IsInChannel(1091, 1092)
-			So(err, ShouldBeNil)
-			So(ch, ShouldEqual, false)
-		})
+			Convey("it should return false if message is not in the channel", func() {
+				// create account as troll
+				accTroll := CreateAccountWithTest()
 
-		Convey("it should return false if message is not in the channel", func() {
-			// create account as troll
-			accTroll := CreateAccountWithTest()
+				// create channel
+				c := CreateChannelWithTest(accTroll.Id)
 
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = accTroll.Id
-			So(c.Create(), ShouldBeNil)
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = accTroll.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = accTroll.Id
-			So(msg.Create(), ShouldBeNil)
+				// we created messsage
+				// but didn't add it to the channel
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
 
-			// we created messsage
-			// but didn't add it to the channel
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
+				ch, errr := cml.IsInChannel(cml.MessageId, cml.ChannelId)
+				So(errr, ShouldBeNil)
+				So(ch, ShouldEqual, false)
+			})
 
-			ch, errr := cml.IsInChannel(cml.MessageId, cml.ChannelId)
-			So(errr, ShouldBeNil)
-			So(ch, ShouldEqual, false)
-		})
+			Convey("it should return true if message is in the channel", func() {
+				// create account as troll
+				acc := CreateAccountWithTest()
 
-		Convey("it should return true if message is in the channel", func() {
-			// create account as troll
-			acc := CreateAccountWithTest()
+				// create channel
+				c := CreateChannelWithTest(acc.Id)
 
-			// create channel
-			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
-			So(c.Create(), ShouldBeNil)
+				// create message
+				msg := CreateMessageWithTest()
+				msg.AccountId = acc.Id
+				So(msg.Create(), ShouldBeNil)
 
-			// create message
-			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
-			So(msg.Create(), ShouldBeNil)
+				_, err := c.AddMessage(msg)
+				So(err, ShouldBeNil)
 
-			_, err := c.AddMessage(msg)
-			So(err, ShouldBeNil)
+				cml := NewChannelMessageList()
+				cml.ChannelId = c.Id
+				cml.MessageId = msg.Id
 
-			cml := NewChannelMessageList()
-			cml.ChannelId = c.Id
-			cml.MessageId = msg.Id
-
-			ch, errr := cml.IsInChannel(cml.MessageId, cml.ChannelId)
-			So(errr, ShouldBeNil)
-			So(ch, ShouldEqual, true)
+				ch, errr := cml.IsInChannel(cml.MessageId, cml.ChannelId)
+				So(errr, ShouldBeNil)
+				So(ch, ShouldEqual, true)
+			})
 		})
 	})
 }
 
 func TestChannelMessageListFetchMessageChannelIds(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while fetching message channel ids", t, func() {
+			Convey("it should have message id", func() {
+				cml := NewChannelMessageList()
+				fm, err := cml.FetchMessageChannelIds(0)
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, ErrMessageIdIsNotSet)
+				So(fm, ShouldEqual, nil)
+			})
 
-	Convey("while fetching message channel ids", t, func() {
-		Convey("it should have message id otherwise error occurs", func() {
-			cml := NewChannelMessageList()
+			Convey("if message doesnt belong to any channel", func() {
+				m := CreateMessageWithTest()
+				So(m.Create(), ShouldBeNil)
 
-			fm, err := cml.FetchMessageChannelIds(0)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrMessageIdIsNotSet)
-			So(fm, ShouldEqual, nil)
+				cml := NewChannelMessageList()
+				cml.MessageId = m.Id
+
+				fm, err := cml.FetchMessageChannelIds(m.Id)
+				So(err, ShouldBeNil)
+				So(fm, ShouldBeNil)
+			})
 		})
-
-		// Convey("it should ", func() {
-		// 	cml := NewChannelMessageList()
-		// 	cml.MessageId = 1982
-
-		// 	fm, err := cml.FetchMessageChannelIds(cml.MessageId)
-		// 	// So(err, ShouldNotBeNil)
-		// 	So(err, ShouldEqual, bongo.RecordNotFound)
-		// 	So(fm, ShouldEqual, nil)
-		// })
 	})
 }

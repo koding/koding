@@ -314,6 +314,19 @@ module.exports.create = (KONFIG, environment)->
         resolver 8.8.8.8;
       }
 
+      location /Hackathon {
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        resolver 8.8.8.8;
+        proxy_connect_timeout 10;
+        proxy_pass https://teams-koding.hs-sites.com;
+      }
+
+      location /hackathon {
+        return 301 /Hackathon ;
+      }
+
       #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
 

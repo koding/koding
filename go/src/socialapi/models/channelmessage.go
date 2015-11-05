@@ -710,3 +710,12 @@ func (cm *ChannelMessage) GetPayload(key string) *string {
 
 	return val
 }
+
+// SearchIndexable decides if message is indexable on search engine or not
+func (c *ChannelMessage) SearchIndexable() bool {
+	return IsIn(c.TypeConstant,
+		ChannelMessage_TYPE_POST,
+		ChannelMessage_TYPE_REPLY,
+		ChannelMessage_TYPE_PRIVATE_MESSAGE,
+	)
+}

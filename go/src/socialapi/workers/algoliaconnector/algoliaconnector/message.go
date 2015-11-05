@@ -11,33 +11,22 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 		return err
 	}
 
-	// no need to index join/leave messages
-	if message.TypeConstant != models.ChannelMessage_TYPE_POST &&
-		message.TypeConstant != models.ChannelMessage_TYPE_REPLY {
+	if !message.SearchIndexable() {
 		return nil
 	}
 
-	objectId := strconv.FormatInt(message.Id, 10)
+	objectID := strconv.FormatInt(message.Id, 10)
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 
-	record, err := f.get(IndexMessages, objectId)
-	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
-		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
-		return err
-	}
-
-	if record == nil {
-		return f.insert(IndexMessages, map[string]interface{}{
-			"objectID": objectId,
-			"body":     message.Body,
-			"_tags":    []string{channelId},
-		})
-	}
-
+	// if message is doesnt exist on algolia it will be created and tag will be
+	// added, if it is already created before tag will be added
 	return f.partialUpdate(IndexMessages, map[string]interface{}{
-		"objectID": objectId,
-		"_tags":    appendTag(record, channelId),
+		"objectID": objectID,
+		"body":     message.Body,
+		"_tags": map[string]interface{}{
+			"_operation": "AddUnique",
+			"value":      channelId,
+		},
 	})
 }
 
@@ -47,33 +36,46 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 		return err
 	}
 
-	objectId := strconv.FormatInt(listing.MessageId, 10)
+	objectID := strconv.FormatInt(listing.MessageId, 10)
 
-	record, err := f.get(IndexMessages, objectId)
+	record, err := f.get(IndexMessages, objectID)
 	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIDNotFoundMsg) &&
 		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
 		return err
 	}
 
+	// if record is not there, just ignore
+	if record == nil {
+		return nil
+	}
+
 	if tags, ok := record["_tags"]; ok {
 		if t, ok := tags.([]interface{}); ok && len(t) == 1 {
-			if _, err = index.DeleteObject(objectId); err != nil {
+			if _, err = index.DeleteObject(objectID); err != nil {
 				return err
 			}
 			return nil
 		}
 	}
 
-	return f.partialUpdate(IndexMessages, map[string]interface{}{
-		"objectID": objectId,
-		"_tags":    removeMessageTag(record, strconv.FormatInt(listing.ChannelId, 10)),
-	})
+	return f.RemoveTag(
+		IndexMessages,
+		objectID,
+		strconv.FormatInt(listing.ChannelId, 10),
+	)
 }
 
 func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
+	objectID := strconv.FormatInt(message.Id, 10)
+	channelId := strconv.FormatInt(message.InitialChannelId, 10)
+
 	return f.partialUpdate(IndexMessages, map[string]interface{}{
-		"objectID": strconv.FormatInt(message.Id, 10),
+		"objectID": objectID,
 		"body":     message.Body,
+		"_tags": map[string]interface{}{
+			"_operation": "AddUnique",
+			"value":      channelId,
+		},
 	})
 }

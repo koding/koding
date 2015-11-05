@@ -110,15 +110,15 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   getModalProps: ->
     props =
-      isOpen             : yes
-      title              : 'Create a Private Conversation'
-      className          : 'CreateChannel-Modal'
-      buttonConfirmTitle : 'CREATE'
-      onClose            : @bound 'onClose'
-      onAbort            : @bound 'onClose'
+      isOpen                : yes
+      title                 : 'Create a Private Conversation'
+      className             : 'CreateChannel-Modal'
+      buttonConfirmTitle    : 'CREATE'
+      onClose               : @bound 'onClose'
+      onAbort               : @bound 'onClose'
 
-    continueButtonTitle = 'CONTINUE EXISTING CONVERSATION'
-    continueButtonOnClick = (event) =>
+    continueButtonTitle    = 'CONTINUE EXISTING CONVERSATION'
+    continueButtonOnClick  = (event) =>
       kd.utils.stopDOMEvent event
       @_isRouting = yes
       kd.singletons.router.handleRoute "/Messages/#{@state.preExistingChannel.get 'id'}"
@@ -135,8 +135,8 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           onConfirm              : @bound 'createChannel'
       else
         props = _.assign {}, props,
-          buttonConfirmTitle : continueButtonTitle
-          onConfirm          : continueButtonOnClick
+          buttonConfirmTitle  : continueButtonTitle
+          onConfirm           : continueButtonOnClick
     else
       props = _.assign {}, props,
         buttonExtraTitle       : null
@@ -342,7 +342,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
         placeholder = { @state.placeholder }
         value       = { @state.query }
         ref         = 'textInput'
-        tabIndex    = 1
         autoFocus   = yes
         className   = {'Reactivity-input'}
       />
@@ -394,7 +393,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
             Name
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input tabIndex=2 className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             This is how this conversation is going to appear on your sidebar.
           </span>
@@ -404,7 +403,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input tabIndex=3 className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             Set a purpose to your conversation that describes what it will be used for.
           </span>

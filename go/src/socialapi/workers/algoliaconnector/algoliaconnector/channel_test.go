@@ -102,7 +102,7 @@ func TestChannelUpdated(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					err = makeSureChannel(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
-						if IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) {
+						if IsAlgoliaError(err, ErrAlgoliaObjectIDNotFoundMsg) {
 							return true
 						}
 

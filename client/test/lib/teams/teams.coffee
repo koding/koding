@@ -168,7 +168,7 @@ module.exports =
       .waitForElementVisible  inviteMemberButton, 20000
       .click                  inviteMemberButton
       .waitForElementVisible  notificationView, 20000
-      .assert.containsText    notificationView, 'All invites sent'
+      .assert.containsText    notificationView, 'Invitations are sent to new members.'
       .click                  pendingMembersTab
       .waitForElementVisible  pendingMemberView, 20000
       .assert.containsText    pendingMemberView, userEmail
