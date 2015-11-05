@@ -1,3 +1,6 @@
+# coffeelint: disable=cyclomatic_complexity
+# FIXME ^^ GG
+
 { Model, secure, dash, daisy } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
 
