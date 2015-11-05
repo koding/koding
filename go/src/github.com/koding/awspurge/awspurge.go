@@ -109,6 +109,10 @@ func (p *Purge) Do() error {
 		return err
 	}
 
+	if err := p.Terminate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -155,4 +159,9 @@ func (p *Purge) Fetch() error {
 
 	p.wg.Wait()
 	return p.errs
+}
+
+// Terminate terminates all resources stored internally
+func (p *Purge) Terminate() error {
+	return p.TerminateInstances()
 }

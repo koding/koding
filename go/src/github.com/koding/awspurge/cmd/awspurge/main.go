@@ -15,7 +15,7 @@ func main() {
 
 func runMain() error {
 	conf := &awspurge.Config{}
-	m := multiconfig.New()
+	m := multiconfig.NewWithPath(".awspurge.toml")
 	m.MustLoad(conf)
 
 	p, err := awspurge.New(conf)
