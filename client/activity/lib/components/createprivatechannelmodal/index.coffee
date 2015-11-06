@@ -159,7 +159,9 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     @setState purpose: event.target.value
 
 
-  onClose: ->
+  onClose: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     return  unless @state.selectedThread
     return  if @_isRouting
@@ -202,7 +204,9 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       return success()
 
 
-  createChannel: ->
+  createChannel: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     return  unless @validateParticipants()
 
