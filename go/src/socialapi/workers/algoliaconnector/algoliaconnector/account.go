@@ -72,7 +72,7 @@ func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) er
 
 func (f *Controller) handleAccount(data *models.Account, cleanupGuest bool, tagMap map[string]interface{}) error {
 	// do not send guests to algolia
-	if strings.Contains(data.Nick, "guest-") {
+	if strings.HasPrefix(data.Nick, "guest-") {
 		if cleanupGuest {
 			return f.delete(IndexAccounts, data.OldId)
 		}
