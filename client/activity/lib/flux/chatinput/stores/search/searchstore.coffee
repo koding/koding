@@ -15,9 +15,9 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.CHAT_INPUT_SEARCH_SUCCESS, @handleSuccess
-    @on actions.CHAT_INPUT_SEARCH_FAIL,    @handleReset
-    @on actions.CHAT_INPUT_SEARCH_RESET,   @handleReset
+    @on actions.CHAT_INPUT_SEARCH_SUCCESS, @handleSuccessSearch
+    @on actions.CHAT_INPUT_SEARCH_FAIL,    @handleResetSearch
+    @on actions.CHAT_INPUT_SEARCH_RESET,   @handleResetSearch
 
 
   ###*
@@ -31,7 +31,7 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
    * @param {array} payload.items
    * @return {Immutable.Map} nextState
   ###
-  handleSuccess: (currentState, { stateId, items }) ->
+  handleSuccessSearch: (currentState, { stateId, items }) ->
 
     currentState.set stateId, toImmutable items
 
@@ -45,7 +45,7 @@ module.exports = class ChatInputSearchStore extends KodingFluxStore
    * @param {string} payload.stateId
    * @return {Immutable.Map} nextState
   ###
-  handleReset: (currentState, { stateId }) ->
+  handleResetSearch: (currentState, { stateId }) ->
 
     currentState.delete stateId
 

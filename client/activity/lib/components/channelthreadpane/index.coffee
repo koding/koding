@@ -14,7 +14,6 @@ showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
-ThreadPaneLifecycleMixin     = require 'activity/mixins/threadpanelifecycle'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -113,41 +112,12 @@ module.exports = class ChannelThreadPane extends React.Component
           channelThread={@state.channelThread}
           channelParticipants={@state.channelParticipants}/>
       </aside>
+
+      {@props.children}
     </div>
 
 
-reset = (props, state, callback = kd.noop) ->
-
-  { channelName, postId } = props.routeParams
-  { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
-
-  # if there is no channel in the url, and there is no selected channelThread,
-  # then load public.
-  unless channelName
-    unless state.channelThread
-      channelName = getGroup().slug
-
-  if channelName
-    channel = ActivityFlux.getters.channelByName channelName
-    thread.changeSelectedThread channel.id  if channel
-
-    channelActions.loadChannelByName(channelName).then ({ channel }) ->
-      thread.changeSelectedThread channel.id
-      channelActions.loadParticipants channel.id
-
-      if postId
-        messageActions.changeSelectedMessage postId
-      else
-        messageActions.changeSelectedMessage null
-
-      kd.utils.defer callback
-
-  else if not state.channelThread
-    thread.changeSelectedThread null
-    kd.utils.defer callback
-
-
 React.Component.include.call ChannelThreadPane, [
-  ThreadPaneLifecycleMixin(reset), KDReactorMixin, ImmutableRenderMixin
+  KDReactorMixin, ImmutableRenderMixin
 ]
 
