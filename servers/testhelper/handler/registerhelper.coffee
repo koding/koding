@@ -1,15 +1,16 @@
-querystring = require 'querystring'
-
-{ generateUrl
+{ querystring
+  generateUrl
   deepObjectExtend
   generateRandomEmail
+  generateRandomString
   generateRandomUsername
-  generateDefaultRequestParams } = require '../index'
+  generateRequestParamsEncodeBody } = require '../index'
 
 
 generateRegisterRequestBody = (opts = {}) ->
 
   defaultBodyObject =
+    _csrf             : generateRandomString()
     email             : generateRandomEmail()
     agree             : 'on'
     username          : generateRandomUsername()
@@ -25,16 +26,14 @@ generateRegisterRequestBody = (opts = {}) ->
 # overwrites given options in the default params
 generateRegisterRequestParams = (opts = {}) ->
 
-  url  = generateUrl
-    route : 'Register'
-
   body = generateRegisterRequestBody()
 
-  params                = { url, body }
-  defaultRequestParams  = generateDefaultRequestParams params
-  requestParams         = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body    = querystring.stringify requestParams.body
+  params =
+    url        : generateUrl { route : 'Register' }
+    body       : body
+    csrfCookie : body._csrf
+
+  requestParams = generateRequestParamsEncodeBody params, opts
 
   return requestParams
 

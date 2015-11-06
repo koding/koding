@@ -1,42 +1,31 @@
 Bongo                               = require 'bongo'
 koding                              = require './../bongo'
 
-{ daisy }                           = Bongo
-{ expect }                          = require 'chai'
 { Relationship }                    = require 'jraphical'
-{ convertToArray
+{ daisy
+  expect
+  request
+  convertToArray
   generateRandomEmail
   generateRandomString }            = require '../../../testhelper'
+{ testCsrfToken }                   = require '../../../testhelper/handler'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
-
 { generateJoinTeamRequestParams
   generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
-hat                                 = require 'hat'
-request                             = require 'request'
-querystring                         = require 'querystring'
-
-JUser                               = null
-JGroup                              = null
-JAccount                            = null
-JSession                            = null
-JInvitation                         = null
+JUser                               = require '../../../models/user'
+JGroup                              = require '../../../models/group'
+JAccount                            = require '../../../models/account'
+JSession                            = require '../../../models/session'
+JInvitation                         = require '../../../models/invitation'
 
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.jointeam', ->
 
-  beforeEach (done) ->
+  it 'should send HTTP 403 if _csrf token is invalid', (done) ->
 
-    # including models before each test case, requiring them outside of
-    # tests suite is causing undefined errors
-    { JUser
-      JGroup
-      JAccount
-      JSession
-      JInvitation } = koding.models
-
-    done()
+    testCsrfToken generateJoinTeamRequestParams, 'post', done
 
 
   it 'should send HTTP 301 if redirect is set', (done) ->
