@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"errors"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
@@ -141,7 +142,7 @@ func (f *Controller) RemoveGuestAccounts() error {
 	return nil
 }
 
-// var errDeadline = errors.New("deadline reached")
+var errDeadline = errors.New("deadline reached")
 
 // makeSureAccount checks if the given id's get request returns the desired err,
 // it will re-try every 100ms until deadline of 2 minutes reached. Algolia

@@ -440,9 +440,5 @@ func checkTagLen(record map[string]interface{}, tagLen int) bool {
 		return false
 	}
 
-	if len(tags) != tagLen {
-		return false
-	}
-
-	return true
+	return len(tags) != tagLen
 }
