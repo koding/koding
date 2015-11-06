@@ -21,8 +21,10 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
           messages      : { email: 'Please type a valid email address.' }
           events        :
             # required    : 'blur'
-            rangeLength : 'blur'
+            # rangeLength : 'blur'
             regExp      : 'keyup'
+
+    @email.inputReceivedKeyup()  if teamData.invitation?.email
 
     @username = new LoginInputView
       inputOptions       :
@@ -39,7 +41,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
             # required     : 'blur'
-            rangeLength  : 'blur'
+            # rangeLength  : 'blur'
             regExp       : 'keyup'
 
     @passwordStrength = ps = new KDCustomHTMLView
