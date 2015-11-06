@@ -62,25 +62,21 @@ module.exports =
 
   editAction: (browser, type, editWithCode = yes, editWithImage = yes, editWithLink = yes) ->
 
-    if editWithCode
-      @goToMessagesAndCommentSection(browser)
+    @goToMessagesAndCommentSection(browser)
 
+    if editWithCode
       if type is 'message'
         @editMessageAction(browser, yes, no, no)
       else
         @editCommentAction(browser, yes, no, no)
 
     if editWithImage
-      @goToMessagesAndCommentSection(browser)
-
       if type is 'message'
         @editMessageAction(browser, no, yes, no)
       else
         @editCommentAction(browser, no, yes, no)
 
     if editWithLink
-      @goToMessagesAndCommentSection(browser)
-
       if type is 'message'
         @editMessageAction(browser, no, no, yes)
       else
@@ -174,9 +170,7 @@ module.exports =
 
   goToMessagesAndCommentSection: (browser) ->
     browser
-      .pause                    2500 # while typing something steals activity input focus
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
-      .pause                    3000 # for page load
       .waitForElementVisible    '[testpath=ActivityInputView]', 30000
       .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
