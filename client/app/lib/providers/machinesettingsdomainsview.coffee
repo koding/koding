@@ -19,6 +19,8 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     options.addButtonTitle       = 'ADD DOMAIN'
     options.headerAddButtonTitle = 'ADD NEW DOMAIN'
     options.listViewItemClass    = DomainItem
+    options.listViewOptions      =
+      useCustomScrollView        : yes
 
     super options, data
 
