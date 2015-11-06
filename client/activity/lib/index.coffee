@@ -1,15 +1,16 @@
-kd                   = require 'kd'
-ActivityAppView      = require './activityappview'
-ActivityFlux         = require 'activity/flux'
-remote               = require('app/remote').getInstance()
-globals              = require 'globals'
-getGroup             = require 'app/util/getGroup'
-checkFlag            = require 'app/util/checkFlag'
-isKoding             = require 'app/util/isKoding'
-AppStorage           = require 'app/appstorage'
-AppController        = require 'app/appcontroller'
-KodingAppsController = require 'app/kodingappscontroller'
-keyboardKeys = require 'app/util/keyboardKeys'
+kd                       = require 'kd'
+ActivityAppView          = require './activityappview'
+ActivityFlux             = require 'activity/flux'
+remote                   = require('app/remote').getInstance()
+globals                  = require 'globals'
+getGroup                 = require 'app/util/getGroup'
+checkFlag                = require 'app/util/checkFlag'
+isKoding                 = require 'app/util/isKoding'
+AppStorage               = require 'app/appstorage'
+AppController            = require 'app/appcontroller'
+KodingAppsController     = require 'app/kodingappscontroller'
+keyboardKeys             = require 'app/util/keyboardKeys'
+NotificationSettingsFlux = require 'activity/flux/channelnotificationsettings'
 
 require('./routehandler')()
 
@@ -41,6 +42,8 @@ module.exports = class ActivityAppController extends AppController
 
     helper.loadFonts()
     helper.loadEmojiStyles()
+
+    NotificationSettingsFlux.actions.channel.loadGlobal()
 
 
   post: (options = {}, callback = noop) ->
