@@ -61,7 +61,7 @@ module.exports = class TeamJoinTab extends KDTabPaneView
     inputs = KDFormView.findChildInputs this
 
     _.each inputs, (input) ->
-        input.emit 'ValidationFeedbackCleared' # Reset the validations
+      input.emit 'ValidationFeedbackCleared' # Reset the validations
 
 
   hideAvatar: ->
