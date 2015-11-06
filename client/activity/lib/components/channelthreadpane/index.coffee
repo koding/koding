@@ -15,7 +15,6 @@ CollaborationComingSoonModal = require 'activity/components/collaborationcomings
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
 Link                         = require 'app/components/common/link'
-NotificationSettingsFlux     = require 'activity/flux/channelnotificationSettings'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -73,18 +72,6 @@ module.exports = class ChannelThreadPane extends React.Component
   onClose: ->
 
     @setState isComingSoonModalOpen: no
-
-
-  showNotificationSettingsModal: ->
-
-    thread      = @state.channelThread
-    channelId   = thread.getIn ['channel', 'id']
-    channelName = thread.getIn ['channel', 'name']
-
-    NotificationSettingsFlux.actions.channel.load channelId
-      .then ->
-        route = "/Channels/#{channelName}/NotificationSettings"
-        kd.singletons.router.handleRoute route
 
 
   renderHeader: ->
