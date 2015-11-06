@@ -371,11 +371,15 @@ func (g GithubListener) PullRequest(ctx context.Context, e *webhook.PullRequestE
 }
 
 func (g GithubListener) pullRequest(e *webhook.PullRequestEvent) (string, error) {
-	user := fmt.Sprintf("[%s](%s)", e.PullRequest.User.Login, e.PullRequest.User.HTMLURL)
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
 	pr := fmt.Sprintf("[%s](%s)", e.PullRequest.Title, e.PullRequest.HTMLURL)
 	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
 
 	action := e.Action
+
+	if action == "assigned" {
+		return g.pullRequestAssigned(e)
+	}
 
 	if action == "closed" && e.PullRequest.Merged {
 		action = "merged"
@@ -384,6 +388,22 @@ func (g GithubListener) pullRequest(e *webhook.PullRequestEvent) (string, error)
 	return fmt.Sprintf("%s %s pull request %s at %s",
 		user,
 		action,
+		pr,
+		repo,
+	), nil
+}
+
+// pullRequestAssigned uses different mentioning from other pull request events
+func (g GithubListener) pullRequestAssigned(e *webhook.PullRequestEvent) (string, error) {
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
+	pr := fmt.Sprintf("[%s](%s)", e.PullRequest.Title, e.PullRequest.HTMLURL)
+	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
+	assignee := fmt.Sprintf("[%s](%s)", e.Assignee.Login, e.Assignee.HTMLURL)
+
+	return fmt.Sprintf("%s %s to %s pull request %s at %s",
+		user,
+		e.Action,
+		assignee,
 		pr,
 		repo,
 	), nil
