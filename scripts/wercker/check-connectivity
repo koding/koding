@@ -52,8 +52,8 @@ INSTANCES=$(cat $INSTANCE_DATA_FILE)
 truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
-  check $INSTANCE 8090 1m 5 || continue # nginx
-  check $INSTANCE 42424 1m 5 || continue # selenium-server
+  check $INSTANCE 8090 1m 1 || continue # nginx
+  check $INSTANCE 42424 1m 1 || continue # selenium-server
   echo $INSTANCE >> $INSTANCE_DATA_FILE
   echo
 done
