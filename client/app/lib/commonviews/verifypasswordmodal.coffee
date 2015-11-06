@@ -54,7 +54,7 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
   doRecover:(email)->
     $.ajax
       url         : '/Recover'
-      data        : { email }
+      data        : { email, _csrf : Cookies.get '_csrf' }
       type        : 'POST'
       error       : (xhr) =>
         {responseText} = xhr
