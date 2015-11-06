@@ -52,19 +52,17 @@ INSTANCES=$(cat $INSTANCE_DATA_FILE)
 truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
-  check $INSTANCE 8090 1m 1 || continue # nginx
-  check $INSTANCE 42424 1m 1 || continue # selenium-server
-  echo $INSTANCE >> $INSTANCE_DATA_FILE
-  echo
+  (
+    check $INSTANCE  8090 1m 1 || continue # nginx
+    check $INSTANCE 42424 1m 1 || continue # selenium-server
+
+    if health_check $INSTANCE; then
+      echo $INSTANCE >> $INSTANCE_DATA_FILE
+    fi
+  ) &
 done
 
-INSTANCES=$(cat $INSTANCE_DATA_FILE)
-truncate --size 0 $INSTANCE_DATA_FILE
-
-for INSTANCE in $INSTANCES; do
-  health_check $INSTANCE || continue
-  echo $INSTANCE >> $INSTANCE_DATA_FILE
-done
+wait
 
 INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
 
