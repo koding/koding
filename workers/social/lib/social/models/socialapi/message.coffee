@@ -224,7 +224,10 @@ module.exports = class SocialMessage extends Base
 
       options    = extend options,
         urls     : urls
-        maxWidth : 150
+        maxWidth : 600
+        videosrc : yes
+        autoplay : yes
+        luxe     : 1
 
       api.extract options, (err, result) ->
         return callback err, result  if err
