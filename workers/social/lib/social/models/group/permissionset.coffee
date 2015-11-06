@@ -4,6 +4,8 @@
 { Model, secure, dash, daisy } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
 
+cacheManager = require 'cache-manager'
+
 # class JPermission extends Model
 #   @set
 #     indexes   :
@@ -89,6 +91,9 @@ module.exports = class JPermissionSet extends Module
         group.fetchPermissionSetOrDefault (err, permissionSet) ->
           if err then callback err
           else callback null, { group, permissionSet }
+    memCache = cacheManager.caching
+      store  : 'memory'
+      ttl    : 60 # seconds
 
 
   @fetchMainGroupAndPermissionSet = (callback) ->
