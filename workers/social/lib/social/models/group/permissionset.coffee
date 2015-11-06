@@ -1,5 +1,3 @@
-# coffeelint: disable=cyclomatic_complexity
-# FIXME ^^ GG
 
 { Model, secure, dash, daisy } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
@@ -133,14 +131,20 @@ module.exports = class JPermissionSet extends Module
 
       queue = advanced.map ({ permission, validateWith, superadmin }) -> ->
 
-        # if permission requires superadmin and current group is not 'koding'
-        # or if somehow 'koding' group (main) not exists then pass ~ GG
-        if superadmin and current.group.slug isnt MAIN_GROUP or not main
-          return queue.next()
+        if superadmin
 
-        # if permission requires superadmin then do the permission check on
-        # main group and permissionSet (which is 'koding' group) ~ GG
-        { group, permissionSet } = if superadmin then main else current
+          # if permission requires superadmin and current group is not 'koding'
+          # or if somehow 'koding' group (main) not exists then pass ~ GG
+          if current.group.slug isnt MAIN_GROUP or not main
+            return queue.next()
+
+          # if permission requires superadmin then do the permission check on
+          # main group and permissionSet (which is 'koding' group) ~ GG
+          { group, permissionSet } = main
+
+        else
+
+          { group, permissionSet } = current
 
         # use Validators.any if it's not provided
         validateWith ?= anyValidator
@@ -161,24 +165,18 @@ module.exports = class JPermissionSet extends Module
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client
 
-    # if it's the main group fetch only that one
-    if client.groupName is MAIN_GROUP
+    fetchGroupAndPermissionSet MAIN_GROUP, (err, main) ->
+      return callback err, no  if err or not main
 
-      fetchGroupAndPermissionSet MAIN_GROUP, (err, main) ->
-        if err or not main then callback err, no
-        else kallback main, main # pass same group and permissionSet for
-                                 # current and the main group ~ GG
-
-    else
-
-      # fetch permission set for the given group and start checking permissions
-      fetchGroupAndPermissionSet client.groupName, (err, current) ->
-        if err or not current then callback err, no
-        else
-          # also provide the main group permission set for superadmin checks
-          fetchGroupAndPermissionSet MAIN_GROUP, (err, main) ->
-            if err or not main then callback err, no
-            else kallback current, main
+      # if it's the main group fetching only that one is enough
+      if client.groupName is MAIN_GROUP
+        kallback main, main # pass same group and permissionSet for
+                            # current and the main group ~ GG
+      else
+        # fetch permission set for the given group and start checking permissions
+        fetchGroupAndPermissionSet client.groupName, (err, current) ->
+          if err or not current then callback err, no
+          else kallback current, main
 
 
   @permit = (permission, promise) ->
