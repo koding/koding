@@ -14,6 +14,8 @@ showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
+Link                         = require 'app/components/common/link'
+NotificationSettingsFlux     = require 'activity/flux/channelnotificationSettings'
 
 module.exports = class ChannelThreadPane extends React.Component
 
