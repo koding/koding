@@ -297,14 +297,6 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     element.focus()
 
 
-  onInputKeydown: (event) ->
-
-    { ENTER } = KeyboardKeys
-
-    if event.which == ENTER
-      @createChannel()
-
-
   renderNickname: (participant, isNicknameVisible)->
 
     nickname = participant.getIn ['profile', 'nickname']
@@ -397,7 +389,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
             Name
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'}/>
           <span className='Reactivity-fieldMessage'>
             This is how this conversation is going to appear on your sidebar.
           </span>
@@ -407,7 +399,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'}/>
           <span className='Reactivity-fieldMessage'>
             Set a purpose to your conversation that describes what it will be used for.
           </span>
