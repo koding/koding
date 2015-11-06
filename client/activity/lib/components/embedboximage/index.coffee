@@ -1,6 +1,7 @@
-kd         = require 'kd'
-React      = require 'kd-react'
-proxifyUrl = require 'app/util/proxifyUrl'
+kd           = require 'kd'
+React        = require 'kd-react'
+proxifyUrl   = require 'app/util/proxifyUrl'
+getEmbedSize = require 'activity/util/getEmbedSize'
 
 module.exports = class EmbedBoxImage extends React.Component
 
@@ -9,37 +10,44 @@ module.exports = class EmbedBoxImage extends React.Component
     type : ''
 
 
-  getImageWidth: ->
+  getImageSize: (item) ->
 
-    { type } = @props
+    { link_embed } = @props.data
+    image          = link_embed.images.first
 
-    switch type
-      when 'chat'    then 550
-      when 'comment' then 400
-      else 200
+    return getEmbedSize image
+
+
+  getImageStyle: ->
+
+    { width, height } = @getImageSize()
+
+    return style =
+      height : "#{height}px"
+      width  : "#{width}px"
 
 
   renderImage: ->
 
     { link_embed } = @props.data
+    { width }      = @getImageSize()
 
-    srcUrl = proxifyUrl link_embed.images?[0]?.url, { width : @getImageWidth() }
+    srcUrl = proxifyUrl link_embed.images.first.url, { width }
 
     <img
       src   = { srcUrl }
       title = { link_embed.title ? '' }
-      width = '100%'
+      style = { @getImageStyle() }
     />
 
 
   render: ->
 
     { data } = @props
+
     return null  unless data
 
-    { link_url } = data
-
-    <a href={link_url} target='_blank' className='EmbedBoxImage'>
+    <a href={data.link_url} target='_blank' className='EmbedBoxImage' style={@getImageStyle()}>
       { @renderImage() }
     </a>
 
