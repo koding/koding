@@ -11,10 +11,9 @@ module.exports = (type) ->
     when 'photo','image'
       return 'image'
 
-    # rich is a html object for things like twitter posts
-    # link is fallback for things that may or may not have any kind of preview
-    # or are links explicitly
-    # also captures 'rich content' and makes regular links from that data
+    when 'video'
+      return 'video'
+
     when 'link', 'html'
       return 'link'
 
