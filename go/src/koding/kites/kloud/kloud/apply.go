@@ -260,7 +260,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 
 	req, ok := request.FromContext(ctx)
 	if !ok {
-		return errors.New("request context is not passed")
+		return errors.New("internal server error (err: session context is not available)")
 	}
 
 	ev.Push(&eventer.Event{
