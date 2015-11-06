@@ -147,6 +147,22 @@ func TestGithubPullRequest(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubPullRequestAssigned(t *testing.T) {
+	whd := &webhook.PullRequestEvent{}
+	err := json.Unmarshal([]byte(pullRequestAssignedData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.pullRequest(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := `[sent-hil](https://github.com/sent-hil) assigned to [sinan](https://github.com/sinan) pull request [updated readme](https://github.com/koding/koding/pull/5667) at [koding/koding](https://github.com/koding/koding)`
+	equals(t, exp, d)
+}
+
 func SkipTestGithubPullRequestMerged(t *testing.T) {
 	whd := &webhook.PullRequestEvent{}
 	err := json.Unmarshal([]byte(mergePullRequestData), whd)
