@@ -419,8 +419,8 @@ class Haydar extends events.EventEmitter
         import    : includes
         define    :
           assetsPath: "#{opts.baseurl}/#{ASSETS_OUTDIR}"
-        sourcemap :
-          inline: if opts.debugCss then yes else no
+        # sourcemap :
+        #   inline: if opts.debugCss then yes else no
 
       basename = manifest.name + '.css'
       outfile = path.join opts.stylesOutdir, basename
