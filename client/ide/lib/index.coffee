@@ -517,12 +517,12 @@ class IDEAppController extends AppController
 
             # Just resurrect snapshot for host or without collaboration.
             # Because we need check the `@myWatchMap` and it is not possible here.
-            if (snapshot and @amIHost) or @mountedMachine.isPermanent()
+            if snapshot and (@amIHost or @mountedMachine.isPermanent())
               return @layoutManager.resurrectSnapshot snapshot
 
             # Be quiet. Don't write initial views's changes to snapshot.
             # After that, get participant's snapshot from collaboration data and build workspace.
-            @silent = yes  if @isInSession and not @amIHost
+            @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
 
             @splitTabView type: 'horizontal', dontSave: yes
 
