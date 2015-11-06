@@ -18,7 +18,6 @@ function check () {
   INTERVAL=$3
   TRY_COUNT=$4
 
-  echo -en "$HOST:$PORT\t\t"
   $SCRIPTS/test-instance/check-connectivity $HOST $PORT $INTERVAL $TRY_COUNT
   EXIT_CODE=$?
 
@@ -30,7 +29,6 @@ function check () {
 }
 
 function health_check () {
-  echo -n "Health check $INSTANCE "
   INSTANCE=$1
   HOST=$(echo $INSTANCE | awk '{print $2}')
   OUTPUT=$(curl --silent --dump-header /dev/stdout "http://$HOST:8090/-/healthCheck")
@@ -38,11 +36,10 @@ function health_check () {
   STATUS_LINE=$(echo "$STATUS_LINE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
   if [ "$STATUS_LINE" != "HTTP/1.1 200 OK" ]; then
-    echo 'NOT OK'
+    echo "$INSTANCE fails health check"
     return 1
   fi
 
-  echo 'OK'
   return 0
 }
 
