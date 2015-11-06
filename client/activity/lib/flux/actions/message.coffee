@@ -47,7 +47,7 @@ loadMessages = (channelId, options = {}) ->
             dispatchLoadMessageSuccess channelId, message
 
           dispatch LOAD_MESSAGES_SUCCESS, { channelId, messages }
-          
+
           if messages.length < limit
             dispatch SET_ALL_MESSAGES_LOADED, { channelId }
         resolve { messages }
@@ -489,11 +489,10 @@ fetchEmbedPayload = (messageData, callback = kd.noop) ->
   return callback()  unless url
   return callback()  if messageData.payload?.link_url is url
 
-  options = {
-    maxWidth  : 530
-    maxHeight : 200
+  options =
+    maxWidth  : 600
+    maxHeight : 450
     wmode     : 'transparent'
-  }
 
   { fetchDataFromEmbedly } = kd.singletons.socialapi.message
 
