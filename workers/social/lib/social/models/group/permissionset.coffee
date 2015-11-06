@@ -50,10 +50,6 @@ module.exports = class JPermissionSet extends Module
 
     super data
 
-    # Flush mainGroupData cache on update
-    @on 'updateInstance', =>
-      @constructor.mainGroupData = null
-
     return  if @isCustom
 
     # initialize the permission set with some sane defaults:
@@ -116,17 +112,6 @@ module.exports = class JPermissionSet extends Module
           queue[groupName] = []
 
 
-  @fetchMainGroupAndPermissionSet = (callback) ->
-
-    # We do have a in memory cache here for `MAIN_GROUP` which will be
-    # flushed once a JPermissionSet is getting updated ~ GG
-    return callback null, @mainGroupData  if @mainGroupData
-
-    fetchGroupAndPermissionSet MAIN_GROUP, (err, res) =>
-      if err then callback err
-      else callback null, @mainGroupData = res
-
-
   getGroupnameFrom = (target, client) ->
     JGroup = require '../group'
     return if 'function' is typeof target
@@ -176,10 +161,10 @@ module.exports = class JPermissionSet extends Module
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client
 
-    # if it's the main group fetch it from cached helper
+    # if it's the main group fetch only that one
     if client.groupName is MAIN_GROUP
 
-      @fetchMainGroupAndPermissionSet (err, main) ->
+      fetchGroupAndPermissionSet MAIN_GROUP, (err, main) ->
         if err or not main then callback err, no
         else kallback main, main # pass same group and permissionSet for
                                  # current and the main group ~ GG
@@ -187,10 +172,11 @@ module.exports = class JPermissionSet extends Module
     else
 
       # fetch permission set for the given group and start checking permissions
-      fetchGroupAndPermissionSet client.groupName, (err, current) =>
+      fetchGroupAndPermissionSet client.groupName, (err, current) ->
         if err or not current then callback err, no
         else
-          @fetchMainGroupAndPermissionSet (err, main) ->
+          # also provide the main group permission set for superadmin checks
+          fetchGroupAndPermissionSet MAIN_GROUP, (err, main) ->
             if err or not main then callback err, no
             else kallback current, main
 
