@@ -1,8 +1,5 @@
 immutable                  = require 'immutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
-calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
-getListSelectedItem        = require 'activity/util/getListSelectedItem'
-whoami                     = require 'app/util/whoami'
 getGroup                   = require 'app/util/getGroup'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
