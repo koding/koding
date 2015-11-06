@@ -138,7 +138,8 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*Clients).UserClient
 
 	// EditOrgMembership edits the membership for user in specified organization.
-	_, _, err = client.Organizations.EditOrgMembership(user, org, membership)
+	// if user is authenticated, we dont need to set 1.parameter as user
+	_, _, err = client.Organizations.EditOrgMembership("", org, membership)
 	if err != nil {
 		return err
 	}

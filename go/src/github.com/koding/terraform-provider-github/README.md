@@ -1,3 +1,6 @@
+[![wercker status]
+(https://app.wercker.com/status/f65e85e8245114e76a436f6c22cfcdf2/m "wercker status")](https://app.wercker.com/project/bykey/f65e85e8245114e76a436f6c22cfcdf2)
+
 # terraform-provider-github
 Github Provider for Terraform
 
