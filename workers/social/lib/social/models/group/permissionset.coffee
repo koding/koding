@@ -80,20 +80,40 @@ module.exports = class JPermissionSet extends Module
     [{ permission, validateWith: require('./validators').any }]
 
 
-  fetchGroupAndPermissionSet = (groupName, callback) ->
+  fetchGroupAndPermissionSet = do (queue = {}) ->
 
-    JGroup = require '../group'
-    JGroup.one { slug: groupName }, (err, group) ->
-      if err then callback err
-      else unless group?
-        callback new KodingError "Unknown group! #{groupName}"
-      else
-        group.fetchPermissionSetOrDefault (err, permissionSet) ->
-          if err then callback err
-          else callback null, { group, permissionSet }
     memCache = cacheManager.caching
       store  : 'memory'
       ttl    : 60 # seconds
+
+    fetcher = (groupName, callback) ->
+      JGroup = require '../group'
+      JGroup.one { slug: groupName }, (err, group) ->
+        if err then callback err
+        else unless group?
+          callback new KodingError "Unknown group! #{groupName}"
+        else
+          group.fetchPermissionSetOrDefault (err, permissionSet) ->
+            if err then callback err
+            else callback null, { group, permissionSet }
+
+    (groupName, callback) ->
+
+      memCache.get groupName, (err, data) ->
+        return callback err, data  if data
+
+        queue[groupName] ?= []
+        return  if (queue[groupName].push callback) > 1
+
+        fetcher groupName, (err, data) ->
+
+          if err
+            cb err  for cb in queue[groupName]
+          else
+            memCache.set groupName, data  if data
+            cb null, data  for cb in queue[groupName]
+
+          queue[groupName] = []
 
 
   @fetchMainGroupAndPermissionSet = (callback) ->
