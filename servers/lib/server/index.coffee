@@ -76,7 +76,8 @@ app.post '/-/analytics/track'                    , require './handlers/analytics
 app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-app.post '/-/video-chat/session'                 , require './handlers/videosession'
+# creates a video session for the given channelId
+app.post '/-/video-chat/session'                 , csrf,   require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
@@ -93,8 +94,8 @@ app.get  '/Verify/:token'                        , require './handlers/verifytok
 app.post '/:name?/Register'                      , csrf,   require './handlers/register'
 app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , require './handlers/impersonate'
-app.post '/:name?/Recover'                       , require './handlers/recover'
-app.post '/:name?/Reset'                         , require './handlers/reset'
+app.post '/:name?/Recover'                       , csrf,   require './handlers/recover'
+app.post '/:name?/Reset'                         , csrf,   require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
 app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
 app.get  '/humans.txt'                           , generateHumanstxt

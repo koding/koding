@@ -62,5 +62,3 @@ testCsrfToken = (generateHandlerRequestParams, method, options, callback) ->
 module.exports = {
   testCsrfToken
 }
-
-
