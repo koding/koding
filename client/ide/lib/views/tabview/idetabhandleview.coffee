@@ -114,12 +114,14 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
   enableContextMenu: ->
 
-    icon = new KDCustomHTMLView
+    @icon?.destroy()
+
+    @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'options'
-      click    : => @createMenu icon
+      click    : => @createMenu @icon
 
-    @addSubView icon, null, yes
+    @addSubView @icon, null, yes
 
 
   createMenu: (icon) ->
