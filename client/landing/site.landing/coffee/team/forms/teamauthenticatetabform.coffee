@@ -40,7 +40,6 @@ module.exports = class TeamAuthenticateTabForm extends KDFormView
       name          : 'password'
       placeholder   : '*********'
       validate      :
-        # event       : 'blur'
         container   : this
         rules       :
           required  : yes

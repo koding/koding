@@ -31,7 +31,6 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
         defaultValue  : companyName  if companyName
         attributes    : testpath : 'company-name'
         validate      :
-          # event       : 'blur'
           rules       :
             required  : yes
           messages    :

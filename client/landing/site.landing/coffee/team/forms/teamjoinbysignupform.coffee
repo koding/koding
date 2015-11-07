@@ -57,7 +57,6 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
         name          : 'password'
         placeholder   : 'set a password'
         validate      :
-          # event       : 'blur'
           container   : this
           rules       :
             required  : yes

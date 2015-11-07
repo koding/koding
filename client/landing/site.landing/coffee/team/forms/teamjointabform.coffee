@@ -37,7 +37,6 @@ module.exports = class TeamJoinTabForm extends KDFormView
         name        : 'password'
         placeholder : 'password'
         validate    :
-          # event     : 'blur'
           container : this
           rules     : { required: yes }
           messages  : { required: 'Please enter a password.' }
