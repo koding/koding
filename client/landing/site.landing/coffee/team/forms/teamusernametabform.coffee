@@ -58,7 +58,6 @@ module.exports = class TeamUsernameTabForm extends KDFormView
         name          : 'password'
         placeholder   : 'set a password'
         validate      :
-          # event       : 'blur'
           container   : this
           rules       :
             required  : yes

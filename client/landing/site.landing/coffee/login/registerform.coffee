@@ -28,7 +28,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             @password.input.validate()
             @button.click event
         validate          :
-          # event           : 'blur'
           container       : this
           rules           :
             required      : yes

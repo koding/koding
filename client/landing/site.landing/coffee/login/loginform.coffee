@@ -16,7 +16,6 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
         attributes    :
           testpath    : 'login-form-username'
         validate      :
-          # event       : 'blur'
           rules       :
             required  : yes
           messages    :
@@ -31,7 +30,6 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
         attributes    :
           testpath    : 'login-form-password'
         validate      :
-          # event       : 'blur'
           rules       :
             required  : yes
           messages    :
