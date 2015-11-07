@@ -21,6 +21,10 @@ const (
 	MessageRemovedEventName     = "MessageRemoved"
 	ChannelDeletedEventName     = "ChannelDeleted"
 
+	NotificationSettingCreatedEvent = "NotificationSettingCreated"
+	NotificationSettingUpdatedEvent = "NotificationSettingUpdated"
+	NotificationSettingDeletedEvent = "NotificationSettingDeleted"
+
 	// instance events
 	ReplyRemovedEventName       = "ReplyRemoved"
 	ReplyAddedEventName         = "ReplyAdded"
@@ -241,6 +245,39 @@ func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.P
 		}
 	}
 	return notifiedParticipantIds, nil
+}
+
+func (f *Controller) NotificationSettingSaved(ns *models.NotificationSetting) error {
+	accountId := ns.AccountId
+	channelId := ns.ChannelId
+	channel, err := models.Cache.Channel.ById(channelId)
+	if err != nil {
+		return err
+	}
+
+	return f.sendNotification(accountId, channel.GroupName, NotificationSettingCreatedEvent, ns)
+}
+
+func (f *Controller) NotificationSettingUpdated(ns *models.NotificationSetting) error {
+	accountId := ns.AccountId
+	channelId := ns.ChannelId
+	channel, err := models.Cache.Channel.ById(channelId)
+	if err != nil {
+		return err
+	}
+
+	return f.sendNotification(accountId, channel.GroupName, NotificationSettingUpdatedEvent, ns)
+}
+
+func (f *Controller) NotificationSettingDeleted(ns *models.NotificationSetting) error {
+	accountId := ns.AccountId
+	channelId := ns.ChannelId
+	channel, err := models.Cache.Channel.ById(channelId)
+	if err != nil {
+		return err
+	}
+
+	return f.sendNotification(accountId, channel.GroupName, NotificationSettingDeletedEvent, ns)
 }
 
 // InteractionSaved runs when interaction is added
