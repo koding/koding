@@ -1217,6 +1217,10 @@ class IDEAppController extends AppController
             ace.setHeight height
             ace.editor.resize()
 
+      tabPaneView = pane.parent
+      tabView     = tabPaneView.getDelegate()
+      tabView.resizeTabHandles()
+
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
 
