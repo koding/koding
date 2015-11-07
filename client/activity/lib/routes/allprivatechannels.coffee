@@ -1,4 +1,4 @@
-BrowsePrivateChannelsModal = require 'activity/components/browsepublicchannelsmodal'
+BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsmodal'
 
 module.exports = class AllPrivateChannelsRoute
 
