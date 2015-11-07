@@ -14,7 +14,6 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
 
     return {
       selectedThread              : ActivityFlux.getters.selectedChannelThread
-      globalNotificationSettings  : NotificationSettingsFlux.getters.globalNotificationSettings
       channelNotificationSettings : NotificationSettingsFlux.getters.channelNotificationSettings
     }
 
@@ -35,7 +34,6 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     options =
       channelId       : @state.selectedThread.getIn ['channel', 'id']
       channelName     : @state.selectedThread.getIn ['channel', 'name']
-      globalSettings  : @state.globalNotificationSettings.toJS()
       channelSettings : @state.channelNotificationSettings.toJS()
 
     { saveSettings } = NotificationSettingsFlux.actions.channel
