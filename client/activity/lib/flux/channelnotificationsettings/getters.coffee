@@ -1,11 +1,5 @@
-immutable                  = require 'immutable'
 ActivityFluxGetters        = require 'activity/flux/getters'
-getGroup                   = require 'app/util/getGroup'
 
-withEmptyMap  = (storeData) -> storeData or immutable.Map()
-
-
-selectedChannelThreadId           = [['SelectedChannelThreadIdStore'], withEmptyMap]
 channelNotificationSettingsStore  = ['ChannelNotificationSettingsStore']
 
 channelNotificationSettings = [

@@ -1,7 +1,7 @@
 kd                        = require 'kd'
 ActivityFlux              = require 'activity/flux'
 NotificationSettingsModal = require 'activity/components/publicchannelnotificationsettingsmodal'
-NotificationSettingsFlux  = require 'activity/flux/channelnotificationSettings'
+NotificationSettingsFlux  = require 'activity/flux/channelnotificationsettings'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
