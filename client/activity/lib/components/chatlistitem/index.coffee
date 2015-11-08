@@ -296,7 +296,6 @@ module.exports = class ChatListItem extends React.Component
         disabledFeatures = { ['commands'] }
         onReady          = { @bound 'onEditStarted' }
       />
-      <div className='clearfix'></div>
     </div>
 
 
@@ -342,7 +341,6 @@ module.exports = class ChatListItem extends React.Component
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}
-        <div className='clearfix'></div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>
