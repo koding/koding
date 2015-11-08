@@ -1,5 +1,6 @@
-_       = require 'lodash'
-request = require 'request'
+_           = require 'lodash'
+request     = require 'request'
+KodingError = require '../../error'
 
 module.exports = fallbackToIframely = (url, callback) ->
 
