@@ -205,7 +205,7 @@ fetchConfigureData = (options, callback) ->
         data.isAuthorized = isAuthorized
 
         if integration.name is 'github'
-          fetchAllGithubRepos (err, repositories) =>
+          fetchAllGithubRepos (err, repositories) ->
             if err
               if err.code is 401
                 data.isAuthorized = no
