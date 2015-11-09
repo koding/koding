@@ -88,6 +88,11 @@ module.exports = class ChannelThreadPane extends React.Component
 
   leaveChannel: ->
 
+    { unfollowChannel } = ActivityFlux.actions.channel
+    channelId   = @state.channelThread.get 'channelId'
+
+    unfollowChannel channelId
+
 
   updatePurpose: ->
 
