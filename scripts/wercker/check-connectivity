@@ -61,15 +61,18 @@ done
 
 wait
 
-INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
+INSTANCE_COUNT=$(echo $INSTANCE_DATA_FILE | wc -l)
 
-if [ -z "$INSTANCE_IDS" ]; then
+if [ $INSTANCE_COUNT -eq 0 ]; then
+  echo "error: no instance found"
   exit 1
 fi
 
-INSTANCE_COUNT=$(echo $INSTANCE_IDS | wc -l)
+INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
 
-if [ $INSTANCE_COUNT -eq 0 ]; then
+if [ -z "$INSTANCE_IDS" ]; then
+  echo "error: instance data file is malformed"
+  cat $INSTANCE_DATA_FILE
   exit 1
 fi
 
