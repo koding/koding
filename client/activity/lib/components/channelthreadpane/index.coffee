@@ -35,6 +35,8 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
+      originalPurpose       : ''
+      editingPurpose        : no
       showDropTarget        : no
       isComingSoonModalOpen : no
       channelThread         : immutable.Map()
@@ -95,6 +97,12 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   updatePurpose: ->
+
+    @setState editingPurpose: yes
+    input = React.findDOMNode @refs.purposeInput
+
+    kd.utils.defer ->
+      kd.utils.moveCaretToEnd input
 
 
   showNotificationSettingsModal: ->
