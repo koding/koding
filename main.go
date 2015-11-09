@@ -34,9 +34,10 @@ func main() {
 
 	app.Commands = []cli.Command{
 		cli.Command{
-			Name:   "list",
-			Usage:  "List the available machines.",
-			Action: Exit(CheckUpdateFirst(ListCommand)),
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List the available machines.",
+			Action:    Exit(CheckUpdateFirst(ListCommand)),
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:   "mounts",
@@ -47,6 +48,7 @@ func main() {
 		},
 		cli.Command{
 			Name:        "mount",
+			ShortName:   "m",
 			Usage:       "Mount a remote folder to a local folder.",
 			Description: cmdDescriptions["mount"],
 			Flags: []cli.Flag{
@@ -68,12 +70,14 @@ func main() {
 		},
 		cli.Command{
 			Name:        "unmount",
+			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
 			Action:      Exit(CheckUpdateFirst(UnmountCommand)),
 		},
 		cli.Command{
 			Name:        "ssh",
+			ShortName:   "s",
 			Usage:       "SSH into the machine.",
 			Description: cmdDescriptions["ssh"],
 			Action:      Exit(CheckUpdateFirst(SSHCommandFactory)),
