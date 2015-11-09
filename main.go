@@ -60,6 +60,10 @@ func main() {
 					Name:  "noignore, n",
 					Usage: "Disable ignoring of default remote folders.",
 				},
+				cli.BoolFlag{
+					Name:  "prefetch, p",
+					Usage: "Prefetch folder/file metadata on mount.",
+				},
 				// TODO: implement this in klient and then enable this
 				// cli.StringFlag{
 				//   Name:  "watch, w",

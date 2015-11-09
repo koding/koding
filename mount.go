@@ -26,6 +26,7 @@ func MountCommand(c *cli.Context) int {
 		localPath  = c.Args()[1]
 		remotePath = c.String("remotepath") // note the lowercase of all chars
 		noIgnore   = c.Bool("noignore")
+		prefetch   = c.Bool("prefetch")
 	)
 
 	// allow scp like declaration, ie `<machine name>:/path/to/remote`
@@ -54,17 +55,17 @@ func MountCommand(c *cli.Context) int {
 		return 1
 	}
 
-	// Check if the local path exists, and ask the user if they want to create it
-
 	mountRequest := struct {
 		Name       string `json:"name"`
 		LocalPath  string `json:"localPath"`
 		RemotePath string `json:"remotePath"`
 		NoIgnore   bool   `json:"noIgnore"`
+		Prefetch   bool   `json:"prefetch"`
 	}{
 		Name:      name,
 		LocalPath: localPath,
 		NoIgnore:  noIgnore,
+		Prefetch:  prefetch,
 	}
 
 	// RemotePath is optional
