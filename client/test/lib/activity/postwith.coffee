@@ -6,12 +6,19 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 
 module.exports =
 
-
   postMessageWithCode: (browser) ->
 
     helpers.beginTest(browser)
 
     activityHelpers.postMessageWithCode(browser)
+    browser.end()
+
+
+  editMessageWithCode: (browser) ->
+  
+    helpers.beginTest(browser)
+
+    activityHelpers.editAction(browser, "message", yes, no, no)
     browser.end()
 
 
@@ -23,11 +30,27 @@ module.exports =
     browser.end()
 
 
+  editMessageWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editAction(browser, "message", no, yes, no)
+    browser.end()
+
+
   postMessageWithLink: (browser) ->
 
     helpers.beginTest(browser)
 
     activityHelpers.postMessageWithLink(browser)
+    browser.end()
+
+
+  editMessageWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editAction(browser, "message", no, no, yes)
     browser.end()
 
 
@@ -50,6 +73,14 @@ module.exports =
       .end()
 
 
+  editCommentWithCode: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editAction(browser, "comment", yes, no, no)
+    browser.end()
+
+
   postCommentWithImage: (browser) ->
 
     helpers.beginTest(browser)
@@ -69,6 +100,14 @@ module.exports =
       browser.end()
 
 
+  editCommentWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editAction(browser, "comment", no, yes, no)
+    browser.end()
+
+
   postCommentWithLink: (browser) ->
 
     helpers.beginTest(browser)
@@ -85,3 +124,11 @@ module.exports =
       assert.equal(link, href)
 
       browser.end()
+
+
+  editCommentWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    activityHelpers.editAction(browser, "comment", no, no, yes)
+    browser.end()
