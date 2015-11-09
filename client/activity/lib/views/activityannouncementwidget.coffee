@@ -11,19 +11,14 @@ module.exports = class ActivityAnnouncementWidget extends JView
 
     super options, data
 
-    @tryManagedMachineLink = new kd.CustomHTMLView
-      tagName : 'a'
-      partial : 'Try it now'
-      click   : -> new AddManagedMachineModal
-
 
   pistachio: ->
 
     return """
       <div class="logo"></div>
-      <h3>New: Connect your own machine!</h3>
-      <p>You can now connect any Ubuntu Linux machine with a public IP address to your Koding account.</p>
-      {{> @tryManagedMachineLink}}
+      <h3>New: Koding Hackathon is Back!</h3>
+      <p>Win over $150,000 is cash prizes! Hack from where ever you are!</p>
+      <a href="/Hackathon" title="Apply Now, space limited!">Apply Now, space limited!</a>
     """
 
 
