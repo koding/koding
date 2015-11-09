@@ -220,7 +220,7 @@ module.exports = class JCredential extends jraphical.Module
   fetchUsers: permit
 
     advanced: [
-      # { permission: 'modify credential' }
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -299,7 +299,7 @@ module.exports = class JCredential extends jraphical.Module
   shareWith$: permit
 
     advanced: [
-      # { permission: 'modify credential' }
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -388,7 +388,7 @@ module.exports = class JCredential extends jraphical.Module
   fetchData$: permit
 
     advanced: [
-      # { permission: 'modify credential' }
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -400,7 +400,7 @@ module.exports = class JCredential extends jraphical.Module
   update$: permit
 
     advanced: [
-      # { permission: 'modify credential' }
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
