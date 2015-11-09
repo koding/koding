@@ -2119,7 +2119,7 @@ paymentGrayLighter  = #f8f8f8
     r-sprite                'app', 'red-close'
     display                 inline-block
     top                     14px
-    right                   0
+    right                   15px
     display                 none
     abs()
     pointer()
@@ -2162,16 +2162,21 @@ paymentGrayLighter  = #f8f8f8
 .machine-settings-modal
   .AppModal-content
     &.vm-sharing
-    &.domains
+      overflow              hidden
+
       .listview-wrapper
         height              calc(100% \- 40px)
 
       .kdcustomscrollview
         styleScrollBars     rgba(0,0,0,.15)
 
-        .kdscrolltrack.vertical
-          right             -15px
+        .kdscrolltrack
 
+          &.vertical
+            right           0
+
+          &.horizontal
+            hidden()
 
 .machine-settings-modal .snapshots
   .no-item
