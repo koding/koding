@@ -486,6 +486,18 @@ setScrollPosition = (channelId, position) ->
   dispatch SET_CHANNEL_SCROLL_POSITION, { channelId, position }
 
 
+###*
+ * Action to set last seen time of given channel.
+ *
+ * @param {string} channelId
+ * @param {number} timestamp
+###
+setLastSeenTime = (channelId, timestamp) ->
+
+  { SET_CHANNEL_LAST_SEEN_TIME } = actionTypes
+  dispatch SET_CHANNEL_LAST_SEEN_TIME, { channelId, timestamp }
+
+
 module.exports = {
   followChannel
   unfollowChannel
@@ -509,5 +521,6 @@ module.exports = {
   setSidebarPublicChannelsQuery
   setSidebarPublicChannelsTab
   setScrollPosition
+  setLastSeenTime
 }
 
