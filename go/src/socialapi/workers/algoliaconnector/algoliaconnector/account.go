@@ -11,95 +11,118 @@ import (
 	"labix.org/v2/mgo"
 )
 
+// AccountCreated adds user the algolia and adds koding group's channel id
 func (f *Controller) AccountCreated(data *models.Account) error {
-	user, err := modelhelper.GetUser(data.Nick)
-	if err != nil && err != mgo.ErrNotFound {
-		return err
-	}
-
-	if err == mgo.ErrNotFound {
-		f.log.Error("user %+v is not found in mongodb", data)
-		return nil
-	}
-
-	return f.insert(IndexAccounts, map[string]interface{}{
-		"objectID": data.OldId,
-		"nick":     data.Nick,
-		"email":    user.Email,
-		"_tags":    []string{f.kodingChannelId},
-	})
+	cleanupGuest := false
+	return f.handleAccount(data, cleanupGuest, addUniqueTagMap(f.kodingChannelId))
 }
 
+// AccountCreated updates the user on algolia and adds koding group's channel id
 func (f *Controller) AccountUpdated(data *models.Account) error {
-	user, err := modelhelper.GetUser(data.Nick)
-	if err != nil && err != mgo.ErrNotFound {
-		return err
-	}
-
-	if err == mgo.ErrNotFound {
-		f.log.Error("user %+v is not found in mongodb", data)
-		return nil
-	}
-
-	record, err := f.get(IndexAccounts, data.OldId)
-	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIDNotFoundMsg) &&
-		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
-		return err
-	}
-
-	// when an account is deleted, remove the object from algolia
-	if strings.Contains(data.Nick, "guest-") {
-		if record == nil {
-			return nil
-		}
-
-		return f.delete(IndexAccounts, data.OldId)
-	}
-
-	// algolia partial update works like this, if item exists updates it, if
-	// they cant find any document with objectID, they create it
-	if record == nil {
-		return f.AccountCreated(data)
-	}
-
-	return f.partialUpdate(IndexAccounts, map[string]interface{}{
-		"objectID": data.OldId,
-		"nick":     data.Nick,
-		"email":    user.Email,
-	})
+	cleanupGuest := true
+	return f.handleAccount(data, cleanupGuest, addUniqueTagMap(f.kodingChannelId))
 }
 
 // ParticipantUpdated operates with the participant deleted/created events, adds
 // to algolia if the state is active, else removes from algolia
 func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
-	// This code is commented out and stays here just for future referance,
-	// channel participant table is the only one that we are not soft deleting
-	// records, and marking status as left, we dont have a notion
-	// channel_participant_delete, handle accordingly
-
-	// // if status of the participant is active, then add user
-	// if p.StatusConstant == models.ChannelParticipant_STATUS_ACTIVE {
-	// 	return f.handleParticipantOperation(p)
-	// }
-
-	err := f.handleParticipantOperation(p)
-	if err != nil {
-		f.log.Error("err while handling participant updated event: %s", err.Error())
-	}
-
-	return err
+	return f.handleParticipantOperation(p)
 }
 
 // ParticipantCreated operates with the participant createad event, adds new tag
 // to the algolia document
 func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
-	err := f.handleParticipantOperation(p)
-	if err != nil {
-		f.log.Error("err while handling participant created event: %s", err.Error())
+	return f.handleParticipantOperation(p)
+}
+
+func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) error {
+	if p.ChannelId == 0 {
+		f.log.Info("channel id is 0, data: %+v", p)
+		return nil
 	}
 
-	return err
+	if p.AccountId == 0 {
+		f.log.Info("account id is 0, data: %+v", p)
+		return nil
+	}
+
+	// fetch account from database
+	a := models.NewAccount()
+	if err := a.ById(p.AccountId); err != nil {
+		f.log.Error("err while fetching account: %s", err.Error())
+		return nil
+	}
+
+	if a.Id == 0 {
+		f.log.Critical("account found but id is 0 %+v", a)
+		return nil
+	}
+
+	channelId := strconv.FormatInt(p.ChannelId, 10)
+
+	tagMap := addUniqueTagMap(channelId) // as default add the new channel to tags
+
+	// if status of the participant is not active remove it from user
+	if p.StatusConstant != models.ChannelParticipant_STATUS_ACTIVE {
+		tagMap = removeTagMap(channelId)
+	}
+
+	cleanupGuest := true
+	return f.handleAccount(a, cleanupGuest, tagMap)
+}
+
+func (f *Controller) handleAccount(data *models.Account, cleanupGuest bool, tagMap map[string]interface{}) error {
+	// do not send guests to algolia
+	if strings.HasPrefix(data.Nick, "guest-") {
+		if cleanupGuest {
+			return f.delete(IndexAccounts, data.OldId)
+		}
+
+		return nil
+	}
+
+	user, err := modelhelper.GetUser(data.Nick)
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	if err == mgo.ErrNotFound {
+		f.log.Error("user %+v is not found in mongodb", data)
+		return nil
+	}
+
+	mongoaccount, err := modelhelper.GetAccount(data.Nick)
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	if err == mgo.ErrNotFound {
+		f.log.Error("account %+v is not found in mongodb", data)
+		return nil
+	}
+
+	return f.partialUpdate(IndexAccounts, map[string]interface{}{
+		"objectID":  data.OldId,
+		"nick":      data.Nick,
+		"email":     user.Email,
+		"firstName": mongoaccount.Profile.FirstName,
+		"lastName":  mongoaccount.Profile.LastName,
+		"_tags":     tagMap,
+	})
+}
+
+func addUniqueTagMap(value string) map[string]interface{} {
+	return map[string]interface{}{
+		"_operation": "AddUnique",
+		"value":      value,
+	}
+}
+
+func removeTagMap(value string) map[string]interface{} {
+	return map[string]interface{}{
+		"_operation": "Remove",
+		"value":      value,
+	}
 }
 
 func (f *Controller) RemoveGuestAccounts() error {
@@ -117,81 +140,6 @@ func (f *Controller) RemoveGuestAccounts() error {
 	}
 
 	return nil
-}
-
-func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) error {
-	if p.ChannelId == 0 {
-		return nil
-	}
-
-	if p.AccountId == 0 {
-		return nil
-	}
-
-	a := models.NewAccount()
-	if err := a.ById(p.AccountId); err != nil {
-		f.log.Error("err while fetching account: %s", err.Error())
-		return nil
-	}
-
-	if a.Id == 0 {
-		f.log.Critical("account found but id is 0 %+v", a)
-		return nil
-	}
-
-	record, err := f.get(IndexAccounts, a.OldId)
-	if err != nil &&
-		!IsAlgoliaError(err, ErrAlgoliaObjectIDNotFoundMsg) &&
-		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
-		return err
-	}
-
-	if record == nil {
-		// first create the account
-		if err := f.AccountCreated(a); err != nil {
-			return err
-		}
-
-		// make sure account is there, before start processing it
-		err := makeSureAccount(f, a.OldId, func(record map[string]interface{}, err error) bool {
-			if err != nil {
-				return false
-			}
-
-			if record == nil {
-				return false
-			}
-
-			return true
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	record, err = f.get(IndexAccounts, a.OldId)
-	if err != nil {
-		return err
-	}
-
-	cp := models.NewChannelParticipant()
-	ids, err := cp.FetchAllParticipatedChannelIds(a.Id)
-	if err != nil {
-		return err
-	}
-
-	// fetch all channels of account, there is a race condition when a user
-	// joins to multiple channels, due to algolia's eventual consistency,
-	// obtained tags are not up-to-date
-	var channelIds []string
-	for _, id := range ids {
-		channelIds = append(channelIds, strconv.FormatInt(id, 10))
-	}
-
-	return f.partialUpdate(IndexAccounts, map[string]interface{}{
-		"objectID": a.OldId,
-		"_tags":    channelIds,
-	})
 }
 
 var errDeadline = errors.New("deadline reached")

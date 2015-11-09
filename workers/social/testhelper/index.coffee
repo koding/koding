@@ -68,7 +68,7 @@ generateDummyClient = (context, callback) ->
 withDummyClient = (context, callback) ->
 
   [context, callback] = [callback, context]  unless callback
-  context         ?= { group : 'koding' }
+  context            ?= { group : 'koding' }
 
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
@@ -94,6 +94,24 @@ withConvertedUser = (opts, callback) ->
         if opts?.userFormData?
         then callback { client, user, account, group, sessionToken : newToken }
         else callback { client, user, account, group, sessionToken : newToken, userFormData }
+
+
+withCreatedUser = (opts, callback) ->
+
+  [opts, callback] = [callback, opts]  unless callback
+
+  user     = {}
+  account  = {}
+  userInfo = _.extend generateUserInfo(), opts
+
+  withDummyClient opts, ({ client }) ->
+
+    JUser.createUser userInfo, (err, user_, account_) ->
+      expect(err).to.not.exist
+      [user, account] = [user_, account_]
+
+      fetchGroup client, (group) ->
+        callback { client, user, account, group }
 
 
 generateDummyUserFormData = (opts = {}) ->
@@ -205,10 +223,12 @@ module.exports = {
   _
   daisy
   expect
+  KONFIG
   ObjectId
   fetchGroup
   expectRelation
   withDummyClient
+  withCreatedUser
   generateUserInfo
   withConvertedUser
   expectAccessDenied

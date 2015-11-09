@@ -60,8 +60,8 @@ app.use require './setsession'
 
 # temp endpoints @cihangir will reorganize these - SY
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
-app.post '/-/teams/create'                       , require './handlers/createteam'
-app.post '/-/teams/join'                         , require './handlers/jointeam'
+app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
+app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
 app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
@@ -76,7 +76,8 @@ app.post '/-/analytics/track'                    , require './handlers/analytics
 app.post '/-/analytics/page'                     , require './handlers/analytics/page'
 
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-app.post '/-/video-chat/session'                 , require './handlers/videosession'
+# creates a video session for the given channelId
+app.post '/-/video-chat/session'                 , csrf,   require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
@@ -90,13 +91,13 @@ app.post '/-/validate/username'                  , require './handlers/validateu
 app.post '/-/validate/email'                     , require './handlers/validateemail'
 app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
-app.post '/:name?/Register'                      , require './handlers/register'
+app.post '/:name?/Register'                      , csrf,   require './handlers/register'
 app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , require './handlers/impersonate'
-app.post '/:name?/Recover'                       , require './handlers/recover'
-app.post '/:name?/Reset'                         , require './handlers/reset'
+app.post '/:name?/Recover'                       , csrf,   require './handlers/recover'
+app.post '/:name?/Reset'                         , csrf,   require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
-app.all  '/:name?/Logout'                        , require './handlers/logout'
+app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
 app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"

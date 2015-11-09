@@ -746,7 +746,7 @@ paymentGrayLighter  = #f8f8f8
       text-align        center
 
       span.title
-        font-weight     600
+        font-family     SoleilFamily
         color           paymentGreen
         line-height     34px
         margin          0 0 6px
@@ -2157,6 +2157,20 @@ paymentGrayLighter  = #f8f8f8
   border                    1px solid #aaa
   border-top                none
   margin-top                -1px !important
+
+
+.machine-settings-modal
+  .AppModal-content
+    &.vm-sharing
+    &.domains
+      .listview-wrapper
+        height              calc(100% \- 40px)
+
+      .kdcustomscrollview
+        styleScrollBars     rgba(0,0,0,.15)
+
+        .kdscrolltrack.vertical
+          right             -15px
 
 
 .machine-settings-modal .snapshots

@@ -68,7 +68,7 @@ generateSession = (channel, callback) ->
     url      : '/-/video-chat/session'
     method   : 'post'
     dataType : 'JSON'
-    data     : { channelId: channel.id }
+    data     : { channelId: channel.id, _csrf : Cookies.get '_csrf' }
     success  : callback
 
 

@@ -4,20 +4,17 @@ KONFIG                              = require('koding-config-manager').load "mai
 
 { hostname }                        = KONFIG
 { Relationship }                    = require 'jraphical'
-{ hat
-  daisy
+{ daisy
   expect
   request
-  querystring
   convertToArray
   generateRandomEmail
   generateRandomString
   checkBongoConnectivity
   generateRandomUsername }          = require '../../../testhelper'
+{ testCsrfToken }                   = require '../../../testhelper/handler'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
-
-{ generateCreateTeamRequestBody
-  generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
+{ generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
 
 reservedTeamDomains = require '../../../../workers/social/lib/social/models/user/reservedteamdomains'
 
@@ -51,6 +48,12 @@ runTests = -> describe 'server.handlers.createteam', ->
       JDomainAlias } = koding.models
 
     done()
+
+
+  it 'should fail when csrf token is invalid', (done) ->
+
+    options = { generateParamsAsync : true }
+    testCsrfToken generateCreateTeamRequestParams, 'post', options, done
 
 
   # creating team with an unregistered user

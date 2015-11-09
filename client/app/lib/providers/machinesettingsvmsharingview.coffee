@@ -20,6 +20,8 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     options.addButtonTitle       = 'INVITE'
     options.headerAddButtonTitle = 'ADD SOMEONE'
     options.listViewItemClass    = UserItem
+    options.listViewOptions      =
+      useCustomScrollView        : yes
     options.loaderOnHeaderButton = yes
     options.listViewItemOptions  = { justFirstName: no, size: width: 32, height: 32 }
     options.noItemFoundWidget    = new KDCustomHTMLView
