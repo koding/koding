@@ -28,7 +28,14 @@ module.exports = class ActivityAppController extends AppController
 
     super options
 
-    {appStorageController} = kd.singletons
+    {appStorageController, appManager} = kd.singletons
+
+    unless isKoding()
+      appManager.on 'FrontAppIsChanged', (currentApp, oldApp) =>
+        if currentApp isnt oldApp and oldApp is this
+          {thread, message} = ActivityFlux.actions
+          thread.changeSelectedThread null
+          message.changeSelectedMessage null
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
