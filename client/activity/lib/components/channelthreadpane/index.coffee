@@ -100,7 +100,24 @@ module.exports = class ChannelThreadPane extends React.Component
     kd.singletons.router.handleRoute route
 
 
+  renderPurposeArea: ->
+
+    return  unless @state.channelThread
+
+    thread = @state.channelThread
+
+    valueLink =
+      value: thread.getIn ['channel', 'purpose']
+      requestChange: @bound 'handleChange'
+
+    <div className={@getPurposeAreaClassNames()}>
+      <span className='ChannelThreadPane-purpose'>{valueLink}</span>
+      <input ref='purposeInput' type='text' valueLink={valueLink} onKeyDown={@bound 'onKeyDown'} />
+    </div>
+
+
   renderHeader: ->
+
     return  unless @state.channelThread
     thread = @state.channelThread
     channelName = thread.getIn ['channel', 'name']
@@ -132,6 +149,7 @@ module.exports = class ChannelThreadPane extends React.Component
         <header className='ChannelThreadPane-header'>
           {@renderHeader()}
           <ButtonWithMenu listClass='ChannelThreadPane-menuItems' items={@getMenuItems()} />
+          {@renderPurposeArea()}
           <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
         <div className='ChannelThreadPane-body'>
