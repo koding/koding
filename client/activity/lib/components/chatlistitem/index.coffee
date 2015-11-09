@@ -167,14 +167,16 @@ module.exports = class ChatListItem extends React.Component
     onClose            : @bound "closeBlockUserPromptModal"
 
 
-  deletePostButtonHandler: ->
+  deletePostButtonHandler: (event) ->
 
+    kd.utils.stopDOMEvent event
     ActivityFlux.actions.message.removeMessage @props.message.get('id')
     @closeDeletePostModal()
 
 
-  closeDeletePostModal: ->
+  closeDeletePostModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isDeleting: no
 
 
