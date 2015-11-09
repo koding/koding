@@ -22,7 +22,32 @@ $header-height              = 52px
   .ButtonWithMenuWrapper
     rel()
     top                     -2px
-    margin-left             10px
+    margin                  0 15px
+
+.ChannelThreadPane-purposeWrapper
+  .ChannelThreadPane-purpose
+    font-style              italic
+    color                   $gray-12
+    letter-spacing          -0.1px
+    font-size               16px
+
+  input
+    color                   $gray-12
+    padding                 5px
+    rounded                 4px
+    width                   400px
+    outline                 none
+    font-size               14px
+    border                  1px solid #dfdfdf
+    margin-left             -6px
+    hidden()
+
+  &.editing
+    .ChannelThreadPane-purpose
+      hidden()
+
+    input
+      visible()
 
 .ChannelThreadPane-menuItems
   margin-left               120px
