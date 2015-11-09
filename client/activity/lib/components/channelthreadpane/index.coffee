@@ -16,6 +16,7 @@ StartVideoCallLink           = require 'activity/components/common/startvideocal
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
 Link                         = require 'app/components/common/link'
 ButtonWithMenu               = require 'app/components/buttonwithmenu'
+KeyboardKeys                 = require 'app/util/keyboardKeys'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -111,6 +112,48 @@ module.exports = class ChannelThreadPane extends React.Component
     route = "/Channels/#{channelName}/NotificationSettings"
 
     kd.singletons.router.handleRoute route
+
+
+  onKeyDown: (event) ->
+
+    { ENTER, ESC } = KeyboardKeys
+    thread         = @state.channelThread
+    purpose        = thread.getIn(['channel', 'purpose'])
+
+    if event.which is ESC
+
+      _originalPurpose = thread.getIn ['channel', '_originalPurpose']
+      purpose = _originalPurpose or thread.getIn ['channel', 'purpose']
+      thread  = thread.setIn ['channel', 'purpose'], purpose
+      @setState channelThread: thread
+      return @setState editingPurpose: no
+
+    if event.which is ENTER
+
+      id        = thread.get 'channelId'
+      purpose   = thread.getIn(['channel', 'purpose']).trim()
+
+      { updateChannel } = ActivityFlux.actions.channel
+
+      updateChannel({ id, purpose }).then (response) =>
+        @setState editingPurpose: no
+
+
+  getPurposeAreaClassNames: -> classnames
+    'ChannelThreadPane-purposeWrapper': yes
+    'editing': @state.editingPurpose
+
+
+  handleChange: (newValue) ->
+
+    thread = @state.channelThread
+
+    unless thread.getIn ['channel', '_originalPurpose']
+      _originalPurpose = thread.getIn ['channel', 'purpose']
+      thread = thread.setIn ['channel', '_originalPurpose'], _originalPurpose
+
+    channelThread = thread.setIn ['channel', 'purpose'], newValue
+    @setState channelThread: channelThread
 
 
   renderPurposeArea: ->
