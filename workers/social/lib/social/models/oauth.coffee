@@ -25,8 +25,8 @@ module.exports = class OAuth extends bongo.Base
         { scope, returnUrl } = options
         scope        = 'user:email'  unless scope
         redirectUri  = "#{redirectUri}?"
-        redirectUri += "returnUrl=#{returnUrl}&"  if returnUrl
-        redirectUri += "_csrf=#{_csrf}"           if _csrf
+        redirectUri += "_csrf=#{_csrf}&"
+        redirectUri += "returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
         callback null, url
 
