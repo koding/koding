@@ -83,7 +83,8 @@ module.exports = class TeamUsernameTab extends KDTabPaneView
           track 'succeeded to create a team'
           KD.utils.clearTeamData()
           { protocol, host } = location
-          location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
+          csrfToken          = encodeURIComponent Cookies.get '_csrf'
+          location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}&_csrf=#{csrfToken}"
         error : ({responseText}) =>
           if /TwoFactor/.test responseText
             track 'requires two-factor authentication'
