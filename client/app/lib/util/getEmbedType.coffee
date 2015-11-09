@@ -10,7 +10,7 @@ module.exports = (type) ->
     when 'video'
       return 'video'
 
-    when 'link', 'html'
+    when 'link', 'html', 'rich'
       return 'link'
 
     # embedly supports many error types. we could display those to the user
