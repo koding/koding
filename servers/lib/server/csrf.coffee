@@ -10,7 +10,7 @@ module.exports = (req, res, next) ->
 getToken = (req) ->
   req.body?._csrf or
   req.query?._csrf or
-  req.query?.state or # for facebook login callback
+  req.query?.state or # for google, facebook api callbacks
   req.headers['csrf-token'] or
   req.headers['xsrf-token'] or
   req.headers['x-csrf-token'] or
