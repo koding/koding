@@ -15,7 +15,7 @@ var cmdDescriptions = map[string]string{
 	),
 	"mount": fmtDesc(
 		"<machine name> </path/local/folder>",
-		fmt.Sprintf("Mount folder from remote machine to local folder.\n    Local folder can be relative or absolute path."),
+		fmt.Sprintf("Mount folder from remote machine to local folder.\n    Machine name is the local identifer for machine in `kd list`.\n    Local folder can be relative or absolute path."),
 	),
 	"ssh": fmtDesc(
 		"<machine name>", "SSH into the machine.",
