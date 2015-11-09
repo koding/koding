@@ -142,6 +142,8 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 	}
 
 	if c.Prefetch {
+		// remove entries fetched above or it'll have double entries
+		rootDir.reset()
 		dirInit := NewDirInitializer(t, rootDir, ignoreFolders)
 		if err := dirInit.Initialize(); err != nil {
 			return nil, err

@@ -396,3 +396,11 @@ func (d *Dir) removeChild(name string) (Node, error) {
 
 	return listEntry, nil
 }
+
+func (d *Dir) reset() {
+	d.Lock()
+	defer d.Unlock()
+
+	d.Entries = []fuseutil.Dirent{}
+	d.EntriesList = map[string]Node{}
+}
