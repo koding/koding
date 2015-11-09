@@ -29,6 +29,7 @@ func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
 		awscompat.NewSession(auth),
 		aws.NewConfig().WithRegion("us-east-1"), // our route53 is based on this region, so we use it
 	)
+	dns.Client.Retryer = awscompat.Retry
 
 	params := &route53.ListHostedZonesInput{
 		MaxItems: aws.String("100"),

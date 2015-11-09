@@ -12,7 +12,7 @@ func NewSession(a oldaws.Auth) *session.Session {
 	cfg := &aws.Config{
 		Credentials: c,
 	}
-	return session.New(cfg)
+	return session.New(cfg, Transport)
 }
 
 func CleanZoneID(id string) string {
