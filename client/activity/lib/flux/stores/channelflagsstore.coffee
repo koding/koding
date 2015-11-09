@@ -20,6 +20,7 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
     @on actions.SET_ALL_MESSAGES_LOADED, @handleSetAllMessagesLoaded
     @on actions.UNSET_ALL_MESSAGES_LOADED, @handleUnsetAllMessagesLoaded
     @on actions.SET_CHANNEL_SCROLL_POSITION, @handleSetScrollPosition
+    @on actions.SET_CHANNEL_LAST_SEEN_TIME, @handleSetLastSeenTime
 
 
   handleLoadChannel: (channelFlags, { channelId }) ->
@@ -55,6 +56,12 @@ module.exports = class ChannelFlagsStore extends KodingFluxStore
 
     channelFlags = helper.ensureChannelMap channelFlags, channelId
     return channelFlags.setIn [channelId, 'scrollPosition'], position
+
+
+  handleSetLastSeenTime: (channelFlags, { channelId, timestamp }) ->
+
+    channelFlags = helper.ensureChannelMap channelFlags, channelId
+    return channelFlags.setIn [channelId, 'lastSeenTime'], timestamp
 
 
 helper =
