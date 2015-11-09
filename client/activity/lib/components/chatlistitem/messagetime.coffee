@@ -41,8 +41,8 @@ module.exports = class MessageTime extends React.Component
     offset = $(MessageDateDOMNode).offset()
 
     @setState
-      tooltipY      : offset.top
-      tooltipX      : offset.left + MessageDateDOMNode.offsetWidth / 2
+      tooltipY : offset.top
+      tooltipX : offset.left + MessageDateDOMNode.offsetWidth / 2
 
 
   setTooltipOpenState: (delay) ->
