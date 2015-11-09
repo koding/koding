@@ -46,6 +46,7 @@ module.exports = class OAuth extends bongo.Base
         url += 'https://www.googleapis.com/auth/userinfo.profile '
         url += 'https://www.googleapis.com/auth/userinfo.email&'
         url += "redirect_uri=#{redirectUri}&"
+        url += "state=#{_csrf}&"
         url += 'response_type=code&'
         url += "client_id=#{client_id}&"
         url += 'access_type=offline'
