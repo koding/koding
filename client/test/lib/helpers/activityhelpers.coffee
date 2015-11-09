@@ -90,7 +90,7 @@ module.exports =
     browser
       .pause                    2000
       .click                    activitySelector + ' .comment-menu'
-      .waitForElementVisible    '.edit-comment .kdview', 2000
+      .waitForElementVisible    '.edit-comment .kdview', 20000
       .click                    '.edit-comment .kdview'
       .clearValue               activitySelector + ' .comment-input-view'
 
@@ -99,16 +99,16 @@ module.exports =
         .setValue               activitySelector + ' .comment-input-view', editedPost
         .click                  activitySelector + ' .submit-button'
         .pause                  5000 # wait for image loading
-        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container p', 2000
+        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container p', 20000
         .assert.containsText    activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container p', editedCode
 
     if editWithImage
       browser
         .setValue               activitySelector + ' .comment-input-view', imageText
         .click                  activitySelector + ' .submit-button'
-        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container', 2000
+        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container', 20000
         .refresh()              #in order for the image to resize
-        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container', 5000
+        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .comment-contents .comment-body-container', 20000
 
       browser.getAttribute imageSelector, 'height', (result) ->
         height = result.value
@@ -120,7 +120,7 @@ module.exports =
         .pause                  3500 # wait for image loading
         .click                  activitySelector + ' .submit-button'
         .refresh()              #in order for the image thumbnail to regenerate
-        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .title', 5000
+        .waitForElementVisible  activitySelector + ' .comment-container .listview-wrapper .title', 20000
         .assert.containsText    activitySelector + ' .comment-container .listview-wrapper .title', 'Google'
 
 
@@ -133,7 +133,7 @@ module.exports =
       .click                    activitySelector + ' .settings-menu-wrapper'
       .waitForElementVisible    '.edit-post .kdview', 3000
       .click                    '.edit-post .kdview'
-      .waitForElementVisible    activitySelector + ' .done-button', 2000
+      .waitForElementVisible    activitySelector + ' .done-button', 20000
       .clearValue               activitySelector + activityInputSelector
 
     if editWithCode
@@ -141,7 +141,7 @@ module.exports =
         .setValue               activitySelector + activityInputSelector, editedPost
         .click                  activitySelector + ' .done-button'
         .pause                  1000 # below element is not found without pause
-        .waitForElementVisible  activitySelector + ' .has-markdown code', 2000
+        .waitForElementVisible  activitySelector + ' .has-markdown code', 20000
         .assert.containsText    activitySelector + ' .has-markdown code', editedCode
 
     if editImage
@@ -158,7 +158,7 @@ module.exports =
     if editLink
       browser
         .setValue               activitySelector + activityInputSelector, finalLink
-        .waitForElementVisible  activitySelector + ' .activity-content-wrapper .edit-widget-wrapper .activity-input-widget .link-embed-box .with-image a[href="https://www.google.com/"]:first-child', 5000
+        .waitForElementVisible  activitySelector + ' .activity-content-wrapper .edit-widget-wrapper .activity-input-widget .link-embed-box .with-image a[href="https://www.google.com/"]:first-child', 20000
         .click                  activitySelector + ' .done-button'
         .pause                  5000 #for image load
         .assert.containsText    activitySelector + ' .activity-content-wrapper .link-embed-box .title', 'Google'
