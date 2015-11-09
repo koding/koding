@@ -1028,7 +1028,7 @@ module.exports = class JUser extends jraphical.Module
 
     emailFrequencyDefaults = {
       global         : on
-      daily          : on
+      daily          : off
       privateMessage : on
       followActions  : off
       comment        : on

@@ -54,7 +54,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 
 	k.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
-	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
+	data, err := fetchTerraformData(r.Method, r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
 	if err != nil {
 		return nil, err
 	}

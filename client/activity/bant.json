@@ -18,12 +18,12 @@
     "/Activity" : "ActivityGeneric",
 
     "/NewChannel": "NewPublicChannel",
-    "/Channels": "AllPublicChannels",
+    "/AllChannels": "AllPublicChannels",
     "/Channels/:channelName": "SinglePublicChannel",
     "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
 
     "/NewMessage": "NewPrivateChannel",
-    "/Messages": "AllPrivateChannels",
+    "/AllMessages": "AllPrivateChannels",
     "/Messages/:privateChannelId": "SinglePrivateChannel",
     "/Messages/:privateChannelId/:postId": "SinglePrivateChannelPost"
   },

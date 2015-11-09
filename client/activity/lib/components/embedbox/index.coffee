@@ -3,6 +3,7 @@ React                = require 'kd-react'
 classnames           = require 'classnames'
 getEmbedType         = require 'app/util/getEmbedType'
 EmbedBoxImage        = require 'activity/components/embedboximage'
+EmbedBoxVideo        = require 'activity/components/embedboxvideo'
 EmbedBoxObject       = require 'activity/components/embedboxobject'
 EmbedBoxLinkDisplay  = require 'activity/components/embedboxlinkdisplay'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
@@ -36,11 +37,18 @@ module.exports = class EmbedBox extends React.Component
     <EmbedBoxLinkDisplay data={data} />
 
 
+  renderEmbedBoxVideo: ->
+
+    { data } = @props
+    <EmbedBoxVideo data={data} />
+
+
   renderEmbedBoxContent: (embedType) ->
 
     switch embedType
       when 'image'  then @renderEmbedBoxImage()
       when 'object' then @renderEmbedBoxObject()
+      when 'video'  then @renderEmbedBoxVideo()
       else               @renderEmbedBoxLinkDisplay()
 
 
@@ -51,7 +59,7 @@ module.exports = class EmbedBox extends React.Component
 
     { link_embed } = data
 
-    embedType = getEmbedType link_embed.type or 'link'
+    embedType = getEmbedType link_embed.media?.type or link_embed.type or 'link'
 
     isInvalidType   = embedType is 'link' and not link_embed.description
     isInvalidType or= embedType is 'error'
@@ -60,4 +68,3 @@ module.exports = class EmbedBox extends React.Component
     <div className='EmbedBox-container clearfix'>
       { @renderEmbedBoxContent embedType }
     </div>
-

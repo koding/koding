@@ -83,15 +83,14 @@
       bg                    color, transparent
 
   .ChatItem-contentWrapper
-    padding                 10px 0 0 34px
+    padding                 10px 23px 0 34px
     margin-top              10px
     overflow                visible
 
     &.editing
       overflow              hidden
-      padding               10px 0 6px 34px
+      padding               10px 0 10px 34px
       bg                    color, $light-yellow
-      margin-bottom         -17px
 
       .SettingsMenuWrapper
         hidden()
@@ -148,12 +147,13 @@
     padding                 0px !important
     margin-left             -6px
     kalc                    width, (100% \+ 6px)
+    margin-bottom           0
 
     textarea
       resize                none
       display               block
       margin-top            24px
-      padding-left          6px !important
+      padding               13px 42px 12px 6px
 
   .ChatInputWidget:before
     display                   none
@@ -166,7 +166,7 @@
 
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
-  padding                     0 0 0 86px !important
+  padding                     0 23px 0 86px !important
   article
     padding-left              0 !important
 

@@ -58,6 +58,10 @@ func (n *NotificationSetting) AfterUpdate() {
 	bongo.B.AfterUpdate(n)
 }
 
+func (n *NotificationSetting) AfterDelete() {
+	bongo.B.AfterDelete(n)
+}
+
 func (n *NotificationSetting) BeforeCreate() error {
 	if err := n.validateBeforeOps(); err != nil {
 		return err
