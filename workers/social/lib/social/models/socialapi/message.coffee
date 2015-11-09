@@ -1,11 +1,13 @@
-Bongo            = require 'bongo'
-{ Relationship } = require 'jraphical'
-request          = require 'request'
-ApiError         = require './error'
-KodingError      = require '../../error'
+Bongo              = require 'bongo'
+{ Relationship }   = require 'jraphical'
+request            = require 'request'
+ApiError           = require './error'
+KodingError        = require '../../error'
+fallbackToIframely = require './fallbacktoiframely'
 
 { secure, daisy, dash, signature, Base } = Bongo
 { uniq, extend } = require 'underscore'
+
 
 
 module.exports = class SocialMessage extends Base
@@ -230,13 +232,21 @@ module.exports = class SocialMessage extends Base
         luxe     : 1
 
       api.extract options, (err, result) ->
+
         return callback err, result  if err
 
-        cachedEmbedlyResult[urls] = result
-        callback err, result
+        if result[0]?.error_code
+
+          fallbackToIframely urls[0], (err, result) ->
+            return callback err, result  if err
+
+            cachedEmbedlyResult[urls] = result
+            callback err, result
+
+        else
+          cachedEmbedlyResult[urls] = result
+          callback err, result
 
 
   @paymentSubscribe = secure (client, options, callback) ->
     doRequest 'paymentSubscribe', client, options, callback
-
-
