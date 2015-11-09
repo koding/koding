@@ -13,7 +13,7 @@ module.exports = class OAuth extends bongo.Base
         getUrl      : (signature Object, Function)
 
   @getUrl = secure (client, options, callback) ->
-    { provider } = options
+    { provider, _csrf } = options
     redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
     if redirectUri
       redirectUri = @prependGroupName redirectUri, client.context.group
@@ -22,7 +22,7 @@ module.exports = class OAuth extends bongo.Base
 
       when 'github'
         { clientId } = KONFIG.github
-        { scope, returnUrl, _csrf } = options
+        { scope, returnUrl } = options
         scope        = 'user:email'  unless scope
         redirectUri  = "#{redirectUri}?"
         redirectUri += "returnUrl=#{returnUrl}&"  if returnUrl
@@ -32,9 +32,11 @@ module.exports = class OAuth extends bongo.Base
 
       when 'facebook'
         { clientId } = KONFIG.facebook
-        { _csrf }    = options
-        redirectUri  = encodeURIComponent "#{redirectUri}?_csrf=#{_csrf}"  if _csrf
-        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
+        url  = "https://facebook.com/dialog/oauth?"
+        url += "client_id=#{clientId}&"
+        url += "redirect_uri=#{redirectUri}&"
+        url += "scope=email&"
+        url += "state=#{_csrf}"
         callback null, url
 
       when 'google'
