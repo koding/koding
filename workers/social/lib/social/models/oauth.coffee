@@ -32,6 +32,8 @@ module.exports = class OAuth extends bongo.Base
 
       when 'facebook'
         { clientId } = KONFIG.facebook
+        { _csrf }    = options
+        redirectUri  = encodeURIComponent "#{redirectUri}?_csrf=#{_csrf}"  if _csrf
         url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
         callback null, url
 
