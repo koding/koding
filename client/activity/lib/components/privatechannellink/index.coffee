@@ -24,7 +24,7 @@ module.exports = class PrivateChannelLink extends React.Component
 
   render: ->
     <Link {...@props}
-      className={kd.utils.curry "PrivateChannelLink", @props.className}
+      className={kd.utils.curry "MessageLink PrivateChannelLink", @props.className}
       href="/Messages/#{@channel('_id') ? '#'}">
       {@props.children}
     </Link>

@@ -1,7 +1,3 @@
-kd = require 'kd'
-
-# TODO: Not totally sure what this is supposed to do, but I put it here
-#       to bypass awful hacks by Arvid Kahl:
 module.exports = (type) ->
   switch type
     when 'audio', 'xml', 'json', 'ppt', 'rss', 'atom'
@@ -14,14 +10,14 @@ module.exports = (type) ->
     when 'video'
       return 'video'
 
-    when 'link', 'html'
+    when 'link', 'html', 'rich'
       return 'link'
 
     # embedly supports many error types. we could display those to the user
     when 'error'
-      kd.log 'Embedding error '
+      console.log 'Embedding error '
       return 'error'
 
     else
-      kd.log "Unhandled content type '#{type}'"
+      console.log "Unhandled content type '#{type}'"
       return 'error'
