@@ -155,13 +155,6 @@ module.exports = class IDEEditorPane extends IDEPane
 
     change = @getInitialChangeObject()
 
-    return change
-
-
-  bindChangeListeners: ->
-
-    change = @getInitialChangeObject()
-
     @getAce()
       .on 'ace.change.cursor',   @lazyBound 'handleCursorChange',      change
       .on 'FileContentChanged',  @lazyBound 'handleFileContentChange', change
