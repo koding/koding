@@ -29,11 +29,12 @@ export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
 make -C client/test build
 
 ./run services
+
+sleep 60 # let dockers boot up
+
 ./run migrate up
 ./run resetdb --yes
 ./run importusers
-
-sleep 60 # Wait time to let service processes settle
 
 supervisord -c $REPOSITORY_PATH/supervisord.conf
 
