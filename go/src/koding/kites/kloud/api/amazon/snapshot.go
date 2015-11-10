@@ -4,41 +4,32 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
-
-func (a *Amazon) DeleteSnapshot(snapshotId string) error {
-	_, err := a.Client.DeleteSnapshots([]string{snapshotId})
-	return err
-}
 
 // CreateSnapshot creates a new snapshot from the given volumeId and
 // description. It waits until it's ready.
 func (a *Amazon) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, error) {
-	resp, err := a.Client.CreateSnapshot(volumeId, desc)
+	snapshot, err := a.Client.CreateSnapshot(volumeId, desc)
 	if err != nil {
 		return nil, err
 	}
 
-	snapShot := resp.Snapshot
-
-	checkSnapshot := func(currentPercentage int) (machinestate.State, error) {
-		describeResp, err := a.Client.Snapshots([]string{resp.Id}, ec2.NewFilter())
-		if err != nil {
+	checkSnapshot := func(int) (machinestate.State, error) {
+		switch s, err := a.Client.SnapshotByID(aws.StringValue(snapshot.SnapshotId)); {
+		case IsNotFound(err):
+			// shouldn't happen but let's check it anyway
+			return machinestate.Pending, nil
+		case err != nil:
 			return 0, err
-		}
-
-		// shouldn't happen but let's check it anyway
-		if len(describeResp.Snapshots) == 0 {
+		case aws.StringValue(s.State) != "completed":
+			// TODO(rjeczalik): use state enums
 			return machinestate.Pending, nil
+		default:
+			snapshot = s
+			return machinestate.Stopped, nil
 		}
-
-		if describeResp.Snapshots[0].Status != "completed" {
-			return machinestate.Pending, nil
-		}
-
-		snapShot = describeResp.Snapshots[0]
-		return machinestate.Stopped, nil
 	}
 
 	ws := waitstate.WaitState{
@@ -49,5 +40,5 @@ func (a *Amazon) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, error) {
 		return nil, err
 	}
 
-	return &snapShot, nil
+	return snapshot, nil
 }
