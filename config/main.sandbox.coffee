@@ -1,4 +1,3 @@
-zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
@@ -823,18 +822,6 @@ Configuration = (options={}) ->
   #-------------------------------------------------------------------------#
 
   KONFIG.JSON = JSON.stringify KONFIG
-
-  b64z = (str,strict=yes,compress=yes)->
-    if str
-      _b64 = new Buffer(str)
-      _b64 = zlib.compress _b64 if compress
-      # log "[b64z] before #{str.length} after #{_b64.length}"
-      return _b64.toString('base64')
-    else
-      if strict
-        throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
-      else
-        return ""
 
   generateRunFile = (KONFIG) ->
     return """
