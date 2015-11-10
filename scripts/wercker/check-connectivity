@@ -61,7 +61,7 @@ done
 
 wait
 
-INSTANCE_COUNT=$(echo $INSTANCE_DATA_FILE | wc -l)
+INSTANCE_COUNT=$(cat $INSTANCE_DATA_FILE | wc -l)
 
 if [ $INSTANCE_COUNT -eq 0 ]; then
   echo "error: no instance found"
