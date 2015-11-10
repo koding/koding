@@ -65,9 +65,13 @@ module.exports = class AccountEmailNotifications extends KDView
 
   handleGlobalState: (state) ->
 
-    if state
-    then @list.unsetClass 'off'
-    else @list.setClass 'off'
+    @handleDependency ['daily'], state
+    @handleDailyState state and @fields.daily.switch.getValue()
+
+
+  handleDailyState: (state) ->
+
+    @handleDependency ['privateMessage', 'comment', 'likeActivities', 'mention'], state
 
 
   handlePrivateMessageState: (state) ->
@@ -119,7 +123,7 @@ module.exports = class AccountEmailNotifications extends KDView
         partial  : field.title
         cssClass : "title"
 
-      fieldSwitch = new KodingSwitch
+      fields[flag].switch = fieldSwitch = new KodingSwitch
         defaultValue  : frequency[flag]
         callback      : (state) -> view.switched @getData(), state
       , flag
@@ -145,13 +149,19 @@ module.exports = class AccountEmailNotifications extends KDView
     @emit 'EmailPrefSwitched', flag, state
 
     whoami().setEmailPreferences prefs, (err) =>
-
       return @fields[flag].loader.hide()  unless err
 
-      @fallBackToOldState()
       @emit 'EmailPrefSwitched', flag, !state
-
       notify_ 'Failed to change state'
 
 
+  handleDependency: (items, state) ->
+
+    items.forEach (item) =>
+
+      method = if state
+      then 'unsetClass'
+      else 'setClass'
+
+      @fields[item].formView[method] 'off'
 
