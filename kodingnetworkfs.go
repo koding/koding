@@ -1,7 +1,6 @@
 package fuseklient
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -43,10 +42,6 @@ type KodingNetworkFS struct {
 
 	// MountConfig is optional config sent to `fuse.Mount`.
 	MountConfig *fuse.MountConfig
-
-	// Ctx is the context used in joining filesystem.
-	// TODO: I'm not sure what to do with this yet, saving it for future.
-	Ctx context.Context
 
 	// ignoredFolderList is folders for which all operations will return empty
 	// response. If a file has same name as entry in list, it'll NOT be ignored.
@@ -167,27 +162,6 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 	server := fuseutil.NewFileSystemServer(k)
 	return fuse.Mount(k.MountPath, server, k.MountConfig)
-}
-
-// Join mounts and blocks till user VM is unmounted.
-func (k *KodingNetworkFS) Join() {
-	go func() {
-		if err := k.JoinBlock(); err != nil {
-			fmt.Printf("Error mounting: %s\n", err)
-		}
-	}()
-}
-
-func (k *KodingNetworkFS) JoinBlock() error {
-	mountedFS, err := k.Mount()
-	if err != nil {
-		return err
-	}
-
-	// TODO: what context to use?
-	k.Ctx = context.TODO()
-
-	return mountedFS.Join(k.Ctx)
 }
 
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
