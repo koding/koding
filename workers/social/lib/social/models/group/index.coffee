@@ -1405,7 +1405,7 @@ module.exports = class JGroup extends Module
       JPaymentSubscription.one { _id: id }, (err, subscription) =>
         @addSubscription subscription, callback
 
-  fetchPermissionSetOrDefault : (callback) ->
+  fetchPermissionSetOrDefault: (callback) ->
     @fetchPermissionSet (err, permissionSet) =>
       callback err, null if err
       if permissionSet

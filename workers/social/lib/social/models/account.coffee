@@ -296,12 +296,6 @@ module.exports = class JAccount extends jraphical.Module
           as          : 'owner'
           targetType  : 'JProxyFilter'
 
-        referrer      :
-          targetType  : 'JReferral'
-          as          : 'referrer'
-        referred      :
-          targetType  : 'JReferral'
-          as          : 'referred'
         invitation    :
           as          : 'owner'
           targetType  : 'JInvitation'
@@ -490,16 +484,6 @@ module.exports = class JAccount extends jraphical.Module
             JName.remove { name: oldUsername }, (err) ->
               console.warn '[JAccount.changeUsername]', err  if err?
 
-
-  checkPermission: (target, permission, callback) ->
-    JPermissionSet = require './group/permissionset'
-    client =
-      context     : { group: target.slug }
-      connection  : { delegate: this }
-    advanced =
-      if Array.isArray permission then permission
-      else JPermissionSet.wrapPermission permission
-    JPermissionSet.checkPermission client, advanced, target, null, callback
 
   @renderHomepage: require '../render/profile.coffee'
 

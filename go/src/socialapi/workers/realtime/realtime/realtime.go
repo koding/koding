@@ -248,36 +248,24 @@ func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.P
 }
 
 func (f *Controller) NotificationSettingSaved(ns *models.NotificationSetting) error {
-	accountId := ns.AccountId
-	channelId := ns.ChannelId
-	channel, err := models.Cache.Channel.ById(channelId)
-	if err != nil {
-		return err
-	}
-
-	return f.sendNotification(accountId, channel.GroupName, NotificationSettingCreatedEvent, ns)
+	return f.notificationSettingWithEventName(ns.AccountId, ns.ChannelId, NotificationSettingCreatedEvent, ns)
 }
 
 func (f *Controller) NotificationSettingUpdated(ns *models.NotificationSetting) error {
-	accountId := ns.AccountId
-	channelId := ns.ChannelId
-	channel, err := models.Cache.Channel.ById(channelId)
-	if err != nil {
-		return err
-	}
-
-	return f.sendNotification(accountId, channel.GroupName, NotificationSettingUpdatedEvent, ns)
+	return f.notificationSettingWithEventName(ns.AccountId, ns.ChannelId, NotificationSettingUpdatedEvent, ns)
 }
 
 func (f *Controller) NotificationSettingDeleted(ns *models.NotificationSetting) error {
-	accountId := ns.AccountId
-	channelId := ns.ChannelId
+	return f.notificationSettingWithEventName(ns.AccountId, ns.ChannelId, NotificationSettingDeletedEvent, ns)
+}
+
+func (c *Controller) notificationSettingWithEventName(accountId int64, channelId int64, eventName string, ns *models.NotificationSetting) error {
 	channel, err := models.Cache.Channel.ById(channelId)
 	if err != nil {
 		return err
 	}
 
-	return f.sendNotification(accountId, channel.GroupName, NotificationSettingDeletedEvent, ns)
+	return c.sendNotification(accountId, channel.GroupName, eventName, ns)
 }
 
 // InteractionSaved runs when interaction is added
