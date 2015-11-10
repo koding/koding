@@ -643,6 +643,8 @@ module.exports = class JAccount extends jraphical.Module
     user.update { $set: { emailFrequency: current } }, (err) ->
       return callback err  if err
 
+      callback null
+
       emailFrequency =
         global    : current.global
         marketing : current.marketing
