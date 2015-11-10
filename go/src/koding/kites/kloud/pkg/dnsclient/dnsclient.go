@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"koding/kites/kloud/awscompat"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/dchest/validator"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/route53"
+	oldaws "github.com/mitchellh/goamz/aws"
 )
 
 var ErrNoRecord = errors.New("no records available")
@@ -21,21 +24,25 @@ type Route53 struct {
 }
 
 // NewRoute53Client initializes a new DNSClient interface instance based on AWS Route53
-func NewRoute53Client(hostedZone string, auth aws.Auth) *Route53 {
-	// our route53 is based on this region, so we use it
-	dns := route53.New(auth, aws.USEast)
+func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
+	dns := route53.New(
+		awscompat.NewSession(auth),
+		aws.NewConfig().WithRegion("us-east-1"), // our route53 is based on this region, so we use it
+	)
 
-	hostedZones, err := dns.ListHostedZones("", 100)
+	params := &route53.ListHostedZonesInput{
+		MaxItems: aws.String("100"),
+	}
+	hostedZones, err := dns.ListHostedZones(params)
 	if err != nil {
 		panic(err)
 	}
 
 	var zoneId string
+	var dnsName = hostedZone + "." // DNS name ends with a ".", e.g. "dev.koding.io."
 	for _, h := range hostedZones.HostedZones {
-		// the "." point is here because hosteded zones are listed as
-		// "dev.koding.io." , "koding.io." and so on
-		if h.Name == hostedZone+"." {
-			zoneId = route53.CleanZoneID(h.ID)
+		if aws.StringValue(h.Name) == dnsName {
+			zoneId = awscompat.CleanZoneID(aws.StringValue(h.Id))
 			break
 		}
 	}
@@ -44,106 +51,100 @@ func NewRoute53Client(hostedZone string, auth aws.Auth) *Route53 {
 		panic(fmt.Sprintf("Hosted zone with the name '%s' doesn't exist", hostedZone))
 	}
 
-	r := &Route53{
+	return &Route53{
+		Route53:    dns,
 		hostedZone: hostedZone,
 		ZoneId:     zoneId,
 		Log:        logging.NewLogger("kloud-dns"),
 	}
-	r.Route53 = dns
-	return r
 }
 
 // Upsert creates or updates a the domain record with the given ip address. If
 // the record already exists, the record is updated with the new IP.
 func (r *Route53) Upsert(domain string, newIP string) error {
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Upserting domain",
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "UPSERT",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    domain,
-					TTL:     30,
-					Records: []string{newIP},
+	r.Log.Debug("upserting domain name: %s to be associated with following ip: %v", domain, newIP)
+	params := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(r.ZoneId), // TODO(rjeczalik): ensure it's valid - awscompat.ClearZoneID
+		ChangeBatch: &route53.ChangeBatch{
+			Comment: aws.String("Upserting domain"),
+			Changes: []*route53.Change{{
+				Action: aws.String("UPSERT"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					Name: aws.String(domain),
+					Type: aws.String("A"),
+					TTL:  aws.Int64(30),
+					ResourceRecords: []*route53.ResourceRecord{{
+						Value: aws.String(newIP),
+					}},
 				},
-			},
+			}},
 		},
 	}
-
-	r.Log.Debug("upserting domain name: %s to be associated with following ip: %v", domain, newIP)
-	_, err := r.ChangeResourceRecordSets(r.ZoneId, change)
+	_, err := r.ChangeResourceRecordSets(params)
 	if err != nil {
-		r.Log.Error(err.Error())
-		return errors.New("could not create domain")
+		return r.errorf("could not upsert domain %q: ", domain, err)
 	}
-
 	return nil
 }
 
 // Domain retrieves the record set for the given domain name
 func (r *Route53) Get(domain string) (*Record, error) {
-	lopts := &route53.ListOpts{
-		Name: domain,
-	}
-
-	r.Log.Debug("fetching domain record for name: %s", domain)
-
-	resp, err := r.ListResourceRecordSets(r.ZoneId, lopts)
+	r.Log.Debug("fetching domain record for domain: %s", domain)
+	resp, err := r.get(domain)
 	if err != nil {
-		r.Log.Error(err.Error())
-		return nil, errors.New("could not fetch domain")
+		return nil, r.error(err)
 	}
 
-	if len(resp.Records) == 0 {
-		return nil, ErrNoRecord
-	}
-
-	for _, r := range resp.Records {
-		// the "." point is here because records are listed as
-		// "arslan.koding.io." , "test.arslan.dev.koding.io." and so on
-		if strings.TrimSuffix(r.Name, ".") == domain {
+	var dnsName = domain + "." // DNS name ends with a ".", e.g. "dev.koding.io."
+	for _, r := range resp {
+		if aws.StringValue(r.Name) == dnsName {
 			return &Record{
-				Name: r.Name,
-				IP:   r.Records[0],
-				TTL:  r.TTL,
+				Name: aws.StringValue(r.Name),
+				IP:   aws.StringValue(r.ResourceRecords[0].Value),
+				TTL:  int(aws.Int64Value(r.TTL)),
 			}, nil
 		}
 	}
 
-	return nil, ErrNoRecord
+	return nil, r.error(ErrNoRecord)
 }
 
 // GetAll retrieves all records from the hostedzone. Because of the limitation
 // of Route53 it only returns up to 100 records. Subsequent calls retrieve the
 // first 100.
 func (r *Route53) GetAll(name string) ([]*Record, error) {
-	lopts := &route53.ListOpts{
-		Name: name,
-	}
-
-	r.Log.Debug("Fetching domain records")
-	resp, err := r.ListResourceRecordSets(r.ZoneId, lopts)
+	r.Log.Debug("fetching domain records for name: %s", name)
+	resp, err := r.get(name)
 	if err != nil {
-		r.Log.Error(err.Error())
-		return nil, errors.New("could not fetch domain")
+		return nil, r.error(err)
 	}
 
-	if len(resp.Records) == 0 {
-		return nil, ErrNoRecord
-	}
+	records := make([]*Record, len(resp))
 
-	records := make([]*Record, len(resp.Records))
-
-	for i, r := range resp.Records {
+	for i, r := range resp {
 		records[i] = &Record{
-			Name: r.Name,
-			IP:   r.Records[0],
-			TTL:  r.TTL,
+			Name: aws.StringValue(r.Name),
+			IP:   aws.StringValue(r.ResourceRecords[0].Value),
+			TTL:  int(aws.Int64Value(r.TTL)),
 		}
 	}
 
 	return records, nil
+}
+
+func (r *Route53) get(name string) ([]*route53.ResourceRecordSet, error) {
+	params := &route53.ListResourceRecordSetsInput{
+		HostedZoneId:    aws.String(r.ZoneId),
+		StartRecordName: aws.String(name),
+	}
+	resp, err := r.ListResourceRecordSets(params)
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch records for name %q: %s", name, err)
+	}
+	if len(resp.ResourceRecordSets) == 0 {
+		return nil, ErrNoRecord
+	}
+	return resp.ResourceRecordSets, nil
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction
@@ -152,38 +153,37 @@ func (r *Route53) Rename(oldDomain, newDomain string) error {
 	if err != nil {
 		return err
 	}
-
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Renaming domain",
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    oldDomain,
-					TTL:     record.TTL,
-					Records: []string{record.IP},
+	r.Log.Debug("updating domain name of IP %s from %q to %q", record.IP, oldDomain, newDomain)
+	params := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(r.ZoneId), // ensure it's valid
+		ChangeBatch: &route53.ChangeBatch{
+			Comment: aws.String("Renaming domain"),
+			Changes: []*route53.Change{{
+				Action: aws.String("DELETE"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					Name: aws.String(oldDomain),
+					Type: aws.String("A"),
+					TTL:  aws.Int64(int64(record.TTL)),
+					ResourceRecords: []*route53.ResourceRecord{{
+						Value: aws.String(record.IP),
+					}},
 				},
-			},
-			route53.Change{
-				Action: "UPSERT",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    newDomain,
-					TTL:     record.TTL,
-					Records: []string{record.IP},
+			}, {
+				Action: aws.String("UPSERT"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					Name: aws.String(newDomain),
+					Type: aws.String("A"),
+					TTL:  aws.Int64(int64(record.TTL)),
+					ResourceRecords: []*route53.ResourceRecord{{
+						Value: aws.String(record.IP),
+					}},
 				},
-			},
+			}},
 		},
 	}
-
-	r.Log.Debug("updating domain name of IP %s from %v to %v", record.IP, oldDomain, newDomain)
-	_, err = r.ChangeResourceRecordSets(r.ZoneId, change)
-	if err != nil {
-		r.Log.Error(err.Error())
-		return errors.New("could not rename domain")
+	if _, err = r.ChangeResourceRecordSets(params); err != nil {
+		return r.errorf("could not rename domain %q to %q: %s", oldDomain, newDomain, err)
 	}
-
 	return nil
 }
 
@@ -195,29 +195,27 @@ func (r *Route53) Delete(domain string) error {
 	if err != nil {
 		return err
 	}
-
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Deleting domain",
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    domain,
-					TTL:     record.TTL,
-					Records: []string{record.IP},
+	r.Log.Debug("deleting domain name: %s which was associated to following ip: %s", domain, record.IP)
+	params := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(r.ZoneId), // ensure it's valid
+		ChangeBatch: &route53.ChangeBatch{
+			Comment: aws.String("Renaming domain"),
+			Changes: []*route53.Change{{
+				Action: aws.String("DELETE"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					Name: aws.String(domain),
+					Type: aws.String("A"),
+					TTL:  aws.Int64(int64(record.TTL)),
+					ResourceRecords: []*route53.ResourceRecord{{
+						Value: aws.String(record.IP),
+					}},
 				},
-			},
+			}},
 		},
 	}
-
-	r.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, record.IP)
-	_, err = r.ChangeResourceRecordSets(r.ZoneId, change)
-	if err != nil {
-		r.Log.Error(err.Error())
-		return errors.New("could not delete domain")
+	if _, err = r.ChangeResourceRecordSets(params); err != nil {
+		return r.errorf("could not delete domain %q: %s", domain, err)
 	}
-
 	return nil
 }
 
@@ -229,29 +227,40 @@ func (r *Route53) Validate(domain, username string) error {
 	hostedZone := r.hostedZone
 
 	if domain == "" {
-		return fmt.Errorf("Domain name argument is empty")
+		return r.errorf("Domain name argument is empty")
 	}
 
 	if domain == hostedZone {
-		return fmt.Errorf("Domain '%s' can't be the same as top-level domain '%s'", domain, hostedZone)
+		return r.errorf("Domain '%s' can't be the same as top-level domain '%s'", domain, hostedZone)
 	}
 
 	if !strings.Contains(domain, hostedZone) {
-		return fmt.Errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
+		return r.errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
 	}
 
 	rest := strings.TrimSuffix(domain, "."+hostedZone)
 	if rest == domain {
-		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
+		return r.errorf("Domain is invalid (1) '%s'", domain)
 	}
 
 	if split := strings.Split(rest, "."); split[len(split)-1] != username {
-		return fmt.Errorf("Domain doesn't contain username '%s'", username)
+		return r.errorf("Domain doesn't contain username '%s'", username)
 	}
 
 	if !validator.IsValidDomain(domain) {
-		return fmt.Errorf("Domain is invalid (2) '%s'", domain)
+		return r.errorf("Domain is invalid (2) '%s'", domain)
 	}
 
 	return nil
+}
+
+func (r *Route53) errorf(format string, v ...interface{}) error {
+	err := fmt.Errorf(format, v...)
+	r.Log.Error(err.Error())
+	return err
+}
+
+func (r *Route53) error(err error) error {
+	r.Log.Error(err.Error())
+	return err
 }
