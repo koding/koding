@@ -18,7 +18,7 @@ module.exports = class SingleChannelRoute
 
   constructor: ->
 
-    @path = ':channelName(:/postId)'
+    @path = ':channelName(/:postId)'
     @childRoutes = [
       new NewPublicChannelRoute
       new AllPublicChannelsRoute
