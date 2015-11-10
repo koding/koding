@@ -88,7 +88,7 @@ func MountCommand(c *cli.Context) int {
 	if err != nil && klientctlerrors.IsExistingMountErr(err) {
 		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
-		if err := unmount(k, name); err != nil {
+		if err := unmount(k, name, localPath); err != nil {
 			fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
 			return 1
 		}

@@ -27,7 +27,7 @@ func UnmountCommand(c *cli.Context) int {
 		return 1
 	}
 
-	if err := unmount(k, name); err != nil {
+	if err := unmount(k, name, ""); err != nil {
 		fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
 		return 1
 	}
@@ -37,8 +37,8 @@ func UnmountCommand(c *cli.Context) int {
 	return 0
 }
 
-func unmount(kite *kite.Client, name string) error {
-	req := struct{ Name string }{Name: name}
+func unmount(kite *kite.Client, name, path string) error {
+	req := struct{ Name, LocalPath string }{Name: name, LocalPath: path}
 
 	// currently there's no return response to care about
 	_, err := kite.Tell("remote.unmountFolder", req)
