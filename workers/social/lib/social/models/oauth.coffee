@@ -13,23 +13,32 @@ module.exports = class OAuth extends bongo.Base
         getUrl      : (signature Object, Function)
 
   @getUrl = secure (client, options, callback) ->
-    { provider } = options
+    { provider, _csrf } = options
     redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
     if redirectUri
       redirectUri = @prependGroupName redirectUri, client.context.group
 
     switch provider
+
       when 'github'
         { clientId } = KONFIG.github
         { scope, returnUrl } = options
-        scope = 'user:email'  unless scope
-        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+        scope        = 'user:email'  unless scope
+        redirectUri  = "#{redirectUri}?"
+        redirectUri += "_csrf=#{_csrf}&"
+        redirectUri += "returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
         callback null, url
+
       when 'facebook'
         { clientId } = KONFIG.facebook
-        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
+        url  = "https://facebook.com/dialog/oauth?"
+        url += "client_id=#{clientId}&"
+        url += "redirect_uri=#{redirectUri}&"
+        url += "scope=email&"
+        url += "state=#{_csrf}"
         callback null, url
+
       when 'google'
         { client_id } = KONFIG.google
         url  = 'https://accounts.google.com/o/oauth2/auth?'
@@ -37,11 +46,13 @@ module.exports = class OAuth extends bongo.Base
         url += 'https://www.googleapis.com/auth/userinfo.profile '
         url += 'https://www.googleapis.com/auth/userinfo.email&'
         url += "redirect_uri=#{redirectUri}&"
+        url += "state=#{_csrf}&"
         url += 'response_type=code&'
         url += "client_id=#{client_id}&"
         url += 'access_type=offline'
 
         callback null, url
+
       when 'linkedin'
         { client_id } = KONFIG.linkedin
         state = crypto.createHash('md5').update((new Date).toString()).digest('hex')
@@ -53,8 +64,10 @@ module.exports = class OAuth extends bongo.Base
         url += "redirect_uri=#{redirectUri}"
 
         callback null, url
+
       when 'odesk'
         @saveTokensAndReturnUrl client, 'odesk', callback
+
       when 'twitter'
         @saveTokensAndReturnUrl client, 'twitter', callback
 
