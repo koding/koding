@@ -300,14 +300,6 @@ module.exports = class JAccount extends jraphical.Module
           as          : 'owner'
           targetType  : 'JInvitation'
 
-        paymentMethod :
-          as          : 'payment method'
-          targetType  : 'JPaymentMethod'
-
-        subscription  :
-          as          : 'service subscription'
-          targetType  : 'JPaymentSubscription'
-
         kite          :
           as          : 'owner'
           targetType  : JKite
@@ -1142,17 +1134,6 @@ module.exports = class JAccount extends jraphical.Module
           data[username]  = email  for { username, email } in list
 
           callback null, data
-
-  fetchDecoratedPaymentMethods: (callback) ->
-    JPaymentMethod = require './payment/method'
-    @fetchPaymentMethods (err, paymentMethods) ->
-      return callback err  if err
-      JPaymentMethod.decoratePaymentMethods paymentMethods, callback
-
-  fetchPaymentMethods$: secure (client, callback) ->
-    { delegate } = client.connection
-    if (delegate.equals this) or delegate.can 'administer accounts'
-      @fetchDecoratedPaymentMethods callback
 
 
   fetchMetaInformation: secure (client, callback) ->
