@@ -1,11 +1,11 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDLoaderView = kd.LoaderView
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-whoami = require 'app/util/whoami'
-notify_ = require 'app/util/notify_'
-KodingSwitch = require 'app/commonviews/kodingswitch'
+kd                = require 'kd'
+KDCustomHTMLView  = kd.CustomHTMLView
+KDLoaderView      = kd.LoaderView
+KDSelectBox       = kd.SelectBox
+KDView            = kd.View
+whoami            = require 'app/util/whoami'
+notify_           = require 'app/util/notify_'
+KodingSwitch      = require 'app/commonviews/kodingswitch'
 
 
 module.exports = class AccountEmailNotifications extends KDView
