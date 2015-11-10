@@ -68,12 +68,46 @@ module.exports = class IDEEditorPane extends IDEPane
       @getEditor().setValue content, 1
       ace.setReadOnly yes  if @getOptions().readOnly
       @bindChangeListeners()
+      @bindFileSyncEvents()
       @emit 'EditorIsReady'
 
     @on 'RealtimeManagerSet', =>
       myPermission = @rtm.getFromModel('permissions').get nick()
       return  if myPermission isnt 'read'
       ace.ready @bound 'makeReadOnly'
+
+
+  bindFileSyncEvents: ->
+
+    ace = @getAce()
+
+    ace.on 'FileContentChanged', =>
+      kd.utils.defer => # defer to get the updated cursor position after the keypress
+        cursor    = @getCursor()
+        content   = @getContent()
+        eventName = 'ContentChanged'
+        from      = @getId()
+
+        @file.emit 'FileActionHappened', { eventName, content, cursor, from }
+
+
+    @file.on 'FileActionHappened', (data) =>
+      { from, eventName } = data
+      return  if data.from is @getId()
+
+      switch eventName
+        when 'ContentChanged'
+          scrollTop = @getAceScrollTop()
+          cursor    = @getCursor()
+
+          @setContent data.content, no
+          @setCursor cursor
+          @setAceScrollTop scrollTop
+
+          @aceView.showModifiedIconOnTabHandle()
+
+    @file.on 'fs.save.finished', =>
+      @aceView.removeModifiedFromTab @file.path
 
 
   handleAutoSave: ->
