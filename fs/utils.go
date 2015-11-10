@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -35,15 +34,40 @@ func NewFileEntry(name string, fullPath string) *FileEntry {
 	}
 }
 
-func readDirectory(p string) ([]*FileEntry, error) {
-	files, err := ioutil.ReadDir(p)
-	if err != nil {
-		return nil, err
+func readDirectory(p string, recursive bool, ignoreFolders []string) ([]*FileEntry, error) {
+	ls := make([]*FileEntry, 0)
+	walkerFn := func(path string, f os.FileInfo, err error) error {
+		// no use in returning root level directory that's being traversed
+		if path == p {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// skip ignored folders
+		if f.IsDir() {
+			for _, ignore := range ignoreFolders {
+				// adding / is required to prevent partial matching
+				if strings.Contains(path, "/"+ignore+"/") {
+					return filepath.SkipDir
+				}
+			}
+		}
+
+		fileInfo := makeFileEntry(path, f)
+		ls = append(ls, fileInfo)
+
+		if !recursive && f.IsDir() {
+			return filepath.SkipDir
+		}
+
+		return nil
 	}
 
-	ls := make([]*FileEntry, len(files))
-	for i, info := range files {
-		ls[i] = makeFileEntry(path.Join(p, info.Name()), info)
+	if err := filepath.Walk(p, walkerFn); err != nil {
+		return nil, err
 	}
 
 	return ls, nil

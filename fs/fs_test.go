@@ -102,7 +102,7 @@ func BenchmarkReadDirectory10000(b *testing.B) {
 }
 
 func TestReadDirectory(t *testing.T) {
-	testDir := "."
+	testDir := "testdata"
 
 	files, err := ioutil.ReadDir(testDir)
 	if err != nil {
@@ -148,6 +148,71 @@ func TestReadDirectory(t *testing.T) {
 
 	if !reflect.DeepEqual(respFiles, currentFiles) {
 		t.Error("got %+v, expected %+v", respFiles, currentFiles)
+	}
+}
+
+func TestReadDirectoryRecursive(t *testing.T) {
+	testDir := "testdata"
+	nestedDir := filepath.Join(testDir, "exampleDir")
+
+	files, err := ioutil.ReadDir(testDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	currentFiles := make(map[string]struct{}, len(files))
+	for _, f := range files {
+		currentFiles[f.Name()] = struct{}{}
+	}
+
+	nestedFiles, err := ioutil.ReadDir(nestedDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, f := range nestedFiles {
+		currentFiles[f.Name()] = struct{}{}
+	}
+
+	resp, err := remote.Tell("readDirectory", struct {
+		Path      string
+		OnChange  dnode.Function
+		Recursive bool
+	}{
+		Path:      testDir,
+		OnChange:  dnode.Function{},
+		Recursive: true,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := resp.Map()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := f["files"].SliceOfLength(len(currentFiles))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(entries) != len(currentFiles) {
+		t.Errorf("Expected results to have %d count, has %d.",
+			len(entries), len(currentFiles),
+		)
+	}
+
+	for _, e := range entries {
+		f := &FileEntry{}
+		if err := e.Unmarshal(f); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, ok := currentFiles[f.Name]; !ok {
+			t.Fatal(err)
+		}
 	}
 }
 
