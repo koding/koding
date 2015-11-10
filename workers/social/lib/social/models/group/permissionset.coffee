@@ -1,5 +1,8 @@
+
 { Model, secure, dash, daisy } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
+
+cacheManager = require 'cache-manager'
 
 # class JPermission extends Model
 #   @set
@@ -38,71 +41,143 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
+  MAIN_GROUP = 'koding'
+
   # coffeelint: disable=indentation
-  constructor:(data = {}, options = {}) ->
+  constructor: (data = {}, options = {}) ->
+
     super data
-    unless @isCustom
-      # initialize the permission set with some sane defaults:
-      { permissionDefaultsByModule } = require '../../traits/protected'
-      permissionsByRole = {}
 
-      options.privacy ?= 'public'
-      for own module, modulePerms of permissionDefaultsByModule
-        for own perm, roles of modulePerms
-          if roles.public? or roles.private?
-            roles = roles[options.privacy] ?= []
-          for role in roles
-            permissionsByRole[module]       ?= {}
-            permissionsByRole[module][role] ?= []
-            permissionsByRole[module][role].push perm
+    return  if @isCustom
 
-      @permissions = []
-      for own module, moduleRoles of permissionsByRole
-        for own role, modulePerms of moduleRoles
-          @permissions.push { module, role, permissions: modulePerms }
+    # initialize the permission set with some sane defaults:
+    { permissionDefaultsByModule } = require '../../traits/protected'
+    permissionsByRole = {}
+
+    options.privacy ?= 'public'
+    for own module, modulePerms of permissionDefaultsByModule
+      for own perm, roles of modulePerms
+        if roles.public? or roles.private?
+          roles = roles[options.privacy] ?= []
+        for role in roles
+          permissionsByRole[module]       ?= {}
+          permissionsByRole[module][role] ?= []
+          permissionsByRole[module][role].push perm
+
+    @permissions = []
+    for own module, moduleRoles of permissionsByRole
+      for own role, modulePerms of moduleRoles
+        @permissions.push { module, role, permissions: modulePerms }
+
 
   @wrapPermission = wrapPermission = (permission) ->
     [{ permission, validateWith: require('./validators').any }]
 
-  @checkPermission = (client, advanced, target, args, callback) ->
+
+  fetchGroupAndPermissionSet = do (queue = {}) ->
+
+    memCache = cacheManager.caching
+      store  : 'memory'
+      ttl    : 60 # seconds
+
+    fetcher = (groupName, callback) ->
+      JGroup = require '../group'
+      JGroup.one { slug: groupName }, (err, group) ->
+        if err then callback err
+        else unless group?
+          callback new KodingError "Unknown group! #{groupName}"
+        else
+          group.fetchPermissionSetOrDefault (err, permissionSet) ->
+            if err then callback err
+            else callback null, { group, permissionSet }
+
+    (groupName, callback) ->
+
+      memCache.get groupName, (err, data) ->
+        return callback err, data  if data
+
+        queue[groupName] ?= []
+        return  if (queue[groupName].push callback) > 1
+
+        fetcher groupName, (err, data) ->
+
+          if err
+            cb err  for cb in queue[groupName]
+          else
+            memCache.set groupName, data  if data
+            cb null, data  for cb in queue[groupName]
+
+          queue[groupName] = []
+
+
+  getGroupnameFrom = (target, client) ->
     JGroup = require '../group'
-    advanced = wrapPermission advanced  if 'string' is typeof advanced
-    kallback = (group, permissionSet) ->
-      queue = advanced.map ({ permission, validateWith }) -> ->
-        validateWith ?= (require './validators').any
+    return if 'function' is typeof target
+      client?.context?.group ? MAIN_GROUP
+    else if target instanceof JGroup
+      target.slug
+    else
+      target.group ? client?.context?.group ? MAIN_GROUP
+
+
+  @checkPermission = (client, advanced, target, args, callback) ->
+
+    advanced     = wrapPermission advanced  if 'string' is typeof advanced
+    anyValidator = (require './validators').any
+
+    # permission checker helper, walks on the all required permissions
+    # if one of them passes, breaks the loop and returns true
+    kallback = (current, main) ->
+
+      queue = advanced.map ({ permission, validateWith, superadmin }) -> ->
+
+        if superadmin
+
+          # if permission requires superadmin and current group is not 'koding'
+          # or if somehow 'koding' group (main) not exists then pass ~ GG
+          if current.group.slug isnt MAIN_GROUP or not main
+            return queue.next()
+
+          # if permission requires superadmin then do the permission check on
+          # main group and permissionSet (which is 'koding' group) ~ GG
+          { group, permissionSet } = main
+
+        else
+
+          { group, permissionSet } = current
+
+        # use Validators.any if it's not provided
+        validateWith ?= anyValidator
+
         validateWith.call target, client, group, permission, permissionSet, args,
           (err, hasPermission) ->
             if err then queue.next err
             else if hasPermission
               callback null, yes  # we can stop here.  One permission is enough.
             else queue.next()
+
       queue.push ->
         # if we ever get this far, it means the user doesn't have permission.
         callback null, no
-      daisy queue
-    # permission = [permission]  unless Array.isArray permission
-    groupName = \
-      if 'function' is typeof target
-        client?.context?.group ? 'koding'
-      else if target instanceof JGroup
-        target.slug
-      else
-        target.group ? client.context.group ? 'koding'
 
-    client.groupName = groupName
-    JGroup.one { slug: groupName }, (err, group) ->
-      if err then callback err, no
-      else unless group?
-        callback new KodingError "Unknown group! #{groupName}"
+      daisy queue
+
+    # set groupName from given target or client
+    client.groupName = getGroupnameFrom target, client
+
+    fetchGroupAndPermissionSet MAIN_GROUP, (err, main) ->
+      return callback err, no  if err or not main
+
+      # if it's the main group fetching only that one is enough
+      if client.groupName is MAIN_GROUP
+        kallback main, main # pass same group and permissionSet for
+                            # current and the main group ~ GG
       else
-        group.fetchPermissionSet (err, permissionSet) ->
-          if err then callback err, no
-          else unless permissionSet
-            group.fetchDefaultPermissionSet (err, permissionSet) ->
-              return callback err if err
-              kallback group, permissionSet
-          else
-            kallback group, permissionSet
+        # fetch permission set for the given group and start checking permissions
+        fetchGroupAndPermissionSet client.groupName, (err, current) ->
+          if err or not current then callback err, no
+          else kallback current, main
+
 
   @permit = (permission, promise) ->
 

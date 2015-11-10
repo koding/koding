@@ -107,7 +107,9 @@ module.exports = class CreatePublicChannelModal extends React.Component
     @setState purpose: event.target.value
 
 
-  onClose: ->
+  onClose: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     return  unless @state.selectedThread
     return  if @_isCreating
@@ -148,7 +150,9 @@ module.exports = class CreatePublicChannelModal extends React.Component
     return no
 
 
-  createChannel: ->
+  createChannel: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     return  unless @validateForm()
 

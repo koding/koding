@@ -153,6 +153,11 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 		return errors.New("eventer context is not passed")
 	}
 
+	req, ok := request.FromContext(ctx)
+	if !ok {
+		return errors.New("request context is not passed")
+	}
+
 	ev.Push(&eventer.Event{
 		Message:    "Fetching and validating machines",
 		Percentage: 20,
@@ -177,7 +182,7 @@ func destroy(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	data, err := fetchTerraformData(username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := fetchTerraformData(req.Method, username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}
@@ -253,6 +258,11 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 		return errors.New("eventer context is not passed")
 	}
 
+	req, ok := request.FromContext(ctx)
+	if !ok {
+		return errors.New("internal server error (err: session context is not available)")
+	}
+
 	ev.Push(&eventer.Event{
 		Message:    "Fetching and validating machines",
 		Percentage: 20,
@@ -277,7 +287,7 @@ func apply(ctx context.Context, username, groupname, stackId string) error {
 	})
 
 	sess.Log.Debug("Fetching '%d' credentials from user '%s'", len(stack.Credentials), username)
-	data, err := fetchTerraformData(username, groupname, sess.DB, flattenValues(stack.Credentials))
+	data, err := fetchTerraformData(req.Method, username, groupname, sess.DB, flattenValues(stack.Credentials))
 	if err != nil {
 		return err
 	}

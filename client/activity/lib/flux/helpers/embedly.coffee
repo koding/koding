@@ -23,6 +23,7 @@ createMessagePayload = (embedlyResponse) ->
     'title', 'description',
     'url', 'safe', 'type', 'provider_name', 'error_type',
     'error_message', 'safe_type', 'safe_message', 'images'
+    'media'
   ]
 
   for key in desiredFields

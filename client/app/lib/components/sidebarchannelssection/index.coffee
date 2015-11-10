@@ -28,7 +28,7 @@ module.exports = class SidebarChannelsSection extends React.Component
     <div>
       <SidebarSection
         title="Channels"
-        titleLink="/Channels"
+        titleLink="/AllChannels"
         secondaryLink="/NewChannel"
         className="SidebarChannelsSection">
         <SidebarList

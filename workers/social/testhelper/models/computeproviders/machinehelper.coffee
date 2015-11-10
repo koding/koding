@@ -1,7 +1,6 @@
-_          = require 'underscore'
-hat        = require 'hat'
-{ daisy }  = require 'bongo'
-{ expect } = require 'chai'
+{ _
+  daisy
+  expect } = require '../../../testhelper/index'
 
 JUser      = require '../../../lib/social/models/user/index'
 JMachine   = require '../../../lib/social/models/computeproviders/machine'

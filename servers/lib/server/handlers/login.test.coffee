@@ -8,6 +8,7 @@ Speakeasy                                 = require 'speakeasy'
 { generateRandomEmail
   generateRandomString
   generateRandomUsername }                = require '../../../testhelper'
+{ testCsrfToken }                         = require '../../../testhelper/handler'
 { generateLoginRequestParams }            = require '../../../testhelper/handler/loginhelper'
 { generateRegisterRequestParams }         = require '../../../testhelper/handler/registerhelper'
 
@@ -52,6 +53,11 @@ runTests = -> describe 'server.handlers.login', ->
     queue.push -> done()
 
     daisy queue
+
+
+  it 'should send HTTP 403 if _csrf token is invalid', (done) ->
+
+    testCsrfToken generateLoginRequestParams, 'post', done
 
 
   it 'should send HTTP 403 if username is empty', (done) ->

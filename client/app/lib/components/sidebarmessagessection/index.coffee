@@ -27,7 +27,7 @@ module.exports = class SidebarMessagesSection extends React.Component
     <div>
       <SidebarSection
         title="Messages"
-        titleLink="/Messages"
+        titleLink="/AllMessages"
         secondaryLink="/NewMessage"
         className="SidebarMessagesSection">
         <SidebarList

@@ -40,7 +40,9 @@ module.exports = class ChatPane extends React.Component
     { channel }   = ActivityFlux.actions
 
     _hideScroller scroller
-    kd.utils.defer => channel.setScrollPosition (@channel 'id'), scrollTop
+    kd.utils.defer =>
+      channel.setLastSeenTime (@channel 'id'), Date.now()
+      channel.setScrollPosition (@channel 'id'), scrollTop
 
 
   componentWillUpdate: (nextProps, nextState) ->

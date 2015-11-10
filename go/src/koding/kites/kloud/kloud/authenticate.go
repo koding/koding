@@ -47,7 +47,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session context is not passed")
 	}
 
-	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, args.Identifiers)
+	data, err := fetchTerraformData(r.Method, r.Username, args.GroupName, sess.DB, args.Identifiers)
 	if err != nil {
 		return nil, err
 	}

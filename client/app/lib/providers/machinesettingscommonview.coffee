@@ -117,16 +117,20 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     { listViewItemClass, noItemFoundWidget } = @getOptions()
 
-    @listController  = new KDListViewController
-      startWithLazyLoader: yes
-      lazyLoaderOptions  :
-        spinnerOptions   :
-          size           : width: 28
-      viewOptions        :
-        wrapper          : yes
-        itemClass        : listViewItemClass
-        itemOptions      : itemOptions
-      noItemFoundWidget  : noItemFoundWidget
+    listViewOptions = @getOption('listViewOptions') or {}
+
+    options = _.extend listViewOptions,
+      startWithLazyLoader   : yes
+      lazyLoaderOptions     :
+        spinnerOptions      :
+          size              : width: 28
+      viewOptions           :
+        wrapper             : yes
+        itemClass           : listViewItemClass
+        itemOptions         : itemOptions
+      noItemFoundWidget     : noItemFoundWidget
+
+    @listController  = new KDListViewController options
 
     @addSubView @listController.getView()
 

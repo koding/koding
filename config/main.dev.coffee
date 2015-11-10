@@ -255,6 +255,7 @@ Configuration = (options={}) ->
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     aws                            : {key           : ""                                             , secret        : ''}
     embedly                        : {apiKey        : "537d6a2471864e80b91d9f4a78384873" }
+    iframely                       : {apiKey        : "157f8f72ac846689f47865"                       , url           : 'http://iframe.ly/api/oembed'}
     troubleshoot                   : {recipientEmail: "can@koding.com" }
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     segment                        : segment

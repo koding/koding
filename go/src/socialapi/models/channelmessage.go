@@ -527,11 +527,15 @@ func (c *ChannelMessage) DeleteReplies() error {
 func (c *ChannelMessage) GetChannelMessageLists() ([]ChannelMessageList, error) {
 	var listings []ChannelMessageList
 	q := &bongo.Query{
-		Selector: map[string]interface{}{"message_id": c.Id}}
+		Selector: map[string]interface{}{
+			"message_id": c.Id,
+		},
+	}
 
 	if err := NewChannelMessageList().Some(&listings, q); err != nil {
 		return nil, err
 	}
+
 	return listings, nil
 }
 

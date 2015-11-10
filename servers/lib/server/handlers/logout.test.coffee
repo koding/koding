@@ -1,14 +1,16 @@
-Bongo                           = require 'bongo'
-koding                          = require './../bongo'
-request                         = require 'request'
-querystring                     = require 'querystring'
-
-{ daisy }                       = Bongo
-{ expect }                      = require 'chai'
+{ daisy
+  expect
+  request }                     = require '../../../testhelper'
+{ testCsrfToken }               = require '../../../testhelper/handler'
 { generateLogoutRequestParams } = require '../../../testhelper/handler/logouthelper'
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.logout', ->
+
+  it 'should send HTTP 403 if _csrf token is invalid', (done) ->
+
+    testCsrfToken generateLogoutRequestParams, 'post', done
+
 
   it 'should send HTTP 404 if request method is not POST', (done) ->
 

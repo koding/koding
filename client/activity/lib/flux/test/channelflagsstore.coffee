@@ -100,3 +100,18 @@ describe 'ChannelFlagsStore', ->
 
       expect(storeState[42].scrollPosition).to.eql 177
 
+
+  describe 'handleSetLastSeenTime', ->
+
+    it 'sets last seen time flag of channel', ->
+
+      timestamp = Date.now()
+
+      @reactor.dispatch actionTypes.SET_CHANNEL_LAST_SEEN_TIME, {
+        channelId: 42, timestamp
+      }
+
+      storeState = @reactor.evaluateToJS ['ChannelFlagsStore']
+
+      expect(storeState[42].lastSeenTime).to.eql timestamp
+

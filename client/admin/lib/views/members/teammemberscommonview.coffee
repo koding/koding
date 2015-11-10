@@ -99,15 +99,16 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @isFetching = yes
 
-    group    = @getData()
-    method   = @getOption 'fetcherMethod'
-    options  =
-      limit  : @getOptions().itemLimit
-      sort   : timestamp: -1 # timestamp is at relationship collection
-      skip   : @skip
+    { fetcherMethod, itemLimit } = @getOptions()
+
+    group   = @getData()
+    options =
+      limit : itemLimit
+      sort  : timestamp: -1 # timestamp is at relationship collection
+      skip  : @skip
 
     # fetch members as jAccount
-    group[method] {}, options, (err, members) =>
+    group[fetcherMethod] {}, options, (err, members) =>
 
       return @handleError err  if err
 
@@ -168,16 +169,30 @@ module.exports = class TeamMembersCommonView extends KDView
     @skip += members.length
 
     if @getOptions().memberType is 'Blocked'
-      for member in members
-        @listController.addItem member
+      @listController.addItem member  for member in members
+      @calculateAndFetchMoreIfNeeded()  if members.length
     else
       @fetchUserRoles members, (members) =>
         members.forEach (member) =>
           member.loggedInUserRoles = @loggedInUserRoles # FIXME
           item = @listController.addItem member
 
+        @calculateAndFetchMoreIfNeeded()  if members.length
+
     @listController.lazyLoader.hide()
     @searchContainer.show()
+
+
+  calculateAndFetchMoreIfNeeded: ->
+
+    listCtrl = @listController
+
+    viewHeight = listCtrl.getView().getHeight()
+    listHeight = listCtrl.getListView().getHeight()
+
+    if listHeight <= viewHeight
+      listCtrl.lazyLoader.show()
+      @fetchMembers yes
 
 
   search: (useSearchMembersMethod = no) ->
