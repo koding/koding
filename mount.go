@@ -85,9 +85,19 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
-	if err != nil {
-		fmt.Printf("Error mounting folder: '%s'\n", err)
-		return 1
+	if err != nil && err.Error() == klientctlerrors.ErrExistingMount.Error() {
+		util.MustConfirm("Mount folder not available. Unmount and try again? [Y|n]")
+
+		if err := unmount(k, name); err != nil {
+			fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
+			return 1
+		}
+
+		resp, err = k.Tell("remote.mountFolder", mountRequest)
+		if err != nil {
+			fmt.Printf("Error mounting '%s': '%s'\n", name, err)
+			return 1
+		}
 	}
 
 	// response can be nil even when there's no err

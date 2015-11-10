@@ -13,5 +13,6 @@ import "errors"
 // vs instances, to avoid awkaward check implementation.
 
 var (
-	ErrUserCancelled = errors.New("User cancelled operation")
+	ErrUserCancelled = errors.New("User cancelled operation.")
+	ErrExistingMount = errors.New("There's already a mount on that folder.")
 )
