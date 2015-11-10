@@ -163,5 +163,8 @@ module.exports = class AccountEmailNotifications extends KDView
       then 'unsetClass'
       else 'setClass'
 
-      @fields[item].formView[method] 'off'
+      field = @fields[item]
+
+      field.formView[method]      'off'
+      field.subSettings[method]   'off'  if item is 'privateMessage'
 
