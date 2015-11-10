@@ -9,12 +9,7 @@ COUNTER=0
 until nc $HOST $PORT < /dev/null; do
     COUNTER=$((COUNTER + 1))
     if [ $COUNTER -eq $TRY_COUNT ]; then
-        echo 'X'
         exit 1
     fi
-
-    echo -n '.'
     sleep $INTERVAL
 done
-
-echo 'O'

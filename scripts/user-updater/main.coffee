@@ -1,7 +1,6 @@
 
-Bongo = require 'bongo'
-{Relationship} = require 'jraphical'
-
+Bongo              = require 'bongo'
+{ Relationship }   = require 'jraphical'
 { join: joinPath } = require 'path'
 
 argv      = require('minimist') process.argv
@@ -20,25 +19,30 @@ console.log "Trying to connect #{mongo} ..."
 
 koding.once 'dbClientReady', ->
 
+  # rekuire your models here like;
   JAccount  = rekuire 'account.coffee'
-  JReward   = rekuire 'rewards/index.coffee'
-  JReferral = rekuire 'referral/index.coffee'
   JUser     = rekuire 'user/index.coffee'
 
-  userCache = {}
 
   # Config
   # ------
 
-  query = { type: "disk", unit: "MB" }
   skip  = 0
+
+  # cache for accounts
+  userCache = {}
+
 
   # Helpers
   # -------
 
+  # use this to log error on provided index of item
   logError = (err, index)->
     console.log "ERROR on #{index}. >", err  if err?
 
+  # this is an iterator to use on given mongo cursor
+  # you must provide a cursor and a function to pass the obj
+  # in that cursor, and an index to start from
   iterate = (cursor, func, index, callback)->
     cursor.nextObject (err, obj)->
       if err
@@ -50,7 +54,8 @@ koding.once 'dbClientReady', ->
       else
         callback null, index
 
-
+  # fetches the JAccount and JUser of given JAccount.id
+  # provides an in memory cache as well
   fetchAccount = (_id, cb)->
 
     if cached = userCache[_id]
@@ -67,100 +72,9 @@ koding.once 'dbClientReady', ->
         cb null, userCache[_id] = {user, account}
 
 
-  fetchMembers = (referral, as, cb)->
-
-    selector = {targetId: referral._id, as}
-
-    Relationship.one selector, (err, rel)->
-      return cb err  if err
-      return cb {message: "no relationship found"}  unless rel
-
-      fetchAccount rel.sourceId, (err, member)->
-        return cb err  if err
-        cb null, member
-
-
-  fetchDamn = (referral, cb)->
-
-    fetchMembers referral, "referrer", (err, referrer)->
-      return cb err  if err
-
-      fetchMembers referral, "referred", (err, referred)->
-        return cb err  if err
-
-        cb null, {referrer, referred}
-
-
-  createMissingReward = (referral, {referrer, referred}, callback)->
-
-    type           = "disk"
-    unit           = "MB"
-    amount         = referral.amount
-    sourceCampaign = "oldkoding"
-
-    console.log "Referrer #{referrer.user.username} valid, creating reward..."
-
-    providedBy = referrer.account._id
-    originId   = referred.account._id
-
-    reward = new JReward {
-      type, unit, amount, sourceCampaign, providedBy, originId
-    }
-
-    reward.save (err)->
-
-      if err?.code is 11000
-        console.log "
-          Reward for #{referrer.user.username} from #{referred.user.username}
-          was already exists, skipping
-        "
-      else if err
-        console.warn err
-        return callback null
-
-      options = { unit, type, originId }
-
-      JReward.calculateAndUpdateEarnedAmount options, (err)->
-        console.warn err  if err?
-        callback null
-
-
-  addMissingRewards = (referral, index, callback)->
-
-    console.log "Working on #{index}. referral"
-
-    fetchDamn referral, (err, res) ->
-
-      if err
-        logError err, index
-        return callback null
-
-      {referrer, referred} = res
-
-      createMissingReward referral, {referrer, referred}, (err)->
-        logError err, index
-
-        [referrer, referred] = [referred, referrer]
-
-        createMissingReward referral, {referrer, referred}, (err)->
-          logError err, index
-
-          callback null
-
-
   # Main updater
   # ------------
 
-  JReferral.count query, (err, referralCount)->
+  # fetch some data and start ~ for more example check history of this file ~GG
 
-    console.log "Total #{referralCount - skip} referrals found, starting..."
-
-    JReferral.someData query, {_id: 1, amount: 1}, {skip}, (err, cursor)->
-
-      return console.log "ERROR: ", err  if err?
-
-      iterate cursor, addMissingRewards, skip, (err, total)->
-
-        console.log "ERROR >>", err  if err?
-        console.log "FINAL #{total}"
-        process.exit 0
+  console.log 'Updater completed.'
