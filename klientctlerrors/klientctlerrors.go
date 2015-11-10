@@ -1,6 +1,9 @@
 package klientctlerrors
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // Error types, used when needing to return new instances with
 // custom error messages. Example:
@@ -15,4 +18,26 @@ import "errors"
 var (
 	ErrUserCancelled = errors.New("User cancelled operation.")
 	ErrExistingMount = errors.New("There's already a mount on that folder.")
+
+	fuseExistingMountErr = "Reading init op: EOF"
 )
+
+// IsExistingMountErr return true if err is due there existing a previous
+// mount in the same folder.
+func IsExistingMountErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// since err comes from klient, == doesnt work
+	if err.Error() == ErrExistingMount.Error() {
+		return true
+	}
+
+	// fuse doesnt have errs to compains against
+	if strings.Contains(err.Error(), fuseExistingMountErr) {
+		return true
+	}
+
+	return false
+}

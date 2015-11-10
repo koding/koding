@@ -85,8 +85,8 @@ func MountCommand(c *cli.Context) int {
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
-	if err != nil && err.Error() == klientctlerrors.ErrExistingMount.Error() {
-		util.MustConfirm("Mount folder not available. Unmount and try again? [Y|n]")
+	if err != nil && klientctlerrors.IsExistingMountErr(err) {
+		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
 		if err := unmount(k, name); err != nil {
 			fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
