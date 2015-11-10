@@ -46,7 +46,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
   createEditor: ->
 
-    {file, content} = @getOptions()
+    { file, content } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -55,14 +55,14 @@ module.exports = class IDEEditorPane extends IDEPane
       throw new TypeError 'You must pass file content to IDEEditorPane'
 
     aceOptions =
+      aceClass                 : IDEAce
       delegate                 : @getDelegate()
       createBottomBar          : no
       createFindAndReplaceView : no
-      aceClass                 : IDEAce
 
     @addSubView @aceView = new AceView aceOptions, file
 
-    {ace} = @aceView
+    { ace } = @aceView
 
     ace.ready =>
       @getEditor().setValue content, 1
@@ -85,34 +85,47 @@ module.exports = class IDEEditorPane extends IDEPane
       @save ignoreActiveLineOnTrim: yes
 
 
-  save: (options = {}) ->
-
-    @getAce().requestSave options
+  save: (options = {}) -> @getAce().requestSave options
 
 
-  getAce: ->
-
-    return @aceView.ace
+  getAce: -> return @aceView.ace
 
 
-  getEditor: ->
-
-    return @getAce().editor
+  getEditor: -> return @getAce().editor
 
 
-  getEditorSession: ->
-
-    return @getEditor().getSession()
+  getEditorSession: -> return @getEditor().getSession()
 
 
-  getValue: ->
-
-    return  @getEditorSession().getValue()
+  getValue: -> return  @getEditorSession().getValue()
 
 
-  goToLine: (lineNumber) ->
+  goToLine: (lineNumber) -> @getAce().gotoLine lineNumber
 
-    @getAce().gotoLine lineNumber
+
+  getAceScrollTop: -> @getEditorSession().getScrollTop()
+
+
+  setAceScrollTop: (top) -> @getEditorSession().setScrollTop top
+
+
+  getContent: -> return if @getEditor() then @getAce().getContents() else ''
+
+
+  setContent: (content, emitFileContentChangedEvent = yes) ->
+
+    @getAce().setContent content, emitFileContentChangedEvent
+
+
+  getCursor: -> return @getEditor().selection.getCursor()
+
+
+  setCursor: (positions) ->
+
+    @getEditor().selection.moveCursorTo positions.row, positions.column
+
+
+  getFile: -> return @aceView.getData()
 
 
   setFocus: (state) ->
@@ -124,31 +137,6 @@ module.exports = class IDEEditorPane extends IDEPane
     if state
     then ace.focus()
     else ace.blur()
-
-
-  getContent: ->
-
-    return if @getEditor() then @getAce().getContents() else ''
-
-
-  setContent: (content, emitFileContentChangedEvent = yes) ->
-
-    @getAce().setContent content, emitFileContentChangedEvent
-
-
-  getCursor: ->
-
-    return @getEditor().selection.getCursor()
-
-
-  setCursor: (positions) ->
-
-    @getEditor().selection.moveCursorTo positions.row, positions.column
-
-
-  getFile: ->
-
-    return @aceView.getData()
 
 
   getInitialChangeObject: ->
@@ -400,14 +388,10 @@ module.exports = class IDEEditorPane extends IDEPane
     @removeAllCursorWidgets()
 
 
-  makeReadOnly: ->
-
-    @getEditor()?.setReadOnly yes
+  makeReadOnly: -> @getEditor()?.setReadOnly yes
 
 
-  makeEditable: ->
-
-    @getEditor()?.setReadOnly no
+  makeEditable: -> @getEditor()?.setReadOnly no
 
 
   handleSaveFailed: (err) ->
@@ -419,6 +403,7 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+
     super
 
 
