@@ -270,15 +270,16 @@ module.exports = class JAccount extends jraphical.Module
 
     relationships           : ->
 
-      # requiring JStackTemplate here solved problems after turning stacktemplate's
-      # targetType from string to object.
+      # bongo doesn't wait models to be loaded and this causes errors
+      # in node.js tests so synchronously requiring them
+      JAppStorage      = require './appstorage'
       JCredential      = require './computeproviders/credential'
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
         appStorage    :
           as          : 'appStorage'
-          targetType  : 'JAppStorage'
+          targetType  : JAppStorage
 
         storage       :
           as          : 'storage'
