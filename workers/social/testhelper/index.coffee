@@ -20,7 +20,7 @@ checkBongoConnectivity = (callback) ->
   bongo = new Bongo
     root   : __dirname
     mongo  : mongo
-    models : ''
+    models :  '../lib/social/models'
 
   bongo.once 'dbClientReady', ->
     callback()
