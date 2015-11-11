@@ -99,6 +99,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
         @file.emit 'FileActionHappened', { eventName, content, cursor, from }
 
+    ace.on 'FileContentRestored', => @file.emit 'FileContentRestored'
 
     @file.on 'FileActionHappened', (data) =>
       { from, eventName } = data
@@ -108,14 +109,16 @@ module.exports = class IDEEditorPane extends IDEPane
         @updateContent data.content
         @aceView.showModifiedIconOnTabHandle()
 
+    @file.on 'FileContentRestored', => ace.removeModifiedFromTab()
+
     @file.on 'fs.save.finished', =>
       @aceView.removeModifiedFromTab @file.path
       @updateFileModifiedTime()
 
     @file.on 'FileContentsNeedsToBeRefreshed', =>
-      @getAce().fetchContents (err, content) =>
+      ace.fetchContents (err, content) =>
         @updateContent content
-        @aceView.removeModifiedFromTab @file.path
+        ace.removeModifiedFromTab()
         @updateFileModifiedTime()
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
