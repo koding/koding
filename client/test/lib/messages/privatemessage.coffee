@@ -70,6 +70,20 @@ module.exports =
     browser.end()
 
 
+  sendMessageWithCode: (browser) ->
+
+    messageWithFullCode = "```console.log('123456789')```"
+
+    users = [
+      { userName: 'kodingtester', fullName: 'Koding Tester' }
+    ]
+
+    helpers.beginTest(browser)
+
+    messagesHelpers.startConversation(browser, users, messageWithFullCode)
+    browser.end()
+
+
   startConversationWithMultiplePeople: (browser) ->
 
     users = [
