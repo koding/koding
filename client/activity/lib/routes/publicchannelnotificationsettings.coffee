@@ -10,7 +10,7 @@ module.exports = class PublicChannelNotificationSettingsRoute
 
   constructor: ->
 
-    @path = '/Channels/:channelName/NotificationSettings'
+    @path = 'NotificationSettings'
 
 
   getComponent: (state, callback) -> callback null, NotificationSettingsModal
@@ -18,11 +18,7 @@ module.exports = class PublicChannelNotificationSettingsRoute
 
   onEnter: (nextState, replaceState, done) ->
 
-    { channelName } = nextState.params
+    channel = channelByName nextState.params.channelName
 
-    channel   = channelByName channelName
-    channelId = channel.id
-
-    NotificationSettingsFlux.actions.channel.load channelId
-      .then -> done()
+    NotificationSettingsFlux.actions.channel.load(channel.id).then -> done()
 
