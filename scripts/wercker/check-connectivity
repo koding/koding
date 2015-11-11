@@ -50,8 +50,8 @@ truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
   (
-    check $INSTANCE  8090 1m 1 || continue # nginx
-    check $INSTANCE 42424 1m 1 || continue # selenium-server
+    check $INSTANCE  8090 1m 5 || continue # nginx
+    check $INSTANCE 42424 1m 5 || continue # selenium-server
 
     if health_check $INSTANCE; then
       echo $INSTANCE >> $INSTANCE_DATA_FILE
@@ -61,7 +61,7 @@ done
 
 wait
 
-INSTANCE_COUNT=$(echo $INSTANCE_DATA_FILE | wc -l)
+INSTANCE_COUNT=$(cat $INSTANCE_DATA_FILE | wc -l)
 
 if [ $INSTANCE_COUNT -eq 0 ]; then
   echo "error: no instance found"

@@ -42,11 +42,6 @@ module.exports = class JKite extends jraphical.Module
         deletePlan        :
           (signature Object, Function)
 
-    relationships       :
-      plan              :
-        targetType      : 'JPaymentPlan'
-        as              : 'kitePlan'
-
   @create: permit 'create kite',
     success: (client, formData, callback) ->
       { delegate } = client.connection

@@ -6,9 +6,7 @@ module.exports = class JGroupBundle extends JBundle
 
   { permit } = require '../group/permissionset'
 
-  JPaymentPlan         = require '../payment'
-  JPaymentSubscription = require '../payment/subscription'
-  async                = require 'async'
+  async = require 'async'
 
   @share()
 

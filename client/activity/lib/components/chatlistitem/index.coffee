@@ -167,14 +167,16 @@ module.exports = class ChatListItem extends React.Component
     onClose            : @bound "closeBlockUserPromptModal"
 
 
-  deletePostButtonHandler: ->
+  deletePostButtonHandler: (event) ->
 
+    kd.utils.stopDOMEvent event
     ActivityFlux.actions.message.removeMessage @props.message.get('id')
     @closeDeletePostModal()
 
 
-  closeDeletePostModal: ->
+  closeDeletePostModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isDeleting: no
 
 
@@ -195,18 +197,21 @@ module.exports = class ChatListItem extends React.Component
     @setState isMarkUserAsTrollModalVisible: yes
 
 
-  closeMarkUserAsTrollModal: ->
+  closeMarkUserAsTrollModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isMarkUserAsTrollModalVisible: no
 
 
-  closeBlockUserPromptModal: ->
+  closeBlockUserPromptModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isBlockUserModalVisible: no
 
 
-  unMarkUserAsTroll: ->
+  unMarkUserAsTroll: (event) ->
 
+    kd.utils.stopDOMEvent event
     AppFlux.actions.user.unmarkUserAsTroll @state.account
     @closeMarkUserAsTrollModal()
 
@@ -216,8 +221,9 @@ module.exports = class ChatListItem extends React.Component
     @setState isBlockUserModalVisible: yes
 
 
-  impersonateUser: ->
+  impersonateUser: (event) ->
 
+    kd.utils.stopDOMEvent event
     { message } = @props
 
     AppFlux.actions.user.impersonateUser message.toJS()

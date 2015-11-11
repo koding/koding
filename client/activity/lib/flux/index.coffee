@@ -1,5 +1,6 @@
 ChatInputModule = require './chatinput'
 CreateChannelModule = require './createchannel'
+ChannelNotificationSettingsModule = require './channelnotificationsettings'
 
 module.exports =
   getters   : require './getters'
@@ -43,6 +44,7 @@ module.exports =
   # module stores
   .concat ChatInputModule.stores
   .concat CreateChannelModule.stores
+  .concat ChannelNotificationSettingsModule.stores
 
   register: (reactor) ->
     reactor.registerStores @stores
