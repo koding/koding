@@ -1,12 +1,12 @@
 kd                 = require 'kd'
-getColorFromString = require 'app/util/getColorFromString'
 nick               = require 'app/util/nick'
+IDEAce             = require '../../views/ace/ideace'
 FSFile             = require 'app/util/fs/fsfile'
 IDEPane            = require './idepane'
 AceView            = require 'ace/aceview'
-IDEAce             = require '../../views/ace/ideace'
+FSHelper           = require 'app/util/fs/fshelper'
 IDEHelpers         = require '../../idehelpers'
-nick               = require 'app/util/nick'
+getColorFromString = require 'app/util/getColorFromString'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -42,6 +42,15 @@ module.exports = class IDEEditorPane extends IDEPane
       change.type = 'FileSaved'
 
       @emit 'ChangeHappened', change
+
+    @getFileModifiedDate (date) => @lastModifiedDate = date
+
+
+  getFileModifiedDate: (callback = noop) ->
+
+    path = FSHelper.plainPath @file.path
+    @file.machine.getBaseKite().fsGetInfo({ path }).then (info) =>
+      callback info.time
 
 
   createEditor: ->
@@ -95,19 +104,31 @@ module.exports = class IDEEditorPane extends IDEPane
       { from, eventName } = data
       return  if data.from is @getId()
 
-      switch eventName
-        when 'ContentChanged'
-          scrollTop = @getAceScrollTop()
-          cursor    = @getCursor()
-
-          @setContent data.content, no
-          @setCursor cursor
-          @setAceScrollTop scrollTop
-
-          @aceView.showModifiedIconOnTabHandle()
+      if eventName is 'ContentChanged'
+        @updateContent data.content
+        @aceView.showModifiedIconOnTabHandle()
 
     @file.on 'fs.save.finished', =>
       @aceView.removeModifiedFromTab @file.path
+      @updateFileModifiedTime()
+
+    @file.on 'FileContentsNeedsToBeRefreshed', =>
+      @getAce().fetchContents (err, content) =>
+        @updateContent content
+        @aceView.removeModifiedFromTab @file.path
+        @updateFileModifiedTime()
+        @contentChangedWarning?.destroy()
+        @contentChangedWarning = null
+
+
+  updateContent: (content) ->
+
+    scrollTop = @getAceScrollTop()
+    cursor    = @getCursor()
+    @setContent content, no
+    @setCursor cursor
+    @setAceScrollTop scrollTop
+    @getAce().lastSavedContents = content
 
 
   handleAutoSave: ->
@@ -168,9 +189,48 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  unless ace = @getEditor()
 
-    if state
-    then ace.focus()
-    else ace.blur()
+    return ace.blur()  unless state
+    ace.focus()
+
+    @checkForContentChange()
+
+
+  checkForContentChange: ->
+
+    return if @contentChangedWarning
+
+    @getFileModifiedDate (time) =>
+      if time isnt @lastModifiedDate
+        @getAce().prepend @contentChangedWarning = view = new kd.View
+          cssClass: 'description-view editor'
+          partial : '<div>This file has changed on disk. Do you want to reload it?</div>'
+
+        view.addSubView new kd.ButtonView
+          title : 'No'
+          cssClass: 'solid compact red'
+          callback: => @handleContentChangeWarningAction()
+
+        view.addSubView new kd.ButtonView
+          title: 'Yes'
+          cssClass: 'solid compact green'
+          callback: => @handleContentChangeWarningAction yes
+
+
+  handleContentChangeWarningAction: (isAccepted) ->
+
+    @contentChangedWarning.destroy()
+    @contentChangedWarning = null
+
+    if isAccepted
+      @file.emit 'FileContentsNeedsToBeRefreshed'
+      @updateFileModifiedTime()
+
+
+  updateFileModifiedTime: ->
+
+    @getFileModifiedDate (date) =>
+      @file.time = date
+      @lastModifiedDate = date
 
 
   getInitialChangeObject: ->
