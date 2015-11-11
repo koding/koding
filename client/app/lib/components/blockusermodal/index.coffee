@@ -14,8 +14,9 @@ module.exports = class BlockUserModal extends React.Component
     @state = { buttonConfirmTitle : @props.buttonConfirmTitle }
 
 
-  blockUser: ->
+  blockUser: (event) ->
 
+    kd.utils.stopDOMEvent event
     blockingTime = @calculateBlockingTime @refs.BlockingTimeInput.getDOMNode().value
     AppFlux.actions.user.blockUser @props.account, blockingTime
     @props.onClose()

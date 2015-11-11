@@ -8,8 +8,9 @@ ActivityModal = require 'app/components/activitymodal'
 module.exports = class MarkUserAsTrollModal extends React.Component
 
 
-  markUserAsTroll: ->
+  markUserAsTroll: (event) ->
 
+    kd.utils.stopDOMEvent event
     AppFlux.actions.user.markUserAsTroll @props.account
     @props.onClose()
 
