@@ -14,16 +14,18 @@ changeToChannel   = require 'activity/util/changeToChannel'
 NewPublicChannelRoute = require './newpublicchannel'
 AllPublicChannelsRoute = require './allpublicchannels'
 PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
+SingleMessageRoute = require './singlemessage'
 
 module.exports = class SingleChannelRoute
 
   constructor: ->
 
-    @path = ':channelName(/:postId)'
+    @path = ':channelName'
     @childRoutes = [
       new NewPublicChannelRoute
       new AllPublicChannelsRoute
       new PublicChannelNotificationSettingsRoute
+      new SingleMessageRoute
     ]
 
 
@@ -36,7 +38,9 @@ module.exports = class SingleChannelRoute
 
   onEnter: (nextState, replaceState, done) ->
 
-    { channelName, postId } = nextState.params
+    messageActions.changeSelectedMessage null
+
+    { channelName } = nextState.params
     thread = kd.singletons.reactor.evaluate selectedChannelThread
 
     # if there is no channel name set on the route (/NewChannel, /Channels)
@@ -47,7 +51,7 @@ module.exports = class SingleChannelRoute
         channelName = getGroup().slug
 
     if channelName
-      transitionToChannel channelName, postId, done
+      transitionToChannel channelName, done
     else if not thread
       threadActions.changeSelectedThread null
       done()
@@ -55,15 +59,16 @@ module.exports = class SingleChannelRoute
       done()
 
 
-  onLeave: ->
-
-    threadActions.changeSelectedThread null
-    messageActions.changeSelectedMessage null
+  onLeave: -> threadActions.changeSelectedThread null
 
 
-transitionToChannel = (channelName, postId, done) ->
+transitionToChannel = (channelName, done) ->
 
-  successFn = ({ channel }) -> changeToChannel channel, postId, done
+  successFn = ({ channel }) ->
+    threadActions.changeSelectedThread channel.id
+    channelActions.loadParticipants channel.id
+    done()
+
   channel = channelByName channelName
 
   if channel
