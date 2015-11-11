@@ -72,7 +72,8 @@ withDummyClient = (context, callback) ->
 
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
-    callback { client }
+    account = client.connection?.delegate
+    callback { client, account }
 
 
 withConvertedUser = (opts, callback) ->
