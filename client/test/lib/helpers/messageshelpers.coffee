@@ -16,9 +16,7 @@ module.exports =
     message           or= 'Hello World!'
     messageWithCode     = "console.log('123456789')"
     messageWithFullCode = "```console.log('123456789')```"
-    link                = "http://wikipedia.org/"
-
-
+    
     sendMessage         = (browser, users, message, purpose) ->
       console.log " ✔ Creating a new message with user #{users[0].userName}..."
       browser
