@@ -343,10 +343,8 @@ class Ace extends KDView
 
     contents = @getContents()
 
-    unless contents is '' or @isContentChanged()
-      if @getDelegate().parent.active
-        @notify 'Nothing to save!'
-      return
+    if contents is '' or not @isCurrentContentChanged()
+      return @notify 'Nothing to save!'  if @getDelegate().parent.active
 
     if @isTrimWhiteSpacesEnabled
       @trimTrailingWhitespaces options.ignoreActiveLineOnTrim
