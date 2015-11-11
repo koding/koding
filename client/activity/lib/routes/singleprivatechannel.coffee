@@ -13,16 +13,18 @@ changeToChannel          = require 'activity/util/changeToChannel'
 
 NewPrivateChannelRoute = require './newprivatechannel'
 AllPrivateChannelsRoute = require './allprivatechannels'
+SingleMessageRoute = require './singlemessage'
 
 
 module.exports = class SinglePrivateMessageRoute
 
   constructor: ->
 
-    @path = ':privateChannelId(/:postId)'
+    @path = ':privateChannelId'
     @childRoutes = [
       new NewPrivateChannelRoute
       new AllPrivateChannelsRoute
+      new SingleMessageRoute
     ]
 
 
@@ -48,7 +50,7 @@ module.exports = class SinglePrivateMessageRoute
         privateChannelId = botChannel.id
 
     if privateChannelId
-      transitionToChannel privateChannelId, postId, done
+      transitionToChannel privateChannelId, done
     else if not thread
       threadActions.changeSelectedThread null
       done()
@@ -62,9 +64,12 @@ module.exports = class SinglePrivateMessageRoute
     messageActions.changeSelectedMessage null
 
 
-transitionToChannel = (channelId, postId, done) ->
+transitionToChannel = (channelId, done) ->
 
-  successFn = ({ channel }) -> changeToChannel channel, postId, done
+  successFn = ({ channel }) ->
+    threadActions.changeSelectedThread channel.id
+    channelActions.loadParticipants channel.id
+    done()
 
   channel = kd.singletons.reactor.evaluateToJS ['ChannelsStore', channelId]
 
