@@ -1,5 +1,6 @@
 { daisy
   expect
+  expectRelation
   withDummyClient
   withConvertedUser
   generateDummyClient
@@ -162,9 +163,9 @@ runTests = -> describe 'workers.social.user.account', ->
           withDummyClient ({ client, account }) ->
             # expecting to be able to get permissions
             account.fetchMyPermissions client, (err, permissions) ->
-              expect(err)          .to.not.exist
-              expect(permissions)  .to.exist
-              expect(permissions)  .to.be.an 'object'
+              expect(err).to.not.exist
+              expect(permissions).to.exist
+              expect(permissions).to.be.an 'object'
               done()
 
   describe '#leaveFromAllGroups()', ->
@@ -239,6 +240,85 @@ runTests = -> describe 'workers.social.user.account', ->
 
           daisy queue
 
+
+  describe 'fetchOrCreateAppStorage()', ->
+
+    describe 'when storage does not exist', ->
+
+      it 'should create a new appStorage', (done) ->
+
+        withConvertedUser ({ account }) ->
+          appId      = generateRandomString()
+          version    = '1.0.0'
+          options    = { appId, version }
+          appStorage = null
+
+          queue = [
+
+            ->
+              # creating a new app storage
+              account.fetchOrCreateAppStorage options, (err, storage) ->
+                expect(err).to.not.exist
+                appStorage = storage
+                expect(storage.appId).to.be.equal appId
+                expect(storage.version).to.be.equal version
+                queue.next()
+
+            ->
+              # expecting relationship to be created
+              options =
+                as         : 'appStorage'
+                data       : { appId, version }
+                targetId   : appStorage.getId()
+                sourceId   : account.getId()
+                targetName : 'JAppStorage'
+                sourceName : 'JAccount'
+
+              expectRelation.toExist options, ->
+                queue.next()
+
+            -> done()
+
+          ]
+
+          daisy queue
+
+
+    describe 'when storage exists', ->
+
+      it 'should return the existing appStorage', (done) ->
+
+        withConvertedUser ({ account }) ->
+          appId      = generateRandomString()
+          version    = '1.0.0'
+          options    = { appId, version }
+          appStorage = null
+
+          queue = [
+
+            ->
+              # creating a new app storage
+              account.fetchOrCreateAppStorage options, (err, storage) ->
+                expect(err).to.not.exist
+                appStorage = storage
+                expect(storage.appId).to.be.equal appId
+                expect(storage.version).to.be.equal version
+                queue.next()
+
+            ->
+              # expecting previously created app storage to be fetched
+              account.fetchOrCreateAppStorage options, (err, storage) ->
+                expect(err).to.not.exist
+                expect(storage._id.toString()).to.be.equal appStorage._id.toString()
+                expect(storage.appId).to.be.equal appStorage.appId
+                expect(storage.version).to.be.equal appStorage.version
+                queue.next()
+
+            -> done()
+
+          ]
+
+          daisy queue
 
 beforeTests()
 
