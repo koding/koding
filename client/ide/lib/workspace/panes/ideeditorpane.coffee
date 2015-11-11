@@ -102,17 +102,17 @@ module.exports = class IDEEditorPane extends IDEPane
     ace.on 'FileContentRestored', => @file.emit 'FileContentRestored'
 
     @file.on 'FileActionHappened', (data) =>
-      { from, eventName } = data
-      return  if data.from is @getId()
+      { from, eventName, content } = data
+      return  if from is @getId()
 
       if eventName is 'ContentChanged'
-        @updateContent data.content
+        @updateContent content
         @aceView.showModifiedIconOnTabHandle()
 
     @file.on 'FileContentRestored', => ace.removeModifiedFromTab()
 
     @file.on 'fs.save.finished', =>
-      @aceView.removeModifiedFromTab @file.path
+      ace.removeModifiedFromTab()
       @updateFileModifiedTime()
 
     @file.on 'FileContentsNeedsToBeRefreshed', =>
@@ -205,23 +205,23 @@ module.exports = class IDEEditorPane extends IDEPane
     @getFileModifiedDate (time) =>
       if time isnt @lastModifiedDate
         @getAce().prepend @contentChangedWarning = view = new kd.View
-          cssClass: 'description-view editor'
-          partial : '<div>This file has changed on disk. Do you want to reload it?</div>'
+          cssClass : 'description-view editor'
+          partial  : '<div>This file has changed on disk. Do you want to reload it?</div>'
 
         view.addSubView new kd.ButtonView
-          title : 'No'
-          cssClass: 'solid compact red'
-          callback: => @handleContentChangeWarningAction()
+          title    : 'No'
+          cssClass : 'solid compact red'
+          callback : @bound 'handleContentChangeWarningAction'
 
         view.addSubView new kd.ButtonView
-          title: 'Yes'
-          cssClass: 'solid compact green'
-          callback: => @handleContentChangeWarningAction yes
+          title    : 'Yes'
+          cssClass : 'solid compact green'
+          callback : => @handleContentChangeWarningAction yes
 
 
   handleContentChangeWarningAction: (isAccepted) ->
 
-    @contentChangedWarning.destroy()
+    @contentChangedWarning?.destroy()
     @contentChangedWarning = null
 
     if isAccepted
