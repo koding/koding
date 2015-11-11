@@ -55,6 +55,12 @@ type Machine struct {
 	GeneratedFrom MachineGeneratedFrom `bson:"generatedFrom,omitempty" json:"generatedFrom,omitempty"`
 }
 
+type Permissions struct {
+	Id    bson.ObjectId `bson:"id"`
+	Sudo  bool          `bson:"sudo"`
+	Owner bool          `bson:"owner"`
+}
+
 // Owner returns the owner of a machine
 func (m *Machine) Owner() *MachineUser {
 	for _, user := range m.Users {
