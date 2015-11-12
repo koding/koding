@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/koding/klient/cmd/klientctl/util"
+	"github.com/koding/klientctl/util"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
