@@ -57,6 +57,7 @@
     "helmet": "0.2.4",
     "highlight.js": "7.3.0",
     "htmlencode": "0.0.3",
+    "json-format": "0.0.1",
     "jsonify": "0.0.0",
     "jsonwebtoken": "5.0.1",
     "kite.js": "0.3.9",
