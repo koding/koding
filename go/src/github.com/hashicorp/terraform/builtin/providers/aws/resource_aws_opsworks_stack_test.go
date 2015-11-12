@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 // These tests assume the existence of predefined Opsworks IAM roles named `aws-opsworks-ec2-role`
@@ -50,7 +49,7 @@ resource "aws_opsworks_stack" "tf-acc" {
   custom_cookbooks_source {
     type = "git"
     revision = "master"
-    url = "https://github.com/aws/opsworks-example-cookbooks.git"
+    url = "https://github.com/awslabs/opsworks-example-cookbooks.git"
   }
 }
 `
@@ -130,7 +129,7 @@ resource "aws_opsworks_stack" "tf-acc" {
   custom_cookbooks_source {
     type = "git"
     revision = "master"
-    url = "https://github.com/aws/opsworks-example-cookbooks.git"
+    url = "https://github.com/awslabs/opsworks-example-cookbooks.git"
   }
 }
 `
@@ -260,7 +259,7 @@ var testAccAwsOpsworksStackCheckResourceAttrsUpdate = resource.ComposeTestCheckF
 	resource.TestCheckResourceAttr(
 		"aws_opsworks_stack.tf-acc",
 		"custom_cookbooks_source.0.url",
-		"https://github.com/aws/opsworks-example-cookbooks.git",
+		"https://github.com/awslabs/opsworks-example-cookbooks.git",
 	),
 )
 

@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/cihangir/nisql"
+)
 
 type NotificationSetting struct {
 	// unique idetifier of the notification setting
@@ -13,19 +17,19 @@ type NotificationSetting struct {
 	AccountId int64 `json:"accountId,string"               sql:"NOT NULL"`
 
 	// DesktopSetting holds dektop setting type
-	DesktopSetting string `json:"desktopSetting"	sql:"NOT NULL"`
+	DesktopSetting nisql.NullString `json:"desktopSetting"` //	sql:"NOT NULL"`
 
 	// MobileSetting holds mobile setting type
-	MobileSetting string `json:"mobileSetting"			sql:"NOT NULL"`
+	MobileSetting nisql.NullString `json:"mobileSetting"` //	sql:"NOT NULL"`
 
 	// IsMuted holds the data if channel is muted or not
-	IsMuted bool `json:"isMuted"`
+	IsMuted nisql.NullBool `json:"isMuted"`
 
 	// IsSuppressed holds data that getting notification when @channel is written
 	// If user doesn't want to get notification
 	// when written to channel @channel, @here or name of the user.
 	// User uses 'suppress' feature and doesn't get notification
-	IsSuppressed bool `json:"isSuppressed"`
+	IsSuppressed nisql.NullBool `json:"isSuppressed"`
 
 	// Creation date of the notification settings
 	CreatedAt time.Time `json:"createdAt"          sql:"NOT NULL"`
@@ -47,24 +51,7 @@ const (
 func NewNotificationSetting() *NotificationSetting {
 	now := time.Now().UTC()
 	return &NotificationSetting{
-		DesktopSetting: NotificationSetting_STATUS_ALL,
-		MobileSetting:  NotificationSetting_STATUS_ALL,
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
-}
-
-func (ns *NotificationSetting) Defaults() *NotificationSetting {
-	if ns.DesktopSetting == "" {
-		ns.DesktopSetting = NotificationSetting_STATUS_ALL
-	}
-
-	if ns.MobileSetting == "" {
-		ns.MobileSetting = NotificationSetting_STATUS_ALL
-	}
-
-	ns.IsMuted = false
-	ns.IsSuppressed = false
-
-	return ns
 }

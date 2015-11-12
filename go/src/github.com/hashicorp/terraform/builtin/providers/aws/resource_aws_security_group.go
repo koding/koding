@@ -326,9 +326,6 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 			switch ec2err.Code() {
 			case "InvalidGroup.NotFound":
 				return nil
-			case "DependencyViolation":
-				// If it is a dependency violation, we want to retry
-				return err
 			default:
 				// Any other error, we want to quit the retry loop immediately
 				return resource.RetryError{Err: err}
