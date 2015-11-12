@@ -99,7 +99,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
         @file.emit 'FileActionHappened', { eventName, content, cursor, from }
 
-    ace.on 'FileContentRestored', => @file.emit 'FileContentRestored'
+    ace.forwardEvent @file, 'FileContentRestored'
 
     @file.on 'FileActionHappened', (data) =>
       { from, eventName, content } = data
