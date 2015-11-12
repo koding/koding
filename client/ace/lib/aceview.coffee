@@ -81,12 +81,12 @@ module.exports = class AceView extends JView
   showModifiedIconOnTabHandle: ->
 
     { path } = @ace.getData()
-    @forEachPaneByFile path, (pane) => pane.tabHandle.setClass 'modified'
+    @forEachPaneByFile path, (pane) -> pane.tabHandle.setClass 'modified'
 
 
   removeModifiedFromTab: (path) ->
 
-    @forEachPaneByFile path, (pane) =>
+    @forEachPaneByFile path, (pane) ->
       { tabHandle } = pane
       tabHandle.setClass 'saved'
 
