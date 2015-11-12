@@ -140,7 +140,7 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 		return nil
 	}
 
-	fmt.Fprintln(w,
+	fmt.Fprint(w,
 		"The mount folder does not exist, would you like to create it? [Y/n]",
 	)
 
