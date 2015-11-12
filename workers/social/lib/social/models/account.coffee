@@ -950,7 +950,7 @@ module.exports = class JAccount extends jraphical.Module
     addStorage = (storage, options, callback) ->
       { appId, data } = options
       query = { $set : {} }
-      query.$set["storage.#{appId}.data"] = data ? {}
+      query.$set["bucket.#{appId}.data"] = data ? {}
       storage.update query, (err) ->
         return callback err, storage
 
@@ -958,8 +958,8 @@ module.exports = class JAccount extends jraphical.Module
       return callback err  if err
       return addStorage storage, { appId, data }, callback  if storage
 
-      query = { accountId, storage : {} }
-      query.storage[appId] = { data : data ? {} }
+      query = { accountId, bucket : {} }
+      query.bucket[appId] = { data : data ? {} }
       newStorage = new JCombinedAppStorage query
       newStorage.save (err) =>
         # recursive call in case of unique index error

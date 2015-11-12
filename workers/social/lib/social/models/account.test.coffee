@@ -260,9 +260,9 @@ runTests = -> describe 'workers.social.user.account', ->
             expect(appStorage).to.be.an 'object'
             expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
             expect(appStorage.accountId).to.be.deep.equal account._id
-            expect(appStorage.storage[appId]).to.be.an 'object'
-            expect(appStorage.storage[appId].data).to.be.an 'object'
-            expect(appStorage.storage[appId].data).to.be.empty
+            expect(appStorage.bucket[appId]).to.be.an 'object'
+            expect(appStorage.bucket[appId].data).to.be.an 'object'
+            expect(appStorage.bucket[appId].data).to.be.empty
             done()
 
 
@@ -286,9 +286,9 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(appStorage).to.be.an 'object'
                 expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(appStorage.accountId).to.be.deep.equal account._id
-                expect(appStorage.storage[appId]).to.be.an 'object'
-                expect(appStorage.storage[appId].data).to.be.an 'object'
-                expect(appStorage.storage[appId].data).to.be.empty
+                expect(appStorage.bucket[appId]).to.be.an 'object'
+                expect(appStorage.bucket[appId].data).to.be.an 'object'
+                expect(appStorage.bucket[appId].data).to.be.empty
                 queue.next()
 
             ->
@@ -298,7 +298,7 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(storage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(storage._id.toString()).to.be.equal appStorage._id.toString()
                 expect(storage.accountId).to.be.deep.equal appStorage.accountId
-                expect(storage.storage[appId]).to.be.deep.equal appStorage.storage[appId]
+                expect(storage.bucket[appId]).to.be.deep.equal appStorage.bucket[appId]
                 queue.next()
 
             -> done()
@@ -323,7 +323,7 @@ runTests = -> describe 'workers.social.user.account', ->
               # creating a new app storage
               appId   = appIds[0]
               version = versions[0]
-              options = { appId,version }
+              options = { appId, version }
 
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
@@ -331,22 +331,22 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(appStorage).to.be.an 'object'
                 expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(appStorage.accountId).to.be.deep.equal account._id
-                expect(appStorage.storage[appId]).to.be.an 'object'
-                expect(appStorage.storage[appId].data).to.be.an 'object'
-                expect(appStorage.storage[appId].data).to.be.empty
+                expect(appStorage.bucket[appId]).to.be.an 'object'
+                expect(appStorage.bucket[appId].data).to.be.an 'object'
+                expect(appStorage.bucket[appId].data).to.be.empty
                 queue.next()
 
             ->
               appId   = appIds[1]
               version = versions[1]
-              options = { appId,version }
+              options = { appId, version }
 
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
                 expect(storage).to.be.an 'object'
-                expect(storage.storage[appId].data).to.be.an 'object'
-                expect(storage.storage[appIds[0]]).to.be.an 'object'
-                expect(storage.storage[appIds[1]]).to.be.an 'object'
+                expect(storage.bucket[appId].data).to.be.an 'object'
+                expect(storage.bucket[appIds[0]]).to.be.an 'object'
+                expect(storage.bucket[appIds[1]]).to.be.an 'object'
                 queue.next()
 
             -> done()
@@ -386,9 +386,9 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(err).to.not.exist
                 expect(newStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(newStorage.accountId).to.be.deep.equal account._id
-                expect(newStorage.storage[appId].data).to.be.deep.equal bucket
-                expect(newStorage.storage.bucket).to.not.exist
-                expect(newStorage.storage.version).to.not.exist
+                expect(newStorage.bucket[appId].data).to.be.deep.equal bucket
+                expect(newStorage.bucket.bucket).to.not.exist
+                expect(newStorage.bucket.version).to.not.exist
                 queue.next()
 
             ->
@@ -452,9 +452,9 @@ runTests = -> describe 'workers.social.user.account', ->
               expect(newStorage).to.be.an 'object'
               expect(newStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
               expect(newStorage.accountId).to.be.deep.equal account._id
-              expect(newStorage.storage[appId].data).to.be.deep.equal bucket
-              expect(newStorage.storage.bucket).to.not.exist
-              expect(newStorage.storage.version).to.not.exist
+              expect(newStorage.bucket[appId].data).to.be.deep.equal bucket
+              expect(newStorage.bucket.bucket).to.not.exist
+              expect(newStorage.bucket.version).to.not.exist
               queue.next()
 
           ->
