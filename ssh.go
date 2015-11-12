@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klient/cmd/klientctl/util"
+	"github.com/koding/klientctl/util"
 	"github.com/koding/sshkey"
 
 	"golang.org/x/crypto/ssh"

@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klient/cmd/klientctl/klientctlerrors"
-	"github.com/koding/klient/cmd/klientctl/util"
+	"github.com/koding/klientctl/klientctlerrors"
+	"github.com/koding/klientctl/util"
 )
 
 // MountCommand mounts a folder on remote machine to local folder by machine
