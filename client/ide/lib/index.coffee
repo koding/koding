@@ -875,26 +875,31 @@ class IDEAppController extends AppController
 
     return  if @isDestroyed or not @isMachineRunning() or @silent
 
-    name  = @getWorkspaceSnapshotName nick()
+    key   = @getWorkspaceStorageKey nick()
     value = @getWorkspaceSnapshot()
+
+    @writeToKiteStorage key, value
+    @emit 'SnapshotUpdated'
+
+
+  writeToKiteStorage: (key, value) ->
 
     # we need to check against kite existence because while a machine
     # is getting destroyed/stopped/reinitialized we are invalidating it's
     # kite instance to make sure every call is stopped. ~ GG
-    @mountedMachine.getBaseKite()?.storageSetQueued name, value
-    @emit 'SnapshotUpdated'
+    @mountedMachine.getBaseKite()?.storageSetQueued key, value
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
 
-    key = @getWorkspaceSnapshotName username
+    key = @getWorkspaceStorageKey username
     @mountedMachine.getBaseKite().storageDelete key
 
 
-  getWorkspaceSnapshotName: (username) ->
+  getWorkspaceStorageKey: (prefix) ->
 
-    if username
-      return "#{username}.wss.#{@workspaceData.slug}"
+    if prefix
+      return "#{prefix}.wss.#{@workspaceData.slug}"
     else
       return "wss.#{@workspaceData.slug}"
 
@@ -1651,25 +1656,30 @@ class IDEAppController extends AppController
 
   fetchSnapshot: (callback, username = nick()) ->
 
+    @fetchFromKiteStorage callback, username
+
+
+  fetchFromKiteStorage: (callback, prefix) ->
+
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
       return
 
     handleError = (err) ->
 
-      console.warn 'Failed to fetch snapshot:', err
+      console.warn 'Failed to fetch data:', err
       callback null
 
-    fetch = (username) =>
+    fetch = (prefix) =>
 
-      key = @getWorkspaceSnapshotName username
+      key = @getWorkspaceStorageKey prefix
       @mountedMachine.getBaseKite().storageGet key
 
-    fetch username
+    fetch prefix
 
-      .then (snapshot) =>
+      .then (data) =>
 
-        return callback snapshot  if snapshot
+        return callback data  if data
 
         # Backward compatibility plug
         return callback null  unless @mountedMachine.isMine()
