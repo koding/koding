@@ -261,8 +261,8 @@ runTests = -> describe 'workers.social.user.account', ->
             expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
             expect(appStorage.accountId).to.be.deep.equal account._id
             expect(appStorage.storage[appId]).to.be.an 'object'
-            expect(appStorage.storage[appId]['data']).to.be.an 'object'
-            expect(appStorage.storage[appId]['data']).to.be.empty
+            expect(appStorage.storage[appId].data).to.be.an 'object'
+            expect(appStorage.storage[appId].data).to.be.empty
             done()
 
 
@@ -287,8 +287,8 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(appStorage.accountId).to.be.deep.equal account._id
                 expect(appStorage.storage[appId]).to.be.an 'object'
-                expect(appStorage.storage[appId]['data']).to.be.an 'object'
-                expect(appStorage.storage[appId]['data']).to.be.empty
+                expect(appStorage.storage[appId].data).to.be.an 'object'
+                expect(appStorage.storage[appId].data).to.be.empty
                 queue.next()
 
             ->
@@ -299,6 +299,54 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(storage._id.toString()).to.be.equal appStorage._id.toString()
                 expect(storage.accountId).to.be.deep.equal appStorage.accountId
                 expect(storage.storage[appId]).to.be.deep.equal appStorage.storage[appId]
+                queue.next()
+
+            -> done()
+
+          ]
+
+          daisy queue
+
+
+    describe 'when another app storage request for same account', ->
+
+      it 'should add a new property to storage object', (done) ->
+
+        withConvertedUser ({ account }) ->
+
+          appIds   = [generateRandomString(), generateRandomString()]
+          versions = [generateRandomString(), generateRandomString()]
+
+          queue = [
+
+            ->
+              # creating a new app storage
+              appId   = appIds[0]
+              version = versions[0]
+              options = { appId,version }
+
+              account.fetchOrCreateAppStorage options, (err, storage) ->
+                expect(err).to.not.exist
+                appStorage = storage
+                expect(appStorage).to.be.an 'object'
+                expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
+                expect(appStorage.accountId).to.be.deep.equal account._id
+                expect(appStorage.storage[appId]).to.be.an 'object'
+                expect(appStorage.storage[appId].data).to.be.an 'object'
+                expect(appStorage.storage[appId].data).to.be.empty
+                queue.next()
+
+            ->
+              appId   = appIds[1]
+              version = versions[1]
+              options = { appId,version }
+
+              account.fetchOrCreateAppStorage options, (err, storage) ->
+                expect(err).to.not.exist
+                expect(storage).to.be.an 'object'
+                expect(storage.storage[appId].data).to.be.an 'object'
+                expect(storage.storage[appIds[0]]).to.be.an 'object'
+                expect(storage.storage[appIds[1]]).to.be.an 'object'
                 queue.next()
 
             -> done()
@@ -401,7 +449,6 @@ runTests = -> describe 'workers.social.user.account', ->
             options = { appId, version }
             account.migrateOldAppStorageIfExists options, (err, newStorage) ->
               expect(err).to.not.exist
-              console.log newStorage
               expect(newStorage).to.be.an 'object'
               expect(newStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
               expect(newStorage.accountId).to.be.deep.equal account._id
