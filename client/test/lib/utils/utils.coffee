@@ -1,5 +1,6 @@
-fs     = require 'fs'
-faker  = require 'faker'
+fs        = require 'fs'
+faker     = require 'faker'
+formatter = require 'json-format'
 
 module.exports =
 
@@ -19,8 +20,7 @@ module.exports =
 
       users.push { name, email, username, password, teamSlug }
 
-
-    fs.writeFileSync 'users.json', JSON.stringify(users), 'utf-8'
+    fs.writeFileSync 'users.json', formatter users, 'utf-8'
 
     return users
 
