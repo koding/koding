@@ -14,11 +14,12 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
-  JStorage         = require './storage'
-  JAppStorage      = require './appstorage'
-  JTag             = require './tag'
-  JName            = require './name'
-  JKite            = require './kite'
+  JTag                = require './tag'
+  JName               = require './name'
+  JKite               = require './kite'
+  JStorage            = require './storage'
+  JAppStorage         = require './appstorage'
+  JCombinedAppStorage = require './combinedappstorage'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -911,24 +912,79 @@ module.exports = class JAccount extends jraphical.Module
             data        : { name }
           rel.save (err) -> callback err, storage
 
+
   fetchOrCreateAppStorage: (options, callback) ->
-    { appId, version } = options
 
-    query = { accountId : @getId() }
-    query["storage.#{appId}.version"] = version
+    { appId, version }        = options
+    query                     = { accountId : @getId() }
+    query["storage.#{appId}"] = { $exists : true }
 
-    JAppStorage.one query, (err, storage) =>
+    JCombinedAppStorage.one query, (err, storage) =>
+      return callback err  if err
+      return callback err, storage  if storage
+      @createAppStorage options, (err, newStorage) ->
+        if err then callback err
+        callback null, newStorage
+
+
+  createAppStorage: (options, callback) ->
+
+    { appId, version, data } = options
+    query                    = { accountId : @getId(), storage : {} }
+    query.storage[appId]     = { data : data ? {} }
+
+    newStorage = new JCombinedAppStorage query
+    newStorage.save (err) ->
       if err then callback err
-      else unless storage?
-        version               ?= '1.0'
-        options                = { accountId : @getId(), storage : {} }
-        options.storage[appId] = { version, data : {} }
-        newStorage             = new JAppStorage options
-        newStorage.save (err) ->
-          if err then callback err
-          callback null, newStorage
-      else
-        callback err, storage
+      callback null, newStorage
+
+
+  migrateOldAppStorageIfExists: (options, callback) ->
+
+    { appId, version } = options
+    oldStorage         = null
+
+    queue = [
+
+      =>
+        # trying to fetch an old app storage document by relationship
+        query = { 'data.appId':appId, 'data.version':version }
+        @fetchAppStorage query, (err, storage) ->
+          return calback err  if err
+          return callback null, null  unless storage
+          oldStorage = storage
+          queue.next()
+
+      =>
+        # removing relationship
+        query =
+          as          : 'appStorage'
+          data        : { appId, version }
+          targetId    : oldStorage.getId()
+          sourceId    : @getId()
+          targetName  : 'JAppStorage'
+          sourceName  : 'JAccount'
+
+        Relationship.remove query, (err, rel) ->
+          return callback err  if err
+          queue.next()
+
+      ->
+        # removing old storage
+        oldStorage.remove (err) ->
+          return callback err  if err
+          queue.next()
+
+      =>
+        # creating new app storage document
+        options.data = oldStorage.bucket
+        @createAppStorage options, (err, newStorage) ->
+          return callback err  if err
+          return callback null, newStorage
+
+    ]
+
+    daisy queue
 
 
   fetchAppStorage$: secure (client, options, callback) ->
