@@ -117,21 +117,21 @@ module.exports = class IDEEditorPane extends IDEPane
 
     @file.on 'FileContentsNeedsToBeRefreshed', =>
       ace.fetchContents (err, content) =>
-        @updateContent content
+        @updateContent content, yes
         ace.removeModifiedFromTab()
         @updateFileModifiedTime()
         @contentChangedWarning?.destroy()
         @contentChangedWarning = null
 
 
-  updateContent: (content) ->
+  updateContent: (content, isSaved = no) ->
 
     scrollTop = @getAceScrollTop()
     cursor    = @getCursor()
     @setContent content, no
     @setCursor cursor
     @setAceScrollTop scrollTop
-    @getAce().lastSavedContents = content
+    @getAce().lastSavedContents = content  if isSaved
 
 
   handleAutoSave: ->
