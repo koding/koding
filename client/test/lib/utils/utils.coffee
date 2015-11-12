@@ -39,15 +39,15 @@ module.exports =
 
     if createNewUserData
       users = @generateUsers()
-      return users[index]
+      return if index is -1 then users else users[index]
 
     try
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
-      return users[index]
+      return if index is -1 then users else users[index]
 
     catch
 
       users = @generateUsers()
-      return users[index]
+      return if index is -1 then users else users[index]
