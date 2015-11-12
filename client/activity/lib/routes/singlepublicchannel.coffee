@@ -13,7 +13,6 @@ changeToChannel   = require 'activity/util/changeToChannel'
 
 NewPublicChannelRoute = require './newpublicchannel'
 AllPublicChannelsRoute = require './allpublicchannels'
-PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
 
 module.exports = class SingleChannelRoute
 
@@ -23,7 +22,6 @@ module.exports = class SingleChannelRoute
     @childRoutes = [
       new NewPublicChannelRoute
       new AllPublicChannelsRoute
-      new PublicChannelNotificationSettingsRoute
     ]
 
 

@@ -7,10 +7,7 @@ module.exports = class ButtonWithMenu extends React.Component
 
   WINDOW_OFFSET = 100
 
-  @defaultProps =
-    items: []
-    isMenuOpen: no
-    listClass:''
+  @defaultProps = { items: [], isMenuOpen: no}
 
   constructor: (props) ->
 
@@ -61,10 +58,10 @@ module.exports = class ButtonWithMenu extends React.Component
 
 
   render: ->
-    <div className="ButtonWithMenuWrapper">
+    <div className="SettingsMenuWrapper">
       <button ref="button" onClick={@bound 'onButtonClick'}></button>
       <Portal isOpened={@state.isMenuOpen} closeOnOutsideClick={yes} closeOnEsc={yes} onClose={@bound 'onMenuClose'}>
-        <ul ref={@bound 'listDidMount'} className={kd.utils.curry "ButtonWithMenuItemsList", @props.listClass}>
+        <ul ref={@bound 'listDidMount'} className="ButtonWithMenuItemsList">
           {@renderListMenu()}
         </ul>
       </Portal>

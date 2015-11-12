@@ -90,6 +90,7 @@ module.exports = class PermissionsForm extends KDFormViewWithFields
       # JNewApp            : 'Apps'
       JGroup             : 'Groups'
       SocialMessage      : 'Social API'
+      JGroupBundle       : 'Group Bundles'
       JProposedDomain    : 'Domains'
       JProxyFilter       : 'Proxy Filters'
       JInvitation        : 'Invitations'

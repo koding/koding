@@ -1,11 +1,11 @@
-kd                = require 'kd'
-KDCustomHTMLView  = kd.CustomHTMLView
-KDLoaderView      = kd.LoaderView
-KDSelectBox       = kd.SelectBox
-KDView            = kd.View
-whoami            = require 'app/util/whoami'
-notify_           = require 'app/util/notify_'
-KodingSwitch      = require 'app/commonviews/kodingswitch'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDLoaderView = kd.LoaderView
+KDSelectBox = kd.SelectBox
+KDView = kd.View
+whoami = require 'app/util/whoami'
+notify_ = require 'app/util/notify_'
+KodingSwitch = require 'app/commonviews/kodingswitch'
 
 
 module.exports = class AccountEmailNotifications extends KDView
@@ -65,13 +65,9 @@ module.exports = class AccountEmailNotifications extends KDView
 
   handleGlobalState: (state) ->
 
-    @handleDependency ['daily'], state
-    @handleDailyState state and @fields.daily.switch.getValue()
-
-
-  handleDailyState: (state) ->
-
-    @handleDependency ['privateMessage', 'comment', 'likeActivities', 'mention'], state
+    if state
+    then @list.unsetClass 'off'
+    else @list.setClass 'off'
 
 
   handlePrivateMessageState: (state) ->
@@ -123,7 +119,7 @@ module.exports = class AccountEmailNotifications extends KDView
         partial  : field.title
         cssClass : "title"
 
-      fields[flag].switch = fieldSwitch = new KodingSwitch
+      fieldSwitch = new KodingSwitch
         defaultValue  : frequency[flag]
         callback      : (state) -> view.switched @getData(), state
       , flag
@@ -149,22 +145,13 @@ module.exports = class AccountEmailNotifications extends KDView
     @emit 'EmailPrefSwitched', flag, state
 
     whoami().setEmailPreferences prefs, (err) =>
+
       return @fields[flag].loader.hide()  unless err
 
+      @fallBackToOldState()
       @emit 'EmailPrefSwitched', flag, !state
+
       notify_ 'Failed to change state'
 
 
-  handleDependency: (items, state) ->
-
-    items.forEach (item) =>
-
-      method = if state
-      then 'unsetClass'
-      else 'setClass'
-
-      field = @fields[item]
-
-      field.formView[method]      'off'
-      field.subSettings?[method]  'off'  # Toggle it on / off if current field has any sub settings
 

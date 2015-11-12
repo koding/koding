@@ -1,0 +1,11 @@
+Source: kontrolproxy
+Section: devel
+Priority: extra
+Standards-Version: 0.0.1
+Maintainer: Koding Developers <hello@koding.com>
+Homepage: https://koding.com
+
+Package: kontrolproxy
+Architecture: amd64
+Description: Koding Kontrolproxy 
+ Koding Kontrolproxy kite

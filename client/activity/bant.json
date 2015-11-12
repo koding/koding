@@ -21,7 +21,6 @@
     "/AllChannels": "AllPublicChannels",
     "/Channels/:channelName": "SinglePublicChannel",
     "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
-    "/Channels/:channelName/NotificationSettings": "ChannelNotificationSettings",
 
     "/NewMessage": "NewPrivateChannel",
     "/AllMessages": "AllPrivateChannels",

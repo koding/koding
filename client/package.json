@@ -45,7 +45,6 @@
     "raf": "2.0.4",
     "react": "0.13.3",
     "react-autosize-textarea": "0.2.4",
-    "react-radio": "1.0.6",
     "react-immutable-render-mixin": "0.8.1",
     "react-portal": "0.7.0",
     "react-router": "1.0.0-rc4",

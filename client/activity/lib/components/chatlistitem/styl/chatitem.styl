@@ -71,11 +71,19 @@
   .emoji-wrapper
     vertical-align          text-bottom
 
-  .ButtonWithMenuWrapper
+  .SettingsMenuWrapper
     abs()
     hidden()
     top                     0px
     right                   10px
+
+    button
+      pointer()
+      outline               none
+      size                  16px !important, 10px !important
+      border                none
+      r-sprite              activity chevron-icon
+      bg                    color, transparent
 
   .ChatItem-contentWrapper
     padding                 10px 23px 0 34px
@@ -87,7 +95,7 @@
       padding               10px 0 10px 34px
       bg                    color, $light-yellow
 
-      .ButtonWithMenuWrapper
+      .SettingsMenuWrapper
         hidden()
 
     &.edited
@@ -118,7 +126,7 @@
 
 
   &:hover
-    .ButtonWithMenuWrapper
+    .SettingsMenuWrapper
       visible()
 
     .ChatItem-likeLink

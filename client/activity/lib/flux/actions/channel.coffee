@@ -497,26 +497,6 @@ setLastSeenTime = (channelId, timestamp) ->
   { SET_CHANNEL_LAST_SEEN_TIME } = actionTypes
   dispatch SET_CHANNEL_LAST_SEEN_TIME, { channelId, timestamp }
 
-###*
- * Action to update name and purpose data
- *
- * @param {object=} options
-###
-updateChannel = (options={}) ->
-
-  { socialapi } = kd.singletons
-  { UPDATE_CHANNEL_BEGIN
-    UPDATE_CHANNEL_FAIL
-    UPDATE_CHANNEL_SUCCESS } = actionTypes
-
-  dispatch actionTypes.UPDATE_CHANNEL_BEGIN, options
-
-  socialapi.channel.update options, (err, channel) =>
-    if err
-      return dispatch actionTypes.UPDATE_CHANNEL_FAIL, err
-
-    dispatch actionTypes.UPDATE_CHANNEL_SUCCESS, { channel }
-
 
 module.exports = {
   followChannel
@@ -542,6 +522,5 @@ module.exports = {
   setSidebarPublicChannelsTab
   setScrollPosition
   setLastSeenTime
-  updateChannel
 }
 

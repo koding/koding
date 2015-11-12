@@ -19,6 +19,7 @@ module.exports = class JAccount extends jraphical.Module
   JTag             = require './tag'
   JName            = require './name'
   JKite            = require './kite'
+  JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -269,16 +270,15 @@ module.exports = class JAccount extends jraphical.Module
 
     relationships           : ->
 
-      # bongo doesn't wait models to be loaded and this causes errors
-      # in node.js tests so synchronously requiring them
-      JAppStorage      = require './appstorage'
+      # requiring JStackTemplate here solved problems after turning stacktemplate's
+      # targetType from string to object.
       JCredential      = require './computeproviders/credential'
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
         appStorage    :
           as          : 'appStorage'
-          targetType  : JAppStorage
+          targetType  : 'JAppStorage'
 
         storage       :
           as          : 'storage'
@@ -299,6 +299,14 @@ module.exports = class JAccount extends jraphical.Module
         invitation    :
           as          : 'owner'
           targetType  : 'JInvitation'
+
+        paymentMethod :
+          as          : 'payment method'
+          targetType  : 'JPaymentMethod'
+
+        subscription  :
+          as          : 'service subscription'
+          targetType  : 'JPaymentSubscription'
 
         kite          :
           as          : 'owner'
@@ -635,8 +643,6 @@ module.exports = class JAccount extends jraphical.Module
     user.update { $set: { emailFrequency: current } }, (err) ->
       return callback err  if err
 
-      callback null
-
       emailFrequency =
         global    : current.global
         marketing : current.marketing
@@ -661,6 +667,15 @@ module.exports = class JAccount extends jraphical.Module
       return if err
       count ?= 0
       @update ({ $set: { 'counts.referredUsers': count } }), ->
+
+    # Invitations count
+    JReferrableEmail.count
+      username   : @profile.nickname
+      invited    : true
+    , (err, count) =>
+      return if err
+      count ?= 0
+      @update ({ $set: { 'counts.invitations': count } }), ->
 
     # Last Login date
     @update ({ $set: { 'counts.lastLoginDate': new Date } }), ->
@@ -1083,12 +1098,17 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
 
   oauthDeleteCallback: (provider, user, callback) ->
+    if provider is 'google'
+      user.fetchAccount 'koding', (err, account) ->
+        return callback err  if err
+        JReferrableEmail = require './referrableemail'
+        JReferrableEmail.delete user.username, callback
+    else
+      callback()
 
     foreignAuth = {}
     foreignAuth[provider] = no
     Tracker.identify user.username, { foreignAuth }
-
-    callback()
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback) ->
@@ -1122,6 +1142,17 @@ module.exports = class JAccount extends jraphical.Module
           data[username]  = email  for { username, email } in list
 
           callback null, data
+
+  fetchDecoratedPaymentMethods: (callback) ->
+    JPaymentMethod = require './payment/method'
+    @fetchPaymentMethods (err, paymentMethods) ->
+      return callback err  if err
+      JPaymentMethod.decoratePaymentMethods paymentMethods, callback
+
+  fetchPaymentMethods$: secure (client, callback) ->
+    { delegate } = client.connection
+    if (delegate.equals this) or delegate.can 'administer accounts'
+      @fetchDecoratedPaymentMethods callback
 
 
   fetchMetaInformation: secure (client, callback) ->

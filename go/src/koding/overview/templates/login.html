@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Koding Overview</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+		<style>
+			body {
+				padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+			}
+		</style>
+		<link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+		<script src="http://code.jquery.com/jquery.js"></script>
+		<script src="./bootstrap/js/bootstrap.js"></script>
+	</head>
+	<body>
+		<div class="container">
+		    <div class="row">
+				<div class="span4"></div>
+				<div class="span3 navbar-inner">
+					<form method="POST">
+						Use your Koding username and password<br><br>
+					    <div class="input-append">
+					  	    <label for="loginName">Username</label>
+							<div class="div_text">
+								<div class="input-prepend"><span class="add-on"><i class="icon-user"></i></span><input name="loginName" type="text" id="log inputIcon" value="" class="loginName span2"></div>
+							</div>
+							<label for="loginPass">Password</label>
+							<div class="div_text">
+								<div class="input-prepend"><span class="add-on"><i class="icon-lock"></i></span><input name="loginPass" type="password" id="pwd inputIcon" class="loginPass span2"></div>
+
+							</div>
+							<input name="operation" value="login" class="hidden">
+					    	<button class="btn btn-primary"> Login </button>
+					    </div>
+					</form>
+                    {{if .LoginMessage}}
+	                    <div class="alert">
+						  <button type="button" class="close" data-dismiss="alert">&times;</button>
+						  {{ .LoginMessage }}
+						</div>
+					{{end}}
+				</div>
+				<div class="span5"></div>
+			</div>
+		</div>
+	</body>
+</html>

@@ -28,6 +28,7 @@ createUsers = (users)->
 
     ComputeProvider      = rekuire 'computeproviders/computeprovider.coffee'
     JUser                = rekuire 'user/index.coffee'
+    JPaymentSubscription = rekuire 'payment/subscription'
 
     createUser = (u, next)->
 

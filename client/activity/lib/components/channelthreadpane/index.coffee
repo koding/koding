@@ -14,9 +14,6 @@ showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
 StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
-Link                         = require 'app/components/common/link'
-ButtonWithMenu               = require 'app/components/buttonwithmenu'
-KeyboardKeys                 = require 'app/util/keyboardKeys'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -36,8 +33,6 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
-      originalPurpose       : ''
-      editingPurpose        : no
       showDropTarget        : no
       isComingSoonModalOpen : no
       channelThread         : immutable.Map()
@@ -78,102 +73,7 @@ module.exports = class ChannelThreadPane extends React.Component
     @setState isComingSoonModalOpen: no
 
 
-  getMenuItems: ->
-    return [
-      {title: 'Invite people'         , key: 'invitepeople'         , onClick: @bound 'invitePeople'}
-      {title: 'Leave channel'         , key: 'leavechannel'         , onClick: @bound 'leaveChannel'}
-      {title: 'Update purpose'        , key: 'updatepurpose'        , onClick: @bound 'updatePurpose'}
-      {title: 'Notification settings' , key: 'notificationsettings' , onClick: @bound 'showNotificationSettingsModal'}
-    ]
-
-  invitePeople: ->
-
-
-  leaveChannel: ->
-
-    { unfollowChannel } = ActivityFlux.actions.channel
-    channelId   = @state.channelThread.get 'channelId'
-
-    unfollowChannel channelId
-
-
-  updatePurpose: ->
-
-    @setState editingPurpose: yes
-    input = React.findDOMNode @refs.purposeInput
-
-    kd.utils.defer ->
-      kd.utils.moveCaretToEnd input
-
-
-  showNotificationSettingsModal: ->
-
-    channelName = @state.channelThread.getIn ['channel', 'name']
-    route = "/Channels/#{channelName}/NotificationSettings"
-
-    kd.singletons.router.handleRoute route
-
-
-  onKeyDown: (event) ->
-
-    { ENTER, ESC } = KeyboardKeys
-    thread         = @state.channelThread
-    purpose        = thread.getIn(['channel', 'purpose'])
-
-    if event.which is ESC
-
-      _originalPurpose = thread.getIn ['channel', '_originalPurpose']
-      purpose = _originalPurpose or thread.getIn ['channel', 'purpose']
-      thread  = thread.setIn ['channel', 'purpose'], purpose
-      @setState channelThread: thread
-      return @setState editingPurpose: no
-
-    if event.which is ENTER
-
-      id        = thread.get 'channelId'
-      purpose   = thread.getIn(['channel', 'purpose']).trim()
-
-      { updateChannel } = ActivityFlux.actions.channel
-
-      updateChannel({ id, purpose }).then (response) =>
-        @setState editingPurpose: no
-
-
-  getPurposeAreaClassNames: -> classnames
-    'ChannelThreadPane-purposeWrapper': yes
-    'editing': @state.editingPurpose
-
-
-  handleChange: (newValue) ->
-
-    thread = @state.channelThread
-
-    unless thread.getIn ['channel', '_originalPurpose']
-      _originalPurpose = thread.getIn ['channel', 'purpose']
-      thread = thread.setIn ['channel', '_originalPurpose'], _originalPurpose
-
-    channelThread = thread.setIn ['channel', 'purpose'], newValue
-    @setState channelThread: channelThread
-
-
-  renderPurposeArea: ->
-
-    return  unless @state.channelThread
-
-    thread = @state.channelThread
-
-    valueLink =
-      value: thread.getIn ['channel', 'purpose']
-      requestChange: @bound 'handleChange'
-
-    <div className={@getPurposeAreaClassNames()}>
-      <span className='ChannelThreadPane-purpose'>{valueLink}</span>
-      <input ref='purposeInput' type='text' valueLink={valueLink} onKeyDown={@bound 'onKeyDown'} />
-    </div>
-
-
   renderHeader: ->
-
     return  unless @state.channelThread
     thread = @state.channelThread
     channelName = thread.getIn ['channel', 'name']
@@ -186,35 +86,28 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   render: ->
-
-    return null  unless @state.channelThread
-    thread = @state.channelThread
-    channelName = thread.getIn ['channel', 'name']
-
-    <div className='ChannelThreadPane is-withChat'>
+    <div className="ChannelThreadPane is-withChat">
       <CollaborationComingSoonModal
         onClose={@bound 'onClose'}
         isOpen={@state.isComingSoonModalOpen}/>
-      <section className='ChannelThreadPane-content'
+      <section className="ChannelThreadPane-content"
         onDragEnter={@bound 'onDragEnter'}>
         <ChannelDropContainer
           onDrop={@bound 'onDrop'}
           onDragOver={@bound 'onDragOver'}
           onDragLeave={@bound 'onDragLeave'}
           showDropTarget={@state.showDropTarget}/>
-        <header className='ChannelThreadPane-header'>
+        <header className="ChannelThreadPane-header">
           {@renderHeader()}
-          <ButtonWithMenu listClass='ChannelThreadPane-menuItems' items={@getMenuItems()} />
-          {@renderPurposeArea()}
           <StartVideoCallLink onStart={@bound 'onStart'}/>
         </header>
-        <div className='ChannelThreadPane-body'>
-          <section className='ChannelThreadPane-chatWrapper'>
+        <div className="ChannelThreadPane-body">
+          <section className="ChannelThreadPane-chatWrapper">
             <PublicChatPane ref='pane' thread={@state.channelThread}/>
           </section>
         </div>
       </section>
-      <aside className='ChannelThreadPane-sidebar'>
+      <aside className="ChannelThreadPane-sidebar">
         <ThreadSidebar
           channelThread={@state.channelThread}
           channelParticipants={@state.channelParticipants}/>

@@ -5,7 +5,6 @@ formatBlockquotes = require './formatBlockquotes'
 applyMarkdown = require './applyMarkdown'
 expandUsernames = require './expandReactivityUsernames'
 markdownUrls = require './markdownUrls'
-Encoder = require 'htmlencode'
 
 module.exports = (body = '', markdownOptions = {}) ->
 
@@ -18,7 +17,6 @@ module.exports = (body = '', markdownOptions = {}) ->
   ]
 
   body = fn body for fn in fns
-  body = Encoder.htmlDecode body
   body = applyMarkdown body, markdownOptions
   body = expandUsernames body, 'code, a'
 

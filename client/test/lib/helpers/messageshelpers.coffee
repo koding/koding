@@ -12,10 +12,10 @@ module.exports =
     textareaSelector    = '.reply-input-widget.private [testpath=ActivityInputView]'
     itemSelector        = '.private-message:not(.hidden) span.profile'
     sidebarTextSelector = '.activity-sidebar .messages .sidebar-message-text'
-    messageSelector     = "#{sidebarTextSelector} [href='/#{users[0].username}']"
+    messageSelector     = "#{sidebarTextSelector} [href='/#{users[0].userName}']"
     message           or= 'Hello World!'
     sendMessage         = (browser, users, message, purpose) ->
-      console.log " ✔ Creating a new message with user #{users[0].username}..."
+      console.log " ✔ Creating a new message with user #{users[0].userName}..."
       browser
         .waitForElementVisible   '[testpath=main-sidebar]', 20000
         .waitForElementVisible   elementSelector, 20000
@@ -27,7 +27,7 @@ module.exports =
         for user in users
           browser
             .click                   formSelector + ' input[type=text]'
-            .setValue                formSelector + ' input[type=text]', user.username
+            .setValue                formSelector + ' input[type=text]', user.userName
             .click                   elementSelector + ' a.add-icon'
             .click                   formSelector + ' input[type=text]'
             .waitForElementVisible   itemSelector, 20000
@@ -49,10 +49,10 @@ module.exports =
           if purpose
             browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
           else
-            browser.assert.containsText '.activity-sidebar .messages', users[0].username # Assertion
-
             for user in users
-              browser.waitForElementPresent "#{sidebarTextSelector} [href='/#{user.username}']", 20000
+              firstName = user.fullName.split(' ')[0]
+              browser.assert.containsText   '.activity-sidebar .messages', firstName # Assertion
+              browser.waitForElementVisible "#{sidebarTextSelector} [href='/#{user.userName}']", 20000
 
 
     browser.element 'css selector', messageSelector, (result) =>
@@ -87,4 +87,4 @@ module.exports =
       .click                  '.kdmodal-inner .kdmodal-buttons button.red'
       .waitForElementVisible  sidebarMessageSelector, 20000, ->
         text = browser.getText sidebarMessageSelector
-        assert.notEqual text, user.username # Assertion
+        assert.notEqual text, user.fullName # Assertion

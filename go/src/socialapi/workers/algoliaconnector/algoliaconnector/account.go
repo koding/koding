@@ -59,10 +59,6 @@ func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant) er
 	}
 
 	channelId := strconv.FormatInt(p.ChannelId, 10)
-	if channelId == "" {
-		f.log.Error("Channel Participant has malformed data %+v", p)
-		return nil
-	}
 
 	tagMap := addUniqueTagMap(channelId) // as default add the new channel to tags
 

@@ -1,0 +1,25 @@
+From d0a21f9c7637c161bf5735204b9262c2a1f0dc63 Mon Sep 17 00:00:00 2001
+From: Richard Musiol <richard@salt-master.in.koding.com>
+Date: Wed, 31 Jul 2013 03:46:22 -0700
+Subject: [PATCH] Enabled kernel memory tracking for cgroups.
+
+---
+ debian.master/config/config.common.ubuntu |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/debian.master/config/config.common.ubuntu b/debian.master/config/config.common.ubuntu
+index 138f41b..370d8a5 100644
+--- a/debian.master/config/config.common.ubuntu
++++ b/debian.master/config/config.common.ubuntu
+@@ -3373,7 +3373,7 @@ CONFIG_MEGARAID_NEWGEN=y
+ CONFIG_MEGARAID_SAS=m
+ # CONFIG_MELAN is not set
+ CONFIG_MEMCG=y
+-# CONFIG_MEMCG_KMEM is not set
++CONFIG_MEMCG_KMEM=y
+ CONFIG_MEMCG_SWAP=y
+ # CONFIG_MEMCG_SWAP_ENABLED is not set
+ CONFIG_MEMORY=y
+-- 
+1.7.9.5
+

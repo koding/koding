@@ -36,8 +36,6 @@ module.exports = class ChannelsStore extends KodingFluxStore
 
     @on actions.REMOVE_PARTICIPANT_FROM_CHANNEL, @handleRemoveParticipantFromChannel
 
-    @on actions.UPDATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
-
     @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
     @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 

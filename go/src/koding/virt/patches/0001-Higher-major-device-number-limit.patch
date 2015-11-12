@@ -1,0 +1,25 @@
+From b813e574d4c06c0be3074c3d9aadb9c937da1c6d Mon Sep 17 00:00:00 2001
+From: Koding teammate richard <richard@ip-10-0-0-143.(none)>
+Date: Thu, 7 Feb 2013 15:15:37 +0000
+Subject: [PATCH] Higher major device number limit.
+
+---
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index f78304c..8c6b549 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2155,7 +2155,7 @@ static inline void unregister_chrdev(unsigned int major, const char *name)
+ #define BDEVT_SIZE	10	/* Largest string for MAJ:MIN for blkdev */
+ 
+ #ifdef CONFIG_BLOCK
+-#define BLKDEV_MAJOR_HASH_SIZE	255
++#define BLKDEV_MAJOR_HASH_SIZE	4095
+ extern const char *__bdevname(dev_t, char *buffer);
+ extern const char *bdevname(struct block_device *bdev, char *buffer);
+ extern struct block_device *lookup_bdev(const char *);
+-- 
+1.7.10.4
+

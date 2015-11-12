@@ -23,5 +23,4 @@ require './channelparticipants/channelparticipantsdropdownvisibilitystore'
 # module tests
 require 'activity/flux/chatinput/tests'
 require 'activity/flux/createchannel/tests'
-require 'activity/flux/channelnotificationsettings/tests'
 

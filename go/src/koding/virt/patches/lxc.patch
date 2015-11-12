@@ -1,0 +1,87 @@
+diff -u lxc-0.9.0.orig/src/lxc/lxc_attach.c lxc-0.9.0/src/lxc/lxc_attach.c
+--- lxc-0.9.0.orig/src/lxc/lxc_attach.c	2013-04-12 16:38:42.000000000 +0200
++++ lxc-0.9.0/src/lxc/lxc_attach.c	2013-04-12 17:01:21.000000000 +0200
+@@ -30,6 +30,10 @@
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <sys/wait.h>
++#include <utmp.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <grp.h>
+ 
+ #include "attach.h"
+ #include "commands.h"
+@@ -58,6 +62,7 @@
+ 	/* TODO: decide upon short option names */
+ 	{"clear-env", no_argument, 0, 500},
+ 	{"keep-env", no_argument, 0, 501},
++	{"tty", required_argument, 0, 't'},
+ 	LXC_COMMON_OPTIONS
+ };
+ 
+@@ -66,6 +71,7 @@
+ static int namespace_flags = -1;
+ static int remount_sys_proc = 0;
+ static lxc_attach_env_policy_t env_policy = LXC_ATTACH_KEEP_ENV;
++static char* tty = 0;
+ 
+ static int my_parser(struct lxc_arguments* args, int c, char* arg)
+ {
+@@ -95,6 +101,7 @@
+         case 501: /* keep-env */
+                 env_policy = LXC_ATTACH_KEEP_ENV;
+                 break;
++	case 't': tty = arg; break;
+ 	}
+ 
+ 	return 0;
+@@ -151,6 +158,7 @@
+ 	char *curdir;
+ 	int cgroup_ipc_sockets[2];
+ 	char *user_shell;
++	int tty_fd;
+ 
+ 	ret = lxc_caps_init();
+ 	if (ret)
+@@ -442,6 +450,18 @@
+ 
+ 		lxc_sync_fini(handler);
+ 
++		if (tty != 0) {
++			if((tty_fd = open(tty, O_RDWR)) == 0) {
++				ERROR("opening tty failed: %s", strerror(errno));
++				return -1;
++			}
++
++			if(login_tty(tty_fd) == -1) {
++				ERROR("login_tty failed: %s", strerror(errno));
++				return -1;
++			}
++		}
++
+ 		if (namespace_flags & CLONE_NEWUSER) {
+ 			uid_t init_uid = 0;
+ 			gid_t init_gid = 0;
+diff -u lxc-0.9.0.orig/src/lxc/start.c lxc-0.9.0/src/lxc/start.c
+--- lxc-0.9.0.orig/src/lxc/start.c	2013-04-12 16:38:43.000000000 +0200
++++ lxc-0.9.0/src/lxc/start.c	2013-07-31 15:08:19.000000000 +0200
+@@ -841,9 +841,6 @@
+ 	if ((handler->cgroup = lxc_cgroup_path_create(NULL, name)) == NULL)
+ 		goto out_delete_net;
+ 	
+-	if (lxc_cgroup_enter(handler->cgroup, handler->pid) < 0)
+-		goto out_delete_net;
+-
+ 	if (failed_before_rename)
+ 		goto out_delete_net;
+ 
+@@ -876,6 +873,8 @@
+ 		goto out_delete_net;
+ 	}
+ 
++	if (lxc_cgroup_enter(handler->cgroup, handler->pid) < 0)
++		goto out_delete_net;
+ 
+ 	/* Tell the child to complete its initialization and wait for
+ 	 * it to exec or return an error.  (the child will never
