@@ -183,7 +183,7 @@ module.exports = class IDEEditorPane extends IDEPane
     @getEditor().selection.moveCursorTo positions.row, positions.column
 
 
-  getFile: -> return @aceView.getData()
+  getFile: -> @aceView.getData()
 
 
   setFocus: (state) ->
