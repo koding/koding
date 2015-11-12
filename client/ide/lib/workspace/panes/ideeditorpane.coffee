@@ -200,7 +200,9 @@ module.exports = class IDEEditorPane extends IDEPane
 
   checkForContentChange: ->
 
-    return if @contentChangedWarning or @rtm?.isReady
+    return if @contentChangedWarning or @rtm?.isReady or @isCheckingContentChange
+
+    @isCheckingContentChange = yes
 
     @getFileModifiedDate (time) =>
       if time isnt @lastModifiedDate
@@ -217,6 +219,8 @@ module.exports = class IDEEditorPane extends IDEPane
           title    : 'Yes'
           cssClass : 'solid compact green'
           callback : => @handleContentChangeWarningAction yes
+
+      @isCheckingContentChange = no
 
 
   handleContentChangeWarningAction: (isAccepted) ->
