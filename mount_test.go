@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/koding/klient/cmd/klientctl/klientctlerrors"
+	"github.com/koding/klientctl/klientctlerrors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
