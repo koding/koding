@@ -16,7 +16,7 @@ AllPrivateChannelsRoute = require './allprivatechannels'
 SingleMessageRoute = require './singlemessage'
 
 
-module.exports = class SinglePrivateMessageRoute
+module.exports = class SinglePrivateChannelRoute
 
   constructor: ->
 
