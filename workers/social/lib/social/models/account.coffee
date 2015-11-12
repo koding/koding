@@ -913,26 +913,23 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchOrCreateAppStorage: (options, callback) ->
     { appId, version } = options
-    @fetchAppStorage { 'data.appId':appId, 'data.version':version }, (err, storage) =>
+
+    query = { accountId : @getId() }
+    query["storage.#{appId}.version"] = version
+
+    JAppStorage.one query, (err, storage) =>
       if err then callback err
       else unless storage?
-        # log.info 'Creating new storage:', appId, version, @profile.nickname
-        newStorage = new JAppStorage { appId, version }
-        newStorage.save (err) =>
+        version               ?= '1.0'
+        options                = { accountId : @getId(), storage : {} }
+        options.storage[appId] = { version, data : {} }
+        newStorage             = new JAppStorage options
+        newStorage.save (err) ->
           if err then callback err
-          else
-            # manually add the relationship so that we can
-            # query the edge instead of the target C.T.
-            rel = new Relationship
-              targetId    : newStorage.getId()
-              targetName  : 'JAppStorage'
-              sourceId    : @getId()
-              sourceName  : 'JAccount'
-              as          : 'appStorage'
-              data        : { appId, version }
-            rel.save (err) -> callback err, newStorage
+          callback null, newStorage
       else
         callback err, storage
+
 
   fetchAppStorage$: secure (client, options, callback) ->
 
