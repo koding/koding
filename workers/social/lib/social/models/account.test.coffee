@@ -7,10 +7,11 @@
   generateRandomString
   checkBongoConnectivity } = require '../../../testhelper'
 
-JUser    = require './user'
-JGroup   = require './group'
-JAccount = require './account'
-JSession = require './session'
+JUser            = require './user'
+JGroup           = require './group'
+JAccount         = require './account'
+JAppStorage      = require './appstorage'
+{ Relationship } = require 'jraphical'
 
 
 # making sure we have db connection before tests
@@ -256,9 +257,9 @@ runTests = -> describe 'workers.social.user.account', ->
           account.fetchOrCreateAppStorage options, (err, appStorage) ->
             expect(err).to.not.exist
             expect(appStorage).to.be.an 'object'
+            expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
             expect(appStorage.accountId).to.be.deep.equal account._id
             expect(appStorage.storage[appId]).to.be.an 'object'
-            expect(appStorage.storage[appId]['version']).to.be.a 'string'
             expect(appStorage.storage[appId]['data']).to.be.an 'object'
             expect(appStorage.storage[appId]['data']).to.be.empty
             done()
@@ -282,9 +283,9 @@ runTests = -> describe 'workers.social.user.account', ->
                 expect(err).to.not.exist
                 appStorage = storage
                 expect(appStorage).to.be.an 'object'
+                expect(appStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(appStorage.accountId).to.be.deep.equal account._id
                 expect(appStorage.storage[appId]).to.be.an 'object'
-                expect(appStorage.storage[appId]['version']).to.be.a 'string'
                 expect(appStorage.storage[appId]['data']).to.be.an 'object'
                 expect(appStorage.storage[appId]['data']).to.be.empty
                 queue.next()
@@ -293,6 +294,7 @@ runTests = -> describe 'workers.social.user.account', ->
               # expecting previously created app storage to be fetched
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
+                expect(storage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
                 expect(storage._id.toString()).to.be.equal appStorage._id.toString()
                 expect(storage.accountId).to.be.deep.equal appStorage.accountId
                 expect(storage.storage[appId]).to.be.deep.equal appStorage.storage[appId]
@@ -303,6 +305,106 @@ runTests = -> describe 'workers.social.user.account', ->
           ]
 
           daisy queue
+
+
+  describe 'migrateOldAppStorageIfExists()', ->
+
+    createOldAppStorageDocument = (data, callback) ->
+      { account, appId, version, bucket } = data
+      bucket ?= {}
+
+      storage = new JAppStorage { appId, version, bucket }
+      storage._shouldPrune = no
+      storage.save (err) ->
+        return callback err  if err
+
+        relationshipOptions =
+          targetId    : storage.getId()
+          targetName  : 'JAppStorage'
+          sourceId    : account.getId()
+          sourceName  : 'JAccount'
+          as          : 'appStorage'
+          data        : { appId, version }
+
+        rel = new Relationship relationshipOptions
+        rel.save (err) ->
+          callback err, { storage, relationshipOptions }
+
+
+    it 'should return null if storage doesnt exist', (done) ->
+
+      withConvertedUser ({ account }) ->
+
+        account.migrateOldAppStorageIfExists {}, (err, storage) ->
+          expect(err).to.not.exist
+          expect(storage).to.not.exist
+          done()
+
+
+    it 'should migrate old storage if there is one', (done) ->
+
+      withConvertedUser ({ account }) ->
+
+        version             = generateRandomString()
+        appId               = generateRandomString()
+        bucket              = {}
+        oldStorage          = {}
+        relationshipOptions = {}
+
+        queue = [
+
+          ->
+            # creating an old app storage document
+            bucket =
+              someString  : generateRandomString()
+              someData    :
+                moreData  : { data : {} }
+              anotherData :
+                someArray : [1,2,3]
+
+            options = { account, appId, version, bucket }
+            createOldAppStorageDocument options, (err, data) ->
+              expect(err).to.not.exist
+              { storage : oldStorage, relationshipOptions } = data
+              expect(oldStorage.bongo_.constructorName).to.be.equal 'JAppStorage'
+              queue.next()
+
+          ->
+            # expecting old app storage document to be migrated
+            options = { appId, version }
+            account.migrateOldAppStorageIfExists options, (err, newStorage) ->
+              expect(err).to.not.exist
+              console.log newStorage
+              expect(newStorage).to.be.an 'object'
+              expect(newStorage.bongo_.constructorName).to.be.equal 'JCombinedAppStorage'
+              expect(newStorage.accountId).to.be.deep.equal account._id
+              expect(newStorage.storage[appId].data).to.be.deep.equal bucket
+              expect(newStorage.storage.bucket).to.not.exist
+              expect(newStorage.storage.version).to.not.exist
+              queue.next()
+
+          ->
+            # expecting old storage document to be deleted
+            options = { appId, version }
+            JAppStorage.one options, (err, oldStorage) ->
+              expect(err).to.not.exist
+              expect(oldStorage).to.not.exist
+              queue.next()
+
+          ->
+            # expecting relationship to be deleted
+            expectRelation.toNotExist relationshipOptions, (err, data) ->
+              expect(err).to.not.exist
+              expect(data).to.not.exist
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
 
 beforeTests()
 
