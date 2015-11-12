@@ -41,18 +41,18 @@ module.exports = class SingleChannelRoute
     messageActions.changeSelectedMessage null
 
     { channelName } = nextState.params
-    thread = kd.singletons.reactor.evaluate selectedChannelThread
+    selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
 
     # if there is no channel name set on the route (/NewChannel, /Channels)
     unless channelName
       # if there is not a selected chat
-      unless thread
+      unless selectedThread
         # set channel name to group channel name.
         channelName = getGroup().slug
 
     if channelName
       transitionToChannel channelName, done
-    else if not thread
+    else if not selectedThread
       threadActions.changeSelectedThread null
       done()
     else

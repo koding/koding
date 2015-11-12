@@ -39,19 +39,19 @@ module.exports = class SinglePrivateMessageRoute
 
     { privateChannelId, postId } = nextState.params
 
-    thread = kd.singletons.reactor.evaluate selectedChannelThread
+    selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
 
     # if there is no channel id set on the route (/Messages, /NewMessage)
     unless privateChannelId
       # if there is not a selected chat
-      unless thread
+      unless selectedThread
         botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
         # set channel id to bot channel id.
         privateChannelId = botChannel.id
 
     if privateChannelId
       transitionToChannel privateChannelId, done
-    else if not thread
+    else if not selectedThread
       threadActions.changeSelectedThread null
       done()
     else
