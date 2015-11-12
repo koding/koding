@@ -200,7 +200,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
   checkForContentChange: ->
 
-    return if @contentChangedWarning
+    return if @contentChangedWarning or @rtm?.isReady
 
     @getFileModifiedDate (time) =>
       if time isnt @lastModifiedDate
