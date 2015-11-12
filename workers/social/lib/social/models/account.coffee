@@ -950,7 +950,7 @@ module.exports = class JAccount extends jraphical.Module
     addStorage = (storage, options, callback) ->
       { appId, data } = options
       query = { $set : {} }
-      query.$set["storage.#{appId}.data"] = { data : data ? {} }
+      query.$set["storage.#{appId}.data"] = data ? {}
       storage.update query, (err) ->
         return callback err, storage
 
