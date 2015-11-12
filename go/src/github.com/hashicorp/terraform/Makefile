@@ -46,7 +46,14 @@ testrace: generate
 # updatedeps installs all the dependencies that Terraform needs to run
 # and build.
 updatedeps:
-	go get -t -f -u -v github.com/mitchellh/gox golang.org/x/tools/cmd/stringer ./...
+	go get -u github.com/mitchellh/gox
+	go get -u golang.org/x/tools/cmd/stringer
+	go list ./... \
+		| xargs go list -f '{{join .Deps "\n"}}' \
+		| grep -v github.com/hashicorp/terraform \
+		| grep -v '/internal/' \
+		| sort -u \
+		| xargs go get -f -u -v
 
 cover:
 	@go tool cover 2>/dev/null; if [ $$? -eq 3 ]; then \

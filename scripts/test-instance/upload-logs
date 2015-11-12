@@ -13,7 +13,7 @@ if [ -z "$PREFIX" ]; then
   exit 1
 fi
 
-S3CMD_OPTIONS="--human-readable-sizes --follow-symlinks"
+S3CMD_OPTIONS="--human-readable-sizes --follow-symlinks --quiet"
 
 s3cmd put $S3CMD_OPTIONS --recursive $LOG_PATH/ $DESTINATION/
 s3cmd put $S3CMD_OPTIONS /var/log/cloud-init-output.log $DESTINATION/

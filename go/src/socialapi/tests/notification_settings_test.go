@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/common/tests"
 	"testing"
 
+	"github.com/cihangir/nisql"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -44,15 +45,16 @@ func TestGetNotificationSetting(t *testing.T) {
 					n := &models.NotificationSetting{
 						ChannelId:      channel.Id,
 						AccountId:      account.Id,
-						DesktopSetting: models.NotificationSetting_STATUS_ALL,
-						MobileSetting:  models.NotificationSetting_STATUS_ALL,
-						IsMuted:        false,
-						IsSuppressed:   true,
+						DesktopSetting: nisql.NullString{},
+						MobileSetting:  nisql.String(models.NotificationSetting_STATUS_PERSONAL),
+						IsMuted:        nisql.NullBool{},
+						IsSuppressed:   nisql.Bool(true),
 					}
 					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
+
 					So(err, ShouldBeNil)
 					So(ns.AccountId, ShouldEqual, account.Id)
-					So(ns.IsSuppressed, ShouldEqual, true)
+					So(*ns.IsSuppressed.Get(), ShouldEqual, true)
 
 					Convey("We should be able to get the created notification settings", func() {
 						newNs, err := rest.GetNotificationSetting(ns.ChannelId, ses.ClientId)
@@ -91,21 +93,23 @@ func TestCreateNotificationSetting(t *testing.T) {
 					n := &models.NotificationSetting{
 						ChannelId:      channel.Id,
 						AccountId:      account.Id,
-						DesktopSetting: models.NotificationSetting_STATUS_ALL,
-						MobileSetting:  models.NotificationSetting_STATUS_ALL,
-						IsMuted:        false,
-						IsSuppressed:   true,
+						DesktopSetting: nisql.NullString{},
+						MobileSetting:  nisql.String(models.NotificationSetting_STATUS_PERSONAL),
+						IsMuted:        nisql.NullBool{},
+						IsSuppressed:   nisql.Bool(true),
 					}
 					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(ns.AccountId, ShouldEqual, account.Id)
-					So(ns.IsSuppressed, ShouldEqual, true)
+					So(*ns.IsSuppressed.Get(), ShouldEqual, true)
+					So(ns.IsMuted.Get(), ShouldEqual, nil)
+					So(ns.DesktopSetting.Get(), ShouldEqual, nil)
 
 					Convey("We should be able to update the created notification settings", func() {
-						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
+						ns.DesktopSetting = nisql.String(models.NotificationSetting_STATUS_NEVER)
 						newNs, err := rest.UpdateNotificationSetting(ns, ses.ClientId)
 						So(err, ShouldBeNil)
-						So(newNs.DesktopSetting, ShouldEqual, ns.DesktopSetting)
+						So(*newNs.DesktopSetting.Get(), ShouldEqual, *ns.DesktopSetting.Get())
 					})
 				})
 			})
@@ -139,16 +143,16 @@ func TestDeleteNotificationSetting(t *testing.T) {
 					n := &models.NotificationSetting{
 						ChannelId:      channel.Id,
 						AccountId:      account.Id,
-						DesktopSetting: models.NotificationSetting_STATUS_ALL,
-						MobileSetting:  models.NotificationSetting_STATUS_ALL,
-						IsMuted:        false,
-						IsSuppressed:   true,
+						DesktopSetting: nisql.String(models.NotificationSetting_STATUS_ALL),
+						MobileSetting:  nisql.NullString{},
+						IsMuted:        nisql.Bool(false),
+						IsSuppressed:   nisql.NullBool{},
 					}
 					ns, err := rest.CreateNotificationSetting(n, ses.ClientId)
 					So(err, ShouldBeNil)
-					So(ns.IsMuted, ShouldEqual, false)
+					So(*ns.IsMuted.Get(), ShouldEqual, false)
 					Convey("We should be not able to delete the created notification settings", func() {
-						ns.DesktopSetting = models.NotificationSetting_STATUS_PERSONAL
+						ns.DesktopSetting = nisql.String(models.NotificationSetting_STATUS_PERSONAL)
 						err = rest.DeleteNotificationSetting(ns.Id, ses.ClientId)
 						So(err, ShouldBeNil)
 					})
