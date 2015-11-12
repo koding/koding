@@ -7,6 +7,8 @@ module.exports = class JCombinedAppStorage extends JStorage
   @share()
 
   @set
+    indexes         :
+      accountId     : 'unique'
     sharedEvents    :
       static        : []
       instance      : []
