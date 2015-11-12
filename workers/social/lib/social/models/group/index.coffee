@@ -308,9 +308,6 @@ module.exports = class JGroup extends Module
       JCredential = require '../computeproviders/credential'
 
       return {
-        bundle        :
-          targetType  : 'JGroupBundle'
-          as          : 'owner'
         permissionSet :
           targetType  : JPermissionSet
           as          : 'permset'

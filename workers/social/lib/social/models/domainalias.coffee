@@ -49,10 +49,6 @@ module.exports = class JDomainAlias extends Module
       createdAt       :
         type          : Date
         default       : -> new Date
-      modifiedAt      :
-        type          : Date
-        default       : -> new Date
-
 
   @one$ = permit 'list domains',
     success : (client, selector, callback) ->
