@@ -14,6 +14,9 @@ module.exports =
     sidebarTextSelector = '.activity-sidebar .messages .sidebar-message-text'
     messageSelector     = "#{sidebarTextSelector} [href='/#{users[0].userName}']"
     message           or= 'Hello World!'
+    messageWithCode     = "console.log('123456789')"
+    messageWithFullCode = "```console.log('123456789')```"
+    
     sendMessage         = (browser, users, message, purpose) ->
       console.log " ✔ Creating a new message with user #{users[0].userName}..."
       browser
@@ -44,15 +47,23 @@ module.exports =
           .setValue                textareaSelector, message + '\n'
           .waitForElementVisible   '.message-pane.privatemessage', 20000
           .waitForElementVisible   '[testpath=activity-list]', 20000
-          .assert.containsText     '.message-pane.privatemessage', message # Assertion
-          .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
-          if purpose
-            browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
-          else
-            for user in users
-              firstName = user.fullName.split(' ')[0]
-              browser.assert.containsText   '.activity-sidebar .messages', firstName # Assertion
-              browser.waitForElementVisible "#{sidebarTextSelector} [href='/#{user.userName}']", 20000
+
+          switch message
+            when messageWithFullCode
+              browser
+                .waitForElementVisible   '.message-pane.privatemessage .message-pane-scroller .kdscrollview .kdlistview-privatemessage .consequent', 20000
+                .assert.containsText     '.message-pane.privatemessage .message-pane-scroller .kdscrollview .kdlistview-privatemessage .consequent', messageWithCode
+            else 
+              browser
+                .assert.containsText     '.message-pane.privatemessage', message # Assertion
+                .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
+                if purpose
+                  browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
+                else
+                  for user in users
+                    firstName = user.fullName.split(' ')[0]
+                    browser.assert.containsText   '.activity-sidebar .messages', firstName # Assertion
+                    browser.waitForElementVisible "#{sidebarTextSelector} [href='/#{user.userName}']", 20000
 
 
     browser.element 'css selector', messageSelector, (result) =>
