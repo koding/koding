@@ -919,12 +919,26 @@ module.exports = class JAccount extends jraphical.Module
     query                     = { accountId : @getId() }
     query["storage.#{appId}"] = { $exists : true }
 
-    JCombinedAppStorage.one query, (err, storage) =>
-      return callback err  if err
-      return callback err, storage  if storage
-      @createAppStorage options, (err, newStorage) ->
-        if err then callback err
-        callback null, newStorage
+    queue = [
+
+      =>
+        @migrateOldAppStorageIfExists { appId, version }, (err, storage) ->
+          return callback err            if err
+          return callback null, storage  if storage
+          queue.next()
+
+      =>
+        JCombinedAppStorage.one query, (err, storage) =>
+          return callback err  if err
+          return callback err, storage  if storage
+          @createAppStorage options, (err, newStorage) ->
+            if err then callback err
+            callback null, newStorage
+
+    ]
+
+    daisy queue
+
 
 
   createAppStorage: (options, callback) ->
