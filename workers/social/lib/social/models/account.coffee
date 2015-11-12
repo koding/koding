@@ -915,9 +915,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchOrCreateAppStorage: (options, callback) ->
 
-    { appId, version }        = options
-    query                     = { accountId : @getId() }
-    query["storage.#{appId}"] = { $exists : true }
+    { appId, version } = options
 
     queue = [
 
@@ -928,11 +926,15 @@ module.exports = class JAccount extends jraphical.Module
           queue.next()
 
       =>
+        query = { accountId : @getId() }
+        query["storage.#{appId}"] = { $exists : true }
+
         JCombinedAppStorage.one query, (err, storage) =>
-          return callback err  if err
-          return callback err, storage  if storage
+          return callback err            if err
+          return callback null, storage  if storage
+
           @createAppStorage options, (err, newStorage) ->
-            if err then callback err
+            return callback err  if err
             callback null, newStorage
 
     ]
@@ -940,17 +942,29 @@ module.exports = class JAccount extends jraphical.Module
     daisy queue
 
 
-
   createAppStorage: (options, callback) ->
 
     { appId, version, data } = options
-    query                    = { accountId : @getId(), storage : {} }
-    query.storage[appId]     = { data : data ? {} }
 
-    newStorage = new JCombinedAppStorage query
-    newStorage.save (err) ->
-      if err then callback err
-      callback null, newStorage
+    JCombinedAppStorage.one { accountId : @getId() }, (err, storage) =>
+      return callback err  if err
+
+      if storage
+        query = { $set : {} }
+        query.$set["storage.#{appId}.data"] = { data : data ? {} }
+        storage.update query, (err) ->
+          console.log 'updating'
+          console.log storage
+          return callback err, storage
+
+      else
+        query                = { accountId : @getId(), storage : {} }
+        query.storage[appId] = { data : data ? {} }
+        newStorage = new JCombinedAppStorage query
+        newStorage.save (err) ->
+          console.log 'creating'
+          return callback err  if err
+          callback null, newStorage
 
 
   migrateOldAppStorageIfExists: (options, callback) ->
