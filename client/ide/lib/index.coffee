@@ -386,26 +386,20 @@ class IDEAppController extends AppController
 
     { file, contents, emitChange, targetTabView, switchIfOpen } = options
 
-    kallback = (pane) =>
-      @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
-      callback pane
-
-
     if switchIfOpen
       wasOpen = no
 
       @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
         if FSHelper.plainPath(editorPane.file.path) is file.path
           editorPane.emit 'ShowMeAsActive'
-          kallback editorPane
+          callback editorPane
           wasOpen = yes
 
       return if wasOpen
 
-
     @setActiveTabView targetTabView  if targetTabView
 
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
 
 
   ###*
@@ -868,6 +862,9 @@ class IDEAppController extends AppController
 
     ideView.on 'UpdateWorkspaceSnapshot', =>
       @writeSnapshot()
+
+    ideView.on 'NewEditorPaneCreated', (pane) =>
+      @emit 'EditorPaneDidOpen', pane
 
 
   writeSnapshot: ->

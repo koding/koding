@@ -308,6 +308,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       @emitChange editorPane, change
 
+    @emit 'NewEditorPaneCreated', editorPane
+
     return editorPane
 
 
