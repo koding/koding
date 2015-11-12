@@ -130,7 +130,7 @@ module.exports = class IDELayoutManager extends KDObject
       pane = context : target.view.serialize()
       last = @findLastSplitView @subViews
 
-      if last                     ## If have last view
+      if last                     ## If there is last view
       then last.views.push pane   ## add `pane` to last view of tree
       else @subViews.push pane    ## else add `pane` to plain array.
 
