@@ -11,7 +11,6 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/config"
 	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -733,7 +732,7 @@ func newknfs(t transport.Transport) *KodingNetworkFS {
 		panic(err)
 	}
 
-	c := &config.Config{
+	c := &Config{
 		LocalPath:     mountDir,
 		IgnoreFolders: []string{"node_modules"},
 		Prefetch:      false,

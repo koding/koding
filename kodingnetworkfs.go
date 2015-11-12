@@ -12,9 +12,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/config"
 	"github.com/koding/fuseklient/transport"
-	"github.com/koding/fuseklient/unmount"
 )
 
 // KodingNetworkFS implements `fuse.FileSystem` to let users mount folders on
@@ -56,7 +54,7 @@ type KodingNetworkFS struct {
 }
 
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
-func NewKodingNetworkFS(t transport.Transport, c *config.Config) (*KodingNetworkFS, error) {
+func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, error) {
 	// create mount point if it doesn't exist
 	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
 	if err := os.MkdirAll(c.LocalPath, 0755); err != nil {
@@ -167,7 +165,7 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
-	return unmount.Unmount(k.MountPath)
+	return Unmount(k.MountPath)
 }
 
 // GetInodeAttributesOp set attributes for a specified Node.

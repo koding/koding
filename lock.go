@@ -1,4 +1,4 @@
-package lock
+package fuseklient
 
 import (
 	"fmt"
