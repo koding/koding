@@ -3,6 +3,7 @@ package kloud
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -133,7 +134,6 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// filter out duplicates
 	set := make(map[string]bool, 0)
 	for _, v := range vars {
@@ -155,6 +155,12 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	}
 
 	return userVars, nil
+}
+
+// shadowVariables shadows the given variables with the given holder. Variables
+// need to be in interpolation form, i.e: ${var.foo}
+func (t *terraformTemplate) shadowVariables(holder string, vars ...string) ([]string, error) {
+	return nil, errors.New("not implemented yet")
 }
 
 func (t *terraformTemplate) setAwsRegion(region string) error {
