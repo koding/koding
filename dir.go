@@ -10,7 +10,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 )
 
 type tempEntry struct {
@@ -299,7 +299,7 @@ func (d *Dir) updateEntriesFromRemote() error {
 	return nil
 }
 
-func newTempEntry(file fktransport.FsGetInfoRes) *tempEntry {
+func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
 	var fileType fuseutil.DirentType = fuseutil.DT_File
 	if file.IsDir {
 		fileType = fuseutil.DT_Directory
@@ -316,7 +316,7 @@ func newTempEntry(file fktransport.FsGetInfoRes) *tempEntry {
 
 func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
 	req := struct{ Path string }{d.RemotePath}
-	res := fktransport.FsReadDirectoryRes{}
+	res := transport.FsReadDirectoryRes{}
 	if err := d.Trip("fs.readDirectory", req, &res); err != nil {
 		return nil, err
 	}

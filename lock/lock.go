@@ -1,4 +1,4 @@
-package fklock
+package lock
 
 import (
 	"fmt"

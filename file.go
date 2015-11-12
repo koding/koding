@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 )
 
 type File struct {
@@ -150,7 +150,7 @@ func (f *File) updateContentFromRemote() error {
 
 func (f *File) getContentFromRemote() ([]byte, error) {
 	req := struct{ Path string }{f.RemotePath}
-	res := fktransport.FsReadFileRes{}
+	res := transport.FsReadFileRes{}
 	if err := f.Trip("fs.readFile", req, &res); err != nil {
 		return []byte{}, err
 	}

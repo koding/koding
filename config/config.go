@@ -1,4 +1,4 @@
-package fkconfig
+package config
 
 // Config contains user customizable options for mounting.
 type Config struct {

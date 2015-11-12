@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -36,7 +36,7 @@ func TestFakeTransport(t *testing.T) {
 		}
 
 		Convey("It should implement Transport interface", func() {
-			var _ fktransport.Transport = (*fakeTransport)(nil)
+			var _ transport.Transport = (*fakeTransport)(nil)
 		})
 
 		Convey("It should return unmarshal mock into response for Trip", func() {

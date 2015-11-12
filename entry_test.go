@@ -6,7 +6,7 @@ import (
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -107,7 +107,7 @@ func TestEntry(t *testing.T) {
 			entry := newEntry()
 			entry.Transport = &fakeTransport{
 				TripResponses: map[string]interface{}{
-					"fs.getInfo": fktransport.FsGetInfoRes{},
+					"fs.getInfo": transport.FsGetInfoRes{},
 				},
 			}
 
@@ -139,7 +139,7 @@ func newEntryWithFolderResp() *Entry {
 	entry := newEntry()
 	entry.Transport = &fakeTransport{
 		TripResponses: map[string]interface{}{
-			"fs.getInfo": fktransport.FsGetInfoRes{
+			"fs.getInfo": transport.FsGetInfoRes{
 				Exists:   true,
 				FullPath: "/remote/folder",
 				IsDir:    true,
