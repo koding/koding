@@ -25,7 +25,8 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					// https://github.com/boto/botocore/blob/9f322b1/botocore/data/autoscaling/2011-01-01/service-2.json#L1862-L1873
@@ -111,12 +112,9 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 			},
 
 			"termination_policies": &schema.Schema{
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"wait_for_capacity_timeout": &schema.Schema{
@@ -147,7 +145,16 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).autoscalingconn
 
 	var autoScalingGroupOpts autoscaling.CreateAutoScalingGroupInput
-	autoScalingGroupOpts.AutoScalingGroupName = aws.String(d.Get("name").(string))
+
+	var asgName string
+	if v, ok := d.GetOk("name"); ok {
+		asgName = v.(string)
+	} else {
+		asgName = resource.PrefixedUniqueId("tf-asg-")
+		d.Set("name", asgName)
+	}
+
+	autoScalingGroupOpts.AutoScalingGroupName = aws.String(asgName)
 	autoScalingGroupOpts.LaunchConfigurationName = aws.String(d.Get("launch_configuration").(string))
 	autoScalingGroupOpts.MinSize = aws.Int64(int64(d.Get("min_size").(int)))
 	autoScalingGroupOpts.MaxSize = aws.Int64(int64(d.Get("max_size").(int)))
@@ -187,9 +194,8 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 		autoScalingGroupOpts.VPCZoneIdentifier = expandVpcZoneIdentifiers(v.(*schema.Set).List())
 	}
 
-	if v, ok := d.GetOk("termination_policies"); ok && v.(*schema.Set).Len() > 0 {
-		autoScalingGroupOpts.TerminationPolicies = expandStringList(
-			v.(*schema.Set).List())
+	if v, ok := d.GetOk("termination_policies"); ok && len(v.([]interface{})) > 0 {
+		autoScalingGroupOpts.TerminationPolicies = expandStringList(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] AutoScaling Group create configuration: %#v", autoScalingGroupOpts)
@@ -277,6 +283,24 @@ func resourceAwsAutoscalingGroupUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("availability_zones") {
 		if v, ok := d.GetOk("availability_zones"); ok && v.(*schema.Set).Len() > 0 {
 			opts.AvailabilityZones = expandStringList(d.Get("availability_zones").(*schema.Set).List())
+		}
+	}
+
+	if d.HasChange("termination_policies") {
+		// If the termination policy is set to null, we need to explicitly set
+		// it back to "Default", or the API won't reset it for us.
+		// This means GetOk() will fail us on the zero check.
+		v := d.Get("termination_policies")
+		if len(v.([]interface{})) > 0 {
+			opts.TerminationPolicies = expandStringList(v.([]interface{}))
+		} else {
+			// Policies is a slice of string pointers, so build one.
+			// Maybe there's a better idiom for this?
+			log.Printf("[DEBUG] Explictly setting null termination policy to 'Default'")
+			pol := "Default"
+			s := make([]*string, 1, 1)
+			s[0] = &pol
+			opts.TerminationPolicies = s
 		}
 	}
 

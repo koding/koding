@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/koding/logging"
 )
@@ -36,9 +37,9 @@ type RecordManager struct {
 }
 
 // NewRecordManager creates a RecordManager
-func NewRecordManager(config *aws.Config, log logging.Logger, region string, hostedZoneConf HostedZone) *RecordManager {
+func NewRecordManager(session *session.Session, log logging.Logger, region string, hostedZoneConf HostedZone) *RecordManager {
 	return &RecordManager{
-		route53:        route53.New(config),
+		route53:        route53.New(session),
 		log:            log.New("recordmanager"),
 		region:         region,
 		hostedZoneConf: hostedZoneConf,
