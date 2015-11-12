@@ -251,37 +251,17 @@ runTests = -> describe 'workers.social.user.account', ->
           appId      = generateRandomString()
           version    = '1.0.0'
           options    = { appId, version }
-          appStorage = null
 
-          queue = [
-
-            ->
-              # creating a new app storage
-              account.fetchOrCreateAppStorage options, (err, storage) ->
-                expect(err).to.not.exist
-                appStorage = storage
-                expect(storage.appId).to.be.equal appId
-                expect(storage.version).to.be.equal version
-                queue.next()
-
-            ->
-              # expecting relationship to be created
-              options =
-                as         : 'appStorage'
-                data       : { appId, version }
-                targetId   : appStorage.getId()
-                sourceId   : account.getId()
-                targetName : 'JAppStorage'
-                sourceName : 'JAccount'
-
-              expectRelation.toExist options, ->
-                queue.next()
-
-            -> done()
-
-          ]
-
-          daisy queue
+          # creating a new app storage
+          account.fetchOrCreateAppStorage options, (err, appStorage) ->
+            expect(err).to.not.exist
+            expect(appStorage).to.be.an 'object'
+            expect(appStorage.accountId).to.be.deep.equal account._id
+            expect(appStorage.storage[appId]).to.be.an 'object'
+            expect(appStorage.storage[appId]['version']).to.be.a 'string'
+            expect(appStorage.storage[appId]['data']).to.be.an 'object'
+            expect(appStorage.storage[appId]['data']).to.be.empty
+            done()
 
 
     describe 'when storage exists', ->
@@ -301,8 +281,12 @@ runTests = -> describe 'workers.social.user.account', ->
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
                 appStorage = storage
-                expect(storage.appId).to.be.equal appId
-                expect(storage.version).to.be.equal version
+                expect(appStorage).to.be.an 'object'
+                expect(appStorage.accountId).to.be.deep.equal account._id
+                expect(appStorage.storage[appId]).to.be.an 'object'
+                expect(appStorage.storage[appId]['version']).to.be.a 'string'
+                expect(appStorage.storage[appId]['data']).to.be.an 'object'
+                expect(appStorage.storage[appId]['data']).to.be.empty
                 queue.next()
 
             ->
@@ -310,8 +294,8 @@ runTests = -> describe 'workers.social.user.account', ->
               account.fetchOrCreateAppStorage options, (err, storage) ->
                 expect(err).to.not.exist
                 expect(storage._id.toString()).to.be.equal appStorage._id.toString()
-                expect(storage.appId).to.be.equal appStorage.appId
-                expect(storage.version).to.be.equal appStorage.version
+                expect(storage.accountId).to.be.deep.equal appStorage.accountId
+                expect(storage.storage[appId]).to.be.deep.equal appStorage.storage[appId]
                 queue.next()
 
             -> done()
