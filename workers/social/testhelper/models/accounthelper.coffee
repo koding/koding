@@ -1,9 +1,16 @@
-JAppStorage      = require '../../lib/social/models/appstorage'
-{ Relationship } = require 'jraphical'
+JAppStorage              = require '../../lib/social/models/appstorage'
+{ Relationship }         = require 'jraphical'
+{ generateRandomString } = require '../index'
 
 createOldAppStorageDocument = (data, callback) ->
-  { account, appId, version, bucket } = data
-  bucket ?= {}
+  { account, appId, version } = data
+
+  bucket =
+    someString  : generateRandomString()
+    someData    :
+      moreData  : { data : {} }
+    anotherData :
+      someArray : [1,2,3]
 
   storage = new JAppStorage { appId, version, bucket }
   storage._shouldPrune = no
@@ -20,7 +27,7 @@ createOldAppStorageDocument = (data, callback) ->
 
     rel = new Relationship relationshipOptions
     rel.save (err) ->
-      callback err, { storage, relationshipOptions }
+      callback err, { storage, relationshipOptions, bucket }
 
 
 module.exports = {
