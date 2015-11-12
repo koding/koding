@@ -38,7 +38,7 @@ func Run(env, username string) {
 	analyticsTimer := time.NewTimer(analyticsInterval)
 
 	// run analytics when starting since free vms turn off in <1 hr;
-	// sleep a little and fire in own goroutine ot make sure this
+	// sleep a little and fire in own goroutine to make sure this
 	// doesn't disrupt klient updates
 	time.AfterFunc(
 		time.Minute*10,

@@ -28,6 +28,13 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Path     string
 		OnChange dnode.Function
+
+		// Recursive specifies if results contain info about nested file/folder.
+		Recursive bool
+
+		// IgnoreFolders specifies which folders to not return results for
+		// when reading recursively.
+		IgnoreFolders []string
 	}
 
 	if r.Args == nil {
@@ -113,7 +120,7 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		})
 	}
 
-	files, err := readDirectory(params.Path)
+	files, err := readDirectory(params.Path, params.Recursive, params.IgnoreFolders)
 	if err != nil {
 		return nil, err
 	}
