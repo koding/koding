@@ -168,8 +168,8 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 
 // shadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
-func (t *terraformTemplate) shadowVariables(holder string, vars ...string) ([]string, error) {
-	return nil, errors.New("not implemented yet")
+func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error {
+	return errors.New("not implemented yet")
 }
 
 func (t *terraformTemplate) setAwsRegion(region string) error {
