@@ -49,7 +49,7 @@ module.exports = class IDEEditorPane extends IDEPane
   getFileModifiedDate: (callback = noop) ->
 
     path = FSHelper.plainPath @file.path
-    @file.machine.getBaseKite().fsGetInfo({ path }).then (info) =>
+    @file.machine.getBaseKite().fsGetInfo({ path }).then (info) ->
       callback info.time
 
 
@@ -211,7 +211,7 @@ module.exports = class IDEEditorPane extends IDEPane
         view.addSubView new kd.ButtonView
           title    : 'No'
           cssClass : 'solid compact red'
-          callback : @bound 'handleContentChangeWarningAction'
+          callback : => @handleContentChangeWarningAction()
 
         view.addSubView new kd.ButtonView
           title    : 'Yes'
