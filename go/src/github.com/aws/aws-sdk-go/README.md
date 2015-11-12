@@ -9,7 +9,11 @@ aws-sdk-go is the official AWS SDK for the Go programming language.
 
 Checkout our [release notes](https://github.com/aws/aws-sdk-go/releases) for information about the latest bug fixes, updates, and features added to the SDK.
 
-**Release [v0.9.0rc1](http://aws.amazon.com/releasenotes/2948141298714307) introduced a breaking change to the SDK. See the release notes for details of the change and instructions to migrate to the latest SDK version.**
+**Release [v0.10.0](http://aws.amazon.com/releasenotes/xxx) introduced a breaking change to the SDK.**
+
+Updates SDK by adding `session.Session` replacing the global `defaults.DefaultConfig`. A session is used to store configuration and request handler settings for service clients. Each service client's `New` function now takes a session as the first parameter, and an optional `aws.Config`, which will be used for the specific client instance being created.
+
+See the [Getting Started Configuration](https://github.com/aws/aws-sdk-go/wiki/Getting-Started-Configuration) wiki for more information on how to use sessions within your application.
 
 ## Caution
 
@@ -20,11 +24,7 @@ vendor your dependencies with Godep or similar.
 
 Please do not confuse this for a stable, feature-complete library.
 
-Note that while most AWS protocols are currently supported, not all services
-available in this package are implemented fully, as some require extra
-customizations to work with the SDK. If you've encountered such a scenario,
-please open a [GitHub issue](https://github.com/aws/aws-sdk-go/issues)
-so we can track work for the service.
+If you've encountered any issues usign the SDK please open a [GitHub issue](https://github.com/aws/aws-sdk-go/issues).
 
 ## Installing
 
@@ -59,10 +59,10 @@ AWS_ACCESS_KEY_ID=AKID1234567890
 AWS_SECRET_ACCESS_KEY=MY-SECRET-KEY
 ```
 
-## Using
+## Using the Go SDK
 
 To use a service in the SDK, create a service variable by calling the `New()`
-function. Once you have a service, you can call API operations which each
+function. Once you have a service client, you can call API operations which each
 return response data and a possible error.
 
 To list a set of instance IDs from EC2, you could run:
@@ -74,6 +74,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -81,7 +82,7 @@ func main() {
 	// Create an EC2 service object in the "us-west-2" region
 	// Note that you can also configure your region globally by
 	// exporting the AWS_REGION environment variable
-	svc := ec2.New(&aws.Config{Region: aws.String("us-west-2")})
+	svc := ec2.New(session.New(), &aws.Config{Region: aws.String("us-west-2")})
 
 	// Call the DescribeInstances Operation
 	resp, err := svc.DescribeInstances(nil)

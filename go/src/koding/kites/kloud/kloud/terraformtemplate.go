@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
-	hclmain "github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl"
-	hcljson "github.com/hashicorp/hcl/json"
+	"github.com/hashicorp/hcl"
+	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/hcl/json/parser"
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/config/lang"
 )
@@ -22,7 +22,7 @@ type terraformTemplate struct {
 	Variable map[string]interface{} `json:"variable,omitempty"`
 	Output   map[string]interface{} `json:"output,omitempty"`
 
-	h *hcl.Object `json:"-"`
+	node *ast.ObjectList `json:"-"`
 }
 
 // newTerraformTemplate parses the content and returns a terraformTemplate
@@ -50,9 +50,18 @@ func newTerraformTemplate(content string) (*terraformTemplate, error) {
 // hclParse parses the given JSON input and updates the internal hcl object
 // representation
 func (t *terraformTemplate) hclParse(jsonIn string) error {
-	var err error
-	t.h, err = hcljson.Parse(jsonIn)
-	return err
+	file, err := parser.Parse([]byte(jsonIn))
+	if err != nil {
+		return err
+	}
+
+	if node, ok := file.Node.(*ast.ObjectList); ok {
+		t.node = node
+	} else {
+		return errors.New("template should be of type objectList")
+	}
+
+	return nil
 }
 
 // hclUpdate update the internal hcl object
@@ -81,8 +90,8 @@ func (t *terraformTemplate) DecodeVariable(out interface{}) error {
 }
 
 func (t *terraformTemplate) decode(resource string, out interface{}) error {
-	obj := t.h.Get(resource, true)
-	return hclmain.DecodeObject(out, obj)
+	obj := t.node.Filter(resource)
+	return hcl.DecodeObject(out, obj)
 }
 
 func (t *terraformTemplate) String() string {
