@@ -19,7 +19,6 @@ module.exports = class JAccount extends jraphical.Module
   JTag             = require './tag'
   JName            = require './name'
   JKite            = require './kite'
-  JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -663,15 +662,6 @@ module.exports = class JAccount extends jraphical.Module
       count ?= 0
       @update ({ $set: { 'counts.referredUsers': count } }), ->
 
-    # Invitations count
-    JReferrableEmail.count
-      username   : @profile.nickname
-      invited    : true
-    , (err, count) =>
-      return if err
-      count ?= 0
-      @update ({ $set: { 'counts.invitations': count } }), ->
-
     # Last Login date
     @update ({ $set: { 'counts.lastLoginDate': new Date } }), ->
 
@@ -1093,17 +1083,12 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
 
   oauthDeleteCallback: (provider, user, callback) ->
-    if provider is 'google'
-      user.fetchAccount 'koding', (err, account) ->
-        return callback err  if err
-        JReferrableEmail = require './referrableemail'
-        JReferrableEmail.delete user.username, callback
-    else
-      callback()
 
     foreignAuth = {}
     foreignAuth[provider] = no
     Tracker.identify user.username, { foreignAuth }
+
+    callback()
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback) ->
