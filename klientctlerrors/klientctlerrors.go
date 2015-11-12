@@ -29,12 +29,12 @@ func IsExistingMountErr(err error) bool {
 		return false
 	}
 
-	// since err comes from klient, == doesnt work
+	// since err is sent over network, == doesnt work
 	if err.Error() == ErrExistingMount.Error() {
 		return true
 	}
 
-	// fuse doesnt have errs to compains against
+	// fuse doesnt have errs to compare against
 	if strings.Contains(err.Error(), fuseExistingMountErr) {
 		return true
 	}

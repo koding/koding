@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klient/cmd/klientctl/util"
+	"github.com/koding/klientctl/util"
 )
 
 // sudoRequiredFor is the default list of commands that require sudo.

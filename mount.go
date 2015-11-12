@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/koding/klient/cmd/klientctl/klientctlerrors"
-	"github.com/koding/klient/cmd/klientctl/util"
+	"github.com/koding/klientctl/klientctlerrors"
+	"github.com/koding/klientctl/util"
 )
 
 // MountCommand mounts a folder on remote machine to local folder by machine
@@ -75,12 +75,12 @@ func MountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remove machine: '%s'\n", err)
+		fmt.Printf("Error connecting to remote machine: %s\n", err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remove machine: '%s'\n", err)
+		fmt.Printf("Error connecting to remote machine: %s\n", err)
 		return 1
 	}
 
@@ -88,16 +88,23 @@ func MountCommand(c *cli.Context) int {
 	if err != nil && klientctlerrors.IsExistingMountErr(err) {
 		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
-		if err := unmount(k, name, localPath); err != nil {
-			fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
+		// unmount using mount path
+		if err := unmount(k, "", localPath); err != nil {
+			fmt.Printf("Error unmounting: %s\n", err)
 			return 1
 		}
 
 		resp, err = k.Tell("remote.mountFolder", mountRequest)
 		if err != nil {
-			fmt.Printf("Error mounting '%s': '%s'\n", name, err)
+			fmt.Printf("Error mounting: %s\n", err)
 			return 1
 		}
+	}
+
+	// catch errors other than klientctlerrors.IsExistingMountErr
+	if err != nil {
+		fmt.Printf("Error mounting: %s\n", err)
+		return 1
 	}
 
 	// response can be nil even when there's no err
@@ -108,11 +115,11 @@ func MountCommand(c *cli.Context) int {
 		}
 
 		if len(warning) > 0 {
-			fmt.Printf("Warning: %s\n\n", warning)
+			fmt.Printf("Warning: %s\n", warning)
 		}
 	}
 
-	fmt.Println("Successfully mounted:", localPath)
+	fmt.Println("Mount success.")
 
 	return 0
 }
@@ -140,7 +147,7 @@ func askToCreate(p string, r io.Reader, w io.Writer) error {
 		return nil
 	}
 
-	fmt.Fprintln(w,
+	fmt.Fprint(w,
 		"The mount folder does not exist, would you like to create it? [Y/n]",
 	)
 

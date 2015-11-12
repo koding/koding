@@ -5,7 +5,7 @@ package main
 import (
 	"errors"
 
-	"github.com/koding/klient/cmd/klientctl/util"
+	"github.com/koding/klientctl/util"
 )
 
 // AdminRequired parses through an arg list and requires an admin (sudo)
