@@ -75,12 +75,12 @@ func MountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remove machine: '%s'\n", err)
+		fmt.Printf("Error connecting remove machine: %s\n", err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remove machine: '%s'\n", err)
+		fmt.Printf("Error connecting to remove machine: %s\n", err)
 		return 1
 	}
 
@@ -89,13 +89,13 @@ func MountCommand(c *cli.Context) int {
 		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
 		if err := unmount(k, name, localPath); err != nil {
-			fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
+			fmt.Printf("Error unmounting: %s\n", name, err)
 			return 1
 		}
 
 		resp, err = k.Tell("remote.mountFolder", mountRequest)
 		if err != nil {
-			fmt.Printf("Error mounting '%s': '%s'\n", name, err)
+			fmt.Printf("Error mounting: %s\n", name, err)
 			return 1
 		}
 	}
@@ -108,11 +108,11 @@ func MountCommand(c *cli.Context) int {
 		}
 
 		if len(warning) > 0 {
-			fmt.Printf("Warning: %s\n\n", warning)
+			fmt.Printf("Warning: %s\n", warning)
 		}
 	}
 
-	fmt.Println("Successfully mounted:", localPath)
+	fmt.Println("Mount success.")
 
 	return 0
 }
