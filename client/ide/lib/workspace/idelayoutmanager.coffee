@@ -29,14 +29,11 @@ module.exports = class IDELayoutManager extends KDObject
   createLayoutData: ->
 
     @layout       = [] # Reset and create an array.
-
-    baseSplitView = @getBaseSplitView()
-    splitViews    = baseSplitView.panels.last.getSubViews().first.getSubViews().first
+    splitViews    = @getBaseSplitView().getFirstSplitView()
 
     if splitViews instanceof IDEView
       @createParentSplitViews splitViews
     else
-
       for panel in splitViews.panels when panel
         @createParentSplitViews panel
 
