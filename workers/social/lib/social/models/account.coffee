@@ -945,26 +945,26 @@ module.exports = class JAccount extends jraphical.Module
   createAppStorage: (options, callback) ->
 
     { appId, version, data } = options
+    accountId = @getId()
 
-    JCombinedAppStorage.one { accountId : @getId() }, (err, storage) =>
+    addStorage = (storage, options, callback) ->
+      { appId, data } = options
+      query = { $set : {} }
+      query.$set["storage.#{appId}.data"] = { data : data ? {} }
+      storage.update query, (err) ->
+        return callback err, storage
+
+    JCombinedAppStorage.one { accountId }, (err, storage) =>
       return callback err  if err
+      return addStorage storage, { appId, data }, callback  if storage
 
-      if storage
-        query = { $set : {} }
-        query.$set["storage.#{appId}.data"] = { data : data ? {} }
-        storage.update query, (err) ->
-          console.log 'updating'
-          console.log storage
-          return callback err, storage
-
-      else
-        query                = { accountId : @getId(), storage : {} }
-        query.storage[appId] = { data : data ? {} }
-        newStorage = new JCombinedAppStorage query
-        newStorage.save (err) ->
-          console.log 'creating'
-          return callback err  if err
-          callback null, newStorage
+      query = { accountId, storage : {} }
+      query.storage[appId] = { data : data ? {} }
+      newStorage = new JCombinedAppStorage query
+      newStorage.save (err) =>
+        # recursive call in case of unique index error
+        return @createAppStorage options, callback  if err?.code is 11000
+        return callback err, newStorage
 
 
   migrateOldAppStorageIfExists: (options, callback) ->
