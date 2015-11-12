@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -53,19 +54,16 @@ type processFunc func(*string) error
 // processing that particular message. Manager is idempotent, if any given
 // resource doesnt exist in the given AWS system, it will create or re-use the
 // previous ones
-func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeCycle {
+func NewLifeCycle(session *session.Session, log logging.Logger, asgName string) *LifeCycle {
 	return &LifeCycle{
-		closed:    false,
-		closeChan: make(chan chan struct{}),
-
-		ec2:         ec2.New(config),
-		sqs:         sqs.New(config),
-		sns:         sns.New(config),
-		autoscaling: autoscaling.New(config),
-
-		asgName: &asgName,
-
-		log: log.New("lifecycle"),
+		closed:      false,
+		closeChan:   make(chan chan struct{}),
+		ec2:         ec2.New(session),
+		sqs:         sqs.New(session),
+		sns:         sns.New(session),
+		autoscaling: autoscaling.New(session),
+		asgName:     &asgName,
+		log:         log.New("lifecycle"),
 	}
 }
 
