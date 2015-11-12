@@ -27,6 +27,7 @@ func UnmountCommand(c *cli.Context) int {
 		return 1
 	}
 
+	// unmount using mount name
 	if err := unmount(k, name, ""); err != nil {
 		fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
 		return 1

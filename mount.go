@@ -75,12 +75,12 @@ func MountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting remove machine: %s\n", err)
+		fmt.Printf("Error connecting to remote machine: %s\n", err)
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remove machine: %s\n", err)
+		fmt.Printf("Error connecting to remote machine: %s\n", err)
 		return 1
 	}
 
@@ -88,16 +88,23 @@ func MountCommand(c *cli.Context) int {
 	if err != nil && klientctlerrors.IsExistingMountErr(err) {
 		util.MustConfirm("This folder is already mounted. Remount? [Y|n]")
 
-		if err := unmount(k, name, localPath); err != nil {
-			fmt.Printf("Error unmounting: %s\n", name, err)
+		// unmount using mount path
+		if err := unmount(k, "", localPath); err != nil {
+			fmt.Printf("Error unmounting: %s\n", err)
 			return 1
 		}
 
 		resp, err = k.Tell("remote.mountFolder", mountRequest)
 		if err != nil {
-			fmt.Printf("Error mounting: %s\n", name, err)
+			fmt.Printf("Error mounting: %s\n", err)
 			return 1
 		}
+	}
+
+	// catch errors other than klientctlerrors.IsExistingMountErr
+	if err != nil {
+		fmt.Printf("Error mounting: %s\n", err)
+		return 1
 	}
 
 	// response can be nil even when there's no err
