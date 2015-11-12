@@ -5,7 +5,8 @@
   withConvertedUser
   generateDummyClient
   generateRandomString
-  checkBongoConnectivity } = require '../../../testhelper'
+  checkBongoConnectivity }      = require '../../../testhelper'
+{ createOldAppStorageDocument } = require '../../../testhelper/models/accounthelper'
 
 JUser            = require './user'
 JGroup           = require './group'
@@ -308,28 +309,6 @@ runTests = -> describe 'workers.social.user.account', ->
 
 
   describe 'migrateOldAppStorageIfExists()', ->
-
-    createOldAppStorageDocument = (data, callback) ->
-      { account, appId, version, bucket } = data
-      bucket ?= {}
-
-      storage = new JAppStorage { appId, version, bucket }
-      storage._shouldPrune = no
-      storage.save (err) ->
-        return callback err  if err
-
-        relationshipOptions =
-          targetId    : storage.getId()
-          targetName  : 'JAppStorage'
-          sourceId    : account.getId()
-          sourceName  : 'JAccount'
-          as          : 'appStorage'
-          data        : { appId, version }
-
-        rel = new Relationship relationshipOptions
-        rel.save (err) ->
-          callback err, { storage, relationshipOptions }
-
 
     it 'should return null if storage doesnt exist', (done) ->
 
