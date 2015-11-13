@@ -916,6 +916,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchOrCreateAppStorage: (options, callback) ->
 
     { appId, version } = options
+    return callback 'version and appId must be set!' unless appId and version
 
     queue = [
 
@@ -927,11 +928,9 @@ module.exports = class JAccount extends jraphical.Module
 
       =>
         query = { accountId : @getId() }
-        query["storage.#{appId}"] = { $exists : true }
-
         JCombinedAppStorage.one query, (err, storage) =>
           return callback err            if err
-          return callback null, storage  if storage
+          return callback null, storage  if storage?.bucket?[appId]
 
           @createAppStorage options, (err, newStorage) ->
             return callback err  if err
@@ -945,25 +944,20 @@ module.exports = class JAccount extends jraphical.Module
   createAppStorage: (options, callback) ->
 
     { appId, version, data } = options
+
     accountId = @getId()
+    selector  = { accountId }
+    query     = { $set : {}, $setOnInsert : {} }
+    options   = { upsert : yes }
+    query.$setOnInsert.accountId = accountId
+    query.$set["bucket.#{appId}.data"] = data ? {}
 
-    addStorage = (storage, options, callback) ->
-      { appId, data } = options
-      query = { $set : {} }
-      query.$set["bucket.#{appId}.data"] = data ? {}
-      storage.update query, (err) ->
-        return callback err, storage
-
-    JCombinedAppStorage.one { accountId }, (err, storage) =>
+    JCombinedAppStorage.update selector, query, options, (err) =>
+      # recursive call in case of unique index error
+      return @createAppStorage options, callback  if err?.code is 11000
       return callback err  if err
-      return addStorage storage, { appId, data }, callback  if storage
 
-      query = { accountId, bucket : {} }
-      query.bucket[appId] = { data : data ? {} }
-      newStorage = new JCombinedAppStorage query
-      newStorage.save (err) =>
-        # recursive call in case of unique index error
-        return @createAppStorage options, callback  if err?.code is 11000
+      JCombinedAppStorage.one { accountId }, (err, newStorage) ->
         return callback err, newStorage
 
 
@@ -971,6 +965,8 @@ module.exports = class JAccount extends jraphical.Module
 
     { appId, version } = options
     oldStorage         = null
+    newStorage         = null
+    accountId          = @getId()
 
     queue = [
 
@@ -984,12 +980,21 @@ module.exports = class JAccount extends jraphical.Module
           queue.next()
 
       =>
+        # creating new app storage document
+        options.data = oldStorage.bucket
+        console.log options.data
+        @createAppStorage options, (err, storage) ->
+          return callback err  if err
+          newStorage = storage
+          queue.next()
+
+      ->
         # removing relationship
         query =
           as          : 'appStorage'
           data        : { appId, version }
           targetId    : oldStorage.getId()
-          sourceId    : @getId()
+          sourceId    : accountId
           targetName  : 'JAppStorage'
           sourceName  : 'JAccount'
 
@@ -1000,13 +1005,6 @@ module.exports = class JAccount extends jraphical.Module
       ->
         # removing old storage
         oldStorage.remove (err) ->
-          return callback err  if err
-          queue.next()
-
-      =>
-        # creating new app storage document
-        options.data = oldStorage.bucket
-        @createAppStorage options, (err, newStorage) ->
           return callback err  if err
           return callback null, newStorage
 
