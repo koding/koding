@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/koding/ec2dynamicdata"
 	"github.com/koding/multiconfig"
@@ -34,7 +35,7 @@ type HostedZone struct {
 }
 
 // Configure prepares configuration data for tunnelproxy manager
-func Configure() (*Config, *aws.Config, error) {
+func Configure() (*Config, *session.Session, error) {
 	c := &Config{}
 	multiconfig.New().MustLoad(c)
 
@@ -54,7 +55,7 @@ func Configure() (*Config, *aws.Config, error) {
 
 	c.EBEnvName = ebEnvName
 
-	awsconfig := &aws.Config{
+	session := session.New(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(
 			c.AccessKeyID,
 			c.SecretAccessKey,
@@ -62,16 +63,16 @@ func Configure() (*Config, *aws.Config, error) {
 		),
 		Region:     aws.String(c.Region),
 		MaxRetries: aws.Int(5),
-	}
+	})
 
 	// decide on autoscaling name
-	name, err := getAutoScalingName(c, awsconfig)
+	name, err := getAutoScalingName(c, session)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	c.AutoScalingName = name
-	return c, awsconfig, nil
+	return c, session, nil
 }
 
 // getRegion checks if region name is given in config, if not tries to get it
@@ -109,7 +110,7 @@ func getEBEnvName(conf *Config) (string, error) {
 
 // getAutoScalingName tries to get autoscaling name from system, first gets from
 // config var, if not set then tries ec2dynamicdata service
-func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
+func getAutoScalingName(conf *Config, session *session.Session) (string, error) {
 	if conf.AutoScalingName != "" {
 		return conf.AutoScalingName, nil
 	}
@@ -121,7 +122,7 @@ func getAutoScalingName(conf *Config, awsconfig *aws.Config) (string, error) {
 
 	instanceID := info.InstanceID
 
-	asg := autoscaling.New(awsconfig)
+	asg := autoscaling.New(session)
 
 	resp, err := asg.DescribeAutoScalingInstances(
 		&autoscaling.DescribeAutoScalingInstancesInput{

@@ -1,11 +1,9 @@
 module.exports  =
-  current: 'ami-5dd50436'
+  current: 'ami-4d552d27'
 
   # Ordered by creation date
   list: [
-    'ami-a7986fcc'
-    'ami-b920d7d2'
-    'ami-9b02f0f0'
-    'ami-e7a05a8c'
     'ami-5dd50436'
+    'ami-bf235ad5'
+    'ami-4d552d27'
   ]

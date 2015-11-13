@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
@@ -61,9 +62,13 @@ func expandEcsVolumes(configured []interface{}) ([]*ecs.Volume, error) {
 
 		l := &ecs.Volume{
 			Name: aws.String(data["name"].(string)),
-			Host: &ecs.HostVolumeProperties{
-				SourcePath: aws.String(data["host_path"].(string)),
-			},
+		}
+
+		hostPath := data["host_path"].(string)
+		if hostPath != "" {
+			l.Host = &ecs.HostVolumeProperties{
+				SourcePath: aws.String(hostPath),
+			}
 		}
 
 		volumes = append(volumes, l)
@@ -233,6 +238,33 @@ func expandElastiCacheParameters(configured []interface{}) ([]*elasticache.Param
 	return parameters, nil
 }
 
+// Flattens an access log into something that flatmap.Flatten() can handle
+func flattenAccessLog(log *elb.AccessLog) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+
+	if log != nil {
+		r := make(map[string]interface{})
+		// enabled is the only value we can rely on to not be nil
+		r["enabled"] = *log.Enabled
+
+		if log.S3BucketName != nil {
+			r["bucket"] = *log.S3BucketName
+		}
+
+		if log.S3BucketPrefix != nil {
+			r["bucket_prefix"] = *log.S3BucketPrefix
+		}
+
+		if log.EmitInterval != nil {
+			r["interval"] = *log.EmitInterval
+		}
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
 // Flattens a health check into something that flatmap.Flatten()
 // can handle
 func flattenHealthCheck(check *elb.HealthCheck) []map[string]interface{} {
@@ -313,9 +345,13 @@ func flattenEcsVolumes(list []*ecs.Volume) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, volume := range list {
 		l := map[string]interface{}{
-			"name":      *volume.Name,
-			"host_path": *volume.Host.SourcePath,
+			"name": *volume.Name,
 		}
+
+		if volume.Host.SourcePath != nil {
+			l["host_path"] = *volume.Host.SourcePath
+		}
+
 		result = append(result, l)
 	}
 	return result
@@ -600,4 +636,58 @@ func flattenDSVpcSettings(
 	settings["vpc_id"] = *s.VpcId
 
 	return []map[string]interface{}{settings}
+}
+
+func expandCloudFormationParameters(params map[string]interface{}) []*cloudformation.Parameter {
+	var cfParams []*cloudformation.Parameter
+	for k, v := range params {
+		cfParams = append(cfParams, &cloudformation.Parameter{
+			ParameterKey:   aws.String(k),
+			ParameterValue: aws.String(v.(string)),
+		})
+	}
+
+	return cfParams
+}
+
+// flattenCloudFormationParameters is flattening list of
+// *cloudformation.Parameters and only returning existing
+// parameters to avoid clash with default values
+func flattenCloudFormationParameters(cfParams []*cloudformation.Parameter,
+	originalParams map[string]interface{}) map[string]interface{} {
+	params := make(map[string]interface{}, len(cfParams))
+	for _, p := range cfParams {
+		_, isConfigured := originalParams[*p.ParameterKey]
+		if isConfigured {
+			params[*p.ParameterKey] = *p.ParameterValue
+		}
+	}
+	return params
+}
+
+func expandCloudFormationTags(tags map[string]interface{}) []*cloudformation.Tag {
+	var cfTags []*cloudformation.Tag
+	for k, v := range tags {
+		cfTags = append(cfTags, &cloudformation.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v.(string)),
+		})
+	}
+	return cfTags
+}
+
+func flattenCloudFormationTags(cfTags []*cloudformation.Tag) map[string]string {
+	tags := make(map[string]string, len(cfTags))
+	for _, t := range cfTags {
+		tags[*t.Key] = *t.Value
+	}
+	return tags
+}
+
+func flattenCloudFormationOutputs(cfOutputs []*cloudformation.Output) map[string]string {
+	outputs := make(map[string]string, len(cfOutputs))
+	for _, o := range cfOutputs {
+		outputs[*o.OutputKey] = *o.OutputValue
+	}
+	return outputs
 }

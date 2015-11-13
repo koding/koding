@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	awssession "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/koding/kite"
 )
@@ -67,10 +68,10 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
-		svc := ec2.New(&aws.Config{
+		svc := ec2.New(awssession.New(&aws.Config{
 			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
 			Region:      aws.String(authRegion),
-		})
+		}))
 
 		// We do request to fetch and describe all supported regions. This
 		// doesn't create any resources but validates the request itself before

@@ -20,7 +20,7 @@ checkBongoConnectivity = (callback) ->
   bongo = new Bongo
     root   : __dirname
     mongo  : mongo
-    models : ''
+    models :  '../lib/social/models'
 
   bongo.once 'dbClientReady', ->
     callback()
@@ -72,7 +72,8 @@ withDummyClient = (context, callback) ->
 
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
-    callback { client }
+    account = client.connection?.delegate
+    callback { client, account }
 
 
 withConvertedUser = (opts, callback) ->

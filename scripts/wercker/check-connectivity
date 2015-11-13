@@ -2,11 +2,20 @@
 
 INSTANCE_DATA_FILE=$1
 
+FAILING_INSTANCES_DATA_FILE=$(mktemp)
+
 SCRIPTS=$(dirname $0)/..
 
-function terminate_instance () {
-  INSTANCE_ID=$1
-  $SCRIPTS/test-instance/terminate $INSTANCE_ID
+function terminate_failing_instances () {
+  INSTANCES=$(cat $FAILING_INSTANCES_DATA_FILE)
+
+  if [ -z "$INSTANCES" ]; then
+    return 0
+  fi
+
+  INSTANCE_IDS=$(cat $FAILING_INSTANCES_DATA_FILE | awk '{print $1}')
+  $SCRIPTS/wercker/upload-logs $FAILING_INSTANCES_DATA_FILE
+  echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate
 }
 
 function check () {
@@ -22,7 +31,7 @@ function check () {
   EXIT_CODE=$?
 
   if [ $EXIT_CODE -ne 0 ]; then
-    terminate_instance $INSTANCE_ID
+    echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
   fi
 
   return $EXIT_CODE
@@ -50,18 +59,22 @@ truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
   (
-    check $INSTANCE  8090 1m 1 || continue # nginx
-    check $INSTANCE 42424 1m 1 || continue # selenium-server
+    check $INSTANCE  8090 1m 5 || continue # nginx
+    check $INSTANCE 42424 1m 5 || continue # selenium-server
 
     if health_check $INSTANCE; then
       echo $INSTANCE >> $INSTANCE_DATA_FILE
+    else
+      echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
     fi
   ) &
 done
 
 wait
 
-INSTANCE_COUNT=$(echo $INSTANCE_DATA_FILE | wc -l)
+terminate_failing_instances
+
+INSTANCE_COUNT=$(cat $INSTANCE_DATA_FILE | wc -l)
 
 if [ $INSTANCE_COUNT -eq 0 ]; then
   echo "error: no instance found"

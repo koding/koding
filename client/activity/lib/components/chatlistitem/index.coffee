@@ -24,7 +24,6 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-MessageLink           = require 'activity/components/publicchannelmessagelink'
 EmbedBox              = require 'activity/components/embedbox'
 KeyboardKeys          = require 'app/util/keyboardKeys'
 ChatInputWidget       = require 'activity/components/chatinputwidget'
@@ -167,14 +166,16 @@ module.exports = class ChatListItem extends React.Component
     onClose            : @bound "closeBlockUserPromptModal"
 
 
-  deletePostButtonHandler: ->
+  deletePostButtonHandler: (event) ->
 
+    kd.utils.stopDOMEvent event
     ActivityFlux.actions.message.removeMessage @props.message.get('id')
     @closeDeletePostModal()
 
 
-  closeDeletePostModal: ->
+  closeDeletePostModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isDeleting: no
 
 
@@ -195,18 +196,21 @@ module.exports = class ChatListItem extends React.Component
     @setState isMarkUserAsTrollModalVisible: yes
 
 
-  closeMarkUserAsTrollModal: ->
+  closeMarkUserAsTrollModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isMarkUserAsTrollModalVisible: no
 
 
-  closeBlockUserPromptModal: ->
+  closeBlockUserPromptModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isBlockUserModalVisible: no
 
 
-  unMarkUserAsTroll: ->
+  unMarkUserAsTroll: (event) ->
 
+    kd.utils.stopDOMEvent event
     AppFlux.actions.user.unmarkUserAsTroll @state.account
     @closeMarkUserAsTrollModal()
 
@@ -216,8 +220,9 @@ module.exports = class ChatListItem extends React.Component
     @setState isBlockUserModalVisible: yes
 
 
-  impersonateUser: ->
+  impersonateUser: (event) ->
 
+    kd.utils.stopDOMEvent event
     { message } = @props
 
     AppFlux.actions.user.impersonateUser message.toJS()
@@ -329,9 +334,7 @@ module.exports = class ChatListItem extends React.Component
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
             </span>
-            <MessageLink message={message} absolute={yes}>
-              <MessageTime date={message.get 'createdAt'}/>
-            </MessageLink>
+            {makeMessageLink message}
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
@@ -355,6 +358,20 @@ makeProfileLink = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
+
+
+makeMessageLink = (message) ->
+
+  PublicMessageLink = require 'activity/components/publicchannelmessagelink'
+  PrivateMessageLink = require 'activity/components/privatechannelmessagelink'
+
+  MessageLink = if message.get('typeConstant') is 'privatemessage'
+  then PrivateMessageLink
+  else PublicMessageLink
+
+  <MessageLink message={message} absolute={yes}>
+    <MessageTime date={message.get 'createdAt'}/>
+  </MessageLink>
 
 
 makeAvatar = (imAccount) ->
