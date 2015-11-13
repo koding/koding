@@ -344,6 +344,10 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 
 	template.Resource["aws_instance"] = resource.AwsInstance
 
+	if err := template.hclUpdate(); err != nil {
+		return nil, err
+	}
+
 	if err := template.shadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key"); err != nil {
 		return nil, err
 	}
