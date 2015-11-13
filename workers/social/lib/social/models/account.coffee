@@ -964,6 +964,8 @@ module.exports = class JAccount extends jraphical.Module
   migrateOldAppStorageIfExists: (options, callback) ->
 
     { appId, version } = options
+    return callback 'version and appId must be set!' unless appId and version
+
     oldStorage         = null
     newStorage         = null
     accountId          = @getId()
