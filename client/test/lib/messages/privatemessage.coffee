@@ -54,11 +54,17 @@ module.exports =
 
   leaveConversation: (browser) ->
 
-    testUsers = [ @users[0] ]
+    testUsers       = [ @users[0] ]
+    messagesSection = '[testpath=main-sidebar] section.messages'
+    messagesLoader  = "#{messagesSection} .kdloader"
 
     helpers.beginTest(browser)
 
-    userSelector = ".activity-sidebar .messages .sidebar-message-text [href='/user.username']"
+    userSelector = ".activity-sidebar .messages .sidebar-message-text [href='/" + testUsers[0].username + "']"
+
+    browser
+      .waitForElementVisible    messagesSection, 30000
+      .waitForElementNotVisible messagesLoader,  30000
 
     browser.element 'css selector', userSelector, (result) =>
       if result.status is 0
