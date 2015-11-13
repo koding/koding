@@ -4,7 +4,7 @@ Link          = require 'app/components/common/link'
 immutable     = require 'immutable'
 formatContent = require 'app/util/formatContent'
 emojify       = require 'emojify.js'
-MessageLink   = require 'activity/components/publicchannelmessagelink'
+MessageLink   = require 'activity/components/messagelink'
 MessageBody   = require 'activity/components/common/messagebody'
 
 module.exports = class ChannelMessagesList extends React.Component
