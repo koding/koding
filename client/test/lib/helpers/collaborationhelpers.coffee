@@ -99,6 +99,8 @@ module.exports =
 
   inviteUser: (browser, username) ->
 
+    console.log " ✔ Inviting #{username} to collaboration session"
+
     chatSelecor = "span.profile[href='/#{username}']"
 
     browser
