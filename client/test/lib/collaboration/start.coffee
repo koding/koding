@@ -66,6 +66,7 @@ joinSession = (browser, firstUser, secondUser) ->
         .click                     acceptButton
         .waitForElementVisible     loadingButton, 50000
         .waitForElementNotPresent  shareModal, 50000
+        .pause                     3000 # wait for sidebar redraw
         .waitForElementVisible     selectedMachine, 50000
         .waitForElementVisible     chatBox, 50000
         .waitForElementVisible     chatUsers, 50000
