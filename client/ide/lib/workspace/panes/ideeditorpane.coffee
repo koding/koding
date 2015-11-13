@@ -1,12 +1,12 @@
 kd                 = require 'kd'
-getColorFromString = require 'app/util/getColorFromString'
 nick               = require 'app/util/nick'
+IDEAce             = require '../../views/ace/ideace'
 FSFile             = require 'app/util/fs/fsfile'
 IDEPane            = require './idepane'
 AceView            = require 'ace/aceview'
-IDEAce             = require '../../views/ace/ideace'
+FSHelper           = require 'app/util/fs/fshelper'
 IDEHelpers         = require '../../idehelpers'
-nick               = require 'app/util/nick'
+getColorFromString = require 'app/util/getColorFromString'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -43,10 +43,19 @@ module.exports = class IDEEditorPane extends IDEPane
 
       @emit 'ChangeHappened', change
 
+    @getFileModifiedDate (date) => @lastModifiedDate = date
+
+
+  getFileModifiedDate: (callback = noop) ->
+
+    path = FSHelper.plainPath @file.path
+    @file.machine.getBaseKite().fsGetInfo({ path }).then (info) ->
+      callback info.time
+
 
   createEditor: ->
 
-    {file, content} = @getOptions()
+    { file, content } = @getOptions()
 
     unless file instanceof FSFile
       throw new TypeError 'File must be an instance of FSFile'
@@ -55,25 +64,74 @@ module.exports = class IDEEditorPane extends IDEPane
       throw new TypeError 'You must pass file content to IDEEditorPane'
 
     aceOptions =
+      aceClass                 : IDEAce
       delegate                 : @getDelegate()
       createBottomBar          : no
       createFindAndReplaceView : no
-      aceClass                 : IDEAce
 
     @addSubView @aceView = new AceView aceOptions, file
 
-    {ace} = @aceView
+    { ace } = @aceView
 
     ace.ready =>
       @getEditor().setValue content, 1
       ace.setReadOnly yes  if @getOptions().readOnly
       @bindChangeListeners()
+      @bindFileSyncEvents()
       @emit 'EditorIsReady'
 
     @on 'RealtimeManagerSet', =>
       myPermission = @rtm.getFromModel('permissions').get nick()
       return  if myPermission isnt 'read'
       ace.ready @bound 'makeReadOnly'
+
+
+  bindFileSyncEvents: ->
+
+    ace = @getAce()
+
+    ace.on 'FileContentChanged', =>
+      kd.utils.defer => # defer to get the updated cursor position after the keypress
+        cursor    = @getCursor()
+        content   = @getContent()
+        eventName = 'ContentChanged'
+        from      = @getId()
+
+        @file.emit 'FileActionHappened', { eventName, content, cursor, from }
+
+    ace.forwardEvent @file, 'FileContentRestored'
+
+    @file.on 'FileActionHappened', (data) =>
+      { from, eventName, content } = data
+      return  if from is @getId()
+
+      if eventName is 'ContentChanged'
+        @updateContent content
+        @aceView.showModifiedIconOnTabHandle()
+
+    @file.on 'FileContentRestored', => ace.removeModifiedFromTab()
+
+    @file.on 'fs.save.finished', =>
+      ace.removeModifiedFromTab()
+      @updateFileModifiedTime()
+
+    @file.on 'FileContentsNeedsToBeRefreshed', =>
+      ace.fetchContents (err, content) =>
+        @updateContent content, yes
+        ace.removeModifiedFromTab()
+        @updateFileModifiedTime()
+        @contentChangedWarning?.destroy()
+        @contentChangedWarning = null
+
+
+  updateContent: (content, isSaved = no) ->
+
+    scrollTop = @getAceScrollTop()
+    cursor    = @getCursor()
+    @setContent content, no
+    @setCursor cursor
+    @setAceScrollTop scrollTop
+    @getAce().lastSavedContents = content  if isSaved
 
 
   handleAutoSave: ->
@@ -85,34 +143,47 @@ module.exports = class IDEEditorPane extends IDEPane
       @save ignoreActiveLineOnTrim: yes
 
 
-  save: (options = {}) ->
-
-    @getAce().requestSave options
+  save: (options = {}) -> @getAce().requestSave options
 
 
-  getAce: ->
-
-    return @aceView.ace
+  getAce: -> return @aceView.ace
 
 
-  getEditor: ->
-
-    return @getAce().editor
+  getEditor: -> return @getAce().editor
 
 
-  getEditorSession: ->
-
-    return @getEditor().getSession()
+  getEditorSession: -> return @getEditor().getSession()
 
 
-  getValue: ->
-
-    return  @getEditorSession().getValue()
+  getValue: -> return  @getEditorSession().getValue()
 
 
-  goToLine: (lineNumber) ->
+  goToLine: (lineNumber) -> @getAce().gotoLine lineNumber
 
-    @getAce().gotoLine lineNumber
+
+  getAceScrollTop: -> @getEditorSession().getScrollTop()
+
+
+  setAceScrollTop: (top) -> @getEditorSession().setScrollTop top
+
+
+  getContent: -> return if @getEditor() then @getAce().getContents() else ''
+
+
+  setContent: (content, emitFileContentChangedEvent = yes) ->
+
+    @getAce().setContent content, emitFileContentChangedEvent
+
+
+  getCursor: -> return @getEditor().selection.getCursor()
+
+
+  setCursor: (positions) ->
+
+    @getEditor().selection.moveCursorTo positions.row, positions.column
+
+
+  getFile: -> @aceView.getData()
 
 
   setFocus: (state) ->
@@ -121,34 +192,52 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  unless ace = @getEditor()
 
-    if state
-    then ace.focus()
-    else ace.blur()
+    return ace.blur()  unless state
+    ace.focus()
+
+    @checkForContentChange()
 
 
-  getContent: ->
+  checkForContentChange: ->
 
-    return if @getEditor() then @getAce().getContents() else ''
+    return if @contentChangedWarning or @rtm?.isReady or @isCheckingContentChange
+
+    @isCheckingContentChange = yes
+
+    @getFileModifiedDate (time) =>
+      if time isnt @lastModifiedDate
+        @getAce().prepend @contentChangedWarning = view = new kd.View
+          cssClass : 'description-view editor'
+          partial  : '<div>This file has changed on disk. Do you want to reload it?</div>'
+
+        view.addSubView new kd.ButtonView
+          title    : 'No'
+          cssClass : 'solid compact red'
+          callback : => @handleContentChangeWarningAction()
+
+        view.addSubView new kd.ButtonView
+          title    : 'Yes'
+          cssClass : 'solid compact green'
+          callback : => @handleContentChangeWarningAction yes
+
+      @isCheckingContentChange = no
 
 
-  setContent: (content, emitFileContentChangedEvent = yes) ->
+  handleContentChangeWarningAction: (isAccepted) ->
 
-    @getAce().setContent content, emitFileContentChangedEvent
+    @contentChangedWarning?.destroy()
+    @contentChangedWarning = null
 
-
-  getCursor: ->
-
-    return @getEditor().selection.getCursor()
-
-
-  setCursor: (positions) ->
-
-    @getEditor().selection.moveCursorTo positions.row, positions.column
+    if isAccepted
+      @file.emit 'FileContentsNeedsToBeRefreshed'
+      @updateFileModifiedTime()
 
 
-  getFile: ->
+  updateFileModifiedTime: ->
 
-    return @aceView.getData()
+    @getFileModifiedDate (date) =>
+      @file.time = date
+      @lastModifiedDate = date
 
 
   getInitialChangeObject: ->
@@ -159,13 +248,6 @@ module.exports = class IDEEditorPane extends IDEPane
         paneHash : @hash
         paneType : @getOptions().paneType
         file     : path: @file.path
-
-    return change
-
-
-  bindChangeListeners: ->
-
-    change = @getInitialChangeObject()
 
     return change
 
@@ -400,14 +482,10 @@ module.exports = class IDEEditorPane extends IDEPane
     @removeAllCursorWidgets()
 
 
-  makeReadOnly: ->
-
-    @getEditor()?.setReadOnly yes
+  makeReadOnly: -> @getEditor()?.setReadOnly yes
 
 
-  makeEditable: ->
-
-    @getEditor()?.setReadOnly no
+  makeEditable: -> @getEditor()?.setReadOnly no
 
 
   handleSaveFailed: (err) ->
@@ -419,6 +497,7 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+
     super
 
 

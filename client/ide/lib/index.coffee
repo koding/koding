@@ -218,6 +218,10 @@ class IDEAppController extends AppController
 
     @setActivePaneFocus state
 
+    activePane = @getActivePaneView()
+
+    activePane.checkForContentChange()  if activePane instanceof IDEEditorPane
+
 
   ###*
    * Open a series of file paths, in the format of klient's openFiles
