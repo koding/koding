@@ -49,8 +49,6 @@ module.exports = class ComputeProvider extends Base
           (signature Function)
         createGroupStack  :
           (signature Function)
-        createStackFromTemplate :
-          (signature Object, Function)
 
 
   @providers      = PROVIDERS
@@ -191,21 +189,6 @@ module.exports = class ComputeProvider extends Base
 
     { provider } = options
     provider.remove client, options, callback
-
-
-  @createStackFromTemplate = permit 'create machines',
-    success: revive {
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
-
-    }, (client, options, callback) ->
-
-      { account, user, group } = client.r
-      { template } = options
-
-      ComputeProvider.generateStackFromTemplate {
-        account, user, group, template, client
-      }, {}, callback
 
 
   @generateStackFromTemplate = (data, options, callback) ->
