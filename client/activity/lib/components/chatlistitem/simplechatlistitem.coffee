@@ -28,9 +28,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
         <div className={@getMediaObjectClassNames()}>
-          <MessageLink message={message} absolute={yes}>
-            <MessageTime date={message.get 'createdAt'}/>
-          </MessageLink>
+          {makeMessageLink message}
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
@@ -47,5 +45,19 @@ module.exports = class SimpleChatListItem extends ChatListItem
         <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
+
+
+makeMessageLink = (message) ->
+
+  PublicMessageLink = require 'activity/components/publicchannelmessagelink'
+  PrivateMessageLink = require 'activity/components/privatechannelmessagelink'
+
+  MessageLink = if message.get('typeConstant') is 'privatemessage'
+  then PrivateMessageLink
+  else PublicMessageLink
+
+  <MessageLink message={message} absolute={yes}>
+    <MessageTime date={message.get 'createdAt'}/>
+  </MessageLink>
 
 

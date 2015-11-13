@@ -66,6 +66,7 @@ joinSession = (browser, firstUser, secondUser) ->
         .click                     acceptButton
         .waitForElementVisible     loadingButton, 50000
         .waitForElementNotPresent  shareModal, 50000
+        .pause                     3000 # wait for sidebar redraw
         .waitForElementVisible     selectedMachine, 50000
         .waitForElementVisible     chatBox, 50000
         .waitForElementVisible     chatUsers, 50000
@@ -82,6 +83,11 @@ start = (browser) ->
 
   host        = utils.getUser no, 0
   participant = utils.getUser no, 1
+
+  console.log " ✔ Starting collaboration test..."
+  console.log " ✔ Host: #{host.username}"
+  console.log " ✔ Participant: #{participant.username}"
+
   hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
 
   if hostBrowser
