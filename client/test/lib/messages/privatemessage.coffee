@@ -42,15 +42,14 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    isStarted = messagesHelpers.startConversation(browser, testUsers)
+    messagesHelpers.startConversation(browser, testUsers)
 
-    if isStarted then browser.end()
-    else
-      browser
-        .refresh()
-        .waitForElementVisible  '.activity-sidebar .messages', 20000
-        .assert.containsText    '.activity-sidebar .messages', testUsers[0].fullName  # Assertion
-        .end()
+    browser
+      .refresh()
+      .waitForElementVisible    '.activity-sidebar .messages', 20000
+      .waitForElementNotVisible '[testpath=main-sidebar] section.messages .kdloader', 20000
+      .assert.containsText      '.activity-sidebar .messages', testUsers[0].username  # Assertion
+      .end()
 
 
   leaveConversation: (browser) ->
