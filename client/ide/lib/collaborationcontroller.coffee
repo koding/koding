@@ -853,21 +853,23 @@ module.exports = CollaborationController =
 
     @broadcastMessage { type: 'SessionEnded' }
 
-    fileName = @getRealtimeFileName()
+    kd.utils.wait 2000, =>
 
-    realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
-      throwError err  if err
+      fileName = @getRealtimeFileName()
 
-    @setMachineSharingStatus off, (err) =>
-      throwError err  if err
+      realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
+        throwError err  if err
 
-    socialHelpers.destroyChannel @socialChannel, (err) =>
-      throwError err  if err
+      @setMachineSharingStatus off, (err) =>
+        throwError err  if err
 
-    envHelpers.detachSocialChannel @workspaceData, (err) =>
-      throwError err  if err
+      socialHelpers.destroyChannel @socialChannel, (err) =>
+        throwError err  if err
 
-    callback()
+      envHelpers.detachSocialChannel @workspaceData, (err) =>
+        throwError err  if err
+
+      callback()
 
 
   handleCollaborationEndedForHost: ->
