@@ -10,7 +10,7 @@ createOldAppStorageDocument = (data, callback) ->
     someData    :
       moreData  : { data : {} }
     anotherData :
-      someArray : [1,2,3]
+      someArray : [1, 2, 3]
 
   storage = new JAppStorage { appId, version, bucket }
   storage._shouldPrune = no
