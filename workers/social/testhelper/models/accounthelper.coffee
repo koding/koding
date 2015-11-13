@@ -13,7 +13,6 @@ createOldAppStorageDocument = (data, callback) ->
       someArray : [1, 2, 3]
 
   storage = new JAppStorage { appId, version, bucket }
-  storage._shouldPrune = no
   storage.save (err) ->
     return callback err  if err
 
