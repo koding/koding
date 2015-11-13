@@ -22,7 +22,9 @@ module.exports = class JCombinedAppStorage extends JStorage
           (signature Object, Function)
     schema          :
       accountId     : ObjectId
-      bucket        : Object
+      bucket        :
+        type        : Object
+        default     : -> {}
 
 
 

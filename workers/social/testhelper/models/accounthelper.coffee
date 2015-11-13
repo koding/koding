@@ -9,8 +9,7 @@ createOldAppStorageDocument = (data, callback) ->
     someString  : generateRandomString()
     someData    :
       moreData  : { data : {} }
-    anotherData :
-      someArray : [1, 2, 3]
+    anotherData : {}
 
   storage = new JAppStorage { appId, version, bucket }
   storage.save (err) ->
