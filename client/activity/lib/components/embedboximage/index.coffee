@@ -1,13 +1,26 @@
-kd           = require 'kd'
-React        = require 'kd-react'
-proxifyUrl   = require 'app/util/proxifyUrl'
-getEmbedSize = require 'activity/util/getEmbedSize'
+kd             = require 'kd'
+React          = require 'kd-react'
+proxifyUrl     = require 'app/util/proxifyUrl'
+getEmbedSize   = require 'activity/util/getEmbedSize'
+eventEmitter   = require 'app/mixins/eventemitter'
+resizeListener = require 'app/mixins/resizelistener'
 
 module.exports = class EmbedBoxImage extends React.Component
 
   @defaultProps =
-    data : null
-    type : ''
+    data   : null
+    type   : ''
+    width  : 0
+    height : 0
+
+  constructor: ->
+
+    super
+
+    @state = @getImageSize()
+
+
+  componentDidMount: -> @_windowDidResize()
 
 
   getImageSize: (item) ->
@@ -20,11 +33,28 @@ module.exports = class EmbedBoxImage extends React.Component
 
   getImageStyle: ->
 
-    { width, height } = @getImageSize()
+    { width, height } = @state
 
     return style =
       height : "#{height}px"
       width  : "#{width}px"
+
+
+  _getParentNodeWidth: ->
+
+    { parentNode } = React.findDOMNode @refs.link
+    style          = window.getComputedStyle parentNode
+    width          = parseInt (style.getPropertyValue 'width'), 10
+
+    return width
+
+
+  _windowDidResize: ->
+
+    image = @props.data.link_embed.images.first
+    sizes = getEmbedSize image, @_getParentNodeWidth()
+
+    @setState sizes
 
 
   renderImage: ->
@@ -37,7 +67,6 @@ module.exports = class EmbedBoxImage extends React.Component
     <img
       src   = { srcUrl }
       title = { link_embed.title ? '' }
-      style = { @getImageStyle() }
     />
 
 
@@ -47,7 +76,8 @@ module.exports = class EmbedBoxImage extends React.Component
 
     return null  unless data
 
-    <a href={data.link_url} target='_blank' className='EmbedBoxImage' style={@getImageStyle()}>
+    <a ref='link' href={data.link_url} target='_blank' className='EmbedBoxImage' style={@getImageStyle()}>
       { @renderImage() }
     </a>
 
+EmbedBoxImage.include [ resizeListener, eventEmitter ]
