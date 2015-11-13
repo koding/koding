@@ -6,7 +6,7 @@ module.exports = (text, options = {})->
   return null unless text
 
   text = text.replace /\\/g, '\\'
-  text = text.replace /``` /g, '```\n'
+  text = text.replace /```\s/g, '```\n'
 
   options.gfm       ?= true
   options.pedantic  ?= false
