@@ -303,7 +303,17 @@ module.exports = class ChatInputWidget extends React.Component
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
-  onResize: -> @props.onResize()
+  isLastItemEditing: ->
+
+    chatItems = document.querySelectorAll '.ChatItem'
+
+    return no  unless chatItems.length
+
+    lastItem = chatItems[chatItems.length - 1]
+
+    return lastItem.firstChild.className.indexOf('editing') > -1
+
+
   onResize: ->
 
     ChatPaneBody              = document.querySelector '.ChatPane-body'
