@@ -105,7 +105,7 @@ func (t *terraformTemplate) String() string {
 
 // jsonOutput returns a JSON formatted output of the template
 func (t *terraformTemplate) jsonOutput() (string, error) {
-	out, err := json.MarshalIndent(t, "", "  ")
+	out, err := json.MarshalIndent(&t, "", "  ")
 	if err != nil {
 		return "", err
 	}
@@ -169,32 +169,42 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 // shadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
 func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error {
-	for _, item := range t.node.Items {
+	for i, item := range t.node.Items {
 		key := item.Keys[0].Token.Text
-		// check for both, quoted and unquoted. We are going to shadow any
-		// variable expect the provider.
-		if key == "provider" || key == `"provider"` {
+		switch key {
+		case "resource", `"resource"`:
+			// check for both, quoted and unquoted
+		default:
+			// We are going to shadow any variable inside the resource,
+			// anything else doesn't matter.
 			continue
 		}
 
-		ast.Walk(item.Val, func(n ast.Node) bool {
+		item.Val = ast.Rewrite(item.Val, func(n ast.Node) ast.Node {
 			switch t := n.(type) {
 			case *ast.LiteralType:
 				for _, v := range vars {
 					iVar := fmt.Sprintf(`${var.%s}`, v)
-					if strings.Contains(t.Token.Text, iVar) {
-						fmt.Println("Found variable", t.Token.Text)
-					}
+					t.Token.Text = strings.Replace(t.Token.Text, iVar, holder, -1)
 				}
-			case *ast.ObjectKey:
-				a := t.Token.Text
-				fmt.Printf("a = %+v\n", a)
+
+				n = t
+			}
+			return n
+		})
+
+		ast.Walk(item.Val, func(n ast.Node) bool {
+			switch t := n.(type) {
+			case *ast.LiteralType:
+				fmt.Printf("t.Token.Text = %+v\n", t.Token.Text)
 			}
 			return true
 		})
+
+		t.node.Items[i] = item
 	}
 
-	return nil
+	return hcl.DecodeObject(&t.Resource, t.node.Filter("resource"))
 }
 
 func (t *terraformTemplate) setAwsRegion(region string) error {

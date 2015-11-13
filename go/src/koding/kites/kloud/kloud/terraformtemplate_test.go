@@ -204,7 +204,7 @@ func TestTerraformTemplate_ShadowVariables(t *testing.T) {
     "resource": {
         "aws_instance": {
             "example": {
-                "bar": "${var.aws_access_key}",
+				"bar": "${var.aws_access_key}",
                 "instance_type": "t2.micro",
                 "user_data": "Echo ${var.aws_secret_key}"
             }
@@ -220,6 +220,8 @@ func TestTerraformTemplate_ShadowVariables(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	fmt.Println(template)
 }
 
 func TestTerraformTemplate_DetectUserVariables(t *testing.T) {
