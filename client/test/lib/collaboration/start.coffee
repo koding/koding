@@ -82,6 +82,11 @@ start = (browser) ->
 
   host        = utils.getUser no, 0
   participant = utils.getUser no, 1
+
+  console.log " ✔ Starting collaboration test..."
+  console.log " ✔ Host: #{host.username}"
+  console.log " ✔ Participant: #{participant.username}"
+
   hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
 
   if hostBrowser
