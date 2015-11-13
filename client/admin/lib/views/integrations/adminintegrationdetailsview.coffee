@@ -27,6 +27,17 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     @createAuthView()
 
+    @disableAdminRepos()
+
+
+  disableAdminRepos: ->
+    data = @getData()
+    disabledRepos = data.repositories.filter (r) -> return r.disabled
+    selectOptions = @settingsForm.inputs.repository.getElement().options
+    disabledRepos.forEach (repo) ->
+      for option in selectOptions when option.value is repo.value
+        option.setAttribute 'disabled', 'disabled'
+
 
   createInstructionsView: ->
 
@@ -257,7 +268,16 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     if data.repositories
       for repository in data.repositories
-        repositories.push title: repository.full_name, value: repository.full_name
+        console.log 'repository repositories:', repository
+        console.log 'repository permissions:', repository.permissions
+        console.log 'repository permissions:', repository.permissions?.admin
+        if repository.permissions?.admin
+          repositories.push title: repository.full_name , value: repository.full_name
+        else
+          repositories.push
+            title: repository.full_name + ' (requires admin perms)'
+            value: repository.full_name
+            disabled: yes
 
     data.repositories = repositories or []
 
