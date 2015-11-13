@@ -169,7 +169,32 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 // shadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
 func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error {
-	return errors.New("not implemented yet")
+	for _, item := range t.node.Items {
+		key := item.Keys[0].Token.Text
+		// check for both, quoted and unquoted. We are going to shadow any
+		// variable expect the provider.
+		if key == "provider" || key == `"provider"` {
+			continue
+		}
+
+		ast.Walk(item.Val, func(n ast.Node) bool {
+			switch t := n.(type) {
+			case *ast.LiteralType:
+				for _, v := range vars {
+					iVar := fmt.Sprintf(`${var.%s}`, v)
+					if strings.Contains(t.Token.Text, iVar) {
+						fmt.Println("Found variable", t.Token.Text)
+					}
+				}
+			case *ast.ObjectKey:
+				a := t.Token.Text
+				fmt.Printf("a = %+v\n", a)
+			}
+			return true
+		})
+	}
+
+	return nil
 }
 
 func (t *terraformTemplate) setAwsRegion(region string) error {
