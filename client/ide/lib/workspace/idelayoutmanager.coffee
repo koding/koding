@@ -114,8 +114,9 @@ module.exports = class IDELayoutManager extends KDObject
       if panels.length is 2
         splitView = @findLastSplitView @subViews
 
-        @createSplitView panels.first, splitView, yes
-        @createSplitView panels.last,  splitView
+        for panel, index in panels when panel
+          isFirst = index is 0
+          @createSplitView panel, splitView, isFirst
       else
         @getSubLevel panels.first
 
