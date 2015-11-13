@@ -303,7 +303,7 @@ module.exports = class ChatInputWidget extends React.Component
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
-  isLastItemEditing: ->
+  isLastItemBeingEdited: ->
 
     chatItems = document.querySelectorAll '.ChatItem'
 
@@ -321,7 +321,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     { scrollTop, scrollHeight } = scrollContainer
 
-    if @isLastItemEditing()
+    if @isLastItemBeingEdited()
       scrollContainer.scrollTop = scrollContainer.scrollHeight
 
     @props.onResize()
