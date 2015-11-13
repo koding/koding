@@ -59,9 +59,13 @@ class AppStorage extends kd.Object
   fetchValue: (key, callback, group = AppStorage.DEFAULT_GROUP_NAME, force = no) ->
 
     @reset()
-
+    appId = @_applicationID
     @fetchStorage (storage) ->
-      callback  if storage?[group]?[key] then storage[group][key]
+      value = storage?[group]?[appId]?['data']?[key]
+
+      if   value
+      then callback value
+      else callback null
     , force
 
 
@@ -111,7 +115,7 @@ class AppStorage extends kd.Object
   zip: (key, group, value) ->
 
     pack       = {}
-    _key       = group+'.'+key
+    _key       = "#{group}.#{@_applicationID}.data.#{key}"
     pack[_key] = value
 
     pack
