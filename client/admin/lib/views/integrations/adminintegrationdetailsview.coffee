@@ -268,9 +268,6 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     if data.repositories
       for repository in data.repositories
-        console.log 'repository repositories:', repository
-        console.log 'repository permissions:', repository.permissions
-        console.log 'repository permissions:', repository.permissions?.admin
         if repository.permissions?.admin
           repositories.push title: repository.full_name , value: repository.full_name
         else
