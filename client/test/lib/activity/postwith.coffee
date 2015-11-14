@@ -15,9 +15,10 @@ module.exports =
 
 
   editMessageWithCode: (browser) ->
-  
+
     helpers.beginTest(browser)
 
+    activityHelpers.postMessageWithCode(browser)
     activityHelpers.editAction(browser, "message", yes, no, no)
     browser.end()
 
@@ -34,6 +35,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
+    activityHelpers.postMessageWithImage(browser)
     activityHelpers.editAction(browser, "message", no, yes, no)
     browser.end()
 
@@ -50,6 +52,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
+    activityHelpers.postMessageWithLink(browser)
     activityHelpers.editAction(browser, "message", no, no, yes)
     browser.end()
 
@@ -75,9 +78,16 @@ module.exports =
 
   editCommentWithCode: (browser) ->
 
+    post      = helpers.getFakeText()
+    timestamp = Date.now()
+    code      = "console.log(#{timestamp})"
+    comment   = '```' + code + '```'
     helpers.beginTest(browser)
 
-    activityHelpers.editAction(browser, "comment", yes, no, no)
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, comment, no)
+
+    activityHelpers.editAction(browser, 'comment', yes, no, no)
     browser.end()
 
 
@@ -102,7 +112,13 @@ module.exports =
 
   editCommentWithImage: (browser) ->
 
+    image    = 'https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png'
+    comment  = image + ' hello world!'
+    post     = helpers.getFakeText()
     helpers.beginTest(browser)
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, comment)
 
     activityHelpers.editAction(browser, "comment", no, yes, no)
     browser.end()
@@ -128,7 +144,12 @@ module.exports =
 
   editCommentWithLink: (browser) ->
 
+    post = helpers.getFakeText()
+    link = 'http://wikipedia.org/'
     helpers.beginTest(browser)
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, link, yes, yes)
 
     activityHelpers.editAction(browser, "comment", no, no, yes)
     browser.end()
