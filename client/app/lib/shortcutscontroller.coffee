@@ -140,7 +140,7 @@ class ShortcutsController extends events.EventEmitter
 
     # So we extend the remote object.
     query = { $set: pack }
-    @_store._storage.upsertAppStorage appId, { query }, =>
+    @_store._storage.upsert appId, { query }, =>
 
       # And make sure everybody is aware of the changes we've just made.
       _.each buffer, (objs, collectionName) =>
@@ -167,7 +167,7 @@ class ShortcutsController extends events.EventEmitter
     pack["#{AppStorage.DEFAULT_GROUP_NAME}.#{appId}.data"] = 1
     query = { $unset : pack }
 
-    @_store._storage.upsertAppStorage appId, { query }, =>
+    @_store._storage.upsert appId, { query }, =>
 
       # Remove change listeners, so we won't try to persist following changes.
       # XXX: use component-bind, bound or whatever instead

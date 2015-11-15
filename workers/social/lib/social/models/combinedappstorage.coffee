@@ -16,7 +16,7 @@ module.exports = class JCombinedAppStorage extends JStorage
     sharedMethods   :
       static        : {}
       instance      :
-        upsertAppStorage:
+        upsert:
           (signature String, Object, Function)
     schema          :
       accountId     : ObjectId
@@ -25,17 +25,17 @@ module.exports = class JCombinedAppStorage extends JStorage
         default     : -> {}
 
 
-  upsertAppStorage: (appId, options, callback) ->
+  upsert: (appId, options, callback) ->
 
     unless appId
       return callback new KodingError 'appId is not set!'
 
     options.accountId = @getAt 'accountId'
-    JCombinedAppStorage.upsertAppStorage appId, options, (err, storage) ->
+    JCombinedAppStorage.upsert appId, options, (err, storage) ->
       return callback err, storage
 
 
-  @upsertAppStorage: (appId, options, callback) ->
+  @upsert: (appId, options, callback) ->
 
     { accountId, query, data } = options
 

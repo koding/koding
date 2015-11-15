@@ -86,7 +86,7 @@ class AppStorage extends kd.Object
 
     @fetchStorage (storage) ->
       query = { $set : pack }
-      storage?.upsertAppStorage appId, { query }, ->
+      storage?.upsert appId, { query }, ->
         callback?()
 
 
@@ -104,7 +104,7 @@ class AppStorage extends kd.Object
       delete @_storageData[group]?[appId]?[key]
       pack  = @zip key, group, 1
       query = { $unset : pack }
-      storage.upsertAppStorage appId, { query }, ->
+      storage.upsert appId, { query }, ->
         callback?()
 
   reset: ->

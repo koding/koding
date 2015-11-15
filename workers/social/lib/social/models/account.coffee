@@ -951,7 +951,7 @@ module.exports = class JAccount extends jraphical.Module
     accountId = @getId()
     options   = { accountId, data }
 
-    JCombinedAppStorage.upsertAppStorage appId, options, (err, storage) =>
+    JCombinedAppStorage.upsert appId, options, (err, storage) =>
       # recursive call in case of unique index error
       return @createAppStorage options, callback  if err?.code is 11000
       return callback err, storage
