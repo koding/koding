@@ -83,6 +83,7 @@ module.exports = class ChatList extends React.Component
       if beforeMarker = loaderMarkers.get 'before'
         markers.push \
           <LoadMoreMessagesMarker
+            key="loadafter-#{currentMessage.get 'id'}"
             channelId={channelId}
             messageId={currentMessage.get 'id'}
             position="before"
@@ -92,12 +93,18 @@ module.exports = class ChatList extends React.Component
     switch
       # if this is first message put a date marker no matter what.
       when not prevMessage
-        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+        markers.push \
+          <DateMarker
+            key={currentMessage.get 'createdAt'}
+            date={currentMessage.get 'createdAt'} />
 
       # if day of previous message is not the same with current one, put a date
       # marker.
       when not currentMessageMoment.isSame prevMessageMoment, 'day'
-        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+        markers.push \
+          <DateMarker
+            key={currentMessage.get 'createdAt'}
+            date={currentMessage.get 'createdAt'} />
 
     # put new message marker on top of other messages if unread count is
     # greater than currently loaded messages.
@@ -124,6 +131,7 @@ module.exports = class ChatList extends React.Component
       if afterMarker = loaderMarkers.get 'after'
         markers.push \
           <LoadMoreMessagesMarker
+            key="loadafter-#{currentMessage.get 'id'}"
             channelId={channelId}
             messageId={currentMessage.get 'id'}
             position="after"
