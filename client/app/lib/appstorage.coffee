@@ -63,30 +63,31 @@ class AppStorage extends kd.Object
     @fetchStorage (storage) ->
       value = storage?[group]?[appId]?['data']?[key]
 
-      if   value
-      then callback value
-      else callback null
+      callback? value ? null
     , force
 
 
   getValue: (key, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
+    appId = @_applicationID
     return unless @_storage
-    return if @_storageData[group]?[key]? then @_storageData[group][key]
-    return if @_storage[group]?[key]?     then @_storage[group][key]
+    return if @_storageData[group]?[appId]?[key]? then @_storageData[group][appId][key]
+    return if @_storage[group]?[appId]?[key]?     then @_storage[group][appId][key]
 
 
   setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
+    appId                            = @_applicationID
+    @_storageData[group]            ?= {}
+    @_storageData[group][appId]      = {}  unless @_storageData[group]?[appId]?
+    @_storageData[group][appId][key] = value
+
     pack = @zip key, group, value
 
-    @_storageData[group]      = {}  unless @_storageData[group]?
-    @_storageData[group][key] = value
-
     @fetchStorage (storage) ->
-      storage?.update {
-        $set: pack
-      }, -> callback?()
+      query = { $set : pack }
+      storage?.upsertAppStorage appId, { query }, ->
+        callback?()
 
 
   setDefaults: (defaults) ->
@@ -97,14 +98,14 @@ class AppStorage extends kd.Object
 
   unsetKey: (key, callback, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
-    pack = @zip key, group, 1
+    appId = @_applicationID
 
     @fetchStorage (storage) =>
-      delete @_storageData[group]?[key]
-      storage.update {
-        $unset: pack
-      }, -> callback?()
-
+      delete @_storageData[group]?[appId]?[key]
+      pack  = @zip key, group, 1
+      query = { $unset : pack }
+      storage.upsertAppStorage appId, { query }, ->
+        callback?()
 
   reset: ->
 
@@ -118,4 +119,4 @@ class AppStorage extends kd.Object
     _key       = "#{group}.#{@_applicationID}.data.#{key}"
     pack[_key] = value
 
-    pack
+    return pack
