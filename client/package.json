@@ -49,7 +49,7 @@
     "react-immutable-render-mixin": "0.8.1",
     "react-portal": "1.2.0",
     "react-router": "1.0.0-rc4",
-    "react-waypoint": "1.0.2",
+    "react-waypoint": "1.1.2",
     "record-shortcuts": "0.1.4",
     "shortcuts": "0.5.7",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
