@@ -1,7 +1,7 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
 $                    = require 'jquery'
-TextArea             = require 'react-autosize-textarea'
+AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 EmojiDropbox         = require 'activity/components/emojidropbox'
 ChannelDropbox       = require 'activity/components/channeldropbox'
 MentionDropbox       = require 'activity/components/mentiondropbox'
@@ -303,7 +303,28 @@ module.exports = class ChatInputWidget extends React.Component
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
-  onResize: -> @props.onResize()
+  isLastItemBeingEdited: ->
+
+    chatItems = document.querySelectorAll '.ChatItem'
+
+    return no  unless chatItems.length
+
+    lastItem = chatItems[chatItems.length - 1]
+
+    return lastItem.firstChild.className.indexOf('editing') > -1
+
+
+  onResize: ->
+
+    ChatPaneBody    = document.querySelector '.ChatPane-body'
+    scrollContainer = ChatPaneBody.querySelector '.Scrollable'
+
+    { scrollTop, scrollHeight } = scrollContainer
+
+    if @isLastItemBeingEdited()
+      scrollContainer.scrollTop = scrollContainer.scrollHeight
+
+    @props.onResize()
 
 
   renderEmojiDropbox: ->
@@ -415,12 +436,12 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderMentionDropbox() }
       { @renderSearchDropbox() }
       { @renderCommandDropbox() }
-      <TextArea
-        value     = { @state.value }
-        onChange  = { @bound 'onChange' }
-        onKeyDown = { @bound 'onKeyDown' }
-        onResize  = { @bound 'onResize' }
-        ref       = 'textInput'
+      <AutoSizeTextarea
+        ref           = 'textInput'
+        value         = { @state.value }
+        onChange      = { @bound 'onChange' }
+        onKeyDown     = { @bound 'onKeyDown' }
+        onResize      = { @bound 'onResize' }
       />
       <Link
         className = "ChatInputWidget-emojiButton"

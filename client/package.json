@@ -44,7 +44,6 @@
     "nuclear-js": "1.1.0",
     "raf": "2.0.4",
     "react": "0.13.3",
-    "react-autosize-textarea": "0.2.4",
     "react-radio": "1.0.6",
     "react-immutable-render-mixin": "0.8.1",
     "react-portal": "0.7.0",
