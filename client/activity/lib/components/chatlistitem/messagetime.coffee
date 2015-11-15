@@ -3,7 +3,7 @@ kd             = require 'kd'
 React          = require 'kd-react'
 dateFormat     = require 'dateformat'
 Tooltip        = require 'app/components/tooltip'
-Portal         = require 'react-portal'
+Portal         = require('react-portal').default
 
 module.exports = class MessageTime extends React.Component
 

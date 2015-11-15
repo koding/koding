@@ -1,7 +1,7 @@
 kd     = require 'kd'
 React  = require 'kd-react'
-Portal = require 'react-portal'
 $      = require 'jquery'
+Portal   = require('react-portal').default
 
 module.exports = class ButtonWithMenu extends React.Component
 

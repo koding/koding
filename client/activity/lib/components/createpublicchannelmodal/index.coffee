@@ -1,7 +1,7 @@
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
-Portal                            = require 'react-portal'
+Portal                            = require('react-portal').default
 Avatar                            = require 'app/components/profile/avatar'
 AppFlux                           = require 'app/flux'
 classnames                        = require 'classnames'

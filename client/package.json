@@ -47,7 +47,7 @@
     "react": "0.14.2",
     "react-dom": "0.14.2",
     "react-immutable-render-mixin": "0.8.1",
-    "react-portal": "0.7.0",
+    "react-portal": "1.2.0",
     "react-router": "1.0.0-rc4",
     "react-waypoint": "1.0.2",
     "record-shortcuts": "0.1.4",
