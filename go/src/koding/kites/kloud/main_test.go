@@ -178,7 +178,7 @@ func init() {
 	kloudKite.Config = conf.Copy()
 	kloudKite.Config.Port = 4002
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4002", Path: "/kite"}
-	_, err := kloudKite.Register(kiteURL)
+	_, err = kloudKite.Register(kiteURL)
 	if err != nil {
 		log.Fatal("kloud ", err.Error())
 	}
