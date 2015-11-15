@@ -37,7 +37,7 @@ module.exports = class MessageTime extends React.Component
 
   setTooltipPosition: ->
 
-    MessageDateDOMNode = @refs.MessageDate.getDOMNode()
+    MessageDateDOMNode = @refs.MessageDate
     offset = $(MessageDateDOMNode).offset()
 
     @setState
