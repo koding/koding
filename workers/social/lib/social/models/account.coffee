@@ -945,26 +945,24 @@ module.exports = class JAccount extends jraphical.Module
 
     { appId, version, data } = options
 
-    accountId = @getId()
-    selector  = { accountId }
-    query     = { $set : {}, $setOnInsert : {} }
-    options   = { upsert : yes }
-    query.$setOnInsert.accountId = accountId
-    query.$set["bucket.#{appId}.data"] = data ? {}
+    unless appId
+      return callback new KodingError 'appId is not set!'
 
-    JCombinedAppStorage.update selector, query, options, (err) =>
+    accountId = @getId()
+    options   = { accountId, data }
+
+    JCombinedAppStorage.upsertAppStorage appId, options, (err, storage) =>
       # recursive call in case of unique index error
       return @createAppStorage options, callback  if err?.code is 11000
-      return callback err  if err
-
-      JCombinedAppStorage.one { accountId }, (err, newStorage) ->
-        return callback err, newStorage
+      return callback err, storage
 
 
   migrateOldAppStorageIfExists: (options, callback) ->
 
     { appId, version } = options
-    return callback 'version and appId must be set!' unless appId and version
+
+    unless appId and version
+      return callback new KodingError 'version and appId is not set!'
 
     oldStorage         = null
     newStorage         = null
@@ -984,7 +982,6 @@ module.exports = class JAccount extends jraphical.Module
       =>
         # creating new app storage document
         options.data = oldStorage.bucket
-        console.log options.data
         @createAppStorage options, (err, storage) ->
           return callback err  if err
           newStorage = storage
