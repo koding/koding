@@ -55,7 +55,7 @@ module.exports = class JCombinedAppStorage extends JStorage
     query.$setOnInsert.accountId = accountId
 
     JCombinedAppStorage.update selector, query, options, (err) ->
-      callback err  if err
+      return callback err  if err
 
       JCombinedAppStorage.one { accountId }, (err, storage) ->
         return callback err, storage
