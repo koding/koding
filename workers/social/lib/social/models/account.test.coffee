@@ -417,7 +417,10 @@ runTests = -> describe 'workers.social.user.account', ->
 
       withConvertedUser ({ account }) ->
 
-        account.migrateOldAppStorageIfExists {}, (err, storage) ->
+        version             = generateRandomString()
+        appId               = generateRandomString()
+
+        account.migrateOldAppStorageIfExists { appId, version }, (err, storage) ->
           expect(err).to.not.exist
           expect(storage).to.not.exist
           done()
