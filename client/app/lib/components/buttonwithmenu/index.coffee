@@ -1,7 +1,9 @@
-kd     = require 'kd'
-React  = require 'kd-react'
-Portal = require 'react-portal'
-$      = require 'jquery'
+kd       = require 'kd'
+React    = require 'kd-react'
+ReactDOM = require 'react-dom'
+Portal   = require('react-portal').default
+$        = require 'jquery'
+
 
 module.exports = class ButtonWithMenu extends React.Component
 
@@ -31,8 +33,8 @@ module.exports = class ButtonWithMenu extends React.Component
 
   listDidMount: (_list) ->
 
-    button = React.findDOMNode @refs.button
-    list = React.findDOMNode _list
+    button = ReactDOM.findDOMNode @refs.button
+    list = ReactDOM.findDOMNode _list
     buttonRect = button.getBoundingClientRect()
 
     mainHeight = $(window).height()

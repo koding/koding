@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
 $                    = require 'jquery'
 AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 EmojiDropbox         = require 'activity/components/emojidropbox'
@@ -73,7 +74,7 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = @props
     @setValue value  if value
 
-    textInput = React.findDOMNode this.refs.textInput
+    textInput = ReactDOM.findDOMNode this.refs.textInput
     focusOnGlobalKeyDown textInput
 
     window.addEventListener 'resize', @bound 'updateDropboxPositions'
@@ -102,7 +103,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     window.removeEventListener 'resize', @bound 'updateDropboxPositions'
 
-    textInput = React.findDOMNode this.refs.textInput
+    textInput = ReactDOM.findDOMNode this.refs.textInput
     scrollContainer = $(textInput).closest '.Scrollable'
     scrollContainer.off 'scroll', @bound 'closeDropboxes'
 
@@ -117,7 +118,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   updateDropboxPositions: ->
 
-    textInput = $ React.findDOMNode @refs.textInput
+    textInput = $ ReactDOM.findDOMNode @refs.textInput
 
     offset = textInput.offset()
     width  = textInput.outerWidth()
@@ -163,7 +164,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   runDropboxChecks: (value) ->
 
-    textInput = React.findDOMNode @refs.textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
     textData  =
       currentWord : helpers.getCurrentWord textInput
       value       : value
@@ -252,7 +253,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   onDropboxItemConfirmed: (item) ->
 
-    textInput = React.findDOMNode @refs.textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
 
     item += ' '
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
@@ -294,7 +295,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   focus: ->
 
-    textInput = React.findDOMNode @refs.textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
     textInput.focus()
 
 

@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
 ChatList             = require 'activity/components/chatlist'
 ActivityFlux         = require 'activity/flux'
 Scroller             = require 'app/components/scroller'
@@ -25,7 +26,7 @@ module.exports = class ChatPane extends React.Component
 
   componentDidMount: ->
 
-    scroller = React.findDOMNode @refs.scrollContainer
+    scroller = ReactDOM.findDOMNode @refs.scrollContainer
     scrollTop = @flag 'scrollPosition'
 
     scroller.scrollTop  = scrollTop  if scrollTop
@@ -34,7 +35,7 @@ module.exports = class ChatPane extends React.Component
 
   componentWillUnmount: ->
 
-    scroller = React.findDOMNode @refs.scrollContainer
+    scroller = ReactDOM.findDOMNode @refs.scrollContainer
 
     { scrollTop } = scroller
     { channel }   = ActivityFlux.actions
@@ -74,7 +75,6 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     messagesSize        = @props.thread.get('messages').size
-    scrollContainer     = React.findDOMNode @refs.scrollContainer
     reachedFirstMessage = @flag 'reachedFirstMessage'
 
     if not reachedFirstMessage
@@ -94,7 +94,7 @@ module.exports = class ChatPane extends React.Component
     # this delay is a time needed to chat input
     # in order to resize its textarea
     kd.utils.wait 50, =>
-      scrollContainer = React.findDOMNode @refs.scrollContainer
+      scrollContainer = ReactDOM.findDOMNode @refs.scrollContainer
       scrollToTarget scrollContainer, itemElement
 
 

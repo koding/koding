@@ -1,5 +1,6 @@
 kd                        = require 'kd'
 React                     = require 'kd-react'
+ReactDOM                  = require 'react-dom'
 createHistory             = require 'history/lib/createHistory'
 createLocation            = require 'history/lib/createLocation'
 handlers                  = require './routehandlers'
@@ -49,7 +50,7 @@ handleReactivity = ({ query }, router) ->
   activityView (view) ->
 
     match { routes, location }, (err, redirectLocation, renderProps) ->
-      React.render(
+      ReactDOM.render(
         <RoutingContext {...renderProps} />
         view.reactivityContainer.getElement()
       )

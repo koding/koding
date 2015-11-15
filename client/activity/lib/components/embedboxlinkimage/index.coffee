@@ -1,5 +1,6 @@
 kd         = require 'kd'
 React      = require 'kd-react'
+ReactDOM   = require 'react-dom'
 proxifyUrl = require 'app/util/proxifyUrl'
 
 module.exports = class EmbedBoxLinkImage extends React.Component
@@ -14,7 +15,7 @@ module.exports = class EmbedBoxLinkImage extends React.Component
 
   handleError: ->
 
-    image = React.findDOMNode @refs.image
+    image = ReactDOM.findDOMNode @refs.image
     image.className = 'hidden'
 
 

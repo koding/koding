@@ -1,5 +1,6 @@
-kd    = require 'kd'
-React = require 'kd-react'
+kd       = require 'kd'
+React    = require 'kd-react'
+ReactDOM = require 'react-dom'
 
 module.exports = class ReactView extends kd.CustomHTMLView
 
@@ -12,7 +13,7 @@ module.exports = class ReactView extends kd.CustomHTMLView
 
   viewAppended: ->
 
-    React.render(
+    ReactDOM.render(
       @renderReact()
       @getElement()
     )
