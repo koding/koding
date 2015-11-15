@@ -2,6 +2,7 @@ _                                 = require 'lodash'
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
+ReactDOM                          = require 'react-dom'
 Portal                            = require('react-portal').default
 Avatar                            = require 'app/components/profile/avatar'
 whoami                            = require 'app/util/whoami'
@@ -292,7 +293,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   focusOnParticipantsInput: ->
 
-    element = React.findDOMNode @refs.textInput
+    element = ReactDOM.findDOMNode @refs.textInput
     element.focus()
 
 

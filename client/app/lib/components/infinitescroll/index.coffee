@@ -1,6 +1,7 @@
 kd                       = require 'kd'
 $                        = require 'jquery'
 React                    = require 'kd-react'
+ReactDOM                 = require 'react-dom'
 isScrollThresholdReached = require 'app/util/isScrollThresholdReached'
 
 module.exports = class InfiniteScroll extends React.Component
@@ -37,7 +38,7 @@ module.exports = class InfiniteScroll extends React.Component
 
   componentWillUpdate: ->
 
-    InfiniteScroll = React.findDOMNode(@refs.InfiniteScroll)
+    InfiniteScroll = ReactDOM.findDOMNode(@refs.InfiniteScroll)
     @scrollTop     = InfiniteScroll.scrollTop
     @offsetHeight  = InfiniteScroll.offsetHeight
     @scrollHeight  = InfiniteScroll.scrollHeight
@@ -47,7 +48,7 @@ module.exports = class InfiniteScroll extends React.Component
   componentDidUpdate: ->
 
     if @shouldScrollBottom
-      InfiniteScroll = React.findDOMNode(@refs.InfiniteScroll)
+      InfiniteScroll = ReactDOM.findDOMNode(@refs.InfiniteScroll)
       InfiniteScroll.scrollTop = InfiniteScroll.scrollHeight
     else
       InfiniteScroll.scrollTop = @scrollTop + (InfiniteScroll.scrollHeight - @scrollHeight)

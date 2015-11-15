@@ -1,5 +1,5 @@
-kd                   = require 'kd'
-React                = require 'kd-react'
+kd    = require 'kd'
+React = require 'kd-react'
 
 module.exports = class AutoSizeTextarea extends React.Component
 
@@ -20,7 +20,7 @@ module.exports = class AutoSizeTextarea extends React.Component
 
   setOverflow: ->
 
-    textarea = React.findDOMNode @refs.textarea
+    { textarea } = @refs
     if textarea.style.height >= textarea.style.maxHeight
       textarea.style.overflowY = 'auto'
     else
@@ -29,7 +29,7 @@ module.exports = class AutoSizeTextarea extends React.Component
 
   updateSize: (event) ->
 
-    textarea       = React.findDOMNode @refs.textarea
+    { textarea }   = @refs
     style          = window.getComputedStyle(textarea, null)
     originalHeight = style.height
     borderHeight   = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth)

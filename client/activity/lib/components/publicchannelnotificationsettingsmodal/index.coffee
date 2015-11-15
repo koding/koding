@@ -1,6 +1,7 @@
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
+ReactDOM                          = require 'react-dom'
 ActivityFlux                      = require 'activity/flux'
 ActivityModal                     = require 'app/components/activitymodal'
 KDReactorMixin                    = require 'app/flux/base/reactormixin'
@@ -20,7 +21,7 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
 
   componentDidMount: ->
 
-    webNotifications = React.findDOMNode @refs.webNotifications
+    webNotifications = ReactDOM.findDOMNode @refs.webNotifications
     value = @state.channelNotificationSettings.get('desktopSetting')
     radio = webNotifications.querySelector "input[value=#{value}]"
 

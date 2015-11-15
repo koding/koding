@@ -1,6 +1,7 @@
 _                      = require 'lodash'
 kd                     = require 'kd'
 React                  = require 'kd-react'
+ReactDOM               = require 'react-dom'
 moment                 = require 'moment'
 immutable              = require 'immutable'
 ChatListItem           = require 'activity/components/chatlistitem'
@@ -49,7 +50,7 @@ module.exports = class ChatList extends React.Component
     currentSelectedId = @state.selectedMessageId
 
     if currentSelectedId and currentSelectedId isnt prevSelectedId
-      target = React.findDOMNode @refs.selectedComponent
+      target = ReactDOM.findDOMNode @refs.selectedComponent
       scrollToElement target
 
 

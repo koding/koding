@@ -1,5 +1,6 @@
 $                    = require 'jquery'
 React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
 formatContent        = require 'app/util/formatReactivityContent'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
@@ -48,7 +49,7 @@ module.exports = class MessageBody extends React.Component
 
   renderEmojis: ->
 
-    contentElement = React.findDOMNode @content
+    contentElement = ReactDOM.findDOMNode @content
     renderEmojis contentElement  if contentElement
 
 

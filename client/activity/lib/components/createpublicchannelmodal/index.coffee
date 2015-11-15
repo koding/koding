@@ -1,6 +1,7 @@
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
+ReactDOM                          = require 'react-dom'
 Portal                            = require('react-portal').default
 Avatar                            = require 'app/components/profile/avatar'
 AppFlux                           = require 'app/flux'
@@ -38,7 +39,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   componentDidMount: ->
 
-    channelNameInput = React.findDOMNode @refs.channelNameInput
+    channelNameInput = ReactDOM.findDOMNode @refs.channelNameInput
     channelNameInput.focus()
 
 
@@ -237,7 +238,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   focusOnParticipantsInput: ->
 
-    element = React.findDOMNode @refs.textInput
+    element = ReactDOM.findDOMNode @refs.textInput
     element.focus()
 
 

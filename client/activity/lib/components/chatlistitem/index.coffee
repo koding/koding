@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
 remote                = require('app/remote').getInstance()
 Avatar                = require 'app/components/profile/avatar'
 immutable             = require 'immutable'
@@ -257,7 +258,7 @@ module.exports = class ChatListItem extends React.Component
 
   onEditStarted: ->
 
-    element = React.findDOMNode this
+    element = ReactDOM.findDOMNode this
     @props.onEditStarted? element
 
 

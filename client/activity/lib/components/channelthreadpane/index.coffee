@@ -100,7 +100,7 @@ module.exports = class ChannelThreadPane extends React.Component
   updatePurpose: ->
 
     @setState editingPurpose: yes
-    input = React.findDOMNode @refs.purposeInput
+    input = @refs.purposeInput
 
     kd.utils.defer ->
       kd.utils.moveCaretToEnd input

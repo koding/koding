@@ -1,5 +1,6 @@
 kd        = require 'kd'
 React     = require 'kd-react'
+ReactDOM  = require 'react-dom'
 immutable = require 'immutable'
 
 SuggestionItem = require 'activity/components/suggestionitem'
@@ -18,8 +19,8 @@ module.exports = class SuggestionList extends React.Component
     { selectedIndex } = @props
     return  if prevProps.selectedIndex is selectedIndex or selectedIndex < 0
 
-    containerElement = React.findDOMNode @refs.list
-    itemElement      = React.findDOMNode @refs["SuggestionItem_#{selectedIndex}"]
+    containerElement = ReactDOM.findDOMNode @refs.list
+    itemElement      = ReactDOM.findDOMNode @refs["SuggestionItem_#{selectedIndex}"]
 
     scrollToTarget containerElement, itemElement
 
