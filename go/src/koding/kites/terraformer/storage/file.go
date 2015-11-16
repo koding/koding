@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 )
 
 var _ Interface = File{}
@@ -43,9 +42,7 @@ func (f File) BasePath() (string, error) {
 
 // Write writes to a file with given path
 func (f File) Write(filePath string, file io.Reader) (err error) {
-	contents := strings.Split(filePath, string(os.PathSeparator))
-
-	dirPath, err := f.fullPath(strings.Join(contents[:len(contents)-1], string(os.PathSeparator)))
+	dirPath, err := f.fullPath(path.Dir(filePath))
 	if err != nil {
 		return err
 	}
@@ -65,14 +62,9 @@ func (f File) Write(filePath string, file io.Reader) (err error) {
 	}
 
 	defer func() {
-		// Sync commits the current contents of the file to disk
-		if err = tf.Sync(); err != nil {
-			return
-		}
-
-		if err = tf.Close(); err != nil {
-			return
-		}
+		// Sync commits the current contents of the file to disk; even if it
+		// fails, try to close the file.
+		err = nonil(err, tf.Sync(), tf.Close())
 	}()
 
 	_, err = io.Copy(tf, file)

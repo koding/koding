@@ -105,7 +105,7 @@ func (t *terraformTemplate) String() string {
 
 // jsonOutput returns a JSON formatted output of the template
 func (t *terraformTemplate) jsonOutput() (string, error) {
-	out, err := json.MarshalIndent(t, "", "  ")
+	out, err := json.MarshalIndent(&t, "", "  ")
 	if err != nil {
 		return "", err
 	}
@@ -143,7 +143,6 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// filter out duplicates
 	set := make(map[string]bool, 0)
 	for _, v := range vars {
@@ -165,6 +164,47 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	}
 
 	return userVars, nil
+}
+
+// shadowVariables shadows the given variables with the given holder. Variables
+// need to be in interpolation form, i.e: ${var.foo}
+func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error {
+	for i, item := range t.node.Items {
+		key := item.Keys[0].Token.Text
+		switch key {
+		case "resource", `"resource"`:
+			// check for both, quoted and unquoted
+		default:
+			// We are going to shadow any variable inside the resource,
+			// anything else doesn't matter.
+			continue
+		}
+
+		item.Val = ast.Rewrite(item.Val, func(n ast.Node) ast.Node {
+			switch t := n.(type) {
+			case *ast.LiteralType:
+				for _, v := range vars {
+					iVar := fmt.Sprintf(`${var.%s}`, v)
+					t.Token.Text = strings.Replace(t.Token.Text, iVar, holder, -1)
+				}
+
+				n = t
+			}
+			return n
+		})
+
+		ast.Walk(item.Val, func(n ast.Node) bool {
+			switch t := n.(type) {
+			case *ast.LiteralType:
+				fmt.Printf("t.Token.Text = %+v\n", t.Token.Text)
+			}
+			return true
+		})
+
+		t.node.Items[i] = item
+	}
+
+	return hcl.DecodeObject(&t.Resource, t.node.Filter("resource"))
 }
 
 func (t *terraformTemplate) setAwsRegion(region string) error {

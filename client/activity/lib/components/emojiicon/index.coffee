@@ -1,5 +1,6 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
 immutable            = require 'immutable'
 classnames           = require 'classnames'
 formatEmojiName      = require 'activity/util/formatEmojiName'
@@ -16,7 +17,7 @@ module.exports = class EmojiIcon extends React.Component
 
   emojifyIcon: ->
 
-    icon = React.findDOMNode @refs.icon
+    icon = ReactDOM.findDOMNode @refs.icon
     renderEmojis icon
 
 

@@ -10,7 +10,7 @@ MarkUserAsTrollModal = require 'app/components/markuserastrollmodal'
 BlockUserModal       = require 'app/components/blockusermodal'
 ActivityPromptModal  = require 'app/components/activitypromptmodal'
 classnames           = require 'classnames'
-MessageLink          = require 'activity/components/publicchannelmessagelink'
+MessageLink          = require 'activity/components/messagelink'
 
 
 module.exports = class SimpleChatListItem extends ChatListItem
@@ -28,7 +28,9 @@ module.exports = class SimpleChatListItem extends ChatListItem
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
         <div className={@getMediaObjectClassNames()}>
-          {makeMessageLink message}
+          <MessageLink message={message}>
+            <MessageTime date={message.get 'createdAt'}/>
+          </MessageLink>
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
@@ -45,19 +47,5 @@ module.exports = class SimpleChatListItem extends ChatListItem
         <BlockUserModal {...@getBlockUserModalProps()} isOpen={@state.isBlockUserModalVisible} />
       </div>
     </div>
-
-
-makeMessageLink = (message) ->
-
-  PublicMessageLink = require 'activity/components/publicchannelmessagelink'
-  PrivateMessageLink = require 'activity/components/privatechannelmessagelink'
-
-  MessageLink = if message.get('typeConstant') is 'privatemessage'
-  then PrivateMessageLink
-  else PublicMessageLink
-
-  <MessageLink message={message} absolute={yes}>
-    <MessageTime date={message.get 'createdAt'}/>
-  </MessageLink>
 
 

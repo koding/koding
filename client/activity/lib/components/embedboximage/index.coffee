@@ -1,5 +1,6 @@
 kd             = require 'kd'
 React          = require 'kd-react'
+ReactDOM       = require 'react-dom'
 proxifyUrl     = require 'app/util/proxifyUrl'
 getEmbedSize   = require 'activity/util/getEmbedSize'
 eventEmitter   = require 'app/mixins/eventemitter'
@@ -42,7 +43,7 @@ module.exports = class EmbedBoxImage extends React.Component
 
   _getParentNodeWidth: ->
 
-    { parentNode } = React.findDOMNode @refs.link
+    { parentNode } = ReactDOM.findDOMNode @refs.link
     style          = window.getComputedStyle parentNode
     width          = parseInt (style.getPropertyValue 'width'), 10
 

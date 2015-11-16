@@ -1,8 +1,9 @@
-$       = require 'jquery'
-kd      = require 'kd'
-React   = require 'kd-react'
-Portal  = require 'react-portal'
-Dropbox = require './dropboxbody'
+$        = require 'jquery'
+kd       = require 'kd'
+React    = require 'kd-react'
+ReactDOM = require 'react-dom'
+Portal   = require('react-portal').default
+Dropbox  = require './dropboxbody'
 
 module.exports = class PortalDropbox extends React.Component
 
@@ -36,7 +37,7 @@ module.exports = class PortalDropbox extends React.Component
 
     { width, height, top, left } = @inputDimensions
 
-    dropbox       = $ React.findDOMNode @refs.dropbox
+    dropbox       = $ ReactDOM.findDOMNode @refs.dropbox
     resizable     = dropbox.find '.Dropbox-resizable'
 
     # reset resizable height before calculations
