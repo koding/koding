@@ -168,5 +168,7 @@ func (p *Purge) Terminate() error {
 	p.DeleteInstances()
 	p.DeleteVolumes()
 	p.DeleteKeyPairs()
+	p.DeletePlacementGroups()
+	p.DeleteAddresses()
 	return nil
 }

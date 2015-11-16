@@ -153,3 +153,85 @@ func (p *Purge) DeleteKeyPairs() error {
 
 	return p.terminateResources(fn)
 }
+
+// DeletePlacementGroups delete all placementGroups on all regions
+func (p *Purge) DeletePlacementGroups() error {
+	fn := func(svc *ec2.EC2) error {
+		region := *svc.Config.Region
+
+		resources, ok := p.resources[region]
+		if !ok {
+			return fmt.Errorf("Couldn't find resources for region %s", region)
+		}
+
+		if resources.placementGroups == nil {
+			return fmt.Errorf("placementGroups are not fetched for region %s", region)
+		}
+
+		placementGroups := make([]*string, len(resources.placementGroups))
+		for i, group := range resources.placementGroups {
+			placementGroups[i] = group.GroupName
+		}
+
+		if len(placementGroups) > resourceLimit {
+			return fmt.Errorf("Too many placementGroups(%d) found for region '%s'. Aborting",
+				len(placementGroups), region)
+		}
+
+		var multiErrors error
+
+		for _, name := range placementGroups {
+			input := &ec2.DeletePlacementGroupInput{
+				GroupName: name,
+			}
+			_, err := svc.DeletePlacementGroup(input)
+			if err != nil {
+				multiErrors = multierror.Append(multiErrors, err)
+			}
+		}
+		return multiErrors
+	}
+
+	return p.terminateResources(fn)
+}
+
+// DeleteAddresses delete all addresses on all regions
+func (p *Purge) DeleteAddresses() error {
+	fn := func(svc *ec2.EC2) error {
+		region := *svc.Config.Region
+
+		resources, ok := p.resources[region]
+		if !ok {
+			return fmt.Errorf("Couldn't find resources for region %s", region)
+		}
+
+		if resources.addresses == nil {
+			return fmt.Errorf("addresses are not fetched for region %s", region)
+		}
+
+		addresses := make([]*string, len(resources.addresses))
+		for i, addr := range resources.addresses {
+			addresses[i] = addr.AssociationId
+		}
+
+		if len(addresses) > resourceLimit {
+			return fmt.Errorf("Too many addresses(%d) found for region '%s'. Aborting",
+				len(addresses), region)
+		}
+
+		var multiErrors error
+
+		for _, id := range addresses {
+			input := &ec2.DisassociateAddressInput{
+				AssociationId: id,
+			}
+			_, err := svc.DisassociateAddress(input)
+			if err != nil {
+				multiErrors = multierror.Append(multiErrors, err)
+			}
+		}
+		return multiErrors
+	}
+
+	return p.terminateResources(fn)
+}
