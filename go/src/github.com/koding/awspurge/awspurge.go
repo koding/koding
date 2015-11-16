@@ -165,8 +165,8 @@ func (p *Purge) Fetch() error {
 
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
-	p.TerminateInstances()
-	p.TerminateVolumes()
-	p.TerminateKeyPairs()
+	p.DeleteInstances()
+	p.DeleteVolumes()
+	p.DeleteKeyPairs()
 	return nil
 }

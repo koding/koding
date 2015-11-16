@@ -38,8 +38,8 @@ func (p *Purge) terminateResources(fn func(*ec2.EC2) error) error {
 	return multiErrors
 }
 
-// TerminateInstances terminates all instances on all regions
-func (p *Purge) TerminateInstances() error {
+// DeleteInstances terminates all instances on all regions
+func (p *Purge) DeleteInstances() error {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -72,8 +72,8 @@ func (p *Purge) TerminateInstances() error {
 	return p.terminateResources(fn)
 }
 
-// TerminateVolumes terminates all volumes on all regions
-func (p *Purge) TerminateVolumes() error {
+// DeleteVolumes terminates all volumes on all regions
+func (p *Purge) DeleteVolumes() error {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -113,8 +113,8 @@ func (p *Purge) TerminateVolumes() error {
 	return p.terminateResources(fn)
 }
 
-// TerminateKeyPairs delete all key pairs on all regions
-func (p *Purge) TerminateKeyPairs() error {
+// DeleteKeyPairs delete all key pairs on all regions
+func (p *Purge) DeleteKeyPairs() error {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
