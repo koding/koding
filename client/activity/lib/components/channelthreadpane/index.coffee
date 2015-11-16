@@ -100,7 +100,7 @@ module.exports = class ChannelThreadPane extends React.Component
   updatePurpose: ->
 
     @setState editingPurpose: yes
-    input = React.findDOMNode @refs.purposeInput
+    input = @refs.purposeInput
 
     kd.utils.defer ->
       kd.utils.moveCaretToEnd input
@@ -167,7 +167,7 @@ module.exports = class ChannelThreadPane extends React.Component
       requestChange: @bound 'handleChange'
 
     <div className={@getPurposeAreaClassNames()}>
-      <span className='ChannelThreadPane-purpose'>{valueLink}</span>
+      <span className='ChannelThreadPane-purpose'>{thread.getIn ['channel', 'purpose']}</span>
       <input ref='purposeInput' type='text' valueLink={valueLink} onKeyDown={@bound 'onKeyDown'} />
     </div>
 

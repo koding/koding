@@ -1,4 +1,5 @@
-React = require 'kd-react'
+React    = require 'kd-react'
+ReactDOM = require 'react-dom'
 
 module.exports = ScrollerMixin =
 
@@ -11,7 +12,7 @@ module.exports = ScrollerMixin =
 
     return  unless @refs?.scrollContainer
 
-    { @scrollTop, offsetHeight, @scrollHeight } = React.findDOMNode @refs.scrollContainer
+    { @scrollTop, offsetHeight, @scrollHeight } = ReactDOM.findDOMNode @refs.scrollContainer
 
     # we can not catch 0px to scroll to bottom. If scroll near about 100px or less
     # and when new message received we make scroll to bottom so user can see new messages.
@@ -26,7 +27,7 @@ module.exports = ScrollerMixin =
 
     return  unless @refs?.scrollContainer
 
-    element = React.findDOMNode @refs.scrollContainer
+    element = ReactDOM.findDOMNode @refs.scrollContainer
     if @shouldScrollToBottom
       element.scrollTop = element.scrollHeight
     else if @isThresholdReached
@@ -41,7 +42,7 @@ module.exports = ScrollerMixin =
 
     return  unless @refs?.scrollContainer
 
-    scrollContainer = React.findDOMNode @refs.scrollContainer
+    scrollContainer = ReactDOM.findDOMNode @refs.scrollContainer
 
     if @shouldScrollBottom()
       scrollContainer.scrollTop = scrollContainer.scrollHeight

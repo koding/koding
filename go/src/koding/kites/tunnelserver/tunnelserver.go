@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"koding/artifact"
 	"koding/kites/common"
-	"koding/kites/kloud/pkg/dnsclient"
+	dnsclient "koding/kites/kloud/pkg/dnsclient"
 	"os"
 
 	"github.com/koding/ec2dynamicdata"
