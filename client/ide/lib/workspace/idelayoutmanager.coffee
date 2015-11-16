@@ -341,20 +341,25 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {Array} collection
    * @param {*} view
   ###
-  splitViewExplorer_: (collection, view) ->
+  _splitViewExplorer: (collection, view) ->
 
     collection.push view  if view instanceof KDSplitView
 
     for item in view.getSubViews()
-      @splitViewExplorer_ collection, item
+      @_splitViewExplorer collection, item
 
 
+  ###*
+   * Find all split views which attached to DOM
+   *
+   * @param {Array} collection
+  ###
   findAllSplitViews: ->
 
     firstSplitView  = @getBaseSplitView().getFirstSplitView()
     collection      = []
 
-    @splitViewExplorer_ collection, firstSplitView
+    @_splitViewExplorer collection, firstSplitView
 
     return collection
 
