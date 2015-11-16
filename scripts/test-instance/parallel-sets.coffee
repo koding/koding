@@ -72,13 +72,13 @@ module.exports = [
   ]
 
   [
-    { name : 'collaboration collaboration' }
+    # { name : 'collaboration collaboration' }
     { name : 'environments snapshot' }
   ]
 
-  [
-    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  ]
+  # [
+  #   { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  # ]
 
   [
     { name : 'environments vm' }
