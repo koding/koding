@@ -853,8 +853,8 @@ module.exports = CollaborationController =
 
     @broadcastMessage { type: 'SessionEnded' }
 
-    # Simply put this timeout implementation was improved to prevent to clear race condition.
-    # If you want to receive further information about this, you can visit the this PR
+    # Simply put, this timeout implementation was improved to prevent to clear race condition.
+    # If you want to receive further information about this, you can visit the PR
     # https://github.com/koding/IDE/pull/499
     kd.utils.wait 2000, =>
 
