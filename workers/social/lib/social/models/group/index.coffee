@@ -968,8 +968,8 @@ module.exports = class JGroup extends Module
 
   modify: permit
     advanced : [
-      { permission: 'edit own groups', validateWith: Validators.own }
-      { permission: 'edit groups' }
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
     ]
     success : (client, formData, callback) ->
       # do not allow people to change there slugs
