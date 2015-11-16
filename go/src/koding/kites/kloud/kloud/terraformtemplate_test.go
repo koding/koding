@@ -192,6 +192,38 @@ func TestTerraformTemplate_DecodeProvider(t *testing.T) {
 	equals(t, "${var.aws_region}", provider.Aws.Region)
 }
 
+func TestTerraformTemplate_ShadowVariables(t *testing.T) {
+	userTestTemplate := `{
+    "provider": {
+        "aws": {
+            "access_key": "${var.aws_access_key}",
+            "secret_key": "${var.aws_secret_key}",
+            "region": "${var.aws_region}"
+        }
+    },
+    "resource": {
+        "aws_instance": {
+            "example": {
+				"bar": "${var.aws_access_key}",
+                "instance_type": "t2.micro",
+                "user_data": "Echo ${var.aws_secret_key}"
+            }
+        }
+    }
+}`
+	template, err := newTerraformTemplate(userTestTemplate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = template.shadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(template)
+}
+
 func TestTerraformTemplate_DetectUserVariables(t *testing.T) {
 	userTestTemplate := `{
     "variable": {

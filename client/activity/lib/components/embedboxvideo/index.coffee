@@ -1,5 +1,6 @@
 kd             = require 'kd'
 React          = require 'kd-react'
+ReactDOM       = require 'react-dom'
 Encoder        = require 'htmlencode'
 getEmbedSize   = require 'activity/util/getEmbedSize'
 eventEmitter   = require 'app/mixins/eventemitter'
@@ -39,7 +40,7 @@ module.exports = class EmbedBoxVideo extends React.Component
 
   componentDidMount: ->
 
-    element   = React.findDOMNode @refs.video
+    element   = ReactDOM.findDOMNode @refs.video
     { media } = @props.data.link_embed
     return  unless media
 
@@ -63,7 +64,7 @@ module.exports = class EmbedBoxVideo extends React.Component
 
   _getParentNodeWidth: ->
 
-    { parentNode } = React.findDOMNode @refs.video
+    { parentNode } = ReactDOM.findDOMNode @refs.video
     style          = window.getComputedStyle parentNode
     width          = parseInt (style.getPropertyValue 'width'), 10
 
