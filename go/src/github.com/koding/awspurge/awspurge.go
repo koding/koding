@@ -165,10 +165,21 @@ func (p *Purge) Fetch() error {
 
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
+	// EC2
 	p.DeleteInstances()
 	p.DeleteVolumes()
 	p.DeleteKeyPairs()
 	p.DeletePlacementGroups()
 	p.DeleteAddresses()
+	p.DeleteSnapshots()
+	p.DeleteLoadBalancers()
+
+	// VPC
+	p.DeleteVPCs()
+	p.DeleteSubnets()
+	p.DeleteSecurityGroups()
+	p.DeleteNetworkAcls()
+	p.DeleteInternetGateways()
+	p.DeleteRouteTables()
 	return nil
 }
