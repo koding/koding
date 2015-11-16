@@ -900,7 +900,7 @@ class IDEAppController extends AppController
     value     = @getLayoutSizeData()
 
     @writeToKiteStorage key, value
-    @emit 'LayoutSizeChangesSaved' # TODO: Naming.
+    @emit 'LayoutSizesSaved'
 
 
   fetchLayoutSize: (callback, username = nick()) ->
