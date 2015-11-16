@@ -857,16 +857,16 @@ module.exports = CollaborationController =
 
       fileName = @getRealtimeFileName()
 
-      realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
+      realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) ->
         throwError err  if err
 
-      @setMachineSharingStatus off, (err) =>
+      @setMachineSharingStatus off, (err) ->
         throwError err  if err
 
-      socialHelpers.destroyChannel @socialChannel, (err) =>
+      socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
 
-      envHelpers.detachSocialChannel @workspaceData, (err) =>
+      envHelpers.detachSocialChannel @workspaceData, (err) ->
         throwError err  if err
 
       callback()
