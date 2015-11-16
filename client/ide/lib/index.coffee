@@ -1269,6 +1269,9 @@ class IDEAppController extends AppController
   getWorkspaceSnapshot: -> @layoutManager.createLayoutData()
 
 
+  getLayoutSizeData: -> @layoutManager.createLayoutSizeData()
+
+
   changeActiveTabView: (paneType) ->
 
     if paneType is 'terminal'
