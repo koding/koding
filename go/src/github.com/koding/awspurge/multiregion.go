@@ -1,7 +1,8 @@
 package awspurge
 
 import (
-	awsclient "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
 )
@@ -27,15 +28,17 @@ type multiRegion struct {
 	elb map[string]*elb.ELB
 }
 
-func newMultiRegion(conf *awsclient.Config, regions []string) *multiRegion {
+func newMultiRegion(conf *aws.Config, regions []string) *multiRegion {
 	m := &multiRegion{
 		ec2: make(map[string]*ec2.EC2, 0),
 		elb: make(map[string]*elb.ELB, 0),
 	}
 
 	for _, region := range regions {
-		m.ec2[region] = ec2.New(conf.Merge(&awsclient.Config{Region: awsclient.String(region)}))
-		m.elb[region] = elb.New(conf.Merge(&awsclient.Config{Region: awsclient.String(region)}))
+		conf.MergeIn(&aws.Config{Region: aws.String(region)})
+
+		m.ec2[region] = ec2.New(session.New(), conf)
+		m.elb[region] = elb.New(session.New(), conf)
 	}
 
 	return m
