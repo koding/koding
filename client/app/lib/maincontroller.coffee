@@ -41,7 +41,6 @@ PaymentController        = require './payment/paymentcontroller'
 RealtimeController       = require './realtimecontroller'
 SearchController         = require './searchcontroller'
 SocialApiController      = require './socialapicontroller'
-WelcomeModal             = require './welcomemodal'
 WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
 ShortcutsController      = require './shortcutscontroller'
@@ -81,8 +80,6 @@ module.exports           = class MainController extends KDController
     @detectIdleUser()
     @startCachingAssets()  unless globals.isLoggedInOnLoad
 
-    @welcomeUser()
-
     emojify?.setConfig
       img_dir      : 'https://s3.amazonaws.com/koding-cdn/emojis'
       ignored_tags :
@@ -90,28 +87,6 @@ module.exports           = class MainController extends KDController
         'A'        : 1,
         'PRE'      : 1,
         'CODE'     : 1
-
-  welcomeUser : ->
-
-    return unless isLoggedIn()
-
-    {appStorageController} = kd.singletons
-    storage                = appStorageController.storage 'WelcomeModal', '1.0.0'
-
-    storage.fetchStorage (_storage) =>
-
-      return if storage.getValue('shownBefore')
-
-      account = whoami()
-
-      registrationDate = new Date(account.meta.createdAt)
-      releaseDate      = new Date("Oct 02 2014")
-
-      if registrationDate < releaseDate
-
-        storage.setValue 'shownBefore', 'true'
-
-        return new WelcomeModal
 
 
   createSingletons:->

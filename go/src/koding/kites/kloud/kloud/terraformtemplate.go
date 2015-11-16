@@ -180,7 +180,7 @@ func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error
 			continue
 		}
 
-		item.Val = ast.Rewrite(item.Val, func(n ast.Node) ast.Node {
+		item.Val = ast.Walk(item.Val, func(n ast.Node) (ast.Node, bool) {
 			switch t := n.(type) {
 			case *ast.LiteralType:
 				for _, v := range vars {
@@ -190,15 +190,7 @@ func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error
 
 				n = t
 			}
-			return n
-		})
-
-		ast.Walk(item.Val, func(n ast.Node) bool {
-			switch t := n.(type) {
-			case *ast.LiteralType:
-				fmt.Printf("t.Token.Text = %+v\n", t.Token.Text)
-			}
-			return true
+			return n, true
 		})
 
 		t.node.Items[i] = item
