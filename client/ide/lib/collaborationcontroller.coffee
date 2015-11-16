@@ -853,21 +853,26 @@ module.exports = CollaborationController =
 
     @broadcastMessage { type: 'SessionEnded' }
 
-    fileName = @getRealtimeFileName()
+    # Simply put, this timeout implementation was improved to prevent to clear race condition.
+    # If you want to receive further information about this, you can visit the PR
+    # https://github.com/koding/IDE/pull/499
+    kd.utils.wait 2000, =>
 
-    realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
-      throwError err  if err
+      fileName = @getRealtimeFileName()
 
-    @setMachineSharingStatus off, (err) =>
-      throwError err  if err
+      realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) ->
+        throwError err  if err
 
-    socialHelpers.destroyChannel @socialChannel, (err) =>
-      throwError err  if err
+      @setMachineSharingStatus off, (err) ->
+        throwError err  if err
 
-    envHelpers.detachSocialChannel @workspaceData, (err) =>
-      throwError err  if err
+      socialHelpers.destroyChannel @socialChannel, (err) ->
+        throwError err  if err
 
-    callback()
+      envHelpers.detachSocialChannel @workspaceData, (err) ->
+        throwError err  if err
+
+      callback()
 
 
   handleCollaborationEndedForHost: ->
