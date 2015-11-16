@@ -1,10 +1,10 @@
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
-Portal                            = require 'react-portal'
+ReactDOM                          = require 'react-dom'
+Portal                            = require('react-portal').default
 Avatar                            = require 'app/components/profile/avatar'
 AppFlux                           = require 'app/flux'
-TextArea                          = require 'react-autosize-textarea'
 classnames                        = require 'classnames'
 KeyboardKeys                      = require 'app/util/keyboardKeys'
 ActivityFlux                      = require 'activity/flux'
@@ -39,7 +39,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   componentDidMount: ->
 
-    channelNameInput = React.findDOMNode @refs.channelNameInput
+    channelNameInput = ReactDOM.findDOMNode @refs.channelNameInput
     channelNameInput.focus()
 
 
@@ -85,13 +85,13 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
 
   getModalProps: ->
-    isOpen             : yes
-    title              : 'Create Channel'
-    className          : 'CreateChannel-Modal'
-    buttonConfirmTitle : 'CREATE'
-    onConfirm          : @bound 'createChannel'
-    onClose            : @bound 'onClose'
-    onAbort            : @bound 'onClose'
+    isOpen                : yes
+    title                 : 'Create Channel'
+    className             : 'CreateChannel-Modal'
+    buttonConfirmTitle    : 'CREATE'
+    onConfirm             : @bound 'createChannel'
+    onClose               : @bound 'onClose'
+    onAbort               : @bound 'onClose'
 
 
   setName: (event) ->
@@ -107,7 +107,9 @@ module.exports = class CreatePublicChannelModal extends React.Component
     @setState purpose: event.target.value
 
 
-  onClose: ->
+  onClose: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     return  unless @state.selectedThread
     return  if @_isCreating
@@ -148,7 +150,9 @@ module.exports = class CreatePublicChannelModal extends React.Component
     return no
 
 
-  createChannel: ->
+  createChannel: (event) ->
+
+    kd.utils.stopDOMEvent event
 
     return  unless @validateForm()
 
@@ -234,7 +238,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   focusOnParticipantsInput: ->
 
-    element = React.findDOMNode @refs.textInput
+    element = ReactDOM.findDOMNode @refs.textInput
     element.focus()
 
 
@@ -287,7 +291,6 @@ module.exports = class CreatePublicChannelModal extends React.Component
         placeholder = { @state.placeholder }
         value       = { @state.query }
         ref         = 'textInput'
-        tabIndex    = 3
         className   = {'Reactivity-input'}
       />
       {@renderAddNewChannelParticipantsDropdown()}
@@ -319,7 +322,6 @@ module.exports = class CreatePublicChannelModal extends React.Component
         <div className={@getNameFieldClassnames()}>
           <label className='Reactivity-label channelName'>Name</label>
           <input
-            tabIndex=1
             ref='channelNameInput'
             autoFocus=yes
             maxlength='20'
@@ -336,7 +338,7 @@ module.exports = class CreatePublicChannelModal extends React.Component
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input tabIndex=2 className='Reactivity-input'value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input className='Reactivity-input'value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             Give your channel a purpose that describes what it will be used for.
           </span>

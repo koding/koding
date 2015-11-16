@@ -125,19 +125,22 @@ class ShortcutsController extends events.EventEmitter
     buffer = _.clone @_buffer, yes
     @_flushBuffer()
 
+    appId = @_store._applicationID
+
     # Transform it, so we can extend the remote object.
     pack =
       _
         .reduce buffer, (sum, collection, key) ->
           return collection.reduce (acc, model) ->
             name = model.name.replace /\./g, '$' # safety first
-            acc["#{AppStorage.DEFAULT_GROUP_NAME}.#{key}.#{name}"] = model
+            acc["#{AppStorage.DEFAULT_GROUP_NAME}.#{appId}.data.#{key}.#{name}"] = model
             return acc
           , sum
         , {}
 
     # So we extend the remote object.
-    @_store._storage.update $set: pack, =>
+    query = { $set: pack }
+    @_store._storage.upsert appId, { query }, =>
 
       # And make sure everybody is aware of the changes we've just made.
       _.each buffer, (objs, collectionName) =>
@@ -159,10 +162,12 @@ class ShortcutsController extends events.EventEmitter
     unless @_store.isReady
       throw 'store is not ready'
 
-    pack = {}
-    pack[AppStorage.DEFAULT_GROUP_NAME] = 1
+    appId = @_store._applicationID
+    pack  = {}
+    pack["#{AppStorage.DEFAULT_GROUP_NAME}.#{appId}.data"] = 1
+    query = { $unset : pack }
 
-    @_store._storage.update $unset: pack, =>
+    @_store._storage.upsert appId, { query }, =>
 
       # Remove change listeners, so we won't try to persist following changes.
       # XXX: use component-bind, bound or whatever instead
@@ -222,7 +227,8 @@ class ShortcutsController extends events.EventEmitter
   #
   _handleStoreReady: ->
 
-    overrides = @_store._storage[AppStorage.DEFAULT_GROUP_NAME]
+    appId     = @_store._applicationID
+    overrides = @_store._storage[AppStorage.DEFAULT_GROUP_NAME][appId]?.data ? []
 
     _.each overrides, (objs, collectionName) =>
       collection = @shortcuts.get collectionName

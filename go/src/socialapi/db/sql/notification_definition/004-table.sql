@@ -71,8 +71,8 @@ CREATE TABLE IF NOT EXISTS "notification"."notification_setting"  (
     "account_id" BIGINT NOT NULL,
     "desktop_setting" "notification"."notification_setting_status_constant_enum",
     "mobile_setting" "notification"."notification_setting_status_constant_enum",
-    "is_muted" BOOLEAN NOT NULL DEFAULT FALSE,
-    "is_suppressed" BOOLEAN NOT NULL DEFAULT FALSE,
+    "is_muted" BOOLEAN DEFAULT NULL,
+    "is_suppressed" BOOLEAN DEFAULT NULL,
     "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     "updated_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
 ) WITH (OIDS = FALSE);

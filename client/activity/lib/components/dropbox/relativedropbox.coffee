@@ -1,6 +1,7 @@
 $            = require 'jquery'
 kd           = require 'kd'
 React        = require 'kd-react'
+ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
 Dropbox      = require './dropboxbody'
 KeyboardKeys = require 'app/util/keyboardKeys'
@@ -24,7 +25,7 @@ module.exports = class RelativeDropbox extends React.Component
     return  unless @props.visible
     return  unless @props.direction is 'up'
 
-    dropbox = $ React.findDOMNode @refs.dropbox
+    dropbox = $ ReactDOM.findDOMNode @refs.dropbox
     dropbox.css top : -element.outerHeight()
 
 
@@ -38,7 +39,7 @@ module.exports = class RelativeDropbox extends React.Component
     return  unless visible
 
     { target } = event
-    dropbox    = React.findDOMNode this
+    dropbox    = ReactDOM.findDOMNode this
     innerClick = $.contains dropbox, target
 
     onClose?()  unless innerClick

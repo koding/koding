@@ -137,7 +137,6 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] ECS service created: %s", *service.ServiceArn)
 	d.SetId(*service.ServiceArn)
-	d.Set("cluster", *service.ClusterArn)
 
 	return resourceAwsEcsServiceUpdate(d, meta)
 }
@@ -161,6 +160,14 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	service := out.Services[0]
+
+	// Status==INACTIVE means deleted service
+	if *service.Status == "INACTIVE" {
+		log.Printf("[DEBUG] Removing ECS service %q because it's INACTIVE", service.ServiceArn)
+		d.SetId("")
+		return nil
+	}
+
 	log.Printf("[DEBUG] Received ECS service %s", service)
 
 	d.SetId(*service.ServiceArn)
@@ -175,14 +182,21 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("desired_count", *service.DesiredCount)
-	d.Set("cluster", *service.ClusterArn)
+
+	// Save cluster in the same format
+	if strings.HasPrefix(d.Get("cluster").(string), "arn:aws:ecs:") {
+		d.Set("cluster", *service.ClusterArn)
+	} else {
+		clusterARN := getNameFromARN(*service.ClusterArn)
+		d.Set("cluster", clusterARN)
+	}
 
 	// Save IAM role in the same format
 	if service.RoleArn != nil {
 		if strings.HasPrefix(d.Get("iam_role").(string), "arn:aws:iam:") {
 			d.Set("iam_role", *service.RoleArn)
 		} else {
-			roleARN := buildIamRoleNameFromARN(*service.RoleArn)
+			roleARN := getNameFromARN(*service.RoleArn)
 			d.Set("iam_role", roleARN)
 		}
 	}
@@ -306,8 +320,10 @@ func buildFamilyAndRevisionFromARN(arn string) string {
 	return strings.Split(arn, "/")[1]
 }
 
-func buildIamRoleNameFromARN(arn string) string {
-	// arn:aws:iam::0123456789:role/EcsService
+// Expects the following ARNs:
+// arn:aws:iam::0123456789:role/EcsService
+// arn:aws:ecs:us-west-2:0123456789:cluster/radek-cluster
+func getNameFromARN(arn string) string {
 	return strings.Split(arn, "/")[1]
 }
 

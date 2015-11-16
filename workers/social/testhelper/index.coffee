@@ -1,6 +1,7 @@
 _                       = require 'underscore'
 hat                     = require 'hat'
 JUser                   = require '../lib/social/models/user'
+JGroup                  = require '../lib/social/models/group'
 JAccount                = require '../lib/social/models/account'
 JSession                = require '../lib/social/models/session'
 Bongo                   = require 'bongo'
@@ -19,7 +20,7 @@ checkBongoConnectivity = (callback) ->
   bongo = new Bongo
     root   : __dirname
     mongo  : mongo
-    models : ''
+    models :  '../lib/social/models'
 
   bongo.once 'dbClientReady', ->
     callback()
@@ -67,11 +68,12 @@ generateDummyClient = (context, callback) ->
 withDummyClient = (context, callback) ->
 
   [context, callback] = [callback, context]  unless callback
-  context         ?= { group : 'koding' }
+  context            ?= { group : 'koding' }
 
   generateDummyClient context, (err, client) ->
     expect(err).to.not.exist
-    callback { client }
+    account = client.connection?.delegate
+    callback { client, account }
 
 
 withConvertedUser = (opts, callback) ->
@@ -89,9 +91,28 @@ withConvertedUser = (opts, callback) ->
       client.sessionToken         = newToken
       client.connection.delegate  = account
 
-      if opts?.userFormData?
-      then callback { client, user, account, sessionToken : newToken }
-      else callback { client, user, account, sessionToken : newToken, userFormData }
+      fetchGroup client, (group) ->
+        if opts?.userFormData?
+        then callback { client, user, account, group, sessionToken : newToken }
+        else callback { client, user, account, group, sessionToken : newToken, userFormData }
+
+
+withCreatedUser = (opts, callback) ->
+
+  [opts, callback] = [callback, opts]  unless callback
+
+  user     = {}
+  account  = {}
+  userInfo = _.extend generateUserInfo(), opts
+
+  withDummyClient opts, ({ client }) ->
+
+    JUser.createUser userInfo, (err, user_, account_) ->
+      expect(err).to.not.exist
+      [user, account] = [user_, account_]
+
+      fetchGroup client, (group) ->
+        callback { client, user, account, group }
 
 
 generateDummyUserFormData = (opts = {}) ->
@@ -177,6 +198,13 @@ fetchRelation = (options, callback) ->
     callback relationship
 
 
+fetchGroup = (client, callback) ->
+
+  JGroup.one { slug : client?.context?.group }, (err, group) ->
+    expect(err).to.not.exist
+    callback group
+
+
 expectRelation = {
 
   toExist : (options, callback) ->
@@ -196,9 +224,12 @@ module.exports = {
   _
   daisy
   expect
+  KONFIG
   ObjectId
+  fetchGroup
   expectRelation
   withDummyClient
+  withCreatedUser
   generateUserInfo
   withConvertedUser
   expectAccessDenied

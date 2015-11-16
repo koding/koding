@@ -60,7 +60,4 @@ module.exports = class JGroupRole extends Module
       unless count is @defaultRoles.length
         createDefaultRolesHelper callback
       else
-        callback new KodingError 'Default group roles are already created.'
-
-
-
+        callback { message: 'Default group roles are already created.' }

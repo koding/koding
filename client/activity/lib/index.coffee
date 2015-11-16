@@ -1,15 +1,16 @@
-kd                   = require 'kd'
-ActivityAppView      = require './activityappview'
-ActivityFlux         = require 'activity/flux'
-remote               = require('app/remote').getInstance()
-globals              = require 'globals'
-getGroup             = require 'app/util/getGroup'
-checkFlag            = require 'app/util/checkFlag'
-isKoding             = require 'app/util/isKoding'
-AppStorage           = require 'app/appstorage'
-AppController        = require 'app/appcontroller'
-KodingAppsController = require 'app/kodingappscontroller'
-keyboardKeys = require 'app/util/keyboardKeys'
+kd                       = require 'kd'
+ActivityAppView          = require './activityappview'
+ActivityFlux             = require 'activity/flux'
+remote                   = require('app/remote').getInstance()
+globals                  = require 'globals'
+getGroup                 = require 'app/util/getGroup'
+checkFlag                = require 'app/util/checkFlag'
+isKoding                 = require 'app/util/isKoding'
+AppStorage               = require 'app/appstorage'
+AppController            = require 'app/appcontroller'
+KodingAppsController     = require 'app/kodingappscontroller'
+keyboardKeys             = require 'app/util/keyboardKeys'
+NotificationSettingsFlux = require 'activity/flux/channelnotificationsettings'
 
 require('./routehandler')()
 
@@ -28,12 +29,21 @@ module.exports = class ActivityAppController extends AppController
 
     super options
 
-    {appStorageController} = kd.singletons
+    {appStorageController, appManager} = kd.singletons
+
+    unless isKoding()
+      appManager.on 'FrontAppIsChanged', (currentApp, oldApp) =>
+        if currentApp isnt oldApp and oldApp is this
+          {thread, message} = ActivityFlux.actions
+          thread.changeSelectedThread null
+          message.changeSelectedMessage null
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
     helper.loadFonts()
     helper.loadEmojiStyles()
+
+    NotificationSettingsFlux.actions.channel.loadGlobal()
 
 
   post: (options = {}, callback = noop) ->

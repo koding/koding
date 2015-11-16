@@ -746,7 +746,7 @@ paymentGrayLighter  = #f8f8f8
       text-align        center
 
       span.title
-        font-weight     600
+        font-family     SoleilFamily
         color           paymentGreen
         line-height     34px
         margin          0 0 6px
@@ -2119,7 +2119,7 @@ paymentGrayLighter  = #f8f8f8
     r-sprite                'app', 'red-close'
     display                 inline-block
     top                     14px
-    right                   0
+    right                   15px
     display                 none
     abs()
     pointer()
@@ -2158,6 +2158,25 @@ paymentGrayLighter  = #f8f8f8
   border-top                none
   margin-top                -1px !important
 
+
+.machine-settings-modal
+  .AppModal-content
+    &.vm-sharing
+      overflow              hidden
+
+      .listview-wrapper
+        height              calc(100% \- 40px)
+
+      .kdcustomscrollview
+        styleScrollBars     rgba(0,0,0,.15)
+
+        .kdscrolltrack
+
+          &.vertical
+            right           0
+
+          &.horizontal
+            hidden()
 
 .machine-settings-modal .snapshots
   .no-item

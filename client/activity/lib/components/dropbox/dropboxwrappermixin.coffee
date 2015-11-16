@@ -1,4 +1,5 @@
 React          = require 'kd-react'
+ReactDOM       = require 'react-dom'
 scrollToTarget = require 'app/util/scrollToTarget'
 
 
@@ -29,7 +30,7 @@ module.exports = DropboxWrapperMixin =
     return  if visible? and not visible
 
     containerElement = @refs.dropbox.getContentElement()
-    itemElement      = React.findDOMNode @refs[@getItemKey selectedItem]
+    itemElement      = ReactDOM.findDOMNode @refs[@getItemKey selectedItem]
 
     scrollToTarget containerElement, itemElement
 

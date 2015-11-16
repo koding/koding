@@ -3,14 +3,15 @@ package kloud
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/fatih/structs"
-	hclmain "github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl"
-	hcljson "github.com/hashicorp/hcl/json"
+	"github.com/hashicorp/hcl"
+	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/hcl/json/parser"
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/config/lang"
 )
@@ -21,7 +22,7 @@ type terraformTemplate struct {
 	Variable map[string]interface{} `json:"variable,omitempty"`
 	Output   map[string]interface{} `json:"output,omitempty"`
 
-	h *hcl.Object `json:"-"`
+	node *ast.ObjectList `json:"-"`
 }
 
 // newTerraformTemplate parses the content and returns a terraformTemplate
@@ -49,9 +50,18 @@ func newTerraformTemplate(content string) (*terraformTemplate, error) {
 // hclParse parses the given JSON input and updates the internal hcl object
 // representation
 func (t *terraformTemplate) hclParse(jsonIn string) error {
-	var err error
-	t.h, err = hcljson.Parse(jsonIn)
-	return err
+	file, err := parser.Parse([]byte(jsonIn))
+	if err != nil {
+		return err
+	}
+
+	if node, ok := file.Node.(*ast.ObjectList); ok {
+		t.node = node
+	} else {
+		return errors.New("template should be of type objectList")
+	}
+
+	return nil
 }
 
 // hclUpdate update the internal hcl object
@@ -80,8 +90,8 @@ func (t *terraformTemplate) DecodeVariable(out interface{}) error {
 }
 
 func (t *terraformTemplate) decode(resource string, out interface{}) error {
-	obj := t.h.Get(resource, true)
-	return hclmain.DecodeObject(out, obj)
+	obj := t.node.Filter(resource)
+	return hcl.DecodeObject(out, obj)
 }
 
 func (t *terraformTemplate) String() string {
@@ -95,7 +105,7 @@ func (t *terraformTemplate) String() string {
 
 // jsonOutput returns a JSON formatted output of the template
 func (t *terraformTemplate) jsonOutput() (string, error) {
-	out, err := json.MarshalIndent(t, "", "  ")
+	out, err := json.MarshalIndent(&t, "", "  ")
 	if err != nil {
 		return "", err
 	}
@@ -133,7 +143,6 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// filter out duplicates
 	set := make(map[string]bool, 0)
 	for _, v := range vars {
@@ -155,6 +164,47 @@ func (t *terraformTemplate) detectUserVariables() ([]string, error) {
 	}
 
 	return userVars, nil
+}
+
+// shadowVariables shadows the given variables with the given holder. Variables
+// need to be in interpolation form, i.e: ${var.foo}
+func (t *terraformTemplate) shadowVariables(holder string, vars ...string) error {
+	for i, item := range t.node.Items {
+		key := item.Keys[0].Token.Text
+		switch key {
+		case "resource", `"resource"`:
+			// check for both, quoted and unquoted
+		default:
+			// We are going to shadow any variable inside the resource,
+			// anything else doesn't matter.
+			continue
+		}
+
+		item.Val = ast.Rewrite(item.Val, func(n ast.Node) ast.Node {
+			switch t := n.(type) {
+			case *ast.LiteralType:
+				for _, v := range vars {
+					iVar := fmt.Sprintf(`${var.%s}`, v)
+					t.Token.Text = strings.Replace(t.Token.Text, iVar, holder, -1)
+				}
+
+				n = t
+			}
+			return n
+		})
+
+		ast.Walk(item.Val, func(n ast.Node) bool {
+			switch t := n.(type) {
+			case *ast.LiteralType:
+				fmt.Printf("t.Token.Text = %+v\n", t.Token.Text)
+			}
+			return true
+		})
+
+		t.node.Items[i] = item
+	}
+
+	return hcl.DecodeObject(&t.Resource, t.node.Filter("resource"))
 }
 
 func (t *terraformTemplate) setAwsRegion(region string) error {

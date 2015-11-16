@@ -1,54 +1,26 @@
-kd                       = require 'kd'
-React                    = require 'kd-react'
-PublicChatPane           = require 'activity/components/publicchatpane'
-PublicFeedPane           = require 'activity/components/publicfeedpane'
-ChannelThreadPane        = require 'activity/components/channelthreadpane'
-PostPane                 = require 'activity/components/postpane'
-PrivateMessageThreadPane = require 'activity/components/privatemessagethreadpane'
-CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
-CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
-BrowsePublicChannelsModal = require 'activity/components/browsepublicchannelsmodal'
-BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsmodal'
-
-ActivityAppComponent = require 'activity/components/appcomponent'
+React                     = require 'kd-react'
+ActivityAppComponent      = require 'activity/components/appcomponent'
+SingleChannelRoute        = require 'activity/routes/singlepublicchannel'
+SinglePrivateMessageRoute = require 'activity/routes/singleprivatechannel'
 
 module.exports = [
   path: '/Channels'
   component: ActivityAppComponent
   childRoutes: [
-    path: 'New'
-    components:
-      content: ChannelThreadPane
-      modal: CreatePublicChannelModal
-  ,
-    path: 'All'
-    components:
-      content: ChannelThreadPane
-      modal: BrowsePublicChannelsModal
-  ,
-    path: ':channelName(/:postId)'
-    components:
-      content: ChannelThreadPane
-      modal: null
+    new SingleChannelRoute
   ]
+  onLeave: -> cleanSelectedThreads()
 ,
   path: '/Messages'
   component: ActivityAppComponent
   childRoutes: [
-    path: 'New'
-    components:
-      content: PrivateMessageThreadPane
-      modal: CreatePrivateChannelModal
-  ,
-    path: 'All'
-    components:
-      content: PrivateMessageThreadPane
-      modal: BrowsePrivateChannelsModal
-  ,
-    path: ':privateChannelId(/:postId)'
-    components:
-      content: PrivateMessageThreadPane
-      modal: null
+    new SinglePrivateMessageRoute
   ]
+  onLeave: -> cleanSelectedThreads()
 ]
+
+cleanSelectedThreads = ->
+  { thread, message } = require('activity/flux').actions
+  threadActions.changeSelectedThread null
+  messageActions.changeSelectedMessage null
 

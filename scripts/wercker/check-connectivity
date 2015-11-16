@@ -2,11 +2,20 @@
 
 INSTANCE_DATA_FILE=$1
 
+FAILING_INSTANCES_DATA_FILE=$(mktemp)
+
 SCRIPTS=$(dirname $0)/..
 
-function terminate_instance () {
-  INSTANCE_ID=$1
-  $SCRIPTS/test-instance/terminate $INSTANCE_ID
+function terminate_failing_instances () {
+  INSTANCES=$(cat $FAILING_INSTANCES_DATA_FILE)
+
+  if [ -z "$INSTANCES" ]; then
+    return 0
+  fi
+
+  INSTANCE_IDS=$(cat $FAILING_INSTANCES_DATA_FILE | awk '{print $1}')
+  $SCRIPTS/wercker/upload-logs $FAILING_INSTANCES_DATA_FILE
+  echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate
 }
 
 function check () {
@@ -18,19 +27,17 @@ function check () {
   INTERVAL=$3
   TRY_COUNT=$4
 
-  echo -en "$HOST:$PORT\t\t"
   $SCRIPTS/test-instance/check-connectivity $HOST $PORT $INTERVAL $TRY_COUNT
   EXIT_CODE=$?
 
   if [ $EXIT_CODE -ne 0 ]; then
-    terminate_instance $INSTANCE_ID
+    echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
   fi
 
   return $EXIT_CODE
 }
 
 function health_check () {
-  echo -n "Health check $INSTANCE "
   INSTANCE=$1
   HOST=$(echo $INSTANCE | awk '{print $2}')
   OUTPUT=$(curl --silent --dump-header /dev/stdout "http://$HOST:8090/-/healthCheck")
@@ -38,11 +45,10 @@ function health_check () {
   STATUS_LINE=$(echo "$STATUS_LINE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
   if [ "$STATUS_LINE" != "HTTP/1.1 200 OK" ]; then
-    echo 'NOT OK'
+    echo "$INSTANCE fails health check"
     return 1
   fi
 
-  echo 'OK'
   return 0
 }
 
@@ -52,29 +58,34 @@ INSTANCES=$(cat $INSTANCE_DATA_FILE)
 truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
-  check $INSTANCE 8090 1m 5 || continue # nginx
-  check $INSTANCE 42424 1m 5 || continue # selenium-server
-  echo $INSTANCE >> $INSTANCE_DATA_FILE
-  echo
+  (
+    check $INSTANCE  8090 1m 5 || continue # nginx
+    check $INSTANCE 42424 1m 5 || continue # selenium-server
+
+    if health_check $INSTANCE; then
+      echo $INSTANCE >> $INSTANCE_DATA_FILE
+    else
+      echo $INSTANCE >> $FAILING_INSTANCES_DATA_FILE
+    fi
+  ) &
 done
 
-INSTANCES=$(cat $INSTANCE_DATA_FILE)
-truncate --size 0 $INSTANCE_DATA_FILE
+wait
 
-for INSTANCE in $INSTANCES; do
-  health_check $INSTANCE || continue
-  echo $INSTANCE >> $INSTANCE_DATA_FILE
-done
+terminate_failing_instances
+
+INSTANCE_COUNT=$(cat $INSTANCE_DATA_FILE | wc -l)
+
+if [ $INSTANCE_COUNT -eq 0 ]; then
+  echo "error: no instance found"
+  exit 1
+fi
 
 INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
 
 if [ -z "$INSTANCE_IDS" ]; then
-  exit 1
-fi
-
-INSTANCE_COUNT=$(echo $INSTANCE_IDS | wc -l)
-
-if [ $INSTANCE_COUNT -eq 0 ]; then
+  echo "error: instance data file is malformed"
+  cat $INSTANCE_DATA_FILE
   exit 1
 fi
 

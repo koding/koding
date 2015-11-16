@@ -142,7 +142,7 @@ fetchAllGithubRepos = (callback) ->
   fetch = ->
     _options =
       method     : "repos.getAll"
-      pluck      : ['full_name']
+      pluck      : ['full_name', 'permissions.admin']
       options    :
         per_page : 100
         page     : page
@@ -205,8 +205,13 @@ fetchConfigureData = (options, callback) ->
         data.isAuthorized = isAuthorized
 
         if integration.name is 'github'
-          fetchAllGithubRepos (err, repositories) =>
-            return callback err  if err
+          fetchAllGithubRepos (err, repositories) ->
+            if err
+              if err.code is 401
+                data.isAuthorized = no
+                return callback null, data
+              else
+                return callback err
             data.repositories = repositories
             data.selectedRepository = channelIntegration.settings?.repository
             callback null, data

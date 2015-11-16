@@ -13,7 +13,6 @@ module.exports = class JGroup extends Module
   { permit }     = JPermissionSet
 
   JAccount     = require '../account'
-  JPaymentPack = require '../payment/pack'
 
   KodingError    = require '../../error'
   Validators     = require './validators'
@@ -231,8 +230,6 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         remove:
           (signature Function)
-        makePayment:
-          (signature Object, Function)
         addSubscription:
           (signature String, Function)
         fetchSubscription:
@@ -282,9 +279,6 @@ module.exports = class JGroup extends Module
         coverPhoto  : String
         logo        : String
         default     : -> return {}
-      payment       :
-        plan        : String
-        paymentQuota: Number
       disabledFeatures: Object
       # BEWARE: if anyone needs to put a default value here in stackTemplates field
       # it would break the onboarding process of showing the initial stacks not
@@ -314,9 +308,6 @@ module.exports = class JGroup extends Module
       JCredential = require '../computeproviders/credential'
 
       return {
-        bundle        :
-          targetType  : 'JGroupBundle'
-          as          : 'owner'
         permissionSet :
           targetType  : JPermissionSet
           as          : 'permset'
@@ -353,21 +344,6 @@ module.exports = class JGroup extends Module
         invitation:
           targetType  : 'JInvitation'
           as          : 'owner'
-        paymentMethod :
-          targetType  : 'JPaymentMethod'
-          as          : 'linked payment method'
-        product       :
-          targetType  : 'JPaymentProduct'
-          as          : 'product'
-        pack          :
-          targetType  : 'JPaymentPack'
-          as          : 'product pack'
-        plan          :
-          targetType  : 'JPaymentPlan'
-          as          : 'group plan'
-        subscription  :
-          targetType  : 'JPaymentSubscription'
-          as          : 'payment plan subscription'
         credential    :
           as          : ['owner', 'user']
           targetType  : JCredential
@@ -1399,13 +1375,7 @@ module.exports = class JGroup extends Module
     @each selector, options, callback
 
 
-  addSubscription$: permit 'edit own groups',
-    success: (client, id, callback) ->
-      JPaymentSubscription = require '../payment/subscription'
-      JPaymentSubscription.one { _id: id }, (err, subscription) =>
-        @addSubscription subscription, callback
-
-  fetchPermissionSetOrDefault : (callback) ->
+  fetchPermissionSetOrDefault: (callback) ->
     @fetchPermissionSet (err, permissionSet) =>
       callback err, null if err
       if permissionSet

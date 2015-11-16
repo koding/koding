@@ -19,13 +19,16 @@ module.exports = (options = {}, callback) ->
         code    : xhr.status
       }
 
-    try
-      response = JSON.parse xhr.responseText
-    catch e
-      return callback {
-        message : "invalid json: could not parse response"
-        code    : xhr.status
-      }
+    if xhr.status is 202
+      response = { status: xhr.status }
+    else
+      try
+        response = JSON.parse xhr.responseText
+      catch e
+        return callback {
+          message : "invalid json: could not parse response"
+          code    : xhr.status
+        }
 
 
     # >=300 - http errors

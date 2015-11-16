@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"koding/tools/config"
-	"koding/tools/slog"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -40,12 +40,12 @@ func CreateAmqpConnection(conf *config.Config) *amqp.Connection {
 
 	conn, err := amqp.Dial(amqpURI.String())
 	if err != nil {
-		slog.Fatalln("AMQP dial: ", err)
+		log.Fatalln("AMQP dial: ", err)
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			slog.Fatalf("AMQP connection: %s", err.Error())
+			log.Fatalf("AMQP connection: %s", err.Error())
 		}
 	}()
 
@@ -59,7 +59,7 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	}
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			slog.Fatalf("AMQP channel: %s", err.Error())
+			log.Fatalf("AMQP channel: %s", err.Error())
 		}
 	}()
 	return channel
@@ -93,7 +93,7 @@ func CustomHostname(host string) string {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		slog.Println(err)
+		log.Println(err)
 	}
 
 	return hostname
@@ -102,11 +102,11 @@ func CustomHostname(host string) string {
 func ReadVersion() string {
 	file, err := ioutil.ReadFile("VERSION")
 	if err != nil {
-		slog.Println(err)
+		log.Println(err)
 	}
 
 	if file == nil {
-		slog.Println("Setting default version to 0.0.1")
+		log.Println("Setting default version to 0.0.1")
 		return "0.0.1"
 	}
 
@@ -116,7 +116,7 @@ func ReadVersion() string {
 func ReadFile(config string) string {
 	file, err := ioutil.ReadFile(config)
 	if err != nil {
-		slog.Println(err)
+		log.Println(err)
 	}
 
 	return strings.TrimSpace(string(file))
@@ -124,7 +124,7 @@ func ReadFile(config string) string {
 
 func CreateProducer(conf *config.Config, name string) (*Producer, error) {
 	p := NewProducer(name)
-	slog.Printf("creating connection for sending %s messages\n", p.Name)
+	log.Printf("creating connection for sending %s messages\n", p.Name)
 	p.Conn = CreateAmqpConnection(conf)
 	p.Channel = CreateChannel(p.Conn)
 
@@ -155,7 +155,7 @@ func RegisterToKontrol(conf *config.Config, name, serviceGenericName, serviceUni
 
 	version, err := strconv.Atoi(ReadVersion())
 	if err != nil {
-		slog.Println(err)
+		log.Println(err)
 	}
 
 	cmd := workerMain{
@@ -199,7 +199,7 @@ func RegisterToKontrol(conf *config.Config, name, serviceGenericName, serviceUni
 
 	err = channel.Close()
 	if err != nil {
-		slog.Println("could not close kontrold publisher amqp channel", err)
+		log.Println("could not close kontrold publisher amqp channel", err)
 	}
 
 	return nil

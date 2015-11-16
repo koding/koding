@@ -25,8 +25,24 @@ func (n *NotificationSetting) Create() error {
 	if n.ChannelId == 0 {
 		return ErrChannelIdIsNotSet
 	}
+	n.CreatedAt = time.Now().UTC()
+	insertSql := "INSERT INTO " +
+		n.BongoName() +
+		` ("channel_id","account_id","desktop_setting","mobile_setting","is_muted",` +
+		`"is_suppressed", "created_at", "updated_at")` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8) " +
+		"RETURNING ID"
 
-	return bongo.B.Create(n)
+	err := bongo.B.DB.DB().QueryRow(insertSql, n.ChannelId, n.AccountId,
+		n.DesktopSetting, n.MobileSetting, n.IsMuted, n.IsSuppressed,
+		n.CreatedAt, n.UpdatedAt).Scan(&n.Id)
+
+	if err == nil {
+		n.AfterCreate()
+
+	}
+
+	return err
 }
 
 func (n *NotificationSetting) Update() error {
@@ -34,7 +50,22 @@ func (n *NotificationSetting) Update() error {
 		return fmt.Errorf("Update failed ChannelId: %s - AccountId:%s", n.ChannelId, n.AccountId)
 	}
 
-	return bongo.B.Update(n)
+	n.UpdatedAt = time.Now().UTC()
+
+	insertSql := "UPDATE " +
+		n.BongoName() +
+		` SET "channel_id" = $1 ,"account_id" = $2,"desktop_setting" = $3,"mobile_setting" = $4,"is_muted" = $5,` +
+		`"is_suppressed" = $6, "updated_at" = $7`
+
+	_, err := bongo.B.DB.DB().Exec(insertSql, n.ChannelId, n.AccountId,
+		n.DesktopSetting, n.MobileSetting, n.IsMuted, n.IsSuppressed,
+		n.UpdatedAt)
+
+	if err == nil {
+		n.AfterUpdate()
+	}
+
+	return err
 }
 
 func (n *NotificationSetting) Delete() error {
@@ -56,6 +87,10 @@ func (n *NotificationSetting) AfterCreate() {
 
 func (n *NotificationSetting) AfterUpdate() {
 	bongo.B.AfterUpdate(n)
+}
+
+func (n *NotificationSetting) AfterDelete() {
+	bongo.B.AfterDelete(n)
 }
 
 func (n *NotificationSetting) BeforeCreate() error {

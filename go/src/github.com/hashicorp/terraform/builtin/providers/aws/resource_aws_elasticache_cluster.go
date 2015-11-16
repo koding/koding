@@ -118,7 +118,10 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 					},
 				},
 			},
-
+			"notification_topic_arn": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			// A single-element string list containing an Amazon Resource Name (ARN) that
 			// uniquely identifies a Redis RDB snapshot file stored in Amazon S3. The snapshot
 			// file will be used to populate the node group.
@@ -132,6 +135,24 @@ func resourceAwsElasticacheCluster() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set: func(v interface{}) int {
 					return hashcode.String(v.(string))
+				},
+			},
+
+			"snapshot_window": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"snapshot_retention_limit": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, es []error) {
+					value := v.(int)
+					if value > 35 {
+						es = append(es, fmt.Errorf(
+							"snapshot retention limit cannot be more than 35 days"))
+					}
+					return
 				},
 			},
 
@@ -184,8 +205,20 @@ func resourceAwsElasticacheClusterCreate(d *schema.ResourceData, meta interface{
 		req.CacheParameterGroupName = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("snapshot_retention_limit"); ok {
+		req.SnapshotRetentionLimit = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("snapshot_window"); ok {
+		req.SnapshotWindow = aws.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		req.PreferredMaintenanceWindow = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("notification_topic_arn"); ok {
+		req.NotificationTopicArn = aws.String(v.(string))
 	}
 
 	snaps := d.Get("snapshot_arns").(*schema.Set).List()
@@ -234,6 +267,12 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 
 	res, err := conn.DescribeCacheClusters(req)
 	if err != nil {
+		if eccErr, ok := err.(awserr.Error); ok && eccErr.Code() == "CacheClusterNotFound" {
+			log.Printf("[WARN] ElastiCache Cluster (%s) not found", d.Id())
+			d.SetId("")
+			return nil
+		}
+
 		return err
 	}
 
@@ -254,6 +293,13 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("security_group_ids", c.SecurityGroups)
 		d.Set("parameter_group_name", c.CacheParameterGroup)
 		d.Set("maintenance_window", c.PreferredMaintenanceWindow)
+		d.Set("snapshot_window", c.SnapshotWindow)
+		d.Set("snapshot_retention_limit", c.SnapshotRetentionLimit)
+		if c.NotificationConfiguration != nil {
+			if *c.NotificationConfiguration.TopicStatus == "active" {
+				d.Set("notification_topic_arn", c.NotificationConfiguration.TopicArn)
+			}
+		}
 
 		if err := setCacheNodeData(d, c); err != nil {
 			return err
@@ -317,8 +363,28 @@ func resourceAwsElasticacheClusterUpdate(d *schema.ResourceData, meta interface{
 		requestUpdate = true
 	}
 
+	if d.HasChange("notification_topic_arn") {
+		v := d.Get("notification_topic_arn").(string)
+		req.NotificationTopicArn = aws.String(v)
+		if v == "" {
+			inactive := "inactive"
+			req.NotificationTopicStatus = &inactive
+		}
+		requestUpdate = true
+	}
+
 	if d.HasChange("engine_version") {
 		req.EngineVersion = aws.String(d.Get("engine_version").(string))
+		requestUpdate = true
+	}
+
+	if d.HasChange("snapshot_window") {
+		req.SnapshotWindow = aws.String(d.Get("snapshot_window").(string))
+		requestUpdate = true
+	}
+
+	if d.HasChange("snapshot_retention_limit") {
+		req.SnapshotRetentionLimit = aws.Int64(int64(d.Get("snapshot_retention_limit").(int)))
 		requestUpdate = true
 	}
 

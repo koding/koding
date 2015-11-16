@@ -3,12 +3,12 @@ package openstack
 import (
 	"fmt"
 
+	"github.com/koding/logging"
+	"github.com/rackspace/gophercloud"
 	os "koding/kites/kloud/api/openstack"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/waitstate"
-	"github.com/koding/logging"
-	"github.com/rackspace/gophercloud"
 )
 
 type OpenstackClient struct {

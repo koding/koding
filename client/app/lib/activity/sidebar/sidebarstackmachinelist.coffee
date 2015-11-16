@@ -27,7 +27,6 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
 
     computeController
       .on 'StackRevisionChecked', @bound 'onStackRevisionChecked'
-      .on 'StacksInconsistent',   @bound 'addStackModifiedWarning'
 
 
   onStackRevisionChecked: (stack) ->
@@ -49,17 +48,3 @@ module.exports = class SidebarStackMachineList extends SidebarOwnMachineList
     super
 
     @addSubView @warningWrapper = new kd.CustomHTMLView
-
-
-  addStackModifiedWarning: (stack) ->
-
-    return  if stack.getId() isnt @getOption('stack').getId()
-    return  @stackModifiedWarning.show()  if @stackModifiedWarning?
-
-    @stackModifiedWarning = new kd.CustomHTMLView
-      cssClass : 'warning-section re-init'
-      partial  : "You have different resources in your stack.
-                  <span>Click here</span> to re-initialize this stack."
-      click    : -> new EnvironmentsModal
-
-    @warningWrapper.addSubView @stackModifiedWarning

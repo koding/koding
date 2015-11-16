@@ -153,7 +153,9 @@ followedPublicChannels = [
     if channel
       channelId = channel.get 'id'
       ids = ids.set channelId, channelId  if isPublicChannel(channel.toJS())
-    ids.map (id) -> channels.get id
+    ids
+      .map (id) -> channels.get id
+      .sortBy (c) -> c.get 'name'
 ]
 
 allFollowedChannels = [

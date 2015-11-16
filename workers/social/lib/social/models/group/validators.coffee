@@ -70,3 +70,19 @@ module.exports =
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
     return callback null, yes  if roleSelector is -1
     Relationship.count roleSelector, createExistenceCallback callback
+
+
+  custom  :
+
+    owner : (client, group, permission, permissionSet, _, callback) ->
+
+      { delegate } = client.connection
+
+      return  unless hasDelegate delegate, callback
+
+      relSelector  =
+        targetId   : @getId()
+        sourceId   : delegate.getId()
+        as         : 'owner'
+
+      Relationship.count relSelector, createExistenceCallback callback

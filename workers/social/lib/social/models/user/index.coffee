@@ -195,9 +195,6 @@ module.exports = class JUser extends jraphical.Module
       ownAccount        :
         targetType      : JAccount
         as              : 'owner'
-      leasedAccount     :
-        targetType      : JAccount
-        as              : 'leasor'
 
   sessions  = {}
   users     = {}
@@ -1028,7 +1025,7 @@ module.exports = class JUser extends jraphical.Module
 
     emailFrequencyDefaults = {
       global         : on
-      daily          : on
+      daily          : off
       privateMessage : on
       followActions  : off
       comment        : on
@@ -1672,7 +1669,7 @@ module.exports = class JUser extends jraphical.Module
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
 
-        opts = { pin, email, group: client.context.group }
+        opts = { pin, email, group: client.context.group, user : { user_id : username, email } }
         Tracker.track username, { to : email, subject }, opts
 
         queue.next()
@@ -1720,17 +1717,17 @@ module.exports = class JUser extends jraphical.Module
     JSession.one { clientId: client.sessionToken }, (err, session) ->
       return callback err  if err
 
-      noUserError = new KodingError \
+      noUserError = -> new KodingError \
         'No user found! Not logged in or session expired'
 
       if not session or not session.username
-        return callback noUserError
+        return callback noUserError()
 
       JUser.one { username: session.username }, (err, user) ->
 
         if err or not user
           console.log '[JUser::fetchUser]', err  if err?
-          callback noUserError
+          callback noUserError()
         else
           callback null, user
 

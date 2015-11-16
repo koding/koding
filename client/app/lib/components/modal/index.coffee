@@ -1,6 +1,6 @@
 kd     = require 'kd'
 React  = require 'kd-react'
-Portal = require 'react-portal'
+Portal = require('react-portal').default
 
 
 class ModalOverlay extends React.Component

@@ -527,11 +527,15 @@ func (c *ChannelMessage) DeleteReplies() error {
 func (c *ChannelMessage) GetChannelMessageLists() ([]ChannelMessageList, error) {
 	var listings []ChannelMessageList
 	q := &bongo.Query{
-		Selector: map[string]interface{}{"message_id": c.Id}}
+		Selector: map[string]interface{}{
+			"message_id": c.Id,
+		},
+	}
 
 	if err := NewChannelMessageList().Some(&listings, q); err != nil {
 		return nil, err
 	}
+
 	return listings, nil
 }
 
@@ -709,4 +713,13 @@ func (cm *ChannelMessage) GetPayload(key string) *string {
 	}
 
 	return val
+}
+
+// SearchIndexable decides if message is indexable on search engine or not
+func (c *ChannelMessage) SearchIndexable() bool {
+	return IsIn(c.TypeConstant,
+		ChannelMessage_TYPE_POST,
+		ChannelMessage_TYPE_REPLY,
+		ChannelMessage_TYPE_PRIVATE_MESSAGE,
+	)
 }

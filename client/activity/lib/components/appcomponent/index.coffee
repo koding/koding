@@ -11,14 +11,14 @@ module.exports = class ActivityAppComponent extends React.Component
 
     return classnames
       'ActivityAppComponent' : yes
-      'is-withContent'       : @props.children.content
-      'is-withModal'         : @props.children.modal
+      'is-withContent'       : @props.content
+      'is-withModal'         : @props.modal
 
 
   render: ->
     <div className={@getClassName()}>
-      {@props.children.content}
-      {@props.children.modal}
+      {@props.content}
+      {@props.modal}
     </div>
 
 

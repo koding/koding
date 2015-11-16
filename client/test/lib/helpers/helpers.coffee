@@ -166,7 +166,7 @@ module.exports =
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
 
     browser
-      .pause                    2500 # while typing something steals activity input focus
+      .waitForElementVisible    '[testpath="public-feed-link/Activity/Topic/public"]', 20000
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
       .pause                    3000 # for page load
       .waitForElementVisible    '[testpath=ActivityInputView]', 30000

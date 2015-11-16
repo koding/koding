@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	ErrAlgoliaObjectIdNotFoundMsg = "ObjectID does not exist"
+	ErrAlgoliaObjectIDNotFoundMsg = "ObjectID does not exist"
 	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
 
 	ErrTimeoutForSettings = errors.New("settings timed out")
@@ -83,6 +83,8 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 					AttributesToIndex: []string{
 						"nick",
 						"email",
+						"firstName",
+						"lastName",
 						"_tags",
 					},
 					UnretrievableAttributes: []string{"email"},

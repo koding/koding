@@ -31,8 +31,10 @@ func main() {
 
 	// create message handler
 	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
-
+	counter := 0
 	for b := 0; ; b++ {
+		counter++
+
 		topics, err := (&models.Channel{}).List(&request.Query{
 			GroupName: "koding",
 			Type:      "topic",
@@ -45,7 +47,7 @@ func main() {
 		}
 
 		for _, topic := range topics {
-			r.Log.Info(fmt.Sprintf("currently migrating: '%v'", topic.Name))
+			r.Log.Info("[%d] currently migrating: '%v'", counter, topic.Name)
 			handler.ChannelCreated(&topic)
 		}
 

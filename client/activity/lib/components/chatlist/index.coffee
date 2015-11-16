@@ -1,6 +1,7 @@
 _                      = require 'lodash'
 kd                     = require 'kd'
 React                  = require 'kd-react'
+ReactDOM               = require 'react-dom'
 moment                 = require 'moment'
 immutable              = require 'immutable'
 ChatListItem           = require 'activity/components/chatlistitem'
@@ -49,7 +50,7 @@ module.exports = class ChatList extends React.Component
     currentSelectedId = @state.selectedMessageId
 
     if currentSelectedId and currentSelectedId isnt prevSelectedId
-      target = React.findDOMNode @refs.selectedComponent
+      target = ReactDOM.findDOMNode @refs.selectedComponent
       scrollToElement target
 
 
@@ -82,6 +83,7 @@ module.exports = class ChatList extends React.Component
       if beforeMarker = loaderMarkers.get 'before'
         markers.push \
           <LoadMoreMessagesMarker
+            key="loadafter-#{currentMessage.get 'id'}"
             channelId={channelId}
             messageId={currentMessage.get 'id'}
             position="before"
@@ -91,12 +93,18 @@ module.exports = class ChatList extends React.Component
     switch
       # if this is first message put a date marker no matter what.
       when not prevMessage
-        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+        markers.push \
+          <DateMarker
+            key={currentMessage.get 'createdAt'}
+            date={currentMessage.get 'createdAt'} />
 
       # if day of previous message is not the same with current one, put a date
       # marker.
       when not currentMessageMoment.isSame prevMessageMoment, 'day'
-        markers.push <DateMarker date={currentMessage.get 'createdAt'} />
+        markers.push \
+          <DateMarker
+            key={currentMessage.get 'createdAt'}
+            date={currentMessage.get 'createdAt'} />
 
     # put new message marker on top of other messages if unread count is
     # greater than currently loaded messages.
@@ -107,7 +115,7 @@ module.exports = class ChatList extends React.Component
 
     # put glancer waypoint only if all the unread messages are loaded, and on
     # the screen. Once it enters to the screen, it will glance the channel.
-    if unreadCount and unreadCount <= messages.size and not isMessagesLoading
+    if index is messages.size - unreadCount and not isMessagesLoading
       markers.push <Waypoint onEnter={@bound 'onGlancerEnter'} />
 
     return markers
@@ -123,6 +131,7 @@ module.exports = class ChatList extends React.Component
       if afterMarker = loaderMarkers.get 'after'
         markers.push \
           <LoadMoreMessagesMarker
+            key="loadafter-#{currentMessage.get 'id'}"
             channelId={channelId}
             messageId={currentMessage.get 'id'}
             position="after"
@@ -137,8 +146,11 @@ module.exports = class ChatList extends React.Component
     { messages, showItemMenu, channelName, channelId, onItemEditStarted } = @props
     { selectedMessageId } = @state
 
-    lastDifferentOwnerId = null
-    prevMessage = null
+    lastDifferentOwnerId     = null
+    prevMessage              = null
+    lastMessageCreatedAt     = null
+    timeDiff                 = 0
+    isLessThanFiveMinutes    = no
 
     children = messages.toList().reduce (children, message, i) =>
 
@@ -150,19 +162,26 @@ module.exports = class ChatList extends React.Component
         channelId     : channelId
         onEditStarted : onItemEditStarted
 
+      createdAt = message.get 'createdAt'
+
+      timeDiff  = new Date(createdAt).getTime() - lastMessageCreatedAt  if lastMessageCreatedAt
+      isLessThanFiveMinutes = timeDiff < (5 * 60 * 1000)
+
       if selectedMessageId is message.get 'id'
         itemProps['isSelected'] = yes
         itemProps['ref'] = 'selectedComponent'
 
       children = children.concat @getBeforeMarkers message, prevMessage, i
 
-      if lastDifferentOwnerId and lastDifferentOwnerId is message.get 'accountId'
+      if lastDifferentOwnerId and lastDifferentOwnerId is message.get('accountId') and isLessThanFiveMinutes
         children.push \
           <SimpleChatListItem {...itemProps } />
       else
         lastDifferentOwnerId = message.get 'accountId'
         children.push \
           <ChatListItem {...itemProps} />
+
+      lastMessageCreatedAt = new Date(createdAt).getTime()
 
       children = children.concat @getAfterMarkers message, prevMessage, i
 

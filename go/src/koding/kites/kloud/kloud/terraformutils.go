@@ -26,6 +26,17 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+// credPermissions defines the permission grid for the given method
+var (
+	credPermissionsMu sync.Mutex // protects credPermissions
+	credPermissions   = map[string][]string{
+		"bootstrap":    []string{"owner"},
+		"plan":         []string{"user", "owner"},
+		"apply":        []string{"user", "owner"},
+		"authenticate": []string{"user", "owner"},
+	}
+)
+
 type TerraformMachine struct {
 	Provider    string            `json:"provider"`
 	Label       string            `json:"label"`
@@ -333,6 +344,14 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 
 	template.Resource["aws_instance"] = resource.AwsInstance
 
+	if err := template.hclUpdate(); err != nil {
+		return nil, err
+	}
+
+	if err := template.shadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key"); err != nil {
+		return nil, err
+	}
+
 	out, err := template.jsonOutput()
 	if err != nil {
 		return nil, err
@@ -395,7 +414,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	return multiErrors
 }
 
-func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
+func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -438,15 +457,21 @@ func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identif
 	// owner. Any non valid credentials will be discarded
 	validKeys := make(map[string]string, 0)
 
+	credPermissionsMu.Lock()
+	permittedTargets, ok := credPermissions[method]
+	credPermissionsMu.Unlock()
+
+	if !ok {
+		return nil, fmt.Errorf("no permission data available for method '%s'", method)
+	}
+
 	for _, cred := range credentials {
 		selector := modelhelper.Selector{
 			"targetId": cred.Id,
 			"sourceId": bson.M{
 				"$in": []bson.ObjectId{account.Id, group.Id},
 			},
-			"as": bson.M{
-				"$in": []string{"owner", "user"},
-			},
+			"as": bson.M{"$in": permittedTargets},
 		}
 
 		count, err := modelhelper.RelationshipCount(selector)

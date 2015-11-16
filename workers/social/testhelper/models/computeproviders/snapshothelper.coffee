@@ -45,6 +45,7 @@ withConvertedUserAndSnapshot = (options, callback) ->
 
 
 module.exports = {
+  createSnapshot
   withConvertedUserAndSnapshot
 }
 

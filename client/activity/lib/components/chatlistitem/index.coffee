@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
 remote                = require('app/remote').getInstance()
 Avatar                = require 'app/components/profile/avatar'
 immutable             = require 'immutable'
@@ -24,11 +25,11 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-MessageLink           = require 'activity/components/publicchannelmessagelink'
 EmbedBox              = require 'activity/components/embedbox'
 KeyboardKeys          = require 'app/util/keyboardKeys'
 ChatInputWidget       = require 'activity/components/chatinputwidget'
 Encoder               = require 'htmlencode'
+MessageLink           = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -167,14 +168,16 @@ module.exports = class ChatListItem extends React.Component
     onClose            : @bound "closeBlockUserPromptModal"
 
 
-  deletePostButtonHandler: ->
+  deletePostButtonHandler: (event) ->
 
+    kd.utils.stopDOMEvent event
     ActivityFlux.actions.message.removeMessage @props.message.get('id')
     @closeDeletePostModal()
 
 
-  closeDeletePostModal: ->
+  closeDeletePostModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isDeleting: no
 
 
@@ -195,18 +198,21 @@ module.exports = class ChatListItem extends React.Component
     @setState isMarkUserAsTrollModalVisible: yes
 
 
-  closeMarkUserAsTrollModal: ->
+  closeMarkUserAsTrollModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isMarkUserAsTrollModalVisible: no
 
 
-  closeBlockUserPromptModal: ->
+  closeBlockUserPromptModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isBlockUserModalVisible: no
 
 
-  unMarkUserAsTroll: ->
+  unMarkUserAsTroll: (event) ->
 
+    kd.utils.stopDOMEvent event
     AppFlux.actions.user.unmarkUserAsTroll @state.account
     @closeMarkUserAsTrollModal()
 
@@ -216,8 +222,9 @@ module.exports = class ChatListItem extends React.Component
     @setState isBlockUserModalVisible: yes
 
 
-  impersonateUser: ->
+  impersonateUser: (event) ->
 
+    kd.utils.stopDOMEvent event
     { message } = @props
 
     AppFlux.actions.user.impersonateUser message.toJS()
@@ -251,7 +258,7 @@ module.exports = class ChatListItem extends React.Component
 
   onEditStarted: ->
 
-    element = React.findDOMNode this
+    element = ReactDOM.findDOMNode this
     @props.onEditStarted? element
 
 
@@ -296,7 +303,6 @@ module.exports = class ChatListItem extends React.Component
         disabledFeatures = { ['commands'] }
         onReady          = { @bound 'onEditStarted' }
       />
-      <div className='clearfix'></div>
     </div>
 
 
@@ -330,7 +336,7 @@ module.exports = class ChatListItem extends React.Component
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
             </span>
-            <MessageLink message={message} absolute={yes}>
+            <MessageLink message={message}>
               <MessageTime date={message.get 'createdAt'}/>
             </MessageLink>
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
@@ -342,7 +348,6 @@ module.exports = class ChatListItem extends React.Component
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}
-        <div className='clearfix'></div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>

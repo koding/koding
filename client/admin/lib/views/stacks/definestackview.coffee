@@ -28,6 +28,8 @@ ReadmeView           = require './readmeview'
 StackTemplateView    = require './stacktemplateview'
 CredentialStatusView = require './credentialstatusview'
 
+StackTemplateEditorView = require './editors/stacktemplateeditorview'
+
 
 module.exports = class DefineStackView extends KDView
 
@@ -343,8 +345,11 @@ module.exports = class DefineStackView extends KDView
 
     showCredentialContent = (credential) =>
       credential.fetchData (err, data) =>
-        return failed err  if err
-        @outputView.add JSON.stringify data.meta, null, 2
+        if err?.name is 'AccessDenied'
+          @outputView.add "Couldn't fetch credential data, not shared."
+        else
+          return failed err  if err
+          @outputView.add JSON.stringify data.meta, null, 2
         callback null, [credential]
 
     @outputView
@@ -589,21 +594,29 @@ module.exports = class DefineStackView extends KDView
     errors   = createReportFor errors,   'errors'
     warnings = createReportFor warnings, 'warnings'
 
-    new kd.ModalView
+    modal = new kd.ModalView
       title          : 'Template Preview'
       subtitle       : 'Generated from your account data'
-      cssClass       : 'has-markdown content-modal'
+      cssClass       : 'stack-template-preview content-modal'
       height         : 500
+      width          : 757
       overlay        : yes
       overlayOptions : cssClass : 'second-overlay'
-      content        : applyMarkdown """
-        #{errors}
 
+    descriptionView = new kd.CustomHTMLView
+      cssClass : 'has-markdown'
+      partial  : applyMarkdown """
+        #{errors}
         #{warnings}
-        ```coffee
-        #{template}
-        ```
-      """
+        """
+
+    modal.addSubView new StackTemplateEditorView
+      delegate        : this
+      content         : template
+      contentType     : 'yaml'
+      readOnly        : yes
+      showHelpContent : no
+      descriptionView : descriptionView
 
 
   handleReinit: ->
