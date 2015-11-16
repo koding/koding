@@ -3,6 +3,8 @@ package awsprovider
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
@@ -16,7 +18,6 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
-	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"

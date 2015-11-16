@@ -14,11 +14,12 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
-  JStorage         = require './storage'
-  JAppStorage      = require './appstorage'
-  JTag             = require './tag'
-  JName            = require './name'
-  JKite            = require './kite'
+  JTag                = require './tag'
+  JName               = require './name'
+  JKite               = require './kite'
+  JStorage            = require './storage'
+  JAppStorage         = require './appstorage'
+  JCombinedAppStorage = require './combinedappstorage'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -911,28 +912,105 @@ module.exports = class JAccount extends jraphical.Module
             data        : { name }
           rel.save (err) -> callback err, storage
 
+
   fetchOrCreateAppStorage: (options, callback) ->
+
     { appId, version } = options
-    @fetchAppStorage { 'data.appId':appId, 'data.version':version }, (err, storage) =>
-      if err then callback err
-      else unless storage?
-        # log.info 'Creating new storage:', appId, version, @profile.nickname
-        newStorage = new JAppStorage { appId, version }
-        newStorage.save (err) =>
-          if err then callback err
-          else
-            # manually add the relationship so that we can
-            # query the edge instead of the target C.T.
-            rel = new Relationship
-              targetId    : newStorage.getId()
-              targetName  : 'JAppStorage'
-              sourceId    : @getId()
-              sourceName  : 'JAccount'
-              as          : 'appStorage'
-              data        : { appId, version }
-            rel.save (err) -> callback err, newStorage
-      else
-        callback err, storage
+    return callback 'version and appId must be set!' unless appId and version
+
+    queue = [
+
+      =>
+        @migrateOldAppStorageIfExists { appId, version }, (err, storage) ->
+          return callback err            if err
+          return callback null, storage  if storage
+          queue.next()
+
+      =>
+        query = { accountId : @getId() }
+        JCombinedAppStorage.one query, (err, storage) =>
+          return callback err            if err
+          return callback null, storage  if storage?.bucket?[appId]
+
+          @createAppStorage options, (err, newStorage) ->
+            return callback err  if err
+            callback null, newStorage
+
+    ]
+
+    daisy queue
+
+
+  createAppStorage: (options, callback) ->
+
+    { appId, version, data } = options
+
+    unless appId
+      return callback new KodingError 'appId is not set!'
+
+    accountId = @getId()
+    options   = { accountId, data }
+
+    JCombinedAppStorage.upsert appId, options, (err, storage) =>
+      # recursive call in case of unique index error
+      return @createAppStorage options, callback  if err?.code is 11000
+      return callback err, storage
+
+
+  migrateOldAppStorageIfExists: (options, callback) ->
+
+    { appId, version } = options
+
+    unless appId and version
+      return callback new KodingError 'version and appId is not set!'
+
+    oldStorage         = null
+    newStorage         = null
+    accountId          = @getId()
+
+    queue = [
+
+      =>
+        # trying to fetch an old app storage document by relationship
+        query = { 'data.appId':appId, 'data.version':version }
+        @fetchAppStorage query, (err, storage) ->
+          return calback err  if err
+          return callback null, null  unless storage
+          oldStorage = storage
+          queue.next()
+
+      =>
+        # creating new app storage document
+        options.data = oldStorage.bucket
+        @createAppStorage options, (err, storage) ->
+          return callback err  if err
+          newStorage = storage
+          queue.next()
+
+      ->
+        # removing relationship
+        query =
+          as          : 'appStorage'
+          data        : { appId, version }
+          targetId    : oldStorage.getId()
+          sourceId    : accountId
+          targetName  : 'JAppStorage'
+          sourceName  : 'JAccount'
+
+        Relationship.remove query, (err, rel) ->
+          return callback err  if err
+          queue.next()
+
+      ->
+        # removing old storage
+        oldStorage.remove (err) ->
+          return callback err  if err
+          return callback null, newStorage
+
+    ]
+
+    daisy queue
+
 
   fetchAppStorage$: secure (client, options, callback) ->
 
