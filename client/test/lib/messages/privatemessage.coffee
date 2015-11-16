@@ -42,24 +42,29 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    isStarted = messagesHelpers.startConversation(browser, testUsers)
+    messagesHelpers.startConversation(browser, testUsers)
 
-    if isStarted then browser.end()
-    else
-      browser
-        .refresh()
-        .waitForElementVisible  '.activity-sidebar .messages', 20000
-        .assert.containsText    '.activity-sidebar .messages', testUsers[0].fullName  # Assertion
-        .end()
+    browser
+      .refresh()
+      .waitForElementVisible    '.activity-sidebar .messages', 20000
+      .waitForElementNotVisible '[testpath=main-sidebar] section.messages .kdloader', 20000
+      .assert.containsText      '.activity-sidebar .messages', testUsers[0].username  # Assertion
+      .end()
 
 
   leaveConversation: (browser) ->
 
-    testUsers = [ @users[0] ]
+    testUsers       = [ @users[0] ]
+    messagesSection = '[testpath=main-sidebar] section.messages'
+    messagesLoader  = "#{messagesSection} .kdloader"
 
     helpers.beginTest(browser)
 
-    userSelector = ".activity-sidebar .messages .sidebar-message-text [href='/user.username']"
+    userSelector = ".activity-sidebar .messages .sidebar-message-text [href='/" + testUsers[0].username + "']"
+
+    browser
+      .waitForElementVisible    messagesSection, 30000
+      .waitForElementNotVisible messagesLoader,  30000
 
     browser.element 'css selector', userSelector, (result) =>
       if result.status is 0

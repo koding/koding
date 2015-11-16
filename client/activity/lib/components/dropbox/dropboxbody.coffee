@@ -1,5 +1,6 @@
 kd           = require 'kd'
 React        = require 'kd-react'
+ReactDOM     = require 'react-dom'
 classnames   = require 'classnames'
 ActivityFlux = require 'activity/flux'
 
@@ -10,7 +11,7 @@ module.exports = class DropboxBody extends React.Component
     type      : 'dropdown'
 
 
-  getContentElement: -> React.findDOMNode @refs.content
+  getContentElement: -> ReactDOM.findDOMNode @refs.content
 
 
   getContainerClassName: ->

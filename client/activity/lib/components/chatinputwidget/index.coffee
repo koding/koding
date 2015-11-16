@@ -1,7 +1,8 @@
 kd                   = require 'kd'
 React                = require 'kd-react'
+ReactDOM             = require 'react-dom'
 $                    = require 'jquery'
-TextArea             = require 'react-autosize-textarea'
+AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 EmojiDropbox         = require 'activity/components/emojidropbox'
 ChannelDropbox       = require 'activity/components/channeldropbox'
 MentionDropbox       = require 'activity/components/mentiondropbox'
@@ -73,7 +74,7 @@ module.exports = class ChatInputWidget extends React.Component
     { value } = @props
     @setValue value  if value
 
-    textInput = React.findDOMNode this.refs.textInput
+    textInput = ReactDOM.findDOMNode this.refs.textInput
     focusOnGlobalKeyDown textInput
 
     window.addEventListener 'resize', @bound 'updateDropboxPositions'
@@ -102,7 +103,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     window.removeEventListener 'resize', @bound 'updateDropboxPositions'
 
-    textInput = React.findDOMNode this.refs.textInput
+    textInput = ReactDOM.findDOMNode this.refs.textInput
     scrollContainer = $(textInput).closest '.Scrollable'
     scrollContainer.off 'scroll', @bound 'closeDropboxes'
 
@@ -117,7 +118,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   updateDropboxPositions: ->
 
-    textInput = $ React.findDOMNode @refs.textInput
+    textInput = $ ReactDOM.findDOMNode @refs.textInput
 
     offset = textInput.offset()
     width  = textInput.outerWidth()
@@ -163,7 +164,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   runDropboxChecks: (value) ->
 
-    textInput = React.findDOMNode @refs.textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
     textData  =
       currentWord : helpers.getCurrentWord textInput
       value       : value
@@ -252,7 +253,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   onDropboxItemConfirmed: (item) ->
 
-    textInput = React.findDOMNode @refs.textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
 
     item += ' '
     { value, cursorPosition } = helpers.insertDropboxItem textInput, item
@@ -294,7 +295,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   focus: ->
 
-    textInput = React.findDOMNode @refs.textInput
+    textInput = ReactDOM.findDOMNode @refs.textInput
     textInput.focus()
 
 
@@ -303,7 +304,28 @@ module.exports = class ChatInputWidget extends React.Component
     dropbox.close()  for dropbox in @getDropboxes() when dropbox?
 
 
-  onResize: -> @props.onResize()
+  isLastItemBeingEdited: ->
+
+    chatItems = document.querySelectorAll '.ChatItem'
+
+    return no  unless chatItems.length
+
+    lastItem = chatItems[chatItems.length - 1]
+
+    return lastItem.firstChild.className.indexOf('editing') > -1
+
+
+  onResize: ->
+
+    ChatPaneBody    = document.querySelector '.ChatPane-body'
+    scrollContainer = ChatPaneBody.querySelector '.Scrollable'
+
+    { scrollTop, scrollHeight } = scrollContainer
+
+    if @isLastItemBeingEdited()
+      scrollContainer.scrollTop = scrollContainer.scrollHeight
+
+    @props.onResize()
 
 
   renderEmojiDropbox: ->
@@ -415,12 +437,12 @@ module.exports = class ChatInputWidget extends React.Component
       { @renderMentionDropbox() }
       { @renderSearchDropbox() }
       { @renderCommandDropbox() }
-      <TextArea
-        value     = { @state.value }
-        onChange  = { @bound 'onChange' }
-        onKeyDown = { @bound 'onKeyDown' }
-        onResize  = { @bound 'onResize' }
-        ref       = 'textInput'
+      <AutoSizeTextarea
+        ref           = 'textInput'
+        value         = { @state.value }
+        onChange      = { @bound 'onChange' }
+        onKeyDown     = { @bound 'onKeyDown' }
+        onResize      = { @bound 'onResize' }
       />
       <Link
         className = "ChatInputWidget-emojiButton"

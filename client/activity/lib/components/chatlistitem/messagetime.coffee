@@ -3,7 +3,7 @@ kd             = require 'kd'
 React          = require 'kd-react'
 dateFormat     = require 'dateformat'
 Tooltip        = require 'app/components/tooltip'
-Portal         = require 'react-portal'
+Portal         = require('react-portal').default
 
 module.exports = class MessageTime extends React.Component
 
@@ -37,7 +37,7 @@ module.exports = class MessageTime extends React.Component
 
   setTooltipPosition: ->
 
-    MessageDateDOMNode = @refs.MessageDate.getDOMNode()
+    MessageDateDOMNode = @refs.MessageDate
     offset = $(MessageDateDOMNode).offset()
 
     @setState

@@ -1,9 +1,9 @@
-React = require 'kd-react'
+ReactDOM = require 'react-dom'
 
 module.exports = EmojiPreloaderMixin =
 
   componentDidMount: ->
 
-    element = React.findDOMNode this
+    element = ReactDOM.findDOMNode this
     element.classList.add 'emoji-sprite-preloader'
 

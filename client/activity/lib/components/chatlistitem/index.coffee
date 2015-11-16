@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
 remote                = require('app/remote').getInstance()
 Avatar                = require 'app/components/profile/avatar'
 immutable             = require 'immutable'
@@ -28,6 +29,7 @@ EmbedBox              = require 'activity/components/embedbox'
 KeyboardKeys          = require 'app/util/keyboardKeys'
 ChatInputWidget       = require 'activity/components/chatinputwidget'
 Encoder               = require 'htmlencode'
+MessageLink           = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
 
@@ -256,7 +258,7 @@ module.exports = class ChatListItem extends React.Component
 
   onEditStarted: ->
 
-    element = React.findDOMNode this
+    element = ReactDOM.findDOMNode this
     @props.onEditStarted? element
 
 
@@ -334,7 +336,9 @@ module.exports = class ChatListItem extends React.Component
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
             </span>
-            {makeMessageLink message}
+            <MessageLink message={message}>
+              <MessageTime date={message.get 'createdAt'}/>
+            </MessageLink>
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           </div>
           <div className="ChatItem-contentBody">
@@ -358,20 +362,6 @@ makeProfileLink = (imAccount) ->
   <ProfileLinkContainer origin={imAccount.toJS()}>
     <ProfileText />
   </ProfileLinkContainer>
-
-
-makeMessageLink = (message) ->
-
-  PublicMessageLink = require 'activity/components/publicchannelmessagelink'
-  PrivateMessageLink = require 'activity/components/privatechannelmessagelink'
-
-  MessageLink = if message.get('typeConstant') is 'privatemessage'
-  then PrivateMessageLink
-  else PublicMessageLink
-
-  <MessageLink message={message} absolute={yes}>
-    <MessageTime date={message.get 'createdAt'}/>
-  </MessageLink>
 
 
 makeAvatar = (imAccount) ->

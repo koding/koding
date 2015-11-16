@@ -332,16 +332,20 @@ module.exports = class JMachine extends Module
     userObj    = if owner then { sudo: yes, owner: yes } else {}
     userObj.id = user.getId()
 
-    selector  =
-      $or     : [
-        { _id : ObjectId machineId }
-        { uid : machineId }
+    selector       =
+      $or          : [
+        { uid      : machineId }
       ]
       users        :
         $elemMatch : userObj
       groups       :
         $elemMatch :
           id       : group.getId()
+
+    # ObjectId throws error when a string passed to it ~ GG
+    try
+      asObjectId = ObjectId machineId
+      selector.$or.push { _id : asObjectId }
 
     return selector
 

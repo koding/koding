@@ -1,6 +1,7 @@
 kd                          = require 'kd'
 whoami                      = require 'app/util/whoami'
 React                       = require 'kd-react'
+ReactDOM                    = require 'react-dom'
 Avatar                      = require 'app/components/profile/avatar'
 KDReactorMixin              = require 'app/flux/base/reactormixin'
 immutable                   = require 'immutable'
@@ -108,7 +109,7 @@ module.exports = class ChannelParticipantAvatars extends React.Component
     then @setState addNewParticipantMode: no
     else
       @setState addNewParticipantMode: yes, ->
-        textInput = React.findDOMNode @refs.textInput
+        textInput = ReactDOM.findDOMNode @refs.textInput
         textInput.focus()
 
 

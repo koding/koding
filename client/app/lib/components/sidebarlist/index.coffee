@@ -19,7 +19,7 @@ module.exports = class SidebarList extends React.Component
     if componentProp is 'SidebarMessagesListItem'
       threads = threads.slice 0, previewCount
 
-    threads.map (thread) ->
+    threads.toList().map (thread) ->
       id = thread.getIn ['channel', 'id']
       <Component key={id} active={id is selectedId} thread={thread} />
 
