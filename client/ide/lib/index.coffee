@@ -893,6 +893,14 @@ class IDEAppController extends AppController
     @mountedMachine.getBaseKite()?.storageSetQueued key, value
 
 
+  saveLayoutSize: ->
+
+    username  = nick()
+    key       = @getWorkspaceStorageKey "#{username}-LayoutSize"
+    value     = @getLayoutSizeData()
+
+    @writeToKiteStorage key, value
+    @emit 'LayoutSizeChangesSaved' # TODO: Naming.
   removeWorkspaceSnapshot: (username = nick()) ->
 
     key = @getWorkspaceStorageKey username
