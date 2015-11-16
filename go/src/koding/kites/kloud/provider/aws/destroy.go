@@ -32,7 +32,7 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	if m.Meta.InstanceId != "" {
 		m.Log.Debug("Destroying machine")
 		err := m.Session.AWSClient.Destroy(ctx, 10, 50)
-		if err != nil && err != amazon.ErrNoInstances {
+		if err != nil && !amazon.IsNotFound(err) {
 			// if it's something else return it
 			return err
 		}
