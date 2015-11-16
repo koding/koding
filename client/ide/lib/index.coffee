@@ -130,6 +130,8 @@ class IDEAppController extends AppController
       [ideView] = @ideViews.filter (ideView) -> ideView.isFullScreen
       ideView.emit 'CloseFullScreen'  if ideView
 
+    @on 'SnapshotUpdated', @bound 'saveLayoutSize'
+
 
   prepareIDE: (withFakeViews = no) ->
 
@@ -299,6 +301,7 @@ class IDEAppController extends AppController
     @setActiveTabView newIdeView.tabView
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
+    splitView.on 'ResizeDidStop', kd.utils.debounce 750, @bound 'saveLayoutSize'
 
     if not silent
       newIdeView.emit 'NewSplitViewCreated',
