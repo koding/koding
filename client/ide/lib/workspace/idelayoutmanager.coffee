@@ -186,6 +186,8 @@ module.exports = class IDELayoutManager extends KDObject
       @resurrectPanes_ item.views, ideView.tabView, silent
 
     ideApp.recalculateHandles()
+    @applyLayoutSize()
+
     @isRestored = yes
 
 
@@ -329,4 +331,90 @@ module.exports = class IDELayoutManager extends KDObject
 
     @clearLayout()
     kd.utils.defer => @resurrectSnapshot snapshot
+
+
+  ###*
+   * Find and collect all split views.
+   *
+   * <Recursive>
+   * <Private>
+   * @param {Array} collection
+   * @param {*} view
+  ###
+  splitViewExplorer_: (collection, view) ->
+
+    collection.push view  if view instanceof KDSplitView
+
+    for item in view.getSubViews()
+      @splitViewExplorer_ collection, item
+
+
+  findAllSplitViews: ->
+
+    firstSplitView  = @getBaseSplitView().getFirstSplitView()
+    collection      = []
+
+    @splitViewExplorer_ collection, firstSplitView
+
+    return collection
+
+
+  createLayoutSizeData: ->
+
+    firstSplitView  = @getBaseSplitView().getFirstSplitView()
+    splitViews      = @findAllSplitViews()
+
+    data            =
+      canvas        :
+        width       : firstSplitView.getWidth()
+        height      : firstSplitView.getHeight()
+      sizes         : []
+
+    for splitView in splitViews
+      { first } = splitView.panels
+
+      data.sizes.push
+        width   : first.getWidth()
+        height  : first.getHeight()
+
+    return data
+
+
+  applyLayoutSize: ->
+
+    ## The `ideApp` is an `IDEAppController`s instance
+    ideApp          = @getDelegate()
+    firstSplitView  = @getBaseSplitView().getFirstSplitView()
+    currentCanvas   =
+      width         : firstSplitView.getWidth()
+      height        : firstSplitView.getHeight()
+
+    ideApp.fetchLayoutSize (data) =>
+
+      return  unless data?.sizes
+
+      splitViews  = @findAllSplitViews()
+      widthRatio  = @getRatio currentCanvas.width, data.canvas.width
+      heightRatio = @getRatio currentCanvas.height, data.canvas.height
+
+      return  unless splitViews.length
+
+      splitViews.forEach (view, index) ->
+        size = data.sizes[index]
+
+        return  unless size
+
+        value = if view.isVertical()
+        then size.width   * widthRatio
+        else size.height  * heightRatio
+
+        view._windowDidResize()
+        view.resizePanel value
+
+
+  getRatio: (a, b) ->
+
+    return 0  if not a or not b
+    return 1  if a is b
+    return (a / b)
 
