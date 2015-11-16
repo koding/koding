@@ -22,6 +22,7 @@ koding.once 'dbClientReady', ->
   # rekuire your models here like;
   JAccount  = rekuire 'account.coffee'
   JUser     = rekuire 'user/index.coffee'
+  JAppStorage     = rekuire 'appstorage.coffee'
 
 
   # Config
@@ -72,9 +73,52 @@ koding.once 'dbClientReady', ->
         cb null, userCache[_id] = {user, account}
 
 
+  fetchAppStorageRelationship = (appStorage, callback) ->
+
+    { appId, version, _id } = appStorage
+
+    query =
+      as          : 'appStorage'
+      data        : { appId, version }
+      targetId    : _id
+      targetName  : 'JAppStorage'
+      sourceName  : 'JAccount'
+
+    Relationship.one query, (err, rel) ->
+      callback err, rel
+
+
+  migrateAppStorage = (appStorage, index, callback) ->
+
+    console.log "Migrating appStorage with index #{index}"
+    { appId, version, _id, bucket } = appStorage
+
+    fetchAppStorageRelationship appStorage, (err, rel) ->
+      return callback err  if err
+
+      if not rel
+        console.log "No relationship found for appStorage with id #{_id}"
+        JAppStorage.remove { _id }, (err) ->
+          return callback err
+
+      else
+        options = { accountId : rel.sourceId, appId, version, data : bucket }
+        JAccount.migrateOldAppStorageIfExists options, (err) ->
+          callback err
+
+
   # Main updater
   # ------------
 
   # fetch some data and start ~ for more example check history of this file ~GG
 
-  console.log 'Updater completed.'
+  query = {}
+  JAppStorage.count query, (err, appStorageCount) ->
+    console.log "#{appStorageCount} appstorages found, starting..."
+
+    fields = { _id : 1, bucket : 1, appId : 1, version : 1 }
+    JAppStorage.someData query, fields, { skip }, (err, cursor) ->
+      iterate cursor, migrateAppStorage, skip, (err, total) ->
+        console.log "ERROR >>", err  if err?
+        console.log "FINAL #{total}"
+        process.exit 0
