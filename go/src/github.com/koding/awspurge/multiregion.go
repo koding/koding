@@ -35,10 +35,10 @@ func newMultiRegion(conf *aws.Config, regions []string) *multiRegion {
 	}
 
 	for _, region := range regions {
-		conf.MergeIn(&aws.Config{Region: aws.String(region)})
-
-		m.ec2[region] = ec2.New(session.New(), conf)
-		m.elb[region] = elb.New(session.New(), conf)
+		// conf.MergeIn(&aws.Config{Region: aws.String(region)})
+		sess := session.New(conf, &aws.Config{Region: aws.String(region)})
+		m.ec2[region] = ec2.New(sess)
+		m.elb[region] = elb.New(sess)
 	}
 
 	return m
