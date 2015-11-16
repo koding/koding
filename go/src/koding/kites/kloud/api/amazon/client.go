@@ -74,7 +74,7 @@ func (c *Client) Images() ([]*ec2.Image, error) {
 		return nil, awsError(err)
 	}
 	if len(resp.Images) == 0 {
-		return nil, errors.New("no images found")
+		return nil, newNotFoundError("Image", errors.New("no images found"))
 	}
 	return resp.Images, nil
 }
@@ -121,6 +121,9 @@ func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
 	resp, err := c.EC2.DescribeSnapshots(params)
 	if err != nil {
 		return nil, awsError(err)
+	}
+	if len(resp.Snapshots) == 0 {
+		return nil, newNotFoundError("Snapshot", errors.New("no snapshots found"))
 	}
 	return resp.Snapshots, nil
 }

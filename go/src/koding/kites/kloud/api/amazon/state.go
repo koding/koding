@@ -13,7 +13,7 @@ import (
 
 func (a *Amazon) Start(ctx context.Context) (*ec2.Instance, error) {
 	if a.Id() == "" {
-		return nil, ErrInstanceIdEmpty
+		return nil, ErrInstanceEmptyID
 	}
 
 	// if we have eventer, use it
@@ -65,7 +65,7 @@ func (a *Amazon) Start(ctx context.Context) (*ec2.Instance, error) {
 
 func (a *Amazon) Stop(ctx context.Context) error {
 	if a.Id() == "" {
-		return ErrInstanceIdEmpty
+		return ErrInstanceEmptyID
 	}
 
 	// if we have eventer, use it
@@ -135,7 +135,7 @@ func (a *Amazon) Stop(ctx context.Context) error {
 
 func (a *Amazon) Restart(ctx context.Context) error {
 	if a.Id() == "" {
-		return ErrInstanceIdEmpty
+		return ErrInstanceEmptyID
 	}
 
 	ev, withPush := eventer.FromContext(ctx)
@@ -179,7 +179,7 @@ func (a *Amazon) Restart(ctx context.Context) error {
 
 func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	if a.Id() == "" {
-		return ErrInstanceIdEmpty
+		return ErrInstanceEmptyID
 	}
 
 	ev, withPush := eventer.FromContext(ctx)

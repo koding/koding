@@ -9,8 +9,29 @@ import (
 
 var (
 	ErrInstanceTerminated = errors.New("instance is terminated")
-	ErrInstanceIdEmpty    = errors.New("instance id is empty")
+	ErrInstanceEmptyID    = errors.New("instance ID is empty")
 )
+
+// OrigErr returns (unboxes) the underlying reason for the error.
+//
+// If err was not boxed and/or is not a specialised error, the function
+// is effectively a nop.
+func OrigErr(err error) error {
+	switch e := err.(type) {
+	case *NotFoundError:
+		return e.Err
+	case awserr.Error:
+		return e.OrigErr()
+	default:
+		return err
+	}
+}
+
+// EqualErr returns true when both errors are equal or underlying error for
+// both of them are equal.
+func EqualErr(lhs, rhs error) bool {
+	return OrigErr(lhs) == OrigErr(rhs)
+}
 
 // NotFoundError is a special kind of error returned by the Client wrapper.
 // This error may occur because the recently created resource has not
