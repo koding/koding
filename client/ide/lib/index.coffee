@@ -901,6 +901,14 @@ class IDEAppController extends AppController
 
     @writeToKiteStorage key, value
     @emit 'LayoutSizeChangesSaved' # TODO: Naming.
+
+
+  fetchLayoutSize: (callback, username = nick()) ->
+
+    key = "#{username}-LayoutSize"
+    @fetchFromKiteStorage callback, key
+
+
   removeWorkspaceSnapshot: (username = nick()) ->
 
     key = @getWorkspaceStorageKey username
