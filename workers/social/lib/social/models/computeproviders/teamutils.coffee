@@ -27,29 +27,28 @@ generateConstraints = (plan) ->
       rules.push { $keys: supports }
 
     if provider?
-      rules.push { 'provider'  :
-                   [ { $typeof : 'object' }
-                     { $keys   : provider } ] }
+      rules.push { 'provider': [{ $typeof: 'object' }, { $keys: provider }] }
 
       # don't allow any custom keys to define for aws provider
-      rules.push { 'provider.aws' :
-                   [ { $typeof    : 'object' }
-                     { $length    : 2 } ] }
+      rules.push { 'provider.aws': [{ $typeof: 'object' }, { $length: 2 }] }
 
       # we are expecting that we use aws_ related variables here
-      rules.push { 'provider.aws.access_key': { $eq: '${var.aws_access_key}' }}
-      rules.push { 'provider.aws.secret_key': { $eq: '${var.aws_secret_key}' }}
-
+      rules.push {
+        'provider.aws.access_key': { $eq: '${var.aws_access_key}' }
+      }
+      rules.push {
+        'provider.aws.secret_key': { $eq: '${var.aws_secret_key}' }
+      }
 
     if resource?
-      rules.push { 'resource'  :
-                   [ { $typeof : 'object' }
-                     { $keys   : resource } ] }
+      rules.push { 'resource': [{ $typeof: 'object' }, { $keys: resource }] }
+
 
   # Add instance limit per user
-  rules.push { 'resource.aws_instance':
-               [ { $typeof : 'object' }
-                 { $length : { $lte: instancePerMember } } ] }
+  rules.push { 'resource.aws_instance': [
+                { $typeof: 'object' },
+                { $length: { $lte: instancePerMember } }
+            ] }
 
   # Custom restrictions
   if restrictions?.custom?
@@ -65,24 +64,27 @@ generateConstraints = (plan) ->
       # This is the default instance name in AWS Console
       # so we are not allowing custom tag definitions here
       # TODO this can be taken from config ~ GG
-      instanceName = "${var.koding_user_username}-${var.koding_group_slug}"
-      rules.push { 'resource.aws_instance.*.tags' :
-                   [ { $keys : [ 'Name' ] }
-                     { Name  : { $eq : instanceName } } ] }
+      instanceName = '${var.koding_user_username}-${var.koding_group_slug}'
+      rules.push { 'resource.aws_instance.*.tags': [
+                    { $keys: ['Name'] }
+                    { Name: { $eq: instanceName } }
+                ] }
 
   # Add allowed instance types if defined
   if allowedInstances.length > 0
-    rules.push { 'resource.aws_instance.*.instance_type':
-                 [ { $typeof: 'string' }
-                   { $in: allowedInstances } ] }
+    rules.push { 'resource.aws_instance.*.instance_type': [
+                   { $typeof: 'string' }
+                   { $in: allowedInstances }
+              ] }
 
   # Add storage limit per instance, this checks are optional
   # we don't need to define volume_size in each stack template
   # but when we do we need to fit with the rules ~ GG
-  rules.push { 'resource.aws_instance.*.root_block_device':
-               [ { 'volume_size?' : { $typeof: 'number' } }
-                 { 'volume_size?' : { $lte: storagePerInstance } }
-                 { 'volume_size?' : { $gt: 3 } } ] } # min volume size 3GB
+  rules.push { 'resource.aws_instance.*.root_block_device': [
+                 { 'volume_size?': { $typeof: 'number' } }
+                 { 'volume_size?': { $lte: storagePerInstance } }
+                 { 'volume_size?': { $gt: 3 } }  # min volume size 3GB
+            ] }
 
   return rules
 
