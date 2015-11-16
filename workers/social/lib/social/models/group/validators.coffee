@@ -72,17 +72,17 @@ module.exports =
     Relationship.count roleSelector, createExistenceCallback callback
 
 
-  custom  :
+  group:
 
-    owner : (client, group, permission, permissionSet, _, callback) ->
+    admin: (client, group, permission, permissionSet, _, callback) ->
 
       { delegate } = client.connection
 
       return  unless hasDelegate delegate, callback
 
       relSelector  =
-        targetId   : @getId()
-        sourceId   : delegate.getId()
-        as         : 'owner'
+        targetId   : delegate.getId()
+        sourceId   : group.getId()
+        as         : { $in: [ 'owner', 'admin' ] }
 
       Relationship.count relSelector, createExistenceCallback callback
