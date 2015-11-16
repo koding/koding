@@ -101,6 +101,7 @@ func New(conf *Config) (*Purge, error) {
 }
 
 func (p *Purge) Do() error {
+	log.Println("Fetching resources")
 	if err := p.Fetch(); err != nil {
 		log.Println("Fetch err: %s", err)
 	}
@@ -109,9 +110,10 @@ func (p *Purge) Do() error {
 		return err
 	}
 
-	if err := p.Terminate(); err != nil {
-		return err
-	}
+	log.Println("Terminating resources")
+	// if err := p.Terminate(); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -163,5 +165,8 @@ func (p *Purge) Fetch() error {
 
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
-	return p.TerminateInstances()
+	p.TerminateInstances()
+	p.TerminateVolumes()
+	p.TerminateKeyPairs()
+	return nil
 }
