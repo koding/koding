@@ -19,8 +19,8 @@ module.exports = class JGroup extends Module
   { throttle, extend }     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
-    { permission: 'edit groups' }
-    { permission: 'edit own groups', validateWith: Validators.own }
+    { permission: 'edit groups',     superadmin: yes }
+    { permission: 'edit own groups', validateWith: Validators.group.admin }
   ]
 
   @trait __dirname, '../../traits/filterable'
