@@ -62,7 +62,7 @@ class AppStorage extends kd.Object
     appId = @_applicationID
     @fetchStorage (storage) =>
       @storage = storage
-      value = getValue key, group
+      value = @getValue key, group
 
       callback? value ? null
     , force
