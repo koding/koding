@@ -13,8 +13,6 @@ import (
 const resourceLimit = 100
 
 func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) {
-	p.deleteWg.Add(1)
-
 	for r, s := range p.services.ec2 {
 		p.deleteWg.Add(1)
 
