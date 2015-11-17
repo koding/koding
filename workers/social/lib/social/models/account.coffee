@@ -293,10 +293,6 @@ module.exports = class JAccount extends jraphical.Module
           as          : 'owner'
           targetType  : 'JProposedDomain'
 
-        proxyFilter   :
-          as          : 'owner'
-          targetType  : 'JProxyFilter'
-
         invitation    :
           as          : 'owner'
           targetType  : 'JInvitation'
