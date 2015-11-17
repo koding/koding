@@ -43,18 +43,23 @@ module.exports = Validators =
     return  unless hasDelegate delegate, callback
     return callback null, yes  if delegate.equals this
 
-    delegateId = delegate.getId()
+    Validators.any client, group, permission, permissionSet, _, (err, allow) =>
 
-    if @originId? and delegateId.equals @originId
-      callback null, yes
+      if err or not allow
+        return callback err, no
 
-    else
-      ownerSelector =
-        sourceId    : delegateId
-        targetId    : @getId()
-        as          : 'owner'
+      delegateId = delegate.getId()
 
-      Relationship.count ownerSelector, createExistenceCallback callback
+      if @originId? and delegateId.equals @originId
+        callback null, yes
+
+      else
+        ownerSelector =
+          sourceId    : delegateId
+          targetId    : @getId()
+          as          : 'owner'
+
+        Relationship.count ownerSelector, createExistenceCallback callback
 
 
   any: (client, group, permission, permissionSet, _, callback) ->
