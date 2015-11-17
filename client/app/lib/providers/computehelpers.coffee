@@ -140,8 +140,7 @@ module.exports = class ComputeHelpers
         new ComputePlansModalPaid options
         cc._inprogress = no
 
-        callback()
-        return
+        return callback()
 
       query        =
         provider   : 'koding'
