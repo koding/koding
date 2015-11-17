@@ -32,7 +32,7 @@ func UninstallCommand(c *cli.Context) int {
 	}
 
 	// Remove the Klient directory
-	if err = os.RemoveAll(KlientDirectory); err != nil {
+	if err := os.RemoveAll(KlientDirectory); err != nil {
 		fmt.Printf(
 			"Warning: Failed to remove %s binary. This is not a critical issue.\n",
 			KlientName,
