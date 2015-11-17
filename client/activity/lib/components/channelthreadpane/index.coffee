@@ -17,6 +17,8 @@ ChannelDropContainer         = require 'activity/components/channeldropcontainer
 Link                         = require 'app/components/common/link'
 ButtonWithMenu               = require 'app/components/buttonwithmenu'
 KeyboardKeys                 = require 'app/util/keyboardKeys'
+Encoder                      = require 'htmlencode'
+
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -163,14 +165,15 @@ module.exports = class ChannelThreadPane extends React.Component
 
     return  unless @state.channelThread
 
-    thread = @state.channelThread
+    purpose = @state.channelThread.getIn ['channel', 'purpose']
+    purpose = Encoder.htmlDecode purpose
 
     valueLink =
-      value: thread.getIn ['channel', 'purpose']
+      value: purpose
       requestChange: @bound 'handleChange'
 
     <div className={@getPurposeAreaClassNames()}>
-      <span className='ChannelThreadPane-purpose'>{thread.getIn ['channel', 'purpose']}</span>
+      <span className='ChannelThreadPane-purpose'>{purpose}</span>
       <input ref='purposeInput' type='text' valueLink={valueLink} onKeyDown={@bound 'onKeyDown'} />
     </div>
 
