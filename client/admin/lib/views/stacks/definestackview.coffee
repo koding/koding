@@ -18,7 +18,6 @@ providersParser      = require './providersparser'
 
 requirementsParser   = require './requirementsparser'
 updateStackTemplate  = require './updatestacktemplate'
-constraintChecker    = require './constraintchecker'
 updateCustomVariable = require './updatecustomvariable'
 parseTerraformOutput = require './parseterraformoutput'
 
@@ -507,9 +506,6 @@ module.exports = class DefineStackView extends KDView
 
     template   = templateContent
     currentSum = stackTemplate?.template?.sum
-
-    if err = constraintChecker template
-      return callback err
 
     updateStackTemplate {
       template, description, rawContent, templateDetails
