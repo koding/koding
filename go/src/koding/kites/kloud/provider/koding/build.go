@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -149,7 +150,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 	} else {
-		m.Log.Debug("Continue build process with data, instanceId: '%s' and queryString: '%s'",
+		m.Log.Debug("Continue build process with data, instanceId: %q and queryString: %q",
 			m.Meta.InstanceId, m.QueryString)
 
 		// If this is not the first attempt to build, the first attempt may
@@ -164,7 +165,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			// an error here we do not give AWS a chance to return
 			// successfully.
 			m.Log.Warning(
-				"Failed to recover for pre-existing instance. (username: %s, instanceId: %s, region: %s)",
+				"Failed to recover for pre-existing instance. (username: %q, instanceId: %q, region: %q)",
 				m.Credential, m.Meta.InstanceId, m.Meta.Region,
 			)
 		}
@@ -172,7 +173,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	m.push("Checking build process", 40, machinestate.Building)
-	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
+	m.Log.Debug("Checking build process of instanceId %q", m.Meta.InstanceId)
 
 	// In the event that checkBuild fails, we can log to see how long it took
 	// with this var.
@@ -182,7 +183,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	if err == amazon.ErrInstanceTerminated || amazon.IsNotFound(err) {
 		// reset the stored instance id and query string. They will be updated again the next time.
-		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
+		m.Log.Warning("machine with instance id %q has a problem %q. Building a new machine",
 			m.Meta.InstanceId, err)
 
 		// we fallback to us-east-1 (it has the largest quota) because a
@@ -305,7 +306,6 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 			VolumeType:          aws.String("standard"), // Use magnetic storage because it is cheaper
 			VolumeSize:          aws.Int64(int64(storageSize)),
 			DeleteOnTermination: aws.Bool(true),
-			Encrypted:           aws.Bool(false),
 		},
 	}
 
@@ -423,7 +423,7 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 		image.ImageId = aws.String(imageID)
 	}
 
-	m.Log.Debug("Using image Id: %s and block device settings %v", image.ImageId, blockDeviceMapping)
+	m.Log.Debug("Using image Id: %q and block device settings %+v", aws.StringValue(image.ImageId), blockDeviceMapping)
 
 	return &ImageData{
 		imageID:            aws.StringValue(image.ImageId),
@@ -510,10 +510,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 			imageData.blockDeviceMapping,
 		},
-		// AssociatePublicIpAddress: true,
-		// SubnetId:                 subnet.SubnetId,
-		// SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
-		UserData: aws.String(string(userdata)),
+		UserData: aws.String(base64.StdEncoding.EncodeToString(userdata)),
 	}
 
 	// pass publicKey if only it's available
@@ -539,12 +536,11 @@ func (m *Machine) checkLimits(buildData *BuildData) error {
 		return err
 	}
 
-	m.Log.Debug("Check if user is allowed to create instance type %s", buildData.EC2Data.InstanceType)
+	m.Log.Debug("Check if user is allowed to create instance type %q", aws.StringValue(buildData.EC2Data.InstanceType))
 
 	// check if the user is egligible to create a vm with this instance type
 	if err := m.Checker.AllowedInstances(plans.Instances[aws.StringValue(buildData.EC2Data.InstanceType)]); err != nil {
-		m.Log.Critical("Instance type (%s) is not allowed. Fallback to t2.micro",
-			buildData.EC2Data.InstanceType)
+		m.Log.Critical("Instance type %q is not allowed. Fallback to t2.micro", aws.StringValue(buildData.EC2Data.InstanceType))
 		buildData.EC2Data.InstanceType = aws.String(plans.T2Micro.String())
 	}
 
