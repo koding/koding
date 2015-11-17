@@ -1,17 +1,17 @@
-_ = require 'lodash'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDTabView = kd.TabView
-KDTabPaneView = kd.TabPaneView
-ActivityTabHandle = require './activitytabhandle'
-ActivityWidgetsBar = require './activitywidgetsbar'
-ActivityContentPane = require './activitycontentpane'
-ActivitySearchResultsPane = require './activitysearchresultspane'
-MessagePane = require './messagepane'
-SearchInputView = require './searchinputview'
-showError = require 'app/util/showError'
-getMessageOwner = require 'app/util/getMessageOwner'
-filterTrollActivity = require 'app/util/filterTrollActivity'
+_                           = require 'lodash'
+kd                          = require 'kd'
+KDCustomHTMLView            = kd.CustomHTMLView
+KDTabView                   = kd.TabView
+KDTabPaneView               = kd.TabPaneView
+ActivityTabHandle           = require './activitytabhandle'
+ActivityWidgetsBar          = require './activitywidgetsbar'
+ActivityContentPane         = require './activitycontentpane'
+ActivitySearchResultsPane   = require './activitysearchresultspane'
+MessagePane                 = require './messagepane'
+SearchInputView             = require './searchinputview'
+showError                   = require 'app/util/showError'
+getMessageOwner             = require 'app/util/getMessageOwner'
+filterTrollActivity         = require 'app/util/filterTrollActivity'
 
 
 module.exports = class ActivityPane extends MessagePane
