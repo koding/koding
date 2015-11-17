@@ -1000,17 +1000,17 @@ module.exports = class JAccount extends jraphical.Module
           queue.next()
 
       ->
+        _queue = []
         # removing old storages
         oldStorages.forEach (oldStorage) ->
-          _queue = []
           _queue.push ->
             oldStorage.remove (err) ->
               return _queue.fin err  if err
               _queue.fin()
 
-          dash _queue, (err) ->
-            return callback err  if err
-            queue.next()
+        dash _queue, (err) ->
+          return callback err  if err
+          queue.next()
 
       ->
         callback null, newStorage
