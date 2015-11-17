@@ -8,7 +8,7 @@ func (p *Purge) FetchInstances() {
 		allInstances, err := p.DescribeInstances()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -27,7 +27,7 @@ func (p *Purge) FetchVolumes() {
 		allVolumes, err := p.DescribeVolumes()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -46,7 +46,7 @@ func (p *Purge) FetchKeyPairs() {
 		allKeyPairs, err := p.DescribeKeyPairs()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -66,7 +66,7 @@ func (p *Purge) FetchPlacementGroups() {
 		allPlacementGroups, err := p.DescribePlacementGroups()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -86,7 +86,7 @@ func (p *Purge) FetchAddresses() {
 		allAddresses, err := p.DescribeAddresses()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -106,7 +106,7 @@ func (p *Purge) FetchSnapshots() {
 		allSnaphots, err := p.DescribeSnapshots()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -126,7 +126,7 @@ func (p *Purge) FetchLoadBalancers() {
 		allLoadBalancers, err := p.DescribeLoadBalancers()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -146,7 +146,7 @@ func (p *Purge) FetchSecurityGroups() {
 		allSecurityGroups, err := p.DescribeSecurityGroups()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -166,7 +166,7 @@ func (p *Purge) FetchVpcs() {
 		resources, err := p.DescribeVpcs()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -186,7 +186,7 @@ func (p *Purge) FetchSubnets() {
 		resources, err := p.DescribeSubnets()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -206,7 +206,7 @@ func (p *Purge) FetchNetworkAcls() {
 		resources, err := p.DescribeNetworkAcls()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -226,7 +226,7 @@ func (p *Purge) FetchInternetGateways() {
 		resources, err := p.DescribeInternetGateways()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}
@@ -246,7 +246,7 @@ func (p *Purge) FetchRouteTables() {
 		resources, err := p.DescribeRouteTables()
 		if err != nil {
 			p.mu.Lock()
-			p.errs = multierror.Append(p.errs, err)
+			p.fetchErrs = multierror.Append(p.fetchErrs, err)
 			p.mu.Unlock()
 			return
 		}

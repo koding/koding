@@ -48,9 +48,9 @@ type Purge struct {
 	resourceMu sync.Mutex // protects resources
 
 	// fetch synchronization
-	wg   sync.WaitGroup
-	mu   sync.Mutex
-	errs error
+	wg        sync.WaitGroup
+	mu        sync.Mutex
+	fetchErrs error
 }
 
 func New(conf *Config) (*Purge, error) {
@@ -111,9 +111,9 @@ func (p *Purge) Do() error {
 	}
 
 	log.Println("Terminating resources")
-	// if err := p.Terminate(); err != nil {
-	// 	return err
-	// }
+	if err := p.Terminate(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -160,11 +160,13 @@ func (p *Purge) Fetch() error {
 	p.FetchRouteTables()
 
 	p.wg.Wait()
-	return p.errs
+	return p.fetchErrs
 }
 
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
+	return errors.New("Terminated is not implemented yet")
+
 	// EC2
 	p.DeleteInstances()
 	p.DeleteVolumes()
