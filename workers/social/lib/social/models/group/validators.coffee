@@ -2,8 +2,8 @@
 
 getRoles = (permission, permissionSet) ->
   return []  unless permissionSet
-  roles = (perm.role for perm in permissionSet.permissions\
-          when permission in perm.permissions)
+  roles = ( perm.role for perm in permissionSet.permissions \
+                      when permission in perm.permissions   )
   roles.push 'admin' # admin can do anything!
   return roles
 
@@ -34,7 +34,7 @@ hasDelegate = (delegate, callback) ->
   return yes
 
 
-module.exports =
+module.exports = Validators =
 
   own: (client, group, permission, permissionSet, _, callback) ->
 
@@ -43,32 +43,29 @@ module.exports =
     return  unless hasDelegate delegate, callback
     return callback null, yes  if delegate.equals this
 
-    roleSelector = getRoleSelector delegate, group, permission, permissionSet
-    # if we get -1 as the role selector, it means guest (i.e. anyone) is allowed
-    return callback null, yes  if roleSelector is -1
-    Relationship.count roleSelector, (err, count) =>
-      if err then callback err, no
-      else if count is 0 then callback null, no
-      else
-        delegateId = delegate.getId()
-        if @originId? and delegateId.equals @originId
-          callback null, yes
-        else
-          ownerSelector = {
-            sourceId  : delegateId
-            targetId  : @getId()
-            as        : 'owner'
-          }
-          Relationship.count ownerSelector, createExistenceCallback callback
+    delegateId = delegate.getId()
+
+    if @originId? and delegateId.equals @originId
+      callback null, yes
+
+    else
+      ownerSelector =
+        sourceId    : delegateId
+        targetId    : @getId()
+        as          : 'owner'
+
+      Relationship.count ownerSelector, createExistenceCallback callback
 
 
   any: (client, group, permission, permissionSet, _, callback) ->
 
     { delegate } = client.connection
-    return unless hasDelegate delegate, callback
+    return  unless hasDelegate delegate, callback
 
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
+    # if we get -1 as the role selector, it means guest (i.e. anyone) is allowed
     return callback null, yes  if roleSelector is -1
+
     Relationship.count roleSelector, createExistenceCallback callback
 
 
