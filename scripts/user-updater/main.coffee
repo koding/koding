@@ -76,7 +76,7 @@ koding.once 'dbClientReady', ->
 
     fetchAccount account._id, (err, { account }) ->
       return callback err  if err
-      return callback new KodingError 'no account'  unless account
+      return callback "No account found for id: #{account?._id}, index: #{index}"  unless account
 
       account.fetchAppStorages (err, storages) ->
         return callback err  if err
@@ -103,7 +103,7 @@ koding.once 'dbClientReady', ->
 
   query = {}
   JAccount.count query, (err, accountCount) ->
-    console.log "#{accountCount} accounts found, starting..."
+    console.log "#{accountCount - skip} accounts found, starting..."
 
     fields = { _id : 1 }
     JAccount.someData query, fields, { skip }, (err, cursor) ->
