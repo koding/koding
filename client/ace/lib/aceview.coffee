@@ -70,12 +70,23 @@ module.exports = class AceView extends JView
     @setViewListeners()
 
 
-  removeModifiedFromTab: (path) ->
+  forEachPaneByFile: (path, callback) ->
 
     { handles, panes } = @getDelegate().tabView
 
     for pane in panes when pane.getData()?.path is path
+      callback pane
 
+
+  showModifiedIconOnTabHandle: ->
+
+    { path } = @ace.getData()
+    @forEachPaneByFile path, (pane) -> pane.tabHandle.setClass 'modified'
+
+
+  removeModifiedFromTab: (path) ->
+
+    @forEachPaneByFile path, (pane) ->
       { tabHandle } = pane
       tabHandle.setClass 'saved'
 
