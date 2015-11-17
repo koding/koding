@@ -101,6 +101,10 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       cssClass           : 'tiny settings-on-off'
       callback           : (state) => @emit 'SettingsChanged', 'enableAutoRemovePane', state
 
+    @enableBraceCompletion = new KodingSwitch
+      cssClass           : 'tiny settings-on-off'
+      callback           : (state) => @emit 'SettingsChanged', 'enableBraceCompletion', state
+
 
   getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
 
@@ -109,7 +113,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
 
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
-      'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
+      'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize', 'enableBraceCompletion'
       'keyboardHandler', 'scrollPastEnd', 'trimTrailingWhitespaces', 'openRecentFiles', 'useAutosave'
       'enableAutocomplete', 'enableSnippets', 'enableEmmet', 'enableAutoRemovePane'
     ]
@@ -131,8 +135,9 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
     openRecentFiles         : yes
     enableAutocomplete      : yes
     highlightActiveLine     : yes
-    trimTrailingWhitespaces : no
     enableAutoRemovePane    : no
+    enableBraceCompletion   : yes
+    trimTrailingWhitespaces : no
 
 
   pistachio: ->
@@ -162,6 +167,7 @@ module.exports = class IDEEditorSettingsView extends IDESettingsView
       <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
       <p>Enable emmet                    {{> @enableEmmet}}</p>
       <p>Enable snippets                 {{> @enableSnippets}}</p>
+      <p>Enable brace, tag completion    {{> @enableBraceCompletion}}
       <p class="with-select">Key binding {{> @keyboardHandler}}</p>
       <p class="with-select">Font size   {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
