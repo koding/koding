@@ -978,6 +978,9 @@ module.exports = class JAccount extends jraphical.Module
         # so we are trying to pick the one that contains data in it
         query = { 'data.appId':appId, 'data.version':version }
         @fetchAppStorages query, (err, storages) ->
+          return calback err  if err
+          # returning storage null bcs there was no old storage to be migrated
+          return callback null, null  unless storages.length > 0
 
           storages.forEach (storage) ->
             # if storage bucket is not empty pick it as the lucky one
@@ -985,11 +988,7 @@ module.exports = class JAccount extends jraphical.Module
 
           # if there was no lucky storage, pick the first one
           luckyStorage ?= storages[0]
-
-          return calback err  if err
-          # returning storage null bcs there was no old storage to be migrated
-          return callback null, null  unless storages.length > 0
-          oldStorages = storages
+          oldStorages   = storages
           queue.next()
 
       =>
