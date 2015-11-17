@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
-func (p *Purge) describeElbResources(fn func(*elb.ELB) error) {
+func (p *Purge) fetchELBResources(fn func(*elb.ELB) error) {
 	for _, s := range p.services.elb {
 		p.fetchWg.Add(1)
 
@@ -24,7 +24,7 @@ func (p *Purge) describeElbResources(fn func(*elb.ELB) error) {
 	}
 }
 
-func (p *Purge) describeResources(fn func(*ec2.EC2) error) {
+func (p *Purge) fetchEC2Resources(fn func(*ec2.EC2) error) {
 	for _, s := range p.services.ec2 {
 		p.fetchWg.Add(1)
 
@@ -42,7 +42,7 @@ func (p *Purge) describeResources(fn func(*ec2.EC2) error) {
 }
 
 func (p *Purge) FetchInstances() {
-	describeInstances := func(svc *ec2.EC2) error {
+	fn := func(svc *ec2.EC2) error {
 		resp, err := svc.DescribeInstances(nil)
 		if err != nil {
 			return err
@@ -65,11 +65,11 @@ func (p *Purge) FetchInstances() {
 		return nil
 	}
 
-	p.describeResources(describeInstances)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchVolumes() {
-	describeVolumes := func(svc *ec2.EC2) error {
+	fn := func(svc *ec2.EC2) error {
 		resp, err := svc.DescribeVolumes(nil)
 		if err != nil {
 			return err
@@ -84,7 +84,7 @@ func (p *Purge) FetchVolumes() {
 		return nil
 	}
 
-	p.describeResources(describeVolumes)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchKeyPairs() {
@@ -103,7 +103,7 @@ func (p *Purge) FetchKeyPairs() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchPlacementGroups() {
@@ -122,7 +122,7 @@ func (p *Purge) FetchPlacementGroups() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchAddresses() {
@@ -141,7 +141,7 @@ func (p *Purge) FetchAddresses() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchSnapshots() {
@@ -164,7 +164,7 @@ func (p *Purge) FetchSnapshots() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchSecurityGroups() {
@@ -183,7 +183,7 @@ func (p *Purge) FetchSecurityGroups() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchLoadBalancers() {
@@ -202,7 +202,7 @@ func (p *Purge) FetchLoadBalancers() {
 		return nil
 	}
 
-	p.describeElbResources(fn)
+	p.fetchELBResources(fn)
 }
 
 func (p *Purge) FetchVpcs() {
@@ -221,7 +221,7 @@ func (p *Purge) FetchVpcs() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchSubnets() {
@@ -240,7 +240,7 @@ func (p *Purge) FetchSubnets() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchNetworkAcls() {
@@ -259,7 +259,7 @@ func (p *Purge) FetchNetworkAcls() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchInternetGateways() {
@@ -278,7 +278,7 @@ func (p *Purge) FetchInternetGateways() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 func (p *Purge) FetchRouteTables() {
@@ -297,7 +297,7 @@ func (p *Purge) FetchRouteTables() {
 		return nil
 	}
 
-	p.describeResources(fn)
+	p.fetchEC2Resources(fn)
 }
 
 // stringSlice is an helper method to convert a slice of strings into a slice
