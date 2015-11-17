@@ -286,7 +286,7 @@ func (p *Plan) Storage(wantStorage int, username string) error {
 			p.StorageLimit, currentStorage+wantStorage, p)
 	}
 
-	p.Log.Debug("Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+	p.Log.Debug("Allowing user %q. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
 		username, currentStorage, wantStorage, p.StorageLimit, p)
 
 	// allow to create storage
@@ -300,7 +300,11 @@ func (p *Plan) userInstances(username string) ([]*ec2.Instance, error) {
 		"tag-value":           {username},
 	}
 	instances, err := p.AWSClient.InstancesByFilters(filters)
-	if err != nil {
+	switch {
+	case amazon.IsNotFound(err):
+		p.Log.Debug("user %q has no machines (aws)", username)
+		return nil, nil
+	case err != nil:
 		return nil, err
 	}
 	var filtered []*ec2.Instance
@@ -317,6 +321,10 @@ func (p *Plan) userInstances(username string) ([]*ec2.Instance, error) {
 			// and environment
 			filtered = append(filtered, instance)
 		}
+	}
+	if len(filtered) == 0 {
+		p.Log.Debug("user %q has no machines (filter)", username)
+		return nil, nil
 	}
 	return filtered, nil
 }
