@@ -42,7 +42,7 @@ module.exports = class PricingAppController extends KDViewController
 
     appStorage = appStorageController.storage 'Pricing', '2.0.0'
 
-    @ready => @mainView.appStorage = appStorage
+    @mainView.appStorage = appStorage
 
 
   loadPaymentProvider: (callback) -> @ready callback
