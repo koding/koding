@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"koding/kites/kloud/awscompat"
@@ -44,7 +45,7 @@ func newClient(cfg client.ConfigProvider, region string) (*Client, error) {
 
 // AddressesByIP is a wrapper for (*ec2.EC2).DescribeAddresses.
 //
-// If call succeeds but no addresses were found, it returns no-nil
+// If call succeeds but no addresses were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) AddressesByIP(publicIP string) ([]*ec2.Address, error) {
 	params := &ec2.DescribeAddressesInput{
@@ -95,7 +96,7 @@ func (c *Client) AssociateAddress(instanceID, allocID string) error {
 
 // Images is a wrapper for (*ec2.EC2).DescribeImages.
 //
-// If call succeeds but no images were found, it returns no-nil
+// If call succeeds but no images were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Images() ([]*ec2.Image, error) {
 	params := &ec2.DescribeImagesInput{}
@@ -165,7 +166,7 @@ func (c *Client) DeregisterImage(imageID string) error {
 
 // Snapshots is a wrapper for (*ec2.EC2).DescribeSnapshots.
 //
-// If call succeeds but no snapshots were found, it returns no-nil
+// If call succeeds but no snapshots were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
 	params := &ec2.DescribeSnapshotsInput{}
@@ -219,7 +220,7 @@ func (c *Client) DeleteSnapshot(id string) error {
 
 // VPCs is a wrapper for (*ec2.EC2).DescribeVpcs.
 //
-// If call succeeds but no VPCs were found, it returns no-nil
+// If call succeeds but no VPCs were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 	params := &ec2.DescribeVpcsInput{}
@@ -235,7 +236,7 @@ func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 
 // Subnets is a wrapper for (*ec2.EC2).DescribeSubnets.
 //
-// If call succeeds but no subnets were found, it returns no-nil
+// If call succeeds but no subnets were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Subnets() ([]*ec2.Subnet, error) {
 	params := &ec2.DescribeSubnetsInput{}
@@ -251,7 +252,7 @@ func (c *Client) Subnets() ([]*ec2.Subnet, error) {
 
 // SubnetsByTag is a wrapper for (*ec2.EC2).DescribeSubnets with tag-value filter.
 //
-// If call succeeds but no subnets were found, it returns no-nil
+// If call succeeds but no subnets were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) SubnetsByTag(value string) ([]*ec2.Subnet, error) {
 	params := &ec2.DescribeSubnetsInput{
@@ -387,7 +388,7 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 // user-defined filters.
 //
 // If the value of a certain filter is an empty string, the filter is ignored.
-// If call succeeds but no instances were found, it returns no-nil
+// If call succeeds but no instances were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error) {
 	params := &ec2.DescribeInstancesInput{
@@ -404,7 +405,7 @@ func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error)
 		}
 	}
 	if len(instances) == 0 {
-		return nil, fmt.Errorf("no instances found with filters=%v", filters)
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instances found with filters=%v", filters))
 	}
 	return instances, nil
 }
@@ -507,7 +508,7 @@ func (c *Client) DeleteKeyPair(name string) error {
 func (c *Client) ImportKeyPair(name string, publicKey []byte) (fingerprint string, err error) {
 	params := &ec2.ImportKeyPairInput{
 		KeyName:           aws.String(name),
-		PublicKeyMaterial: publicKey,
+		PublicKeyMaterial: []byte(base64.StdEncoding.EncodeToString(publicKey)),
 	}
 	resp, err := c.EC2.ImportKeyPair(params)
 	if err != nil {

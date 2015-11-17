@@ -1,6 +1,7 @@
 package awsprovider
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -223,13 +224,12 @@ func (m *Machine) imageData() (*ImageData, error) {
 			VolumeType:          aws.String("standard"), // Use magnetic storage because it is cheaper
 			VolumeSize:          aws.Int64(int64(m.Meta.StorageSize)),
 			DeleteOnTermination: aws.Bool(true),
-			Encrypted:           aws.Bool(false),
 		},
 	}
 
 	imageID = aws.StringValue(image.ImageId)
 
-	m.Log.Debug("Using image Id: %q and block device settings %# v", imageID, blockDeviceMapping)
+	m.Log.Debug("Using image Id: %q and block device settings %+v", imageID, blockDeviceMapping)
 
 	return &ImageData{
 		imageID:            imageID,
@@ -356,7 +356,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 			AssociatePublicIpAddress: aws.Bool(true),
 		}},
 		BlockDeviceMappings: []*ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
-		UserData:            aws.String(string(userdata)),
+		UserData:            aws.String(base64.StdEncoding.EncodeToString(userdata)),
 	}
 
 	return &BuildData{
