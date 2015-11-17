@@ -72,9 +72,9 @@ koding.once 'dbClientReady', ->
 
   migrateAppStorages = (account, index, callback) ->
 
-    { _id } = account
+    console.log "Starting migrate app storages, Index: #{index}, AccountId: #{account._id}"
 
-    fetchAccount _id, (err, { account }) ->
+    fetchAccount account._id, (err, { account }) ->
       return callback err  if err
       return callback new KodingError 'no account'  unless account
 
@@ -94,20 +94,6 @@ koding.once 'dbClientReady', ->
         dash queue, (err) ->
           logError err, index
           return callback err
-
-
-    # fetchAppStorageRelationship appStorage, (err, rel) ->
-    #   return callback err  if err
-    #
-    #   if not rel
-    #     console.log "No relationship found for appStorage with id #{_id}"
-    #     JAppStorage.remove { _id }, (err) ->
-    #       return callback err
-    #
-    #   else
-    #     options = { accountId : rel.sourceId, appId, version, data : bucket }
-    #     JAccount.migrateOldAppStorageIfExists options, (err) ->
-    #       callback err
 
 
   # Main updater
