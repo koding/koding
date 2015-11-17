@@ -105,8 +105,9 @@ koding.once 'dbClientReady', ->
   JAccount.count query, (err, accountCount) ->
     console.log "#{accountCount - skip} accounts found, starting..."
 
-    fields = { _id : 1 }
-    JAccount.someData query, fields, { skip }, (err, cursor) ->
+    fields  = { _id : 1 }
+    options = { sort : { "meta.createdAt" : -1 }, skip }
+    JAccount.someData query, fields, options, (err, cursor) ->
       iterate cursor, migrateAppStorages, skip, (err, total) ->
         console.log "ERROR >>", err  if err?
         console.log "FINAL #{total}"
