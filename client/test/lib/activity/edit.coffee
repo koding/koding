@@ -15,6 +15,7 @@ module.exports =
     browser
       .waitForElementVisible activitySelector + ' .settings-menu-wrapper', 25000
       .click                 activitySelector + ' .settings-menu-wrapper'
+      .waitForElementVisible '.kdcontextmenu .edit-post', 20000
       .click                 '.kdcontextmenu .edit-post'
       .clearValue            activitySelector + ' .edit-widget [testpath=ActivityInputView]'
       .setValue              activitySelector + ' .edit-widget [testpath=ActivityInputView]', post

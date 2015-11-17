@@ -6,16 +6,15 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
-	"github.com/aws/aws-sdk-go/internal/test/unit"
+	"github.com/aws/aws-sdk-go/awstesting/unit"
 	"github.com/aws/aws-sdk-go/service/glacier"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
-	_ = unit.Imported
-
 	payloadBuf = func() *bytes.Reader {
 		buf := make([]byte, 5767168) // 5.5MB buffer
 		for i := range buf {
@@ -24,7 +23,7 @@ var (
 		return bytes.NewReader(buf)
 	}()
 
-	svc = glacier.New(nil)
+	svc = glacier.New(unit.Session)
 )
 
 func TestCustomizations(t *testing.T) {
@@ -36,10 +35,10 @@ func TestCustomizations(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Sets API version
-	assert.Equal(t, req.Service.APIVersion, req.HTTPRequest.Header.Get("x-amz-glacier-version"))
+	assert.Equal(t, req.ClientInfo.APIVersion, req.HTTPRequest.Header.Get("x-amz-glacier-version"))
 
 	// Sets Account ID
-	v := awsutil.ValuesAtPath(req.Params, "AccountID")
+	v := awsutil.ValuesAtPath(req.Params, "AccountId")
 	assert.Equal(t, "-", v[0])
 
 	// Computes checksums
@@ -69,7 +68,7 @@ func TestFillAccountIDWithNilStruct(t *testing.T) {
 	empty := "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 	// Sets Account ID
-	v := awsutil.ValuesAtPath(req.Params, "AccountID")
+	v := awsutil.ValuesAtPath(req.Params, "AccountId")
 	assert.Equal(t, "-", v[0])
 
 	// Does not set tree hash

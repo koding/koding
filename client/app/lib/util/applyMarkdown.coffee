@@ -5,7 +5,8 @@ module.exports = (text, options = {})->
 
   return null unless text
 
-  text = text.replace '\\', '\\\\'
+  text = text.replace /\\/g, '\\'
+  text = text.replace /```\s/g, '```\n'
 
   options.gfm       ?= true
   options.pedantic  ?= false
@@ -14,8 +15,7 @@ module.exports = (text, options = {})->
   options.paragraphs?= true
   options.tables    ?= true
   options.highlight ?= (text, lang) ->
-    if hljs.getLanguage lang
-    then hljs.highlight(lang,text).value
-    else text
+
+    return hljs.highlightAuto(text).value
 
   marked text, options

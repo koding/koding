@@ -50,6 +50,13 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		// This ensures that the machine will never store Stopped in the
 		// database, while still running on the provider.
 		if resultState == machinestate.Stopped {
+			if m.Meta.AlwaysOn {
+				m.Log.Info("Info decision was to stop the machine, but it is an AlwaysOn machine. Ignoring decision. (username: %s, instanceId: %s, region: %s)",
+					m.Username, m.Meta.InstanceId, m.Meta.Region,
+				)
+				return
+			}
+
 			m.Log.Info("======> STOP started (inconsistent state)<======")
 
 			// Note that this Stop() call is done in a goroutine so that it

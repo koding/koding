@@ -2,6 +2,7 @@ package githubprovider
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -105,22 +106,31 @@ func GetTeamIDs(client *github.Client, org string, teamNames []string) ([]int, e
 // resourceGithubAddUserCreate adds the user to the organization & the teams
 func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error {
 	clientOrg := meta.(*Clients).OrgClient
+	client := meta.(*Clients).UserClient
 
 	org := d.Get("organization").(string)
 	user := d.Get("username").(string)
 	teamNames := interfaceToStringSlice(d.Get("teams"))
+	role := d.Get("role").(string)
+
+	if err := checkScopePermissions(client, user); err != nil {
+		return err
+	}
 
 	teamIDs, err := GetTeamIDs(clientOrg, org, teamNames)
 
+	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
+		Role: role,
+	}
+
 	for _, teamID := range teamIDs {
-		_, _, err := clientOrg.Organizations.AddTeamMembership(teamID, user)
+		_, _, err := clientOrg.Organizations.AddTeamMembership(teamID, user, optAddOrgMembership)
 		if err != nil {
 			return err
 		}
 	}
 
 	active := "active"
-	role := d.Get("role").(string)
 
 	membership := &github.Membership{
 		// state should be active to add the user into organization
@@ -130,10 +140,9 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 		Role: &role,
 	}
 
-	client := meta.(*Clients).UserClient
-
 	// EditOrgMembership edits the membership for user in specified organization.
-	_, _, err = client.Organizations.EditOrgMembership(org, membership)
+	// if user is authenticated, we dont need to set 1.parameter as user
+	_, _, err = client.Organizations.EditOrgMembership("", org, membership)
 	if err != nil {
 		return err
 	}
@@ -160,7 +169,7 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	// If SSH key is already set up, when u try to add same SSHKEY then
 	//you are gonna get 422: Validation error.
 	_, _, err = client.Users.CreateKey(key)
-	if err != nil {
+	if err != nil && !isErr422ValidationFailed(err) {
 		return err
 	}
 
@@ -227,4 +236,51 @@ func interfaceToStringSlice(s interface{}) []string {
 	}
 
 	return sslice
+}
+
+func checkScopePermissions(client *github.Client, username string) error {
+	arr, err := getScopes(client, username)
+	if err != nil {
+		return err
+	}
+
+	scopeArr := []string{"write:public_key", "public_repo", "user", "repo"}
+	for _, scopeElement := range scopeArr {
+		if !(isInArray(arr, scopeElement)) {
+			scopeErr := fmt.Errorf("Could not find required scope :", scopeElement)
+			return scopeErr
+		}
+	}
+
+	return nil
+
+}
+
+func getScopes(client *github.Client, username string) ([]string, error) {
+	var scopes []string
+	_, resp, err := client.Users.Get(username)
+	if err != nil {
+		return scopes, err
+	}
+
+	list := resp.Header.Get("X-Oauth-Scopes")
+	scopes = strings.Split(list, ", ")
+
+	return scopes, nil
+}
+
+func isInArray(arr []string, item string) bool {
+	for _, a := range arr {
+		if a == item {
+			return true
+		}
+	}
+	return false
+}
+
+// isErr422ValidationFailed return true if error contains the string:
+// '422 Validation Failed'. This error is special cased so we can ignore it on
+// when it occurs during rebuilding of stack template.
+func isErr422ValidationFailed(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "422 Validation Failed")
 }

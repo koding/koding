@@ -1,7 +1,8 @@
-KodingFluxStore = require 'app/flux/store'
-actions         = require '../actions/actiontypes'
-toImmutable     = require 'app/util/toImmutable'
-immutable       = require 'immutable'
+KodingFluxStore      = require 'app/flux/base/store'
+actions              = require '../actions/actiontypes'
+toImmutable          = require 'app/util/toImmutable'
+immutable            = require 'immutable'
+createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 module.exports = class ChannelsStore extends KodingFluxStore
 
@@ -12,9 +13,8 @@ module.exports = class ChannelsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_CHANNEL_SUCCESS, @handleLoadChannelSuccess
-    @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+    @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @handleLoadFollowedChannelSuccess
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
-    @on actions.LOAD_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
     @on actions.LOAD_POPULAR_CHANNELS_SUCCESS, @handleLoadChannelListSuccess
 
     @on actions.FOLLOW_CHANNEL_BEGIN, @handleFollowChannelBegin
@@ -24,7 +24,22 @@ module.exports = class ChannelsStore extends KodingFluxStore
     @on actions.UNFOLLOW_CHANNEL_BEGIN, @handleUnfollowChannelBegin
     @on actions.UNFOLLOW_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
     @on actions.UNFOLLOW_CHANNEL_FAIL, @handleUnfollowChannelFail
+    @on actions.LEAVE_PRIVATE_CHANNEL_SUCCESS, @handleUnfollowChannelSuccess
 
+    @on actions.ADD_PARTICIPANTS_TO_CHANNEL_BEGIN, @handleAddParticipantsToChannelBegin
+    @on actions.ADD_PARTICIPANTS_TO_CHANNEL_FAIL, @handleAddParticipantsToChannelFail
+
+    @on actions.SET_CHANNEL_UNREAD_COUNT, @handleSetUnreadCount
+
+    @on actions.GLANCE_CHANNEL_BEGIN, @handleGlanceChannel
+    @on actions.GLANCE_CHANNEL_SUCCESS, @handleGlanceChannel
+
+    @on actions.REMOVE_PARTICIPANT_FROM_CHANNEL, @handleRemoveParticipantFromChannel
+
+    @on actions.UPDATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+
+    @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @handleLoadChannelSuccess
+    @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @handleLoadChannelSuccess
 
   handleLoadChannelSuccess: (channels, { channel }) ->
 
@@ -36,6 +51,12 @@ module.exports = class ChannelsStore extends KodingFluxStore
     return currentChannels.withMutations (map) ->
       map.set channel.id, toImmutable channel for channel in  channels
       return map
+
+
+  handleLoadFollowedChannelSuccess: (channels, { channel }) ->
+
+    channels = @handleLoadChannelSuccess channels, { channel }
+    return @handleFollowChannelSuccess channels, { channelId : channel.id }
 
 
   handleFollowChannelSuccess: (channels, { channelId }) ->
@@ -52,6 +73,31 @@ module.exports = class ChannelsStore extends KodingFluxStore
       channels = channels.setIn [channelId, 'isParticipant'], no
 
     return channels
+
+
+  handleSetUnreadCount: (channels, { channelId, unreadCount }) ->
+
+    channels.setIn [channelId, 'unreadCount'], unreadCount
+
+
+  handleGlanceChannel: (channels, { channelId }) ->
+
+    channels.setIn [channelId, 'unreadCount'], 0
+
+
+  handleRemoveParticipantFromChannel: (channels, { channelId, accountId }) ->
+
+    channel = channels.get channelId
+
+    participantCount    = channel.get 'participantCount'
+    participantsPreview = channel.get 'participantsPreview'
+
+    participantsPreview = participantsPreview.filter (participant) ->
+
+      participant.get('_id') isnt accountId
+
+    channels = channels.setIn [channelId, 'participantCount'], participantCount - 1
+    channels = channels.setIn [channelId, 'participantsPreview'], participantsPreview
 
 
 initChannel = (channels, id) ->

@@ -4,17 +4,16 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/awstesting/unit"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 	"github.com/stretchr/testify/assert"
 )
 
-var svc = cognitoidentity.New(&aws.Config{
-	Region: "mock-region",
-})
+var svc = cognitoidentity.New(unit.Session)
 
 func TestUnsignedRequest_GetID(t *testing.T) {
-	req, _ := svc.GetIDRequest(&cognitoidentity.GetIDInput{
-		IdentityPoolID: aws.String("IdentityPoolId"),
+	req, _ := svc.GetIdRequest(&cognitoidentity.GetIdInput{
+		IdentityPoolId: aws.String("IdentityPoolId"),
 	})
 
 	err := req.Sign()
@@ -23,8 +22,8 @@ func TestUnsignedRequest_GetID(t *testing.T) {
 }
 
 func TestUnsignedRequest_GetOpenIDToken(t *testing.T) {
-	req, _ := svc.GetOpenIDTokenRequest(&cognitoidentity.GetOpenIDTokenInput{
-		IdentityID: aws.String("IdentityId"),
+	req, _ := svc.GetOpenIdTokenRequest(&cognitoidentity.GetOpenIdTokenInput{
+		IdentityId: aws.String("IdentityId"),
 	})
 
 	err := req.Sign()
@@ -34,7 +33,7 @@ func TestUnsignedRequest_GetOpenIDToken(t *testing.T) {
 
 func TestUnsignedRequest_GetCredentialsForIdentity(t *testing.T) {
 	req, _ := svc.GetCredentialsForIdentityRequest(&cognitoidentity.GetCredentialsForIdentityInput{
-		IdentityID: aws.String("IdentityId"),
+		IdentityId: aws.String("IdentityId"),
 	})
 
 	err := req.Sign()

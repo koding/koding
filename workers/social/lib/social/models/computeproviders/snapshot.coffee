@@ -124,8 +124,6 @@ module.exports = class JSnapshot extends Module
       @some selector, options, callback
 
 
-  # due to a bug in coffeelint 1.10.1
-  # coffeelint: disable=no_implicit_braces
   # Instance Methods
   # ---------------
 
@@ -147,7 +145,7 @@ module.exports = class JSnapshot extends Module
       unless delegate.getId().equals @originId
         return callback new KodingError 'Access denied'
 
-      @update $set: { label }, (err) ->
+      @update { $set: { label } }, (err) ->
         callback err
 
 

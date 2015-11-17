@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/kite/protocol"
 )
 
@@ -60,23 +61,30 @@ func (k *Kite) kontrolFunc(fn kontrolFunc) error {
 // use it during app initializations. After the registration a reconnect is
 // automatically handled inside the RegisterHTTP method.
 func (k *Kite) RegisterHTTPForever(kiteURL *url.URL) {
-	interval := time.NewTicker(kontrolRetryDuration)
-	defer interval.Stop()
+	// Create the httpBackoffRegister that RegisterHTTPForever will
+	// use to backoff repeated register attempts.
+	httpRegisterBackOff := backoff.NewExponentialBackOff()
+	httpRegisterBackOff.InitialInterval = 30 * time.Second
+	httpRegisterBackOff.MaxInterval = 5 * time.Minute
+	httpRegisterBackOff.Multiplier = 1.7
+	httpRegisterBackOff.MaxElapsedTime = 0
 
-	_, err := k.RegisterHTTP(kiteURL)
-	if err == nil {
-		return
-	}
-
-	for _ = range interval.C {
+	register := func() error {
 		_, err := k.RegisterHTTP(kiteURL)
-		if err == nil {
-			return
+		if err != nil {
+			k.Log.Error("Cannot register to Kontrol: %s Will retry after %d seconds",
+				err,
+				httpRegisterBackOff.NextBackOff()/time.Second)
+			return err
 		}
 
-		k.Log.Error("Cannot register to Kontrol: %s Will retry after %d seconds",
-			err, kontrolRetryDuration/time.Second)
+		return nil
+	}
 
+	// this will retry register forever
+	err := backoff.Retry(register, httpRegisterBackOff)
+	if err != nil {
+		k.Log.Error("BackOff stopped retrying with Error '%s'", err)
 	}
 }
 
@@ -125,7 +133,7 @@ func (k *Kite) RegisterHTTP(kiteURL *url.URL) (*registerResult, error) {
 	}
 
 	if rr.HeartbeatInterval == 0 {
-		return nil, errors.New("heartbeal interval cannot be zero")
+		return nil, errors.New("heartbeat interval cannot be zero")
 	}
 
 	// we also received a new public key (means the old one was invalidated).

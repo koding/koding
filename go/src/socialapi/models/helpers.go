@@ -20,7 +20,7 @@ func CreateChannelWithParticipants() (*Channel, []*Account) {
 	accounts := []*Account{account1, account2, account3}
 
 	channel := CreateChannelWithTest(account1.Id)
-	AddParticipants(channel.Id, account1.Id, account2.Id, account3.Id)
+	AddParticipantsWithTest(channel.Id, account1.Id, account2.Id, account3.Id)
 
 	return channel, accounts
 }
@@ -104,10 +104,10 @@ func CreateMessageWithBody(channelId, accountId int64, typeConstant, body string
 	err := cm.Create()
 	So(err, ShouldBeNil)
 
-	cml := NewChannelMessageList()
-	cml.MessageId = cm.Id
-	cml.ChannelId = channelId
-	So(cml.Create(), ShouldBeNil)
+	c := NewChannel()
+	c.Id = channelId
+	_, err = c.EnsureMessage(cm, false)
+	So(err, ShouldBeNil)
 
 	return cm
 }
@@ -129,7 +129,7 @@ func CreateTrollMessage(channelId, accountId int64, typeConstant string) *Channe
 	return cm
 }
 
-func AddParticipants(channelId int64, accountIds ...int64) {
+func AddParticipantsWithTest(channelId int64, accountIds ...int64) {
 
 	for _, accountId := range accountIds {
 		participant := NewChannelParticipant()
@@ -182,24 +182,13 @@ func createChannel(accountId int64) (*Channel, error) {
 	return channel, nil
 }
 
-func createMessageWithTest() *ChannelMessage {
+func CreateMessageWithTest() *ChannelMessage {
+	account := CreateAccountWithTest()
+	channel := CreateChannelWithTest(account.Id)
+
 	cm := NewChannelMessage()
-
-	// init account
-	account, err := createAccount()
-	So(err, ShouldBeNil)
-	So(account, ShouldNotBeNil)
-	So(account.Id, ShouldNotEqual, 0)
-	// init channel
-	channel, err := createChannel(account.Id)
-	So(err, ShouldBeNil)
-	So(channel, ShouldNotBeNil)
-
-	// set account id
 	cm.AccountId = account.Id
-	// set channel id
 	cm.InitialChannelId = channel.Id
-	// set body
 	cm.Body = "5five"
 	return cm
 }

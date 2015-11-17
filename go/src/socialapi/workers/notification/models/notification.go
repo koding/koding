@@ -66,7 +66,7 @@ func (n *Notification) Subscribe(nc *NotificationContent) error {
 }
 
 func (n *Notification) Unsubscribe(nc *NotificationContent) error {
-	n.UnsubscribedAt = time.Now()
+	n.UnsubscribedAt = time.Now().UTC()
 
 	return n.subscription(nc)
 }
@@ -91,12 +91,13 @@ func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 	if q.Limit == 0 {
 		return nil, errors.New("limit cannot be zero")
 	}
-	response := &NotificationResponse{}
+
 	result, err := n.getDecoratedList(q)
 	if err != nil {
-		return response, err
+		return nil, err
 	}
 
+	response := &NotificationResponse{}
 	response.Notifications = result
 	response.UnreadCount = getUnreadNotificationCount(result)
 
@@ -144,12 +145,13 @@ func (n *Notification) FetchByContent() error {
 func (n *Notification) getDecoratedList(q *request.Query) ([]NotificationContainer, error) {
 	result := make([]NotificationContainer, 0)
 
-	nList, err := n.fetchByAccountId(q)
+	notifications, err := n.fetchByAccountId(q)
 	if err != nil {
 		return nil, err
 	}
+
 	// fetch all notification content relationships
-	contentIds := deductContentIds(nList)
+	contentIds := mapContentIds(notifications)
 
 	nc := NewNotificationContent()
 	ncMap, err := nc.FetchMapByIds(contentIds)
@@ -163,7 +165,7 @@ func (n *Notification) getDecoratedList(q *request.Query) ([]NotificationContain
 		return nil, err
 	}
 
-	for _, n := range nList {
+	for _, n := range notifications {
 		nc := ncMap[n.NotificationContentId]
 		na := naMap[n.NotificationContentId]
 		container := n.buildNotificationContainer(q.AccountId, &nc, na)
@@ -199,7 +201,7 @@ func (n *Notification) buildNotificationContainer(actorId int64, nc *Notificatio
 	}
 }
 
-func deductContentIds(nList []Notification) []int64 {
+func mapContentIds(nList []Notification) []int64 {
 	notificationContentIds := make([]int64, len(nList))
 	for i, n := range nList {
 		notificationContentIds[i] = n.NotificationContentId

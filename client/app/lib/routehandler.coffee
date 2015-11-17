@@ -6,8 +6,8 @@ remote         = require('./remote').getInstance()
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
-trackEvent     = require './util/trackEvent'
 registerRoutes = require './util/registerRoutes'
+isKoding       = require './util/isKoding'
 
 
 getAction = (formName) -> switch formName
@@ -42,6 +42,10 @@ createContentDisplayHandler = (section, passOptions = no) ->
   ({params:{name, slug}, query}, models, route)->
 
     {router} = kd.singletons
+
+    # don't render profile pages on team contexts.
+    return router.handleNotFound()  unless isKoding()
+
     route = name unless route
 
     if models?
@@ -69,7 +73,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'referrer'
       {params:{username}} = info
-      trackEvent "Visit referrer url, success", {username}
       # give a notification to tell that this is a referral link here - SY
       handleRoot()
 

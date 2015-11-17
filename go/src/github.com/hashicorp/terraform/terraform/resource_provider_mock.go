@@ -10,6 +10,8 @@ type MockResourceProvider struct {
 	// Anything you want, in case you need to store extra data with the mock.
 	Meta interface{}
 
+	CloseCalled                  bool
+	CloseError                   error
 	InputCalled                  bool
 	InputInput                   UIInput
 	InputConfig                  *ResourceConfig
@@ -53,6 +55,11 @@ type MockResourceProvider struct {
 	ValidateResourceConfig       *ResourceConfig
 	ValidateResourceReturnWarns  []string
 	ValidateResourceReturnErrors []error
+}
+
+func (p *MockResourceProvider) Close() error {
+	p.CloseCalled = true
+	return p.CloseError
 }
 
 func (p *MockResourceProvider) Input(
@@ -111,13 +118,14 @@ func (p *MockResourceProvider) Apply(
 	info *InstanceInfo,
 	state *InstanceState,
 	diff *InstanceDiff) (*InstanceState, error) {
+	// We only lock while writing data. Reading is fine
 	p.Lock()
-	defer p.Unlock()
-
 	p.ApplyCalled = true
 	p.ApplyInfo = info
 	p.ApplyState = state
 	p.ApplyDiff = diff
+	p.Unlock()
+
 	if p.ApplyFn != nil {
 		return p.ApplyFn(info, state, diff)
 	}

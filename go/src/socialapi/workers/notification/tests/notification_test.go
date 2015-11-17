@@ -67,6 +67,9 @@ func (th *testHelper) prepareTestData() {
 		name := "notification_test_" + socialapimodels.RandomGroupName()
 		testGroupChannel.CreatorId = ownerAccount.Id
 		testGroupChannel.Name = name
+		testGroupChannel.GroupName = name
+		testGroupChannel.TypeConstant = socialapimodels.Channel_TYPE_GROUP
+
 		err := testGroupChannel.Create()
 		if err != nil {
 			th.t.Fatal(err)
@@ -78,6 +81,9 @@ func (th *testHelper) prepareTestData() {
 		name := "notification_test_" + socialapimodels.RandomGroupName()
 		testGroupChannel2.CreatorId = ownerAccount.Id
 		testGroupChannel2.Name = name
+		testGroupChannel2.GroupName = name
+		testGroupChannel.TypeConstant = socialapimodels.Channel_TYPE_GROUP
+
 		err := testGroupChannel2.Create()
 		if err != nil {
 			th.t.Fatal(err)
@@ -468,7 +474,7 @@ func TestNotificationCreation(t *testing.T) {
 		})
 
 		Convey("I should be able to receive notifications when a user mentions me in their post", func() {
-			body := fmt.Sprintf("@%s hello", ownerAccount.OldId)
+			body := fmt.Sprintf("@%s hello", ownerAccount.Nick)
 			cm, err := createPost(testGroupChannel, firstUser, body)
 			So(err, ShouldBeNil)
 			So(cm, ShouldNotBeNil)

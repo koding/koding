@@ -41,9 +41,9 @@ func (n *NotificationContent) FindByTarget() error {
 	return n.One(q)
 }
 
-// CreateNotification validates notifiable instance and creates a new notification
+// CreateNotification validates notifier instance and creates a new notification
 // with actor activity.
-func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
+func CreateNotificationContent(i Notifier) (*NotificationContent, error) {
 	// first check for type constant and target id
 	if i.GetType() == "" {
 		return nil, errors.New("Type must be set")
@@ -57,20 +57,41 @@ func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
 		return nil, errors.New("ActorId must be set")
 	}
 
-	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
-	nc := NewNotificationContent()
-	nc.TypeConstant = i.GetType()
-	nc.TargetId = i.GetTargetId()
-
-	if err := nc.Create(); err != nil {
+	nc, err := ensureNotificationContent(i)
+	if err != nil {
 		return nil, err
 	}
+
 	a := NewNotificationActivity()
 	a.NotificationContentId = nc.Id
 	a.ActorId = i.GetActorId()
 	a.MessageId = i.GetMessageId()
 
 	if err := a.Create(); err != nil {
+		return nil, err
+	}
+
+	return nc, nil
+}
+
+// ensureNotificationContent adds caching layer on top of notification content fetching
+func ensureNotificationContent(i Notifier) (*NotificationContent, error) {
+	// check for previous NotificationContent create if it does not exist (type:comment targetId:messageId)
+	nc, err := Cache.NotificationContent.ByTypeConstantAndTargetID(i.GetType(), i.GetTargetId())
+	if err == nil {
+		return nc, nil
+	}
+
+	nc = NewNotificationContent()
+	nc.TypeConstant = i.GetType()
+	nc.TargetId = i.GetTargetId()
+	if err := nc.Create(); err != nil {
+		return nil, err
+	}
+
+	// after creating the notificationcontent we can set it to cache for future
+	// usage
+	if err := Cache.NotificationContent.SetToCache(nc); err != nil {
 		return nil, err
 	}
 
@@ -114,8 +135,8 @@ func (n *NotificationContent) FetchIdsByTargetId(targetId int64) ([]int64, error
 	return ids, n.Some(&ids, query)
 }
 
-// CreateNotificationType creates an instance of notifiable subclasses
-func CreateNotificationContentType(notificationType string) (Notifiable, error) {
+// CreateNotificationType creates an instance of notifier subclasses
+func CreateNotificationContentType(notificationType string) (Notifier, error) {
 	switch notificationType {
 	case NotificationContent_TYPE_LIKE:
 		return NewInteractionNotification(notificationType), nil
@@ -129,7 +150,7 @@ func CreateNotificationContentType(notificationType string) (Notifiable, error) 
 
 }
 
-func (n *NotificationContent) GetContentType() (Notifiable, error) {
+func (n *NotificationContent) GetContentType() (Notifier, error) {
 	return CreateNotificationContentType(n.TypeConstant)
 }
 

@@ -1,27 +1,24 @@
-kd              = require 'kd'
-React           = require 'kd-react'
-immutable       = require 'immutable'
-classnames      = require 'classnames'
-formatEmojiName = require 'activity/util/formatEmojiName'
-DropupItem      = require 'activity/components/dropupitem'
+kd                   = require 'kd'
+React                = require 'kd-react'
+DropboxItem          = require 'activity/components/dropboxitem'
+EmojiIcon            = require 'activity/components/emojiicon'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 module.exports = class EmojiSelectorItem extends React.Component
 
+  @include [ ImmutableRenderMixin ]
+
   @defaultProps =
-    item         : immutable.Map()
-    isFirstInRow : no
+    item         : ''
     isSelected   : no
     index        : 0
 
 
   render: ->
 
-    { item, isFirstInRow } = @props
-    className = classnames
-      'EmojiSelectorItem'            : yes
-      'EmojiSelectorItem-firstInRow' : isFirstInRow
+    { item } = @props
 
-    <DropupItem {...@props} className={className}>
-      {formatEmojiName item}
-    </DropupItem>
+    <DropboxItem {...@props} className='EmojiSelectorItem'>
+      <EmojiIcon emoji={item} />
+    </DropboxItem>
 

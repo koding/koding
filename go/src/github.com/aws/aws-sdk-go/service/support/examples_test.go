@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/support"
 )
 
@@ -17,7 +16,7 @@ var _ time.Duration
 var _ bytes.Buffer
 
 func ExampleSupport_AddAttachmentsToSet() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.AddAttachmentsToSetInput{
 		Attachments: []*support.Attachment{ // Required
@@ -27,74 +26,58 @@ func ExampleSupport_AddAttachmentsToSet() {
 			},
 			// More values...
 		},
-		AttachmentSetID: aws.String("AttachmentSetId"),
+		AttachmentSetId: aws.String("AttachmentSetId"),
 	}
 	resp, err := svc.AddAttachmentsToSet(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_AddCommunicationToCase() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.AddCommunicationToCaseInput{
 		CommunicationBody: aws.String("CommunicationBody"), // Required
-		AttachmentSetID:   aws.String("AttachmentSetId"),
-		CCEmailAddresses: []*string{
+		AttachmentSetId:   aws.String("AttachmentSetId"),
+		CaseId:            aws.String("CaseId"),
+		CcEmailAddresses: []*string{
 			aws.String("CcEmailAddress"), // Required
 			// More values...
 		},
-		CaseID: aws.String("CaseId"),
 	}
 	resp, err := svc.AddCommunicationToCase(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_CreateCase() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.CreateCaseInput{
 		CommunicationBody: aws.String("CommunicationBody"), // Required
 		Subject:           aws.String("Subject"),           // Required
-		AttachmentSetID:   aws.String("AttachmentSetId"),
-		CCEmailAddresses: []*string{
+		AttachmentSetId:   aws.String("AttachmentSetId"),
+		CategoryCode:      aws.String("CategoryCode"),
+		CcEmailAddresses: []*string{
 			aws.String("CcEmailAddress"), // Required
 			// More values...
 		},
-		CategoryCode: aws.String("CategoryCode"),
 		IssueType:    aws.String("IssueType"),
 		Language:     aws.String("Language"),
 		ServiceCode:  aws.String("ServiceCode"),
@@ -103,122 +86,90 @@ func ExampleSupport_CreateCase() {
 	resp, err := svc.CreateCase(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeAttachment() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeAttachmentInput{
-		AttachmentID: aws.String("AttachmentId"), // Required
+		AttachmentId: aws.String("AttachmentId"), // Required
 	}
 	resp, err := svc.DescribeAttachment(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeCases() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeCasesInput{
 		AfterTime:  aws.String("AfterTime"),
 		BeforeTime: aws.String("BeforeTime"),
-		CaseIDList: []*string{
+		CaseIdList: []*string{
 			aws.String("CaseId"), // Required
 			// More values...
 		},
-		DisplayID:             aws.String("DisplayId"),
-		IncludeCommunications: aws.Boolean(true),
-		IncludeResolvedCases:  aws.Boolean(true),
+		DisplayId:             aws.String("DisplayId"),
+		IncludeCommunications: aws.Bool(true),
+		IncludeResolvedCases:  aws.Bool(true),
 		Language:              aws.String("Language"),
-		MaxResults:            aws.Long(1),
+		MaxResults:            aws.Int64(1),
 		NextToken:             aws.String("NextToken"),
 	}
 	resp, err := svc.DescribeCases(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeCommunications() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeCommunicationsInput{
-		CaseID:     aws.String("CaseId"), // Required
+		CaseId:     aws.String("CaseId"), // Required
 		AfterTime:  aws.String("AfterTime"),
 		BeforeTime: aws.String("BeforeTime"),
-		MaxResults: aws.Long(1),
+		MaxResults: aws.Int64(1),
 		NextToken:  aws.String("NextToken"),
 	}
 	resp, err := svc.DescribeCommunications(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeServices() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeServicesInput{
 		Language: aws.String("Language"),
@@ -230,26 +181,18 @@ func ExampleSupport_DescribeServices() {
 	resp, err := svc.DescribeServices(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeSeverityLevels() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeSeverityLevelsInput{
 		Language: aws.String("Language"),
@@ -257,29 +200,21 @@ func ExampleSupport_DescribeSeverityLevels() {
 	resp, err := svc.DescribeSeverityLevels(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeTrustedAdvisorCheckRefreshStatuses() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeTrustedAdvisorCheckRefreshStatusesInput{
-		CheckIDs: []*string{ // Required
+		CheckIds: []*string{ // Required
 			aws.String("String"), // Required
 			// More values...
 		},
@@ -287,57 +222,41 @@ func ExampleSupport_DescribeTrustedAdvisorCheckRefreshStatuses() {
 	resp, err := svc.DescribeTrustedAdvisorCheckRefreshStatuses(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeTrustedAdvisorCheckResult() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeTrustedAdvisorCheckResultInput{
-		CheckID:  aws.String("String"), // Required
+		CheckId:  aws.String("String"), // Required
 		Language: aws.String("String"),
 	}
 	resp, err := svc.DescribeTrustedAdvisorCheckResult(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeTrustedAdvisorCheckSummaries() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeTrustedAdvisorCheckSummariesInput{
-		CheckIDs: []*string{ // Required
+		CheckIds: []*string{ // Required
 			aws.String("String"), // Required
 			// More values...
 		},
@@ -345,26 +264,18 @@ func ExampleSupport_DescribeTrustedAdvisorCheckSummaries() {
 	resp, err := svc.DescribeTrustedAdvisorCheckSummaries(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_DescribeTrustedAdvisorChecks() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.DescribeTrustedAdvisorChecksInput{
 		Language: aws.String("String"), // Required
@@ -372,74 +283,50 @@ func ExampleSupport_DescribeTrustedAdvisorChecks() {
 	resp, err := svc.DescribeTrustedAdvisorChecks(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_RefreshTrustedAdvisorCheck() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.RefreshTrustedAdvisorCheckInput{
-		CheckID: aws.String("String"), // Required
+		CheckId: aws.String("String"), // Required
 	}
 	resp, err := svc.RefreshTrustedAdvisorCheck(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleSupport_ResolveCase() {
-	svc := support.New(nil)
+	svc := support.New(session.New())
 
 	params := &support.ResolveCaseInput{
-		CaseID: aws.String("CaseId"),
+		CaseId: aws.String("CaseId"),
 	}
 	resp, err := svc.ResolveCase(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }

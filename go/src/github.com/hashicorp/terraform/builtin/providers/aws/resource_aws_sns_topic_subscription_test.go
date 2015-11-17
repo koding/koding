@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 func TestAccAWSSNSTopicSubscription_basic(t *testing.T) {
@@ -28,7 +28,6 @@ func TestAccAWSSNSTopicSubscription_basic(t *testing.T) {
 	})
 }
 
-
 func testAccCheckAWSSNSTopicSubscriptionDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).snsconn
 
@@ -39,9 +38,8 @@ func testAccCheckAWSSNSTopicSubscriptionDestroy(s *terraform.State) error {
 
 		// Try to find key pair
 		req := &sns.GetSubscriptionAttributesInput{
-			SubscriptionARN: aws.String(rs.Primary.ID),
+			SubscriptionArn: aws.String(rs.Primary.ID),
 		}
-
 
 		_, err := conn.GetSubscriptionAttributes(req)
 
@@ -59,7 +57,6 @@ func testAccCheckAWSSNSTopicSubscriptionDestroy(s *terraform.State) error {
 	return nil
 }
 
-
 func testAccCheckAWSSNSTopicSubscriptionExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -74,7 +71,7 @@ func testAccCheckAWSSNSTopicSubscriptionExists(n string) resource.TestCheckFunc 
 		conn := testAccProvider.Meta().(*AWSClient).snsconn
 
 		params := &sns.GetSubscriptionAttributesInput{
-			SubscriptionARN: aws.String(rs.Primary.ID),
+			SubscriptionArn: aws.String(rs.Primary.ID),
 		}
 		_, err := conn.GetSubscriptionAttributes(params)
 

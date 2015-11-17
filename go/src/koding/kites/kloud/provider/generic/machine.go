@@ -42,3 +42,18 @@ func (m *Machine) PublicIpAddress() string {
 }
 
 func (m *Machine) ProviderName() string { return m.Provider }
+
+// getMetaValue returns a value from the machine.Meta struct
+func (m *Machine) GetMetaValue(name string) string {
+	val, ok := m.Meta[name]
+	if !ok {
+		return ""
+	}
+
+	n, ok := val.(string)
+	if !ok {
+		return ""
+	}
+
+	return n
+}

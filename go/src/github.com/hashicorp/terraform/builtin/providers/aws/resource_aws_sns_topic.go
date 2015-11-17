@@ -1,12 +1,18 @@
 package aws
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 )
 
@@ -38,8 +44,20 @@ func resourceAwsSnsTopic() *schema.Resource {
 			"policy": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: false,
 				Computed: true,
+				StateFunc: func(v interface{}) string {
+					s, ok := v.(string)
+					if !ok || s == "" {
+						return ""
+					}
+					jsonb := []byte(s)
+					buffer := new(bytes.Buffer)
+					if err := json.Compact(buffer, jsonb); err != nil {
+						log.Printf("[WARN] Error compacting JSON for Policy in SNS Topic")
+						return ""
+					}
+					return buffer.String()
+				},
 			},
 			"delivery_policy": &schema.Schema{
 				Type:     schema.TypeString,
@@ -70,20 +88,18 @@ func resourceAwsSnsTopicCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating SNS topic: %s", err)
 	}
 
-	d.SetId(*output.TopicARN)
+	d.SetId(*output.TopicArn)
 
 	// Write the ARN to the 'arn' field for export
-	d.Set("arn", *output.TopicARN)
+	d.Set("arn", *output.TopicArn)
 
 	return resourceAwsSnsTopicUpdate(d, meta)
 }
 
 func resourceAwsSnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
-	snsconn := meta.(*AWSClient).snsconn
+	r := *resourceAwsSnsTopic()
 
-	resource := *resourceAwsSnsTopic()
-
-	for k, _ := range resource.Schema {
+	for k, _ := range r.Schema {
 		if attrKey, ok := SNSAttributeMap[k]; ok {
 			if d.HasChange(k) {
 				log.Printf("[DEBUG] Updating %s", attrKey)
@@ -91,12 +107,27 @@ func resourceAwsSnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 				// Ignore an empty policy
 				if !(k == "policy" && n == "") {
 					// Make API call to update attributes
-					req := &sns.SetTopicAttributesInput{
-						TopicARN:       aws.String(d.Id()),
+					req := sns.SetTopicAttributesInput{
+						TopicArn:       aws.String(d.Id()),
 						AttributeName:  aws.String(attrKey),
 						AttributeValue: aws.String(n.(string)),
 					}
-					snsconn.SetTopicAttributes(req)
+
+					// Retry the update in the event of an eventually consistent style of
+					// error, where say an IAM resource is successfully created but not
+					// actually available. See https://github.com/hashicorp/terraform/issues/3660
+					log.Printf("[DEBUG] Updating SNS Topic (%s) attributes request: %s", d.Id(), req)
+					stateConf := &resource.StateChangeConf{
+						Pending:    []string{"retrying"},
+						Target:     "success",
+						Refresh:    resourceAwsSNSUpdateRefreshFunc(meta, req),
+						Timeout:    1 * time.Minute,
+						MinTimeout: 3 * time.Second,
+					}
+					_, err := stateConf.WaitForState()
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -105,11 +136,30 @@ func resourceAwsSnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAwsSnsTopicRead(d, meta)
 }
 
+func resourceAwsSNSUpdateRefreshFunc(
+	meta interface{}, params sns.SetTopicAttributesInput) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		snsconn := meta.(*AWSClient).snsconn
+		if _, err := snsconn.SetTopicAttributes(&params); err != nil {
+			log.Printf("[WARN] Erroring updating topic attributes: %s", err)
+			if awsErr, ok := err.(awserr.Error); ok {
+				// if the error contains the PrincipalNotFound message, we can retry
+				if strings.Contains(awsErr.Message(), "PrincipalNotFound") {
+					log.Printf("[DEBUG] Retrying AWS SNS Topic Update: %s", params)
+					return nil, "retrying", nil
+				}
+			}
+			return nil, "failed", err
+		}
+		return 42, "success", nil
+	}
+}
+
 func resourceAwsSnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 	snsconn := meta.(*AWSClient).snsconn
 
 	attributeOutput, err := snsconn.GetTopicAttributes(&sns.GetTopicAttributesInput{
-		TopicARN: aws.String(d.Id()),
+		TopicArn: aws.String(d.Id()),
 	})
 
 	if err != nil {
@@ -143,7 +193,7 @@ func resourceAwsSnsTopicDelete(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] SNS Delete Topic: %s", d.Id())
 	_, err := snsconn.DeleteTopic(&sns.DeleteTopicInput{
-		TopicARN: aws.String(d.Id()),
+		TopicArn: aws.String(d.Id()),
 	})
 	if err != nil {
 		return err

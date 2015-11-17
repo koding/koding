@@ -48,19 +48,21 @@ var (
 
 	ErrAccessDenied = errors.New("access denied")
 
-	ErrRoleNotSet          = errors.New("role not set")
-	ErrAccountNotFound     = errors.New("account not found")
-	ErrChannelNotFound     = errors.New("channel not found")
-	ErrParticipantNotFound = errors.New("participant not found")
-	ErrParticipantBlocked  = errors.New("participant is blocked")
+	ErrRoleNotSet              = errors.New("role not set")
+	ErrAccountNotFound         = errors.New("account not found")
+	ErrChannelNotFound         = errors.New("channel not found")
+	ErrParticipantNotFound     = errors.New("participant not found")
+	ErrParticipantBlocked      = errors.New("participant is blocked")
+	ErrAccountIsNotParticipant = errors.New("account is not participant of channel")
 
 	// moderation
-	ErrLeafIsNotSet     = errors.New("leaf channel is not set")
-	ErrRootIsNotSet     = errors.New("root channel is not set")
-	ErrChannelHasLeaves = errors.New("channel has leaves")
-	ErrChannelIsLinked  = errors.New("channel is linked")
-	ErrGroupsAreNotSame = errors.New("groups are not same")
-	ErrLeafIsRootToo    = errors.New("leaf channel is root of another channel")
+	ErrLeafIsNotSet          = errors.New("leaf channel is not set")
+	ErrRootIsNotSet          = errors.New("root channel is not set")
+	ErrChannelHasLeaves      = errors.New("channel has leaves")
+	ErrChannelIsLinked       = errors.New("channel is linked")
+	ErrGroupsAreNotSame      = errors.New("groups are not same")
+	ErrLeafIsRootToo         = errors.New("leaf channel is root of another channel")
+	ErrLinkingProcessNotDone = errors.New("channel linking process is not finished")
 
 	ErrLoggerNotExist = errors.New("logger does not exist")
 	ErrRedisNotExist  = errors.New("redis connection is not established")

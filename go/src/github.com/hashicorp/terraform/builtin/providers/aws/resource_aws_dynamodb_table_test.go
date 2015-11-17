@@ -211,7 +211,7 @@ func dynamoDbAttributesToMap(attributes *[]*dynamodb.AttributeDefinition) map[st
 	attrmap := make(map[string]string)
 
 	for _, attrdef := range *attributes {
-		attrmap[*(attrdef.AttributeName)] = *(attrdef.AttributeType)
+		attrmap[*attrdef.AttributeName] = *attrdef.AttributeType
 	}
 
 	return attrmap
@@ -251,7 +251,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 			range_key = "TestGSIRangeKey"
 			write_capacity = 10
 			read_capacity = 10
-			projection_type = "ALL"
+			projection_type = "KEYS_ONLY"
 		}
 }
 `
@@ -290,7 +290,8 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 			range_key = "ReplacementGSIRangeKey"
 			write_capacity = 5
 			read_capacity = 5
-			projection_type = "ALL"
+			projection_type = "INCLUDE"
+			non_key_attributes = ["TestNonKeyAttribute"]
 		}
 }
 `

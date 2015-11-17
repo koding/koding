@@ -2,16 +2,27 @@ package openstack
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 
+	"github.com/rackspace/gophercloud"
 	"github.com/rackspace/gophercloud/openstack/blockstorage/v1/volumes"
 )
 
 func TestAccBlockStorageV1Volume_basic(t *testing.T) {
 	var volume volumes.Volume
+
+	var testAccBlockStorageV1Volume_bootable = fmt.Sprintf(`
+		resource "openstack_blockstorage_volume_v1" "volume_1" {
+			region = "%s"
+			name = "tf-test-volume-bootable"
+			size = 5
+			image_id = "%s"
+		}`,
+		os.Getenv("OS_REGION_NAME"), os.Getenv("OS_IMAGE_ID"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,6 +42,12 @@ func TestAccBlockStorageV1Volume_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("openstack_blockstorage_volume_v1.volume_1", "name", "tf-test-volume-updated"),
 					testAccCheckBlockStorageV1VolumeMetadata(&volume, "foo", "bar"),
+				),
+			},
+			resource.TestStep{
+				Config: testAccBlockStorageV1Volume_bootable,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("openstack_blockstorage_volume_v1.volume_1", "name", "tf-test-volume-bootable"),
 				),
 			},
 		},
@@ -87,6 +104,30 @@ func testAccCheckBlockStorageV1VolumeExists(t *testing.T, n string, volume *volu
 		*volume = *found
 
 		return nil
+	}
+}
+
+func testAccCheckBlockStorageV1VolumeDoesNotExist(t *testing.T, n string, volume *volumes.Volume) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		config := testAccProvider.Meta().(*Config)
+		blockStorageClient, err := config.blockStorageV1Client(OS_REGION_NAME)
+		if err != nil {
+			return fmt.Errorf("Error creating OpenStack block storage client: %s", err)
+		}
+
+		_, err = volumes.Get(blockStorageClient, volume.ID).Extract()
+		if err != nil {
+			errCode, ok := err.(*gophercloud.UnexpectedResponseCodeError)
+			if !ok {
+				return err
+			}
+			if errCode.Actual == 404 {
+				return nil
+			}
+			return err
+		}
+
+		return fmt.Errorf("Volume still exists")
 	}
 }
 

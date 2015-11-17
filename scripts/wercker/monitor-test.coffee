@@ -1,6 +1,6 @@
 _ = require 'underscore'
 
-TIMEOUT  = 3 * 60 * 1000
+TIMEOUT  = 6 * 60 * 1000
 INTERVAL = 1 * 60 * 1000
 
 childs   = {}

@@ -22,6 +22,13 @@ type ChannelLink struct {
 	// CreatedAt holds the creation time of the channel_link
 	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
 
+	// IsFinished holds the linking process
+	// we link leaf channel to the root channel
+	// and marks channel_link as true
+	// if isFinished is false, it means
+	// linking the channels process is not done yet.
+	IsFinished bool `json:"isFinished"		  sql:"NOT NULL"`
+
 	// options for operations
 
 	// DeleteMessages remove the messages of a channel
@@ -142,6 +149,16 @@ func (c *ChannelLink) create() error {
 		return err
 	}
 
+	// it controls the channel linking process, if not finished
+	// then dont try to link another channel and return error
+	isInProgress, err := c.IsInProgress(c.RootId)
+	if err != nil {
+		return err
+	}
+	if isInProgress {
+		return ErrLinkingProcessNotDone
+	}
+
 	// then delete the link between two channels
 	bq := &bongo.Query{
 		Selector: map[string]interface{}{
@@ -174,6 +191,34 @@ func (c *ChannelLink) create() error {
 	}
 
 	return bongo.B.Create(c)
+}
+
+// IsInProgress checks the db if linking process is completely done or not
+// if true -> linking process is not done
+// if false -> linking process is completely done
+// We will searh root channel in db as leaf channel,
+// Aim of this search, protect linking conflict of root-leaf channels
+func (c *ChannelLink) IsInProgress(rootID int64) (bool, error) {
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"leaf_id":     rootID,
+			"is_finished": false,
+		},
+	}
+
+	// if there is no error, it means we already have it
+	newCh := NewChannelLink()
+	err := newCh.One(bq)
+
+	if err != nil && err != bongo.RecordNotFound {
+		return false, err
+	}
+
+	if err == nil {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (c *ChannelLink) validate() error {

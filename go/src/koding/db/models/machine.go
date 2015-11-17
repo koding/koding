@@ -21,6 +21,7 @@ type MachineUser struct {
 	Owner     bool          `bson:"owner" json:"owner"`
 	Permanent bool          `bson:"permanent" json:"permanent"`
 	Approved  bool          `bson:"approved" json:"approved"`
+	Username  string        `bson:"username" json:"username"`
 }
 
 type MachineAssignee struct {
@@ -52,6 +53,12 @@ type Machine struct {
 	Assignee      MachineAssignee      `bson:"assignee" json:"assignee"`
 	UserDeleted   bool                 `bson:"userDeleted" json:"userDeleted"`
 	GeneratedFrom MachineGeneratedFrom `bson:"generatedFrom,omitempty" json:"generatedFrom,omitempty"`
+}
+
+type Permissions struct {
+	Id    bson.ObjectId `bson:"id"`
+	Sudo  bool          `bson:"sudo"`
+	Owner bool          `bson:"owner"`
 }
 
 // Owner returns the owner of a machine

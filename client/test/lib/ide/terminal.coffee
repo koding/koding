@@ -1,62 +1,8 @@
-helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
+helpers         = require '../helpers/helpers.js'
+assert          = require 'assert'
+terminalHelpers = require '../helpers/terminalhelpers.js'
 
 paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
-
-
-openNewTerminalMenu = (browser) ->
-
-  browser
-    .pause                   6000 # wait for sessions
-    .waitForElementVisible   paneSelector + ' .visible-tab-handle.plus', 20000
-    .click                   paneSelector + ' .visible-tab-handle.plus'
-    .waitForElementVisible   '.context-list-wrapper li.new-terminal', 20000
-    .moveToElement           '.context-list-wrapper li.new-terminal', 25, 20
-
-
-openTerminal = (browser) ->
-
-  openNewTerminalMenu(browser)
-
-  browser
-    .waitForElementVisible   'li.new-session', 20000
-    .moveToElement           'li.new-session', 25, 20
-    .click                   'li.new-session'
-    .pause 6000 # required
-
-
-createTerminalSession = (browser, user) ->
-
-  userName                   = user.username
-  notActiveTerminalSelector  = paneSelector + ' .terminal:not(.active)'
-  terminalTextAssertSelector = '.application-tabview .terminal.active .terminal-pane'
-
-  openTerminal(browser)
-
-  browser.element 'css selector', notActiveTerminalSelector, (result) =>
-    if result.status isnt 0
-      openTerminal(browser)
-
-    browser
-      .waitForElementVisible   notActiveTerminalSelector, 20000 # Assertion
-      .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
-      .pause 6000 # required for the Connecting...
-      .assert.containsText     terminalTextAssertSelector, userName # Assertion
-
-
-terminateAll = (browser) ->
-
-  openNewTerminalMenu(browser)
-
-  browser
-    .waitForElementVisible   'li.terminate-all', 20000
-    .click                   'li.terminate-all'
-    .pause 30000 # required, wait to terminate all open sessions
-
-  openNewTerminalMenu(browser)
-
-  browser
-    .assert.elementNotPresent   'li.terminate-all' # Assertion
 
 
 module.exports =
@@ -66,9 +12,9 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
 
-    terminateAll(browser)
+    terminalHelpers.terminateAll(browser)
     browser.end()
 
 
@@ -77,7 +23,7 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
     browser.end()
 
 
@@ -86,7 +32,7 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    openNewTerminalMenu(browser)
+    terminalHelpers.openNewTerminalMenu(browser)
 
     getSessionData = =>
 
@@ -107,7 +53,7 @@ module.exports =
         .click                  '.context-list-wrapper ul > ul.expanded ul.expanded .terminate'
         .pause                  5000
 
-        openNewTerminalMenu(browser)
+        terminalHelpers.openNewTerminalMenu(browser)
 
         browser
           .pause   1000
@@ -119,19 +65,13 @@ module.exports =
 
   runCommandOnTerminal: (browser) ->
 
-    time = Date.now()
     user = helpers.beginTest(browser)
 
     helpers.waitForVMRunning(browser)
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
 
-    browser
-      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
-      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
-      .pause                     5000
-      .waitForElementVisible     '.panel-1 .panel-1 .kdtabpaneview.terminal.active', 25000
-      .assert.containsText       '.panel-1 .panel-1 .kdtabpaneview.terminal.active', time
-      .end()
+    helpers.runCommandOnTerminal(browser)
+    browser.end()
 
 
   renameTerminalTab: (browser) ->
@@ -145,7 +85,7 @@ module.exports =
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    createTerminalSession(browser, user)
+    terminalHelpers.createTerminalSession(browser, user)
 
     browser
       .waitForElementVisible    tabSelector, 20000

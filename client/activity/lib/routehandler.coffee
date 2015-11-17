@@ -1,28 +1,36 @@
-kd                  = require 'kd'
-React               = require 'kd-react'
-Router              = require 'app/components/router'
-Location            = require 'react-router/lib/Location'
-handlers            = require './routehandlers'
-lazyrouter          = require 'app/lazyrouter'
-isReactivityEnabled = require 'app/util/isReactivityEnabled'
+kd                        = require 'kd'
+React                     = require 'kd-react'
+ReactDOM                  = require 'react-dom'
+createHistory             = require 'history/lib/createHistory'
+createLocation            = require 'history/lib/createLocation'
+handlers                  = require './routehandlers'
+lazyrouter                = require 'app/lazyrouter'
+isReactivityEnabled       = require 'app/util/isReactivityEnabled'
+{ RoutingContext, match } = require 'react-router'
+
+reactivityRouteTypes = [
+  'NewPublicChannel'
+  'AllPublicChannels'
+  'SinglePublicChannel'
+  'SinglePublicChannelPost'
+  'ChannelNotificationSettings'
+
+  'NewPrivateChannel'
+  'AllPrivateChannels'
+  'SinglePrivateChannel'
+  'SinglePrivateChannelPost'
+]
 
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
 
   handle = (name) -> handlers["handle#{name}"](info, ctx, path, state)
-
-  reactivityRoutes = [
-    'SingleChannel'
-    'SinglePost'
-    'SingleChannelWithSummary'
-    'SinglePostWithSummary'
-  ]
 
   # since `isReactivityEnabled` flag checks roles from config,
   # wait for mainController to be ready to call `isReactivityEnabled`
   # FIXME: Remove this call before public release. ~Umut
   kd.singletons.mainController.ready ->
 
-    if type in reactivityRoutes
+    if type in reactivityRouteTypes
       if isReactivityEnabled()
       then handleReactivity info, ctx
       # unless reactivity is enabled redirect reactivity routes to `Public`
@@ -35,15 +43,15 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
 ###
 handleReactivity = ({ query }, router) ->
 
-  location = new Location router.currentPath, query
   routes = require './reactivityroutes'
 
+  location = createLocation router.currentPath
+
   activityView (view) ->
-    Router.run routes, location, (error, state) ->
-      React.render(
-        <Router {...state}>
-          {routes}
-        </Router>
+
+    match { routes, location }, (err, redirectLocation, renderProps) ->
+      ReactDOM.render(
+        <RoutingContext {...renderProps} />
         view.reactivityContainer.getElement()
       )
 

@@ -28,7 +28,7 @@ module.exports = class OAuth extends bongo.Base
         callback null, url
       when 'facebook'
         { clientId } = KONFIG.facebook
-        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}"
+        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
         callback null, url
       when 'google'
         { client_id } = KONFIG.google
@@ -66,8 +66,9 @@ module.exports = class OAuth extends bongo.Base
     return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"
 
   @saveTokensAndReturnUrl = (client, provider, callback) ->
-    @getTokens provider, (err, { requestToken, requestTokenSecret, url }) =>
+    @getTokens provider, (err, data) =>
       return callback err  if err
+      { requestToken, requestTokenSecret, url } = data
 
       credentials = { requestToken, requestTokenSecret }
       @saveTokens client, provider, credentials, (err) ->

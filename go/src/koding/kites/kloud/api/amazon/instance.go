@@ -6,6 +6,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -69,6 +70,7 @@ func (a *Amazon) CheckBuild(ctx context.Context, instanceId string, start, finis
 	}
 
 	ws := waitstate.WaitState{
+		Timeout:      15 * time.Minute,
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Running,
 		Start:        start,

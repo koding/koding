@@ -257,10 +257,18 @@ fetchFollowedChannelCount = (data, callback) ->
   url = "#{socialProxyUrl}/account/#{data.accountId}/channels/count"
   get url, data, callback
 
-initPrivateMessage = (data, callback) ->
-  if not data.recipients or data.recipients.length < 1
+createChannelWithParticipants = (data, callback) ->
+  url = "#{socialProxyUrl}/channel/initwithparticipants"
+  post url, data, callback
+
+sendMessageToChannel = (data, callback) ->
+  if not data.body or not data.channelId
     return callback new KodingError 'Request is not valid'
 
+  url = "#{socialProxyUrl}/channel/sendwithparticipants"
+  post url, data, callback
+
+initPrivateMessage = (data, callback) ->
   url = "#{socialProxyUrl}/privatechannel/init"
   post url, data, callback
 
@@ -393,6 +401,22 @@ checkOwnership = (data, callback) ->
   url = "#{socialProxyUrl}/account/#{data.accountId}/owns"
   get url, data, callback
 
+createNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/notificationsetting"
+  post url, data, callback
+
+getNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/channel/#{data.channelId}/notificationsetting"
+  get url, data, callback
+
+updateNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/notificationsetting/#{data.id}"
+  post url, data, callback
+
+deleteNotificationSetting = (data, callback) ->
+  url = "#{socialProxyUrl}/notificationsetting/#{data.id}"
+  deleteReq url, data, callback
+
 expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
   post url, {}, callback
@@ -487,6 +511,8 @@ module.exports = {
   fetchProfileFeedCount
   searchTopics
   searchChats
+  createChannelWithParticipants
+  sendMessageToChannel
   fetchPrivateMessages
   fetchPrivateMessageCount
   initPrivateMessage
@@ -526,6 +552,10 @@ module.exports = {
   updateChannel
   createChannel
   checkOwnership
+  createNotificationSetting
+  getNotificationSetting
+  updateNotificationSetting
+  deleteNotificationSetting
   expireSubscription
   fetchBotChannel
   post

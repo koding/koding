@@ -129,7 +129,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	}
 
 	hostname := n.config.Protocol + "//" + n.config.Hostname
-	messages := []emailmodels.Message{}
+	messages := []emailmodels.Messager{}
 
 	for _, container := range containers {
 		actor, err := emailmodels.FetchUserContactWithToken(container.Activity.ActorId)

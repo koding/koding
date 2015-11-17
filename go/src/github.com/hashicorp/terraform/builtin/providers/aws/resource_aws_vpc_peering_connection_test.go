@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAWSVPCPeeringConnection_basic(t *testing.T) {
-	var connection ec2.VPCPeeringConnection
+	var connection ec2.VpcPeeringConnection
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -35,7 +35,8 @@ func TestAccAWSVPCPeeringConnection_basic(t *testing.T) {
 }
 
 func TestAccAWSVPCPeeringConnection_tags(t *testing.T) {
-	var connection ec2.VPCPeeringConnection
+	var connection ec2.VpcPeeringConnection
+	peerId := os.Getenv("TF_PEER_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,7 +44,7 @@ func TestAccAWSVPCPeeringConnection_tags(t *testing.T) {
 		CheckDestroy: testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccVpcPeeringConfigTags,
+				Config: fmt.Sprintf(testAccVpcPeeringConfigTags, peerId),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSVpcPeeringConnectionExists("aws_vpc_peering_connection.foo", &connection),
 					testAccCheckTags(&connection.Tags, "foo", "bar"),
@@ -61,13 +62,13 @@ func testAccCheckAWSVpcPeeringConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		describe, err := conn.DescribeVPCPeeringConnections(
-			&ec2.DescribeVPCPeeringConnectionsInput{
-				VPCPeeringConnectionIDs: []*string{aws.String(rs.Primary.ID)},
+		describe, err := conn.DescribeVpcPeeringConnections(
+			&ec2.DescribeVpcPeeringConnectionsInput{
+				VpcPeeringConnectionIds: []*string{aws.String(rs.Primary.ID)},
 			})
 
 		if err == nil {
-			if len(describe.VPCPeeringConnections) != 0 {
+			if len(describe.VpcPeeringConnections) != 0 {
 				return fmt.Errorf("vpc peering connection still exists")
 			}
 		}
@@ -76,7 +77,7 @@ func testAccCheckAWSVpcPeeringConnectionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSVpcPeeringConnectionExists(n string, connection *ec2.VPCPeeringConnection) resource.TestCheckFunc {
+func testAccCheckAWSVpcPeeringConnectionExists(n string, connection *ec2.VpcPeeringConnection) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -88,18 +89,18 @@ func testAccCheckAWSVpcPeeringConnectionExists(n string, connection *ec2.VPCPeer
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		resp, err := conn.DescribeVPCPeeringConnections(
-			&ec2.DescribeVPCPeeringConnectionsInput{
-				VPCPeeringConnectionIDs: []*string{aws.String(rs.Primary.ID)},
+		resp, err := conn.DescribeVpcPeeringConnections(
+			&ec2.DescribeVpcPeeringConnectionsInput{
+				VpcPeeringConnectionIds: []*string{aws.String(rs.Primary.ID)},
 			})
 		if err != nil {
 			return err
 		}
-		if len(resp.VPCPeeringConnections) == 0 {
+		if len(resp.VpcPeeringConnections) == 0 {
 			return fmt.Errorf("VPC peering connection not found")
 		}
 
-		*connection = *resp.VPCPeeringConnections[0]
+		*connection = *resp.VpcPeeringConnections[0]
 
 		return nil
 	}
@@ -117,6 +118,7 @@ resource "aws_vpc" "bar" {
 resource "aws_vpc_peering_connection" "foo" {
 		vpc_id = "${aws_vpc.foo.id}"
 		peer_vpc_id = "${aws_vpc.bar.id}"
+		auto_accept = true
 }
 `
 
@@ -132,6 +134,7 @@ resource "aws_vpc" "bar" {
 resource "aws_vpc_peering_connection" "foo" {
 		vpc_id = "${aws_vpc.foo.id}"
 		peer_vpc_id = "${aws_vpc.bar.id}"
+		peer_owner_id = "%s"
 		tags {
 			foo = "bar"
 		}

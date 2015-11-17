@@ -1,15 +1,19 @@
 kd                           = require 'kd'
-nick                         = require '../util/nick'
-JView                        = require '../jview'
-Machine                      = require '../providers/machine'
 globals                      = require 'globals'
 htmlencode                   = require 'htmlencode'
-groupifyLink                 = require '../util/groupifyLink'
+
+JView                        = require 'app/jview'
 KDCustomHTMLView             = kd.CustomHTMLView
 KDProgressBarView            = kd.ProgressBarView
-MachineSettingsModal         = require '../providers/machinesettingsmodal'
-SidebarMachineSharePopup     = require 'app/activity/sidebar/sidebarmachinesharepopup'
+
+nick                         = require 'app/util/nick'
+Machine                      = require 'app/providers/machine'
+isKoding                     = require 'app/util/isKoding'
+groupifyLink                 = require 'app/util/groupifyLink'
 userEnvironmentDataProvider  = require 'app/userenvironmentdataprovider'
+
+MachineSettingsModal         = require 'app/providers/machinesettingsmodal'
+SidebarMachineSharePopup     = require 'app/activity/sidebar/sidebarmachinesharepopup'
 SidebarMachineConnectedPopup = require 'app/activity/sidebar/sidebarmachineconnectedpopup'
 
 
@@ -27,15 +31,20 @@ module.exports = class NavigationMachineItem extends JView
 
     @alias           = machine.slug or machine.label
     machineOwner     = machine.getOwner()
+    reassigned       = machine.jMachine.meta?.oldOwner?
+    oldOwner         = machine.jMachine.meta?.oldOwner ? machineOwner
     isMyMachine      = machine.isMine()
     machineRoutes    =
       own            : "/IDE/#{@alias}"
       collaboration  : "/IDE/#{@getChannelId data}"
       permanentShare : "/IDE/#{machine.uid}"
+      reassigned     : "/IDE/#{machine.uid}"
 
     machineType = 'own'
 
-    unless isMyMachine
+    if reassigned
+      machineType = 'reassigned'
+    else if not isMyMachine
       machineType = if machine.isPermanent() then 'permanentShare' else 'collaboration'
 
     @machineRoute = groupifyLink machineRoutes[machineType]
@@ -51,14 +60,16 @@ module.exports = class NavigationMachineItem extends JView
 
     super options, data
 
+    { computeController } = kd.singletons
+
     { @machine } = @getData()
     labelPartial = machine.label or @alias
 
-    unless isMyMachine
+    if not isMyMachine or reassigned
       labelPartial = """
         #{labelPartial}
         <cite class='shared-by'>
-          (@#{htmlencode.htmlDecode machineOwner})
+          (@#{htmlencode.htmlDecode oldOwner})
         </cite>
       """
 
@@ -70,12 +81,18 @@ module.exports = class NavigationMachineItem extends JView
 
     @createSettingsIcon()
 
-    kd.singletons.computeController
+    computeController
       .on "reconnecting-#{@machine.uid}", =>
         @setState 'reconnecting'
 
-      .on "public-#{@machine._id}", (event)=>
+      .on "public-#{@machine._id}", (event) =>
         @handleMachineEvent event
+
+    computeController.ready =>
+
+      if stack = computeController.findStackFromMachineId @machine._id
+        computeController.on "public-#{stack._id}", (event) =>
+          @handleMachineEvent event
 
     if not @machine.isMine() and not @machine.isApproved()
       @showSharePopup()
@@ -116,6 +133,9 @@ module.exports = class NavigationMachineItem extends JView
     { status: { state } } = @machine
     { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
 
+    unless isKoding()
+      return state in [ Running, Stopped ]
+
     return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
 
 
@@ -138,7 +158,7 @@ module.exports = class NavigationMachineItem extends JView
 
   handleMachineEvent: (event) ->
 
-    {percentage, status} = event
+    { percentage, status } = event
 
     # switch status
     #   when Machine.State.Terminated then @destroy()

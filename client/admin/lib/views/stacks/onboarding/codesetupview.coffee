@@ -1,47 +1,70 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd                         = require 'kd'
+JView                      = require 'app/jview'
+ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
 
 
 module.exports = class CodeSetupView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry options.cssClass, 'code-setup'
+    options.cssClass = kd.utils.curry options.cssClass, 'code-setup configuration'
 
     super options, data
 
-    @createServices()
+    @tabHandleContainer   = new ApplicationTabHandleHolder
+      delegate            : this
+      addPlusHandle       : no
+      addCloseHandle      : no
+      addFullscreenHandle : no
+
+    @tabView = new kd.TabView
+      enableMoveTabHandle : no
+      tabHandleContainer  : @tabHandleContainer
+
+    @addPane()
 
 
-  createServices: ->
+  addPane: ->
 
-    services = [ 'github', 'bitbucket', 'gitlab', 'owngitserver' ]
+    name     = "Server #{@tabView.handles.length + 1}"
+    closable = no
 
-    @services = new kd.CustomHTMLView cssClass: 'services box-wrapper'
+    @tabView.addPane pane = new kd.TabPaneView { name, closable }
+
+    pane.addSubView pane.view = @createServicesView()
+    @tabHandleContainer.repositionPlusHandle @tabView.handles
+
+    pane.tabHandle.addSubView pane.instanceTypeLabel = new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'title'
+      partial  : 't2.micro'
+
+    @tabView.showPaneByIndex 0
+
+
+  createServicesView: ->
+
+    services = [ 'github', 'bitbucket', 'gitlab', 'yourgitserver' ]
+    servicesView = new kd.CustomHTMLView cssClass: 'services box-wrapper'
 
     services.forEach (service) =>
-      extraClass = 'coming-soon'
-      label      = 'Coming Soon'
+      label = if service is 'yourgitserver' then 'Your Git server' else ''
 
-      if service in [ 'github', 'owngitserver' ]
-        extraClass = ''
-        label      = if service is 'owngitserver' then 'Your Git server' else ''
-
-      @services.addSubView serviceView = new kd.CustomHTMLView
-        cssClass: "service box #{extraClass} #{service}"
+      servicesView.addSubView serviceView = new kd.CustomHTMLView
+        cssClass: "service box #{service}"
         service : service
         partial : """
           <img class="#{service}" src="/a/images/providers/stacks/#{service}.png" />
           <div class="label">#{label}</div>
         """
         click: =>
-          return  if extraClass is 'coming-soon'
-
           serviceView.setClass  'selected'
-          @selected?.unsetClass 'selected'
-          @selected = if @selected is serviceView then null else serviceView
+          servicesView.selected?.unsetClass 'selected'
+          servicesView.selected = if servicesView.selected is serviceView then null else serviceView
           @emit 'UpdateStackTemplate'
+          @emit 'HiliteTemplate', 'line', service
 
+    return servicesView
 
 
   pistachio: ->
@@ -51,5 +74,6 @@ module.exports = class CodeSetupView extends JView
         <p class="title">Where is your code?</p>
         <p class="description">Koding can pull your project’s codebase from wherever its hosted.</p>
       </div>
-      {{> @services}}
+      {{> @tabHandleContainer}}
+      {{> @tabView}}
     """

@@ -8,6 +8,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+	"strconv"
 
 	"github.com/koding/bongo"
 	tigertonic "github.com/rcrowley/go-tigertonic"
@@ -148,6 +149,62 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return handleChannelResponse(channel, q)
 }
 
+// ByParticipants finds private message channels by their participants
+func ByParticipants(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	// only logged in users
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	query := request.GetQuery(u)
+	query.GroupName = context.GroupName
+
+	participantsStr, ok := u.Query()["id"]
+	if !ok {
+		return response.NewBadRequest(errors.New("participants not set"))
+	}
+
+	if len(participantsStr) == 0 {
+		return response.NewBadRequest(errors.New("at least one participant is required"))
+	}
+
+	unify := make(map[string]interface{})
+
+	// add current account to participants list
+	unify[strconv.FormatInt(context.Client.Account.Id, 10)] = struct{}{}
+
+	// remove duplicates from participants
+	for i := range participantsStr {
+		unify[participantsStr[i]] = struct{}{}
+	}
+
+	participants := make([]int64, 0)
+
+	// convert strings to int64
+	for participantStr := range unify {
+		i, err := strconv.ParseInt(participantStr, 10, 64)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		participants = append(participants, i)
+	}
+
+	channels, err := models.NewChannel().ByParticipants(participants, query)
+	if err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
+	}
+
+	cc := models.NewChannelContainers().
+		PopulateWith(channels, context.Client.Account.Id).
+		AddLastMessage(context.Client.Account.Id).
+		AddUnreadCount(context.Client.Account.Id)
+
+	return response.HandleResultAndError(cc, cc.Err())
+}
+
 func Get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -206,7 +263,7 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 
 	// TODO this should be in the channel cache by default
 	cc.AddLastMessage(q.AccountId)
-
+	cc.AddUnreadCount(q.AccountId)
 	return response.HandleResultAndError(cc, cc.Err)
 }
 

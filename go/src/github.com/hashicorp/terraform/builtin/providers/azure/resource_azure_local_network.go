@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/virtualnetwork"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -50,11 +51,16 @@ func resourceAzureLocalNetworkConnectionCreate(d *schema.ResourceData, meta inte
 	vnetClient := azureClient.vnetClient
 
 	log.Println("[INFO] Fetching current network configuration from Azure.")
-	azureClient.mutex.Lock()
-	defer azureClient.mutex.Unlock()
+	azureClient.vnetMutex.Lock()
+	defer azureClient.vnetMutex.Unlock()
 	netConf, err := vnetClient.GetVirtualNetworkConfiguration()
 	if err != nil {
-		return fmt.Errorf("Failed to get the current network configuration from Azure: %s", err)
+		if management.IsResourceNotFoundError(err) {
+			// if no network config exists yet; create a new one now:
+			netConf = virtualnetwork.NetworkConfiguration{}
+		} else {
+			return fmt.Errorf("Failed to get the current network configuration from Azure: %s", err)
+		}
 	}
 
 	// get provided configuration:
@@ -132,8 +138,8 @@ func resourceAzureLocalNetworkConnectionUpdate(d *schema.ResourceData, meta inte
 	vnetClient := azureClient.vnetClient
 
 	log.Println("[INFO] Fetching current network configuration from Azure.")
-	azureClient.mutex.Lock()
-	defer azureClient.mutex.Unlock()
+	azureClient.vnetMutex.Lock()
+	defer azureClient.vnetMutex.Unlock()
 	netConf, err := vnetClient.GetVirtualNetworkConfiguration()
 	if err != nil {
 		return fmt.Errorf("Failed to get the current network configuration from Azure: %s", err)
@@ -211,8 +217,8 @@ func resourceAzureLocalNetworkConnectionDelete(d *schema.ResourceData, meta inte
 	vnetClient := azureClient.vnetClient
 
 	log.Println("[INFO] Fetching current network configuration from Azure.")
-	azureClient.mutex.Lock()
-	defer azureClient.mutex.Unlock()
+	azureClient.vnetMutex.Lock()
+	defer azureClient.vnetMutex.Unlock()
 	netConf, err := vnetClient.GetVirtualNetworkConfiguration()
 	if err != nil {
 		return fmt.Errorf("Failed to get the current network configuration from Azure: %s", err)

@@ -8,12 +8,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
-	"github.com/aws/aws-sdk-go/internal/test/unit"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/awstesting/unit"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 )
 
-var _ = unit.Imported
 var s3LocationTests = []struct {
 	body string
 	loc  string
@@ -24,9 +24,9 @@ var s3LocationTests = []struct {
 
 func TestGetBucketLocation(t *testing.T) {
 	for _, test := range s3LocationTests {
-		s := s3.New(nil)
+		s := s3.New(unit.Session)
 		s.Handlers.Send.Clear()
-		s.Handlers.Send.PushBack(func(r *aws.Request) {
+		s.Handlers.Send.PushBack(func(r *request.Request) {
 			reader := ioutil.NopCloser(bytes.NewReader([]byte(test.body)))
 			r.HTTPResponse = &http.Response{StatusCode: 200, Body: reader}
 		})
@@ -42,7 +42,7 @@ func TestGetBucketLocation(t *testing.T) {
 }
 
 func TestPopulateLocationConstraint(t *testing.T) {
-	s := s3.New(nil)
+	s := s3.New(unit.Session)
 	in := &s3.CreateBucketInput{
 		Bucket: aws.String("bucket"),
 	}
@@ -54,7 +54,7 @@ func TestPopulateLocationConstraint(t *testing.T) {
 }
 
 func TestNoPopulateLocationConstraintIfProvided(t *testing.T) {
-	s := s3.New(nil)
+	s := s3.New(unit.Session)
 	req, _ := s.CreateBucketRequest(&s3.CreateBucketInput{
 		Bucket: aws.String("bucket"),
 		CreateBucketConfiguration: &s3.CreateBucketConfiguration{},
@@ -65,7 +65,7 @@ func TestNoPopulateLocationConstraintIfProvided(t *testing.T) {
 }
 
 func TestNoPopulateLocationConstraintIfClassic(t *testing.T) {
-	s := s3.New(&aws.Config{Region: "us-east-1"})
+	s := s3.New(unit.Session, &aws.Config{Region: aws.String("us-east-1")})
 	req, _ := s.CreateBucketRequest(&s3.CreateBucketInput{
 		Bucket: aws.String("bucket"),
 	})

@@ -1,4 +1,4 @@
-box: koding/base@0.0.20
+box: koding/base@0.0.24
 no-response-timeout: 10
 services:
   - userminddeployer/postgresql9.3@0.0.7-usermind-9.3-1
@@ -20,6 +20,10 @@ build:
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
+    - script:
+        name: create version file
+        code: |
+          $WERCKER_ROOT/scripts/create_version.sh
     - script:
         name: build started
         code: |
@@ -67,13 +71,17 @@ build:
           ./configure --config prod
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
         name: delete prod creds unless prod
         code: ./scripts/delete-prod-creds-unless-prod.sh
     - script:
         name: client node modules
         code: scripts/install-npm.sh -d client -u
+    - script:
+        name: run coffeelint
+        code: |
+          ./scripts/lint-coffeescript.sh
     - script:
         name: build client
         code: |
@@ -93,10 +101,6 @@ build:
         name: build backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
-    - script:
-        name: run coffeelint
-        code: |
-          ./scripts/lint-coffeescript.sh
     - script:
         name: check social api code quality
         code: |
@@ -211,11 +215,10 @@ deploy:
         name: deploy started
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "<$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH started" "deploying" 5
-    - create-file:
-        name: write version file
-        filename: $WERCKER_ROOT/VERSION
-        content: ${WERCKER_GIT_COMMIT:0:8}
-        overwrite: true
+    - script:
+        name: create version file
+        code: |
+          $WERCKER_ROOT/scripts/create_version.sh
     - script:
         name: setup nvm
         code: |
@@ -225,15 +228,26 @@ deploy:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
     - script:
+        name: build application
+        code: |
+          cd $WERCKER_ROOT
+
+          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+
+          ./scripts/install-npm.sh -d client -u
+
+          make -C client dist
+    - script:
+        name: pivotal deliver stories
+        code: $WERCKER_ROOT/scripts/deliver-pivotal-stories.rb
+    - script:
         name: zip
         code: |
           cd $WERCKER_ROOT
 
-          ./configure --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME
-
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
-          zip -q --symlinks -r $ARCHIVE .
+          zip -q --symlinks -r $(cat $WERCKER_ROOT/ARCHIVE_NAME) .
 
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
     - script:
@@ -246,10 +260,10 @@ deploy:
         secret-key: $S3_KEY_SECRET
         app-name: koding
         env-name: $EB_ENV_NAME
-        version-label: $ARCHIVE
+        version-label: $(cat $WERCKER_ROOT/ARCHIVE_NAME)
         region: $EB_ENV_REGION
         s3-bucket: $S3_EB_DEPLOY-$EB_ENV_REGION
-        s3-key: $ARCHIVE
+        s3-key: $(cat $WERCKER_ROOT/ARCHIVE_NAME)
     - script:
         name: notify-cebeci with eb trigger
         code: |

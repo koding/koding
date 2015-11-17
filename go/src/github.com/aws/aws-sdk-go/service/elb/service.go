@@ -4,49 +4,90 @@ package elb
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/internal/protocol/query"
-	"github.com/aws/aws-sdk-go/internal/signer/v4"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/client/metadata"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol/query"
+	"github.com/aws/aws-sdk-go/private/signer/v4"
 )
 
-// ELB is a client for Elastic Load Balancing.
+// Elastic Load Balancing distributes incoming traffic across your EC2 instances.
+//
+// For information about the features of Elastic Load Balancing, see What Is
+// Elastic Load Balancing? (http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/elastic-load-balancing.html)
+// in the Elastic Load Balancing Developer Guide.
+//
+// For information about the AWS regions supported by Elastic Load Balancing,
+// see Regions and Endpoints - Elastic Load Balancing (http://docs.aws.amazon.com/general/latest/gr/rande.html#elb_region)
+// in the Amazon Web Services General Reference.
+//
+// All Elastic Load Balancing operations are idempotent, which means that they
+// complete at most one time. If you repeat an operation, it succeeds with a
+// 200 OK response code.
+//The service client's operations are safe to be used concurrently.
+// It is not safe to mutate any of the client's properties though.
 type ELB struct {
-	*aws.Service
+	*client.Client
 }
 
-// Used for custom service initialization logic
-var initService func(*aws.Service)
+// Used for custom client initialization logic
+var initClient func(*client.Client)
 
 // Used for custom request initialization logic
-var initRequest func(*aws.Request)
+var initRequest func(*request.Request)
 
-// New returns a new ELB client.
-func New(config *aws.Config) *ELB {
-	service := &aws.Service{
-		Config:      aws.DefaultConfig.Merge(config),
-		ServiceName: "elasticloadbalancing",
-		APIVersion:  "2012-06-01",
+// A ServiceName is the name of the service the client will make API calls to.
+const ServiceName = "elasticloadbalancing"
+
+// New creates a new instance of the ELB client with a session.
+// If additional configuration is needed for the client instance use the optional
+// aws.Config parameter to add your extra config.
+//
+// Example:
+//     // Create a ELB client from just a session.
+//     svc := elb.New(mySession)
+//
+//     // Create a ELB client with additional configuration
+//     svc := elb.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
+func New(p client.ConfigProvider, cfgs ...*aws.Config) *ELB {
+	c := p.ClientConfig(ServiceName, cfgs...)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+}
+
+// newClient creates, initializes and returns a new service client instance.
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *ELB {
+	svc := &ELB{
+		Client: client.New(
+			cfg,
+			metadata.ClientInfo{
+				ServiceName:   ServiceName,
+				SigningRegion: signingRegion,
+				Endpoint:      endpoint,
+				APIVersion:    "2012-06-01",
+			},
+			handlers,
+		),
 	}
-	service.Initialize()
 
 	// Handlers
-	service.Handlers.Sign.PushBack(v4.Sign)
-	service.Handlers.Build.PushBack(query.Build)
-	service.Handlers.Unmarshal.PushBack(query.Unmarshal)
-	service.Handlers.UnmarshalMeta.PushBack(query.UnmarshalMeta)
-	service.Handlers.UnmarshalError.PushBack(query.UnmarshalError)
+	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Build.PushBack(query.Build)
+	svc.Handlers.Unmarshal.PushBack(query.Unmarshal)
+	svc.Handlers.UnmarshalMeta.PushBack(query.UnmarshalMeta)
+	svc.Handlers.UnmarshalError.PushBack(query.UnmarshalError)
 
-	// Run custom service initialization if present
-	if initService != nil {
-		initService(service)
+	// Run custom client initialization if present
+	if initClient != nil {
+		initClient(svc.Client)
 	}
 
-	return &ELB{service}
+	return svc
 }
 
 // newRequest creates a new request for a ELB operation and runs any
 // custom request initialization.
-func (c *ELB) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *ELB) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	// Run custom request initialization if present
 	if initRequest != nil {

@@ -1,5 +1,7 @@
-kd        = require 'kd'
-showError = require 'app/util/showError'
+kd = require 'kd'
+
+showError  = require 'app/util/showError'
+sortStacks = require 'app/util/sortEnvironmentStacks'
 
 
 module.exports = class EnvironmentListController extends kd.ListViewController
@@ -35,8 +37,17 @@ module.exports = class EnvironmentListController extends kd.ListViewController
 
   addListItems: (stacks) ->
 
+    stacks = sortStacks stacks
+
     @instantiateListItems stacks
 
-    if stacks.length > 1
-      view.title.show()  for view in @getItemsOrdered()
-      @getView().setClass 'multi-stack'
+    return  if stacks.length is 1
+
+    @getView().setClass 'multi-stack'
+
+    @getItemsOrdered().forEach (view) =>
+      view.header.show()
+
+      if stack = @getOption 'selected'
+        unless stack.getId() is view.getData().getId()
+          view.setClass 'collapsed'

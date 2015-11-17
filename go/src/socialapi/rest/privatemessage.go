@@ -9,7 +9,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func SendPrivateChannelRequest(pmr models.PrivateChannelRequest) (*models.ChannelContainer, error) {
+func SendPrivateChannelRequest(pmr models.ChannelRequest) (*models.ChannelContainer, error) {
 	url := "/privatechannel/init"
 	res, err := marshallAndSendRequest("POST", url, pmr)
 	if err != nil {

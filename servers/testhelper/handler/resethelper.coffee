@@ -3,12 +3,13 @@ querystring = require 'querystring'
 { generateUrl
   deepObjectExtend
   generateRandomString
-  generateDefaultRequestParams } = require '../index'
+  generateRequestParamsEncodeBody } = require '../index'
 
 
 generateResetRequestBody = (opts = {}) ->
 
   defaultBodyObject =
+    _csrf         : generateRandomString()
     password      : generateRandomString()
     recoveryToken : generateRandomString()
 
@@ -20,17 +21,14 @@ generateResetRequestBody = (opts = {}) ->
 generateResetRequestParams = (opts = {}) ->
 
   token = opts?.body?.email or 'someToken'
+  body  = generateResetRequestBody()
 
-  url  = generateUrl
-    route : "#{encodeURIComponent token}/Reset"
+  params =
+    url        : generateUrl { route : "#{encodeURIComponent token}/Reset" }
+    body       : body
+    csrfCookie : body._csrf
 
-  body = generateResetRequestBody()
-
-  params               = { url, body }
-  defaultRequestParams = generateDefaultRequestParams params
-  requestParams        = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body   = querystring.stringify requestParams.body
+  requestParams = generateRequestParamsEncodeBody params, opts
 
   return requestParams
 

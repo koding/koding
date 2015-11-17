@@ -43,6 +43,7 @@ PACKAGES = \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
 	socialapi/workers/sitemap/sitemapinitializer \
+	socialapi/workers/integration \
 	socialapi/workers/algoliaconnector
 
 
@@ -51,7 +52,7 @@ all: testapi
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
 	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
-	teamdev eventsenderdev
+	teamdev eventsenderdev integrationdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -336,11 +337,19 @@ testemailworker:
 	@./emailmodels.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
-testnotification:
+testnotification: testnotificationunit testnotificationintegration
+
+testnotificationintegration:
 	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
 	@`which go` test -c workers/notification/tests/*.go
 	@./main.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./main.test
+
+testnotificationunit:
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
+	@`which go` test -c workers/notification/*.go
+	@./notification.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./notification.test
 
 
 testtrollmode:
@@ -394,7 +403,7 @@ testrealtime:
 
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
-	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
+	testmoderation testtopicfeeed testnotification testtrollmode \
 	testpayment testteam testintegration testrealtime testwebhook
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"

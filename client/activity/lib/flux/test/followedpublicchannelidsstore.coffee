@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 FollowedPublicChannelIdsStore = require '../stores/followedpublicchannelidsstore'
 actionTypes = require '../actions/actiontypes'
@@ -27,3 +27,31 @@ describe 'FollowedPublicChannelIdsStore', ->
 
       expect(storeState.foo).to.eql 'foo'
       expect(storeState.bar).to.eql 'bar'
+
+
+  describe '#handleFollowChannelSuccess', ->
+
+    it 'adds followed channelId to list when its followed', ->
+
+      @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'foo' }
+      @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'bar' }
+
+      storeState = @reactor.evaluateToJS ['FollowedPublicChannelIdsStore']
+
+      expect(storeState.foo).to.eql 'foo'
+      expect(storeState.bar).to.eql 'bar'
+
+
+  describe '#handleUnfollowChannelSuccess', ->
+
+    it 'removes given channelId from list when its unfollowed', ->
+
+      @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'foo' }
+      @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'bar' }
+      @reactor.dispatch actionTypes.UNFOLLOW_CHANNEL_SUCCESS, { channelId: 'foo' }
+
+      storeState = @reactor.evaluateToJS ['FollowedPublicChannelIdsStore']
+
+      expect(storeState.bar).to.eql 'bar'
+      expect(storeState.foo).to.eql undefined
+

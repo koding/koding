@@ -1,30 +1,25 @@
 #!/usr/bin/env coffee
-
-###
 # this file runs shell-scripts on the test instance(s) via ssh
-###
 
-{ exec }               = require 'child_process'
-{ getNthInstanceData } = require './helper'
+{ exec }                          = require 'child_process'
+{ getNthInstancePublicIpAddress } = require './helper'
 
-async                  = require 'async'
-shellCommands          = require './shell-commands'
-
-
-unless instanceData = process.argv[2]
-  console.error 'error: instance data file is not specified'
-  process.exit 1
+async                             = require 'async'
+shellCommands                     = require './shell-commands'
 
 
 addEventListenersToChildProcess = (child) ->
 
+  output = ''
+
   child.stdout.on 'data', (data) ->
-    process.stdout.write  data
+    output += data
 
   child.stderr.on 'data', (data) ->
-    process.stdout.write  data
+    output += data
 
   child.on 'exit', (code) ->
+    process.stdout.write output
 
     # if child exits with a non-zero code, exit the main process as well
     if code isnt 0
@@ -47,12 +42,16 @@ iterator = (item, cb) ->
 # runs shell scripts in series in test instance via ssh
 start = ->
 
-  # getting first test instance's data
-  { publicIpAddress }   = getNthInstanceData instanceData, 0
+  unless instanceData = process.argv[2]
+    console.error 'error: instance data file is not specified'
+    process.exit 1
 
-  shellCommandsArray     = shellCommands.asArray publicIpAddress
+  shellCommandsArray = shellCommands.asArray {
+    socialWorker    : getNthInstancePublicIpAddress instanceData, 0
+    nodejsWebServer : getNthInstancePublicIpAddress instanceData, 1
+  }
 
-  async.eachSeries shellCommandsArray, iterator, (err) ->
+  async.each shellCommandsArray, iterator, (err) ->
     console.log err  if err
     process.exit()
 

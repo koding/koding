@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { argv }    = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 jraphical   = require 'jraphical'
@@ -91,13 +90,16 @@ module.exports = class JInvitation extends jraphical.Module
       modifiedAt    :
         type        : Date
         default     : -> new Date
+      role          :
+        type        : String
+        default     : -> 'member'
 
   accept$: secure (client, callback) ->
     { delegate } = client.connection
     @accept delegate, callback
 
   accept: (account, callback) ->
-    operation = $set : { status: 'accepted' }
+    operation = { $set : { status: 'accepted' } }
     @update operation, callback
 
   # validTypes holds states that can still redeemable
@@ -120,10 +122,10 @@ module.exports = class JInvitation extends jraphical.Module
       selector.status  or= 'pending'
 
       { limit }       = options
-      options.sort  or= createdAt : -1
+      options.sort  or= { createdAt : -1 }
       options.limit or= 25
       options.limit   = Math.min options.limit, 25 # admin can fetch max 25 record
-      options.skip    = 0
+      options.skip   ?= 0
 
       JInvitation.some selector, options, callback
 
@@ -165,7 +167,7 @@ module.exports = class JInvitation extends jraphical.Module
 
         queue = invitations.map (invitation) -> ->
 
-          { email, firstName, lastName } = invitation
+          { email, firstName, lastName, role } = invitation
 
           JInvitation.one { email, groupName }, (err, invitation) ->
             return callback new KodingError err  if err
@@ -191,6 +193,7 @@ module.exports = class JInvitation extends jraphical.Module
                 hash
                 email
                 groupName
+                role
               }
               # firstName and lastName are optional
               data.firstName = firstName  if firstName
@@ -244,12 +247,23 @@ module.exports = class JInvitation extends jraphical.Module
 
   # sendInvitationEmail sends email according to given JInvitation
   @sendInvitationEmail: (client, invitation, callback) ->
-    invitee      = getName client.connection.delegate
+
+    { delegate }  = client.connection
+    { profile }   = delegate
+
+    inviter       = getName delegate
+    groupLink     = "#{protocol}//#{invitation.groupName}.#{hostname}/"
+
+    imgURL   = "#{protocol}//gravatar.com/avatar/#{profile.hash}?size=65&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+
+    if profile.avatar
+      imgURL = "#{protocol}//#{hostname}/-/image/cache?endpoint=crop&grow=false&width=65&height=65&url=#{encodeURIComponent profile.avatar}"
 
     properties =
-      groupName: invitation.groupName
-      invitee  : invitee
-      link     : "#{protocol}//#{invitation.groupName}.#{hostname}/Invitation/#{encodeURIComponent invitation.code}"
+      groupName    : invitation.groupName
+      inviter      : inviter
+      inviterImage : imgURL
+      link         : groupLink + "Invitation/#{encodeURIComponent invitation.code}"
 
     Tracker.identifyAndTrack invitation.email, { subject : Tracker.types.INVITED_GROUP }, properties
 
@@ -257,16 +271,30 @@ module.exports = class JInvitation extends jraphical.Module
 
 
   getName = (delegate) ->
+
     { nickname, firstName, lastName } = delegate.profile
 
     name = nickname
-
-    if "#{firstName}" is not ''
-      name = firstName
-
-    if "#{lastName}" is not ''
-      name = "#{name} #{lastName}"
+    name = firstName              if firstName
+    name = "#{name} #{lastName}"  if firstName and lastName
 
     return name
 
 
+  do ->
+
+    JGroup = require './group'
+
+    JGroup.on 'MemberRemoved', ({ member, group }) ->
+
+      return  unless member or group
+      return  if group.slug in ['guests', 'koding']
+
+      member.fetchUser (err, user) ->
+        return log 'Failed to fetch member:', err  if err or not user
+
+        JInvitation.remove {
+          email     : user.email
+          groupName : group.slug
+        }, (err) ->
+          log 'Failed to remove existing invitations', err  if err

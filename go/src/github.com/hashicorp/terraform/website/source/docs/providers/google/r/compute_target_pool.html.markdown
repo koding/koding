@@ -1,7 +1,7 @@
 ---
 layout: "google"
 page_title: "Google: google_compute_target_pool"
-sidebar_current: "docs-google-resource-target_pool"
+sidebar_current: "docs-google-compute-target-pool"
 description: |-
   Manages a Target Pool within GCE.
 ---
@@ -49,6 +49,7 @@ The following arguments are supported:
 
 * `session_affinity` - (Optional) How to distribute load.  Options are "NONE" (no affinity).  "CLIENT\_IP" (hash of the source/dest addresses / ports), and "CLIENT\_IP\_PROTO" also includes the protocol (default "NONE").
 
+* `region` - (Optional) Where the target pool resides. Defaults to project region.
 
 ## Attributes Reference
 

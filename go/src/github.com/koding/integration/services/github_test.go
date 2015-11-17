@@ -33,6 +33,22 @@ func TestGithubPush(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubPushWithoutCommit(t *testing.T) {
+	whd := &webhook.PushEvent{}
+	err := json.Unmarshal([]byte(pushTestWithoutCommitData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.push(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := ""
+	equals(t, exp, d)
+}
+
 func TestGithubIssueComment(t *testing.T) {
 	whd := &webhook.IssueCommentEvent{}
 	err := json.Unmarshal([]byte(issueCommentTestData), whd)
@@ -67,6 +83,54 @@ func TestGithubCommitComment(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubCreateBranch(t *testing.T) {
+	whd := &webhook.CreateEvent{}
+	err := json.Unmarshal([]byte(createBranchData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.create(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[mehmetalisavas](https://github.com/mehmetalisavas) created branch `createdBranch` at [mehmetalisavas/webhook](https://github.com/mehmetalisavas/webhook)"
+	equals(t, exp, d)
+}
+
+func TestGithubDeleteBranch(t *testing.T) {
+	whd := &webhook.DeleteEvent{}
+	err := json.Unmarshal([]byte(deleteBranchData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.delete(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[mehmetalisavas](https://github.com/mehmetalisavas) deleted branch `test4` at [mehmetalisavas/webhook](https://github.com/mehmetalisavas/webhook)"
+	equals(t, exp, d)
+}
+
+func TestGithubDeleteTag(t *testing.T) {
+	whd := &webhook.DeleteEvent{}
+	err := json.Unmarshal([]byte(deleteTagData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.delete(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := "[baxterthehacker](https://github.com/baxterthehacker) deleted tag `simple-tag` at [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)"
+	equals(t, exp, d)
+}
+
 func TestGithubPullRequest(t *testing.T) {
 	whd := &webhook.PullRequestEvent{}
 	err := json.Unmarshal([]byte(pullRequestTestData), whd)
@@ -80,6 +144,22 @@ func TestGithubPullRequest(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	exp := `[baxterthehacker](https://github.com/baxterthehacker) opened pull request [Update the README with new information](https://github.com/baxterthehacker/public-repo/pull/1) at [baxterthehacker/public-repo](https://github.com/baxterthehacker/public-repo)`
+	equals(t, exp, d)
+}
+
+func TestGithubPullRequestAssigned(t *testing.T) {
+	whd := &webhook.PullRequestEvent{}
+	err := json.Unmarshal([]byte(pullRequestAssignedData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.pullRequest(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := `[sent-hil](https://github.com/sent-hil) assigned to [sinan](https://github.com/sinan) pull request [updated readme](https://github.com/koding/koding/pull/5667) at [koding/koding](https://github.com/koding/koding)`
 	equals(t, exp, d)
 }
 

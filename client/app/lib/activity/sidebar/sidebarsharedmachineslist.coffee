@@ -16,3 +16,7 @@ module.exports = class SidebarSharedMachinesList extends SidebarMachineList
 
     @on 'MachineBoxDestroyed', =>
       @hide()  if @machineBoxes.length is 0
+
+
+  # Don't anything when sidebar title is clicked.
+  headerClickHandler: ->

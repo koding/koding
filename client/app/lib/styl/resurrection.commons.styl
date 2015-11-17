@@ -223,6 +223,7 @@ a.custom-link-view.border-only-green
   border                1px solid #e4e4e4
   shadow                0 8px 35px rgba(0, 0, 0, .22)
   padding               5px 0
+  z-index               10002
 
   &:after
     content             ""
@@ -997,6 +998,11 @@ button.app-settings-menu
     .avatarview
       cite.staff
         hidden()
+    a
+      color                 #00B057
+      text-decoration       none
+      &:hover
+        text-decoration     underline
 
 
   .kdmodal-buttons
@@ -2046,7 +2052,7 @@ footer.main-footer
     border                  none
 
   .kdmodal-title span.title
-    font-family             adelleSerif
+    font-family             SoleilFamily
 
   .notification
     padding                 10px 20px

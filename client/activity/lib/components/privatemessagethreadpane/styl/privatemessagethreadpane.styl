@@ -1,0 +1,38 @@
+$header-height              = 40px
+
+.PrivateMessageThreadPane
+.PrivateMessageThreadPane-body
+  dFlex()
+  vendor                    flex-direction, row
+
+.PrivateMessageThreadPane-content
+  rel()
+  dFlex()
+  vendor                    flex, 1
+  vendor                    flex-direction, column
+
+.PrivateMessageThreadPane-header
+  white-space               pre
+  padding                   0 20px 0 34px
+  vendor                    flex, 0 0 $header-height
+  vendor                    align-items, center
+  bg                        color, #fcfcfc
+  font-weight               $fw-bold
+  rel()
+  dFlex()
+
+.PrivateMessageThreadPane-body
+  vendor                    flex, 1
+
+.PrivateMessageThreadPane-chatWrapper
+  vendor                    flex, 1
+  vendor                    transition, flex .177s ease
+
+.PrivateMessageThreadPane-sidebar
+  vendor                    flex, 0 0 240px
+  bg                        color, #f5f5f5
+
+
+// @media only screen and (max-width : 950px)
+//   .PrivateMessageThreadPane-sidebar
+//     vendor                    flex, 0 0 40px

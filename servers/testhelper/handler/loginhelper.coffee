@@ -2,13 +2,15 @@ querystring = require 'querystring'
 
 { generateUrl
   deepObjectExtend
+  generateRandomString
   generateRandomUsername
-  generateDefaultRequestParams } = require '../index'
+  generateRequestParamsEncodeBody } = require '../index'
 
 
 generateLoginRequestBody = (opts = {}) ->
 
   defaultBodyObject =
+    _csrf               : generateRandomString()
     token               : ''
     tfcode              : ''
     username            : generateRandomUsername()
@@ -24,16 +26,14 @@ generateLoginRequestBody = (opts = {}) ->
 # overwrites given options in the default params
 generateLoginRequestParams = (opts = {}) ->
 
-  url  = generateUrl
-    route : 'Login'
-
   body = generateLoginRequestBody()
 
-  params                = { url, body }
-  defaultRequestParams  = generateDefaultRequestParams params
-  requestParams         = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body    = querystring.stringify requestParams.body
+  params =
+    url        : generateUrl { route : 'Login' }
+    body       : body
+    csrfCookie : body._csrf
+
+  requestParams = generateRequestParamsEncodeBody params, opts
 
   return requestParams
 

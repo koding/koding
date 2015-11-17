@@ -5,6 +5,8 @@ KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
 Tracker = require '../../../../workers/social/lib/social/models/tracker.coffee'
 Jwt     = require 'jsonwebtoken'
 
+{ setSessionCookie } = require '../helpers'
+
 module.exports = (req, res, next) ->
 
   { JUser, JSession } = (require './../bongo').models
@@ -36,7 +38,7 @@ module.exports = (req, res, next) ->
         JSession.createNewSession { username, groupName }, (err, session) ->
           return logErrorAndReturn err  if err
 
-          res.cookie 'clientId', session.clientId, { path: '/' }
+          setSessionCookie res, session.clientId
           res.redirect redirect_uri or '/'
 
           Tracker.track username, { subject : Tracker.types.CONFIRM_USING_TOKEN }

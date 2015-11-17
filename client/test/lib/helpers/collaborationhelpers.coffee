@@ -40,7 +40,12 @@ module.exports =
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
 
 
-  endSessionFromStatusBar: (browser) ->
+  leaveSessionFromStatusBar: (browser) ->
+
+    @endSessionFromStatusBar(browser, no)
+
+
+  endSessionFromStatusBar: (browser, shouldAssert = yes) ->
 
     statusBarSelector       = '.status-bar .collab-status'
     buttonContainerSelector = statusBarSelector + ' .button-container'
@@ -52,7 +57,7 @@ module.exports =
       .waitForElementVisible  buttonContainerSelector, 20000
       .click                  buttonContainerSelector + ' button.end-session'
 
-    @endSessionModal(browser)
+    @endSessionModal(browser, shouldAssert)
 
 
   endSessionFromChat: (browser) ->
@@ -66,7 +71,7 @@ module.exports =
     @endSessionModal(browser)
 
 
-  endSessionModal: (browser) ->
+  endSessionModal: (browser, shouldAssert = yes) ->
 
     buttonsSelector = '.kdmodal .kdmodal-buttons'
 
@@ -74,7 +79,10 @@ module.exports =
       .waitForElementVisible  '.with-buttons', 20000
       .waitForElementVisible  buttonsSelector, 20000
       .click                  buttonsSelector + ' button.green'
-      .waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
+      .pause                  5000
+
+    if shouldAssert
+      browser.waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
 
 
   openChatSettingsMenu: (browser) ->
@@ -90,6 +98,8 @@ module.exports =
 
 
   inviteUser: (browser, username) ->
+
+    console.log " ✔ Inviting #{username} to collaboration session"
 
     chatSelecor = "span.profile[href='/#{username}']"
 
@@ -109,3 +119,22 @@ module.exports =
             .click             '.ParticipantHeads-button--new'
             .pause             500
             .click             chatSelecor
+
+
+  closeChatPage: (browser) ->
+
+    closeButtonSelector = '.chat-view a.close span'
+    chatBox             = '.chat-view'
+
+
+    browser.element 'css selector', chatBox, (result) =>
+      if result.status is 0
+        browser
+          .waitForElementVisible     chatBox, 20000
+          .waitForElementVisible     closeButtonSelector, 20000
+          .click                     closeButtonSelector
+          .waitForElementNotVisible  chatBox, 20000
+          .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000
+      else
+        browser
+          .waitForElementVisible     '.pane-wrapper .kdsplitview-panel.panel-1', 20000

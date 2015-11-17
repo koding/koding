@@ -1,5 +1,6 @@
 kd                    = require 'kd'
 React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
 remote                = require('app/remote').getInstance()
 Avatar                = require 'app/components/profile/avatar'
 immutable             = require 'immutable'
@@ -24,6 +25,10 @@ getMessageOwner       = require 'app/util/getMessageOwner'
 showErrorNotification = require 'app/util/showErrorNotification'
 showNotification      = require 'app/util/showNotification'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
+EmbedBox              = require 'activity/components/embedbox'
+KeyboardKeys          = require 'app/util/keyboardKeys'
+ChatInputWidget       = require 'activity/components/chatinputwidget'
+Encoder               = require 'htmlencode'
 MessageLink           = require 'activity/components/messagelink'
 
 module.exports = class ChatListItem extends React.Component
@@ -33,15 +38,15 @@ module.exports = class ChatListItem extends React.Component
   @defaultProps =
     hover                         : no
     account                       : null
-    editMode                      : no
     isDeleting                    : no
-    isMenuOpen                    : no
-    editInputValue                : ''
+    channelName                   : ''
     isUserMarkedAsTroll           : no
     isBlockUserModalVisible       : no
     isMarkUserAsTrollModalVisible : no
     showItemMenu                  : yes
-
+    isSelected                    : no
+    channelId                     : ''
+    onEditStarted                 : kd.noop
 
   constructor: (props) ->
 
@@ -50,10 +55,8 @@ module.exports = class ChatListItem extends React.Component
     @state =
       hover                         : @props.hover
       account                       : @props.account
-      editMode                      : @props.editMode
+      editMode                      : @props.message.get '__isEditing'
       isDeleting                    : @props.isDeleting
-      isMenuOpen                    : @props.isMenuOpen
-      editInputValue                : @props.message.get 'body'
       isUserMarkedAsTroll           : @props.message.get('account').isExempt
       isBlockUserModalVisible       : @props.isBlockUserModalVisible
       isMarkUserAsTrollModalVisible : @props.isMarkUserAsTrollModalVisible
@@ -89,13 +92,7 @@ module.exports = class ChatListItem extends React.Component
     key               : @props.message.get 'id'
     className         : classnames
       'ChatItem'      : yes
-      'mouse-enter'   : @state.hover
-      'is-menuOpen'   : @state.isMenuOpen
-    onMouseEnter      : =>
-      @setState hover : yes
-    onMouseLeave      : =>
-      @setState hover : no
-
+      'is-selected'   : @props.isSelected
 
   getMenuItems: ->
 
@@ -171,23 +168,24 @@ module.exports = class ChatListItem extends React.Component
     onClose            : @bound "closeBlockUserPromptModal"
 
 
-  deletePostButtonHandler: ->
+  deletePostButtonHandler: (event) ->
 
+    kd.utils.stopDOMEvent event
     ActivityFlux.actions.message.removeMessage @props.message.get('id')
     @closeDeletePostModal()
 
 
-  closeDeletePostModal: ->
+  closeDeletePostModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isDeleting: no
 
 
   editPost: ->
 
-    @setState editMode: yes
-    domNode = @refs.EditMessageTextarea.getDOMNode()
-    kd.utils.wait 100, ->
-      kd.utils.moveCaretToEnd domNode
+    messageId = @props.message.get '_id'
+
+    ActivityFlux.actions.message.setMessageEditMode messageId
 
 
   showDeletePostPromptModal: ->
@@ -200,18 +198,21 @@ module.exports = class ChatListItem extends React.Component
     @setState isMarkUserAsTrollModalVisible: yes
 
 
-  closeMarkUserAsTrollModal: ->
+  closeMarkUserAsTrollModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isMarkUserAsTrollModalVisible: no
 
 
-  closeBlockUserPromptModal: ->
+  closeBlockUserPromptModal: (event) ->
 
+    kd.utils.stopDOMEvent event
     @setState isBlockUserModalVisible: no
 
 
-  unMarkUserAsTroll: ->
+  unMarkUserAsTroll: (event) ->
 
+    kd.utils.stopDOMEvent event
     AppFlux.actions.user.unmarkUserAsTroll @state.account
     @closeMarkUserAsTrollModal()
 
@@ -221,8 +222,9 @@ module.exports = class ChatListItem extends React.Component
     @setState isBlockUserModalVisible: yes
 
 
-  impersonateUser: ->
+  impersonateUser: (event) ->
 
+    kd.utils.stopDOMEvent event
     { message } = @props
 
     AppFlux.actions.user.impersonateUser message.toJS()
@@ -230,58 +232,59 @@ module.exports = class ChatListItem extends React.Component
 
   updateMessage: ->
 
-    @setState editMode: no
+    return @deletePostButtonHandler()  if @state.isDeleting
+
+    value = @refs.editInput.getValue().trim()
+    return @setState isDeleting: yes  unless value
+
+    messageId = @props.message.get '_id'
+
+    ActivityFlux.actions.message.unsetMessageEditMode messageId
 
     ActivityFlux.actions.message.editMessage(
       @props.message.get('id')
-      @state.editInputValue
+      value
       @props.message.get('payload').toJS()
     )
 
 
   cancelEdit: ->
 
-    @setState editMode: no, editInputValue: @props.message.get('body')
+    return @closeDeletePostModal()  if @state.isDeleting
+
+    messageId = @props.message.get '_id'
+    ActivityFlux.actions.message.unsetMessageEditMode messageId
 
 
-  onMenuToggle: (isMenuOpen) -> @setState { isMenuOpen }
+  onEditStarted: ->
 
-
-  onEditInputChange: (event) ->
-
-    @setState { editInputValue: event.target.value }
-
-
-  onEditInputKeyDown: (event) ->
-
-    code = event.which or event.keyCode
-    key  = keycode code
-
-    switch key
-      when 'esc'
-        @cancelEdit()
-      when 'enter'
-        @updateMessage()
+    element = ReactDOM.findDOMNode this
+    @props.onEditStarted? element
 
 
   getEditModeClassNames: -> classnames
     'ChatItem-updateMessageForm': yes
-    'hidden' : not @state.editMode
+    'hidden' : not @props.message.get '__isEditing'
+    'visible' : @props.message.get '__isEditing'
 
 
   getMediaObjectClassNames: -> classnames
-    'hidden' : @state.editMode
+    'ChatListItem-itemBodyContainer': yes
+    'hidden' : @props.message.get '__isEditing'
 
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
   renderEditMode: ->
 
     { message } = @props
+    messageBody = Encoder.htmlDecode message.get 'body'
+
+    return  unless message.get '__isEditing'
 
     <div className={@getEditModeClassNames()}>
       <span className="ChatItem-authorName">
@@ -291,12 +294,15 @@ module.exports = class ChatListItem extends React.Component
         <button className="ChatItem-editAction submit" onClick={@bound 'updateMessage'}>enter to save</button>
         <button className="ChatItem-editAction cancel" onClick={@bound 'cancelEdit'}>esc to cancel</button>
       </div>
-      <textarea
-        autoFocus
-        onKeyDown={@bound 'onEditInputKeyDown'}
-        onChange={@bound 'onEditInputChange'}
-        value={@state.editInputValue}
-        ref="EditMessageTextarea"></textarea>
+      <ChatInputWidget
+        channelId        = { @props.channelId }
+        value            = { messageBody }
+        onSubmit         = { @bound 'updateMessage' }
+        onEsc            = { @bound 'cancelEdit' }
+        ref              = 'editInput'
+        disabledFeatures = { ['commands'] }
+        onReady          = { @bound 'onEditStarted' }
+      />
     </div>
 
 
@@ -306,23 +312,16 @@ module.exports = class ChatListItem extends React.Component
 
     { message } = @props
     if (message.get('accountId') is whoami().socialApiId) or checkFlag('super-admin')
-      <ButtonWithMenu
-        items       = {@getMenuItems()}
-        onMenuOpen  = {=> @onMenuToggle yes}
-        onMenuClose = {=> @onMenuToggle no}
-      />
+      <ButtonWithMenu items={@getMenuItems()} />
 
 
-  getClassNames: ->
-    editForm: classnames
-      'ChatItem-updateMessageForm': yes
-      'hidden': not @state.editMode
-    mediaContent: classnames
-      'hidden': @state.editMode
-    contentWrapper: classnames
-      'ChatItem-contentWrapper': yes
-      'MediaObject': yes
-      'editing': @state.editMode
+  renderEmbedBox: ->
+
+    { message } = @props
+    embedData   = message.get 'link'
+
+    if embedData
+      <EmbedBox data={embedData.toJS()} type='chat' />
 
 
   render: ->
@@ -337,7 +336,7 @@ module.exports = class ChatListItem extends React.Component
             <span className="ChatItem-authorName">
               {makeProfileLink message.get 'account'}
             </span>
-            <MessageLink message={message} absolute={yes}>
+            <MessageLink message={message}>
               <MessageTime date={message.get 'createdAt'}/>
             </MessageLink>
             <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
@@ -345,6 +344,7 @@ module.exports = class ChatListItem extends React.Component
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}

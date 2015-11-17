@@ -28,6 +28,14 @@ type NotificationMessage struct {
 	EventId   string                   `json:"eventId"`
 }
 
+// BroadcastMessage holds required parameters for sending broadcast message
+type BroadcastMessage struct {
+	EventId   string              `json:"eventId"`
+	GroupName string              `json:"groupName"`
+	EventName string              `json:"eventName"`
+	Body      NotificationContent `json:"body"`
+}
+
 type Message struct {
 	Id        int64       `json:"messageId, string"`
 	EventName string      `json:"eventName"`
@@ -37,7 +45,7 @@ type Message struct {
 
 type Authenticate struct {
 	Account *socialapimodels.Account
-	Channel ChannelInterface
+	Channel ChannelManager
 }
 
 // Namings are for backward compatibility

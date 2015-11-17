@@ -13,6 +13,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 
 	"github.com/jinzhu/now"
@@ -40,8 +41,11 @@ func NewCloudwatch(name string, limits Limits, creds *credentials.Credentials, r
 	clients := map[string]*cloudwatch.CloudWatch{}
 
 	for _, regionName := range regions {
-		config := &aws.Config{Credentials: creds, Region: regionName}
-		clients[regionName] = cloudwatch.New(config)
+		session := session.New(&aws.Config{
+			Credentials: creds,
+			Region:      aws.String(regionName),
+		})
+		clients[regionName] = cloudwatch.New(session)
 	}
 
 	return &Cloudwatch{

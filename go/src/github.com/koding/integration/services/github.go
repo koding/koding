@@ -80,7 +80,8 @@ type Config struct {
 }
 
 type GithubInfo struct {
-	token string
+	token     string
+	eventType string
 }
 
 func NewGithub(conf GithubConfig) (Github, error) {
@@ -228,8 +229,10 @@ func (g Github) configure(cr *helpers.ConfigureRequest, method, url string) (hel
 
 func githubContextCreator(req *http.Request) context.Context {
 	token := req.URL.Query().Get("token")
+	event := req.Header.Get("X-Github-Event")
 	gi := &GithubInfo{
-		token: token,
+		token:     token,
+		eventType: event,
 	}
 
 	return context.WithValue(context.Background(), githubInfoKey, gi)
@@ -252,6 +255,10 @@ func (g GithubListener) push(e *webhook.PushEvent) (string, error) {
 	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
 	compareStr := fmt.Sprintf("[pushed](%s)", e.Compare)
 	commitsStr := ""
+
+	if len(e.Commits) < 1 {
+		return "", nil
+	}
 
 	// limit our commit count
 	commitsLen := len(e.Commits)
@@ -364,11 +371,15 @@ func (g GithubListener) PullRequest(ctx context.Context, e *webhook.PullRequestE
 }
 
 func (g GithubListener) pullRequest(e *webhook.PullRequestEvent) (string, error) {
-	user := fmt.Sprintf("[%s](%s)", e.PullRequest.User.Login, e.PullRequest.User.HTMLURL)
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
 	pr := fmt.Sprintf("[%s](%s)", e.PullRequest.Title, e.PullRequest.HTMLURL)
 	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
 
 	action := e.Action
+
+	if action == "assigned" {
+		return g.pullRequestAssigned(e)
+	}
 
 	if action == "closed" && e.PullRequest.Merged {
 		action = "merged"
@@ -377,6 +388,22 @@ func (g GithubListener) pullRequest(e *webhook.PullRequestEvent) (string, error)
 	return fmt.Sprintf("%s %s pull request %s at %s",
 		user,
 		action,
+		pr,
+		repo,
+	), nil
+}
+
+// pullRequestAssigned uses different mentioning from other pull request events
+func (g GithubListener) pullRequestAssigned(e *webhook.PullRequestEvent) (string, error) {
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
+	pr := fmt.Sprintf("[%s](%s)", e.PullRequest.Title, e.PullRequest.HTMLURL)
+	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
+	assignee := fmt.Sprintf("[%s](%s)", e.Assignee.Login, e.Assignee.HTMLURL)
+
+	return fmt.Sprintf("%s %s to %s pull request %s at %s",
+		user,
+		e.Action,
+		assignee,
 		pr,
 		repo,
 	), nil
@@ -404,6 +431,54 @@ func (g GithubListener) member(e *webhook.MemberEvent) (string, error) {
 	), nil
 }
 
+func (g GithubListener) Delete(ctx context.Context, e *webhook.DeleteEvent) {
+	d, err := g.delete(e)
+	if err != nil {
+		g.Log.Error("failed to parse delete event data: %+v, err: %s", e, err.Error())
+		return
+	}
+
+	g.output(ctx, d)
+}
+
+func (g GithubListener) delete(e *webhook.DeleteEvent) (string, error) {
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
+	refType := e.RefType
+	ref := e.Ref
+	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
+
+	return fmt.Sprintf("%s deleted %s `%s` at %s",
+		user,
+		refType,
+		ref,
+		repo,
+	), nil
+}
+
+func (g GithubListener) Create(ctx context.Context, e *webhook.CreateEvent) {
+	d, err := g.create(e)
+	if err != nil {
+		g.Log.Error("failed to parse create tag or branch data: %+v, err: %s", e, err.Error())
+		return
+	}
+
+	g.output(ctx, d)
+}
+
+func (g GithubListener) create(e *webhook.CreateEvent) (string, error) {
+	user := fmt.Sprintf("[%s](%s)", e.Sender.Login, e.Sender.HTMLURL)
+	refType := e.RefType
+	ref := e.Ref
+	repo := fmt.Sprintf("[%s](%s)", e.Repository.FullName, e.Repository.HTMLURL)
+
+	return fmt.Sprintf("%s created %s `%s` at %s",
+		user,
+		refType,
+		ref,
+		repo,
+	), nil
+}
+
 // TODO(mehmetali) limit outgoing string, should not be more than 2K char?
 func (g GithubListener) output(ctx context.Context, str string) {
 	gi, ok := FromGithubContext(ctx)
@@ -413,6 +488,7 @@ func (g GithubListener) output(ctx context.Context, str string) {
 	}
 
 	pr := helpers.NewPushRequest(str)
+	pr.SetPayload("eventType", gi.eventType)
 
 	if err := helpers.Push(gi.token, pr, g.IntegrationUrl); err != nil {
 		g.Log.Error("Could not push message: %s", err)

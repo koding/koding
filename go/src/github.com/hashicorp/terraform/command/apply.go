@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform/config/module"
 	"github.com/hashicorp/terraform/terraform"
 )
 
@@ -39,6 +39,8 @@ func (c *ApplyCommand) Run(args []string) int {
 		cmdFlags.BoolVar(&destroyForce, "force", false, "force")
 	}
 	cmdFlags.BoolVar(&refresh, "refresh", true, "refresh")
+	cmdFlags.IntVar(
+		&c.Meta.parallelism, "parallelism", DefaultParallelism, "parallelism")
 	cmdFlags.StringVar(&c.Meta.statePath, "state", DefaultStateFilename, "path")
 	cmdFlags.StringVar(&c.Meta.stateOutPath, "state-out", "", "path")
 	cmdFlags.StringVar(&c.Meta.backupPath, "backup", "", "path")
@@ -74,7 +76,7 @@ func (c *ApplyCommand) Run(args []string) int {
 
 	if !c.Destroy && maybeInit {
 		// Do a detect to determine if we need to do an init + apply.
-		if detected, err := module.Detect(configPath, pwd); err != nil {
+		if detected, err := getter.Detect(configPath, pwd, getter.Detectors); err != nil {
 			c.Ui.Error(fmt.Sprintf(
 				"Invalid path: %s", err))
 			return 1
@@ -94,9 +96,10 @@ func (c *ApplyCommand) Run(args []string) int {
 
 	// Build the context based on the arguments given
 	ctx, planned, err := c.Context(contextOpts{
-		Destroy:   c.Destroy,
-		Path:      configPath,
-		StatePath: c.Meta.statePath,
+		Destroy:     c.Destroy,
+		Path:        configPath,
+		StatePath:   c.Meta.statePath,
+		Parallelism: c.Meta.parallelism,
 	})
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -108,11 +111,27 @@ func (c *ApplyCommand) Run(args []string) int {
 		return 1
 	}
 	if !destroyForce && c.Destroy {
+		// Default destroy message
+		desc := "Terraform will delete all your managed infrastructure.\n" +
+			"There is no undo. Only 'yes' will be accepted to confirm."
+
+		// If targets are specified, list those to user
+		if c.Meta.targets != nil {
+			var descBuffer bytes.Buffer
+			descBuffer.WriteString("Terraform will delete the following infrastructure:\n")
+			for _, target := range c.Meta.targets {
+				descBuffer.WriteString("\t")
+				descBuffer.WriteString(target)
+				descBuffer.WriteString("\n")
+			}
+			descBuffer.WriteString("There is no undo. Only 'yes' will be accepted to confirm")
+			desc = descBuffer.String()
+		}
+
 		v, err := c.UIInput().Input(&terraform.InputOpts{
-			Id:    "destroy",
-			Query: "Do you really want to destroy?",
-			Description: "Terraform will delete all your managed infrastructure.\n" +
-				"There is no undo. Only 'yes' will be accepted to confirm.",
+			Id:          "destroy",
+			Query:       "Do you really want to destroy?",
+			Description: desc,
 		})
 		if err != nil {
 			c.Ui.Error(fmt.Sprintf("Error asking for confirmation: %s", err))
@@ -149,7 +168,7 @@ func (c *ApplyCommand) Run(args []string) int {
 		}
 	}
 
-	// Setup the state hook for continous state updates
+	// Setup the state hook for continuous state updates
 	{
 		state, err := c.State()
 		if err != nil {
@@ -278,6 +297,9 @@ Options:
 
   -no-color              If specified, output won't contain any color.
 
+  -parallelism=n         Limit the number of concurrent operations.
+                         Defaults to 10.
+
   -refresh=true          Update state prior to checking for differences. This
                          has no effect if a plan file is given to apply.
 
@@ -319,6 +341,9 @@ Options:
   -force                 Don't ask for input for destroy confirmation.
 
   -no-color              If specified, output won't contain any color.
+
+  -parallelism=n         Limit the number of concurrent operations.
+                         Defaults to 10.
 
   -refresh=true          Update state prior to checking for differences. This
                          has no effect if a plan file is given to apply.

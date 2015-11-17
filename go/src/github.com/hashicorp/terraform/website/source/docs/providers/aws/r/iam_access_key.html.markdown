@@ -15,7 +15,6 @@ Provides an IAM access key. This is a set of credentials that allow API requests
 ```
 resource "aws_iam_access_key" "lb" {
     user = "${aws_iam_user.lb.name}"
-    status = "Active"
 }
 
 resource "aws_iam_user" "lb" {
@@ -56,5 +55,8 @@ The following attributes are exported:
 * `id` - The access key ID.
 * `user` - The IAM user associated with this access key.
 * `secret` - The secret access key. Note that this will be written to the state file.
+* `ses_smtp_password` - The secret access key converted into an SES SMTP
+  password by applying [AWS's documented conversion
+  algorithm](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/smtp-credentials.html#smtp-credentials-convert).
 * `status` - "Active" or "Inactive". Keys are initially active, but can be made
 	inactive by other means.

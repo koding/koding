@@ -1,4 +1,3 @@
-trackEvent = require './util/trackEvent'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDSlidePageView = kd.SlidePageView
@@ -26,16 +25,12 @@ module.exports = class HelpPage extends KDSlidePageView
       if link.command
         options.click = (event)=>
           kd.utils.stopDOMEvent event
-          trackEvent "Help modal link, click", title:link.title
 
           kd.singletons.appManager.require 'Terminal',(app)=>
             @getDelegate().emit 'InternalLinkClicked', link
             kd.utils.wait 500, =>
               kd.singletons.router.handleRoute link.url
               kd.singletons.appManager.tell 'Terminal', 'runCommand', link.command
-      else
-        options.click = (event)=>
-          trackEvent "Help modal link, click", title:link.title
 
       @addSubView (new KDCustomHTMLView options), 'ul'
 
@@ -44,5 +39,3 @@ module.exports = class HelpPage extends KDSlidePageView
       {h3{#(title)}}
       <ul></ul>
     """
-
-

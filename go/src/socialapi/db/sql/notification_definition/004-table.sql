@@ -50,3 +50,30 @@ CREATE TABLE "notification"."notification_activity" (
 )
 WITH (OIDS=FALSE);
 GRANT SELECT, INSERT, UPDATE ON "notification"."notification_activity" TO "social";
+
+-- ----------------------------
+--  Table structure for notification_setting
+-- ----------------------------
+CREATE TYPE "notification"."notification_setting_status_constant_enum" AS ENUM (
+    'all',
+    'personal',
+    'never'
+);
+ALTER TYPE "notification"."notification_setting_status_constant_enum" OWNER TO "social";
+
+DROP TABLE IF EXISTS "notification"."notification_setting";
+
+CREATE TABLE IF NOT EXISTS "notification"."notification_setting"  (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'notification.notification_setting_id_seq' :: regclass
+    ),
+    "channel_id" BIGINT NOT NULL,
+    "account_id" BIGINT NOT NULL,
+    "desktop_setting" "notification"."notification_setting_status_constant_enum",
+    "mobile_setting" "notification"."notification_setting_status_constant_enum",
+    "is_muted" BOOLEAN DEFAULT NULL,
+    "is_suppressed" BOOLEAN DEFAULT NULL,
+    "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+    "updated_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+) WITH (OIDS = FALSE);
+GRANT SELECT, INSERT,UPDATE ON "notification"."notification_setting" TO "social";

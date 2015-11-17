@@ -1,5 +1,8 @@
 koding = require './bongo'
 
+{ argv } = require 'optimist'
+KONFIG = require('koding-config-manager').load "main.#{argv.c}"
+
 error_messages =
   404: 'Page not found'
   500: 'Something wrong.'
@@ -245,6 +248,17 @@ isMainDomain = (req) ->
   return host in mainDomains
 
 
+{ sessionCookie } = KONFIG
+
+setSessionCookie = (res, sessionId, options = {}) ->
+
+  options.path    = '/'
+  options.secure  = sessionCookie.secure
+  options.expires = new Date(Date.now() + sessionCookie.maxAge)
+
+  res.cookie 'clientId', sessionId, options
+
+
 module.exports = {
   error_
   error_404
@@ -265,6 +279,5 @@ module.exports = {
   getClientId
   isInAppRoute
   isMainDomain
+  setSessionCookie
 }
-
-

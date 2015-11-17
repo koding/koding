@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -88,7 +89,7 @@ func TestPlan_destroy(t *testing.T) {
 		}
 	}
 
-	f, err := os.Open(statePath + DefaultBackupExtention)
+	f, err := os.Open(statePath + DefaultBackupExtension)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -330,6 +331,30 @@ func TestPlan_vars(t *testing.T) {
 	}
 }
 
+func TestPlan_varsUnset(t *testing.T) {
+	// Disable test mode so input would be asked
+	test = false
+	defer func() { test = true }()
+
+	defaultInputReader = bytes.NewBufferString("bar\n")
+
+	p := testProvider()
+	ui := new(cli.MockUi)
+	c := &PlanCommand{
+		Meta: Meta{
+			ContextOpts: testCtxConfig(p),
+			Ui:          ui,
+		},
+	}
+
+	args := []string{
+		testFixturePath("plan-vars"),
+	}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: %d\n\n%s", code, ui.ErrorWriter.String())
+	}
+}
+
 func TestPlan_varFile(t *testing.T) {
 	varFilePath := testTempFile(t)
 	if err := ioutil.WriteFile(varFilePath, []byte(planVarFile), 0644); err != nil {
@@ -561,7 +586,7 @@ func TestPlan_disableBackup(t *testing.T) {
 	}
 
 	// Ensure there is no backup
-	_, err = os.Stat(statePath + DefaultBackupExtention)
+	_, err = os.Stat(statePath + DefaultBackupExtension)
 	if err == nil || !os.IsNotExist(err) {
 		t.Fatalf("backup should not exist")
 	}

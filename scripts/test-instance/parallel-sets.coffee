@@ -37,7 +37,7 @@ module.exports = [
   [
     { name: 'messages privatemessage' }
     { name: 'account accountsettings' }
-    { name: 'activity postwith' }
+    # { name: 'activity postwith' }
   ]
 
   [
@@ -63,6 +63,7 @@ module.exports = [
 
   [
     { name : 'ide terminal' }
+    { name : 'pricing invalidCardDetails' }
   ]
 
   [
@@ -72,6 +73,7 @@ module.exports = [
 
   [
     { name : 'collaboration collaboration' }
+    { name : 'environments snapshot' }
   ]
 
   [

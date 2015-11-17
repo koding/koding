@@ -57,7 +57,7 @@ module.exports = (req, res) ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        redirectOauth 'Error getting access token', req, res, { provider }
+        return redirectOauth 'Error getting access token', req, res, { provider }
 
       { access_token, refresh_token } = tokenInfo
       if access_token

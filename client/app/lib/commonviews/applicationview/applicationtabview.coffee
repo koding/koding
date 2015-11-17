@@ -7,7 +7,7 @@ module.exports = class ApplicationTabView extends KDTabView
   constructor: (options = {}, data) ->
 
     options.resizeTabHandles            ?= yes
-    options.lastTabHandleMargin         ?= 80
+    options.lastTabHandleMargin         ?= 90
     options.closeAppWhenAllTabsClosed   ?= yes
     options.enableMoveTabHandle         ?= no
     options.detachPanes                 ?= no

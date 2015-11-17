@@ -1,13 +1,18 @@
-kd     = require 'kd'
-React  = require 'kd-react'
-Portal = require 'react-portal'
-$      = require 'jquery'
+kd       = require 'kd'
+React    = require 'kd-react'
+ReactDOM = require 'react-dom'
+Portal   = require('react-portal').default
+$        = require 'jquery'
+
 
 module.exports = class ButtonWithMenu extends React.Component
 
   WINDOW_OFFSET = 100
 
-  @defaultProps = { items: [], isMenuOpen: no}
+  @defaultProps =
+    items: []
+    isMenuOpen: no
+    listClass:''
 
   constructor: (props) ->
 
@@ -28,8 +33,8 @@ module.exports = class ButtonWithMenu extends React.Component
 
   listDidMount: (_list) ->
 
-    button = React.findDOMNode @refs.button
-    list = React.findDOMNode _list
+    button = ReactDOM.findDOMNode @refs.button
+    list = ReactDOM.findDOMNode _list
     buttonRect = button.getBoundingClientRect()
 
     mainHeight = $(window).height()
@@ -58,10 +63,10 @@ module.exports = class ButtonWithMenu extends React.Component
 
 
   render: ->
-    <div className="SettingsMenuWrapper">
+    <div className="ButtonWithMenuWrapper">
       <button ref="button" onClick={@bound 'onButtonClick'}></button>
       <Portal isOpened={@state.isMenuOpen} closeOnOutsideClick={yes} closeOnEsc={yes} onClose={@bound 'onMenuClose'}>
-        <ul ref={@bound 'listDidMount'} className="ButtonWithMenuItemsList">
+        <ul ref={@bound 'listDidMount'} className={kd.utils.curry "ButtonWithMenuItemsList", @props.listClass}>
           {@renderListMenu()}
         </ul>
       </Portal>

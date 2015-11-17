@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elb"
 )
 
@@ -17,7 +16,7 @@ var _ time.Duration
 var _ bytes.Buffer
 
 func ExampleELB_AddTags() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.AddTagsInput{
 		LoadBalancerNames: []*string{ // Required
@@ -35,26 +34,18 @@ func ExampleELB_AddTags() {
 	resp, err := svc.AddTags(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_ApplySecurityGroupsToLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.ApplySecurityGroupsToLoadBalancerInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -66,26 +57,18 @@ func ExampleELB_ApplySecurityGroupsToLoadBalancer() {
 	resp, err := svc.ApplySecurityGroupsToLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_AttachLoadBalancerToSubnets() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.AttachLoadBalancerToSubnetsInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -97,60 +80,44 @@ func ExampleELB_AttachLoadBalancerToSubnets() {
 	resp, err := svc.AttachLoadBalancerToSubnets(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_ConfigureHealthCheck() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.ConfigureHealthCheckInput{
 		HealthCheck: &elb.HealthCheck{ // Required
-			HealthyThreshold:   aws.Long(1),                     // Required
-			Interval:           aws.Long(1),                     // Required
+			HealthyThreshold:   aws.Int64(1),                    // Required
+			Interval:           aws.Int64(1),                    // Required
 			Target:             aws.String("HealthCheckTarget"), // Required
-			Timeout:            aws.Long(1),                     // Required
-			UnhealthyThreshold: aws.Long(1),                     // Required
+			Timeout:            aws.Int64(1),                    // Required
+			UnhealthyThreshold: aws.Int64(1),                    // Required
 		},
 		LoadBalancerName: aws.String("AccessPointName"), // Required
 	}
 	resp, err := svc.ConfigureHealthCheck(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_CreateAppCookieStickinessPolicy() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.CreateAppCookieStickinessPolicyInput{
 		CookieName:       aws.String("CookieName"),      // Required
@@ -160,64 +127,48 @@ func ExampleELB_CreateAppCookieStickinessPolicy() {
 	resp, err := svc.CreateAppCookieStickinessPolicy(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_CreateLBCookieStickinessPolicy() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.CreateLBCookieStickinessPolicyInput{
 		LoadBalancerName:       aws.String("AccessPointName"), // Required
 		PolicyName:             aws.String("PolicyName"),      // Required
-		CookieExpirationPeriod: aws.Long(1),
+		CookieExpirationPeriod: aws.Int64(1),
 	}
 	resp, err := svc.CreateLBCookieStickinessPolicy(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_CreateLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.CreateLoadBalancerInput{
 		Listeners: []*elb.Listener{ // Required
 			{ // Required
-				InstancePort:     aws.Long(1),            // Required
-				LoadBalancerPort: aws.Long(1),            // Required
+				InstancePort:     aws.Int64(1),           // Required
+				LoadBalancerPort: aws.Int64(1),           // Required
 				Protocol:         aws.String("Protocol"), // Required
 				InstanceProtocol: aws.String("Protocol"),
-				SSLCertificateID: aws.String("SSLCertificateId"),
+				SSLCertificateId: aws.String("SSLCertificateId"),
 			},
 			// More values...
 		},
@@ -246,35 +197,27 @@ func ExampleELB_CreateLoadBalancer() {
 	resp, err := svc.CreateLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_CreateLoadBalancerListeners() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.CreateLoadBalancerListenersInput{
 		Listeners: []*elb.Listener{ // Required
 			{ // Required
-				InstancePort:     aws.Long(1),            // Required
-				LoadBalancerPort: aws.Long(1),            // Required
+				InstancePort:     aws.Int64(1),           // Required
+				LoadBalancerPort: aws.Int64(1),           // Required
 				Protocol:         aws.String("Protocol"), // Required
 				InstanceProtocol: aws.String("Protocol"),
-				SSLCertificateID: aws.String("SSLCertificateId"),
+				SSLCertificateId: aws.String("SSLCertificateId"),
 			},
 			// More values...
 		},
@@ -283,26 +226,18 @@ func ExampleELB_CreateLoadBalancerListeners() {
 	resp, err := svc.CreateLoadBalancerListeners(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_CreateLoadBalancerPolicy() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.CreateLoadBalancerPolicyInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -319,26 +254,18 @@ func ExampleELB_CreateLoadBalancerPolicy() {
 	resp, err := svc.CreateLoadBalancerPolicy(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DeleteLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DeleteLoadBalancerInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -346,57 +273,41 @@ func ExampleELB_DeleteLoadBalancer() {
 	resp, err := svc.DeleteLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DeleteLoadBalancerListeners() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DeleteLoadBalancerListenersInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
 		LoadBalancerPorts: []*int64{ // Required
-			aws.Long(1), // Required
+			aws.Int64(1), // Required
 			// More values...
 		},
 	}
 	resp, err := svc.DeleteLoadBalancerListeners(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DeleteLoadBalancerPolicy() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DeleteLoadBalancerPolicyInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -405,31 +316,23 @@ func ExampleELB_DeleteLoadBalancerPolicy() {
 	resp, err := svc.DeleteLoadBalancerPolicy(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DeregisterInstancesFromLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DeregisterInstancesFromLoadBalancerInput{
 		Instances: []*elb.Instance{ // Required
 			{ // Required
-				InstanceID: aws.String("InstanceId"),
+				InstanceId: aws.String("InstanceId"),
 			},
 			// More values...
 		},
@@ -438,32 +341,24 @@ func ExampleELB_DeregisterInstancesFromLoadBalancer() {
 	resp, err := svc.DeregisterInstancesFromLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DescribeInstanceHealth() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DescribeInstanceHealthInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
 		Instances: []*elb.Instance{
 			{ // Required
-				InstanceID: aws.String("InstanceId"),
+				InstanceId: aws.String("InstanceId"),
 			},
 			// More values...
 		},
@@ -471,26 +366,18 @@ func ExampleELB_DescribeInstanceHealth() {
 	resp, err := svc.DescribeInstanceHealth(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DescribeLoadBalancerAttributes() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DescribeLoadBalancerAttributesInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -498,26 +385,18 @@ func ExampleELB_DescribeLoadBalancerAttributes() {
 	resp, err := svc.DescribeLoadBalancerAttributes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DescribeLoadBalancerPolicies() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DescribeLoadBalancerPoliciesInput{
 		LoadBalancerName: aws.String("AccessPointName"),
@@ -529,26 +408,18 @@ func ExampleELB_DescribeLoadBalancerPolicies() {
 	resp, err := svc.DescribeLoadBalancerPolicies(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DescribeLoadBalancerPolicyTypes() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DescribeLoadBalancerPolicyTypesInput{
 		PolicyTypeNames: []*string{
@@ -559,26 +430,18 @@ func ExampleELB_DescribeLoadBalancerPolicyTypes() {
 	resp, err := svc.DescribeLoadBalancerPolicyTypes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DescribeLoadBalancers() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DescribeLoadBalancersInput{
 		LoadBalancerNames: []*string{
@@ -586,31 +449,23 @@ func ExampleELB_DescribeLoadBalancers() {
 			// More values...
 		},
 		Marker:   aws.String("Marker"),
-		PageSize: aws.Long(1),
+		PageSize: aws.Int64(1),
 	}
 	resp, err := svc.DescribeLoadBalancers(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DescribeTags() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DescribeTagsInput{
 		LoadBalancerNames: []*string{ // Required
@@ -621,26 +476,18 @@ func ExampleELB_DescribeTags() {
 	resp, err := svc.DescribeTags(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DetachLoadBalancerFromSubnets() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DetachLoadBalancerFromSubnetsInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -652,26 +499,18 @@ func ExampleELB_DetachLoadBalancerFromSubnets() {
 	resp, err := svc.DetachLoadBalancerFromSubnets(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_DisableAvailabilityZonesForLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.DisableAvailabilityZonesForLoadBalancerInput{
 		AvailabilityZones: []*string{ // Required
@@ -683,26 +522,18 @@ func ExampleELB_DisableAvailabilityZonesForLoadBalancer() {
 	resp, err := svc.DisableAvailabilityZonesForLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_EnableAvailabilityZonesForLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.EnableAvailabilityZonesForLoadBalancerInput{
 		AvailabilityZones: []*string{ // Required
@@ -714,32 +545,24 @@ func ExampleELB_EnableAvailabilityZonesForLoadBalancer() {
 	resp, err := svc.EnableAvailabilityZonesForLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_ModifyLoadBalancerAttributes() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.ModifyLoadBalancerAttributesInput{
 		LoadBalancerAttributes: &elb.LoadBalancerAttributes{ // Required
 			AccessLog: &elb.AccessLog{
-				Enabled:        aws.Boolean(true), // Required
-				EmitInterval:   aws.Long(1),
+				Enabled:        aws.Bool(true), // Required
+				EmitInterval:   aws.Int64(1),
 				S3BucketName:   aws.String("S3BucketName"),
 				S3BucketPrefix: aws.String("AccessLogPrefix"),
 			},
@@ -751,14 +574,14 @@ func ExampleELB_ModifyLoadBalancerAttributes() {
 				// More values...
 			},
 			ConnectionDraining: &elb.ConnectionDraining{
-				Enabled: aws.Boolean(true), // Required
-				Timeout: aws.Long(1),
+				Enabled: aws.Bool(true), // Required
+				Timeout: aws.Int64(1),
 			},
 			ConnectionSettings: &elb.ConnectionSettings{
-				IdleTimeout: aws.Long(1), // Required
+				IdleTimeout: aws.Int64(1), // Required
 			},
 			CrossZoneLoadBalancing: &elb.CrossZoneLoadBalancing{
-				Enabled: aws.Boolean(true), // Required
+				Enabled: aws.Bool(true), // Required
 			},
 		},
 		LoadBalancerName: aws.String("AccessPointName"), // Required
@@ -766,31 +589,23 @@ func ExampleELB_ModifyLoadBalancerAttributes() {
 	resp, err := svc.ModifyLoadBalancerAttributes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_RegisterInstancesWithLoadBalancer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.RegisterInstancesWithLoadBalancerInput{
 		Instances: []*elb.Instance{ // Required
 			{ // Required
-				InstanceID: aws.String("InstanceId"),
+				InstanceId: aws.String("InstanceId"),
 			},
 			// More values...
 		},
@@ -799,26 +614,18 @@ func ExampleELB_RegisterInstancesWithLoadBalancer() {
 	resp, err := svc.RegisterInstancesWithLoadBalancer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_RemoveTags() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.RemoveTagsInput{
 		LoadBalancerNames: []*string{ // Required
@@ -835,58 +642,42 @@ func ExampleELB_RemoveTags() {
 	resp, err := svc.RemoveTags(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_SetLoadBalancerListenerSSLCertificate() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.SetLoadBalancerListenerSSLCertificateInput{
 		LoadBalancerName: aws.String("AccessPointName"),  // Required
-		LoadBalancerPort: aws.Long(1),                    // Required
-		SSLCertificateID: aws.String("SSLCertificateId"), // Required
+		LoadBalancerPort: aws.Int64(1),                   // Required
+		SSLCertificateId: aws.String("SSLCertificateId"), // Required
 	}
 	resp, err := svc.SetLoadBalancerListenerSSLCertificate(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_SetLoadBalancerPoliciesForBackendServer() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.SetLoadBalancerPoliciesForBackendServerInput{
-		InstancePort:     aws.Long(1),                   // Required
+		InstancePort:     aws.Int64(1),                  // Required
 		LoadBalancerName: aws.String("AccessPointName"), // Required
 		PolicyNames: []*string{ // Required
 			aws.String("PolicyName"), // Required
@@ -896,30 +687,22 @@ func ExampleELB_SetLoadBalancerPoliciesForBackendServer() {
 	resp, err := svc.SetLoadBalancerPoliciesForBackendServer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleELB_SetLoadBalancerPoliciesOfListener() {
-	svc := elb.New(nil)
+	svc := elb.New(session.New())
 
 	params := &elb.SetLoadBalancerPoliciesOfListenerInput{
 		LoadBalancerName: aws.String("AccessPointName"), // Required
-		LoadBalancerPort: aws.Long(1),                   // Required
+		LoadBalancerPort: aws.Int64(1),                  // Required
 		PolicyNames: []*string{ // Required
 			aws.String("PolicyName"), // Required
 			// More values...
@@ -928,20 +711,12 @@ func ExampleELB_SetLoadBalancerPoliciesOfListener() {
 	resp, err := svc.SetLoadBalancerPoliciesOfListener(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }

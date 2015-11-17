@@ -2,14 +2,17 @@ package config
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/apparentlymart/go-cidr/cidr"
 	"github.com/hashicorp/terraform/config/lang/ast"
 	"github.com/mitchellh/go-homedir"
 )
@@ -19,15 +22,151 @@ var Funcs map[string]ast.Function
 
 func init() {
 	Funcs = map[string]ast.Function{
-		"concat":     interpolationFuncConcat(),
-		"element":    interpolationFuncElement(),
-		"file":       interpolationFuncFile(),
-		"format":     interpolationFuncFormat(),
-		"formatlist": interpolationFuncFormatList(),
-		"join":       interpolationFuncJoin(),
-		"length":     interpolationFuncLength(),
-		"replace":    interpolationFuncReplace(),
-		"split":      interpolationFuncSplit(),
+		"cidrhost":     interpolationFuncCidrHost(),
+		"cidrnetmask":  interpolationFuncCidrNetmask(),
+		"cidrsubnet":   interpolationFuncCidrSubnet(),
+		"coalesce":     interpolationFuncCoalesce(),
+		"compact":      interpolationFuncCompact(),
+		"concat":       interpolationFuncConcat(),
+		"element":      interpolationFuncElement(),
+		"file":         interpolationFuncFile(),
+		"format":       interpolationFuncFormat(),
+		"formatlist":   interpolationFuncFormatList(),
+		"index":        interpolationFuncIndex(),
+		"join":         interpolationFuncJoin(),
+		"length":       interpolationFuncLength(),
+		"lower":        interpolationFuncLower(),
+		"replace":      interpolationFuncReplace(),
+		"split":        interpolationFuncSplit(),
+		"base64encode": interpolationFuncBase64Encode(),
+		"base64decode": interpolationFuncBase64Decode(),
+		"upper":        interpolationFuncUpper(),
+	}
+}
+
+// interpolationFuncCompact strips a list of multi-variable values
+// (e.g. as returned by "split") of any empty strings.
+func interpolationFuncCompact() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			if !IsStringList(args[0].(string)) {
+				return args[0].(string), nil
+			}
+			return StringList(args[0].(string)).Compact().String(), nil
+		},
+	}
+}
+
+// interpolationFuncCidrHost implements the "cidrhost" function that
+// fills in the host part of a CIDR range address to create a single
+// host address
+func interpolationFuncCidrHost() ast.Function {
+	return ast.Function{
+		ArgTypes: []ast.Type{
+			ast.TypeString, // starting CIDR mask
+			ast.TypeInt,    // host number to insert
+		},
+		ReturnType: ast.TypeString,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			hostNum := args[1].(int)
+			_, network, err := net.ParseCIDR(args[0].(string))
+			if err != nil {
+				return nil, fmt.Errorf("invalid CIDR expression: %s", err)
+			}
+
+			ip, err := cidr.Host(network, hostNum)
+			if err != nil {
+				return nil, err
+			}
+
+			return ip.String(), nil
+		},
+	}
+}
+
+// interpolationFuncCidrNetmask implements the "cidrnetmask" function
+// that returns the subnet mask in IP address notation.
+func interpolationFuncCidrNetmask() ast.Function {
+	return ast.Function{
+		ArgTypes: []ast.Type{
+			ast.TypeString, // CIDR mask
+		},
+		ReturnType: ast.TypeString,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			_, network, err := net.ParseCIDR(args[0].(string))
+			if err != nil {
+				return nil, fmt.Errorf("invalid CIDR expression: %s", err)
+			}
+
+			return net.IP(network.Mask).String(), nil
+		},
+	}
+}
+
+// interpolationFuncCidrSubnet implements the "cidrsubnet" function that
+// adds an additional subnet of the given length onto an existing
+// IP block expressed in CIDR notation.
+func interpolationFuncCidrSubnet() ast.Function {
+	return ast.Function{
+		ArgTypes: []ast.Type{
+			ast.TypeString, // starting CIDR mask
+			ast.TypeInt,    // number of bits to extend the prefix
+			ast.TypeInt,    // network number to append to the prefix
+		},
+		ReturnType: ast.TypeString,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			extraBits := args[1].(int)
+			subnetNum := args[2].(int)
+			_, network, err := net.ParseCIDR(args[0].(string))
+			if err != nil {
+				return nil, fmt.Errorf("invalid CIDR expression: %s", err)
+			}
+
+			// For portability with 32-bit systems where the subnet number
+			// will be a 32-bit int, we only allow extension of 32 bits in
+			// one call even if we're running on a 64-bit machine.
+			// (Of course, this is significant only for IPv6.)
+			if extraBits > 32 {
+				return nil, fmt.Errorf("may not extend prefix by more than 32 bits")
+			}
+
+			newNetwork, err := cidr.Subnet(network, extraBits, subnetNum)
+			if err != nil {
+				return nil, err
+			}
+
+			return newNetwork.String(), nil
+		},
+	}
+}
+
+// interpolationFuncCoalesce implements the "coalesce" function that
+// returns the first non null / empty string from the provided input
+func interpolationFuncCoalesce() ast.Function {
+	return ast.Function{
+		ArgTypes:     []ast.Type{ast.TypeString},
+		ReturnType:   ast.TypeString,
+		Variadic:     true,
+		VariadicType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			if len(args) < 2 {
+				return nil, fmt.Errorf("must provide at least two arguments")
+			}
+			for _, arg := range args {
+				argument := arg.(string)
+
+				if argument != "" {
+					return argument, nil
+				}
+			}
+			return "", nil
+		},
 	}
 }
 
@@ -54,11 +193,12 @@ func interpolationFuncConcat() ast.Function {
 					continue
 				}
 
-				if strings.Contains(argument, InterpSplitDelim) {
+				if IsStringList(argument) {
 					isDeprecated = false
+					finalList = append(finalList, StringList(argument).Slice()...)
+				} else {
+					finalList = append(finalList, argument)
 				}
-
-				finalList = append(finalList, argument)
 
 				// Deprecated concat behaviour
 				b.WriteString(argument)
@@ -68,7 +208,7 @@ func interpolationFuncConcat() ast.Function {
 				return b.String(), nil
 			}
 
-			return strings.Join(finalList, InterpSplitDelim), nil
+			return NewStringList(finalList).String(), nil
 		},
 	}
 }
@@ -131,11 +271,16 @@ func interpolationFuncFormatList() ast.Function {
 				if !ok {
 					continue
 				}
-				parts := strings.Split(s, InterpSplitDelim)
-				if len(parts) == 1 {
+				if !IsStringList(s) {
 					continue
 				}
+
+				parts := StringList(s).Slice()
+
+				// otherwise the list is sent down to be indexed
 				varargs[i-1] = parts
+
+				// Check length
 				if n == 0 {
 					// first list we've seen
 					n = len(parts)
@@ -167,7 +312,26 @@ func interpolationFuncFormatList() ast.Function {
 				}
 				list[i] = fmt.Sprintf(format, fmtargs...)
 			}
-			return strings.Join(list, InterpSplitDelim), nil
+			return NewStringList(list).String(), nil
+		},
+	}
+}
+
+// interpolationFuncIndex implements the "index" function that allows one to
+// find the index of a specific element in a list
+func interpolationFuncIndex() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
+		ReturnType: ast.TypeInt,
+		Callback: func(args []interface{}) (interface{}, error) {
+			haystack := StringList(args[0].(string)).Slice()
+			needle := args[1].(string)
+			for index, element := range haystack {
+				if needle == element {
+					return index, nil
+				}
+			}
+			return nil, fmt.Errorf("Could not find '%s' in '%s'", needle, haystack)
 		},
 	}
 }
@@ -181,7 +345,7 @@ func interpolationFuncJoin() ast.Function {
 		Callback: func(args []interface{}) (interface{}, error) {
 			var list []string
 			for _, arg := range args[1:] {
-				parts := strings.Split(arg.(string), InterpSplitDelim)
+				parts := StringList(arg.(string)).Slice()
 				list = append(list, parts...)
 			}
 
@@ -223,18 +387,15 @@ func interpolationFuncLength() ast.Function {
 		ReturnType: ast.TypeInt,
 		Variadic:   false,
 		Callback: func(args []interface{}) (interface{}, error) {
-			if !strings.Contains(args[0].(string), InterpSplitDelim) {
+			if !IsStringList(args[0].(string)) {
 				return len(args[0].(string)), nil
 			}
 
-			var list []string
+			length := 0
 			for _, arg := range args {
-				parts := strings.Split(arg.(string), InterpSplitDelim)
-				for _, part := range parts {
-					list = append(list, part)
-				}
+				length += StringList(arg.(string)).Length()
 			}
-			return len(list), nil
+			return length, nil
 		},
 	}
 }
@@ -246,7 +407,9 @@ func interpolationFuncSplit() ast.Function {
 		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
 		ReturnType: ast.TypeString,
 		Callback: func(args []interface{}) (interface{}, error) {
-			return strings.Replace(args[1].(string), args[0].(string), InterpSplitDelim, -1), nil
+			sep := args[0].(string)
+			s := args[1].(string)
+			return NewStringList(strings.Split(s, sep)).String(), nil
 		},
 	}
 }
@@ -284,7 +447,7 @@ func interpolationFuncElement() ast.Function {
 		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
 		ReturnType: ast.TypeString,
 		Callback: func(args []interface{}) (interface{}, error) {
-			list := strings.Split(args[0].(string), InterpSplitDelim)
+			list := StringList(args[0].(string))
 
 			index, err := strconv.Atoi(args[1].(string))
 			if err != nil {
@@ -292,7 +455,7 @@ func interpolationFuncElement() ast.Function {
 					"invalid number for index, got %s", args[1])
 			}
 
-			v := list[index%len(list)]
+			v := list.Element(index)
 			return v, nil
 		},
 	}
@@ -323,7 +486,7 @@ func interpolationFuncKeys(vs map[string]ast.Variable) ast.Function {
 
 			sort.Strings(keys)
 
-			return strings.Join(keys, InterpSplitDelim), nil
+			return NewStringList(keys).String(), nil
 		},
 	}
 }
@@ -363,7 +526,63 @@ func interpolationFuncValues(vs map[string]ast.Variable) ast.Function {
 				vals = append(vals, vs[k].Value.(string))
 			}
 
-			return strings.Join(vals, InterpSplitDelim), nil
+			return NewStringList(vals).String(), nil
+		},
+	}
+}
+
+// interpolationFuncBase64Encode implements the "base64encode" function that
+// allows Base64 encoding.
+func interpolationFuncBase64Encode() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+			return base64.StdEncoding.EncodeToString([]byte(s)), nil
+		},
+	}
+}
+
+// interpolationFuncBase64Decode implements the "base64decode" function that
+// allows Base64 decoding.
+func interpolationFuncBase64Decode() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+			sDec, err := base64.StdEncoding.DecodeString(s)
+			if err != nil {
+				return "", fmt.Errorf("failed to decode base64 data '%s'", s)
+			}
+			return string(sDec), nil
+		},
+	}
+}
+
+// interpolationFuncLower implements the "lower" function that does
+// string lower casing.
+func interpolationFuncLower() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			toLower := args[0].(string)
+			return strings.ToLower(toLower), nil
+		},
+	}
+}
+
+// interpolationFuncUpper implements the "upper" function that does
+// string upper casing.
+func interpolationFuncUpper() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			toUpper := args[0].(string)
+			return strings.ToUpper(toUpper), nil
 		},
 	}
 }

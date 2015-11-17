@@ -26,6 +26,17 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+// credPermissions defines the permission grid for the given method
+var (
+	credPermissionsMu sync.Mutex // protects credPermissions
+	credPermissions   = map[string][]string{
+		"bootstrap":    []string{"owner"},
+		"plan":         []string{"user", "owner"},
+		"apply":        []string{"user", "owner"},
+		"authenticate": []string{"user", "owner"},
+	}
+)
+
 type TerraformMachine struct {
 	Provider    string            `json:"provider"`
 	Label       string            `json:"label"`
@@ -40,7 +51,6 @@ type Machines struct {
 
 type buildData struct {
 	Template string
-	Region   string
 	KiteIds  map[string]string
 }
 
@@ -59,6 +69,14 @@ type terraformCredential struct {
 	Provider   string
 	Identifier string
 	Data       map[string]string `mapstructure:"data"`
+}
+
+func (m *Machines) String() string {
+	var txt string
+	for i, machine := range m.Machines {
+		txt += fmt.Sprintf("[%d] %+v\n", i, machine)
+	}
+	return txt
 }
 
 func (m *Machines) AppendRegion(region string) {
@@ -102,9 +120,13 @@ func machinesFromState(state *terraform.State) (*Machines, error) {
 				continue
 			}
 
-			provider, label, err := parseProviderAndLabel(resource)
+			provider, resourceType, label, err := parseResource(resource)
 			if err != nil {
 				return nil, err
+			}
+
+			if resourceType != "instance" {
+				continue
 			}
 
 			attrs := make(map[string]string, len(r.Primary.Attributes))
@@ -151,9 +173,13 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 				attrs[name] = a.New
 			}
 
-			provider, label, err := parseProviderAndLabel(providerResource)
+			provider, resourceType, label, err := parseResource(providerResource)
 			if err != nil {
 				return nil, err
+			}
+
+			if resourceType != "instance" {
+				continue
 			}
 
 			out.Machines = append(out.Machines, TerraformMachine{
@@ -167,20 +193,20 @@ func machinesFromPlan(plan *terraform.Plan) (*Machines, error) {
 	return out, nil
 }
 
-func parseProviderAndLabel(resource string) (string, string, error) {
+func parseResource(resource string) (string, string, string, error) {
 	// resource is in the form of "aws_instance.foo.bar"
-	splitted := strings.Split(resource, "_")
+	splitted := strings.SplitN(resource, "_", 2)
 	if len(splitted) < 2 {
-		return "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
+		return "", "", "", fmt.Errorf("provider resource is unknown: %v", splitted)
 	}
 
-	// splitted[1]: instance.foo.bar
 	resourceSplitted := strings.SplitN(splitted[1], ".", 2)
 
-	provider := splitted[0]      // aws
-	label := resourceSplitted[1] // foo.bar
+	provider := splitted[0]             // aws
+	resourceType := resourceSplitted[0] // instance
+	label := resourceSplitted[1]        // foo.bar
 
-	return provider, label, nil
+	return provider, resourceType, label, nil
 }
 
 func injectKodingData(ctx context.Context, template *terraformTemplate, username string, data *terraformData) (*buildData, error) {
@@ -269,8 +295,10 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 			}
 		}
 
+		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
+
 		// will be replaced with the kitekeys we create below
-		userCfg.KiteKey = "${lookup(var.kitekeys, count.index)}"
+		userCfg.KiteKey = fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName)
 
 		userdata, err := sess.Userdata.Create(userCfg)
 		if err != nil {
@@ -307,7 +335,7 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 			countKeys[strconv.Itoa(i)] = kiteKey
 		}
 
-		template.Variable["kitekeys"] = map[string]interface{}{
+		template.Variable[kiteKeyName] = map[string]interface{}{
 			"default": countKeys,
 		}
 
@@ -316,13 +344,11 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 
 	template.Resource["aws_instance"] = resource.AwsInstance
 
-	var provider struct {
-		Aws struct {
-			Region string
-		}
+	if err := template.hclUpdate(); err != nil {
+		return nil, err
 	}
 
-	if err := template.DecodeProvider(&provider); err != nil {
+	if err := template.shadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key"); err != nil {
 		return nil, err
 	}
 
@@ -334,7 +360,6 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 	b := &buildData{
 		Template: out,
 		KiteIds:  kiteIds,
-		Region:   provider.Aws.Region,
 	}
 
 	return b, nil
@@ -389,7 +414,7 @@ func checkKlients(ctx context.Context, kiteIds map[string]string) error {
 	return multiErrors
 }
 
-func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
+func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB, identifiers []string) (*terraformData, error) {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
@@ -432,15 +457,21 @@ func fetchTerraformData(username, groupname string, db *mongodb.MongoDB, identif
 	// owner. Any non valid credentials will be discarded
 	validKeys := make(map[string]string, 0)
 
+	credPermissionsMu.Lock()
+	permittedTargets, ok := credPermissions[method]
+	credPermissionsMu.Unlock()
+
+	if !ok {
+		return nil, fmt.Errorf("no permission data available for method '%s'", method)
+	}
+
 	for _, cred := range credentials {
 		selector := modelhelper.Selector{
 			"targetId": cred.Id,
 			"sourceId": bson.M{
 				"$in": []bson.ObjectId{account.Id, group.Id},
 			},
-			"as": bson.M{
-				"$in": []string{"owner", "user"},
-			},
+			"as": bson.M{"$in": permittedTargets},
 		}
 
 		count, err := modelhelper.RelationshipCount(selector)

@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -55,6 +56,64 @@ func TestApply(t *testing.T) {
 	}
 	if state == nil {
 		t.Fatal("state should not be nil")
+	}
+}
+
+func TestApply_parallelism(t *testing.T) {
+	provider := testProvider()
+	statePath := testTempFile(t)
+
+	// This blocks all the appy functions. We close it when we exit so
+	// they end quickly after this test finishes.
+	block := make(chan struct{})
+	defer close(block)
+
+	var runCount uint64
+	provider.ApplyFn = func(
+		i *terraform.InstanceInfo,
+		s *terraform.InstanceState,
+		d *terraform.InstanceDiff) (*terraform.InstanceState, error) {
+		// Increment so we're counting parallelism
+		atomic.AddUint64(&runCount, 1)
+
+		// Block until we're done
+		<-block
+
+		return nil, nil
+	}
+
+	ui := new(cli.MockUi)
+	c := &ApplyCommand{
+		Meta: Meta{
+			ContextOpts: testCtxConfig(provider),
+			Ui:          ui,
+		},
+	}
+
+	par := uint64(5)
+	args := []string{
+		"-state", statePath,
+		fmt.Sprintf("-parallelism=%d", par),
+		testFixturePath("parallelism"),
+	}
+
+	// Run in a goroutine. We still try to catch any errors and
+	// get them on the error channel.
+	errCh := make(chan string, 1)
+	go func() {
+		if code := c.Run(args); code != 0 {
+			errCh <- ui.OutputWriter.String()
+		}
+	}()
+	select {
+	case <-time.After(1000 * time.Millisecond):
+	case err := <-errCh:
+		t.Fatalf("err: %s", err)
+	}
+
+	// The total in flight should equal the parallelism
+	if rc := atomic.LoadUint64(&runCount); rc != par {
+		t.Fatalf("Expected parallelism: %d, got: %d", par, rc)
 	}
 }
 
@@ -599,7 +658,7 @@ func TestApply_refresh(t *testing.T) {
 	}
 
 	// Should have a backup file
-	f, err = os.Open(statePath + DefaultBackupExtention)
+	f, err = os.Open(statePath + DefaultBackupExtension)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -787,7 +846,7 @@ func TestApply_state(t *testing.T) {
 	}
 
 	// Should have a backup file
-	f, err = os.Open(statePath + DefaultBackupExtention)
+	f, err = os.Open(statePath + DefaultBackupExtension)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -1161,7 +1220,7 @@ func TestApply_disableBackup(t *testing.T) {
 	}
 
 	// Ensure there is no backup
-	_, err = os.Stat(statePath + DefaultBackupExtention)
+	_, err = os.Stat(statePath + DefaultBackupExtension)
 	if err == nil || !os.IsNotExist(err) {
 		t.Fatalf("backup should not exist")
 	}

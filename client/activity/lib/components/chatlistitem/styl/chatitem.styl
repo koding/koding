@@ -1,22 +1,20 @@
-.ChatList
-  overflow                    auto
-  margin-bottom               10px
-
 .ChatItem
+  margin-top                7px
   rel()
 
-  .MessageBody > p
-    dInline()
+  &:first-child
+    margin-top              0
+  &:last-child
+    padding-bottom          10px
+    .ChatItem-contentWrapper.editing
+      margin-bottom         -10px
 
-  .MessageBody .InReplyToLink
-    color                   $gray-17
-    margin-left             3px
-    font-size               $fs-smaller
 
   .ChatItem-authorName
     display                 inline-block
-    font-size               12px
-    margin                  4px 10px 2px 0
+    font-size               16px
+    margin                  0 10px 0 0
+    font-weight             600
 
   time
     color                   #999
@@ -26,10 +24,21 @@
   .ChatItem-likeLink
     abs()
     pointer()
-    top                     12px
+    top                     11px
     display                 none
     vertical-align          text-bottom
-    padding                 5px
+    padding                 5px 10px
+
+    .Tooltip-wrapper
+      bottom                  22px
+      display                 none
+      opacity                 0
+      vendor                  transition, opacity .3s ease
+
+    &:hover
+      .Tooltip-wrapper
+        visible()
+        opacity               1
 
     &:after
       content               ''
@@ -49,7 +58,7 @@
   .ChatItem-messageDate
     rel()
     pointer()
-    display                 inline-block
+    line-height             20px
 
     &:hover
 
@@ -59,39 +68,26 @@
       .Tooltip-wrapper
         visible()
 
-  .emoji
-    size                    16px 16px
+  .emoji-wrapper
+    vertical-align          text-bottom
 
-  .SettingsMenuWrapper
+  .ButtonWithMenuWrapper
     abs()
     hidden()
     top                     0px
-    right                   20px
-
-    button
-      pointer()
-      outline               none
-      size                  16px !important, 10px !important
-      border                none
-      r-sprite              activity chevron-icon
-      bg                    color, transparent
+    right                   10px
 
   .ChatItem-contentWrapper
-    padding                 10px 0 0 34px
+    padding                 10px 23px 0 34px
     margin-top              10px
     overflow                visible
 
     &.editing
-      height                59px
-      rounded               3px 3px 0 0
-      padding               10px 0 6px 34px
-      bg                    color, $light-yellow
       overflow              hidden
+      padding               10px 0 10px 34px
+      bg                    color, $light-yellow
 
-      > div
-        max-width           485px
-
-      .SettingsMenuWrapper
+      .ButtonWithMenuWrapper
         hidden()
 
     &.edited
@@ -99,20 +95,30 @@
         p
           &:after
             content         ' (edited)'
-            display         inline
             font-size       11px
             color           #CCC
+            margin          1px 0 0 3px
+            abs()
+    &.MediaObject
+      article
+        padding-left        52px
 
     .ChatItem-contentBody
       article
-        margin-top          7px
+        margin-right        24px
 
         p
           padding           0 0 2px
 
+        pre
+          max-width         701px
+          max-height        300px
+          overflow          auto
+          borderBox()
+
 
   &:hover
-    .SettingsMenuWrapper
+    .ButtonWithMenuWrapper
       visible()
 
     .ChatItem-likeLink
@@ -122,32 +128,41 @@
     fl()
     rel()
     z-index                 1
-    width                   calc(100% \- 55px)
+    width                   calc(100% \- 84px)
 
     .ChatItem-authorName
       abs()
       margin-top            2px
 
+  .EmbedBox-container
+    padding-left            52px
+
+  .ChatInputWidget
+    padding                 0px !important
+    margin-left             -6px
+    kalc                    width, (100% \+ 6px)
+    margin-bottom           0
+
     textarea
-      borderBox()
-      outline               none
-      rounded               3px
-      font-size             14px
-      color                 #4C4C4C
-      line-height           26px
-      border                2px solid $gray-18
-      padding               0 6px
-      size                  100%, 30px
       resize                none
       display               block
       margin-top            24px
+      padding               13px 42px 12px 6px
 
-      &:focus
-        shadow              0 0 3px rgba(125,190,241,.7)
+  .ChatInputWidget:before
+    display                   none
+
+  .ChatInputWidget-emojiButton
+    right                     13px
+
+.ChatItem.is-selected
+  bg                          color, #FFFBD5
 
 .ChatItem-contentWrapper.SimpleChatListItem
   margin                      0 !important
-  padding                     0 0 0 86px !important
+  padding                     0 23px 0 86px !important
+  article
+    padding-left              0 !important
 
 
   .ChatItem-messageDate
@@ -157,25 +172,31 @@
     left                      15px
 
   .ChatItem-likeLink
-    top                       0
-    left                      63px
+    top                     1px
+    left                    63px
+    padding                 5px
 
   &:hover
     .ChatItem-messageDate
       visible()
 
   &.editing
-    padding                   8px 0 6px 19px !important
+    overflow                  hidden
+    padding                   0 25px 6px 73px !important
 
     .ChatItem-updateMessageForm
-      margin-left             64px
+      width                 calc(100% \- 20px)
+      margin-left           12px
 
       .ChatItem-authorName
         hidden()
 
+  .EmbedBox-container
+    padding-left              0px
+
 .ChatItem-editActions
   abs()
-  top                         2px
+  top                         4px
   right                       0
   line-height                 12px
   font-size                   11px

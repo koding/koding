@@ -2,7 +2,6 @@ package azure
 
 import (
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/management"
@@ -22,7 +21,7 @@ import (
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
-	SettingsFile   string
+	Settings       []byte
 	SubscriptionID string
 	Certificate    []byte
 	ManagementURL  string
@@ -35,8 +34,6 @@ type Client struct {
 	affinityGroupClient affinitygroup.AffinityGroupClient
 
 	hostedServiceClient hostedservice.HostedServiceClient
-
-	secGroupClient networksecuritygroup.SecurityGroupClient
 
 	osImageClient osimage.OSImageClient
 
@@ -53,7 +50,11 @@ type Client struct {
 	// unfortunately; because of how Azure's network API works; doing networking operations
 	// concurrently is very hazardous, and we need a mutex to guard the VirtualNetworkClient.
 	vnetClient virtualnetwork.VirtualNetworkClient
-	mutex      *sync.Mutex
+	vnetMutex  *sync.Mutex
+
+	// same as the above for security group rule operations:
+	secGroupClient networksecuritygroup.SecurityGroupClient
+	secGroupMutex  *sync.Mutex
 }
 
 // getStorageClientForStorageService is helper method which returns the
@@ -96,16 +97,10 @@ func (c Client) getStorageServiceQueueClient(serviceName string) (storage.QueueS
 	return storageClient.GetQueueService(), err
 }
 
-// NewClientFromSettingsFile returns a new Azure management
-// client created using a publish settings file.
-func (c *Config) NewClientFromSettingsFile() (*Client, error) {
-	if _, err := os.Stat(c.SettingsFile); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Publish Settings file %q does not exist!", c.SettingsFile)
-	}
-
-	mc, err := management.ClientFromPublishSettingsFile(c.SettingsFile, c.SubscriptionID)
+func (c *Config) NewClientFromSettingsData() (*Client, error) {
+	mc, err := management.ClientFromPublishSettingsData(c.Settings, c.SubscriptionID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return &Client{
@@ -113,6 +108,7 @@ func (c *Config) NewClientFromSettingsFile() (*Client, error) {
 		affinityGroupClient:  affinitygroup.NewClient(mc),
 		hostedServiceClient:  hostedservice.NewClient(mc),
 		secGroupClient:       networksecuritygroup.NewClient(mc),
+		secGroupMutex:        &sync.Mutex{},
 		osImageClient:        osimage.NewClient(mc),
 		sqlClient:            sql.NewClient(mc),
 		storageServiceClient: storageservice.NewClient(mc),
@@ -120,7 +116,7 @@ func (c *Config) NewClientFromSettingsFile() (*Client, error) {
 		vmDiskClient:         virtualmachinedisk.NewClient(mc),
 		vmImageClient:        virtualmachineimage.NewClient(mc),
 		vnetClient:           virtualnetwork.NewClient(mc),
-		mutex:                &sync.Mutex{},
+		vnetMutex:            &sync.Mutex{},
 	}, nil
 }
 
@@ -137,6 +133,7 @@ func (c *Config) NewClient() (*Client, error) {
 		affinityGroupClient:  affinitygroup.NewClient(mc),
 		hostedServiceClient:  hostedservice.NewClient(mc),
 		secGroupClient:       networksecuritygroup.NewClient(mc),
+		secGroupMutex:        &sync.Mutex{},
 		osImageClient:        osimage.NewClient(mc),
 		sqlClient:            sql.NewClient(mc),
 		storageServiceClient: storageservice.NewClient(mc),
@@ -144,6 +141,6 @@ func (c *Config) NewClient() (*Client, error) {
 		vmDiskClient:         virtualmachinedisk.NewClient(mc),
 		vmImageClient:        virtualmachineimage.NewClient(mc),
 		vnetClient:           virtualnetwork.NewClient(mc),
-		mutex:                &sync.Mutex{},
+		vnetMutex:            &sync.Mutex{},
 	}, nil
 }

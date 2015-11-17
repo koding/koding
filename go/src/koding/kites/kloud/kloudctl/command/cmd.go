@@ -31,7 +31,7 @@ func NewCmd(command string) cli.CommandFactory {
 func (c *Cmd) SingleMachine(id string, k *kite.Client) (string, error) {
 	resp, err := k.Tell(c.command, &KloudArgs{
 		MachineId: id,
-		Provider: "koding",
+		Provider:  "koding",
 	})
 	if err != nil {
 		return "", err

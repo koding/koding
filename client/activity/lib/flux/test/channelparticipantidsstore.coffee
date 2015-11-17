@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 ChannelParticipantIdsStore = require '../stores/channelparticipantidsstore'
 actions = require '../actions/actiontypes'
@@ -59,4 +59,38 @@ describe 'ChannelParticipantIdsStore', ->
 
       expect(storeState.foo).to.eql {'bar'}
 
+
+  describe '#handleFollowChannelSuccess', ->
+
+    it 'adds given accountId to the channel of ChannelParticipantIdsStore when follow channel action succeed', ->
+
+      @reactor.dispatch actions.FOLLOW_CHANNEL_SUCCESS, {
+        channelId: 'foo', accountId: 'bar'
+      }
+
+      storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
+
+      expect(storeState.foo).to.eql {'bar'}
+
+
+  describe '#handleUnfollowChannelSuccess', ->
+
+    it 'removes given accountId to the channel of ChannelParticipantIdsStore when unfollow channel action succeed', ->
+
+      @reactor.dispatch actions.FOLLOW_CHANNEL_SUCCESS, {
+        channelId: 'testchannel_1', accountId: 'testAccount_1'
+      }
+
+      @reactor.dispatch actions.FOLLOW_CHANNEL_SUCCESS, {
+        channelId: 'testchannel_2', accountId: 'testAccount_2'
+      }
+
+      @reactor.dispatch actions.UNFOLLOW_CHANNEL_SUCCESS, {
+        channelId: 'testchannel_1', accountId: 'testAccount_1'
+      }
+
+      storeState = @reactor.evaluateToJS [ChannelParticipantIdsStore.getterPath]
+
+      expect(storeState.testchannel_2).to.eql {'testAccount_2'}
+      expect(storeState.testchannel_1).to.eql {}
 

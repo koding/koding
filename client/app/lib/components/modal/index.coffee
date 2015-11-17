@@ -1,6 +1,6 @@
 kd     = require 'kd'
 React  = require 'kd-react'
-Portal = require 'react-portal'
+Portal = require('react-portal').default
 
 
 class ModalOverlay extends React.Component
@@ -20,6 +20,7 @@ module.exports = class Modal extends React.Component
     closeOnOutsideClick : yes
     hasOverlay          : yes
     isOpen              : no
+    closeIcon           : yes
 
 
   getPortalProps: ->
@@ -29,12 +30,19 @@ module.exports = class Modal extends React.Component
     closeOnOutsideClick : @props.closeOnOutsideClick
 
 
+  renderModalCloseIcon: ->
+
+    if @props.closeIcon
+      <span className="close-icon closeModal" title="Close [ESC]" onClick={@bound 'closePortal'}></span>
+
+
   renderModal: ->
 
     return null  unless @props.isOpen
 
     <Portal {...@getPortalProps()} ref="modal">
-      <div className={kd.utils.curry 'Reactivity Modal', @props.className}>
+      <div ref='ModalWrapper' className={kd.utils.curry 'Reactivity Modal', @props.className}>
+        {@renderModalCloseIcon()}
         {@props.children}
       </div>
     </Portal>

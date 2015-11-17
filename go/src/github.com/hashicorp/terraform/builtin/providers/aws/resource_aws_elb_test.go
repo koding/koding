@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"testing"
 
@@ -48,6 +49,93 @@ func TestAccAWSELB_basic(t *testing.T) {
 						"aws_elb.bar", "listener.206423021.lb_protocol", "http"),
 					resource.TestCheckResourceAttr(
 						"aws_elb.bar", "cross_zone_load_balancing", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELB_fullCharacterRange(t *testing.T) {
+	var conf elb.LoadBalancerDescription
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSELBFullRangeOfCharacters,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "name", "FoobarTerraform-test123"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELB_AccessLogs(t *testing.T) {
+	var conf elb.LoadBalancerDescription
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSELBAccessLogs,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "name", "FoobarTerraform-test123"),
+				),
+			},
+
+			resource.TestStep{
+				Config: testAccAWSELBAccessLogsOn,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "name", "FoobarTerraform-test123"),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "access_logs.#", "1"),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "access_logs.1713209538.bucket", "terraform-access-logs-bucket"),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "access_logs.1713209538.interval", "5"),
+				),
+			},
+
+			resource.TestStep{
+				Config: testAccAWSELBAccessLogs,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "name", "FoobarTerraform-test123"),
+					resource.TestCheckResourceAttr(
+						"aws_elb.foo", "access_logs.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELB_generatedName(t *testing.T) {
+	var conf elb.LoadBalancerDescription
+	generatedNameRegexp := regexp.MustCompile("^tf-lb-")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSELBGeneratedName,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSELBExists("aws_elb.foo", &conf),
+					resource.TestMatchResourceAttr(
+						"aws_elb.foo", "name", generatedNameRegexp),
 				),
 			},
 		},
@@ -389,9 +477,45 @@ func TestResourceAwsElbListenerHash(t *testing.T) {
 	for tn, tc := range cases {
 		leftHash := resourceAwsElbListenerHash(tc.Left)
 		rightHash := resourceAwsElbListenerHash(tc.Right)
-		if (leftHash == rightHash) != tc.Match {
+		if leftHash == rightHash != tc.Match {
 			t.Fatalf("%s: expected match: %t, but did not get it", tn, tc.Match)
 		}
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotBeginWithHyphen(t *testing.T) {
+	var elbName = "-Testing123"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotBeLongerThen32Characters(t *testing.T) {
+	var elbName = "Testing123dddddddddddddddddddvvvv"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotHaveSpecialCharacters(t *testing.T) {
+	var elbName = "Testing123%%"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
+	}
+}
+
+func TestResourceAWSELB_validateElbNameCannotEndWithHyphen(t *testing.T) {
+	var elbName = "Testing123-"
+	_, errors := validateElbName(elbName, "SampleKey")
+
+	if len(errors) != 1 {
+		t.Fatalf("Expected the ELB Name to trigger a validation error")
 	}
 }
 
@@ -445,9 +569,9 @@ func testAccCheckAWSELBAttributes(conf *elb.LoadBalancerDescription) resource.Te
 		}
 
 		l := elb.Listener{
-			InstancePort:     aws.Long(int64(8000)),
+			InstancePort:     aws.Int64(int64(8000)),
 			InstanceProtocol: aws.String("HTTP"),
-			LoadBalancerPort: aws.Long(int64(80)),
+			LoadBalancerPort: aws.Int64(int64(80)),
 			Protocol:         aws.String("HTTP"),
 		}
 
@@ -483,10 +607,10 @@ func testAccCheckAWSELBAttributesHealthCheck(conf *elb.LoadBalancerDescription) 
 		}
 
 		check := &elb.HealthCheck{
-			Timeout:            aws.Long(int64(30)),
-			UnhealthyThreshold: aws.Long(int64(5)),
-			HealthyThreshold:   aws.Long(int64(5)),
-			Interval:           aws.Long(int64(60)),
+			Timeout:            aws.Int64(int64(30)),
+			UnhealthyThreshold: aws.Int64(int64(5)),
+			HealthyThreshold:   aws.Int64(int64(5)),
+			Interval:           aws.Int64(int64(60)),
 			Target:             aws.String("HTTP:8000/"),
 		}
 
@@ -533,6 +657,15 @@ func testAccCheckAWSELBExists(n string, res *elb.LoadBalancerDescription) resour
 
 		*res = *describe.LoadBalancerDescriptions[0]
 
+		// Confirm source_security_group_id for ELBs in a VPC
+		// 	See https://github.com/hashicorp/terraform/pull/3780
+		if res.VPCId != nil {
+			sgid := rs.Primary.Attributes["source_security_group_id"]
+			if sgid == "" {
+				return fmt.Errorf("Expected to find source_security_group_id for ELB, but was empty")
+			}
+		}
+
 		return nil
 	}
 }
@@ -555,6 +688,91 @@ resource "aws_elb" "bar" {
 	}
 
   cross_zone_load_balancing = true
+}
+`
+
+const testAccAWSELBFullRangeOfCharacters = `
+resource "aws_elb" "foo" {
+  name = "FoobarTerraform-test123"
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+}
+`
+
+const testAccAWSELBAccessLogs = `
+resource "aws_elb" "foo" {
+  name = "FoobarTerraform-test123"
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+}
+`
+const testAccAWSELBAccessLogsOn = `
+# an S3 bucket configured for Access logs
+# The 797873946194 is the AWS ID for us-west-2, so this test
+# must be ran in us-west-2
+resource "aws_s3_bucket" "acceslogs_bucket" {
+  bucket = "terraform-access-logs-bucket"
+  acl = "private"
+  force_destroy = true
+  policy = <<EOF
+{
+  "Id": "Policy1446577137248",
+  "Statement": [
+    {
+      "Action": "s3:PutObject",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::797873946194:root"
+      },
+      "Resource": "arn:aws:s3:::terraform-access-logs-bucket/*",
+      "Sid": "Stmt1446575236270"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
+
+resource "aws_elb" "foo" {
+  name = "FoobarTerraform-test123"
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
+
+	access_logs {
+		interval = 5
+		bucket = "${aws_s3_bucket.acceslogs_bucket.bucket}"
+	}
+}
+`
+
+const testAccAWSELBGeneratedName = `
+resource "aws_elb" "foo" {
+  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  listener {
+    instance_port = 8000
+    instance_protocol = "http"
+    lb_port = 80
+    lb_protocol = "http"
+  }
 }
 `
 

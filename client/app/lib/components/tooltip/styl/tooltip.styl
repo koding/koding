@@ -1,30 +1,38 @@
 .Tooltip-wrapper
   abs()
-  margin-top            -24px
-  z-index               1
+  left                          50%
+  margin-top                    -24px
+  z-index                       2
+  rounded                       3px
+  vendor                        transform, translateX(-50%)
+  bg                            color, rgba(0,0,0,.65)
 
   &:after
     abs()
-    content             ''
-    bottom              -10px
-    left                50%
-    margin-left         -5px
-    size                0, 0
-    border              5px solid rgba(0, 0, 0, 0)
-    border-top-color    rgba(0,0,0,.65)
+    content                     ''
+    bottom                      -10px
+    left                        50%
+    margin-left                 -5px
+    size                        0, 0
+    border                      5px solid rgba(0, 0, 0, 0)
+    border-top-color            rgba(0,0,0,.65)
 
   span
     borderBox()
-    display             block
-    line-height         22px
-    height              22px
-    padding             0 5px
-    rounded             3px
-    color               #FFF
-    text-align          center
-    word-wrap           break-word
-    white-space         nowrap
-    font-size           12px
-    font-weight         300
-    bg                  color, rgba(0,0,0,.65)
+    display                     block
+    line-height                 22px
+    padding                     0 5px
+    color                       #FFF
+    text-align                  center
+    word-wrap                   break-word
+    white-space                 nowrap
+    font-size                   12px
+    font-weight                 300
+
+  &.bottom
+    &:after
+      border-top-color          transparent
+      border-bottom-color       rgba(0,0,0,.65)
+      bottom                    auto
+      top                       -10px
 

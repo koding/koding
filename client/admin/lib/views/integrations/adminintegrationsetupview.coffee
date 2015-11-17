@@ -18,6 +18,7 @@ module.exports = class AdminIntegrationSetupView extends JView
     selectOptions = []
 
     for channel in data.channels
+      continue  if channel.name is '#public'
       selectOptions.push title: channel.name, value: channel.id
 
     @channelSelect = new KDSelectBox { selectOptions }
@@ -43,6 +44,7 @@ module.exports = class AdminIntegrationSetupView extends JView
     integrationHelpers.create options, (err, response) =>
       return console.warn "couldnt create integration", err  if err
 
+      @emit 'NewIntegrationAdded'
       kd.singletons.router.handleRoute "/Admin/Integrations/Configure/#{response.id}"
 
 

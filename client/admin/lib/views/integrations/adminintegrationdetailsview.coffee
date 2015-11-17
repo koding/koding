@@ -1,17 +1,12 @@
 kd                   = require 'kd'
 JView                = require 'app/jview'
+whoami               = require 'app/util/whoami'
 remote               = require('app/remote').getInstance()
 globals              = require 'globals'
 showError            = require 'app/util/showError'
-KDInputView          = kd.InputView
-KDLabelView          = kd.LabelView
-KDButtonView         = kd.ButtonView
 applyMarkdown        = require 'app/util/applyMarkdown'
 CustomLinkView       = require 'app/customlinkview'
-KDCustomHTMLView     = kd.CustomHTMLView
 integrationHelpers   = require 'app/helpers/integration'
-KDFormViewWithFields = kd.FormViewWithFields
-whoami               = require 'app/util/whoami'
 
 
 module.exports = class AdminIntegrationDetailsView extends JView
@@ -26,11 +21,22 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     @createInstructionsView()
 
-    @settingsForm = new KDFormViewWithFields @getFormOptions()
+    @settingsForm = new kd.FormViewWithFields @getFormOptions()
 
     @createEventCheckboxes()
 
     @createAuthView()
+
+    @disableAdminRepos()
+
+
+  disableAdminRepos: ->
+    data = @getData()
+    disabledRepos = data.repositories.filter (r) -> return r.disabled
+    selectOptions = @settingsForm.inputs.repository.getElement().options
+    disabledRepos.forEach (repo) ->
+      for option in selectOptions when option.value is repo.value
+        option.setAttribute 'disabled', 'disabled'
 
 
   createInstructionsView: ->
@@ -40,7 +46,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { instructions } = integration
 
     if instructions
-      @instructionsView = new KDCustomHTMLView
+      @instructionsView = new kd.CustomHTMLView
         tagName  : 'section'
         cssClass : 'has-markdown instructions container'
         partial  : """
@@ -48,10 +54,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
           <p class='subtitle'>Here are the steps necessary to add the #{integration.title} integration.</p>
           <hr />
         """
-      @instructionsView.addSubView new KDCustomHTMLView
+      @instructionsView.addSubView new kd.CustomHTMLView
         partial  : applyMarkdown instructions
     else
-      @instructionsView = new KDCustomHTMLView cssClass: 'hidden'
+      @instructionsView = new kd.CustomHTMLView cssClass: 'hidden'
 
 
   createAuthView: ->
@@ -59,12 +65,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
     { authorizable, isAuthorized } = @getData()
 
     unless authorizable
-      @authView = new KDCustomHTMLView cssClass: 'hidden'
+      @authView = new kd.CustomHTMLView cssClass: 'hidden'
       return
 
     @setClass 'authorizable'
 
-    @authView = new KDCustomHTMLView
+    @authView = new kd.CustomHTMLView
       tagName  : 'section'
       cssClass : 'auth container'
       partial  : """
@@ -80,7 +86,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
       buttonTitle = 'Remove your authorization'
       buttonClass = 'red'
 
-    @authButton = new KDButtonView
+    @authButton = new kd.ButtonView
       title     : buttonTitle
       cssClass  : "solid compact #{buttonClass}"
       loader    : yes
@@ -126,16 +132,16 @@ module.exports = class AdminIntegrationDetailsView extends JView
   createEventCheckboxes: ->
 
     selectedEvents = @getData().selectedEvents or []
-    mainWrapper    = new KDCustomHTMLView cssClass: 'event-cbes'
+    mainWrapper    = new kd.CustomHTMLView cssClass: 'event-cbes'
 
     return  unless @data.settings?.events
 
     for item in @data.settings.events
 
       { name } = item
-      wrapper  = new KDCustomHTMLView cssClass: 'event-cb'
-      label    = new KDLabelView title: item.description
-      checkbox = new KDInputView
+      wrapper  = new kd.CustomHTMLView cssClass: 'event-cb'
+      label    = new kd.LabelView title: item.description
+      checkbox = new kd.InputView
         type         : 'checkbox'
         name         : name
         label        : label
@@ -182,8 +188,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     integrationHelpers.update options, (err) =>
       return kd.warn err  if err
-
       @settingsForm.buttons.Save.hideLoader()
+      new kd.NotificationView title : 'Integration is successfully saved!'
+      kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
+      @emit 'IntegrationUpdated'
 
 
   regenerateToken: ->
@@ -198,7 +206,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
       { url, regenerate } = @settingsForm.inputs
 
-      url.setValue "#{globals.config.integration.url}/#{name}/#{res.token}"
+      url.setValue "#{globals.config.webhookMiddleware.url}/#{name}/#{res.token}"
 
       regenerate.updatePartial 'Webhook url has been updated!'
       regenerate.setClass 'label'
@@ -222,6 +230,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
       return showError  if err
 
+      @emit 'IntegrationUpdated'
+
       @getData().isDisabled = newState
       { status } = @settingsForm.inputs
 
@@ -233,6 +243,16 @@ module.exports = class AdminIntegrationDetailsView extends JView
         status.setClass      'disable'
         status.unsetClass    'enable'
         status.updatePartial 'Disable Integration'
+
+
+  removeIntegration: ->
+
+    integrationHelpers.remove @getData().id, (err, response) =>
+      return showError err  if err
+
+      if response.status
+        kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
+        @emit 'IntegrationUpdated'
 
 
   getFormOptions: ->
@@ -248,7 +268,13 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
     if data.repositories
       for repository in data.repositories
-        repositories.push title: repository.full_name, value: repository.full_name
+        if repository.permissions?.admin
+          repositories.push title: repository.full_name , value: repository.full_name
+        else
+          repositories.push
+            title: repository.full_name + ' (requires admin perms)'
+            value: repository.full_name
+            disabled: yes
 
     data.repositories = repositories or []
 
@@ -266,9 +292,10 @@ module.exports = class AdminIntegrationDetailsView extends JView
           defaultValue  : data.webhookUrl
           attributes    : readonly: 'readonly'
           cssClass      : if data.authorizable then 'hidden'
+          click         : -> @selectAll()
           nextElement   :
             regenerate  :
-              itemClass : KDCustomHTMLView
+              itemClass : kd.CustomHTMLView
               partial   : 'Regenerate'
               cssClass  : 'link'
               click     : @bound 'regenerateToken'
@@ -297,26 +324,33 @@ module.exports = class AdminIntegrationDetailsView extends JView
         Cancel          :
           title         : 'Cancel'
           cssClass      : 'solid green medium red'
-          callback      : -> kd.singletons.router.handleRoute '/Admin/Integrations/Configure'
+          callback      : -> kd.singletons.router.handleRoute '/Admin/Integrations/Configured'
 
     delete formOptions.fields.repository  unless repositories.length
 
     { integrationType, isDisabled } = @getData()
 
     if integrationType isnt 'new'
-      cssClass = 'disable status'
-      title    = 'Disable Integration'
+      cssClass     = 'disable status'
+      disableTitle = 'Disable Integration'
 
       if isDisabled
-        cssClass = 'enable status'
-        title    = 'Enable Integration'
+        cssClass     = 'enable status'
+        disableTitle = 'Enable Integration'
 
       formOptions.fields.status =
         label     : '<p>Integration Status</p><span>You can enable/disable your integration here.</span>'
-        itemClass : KDCustomHTMLView
-        partial   : title
+        itemClass : kd.CustomHTMLView
+        partial   : disableTitle
         cssClass  : cssClass
         click     : @bound 'handleStatusChange'
+
+      formOptions.fields.remove =
+        label     : '<p>Remove Integration</p><span>You can remove your integration here. Please note that, this action cannot be undone.</span>'
+        itemClass : kd.CustomHTMLView
+        partial   : 'REMOVE INTEGRATION'
+        cssClass  : 'disable status'
+        click     : @bound 'removeIntegration'
 
     return formOptions
 

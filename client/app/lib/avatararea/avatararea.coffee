@@ -1,11 +1,13 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
+kd                 = require 'kd'
+KDCustomHTMLView   = kd.CustomHTMLView
 AvatarAreaIconLink = require './avatarareaiconlink'
-AccountPopup = require './accountpopup'
-AvatarView = require '../commonviews/avatarviews/avatarview'
-JView = require '../jview'
+AccountPopup       = require './accountpopup'
+AvatarView         = require '../commonviews/avatarviews/avatarview'
+AvatarStaticView   = require '../commonviews/avatarviews/avatarstaticview'
+JView              = require '../jview'
 PopupNotifications = require '../notifications/popupnotifications'
-JCustomHTMLView = require 'app/jcustomhtmlview'
+JCustomHTMLView    = require 'app/jcustomhtmlview'
+isKoding           = require 'app/util/isKoding'
 
 
 module.exports = class AvatarArea extends KDCustomHTMLView
@@ -22,15 +24,26 @@ module.exports = class AvatarArea extends KDCustomHTMLView
     account      = @getData()
     {profile} = @getData()
 
-    @avatar = new AvatarView
-      tagName    : 'div'
-      cssClass   : 'avatar-image-wrapper'
-      attributes :
-        title    : 'View your public profile'
-      size       :
-        width    : 25
-        height   : 25
-    , account
+    if isKoding()
+      @avatar = new AvatarView
+        cssClass   : 'avatar-image-wrapper'
+        attributes :
+          title    : 'View your public profile'
+        size       :
+          width    : 25
+          height   : 25
+      , account
+    else
+      @avatar = new AvatarStaticView
+        cssClass   : 'avatar-image-wrapper'
+        attributes :
+          title    : 'View your notifications and account settings'
+        size       :
+          width    : 25
+          height   : 25
+        click      : =>
+          @notificationsIcon.click()
+      , account
 
     @profileName = new JCustomHTMLView
       tagName    : 'a'
@@ -51,7 +64,7 @@ module.exports = class AvatarArea extends KDCustomHTMLView
       delegate   : @accountPopup
 
     @notificationsPopup = new PopupNotifications
-      cssClass : 'notification-list'
+      cssClass : if isKoding() then 'notification-list' else 'notification-list team'
 
     @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications acc-notification-icon'
@@ -72,9 +85,16 @@ module.exports = class AvatarArea extends KDCustomHTMLView
 
   pistachio: ->
 
-    """
-    {{> @avatar}}
-    {{> @profileName}}
-    {{> @accountIcon}}
-    {{> @notificationsIcon}}
-    """
+    if isKoding()
+      """
+      {{> @avatar}}
+      {{> @profileName}}
+      {{> @accountIcon}}
+      {{> @notificationsIcon}}
+      """
+    else
+      """
+      {{> @accountIcon}}
+      {{> @avatar}}
+      {{> @notificationsIcon}}
+      """

@@ -26,6 +26,9 @@ module.exports = class AccountAppController extends AppController
     name       : 'Account'
     background : yes
 
+  kodingDangerItems = [ { slug: 'Delete', title : 'Delete account', listType: 'deleteAccount' } ]
+  teamsDangerItems  = [ { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup'    } ]
+
   NAV_ITEMS =
     personal :
       title  : 'Personal'
@@ -50,11 +53,7 @@ module.exports = class AccountAppController extends AppController
       ]
     danger  :
       title : 'Danger'
-      items : [
-        { slug: 'Delete', title : 'Delete account', listType: 'deleteAccount' }
-        { slug: 'Leave',  title : 'Leave team',     listType: 'leaveGroup'    }
-      ]
-
+      items : []
 
 
   constructor: (options = {}, data) ->
@@ -134,8 +133,7 @@ module.exports = class AccountAppController extends AppController
     groupSlug  = kd.singletons.groupsController.getGroupSlug()
     items = []
 
-    index = if isKoding() then 1 else 0
-    NAV_ITEMS.danger.items.splice index, 1 # remove leave or danger
+    NAV_ITEMS.danger.items = if isKoding() then kodingDangerItems else teamsDangerItems
 
     for own sectionKey, section of NAV_ITEMS
       mergeables = []

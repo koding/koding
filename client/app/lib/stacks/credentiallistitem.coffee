@@ -12,7 +12,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
     super options, data
 
     delegate = @getDelegate()
-    { identifier, owner, title, verified } = @getData()
+    { identifier, owner, title, verified } = credential = @getData()
 
     @deleteButton = new kd.ButtonView
       cssClass : 'solid compact outline red secondary'
@@ -32,7 +32,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
       callback : @bound 'verifyCredential'
 
     @inuseView = new kd.CustomHTMLView
-      cssClass : 'inuse-tag hidden'
+      cssClass : 'custom-tag hidden'
       partial  : 'IN USE'
       tooltip  :
         title  : 'This stack template currently using this credential'
@@ -45,17 +45,20 @@ module.exports = class CredentialListItem extends kd.ListItemView
     credentials = credentials.concat (selectedCredentials or [])
 
     if identifier in credentials
+      credential.inuse = yes
       @inuseView.show()
 
     @warningView = new kd.CustomHTMLView
       cssClass : 'warning-message hidden'
+
+    delegate.on 'ResetInuseStates', @inuseView.bound 'hide'
 
 
   setVerified: (state, reason) ->
 
     if state
       @warningView.hide()
-      @getDelegate().emit 'ItemSelected', @getData()
+      @getDelegate().emit 'ItemSelected', this
     else
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"

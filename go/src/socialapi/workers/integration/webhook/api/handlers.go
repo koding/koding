@@ -1,27 +1,45 @@
 package api
 
 import (
+	"log"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
-	"time"
 
-	"github.com/PuerkitoBio/throttled"
-	"github.com/PuerkitoBio/throttled/store"
+	throttled "gopkg.in/throttled/throttled.v2"
+	"gopkg.in/throttled/throttled.v2/store/redigostore"
 )
 
 func (h *Handler) AddHandlers(m *mux.Mux) {
-	st := store.NewRedisStore(h.redis.Pool(), "throttle", 0)
+	redisStore, err := redigostore.New(h.redis.Pool(), "throttle:", 0)
+	if err != nil {
+		// the implementation returns a nil, so it's impossible to get here
+		log.Fatal(err.Error())
+	}
+
+	quota := throttled.RateQuota{
+		MaxRate:  throttled.PerSec(1),
+		MaxBurst: 1,
+	}
+
+	rateLimiter, err := throttled.NewGCRARateLimiter(redisStore, quota)
+	if err != nil {
+		// we exit because this is code error and must be handled. Exits only
+		// if the values of quota doesn't make sense at all, so it's ok
+		log.Fatalln(err)
+	}
+
+	httpRateLimiter := &throttled.HTTPRateLimiter{
+		RateLimiter: rateLimiter,
+		VaryBy:      &throttled.VaryBy{Path: true},
+	}
+
 	m.AddSessionlessHandler(
 		handler.Request{
-			Handler:  h.Push,
-			Name:     "webhook-push",
-			Type:     handler.PostRequest,
-			Endpoint: "/push/{token}",
-			Ratelimit: throttled.RateLimit(
-				throttled.Q{Requests: 100, Window: time.Minute},
-				&throttled.VaryBy{Path: true},
-				st,
-			),
+			Handler:   h.Push,
+			Name:      "webhook-push",
+			Type:      handler.PostRequest,
+			Endpoint:  "/push/{token}",
+			Ratelimit: httpRateLimiter,
 		},
 	)
 

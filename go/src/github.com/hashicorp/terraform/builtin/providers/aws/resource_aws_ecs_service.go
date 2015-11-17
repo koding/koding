@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -36,6 +36,7 @@ func resourceAwsEcsService() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
 			"task_definition": &schema.Schema{
@@ -86,7 +87,8 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 	input := ecs.CreateServiceInput{
 		ServiceName:    aws.String(d.Get("name").(string)),
 		TaskDefinition: aws.String(d.Get("task_definition").(string)),
-		DesiredCount:   aws.Long(int64(d.Get("desired_count").(int))),
+		DesiredCount:   aws.Int64(int64(d.Get("desired_count").(int))),
+		ClientToken:    aws.String(resource.UniqueId()),
 	}
 
 	if v, ok := d.GetOk("cluster"); ok {
@@ -95,24 +97,46 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	loadBalancers := expandEcsLoadBalancers(d.Get("load_balancer").(*schema.Set).List())
 	if len(loadBalancers) > 0 {
-		log.Printf("[DEBUG] Adding ECS load balancers: %#v", loadBalancers)
+		log.Printf("[DEBUG] Adding ECS load balancers: %s", loadBalancers)
 		input.LoadBalancers = loadBalancers
 	}
 	if v, ok := d.GetOk("iam_role"); ok {
 		input.Role = aws.String(v.(string))
 	}
 
-	log.Printf("[DEBUG] Creating ECS service: %#v", input)
-	out, err := conn.CreateService(&input)
+	log.Printf("[DEBUG] Creating ECS service: %s", input)
+
+	// Retry due to AWS IAM policy eventual consistency
+	// See https://github.com/hashicorp/terraform/issues/2869
+	var out *ecs.CreateServiceOutput
+	var err error
+	err = resource.Retry(2*time.Minute, func() error {
+		out, err = conn.CreateService(&input)
+
+		if err != nil {
+			ec2err, ok := err.(awserr.Error)
+			if !ok {
+				return &resource.RetryError{Err: err}
+			}
+			if ec2err.Code() == "InvalidParameterException" {
+				log.Printf("[DEBUG] Trying to create ECS service again: %q",
+					ec2err.Message())
+				return err
+			}
+
+			return &resource.RetryError{Err: err}
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
 	service := *out.Service
 
-	log.Printf("[DEBUG] ECS service created: %s", *service.ServiceARN)
-	d.SetId(*service.ServiceARN)
-	d.Set("cluster", *service.ClusterARN)
+	log.Printf("[DEBUG] ECS service created: %s", *service.ServiceArn)
+	d.SetId(*service.ServiceArn)
 
 	return resourceAwsEcsServiceUpdate(d, meta)
 }
@@ -131,10 +155,22 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	service := out.Services[0]
-	log.Printf("[DEBUG] Received ECS service %#v", service)
+	if len(out.Services) < 1 {
+		return nil
+	}
 
-	d.SetId(*service.ServiceARN)
+	service := out.Services[0]
+
+	// Status==INACTIVE means deleted service
+	if *service.Status == "INACTIVE" {
+		log.Printf("[DEBUG] Removing ECS service %q because it's INACTIVE", service.ServiceArn)
+		d.SetId("")
+		return nil
+	}
+
+	log.Printf("[DEBUG] Received ECS service %s", service)
+
+	d.SetId(*service.ServiceArn)
 	d.Set("name", *service.ServiceName)
 
 	// Save task definition in the same format
@@ -146,10 +182,23 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("desired_count", *service.DesiredCount)
-	d.Set("cluster", *service.ClusterARN)
 
-	if service.RoleARN != nil {
-		d.Set("iam_role", *service.RoleARN)
+	// Save cluster in the same format
+	if strings.HasPrefix(d.Get("cluster").(string), "arn:aws:ecs:") {
+		d.Set("cluster", *service.ClusterArn)
+	} else {
+		clusterARN := getNameFromARN(*service.ClusterArn)
+		d.Set("cluster", clusterARN)
+	}
+
+	// Save IAM role in the same format
+	if service.RoleArn != nil {
+		if strings.HasPrefix(d.Get("iam_role").(string), "arn:aws:iam:") {
+			d.Set("iam_role", *service.RoleArn)
+		} else {
+			roleARN := getNameFromARN(*service.RoleArn)
+			d.Set("iam_role", roleARN)
+		}
 	}
 
 	if service.LoadBalancers != nil {
@@ -170,7 +219,7 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("desired_count") {
 		_, n := d.GetChange("desired_count")
-		input.DesiredCount = aws.Long(int64(n.(int)))
+		input.DesiredCount = aws.Int64(int64(n.(int)))
 	}
 	if d.HasChange("task_definition") {
 		_, n := d.GetChange("task_definition")
@@ -182,7 +231,7 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	service := out.Service
-	log.Printf("[DEBUG] Updated ECS service %#v", service)
+	log.Printf("[DEBUG] Updated ECS service %s", service)
 
 	return resourceAwsEcsServiceRead(d, meta)
 }
@@ -210,7 +259,7 @@ func resourceAwsEcsServiceDelete(d *schema.ResourceData, meta interface{}) error
 		_, err = conn.UpdateService(&ecs.UpdateServiceInput{
 			Service:      aws.String(d.Id()),
 			Cluster:      aws.String(d.Get("cluster").(string)),
-			DesiredCount: aws.Long(int64(0)),
+			DesiredCount: aws.Int64(int64(0)),
 		})
 		if err != nil {
 			return err
@@ -222,7 +271,7 @@ func resourceAwsEcsServiceDelete(d *schema.ResourceData, meta interface{}) error
 		Cluster: aws.String(d.Get("cluster").(string)),
 	}
 
-	log.Printf("[DEBUG] Deleting ECS service %#v", input)
+	log.Printf("[DEBUG] Deleting ECS service %s", input)
 	out, err := conn.DeleteService(&input)
 	if err != nil {
 		return err
@@ -253,7 +302,7 @@ func resourceAwsEcsServiceDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	log.Printf("[DEBUG] ECS service %s deleted.", *out.Service.ServiceARN)
+	log.Printf("[DEBUG] ECS service %s deleted.", *out.Service.ServiceArn)
 	return nil
 }
 
@@ -271,36 +320,11 @@ func buildFamilyAndRevisionFromARN(arn string) string {
 	return strings.Split(arn, "/")[1]
 }
 
-func buildTaskDefinitionARN(taskDefinition string, meta interface{}) (string, error) {
-	// If it's already an ARN, just return it
-	if strings.HasPrefix(taskDefinition, "arn:aws:ecs:") {
-		return taskDefinition, nil
-	}
-
-	// Parse out family & revision
-	family, revision, err := parseTaskDefinition(taskDefinition)
-	if err != nil {
-		return "", err
-	}
-
-	iamconn := meta.(*AWSClient).iamconn
-	region := meta.(*AWSClient).region
-
-	// An zero value GetUserInput{} defers to the currently logged in user
-	resp, err := iamconn.GetUser(&iam.GetUserInput{})
-	if err != nil {
-		return "", fmt.Errorf("GetUser ERROR: %#v", err)
-	}
-
-	// arn:aws:iam::0123456789:user/username
-	userARN := *resp.User.ARN
-	accountID := strings.Split(userARN, ":")[4]
-
-	// arn:aws:ecs:us-west-2:01234567890:task-definition/mongodb:3
-	arn := fmt.Sprintf("arn:aws:ecs:%s:%s:task-definition/%s:%s",
-		region, accountID, family, revision)
-	log.Printf("[DEBUG] Built task definition ARN: %s", arn)
-	return arn, nil
+// Expects the following ARNs:
+// arn:aws:iam::0123456789:role/EcsService
+// arn:aws:ecs:us-west-2:0123456789:cluster/radek-cluster
+func getNameFromARN(arn string) string {
+	return strings.Split(arn, "/")[1]
 }
 
 func parseTaskDefinition(taskDefinition string) (string, string, error) {

@@ -61,6 +61,13 @@ logWithTime = (message) ->
 runTestScript = path.join __dirname, '../test-instance/run-test'
 
 
+nextInstance = (instance) ->
+
+  index = instances.indexOf instance
+  return instances[0]  if index is -1
+  return instances[((index + 1) % instances.length)]
+
+
 runTest = (job, next) ->
 
   job.lap ?= 0
@@ -82,6 +89,8 @@ runTest = (job, next) ->
         error.stderr = stderr
         next error
       else if error
+        job.instance = instance = nextInstance instance
+        console.log "Set:#{setId} is reassigned to #{instance.instanceId} #{instance.publicIpAddress}"
         runTest job, next
       else
         next()

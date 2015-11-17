@@ -22,6 +22,29 @@ func TestAccAWSEcsTaskDefinition_basic(t *testing.T) {
 					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.jenkins"),
 				),
 			},
+			resource.TestStep{
+				Config: testAccAWSEcsTaskDefinitionModifier,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.jenkins"),
+				),
+			},
+		},
+	})
+}
+
+// Regression for https://github.com/hashicorp/terraform/issues/2370
+func TestAccAWSEcsTaskDefinition_withScratchVolume(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsTaskDefinitionDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSEcsTaskDefinitionWithScratchVolume,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsTaskDefinitionExists("aws_ecs_task_definition.sleep"),
+				),
+			},
 		},
 	})
 }
@@ -63,7 +86,7 @@ func testAccCheckAWSEcsTaskDefinitionExists(name string) resource.TestCheckFunc 
 
 var testAccAWSEcsTaskDefinition = `
 resource "aws_ecs_task_definition" "jenkins" {
-  family = "jenkins"
+  family = "terraform-acc-test"
   container_definitions = <<TASK_DEFINITION
 [
 	{
@@ -87,6 +110,77 @@ resource "aws_ecs_task_definition" "jenkins" {
 	},
 	{
 		"cpu": 10,
+		"command": ["sleep", "10"],
+		"entryPoint": ["/"],
+		"essential": true,
+		"image": "mongodb",
+		"memory": 128,
+		"name": "mongodb",
+		"portMappings": [
+			{
+				"containerPort": 28017,
+				"hostPort": 28017
+			}
+		]
+	}
+]
+TASK_DEFINITION
+
+  volume {
+    name = "jenkins-home"
+    host_path = "/ecs/jenkins-home"
+  }
+}
+`
+
+var testAccAWSEcsTaskDefinitionWithScratchVolume = `
+resource "aws_ecs_task_definition" "sleep" {
+  family = "terraform-acc-sc-volume-test"
+  container_definitions = <<TASK_DEFINITION
+[
+  {
+    "name": "sleep",
+    "image": "busybox",
+    "cpu": 10,
+    "command": ["sleep","360"],
+    "memory": 10,
+    "essential": true
+  }
+]
+TASK_DEFINITION
+
+  volume {
+    name = "database_scratch"
+  }
+}
+`
+
+var testAccAWSEcsTaskDefinitionModifier = `
+resource "aws_ecs_task_definition" "jenkins" {
+  family = "terraform-acc-test"
+  container_definitions = <<TASK_DEFINITION
+[
+	{
+		"cpu": 10,
+		"command": ["sleep", "10"],
+		"entryPoint": ["/"],
+		"environment": [
+			{"name": "VARNAME", "value": "VARVAL"}
+		],
+		"essential": true,
+		"image": "jenkins",
+		"links": ["mongodb"],
+		"memory": 128,
+		"name": "jenkins",
+		"portMappings": [
+			{
+				"containerPort": 80,
+				"hostPort": 8080
+			}
+		]
+	},
+	{
+		"cpu": 20,
 		"command": ["sleep", "10"],
 		"entryPoint": ["/"],
 		"essential": true,

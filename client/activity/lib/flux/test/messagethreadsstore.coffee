@@ -4,7 +4,7 @@ actions               = require '../actions/actiontypes'
 MessageThreadsStore   = require '../stores/messagethreadssstore'
 { createFakeMessage } = require '../helpers/messagecollection'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 describe 'MessageThreadsStore', ->
 

@@ -45,6 +45,31 @@ func TestLoadFile_badType(t *testing.T) {
 	}
 }
 
+func TestLoadFileHeredoc(t *testing.T) {
+	c, err := LoadFile(filepath.Join(fixtureDir, "heredoc.tf"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if c == nil {
+		t.Fatal("config should not be nil")
+	}
+
+	if c.Dir != "" {
+		t.Fatalf("bad: %#v", c.Dir)
+	}
+
+	actual := providerConfigsStr(c.ProviderConfigs)
+	if actual != strings.TrimSpace(heredocProvidersStr) {
+		t.Fatalf("bad:\n%s", actual)
+	}
+
+	actual = resourcesStr(c.Resources)
+	if actual != strings.TrimSpace(heredocResourcesStr) {
+		t.Fatalf("bad:\n%s", actual)
+	}
+}
+
 func TestLoadFileBasic(t *testing.T) {
 	c, err := LoadFile(filepath.Join(fixtureDir, "basic.tf"))
 	if err != nil {
@@ -440,12 +465,111 @@ func TestLoadFile_createBeforeDestroy(t *testing.T) {
 	}
 }
 
-func TestLoadDir_temporary_files(t *testing.T) {
+func TestLoadFile_ignoreChanges(t *testing.T) {
+	c, err := LoadFile(filepath.Join(fixtureDir, "ignore-changes.tf"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if c == nil {
+		t.Fatal("config should not be nil")
+	}
+
+	actual := resourcesStr(c.Resources)
+	print(actual)
+	if actual != strings.TrimSpace(ignoreChangesResourcesStr) {
+		t.Fatalf("bad:\n%s", actual)
+	}
+
+	// Check for the flag value
+	r := c.Resources[0]
+	if r.Name != "web" && r.Type != "aws_instance" {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	// Should populate ignore changes
+	if len(r.Lifecycle.IgnoreChanges) == 0 {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	r = c.Resources[1]
+	if r.Name != "bar" && r.Type != "aws_instance" {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	// Should not populate ignore changes
+	if len(r.Lifecycle.IgnoreChanges) > 0 {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	r = c.Resources[2]
+	if r.Name != "baz" && r.Type != "aws_instance" {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	// Should not populate ignore changes
+	if len(r.Lifecycle.IgnoreChanges) > 0 {
+		t.Fatalf("Bad: %#v", r)
+	}
+}
+
+func TestLoad_preventDestroyString(t *testing.T) {
+	c, err := LoadFile(filepath.Join(fixtureDir, "prevent-destroy-string.tf"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if c == nil {
+		t.Fatal("config should not be nil")
+	}
+
+	actual := resourcesStr(c.Resources)
+	if actual != strings.TrimSpace(createBeforeDestroyResourcesStr) {
+		t.Fatalf("bad:\n%s", actual)
+	}
+
+	// Check for the flag value
+	r := c.Resources[0]
+	if r.Name != "web" && r.Type != "aws_instance" {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	// Should enable create before destroy
+	if !r.Lifecycle.PreventDestroy {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	r = c.Resources[1]
+	if r.Name != "bar" && r.Type != "aws_instance" {
+		t.Fatalf("Bad: %#v", r)
+	}
+
+	// Should not enable create before destroy
+	if r.Lifecycle.PreventDestroy {
+		t.Fatalf("Bad: %#v", r)
+	}
+}
+
+func TestLoad_temporary_files(t *testing.T) {
 	_, err := LoadDir(filepath.Join(fixtureDir, "dir-temporary-files"))
 	if err == nil {
 		t.Fatalf("Expected to see an error stating no config files found")
 	}
 }
+
+const heredocProvidersStr = `
+aws
+  access_key
+  secret_key
+`
+
+const heredocResourcesStr = `
+aws_iam_policy[policy] (x1)
+  description
+  name
+  path
+  policy
+`
 
 const basicOutputsStr = `
 web_ip
@@ -635,6 +759,15 @@ foo (required)
 
 const createBeforeDestroyResourcesStr = `
 aws_instance[bar] (x1)
+  ami
+aws_instance[web] (x1)
+  ami
+`
+
+const ignoreChangesResourcesStr = `
+aws_instance[bar] (x1)
+  ami
+aws_instance[baz] (x1)
   ami
 aws_instance[web] (x1)
   ami

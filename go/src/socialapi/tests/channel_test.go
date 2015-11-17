@@ -102,6 +102,23 @@ func TestChannelCreation(t *testing.T) {
 						So(channel1.Id, ShouldEqual, channel2.Id)
 						So(channel1.Name, ShouldEqual, channel2.Name)
 						So(channel1.GroupName, ShouldEqual, channel2.GroupName)
+						So(channel1.GroupName, ShouldEqual, channel2.GroupName)
+					})
+
+					Convey("unread count should be set", func() {
+						channelContainer, err := rest.FetchChannelContainerByName(account.Id, channel1.Name, channel1.GroupName, channel1.TypeConstant, ses.ClientId)
+						So(err, ShouldBeNil)
+						So(channelContainer, ShouldNotBeNil)
+						So(channelContainer.UnreadCount, ShouldEqual, 0)
+
+						post, err := rest.CreatePost(channel1.Id, nonOwnerAccount.Id)
+						So(err, ShouldBeNil)
+						So(post, ShouldNotBeNil)
+
+						channelContainer, err = rest.FetchChannelContainerByName(account.Id, channel1.Name, channel1.GroupName, channel1.TypeConstant, ses.ClientId)
+						So(err, ShouldBeNil)
+						So(channelContainer, ShouldNotBeNil)
+						So(channelContainer.UnreadCount, ShouldEqual, 1)
 					})
 
 					Convey("non-owner should not be able to update it", func() {
@@ -226,4 +243,100 @@ func TestChannelCreation(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestChannelByParticipants(t *testing.T) {
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while fetching channels by their participants", t, func() {
+			admin1, _, groupName1 := models.CreateRandomGroupDataWithChecks()
+
+			ses1, err := models.FetchOrCreateSession(admin1.Nick, groupName1)
+			So(err, ShouldBeNil)
+			So(ses1, ShouldNotBeNil)
+
+			acc1, err := models.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+			So(acc1, ShouldNotBeNil)
+
+			acc2, err := models.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+			So(acc1, ShouldNotBeNil)
+
+			tc1 := createChannelAndParticipants(admin1, groupName1, models.Channel_TYPE_TOPIC, ses1.ClientId, acc1.Id, acc2.Id)
+			tc2 := createChannelAndParticipants(admin1, groupName1, models.Channel_TYPE_TOPIC, ses1.ClientId, acc1.Id, acc2.Id)
+
+			Convey("valid request should return valid response", func() {
+				channels, err := rest.FetchChannelsByParticipants([]int64{acc1.Id, acc2.Id}, models.Channel_TYPE_TOPIC, ses1.ClientId)
+				// there should be an err
+				So(err, ShouldBeNil)
+				So(channels, ShouldNotBeNil)
+				So(len(channels), ShouldEqual, 2)
+				So(tc1.Id, ShouldEqual, channels[0].Channel.Id)
+				So(tc2.Id, ShouldEqual, channels[1].Channel.Id)
+			})
+
+			Convey("other group's content should not be in the result set", func() {
+
+				groupName2 := models.RandomGroupName()
+				models.CreateTypedGroupedChannelWithTest(
+					admin1.Id,
+					models.Channel_TYPE_GROUP,
+					groupName2,
+				)
+
+				ses2, err := models.FetchOrCreateSession(admin1.Nick, groupName2)
+				So(err, ShouldBeNil)
+				So(ses2, ShouldNotBeNil)
+
+				gtc1 := createChannelAndParticipants(admin1, groupName2, models.Channel_TYPE_TOPIC, ses2.ClientId, acc1.Id, acc2.Id)
+				gtc2 := createChannelAndParticipants(admin1, groupName2, models.Channel_TYPE_TOPIC, ses2.ClientId, acc1.Id, acc2.Id)
+
+				channels, err := rest.FetchChannelsByParticipants([]int64{acc1.Id, acc2.Id}, models.Channel_TYPE_TOPIC, ses1.ClientId)
+				// there should be an err
+				So(err, ShouldBeNil)
+				So(channels, ShouldNotBeNil)
+				So(len(channels), ShouldEqual, 2)
+				So(channels[0].Channel.GroupName, ShouldEqual, groupName1)
+				So(channels[1].Channel.GroupName, ShouldEqual, groupName1)
+				So(tc1.Id, ShouldEqual, channels[0].Channel.Id)
+				So(tc2.Id, ShouldEqual, channels[1].Channel.Id)
+
+				channels, err = rest.FetchChannelsByParticipants([]int64{acc1.Id, acc2.Id}, models.Channel_TYPE_TOPIC, ses2.ClientId)
+				// there should be an err
+				So(err, ShouldBeNil)
+				So(channels, ShouldNotBeNil)
+				So(len(channels), ShouldEqual, 2)
+				So(channels[0].Channel.GroupName, ShouldEqual, groupName2)
+				So(channels[1].Channel.GroupName, ShouldEqual, groupName2)
+				So(gtc1.Id, ShouldEqual, channels[0].Channel.Id)
+				So(gtc2.Id, ShouldEqual, channels[1].Channel.Id)
+
+			})
+		})
+	})
+}
+
+func createChannelAndParticipants(
+	admin *models.Account,
+	groupName string,
+	typeConstant string,
+	token string,
+	participants ...int64) *models.Channel {
+	tc1, err := rest.CreateChannelByGroupNameAndType(
+		admin.Id,
+		groupName,
+		typeConstant,
+		token,
+	)
+	So(err, ShouldBeNil)
+	So(tc1, ShouldNotBeNil)
+
+	for _, participant := range participants {
+		// add first participant
+		channelParticipant1, err := rest.AddChannelParticipant(tc1.Id, admin.Id, participant)
+		So(err, ShouldBeNil)
+		So(channelParticipant1, ShouldNotBeNil)
+	}
+
+	return tc1
 }

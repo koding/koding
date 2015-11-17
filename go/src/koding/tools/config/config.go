@@ -177,6 +177,7 @@ type Config struct {
 	GatherIngestor struct {
 		Port int
 	}
+	SendEventsToSegment bool `json:"sendEventsToSegment"`
 }
 
 type RuntimeOptions struct {
@@ -302,6 +303,9 @@ type RuntimeOptions struct {
 	Integration       struct {
 		Url string `json:"url"`
 	} `json:"integration"`
+	WebhookMiddleware struct {
+		Url string `json:"url"`
+	} `json:"webhookMiddleware"`
 	Google struct {
 		ApiKey string `json:"apiKey"`
 	} `json:"google"`
@@ -309,6 +313,7 @@ type RuntimeOptions struct {
 		Key     string `json:"key"`
 		Enabled bool   `json:"enabled"`
 	} `json:"recaptcha"`
+	SendEventsToSegment bool `json:"sendEventsToSegment"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

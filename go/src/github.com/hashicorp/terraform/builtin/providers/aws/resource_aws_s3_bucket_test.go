@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"regexp"
 	"strconv"
 	"testing"
 	"time"
@@ -17,6 +18,10 @@ import (
 )
 
 func TestAccAWSS3Bucket_basic(t *testing.T) {
+
+	arnRegexp := regexp.MustCompile(
+		"^arn:aws:s3:::")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -32,6 +37,8 @@ func TestAccAWSS3Bucket_basic(t *testing.T) {
 						"aws_s3_bucket.bucket", "region", "us-west-2"),
 					resource.TestCheckResourceAttr(
 						"aws_s3_bucket.bucket", "website_endpoint", ""),
+					resource.TestMatchResourceAttr(
+						"aws_s3_bucket.bucket", "arn", arnRegexp),
 				),
 			},
 		},
@@ -64,7 +71,7 @@ func TestAccAWSS3Bucket_Policy(t *testing.T) {
 	})
 }
 
-func TestAccAWSS3Bucket_Website(t *testing.T) {
+func TestAccAWSS3Bucket_Website_Simple(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -134,6 +141,88 @@ func TestAccAWSS3Bucket_WebsiteRedirect(t *testing.T) {
 	})
 }
 
+// Test TestAccAWSS3Bucket_shouldFailNotFound is designed to fail with a "plan
+// not empty" error in Terraform, to check against regresssions.
+// See https://github.com/hashicorp/terraform/pull/2925
+func TestAccAWSS3Bucket_shouldFailNotFound(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSS3BucketDestroyedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3DestroyBucket("aws_s3_bucket.bucket"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3Bucket_Versioning(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSS3BucketConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3BucketVersioning(
+						"aws_s3_bucket.bucket", ""),
+				),
+			},
+			resource.TestStep{
+				Config: testAccAWSS3BucketConfigWithVersioning,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3BucketVersioning(
+						"aws_s3_bucket.bucket", s3.BucketVersioningStatusEnabled),
+				),
+			},
+			resource.TestStep{
+				Config: testAccAWSS3BucketConfigWithDisableVersioning,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3BucketVersioning(
+						"aws_s3_bucket.bucket", s3.BucketVersioningStatusSuspended),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSS3Bucket_Cors(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccAWSS3BucketConfigWithCORS,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists("aws_s3_bucket.bucket"),
+					testAccCheckAWSS3BucketCors(
+						"aws_s3_bucket.bucket",
+						[]*s3.CORSRule{
+							&s3.CORSRule{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("PUT"), aws.String("POST")},
+								AllowedOrigins: []*string{aws.String("https://www.example.com")},
+								ExposeHeaders:  []*string{aws.String("x-amz-server-side-encryption"), aws.String("ETag")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+						},
+					),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSS3BucketDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).s3conn
 
@@ -169,6 +258,29 @@ func testAccCheckAWSS3BucketExists(n string) resource.TestCheckFunc {
 
 		if err != nil {
 			return fmt.Errorf("S3Bucket error: %v", err)
+		}
+		return nil
+	}
+}
+
+func testAccCheckAWSS3DestroyBucket(n string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No S3 Bucket ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).s3conn
+		_, err := conn.DeleteBucket(&s3.DeleteBucketInput{
+			Bucket: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return fmt.Errorf("Error destroying Bucket (%s) in testAccCheckAWSS3DestroyBucket: %s", rs.Primary.ID, err)
 		}
 		return nil
 	}
@@ -267,11 +379,58 @@ func testAccCheckAWSS3BucketWebsite(n string, indexDoc string, errorDoc string, 
 	}
 }
 
+func testAccCheckAWSS3BucketVersioning(n string, versioningStatus string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, _ := s.RootModule().Resources[n]
+		conn := testAccProvider.Meta().(*AWSClient).s3conn
+
+		out, err := conn.GetBucketVersioning(&s3.GetBucketVersioningInput{
+			Bucket: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return fmt.Errorf("GetBucketVersioning error: %v", err)
+		}
+
+		if v := out.Status; v == nil {
+			if versioningStatus != "" {
+				return fmt.Errorf("bad error versioning status, found nil, expected: %s", versioningStatus)
+			}
+		} else {
+			if *v != versioningStatus {
+				return fmt.Errorf("bad error versioning status, expected: %s, got %s", versioningStatus, *v)
+			}
+		}
+
+		return nil
+	}
+}
+func testAccCheckAWSS3BucketCors(n string, corsRules []*s3.CORSRule) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, _ := s.RootModule().Resources[n]
+		conn := testAccProvider.Meta().(*AWSClient).s3conn
+
+		out, err := conn.GetBucketCors(&s3.GetBucketCorsInput{
+			Bucket: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return fmt.Errorf("GetBucketCors error: %v", err)
+		}
+
+		if !reflect.DeepEqual(out.CORSRules, corsRules) {
+			return fmt.Errorf("bad error cors rule, expected: %v, got %v", corsRules, out.CORSRules)
+		}
+
+		return nil
+	}
+}
+
 // These need a bit of randomness as the name can only be used once globally
 // within AWS
 var randInt = rand.New(rand.NewSource(time.Now().UnixNano())).Int()
 var testAccWebsiteEndpoint = fmt.Sprintf("tf-test-bucket-%d.s3-website-us-west-2.amazonaws.com", randInt)
-var testAccAWSS3BucketPolicy = fmt.Sprintf(`{ "Version": "2008-10-17", "Statement": [ { "Sid": "", "Effect": "Allow", "Principal": { "AWS": "*" }, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::tf-test-bucket-%d/*" } ] }`, randInt)
+var testAccAWSS3BucketPolicy = fmt.Sprintf(`{ "Version": "2012-10-17", "Statement": [ { "Sid": "", "Effect": "Allow", "Principal": { "AWS": "*" }, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::tf-test-bucket-%d/*" } ] }`, randInt)
 
 var testAccAWSS3BucketConfig = fmt.Sprintf(`
 resource "aws_s3_bucket" "bucket" {
@@ -321,3 +480,44 @@ resource "aws_s3_bucket" "bucket" {
 	policy = %s
 }
 `, randInt, strconv.Quote(testAccAWSS3BucketPolicy))
+
+var destroyedName = fmt.Sprintf("tf-test-bucket-%d", randInt)
+var testAccAWSS3BucketDestroyedConfig = fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "%s"
+	acl = "public-read"
+}
+`, destroyedName)
+var testAccAWSS3BucketConfigWithVersioning = fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "tf-test-bucket-%d"
+	acl = "public-read"
+	versioning {
+	  enabled = true
+	}
+}
+`, randInt)
+
+var testAccAWSS3BucketConfigWithDisableVersioning = fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "tf-test-bucket-%d"
+	acl = "public-read"
+	versioning {
+	  enabled = false
+	}
+}
+`, randInt)
+
+var testAccAWSS3BucketConfigWithCORS = fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+	bucket = "tf-test-bucket-%d"
+	acl = "public-read"
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["PUT","POST"]
+			allowed_origins = ["https://www.example.com"]
+			expose_headers = ["x-amz-server-side-encryption","ETag"]
+			max_age_seconds = 3000
+	}
+}
+`, randInt)

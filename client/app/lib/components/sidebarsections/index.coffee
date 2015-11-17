@@ -1,21 +1,24 @@
 kd                     = require 'kd'
 React                  = require 'kd-react'
 ActivityFlux           = require 'activity/flux'
-KDReactorMixin         = require 'app/flux/reactormixin'
+KDReactorMixin         = require 'app/flux/base/reactormixin'
 SidebarChannelsSection = require 'app/components/sidebarchannelssection'
 SidebarMessagesSection = require 'app/components/sidebarmessagessection'
 
 
 module.exports = class SidebarSections extends React.Component
 
+  PREVIEW_COUNT = 10
 
   { getters, actions } = ActivityFlux
 
   getDataBindings: ->
     return {
-      publicChannels   : getters.followedPublicChannelThreads
-      privateChannels  : getters.followedPrivateChannelThreads
-      selectedThreadId : getters.selectedChannelThreadId
+      publicChannels          : getters.followedPublicChannelThreads
+      privateChannels         : getters.followedPrivateChannelThreads
+      selectedThreadId        : getters.selectedChannelThreadId
+      filteredPublicChannels  : getters.filteredPublicChannels
+      filteredPrivateChannels : getters.filteredPrivateChannels
     }
 
 
@@ -26,14 +29,16 @@ module.exports = class SidebarSections extends React.Component
 
   renderChannelsSection: ->
     <SidebarChannelsSection
-      threads={@state.publicChannels}
-      selectedId={@state.selectedThreadId} />
+      previewCount={PREVIEW_COUNT}
+      selectedId={@state.selectedThreadId}
+      threads={@state.filteredPublicChannels.followed} />
 
 
   renderMessagesSection: ->
     <SidebarMessagesSection
-      threads={@state.privateChannels}
-      selectedId={@state.selectedThreadId} />
+      previewCount={PREVIEW_COUNT}
+      selectedId={@state.selectedThreadId}
+      threads={@state.filteredPrivateChannels.followed} />
 
 
   render: ->

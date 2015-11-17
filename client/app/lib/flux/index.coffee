@@ -4,3 +4,6 @@ module.exports =
   stores: [
     require './stores/usersstore'
   ]
+
+  register: (reactor) ->
+    reactor.registerStores @stores

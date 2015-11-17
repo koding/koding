@@ -1,10 +1,39 @@
-.ChannelParticipantAvatars-singleBox
-  blockMidTop()
-  size                    30px, 30px
-  margin                  10px 0 15px 10px
-  line-height             28px
+.ChannelParticipantAvatars
+  rel()
+  dBlock()
+  z-index                 2
+  bg                      color, #f5f5f5
 
-  &:first-child
+.ChannelParticipantAvatars-singleBox
+  rel()
+  dIBlock()
+  vertical-align          top
+  size                    30px, 30px
+  margin                  5px 0 0 10px
+  line-height             26px
+
+  .Tooltip-wrapper
+    display               none
+    opacity               0
+    top                   62px !important
+    vendor                transition, opacity .3s ease
+
+  &:hover
+    .Tooltip-wrapper
+      dBlock()
+      opacity             1
+
+  &:nth-child(5n)
+    .Tooltip-wrapper
+      left                auto !important
+      right               0
+      vendor              transform, translateX(0)
+
+      &:after
+        right             10px
+        left              auto !important
+
+  &:nth-child(5n+1)
     margin-left           0
 
 .ChannelParticipantAvatars-newParticipantBox
@@ -28,7 +57,6 @@
 
 .ChannelParticipantAvatars .ProfilePicture
   vertical-align          middle
-  rounded                 $border-radius
 
 .ChannelParticipantAvatars-moreCount
   pointer()
@@ -39,24 +67,29 @@
   text-align              center
 
 .ChannelParticipantInput
+  rel()
+  z-index                 1
+  opacity                 0
+  margin-bottom           10px
+  top                     -45px
+  vendor                  transition, .2s ease
+  height                  0
+
   input
+    rel()
     borderBox()
-    abs()
     outline               none
-    rounded               4px
-    height                0
+    height                32px
     width                 190px
     padding               0 10px
-    border                none
-    opacity               0
-    vendor                transition, .2s ease
+    margin-bottom         10px
+    border                1px solid $gray-16
 
   &.slide-down
-    input
-      rel()
-      opacity             1
-      height              32px
-      border              2px solid $gray-16
+    margin-top            10px
+    height                32px
+    top                   0
+    opacity               1
 
 .ChannelParticipantAvatars-allParticipantsMenu
   abs()
@@ -81,7 +114,7 @@
 
   .ChannelParticipantAvatars-allParticipantsMenuContainer
     width                 200px
-    max-height            420px
+    max-height            395px
     overflow-y            auto
     overflow-x            hidden
 
@@ -113,4 +146,12 @@
       a
         color             $white
 
+// @media only screen and (max-width : 950px)
+//   .ChannelParticipantAvatars-singleBox
+//     display                 block
+//     margin                  0 0 5px
 
+//   .ChannelParticipantInput.slide-down
+//     rel()
+//     width                   190px
+//     right                   160px

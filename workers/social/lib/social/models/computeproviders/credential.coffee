@@ -1,5 +1,3 @@
-# due to a bug in coffeelint 1.10.1
-# coffeelint: disable=no_implicit_braces
 jraphical      = require 'jraphical'
 
 module.exports = class JCredential extends jraphical.Module
@@ -26,6 +24,7 @@ module.exports = class JCredential extends jraphical.Module
     softDelete        : yes
 
     permissions       :
+      'modify credential' : []
       'create credential' : ['member']
       'update credential' : ['member']
       'list credentials'  : ['member']
@@ -43,6 +42,8 @@ module.exports = class JCredential extends jraphical.Module
         ]
       instance        :
         delete        :
+          (signature Function)
+        clone         :
           (signature Function)
         shareWith     :
           (signature Object, Function)
@@ -96,7 +97,7 @@ module.exports = class JCredential extends jraphical.Module
     relationships     :
 
       data            :
-        targetType    : 'JCredentialData'
+        targetType    : JCredentialData
         as            : 'data'
 
   @getName = -> 'JCredential'
@@ -164,14 +165,6 @@ module.exports = class JCredential extends jraphical.Module
       JGroup.one { slug: group }, (err, group) ->
         return callback err  if err?
 
-        # FIXME Dunno why but `options` variable is overriding by fetcher
-        # in bongo above, so I had to re-set it here. When we fix the
-        # fetcher issue in bongo this won't be needed anymore, thanks JS ~ GG
-        options =
-          limit         : 1
-          targetOptions :
-            selector    : { identifier }
-
         group.fetchCredential {}, options, (err, res) ->
           callback err, res
 
@@ -227,12 +220,13 @@ module.exports = class JCredential extends jraphical.Module
   fetchUsers: permit
 
     advanced: [
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
     success: (client, callback) ->
 
-      Relationship.someData targetId : @getId(), {
+      Relationship.someData { targetId : @getId() }, {
         as:1, sourceId:1, sourceName:1
       }, (err, cursor) ->
 
@@ -305,6 +299,7 @@ module.exports = class JCredential extends jraphical.Module
   shareWith$: permit
 
     advanced: [
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -337,13 +332,40 @@ module.exports = class JCredential extends jraphical.Module
 
           rel.remove callback
 
+
+  clone: permit
+
+    advanced: [
+      # { permission: 'modify credential' }
+      { permission: 'update credential', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      { delegate } = client.connection
+
+      cloneData  =
+        title    : @getAt 'title'
+        provider : @getAt 'provider'
+
+      @fetchData (err, data) ->
+
+        return callback err  if err
+
+        cloneData.meta = data.meta  if data?.meta
+        JCredential.create client, cloneData, callback
+
+      , shadowSensitiveData = no
+
+
   # Poor man's shadow function ~ GG
   shadowed = (c) ->
+    return  unless c
     r = (c) -> Math.ceil c.length / 1.5
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
 
-  fetchData: (callback) ->
+  fetchData: (callback, shadowSensitiveData = yes) ->
 
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
@@ -355,9 +377,10 @@ module.exports = class JCredential extends jraphical.Module
       rel.fetchTarget (err, data) ->
         return callback err  if err
 
-        meta = data?.data?.meta or {}
-        sensitiveKeys.forEach (key) ->
-          meta[key] = shadowed meta[key]
+        if shadowSensitiveData
+          meta = data?.data?.meta or {}
+          sensitiveKeys.forEach (key) ->
+            meta[key] = shadowed meta[key]
 
         callback null, data
 
@@ -365,6 +388,7 @@ module.exports = class JCredential extends jraphical.Module
   fetchData$: permit
 
     advanced: [
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -376,6 +400,7 @@ module.exports = class JCredential extends jraphical.Module
   update$: permit
 
     advanced: [
+      { permission: 'modify credential', superadmin: yes }
       { permission: 'update credential', validateWith: Validators.own }
     ]
 
@@ -388,14 +413,14 @@ module.exports = class JCredential extends jraphical.Module
 
       title ?= @title
 
-      @update $set : { title }, (err) =>
+      @update { $set : { title } }, (err) =>
         return callback err  if err?
 
         if meta?
 
           @fetchData (err, credData) ->
             return callback err  if err?
-            credData.update $set : { meta }, callback
+            credData.update { $set : { meta } }, callback
 
         else
           callback null
@@ -404,7 +429,7 @@ module.exports = class JCredential extends jraphical.Module
   isBootstrapped: permit
 
     advanced: [
-      { permission: 'update credential', validateWith: Validators.own }
+      { permission: 'update credential' } # , validateWith: Validators.own }
     ]
 
     success: (client, callback) ->
@@ -412,10 +437,15 @@ module.exports = class JCredential extends jraphical.Module
       provider = PROVIDERS[@provider]
 
       unless provider
-        callback new KodingError 'Provider is not supported'
-        return
+        return callback null, no
 
       { bootstrapKeys } = provider
+
+      # If bootstrapKeys is not defined in the Provider
+      # it means that this credential is not supporting bootstrap
+      # we can safely return `no` at this point ~ GG
+      if bootstrapKeys.length is 0
+        return callback null, no
 
       @fetchData (err, data) ->
         return callback err  if err

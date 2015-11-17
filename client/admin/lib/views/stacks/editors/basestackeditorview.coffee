@@ -24,15 +24,27 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
 
     options.content     = content
     options.contentType = contentType
-
     options.file        = FSHelper.createFileInstance
       path: "localfile:/stack.#{contentType}"
 
     super options, data
 
-    @setCss background: 'black'
+
+  createEditor: ->
+
+    super
 
     { ace } = @aceView
 
-    ace.ready ->
-      @emit 'ace.changeSetting', 'tabSize', 2
+    ace.once 'SettingsApplied', => ace.ready =>
+      ace.setTheme 'github', no
+      ace.setTabSize 2, no
+      ace.setShowPrintMargin no, no
+      ace.setEnableAutocomplete no, no
+      ace.setUseSoftTabs yes, no
+      ace.setScrollPastEnd yes, no
+
+      kd.utils.defer =>
+        @getEditorSession().setScrollTop 0
+
+      @emit 'EditorReady'

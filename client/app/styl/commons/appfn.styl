@@ -3,131 +3,111 @@
 /* FUNCTIONS */
 
 ellipsis()
-  text-overflow   ellipsis
-  overflow        hidden
-  white-space     nowrap
+  text-overflow             ellipsis
+  overflow                  hidden
+  white-space               nowrap
 
-vendor(a, b)
-  -webkit-{a}  b
-  -moz-{a}     b
-  // -khtml-{a}   b
-  // -o-{a}       b
-  // -icab-{a}    b
-  {a}          b
-
+vendor(prop, rest...)
+  -ms-{prop}                rest
+  -webkit-{prop}            rest
+  -moz-{prop}               rest
+  {prop}                    rest
 
 size()
-  // background                red
-  width   arguments[0]
-  height  arguments[1]
+  width                     arguments[0]
+  height                    arguments[1]
 
 rounded()
-  vendor(border-radius,arguments)
+  border-radius             arguments
 
 shadow()
-  vendor(box-shadow,arguments)
+  box-shadow                arguments
 
 gradient()
-  background-image -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0]) arguments[2]
-  background-image -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
-  background-image -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
-  background-image -o-linear-gradient(arguments[0], arguments[1]) arguments[2];
+  bg                        image, -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0]) arguments[2]
+  bg                        image, -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  bg                        image, -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  bg                        image, -o-linear-gradient(arguments[0], arguments[1]) arguments[2];
 
 gradient1()
-  background-image -moz-linear-gradient(270deg, arguments[2] arguments[3], arguments[0] arguments[1])
-  background-image -webkit-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
-  background-image -khtml-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
-  background-image -o-linear-gradient(arguments[0], arguments[1]);
+  bg                        image, -moz-linear-gradient(270deg, arguments[2] arguments[3], arguments[0] arguments[1])
+  bg                        image, -webkit-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
+  bg                        image, -khtml-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
+  bg                        image, -o-linear-gradient(arguments[0], arguments[1]);
 
 gradient2()
-  background-image -moz-radial-gradient(arguments[0] arguments[1], arguments[2] arguments[3])
-  background-image -webkit-radial-gradient(arguments[0], arguments[1],arguments[2], arguments[3])
-  background-image -khtml-radial-gradient(arguments[0], arguments[1], arguments[2], arguments[3])
-  background-image -o-radial-gradient(arguments[2], arguments[3]);
-
-
+  bg                        image, -moz-radial-gradient(arguments[0] arguments[1], arguments[2] arguments[3])
+  bg                        image, -webkit-radial-gradient(arguments[0], arguments[1],arguments[2], arguments[3])
+  bg                        image, -khtml-radial-gradient(arguments[0], arguments[1], arguments[2], arguments[3])
+  bg                        image, -o-radial-gradient(arguments[2], arguments[3]);
 
 fl()
-  display block
-  float left
+  display                   block
+  float                     left
 
 fr()
-  display block
-  float right
-
-kdfsprite()
-  // DEPRECATED - MAKE A CLEANUP LATER - SY
-  bg  color,transparent
-  bg  repeat,no-repeat
+  display                   block
+  float                     right
 
 noTextSelection()
-  vendor(user-select,none)
+  vendor                    user-select, none
 
-bg(prop,args)
-  background-{prop} args
+bg(prop, args)
+  background-{prop}         args
 
 hidden()
-  display     none
-  visibility  hidden
+  display                   none
+  visibility                hidden
 
 visible()
-  display     block
-  visibility  visible
+  display                   block
+  visibility                visible
 
 invisible()
-  visibility  hidden
+  visibility                hidden
 
 borderBox()
-  vendor(box-sizing,border-box)
+  vendor                    box-sizing, border-box
+
 contentBox()
-  vendor(box-sizing,content-box)
-
-blockMid()
-  display           inline-block
-  vertical-align    middle
-
-blockMidTop()
-  display           inline-block
-  vertical-align    top
+  vendor                    box-sizing, content-box
 
 noTextDeco()
-  text-decoration       none
   excludeHoverState = arguments[0]
+  text-decoration           none
   if excludeHoverState
     &:hover
-      text-decoration   underline
+      text-decoration       underline
   else
     &:hover
-      text-decoration   none
+      text-decoration       none
 
-abs()
+_applyCoordinates()
   t = arguments[0]
   r = arguments[1]
   b = arguments[2]
   l = arguments[3]
-  top t    if t
-  right r  if r
-  bottom b if b
-  left l   if l
-  _abs()
+  top                       t if t
+  right                     r if r
+  bottom                    b if b
+  left                      l if l
 
-_abs()
-  position absolute
-
-rel()
-  position    relative
-
-sta()
-  position    static
+abs()
+  _applyCoordinates         arguments
+  position                  absolute
 
 fix()
-  position    fixed
+  _applyCoordinates         arguments
+  position                  fixed
 
-headerFont()
-  font-family Ubuntu, Helvetica, sans-serif
+rel()
+  position                  relative
+
+sta()
+  position                  static
 
 pointer()
-  cursor     pointer
+  cursor                    pointer
 
 kalc()
 
@@ -139,28 +119,22 @@ kalc()
   long   = '-webkit-calc(' + arguments[1] + ')' + suffix
   short  = 'calc(' + arguments[1] + ')' + suffix
 
-  {arguments[0]} unquote(long)
-  {arguments[0]} unquote(short)
+  {arguments[0]}            unquote(long)
+  {arguments[0]}            unquote(short)
 
 dBlock()
-  display         block
+  display                   block
 
 dIBlock()
-  display         inline-block
+  display                   inline-block
 
 dInline()
-  display         inline
+  display                   inline
 
 dFlex()
-  display         -webkit-box
-  display         -moz-box
-  display         flex
-
-singleTransformTransition()
-
-  -webkit-transition      -webkit-transform arguments[0] arguments[1]
-  -moz-transition         -moz-transform arguments[0] arguments[1]
-  transition              transform arguments[0] arguments[1]
+  display                    -webkit-flex
+  display                    -moz-flex
+  display                   flex
 
 cf()
   /**
@@ -175,55 +149,48 @@ cf()
 
   &:before
   &:after
-    content " "   /* 1 */
-    display table /* 2 */
+    content                 " "   /* 1 */
+    display                 table /* 2 */
 
 
   &:after
-    clear both
+    clear                   both
 
 // KDFN ENDS
 
-neueFamily           = 'Helvetica Neue', Helvetica, Arial, sans-serif
-proximaFamily        = 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
-openSansFamily       = 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
-adelleFamily         = 'adelle-sans', 'Adelle Sans', 'Helvetica Neue', Helvetica, Arial
-adelleSans           = 'adelle-sans', 'Adelle Sans', 'Helvetica Neue', Helvetica, Arial
-adelleSerif          = 'adelle', 'Adelle', 'Times New Roman', Georgia, serif
-monoFamily           = 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
-logoFamily           = 'Ubuntu','Proxima Nova', 'Helvetica Neue', Helvetica, Arial
-asapFamily           = 'Asap', 'Helvetica Neue', Helvetica, sans-serif
-sloganFont           = tagLineFont
+openSansFamily              = 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+SoleilFamily                = Soleil, openSansFamily
+adelleFamily                = 'adelle-sans', 'Adelle Sans', 'Helvetica Neue', Helvetica, Arial
+adelleSans                  = 'adelle-sans', 'Adelle Sans', 'Helvetica Neue', Helvetica, Arial
+monoFamily                  = 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+sidebarWidth                = 257px
 
-sidebarWidth         = 258px
-
-__pixRatio   = 1.5
-retinaQuery  = 'all and (-webkit-min-device-pixel-ratio:' + __pixRatio + '),'
-retinaQuery += '(min--moz-device-pixel-ratio:' + __pixRatio + '),'
-retinaQuery += '(-o-min-device-pixel-ratio:' + __pixRatio + '/1),'
-retinaQuery += '(min-device-pixel-ratio:' + __pixRatio + '),'
-retinaQuery += '(min-resolution:' + unit(__pixRatio*92, dpi) + '),'
-retinaQuery += '(min-resolution:' + unit(__pixRatio, dppx) + ')'
+__pixRatio                  = 1.5
+retinaQuery                 = 'all and (-webkit-min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery                += '(min--moz-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery                += '(-o-min-device-pixel-ratio:' + __pixRatio + '/1),'
+retinaQuery                += '(min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery                += '(min-resolution:' + unit(__pixRatio*92, dpi) + '),'
+retinaQuery                += '(min-resolution:' + unit(__pixRatio, dppx) + ')'
 
 r-sprite(folder, name)
 
-  spriteName1x = '$1x_' + folder + '_' + name
-  spriteName2x = '$2x_' + folder + '_' + name
-  sprite1x     = lookup(spriteName1x)
-  sprite2x     = lookup(spriteName2x)
+  spriteName1x              = '$1x_' + folder + '_' + name
+  spriteName2x              = '$2x_' + folder + '_' + name
+  sprite1x                  = lookup(spriteName1x)
+  sprite2x                  = lookup(spriteName2x)
 
   if sprite1x
-    sprite sprite1x
+    sprite                  sprite1x
   else
-    color  'broken icon: ' + folder + ' ' + name
+    color                   'broken icon: ' + folder + ' ' + name
     return
 
   if sprite2x
     @media retinaQuery
-      bg image, url(sprite2x[8])
-      bg position, (round(sprite2x[2]/2) round(sprite2x[3]/2))
-      bg size, (floor(sprite2x[6]/2) floor(sprite2x[7]/2))
-
+      bg                    image, url(sprite2x[8])
+      bg                    position, (round(sprite2x[2]/2) round(sprite2x[3]/2))
+      bg                    size, (floor(sprite2x[6]/2) floor(sprite2x[7]/2))
 
 getSmallGoldenFraction(value)
 
@@ -233,125 +200,79 @@ getBigGoldenFraction(value)
 
   return (value * 0.618034)px
 
-dividerWithText()
-  color             #a8a8a8
-  width             80%
-  overflow          hidden
-  text-align        center
-  line-height       20px
-
-  &:before, &:after
-    content         ''
-    vertical-align  top
-    display         inline-block
-    width           50%
-    height          10px
-    border-bottom   1px solid #e8e8e8
-    margin          0 2% 0 -55%
-
-  &:after
-    margin          0 -55% 0 2%
-
-
 borderize(color)
   noTextDeco()
-  color           color
-  border-bottom   1px solid color
-
-vCenter()
-  top             50%
-  vendor          transform, translateY(-50%)
-  size            100% auto
-  abs()
-
-fadeIn()
-  opacity         0
-  vendor          transition, opacity .177s ease
-  &.in
-    opacity       1
+  color                     color
+  border-bottom             1px solid color
 
 fadeOut()
-  opacity         1
-  vendor          transition, opacity .347s ease\, margin .347s ease
+  opacity                   1
+  vendor                    transition, opacity .347s ease\, margin .347s ease
 
   &.half
-    opacity       .5 !important
+    opacity                 .5 !important
 
   &.out
-    opacity 0
-
-leftTransition()
-  transition left .3s linear
-
-widthTransition()
-  transition width .3s linear
-
-greenLink()
-  // font-family         Droid
-  color               light-green
-  font-size           11px
-  text-decoration     none
-  &:hover
-    color             dark-green
-    text-decoration   underline
+    opacity                 0
 
 noAnim()
-  vendor                transition, none !important
+  vendor                    transition, none !important
 
 styleScrollBars()
   if arguments[0]
-    clr = arguments[0]
+    clr                     = arguments[0]
   else
-    clr = rgba(255,255,255,.15)
+    clr                     = rgba(255,255,255,.15)
 
   &.has-vertical
-    padding-right       0
+    padding-right           0
 
   &.has-horizontal
-    padding-bottom      0
+    padding-bottom          0
 
   .kdview.kdscrolltrack
-    bg                  color transparent
-    overflow            visible
+    bg                      color transparent
+    overflow                visible
 
     &.vertical .kdscrollthumb
-      margin            0 4px
-      width             7px
+      margin                0 4px
+      width                 7px
 
     &.horizontal .kdscrollthumb
-      margin            4px 0
-      height            7px
+      margin                4px 0
+      height                7px
 
     &:hover
-      bg                color clr
-
+      bg                    color clr
 
     .kdscrollthumb
-      bg                color clr
-      rounded           6px
+      bg                    color clr
+      rounded               6px
 
 font-url(file)
   return assetsPath + '/fonts/' + file
 
 webfont(family, file, style, weight)
   @font-face
-    font-family family
-    font-weight weight
-    font-style style
-    src url(font-url(file))
+    font-family             family
+    font-weight             weight
+    font-style              style
+    src                     url(font-url(file))
 
 webfont2(family, file, weight=normal, hack-chrome-windows=false)
+
   @font-face
-    font-family family
-    src url(font-url(file + '.eot'))
-    src url(font-url(file + '.eot?#iefix')) format('embedded-opentype'),
-        url(font-url(file + '.woff')) format('woff'),
-        url(font-url(file + '.ttf')) format('truetype'),
-        url(font-url(file + '.svg#'+ family)) format('svg')
-    font-weight weight
-    font-style normal
+    font-family             family
+    src                     url(font-url(file + '.eot'))
+    src                     url(font-url(file + '.eot?#iefix')) format('embedded-opentype'),
+                            url(font-url(file + '.woff')) format('woff'),
+                            url(font-url(file + '.ttf')) format('truetype'),
+                            url(font-url(file + '.svg#'+ family)) format('svg')
+    font-weight             weight
+    font-style              normal
+
   if hack-chrome-windows
     @media screen and (-webkit-min-device-pixel-ratio:0)
       @font-face
-        font-family family
-        src url(font-url(file + '.svg#'+ family)) format('svg')
+        font-family         family
+        src                 url(font-url(file + '.svg#'+ family)) format('svg')

@@ -53,8 +53,8 @@ import (
 	"time"
 )
 
-// Create an empty Credential object that can be used as dummy placeholder
-// credentials for requests that do not need signed.
+// AnonymousCredentials is an empty Credential object that can be used as
+// dummy placeholder credentials for requests that do not need signed.
 //
 // This Credentials can be used to configure a service to not sign requests
 // when making service API calls. For example, when accessing public
@@ -63,6 +63,7 @@ import (
 //     svc := s3.New(&aws.Config{Credentials: AnonymousCredentials})
 //     // Access public S3 buckets.
 //
+// @readonly
 var AnonymousCredentials = NewStaticCredentials("", "", "")
 
 // A Value is the AWS credentials value for individual credential fields.

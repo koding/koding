@@ -7,9 +7,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/terraform/config/module"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -197,7 +199,7 @@ func testStep(
 	}
 
 	// Load the modules
-	modStorage := &module.FolderStorage{
+	modStorage := &getter.FolderStorage{
 		StorageDir: filepath.Join(cfgPath, ".tfmodules"),
 	}
 	err = mod.Load(modStorage, module.GetModeGet)
@@ -317,6 +319,32 @@ func TestCheckResourceAttr(name, key, value string) TestCheckFunc {
 				name,
 				key,
 				value,
+				is.Attributes[key])
+		}
+
+		return nil
+	}
+}
+
+func TestMatchResourceAttr(name, key string, r *regexp.Regexp) TestCheckFunc {
+	return func(s *terraform.State) error {
+		ms := s.RootModule()
+		rs, ok := ms.Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		is := rs.Primary
+		if is == nil {
+			return fmt.Errorf("No primary instance: %s", name)
+		}
+
+		if !r.MatchString(is.Attributes[key]) {
+			return fmt.Errorf(
+				"%s: Attribute '%s' didn't match %q, got %#v",
+				name,
+				key,
+				r.String(),
 				is.Attributes[key])
 		}
 

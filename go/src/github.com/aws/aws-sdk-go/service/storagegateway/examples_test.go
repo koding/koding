@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 )
 
@@ -17,7 +16,7 @@ var _ time.Duration
 var _ bytes.Buffer
 
 func ExampleStorageGateway_ActivateGateway() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ActivateGatewayInput{
 		ActivationKey:     aws.String("ActivationKey"),   // Required
@@ -31,29 +30,21 @@ func ExampleStorageGateway_ActivateGateway() {
 	resp, err := svc.ActivateGateway(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_AddCache() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.AddCacheInput{
-		DiskIDs: []*string{ // Required
+		DiskIds: []*string{ // Required
 			aws.String("DiskId"), // Required
 			// More values...
 		},
@@ -62,29 +53,47 @@ func ExampleStorageGateway_AddCache() {
 	resp, err := svc.AddCache(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleStorageGateway_AddTagsToResource() {
+	svc := storagegateway.New(session.New())
+
+	params := &storagegateway.AddTagsToResourceInput{
+		ResourceARN: aws.String("ResourceARN"), // Required
+		Tags: []*storagegateway.Tag{ // Required
+			{ // Required
+				Key:   aws.String("TagKey"),   // Required
+				Value: aws.String("TagValue"), // Required
+			},
+			// More values...
+		},
+	}
+	resp, err := svc.AddTagsToResource(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_AddUploadBuffer() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.AddUploadBufferInput{
-		DiskIDs: []*string{ // Required
+		DiskIds: []*string{ // Required
 			aws.String("DiskId"), // Required
 			// More values...
 		},
@@ -93,29 +102,21 @@ func ExampleStorageGateway_AddUploadBuffer() {
 	resp, err := svc.AddUploadBuffer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_AddWorkingStorage() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.AddWorkingStorageInput{
-		DiskIDs: []*string{ // Required
+		DiskIds: []*string{ // Required
 			aws.String("DiskId"), // Required
 			// More values...
 		},
@@ -124,26 +125,18 @@ func ExampleStorageGateway_AddWorkingStorage() {
 	resp, err := svc.AddWorkingStorage(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CancelArchival() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CancelArchivalInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -152,26 +145,18 @@ func ExampleStorageGateway_CancelArchival() {
 	resp, err := svc.CancelArchival(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CancelRetrieval() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CancelRetrievalInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -180,58 +165,42 @@ func ExampleStorageGateway_CancelRetrieval() {
 	resp, err := svc.CancelRetrieval(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CreateCachediSCSIVolume() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CreateCachediSCSIVolumeInput{
 		ClientToken:        aws.String("ClientToken"),        // Required
 		GatewayARN:         aws.String("GatewayARN"),         // Required
-		NetworkInterfaceID: aws.String("NetworkInterfaceId"), // Required
+		NetworkInterfaceId: aws.String("NetworkInterfaceId"), // Required
 		TargetName:         aws.String("TargetName"),         // Required
-		VolumeSizeInBytes:  aws.Long(1),                      // Required
-		SnapshotID:         aws.String("SnapshotId"),
+		VolumeSizeInBytes:  aws.Int64(1),                     // Required
+		SnapshotId:         aws.String("SnapshotId"),
 	}
 	resp, err := svc.CreateCachediSCSIVolume(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CreateSnapshot() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CreateSnapshotInput{
 		SnapshotDescription: aws.String("SnapshotDescription"), // Required
@@ -240,26 +209,18 @@ func ExampleStorageGateway_CreateSnapshot() {
 	resp, err := svc.CreateSnapshot(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CreateSnapshotFromVolumeRecoveryPoint() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CreateSnapshotFromVolumeRecoveryPointInput{
 		SnapshotDescription: aws.String("SnapshotDescription"), // Required
@@ -268,89 +229,65 @@ func ExampleStorageGateway_CreateSnapshotFromVolumeRecoveryPoint() {
 	resp, err := svc.CreateSnapshotFromVolumeRecoveryPoint(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CreateStorediSCSIVolume() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CreateStorediSCSIVolumeInput{
-		DiskID:               aws.String("DiskId"),             // Required
+		DiskId:               aws.String("DiskId"),             // Required
 		GatewayARN:           aws.String("GatewayARN"),         // Required
-		NetworkInterfaceID:   aws.String("NetworkInterfaceId"), // Required
-		PreserveExistingData: aws.Boolean(true),                // Required
+		NetworkInterfaceId:   aws.String("NetworkInterfaceId"), // Required
+		PreserveExistingData: aws.Bool(true),                   // Required
 		TargetName:           aws.String("TargetName"),         // Required
-		SnapshotID:           aws.String("SnapshotId"),
+		SnapshotId:           aws.String("SnapshotId"),
 	}
 	resp, err := svc.CreateStorediSCSIVolume(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_CreateTapes() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.CreateTapesInput{
 		ClientToken:       aws.String("ClientToken"),       // Required
 		GatewayARN:        aws.String("GatewayARN"),        // Required
-		NumTapesToCreate:  aws.Long(1),                     // Required
+		NumTapesToCreate:  aws.Int64(1),                    // Required
 		TapeBarcodePrefix: aws.String("TapeBarcodePrefix"), // Required
-		TapeSizeInBytes:   aws.Long(1),                     // Required
+		TapeSizeInBytes:   aws.Int64(1),                    // Required
 	}
 	resp, err := svc.CreateTapes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteBandwidthRateLimit() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteBandwidthRateLimitInput{
 		BandwidthType: aws.String("BandwidthType"), // Required
@@ -359,26 +296,18 @@ func ExampleStorageGateway_DeleteBandwidthRateLimit() {
 	resp, err := svc.DeleteBandwidthRateLimit(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteChapCredentials() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteChapCredentialsInput{
 		InitiatorName: aws.String("IqnName"),   // Required
@@ -387,26 +316,18 @@ func ExampleStorageGateway_DeleteChapCredentials() {
 	resp, err := svc.DeleteChapCredentials(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteGateway() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteGatewayInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -414,26 +335,18 @@ func ExampleStorageGateway_DeleteGateway() {
 	resp, err := svc.DeleteGateway(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteSnapshotSchedule() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteSnapshotScheduleInput{
 		VolumeARN: aws.String("VolumeARN"), // Required
@@ -441,26 +354,18 @@ func ExampleStorageGateway_DeleteSnapshotSchedule() {
 	resp, err := svc.DeleteSnapshotSchedule(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteTape() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteTapeInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -469,26 +374,18 @@ func ExampleStorageGateway_DeleteTape() {
 	resp, err := svc.DeleteTape(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteTapeArchive() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteTapeArchiveInput{
 		TapeARN: aws.String("TapeARN"), // Required
@@ -496,26 +393,18 @@ func ExampleStorageGateway_DeleteTapeArchive() {
 	resp, err := svc.DeleteTapeArchive(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DeleteVolume() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DeleteVolumeInput{
 		VolumeARN: aws.String("VolumeARN"), // Required
@@ -523,26 +412,18 @@ func ExampleStorageGateway_DeleteVolume() {
 	resp, err := svc.DeleteVolume(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeBandwidthRateLimit() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeBandwidthRateLimitInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -550,26 +431,18 @@ func ExampleStorageGateway_DescribeBandwidthRateLimit() {
 	resp, err := svc.DescribeBandwidthRateLimit(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeCache() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeCacheInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -577,26 +450,18 @@ func ExampleStorageGateway_DescribeCache() {
 	resp, err := svc.DescribeCache(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeCachediSCSIVolumes() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeCachediSCSIVolumesInput{
 		VolumeARNs: []*string{ // Required
@@ -607,26 +472,18 @@ func ExampleStorageGateway_DescribeCachediSCSIVolumes() {
 	resp, err := svc.DescribeCachediSCSIVolumes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeChapCredentials() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeChapCredentialsInput{
 		TargetARN: aws.String("TargetARN"), // Required
@@ -634,26 +491,18 @@ func ExampleStorageGateway_DescribeChapCredentials() {
 	resp, err := svc.DescribeChapCredentials(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeGatewayInformation() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeGatewayInformationInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -661,26 +510,18 @@ func ExampleStorageGateway_DescribeGatewayInformation() {
 	resp, err := svc.DescribeGatewayInformation(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeMaintenanceStartTime() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeMaintenanceStartTimeInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -688,26 +529,18 @@ func ExampleStorageGateway_DescribeMaintenanceStartTime() {
 	resp, err := svc.DescribeMaintenanceStartTime(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeSnapshotSchedule() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeSnapshotScheduleInput{
 		VolumeARN: aws.String("VolumeARN"), // Required
@@ -715,26 +548,18 @@ func ExampleStorageGateway_DescribeSnapshotSchedule() {
 	resp, err := svc.DescribeSnapshotSchedule(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeStorediSCSIVolumes() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeStorediSCSIVolumesInput{
 		VolumeARNs: []*string{ // Required
@@ -745,29 +570,21 @@ func ExampleStorageGateway_DescribeStorediSCSIVolumes() {
 	resp, err := svc.DescribeStorediSCSIVolumes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeTapeArchives() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeTapeArchivesInput{
-		Limit:  aws.Long(1),
+		Limit:  aws.Int64(1),
 		Marker: aws.String("Marker"),
 		TapeARNs: []*string{
 			aws.String("TapeARN"), // Required
@@ -777,59 +594,43 @@ func ExampleStorageGateway_DescribeTapeArchives() {
 	resp, err := svc.DescribeTapeArchives(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeTapeRecoveryPoints() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeTapeRecoveryPointsInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
-		Limit:      aws.Long(1),
+		Limit:      aws.Int64(1),
 		Marker:     aws.String("Marker"),
 	}
 	resp, err := svc.DescribeTapeRecoveryPoints(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeTapes() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeTapesInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
-		Limit:      aws.Long(1),
+		Limit:      aws.Int64(1),
 		Marker:     aws.String("Marker"),
 		TapeARNs: []*string{
 			aws.String("TapeARN"), // Required
@@ -839,26 +640,18 @@ func ExampleStorageGateway_DescribeTapes() {
 	resp, err := svc.DescribeTapes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeUploadBuffer() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeUploadBufferInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -866,30 +659,22 @@ func ExampleStorageGateway_DescribeUploadBuffer() {
 	resp, err := svc.DescribeUploadBuffer(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeVTLDevices() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeVTLDevicesInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
-		Limit:      aws.Long(1),
+		Limit:      aws.Int64(1),
 		Marker:     aws.String("Marker"),
 		VTLDeviceARNs: []*string{
 			aws.String("VTLDeviceARN"), // Required
@@ -899,26 +684,18 @@ func ExampleStorageGateway_DescribeVTLDevices() {
 	resp, err := svc.DescribeVTLDevices(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DescribeWorkingStorage() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DescribeWorkingStorageInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -926,26 +703,18 @@ func ExampleStorageGateway_DescribeWorkingStorage() {
 	resp, err := svc.DescribeWorkingStorage(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_DisableGateway() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.DisableGatewayInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -953,54 +722,38 @@ func ExampleStorageGateway_DisableGateway() {
 	resp, err := svc.DisableGateway(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ListGateways() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ListGatewaysInput{
-		Limit:  aws.Long(1),
+		Limit:  aws.Int64(1),
 		Marker: aws.String("Marker"),
 	}
 	resp, err := svc.ListGateways(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ListLocalDisks() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ListLocalDisksInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1008,26 +761,39 @@ func ExampleStorageGateway_ListLocalDisks() {
 	resp, err := svc.ListLocalDisks(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleStorageGateway_ListTagsForResource() {
+	svc := storagegateway.New(session.New())
+
+	params := &storagegateway.ListTagsForResourceInput{
+		Limit:       aws.Int64(1),
+		Marker:      aws.String("Marker"),
+		ResourceARN: aws.String("ResourceARN"),
+	}
+	resp, err := svc.ListTagsForResource(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ListVolumeInitiators() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ListVolumeInitiatorsInput{
 		VolumeARN: aws.String("VolumeARN"), // Required
@@ -1035,26 +801,18 @@ func ExampleStorageGateway_ListVolumeInitiators() {
 	resp, err := svc.ListVolumeInitiators(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ListVolumeRecoveryPoints() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ListVolumeRecoveryPointsInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1062,55 +820,62 @@ func ExampleStorageGateway_ListVolumeRecoveryPoints() {
 	resp, err := svc.ListVolumeRecoveryPoints(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ListVolumes() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ListVolumesInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
-		Limit:      aws.Long(1),
+		Limit:      aws.Int64(1),
 		Marker:     aws.String("Marker"),
 	}
 	resp, err := svc.ListVolumes(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
+}
+
+func ExampleStorageGateway_RemoveTagsFromResource() {
+	svc := storagegateway.New(session.New())
+
+	params := &storagegateway.RemoveTagsFromResourceInput{
+		ResourceARN: aws.String("ResourceARN"),
+		TagKeys: []*string{
+			aws.String("TagKey"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.RemoveTagsFromResource(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ResetCache() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ResetCacheInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1118,26 +883,18 @@ func ExampleStorageGateway_ResetCache() {
 	resp, err := svc.ResetCache(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_RetrieveTapeArchive() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.RetrieveTapeArchiveInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1146,26 +903,18 @@ func ExampleStorageGateway_RetrieveTapeArchive() {
 	resp, err := svc.RetrieveTapeArchive(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_RetrieveTapeRecoveryPoint() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.RetrieveTapeRecoveryPointInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1174,26 +923,18 @@ func ExampleStorageGateway_RetrieveTapeRecoveryPoint() {
 	resp, err := svc.RetrieveTapeRecoveryPoint(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_ShutdownGateway() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.ShutdownGatewayInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1201,26 +942,18 @@ func ExampleStorageGateway_ShutdownGateway() {
 	resp, err := svc.ShutdownGateway(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_StartGateway() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.StartGatewayInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1228,55 +961,39 @@ func ExampleStorageGateway_StartGateway() {
 	resp, err := svc.StartGateway(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateBandwidthRateLimit() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateBandwidthRateLimitInput{
 		GatewayARN:                           aws.String("GatewayARN"), // Required
-		AverageDownloadRateLimitInBitsPerSec: aws.Long(1),
-		AverageUploadRateLimitInBitsPerSec:   aws.Long(1),
+		AverageDownloadRateLimitInBitsPerSec: aws.Int64(1),
+		AverageUploadRateLimitInBitsPerSec:   aws.Int64(1),
 	}
 	resp, err := svc.UpdateBandwidthRateLimit(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateChapCredentials() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateChapCredentialsInput{
 		InitiatorName:                 aws.String("IqnName"),    // Required
@@ -1287,26 +1004,18 @@ func ExampleStorageGateway_UpdateChapCredentials() {
 	resp, err := svc.UpdateChapCredentials(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateGatewayInformation() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateGatewayInformationInput{
 		GatewayARN:      aws.String("GatewayARN"), // Required
@@ -1316,26 +1025,18 @@ func ExampleStorageGateway_UpdateGatewayInformation() {
 	resp, err := svc.UpdateGatewayInformation(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateGatewaySoftwareNow() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateGatewaySoftwareNowInput{
 		GatewayARN: aws.String("GatewayARN"), // Required
@@ -1343,86 +1044,62 @@ func ExampleStorageGateway_UpdateGatewaySoftwareNow() {
 	resp, err := svc.UpdateGatewaySoftwareNow(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateMaintenanceStartTime() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateMaintenanceStartTimeInput{
-		DayOfWeek:    aws.Long(1),              // Required
+		DayOfWeek:    aws.Int64(1),             // Required
 		GatewayARN:   aws.String("GatewayARN"), // Required
-		HourOfDay:    aws.Long(1),              // Required
-		MinuteOfHour: aws.Long(1),              // Required
+		HourOfDay:    aws.Int64(1),             // Required
+		MinuteOfHour: aws.Int64(1),             // Required
 	}
 	resp, err := svc.UpdateMaintenanceStartTime(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateSnapshotSchedule() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateSnapshotScheduleInput{
-		RecurrenceInHours: aws.Long(1),             // Required
-		StartAt:           aws.Long(1),             // Required
+		RecurrenceInHours: aws.Int64(1),            // Required
+		StartAt:           aws.Int64(1),            // Required
 		VolumeARN:         aws.String("VolumeARN"), // Required
 		Description:       aws.String("Description"),
 	}
 	resp, err := svc.UpdateSnapshotSchedule(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleStorageGateway_UpdateVTLDeviceType() {
-	svc := storagegateway.New(nil)
+	svc := storagegateway.New(session.New())
 
 	params := &storagegateway.UpdateVTLDeviceTypeInput{
 		DeviceType:   aws.String("DeviceType"),   // Required
@@ -1431,20 +1108,12 @@ func ExampleStorageGateway_UpdateVTLDeviceType() {
 	resp, err := svc.UpdateVTLDeviceType(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }

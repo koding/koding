@@ -1,16 +1,20 @@
+NOT_IMPLEMENTED_MESSAGE = 'Not implemented yet.'
+
 NOT_IMPLEMENTED = ->
 
   KodingError   = require '../../error'
-  message       = 'Not implemented yet.'
 
   if arguments.length > 0 and fn = arguments[arguments.length - 1]
-    if typeof fn is 'function' then fn new KodingError message, 'NotImplemented'
+    if typeof fn is 'function'
+      fn new KodingError NOT_IMPLEMENTED_MESSAGE, 'NotImplemented'
 
-  return message
+  return NOT_IMPLEMENTED_MESSAGE
 
 PASS_THROUGH = (..., callback) -> callback null
 
 module.exports = class ProviderInterface
+
+  @notImplementedMessage = NOT_IMPLEMENTED_MESSAGE
 
   @providerSlug   = 'baseprovider'
   @bootstrapKeys  = []

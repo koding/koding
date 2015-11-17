@@ -18,6 +18,7 @@ module.exports = class CredentialStatusView extends KDView
 
     { @credentials } = (@getOption 'stackTemplate') or {}
     @credentials   or= {}
+    @credentialsData = []
 
     # Waiting state view
     @waitingView = new KDView
@@ -43,12 +44,9 @@ module.exports = class CredentialStatusView extends KDView
 
     creds = Object.keys @credentials
 
-    if creds.length > 0
-      # TODO you know it. ~GG
-      credential = @credentials[creds.first].first
-
+    if creds.length > 0 and credential = @credentials['aws']?.first
       remote.api.JCredential.one credential, (err, credential) =>
-        if err
+        if err or not credential
         then @setNotVerified 'Credentials not valid'
         else @setCredential credential
     else
@@ -87,7 +85,7 @@ module.exports = class CredentialStatusView extends KDView
     @setInfo()
     @link.updatePartial message or 'Credentials are not set'
     @icon.unsetClass 'verified'
-    @emit 'StatusChanged', 'not-verified'
+    kd.utils.defer => @emit 'StatusChanged', 'not-verified'
 
     @stalledView.show()
 

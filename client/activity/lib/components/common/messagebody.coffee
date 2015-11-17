@@ -1,56 +1,143 @@
 $                    = require 'jquery'
 React                = require 'kd-react'
-emojify              = require 'emojify.js'
-formatContent        = require 'app/util/formatContent'
+ReactDOM             = require 'react-dom'
+formatContent        = require 'app/util/formatReactivityContent'
 immutable            = require 'immutable'
-ProfileTextContainer = require 'app/components/profile/profiletextcontainer'
-MessageLink          = require 'activity/components/messagelink'
+classnames           = require 'classnames'
+transformTags        = require 'app/util/transformReactivityTags'
+ImmutableRenderMixin = require 'react-immutable-render-mixin'
+renderEmojis         = require 'activity/util/renderEmojis'
+
 
 module.exports = class MessageBody extends React.Component
+
+  @include [ImmutableRenderMixin]
 
   @defaultProps =
     message: immutable.Map()
 
 
+  constructor: (props) ->
+
+    super props
+
+    @state = { message: @props.message }
+
+
+  componentDidMount: ->
+
+    @transformChannelHashtags @state.message
+
+
   contentDidMount: (content) ->
 
-    contentElement = React.findDOMNode content
-    emojify.run contentElement  if contentElement
+    @content = content
+    @renderEmojis()
 
-    # dirty hack for to be able to show the `- in reply to` part as a part of
-    # the body.
-    if contentElement and parent = @props.message.get 'parent'
-      React.render(
-        generateReplyTo parent
-        $(contentElement).find('#replyToContainer')[0]
-      )
+
+  componentDidUpdate: (prevProps, prevState) ->
+
+    { message } = @props
+
+    # if message body is updated in props, we need to process hashtags
+    # and update state with a new message body
+    unless prevProps.message.get('body') is message.get('body')
+      return @transformChannelHashtags message
+
+    @renderEmojis()
+
+
+  renderEmojis: ->
+
+    contentElement = ReactDOM.findDOMNode @content
+    renderEmojis contentElement  if contentElement
+
+
+  transformChannelHashtags: (message) ->
+
+    return  if message.has('isFake')
+    return  unless message.has('body')
+
+    transformTags message.get('body'), (transformed) =>
+
+      @setState { message: message.set 'body', transformed }
 
 
   render: ->
 
-    content = formatContent @props.message.get 'body'
+    { message } = @state
 
-    # we are gonna use this container for showing the `- in reply to` part.
-    # Hopefully a css wizard will jump here and fix this. ~Umut
-    content += "<span id='replyToContainer'></span>"
+    body    = helper.prepareMessageBody message.toJS()
+    content = formatContent body
+
+    typeConstant = message.get 'typeConstant'
+    className    = classnames
+      'has-markdown'          : yes
+      'MessageBody'           : yes
+      'MessageBody-joinLeave' : typeConstant in [ 'join', 'leave', 'system' ]
 
     return \
       <article
-        className="MessageBody"
+        className={className}
         ref={@bound 'contentDidMount'}
         dangerouslySetInnerHTML={__html: content} />
 
 
-generateReplyTo = (parent) ->
+  helper =
 
-  account = parent.get 'account'
+    prepareDefaultBody: (options = {}) ->
 
-  profileText = \
-    <ProfileTextContainer origin={account.toJS()} />
+      { addedBy, paneType, initialParticipants, action } = options
 
-  return \
-    <MessageLink className="InReplyToLink" message={parent} absolute={yes}>
-      <em>- in reply to {profileText}</em>
-    </MessageLink>
+      # when it contains initial participants it contains all the accounts
+      # initially added to the conversation
+      if initialParticipants
+        body = "has started the #{paneType}"
 
+        return body  if initialParticipants.length is 0
+
+        body = "#{body} and invited "
+        body = "#{body} @#{participant}," for participant in initialParticipants
+
+        return body.slice 0, body.length - 1
+
+      body = "has #{action} the #{paneType}"
+
+      # append who added the user
+      body = "#{body} from an invitation by @#{addedBy}"  if addedBy
+
+      return body
+
+
+    prepareMessageBody: (message) ->
+
+      { typeConstant, payload } = message
+
+      {addedBy, initialParticipants, systemType} = payload if payload
+      typeConstant = systemType  if typeConstant is 'system'
+
+      paneType = 'conversation'
+
+      options = { addedBy, paneType, initialParticipants }
+
+      # get default join/leave message body
+      switch typeConstant
+        when 'join'
+          options.action = 'joined'
+          body = helper.prepareDefaultBody options
+        when 'leave'
+          options.action = 'left'
+          body = helper.prepareDefaultBody options
+        when 'invite'
+          body = "was invited to the #{paneType}"
+        when 'reject'
+          body = "has rejected the invite for this #{paneType}"
+        when 'kick'
+          body = "has been removed from this #{paneType}"
+        when 'initiate'
+          body = helper.prepareDefaultBody options
+        else
+          body = message.body
+
+      return body
 

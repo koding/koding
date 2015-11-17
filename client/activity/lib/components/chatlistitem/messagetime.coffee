@@ -3,7 +3,7 @@ kd             = require 'kd'
 React          = require 'kd-react'
 dateFormat     = require 'dateformat'
 Tooltip        = require 'app/components/tooltip'
-Portal         = require 'react-portal'
+Portal         = require('react-portal').default
 
 module.exports = class MessageTime extends React.Component
 
@@ -37,12 +37,12 @@ module.exports = class MessageTime extends React.Component
 
   setTooltipPosition: ->
 
-    MessageDateDOMNode = @refs.MessageDate.getDOMNode()
+    MessageDateDOMNode = @refs.MessageDate
     offset = $(MessageDateDOMNode).offset()
 
     @setState
-      tooltipY      : offset.top
-      tooltipX      : offset.left + MessageDateDOMNode.offsetWidth / 2
+      tooltipY : offset.top
+      tooltipX : offset.left + MessageDateDOMNode.offsetWidth / 2
 
 
   setTooltipOpenState: (delay) ->
@@ -73,10 +73,9 @@ module.exports = class MessageTime extends React.Component
 
   render: ->
 
-    <div className='ChatItem-messageDate' {...@getItemProps()} ref='MessageDate'>
-      <time>{ @getTime @props.date }</time>
+    <time className='ChatItem-messageDate' {...@getItemProps()} ref='MessageDate'>
+      { @getTime @props.date }
       <Portal isOpened={ @state.isTooltipOpen }>
         <Tooltip text={ @getTooltipTitle @props.date, timeWithSecondsFormat } tooltipX={@state.tooltipX} tooltipY={@state.tooltipY}/>
       </Portal>
-    </div>
-
+    </time>

@@ -11,8 +11,9 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/PuerkitoBio/throttled"
-	"github.com/PuerkitoBio/throttled/store"
+	"gopkg.in/throttled/throttled.v2"
+	"gopkg.in/throttled/throttled.v2/store/redigostore"
+
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/redis"
@@ -59,16 +60,34 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	th := throttled.RateLimit(
-		throttled.PerHour(10),
-		&throttled.VaryBy{RemoteAddr: true, Path: false},
-		store.NewRedisStore(redisConn.Pool(), WorkerName, 0),
-	)
+	redisStore, err := redigostore.New(redisConn.Pool(), WorkerName, 0)
+	if err != nil {
+		log.Fatal(err.Error()) // this is ok, if it doesn't connect it shouldn't start at all
+	}
 
-	tStathandler := th.Throttle(stathandler)
+	quota := throttled.RateQuota{
+		MaxRate:  throttled.PerHour(10),
+		MaxBurst: 20,
+	}
+
+	rateLimiter, err := throttled.NewGCRARateLimiter(redisStore, quota)
+	if err != nil {
+		// we exit because this is code error and must be handled
+		log.Fatal(err.Error())
+	}
+
+	httpRateLimiter := throttled.HTTPRateLimiter{
+		RateLimiter: rateLimiter,
+		VaryBy: &throttled.VaryBy{
+			RemoteAddr: true,
+			Path:       false,
+		},
+	}
+
+	tStathandler := httpRateLimiter.RateLimit(stathandler)
 	mux.Handle("/ingest", tStathandler)
 
-	tErrHandler := th.Throttle(errhandler)
+	tErrHandler := httpRateLimiter.RateLimit(errhandler)
 	mux.Handle("/errors", tErrHandler)
 
 	mux.HandleFunc("/version", artifact.VersionHandler())

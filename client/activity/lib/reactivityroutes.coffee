@@ -1,36 +1,26 @@
-kd                = require 'kd'
-React             = require 'kd-react'
-PublicChatPane    = require 'activity/components/publicchatpane'
-PublicFeedPane    = require 'activity/components/publicfeedpane'
-ChannelThreadPane = require 'activity/components/channelthreadpane'
-PostPane          = require 'activity/components/postpane'
+React                     = require 'kd-react'
+ActivityAppComponent      = require 'activity/components/appcomponent'
+SingleChannelRoute        = require 'activity/routes/singlepublicchannel'
+SinglePrivateMessageRoute = require 'activity/routes/singleprivatechannel'
 
-module.exports =
+module.exports = [
   path: '/Channels'
-  component: ChannelThreadPane
+  component: ActivityAppComponent
   childRoutes: [
-    path: ':channelName'
-    components:
-      feed: null
-      chat: PublicChatPane
-      post: null
-  ,
-    path: ':channelName/summary'
-    components:
-      feed: PublicFeedPane
-      chat: PublicChatPane
-      post: null
-  ,
-    path: ':channelName/summary/:postSlug'
-    components:
-      feed: PublicFeedPane
-      chat: PublicChatPane
-      post: PostPane
-  ,
-    path: ':channelName/:postSlug'
-    components:
-      feed: null
-      chat: PublicChatPane
-      post: PostPane
+    new SingleChannelRoute
   ]
+  onLeave: -> cleanSelectedThreads()
+,
+  path: '/Messages'
+  component: ActivityAppComponent
+  childRoutes: [
+    new SinglePrivateMessageRoute
+  ]
+  onLeave: -> cleanSelectedThreads()
+]
+
+cleanSelectedThreads = ->
+  { thread, message } = require('activity/flux').actions
+  threadActions.changeSelectedThread null
+  messageActions.changeSelectedMessage null
 

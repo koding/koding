@@ -1,11 +1,14 @@
-querystring = require 'querystring'
+JTeamInvitation = require '../../../workers/social/lib/social/models/teamtoken'
 
-{ generateUrl
+{ expect
+  generateUrl
+  querystring
   deepObjectExtend
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDefaultRequestParams } = require '../index'
+  generateDefaultRequestParams
+  generateRequestParamsEncodeBody } = require '../index'
 
 
 generateCheckTokenRequestBody = (opts = {}) ->
@@ -40,6 +43,7 @@ generateJoinTeamRequestBody = (opts = {}) ->
 
   defaultBodyObject =
     slug                : "testcompany#{generateRandomString(10)}"
+    _csrf               : generateRandomString()
     email               : generateRandomEmail()
     token               : ''
     allow               : 'true'
@@ -58,16 +62,14 @@ generateJoinTeamRequestBody = (opts = {}) ->
 
 generateJoinTeamRequestParams = (opts = {}) ->
 
-  url  = generateUrl
-    route : '-/teams/join'
-
   body = generateJoinTeamRequestBody()
 
-  params               = { url, body }
-  defaultRequestParams = generateDefaultRequestParams params
-  requestParams        = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body   = querystring.stringify requestParams.body
+  params =
+    url        : generateUrl { route : '-/teams/join' }
+    body       : body
+    csrfCookie : body._csrf
+
+  requestParams = generateRequestParamsEncodeBody params, opts
 
   return requestParams
 
@@ -124,19 +126,21 @@ generateCreateTeamRequestBody = (opts = {}) ->
   companyName = "testcompany#{generateRandomString(10)}"
 
   defaultBodyObject =
-    slug           :  companyName
-    email          :  generateRandomEmail()
-    agree          :  'on'
-    allow          :  'true'
-    domains        :  'koding.com, gmail.com'
-    invitees       :  invitees
-    redirect       :  ''
-    username       :  username
-    password       :  'testpass'
-    newsletter     :  'true'
-    companyName    :  companyName
-    alreadyMember  :  'false'
-    passwordConfirm:  'testpass'
+    slug           : companyName
+    _csrf          : generateRandomString()
+    email          : generateRandomEmail()
+    agree          : 'on'
+    allow          : 'true'
+    domains        : 'koding.com, gmail.com'
+    invitees       : invitees
+    redirect       : ''
+    username       : username
+    password       : 'testpass'
+    newsletter     : 'true'
+    companyName    : companyName
+    alreadyMember  : 'false'
+    teamAccessCode : ''
+    passwordConfirm: 'testpass'
 
   deepObjectExtend defaultBodyObject, opts
 
@@ -144,20 +148,28 @@ generateCreateTeamRequestBody = (opts = {}) ->
 
 
 # overwrites given options in the default params
-generateCreateTeamRequestParams = (opts = {}) ->
-
-  url  = generateUrl
-    route : '-/teams/create'
+generateCreateTeamRequestParams = (opts = {}, callback) ->
 
   body = generateCreateTeamRequestBody()
 
-  params               = { url, body }
-  defaultRequestParams = generateDefaultRequestParams params
-  requestParams        = deepObjectExtend defaultRequestParams, opts
-  # after deep extending object, encodes body param to a query string
-  requestParams.body   = querystring.stringify requestParams.body
+  params =
+    url        : generateUrl { route : '-/teams/create' }
+    body       : body
+    csrfCookie : body._csrf
 
-  return requestParams
+  # return without creating a team invitation
+  if opts.createTeamInvitation is no
+    requestParams = generateRequestParamsEncodeBody params, opts
+    return callback requestParams
+
+  slug  = opts.body ? body.slug
+  email = opts.email ? body.email
+
+  JTeamInvitation.create { groupName : slug, email }, (err, teamInvitation) ->
+    expect(err).to.not.exist
+    params.body.teamAccessCode = teamInvitation.code
+    requestParams = generateRequestParamsEncodeBody params, opts
+    return callback requestParams
 
 
 module.exports = {

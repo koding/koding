@@ -1,20 +1,17 @@
-$                    = require 'jquery'
-kd                   = require 'kd'
-React                = require 'kd-react'
-classnames           = require 'classnames'
-immutable            = require 'immutable'
-emojify              = require 'emojify.js'
-formatEmojiName      = require 'activity/util/formatEmojiName'
-ChatInputFlux        = require 'activity/flux/chatinput'
-Dropup               = require 'activity/components/dropup'
-EmojiSelectorItem    = require 'activity/components/emojiselectoritem'
-ImmutableRenderMixin = require 'react-immutable-render-mixin'
+$                     = require 'jquery'
+kd                    = require 'kd'
+React                 = require 'kd-react'
+classnames            = require 'classnames'
+immutable             = require 'immutable'
+formatEmojiName       = require 'activity/util/formatEmojiName'
+ChatInputFlux         = require 'activity/flux/chatinput'
+Dropbox               = require 'activity/components/dropbox/portaldropbox'
+EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
+EmojiIcon             = require 'activity/components/emojiicon'
+ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 
 module.exports = class EmojiSelector extends React.Component
-
-  ESC = 27
-
 
   @include [ImmutableRenderMixin]
 
@@ -22,27 +19,10 @@ module.exports = class EmojiSelector extends React.Component
   @defaultProps =
     items        : immutable.List()
     visible      : no
-    itemsPerRow  : 8
-    selectedItem : immutable.Map()
+    selectedItem : ''
 
 
-  componentDidMount: ->
-
-    document.addEventListener 'keydown',   @bound 'handleKeyDown'
-
-    element = React.findDOMNode this.refs.list
-    emojify.run element
-
-
-  componentWillUnmount: ->
-
-    document.removeEventListener 'keydown',   @bound 'handleKeyDown'
-
-
-  componentDidUpdate: (prevProps, prevState) ->
-
-    element = React.findDOMNode this.refs.selectedItem
-    emojify.run element
+  updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
 
 
   onItemSelected: (index) ->
@@ -64,28 +44,18 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setCommonListVisibility stateId, no
 
 
-  handleKeyDown: (event) ->
-
-    return  unless @props.visible and event.which is ESC
-
-    kd.utils.stopDOMEvent event
-    @close()
-
-
   renderList: ->
 
-    { items, itemsPerRow, selectedItem } = @props
+    { items, selectedItem } = @props
 
     items.map (item, index) =>
-      isFirstInRow = (index + 1) % itemsPerRow is 1
-      isSelected   = selectedItem is item
+      isSelected = selectedItem is item
 
       <EmojiSelectorItem
         item         = { item }
         index        = { index }
-        isFirstInRow = { isFirstInRow }
         isSelected   = { isSelected }
-        onSelected   = { kd.utils.throttle 300, @bound 'onItemSelected' }
+        onSelected   = { @bound 'onItemSelected' }
         onConfirmed  = { @bound 'onItemConfirmed' }
         key          = { item }
       />
@@ -95,22 +65,27 @@ module.exports = class EmojiSelector extends React.Component
 
     { visible, selectedItem } = @props
 
-    <Dropup
-      className      = "EmojiSelector"
-      visible        = { visible }
-      onOuterClick   = { @bound 'close' }
+    <Dropbox
+      className = 'EmojiSelector'
+      visible   = { visible }
+      onClose   = { @bound 'close' }
+      type      = 'dropup'
+      right     = 0
+      ref       = 'dropbox'
+      resize    = 'custom'
     >
-      <div className="EmojiSelector-list" ref="list">
+      <div className="EmojiSelector-list Dropbox-resizable">
         {@renderList()}
+        <div className='clearfix'></div>
       </div>
       <div className="EmojiSelector-footer">
-        <div className="EmojiSelector-selectedItemIcon" ref="selectedItem">
-          {formatEmojiName selectedItem}
-        </div>
+        <span className="EmojiSelector-selectedItemIcon">
+          <EmojiIcon emoji={selectedItem or 'cow'} />
+        </span>
         <div className="EmojiSelector-selectedItemName">
-          {formatEmojiName selectedItem}
+          {if selectedItem then formatEmojiName selectedItem else 'Choose your emoji!'}
         </div>
         <div className="clearfix" />
       </div>
-    </Dropup>
+    </Dropbox>
 

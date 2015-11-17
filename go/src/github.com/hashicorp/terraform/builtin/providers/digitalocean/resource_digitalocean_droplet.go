@@ -3,12 +3,13 @@ package digitalocean
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/pearkes/digitalocean"
 )
 
 func resourceDigitalOceanDroplet() *schema.Resource {
@@ -39,6 +40,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"size": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				StateFunc: func(val interface{}) string {
+					// DO API V2 size slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 			},
 
 			"status": &schema.Schema{
@@ -95,17 +100,20 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"user_data": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
 }
 
 func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*digitalocean.Client)
+	client := meta.(*godo.Client)
 
 	// Build up our creation options
-	opts := &digitalocean.CreateDroplet{
-		Image:  d.Get("image").(string),
+	opts := &godo.DropletCreateRequest{
+		Image: godo.DropletCreateImage{
+			Slug: d.Get("image").(string),
+		},
 		Name:   d.Get("name").(string),
 		Region: d.Get("region").(string),
 		Size:   d.Get("size").(string),
@@ -116,7 +124,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if attr, ok := d.GetOk("ipv6"); ok {
-		opts.IPV6 = attr.(bool)
+		opts.IPv6 = attr.(bool)
 	}
 
 	if attr, ok := d.GetOk("private_networking"); ok {
@@ -128,25 +136,35 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Get configured ssh_keys
-	ssh_keys := d.Get("ssh_keys.#").(int)
-	if ssh_keys > 0 {
-		opts.SSHKeys = make([]string, 0, ssh_keys)
-		for i := 0; i < ssh_keys; i++ {
+	sshKeys := d.Get("ssh_keys.#").(int)
+	if sshKeys > 0 {
+		opts.SSHKeys = make([]godo.DropletCreateSSHKey, 0, sshKeys)
+		for i := 0; i < sshKeys; i++ {
 			key := fmt.Sprintf("ssh_keys.%d", i)
-			opts.SSHKeys = append(opts.SSHKeys, d.Get(key).(string))
+			sshKeyRef := d.Get(key).(string)
+
+			var sshKey godo.DropletCreateSSHKey
+			// sshKeyRef can be either an ID or a fingerprint
+			if id, err := strconv.Atoi(sshKeyRef); err == nil {
+				sshKey.ID = id
+			} else {
+				sshKey.Fingerprint = sshKeyRef
+			}
+
+			opts.SSHKeys = append(opts.SSHKeys, sshKey)
 		}
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
 
-	id, err := client.CreateDroplet(opts)
+	droplet, _, err := client.Droplets.Create(opts)
 
 	if err != nil {
 		return fmt.Errorf("Error creating droplet: %s", err)
 	}
 
 	// Assign the droplets id
-	d.SetId(id)
+	d.SetId(strconv.Itoa(droplet.ID))
 
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
@@ -160,56 +178,90 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*digitalocean.Client)
+	client := meta.(*godo.Client)
+
+	id, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return fmt.Errorf("invalid droplet id: %v", err)
+	}
 
 	// Retrieve the droplet properties for updating the state
-	droplet, err := client.RetrieveDroplet(d.Id())
+	droplet, resp, err := client.Droplets.Get(id)
 	if err != nil {
+		// check if the droplet no longer exists.
+		if resp.StatusCode == 404 {
+			log.Printf("[WARN] DigitalOcean Droplet (%s) not found", d.Id())
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("Error retrieving droplet: %s", err)
 	}
 
-	if droplet.ImageSlug() != "" {
-		d.Set("image", droplet.ImageSlug())
+	if droplet.Image.Slug != "" {
+		d.Set("image", droplet.Image.Slug)
 	} else {
-		d.Set("image", droplet.ImageId())
+		d.Set("image", droplet.Image.ID)
 	}
 
 	d.Set("name", droplet.Name)
-	d.Set("region", droplet.RegionSlug())
-	d.Set("size", droplet.SizeSlug)
+	d.Set("region", droplet.Region.Slug)
+	d.Set("size", droplet.Size.Slug)
 	d.Set("status", droplet.Status)
-	d.Set("locked", droplet.IsLocked())
+	d.Set("locked", strconv.FormatBool(droplet.Locked))
 
-	if droplet.IPV6Address("public") != "" {
+	if publicIPv6 := findIPv6AddrByType(droplet, "public"); publicIPv6 != "" {
 		d.Set("ipv6", true)
-		d.Set("ipv6_address", droplet.IPV6Address("public"))
-		d.Set("ipv6_address_private", droplet.IPV6Address("private"))
+		d.Set("ipv6_address", publicIPv6)
+		d.Set("ipv6_address_private", findIPv6AddrByType(droplet, "private"))
 	}
 
-	d.Set("ipv4_address", droplet.IPV4Address("public"))
+	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
 
-	if droplet.NetworkingType() == "private" {
+	if privateIPv4 := findIPv4AddrByType(droplet, "private"); privateIPv4 != "" {
 		d.Set("private_networking", true)
-		d.Set("ipv4_address_private", droplet.IPV4Address("private"))
+		d.Set("ipv4_address_private", privateIPv4)
 	}
 
 	// Initialize the connection info
 	d.SetConnInfo(map[string]string{
 		"type": "ssh",
-		"host": droplet.IPV4Address("public"),
+		"host": findIPv4AddrByType(droplet, "public"),
 	})
 
 	return nil
 }
 
+func findIPv6AddrByType(d *godo.Droplet, addrType string) string {
+	for _, addr := range d.Networks.V6 {
+		if addr.Type == addrType {
+			return addr.IPAddress
+		}
+	}
+	return ""
+}
+
+func findIPv4AddrByType(d *godo.Droplet, addrType string) string {
+	for _, addr := range d.Networks.V4 {
+		if addr.Type == addrType {
+			return addr.IPAddress
+		}
+	}
+	return ""
+}
+
 func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*digitalocean.Client)
+	client := meta.(*godo.Client)
+
+	id, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return fmt.Errorf("invalid droplet id: %v", err)
+	}
 
 	if d.HasChange("size") {
 		oldSize, newSize := d.GetChange("size")
 
-		err := client.PowerOff(d.Id())
-
+		_, _, err = client.DropletActions.PowerOff(id)
 		if err != nil && !strings.Contains(err.Error(), "Droplet is already powered off") {
 			return fmt.Errorf(
 				"Error powering off droplet (%s): %s", d.Id(), err)
@@ -223,7 +275,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Resize the droplet
-		err = client.Resize(d.Id(), newSize.(string))
+		_, _, err = client.DropletActions.Resize(id, newSize.(string), true)
 		if err != nil {
 			newErr := powerOnAndWait(d, meta)
 			if newErr != nil {
@@ -248,7 +300,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 				"Error waiting for resize droplet (%s) to finish: %s", d.Id(), err)
 		}
 
-		err = client.PowerOn(d.Id())
+		_, _, err = client.DropletActions.PowerOn(id)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -266,7 +318,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		oldName, newName := d.GetChange("name")
 
 		// Rename the droplet
-		err := client.Rename(d.Id(), newName.(string))
+		_, _, err = client.DropletActions.Rename(id, newName.(string))
 
 		if err != nil {
 			return fmt.Errorf(
@@ -286,7 +338,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 	// As there is no way to disable private networking,
 	// we only check if it needs to be enabled
 	if d.HasChange("private_networking") && d.Get("private_networking").(bool) {
-		err := client.EnablePrivateNetworking(d.Id())
+		_, _, err = client.DropletActions.EnablePrivateNetworking(id)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -303,7 +355,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
 	if d.HasChange("ipv6") && d.Get("ipv6").(bool) {
-		err := client.EnableIPV6s(d.Id())
+		_, _, err = client.DropletActions.EnableIPv6(id)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -324,9 +376,14 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*digitalocean.Client)
+	client := meta.(*godo.Client)
 
-	_, err := WaitForDropletAttribute(
+	id, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return fmt.Errorf("invalid droplet id: %v", err)
+	}
+
+	_, err = WaitForDropletAttribute(
 		d, "false", []string{"", "true"}, "locked", meta)
 
 	if err != nil {
@@ -337,7 +394,7 @@ func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] Deleting droplet: %s", d.Id())
 
 	// Destroy the droplet
-	err = client.DestroyDroplet(d.Id())
+	_, err = client.Droplets.Delete(id)
 
 	// Handle remotely destroyed droplets
 	if err != nil && strings.Contains(err.Error(), "404 Not Found") {
@@ -380,9 +437,14 @@ func WaitForDropletAttribute(
 // cleaner and more efficient
 func newDropletStateRefreshFunc(
 	d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*digitalocean.Client)
+	client := meta.(*godo.Client)
 	return func() (interface{}, string, error) {
-		err := resourceDigitalOceanDropletRead(d, meta)
+		id, err := strconv.Atoi(d.Id())
+		if err != nil {
+			return nil, "", err
+		}
+
+		err = resourceDigitalOceanDropletRead(d, meta)
 		if err != nil {
 			return nil, "", err
 		}
@@ -398,7 +460,7 @@ func newDropletStateRefreshFunc(
 		// See if we can access our attribute
 		if attr, ok := d.GetOk(attribute); ok {
 			// Retrieve the droplet properties
-			droplet, err := client.RetrieveDroplet(d.Id())
+			droplet, _, err := client.Droplets.Get(id)
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 			}
@@ -412,8 +474,13 @@ func newDropletStateRefreshFunc(
 
 // Powers on the droplet and waits for it to be active
 func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*digitalocean.Client)
-	err := client.PowerOn(d.Id())
+	id, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return fmt.Errorf("invalid droplet id: %v", err)
+	}
+
+	client := meta.(*godo.Client)
+	_, _, err = client.DropletActions.PowerOn(id)
 	if err != nil {
 		return err
 	}

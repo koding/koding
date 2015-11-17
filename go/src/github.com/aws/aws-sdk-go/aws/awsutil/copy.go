@@ -57,25 +57,30 @@ func rcopy(dst, src reflect.Value, root bool) {
 			}
 		}
 	case reflect.Struct:
-		if !root {
-			dst.Set(reflect.New(src.Type()).Elem())
-		}
-
 		t := dst.Type()
 		for i := 0; i < t.NumField(); i++ {
 			name := t.Field(i).Name
-			srcval := src.FieldByName(name)
-			if srcval.IsValid() {
-				rcopy(dst.FieldByName(name), srcval, false)
+			srcVal := src.FieldByName(name)
+			dstVal := dst.FieldByName(name)
+			if srcVal.IsValid() && dstVal.CanSet() {
+				rcopy(dstVal, srcVal, false)
 			}
 		}
 	case reflect.Slice:
+		if src.IsNil() {
+			break
+		}
+
 		s := reflect.MakeSlice(src.Type(), src.Len(), src.Cap())
 		dst.Set(s)
 		for i := 0; i < src.Len(); i++ {
 			rcopy(dst.Index(i), src.Index(i), false)
 		}
 	case reflect.Map:
+		if src.IsNil() {
+			break
+		}
+
 		s := reflect.MakeMap(src.Type())
 		dst.Set(s)
 		for _, k := range src.MapKeys() {

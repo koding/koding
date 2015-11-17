@@ -94,7 +94,7 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 	}
 }
 
-func (m *Machine) isKlientReady() bool {
+func (m *Machine) IsKlientReady() bool {
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
 	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
 	if err != nil {
@@ -115,7 +115,7 @@ func (m *Machine) isKlientReady() bool {
 // markAsNotInitialized marks the machine as NotInitialized by cleaning up all
 // necessary fields and marking the VM as notinitialized so the User can build
 // it again.
-func (m *Machine) markAsNotInitialized() error {
+func (m *Machine) MarkAsNotInitialized() error {
 	m.Log.Warning("Instance is not available. Marking it as NotInitialized")
 	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(

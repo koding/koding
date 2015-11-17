@@ -63,3 +63,23 @@ module.exports =
       .end()
 
 
+  compressFolderZip: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    folderName = helpers.createFolder(browser, user)
+    ideHelpers.compressFileFolder(browser, user, 'folder', folderName, 'zip')
+
+    browser.end()
+
+
+  compressFolderTarGz: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    folderName = helpers.createFolder(browser, user)
+    ideHelpers.compressFileFolder(browser, user, 'folder', folderName, 'targz')
+
+    browser.end()

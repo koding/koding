@@ -10,11 +10,13 @@ koding                = require './bongo'
 express               = require 'express'
 helmet                = require 'helmet'
 bodyParser            = require 'body-parser'
+metrics               = require '../../datadog'
 usertracker           = require '../../../workers/usertracker'
 app                   = express()
 webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require './humanstxt'
+csrf                  = require './csrf'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -41,6 +43,7 @@ do ->
   app.use helmet.ienoopen()
   app.use helmet.contentTypeOptions()
   app.use helmet.hidePoweredBy()
+  app.use metrics.send
 
 
 # handle basic auth
@@ -57,8 +60,8 @@ app.use require './setsession'
 
 # temp endpoints @cihangir will reorganize these - SY
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
-app.post '/-/teams/create'                       , require './handlers/createteam'
-app.post '/-/teams/join'                         , require './handlers/jointeam'
+app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
+app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
 app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
 app.get  '/-/teams/check-team-invitation'        , require './handlers/teaminvitationchecker'
@@ -69,10 +72,13 @@ app.all  '/-/team/:name'                         , require './handlers/getteam'
 app.all  '/-/profile/:email'                     , require './handlers/getprofile'
 # temp endpoints ends
 
+app.post '/-/analytics/track'                    , require './handlers/analytics/track'
+app.post '/-/analytics/page'                     , require './handlers/analytics/page'
+
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-app.post '/-/video-chat/session'                 , require './handlers/videosession'
+# creates a video session for the given channelId
+app.post '/-/video-chat/session'                 , csrf,   require './handlers/videosession'
 app.post '/-/video-chat/token'                   , require './handlers/videotoken'
-app.get  '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handlers/kitesubscription'
 app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
 app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
@@ -85,13 +91,13 @@ app.post '/-/validate/username'                  , require './handlers/validateu
 app.post '/-/validate/email'                     , require './handlers/validateemail'
 app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
-app.post '/:name?/Register'                      , require './handlers/register'
-app.post '/:name?/Login'                         , require './handlers/login'
+app.post '/:name?/Register'                      , csrf,   require './handlers/register'
+app.post '/:name?/Login'                         , csrf,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , require './handlers/impersonate'
-app.post '/:name?/Recover'                       , require './handlers/recover'
-app.post '/:name?/Reset'                         , require './handlers/reset'
+app.post '/:name?/Recover'                       , csrf,   require './handlers/recover'
+app.post '/:name?/Reset'                         , csrf,   require './handlers/reset'
 app.post '/:name?/Optout'                        , require './handlers/optout'
-app.all  '/:name?/Logout'                        , require './handlers/logout'
+app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
 app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
@@ -118,33 +124,36 @@ app.get  '/-/payments/paypal/cancel'             , require './paypal_cancel'
 app.get  '/-/payments/customers'                 , require './customers'
 app.post '/-/payments/paypal/webhook'            , require './paypal_webhook'
 app.post '/-/emails/subscribe'                   , (req, res) -> res.status(501).send 'ok'
-app.post '/Hackathon/Apply'                      , require './handlers/hackathonapply'
+app.post '/Hackathon2014/Apply'                  , require './handlers/hackathonapply'
 # should deprecate those /Validates, they don't look like api endpoints
 app.post '/Gravatar'                             , require './handlers/gravatar'
 app.post '/-/gravatar'                           , require './handlers/gravatar'
-app.get  '/Hackathon/:section?'                  , require './handlers/hackathon'
+app.get  '/Hackathon2014/:section?'              , require './handlers/hackathon'
 app.get  '/-/confirm'                            , require './handlers/confirm'
 app.get  '/:name?/Develop/?*'                    , (req, res) -> res.redirect 301, '/'
 app.all  '/:name/:section?/:slug?'               , require './handlers/main.coffee'
 app.get  '/'                                     , require './handlers/root.coffee'
 app.get  '*'                                     , require './handlers/rest.coffee'
 
-# start webserver
-app.listen webPort
-console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+# once bongo is ready we can start listening
+koding.once 'dbClientReady', ->
 
-# start user tracking
-usertracker.start()
+  # start webserver
+  app.listen webPort
+  console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
 
-# init rabbitmq client for Email to use to queue emails
-mqClient = require './amqp'
-Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
-Tracker.setMqClient mqClient
+  # start user tracking
+  usertracker.start()
 
-# NOTE: in the event of errors, send 500 to the client rather
-#       than the stack trace.
-app.use (err, req, res, next) ->
-  console.error 'request error'
-  console.error err
-  console.error err.stack
-  res.status(500).send error_500()
+  # init rabbitmq client for Email to use to queue emails
+  mqClient = require './amqp'
+  Tracker    = require '../../../workers/social/lib/social/models/tracker.coffee'
+  Tracker.setMqClient mqClient
+
+  # NOTE: in the event of errors, send 500 to the client rather
+  #       than the stack trace.
+  app.use (err, req, res, next) ->
+    console.error 'request error'
+    console.error err
+    console.error err.stack
+    res.status(500).send error_500()

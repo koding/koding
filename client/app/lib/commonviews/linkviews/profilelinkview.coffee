@@ -4,6 +4,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 AvatarTooltipView = require '../avatarviews/avatartooltipview'
 JView = require '../../jview'
 LinkView = require './linkview'
+isKoding = require 'app/util/isKoding'
 
 
 module.exports = class ProfileLinkView extends LinkView
@@ -43,10 +44,16 @@ module.exports = class ProfileLinkView extends LinkView
 
 
   updateHref: ->
-    { integration } = @getOptions()
+    { payload } = @getOptions()
     nickname = @getData().profile?.nickname
-    href = if integration then "/Admin/Integrations/Configure/#{integration.id}"
-    else if nickname then "/#{nickname}"
+
+    href = if payload?.channelIntegrationId
+      "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
+    else
+      if isKoding() and nickname
+      then "/#{nickname}"
+      else "/#"
+
 
     @setAttribute "href", href  if href
 
@@ -62,11 +69,11 @@ module.exports = class ProfileLinkView extends LinkView
     super fields
 
   pistachio:->
-    { integration } = @getOptions()
+    {payload} = @getOptions()
     {profile} = @getData()
     JView::pistachio.call this,
-      if integration
-      then "#{integration.title}"
+      if payload?.integrationTitle
+      then "#{payload.integrationTitle}"
       else if profile.firstName is "" and profile.lastName is ""
       then "{{#(profile.nickname)}} {{> @troll}}"
       else "{{#(profile.firstName)+' '+#(profile.lastName)}} {{> @troll}}"

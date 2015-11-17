@@ -3,9 +3,7 @@ package google
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -27,8 +25,6 @@ func TestAccStorage_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudStorageBucketExists(
 						"google_storage_bucket.bucket", &bucketName),
-					resource.TestCheckResourceAttr(
-						"google_storage_bucket.bucket", "predefined_acl", "projectPrivate"),
 					resource.TestCheckResourceAttr(
 						"google_storage_bucket.bucket", "location", "US"),
 					resource.TestCheckResourceAttr(
@@ -53,8 +49,6 @@ func TestAccStorageCustomAttributes(t *testing.T) {
 					testAccCheckCloudStorageBucketExists(
 						"google_storage_bucket.bucket", &bucketName),
 					resource.TestCheckResourceAttr(
-						"google_storage_bucket.bucket", "predefined_acl", "publicReadWrite"),
-					resource.TestCheckResourceAttr(
 						"google_storage_bucket.bucket", "location", "EU"),
 					resource.TestCheckResourceAttr(
 						"google_storage_bucket.bucket", "force_destroy", "true"),
@@ -77,8 +71,6 @@ func TestAccStorageBucketUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudStorageBucketExists(
 						"google_storage_bucket.bucket", &bucketName),
-					resource.TestCheckResourceAttr(
-						"google_storage_bucket.bucket", "predefined_acl", "projectPrivate"),
 					resource.TestCheckResourceAttr(
 						"google_storage_bucket.bucket", "location", "US"),
 					resource.TestCheckResourceAttr(
@@ -213,7 +205,7 @@ func testAccGoogleStorageDestroy(s *terraform.State) error {
 	return nil
 }
 
-var randInt = rand.New(rand.NewSource(time.Now().UnixNano())).Int()
+var randInt = genRandInt()
 
 var testGoogleStorageBucketsReaderDefaults = fmt.Sprintf(`
 resource "google_storage_bucket" "bucket" {

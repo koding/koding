@@ -11,18 +11,27 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
 
+type retryer struct {
+	client.DefaultRetryer
+}
+
+func (d retryer) RetryRules(r *request.Request) time.Duration {
+	delay := time.Duration(math.Pow(2, float64(r.RetryCount))) * 50
+	return delay * time.Millisecond
+}
+
 func init() {
-	initService = func(s *aws.Service) {
-		s.DefaultMaxRetries = 10
-		s.RetryRules = func(r *aws.Request) time.Duration {
-			delay := time.Duration(math.Pow(2, float64(r.RetryCount))) * 50
-			return delay * time.Millisecond
+	initClient = func(c *client.Client) {
+		if c.Config.MaxRetries == nil || aws.IntValue(c.Config.MaxRetries) == aws.UseServiceDefaultRetries {
+			c.Retryer = client.DefaultRetryer{NumMaxRetries: 10}
 		}
 
-		s.Handlers.Build.PushBack(disableCompression)
-		s.Handlers.Unmarshal.PushFront(validateCRC32)
+		c.Handlers.Build.PushBack(disableCompression)
+		c.Handlers.Unmarshal.PushFront(validateCRC32)
 	}
 }
 
@@ -37,17 +46,17 @@ func drainBody(b io.ReadCloser) (out *bytes.Buffer, err error) {
 	return &buf, nil
 }
 
-func disableCompression(r *aws.Request) {
+func disableCompression(r *request.Request) {
 	r.HTTPRequest.Header.Set("Accept-Encoding", "identity")
 }
 
-func validateCRC32(r *aws.Request) {
+func validateCRC32(r *request.Request) {
 	if r.Error != nil {
 		return // already have an error, no need to verify CRC
 	}
 
 	// Checksum validation is off, skip
-	if r.Service.Config.DisableComputeChecksums {
+	if aws.BoolValue(r.Config.DisableComputeChecksums) {
 		return
 	}
 
@@ -75,7 +84,7 @@ func validateCRC32(r *aws.Request) {
 
 	if crc != uint32(expected) {
 		// CRC does not match, set a retryable error
-		r.Retryable.Set(true)
+		r.Retryable = aws.Bool(true)
 		r.Error = awserr.New("CRC32CheckFailed", "CRC32 integrity check failed", nil)
 	}
 }

@@ -1,6 +1,6 @@
 { expect } = require 'chai'
 
-Reactor = require 'app/flux/reactor'
+Reactor = require 'app/flux/base/reactor'
 
 ChannelsStore = require '../stores/channelsstore'
 actionTypes = require '../actions/actiontypes'
@@ -53,24 +53,11 @@ describe 'ChannelsStore', ->
 
       storeState = @reactor.evaluateToJS ['ChannelsStore']
 
+      mockPublicChannel.isParticipant = yes
       expect(storeState.foo).to.eql mockPublicChannel
 
 
   describe 'handleLoadChannelListSuccess', ->
-
-    it 'loads a list of channels at a time', ->
-
-       channel1 = { id : 'koding', name : 'koding' }
-       channel2 = { id : 'qwerty', name : 'qwerty' }
-       channels = [ channel1, channel2 ]
-
-       @reactor.dispatch actionTypes.LOAD_CHANNELS_SUCCESS, { channels }
-
-       storeState = @reactor.evaluateToJS ['ChannelsStore']
-
-       expect(storeState.koding).to.eql channel1
-       expect(storeState.qwerty).to.eql channel2
-
 
     it 'loads a list of popular channels', ->
 
@@ -91,9 +78,8 @@ describe 'ChannelsStore', ->
     it 'follows a channel', ->
 
        channel  = { id : 'koding', name : 'koding', isParticipant: no }
-       channels = [ channel ]
 
-       @reactor.dispatch actionTypes.LOAD_CHANNELS_SUCCESS, { channels }
+       @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, { channel }
        @reactor.dispatch actionTypes.FOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
 
        storeState = @reactor.evaluate ['ChannelsStore']
@@ -106,9 +92,8 @@ describe 'ChannelsStore', ->
     it 'unfollows a channel', ->
 
        channel  = { id : 'koding', name : 'koding', isParticipant: yes }
-       channels = [ channel ]
 
-       @reactor.dispatch actionTypes.LOAD_CHANNELS_SUCCESS, { channels }
+       @reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, { channel }
        @reactor.dispatch actionTypes.UNFOLLOW_CHANNEL_SUCCESS, { channelId: 'koding' }
 
        storeState = @reactor.evaluate ['ChannelsStore']

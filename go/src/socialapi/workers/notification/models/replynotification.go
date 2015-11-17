@@ -55,7 +55,7 @@ func (n *ReplyNotification) FetchActors(naList []NotificationActivity) (*ActorCo
 	}
 
 	if notification.UnsubscribedAt.Equal(ZeroDate()) {
-		notification.UnsubscribedAt = time.Now()
+		notification.UnsubscribedAt = time.Now().UTC()
 	}
 
 	actors := make([]int64, 0)

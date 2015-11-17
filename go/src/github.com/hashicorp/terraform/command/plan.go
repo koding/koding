@@ -27,6 +27,8 @@ func (c *PlanCommand) Run(args []string) int {
 	cmdFlags.BoolVar(&refresh, "refresh", true, "refresh")
 	c.addModuleDepthFlag(cmdFlags, &moduleDepth)
 	cmdFlags.StringVar(&outPath, "out", "", "path")
+	cmdFlags.IntVar(
+		&c.Meta.parallelism, "parallelism", DefaultParallelism, "parallelism")
 	cmdFlags.StringVar(&c.Meta.statePath, "state", DefaultStateFilename, "path")
 	cmdFlags.StringVar(&c.Meta.backupPath, "backup", "", "path")
 	cmdFlags.BoolVar(&detailed, "detailed-exitcode", false, "detailed-exitcode")
@@ -53,20 +55,26 @@ func (c *PlanCommand) Run(args []string) int {
 		}
 	}
 
+	countHook := new(CountHook)
+	c.Meta.extraHooks = []terraform.Hook{countHook}
+
 	ctx, _, err := c.Context(contextOpts{
-		Destroy:   destroy,
-		Path:      path,
-		StatePath: c.Meta.statePath,
+		Destroy:     destroy,
+		Path:        path,
+		StatePath:   c.Meta.statePath,
+		Parallelism: c.Meta.parallelism,
 	})
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return 1
 	}
-	if !validateContext(ctx, c.Ui) {
-		return 1
-	}
+
 	if err := ctx.Input(c.InputMode()); err != nil {
 		c.Ui.Error(fmt.Sprintf("Error configuring: %s", err))
+		return 1
+	}
+
+	if !validateContext(ctx, c.Ui) {
 		return 1
 	}
 
@@ -130,6 +138,13 @@ func (c *PlanCommand) Run(args []string) int {
 		ModuleDepth: moduleDepth,
 	}))
 
+	c.Ui.Output(c.Colorize().Color(fmt.Sprintf(
+		"[reset][bold]Plan:[reset] "+
+			"%d to add, %d to change, %d to destroy.",
+		countHook.ToAdd+countHook.ToRemoveAndAdd,
+		countHook.ToChange,
+		countHook.ToRemove+countHook.ToRemoveAndAdd)))
+
 	if detailed {
 		return 2
 	}
@@ -172,6 +187,8 @@ Options:
 
   -out=path           Write a plan file to the given path. This can be used as
                       input to the "apply" command.
+
+  -parallelism=n      Limit the number of concurrent operations. Defaults to 10.
 
   -refresh=true       Update state prior to checking for differences.
 

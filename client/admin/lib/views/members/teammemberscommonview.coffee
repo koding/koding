@@ -7,6 +7,7 @@ MemberItemView       = require './memberitemview'
 KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 KDHitEnterInputView  = kd.HitEnterInputView
+remote               = require('app/remote').getInstance()
 
 
 module.exports = class TeamMembersCommonView extends KDView
@@ -53,6 +54,15 @@ module.exports = class TeamMembersCommonView extends KDView
       placeholder : @getOptions().searchInputPlaceholder
       callback    : @bound 'search'
 
+    @searchContainer.addSubView @searchClear = new KDCustomHTMLView
+      tagName     : 'span'
+      partial     : 'clear'
+      cssClass    : 'clear-search hidden'
+      click       : =>
+        @searchInput.setValue ''
+        @search()
+        @searchClear.hide()
+
 
   createListController: ->
 
@@ -89,21 +99,21 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @isFetching = yes
 
-    group    = @getData()
-    method   = @getOption 'fetcherMethod'
-    options  =
-      limit  : @getOptions().itemLimit
-      sort   : timestamp: -1 # timestamp is at relationship collection
-      skip   : @skip
+    { fetcherMethod, itemLimit } = @getOptions()
+
+    group   = @getData()
+    options =
+      limit : itemLimit
+      sort  : timestamp: -1 # timestamp is at relationship collection
+      skip  : @skip
 
     # fetch members as jAccount
-    group[method] {}, options, (err, members) =>
+    group[fetcherMethod] {}, options, (err, members) =>
 
       return @handleError err  if err
 
-      @fetchUserRoles members, (members) =>
-        @listMembers members
-        @isFetching = no
+      @listMembers members
+      @isFetching = no
 
 
   fetchUserRoles: (members, callback) ->
@@ -140,54 +150,103 @@ module.exports = class TeamMembersCommonView extends KDView
 
   handleError: (err) ->
 
-    @listController.lazyLoader.hide()
-    kd.warn err
+    @page = 0
+
+    if err?.message?.indexOf('No account found') > -1
+      @search yes
+    else
+      @listController.lazyLoader.hide()
+      kd.warn err
 
 
   listMembers: (members) ->
 
-    unless members.length
+    if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()
-      return @listController.noItemView.show()
+      @listController.noItemView.show()
+      return
 
     @skip += members.length
 
-    @fetchUserRoles members, (members) =>
-      for member in members
-        member.loggedInUserRoles = @loggedInUserRoles # FIXME
-        @listController.addItem member
+    if @getOptions().memberType is 'Blocked'
+      @listController.addItem member  for member in members
+      @calculateAndFetchMoreIfNeeded()  if members.length
+    else
+      @fetchUserRoles members, (members) =>
+        members.forEach (member) =>
+          member.loggedInUserRoles = @loggedInUserRoles # FIXME
+          item = @listController.addItem member
+
+        @calculateAndFetchMoreIfNeeded()  if members.length
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
 
 
-  search: ->
+  calculateAndFetchMoreIfNeeded: ->
+
+    listCtrl = @listController
+
+    viewHeight = listCtrl.getView().getHeight()
+    listHeight = listCtrl.getListView().getHeight()
+
+    if listHeight <= viewHeight
+      listCtrl.lazyLoader.show()
+      @fetchMembers yes
+
+
+  search: (useSearchMembersMethod = no) ->
 
     query = @searchInput.getValue()
-
 
     if query is ''
       @page = 0
       @skip = 0
+      @searchClear.hide()
       @resetListItems()
       return @fetchMembers()
 
     @page      = 0  if query isnt @lastQuery
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
+    group      = @getData()
 
-    kd.singletons.search.searchAccounts query, options
-      .then (accounts) =>
-        @resetListItems no  if @page is 0
-        @listMembers accounts
-        @isFetching = no
-      .catch (err) =>
-        @page = 0
-        @handleError err
+    @searchClear.show()
+
+    if useSearchMembersMethod is yes # explicit check for truthy value
+      group.searchMembers query, {}, (err, accounts) =>
+        if accounts.length
+          @handleSearchResult accounts
+        else
+          @handleError err
+    else
+      kd.singletons.search.searchAccounts query, options
+        .then (accounts) => @handleSearchResult accounts
+        .catch (err) =>
+          @handleError err
+
+
+  handleSearchResult: (accounts) ->
+
+    usernames = (profile.nickname for { profile } in accounts)
+
+    # Send a request to back-end for user emails.
+    remote.api.JAccount.fetchEmailsByUsername usernames, (err, emails) =>
+
+      @resetListItems no  if err
+
+      for account in accounts
+        { profile }   = account
+        profile.email = emails[profile.nickname]
+
+      @resetListItems no  if @page is 0
+      @listMembers accounts
+      @isFetching = no
 
 
   resetListItems: (showLoader = yes) ->
 
+    @skip = 0
     @listController.removeAllItems()
     @listController.lazyLoader.show()
 

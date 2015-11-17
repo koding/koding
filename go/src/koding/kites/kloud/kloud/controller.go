@@ -89,8 +89,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		}()
 	}
 
-	k.Log.Debug("args %+v", args)
-
 	provider, ok := k.providers[args.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
@@ -111,6 +109,9 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	if k.ContextCreator != nil {
 		ctx = k.ContextCreator(ctx)
 	}
+
+	// old events are not needed anymore, so we're just going to remove them.
+	k.cleanupEventers(args.MachineId)
 
 	// each method has his own unique eventer
 	eventId := r.Method + "-" + args.MachineId
@@ -258,4 +259,12 @@ func methodIn(method string, methods ...string) bool {
 		}
 	}
 	return false
+}
+
+// cleanupEventers cleans all other eventers for the given id
+func (k *Kloud) cleanupEventers(id string) {
+	for method := range states {
+		eventId := method + "-" + id
+		delete(k.Eventers, eventId)
+	}
 }

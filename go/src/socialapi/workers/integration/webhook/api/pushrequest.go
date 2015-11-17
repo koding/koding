@@ -4,7 +4,7 @@ import (
 	"socialapi/workers/integration/webhook"
 	"strings"
 
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 // PushRequest is used as input data for /push endpoint
@@ -31,6 +31,6 @@ func (r *PushRequest) validate() error {
 	return nil
 }
 
-func (r *PushRequest) verify() (*webhook.ChannelIntegration, error) {
+func (r *PushRequest) fetchChannelIntegration() (*webhook.ChannelIntegration, error) {
 	return webhook.Cache.ChannelIntegration.ByToken(r.Token)
 }

@@ -6,6 +6,18 @@ import (
 	"socialapi/config"
 	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
+	"socialapi/workers/api/modules/account"
+	"socialapi/workers/api/modules/channel"
+	"socialapi/workers/api/modules/client"
+	"socialapi/workers/api/modules/interaction"
+	"socialapi/workers/api/modules/message"
+	"socialapi/workers/api/modules/messagelist"
+	"socialapi/workers/api/modules/notificationsetting"
+	"socialapi/workers/api/modules/participant"
+	"socialapi/workers/api/modules/pinnedactivity"
+	"socialapi/workers/api/modules/popular"
+	"socialapi/workers/api/modules/privatechannel"
+	"socialapi/workers/api/modules/reply"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
 	mailapi "socialapi/workers/email/mailparse/api"
@@ -55,6 +67,19 @@ func main() {
 	sitemapapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
+
+	account.AddHandlers(m)
+	channel.AddHandlers(m)
+	client.AddHandlers(m)
+	interaction.AddHandlers(m)
+	message.AddHandlers(m)
+	messagelist.AddHandlers(m)
+	participant.AddHandlers(m)
+	pinnedactivity.AddHandlers(m)
+	popular.AddHandlers(m)
+	privatechannel.AddHandlers(m)
+	reply.AddHandlers(m)
+	notificationsetting.AddHandlers(m)
 
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)

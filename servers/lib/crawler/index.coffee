@@ -127,6 +127,25 @@ getPage = (query) ->
   page   or = 1
 
 
+handleError = (err, res, content) ->
+  if err
+    console.error err
+
+    if err.error is 'moved_permanently'
+      desc = try JSON.parse err.description
+      location = '/Activity/Public'
+
+      if desc.typeConstant isnt 'group'
+        location = "/Activity/Topic/#{desc.rootName}"
+      return res.redirect 301, location
+
+    return res.status(404).send error_404()  if err.error is 'koding.NotFoundError'
+    return res.status(500).send error_500()
+  unless content
+    console.error 'not found'
+    return res.status(404).send error_404()
+
+
 module.exports =
   crawl: (bongo, { req, res, slug, isProfile }) ->
     { Base, race, dash, daisy } = require 'bongo'
@@ -137,32 +156,14 @@ module.exports =
     if name is 'Activity' and not section
       return res.redirect 301, "/#{name}/Public"
 
-    handleError = (err, content) ->
-      if err
-        console.error err
-
-        if err.error is 'moved_permanently'
-          desc = try JSON.parse err.description
-          location = '/Activity/Public'
-
-          if desc.typeConstant isnt 'group'
-            location = "/Activity/Topic/#{desc.rootName}"
-          return res.redirect 301, location
-
-        return res.status(404).send error_404()  if err.error is 'koding.NotFoundError'
-        return res.status(500).send error_500()
-      unless content
-        console.error 'not found'
-        return res.status(404).send error_404()
-
     { models } = bongo
     { generateFakeClient }   = require '../server/client'
     generateFakeClient req, res, (err, client) ->
-      return handleError err  if err or not client
+      return handleError err, res  if err or not client
 
       { query } = req
       page = getPage query
       options = { section, entrySlug, client, page, isProfile, name }
       fetchContent models, options, (err, content) ->
-        return handleError err, content  if err or not content
+        return handleError err, res, content  if err or not content
         return res.status(200).send content

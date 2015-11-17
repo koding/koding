@@ -69,7 +69,34 @@ module.exports = class AceView extends JView
 
     @setViewListeners()
 
+
+  forEachPaneByFile: (path, callback) ->
+
+    { handles, panes } = @getDelegate().tabView
+
+    for pane in panes when pane.getData()?.path is path
+      callback pane
+
+
+  showModifiedIconOnTabHandle: ->
+
+    { path } = @ace.getData()
+    @forEachPaneByFile path, (pane) -> pane.tabHandle.setClass 'modified'
+
+
+  removeModifiedFromTab: (path) ->
+
+    @forEachPaneByFile path, (pane) ->
+      { tabHandle } = pane
+      tabHandle.setClass 'saved'
+
+      kd.utils.wait 522, ->
+        tabHandle.unsetClass 'modified'
+        tabHandle.unsetClass 'saved'
+
+
   setViewListeners:->
+
     hasBottomBar = @getOptions().createBottomBar
 
     @ace.ready @advancedSettings.bound 'enable'
@@ -104,6 +131,8 @@ module.exports = class AceView extends JView
       @getDelegate().quitOptions =
         message : 'You have unsaved changes. You will lose them if you close this tab.'
         title   : 'Do you want to close this tab?'
+
+    @ace.on 'RemoveModifiedFromTab', @bound 'removeModifiedFromTab'
 
     @ace.on 'FileContentRestored', =>
       @ace.contentChanged = no

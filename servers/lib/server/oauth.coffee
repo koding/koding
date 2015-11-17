@@ -2,6 +2,7 @@ koding  = require './bongo'
 {
   getClientId
   handleClientIdNotFound
+  setSessionCookie
 }       = require './helpers'
 
 module.exports = (req, res) ->
@@ -27,6 +28,7 @@ module.exports = (req, res) ->
         return res.status(400).send err.message
 
       { replacementToken } = result
-      res.cookie 'clientId', replacementToken  if replacementToken
+
+      setSessionCookie res, replacementToken  if replacementToken
 
       res.status(200).send result

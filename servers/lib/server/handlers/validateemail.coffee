@@ -1,49 +1,56 @@
 koding          = require './../bongo'
 { getClientId } = require './../helpers'
 
+
+badRequest = (res, message = 'Bad request') -> res.status(400).send message
+
+
+generateCheckEmailCallback = (res, email, JUser) ->
+
+  return (err, info) ->
+    { isValid : isEmail } = JUser.validateAt 'email', email, yes
+
+    return badRequest res  unless isEmail
+
+    if err?.name is 'VERIFICATION_CODE_NEEDED'
+      return badRequest res, 'TwoFactor auth Enabled'
+
+    else if err?.message is 'Access denied!'
+      return badRequest res
+
+    else if err and isEmail
+      JUser.emailAvailable email, (err_, response) ->
+        return badRequest res  if err_
+
+        return if response
+        then res.status(200).send response
+        else badRequest res, 'Email is taken!'
+
+      return
+
+    unless info
+      return res.status(500).send 'An error occurred'
+
+    res.cookie 'clientId', info.replacementToken, { path : '/' }
+    return res.status(200).send 'User is logged in!'
+
+
 module.exports = (req, res) ->
 
-  { JUser }           = koding.models
+  { JUser }                   = koding.models
   { password, email, tfcode } = req.body
 
-  badRequest = (message = 'Bad request') ->
-    res.status(400).send message
-
-  return badRequest()  unless email
+  return badRequest res  unless email
 
   if (email = email.trim()).length is 0
-    return badRequest()
+    return badRequest res
 
   { password, redirect } = req.body
 
   clientId =  getClientId req, res
 
-  if clientId
+  return badRequest res  unless clientId
 
-    JUser.login clientId, { username : email, password, tfcode }, (err, info) ->
+  checkEmail = generateCheckEmailCallback res, email, JUser
+  JUser.login clientId, { username : email, password, tfcode }, checkEmail
 
-      { isValid : isEmail } = JUser.validateAt 'email', email, yes
-
-      return badRequest()  unless isEmail
-
-      if err?.name is 'VERIFICATION_CODE_NEEDED'
-        return badRequest 'TwoFactor auth Enabled'
-
-      else if err?.message is 'Access denied!'
-        return badRequest()
-
-      else if err and isEmail
-        JUser.emailAvailable email, (err_, response) ->
-          return badRequest()  if err_
-
-          return if response
-          then res.status(200).send response
-          else badRequest 'Email is taken!'
-
-        return
-
-      unless info
-        return res.status(500).send 'An error occurred'
-
-      res.cookie 'clientId', info.replacementToken, { path : '/' }
-      return res.status(200).send 'User is logged in!'

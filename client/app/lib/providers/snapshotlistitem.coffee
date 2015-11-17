@@ -215,6 +215,7 @@ module.exports = class SnapshotListItem extends kd.ListItemView
   setLabel: (label) ->
 
     @labelView.updatePartial label
+    @labelView.setClass kd.utils.slugify label
     @editInput.setValue label
 
 

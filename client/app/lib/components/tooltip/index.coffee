@@ -5,25 +5,30 @@ dateFormat   = require 'dateformat'
 module.exports = class Tooltip extends React.Component
 
   @propTypes =
-    text : React.PropTypes.string.isRequired
+    text     : React.PropTypes.string.isRequired
 
 
   @defaultProps =
-    tooltipY: 0
-    tooltipX: 0
+    tooltipY : 0
+    tooltipX : 0
+    position : 'top'
 
 
-  componentDidMount: ->
+  renderChildren: ->
 
-    TooltipWrapperDOMNode                  = @refs.TooltipWrapper.getDOMNode()
-    TooltipWrapperDOMNode.style.top        = "#{@props.tooltipY}px"
-    TooltipWrapperDOMNode.style.left       = "#{@props.tooltipX}px"
-    TooltipWrapperDOMNode.style.marginLeft = "#{-TooltipWrapperDOMNode.offsetWidth / 2}px"
+    if @props.text
+      return <span>{ @props.text }</span>
+
+    return @props.children
 
 
   render: ->
 
-    <div className='Tooltip-wrapper' ref='TooltipWrapper'>
-      <span>{ @props.text }</span>
+    style = {}
+    style['top'] = @props.tooltipY  if @props.tooltipY
+    style['left'] = @props.tooltipX  if @props.tooltipX
+
+    <div className={kd.utils.curry 'Tooltip-wrapper', @props.position} style={style}>
+      {@renderChildren()}
     </div>
 

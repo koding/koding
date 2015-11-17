@@ -20,7 +20,7 @@ import (
 	"github.com/koding/integration/helpers"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 type Handler struct {
@@ -46,7 +46,8 @@ func NewHandler(conf *config.Config, redis *redis.RedisSession, l logging.Logger
 	}, nil
 }
 
-// Push fetches the channel integration with given token, and pushes messages to channels defined in related channel integrations
+// Push fetches the channel integration with given token, and pushes message to
+// channel defined in related channel integration
 func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, http.Header, interface{}, error) {
 	val := u.Query().Get("token")
 	r.Token = val
@@ -56,7 +57,7 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 		return response.NewInvalidRequest(err)
 	}
 
-	channelIntegration, err := r.verify()
+	channelIntegration, err := r.fetchChannelIntegration()
 	if err == webhook.ErrChannelIntegrationNotFound {
 		return response.NewAccessDenied(ErrTokenNotValid)
 	}
@@ -66,19 +67,20 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 	}
 
 	if channelIntegration.IsDisabled {
+		// there is 10 sec posibility that integration would be disabled but we
+		// can still process the incoming messages
 		return response.NewOK(response.NewSuccessResponse(nil))
 	}
 
 	r.Message.ChannelIntegrationId = channelIntegration.Id
 	r.Message.ChannelId = channelIntegration.ChannelId
 
-	if err := h.bot.SendMessage(&r.Message); err != nil {
+	// we can save the message to db now
+	if err := h.bot.SaveMessage(&r.Message); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	res := response.NewSuccessResponse(nil)
-
-	return response.NewOK(res)
+	return response.NewOK(response.NewSuccessResponse(nil))
 }
 
 func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
@@ -154,6 +156,7 @@ func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interfa
 	return response.NewOK(response.NewSuccessResponse(resp))
 }
 
+// List fetches the integrations from db
 func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	i := webhook.NewIntegration()
 	q := &request.Query{
@@ -170,6 +173,7 @@ func (h *Handler) List(u *url.URL, header http.Header, _ interface{}) (int, http
 	return response.NewOK(response.NewSuccessResponse(ints))
 }
 
+// Get returns one integration specified by the query parameter name
 func (h *Handler) Get(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	name := u.Query().Get("name")
 	i := webhook.NewIntegration()
@@ -189,6 +193,7 @@ func (h *Handler) Get(u *url.URL, header http.Header, _ interface{}) (int, http.
 	return response.NewOK(response.NewSuccessResponse(i))
 }
 
+// RegenerateToken generates a new token for the given ChannelIntegration
 func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
@@ -199,6 +204,7 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 		return response.NewBadRequest(err)
 	}
 
+	// user should be in the same group to be able to modify the integration
 	if ci.GroupName != ctx.GroupName {
 		return response.NewBadRequest(ErrInvalidGroup)
 	}
@@ -210,8 +216,10 @@ func (h *Handler) RegenerateToken(u *url.URL, header http.Header, i *webhook.Cha
 	return response.NewOK(response.NewSuccessResponse(ci))
 }
 
-// CreateChannelIntegration creates the channel integration with creatorId, groupName, channelId, and integrationId. It generates a random
-// token and saves id. Optional parameters are assigned via UpdateChannelIntegration handler.
+// CreateChannelIntegration creates the channel integration with creatorId,
+// groupName, channelId, and integrationId. It generates a random token and
+// saves id. Optional parameters are assigned via UpdateChannelIntegration
+// handler.
 func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
@@ -223,6 +231,7 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 		return response.NewInvalidRequest(err)
 	}
 
+	// check if the given channel is exist and can be opened by the requester
 	if err := h.isChannelValid(i.ChannelId, ctx.Client.Account.Id); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -234,7 +243,8 @@ func (h *Handler) CreateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewOK(response.NewSuccessResponse(i))
 }
 
-// GetChannelIntegration returns the channel integration with given id. Also it fetches the external data if it is needed
+// GetChannelIntegration returns the channel integration with given id. Also it
+// fetches the external data if it is needed
 func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -269,6 +279,8 @@ func (h *Handler) GetChannelIntegration(u *url.URL, header http.Header, _ interf
 	return response.NewOK(response.NewSuccessResponse(cic))
 }
 
+// UpdateChannelIntegration updates the channel integration with ChannelId,
+// Settings, Description, IsDisabled parameters
 func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -308,10 +320,12 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 
 	ci.IsDisabled = i.IsDisabled
 
+	// send updated integration parameters to middleware Configure endpoint
 	if err := h.Configure(ci, ctx, oldSettings); err != nil {
 		return response.NewBadRequest(err)
 	}
 
+	// finally update the db
 	if err := ci.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -319,6 +333,7 @@ func (h *Handler) UpdateChannelIntegration(u *url.URL, header http.Header, i *we
 	return response.NewDefaultOK()
 }
 
+// DeleteChannelIntegration deletes the integration with the given id.
 func (h *Handler) DeleteChannelIntegration(u *url.URL, header http.Header, i *webhook.ChannelIntegration, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
@@ -377,6 +392,7 @@ func (h *Handler) Configure(ci *webhook.ChannelIntegration, ctx *models.Context,
 		return err
 	}
 
+	// we can early return here
 	if !authorizable {
 		return nil
 	}
@@ -390,6 +406,7 @@ func (h *Handler) Configure(ci *webhook.ChannelIntegration, ctx *models.Context,
 		return err
 	}
 
+	// get current account's foreign auth credentials from db
 	creq.UserToken = user.ForeignAuth.GetAccessToken(i.Name)
 	creq.ServiceToken = ci.Token
 	creq.Settings = helpers.Settings(ci.Settings)
@@ -434,6 +451,7 @@ func (h *Handler) Configure(ci *webhook.ChannelIntegration, ctx *models.Context,
 	return nil
 }
 
+// ListChannelIntegrations lists channel integrations for the given group
 func (h *Handler) ListChannelIntegrations(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	if !ctx.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)

@@ -18,7 +18,7 @@ module.exports = class SimpleChatListItem extends ChatListItem
 
   getContentClassNames: -> classnames
     'ChatItem-contentWrapper MediaObject SimpleChatListItem': yes
-    'editing': @state.editMode
+    'editing': @props.message.get '__isEditing'
     'edited' : @isEditedMessage()
 
 
@@ -28,16 +28,18 @@ module.exports = class SimpleChatListItem extends ChatListItem
     <div {...@getItemProps()}>
       <div className={@getContentClassNames()}>
         <div className={@getMediaObjectClassNames()}>
-          <MessageLink message={message} absolute={yes}>
+          <MessageLink message={message}>
             <MessageTime date={message.get 'createdAt'}/>
           </MessageLink>
           <ActivityLikeLink messageId={message.get('id')} interactions={message.get('interactions').toJS()}/>
           <div className="ChatItem-contentBody">
             <MessageBody message={message} />
           </div>
+          {@renderEmbedBox()}
         </div>
         {@renderEditMode()}
         {@renderChatItemMenu()}
+        <div className='clearfix'></div>
         <ActivityPromptModal {...@getDeleteItemModalProps()} isOpen={@state.isDeleting}>
           Are you sure you want to delete this post?
         </ActivityPromptModal>

@@ -2,9 +2,12 @@ package aws
 
 import (
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -36,9 +39,9 @@ func resourceAwsEcsClusterCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] ECS cluster %s created", *out.Cluster.ClusterARN)
+	log.Printf("[DEBUG] ECS cluster %s created", *out.Cluster.ClusterArn)
 
-	d.SetId(*out.Cluster.ClusterARN)
+	d.SetId(*out.Cluster.ClusterArn)
 	d.Set("name", *out.Cluster.ClusterName)
 	return nil
 }
@@ -54,11 +57,18 @@ func resourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("[DEBUG] Received ECS clusters: %#v", out.Clusters)
+	log.Printf("[DEBUG] Received ECS clusters: %s", out.Clusters)
 
-	d.SetId(*out.Clusters[0].ClusterARN)
-	d.Set("name", *out.Clusters[0].ClusterName)
+	for _, c := range out.Clusters {
+		if *c.ClusterName == clusterName {
+			d.SetId(*c.ClusterArn)
+			d.Set("name", c.ClusterName)
+			return nil
+		}
+	}
 
+	log.Printf("[ERR] No matching ECS Cluster found for (%s)", d.Id())
+	d.SetId("")
 	return nil
 }
 
@@ -67,14 +77,31 @@ func resourceAwsEcsClusterDelete(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Deleting ECS cluster %s", d.Id())
 
-	// TODO: Handle ClientException: The Cluster cannot be deleted while Container Instances are active.
-	// TODO: Handle ClientException: The Cluster cannot be deleted while Services are active.
+	return resource.Retry(10*time.Minute, func() error {
+		out, err := conn.DeleteCluster(&ecs.DeleteClusterInput{
+			Cluster: aws.String(d.Id()),
+		})
 
-	out, err := conn.DeleteCluster(&ecs.DeleteClusterInput{
-		Cluster: aws.String(d.Id()),
+		if err == nil {
+			log.Printf("[DEBUG] ECS cluster %s deleted: %s", d.Id(), out)
+			return nil
+		}
+
+		awsErr, ok := err.(awserr.Error)
+		if !ok {
+			return resource.RetryError{Err: err}
+		}
+
+		if awsErr.Code() == "ClusterContainsContainerInstancesException" {
+			log.Printf("[TRACE] Retrying ECS cluster %q deletion after %q", d.Id(), awsErr.Code())
+			return err
+		}
+
+		if awsErr.Code() == "ClusterContainsServicesException" {
+			log.Printf("[TRACE] Retrying ECS cluster %q deletion after %q", d.Id(), awsErr.Code())
+			return err
+		}
+
+		return resource.RetryError{Err: err}
 	})
-
-	log.Printf("[DEBUG] ECS cluster %s deleted: %#v", d.Id(), out)
-
-	return err
 }

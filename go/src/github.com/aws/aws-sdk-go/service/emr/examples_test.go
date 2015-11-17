@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/emr"
 )
 
@@ -17,52 +16,57 @@ var _ time.Duration
 var _ bytes.Buffer
 
 func ExampleEMR_AddInstanceGroups() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.AddInstanceGroupsInput{
 		InstanceGroups: []*emr.InstanceGroupConfig{ // Required
 			{ // Required
-				InstanceCount: aws.Long(1),                    // Required
+				InstanceCount: aws.Int64(1),                   // Required
 				InstanceRole:  aws.String("InstanceRoleType"), // Required
 				InstanceType:  aws.String("InstanceType"),     // Required
 				BidPrice:      aws.String("XmlStringMaxLen256"),
-				Market:        aws.String("MarketType"),
-				Name:          aws.String("XmlStringMaxLen256"),
+				Configurations: []*emr.Configuration{
+					{ // Required
+						Classification: aws.String("String"),
+						Configurations: []*emr.Configuration{
+						// Recursive values...
+						},
+						Properties: map[string]*string{
+							"Key": aws.String("String"), // Required
+							// More values...
+						},
+					},
+					// More values...
+				},
+				Market: aws.String("MarketType"),
+				Name:   aws.String("XmlStringMaxLen256"),
 			},
 			// More values...
 		},
-		JobFlowID: aws.String("XmlStringMaxLen256"), // Required
+		JobFlowId: aws.String("XmlStringMaxLen256"), // Required
 	}
 	resp, err := svc.AddInstanceGroups(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_AddJobFlowSteps() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.AddJobFlowStepsInput{
-		JobFlowID: aws.String("XmlStringMaxLen256"), // Required
+		JobFlowId: aws.String("XmlStringMaxLen256"), // Required
 		Steps: []*emr.StepConfig{ // Required
 			{ // Required
-				HadoopJARStep: &emr.HadoopJARStepConfig{ // Required
-					JAR: aws.String("XmlString"), // Required
+				HadoopJarStep: &emr.HadoopJarStepConfig{ // Required
+					Jar: aws.String("XmlString"), // Required
 					Args: []*string{
 						aws.String("XmlString"), // Required
 						// More values...
@@ -85,29 +89,21 @@ func ExampleEMR_AddJobFlowSteps() {
 	resp, err := svc.AddJobFlowSteps(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_AddTags() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.AddTagsInput{
-		ResourceID: aws.String("ResourceId"), // Required
+		ResourceId: aws.String("ResourceId"), // Required
 		Tags: []*emr.Tag{ // Required
 			{ // Required
 				Key:   aws.String("String"),
@@ -119,58 +115,42 @@ func ExampleEMR_AddTags() {
 	resp, err := svc.AddTags(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_DescribeCluster() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.DescribeClusterInput{
-		ClusterID: aws.String("ClusterId"), // Required
+		ClusterId: aws.String("ClusterId"), // Required
 	}
 	resp, err := svc.DescribeCluster(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_DescribeJobFlows() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.DescribeJobFlowsInput{
 		CreatedAfter:  aws.Time(time.Now()),
 		CreatedBefore: aws.Time(time.Now()),
-		JobFlowIDs: []*string{
+		JobFlowIds: []*string{
 			aws.String("XmlString"), // Required
 			// More values...
 		},
@@ -182,82 +162,58 @@ func ExampleEMR_DescribeJobFlows() {
 	resp, err := svc.DescribeJobFlows(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_DescribeStep() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.DescribeStepInput{
-		ClusterID: aws.String("ClusterId"), // Required
-		StepID:    aws.String("StepId"),    // Required
+		ClusterId: aws.String("ClusterId"), // Required
+		StepId:    aws.String("StepId"),    // Required
 	}
 	resp, err := svc.DescribeStep(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_ListBootstrapActions() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.ListBootstrapActionsInput{
-		ClusterID: aws.String("ClusterId"), // Required
+		ClusterId: aws.String("ClusterId"), // Required
 		Marker:    aws.String("Marker"),
 	}
 	resp, err := svc.ListBootstrapActions(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_ListClusters() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.ListClustersInput{
 		ClusterStates: []*string{
@@ -271,58 +227,42 @@ func ExampleEMR_ListClusters() {
 	resp, err := svc.ListClusters(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_ListInstanceGroups() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.ListInstanceGroupsInput{
-		ClusterID: aws.String("ClusterId"), // Required
+		ClusterId: aws.String("ClusterId"), // Required
 		Marker:    aws.String("Marker"),
 	}
 	resp, err := svc.ListInstanceGroups(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_ListInstances() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.ListInstancesInput{
-		ClusterID:       aws.String("ClusterId"), // Required
-		InstanceGroupID: aws.String("InstanceGroupId"),
+		ClusterId:       aws.String("ClusterId"), // Required
+		InstanceGroupId: aws.String("InstanceGroupId"),
 		InstanceGroupTypes: []*string{
 			aws.String("InstanceGroupType"), // Required
 			// More values...
@@ -332,31 +272,23 @@ func ExampleEMR_ListInstances() {
 	resp, err := svc.ListInstances(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_ListSteps() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.ListStepsInput{
-		ClusterID: aws.String("ClusterId"), // Required
+		ClusterId: aws.String("ClusterId"), // Required
 		Marker:    aws.String("Marker"),
-		StepIDs: []*string{
+		StepIds: []*string{
 			aws.String("XmlString"), // Required
 			// More values...
 		},
@@ -368,36 +300,28 @@ func ExampleEMR_ListSteps() {
 	resp, err := svc.ListSteps(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_ModifyInstanceGroups() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.ModifyInstanceGroupsInput{
 		InstanceGroups: []*emr.InstanceGroupModifyConfig{
 			{ // Required
-				InstanceGroupID: aws.String("XmlStringMaxLen256"), // Required
-				EC2InstanceIDsToTerminate: []*string{
+				InstanceGroupId: aws.String("XmlStringMaxLen256"), // Required
+				EC2InstanceIdsToTerminate: []*string{
 					aws.String("InstanceId"), // Required
 					// More values...
 				},
-				InstanceCount: aws.Long(1),
+				InstanceCount: aws.Int64(1),
 			},
 			// More values...
 		},
@@ -405,29 +329,21 @@ func ExampleEMR_ModifyInstanceGroups() {
 	resp, err := svc.ModifyInstanceGroups(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_RemoveTags() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.RemoveTagsInput{
-		ResourceID: aws.String("ResourceId"), // Required
+		ResourceId: aws.String("ResourceId"), // Required
 		TagKeys: []*string{ // Required
 			aws.String("String"), // Required
 			// More values...
@@ -436,26 +352,18 @@ func ExampleEMR_RemoveTags() {
 	resp, err := svc.RemoveTags(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_RunJobFlow() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.RunJobFlowInput{
 		Instances: &emr.JobFlowInstancesConfig{ // Required
@@ -467,34 +375,62 @@ func ExampleEMR_RunJobFlow() {
 				aws.String("XmlStringMaxLen256"), // Required
 				// More values...
 			},
-			EC2KeyName:                    aws.String("XmlStringMaxLen256"),
-			EC2SubnetID:                   aws.String("XmlStringMaxLen256"),
-			EMRManagedMasterSecurityGroup: aws.String("XmlStringMaxLen256"),
-			EMRManagedSlaveSecurityGroup:  aws.String("XmlStringMaxLen256"),
+			Ec2KeyName:                    aws.String("XmlStringMaxLen256"),
+			Ec2SubnetId:                   aws.String("XmlStringMaxLen256"),
+			EmrManagedMasterSecurityGroup: aws.String("XmlStringMaxLen256"),
+			EmrManagedSlaveSecurityGroup:  aws.String("XmlStringMaxLen256"),
 			HadoopVersion:                 aws.String("XmlStringMaxLen256"),
-			InstanceCount:                 aws.Long(1),
+			InstanceCount:                 aws.Int64(1),
 			InstanceGroups: []*emr.InstanceGroupConfig{
 				{ // Required
-					InstanceCount: aws.Long(1),                    // Required
+					InstanceCount: aws.Int64(1),                   // Required
 					InstanceRole:  aws.String("InstanceRoleType"), // Required
 					InstanceType:  aws.String("InstanceType"),     // Required
 					BidPrice:      aws.String("XmlStringMaxLen256"),
-					Market:        aws.String("MarketType"),
-					Name:          aws.String("XmlStringMaxLen256"),
+					Configurations: []*emr.Configuration{
+						{ // Required
+							Classification: aws.String("String"),
+							Configurations: []*emr.Configuration{
+							// Recursive values...
+							},
+							Properties: map[string]*string{
+								"Key": aws.String("String"), // Required
+								// More values...
+							},
+						},
+						// More values...
+					},
+					Market: aws.String("MarketType"),
+					Name:   aws.String("XmlStringMaxLen256"),
 				},
 				// More values...
 			},
-			KeepJobFlowAliveWhenNoSteps: aws.Boolean(true),
+			KeepJobFlowAliveWhenNoSteps: aws.Bool(true),
 			MasterInstanceType:          aws.String("InstanceType"),
 			Placement: &emr.PlacementType{
 				AvailabilityZone: aws.String("XmlString"), // Required
 			},
 			SlaveInstanceType:    aws.String("InstanceType"),
-			TerminationProtected: aws.Boolean(true),
+			TerminationProtected: aws.Bool(true),
 		},
 		Name:           aws.String("XmlStringMaxLen256"), // Required
-		AMIVersion:     aws.String("XmlStringMaxLen256"),
 		AdditionalInfo: aws.String("XmlString"),
+		AmiVersion:     aws.String("XmlStringMaxLen256"),
+		Applications: []*emr.Application{
+			{ // Required
+				AdditionalInfo: map[string]*string{
+					"Key": aws.String("String"), // Required
+					// More values...
+				},
+				Args: []*string{
+					aws.String("String"), // Required
+					// More values...
+				},
+				Name:    aws.String("String"),
+				Version: aws.String("String"),
+			},
+			// More values...
+		},
 		BootstrapActions: []*emr.BootstrapActionConfig{
 			{ // Required
 				Name: aws.String("XmlStringMaxLen256"), // Required
@@ -508,8 +444,21 @@ func ExampleEMR_RunJobFlow() {
 			},
 			// More values...
 		},
+		Configurations: []*emr.Configuration{
+			{ // Required
+				Classification: aws.String("String"),
+				Configurations: []*emr.Configuration{
+				// Recursive values...
+				},
+				Properties: map[string]*string{
+					"Key": aws.String("String"), // Required
+					// More values...
+				},
+			},
+			// More values...
+		},
 		JobFlowRole: aws.String("XmlString"),
-		LogURI:      aws.String("XmlString"),
+		LogUri:      aws.String("XmlString"),
 		NewSupportedProducts: []*emr.SupportedProductConfig{
 			{ // Required
 				Args: []*string{
@@ -520,11 +469,12 @@ func ExampleEMR_RunJobFlow() {
 			},
 			// More values...
 		},
-		ServiceRole: aws.String("XmlString"),
+		ReleaseLabel: aws.String("XmlStringMaxLen256"),
+		ServiceRole:  aws.String("XmlString"),
 		Steps: []*emr.StepConfig{
 			{ // Required
-				HadoopJARStep: &emr.HadoopJARStepConfig{ // Required
-					JAR: aws.String("XmlString"), // Required
+				HadoopJarStep: &emr.HadoopJarStepConfig{ // Required
+					Jar: aws.String("XmlString"), // Required
 					Args: []*string{
 						aws.String("XmlString"), // Required
 						// More values...
@@ -554,96 +504,72 @@ func ExampleEMR_RunJobFlow() {
 			},
 			// More values...
 		},
-		VisibleToAllUsers: aws.Boolean(true),
+		VisibleToAllUsers: aws.Bool(true),
 	}
 	resp, err := svc.RunJobFlow(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_SetTerminationProtection() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.SetTerminationProtectionInput{
-		JobFlowIDs: []*string{ // Required
+		JobFlowIds: []*string{ // Required
 			aws.String("XmlString"), // Required
 			// More values...
 		},
-		TerminationProtected: aws.Boolean(true), // Required
+		TerminationProtected: aws.Bool(true), // Required
 	}
 	resp, err := svc.SetTerminationProtection(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_SetVisibleToAllUsers() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.SetVisibleToAllUsersInput{
-		JobFlowIDs: []*string{ // Required
+		JobFlowIds: []*string{ // Required
 			aws.String("XmlString"), // Required
 			// More values...
 		},
-		VisibleToAllUsers: aws.Boolean(true), // Required
+		VisibleToAllUsers: aws.Bool(true), // Required
 	}
 	resp, err := svc.SetVisibleToAllUsers(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleEMR_TerminateJobFlows() {
-	svc := emr.New(nil)
+	svc := emr.New(session.New())
 
 	params := &emr.TerminateJobFlowsInput{
-		JobFlowIDs: []*string{ // Required
+		JobFlowIds: []*string{ // Required
 			aws.String("XmlString"), // Required
 			// More values...
 		},
@@ -651,20 +577,12 @@ func ExampleEMR_TerminateJobFlows() {
 	resp, err := svc.TerminateJobFlows(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }

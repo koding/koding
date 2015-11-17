@@ -1,2 +1,6 @@
 vendor
 doc
+.yardoc
+Gemfile.lock
+private/features/smoke/**/importmarker__.go
+private/features/smoke/_test/

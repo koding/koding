@@ -6,24 +6,28 @@ module.exports = class Scroller extends React.Component
 
   @defaultProps =
     hasMore               : no
-    threshold             : 0.1
+    threshold             : 1
     onThresholdReached    : kd.noop
     onTopThresholdReached : kd.noop
 
 
   renderTopWaypoint: ->
 
+    return null  unless @props.hasMore
+
     <Waypoint onEnter={@props.onTopThresholdReached} threshold={@props.threshold} />
 
 
   renderBottomWaypoint: ->
+
+    return null  unless @props.hasMore
 
     <Waypoint onEnter={@props.onThresholdReached} threshold={@props.threshold} />
 
 
   render: ->
 
-    <div className="Scrollable" ref="scrollContainer">
+    <div className='Scrollable' ref='scrollContainer'>
       {@renderTopWaypoint()}
       {@props.children}
       {@renderBottomWaypoint()}

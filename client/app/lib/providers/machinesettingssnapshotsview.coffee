@@ -28,6 +28,7 @@ module.exports = class MachineSettingsSnapshotsView extends MachineSettingsCommo
     super options, data
 
     @listController.getListView().on 'DeleteSnapshot', =>
+      @notificationView.hide()
       @listController.showNoItemWidget()
 
     @listController.getListView().on 'NewVmFromSnapshot', (snapshot) =>

@@ -1,11 +1,22 @@
-kd             = require 'kd'
-React          = require 'kd-react'
-KDReactorMixin = require 'app/flux/reactormixin'
-ActivityFlux   = require 'activity/flux'
-immutable      = require 'immutable'
-classnames     = require 'classnames'
-ThreadSidebar  = require 'activity/components/threadsidebar'
-ThreadHeader   = require 'activity/components/threadheader'
+kd                           = require 'kd'
+React                        = require 'kd-react'
+KDReactorMixin               = require 'app/flux/base/reactormixin'
+ActivityFlux                 = require 'activity/flux'
+immutable                    = require 'immutable'
+getGroup                     = require 'app/util/getGroup'
+classnames                   = require 'classnames'
+ThreadSidebar                = require 'activity/components/threadsidebar'
+ThreadHeader                 = require 'activity/components/threadheader'
+PublicChannelLink            = require 'activity/components/publicchannellink'
+ImmutableRenderMixin         = require 'react-immutable-render-mixin'
+PublicChatPane               = require 'activity/components/publicchatpane'
+showNotification             = require 'app/util/showNotification'
+CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
+StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
+ChannelDropContainer         = require 'activity/components/channeldropcontainer'
+Link                         = require 'app/components/common/link'
+ButtonWithMenu               = require 'app/components/buttonwithmenu'
+KeyboardKeys                 = require 'app/util/keyboardKeys'
 
 module.exports = class ChannelThreadPane extends React.Component
 
@@ -14,10 +25,8 @@ module.exports = class ChannelThreadPane extends React.Component
   getDataBindings: ->
     return {
       channelThread         : getters.selectedChannelThread
-      channelThreadMessages : getters.selectedChannelThreadMessages
       messageThread         : getters.selectedMessageThread
       messageThreadComments : getters.selectedMessageThreadComments
-      popularMessages       : getters.selectedChannelPopularMessages
       channelParticipants   : getters.selectedChannelParticipants
     }
 
@@ -27,115 +36,196 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
+      originalPurpose       : ''
+      editingPurpose        : no
+      showDropTarget        : no
+      isComingSoonModalOpen : no
       channelThread         : immutable.Map()
-      channelThreadMessages : immutable.List()
       messageThread         : immutable.Map()
       messageThreadComments : immutable.List()
-      popularMessages       : immutable.List()
       channelParticipants   : immutable.List()
 
 
-  componentDidMount: -> reset @props
+  onStart: ->
+
+    @setState isComingSoonModalOpen: yes
 
 
-  componentWillReceiveProps: (nextProps) -> reset nextProps
+  onDragEnter: (event) ->
+
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: yes
 
 
-  renderHeader: ->
-    <ThreadHeader
-      channelThread={@state.channelThread}
-      messageThread={@state.messageThread}
-      isSummaryActive={!!@props.feed}
-    />
+  onDragOver: (event) -> kd.utils.stopDOMEvent event
 
 
-  renderFeed: ->
-    return null  unless @props.feed
+  onDragLeave: (event) ->
 
-    React.cloneElement @props.feed,
-      thread   : @state.channelThread
-      messages : @state.popularMessages
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
 
 
-  renderChat: ->
-    return null  unless @props.chat
+  onDrop: (event) ->
 
-    React.cloneElement @props.chat,
-      thread   : @state.channelThread
-      messages : @state.channelThreadMessages
-
-
-  renderPost: ->
-
-    return null  unless @props.post
-
-    React.cloneElement @props.post,
-      thread        : @state.messageThread
-      messages      : @state.messageThreadComments
-      channelThread : @state.channelThread
+    kd.utils.stopDOMEvent event
+    @setState showDropTarget: no
+    showNotification 'Coming soon...', type: 'main'
 
 
-  renderSidebar: ->
-    <ThreadSidebar
-      channelThread={@state.channelThread}
-      popularMessages={@state.popularMessages}
-      channelParticipants={@state.channelParticipants}/>
+  onClose: ->
+
+    @setState isComingSoonModalOpen: no
 
 
-  getClassName: ->
+  getMenuItems: ->
+    return [
+      {title: 'Invite people'         , key: 'invitepeople'         , onClick: @bound 'invitePeople'}
+      {title: 'Leave channel'         , key: 'leavechannel'         , onClick: @bound 'leaveChannel'}
+      {title: 'Update purpose'        , key: 'updatepurpose'        , onClick: @bound 'updatePurpose'}
+      {title: 'Notification settings' , key: 'notificationsettings' , onClick: @bound 'showNotificationSettingsModal'}
+    ]
 
-    classnames(
-      ChannelThreadPane: yes
-      'is-withFeed': @props.feed
-      'is-withChat': @props.chat
-      'is-withPost': @props.post
-    )
+
+  invitePeople: -> @refs.pane.onInviteOthers()
 
 
-  render: ->
-    <div className={@getClassName()}>
-      <section className="ChannelThreadPane-content">
-        <header className="ChannelThreadPane-header">
-          {@renderHeader()}
-        </header>
-        <div className="ChannelThreadPane-body">
-          <section className="ChannelThreadPane-feedWrapper">
-            {@renderFeed()}
-          </section>
-          <section className="ChannelThreadPane-chatWrapper">
-            {@renderChat()}
-          </section>
-          <section className="ChannelThreadPane-postWrapper">
-            {@renderPost()}
-          </section>
-        </div>
-      </section>
-      <aside className="ChannelThreadPane-sidebar">
-        {@renderSidebar()}
-      </aside>
+  leaveChannel: ->
+
+    { unfollowChannel } = ActivityFlux.actions.channel
+    channelId   = @state.channelThread.get 'channelId'
+
+    unfollowChannel channelId
+
+
+  updatePurpose: ->
+
+    @setState editingPurpose: yes
+    input = @refs.purposeInput
+
+    kd.utils.defer ->
+      kd.utils.moveCaretToEnd input
+
+
+  showNotificationSettingsModal: ->
+
+    channelName = @state.channelThread.getIn ['channel', 'name']
+    route = "/Channels/#{channelName}/NotificationSettings"
+
+    kd.singletons.router.handleRoute route
+
+
+  onKeyDown: (event) ->
+
+    { ENTER, ESC } = KeyboardKeys
+    thread         = @state.channelThread
+    purpose        = thread.getIn(['channel', 'purpose'])
+
+    if event.which is ESC
+
+      _originalPurpose = thread.getIn ['channel', '_originalPurpose']
+      purpose = _originalPurpose or thread.getIn ['channel', 'purpose']
+      thread  = thread.setIn ['channel', 'purpose'], purpose
+      @setState channelThread: thread
+      return @setState editingPurpose: no
+
+    if event.which is ENTER
+
+      id        = thread.get 'channelId'
+      purpose   = thread.getIn(['channel', 'purpose']).trim()
+
+      { updateChannel } = ActivityFlux.actions.channel
+
+      updateChannel({ id, purpose }).then (response) =>
+        @setState editingPurpose: no
+
+
+  getPurposeAreaClassNames: -> classnames
+    'ChannelThreadPane-purposeWrapper': yes
+    'editing': @state.editingPurpose
+
+
+  handleChange: (newValue) ->
+
+    thread = @state.channelThread
+
+    unless thread.getIn ['channel', '_originalPurpose']
+      _originalPurpose = thread.getIn ['channel', 'purpose']
+      thread = thread.setIn ['channel', '_originalPurpose'], _originalPurpose
+
+    channelThread = thread.setIn ['channel', 'purpose'], newValue
+    @setState channelThread: channelThread
+
+
+  renderPurposeArea: ->
+
+    return  unless @state.channelThread
+
+    thread = @state.channelThread
+
+    valueLink =
+      value: thread.getIn ['channel', 'purpose']
+      requestChange: @bound 'handleChange'
+
+    <div className={@getPurposeAreaClassNames()}>
+      <span className='ChannelThreadPane-purpose'>{thread.getIn ['channel', 'purpose']}</span>
+      <input ref='purposeInput' type='text' valueLink={valueLink} onKeyDown={@bound 'onKeyDown'} />
     </div>
 
 
-React.Component.include.call ChannelThreadPane, [KDReactorMixin]
+  renderHeader: ->
 
-reset = (props) ->
+    return  unless @state.channelThread
+    thread = @state.channelThread
+    channelName = thread.getIn ['channel', 'name']
 
-  { channelName, postSlug } = props.params
-  { thread, channel: channelActions, message: messageActions } = ActivityFlux.actions
+    <ThreadHeader thread={thread}>
+      <PublicChannelLink to={thread}>
+        {"##{channelName}"}
+      </PublicChannelLink>
+    </ThreadHeader>
 
-  if channelName
-    channelActions.loadChannelByName(channelName).then ({ channel }) ->
-      thread.changeSelectedThread channel.id
-      channelActions.loadPopularMessages channel.id
-      channelActions.loadParticipants channel.id, channel.participantsPreview
 
-  else
-    thread.changeSelectedThread null
+  render: ->
 
-  if postSlug
-    messageActions.loadMessageBySlug(postSlug).then ({ message }) ->
-      messageActions.changeSelectedMessage message.id
-  else
-    messageActions.changeSelectedMessage null
+    return null  unless @state.channelThread
+    thread = @state.channelThread
+    channelName = thread.getIn ['channel', 'name']
 
+    <div className='ChannelThreadPane is-withChat'>
+      <CollaborationComingSoonModal
+        onClose={@bound 'onClose'}
+        isOpen={@state.isComingSoonModalOpen}/>
+      <section className='ChannelThreadPane-content'
+        onDragEnter={@bound 'onDragEnter'}>
+        <ChannelDropContainer
+          onDrop={@bound 'onDrop'}
+          onDragOver={@bound 'onDragOver'}
+          onDragLeave={@bound 'onDragLeave'}
+          showDropTarget={@state.showDropTarget}/>
+        <header className='ChannelThreadPane-header'>
+          {@renderHeader()}
+          <ButtonWithMenu listClass='ChannelThreadPane-menuItems' items={@getMenuItems()} />
+          {@renderPurposeArea()}
+          <StartVideoCallLink onStart={@bound 'onStart'}/>
+        </header>
+        <div className='ChannelThreadPane-body'>
+          <section className='ChannelThreadPane-chatWrapper'>
+            <PublicChatPane ref='pane' thread={@state.channelThread}/>
+          </section>
+        </div>
+      </section>
+      <aside className='ChannelThreadPane-sidebar'>
+        <ThreadSidebar
+          channelThread={@state.channelThread}
+          channelParticipants={@state.channelParticipants}/>
+      </aside>
+
+      {@props.children}
+    </div>
+
+
+React.Component.include.call ChannelThreadPane, [
+  KDReactorMixin, ImmutableRenderMixin
+]
 

@@ -1,30 +1,43 @@
 .EmojiSelector
-  .Dropup
+  width                     329px !important
+
+  .Dropbox
     right                   0px
     rounded                 3px
     width                   auto
+
+  .Dropbox-scrollable
     max-height              none
 
 .EmojiSelector-list
-  size                      300px 270px
+  max-height                306px
+  width                     327px
   overflow                  auto
-  padding                   18px
+  padding                   18px 0 18px 18px
   borderBox()
 
 .EmojiSelector-footer
-  padding                   16px
+  padding                   16px 17px
   bg                        color, #f8f8f8
 
 .EmojiSelector-selectedItemIcon
   fl()
   margin-right              15px
-  size                      32px 32px
+  size                      36px 36px
 
-  .emoji
+  .emoji-wrapper
     size                    32px 32px
+
+    .emoji-sprite
+      size                  32px 32px
+      sta()
+      transform             none
+
+    .emoji
+      size                  32px 32px
 
 .EmojiSelector-selectedItemName
   color                     #646565
   font-size                 16px
-  padding-top               6px
+  line-height               36px
 

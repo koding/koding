@@ -132,7 +132,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		Username:         uc.Username,
 		Email:            uc.Email,
 		MessageType:      subject,
-		Messages:         []emailmodels.Message{notifmessage},
+		Messages:         []emailmodels.Messager{notifmessage},
 		UnsubscribeToken: actor.Token,
 	}
 

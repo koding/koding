@@ -17,13 +17,16 @@
     "/Activity/Chat/All" : "AllPrivateMessages",
     "/Activity" : "ActivityGeneric",
 
-    "/Channels/:channelName": "SingleChannel",
-    "/Channels/:channelName/:postSlug": "SinglePost",
-    "/Channels/:channelName/summary": "SingleChannelWithSummary",
-    "/Channels/:channelName/summary/:postSlug": "SinglePostWithSummary"
+    "/NewChannel": "NewPublicChannel",
+    "/AllChannels": "AllPublicChannels",
+    "/Channels/:channelName": "SinglePublicChannel",
+    "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
+    "/Channels/:channelName/NotificationSettings": "ChannelNotificationSettings",
 
-
-
+    "/NewMessage": "NewPrivateChannel",
+    "/AllMessages": "AllPrivateChannels",
+    "/Messages/:privateChannelId": "SinglePrivateChannel",
+    "/Messages/:privateChannelId/:postId": "SinglePrivateChannelPost"
   },
   "sprites": [
     "./lib/sprites"
@@ -34,3 +37,4 @@
   ],
   "shortcuts": [ "activity" ]
 }
+

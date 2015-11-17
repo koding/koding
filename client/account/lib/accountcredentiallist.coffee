@@ -1,12 +1,16 @@
-kd                 = require 'kd'
-hljs               = require 'highlight.js'
-KDListView         = kd.ListView
-KDModalView        = kd.ModalView
-KDOverlayView      = kd.OverlayView
-KDNotificationView = kd.NotificationView
+kd                          = require 'kd'
+hljs                        = require 'highlight.js'
 
-showError                 = require 'app/util/showError'
-AccountCredentialListItem = require './accountcredentiallistitem'
+KDListView                  = kd.ListView
+KDModalView                 = kd.ModalView
+KDOverlayView               = kd.OverlayView
+KDNotificationView          = kd.NotificationView
+
+showError                   = require 'app/util/showError'
+applyMarkdown               = require 'app/util/applyMarkdown'
+
+AccountCredentialListItem   = require './accountcredentiallistitem'
+AccountCredentialEditModal  = require './accountcredentialeditmodal'
 
 
 module.exports = class AccountCredentialList extends KDListView
@@ -23,24 +27,76 @@ module.exports = class AccountCredentialList extends KDListView
 
     credential = item.getData()
 
-    # Since KDModalView.confirm not passing overlay options
-    # to the base class (KDModalView) I had to do this hack
-    # Remove this when issue fixed in Framework ~ GG
-    overlay = new KDOverlayView cssClass: 'second-overlay'
+    if credential.inuse
+      new kd.NotificationView
+        title: 'This credential is currently in-use'
+      return
 
-    modal   = KDModalView.confirm
-      title       : 'Remove credential'
-      description : 'Do you want to remove ?'
-      ok          :
-        title     : 'Yes'
-        callback  :  => credential.delete (err) =>
-          modal.destroy()
+    credential.isBootstrapped (err, bootstrapped) =>
+
+      kd.warn "Bootstrap check failed:", { credential, err }  if err
+
+      description = applyMarkdown if bootstrapped then "
+        This **#{credential.title}** credential is bootstrapped before. It
+        means that you have modified data on your **#{credential.provider}**
+        account.
+        \n\n
+        You can remove this credential here and manually cleanup the resources
+        which are created on your provider. Or you can **destroy** all
+        bootstrapped data and resources along with this credential.
+        \n\n
+        **WARNING!** by destroying resources you'd destroy **ALL RESOURCES**;
+        your team members' instances, volumes, keypairs, and **everything else
+        we've created on their accounts**.
+        \n\n
+        **WARNING!** removing a credential can cause your stacks or instances
+        to stop working properly, please make sure that you don't have any
+        stack or stack templates that depend on this credential.
+      " else "
+        **WARNING!** removing a credential can cause your stacks or instances
+        to stop working properly, please make sure that you don't have any
+        stack or stack templates that depend on this credential.
+        \n\n
+        Do you want to remove **#{credential.title}** ?
+      "
+
+      removeCredential = =>
+        credential.delete (err) =>
           @emit 'ItemDeleted', item  unless showError err
+          modal.destroy()
 
-    modal.once   'KDObjectWillBeDestroyed', overlay.bound 'destroy'
-    overlay.once 'click',                   modal.bound   'destroy'
-
-    return modal
+      modal            = new KDModalView
+        title          : 'Remove credential'
+        content        : "<div class='modalformline'>#{description}</div>"
+        cssClass       : 'has-markdown'
+        overlay        : yes
+        overlayOptions :
+          cssClass     : 'second-overlay'
+          overlayClick : yes
+        buttons        :
+          Remove       :
+            title      : 'Remove Credential'
+            style      : 'solid red medium'
+            loader     : yes
+            callback   : =>
+              modal.buttons.DestroyAll.disable()
+              removeCredential()
+          DestroyAll   :
+            title      : 'Destroy Everything'
+            style      : "solid red medium #{if !bootstrapped then 'hidden'}"
+            loader     : yes
+            callback   : =>
+              modal.buttons.Remove.disable()
+              @destroyResources credential, (err) ->
+                if err
+                  modal.buttons.DestroyAll.hideLoader()
+                  modal.buttons.Remove.enable()
+                else
+                  removeCredential()
+          cancel       :
+            title      : 'Cancel'
+            style      : 'solid light-gray medium'
+            callback   : -> modal.destroy()
 
 
   shareItem: (item) ->
@@ -80,35 +136,46 @@ module.exports = class AccountCredentialList extends KDListView
         content        : "<pre><code>#{cred}</code></pre>"
 
 
-  checkIsBootstrapped: (item) ->
+  editItem: (item) ->
 
-    credential = item.getData()
-    credential.isBootstrapped (err, data) ->
+    credential    = item.getData()
+    { provider }  = credential
 
-      return if kd.warn err  if err
-      kd.info 'Bootstrapped?', data
+    # Don't show the edit button for aws credentials in list. Gokmen'll on it.
+    if provider is 'aws'
+      return showError "This AWS credential can't be edited for now."
+
+    credential.fetchData (err, data) ->
+      return if showError err
+
+      data.title = credential.title
+
+      new AccountCredentialEditModal { provider, credential }, data
 
 
-  bootstrap: (item) ->
+  destroyResources: (credential, callback) ->
 
-    credential = item.getData()
-    identifiers = [credential.identifier]
+    identifiers = [ credential.identifier ]
 
-    console.log { identifiers }
-
-    { computeController } = kd.singletons
-
-    computeController.getKloud()
-
-      .bootstrap { identifiers }
-
-      .then (response) ->
-
-        console.log "Bootstrap result:", response
-
+    kd.singletons.computeController.getKloud()
+      .bootstrap { identifiers, destroy: yes }
+      .then -> callback null
       .catch (err) ->
-
-        console.warn "Bootstrap failed:", err
+        kd.singletons.computeController.ui.showComputeError
+          title   : 'An error occured while destroying resources'
+          message : "
+            Some errors occurred while destroying resources that are created
+            with this credential.
+            <br/>
+            You can either visit
+            <a href='http://console.aws.amazon.com/' target=_blank>
+            console.aws.amazon.com
+            </a> to clear the EC2 instances and try this again, or go ahead
+            and delete this credential here but you will need to destroy your
+            resources manually from AWS console later.
+          "
+          errorMessage : err?.message ? err
+        callback err
 
 
   verify: (item) ->

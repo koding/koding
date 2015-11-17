@@ -3,6 +3,7 @@ whoami               = require 'app/util/whoami'
 toImmutable          = require 'app/util/toImmutable'
 actions              = require '../actions/actiontypes'
 generateDummyMessage = require 'app/util/generateDummyMessage'
+createChannelActions = require 'activity/flux/createchannel/actions/actiontypes'
 
 ###*
  * A thin data structure to hold message list associated with given channelId.
@@ -46,6 +47,8 @@ module.exports = class ChannelThreadsStore extends Nuclear.Store
     @on actions.LOAD_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PUBLIC_CHANNEL_SUCCESS, @addNewThread
     @on actions.LOAD_FOLLOWED_PRIVATE_CHANNEL_SUCCESS, @addNewThread
+    @on createChannelActions.CREATE_PRIVATE_CHANNEL_SUCCESS, @addNewThread
+    @on createChannelActions.CREATE_PUBLIC_CHANNEL_SUCCESS, @addNewThread
 
 
   ###*

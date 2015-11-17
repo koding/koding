@@ -8,6 +8,7 @@ KDNotificationView   = kd.NotificationView
 
 nick                 = require 'app/util/nick'
 isKoding             = require 'app/util/isKoding'
+FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 
@@ -34,7 +35,7 @@ module.exports = class ComputeController extends KDController
 
     super
 
-    { mainController, router } = kd.singletons
+    { mainController, groupsController, router } = kd.singletons
 
     @ui = ComputeController_UI
 
@@ -44,6 +45,8 @@ module.exports = class ComputeController extends KDController
 
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
+
+      groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
 
       @fetchStacks =>
 
@@ -173,9 +176,9 @@ module.exports = class ComputeController extends KDController
   # Fetchers most of these methods has internal
   # caches with in ComputeController
 
-  fetchStacks: do (queue=[])->
+  fetchStacks: do (queue=[]) ->
 
-    (callback = kd.noop)-> kd.singletons.mainController.ready =>
+    (callback = kd.noop) -> kd.singletons.mainController.ready =>
 
       if @stacks.length > 0
         callback null, @stacks
@@ -184,14 +187,14 @@ module.exports = class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      remote.api.JComputeStack.some {}, (err, stacks = [])=>
+      remote.api.JComputeStack.some {}, (err, stacks = []) =>
 
         if err?
           cb err  for cb in queue
           queue = []
           return
 
-        remote.api.JMachine.some {}, (err, _machines = [])=>
+        remote.api.JMachine.some {}, (err, _machines = []) =>
 
           if err?
             cb err  for cb in queue
@@ -384,6 +387,8 @@ module.exports = class ComputeController extends KDController
       else
         @emit 'StacksNotConfigured'
 
+      @checkGroupStackRevisions()
+
 
   # remote.ComputeProvider and Kloud kite public methods
   #
@@ -477,9 +482,9 @@ module.exports = class ComputeController extends KDController
       destroy machine
 
 
-  reinit: (machine, snapshotId)->
+  reinit: (machine, snapshotId) ->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy(machine) or machine.provider is 'aws'
 
     startReinit = =>
 
@@ -605,6 +610,15 @@ module.exports = class ComputeController extends KDController
 
     return  unless @verifyStackRequirements stack
 
+    state = stack.status?.state ? 'Unknown'
+
+    unless state is 'NotInitialized'
+      if state is 'Building'
+        @eventListener.addListener 'apply', stack._id
+      else
+        kd.warn 'Stack already initialized, skipping.', stack
+      return
+
     stack.machines.forEach (machineId) =>
       return  unless machine = @findMachineFromMachineId machineId
 
@@ -629,7 +643,7 @@ module.exports = class ComputeController extends KDController
 
 
 
-  start: (machine)->
+  start: (machine) ->
 
     return if methodNotSupportedBy machine
 
@@ -641,7 +655,7 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().start { machineId: machine._id }
 
-    .then (res)=>
+    .then (res) =>
 
       kd.log "start res:", res
       @_clearTrialCounts machine
@@ -649,12 +663,12 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       (@errorHandler call, 'start', machine) err
 
 
-  stop: (machine)->
+  stop: (machine) ->
 
     return if methodNotSupportedBy machine
 
@@ -667,7 +681,7 @@ module.exports = class ComputeController extends KDController
 
     call = @getKloud().stop { machineId: machine._id }
 
-    .then (res)=>
+    .then (res) =>
 
       kd.log "stop res:", res
       @_clearTrialCounts machine
@@ -675,7 +689,7 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err)=>
+    .catch (err) =>
 
       (@errorHandler call, 'stop', machine) err
 
@@ -688,14 +702,57 @@ module.exports = class ComputeController extends KDController
     @update machine, alwaysOn: state, callback
 
 
-  update: (machine, options, callback = kd.noop)->
+  update: (machine, options, callback = kd.noop) ->
 
+    updateWith = (options) =>
+      remote.api.ComputeProvider.update options, (err) =>
+        @triggerReviveFor machine._id  unless err?
+        callback err
+
+    { provider }      = machine
     options.machineId = machine._id
-    options.provider  = machine.provider
+    options.provider  = provider
 
-    remote.api.ComputeProvider.update options, (err)=>
-      @triggerReviveFor machine._id  unless err?
-      callback err
+    # For teams context we need to use JMachine.credential field for ongoing
+    # operations with ComputeProvider which will need to verify credential
+    # on each request. There is one user experience issue with that behaivour
+    # which is causing user to reinitialize their stacks if one of the valid
+    # credential has been changed. To prevent that we are taking stack template
+    # credential if it fits with the current JMachine requirements. So user
+    # not requires to re-init their stacks when a credential is changed but not
+    # the template itself. ~ GG
+    unless isKoding()
+
+      stack = @findStackFromMachineId machine._id
+      return updateWith options  unless stack
+
+      @fetchBaseStackTemplate stack, (err, template) ->
+        return updateWith options  if err or not template
+
+        credential = template.credentials[provider]?.first ? machine.credential
+        options.credential = credential
+
+        updateWith options
+
+    else
+
+      updateWith options
+
+  # Stacks
+
+  # Start helper to start all machines in the given stack
+  startStack: (stack) ->
+
+    for machine in stack.machines
+      @start machine  if machine.isStopped()
+
+
+  # Stop helper to stop all machines in the given stack
+  stopStack: (stack) ->
+
+    for machine in stack.machines
+      @stop machine  if machine.isRunning()
+
 
   # Snapshots
   #
@@ -781,15 +838,23 @@ module.exports = class ComputeController extends KDController
   # Utils beyond this point
   #
 
-  triggerReviveFor:(machineId)->
+  triggerReviveFor: (machineId, asStack = no) ->
 
-    kd.info "Triggering revive for #{machineId}..."
+    kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{machineId}..."
 
-    remote.api.JMachine.one machineId, (err, machine)=>
-      if err? then kd.warn "Revive failed for #{machineId}: ", err
-      else
-        @emit "revive-#{machineId}", machine
-        kd.info "Revive triggered for #{machineId}", machine
+    @fetchStacks =>
+
+      if asStack
+        stack = @findStackFromStackId machineId
+        return  if stack
+          stack.machines.forEach (machine) =>
+            @triggerReviveFor machine._id
+
+      remote.api.JMachine.one machineId, (err, machine) =>
+        if err? then kd.warn "Revive failed for #{machineId}: ", err
+        else
+          @emit "revive-#{machineId}", machine
+          kd.info "Revive triggered for #{machineId}", machine
 
 
   invalidateCache: (machineId)->
@@ -825,6 +890,47 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  checkGroupStacks: ->
+
+    @checkStackRevisions()
+
+    { groupsController } = kd.singletons
+    { slug } = currentGroup = groupsController.getCurrentGroup()
+
+    remote.api.JGroup.one { slug }, (err, _currentGroup) =>
+      return kd.warn err  if err
+      return kd.warn 'No such Group!'  unless _currentGroup
+
+      currentGroup.stackTemplates = _currentGroup.stackTemplates
+
+      @createDefaultStack yes  if @stacks.length is 0
+
+      @checkGroupStackRevisions()
+
+
+  checkGroupStackRevisions: ->
+
+    return  if isKoding()
+    return  if not @stacks?.length
+
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
+    { stackTemplates }   = currentGroup
+
+    return  if not stackTemplates?.length
+
+    existents = 0
+
+    for stackTemplate in stackTemplates
+      for stack in @stacks when stack.baseStackId is stackTemplate
+        existents++
+        break # only count one matched stack ~ GG
+
+    if existents isnt stackTemplates.length
+    then @emit 'GroupStacksInconsistent'
+    else @emit 'GroupStacksConsistent'
+
+
   verifyStackRequirements: (stack) ->
 
     unless stack
@@ -852,9 +958,120 @@ module.exports = class ComputeController extends KDController
 
 
   ###*
+   * Fetch given stack's README from the stackTemplate which
+   * is generated from.
+  ###
+
+  fetchStackReadme: (stack, callback = kd.noop) ->
+
+    return callback null, ''  unless stack?.baseStackId
+
+    @fetchBaseStackTemplate stack, (err, template) ->
+      return callback err, template?.description ? ''
+
+
+  ###*
+   * Fetch given stack's stackTemplate which is generated from.
+  ###
+
+  fetchBaseStackTemplate: (stack, callback = kd.noop) ->
+
+    return callback null, ''  unless stack?.baseStackId
+
+    { baseStackId } = stack
+
+    remote.cacheable 'JStackTemplate', baseStackId, (err, template) ->
+      return callback err  if err
+      return callback null, template or {}
+
+
+  ###*
    * Automatically kill active collaboration sessions if any
   ###
   stopCollaborationSession: ->
 
     kd.singletons.appManager.tell 'IDE', 'stopCollaborationSession'
 
+
+  showBuildLogs: (machine) ->
+
+    # Not supported for Koding Group
+    return  if isKoding()
+
+    # Path of cloud-init-output log
+    path = '/var/log/cloud-init-output.log'
+    file = FSHelper.createFileInstance { path, machine }
+
+    kd.singletons.appManager.tell 'IDE', 'tailFile', {
+      file
+      description:
+        "Your Koding Stack has successfully been initialized. The log here
+         describes each executed step of the Stack creation process."
+    }
+
+
+  ###*
+   * Returns the stack which generated from Group's default stack template
+  ###
+  getGroupStack: ->
+
+    return null  if isKoding() # we may need this for Koding group as well ~ GG
+    return null  if not @stacks?.length
+
+    { groupsController } = kd.singletons
+    currentGroup         = groupsController.getCurrentGroup()
+    { stackTemplates }   = currentGroup
+
+    return null  if not stackTemplates?.length
+
+    for stackTemplate in stackTemplates
+      for stack in @stacks when stack.baseStackId is stackTemplate
+        return stack
+
+    return null
+
+
+  ###*
+   * Reinit's given stack or groups default stack
+   * If stack given, it asks for re-init and first deletes and then calls
+   * createDefaultStack again.
+   * If not given it tries to find default one and does the same thing, if it
+   * can't find the default one, asks to user what to do next.
+  ###
+  reinitGroupStack: (stack) ->
+
+    stack ?= @getGroupStack()
+
+    if not stack
+
+      if @stacks?.length
+        new kd.NotificationView
+          title   : "Couldn't find default stack"
+          content : 'Please re-init manually'
+
+        EnvironmentsModal = require 'app/environment/environmentsmodal'
+        new EnvironmentsModal
+
+      else
+        @createDefaultStack()
+
+      return
+
+    @ui.askFor 'reinitStack', {}, =>
+
+      stack.delete (err) =>
+        return showError err  if err
+
+        @reset()
+
+          .once 'RenderStacks', (stacks) ->
+
+            new kd.NotificationView
+              title : 'Stack reinitialized'
+
+            # We need to quit here to be able to re-load
+            # IDE with new machine stack, there might be better solution ~ GG
+            frontApp = kd.singletons.appManager.getFrontApp()
+            frontApp.quit()  if frontApp?.options.name is 'IDE'
+
+          .createDefaultStack()

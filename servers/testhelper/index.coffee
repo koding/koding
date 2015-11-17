@@ -1,6 +1,25 @@
 _           = require 'underscore'
 hat         = require 'hat'
+Bongo       = require 'bongo'
+request     = require 'request'
 querystring = require 'querystring'
+
+{ argv }   = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+mongo       = KONFIG.mongoReplSet or "mongodb://#{ KONFIG.mongo }"
+{ daisy }   = Bongo
+{ expect }  = require 'chai'
+
+
+checkBongoConnectivity = (callback) ->
+
+  bongo = new Bongo
+    root   : __dirname
+    mongo  : mongo
+    models : ''
+
+  bongo.once 'dbClientReady', ->
+    callback()
 
 
 # returns 20 characters by default
@@ -70,7 +89,6 @@ generateDefaultBodyObject = -> {}
 generateDefaultRequestParams = (opts = {}) ->
 
   defaultBodyObject    = generateDefaultBodyObject()
-
   defaultHeadersObject = generateDefaultHeadersObject()
 
   defaultParams        =
@@ -81,6 +99,23 @@ generateDefaultRequestParams = (opts = {}) ->
   defaultParams = deepObjectExtend defaultParams, opts
 
   return defaultParams
+
+
+generateRequestParamsEncodeBody = (params, opts = {}) ->
+
+  defaultRequestParams  = generateDefaultRequestParams params
+  requestParams         = deepObjectExtend defaultRequestParams, opts
+
+  if csrfCookieValue = requestParams.csrfCookie
+    cookie             = generateCsrfTokenCookie csrfCookieValue
+    requestParams.jar ?= request.jar()
+    requestParams.jar.setCookie cookie, requestParams.url
+
+  if requestParams.body
+    # after deep extending object, encodes body param to a query string
+    requestParams.body    = querystring.stringify requestParams.body
+
+  return requestParams
 
 
 # _.extend didn't help with deep extend
@@ -98,6 +133,15 @@ deepObjectExtend = (target, source) ->
 
   return target
 
+
+generateCsrfTokenCookie = (csrfToken = null) ->
+
+  csrfToken ?= generateRandomString()
+  cookie     = request.cookie "_csrf=#{csrfToken}"
+
+  return cookie
+
+
 convertToArray = (commaSeparatedData = '') ->
 
   return []  if commaSeparatedData is ''
@@ -112,11 +156,18 @@ convertToArray = (commaSeparatedData = '') ->
 
 
 module.exports = {
+  hat
+  daisy
+  expect
+  request
   generateUrl
+  querystring
   convertToArray
   deepObjectExtend
   generateRandomEmail
   generateRandomString
   generateRandomUsername
+  checkBongoConnectivity
   generateDefaultRequestParams
+  generateRequestParamsEncodeBody
 }

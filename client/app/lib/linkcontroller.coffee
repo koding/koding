@@ -23,9 +23,11 @@ module.exports = class LinkController extends KDController
         else if slug is 'koding'
           "/#{nickname}"
         else
-          "/#{slug}/#{nickname}"
+          null
       when JGroup
         "/#{data.slug}"
+
+    return  unless route
 
     kd.getSingleton('router').handleRoute route, {state : data}  if route?
 

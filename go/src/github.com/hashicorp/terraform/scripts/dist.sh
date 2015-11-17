@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Get the version from the command line
@@ -36,14 +36,6 @@ shasum -a256 * > ./terraform_${VERSION}_SHA256SUMS
 popd
 
 # Upload
-for ARCHIVE in ./pkg/dist/*; do
-    ARCHIVE_NAME=$(basename ${ARCHIVE})
-
-    echo Uploading: $ARCHIVE_NAME
-    curl \
-        -T ${ARCHIVE} \
-        -umitchellh:${BINTRAY_API_KEY} \
-        "https://api.bintray.com/content/mitchellh/terraform/terraform/${VERSION}/${ARCHIVE_NAME}"
-done
+hc-releases -upload=./pkg/dist
 
 exit 0

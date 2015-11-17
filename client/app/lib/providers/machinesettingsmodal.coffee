@@ -6,6 +6,7 @@ KDCustomHTMLView     = kd.CustomHTMLView
 KDTabHandleContainer = kd.TabHandleContainer
 
 Machine                      = require 'app/providers/machine'
+isKoding                     = require 'app/util/isKoding'
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
 MachineSettingsGeneralView   = require './machinesettingsgeneralview'
@@ -74,6 +75,7 @@ module.exports = class MachineSettingsModal extends KDModalView
     isMachineRunning            = machine.status.state is Machine.State.Running
     disabledTabsForNotRunningVM = [ 'Disk Usage', 'Domains', 'VM Sharing', 'Snapshots' ]
     disabledTabsForManagedVM    = [ 'Specs', 'Domains', 'Snapshots' ]
+    disabledTabsForTeams        = [ 'Domains', 'Advanced', 'Snapshots' ]
 
     for item in PANE_CONFIG when item.title and item.viewClass
 
@@ -82,6 +84,9 @@ module.exports = class MachineSettingsModal extends KDModalView
 
       if machine.isManaged()
         isDisabled = disabledTabsForManagedVM.indexOf(item.title) > -1
+
+      unless isKoding()
+        isDisabled = disabledTabsForTeams.indexOf(item.title) > -1
 
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title

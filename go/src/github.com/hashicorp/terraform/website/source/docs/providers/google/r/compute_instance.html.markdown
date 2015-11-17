@@ -1,7 +1,7 @@
 ---
 layout: "google"
 page_title: "Google: google_compute_instance"
-sidebar_current: "docs-google-resource-instance"
+sidebar_current: "docs-google-compute-instance"
 description: |-
   Manages a VM instance resource within GCE.
 ---
@@ -44,6 +44,8 @@ resource "google_compute_instance" "default" {
 		foo = "bar"
 	}
 
+    metadata_startup_script = "echo hi > /test.txt"
+
 	service_account {
 		scopes = ["userinfo-email", "compute-ro", "storage-ro"]
 	}
@@ -73,9 +75,15 @@ The following arguments are supported:
 * `metadata` - (Optional) Metadata key/value pairs to make available from
     within the instance.
 
+* `metadata_startup_script` - (Optional) An alternative to using the
+  startup-script metadata key, except this one forces the instance to be
+  recreated (thus re-running the script) if it is changed.  This replaces the
+  startup-script metadata key on the created instance and thus the two mechanisms
+  are not allowed to be used simultaneously.
+
 * `network_interface` - (Required) Networks to attach to the instance. This can be
-    specified multiple times for multiple networks. Structure is documented
-    below.
+    specified multiple times for multiple networks, but GCE is currently limited
+    to just 1. Structure is documented below.
 
 * `network` - (DEPRECATED, Required) Networks to attach to the instance. This can be
     specified multiple times for multiple networks. Structure is documented
@@ -136,6 +144,17 @@ The `service_account` block supports:
 
 * `scopes` - (Required) A list of service scopes. Both OAuth2 URLs and gcloud
     short names are supported.
+
+The `scheduling` block supports:
+
+* `preemptible` - (Optional) Is the instance preemptible.
+
+* `on_host_maintenance` - (Optional) Describes maintenance behavior for 
+    the instance. Can be MIGRATE or TERMINATE, for more info, read
+    [here](https://cloud.google.com/compute/docs/instances/setting-instance-scheduling-options)
+
+* `automatic_restart` - (Optional) Specifies if the instance should be
+    restarted if it was terminated by Compute Engine (not a user).
 
 ## Attributes Reference
 

@@ -1,5 +1,6 @@
-fs     = require 'fs'
-faker  = require 'faker'
+fs        = require 'fs'
+faker     = require 'faker'
+formatter = require 'json-format'
 
 module.exports =
 
@@ -7,20 +8,19 @@ module.exports =
 
     users = []
 
-    for i in [1..2]
+    for i in [1..10]
 
       name     = faker.Name.findName()
       username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
-      teamSlug = name.toLowerCase().replace /\s/g, '-'
+      teamSlug = name.toLowerCase().replace(/\s/g, '-').replace('.', '')
 
       email = "kodingtestuser+#{username}@koding.com"
 
       users.push { name, email, username, password, teamSlug }
 
-
-    fs.writeFileSync 'users.json', JSON.stringify(users), 'utf-8'
+    fs.writeFileSync 'users.json', formatter users, 'utf-8'
 
     return users
 
@@ -39,17 +39,15 @@ module.exports =
 
     if createNewUserData
       users = @generateUsers()
-      return users[index]
+      return if index is -1 then users else users[index]
 
     try
       usersFile = fs.readFileSync('users.json')
       users = JSON.parse(usersFile)
 
-      console.log " ✔ users.json found, returning #{index}. user"
-      return users[index]
+      return if index is -1 then users else users[index]
 
     catch
-      console.log ' ✔ users.json does not exist, creating new user data'
 
       users = @generateUsers()
-      return users[index]
+      return if index is -1 then users else users[index]

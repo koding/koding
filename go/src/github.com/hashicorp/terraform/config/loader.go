@@ -25,7 +25,7 @@ func LoadJSON(raw json.RawMessage) (*Config, error) {
 
 	// Start building the result
 	hclConfig := &hclConfigurable{
-		Object: obj,
+		Root: obj,
 	}
 
 	return hclConfig.Config()
@@ -210,5 +210,5 @@ func dirFiles(dir string) ([]string, []string, error) {
 func isIgnoredFile(name string) bool {
 	return strings.HasPrefix(name, ".") || // Unix-like hidden files
 		strings.HasSuffix(name, "~") || // vim
-		(strings.HasPrefix(name, "#") && strings.HasSuffix(name, "#")) // emacs
+		strings.HasPrefix(name, "#") && strings.HasSuffix(name, "#") // emacs
 }

@@ -1,4 +1,3 @@
-# coffeelint: disable=no_implicit_braces
 { Model } = require 'bongo'
 
 module.exports = class JCustomPartials extends Model

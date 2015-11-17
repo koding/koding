@@ -1,16 +1,10 @@
-kd                          = require 'kd'
-KDView                      = kd.View
-remote                      = require('app/remote').getInstance()
-KDCustomHTMLView            = kd.CustomHTMLView
-KDCustomScrollView          = kd.CustomScrollView
-KDListViewController        = kd.ListViewController
-AdminIntegrationItemView    = require './adminintegrationitemview'
-AdminIntegrationSetupView   = require './adminintegrationsetupview'
-AdminIntegrationDetailsView = require './adminintegrationdetailsview'
-integrationHelpers          = require 'app/helpers/integration'
+kd                       = require 'kd'
+remote                   = require('app/remote').getInstance()
+integrationHelpers       = require 'app/helpers/integration'
+AdminIntegrationItemView = require './adminintegrationitemview'
 
 
-module.exports = class AdminIntegrationsListView extends KDView
+module.exports = class AdminIntegrationsListView extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -25,17 +19,17 @@ module.exports = class AdminIntegrationsListView extends KDView
     @createListController()
     @fetchIntegrations()
 
-    @addSubView @subContentView = new KDCustomScrollView
+    @addSubView @subContentView = new kd.CustomScrollView
 
 
   createListController: ->
 
-    @listController       = new KDListViewController
+    @listController       = new kd.ListViewController
       viewOptions         :
         wrapper           : yes
         itemClass         : @getOptions().listItemClass
       useCustomScrollView : yes
-      noItemFoundWidget   : new KDCustomHTMLView
+      noItemFoundWidget   : new kd.CustomHTMLView
         cssClass          : 'hidden no-item-found'
         partial           : 'No integration available.'
       startWithLazyLoader : yes

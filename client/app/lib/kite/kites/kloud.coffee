@@ -22,12 +22,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) ->
 
-      if payload?.machineId?
-
-        provider = getProvider payload.machineId
+      if payload?.machineId? and provider = getProvider payload.machineId
 
         if provider not in SUPPORTED_PROVIDERS
-          # machine provider is not supported by kloud #{payload.machineId}
+          # machine provider is not supported by kloud #{ payload.machineId }
           return Promise.reject
             name    : 'NotSupported'
             message : 'Operation is not supported for this VM'
@@ -52,6 +50,10 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     resize          : 'resize'
     restart         : 'restart'
     destroy         : 'destroy'
+
+    # Admin helpers
+    addAdmin        : 'admin.add'
+    removeAdmin     : 'admin.remove'
 
     # Domain managament
     setDomain       : 'domain.set'
@@ -123,18 +125,14 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     managed    = machine.provider is 'managed'
     klientKite = klient?[machine.uid]
 
-    unless klientKite?
-
-      if machine.status.state is Machine.State.Running or managed
-
+    if machine.status.state is Machine.State.Running or managed
+      unless klientKite?
         klientKite = kontrol.getKite
           name            : 'klient'
           queryString     : machine.queryString
           correlationName : machine.uid
-
-      else
-        return callback null
-
+    else
+      return callback null
 
     klientKite.ping()
 
@@ -185,6 +183,20 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
             @_reconnectedOnce = yes
 
           KiteLogger.failed 'kloud', 'info'
+
+        # If kite somehow unregistered from Kontrol and Kloud is failing
+        # to find it in Kontrol registry we are getting this `not found`
+        # at this point we can assume that the machine is Stopped. But on
+        # the other hand, Kloud should also mark this machine as Stopped if
+        # it couldn't find it in Kontrol registry ~ GG FIXME: FA
+        else if err.message is 'not found' and currentState is Machine.State.Running
+
+          @resolveRequestingInfos machineId, State: Machine.State.Stopped
+          KiteLogger.failed 'kloud', 'info'
+
+          kd.warn '[kloud:info] failed, Kite not found in Kontrol registry!', err
+
+          return
 
         kd.warn '[kloud:info] failed, sending current state back:', { currentState, err }
         @resolveRequestingInfos machineId, State: currentState

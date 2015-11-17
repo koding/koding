@@ -1,6 +1,8 @@
 kd                     = require 'kd'
 KDView                 = kd.View
+Encoder                = require 'htmlencode'
 Machine                = require './machine'
+isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require '../commonviews/kodingswitch'
 KDLoaderView           = kd.LoaderView
@@ -68,7 +70,9 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
       return if showError err
 
-      nickname.updatePartial "<span class='edit'>update</span> #{newLabel}"
+      label = Encoder.XSSEncode newLabel
+
+      nickname.updatePartial "<span class='edit'>update</span> #{label}"
 
       nickEdit.hide()
       nickname.show()
@@ -108,7 +112,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
   bindViewEvents: ->
 
-    { nickname, nickEdit } = @form.inputs
+    { nickname, nickEdit, buildlogs } = @form.inputs
 
     nickname.on 'click', (e) =>
 
@@ -121,22 +125,36 @@ module.exports = class MachineSettingsGeneralView extends KDView
         nickEdit.hide()
         nickname.show()
 
-      nickEdit.setValue @machine.label
+      nickEdit.setValue Encoder.htmlDecode @machine.label
       nickEdit.show()
 
       kd.utils.defer -> nickEdit.setFocus()
 
+    buildlogs.on 'click', (e) =>
+
+      return  unless @machine.isRunning()
+      return  unless e.target.tagName is 'SPAN'
+
+      buildlogs.updatePartial 'loading...'
+      kd.singletons.computeController.showBuildLogs @machine
+      kd.utils.wait 1000, @lazyBound 'emit', 'ModalDestroyRequested'
+
 
   createForm: ->
 
-    running   = @machine.status.state in [ Running, Starting ]
-    accessUri = "http://#{@machine.domain}"
+    isAws       = @machine.provider is 'aws'
+    running     = @machine.status.state in [ Running, Starting ]
+    accessUri   = "http://#{@machine.domain}"
+    isManaged   = @machine.isManaged()
+    logsMessage = if @machine.isRunning() \
+      then "<span class='logs-link'>show logs</span>"
+      else "Please turn on the machine to see logs"
 
     @addSubView @form = new KDFormViewWithFields
       cssClass          : 'AppModal-form'
       fields            :
         statusToggle    :
-          cssClass      : if @machine.isManaged() then 'hidden'
+          cssClass      : if isManaged then 'hidden'
           label         : 'On/Off'
           defaultValue  : running
           itemClass     : KodingSwitch
@@ -156,7 +174,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           label         : 'Keep VM always on'
           defaultValue  : @machine.alwaysOn
           itemClass     : KodingSwitch
-          cssClass      : if @machine.isManaged() then 'statustoggle hidden' else 'statustoggle'
+          cssClass      : if isManaged then 'statustoggle hidden' else 'statustoggle'
           disabled      : @machine.isPermanent()
           callback      : @bound 'handleAlwaysOnStateChanged'
         nickname        :
@@ -178,8 +196,13 @@ module.exports = class MachineSettingsGeneralView extends KDView
           partial       : @machine.ipAddress or 'N/A'
         accessUri       :
           label         : 'Assigned URL'
-          cssClass      : if @machine.isManaged() then 'assigned-url hidden' else 'assigned-url'
+          cssClass      : if isManaged or isAws then 'assigned-url hidden' else 'assigned-url'
           itemClass     : CustomLinkView
           title         : @machine.domain
           href          : accessUri
           target        : '_blank'
+        buildlogs       :
+          label         : 'Build logs'
+          cssClass      : if isAws then 'custom-link-view' else 'hidden'
+          itemClass     : KDView
+          partial       : logsMessage

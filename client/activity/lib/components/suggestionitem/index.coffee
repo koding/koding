@@ -7,6 +7,7 @@ ProfileText           = require 'app/components/profile/profiletext'
 ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'
 formatPlural          = kd.utils.formatPlural
 classnames            = require 'classnames'
+formatContent         = require 'app/util/formatContent'
 
 module.exports = class SuggestionItem extends React.Component
 
@@ -34,7 +35,7 @@ module.exports = class SuggestionItem extends React.Component
         {makeAvatar message.get('account')}
       </div>
       <div className="ActivitySuggestionItem-messageBody">
-        <SearchItemBody source={messageBody} />
+        <SearchItemBody source={messageBody} contentFormatter={formatContent} />
       </div>
       <div>
         <span className="ActivitySuggestionItem-info ActivitySuggestionItem-profileLink">

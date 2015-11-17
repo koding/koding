@@ -4,51 +4,84 @@ package emr
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/internal/protocol/jsonrpc"
-	"github.com/aws/aws-sdk-go/internal/signer/v4"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/client/metadata"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
+	"github.com/aws/aws-sdk-go/private/signer/v4"
 )
 
-// EMR is a client for Amazon EMR.
+// Amazon Elastic MapReduce (Amazon EMR) is a web service that makes it easy
+// to process large amounts of data efficiently. Amazon EMR uses Hadoop processing
+// combined with several AWS products to do tasks such as web indexing, data
+// mining, log file analysis, machine learning, scientific simulation, and data
+// warehousing.
+//The service client's operations are safe to be used concurrently.
+// It is not safe to mutate any of the client's properties though.
 type EMR struct {
-	*aws.Service
+	*client.Client
 }
 
-// Used for custom service initialization logic
-var initService func(*aws.Service)
+// Used for custom client initialization logic
+var initClient func(*client.Client)
 
 // Used for custom request initialization logic
-var initRequest func(*aws.Request)
+var initRequest func(*request.Request)
 
-// New returns a new EMR client.
-func New(config *aws.Config) *EMR {
-	service := &aws.Service{
-		Config:       aws.DefaultConfig.Merge(config),
-		ServiceName:  "elasticmapreduce",
-		APIVersion:   "2009-03-31",
-		JSONVersion:  "1.1",
-		TargetPrefix: "ElasticMapReduce",
+// A ServiceName is the name of the service the client will make API calls to.
+const ServiceName = "elasticmapreduce"
+
+// New creates a new instance of the EMR client with a session.
+// If additional configuration is needed for the client instance use the optional
+// aws.Config parameter to add your extra config.
+//
+// Example:
+//     // Create a EMR client from just a session.
+//     svc := emr.New(mySession)
+//
+//     // Create a EMR client with additional configuration
+//     svc := emr.New(mySession, aws.NewConfig().WithRegion("us-west-2"))
+func New(p client.ConfigProvider, cfgs ...*aws.Config) *EMR {
+	c := p.ClientConfig(ServiceName, cfgs...)
+	return newClient(*c.Config, c.Handlers, c.Endpoint, c.SigningRegion)
+}
+
+// newClient creates, initializes and returns a new service client instance.
+func newClient(cfg aws.Config, handlers request.Handlers, endpoint, signingRegion string) *EMR {
+	svc := &EMR{
+		Client: client.New(
+			cfg,
+			metadata.ClientInfo{
+				ServiceName:   ServiceName,
+				SigningRegion: signingRegion,
+				Endpoint:      endpoint,
+				APIVersion:    "2009-03-31",
+				JSONVersion:   "1.1",
+				TargetPrefix:  "ElasticMapReduce",
+			},
+			handlers,
+		),
 	}
-	service.Initialize()
 
 	// Handlers
-	service.Handlers.Sign.PushBack(v4.Sign)
-	service.Handlers.Build.PushBack(jsonrpc.Build)
-	service.Handlers.Unmarshal.PushBack(jsonrpc.Unmarshal)
-	service.Handlers.UnmarshalMeta.PushBack(jsonrpc.UnmarshalMeta)
-	service.Handlers.UnmarshalError.PushBack(jsonrpc.UnmarshalError)
+	svc.Handlers.Sign.PushBack(v4.Sign)
+	svc.Handlers.Build.PushBack(jsonrpc.Build)
+	svc.Handlers.Unmarshal.PushBack(jsonrpc.Unmarshal)
+	svc.Handlers.UnmarshalMeta.PushBack(jsonrpc.UnmarshalMeta)
+	svc.Handlers.UnmarshalError.PushBack(jsonrpc.UnmarshalError)
 
-	// Run custom service initialization if present
-	if initService != nil {
-		initService(service)
+	// Run custom client initialization if present
+	if initClient != nil {
+		initClient(svc.Client)
 	}
 
-	return &EMR{service}
+	return svc
 }
 
 // newRequest creates a new request for a EMR operation and runs any
 // custom request initialization.
-func (c *EMR) newRequest(op *aws.Operation, params, data interface{}) *aws.Request {
-	req := aws.NewRequest(c.Service, op, params, data)
+func (c *EMR) newRequest(op *request.Operation, params, data interface{}) *request.Request {
+	req := c.NewRequest(op, params, data)
 
 	// Run custom request initialization if present
 	if initRequest != nil {

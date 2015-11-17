@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
 )
 
@@ -17,12 +16,12 @@ var _ time.Duration
 var _ bytes.Buffer
 
 func ExampleRoute53_AssociateVPCWithHostedZone() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.AssociateVPCWithHostedZoneInput{
-		HostedZoneID: aws.String("ResourceId"), // Required
+		HostedZoneId: aws.String("ResourceId"), // Required
 		VPC: &route53.VPC{ // Required
-			VPCID:     aws.String("VPCId"),
+			VPCId:     aws.String("VPCId"),
 			VPCRegion: aws.String("VPCRegion"),
 		},
 		Comment: aws.String("AssociateVPCComment"),
@@ -30,26 +29,18 @@ func ExampleRoute53_AssociateVPCWithHostedZone() {
 	resp, err := svc.AssociateVPCWithHostedZone(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ChangeResourceRecordSets() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ChangeResourceRecordSetsInput{
 		ChangeBatch: &route53.ChangeBatch{ // Required
@@ -61,8 +52,8 @@ func ExampleRoute53_ChangeResourceRecordSets() {
 						Type: aws.String("RRType"),  // Required
 						AliasTarget: &route53.AliasTarget{
 							DNSName:              aws.String("DNSName"),    // Required
-							EvaluateTargetHealth: aws.Boolean(true),        // Required
-							HostedZoneID:         aws.String("ResourceId"), // Required
+							EvaluateTargetHealth: aws.Bool(true),           // Required
+							HostedZoneId:         aws.String("ResourceId"), // Required
 						},
 						Failover: aws.String("ResourceRecordSetFailover"),
 						GeoLocation: &route53.GeoLocation{
@@ -70,7 +61,7 @@ func ExampleRoute53_ChangeResourceRecordSets() {
 							CountryCode:     aws.String("GeoLocationCountryCode"),
 							SubdivisionCode: aws.String("GeoLocationSubdivisionCode"),
 						},
-						HealthCheckID: aws.String("HealthCheckId"),
+						HealthCheckId: aws.String("HealthCheckId"),
 						Region:        aws.String("ResourceRecordSetRegion"),
 						ResourceRecords: []*route53.ResourceRecord{
 							{ // Required
@@ -79,42 +70,34 @@ func ExampleRoute53_ChangeResourceRecordSets() {
 							// More values...
 						},
 						SetIdentifier: aws.String("ResourceRecordSetIdentifier"),
-						TTL:           aws.Long(1),
-						Weight:        aws.Long(1),
+						TTL:           aws.Int64(1),
+						Weight:        aws.Int64(1),
 					},
 				},
 				// More values...
 			},
 			Comment: aws.String("ResourceDescription"),
 		},
-		HostedZoneID: aws.String("ResourceId"), // Required
+		HostedZoneId: aws.String("ResourceId"), // Required
 	}
 	resp, err := svc.ChangeResourceRecordSets(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ChangeTagsForResource() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ChangeTagsForResourceInput{
-		ResourceID:   aws.String("TagResourceId"),   // Required
+		ResourceId:   aws.String("TagResourceId"),   // Required
 		ResourceType: aws.String("TagResourceType"), // Required
 		AddTags: []*route53.Tag{
 			{ // Required
@@ -131,36 +114,35 @@ func ExampleRoute53_ChangeTagsForResource() {
 	resp, err := svc.ChangeTagsForResource(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_CreateHealthCheck() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.CreateHealthCheckInput{
 		CallerReference: aws.String("HealthCheckNonce"), // Required
 		HealthCheckConfig: &route53.HealthCheckConfig{ // Required
-			Type:                     aws.String("HealthCheckType"), // Required
-			FailureThreshold:         aws.Long(1),
+			Type: aws.String("HealthCheckType"), // Required
+			ChildHealthChecks: []*string{
+				aws.String("HealthCheckId"), // Required
+				// More values...
+			},
+			FailureThreshold:         aws.Int64(1),
 			FullyQualifiedDomainName: aws.String("FullyQualifiedDomainName"),
+			HealthThreshold:          aws.Int64(1),
 			IPAddress:                aws.String("IPAddress"),
-			Port:                     aws.Long(1),
-			RequestInterval:          aws.Long(1),
+			Inverted:                 aws.Bool(true),
+			MeasureLatency:           aws.Bool(true),
+			Port:                     aws.Int64(1),
+			RequestInterval:          aws.Int64(1),
 			ResourcePath:             aws.String("ResourcePath"),
 			SearchString:             aws.String("SearchString"),
 		},
@@ -168,177 +150,129 @@ func ExampleRoute53_CreateHealthCheck() {
 	resp, err := svc.CreateHealthCheck(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_CreateHostedZone() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.CreateHostedZoneInput{
 		CallerReference: aws.String("Nonce"),   // Required
 		Name:            aws.String("DNSName"), // Required
-		DelegationSetID: aws.String("ResourceId"),
+		DelegationSetId: aws.String("ResourceId"),
 		HostedZoneConfig: &route53.HostedZoneConfig{
 			Comment:     aws.String("ResourceDescription"),
-			PrivateZone: aws.Boolean(true),
+			PrivateZone: aws.Bool(true),
 		},
 		VPC: &route53.VPC{
-			VPCID:     aws.String("VPCId"),
+			VPCId:     aws.String("VPCId"),
 			VPCRegion: aws.String("VPCRegion"),
 		},
 	}
 	resp, err := svc.CreateHostedZone(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_CreateReusableDelegationSet() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.CreateReusableDelegationSetInput{
 		CallerReference: aws.String("Nonce"), // Required
-		HostedZoneID:    aws.String("ResourceId"),
+		HostedZoneId:    aws.String("ResourceId"),
 	}
 	resp, err := svc.CreateReusableDelegationSet(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_DeleteHealthCheck() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.DeleteHealthCheckInput{
-		HealthCheckID: aws.String("HealthCheckId"), // Required
+		HealthCheckId: aws.String("HealthCheckId"), // Required
 	}
 	resp, err := svc.DeleteHealthCheck(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_DeleteHostedZone() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.DeleteHostedZoneInput{
-		ID: aws.String("ResourceId"), // Required
+		Id: aws.String("ResourceId"), // Required
 	}
 	resp, err := svc.DeleteHostedZone(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_DeleteReusableDelegationSet() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.DeleteReusableDelegationSetInput{
-		ID: aws.String("ResourceId"), // Required
+		Id: aws.String("ResourceId"), // Required
 	}
 	resp, err := svc.DeleteReusableDelegationSet(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_DisassociateVPCFromHostedZone() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.DisassociateVPCFromHostedZoneInput{
-		HostedZoneID: aws.String("ResourceId"), // Required
+		HostedZoneId: aws.String("ResourceId"), // Required
 		VPC: &route53.VPC{ // Required
-			VPCID:     aws.String("VPCId"),
+			VPCId:     aws.String("VPCId"),
 			VPCRegion: aws.String("VPCRegion"),
 		},
 		Comment: aws.String("DisassociateVPCComment"),
@@ -346,78 +280,54 @@ func ExampleRoute53_DisassociateVPCFromHostedZone() {
 	resp, err := svc.DisassociateVPCFromHostedZone(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetChange() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetChangeInput{
-		ID: aws.String("ResourceId"), // Required
+		Id: aws.String("ResourceId"), // Required
 	}
 	resp, err := svc.GetChange(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
-func ExampleRoute53_GetCheckerIPRanges() {
-	svc := route53.New(nil)
+func ExampleRoute53_GetCheckerIpRanges() {
+	svc := route53.New(session.New())
 
-	var params *route53.GetCheckerIPRangesInput
-	resp, err := svc.GetCheckerIPRanges(params)
+	var params *route53.GetCheckerIpRangesInput
+	resp, err := svc.GetCheckerIpRanges(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetGeoLocation() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetGeoLocationInput{
 		ContinentCode:   aws.String("GeoLocationContinentCode"),
@@ -427,211 +337,147 @@ func ExampleRoute53_GetGeoLocation() {
 	resp, err := svc.GetGeoLocation(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetHealthCheck() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetHealthCheckInput{
-		HealthCheckID: aws.String("HealthCheckId"), // Required
+		HealthCheckId: aws.String("HealthCheckId"), // Required
 	}
 	resp, err := svc.GetHealthCheck(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetHealthCheckCount() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	var params *route53.GetHealthCheckCountInput
 	resp, err := svc.GetHealthCheckCount(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetHealthCheckLastFailureReason() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetHealthCheckLastFailureReasonInput{
-		HealthCheckID: aws.String("HealthCheckId"), // Required
+		HealthCheckId: aws.String("HealthCheckId"), // Required
 	}
 	resp, err := svc.GetHealthCheckLastFailureReason(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetHealthCheckStatus() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetHealthCheckStatusInput{
-		HealthCheckID: aws.String("HealthCheckId"), // Required
+		HealthCheckId: aws.String("HealthCheckId"), // Required
 	}
 	resp, err := svc.GetHealthCheckStatus(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetHostedZone() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetHostedZoneInput{
-		ID: aws.String("ResourceId"), // Required
+		Id: aws.String("ResourceId"), // Required
 	}
 	resp, err := svc.GetHostedZone(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetHostedZoneCount() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	var params *route53.GetHostedZoneCountInput
 	resp, err := svc.GetHostedZoneCount(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_GetReusableDelegationSet() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.GetReusableDelegationSetInput{
-		ID: aws.String("ResourceId"), // Required
+		Id: aws.String("ResourceId"), // Required
 	}
 	resp, err := svc.GetReusableDelegationSet(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListGeoLocations() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListGeoLocationsInput{
 		MaxItems:             aws.String("PageMaxItems"),
@@ -642,26 +488,18 @@ func ExampleRoute53_ListGeoLocations() {
 	resp, err := svc.ListGeoLocations(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListHealthChecks() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListHealthChecksInput{
 		Marker:   aws.String("PageMarker"),
@@ -670,87 +508,63 @@ func ExampleRoute53_ListHealthChecks() {
 	resp, err := svc.ListHealthChecks(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListHostedZones() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListHostedZonesInput{
-		DelegationSetID: aws.String("ResourceId"),
+		DelegationSetId: aws.String("ResourceId"),
 		Marker:          aws.String("PageMarker"),
 		MaxItems:        aws.String("PageMaxItems"),
 	}
 	resp, err := svc.ListHostedZones(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListHostedZonesByName() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListHostedZonesByNameInput{
 		DNSName:      aws.String("DNSName"),
-		HostedZoneID: aws.String("ResourceId"),
+		HostedZoneId: aws.String("ResourceId"),
 		MaxItems:     aws.String("PageMaxItems"),
 	}
 	resp, err := svc.ListHostedZonesByName(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListResourceRecordSets() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListResourceRecordSetsInput{
-		HostedZoneID:          aws.String("ResourceId"), // Required
+		HostedZoneId:          aws.String("ResourceId"), // Required
 		MaxItems:              aws.String("PageMaxItems"),
 		StartRecordIdentifier: aws.String("ResourceRecordSetIdentifier"),
 		StartRecordName:       aws.String("DNSName"),
@@ -759,26 +573,18 @@ func ExampleRoute53_ListResourceRecordSets() {
 	resp, err := svc.ListResourceRecordSets(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListReusableDelegationSets() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListReusableDelegationSetsInput{
 		Marker:   aws.String("PageMarker"),
@@ -787,57 +593,41 @@ func ExampleRoute53_ListReusableDelegationSets() {
 	resp, err := svc.ListReusableDelegationSets(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListTagsForResource() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListTagsForResourceInput{
-		ResourceID:   aws.String("TagResourceId"),   // Required
+		ResourceId:   aws.String("TagResourceId"),   // Required
 		ResourceType: aws.String("TagResourceType"), // Required
 	}
 	resp, err := svc.ListTagsForResource(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_ListTagsForResources() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.ListTagsForResourcesInput{
-		ResourceIDs: []*string{ // Required
+		ResourceIds: []*string{ // Required
 			aws.String("TagResourceId"), // Required
 			// More values...
 		},
@@ -846,82 +636,64 @@ func ExampleRoute53_ListTagsForResources() {
 	resp, err := svc.ListTagsForResources(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_UpdateHealthCheck() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.UpdateHealthCheckInput{
-		HealthCheckID:            aws.String("HealthCheckId"), // Required
-		FailureThreshold:         aws.Long(1),
+		HealthCheckId: aws.String("HealthCheckId"), // Required
+		ChildHealthChecks: []*string{
+			aws.String("HealthCheckId"), // Required
+			// More values...
+		},
+		FailureThreshold:         aws.Int64(1),
 		FullyQualifiedDomainName: aws.String("FullyQualifiedDomainName"),
-		HealthCheckVersion:       aws.Long(1),
+		HealthCheckVersion:       aws.Int64(1),
+		HealthThreshold:          aws.Int64(1),
 		IPAddress:                aws.String("IPAddress"),
-		Port:                     aws.Long(1),
+		Inverted:                 aws.Bool(true),
+		Port:                     aws.Int64(1),
 		ResourcePath:             aws.String("ResourcePath"),
 		SearchString:             aws.String("SearchString"),
 	}
 	resp, err := svc.UpdateHealthCheck(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }
 
 func ExampleRoute53_UpdateHostedZoneComment() {
-	svc := route53.New(nil)
+	svc := route53.New(session.New())
 
 	params := &route53.UpdateHostedZoneCommentInput{
-		ID:      aws.String("ResourceId"), // Required
+		Id:      aws.String("ResourceId"), // Required
 		Comment: aws.String("ResourceDescription"),
 	}
 	resp, err := svc.UpdateHostedZoneComment(params)
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			// Generic AWS Error with Code, Message, and original error (if any)
-			fmt.Println(awsErr.Code(), awsErr.Message(), awsErr.OrigErr())
-			if reqErr, ok := err.(awserr.RequestFailure); ok {
-				// A service error occurred
-				fmt.Println(reqErr.Code(), reqErr.Message(), reqErr.StatusCode(), reqErr.RequestID())
-			}
-		} else {
-			// This case should never be hit, the SDK should always return an
-			// error which satisfies the awserr.Error interface.
-			fmt.Println(err.Error())
-		}
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
 	}
 
 	// Pretty-print the response data.
-	fmt.Println(awsutil.StringValue(resp))
+	fmt.Println(resp)
 }

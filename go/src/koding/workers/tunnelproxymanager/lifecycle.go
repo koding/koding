@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -54,19 +54,16 @@ type processFunc func(*string) error
 // processing that particular message. Manager is idempotent, if any given
 // resource doesnt exist in the given AWS system, it will create or re-use the
 // previous ones
-func NewLifeCycle(config *aws.Config, log logging.Logger, asgName string) *LifeCycle {
+func NewLifeCycle(session *session.Session, log logging.Logger, asgName string) *LifeCycle {
 	return &LifeCycle{
-		closed:    false,
-		closeChan: make(chan chan struct{}),
-
-		ec2:         ec2.New(config),
-		sqs:         sqs.New(config),
-		sns:         sns.New(config),
-		autoscaling: autoscaling.New(config),
-
-		asgName: &asgName,
-
-		log: log.New("lifecycle"),
+		closed:      false,
+		closeChan:   make(chan chan struct{}),
+		ec2:         ec2.New(session),
+		sqs:         sqs.New(session),
+		sns:         sns.New(session),
+		autoscaling: autoscaling.New(session),
+		asgName:     &asgName,
+		log:         log.New("lifecycle"),
 	}
 }
 
@@ -135,7 +132,7 @@ func (l *LifeCycle) newProcessFunc(recordManager *RecordManager) func(body *stri
 				continue
 			}
 
-			l.log.Debug("Autoscaling operating IPs %s", awsutil.StringValue(res))
+			l.log.Debug("Autoscaling operating IPs %s", aws.StringValueSlice(res))
 
 			if err = recordManager.UpsertRecordSet(res); err != nil {
 				l.log.Error("Upserting records failed, will retry... err: %s", err.Error())
@@ -164,8 +161,8 @@ func (l *LifeCycle) fetchMessage(f processFunc) error {
 
 	// try to get messages from qeueue, will longpoll for 20 secs
 	recieveResp, err := l.sqs.ReceiveMessage(&sqs.ReceiveMessageInput{
-		QueueURL:            l.queueURL, // Required
-		MaxNumberOfMessages: aws.Long(1),
+		QueueUrl:            l.queueURL, // Required
+		MaxNumberOfMessages: aws.Int64(1),
 	})
 	if err != nil {
 		return err
@@ -184,7 +181,7 @@ func (l *LifeCycle) fetchMessage(f processFunc) error {
 
 		// if we got sucess just delete the message from queue
 		if _, err := l.sqs.DeleteMessage(&sqs.DeleteMessageInput{
-			QueueURL:      l.queueURL,            // Required
+			QueueUrl:      l.queueURL,            // Required
 			ReceiptHandle: message.ReceiptHandle, // Required
 		}); err != nil {
 			return err

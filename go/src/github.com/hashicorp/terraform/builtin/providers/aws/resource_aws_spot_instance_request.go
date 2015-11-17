@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -36,6 +35,11 @@ func resourceAwsSpotInstanceRequest() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			}
+			s["spot_type"] = &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "persistent",
 			}
 			s["wait_for_fulfillment"] = &schema.Schema{
 				Type:     schema.TypeBool,
@@ -70,41 +74,42 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 
 	spotOpts := &ec2.RequestSpotInstancesInput{
 		SpotPrice: aws.String(d.Get("spot_price").(string)),
-
-		// We always set the type to "persistent", since the imperative-like
-		// behavior of "one-time" does not map well to TF's declarative domain.
-		Type: aws.String("persistent"),
+		Type:      aws.String(d.Get("spot_type").(string)),
 
 		// Though the AWS API supports creating spot instance requests for multiple
 		// instances, for TF purposes we fix this to one instance per request.
 		// Users can get equivalent behavior out of TF's "count" meta-parameter.
-		InstanceCount: aws.Long(1),
+		InstanceCount: aws.Int64(1),
 
 		LaunchSpecification: &ec2.RequestSpotLaunchSpecification{
 			BlockDeviceMappings: instanceOpts.BlockDeviceMappings,
-			EBSOptimized:        instanceOpts.EBSOptimized,
-			IAMInstanceProfile:  instanceOpts.IAMInstanceProfile,
-			ImageID:             instanceOpts.ImageID,
+			EbsOptimized:        instanceOpts.EBSOptimized,
+			Monitoring:          instanceOpts.Monitoring,
+			IamInstanceProfile:  instanceOpts.IAMInstanceProfile,
+			ImageId:             instanceOpts.ImageID,
 			InstanceType:        instanceOpts.InstanceType,
+			KeyName:             instanceOpts.KeyName,
 			Placement:           instanceOpts.SpotPlacement,
-			SecurityGroupIDs:    instanceOpts.SecurityGroupIDs,
+			SecurityGroupIds:    instanceOpts.SecurityGroupIDs,
 			SecurityGroups:      instanceOpts.SecurityGroups,
+			SubnetId:            instanceOpts.SubnetID,
 			UserData:            instanceOpts.UserData64,
 		},
 	}
 
 	// Make the spot instance request
+	log.Printf("[DEBUG] Requesting spot bid opts: %s", spotOpts)
 	resp, err := conn.RequestSpotInstances(spotOpts)
 	if err != nil {
 		return fmt.Errorf("Error requesting spot instances: %s", err)
 	}
 	if len(resp.SpotInstanceRequests) != 1 {
 		return fmt.Errorf(
-			"Expected response with length 1, got: %s", awsutil.StringValue(resp))
+			"Expected response with length 1, got: %s", resp)
 	}
 
 	sir := *resp.SpotInstanceRequests[0]
-	d.SetId(*sir.SpotInstanceRequestID)
+	d.SetId(*sir.SpotInstanceRequestId)
 
 	if d.Get("wait_for_fulfillment").(bool) {
 		spotStateConf := &resource.StateChangeConf{
@@ -121,7 +126,7 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 		_, err = spotStateConf.WaitForState()
 
 		if err != nil {
-			return fmt.Errorf("Error while waiting for spot request (%s) to resolve: %s", awsutil.StringValue(sir), err)
+			return fmt.Errorf("Error while waiting for spot request (%s) to resolve: %s", sir, err)
 		}
 	}
 
@@ -133,7 +138,7 @@ func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).ec2conn
 
 	req := &ec2.DescribeSpotInstanceRequestsInput{
-		SpotInstanceRequestIDs: []*string{aws.String(d.Id())},
+		SpotInstanceRequestIds: []*string{aws.String(d.Id())},
 	}
 	resp, err := conn.DescribeSpotInstanceRequests(req)
 
@@ -158,13 +163,16 @@ func resourceAwsSpotInstanceRequestRead(d *schema.ResourceData, meta interface{}
 	request := resp.SpotInstanceRequests[0]
 
 	// if the request is cancelled, then it is gone
-	if *request.State == "canceled" {
+	if *request.State == "cancelled" {
 		d.SetId("")
 		return nil
 	}
 
 	d.Set("spot_bid_status", *request.Status.Code)
-	d.Set("spot_instance_id", *request.InstanceID)
+	// Instance ID is not set if the request is still pending
+	if request.InstanceId != nil {
+		d.Set("spot_instance_id", *request.InstanceId)
+	}
 	d.Set("spot_request_state", *request.State)
 	d.Set("tags", tagsToMap(request.Tags))
 
@@ -183,7 +191,7 @@ func resourceAwsSpotInstanceRequestUpdate(d *schema.ResourceData, meta interface
 
 	d.Partial(false)
 
-	return resourceAwsInstanceRead(d, meta)
+	return resourceAwsSpotInstanceRequestRead(d, meta)
 }
 
 func resourceAwsSpotInstanceRequestDelete(d *schema.ResourceData, meta interface{}) error {
@@ -191,7 +199,7 @@ func resourceAwsSpotInstanceRequestDelete(d *schema.ResourceData, meta interface
 
 	log.Printf("[INFO] Cancelling spot request: %s", d.Id())
 	_, err := conn.CancelSpotInstanceRequests(&ec2.CancelSpotInstanceRequestsInput{
-		SpotInstanceRequestIDs: []*string{aws.String(d.Id())},
+		SpotInstanceRequestIds: []*string{aws.String(d.Id())},
 	})
 
 	if err != nil {
@@ -215,7 +223,7 @@ func SpotInstanceStateRefreshFunc(
 
 	return func() (interface{}, string, error) {
 		resp, err := conn.DescribeSpotInstanceRequests(&ec2.DescribeSpotInstanceRequestsInput{
-			SpotInstanceRequestIDs: []*string{sir.SpotInstanceRequestID},
+			SpotInstanceRequestIds: []*string{sir.SpotInstanceRequestId},
 		})
 
 		if err != nil {

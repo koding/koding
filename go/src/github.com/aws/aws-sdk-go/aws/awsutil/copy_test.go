@@ -27,7 +27,7 @@ func ExampleCopy() {
 	awsutil.Copy(&f2, f1)
 
 	// Print the result
-	fmt.Println(awsutil.StringValue(f2))
+	fmt.Println(awsutil.Prettify(f2))
 
 	// Output:
 	// {
@@ -77,21 +77,51 @@ func TestCopy(t *testing.T) {
 	assert.NotEqual(t, f2.C, f1.C)
 }
 
+func TestCopyNestedWithUnexported(t *testing.T) {
+	type Bar struct {
+		a int
+		B int
+	}
+	type Foo struct {
+		A string
+		B Bar
+	}
+
+	f1 := &Foo{A: "string", B: Bar{a: 1, B: 2}}
+
+	var f2 Foo
+	awsutil.Copy(&f2, f1)
+
+	// Values match
+	assert.Equal(t, f2.A, f1.A)
+	assert.NotEqual(t, f2.B, f1.B)
+	assert.NotEqual(t, f2.B.a, f1.B.a)
+	assert.Equal(t, f2.B.B, f2.B.B)
+}
+
 func TestCopyIgnoreNilMembers(t *testing.T) {
 	type Foo struct {
 		A *string
+		B []string
+		C map[string]string
 	}
 
 	f := &Foo{}
 	assert.Nil(t, f.A)
+	assert.Nil(t, f.B)
+	assert.Nil(t, f.C)
 
 	var f2 Foo
 	awsutil.Copy(&f2, f)
 	assert.Nil(t, f2.A)
+	assert.Nil(t, f2.B)
+	assert.Nil(t, f2.C)
 
 	fcopy := awsutil.CopyOf(f)
 	f3 := fcopy.(*Foo)
 	assert.Nil(t, f3.A)
+	assert.Nil(t, f3.B)
+	assert.Nil(t, f3.C)
 }
 
 func TestCopyPrimitive(t *testing.T) {
@@ -128,6 +158,8 @@ func TestCopyDifferentStructs(t *testing.T) {
 		C                map[string]*int
 		SrcUnique        string
 		SameNameDiffType int
+		unexportedPtr    *int
+		ExportedPtr      *int
 	}
 	type DstFoo struct {
 		A                int
@@ -135,6 +167,8 @@ func TestCopyDifferentStructs(t *testing.T) {
 		C                map[string]*int
 		DstUnique        int
 		SameNameDiffType string
+		unexportedPtr    *int
+		ExportedPtr      *int
 	}
 
 	// Create the initial value
@@ -151,6 +185,8 @@ func TestCopyDifferentStructs(t *testing.T) {
 		},
 		SrcUnique:        "unique",
 		SameNameDiffType: 1,
+		unexportedPtr:    &int1,
+		ExportedPtr:      &int2,
 	}
 
 	// Do the copy
@@ -165,6 +201,10 @@ func TestCopyDifferentStructs(t *testing.T) {
 	assert.Equal(t, 1, f1.SameNameDiffType)
 	assert.Equal(t, 0, f2.DstUnique)
 	assert.Equal(t, "", f2.SameNameDiffType)
+	assert.Equal(t, int1, *f1.unexportedPtr)
+	assert.Nil(t, f2.unexportedPtr)
+	assert.Equal(t, int2, *f1.ExportedPtr)
+	assert.Equal(t, int2, *f2.ExportedPtr)
 }
 
 func ExampleCopyOf() {
@@ -183,7 +223,7 @@ func ExampleCopyOf() {
 	var f2 *Foo = v.(*Foo)
 
 	// Print the result
-	fmt.Println(awsutil.StringValue(f2))
+	fmt.Println(awsutil.Prettify(f2))
 
 	// Output:
 	// {

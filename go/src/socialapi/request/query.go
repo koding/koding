@@ -15,7 +15,8 @@ import (
 const (
 	DEFAULT_REPLY_LIMIT = 3
 	MAX_REPLY_LIMIT     = 25
-	MAX_LIMIT           = 25
+	DEFAULT_LIMIT       = 25
+	MAX_LIMIT           = 50
 	ORDER_ASC           = "ASC"
 	ORDER_DESC          = "DESC"
 )
@@ -34,6 +35,7 @@ type Query struct {
 	AccountNickname      string    `url:"accountNickname"`
 	Name                 string    `url:"name"`
 	Slug                 string    `url:"slug"`
+	SortOrder            string    `url:"sortOrder"`
 	ShowExempt           bool      `url:"showExempt"`
 	ShowModerationNeeded bool      `url:showModerationNeeded`
 	ReplyLimit           int       `url:"replyLimit"`
@@ -138,6 +140,10 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		q.ReplySkip = replySkip
 	}
 
+	if sortOrder := urlQuery.Get("sortOrder"); sortOrder != "" && IsIn(sortOrder, "ASC", "DESC") {
+		q.SortOrder = sortOrder
+	}
+
 	q.ObjectId, _ = GetURIInt64(u, "objectId")
 
 	return q
@@ -155,8 +161,10 @@ func (q *Query) SetDefaults() *Query {
 		// no need to do something
 	}
 
-	if q.Limit == 0 || q.Limit > MAX_LIMIT {
-		q.Limit = MAX_LIMIT
+	// if limit is not defined by client, its assigned to 25 as default
+	// but client can assign any value to the limit between 0 and 50
+	if q.Limit <= 0 || q.Limit > MAX_LIMIT {
+		q.Limit = DEFAULT_LIMIT
 	}
 
 	if q.To.IsZero() {
@@ -171,6 +179,10 @@ func (q *Query) SetDefaults() *Query {
 		q.ReplyLimit = DEFAULT_REPLY_LIMIT
 	} else {
 		q.ReplyLimit = int(math.Min(float64(q.ReplyLimit), float64(MAX_REPLY_LIMIT)))
+	}
+
+	if q.SortOrder == "" {
+		q.SortOrder = "DESC"
 	}
 
 	q.AddIsInteracted = true
@@ -201,4 +213,14 @@ func escapeString(text string) string {
 
 	// NB this may be of length 0, caller must check
 	return fileName
+}
+
+func IsIn(s string, ts ...string) bool {
+	for _, t := range ts {
+		if t == s {
+			return true
+		}
+	}
+
+	return false
 }

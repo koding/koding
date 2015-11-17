@@ -49,8 +49,12 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if stackTemplate.Template.Content == "" {
+		return nil, errors.New("Stack template content is empty")
+	}
+
 	k.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
-	data, err := fetchTerraformData(r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
+	data, err := fetchTerraformData(r.Method, r.Username, args.GroupName, sess.DB, flattenValues(stackTemplate.Credentials))
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +67,7 @@ func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
+	k.Log.Debug("Parsing template:\n%s", stackTemplate.Template.Content)
 	template, err := newTerraformTemplate(stackTemplate.Template.Content)
 	if err != nil {
 		return nil, err

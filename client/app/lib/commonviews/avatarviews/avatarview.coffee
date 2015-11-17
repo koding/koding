@@ -5,6 +5,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 ErrorlessImageView = require '../../errorlessimageview'
 JView = require '../../jview'
 LinkView = require '../linkviews/linkview'
+isKoding = require '../../util/isKoding'
 
 
 module.exports = class AvatarView extends LinkView
@@ -118,9 +119,9 @@ module.exports = class AvatarView extends LinkView
       resizedAvatar = proxifyUrl profile.avatar, {crop: yes, width, height}
       avatarURI     = resizedAvatar
 
-    {integration} = @getOptions()
-    if integration?.iconPath
-      avatarURI = proxifyUrl integration.iconPath, {crop: yes, width, height}
+    {payload} = @getOptions()
+    if payload?.integrationIconPath
+      avatarURI = proxifyUrl payload.integrationIconPath, {crop: yes, width, height}
 
     @setAvatar avatarURI
 
@@ -135,13 +136,15 @@ module.exports = class AvatarView extends LinkView
     @cite.hide() if height < minAvatarSize
 
     kd.getSingleton("groupsController").ready =>
-      {slug} = kd.getSingleton("groupsController").getCurrentGroup()
-      href = if integration
-        "/Admin/Integrations/Configure/#{integration.id}"
-      else if slug is 'koding'
-        "/#{profile.nickname}"
+
+      nickname = @getData().profile?.nickname
+
+      href = if payload?.channelIntegrationId
+        "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
       else
-        "/#{slug}/#{profile.nickname}"
+        if isKoding() and nickname
+        then "/#{nickname}"
+        else "/#"
 
       @setAttribute "href", href
 

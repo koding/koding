@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/koding/logging"
 )
@@ -36,9 +37,9 @@ type RecordManager struct {
 }
 
 // NewRecordManager creates a RecordManager
-func NewRecordManager(config *aws.Config, log logging.Logger, region string, hostedZoneConf HostedZone) *RecordManager {
+func NewRecordManager(session *session.Session, log logging.Logger, region string, hostedZoneConf HostedZone) *RecordManager {
 	return &RecordManager{
-		route53:        route53.New(config),
+		route53:        route53.New(session),
 		log:            log.New("recordmanager"),
 		region:         region,
 		hostedZoneConf: hostedZoneConf,
@@ -161,9 +162,9 @@ func (r *RecordManager) createHostedZone(hostedZoneLogger logging.Logger) error 
 		case <-deadline:
 			return errDeadlineReachedForChangeInfo
 		case <-check.C:
-			hostedZoneLogger.New("changeInfoID", *resp.ChangeInfo.ID).Debug("fetching latest status")
+			hostedZoneLogger.New("changeInfoID", *resp.ChangeInfo.Id).Debug("fetching latest status")
 			getChangeResp, err := r.route53.GetChange(&route53.GetChangeInput{
-				ID: resp.ChangeInfo.ID,
+				Id: resp.ChangeInfo.Id,
 			})
 			if err != nil {
 				return err
@@ -219,7 +220,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 						// use region name as identifer
 						SetIdentifier: aws.String(r.region),
 						// The cache time to live for the current resource record set.
-						TTL: aws.Long(1),
+						TTL: aws.Int64(1),
 					},
 				},
 			},
@@ -231,7 +232,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 				),
 			),
 		},
-		HostedZoneID: r.hostedZone.ID,
+		HostedZoneId: r.hostedZone.Id,
 	}
 
 	_, err := r.route53.ChangeResourceRecordSets(params)

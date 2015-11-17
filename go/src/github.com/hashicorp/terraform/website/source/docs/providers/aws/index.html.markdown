@@ -55,5 +55,8 @@ The following arguments are supported in the `provider` block:
   to prevent you mistakenly using a wrong one (and end up destroying live environment).
   Conflicts with `allowed_account_ids`.
 
-In addition to the above parameters, the `AWS_SECURITY_TOKEN` environmental
-variable can be set to set an MFA token.
+* `dynamodb_endpoint` - (Optional) Use this to override the default endpoint URL constructed from the `region`. It's typically used to connect to dynamodb-local.
+
+* `kinesis_endpoint` - (Optional) Use this to override the default endpoint URL constructed from the `region`. It's typically used to connect to kinesalite.
+
+* `token` - (Optional) Use this to set an MFA token. It can also be sourced from the `AWS_SECURITY_TOKEN` environment variable.

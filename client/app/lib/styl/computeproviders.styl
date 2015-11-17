@@ -448,6 +448,8 @@ computeproviders.styl
 
   .multi-stack .environment-item
     margin-bottom           30px
+    .delete-stack
+      display               inline-block !important
 
   .kdmodal-inner > .kdbutton
     abs                     15px, 25px
@@ -475,22 +477,28 @@ computeproviders.styl
     font-size               14px
     line-height             22px
 
+    .delete-stack
+      display               none
+
     .stack-info
       padding               17px
       box-sizing            border-box
       border-top            1px solid #CCC
 
-      .title
-        padding-top         2px
-        padding-left        11px
-        fl()
+      &:hover
+        cursor              pointer
 
-      &:before
-        size                17px, 17px
+      .arrow
+        fl()
+        margin              8px 5px 0 0
+        border-top          6px solid #969696
+        border-right        4px solid transparent
+        border-left         4px solid transparent
+
+      .title
         display             inline-block
-        float               left
-        border              4px solid #019F40
-        border-radius       5px
+        height              22px
+        vertical-align      middle
 
     .warning-icon
       r-sprite              app, '25-warning'
@@ -504,6 +512,54 @@ computeproviders.styl
       r-sprite              app, '16-info'
       margin                17px 12px
       fl()
+
+      &:hover
+        cursor              pointer
+
+    &.collapsed
+
+      margin-bottom         -1px
+
+      &:last-child
+        margin-bottom       0
+
+      .arrow
+        vendor              transform, rotate(-90deg)
+
+      .machines-list
+      .footer
+        display             none
+
+    .update-notification
+      text-align            center
+      padding               21px 0
+      background-color      #bff4d0
+
+      .description
+        display             inline-block
+        padding             4px
+        margin-right        15px
+
+        a
+          color             black
+
+    .stack-state-toggle
+      padding               16px 0 0
+      margin-left           2px
+      fl()
+
+      div
+        fl()
+
+      label
+        cursor              pointer
+        margin-left         7px
+        line-height         19px
+        font-size           13px
+        display             inline-block
+        clear               none
+        fl()
+
 
   .machines-item
     height                  66px
@@ -576,7 +632,7 @@ computeproviders.styl
         margin              10px 10px 0 0
 
 
-.kdview.stacks.step-creds
+.stacks.step-creds
 
   font-size                 14px
 
@@ -603,6 +659,7 @@ computeproviders.styl
         clear               both
         border              none
         margin-top          6px
+        margin-bottom       10px !important
 
   .kdlabel
     font-size               14px
@@ -629,8 +686,32 @@ computeproviders.styl
       border-color          #f13a18
 
   .form-view
-    height                  calc(100% \- 200px)
-    border-bottom           1px solid #EEE
+    height                  calc(100% \- 160px) !important
+    border-bottom           1px solid #EEE !important
+    overflow                hidden
+
+  .credential-creation-intro
+    -moz-osx-font-smoothing grayscale
+    -webkit-font-smoothing  antialiased
+    margin                  20px auto 40px
+    a
+      color                 $gray-4
+    h2
+      font-weight           $fw-bold
+      color                 $gray-4
+      margin                0 0 10px
+    ol
+      list-style            decimal inside none
+      li
+        color               $gray-12
+        line-height         24px
+    p
+      margin                4px 0
+
+  .credential-info
+    .custom-tag
+      margin-top            -10px !important
+
 
 .kdlistview
   .no-item-found
@@ -642,6 +723,16 @@ computeproviders.styl
 .missingdata-view
   .stacks
     padding-top             10px
+
+    .credential-list
+      .credential-info
+        .title
+          top               0 !important
+          margin-top        -2px
+
+        .fields
+          rel()
+          top               -2px
 
 .stacks
 
@@ -677,20 +768,62 @@ computeproviders.styl
         color               #FFF
 
   .credential-item
+    .buttons
+      top                   13px !important
+
+      button
+        vendor              transition, opacity .5s ease
+        min-width           80px
+        margin-left         15px
+
+        &.secondary
+          opacity           0
+
+      &:hover button
+        opacity             1
+
+
+  .credential-item
   .stacktemplate-item
     padding                 10px 0
     font-size               14px
     border-bottom           1px solid #ddd
     borderBox()
 
+    .buttons
+      abs                   40% 0px 0 0
+
     &:hover
       .buttons button.secondary
         opacity             1
         pointer-events      auto
 
+    .warning-message
+      background            #FCFCE9
+      border                1px solid #D4D4A9
+      border-radius         4px
+      padding               5px
+      font-size             12px
+      color                 #888869
+      margin-top            3px
+      text-align            center
+
+    .credential-info
+      padding               10px 0 !important
+
+      .tag
+        line-height         16px
+        font-size           10px
+        top                 30px
+        abs()
+
+      .title
+        rel()
+        top                 -14px
+
     .credential-info
     .stacktemplate-info
-      padding               10px 0
+      padding               5px 0 0
 
       .title
         font-weight         bold
@@ -703,7 +836,7 @@ computeproviders.styl
         margin-right        10px
         fl()
 
-      .inuse-tag
+      .custom-tag
         font-size           10px
         padding             0 4px
         line-height         13px
@@ -714,32 +847,41 @@ computeproviders.styl
         cursor              default
         fl()
 
-    .warning-message
-      background            #FCFCE9
-      border                1px solid #D4D4A9
-      border-radius         4px
-      padding               5px
-      font-size             12px
-      color                 #888869
-      margin-top            3px
-      text-align            center
+        &.private
+          background-color  #0269A7
+        &.public
+          background-color  darkgreen
+        &.group
+          background-color  #999
+        &.not-ready
+          background-color  darkred
 
-    .buttons
-      abs                   16px 0px
+      cite
+        display             block
+        clear               left
+        font-size           12px
+        color               #999
+        font-style          italic
 
-      button.secondary
-        opacity             0
-        pointer-events      none
-        vendor              transition, opacity .3s .3s ease
+  .stack-settings-menu
+    size                    15px 10px
+    padding                 0
+    margin-right            10px
+    pointer()
 
-      button
-        min-width           80px
-        margin-left         15px
+    .kdbutton
+      size                  15px 10px
+      bg                    color, transparent
+      border                none
+      padding               0 !important
+      pointer()
+      min-width             auto !important
 
-      button.solid.green
-        background-color    #01A84E
-        &[disabled]
-          opacity           .5
+    .chevron-separator
+      hidden()
+
+    .chevron
+      r-sprite              activity comment-chevron-icon
 
   .customdata-item
 
@@ -749,7 +891,7 @@ computeproviders.styl
           width             300px
 
     .credential-info
-      padding               0
+      padding               0 !important
 
       .fields
         vendor              transition, width .3s .3s ease
@@ -853,3 +995,46 @@ computeproviders.styl
 
   .kdmodal-inner > .kdbutton
     abs                     15px, 25px
+
+
+  &.your-stacks
+    .create-stack
+      right                 35px
+
+    .close-icon
+      top                   19px !important
+
+    .stacktemplate-item .buttons
+      right                 10px
+
+
+.kdmodal.stack-template-content
+
+  .kdmodal-title
+    margin-bottom           0 !important
+
+  .kdmodal-content
+    margin-top              10px !important
+    overflow                hidden
+
+  .kdscrollview
+    max-height              416px
+
+  styleScrollBars           rgba(0, 0, 0, .15)
+
+  .kdtabview
+    height                  416px
+
+  pre
+    padding                 0
+    border                  1px solid #eaeaea
+    rounded                 2px
+
+    code
+      border                none
+
+
+.kdmodal.stack-template-preview
+
+  .kdmodal-content
+    height                  380px

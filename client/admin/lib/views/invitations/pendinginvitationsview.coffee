@@ -59,6 +59,8 @@ module.exports = class PendingInvitationsView extends TeamMembersCommonView
 
     @refresh()
 
+    if @query.length then @searchClear.show() else @searchClear.hide()
+
 
   getSortOptions: ->
 

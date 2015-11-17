@@ -236,7 +236,7 @@ func (c *ChannelCache) ByGroupName(name string) (*Channel, error) {
 	}
 
 	ch := NewChannel()
-	if err := ch.FetchPublicChannel(name); err != nil {
+	if err := ch.FetchGroupChannel(name); err != nil {
 		return nil, err
 	}
 

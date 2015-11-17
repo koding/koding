@@ -27,6 +27,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("CLOUDSTACK_SECRET_KEY", nil),
 			},
 
+			"http_get_only": &schema.Schema{
+				Type:        schema.TypeBool,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("CLOUDSTACK_HTTP_GET_ONLY", false),
+			},
+
 			"timeout": &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
@@ -40,11 +46,13 @@ func Provider() terraform.ResourceProvider {
 			"cloudstack_firewall":             resourceCloudStackFirewall(),
 			"cloudstack_instance":             resourceCloudStackInstance(),
 			"cloudstack_ipaddress":            resourceCloudStackIPAddress(),
+			"cloudstack_loadbalancer_rule":    resourceCloudStackLoadBalancerRule(),
 			"cloudstack_network":              resourceCloudStackNetwork(),
 			"cloudstack_network_acl":          resourceCloudStackNetworkACL(),
 			"cloudstack_network_acl_rule":     resourceCloudStackNetworkACLRule(),
 			"cloudstack_nic":                  resourceCloudStackNIC(),
 			"cloudstack_port_forward":         resourceCloudStackPortForward(),
+			"cloudstack_secondary_ipaddress":  resourceCloudStackSecondaryIPAddress(),
 			"cloudstack_ssh_keypair":          resourceCloudStackSSHKeyPair(),
 			"cloudstack_template":             resourceCloudStackTemplate(),
 			"cloudstack_vpc":                  resourceCloudStackVPC(),
@@ -59,10 +67,11 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		ApiURL:    d.Get("api_url").(string),
-		ApiKey:    d.Get("api_key").(string),
-		SecretKey: d.Get("secret_key").(string),
-		Timeout:   int64(d.Get("timeout").(int)),
+		APIURL:      d.Get("api_url").(string),
+		APIKey:      d.Get("api_key").(string),
+		SecretKey:   d.Get("secret_key").(string),
+		HTTPGETOnly: d.Get("http_get_only").(bool),
+		Timeout:     int64(d.Get("timeout").(int)),
 	}
 
 	return config.NewClient()

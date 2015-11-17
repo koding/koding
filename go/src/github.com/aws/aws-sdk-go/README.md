@@ -1,13 +1,19 @@
 # AWS SDK for Go
 
-[![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/aws/aws-sdk-go)
+[![API Reference](http://img.shields.io/badge/api-reference-blue.svg)](http://docs.aws.amazon.com/sdk-for-go/api)
 [![Join the chat at https://gitter.im/aws/aws-sdk-go](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aws/aws-sdk-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://img.shields.io/travis/aws/aws-sdk-go.svg)](https://travis-ci.org/aws/aws-sdk-go)
 [![Apache V2 License](http://img.shields.io/badge/license-Apache%20V2-blue.svg)](https://github.com/aws/aws-sdk-go/blob/master/LICENSE.txt)
 
 aws-sdk-go is the official AWS SDK for the Go programming language.
 
-[**Check out the official Developer Preview announcement (New - June 3rd 2015)**](https://aws.amazon.com/blogs/aws/developer-preview-of-aws-sdk-for-go-is-now-available/)
+Checkout our [release notes](https://github.com/aws/aws-sdk-go/releases) for information about the latest bug fixes, updates, and features added to the SDK.
+
+**Release [v0.10.0](http://aws.amazon.com/releasenotes/xxx) introduced a breaking change to the SDK.**
+
+Updates SDK by adding `session.Session` replacing the global `defaults.DefaultConfig`. A session is used to store configuration and request handler settings for service clients. Each service client's `New` function now takes a session as the first parameter, and an optional `aws.Config`, which will be used for the specific client instance being created.
+
+See the [Getting Started Configuration](https://github.com/aws/aws-sdk-go/wiki/Getting-Started-Configuration) wiki for more information on how to use sessions within your application.
 
 ## Caution
 
@@ -18,11 +24,7 @@ vendor your dependencies with Godep or similar.
 
 Please do not confuse this for a stable, feature-complete library.
 
-Note that while most AWS protocols are currently supported, not all services
-available in this package are implemented fully, as some require extra
-customizations to work with the SDK. If you've encountered such a scenario,
-please open a [GitHub issue](https://github.com/aws/aws-sdk-go/issues)
-so we can track work for the service.
+If you've encountered any issues usign the SDK please open a [GitHub issue](https://github.com/aws/aws-sdk-go/issues).
 
 ## Installing
 
@@ -31,7 +33,7 @@ For example, EC2 support might be installed with:
 
     $ go get github.com/aws/aws-sdk-go/service/ec2
 
-You can also install the entire SDK by installing the root package, including all of the SDK's dependancies:
+You can also install the entire SDK by installing the root package, including all of the SDK's dependencies:
 
     $ go get -u github.com/aws/aws-sdk-go/...
 
@@ -57,10 +59,10 @@ AWS_ACCESS_KEY_ID=AKID1234567890
 AWS_SECRET_ACCESS_KEY=MY-SECRET-KEY
 ```
 
-## Using
+## Using the Go SDK
 
 To use a service in the SDK, create a service variable by calling the `New()`
-function. Once you have a service, you can call API operations which each
+function. Once you have a service client, you can call API operations which each
 return response data and a possible error.
 
 To list a set of instance IDs from EC2, you could run:
@@ -72,6 +74,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -79,7 +82,7 @@ func main() {
 	// Create an EC2 service object in the "us-west-2" region
 	// Note that you can also configure your region globally by
 	// exporting the AWS_REGION environment variable
-	svc := ec2.New(&aws.Config{Region: "us-west-2"})
+	svc := ec2.New(session.New(), &aws.Config{Region: aws.String("us-west-2")})
 
 	// Call the DescribeInstances Operation
 	resp, err := svc.DescribeInstances(nil)
@@ -92,14 +95,14 @@ func main() {
 	for idx, res := range resp.Reservations {
 		fmt.Println("  > Number of instances: ", len(res.Instances))
 		for _, inst := range resp.Reservations[idx].Instances {
-			fmt.Println("    - Instance ID: ", *inst.InstanceID)
+			fmt.Println("    - Instance ID: ", *inst.InstanceId)
 		}
 	}
 }
 ```
 
 You can find more information and operations in our
-[API documentation](http://godoc.org/github.com/aws/aws-sdk-go).
+[API documentation](http://docs.aws.amazon.com/sdk-for-go/api/).
 
 ## License
 

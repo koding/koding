@@ -9,7 +9,7 @@ import (
 
 func TestMailerNotification(t *testing.T) {
 	Convey("It should build mailer notification hash", t, func() {
-		messages := []Message{}
+		messages := []Messager{}
 
 		m := MailerNotification{
 			Hostname:         "http://dev.koding.com:8090",

@@ -90,7 +90,7 @@ module.exports = class FSHelper
     extension = if extension.length is 0 then '' else extension.last
     return extension
 
-  @plainPath:(path)-> path.replace /^\[.*\]/, ''
+  @plainPath:(path)-> path.replace /^\[.*?\]/, ''
   @getVMNameFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
 
   @getUidFromPath:(path)-> (/^\[([^\]]+)\]/g.exec path)?[1]
