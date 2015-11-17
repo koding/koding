@@ -3,17 +3,18 @@ package koding
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/plans"
 	"strings"
 	"time"
 
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/plans"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"github.com/mitchellh/goamz/ec2"
-	"golang.org/x/net/context"
 )
 
 func (m *Machine) Start(ctx context.Context) (err error) {
@@ -22,8 +23,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	instance, err := m.Session.AWSClient.Instance()
-	if (err == nil && amazon.StatusToState(instance.State.Name) == machinestate.Terminated) ||
-		err == amazon.ErrNoInstances {
+	if (err == nil && amazon.StatusToState(aws.StringValue(instance.State.Name)) == machinestate.Terminated) ||
+		amazon.IsNotFound(err) {
 		// This means the instanceId stored in MongoDB doesn't exist anymore in
 		// AWS. Probably it was deleted and the state was not updated (possible
 		// due a human interaction or a non kloud interaction done somewhere
@@ -69,12 +70,17 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	// and revert back to t2.micro. This is lazy auto healing of instances that
 	// were created because there were no capacity for their specific instance
 	// type.
-	if instance.InstanceType != m.Meta.InstanceType {
+	if aws.StringValue(instance.InstanceType) != m.Meta.InstanceType {
 		m.Log.Warning("instance is using '%s'. Changing back to '%s'",
 			instance.InstanceType, m.Meta.InstanceType)
 
-		opts := &ec2.ModifyInstance{InstanceType: plans.Instances[m.Meta.InstanceType].String()}
-		if _, err := m.Session.AWSClient.Client.ModifyInstance(m.Meta.InstanceId, opts); err != nil {
+		params := &ec2.ModifyInstanceAttributeInput{
+			InstanceId: aws.String(m.Meta.InstanceId),
+			InstanceType: &ec2.AttributeValue{
+				Value: aws.String(plans.Instances[m.Meta.InstanceType].String()),
+			},
+		}
+		if err := m.Session.AWSClient.ModifyInstance(params); err != nil {
 			m.Log.Warning("couldn't change instance to '%s' again. err: %s",
 				m.Meta.InstanceType, err)
 		}
@@ -90,7 +96,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 				return err
 			}
 
-			if instance.InstanceType != m.Meta.InstanceType {
+			if aws.StringValue(instance.InstanceType) != m.Meta.InstanceType {
 				return fmt.Errorf("Instance is still '%s', waiting until it changed to '%s'",
 					instance.InstanceType, m.Meta.InstanceType)
 			}
@@ -100,7 +106,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		})
 	}
 
-	infoState := amazon.StatusToState(instance.State.Name)
+	infoState := amazon.StatusToState(aws.StringValue(instance.State.Name))
 
 	// only start if the machine is stopped, stopping
 	if infoState.In(machinestate.Stopped, machinestate.Stopping) {
@@ -116,8 +122,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		if m.Payment.Plan != "free" { // check this first to avoid an additional AWS call
 			m.Log.Debug("Checking if IP is an Elastic IP for paying user: (ip: %s)", m.IpAddress)
 
-			_, err = m.Session.AWSClient.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter())
-			if isAddressNotFoundError(err) {
+			_, err = m.Session.AWSClient.AddressesByIP(m.IpAddress)
+			if amazon.IsNotFound(err) {
 				oldIp := m.IpAddress
 				elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
 
@@ -142,8 +148,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		startFunc := func() error {
 			instance, err := m.Session.AWSClient.Start(ctx)
 			if err == nil {
-				m.IpAddress = instance.PublicIpAddress
-				m.Meta.InstanceType = instance.InstanceType
+				m.IpAddress = aws.StringValue(instance.PublicIpAddress)
+				m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
 				return nil
 			}
 
@@ -162,8 +168,13 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 				// now change the instance type before we start so we can
 				// avoid the instance capacity problem
-				opts := &ec2.ModifyInstance{InstanceType: instanceType}
-				if _, err := m.Session.AWSClient.Client.ModifyInstance(m.Meta.InstanceId, opts); err != nil {
+				params := &ec2.ModifyInstanceAttributeInput{
+					InstanceId: aws.String(m.Meta.InstanceId),
+					InstanceType: &ec2.AttributeValue{
+						Value: aws.String(instanceType),
+					},
+				}
+				if err := m.Session.AWSClient.ModifyInstance(params); err != nil {
 					return err
 				}
 
@@ -174,8 +185,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 				instance, err = m.Session.AWSClient.Start(ctx)
 				if err == nil {
-					m.IpAddress = instance.PublicIpAddress
-					m.Meta.InstanceType = instance.InstanceType
+					m.IpAddress = aws.StringValue(instance.PublicIpAddress)
+					m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
 					return nil
 				}
 

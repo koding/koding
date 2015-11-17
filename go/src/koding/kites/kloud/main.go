@@ -202,12 +202,15 @@ func newKite(conf *Config) *kite.Kite {
 		},
 		Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
 	}
-	ec2clients := amazon.NewClientPerRegion(auth, []string{
+	ec2clients, err := amazon.NewClientPerRegion(auth, []string{
 		"us-east-1",
 		"ap-southeast-1",
 		"us-west-2",
 		"eu-west-1",
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	authorizedUsers := map[string]string{
 		"kloudctl":       command.KloudSecretKey,
@@ -291,7 +294,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = kloudLogger
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}

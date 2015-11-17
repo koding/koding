@@ -110,7 +110,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
+	amazonClient, err := amazon.NewAmazon(structs.Map(machine.Meta), client)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
