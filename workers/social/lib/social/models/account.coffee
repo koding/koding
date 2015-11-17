@@ -988,20 +988,6 @@ module.exports = class JAccount extends jraphical.Module
           queue.next()
 
       ->
-        # removing relationship
-        query =
-          as          : 'appStorage'
-          data        : { appId, version }
-          targetId    : oldStorage.getId()
-          sourceId    : accountId
-          targetName  : 'JAppStorage'
-          sourceName  : 'JAccount'
-
-        Relationship.remove query, (err, rel) ->
-          return callback err  if err
-          queue.next()
-
-      ->
         # removing old storage
         oldStorage.remove (err) ->
           return callback err  if err

@@ -2,6 +2,7 @@
 Bongo              = require 'bongo'
 { Relationship }   = require 'jraphical'
 { join: joinPath } = require 'path'
+{ dash }           = Bongo
 
 argv      = require('minimist') process.argv
 KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
@@ -20,9 +21,9 @@ console.log "Trying to connect #{mongo} ..."
 koding.once 'dbClientReady', ->
 
   # rekuire your models here like;
-  JAccount  = rekuire 'account.coffee'
-  JUser     = rekuire 'user/index.coffee'
-  JAppStorage     = rekuire 'appstorage.coffee'
+  JAccount    = rekuire 'account.coffee'
+  JUser       = rekuire 'user/index.coffee'
+  JAppStorage = rekuire 'appstorage.coffee'
 
 
   # Config
@@ -65,46 +66,47 @@ koding.once 'dbClientReady', ->
     JAccount.one {_id}, (err, account)->
       return cb err  if err
       return cb {message: "no account found"}  unless account
-
-      JUser.one {username: account.profile.nickname}, (err, user)->
-        return cb err  if err
-        return cb {message: "no user found"}  unless user
-
-        cb null, userCache[_id] = {user, account}
+      userCache[_id] = {account}
+      cb null, userCache[_id]
 
 
-  fetchAppStorageRelationship = (appStorage, callback) ->
+  migrateAppStorages = (account, index, callback) ->
 
-    { appId, version, _id } = appStorage
+    { _id } = account
 
-    query =
-      as          : 'appStorage'
-      data        : { appId, version }
-      targetId    : _id
-      targetName  : 'JAppStorage'
-      sourceName  : 'JAccount'
-
-    Relationship.one query, (err, rel) ->
-      callback err, rel
-
-
-  migrateAppStorage = (appStorage, index, callback) ->
-
-    console.log "Migrating appStorage with index #{index}"
-    { appId, version, _id, bucket } = appStorage
-
-    fetchAppStorageRelationship appStorage, (err, rel) ->
+    fetchAccount _id, (err, { account }) ->
       return callback err  if err
+      return callback new KodingError 'no account'  unless account
 
-      if not rel
-        console.log "No relationship found for appStorage with id #{_id}"
-        JAppStorage.remove { _id }, (err) ->
+      account.fetchAppStorages (err, storages) ->
+        return callback err  if err
+
+        queue = []
+        storages.forEach (storage) ->
+          { appId, version } = storage
+
+          queue.push ->
+            account.migrateOldAppStorageIfExists { appId, version }, (err) ->
+              return queue.fin err  if err
+              queue.fin()
+
+        dash queue, (err) ->
+          logError err, index
           return callback err
 
-      else
-        options = { accountId : rel.sourceId, appId, version, data : bucket }
-        JAccount.migrateOldAppStorageIfExists options, (err) ->
-          callback err
+
+    # fetchAppStorageRelationship appStorage, (err, rel) ->
+    #   return callback err  if err
+    #
+    #   if not rel
+    #     console.log "No relationship found for appStorage with id #{_id}"
+    #     JAppStorage.remove { _id }, (err) ->
+    #       return callback err
+    #
+    #   else
+    #     options = { accountId : rel.sourceId, appId, version, data : bucket }
+    #     JAccount.migrateOldAppStorageIfExists options, (err) ->
+    #       callback err
 
 
   # Main updater
@@ -113,12 +115,12 @@ koding.once 'dbClientReady', ->
   # fetch some data and start ~ for more example check history of this file ~GG
 
   query = {}
-  JAppStorage.count query, (err, appStorageCount) ->
-    console.log "#{appStorageCount} appstorages found, starting..."
+  JAccount.count query, (err, accountCount) ->
+    console.log "#{accountCount} accounts found, starting..."
 
-    fields = { _id : 1, bucket : 1, appId : 1, version : 1 }
-    JAppStorage.someData query, fields, { skip }, (err, cursor) ->
-      iterate cursor, migrateAppStorage, skip, (err, total) ->
+    fields = { _id : 1 }
+    JAccount.someData query, fields, { skip }, (err, cursor) ->
+      iterate cursor, migrateAppStorages, skip, (err, total) ->
         console.log "ERROR >>", err  if err?
         console.log "FINAL #{total}"
         process.exit 0
