@@ -130,6 +130,8 @@ class IDEAppController extends AppController
       [ideView] = @ideViews.filter (ideView) -> ideView.isFullScreen
       ideView.emit 'CloseFullScreen'  if ideView
 
+    @on 'SnapshotUpdated', @bound 'saveLayoutSize'
+
 
   prepareIDE: (withFakeViews = no) ->
 
@@ -299,6 +301,7 @@ class IDEAppController extends AppController
     @setActiveTabView newIdeView.tabView
 
     splitView.on 'ResizeDidStop', kd.utils.throttle 500, @bound 'doResize'
+    splitView.on 'ResizeDidStop', kd.utils.debounce 750, @bound 'saveLayoutSize'
 
     if not silent
       newIdeView.emit 'NewSplitViewCreated',
@@ -875,26 +878,47 @@ class IDEAppController extends AppController
 
     return  if @isDestroyed or not @isMachineRunning() or @silent
 
-    name  = @getWorkspaceSnapshotName nick()
+    key   = @getWorkspaceStorageKey nick()
     value = @getWorkspaceSnapshot()
+
+    @writeToKiteStorage key, value
+    @emit 'SnapshotUpdated'
+
+
+  writeToKiteStorage: (key, value) ->
 
     # we need to check against kite existence because while a machine
     # is getting destroyed/stopped/reinitialized we are invalidating it's
     # kite instance to make sure every call is stopped. ~ GG
-    @mountedMachine.getBaseKite()?.storageSetQueued name, value
-    @emit 'SnapshotUpdated'
+    @mountedMachine.getBaseKite()?.storageSetQueued key, value
+
+
+  saveLayoutSize: ->
+
+    username  = nick()
+    key       = @getWorkspaceStorageKey "#{username}-LayoutSize"
+    value     = @getLayoutSizeData()
+
+    @writeToKiteStorage key, value
+    @emit 'LayoutSizesSaved'
+
+
+  fetchLayoutSize: (callback, username = nick()) ->
+
+    key = "#{username}-LayoutSize"
+    @fetchFromKiteStorage callback, key
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
 
-    key = @getWorkspaceSnapshotName username
+    key = @getWorkspaceStorageKey username
     @mountedMachine.getBaseKite().storageDelete key
 
 
-  getWorkspaceSnapshotName: (username) ->
+  getWorkspaceStorageKey: (prefix) ->
 
-    if username
-      return "#{username}.wss.#{@workspaceData.slug}"
+    if prefix
+      return "#{prefix}.wss.#{@workspaceData.slug}"
     else
       return "wss.#{@workspaceData.slug}"
 
@@ -1243,6 +1267,9 @@ class IDEAppController extends AppController
 
 
   getWorkspaceSnapshot: -> @layoutManager.createLayoutData()
+
+
+  getLayoutSizeData: -> @layoutManager.createLayoutSizeData()
 
 
   changeActiveTabView: (paneType) ->
@@ -1651,25 +1678,30 @@ class IDEAppController extends AppController
 
   fetchSnapshot: (callback, username = nick()) ->
 
+    @fetchFromKiteStorage callback, username
+
+
+  fetchFromKiteStorage: (callback, prefix) ->
+
     if not @mountedMachine or not @mountedMachine.isRunning()
       callback null
       return
 
     handleError = (err) ->
 
-      console.warn 'Failed to fetch snapshot:', err
+      console.warn 'Failed to fetch data:', err
       callback null
 
-    fetch = (username) =>
+    fetch = (prefix) =>
 
-      key = @getWorkspaceSnapshotName username
+      key = @getWorkspaceStorageKey prefix
       @mountedMachine.getBaseKite().storageGet key
 
-    fetch username
+    fetch prefix
 
-      .then (snapshot) =>
+      .then (data) =>
 
-        return callback snapshot  if snapshot
+        return callback data  if data
 
         # Backward compatibility plug
         return callback null  unless @mountedMachine.isMine()

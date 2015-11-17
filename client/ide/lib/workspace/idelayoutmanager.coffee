@@ -29,14 +29,11 @@ module.exports = class IDELayoutManager extends KDObject
   createLayoutData: ->
 
     @layout       = [] # Reset and create an array.
-
-    baseSplitView = @getBaseSplitView()
-    splitViews    = baseSplitView.panels.last.getSubViews().first.getSubViews().first
+    splitViews    = @getBaseSplitView().getFirstSplitView()
 
     if splitViews instanceof IDEView
       @createParentSplitViews splitViews
     else
-
       for panel in splitViews.panels when panel
         @createParentSplitViews panel
 
@@ -131,7 +128,7 @@ module.exports = class IDELayoutManager extends KDObject
       pane = context : target.view.serialize()
       last = @findLastSplitView @subViews
 
-      if last                     ## If have last view
+      if last                     ## If there is last view
       then last.views.push pane   ## add `pane` to last view of tree
       else @subViews.push pane    ## else add `pane` to plain array.
 
@@ -190,6 +187,8 @@ module.exports = class IDELayoutManager extends KDObject
       @resurrectPanes_ item.views, ideView.tabView, silent
 
     ideApp.recalculateHandles()
+    @applyLayoutSize()
+
     @isRestored = yes
 
 
@@ -333,4 +332,95 @@ module.exports = class IDELayoutManager extends KDObject
 
     @clearLayout()
     kd.utils.defer => @resurrectSnapshot snapshot
+
+
+  ###*
+   * Find and collect all split views.
+   *
+   * <Recursive>
+   * <Private>
+   * @param {Array} collection
+   * @param {*} view
+  ###
+  _splitViewExplorer: (collection, view) ->
+
+    collection.push view  if view instanceof KDSplitView
+
+    for item in view.getSubViews()
+      @_splitViewExplorer collection, item
+
+
+  ###*
+   * Find all split views which attached to DOM
+   *
+   * @param {Array} collection
+  ###
+  findAllSplitViews: ->
+
+    firstSplitView  = @getBaseSplitView().getFirstSplitView()
+    collection      = []
+
+    @_splitViewExplorer collection, firstSplitView
+
+    return collection
+
+
+  createLayoutSizeData: ->
+
+    firstSplitView  = @getBaseSplitView().getFirstSplitView()
+    splitViews      = @findAllSplitViews()
+
+    data            =
+      canvas        :
+        width       : firstSplitView.getWidth()
+        height      : firstSplitView.getHeight()
+      sizes         : []
+
+    for splitView in splitViews
+      { first } = splitView.panels
+
+      data.sizes.push
+        width   : first.getWidth()
+        height  : first.getHeight()
+
+    return data
+
+
+  applyLayoutSize: ->
+
+    ## The `ideApp` is an `IDEAppController`s instance
+    ideApp          = @getDelegate()
+    firstSplitView  = @getBaseSplitView().getFirstSplitView()
+    currentCanvas   =
+      width         : firstSplitView.getWidth()
+      height        : firstSplitView.getHeight()
+
+    ideApp.fetchLayoutSize (data) =>
+
+      return  unless data?.sizes
+
+      splitViews  = @findAllSplitViews()
+      widthRatio  = @getRatio currentCanvas.width, data.canvas.width
+      heightRatio = @getRatio currentCanvas.height, data.canvas.height
+
+      return  unless splitViews.length
+
+      splitViews.forEach (view, index) ->
+        size = data.sizes[index]
+
+        return  unless size
+
+        value = if view.isVertical()
+        then size.width   * widthRatio
+        else size.height  * heightRatio
+
+        view._windowDidResize()
+        view.resizePanel value
+
+
+  getRatio: (a, b) ->
+
+    return 1  if not a or not b
+    return 1  if a is b
+    return (a / b)
 
