@@ -122,7 +122,12 @@ waitAndEndSession = (browser) ->
 module.exports =
 
 
+  before: -> utils.getUser()
+
+
   start: (browser) ->
+
+    browser.pause 2500 # wait for user.json creation
 
     start(browser)
     leave(browser)
