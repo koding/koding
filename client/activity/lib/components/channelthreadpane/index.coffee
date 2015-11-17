@@ -37,7 +37,6 @@ module.exports = class ChannelThreadPane extends React.Component
 
     @state =
       originalPurpose       : ''
-      editingPurpose        : no
       showDropTarget        : no
       isComingSoonModalOpen : no
       channelThread         : immutable.Map()
@@ -100,7 +99,9 @@ module.exports = class ChannelThreadPane extends React.Component
 
   updatePurpose: ->
 
-    @setState editingPurpose: yes
+    channelThread = @state.channelThread.set 'editingPurpose', yes
+    @setState channelThread: channelThread
+
     input = @refs.purposeInput
 
     kd.utils.defer ->
@@ -126,8 +127,8 @@ module.exports = class ChannelThreadPane extends React.Component
       _originalPurpose = thread.getIn ['channel', '_originalPurpose']
       purpose = _originalPurpose or thread.getIn ['channel', 'purpose']
       thread  = thread.setIn ['channel', 'purpose'], purpose
-      @setState channelThread: thread
-      return @setState editingPurpose: no
+      thread  = thread.set 'editingPurpose', no
+      return @setState channelThread: thread
 
     if event.which is ENTER
 
@@ -137,12 +138,13 @@ module.exports = class ChannelThreadPane extends React.Component
       { updateChannel } = ActivityFlux.actions.channel
 
       updateChannel({ id, purpose }).then (response) =>
-        @setState editingPurpose: no
+        thread  = thread.set 'editingPurpose', no
+        return @setState channelThread: thread
 
 
   getPurposeAreaClassNames: -> classnames
     'ChannelThreadPane-purposeWrapper': yes
-    'editing': @state.editingPurpose
+    'editing': @state.channelThread.get 'editingPurpose'
 
 
   handleChange: (newValue) ->
