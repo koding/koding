@@ -263,7 +263,7 @@ func methodIn(method string, methods ...string) bool {
 
 // cleanupEventers cleans all other eventers for the given id
 func (k *Kloud) cleanupEventers(id string) {
-	for method, _ := range states {
+	for method := range states {
 		eventId := method + "-" + id
 		delete(k.Eventers, eventId)
 	}
