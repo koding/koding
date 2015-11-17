@@ -48,9 +48,14 @@ type Purge struct {
 	resourceMu sync.Mutex // protects resources
 
 	// fetch synchronization
-	wg        sync.WaitGroup
-	mu        sync.Mutex
+	fetchWg   sync.WaitGroup
+	fetchMu   sync.Mutex
 	fetchErrs error
+
+	// delete synchronization
+	deleteWg   sync.WaitGroup
+	deleteMu   sync.Mutex
+	deleteErrs error
 }
 
 func New(conf *Config) (*Purge, error) {
@@ -159,7 +164,7 @@ func (p *Purge) Fetch() error {
 	p.FetchInternetGateways()
 	p.FetchRouteTables()
 
-	p.wg.Wait()
+	p.fetchWg.Wait()
 	return p.fetchErrs
 }
 
@@ -183,5 +188,7 @@ func (p *Purge) Terminate() error {
 	p.DeleteNetworkAcls()
 	p.DeleteInternetGateways()
 	p.DeleteRouteTables()
-	return nil
+
+	p.deleteWg.Wait()
+	return p.deleteErrs
 }

@@ -2,7 +2,6 @@ package awspurge
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
@@ -13,60 +12,42 @@ import (
 // for a given resource
 const resourceLimit = 100
 
-func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) error {
-	var (
-		wg sync.WaitGroup
-		mu sync.Mutex
-
-		multiErrors error
-	)
+func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) {
+	p.deleteWg.Add(1)
 
 	for r, s := range p.services.ec2 {
-		wg.Add(1)
+		p.deleteWg.Add(1)
 
 		go func(region string, svc *ec2.EC2) {
 			err := fn(svc)
 			if err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors, err)
-				mu.Unlock()
+				p.deleteMu.Lock()
+				p.deleteErrs = multierror.Append(p.deleteErrs, err)
+				p.deleteMu.Unlock()
 			}
-			wg.Done()
+			p.deleteWg.Done()
 		}(r, s)
 	}
-
-	wg.Wait()
-	return multiErrors
 }
 
-func (p *Purge) terminateELBResources(fn func(*elb.ELB) error) error {
-	var (
-		wg sync.WaitGroup
-		mu sync.Mutex
-
-		multiErrors error
-	)
-
+func (p *Purge) terminateELBResources(fn func(*elb.ELB) error) {
 	for r, s := range p.services.elb {
-		wg.Add(1)
+		p.deleteWg.Add(1)
 
 		go func(region string, svc *elb.ELB) {
 			err := fn(svc)
 			if err != nil {
-				mu.Lock()
-				multiErrors = multierror.Append(multiErrors, err)
-				mu.Unlock()
+				p.deleteMu.Lock()
+				p.deleteErrs = multierror.Append(p.deleteErrs, err)
+				p.deleteMu.Unlock()
 			}
-			wg.Done()
+			p.deleteWg.Done()
 		}(r, s)
 	}
-
-	wg.Wait()
-	return multiErrors
 }
 
 // DeleteInstances terminates all instances on all regions
-func (p *Purge) DeleteInstances() error {
+func (p *Purge) DeleteInstances() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -96,11 +77,11 @@ func (p *Purge) DeleteInstances() error {
 		return err
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteVolumes terminates all volumes on all regions
-func (p *Purge) DeleteVolumes() error {
+func (p *Purge) DeleteVolumes() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -137,11 +118,11 @@ func (p *Purge) DeleteVolumes() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteKeyPairs delete all key pairs on all regions
-func (p *Purge) DeleteKeyPairs() error {
+func (p *Purge) DeleteKeyPairs() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -178,11 +159,11 @@ func (p *Purge) DeleteKeyPairs() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeletePlacementGroups delete all placementGroups on all regions
-func (p *Purge) DeletePlacementGroups() error {
+func (p *Purge) DeletePlacementGroups() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -219,11 +200,11 @@ func (p *Purge) DeletePlacementGroups() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteAddresses delete all addresses on all regions
-func (p *Purge) DeleteAddresses() error {
+func (p *Purge) DeleteAddresses() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -260,11 +241,11 @@ func (p *Purge) DeleteAddresses() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteSnapshots delete all snapshots on all regions
-func (p *Purge) DeleteSnapshots() error {
+func (p *Purge) DeleteSnapshots() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -301,11 +282,11 @@ func (p *Purge) DeleteSnapshots() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteLoadBalancers delete all loadbalancers on all regions
-func (p *Purge) DeleteLoadBalancers() error {
+func (p *Purge) DeleteLoadBalancers() {
 	fn := func(svc *elb.ELB) error {
 		region := *svc.Config.Region
 
@@ -343,11 +324,11 @@ func (p *Purge) DeleteLoadBalancers() error {
 		return multiErrors
 	}
 
-	return p.terminateELBResources(fn)
+	p.terminateELBResources(fn)
 }
 
 // DeleteVPCs delete all vpcs on all regions
-func (p *Purge) DeleteVPCs() error {
+func (p *Purge) DeleteVPCs() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -384,11 +365,11 @@ func (p *Purge) DeleteVPCs() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteSubnets delete all subnets on all regions
-func (p *Purge) DeleteSubnets() error {
+func (p *Purge) DeleteSubnets() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -425,11 +406,11 @@ func (p *Purge) DeleteSubnets() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteSecurityGroups delete all security groups on all regions
-func (p *Purge) DeleteSecurityGroups() error {
+func (p *Purge) DeleteSecurityGroups() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -466,11 +447,11 @@ func (p *Purge) DeleteSecurityGroups() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteNetworkAcls delete all network acls on all regions
-func (p *Purge) DeleteNetworkAcls() error {
+func (p *Purge) DeleteNetworkAcls() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -508,11 +489,11 @@ func (p *Purge) DeleteNetworkAcls() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteInternetGateways delete all igs on all regions
-func (p *Purge) DeleteInternetGateways() error {
+func (p *Purge) DeleteInternetGateways() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -550,11 +531,11 @@ func (p *Purge) DeleteInternetGateways() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
 
 // DeleteRouteTables delete all igs on all regions
-func (p *Purge) DeleteRouteTables() error {
+func (p *Purge) DeleteRouteTables() {
 	fn := func(svc *ec2.EC2) error {
 		region := *svc.Config.Region
 
@@ -592,5 +573,5 @@ func (p *Purge) DeleteRouteTables() error {
 		return multiErrors
 	}
 
-	return p.terminateEC2Resources(fn)
+	p.terminateEC2Resources(fn)
 }
