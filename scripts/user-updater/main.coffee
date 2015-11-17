@@ -87,7 +87,8 @@ koding.once 'dbClientReady', ->
 
           queue.push ->
             account.migrateOldAppStorageIfExists { appId, version }, (err) ->
-              return queue.fin err  if err
+              console.log "Migrating appStorage with id #{storage._id}"
+              console.log "Error on appStorage with id #{storage._id}"  if err
               queue.fin()
 
         dash queue, (err) ->
