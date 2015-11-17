@@ -20,11 +20,16 @@ const (
 	// to the given klient.
 	KiteHome = "/etc/kite"
 
-	// KlientDirectory is full path to directory that holds klient.
+	// KlientDirectory is full path to directory that holds klient. Note that
+	// this gets created and deleted as needed. **Never** make this something important,
+	// like /usr/local/bin
 	KlientDirectory = "/opt/kite/klient"
 
 	// KlientctlDirectory is full path to directory that holds klientctl.
 	KlientctlDirectory = "/usr/local/bin"
+
+	// KlientctlBinName is the bin named that will be stored in the KlientctlDirectory.
+	KlientctlBinName = "kd"
 
 	// KontrolUrl is the url to connect to authenticate local klient and get
 	// list of machines.

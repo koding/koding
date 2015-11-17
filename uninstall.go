@@ -31,6 +31,22 @@ func UninstallCommand(c *cli.Context) int {
 		fmt.Printf("Warning: Failed to remove kite.key. This is not a critical issue.\n")
 	}
 
+	// Remove the Klient directory
+	if err = os.RemoveAll(KlientDirectory); err != nil {
+		fmt.Printf(
+			"Warning: Failed to remove %s binary. This is not a critical issue.\n",
+			KlientName,
+		)
+	}
+
+	// Remove the kd binary
+	if err := os.Remove(filepath.Join(KlientctlDirectory, KlientctlBinName)); err != nil {
+		fmt.Printf(
+			"Warning: Failed to remove %s binary. This is not a critical issue.\n",
+			Name,
+		)
+	}
+
 	fmt.Printf("Successfully uninstalled %s\n", KlientName)
 	return 0
 }
