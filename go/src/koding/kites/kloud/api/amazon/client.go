@@ -42,6 +42,33 @@ func newClient(cfg client.ConfigProvider, region string) (*Client, error) {
 	return c, nil
 }
 
+// AddressesByIP is a wrapper for (*ec2.EC2).DescribeAddresses.
+//
+// If call succeeds but no addresses were found, it returns no-nil
+// *NotFoundError error.
+func (c *Client) AddressesByIP(publicIP string) ([]*ec2.Address, error) {
+	params := &ec2.DescribeAddressesInput{
+		PublicIps: []*string{aws.String(publicIP)},
+	}
+	resp, err := c.EC2.DescribeAddresses(params)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(resp.Addresses) == 0 {
+		return nil, newNotFoundError("Address", fmt.Errorf("no addresses found with ip=%q", publicIP))
+	}
+	return resp.Addresses, nil
+}
+
+// ReleaseAddresss is a wrapper for (*ec2.EC2).ReleaseAddress.
+func (c *Client) ReleaseAddress(allocID string) error {
+	params := &ec2.ReleaseAddressInput{
+		AllocationId: aws.String(allocID),
+	}
+	_, err := c.EC2.ReleaseAddress(params)
+	return awsError(err)
+}
+
 // AllocateAddress is a wrapper for (*ec2.EC2).AllocateAddress.
 //
 // The domain type can be either classic or vpc.
@@ -67,6 +94,9 @@ func (c *Client) AssociateAddress(instanceID, allocID string) error {
 }
 
 // Images is a wrapper for (*ec2.EC2).DescribeImages.
+//
+// If call succeeds but no images were found, it returns no-nil
+// *NotFoundError error.
 func (c *Client) Images() ([]*ec2.Image, error) {
 	params := &ec2.DescribeImagesInput{}
 	resp, err := c.EC2.DescribeImages(params)
@@ -115,7 +145,28 @@ func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
 	return resp.Images[0], nil
 }
 
+// RegisterImage is a wrapper for (*ec2.EC2).RegisterImage.
+func (c *Client) RegisterImage(params *ec2.RegisterImageInput) (imageID string, err error) {
+	resp, err := c.EC2.RegisterImage(params)
+	if err != nil {
+		return "", awsError(err)
+	}
+	return aws.StringValue(resp.ImageId), nil
+}
+
+// DeregisterImage is a wrapper for (*ec2.EC2).DeregisterImage.
+func (c *Client) DeregisterImage(imageID string) error {
+	params := &ec2.DeregisterImageInput{
+		ImageId: aws.String(imageID),
+	}
+	_, err := c.EC2.DeregisterImage(params)
+	return awsError(err)
+}
+
 // Snapshots is a wrapper for (*ec2.EC2).DescribeSnapshots.
+//
+// If call succeeds but no snapshots were found, it returns no-nil
+// *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
 	params := &ec2.DescribeSnapshotsInput{}
 	resp, err := c.EC2.DescribeSnapshots(params)
@@ -167,6 +218,9 @@ func (c *Client) DeleteSnapshot(id string) error {
 }
 
 // VPCs is a wrapper for (*ec2.EC2).DescribeVpcs.
+//
+// If call succeeds but no VPCs were found, it returns no-nil
+// *NotFoundError error.
 func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 	params := &ec2.DescribeVpcsInput{}
 	resp, err := c.EC2.DescribeVpcs(params)
@@ -180,6 +234,9 @@ func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 }
 
 // Subnets is a wrapper for (*ec2.EC2).DescribeSubnets.
+//
+// If call succeeds but no subnets were found, it returns no-nil
+// *NotFoundError error.
 func (c *Client) Subnets() ([]*ec2.Subnet, error) {
 	params := &ec2.DescribeSubnetsInput{}
 	resp, err := c.EC2.DescribeSubnets(params)
@@ -193,6 +250,9 @@ func (c *Client) Subnets() ([]*ec2.Subnet, error) {
 }
 
 // SubnetsByTag is a wrapper for (*ec2.EC2).DescribeSubnets with tag-value filter.
+//
+// If call succeeds but no subnets were found, it returns no-nil
+// *NotFoundError error.
 func (c *Client) SubnetsByTag(value string) ([]*ec2.Subnet, error) {
 	params := &ec2.DescribeSubnetsInput{
 		Filters: []*ec2.Filter{{
@@ -235,6 +295,19 @@ func (c *Client) SecurityGroupByFilters(filters url.Values) (*ec2.SecurityGroup,
 		Filters: NewFilters(filters),
 	}
 	return c.securityGroupBy(params, filters)
+}
+
+// SecurityGroupFromVPC is a wrapper for (*ec2.EC2).DescribeSecurityGroups
+// with vpc-id and tag-key filters.
+//
+// If the value of either argument is empty, the filter is ignored.
+func (c *Client) SecurityGroupFromVPC(vpcID, tag string) (*ec2.SecurityGroup, error) {
+	filters := url.Values{
+		"vpc-id":  {vpcID},
+		"tag-key": {tag},
+	}
+	return c.SecurityGroupByFilters(filters)
+
 }
 
 func (c *Client) securityGroupBy(params *ec2.DescribeSecurityGroupsInput, key interface{}) (*ec2.SecurityGroup, error) {
@@ -314,6 +387,8 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 // user-defined filters.
 //
 // If the value of a certain filter is an empty string, the filter is ignored.
+// If call succeeds but no instances were found, it returns no-nil
+// *NotFoundError error.
 func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error) {
 	params := &ec2.DescribeInstancesInput{
 		Filters: NewFilters(filters),
@@ -475,6 +550,15 @@ func (c *Client) CreateVolume(snapshotID, zone, typ string, size int64) (*ec2.Vo
 	return vol, nil
 }
 
+// DeleteVolume is a wrapper for (*ec.EC2).DeleteVolume.
+func (c *Client) DeleteVolume(volID string) error {
+	params := &ec2.DeleteVolumeInput{
+		VolumeId: aws.String(volID),
+	}
+	_, err := c.EC2.DeleteVolume(params)
+	return awsError(err)
+}
+
 // AttachVolume is a wrapper for (*ec2.EC2).Volume.
 func (c *Client) AttachVolume(volumeID, instanceID, devicePath string) error {
 	params := &ec2.AttachVolumeInput{
@@ -495,7 +579,7 @@ func (c *Client) DetachVolume(id string) error {
 	return awsError(err)
 }
 
-// RunInstances is wrapper for (*ec.EC2).RunInstances.
+// RunInstances is a wrapper for (*ec2.EC2).RunInstances.
 func (c *Client) RunInstances(params *ec2.RunInstancesInput) (*ec2.Instance, error) {
 	resp, err := c.EC2.RunInstances(params)
 	if err != nil {
@@ -509,4 +593,10 @@ func (c *Client) RunInstances(params *ec2.RunInstancesInput) (*ec2.Instance, err
 		log.Printf("multiec2: more than one instance ran with params=%v", params)
 	}
 	return resp.Instances[0], nil
+}
+
+// ModifyInstance is a wrapper for (*ec2.EC2).ModiftInstanceAttribute.
+func (c *Client) ModifyInstance(params *ec2.ModifyInstanceAttributeInput) error {
+	_, err := c.EC2.ModifyInstanceAttribute(params)
+	return awsError(err)
 }

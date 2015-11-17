@@ -6,9 +6,10 @@ import (
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
+	"strconv"
 	"time"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
 	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
@@ -34,7 +35,7 @@ func (m *Machine) DeleteSnapshot(ctx context.Context) error {
 	}
 
 	m.Log.Info("deleting snapshot from AWS %s", args.SnapshotId)
-	if _, err := m.Session.AWSClient.Client.DeleteSnapshots([]string{args.SnapshotId}); err != nil {
+	if err := m.Session.AWSClient.DeleteSnapshot(args.SnapshotId); err != nil {
 		return err
 	}
 
@@ -81,11 +82,11 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 		return err
 	}
 
-	if len(instance.BlockDevices) == 0 {
+	if len(instance.BlockDeviceMappings) == 0 {
 		return fmt.Errorf("createSnapshot: no block device available")
 	}
 
-	volumeId := instance.BlockDevices[0].VolumeId
+	volumeId := aws.StringValue(instance.BlockDeviceMappings[0].Ebs.VolumeId)
 	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id.Hex())
 
 	m.Log.Debug("Creating snapshot '%s'", snapshotDesc)
@@ -98,10 +99,10 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 
 	snapshotData := &models.Snapshot{
 		Username:    m.Username,
-		Region:      a.Client.Region.Name,
-		SnapshotId:  snapshot.Id,
+		Region:      a.Region,
+		SnapshotId:  aws.StringValue(snapshot.SnapshotId),
 		MachineId:   m.Id,
-		StorageSize: snapshot.VolumeSize,
+		StorageSize: strconv.FormatInt(aws.Int64Value(snapshot.VolumeSize), 10),
 		Label:       args.Label,
 	}
 
@@ -109,13 +110,13 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 		return err
 	}
 
-	tags := []ec2.Tag{
-		{Key: "Name", Value: snapshotDesc},
-		{Key: "koding-user", Value: m.Username},
-		{Key: "koding-machineId", Value: m.Id.Hex()},
+	tags := map[string]string{
+		"Name":             snapshotDesc,
+		"koding-user":      m.Username,
+		"koding-machineId": m.Id.Hex(),
 	}
 
-	if _, err := a.Client.CreateTags([]string{snapshot.Id}, tags); err != nil {
+	if err := a.AddTags(aws.StringValue(snapshot.SnapshotId), tags); err != nil {
 		// don't return for a snapshot tag problem
 		m.Log.Warning("Failed to tag the new snapshot: %v", err)
 	}

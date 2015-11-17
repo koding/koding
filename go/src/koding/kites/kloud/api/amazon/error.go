@@ -33,6 +33,26 @@ func EqualErr(lhs, rhs error) bool {
 	return OrigErr(lhs) == OrigErr(rhs)
 }
 
+// IsErrCode returns true if err is of awserr.Error type and its code
+// is one of the given codes; otherwise it returns false.
+//
+// For the list of possible error codes see:
+//
+//   https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html
+//
+func IsErrCode(err error, codes ...string) bool {
+	e, ok := err.(awserr.Error)
+	if !ok {
+		return false
+	}
+	for _, code := range codes {
+		if e.Code() == code {
+			return true
+		}
+	}
+	return false
+}
+
 // NotFoundError is a special kind of error returned by the Client wrapper.
 // This error may occur because the recently created resource has not
 // propagated through the system.
