@@ -974,16 +974,14 @@ module.exports = class JAccount extends jraphical.Module
 
       =>
         # trying to fetch old app storages, there were more than one
-        # appStorages for the same appId and version, due to some bug
+        # appStorages for the same appId and version, probably due to some bug
+        # so we are trying to pick the one that contains data in it
         query = { 'data.appId':appId, 'data.version':version }
         @fetchAppStorages query, (err, storages) ->
 
           storages.forEach (storage) ->
-            console.log storage
-            data = storage?.bucket
-            console.log data
-            # if storage bucket is not empty pick it as lucky one
-            luckyStorage = storage  unless _.isEmpty data
+            # if storage bucket is not empty pick it as the lucky one
+            luckyStorage = storage  unless _.isEmpty storage?.bucket
 
           # if there was no lucky storage, pick the first one
           luckyStorage ?= storages[0]
@@ -1017,7 +1015,6 @@ module.exports = class JAccount extends jraphical.Module
 
       ->
         callback null, newStorage
-
 
     ]
 
