@@ -8,7 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-// StopCommand removes local klient. Requires sudo.
+// UninstallCommand removes local klient. Requires sudo.
 //
 // TODO: remove all artifacts, ie bolt db, ssh keys, kd etc.
 func UninstallCommand(c *cli.Context) int {
