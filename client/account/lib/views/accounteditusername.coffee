@@ -8,6 +8,7 @@ KDNotificationView = kd.NotificationView
 remote = require('app/remote').getInstance()
 s3upload = require 'app/util/s3upload'
 whoami = require 'app/util/whoami'
+isKoding = require 'app/util/iskoding'
 showError = require 'app/util/showError'
 JView = require 'app/jview'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
@@ -58,72 +59,78 @@ module.exports = class AccountEditUsername extends JView
       callback       : =>
         @account.modify "profile.avatar": ""
 
-    @emailForm = new KDFormViewWithFields
+    @userProfileFormFields =
+      firstName          :
+        cssClass         : 'Formline--half'
+        placeholder      : "firstname"
+        name             : "firstName"
+        label            : 'Name'
+      lastName           :
+        cssClass         : 'Formline--half'
+        placeholder      : "lastname"
+        name             : "lastName"
+        label            : 'Last name'
+      email              :
+        cssClass         : 'Formline--half'
+        placeholder      : "you@yourdomain.com"
+        name             : "email"
+        testPath         : "account-email-input"
+        label            : 'Email'
+      username           :
+        cssClass         : 'Formline--half'
+        placeholder      : "username"
+        name             : "username"
+        label            : 'Username'
+        attributes       :
+          readonly       : "#{not /^guest-/.test @account.profile.nickname}"
+        testPath         : "account-username-input"
+      verifyEmail        :
+        itemClass        : KDCustomHTMLView
+        tagName          : "a"
+        partial          : "You didn't verify your email yet <span>Verify now</span>"
+        cssClass         : "hidden action-link verify-email"
+        testPath         : "account-email-edit"
+        click            : @bound 'verifyUserEmail'
+      passwordHeader     :
+        itemClass        : KDCustomHTMLView
+        partial          : 'CHANGE PASSWORD'
+        cssClass         : 'AppModal-sectionHeader'
+      password           :
+        cssClass         : 'Formline--half'
+        placeholder      : "password"
+        name             : "password"
+        type             : "password"
+        label            : 'Password'
+      confirm            :
+        cssClass         : 'Formline--half'
+        placeholder      : "confirm password"
+        name             : "confirmPassword"
+        type             : "password"
+        label            : 'Password (again)'
+
+    if isKoding()
+
+      @userProfileFormFields.locationHeader =
+        itemClass        : KDCustomHTMLView
+        partial          : 'LOCATION SERVICES'
+        cssClass         : 'AppModal-sectionHeader'
+
+      @userProfileFormFields.shareLocationLabel =
+        itemClass        : KDCustomHTMLView
+        partial          : 'Share my location when I post on a #channel'
+        tagName          : 'ul'
+        cssClass         : 'AppModal--account-switchList left-aligned'
+        name             : 'shareLocationLabel'
+        nextElement      :
+          shareLocation      :
+            defaultValue     : whoami().shareLocation
+            itemClass        : KodingSwitch
+            #cssClass         : 'AppModal--account-switchList'
+            name             : 'shareLocation'
+
+    @userProfileForm = new KDFormViewWithFields
       cssClass             : 'AppModal-form'
-      fields               :
-        firstName          :
-          cssClass         : 'Formline--half'
-          placeholder      : "firstname"
-          name             : "firstName"
-          label            : 'Name'
-        lastName           :
-          cssClass         : 'Formline--half'
-          placeholder      : "lastname"
-          name             : "lastName"
-          label            : 'Last name'
-        email              :
-          cssClass         : 'Formline--half'
-          placeholder      : "you@yourdomain.com"
-          name             : "email"
-          testPath         : "account-email-input"
-          label            : 'Email'
-        username           :
-          cssClass         : 'Formline--half'
-          placeholder      : "username"
-          name             : "username"
-          label            : 'Username'
-          attributes       :
-            readonly       : "#{not /^guest-/.test @account.profile.nickname}"
-          testPath         : "account-username-input"
-        verifyEmail        :
-          itemClass        : KDCustomHTMLView
-          tagName          : "a"
-          partial          : "You didn't verify your email yet <span>Verify now</span>"
-          cssClass         : "hidden action-link verify-email"
-          testPath         : "account-email-edit"
-          click            : @bound 'verifyUserEmail'
-        passwordHeader     :
-          itemClass        : KDCustomHTMLView
-          partial          : 'CHANGE PASSWORD'
-          cssClass         : 'AppModal-sectionHeader'
-        password           :
-          cssClass         : 'Formline--half'
-          placeholder      : "password"
-          name             : "password"
-          type             : "password"
-          label            : 'Password'
-        confirm            :
-          cssClass         : 'Formline--half'
-          placeholder      : "confirm password"
-          name             : "confirmPassword"
-          type             : "password"
-          label            : 'Password (again)'
-        locationHeader     :
-          itemClass        : KDCustomHTMLView
-          partial          : 'LOCATION SERVICES'
-          cssClass         : 'AppModal-sectionHeader'
-        shareLocationLabel :
-          itemClass        : KDCustomHTMLView
-          partial          : 'Share my location when I post on a #channel'
-          tagName          : 'ul'
-          cssClass         : 'AppModal--account-switchList left-aligned'
-          name             : 'shareLocationLabel'
-          nextElement      :
-            shareLocation      :
-              defaultValue     : whoami().shareLocation
-              itemClass        : KodingSwitch
-              #cssClass         : 'AppModal--account-switchList'
-              name             : 'shareLocation'
+      fields               : @userProfileFormFields
       buttons              :
         Save               :
           title            : 'Save Changes'
@@ -249,8 +256,8 @@ module.exports = class AccountEditUsername extends JView
               profileUpdated = false
               return queue.next()
             JUser.changePassword password, (err,docs)=>
-              @emailForm.inputs.password.setValue ""
-              @emailForm.inputs.confirm.setValue ""
+              @userProfileForm.inputs.password.setValue ""
+              @userProfileForm.inputs.confirm.setValue ""
               if err
                 return queue.next()  if err.message is "PasswordIsSame"
                 return notify err.message
@@ -274,8 +281,8 @@ module.exports = class AccountEditUsername extends JView
 
     remote.api.JUser.verifyByPin resendIfExists: yes, (err) =>
 
-      @emailForm.fields.verifyEmail.hide()
-      @emailForm.inputs.verifyEmail.hide()
+      @userProfileForm.fields.verifyEmail.hide()
+      @userProfileForm.inputs.verifyEmail.hide()
       return showError err if err
 
       notify "We've sent you a confirmation mail.", 3500
@@ -325,14 +332,16 @@ module.exports = class AccountEditUsername extends JView
     {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
 
-    @emailForm.inputs.email.setDefaultValue Encoder.htmlDecode email
-    @emailForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
-    @emailForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
-    @emailForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
-    @emailForm.inputs.shareLocation.setDefaultValue whoami().shareLocation
+    @userProfileForm.inputs.email.setDefaultValue Encoder.htmlDecode email
+    @userProfileForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
+    @userProfileForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
+    @userProfileForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
+
+    if isKoding()
+      @userProfileForm.inputs.shareLocation.setDefaultValue whoami().shareLocation
 
     {focus} = kd.utils.parseQuery()
-    @emailForm.inputs[focus]?.setFocus()  if focus
+    @userProfileForm.inputs[focus]?.setFocus()  if focus
 
     notify = (message)->
       new KDNotificationView
@@ -340,8 +349,8 @@ module.exports = class AccountEditUsername extends JView
         duration : 3500
 
     if @userInfo.status is "unconfirmed"
-      @emailForm.fields.verifyEmail.show()
-      @emailForm.inputs.verifyEmail.show()
+      @userProfileForm.fields.verifyEmail.show()
+      @userProfileForm.inputs.verifyEmail.show()
 
   getAvatarOptions: ->
     tagName       : 'figure'
@@ -351,7 +360,7 @@ module.exports = class AccountEditUsername extends JView
       height      : 95
 
 
-  hideSaveButtonLoader: -> @emailForm.buttons.Save.hideLoader()
+  hideSaveButtonLoader: -> @userProfileForm.buttons.Save.hideLoader()
 
 
   pistachio: ->
@@ -364,7 +373,7 @@ module.exports = class AccountEditUsername extends JView
         {{> @useGravatarBtn}}
       </div>
     </div>
-    {{> @emailForm}}
+    {{> @userProfileForm}}
     """
 
 
