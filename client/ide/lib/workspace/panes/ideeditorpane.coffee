@@ -49,7 +49,7 @@ module.exports = class IDEEditorPane extends IDEPane
   getFileModifiedDate: (callback = noop) ->
 
     path = FSHelper.plainPath @file.path
-    @file.machine.getBaseKite().fsGetInfo({ path }).then (info) ->
+    @file.machine.getBaseKite()?.fsGetInfo?({ path }).then (info) ->
       callback info.time
 
 
