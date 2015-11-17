@@ -419,7 +419,7 @@ module.exports = class IDELayoutManager extends KDObject
 
   getRatio: (a, b) ->
 
-    return 0  if not a or not b
+    return 1  if not a or not b
     return 1  if a is b
     return (a / b)
 
