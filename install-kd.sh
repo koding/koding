@@ -121,6 +121,20 @@ fi
 platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
   darwin|linux)
+    installDir="/usr/local/bin"
+
+    # On some OSX systems, /usr/local/bin doesn't seem to exist. Create it.
+    if sudo [ ! -d "$installDir" ]; then
+      echo "Installation directory doesn't exist, creating.."
+
+      sudo mkdir -p $installDir
+      # /usr/local/bin is normally chowned as `user:admin`,
+      # eg: `jake:admin` on osx
+      if [ -n "$USER" ]; then
+        sudo chown $USER $installDir
+      fi
+    fi
+
     echo ""
     echo "Downloading kd..."
     sudo curl -SLo /usr/local/bin/kd "https://koding-kd.s3.amazonaws.com/klientctl-$platform"
