@@ -38,6 +38,7 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
+      editingPurpose        : no
       originalPurpose       : ''
       showDropTarget        : no
       isComingSoonModalOpen : no
@@ -99,10 +100,17 @@ module.exports = class ChannelThreadPane extends React.Component
     unfollowChannel channelId
 
 
+  componentWillUpdate: (nextProps, nextState) ->
+
+    channelId          = @state.channelThread.get 'channelId'
+    nextStateChannelId = nextState.channelThread.get 'channelId'
+
+    return @setState editingPurpose: no  if channelId isnt nextStateChannelId
+
+
   updatePurpose: ->
 
-    channelThread = @state.channelThread.set 'editingPurpose', yes
-    @setState channelThread: channelThread
+    @setState editingPurpose: yes
 
     input = @refs.purposeInput
 
@@ -129,8 +137,8 @@ module.exports = class ChannelThreadPane extends React.Component
       _originalPurpose = thread.getIn ['channel', '_originalPurpose']
       purpose = _originalPurpose or thread.getIn ['channel', 'purpose']
       thread  = thread.setIn ['channel', 'purpose'], purpose
-      thread  = thread.set 'editingPurpose', no
-      return @setState channelThread: thread
+      @setState channelThread: thread
+      return @setState editingPurpose: no
 
     if event.which is ENTER
 
@@ -140,13 +148,12 @@ module.exports = class ChannelThreadPane extends React.Component
       { updateChannel } = ActivityFlux.actions.channel
 
       updateChannel({ id, purpose }).then (response) =>
-        thread  = thread.set 'editingPurpose', no
-        return @setState channelThread: thread
+        @setState editingPurpose: no
 
 
   getPurposeAreaClassNames: -> classnames
     'ChannelThreadPane-purposeWrapper': yes
-    'editing': @state.channelThread.get 'editingPurpose'
+    'editing': @state.editingPurpose
 
 
   handleChange: (newValue) ->
