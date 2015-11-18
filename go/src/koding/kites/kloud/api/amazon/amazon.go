@@ -1,12 +1,14 @@
 package amazon
 
 import (
-	"github.com/mitchellh/goamz/ec2"
+	"koding/kites/kloud/awscompat"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/mitchellh/mapstructure"
 )
 
 type Amazon struct {
-	Client *ec2.EC2
+	*Client
 
 	// Contains AccessKey and SecretKey
 	Creds struct {
@@ -63,7 +65,7 @@ type Amazon struct {
 	}
 }
 
-func New(builder map[string]interface{}, client *ec2.EC2) (*Amazon, error) {
+func NewAmazon(builder map[string]interface{}, client *Client) (*Amazon, error) {
 	a := &Amazon{
 		Client: client,
 	}
@@ -74,6 +76,15 @@ func New(builder map[string]interface{}, client *ec2.EC2) (*Amazon, error) {
 	}
 
 	return a, nil
+}
+
+func NewAmazonCreds(builder map[string]interface{}, region, key, secret string) (*Amazon, error) {
+	session := awscompat.NewSessionCreds(key, secret)
+	client, err := newClient(session, region)
+	if err != nil {
+		return nil, err
+	}
+	return NewAmazon(builder, client)
 }
 
 // Id returns the instances unique Id

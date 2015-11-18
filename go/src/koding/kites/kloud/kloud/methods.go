@@ -230,7 +230,7 @@ func (k *Kloud) DeleteSnapshot(r *kite.Request) (resp interface{}, kiteErr error
 		return nil, err
 	}
 
-	if _, err := svc.DeleteSnapshots([]string{args.SnapshotId}); err != nil {
+	if err := svc.DeleteSnapshot(args.SnapshotId); err != nil {
 		return nil, err
 	}
 

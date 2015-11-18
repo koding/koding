@@ -1,6 +1,7 @@
 package awsprovider
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -17,23 +18,29 @@ import (
 
 	kiteprotocol "github.com/koding/kite/protocol"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/net/context"
 )
 
-var DefaultUbuntuImage = "ami-d05e75b8"
+const (
+	DefaultUbuntuImage = "ami-d05e75b8"
+
+	KodingGroupName = "Koding-Kloud-SG"
+	KodingGroupDesc = "Koding VMs group"
+)
 
 type BuildData struct {
-	// This is passed directly to goamz to create the final instance
-	EC2Data   *ec2.RunInstances
+	// EC2Data is passed directly to aws-sdk-go to create the final instance.
+	EC2Data   *ec2.RunInstancesInput
 	ImageData *ImageData
 	KiteId    string
 }
 
 type ImageData struct {
-	blockDeviceMapping ec2.BlockDeviceMapping
-	imageId            string
+	blockDeviceMapping *ec2.BlockDeviceMapping
+	imageID            string
 }
 
 func (m *Machine) Build(ctx context.Context) (err error) {
@@ -86,7 +93,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 
-		m.Meta.SourceAmi = buildData.ImageData.imageId
+		m.Meta.SourceAmi = buildData.ImageData.imageID
 		m.QueryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		m.push("Initiating build process", 30, machinestate.Building)
@@ -119,7 +126,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
 
 	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
-	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
+	if amazon.IsNotFound(err) || err == amazon.ErrInstanceTerminated {
 		if err := m.MarkAsNotInitialized(); err != nil {
 			return err
 		}
@@ -131,9 +138,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
-	m.Meta.InstanceType = instance.InstanceType
-	m.Meta.SourceAmi = instance.ImageId
-	m.IpAddress = instance.PublicIpAddress
+	m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
+	m.Meta.SourceAmi = aws.StringValue(instance.ImageId)
+	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
 	m.addDomainAndTags()
@@ -178,18 +185,28 @@ func (m *Machine) imageData() (*ImageData, error) {
 
 	m.Log.Debug("Fetching image which is tagged with '%s'", m.Meta.SourceAmi)
 
-	imageId := DefaultUbuntuImage
-	if m.Meta.SourceAmi != "" {
+	imageID := m.Meta.SourceAmi
+	if imageID == "" {
 		m.Log.Critical("Source AMI is not set, using default Ubuntu AMI: %s", DefaultUbuntuImage)
-		imageId = m.Meta.SourceAmi
+		imageID = DefaultUbuntuImage
 	}
 
-	image, err := m.Session.AWSClient.Image(imageId)
+	image, err := m.Session.AWSClient.ImageByID(imageID)
 	if err != nil {
 		return nil, err
 	}
+	switch n := len(image.BlockDeviceMappings); n {
+	case 1: // ok
+	case 0:
+		return nil, &amazon.NotFoundError{
+			Resource: "BlockDeviceMapping",
+			Err:      fmt.Errorf("no block device mapping found within image=%q", imageID),
+		}
+	default:
+		m.Log.Warning("more than one block device mapping for image=%q", imageID)
+	}
 
-	device := image.BlockDevices[0]
+	device := image.BlockDeviceMappings[0]
 
 	// The lowest commong storage size for public Images is 8. To have a
 	// smaller storage size (like we do have for Koding, one must create new
@@ -200,19 +217,22 @@ func (m *Machine) imageData() (*ImageData, error) {
 
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
-	blockDeviceMapping := ec2.BlockDeviceMapping{
-		DeviceName:          device.DeviceName,
-		VirtualName:         device.VirtualName,
-		VolumeType:          "standard", // Use magnetic storage because it is cheaper
-		VolumeSize:          int64(m.Meta.StorageSize),
-		DeleteOnTermination: true,
-		Encrypted:           false,
+	blockDeviceMapping := &ec2.BlockDeviceMapping{
+		DeviceName:  device.DeviceName,
+		VirtualName: device.VirtualName,
+		Ebs: &ec2.EbsBlockDevice{
+			VolumeType:          aws.String("standard"), // Use magnetic storage because it is cheaper
+			VolumeSize:          aws.Int64(int64(m.Meta.StorageSize)),
+			DeleteOnTermination: aws.Bool(true),
+		},
 	}
 
-	m.Log.Debug("Using image Id: %s and block device settings %v", image.Id, blockDeviceMapping)
+	imageID = aws.StringValue(image.ImageId)
+
+	m.Log.Debug("Using image Id: %q and block device settings %+v", imageID, blockDeviceMapping)
 
 	return &ImageData{
-		imageId:            image.Id,
+		imageID:            imageID,
 		blockDeviceMapping: blockDeviceMapping,
 	}, nil
 }
@@ -260,66 +280,46 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, errors.New("public keys are not available")
 	}
 
-	subnets, err := m.Session.AWSClient.ListSubnets()
+	subnets, err := m.Session.AWSClient.Subnets()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(subnets.Subnets) == 0 {
-		return nil, errors.New("no subnets are available")
-	}
-
-	var subnetId string
-	var vpcId string
-	for _, subnet := range subnets.Subnets {
-		if subnet.AvailableIpAddressCount == 0 {
+	// find a subnet with available IPs
+	//
+	// TODO(rjeczalik): in other place we're picking the subnet with min(AvailableIpAddressCount),
+	// do the same here?
+	var subnetID, vpcID string
+	for _, subnet := range subnets {
+		if aws.Int64Value(subnet.AvailableIpAddressCount) == 0 {
 			continue
 		}
-
-		subnetId = subnet.SubnetId
-		vpcId = subnet.VpcId
+		subnetID = aws.StringValue(subnet.SubnetId)
+		vpcID = aws.StringValue(subnet.VpcId)
+		// TODO(rjeczalik): stop after first subnet found?
+	}
+	if subnetID == "" {
+		return nil, errors.New("did not found a subnet with available IPs")
 	}
 
-	if subnetId == "" {
-		return nil, errors.New("subnetId is empty")
-	}
+	var groupID string
 
-	var groupName = "Koding-Kloud-SG"
-	var group ec2.SecurityGroup
-
-	group, err = m.Session.AWSClient.SecurityGroup(groupName)
-	if err != nil {
-		// TODO: parse the error code and only create if it's a `NotFound` error
-		// assume it doesn't exists, go and create it
-		opts := ec2.SecurityGroup{
-			Name:        groupName,
-			Description: "Koding VMs group",
-			VpcId:       vpcId,
-		}
-
-		resp, err := m.Session.AWSClient.Client.CreateSecurityGroup(opts)
+	switch group, err := m.Session.AWSClient.SecurityGroupByName(KodingGroupName); {
+	case err == nil:
+		groupID = aws.StringValue(group.GroupId)
+	case amazon.IsNotFound(err):
+		groupID, err = m.Session.AWSClient.Client.CreateSecurityGroup(KodingGroupName, vpcID, KodingGroupDesc)
 		if err != nil {
 			return nil, err
 		}
-
-		// Authorize the SSH and Klient access
-		perms := []ec2.IPPerm{
-			ec2.IPPerm{
-				Protocol:  "tcp",
-				FromPort:  0,
-				ToPort:    65535,
-				SourceIPs: []string{"0.0.0.0/0"},
-			},
-		}
-
-		group = resp.SecurityGroup
-
-		// TODO: use retry mechanism
+		// TODO(rjeczalik): make CreateSecurityGroup blocking with WaitUntil*
+		//
+		// use retry mechanism
 		// We loop and retry this a few times because sometimes the security
 		// group isn't available immediately because AWS resources are eventaully
 		// consistent.
 		for i := 0; i < 5; i++ {
-			_, err = m.Session.AWSClient.Client.AuthorizeSecurityGroup(group, perms)
+			err = m.Session.AWSClient.Client.AuthorizeSecurityGroup(groupID, amazon.PermAllPorts)
 			if err == nil {
 				break
 			}
@@ -327,11 +327,11 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 			m.Log.Error("Error authorizing. Will sleep and retry. %s", err)
 			time.Sleep((time.Duration(i) * time.Second) + 1)
 		}
-
 		if err != nil {
 			return nil, err
 		}
-
+	default:
+		return nil, err
 	}
 
 	m.Session.AWSClient.Builder.KeyPair = keys.KeyName
@@ -343,17 +343,20 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, err
 	}
 
-	ec2Data := &ec2.RunInstances{
-		ImageId:                  imageData.imageId,
-		MinCount:                 1,
-		MaxCount:                 1,
-		KeyName:                  keyName,
-		InstanceType:             m.Session.AWSClient.Builder.InstanceType,
-		SubnetId:                 subnetId,
-		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
-		AssociatePublicIpAddress: true,
-		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
-		UserData:                 userdata,
+	ec2Data := &ec2.RunInstancesInput{
+		ImageId:      aws.String(imageData.imageID),
+		MinCount:     aws.Int64(1),
+		MaxCount:     aws.Int64(1),
+		KeyName:      aws.String(keyName),
+		InstanceType: aws.String(m.Session.AWSClient.Builder.InstanceType),
+		NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{{
+			DeviceIndex: aws.Int64(0),
+			SubnetId:    aws.String(subnetID),
+			Groups:      []*string{aws.String(groupID)},
+			AssociatePublicIpAddress: aws.Bool(true),
+		}},
+		BlockDeviceMappings: []*ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
+		UserData:            aws.String(base64.StdEncoding.EncodeToString(userdata)),
 	}
 
 	return &BuildData{
@@ -399,12 +402,12 @@ func (m *Machine) addDomainAndTags() {
 		}
 	}
 
-	tags := []ec2.Tag{
-		{Key: "Name", Value: m.Meta.InstanceName},
-		{Key: "koding-user", Value: m.Username},
-		{Key: "koding-env", Value: m.Session.Kite.Config.Environment},
-		{Key: "koding-machineId", Value: m.Id.Hex()},
-		{Key: "koding-domain", Value: m.Domain},
+	tags := map[string]string{
+		"Name":             m.Meta.InstanceName,
+		"koding-user":      m.Username,
+		"koding-env":       m.Session.Kite.Config.Environment,
+		"koding-machineId": m.Id.Hex(),
+		"koding-domain":    m.Domain,
 	}
 
 	m.Log.Debug("Adding user tags %v", tags)
