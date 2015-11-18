@@ -25,9 +25,9 @@ module.exports = class ChannelMentionItem extends React.Component
     if names.size > 1
       secondaryNames = names.skip(1)
       secondaryItems = secondaryNames.map (name, index) ->
-        name = highlightQueryInWord name, query, { isBeginningMatch : yes }
-        <span>
-          @{ name }{ if index is secondaryNames.size - 1 then '' else ', ' }
+        highlightedName = highlightQueryInWord name, query, { isBeginningMatch : yes }
+        <span key={name}>
+          @{ highlightedName }{ if index is secondaryNames.size - 1 then '' else ', ' }
         </span>
 
     <span>
