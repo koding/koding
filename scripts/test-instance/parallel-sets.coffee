@@ -77,6 +77,7 @@ module.exports = [
   # ]
 
   [
+
     { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
