@@ -86,7 +86,8 @@ module.exports = class ChannelThreadPane extends React.Component
       {title: 'Notification settings' , key: 'notificationsettings' , onClick: @bound 'showNotificationSettingsModal'}
     ]
 
-  invitePeople: ->
+
+  invitePeople: -> @refs.pane.onInviteOthers()
 
 
   leaveChannel: ->

@@ -42,7 +42,7 @@ Supported `node.js` and `npm` versions are respectively `0.10` and `2.x` - if yo
 ```
 $ brew remove node --force
 $ brew tap homebrew/versions
-$ brew homebrew/versions/node010
+$ brew install homebrew/versions/node010
 ```
 
 ```
@@ -58,6 +58,7 @@ $ . ~/.bash_profile
 ### Deploy Koding locally
 
 ```
+koding $ npm install
 koding $ ./configure
 koding $ ./run buildservices force
 koding $ ./run install
