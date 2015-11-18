@@ -20,9 +20,7 @@ const (
 	// to the given klient.
 	KiteHome = "/etc/kite"
 
-	// KlientDirectory is full path to directory that holds klient. Note that
-	// this gets created and deleted as needed. **Never** make this something important,
-	// like /usr/local/bin
+	// KlientDirectory is full path to directory that holds klient.
 	KlientDirectory = "/opt/kite/klient"
 
 	// KlientctlDirectory is full path to directory that holds klientctl.
