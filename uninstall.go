@@ -45,10 +45,10 @@ type Uninstall struct {
 	// is often stored in nested directories, the KlientParentDirectory is the first
 	// directory that that is not removed. Example:
 	//
-	// KlientBin		         == klient
-	// KlientDirectory       == kite/klient
-	// KlientParentDirectory == /opt
-	// FullKlientBinPath     == /opt/kite/klient/klient
+	//     KlientBin             == klient
+	//     KlientDirectory       == kite/klient
+	//     KlientParentDirectory == /opt
+	//     FullKlientBinPath     == /opt/kite/klient/klient
 	//
 	// See also: Uninstall.RemoveKlientDirectories()
 	KlientParentDirectory string
@@ -222,10 +222,10 @@ func (u *Uninstall) RemoveKlientFiles() error {
 // RemoveKlientDirectories removes the klient directories recursively, up until and
 // not including the Uninstall.KlientParentDirectory. As an example:
 //
-// KlientBin		         == klient
-// KlientDirectory       == kite/klient
-// KlientParentDirectory == /opt
-// FullKlientBinPath     == /opt/kite/klient/klient
+//     KlientBin             == klient
+//     KlientDirectory       == kite/klient
+//     KlientParentDirectory == /opt
+//     FullKlientBinPath     == /opt/kite/klient/klient
 //
 // In the above, /opt/kite/klient and /opt/kite would be removed, but not
 // /opt. If /opt/kite/klient is not empty, nothing is removed.
@@ -247,9 +247,9 @@ func (u *Uninstall) RemoveKlientDirectories() error {
 	// Note that the "." check is because Dir will return the dot (current directory)
 	// when there are no other dirs to return. Example:
 	//
-	// 		filepath.Dir("foo/bar/baz") // foo/bar
-	// 		filepath.Dir("foo/bar") 		// foo
-	// 		filepath.Dir("foo") 				// .
+	//     filepath.Dir("foo/bar/baz") // foo/bar
+	//     filepath.Dir("foo/bar")     // foo
+	//     filepath.Dir("foo")         // .
 	for p := u.KlientDirectory; p != "."; p = filepath.Dir(p) {
 		rmP := filepath.Join(u.KlientParentDirectory, p)
 
