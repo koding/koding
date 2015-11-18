@@ -83,7 +83,7 @@ generateConstraints = (plan) ->
   rules.push { 'resource.aws_instance.*.root_block_device': [
                  { 'volume_size?': { $typeof: 'number' } }
                  { 'volume_size?': { $lte: storagePerInstance } }
-                 { 'volume_size?': { $gt: 3 } }  # min volume size 3GB
+                 { 'volume_size?': { $gte: 3 } }  # min volume size 3GB
             ] }
 
   return rules
