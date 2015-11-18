@@ -379,9 +379,10 @@ module.exports = class IDELayoutManager extends KDObject
     for splitView in splitViews
       { first } = splitView.panels
 
-      data.sizes.push
-        width   : first.getWidth()
-        height  : first.getHeight()
+      if first
+        data.sizes.push
+          width   : first.getWidth()
+          height  : first.getHeight()
 
     return data
 
