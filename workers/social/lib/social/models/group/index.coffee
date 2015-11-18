@@ -242,6 +242,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         sendNotification:
           (signature String, String, Function)
+        setPlan:
+          (signature String, Function)
     schema          :
       title         :
         type        : String
@@ -298,6 +300,8 @@ module.exports = class JGroup extends Module
       # we create the group - SY
       # cc/ @cihangir
       initalData    : Object
+      # Generic config object for future requirements on groups ~ GG
+      config        : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
@@ -976,6 +980,18 @@ module.exports = class JGroup extends Module
       delete formData.slug
       delete formData.slug_
       @update { $set:formData }, callback
+
+  setPlan    : permit
+    advanced : [{ permission: 'edit groups', superadmin: yes }]
+    success  : (client, plan, callback) ->
+
+      TEAMPLANS = require '../computeproviders/teamplans'
+
+      if plan not in (plans = Object.keys TEAMPLANS)
+        return callback new KodingError "Plan can be #{plans.join ','}"
+
+      @update { $set: { 'config.plan': plan } }, callback
+
 
   modifyMembershipPolicy: permit
     advanced: PERMISSION_EDIT_GROUPS
