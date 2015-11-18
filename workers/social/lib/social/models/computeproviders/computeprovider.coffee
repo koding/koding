@@ -307,6 +307,21 @@ module.exports = class ComputeProvider extends Base
       return callback new KodingError results.last[1]  unless passed
 
 
+  # Takes an array of stack template ids and returns the final result ^^
+  @validateTemplates = (client, stackTemplates, group, callback) ->
+
+    queue = []
+
+    stackTemplates.forEach (stackTemplateId) -> queue.push ->
+      ComputeProvider.validateTemplate client, stackTemplateId, group, (err) ->
+        return callback err  if err
+        queue.next()
+
+    queue.push -> callback null
+
+    daisy queue
+
+
   # Auto create stack operations ###
 
   @createGroupStack$ = permit 'create machines',
