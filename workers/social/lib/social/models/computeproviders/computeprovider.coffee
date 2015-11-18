@@ -303,7 +303,7 @@ module.exports = class ComputeProvider extends Base
       catch
         return callback new KodingError 'Template is not valid'
 
-      { passed, results } = konstraints template, rules, log: yes
+      { passed, results } = konstraints template, rules, { log: yes }
       return callback new KodingError results.last[1]  unless passed
 
 
