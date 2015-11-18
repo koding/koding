@@ -1,8 +1,11 @@
 { Base, secure, signature, daisy } = require 'bongo'
 KodingError = require '../../error'
 
-{ argv } = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+{ argv }    = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+teamutils   = require './teamutils'
+konstraints = require 'konstraints'
+
 
 module.exports = class ComputeProvider extends Base
 
@@ -15,8 +18,9 @@ module.exports = class ComputeProvider extends Base
 
   { permit } = require '../group/permissionset'
 
-  JMachine   = require './machine'
-  JWorkspace = require '../workspace'
+  JMachine       = require './machine'
+  JWorkspace     = require '../workspace'
+  JStackTemplate = require './stacktemplate'
 
   @share()
 
@@ -277,6 +281,30 @@ module.exports = class ComputeProvider extends Base
         callback null, { stack, results }
 
       daisy queue
+
+
+  # Template checker, this will fetch the stack template from given id,
+  # will generate konstraint rules based on the group's plan and finally
+  # validate the stack template based on these informations ~ GG
+  @validateTemplate = (client, stackTemplateId, group, callback) ->
+
+    plan = group.getAt 'config.plan'
+    return callback null  unless plan
+
+    rules = teamutils.generateConstraints plan
+
+    JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) ->
+
+      return callback err  if err
+      return callback new KodingError 'Stack template not found'  unless data
+
+      try
+        template = JSON.parse data.template.content
+      catch
+        return callback new KodingError 'Template is not valid'
+
+      { passed, results } = konstraints template, rules, log: yes
+      return callback new KodingError results.last[1]  unless passed
 
 
   # Auto create stack operations ###
