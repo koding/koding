@@ -90,7 +90,7 @@ func (u *Uninstall) Uninstall() (string, int) {
 
 	// Remove the kitekey
 	if p := filepath.Join(u.KiteKeyDirectory, u.KiteKeyFilename); p != "" {
-		if err := os.Remove(p); err != nil {
+		if err := u.remover(p); err != nil {
 			warnings = append(warnings, fmt.Sprintf(
 				"Warning: Failed to remove authorization file. This is not a critical issue.\n",
 			))
@@ -171,7 +171,7 @@ func (u *Uninstall) RemoveKiteKey() error {
 	}
 
 	p := filepath.Join(u.KiteKeyDirectory, u.KiteKeyFilename)
-	if err := os.Remove(p); err != nil {
+	if err := u.remover(p); err != nil {
 		return err
 	}
 
@@ -180,7 +180,7 @@ func (u *Uninstall) RemoveKiteKey() error {
 	// As with most file operations, checking the state and then acting is an
 	// error prone and non-atomic endevour. As such, we're just removing the
 	// directory here, and if it is non-empty this operation will fail.
-	os.Remove(u.KiteKeyDirectory)
+	u.remover(u.KiteKeyDirectory)
 
 	return nil
 }
@@ -204,15 +204,16 @@ func (u *Uninstall) RemoveKlientFiles() error {
 		return errors.New("KlientshFilename cannot be empty")
 	}
 
+	// the directory of the files
+	klientDir := filepath.Join(u.KlientParentDirectory, u.KlientDirectory)
+
 	// Remove klient bin
-	klientPath := filepath.Join(u.KlientDirectory, u.KlientDirectory)
-	if err := os.Remove(klientPath); err != nil {
+	if err := u.remover(filepath.Join(klientDir, u.KlientFilename)); err != nil {
 		return err
 	}
 
 	// Remove klient.sh
-	klientshPath := filepath.Join(u.KlientDirectory, u.KlientshFilename)
-	if err := os.Remove(klientshPath); err != nil {
+	if err := u.remover(filepath.Join(klientDir, u.KlientshFilename)); err != nil {
 		return err
 	}
 
@@ -239,7 +240,7 @@ func (u *Uninstall) RemoveKlientDirectories() error {
 	}
 
 	if filepath.IsAbs(u.KlientDirectory) {
-		return errors.New("Cannot use absolute path directory")
+		return errors.New("Cannot use absolute path directory as KlientDirectory")
 	}
 
 	// Remove the klient directories repeatedly up until the parent.
@@ -262,7 +263,7 @@ func (u *Uninstall) RemoveKlientDirectories() error {
 		// If there is any error, return it. Generally we don't care about removal
 		// errors, but if anything fails we can't do anything with future parent dirs,
 		// so there's nothing to be done.
-		if err := os.Remove(rmP); err != nil {
+		if err := u.remover(rmP); err != nil {
 			return err
 		}
 	}
@@ -277,5 +278,5 @@ func (u *Uninstall) RemoveKlientctl() error {
 		return errors.New("KlientctlPath cannot be empty")
 	}
 
-	return os.Remove(u.KlientctlPath)
+	return u.remover(u.KlientctlPath)
 }
