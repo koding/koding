@@ -171,14 +171,15 @@ userMentions = (stateId) -> [
   currentCommand stateId
   ActivityFluxGetters.notSelectedChannelParticipants
   (allUsers, participants, query, command, notParticipants) ->
-    unless query
-      list = if command?.name is '/invite'
-      then notParticipants
-      else participants?.toList()
-      return list ? immutable.List()
+    isInviteCommand = command?.name is '/invite'
 
-    query = query.toLowerCase()
-    allUsers.toList().filter (user) ->
+    unless query
+      map = if isInviteCommand then notParticipants else participants
+      return if map then map.toList() else immutable.List()
+
+    query  = query.toLowerCase()
+    map = if isInviteCommand then notParticipants else allUsers
+    map.toList().filter (user) ->
       profile = user.get 'profile'
       names = [
         profile.get 'nickname'
