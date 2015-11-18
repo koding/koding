@@ -111,6 +111,7 @@ func (p *Purge) Do() error {
 		log.Println("Fetch err: %s", err)
 	}
 
+	log.Println("Printing resources")
 	if err := p.Print(); err != nil {
 		return err
 	}
@@ -170,8 +171,6 @@ func (p *Purge) Fetch() error {
 
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
-	return errors.New("Terminated is not implemented yet")
-
 	// EC2
 	p.DeleteInstances()
 	p.DeleteVolumes()
@@ -182,12 +181,12 @@ func (p *Purge) Terminate() error {
 	p.DeleteLoadBalancers()
 
 	// VPC
-	p.DeleteVPCs()
-	p.DeleteSubnets()
-	p.DeleteSecurityGroups()
-	p.DeleteNetworkAcls()
-	p.DeleteInternetGateways()
-	p.DeleteRouteTables()
+	// p.DeleteVPCs()
+	// p.DeleteSubnets()
+	// p.DeleteSecurityGroups()
+	// p.DeleteNetworkAcls()
+	// p.DeleteInternetGateways()
+	// p.DeleteRouteTables()
 
 	p.deleteWg.Wait()
 	return p.deleteErrs

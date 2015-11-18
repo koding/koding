@@ -54,8 +54,8 @@ func (p *Purge) DeleteInstances() {
 			return fmt.Errorf("Couldn't find resources for region %s", region)
 		}
 
-		if resources.instances == nil {
-			return fmt.Errorf("Instances are not fetched for region %s", region)
+		if resources.instances == nil || len(resources.instances) == 0 {
+			return fmt.Errorf("instances are not fetched for region %s", region)
 		}
 
 		instanceIds := make([]*string, len(resources.instances))
@@ -423,7 +423,7 @@ func (p *Purge) DeleteSecurityGroups() {
 
 		securityGroups := make([]*string, len(resources.securityGroups))
 		for i, sg := range resources.securityGroups {
-			securityGroups[i] = sg.GroupName
+			securityGroups[i] = sg.GroupId
 		}
 
 		if len(securityGroups) > resourceLimit {
@@ -433,9 +433,9 @@ func (p *Purge) DeleteSecurityGroups() {
 
 		var multiErrors error
 
-		for _, name := range securityGroups {
+		for _, id := range securityGroups {
 			input := &ec2.DeleteSecurityGroupInput{
-				GroupName: name,
+				GroupId: id,
 			}
 			_, err := svc.DeleteSecurityGroup(input)
 			if err != nil {
