@@ -89,12 +89,10 @@ func (u *Uninstall) Uninstall() (string, int) {
 	warnings := []string{}
 
 	// Remove the kitekey
-	if p := filepath.Join(u.KiteKeyDirectory, u.KiteKeyFilename); p != "" {
-		if err := u.remover(p); err != nil {
-			warnings = append(warnings, fmt.Sprintf(
-				"Warning: Failed to remove authorization file. This is not a critical issue.\n",
-			))
-		}
+	if err := u.RemoveKiteKey(); err != nil {
+		warnings = append(warnings, fmt.Sprintf(
+			"Warning: Failed to remove authorization file. This is not a critical issue.\n",
+		))
 	}
 
 	// Remove the klient/klient.sh files
