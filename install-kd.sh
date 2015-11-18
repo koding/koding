@@ -47,6 +47,8 @@ installFuseOnDarwinOnly () {
 
   # unmount dmg after it's finished
   diskutil unmount force "/Volumes/FUSE for OS X"
+
+  echo "Created /Library/Filesystems/osxfusefs.fs"
 }
 
 
@@ -121,10 +123,26 @@ fi
 platform=`uname | tr '[:upper:]' '[:lower:]'`
 case "$platform" in
   darwin|linux)
+    installDir="/usr/local/bin"
+
+    # On some OSX systems, /usr/local/bin doesn't seem to exist. Create it.
+    if sudo [ ! -d "$installDir" ]; then
+      sudo mkdir -p $installDir
+      # /usr/local/bin is normally chowned as `user:admin`,
+      # eg: `jake:admin` on osx
+      if [ -n "$USER" ]; then
+        sudo chown $USER $installDir
+      fi
+      echo "Created $installDir"
+    fi
+
     echo ""
     echo "Downloading kd..."
+
     sudo curl -SLo /usr/local/bin/kd "https://koding-kd.s3.amazonaws.com/klientctl-$platform"
     sudo chmod +x /usr/local/bin/kd
+
+    echo "Created /usr/local/bin/kd"
 
     # Check if fuse is needed, and install it if it is.
     installFuseOnDarwinOnly
@@ -158,6 +176,8 @@ if [ -n "$KONTROL_URL" ]; then
   echo "Installing with custom Kontrol Url... '$KONTROL_URL'"
   kontrolFlag="--kontrol=$KONTROL_URL"
 fi
+
+# No need to print Creating foo... because kd install handles that.
 
 # Install klient, piping stdin (the tty) to kd
 sudo kd install $kontrolFlag "$1" < /dev/tty
