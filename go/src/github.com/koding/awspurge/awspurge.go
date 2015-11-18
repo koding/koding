@@ -107,7 +107,7 @@ func New(conf *Config) (*Purge, error) {
 func (p *Purge) Do() error {
 	log.Println("Fetching resources")
 	if err := p.Fetch(); err != nil {
-		log.Println("Fetch err: %s", err)
+		log.Printf("Fetch err: %s\n", err)
 	}
 
 	log.Println("Printing resources")
@@ -171,7 +171,7 @@ func (p *Purge) Fetch() error {
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
 	// EC2
-	fmt.Println("Deleting EC2 resources")
+	log.Println("Deleting EC2 resources")
 	p.DeleteInstances()
 	p.DeleteVolumes()
 	p.DeleteKeyPairs()
@@ -181,7 +181,7 @@ func (p *Purge) Terminate() error {
 	p.DeleteLoadBalancers()
 
 	// VPC
-	fmt.Println("Deleting VPC resources")
+	log.Println("Deleting VPC resources")
 	p.DeleteSubnets()
 	p.DeleteInternetGateways()
 	p.DeleteVPCs()
