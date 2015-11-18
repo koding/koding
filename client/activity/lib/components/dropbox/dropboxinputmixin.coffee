@@ -31,7 +31,9 @@ module.exports = DropboxInputMixin =
 
     if dropdown.isActive()
 
-      dropdown.confirmSelectedItem()
+      return dropdown.confirmSelectedItem()
+
+    @onAfterEnter?()
 
 
   onNextPosition: (event, keyInfo) ->

@@ -250,6 +250,9 @@ module.exports = class CreatePublicChannelModal extends React.Component
       @createChannel()
 
 
+  onAfterEnter: -> @createChannel()
+
+
   renderNickname: (participant, isNicknameVisible)->
 
     nickname = participant.getIn ['profile', 'nickname']
