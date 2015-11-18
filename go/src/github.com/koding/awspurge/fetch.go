@@ -212,11 +212,18 @@ func (p *Purge) FetchVpcs() {
 			return err
 		}
 
-		resources := resp.Vpcs
 		region := *svc.Config.Region
 
+		vpcs := make([]*ec2.Vpc, 0)
+		for _, vpc := range resp.Vpcs {
+			// don't delete default vpc
+			if !*vpc.IsDefault {
+				vpcs = append(vpcs, vpc)
+			}
+		}
+
 		p.resourceMu.Lock()
-		p.resources[region].vpcs = resources
+		p.resources[region].vpcs = vpcs
 		p.resourceMu.Unlock()
 		return nil
 	}
