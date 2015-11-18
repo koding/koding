@@ -2,6 +2,7 @@ package awspurge
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elb"
@@ -13,25 +14,45 @@ import (
 const resourceLimit = 100
 
 func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) {
-	for _, svc := range p.services.ec2 {
-		err := fn(svc)
-		if err != nil {
-			p.deleteMu.Lock()
-			p.deleteErrs = multierror.Append(p.deleteErrs, err)
-			p.deleteMu.Unlock()
-		}
+	// we don't need to wait for each region independently
+	var wg sync.WaitGroup
+
+	for _, s := range p.services.ec2 {
+		wg.Add(1)
+
+		go func(svc *ec2.EC2) {
+			err := fn(svc)
+			if err != nil {
+				p.deleteMu.Lock()
+				p.deleteErrs = multierror.Append(p.deleteErrs, err)
+				p.deleteMu.Unlock()
+			}
+			wg.Done()
+		}(s)
 	}
+
+	wg.Wait()
 }
 
 func (p *Purge) terminateELBResources(fn func(*elb.ELB) error) {
-	for _, svc := range p.services.elb {
-		err := fn(svc)
-		if err != nil {
-			p.deleteMu.Lock()
-			p.deleteErrs = multierror.Append(p.deleteErrs, err)
-			p.deleteMu.Unlock()
-		}
+	// we don't need to wait for each region independently
+	var wg sync.WaitGroup
+
+	for _, s := range p.services.elb {
+		wg.Add(1)
+
+		go func(svc *elb.ELB) {
+			err := fn(svc)
+			if err != nil {
+				p.deleteMu.Lock()
+				p.deleteErrs = multierror.Append(p.deleteErrs, err)
+				p.deleteMu.Unlock()
+			}
+			wg.Done()
+		}(s)
 	}
+
+	wg.Wait()
 }
 
 // DeleteInstances terminates all instances on all regions
