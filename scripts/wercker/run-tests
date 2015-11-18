@@ -89,8 +89,6 @@ runTest = (job, next) ->
         error.stderr = stderr
         next error
       else if error
-        job.instance = instance = nextInstance instance
-        console.log "Set:#{setId} is reassigned to #{instance.instanceId} #{instance.publicIpAddress}"
         runTest job, next
       else
         next()
