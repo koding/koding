@@ -13,10 +13,7 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
-var (
-	ErrInstanceTerminated = errors.New("instance is terminated")
-	ErrNoInstances        = errors.New("no instances found")
-)
+var ErrNoInstances = errors.New("no instances found")
 
 func (a *Amazon) Build(buildData *ec2.RunInstances) (string, error) {
 	resp, err := a.Client.RunInstances(buildData)
