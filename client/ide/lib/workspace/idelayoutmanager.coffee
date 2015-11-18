@@ -416,6 +416,8 @@ module.exports = class IDELayoutManager extends KDObject
         then size.width   * widthRatio
         else size.height  * heightRatio
 
+        value = Math.max 50, value
+
         view._windowDidResize()
         view.resizePanel value
 
