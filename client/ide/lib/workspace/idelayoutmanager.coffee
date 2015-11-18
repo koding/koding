@@ -405,6 +405,7 @@ module.exports = class IDELayoutManager extends KDObject
       heightRatio = @getRatio currentCanvas.height, data.canvas.height
 
       return  unless splitViews.length
+      return  unless splitViews.length is data.sizes.length
 
       splitViews.forEach (view, index) ->
         size = data.sizes[index]
