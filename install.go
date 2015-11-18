@@ -86,8 +86,6 @@ func InstallCommand(c *cli.Context) int {
 		return 1
 	}
 
-	fmt.Printf("Created %s\n", KlientDirectory)
-
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
 	var sudoCmd string
@@ -157,7 +155,6 @@ func InstallCommand(c *cli.Context) int {
 		return 1
 	}
 
-	fmt.Printf("Created %s\n", KiteHome)
 	fmt.Printf("Created %s\n", filepath.Join(KiteHome, "kite.key"))
 
 	// Klient is setting the wrong file permissions when installed by ctl,
