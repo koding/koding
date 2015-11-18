@@ -15,10 +15,12 @@ import (
 
 // TODO(rjeczalik): make all Create* methods blocking with aws.WaitUntil*
 
+// TODO(rjeczalik): support paginated replies for Describe* calls
+
 // Client wraps *ec.EC2 with an API that hides Input/Output structs
 // while dealing with EC2 service API.
 //
-// TODO(rjeczalik): add `Log logging.Logger`
+// TODO(rjeczalik): add `Log logging.Logger` & replace log.Printfs
 type Client struct {
 	EC2    *ec2.EC2 // underlying client
 	Region string   // region name
