@@ -379,9 +379,10 @@ module.exports = class IDELayoutManager extends KDObject
     for splitView in splitViews
       { first } = splitView.panels
 
-      data.sizes.push
-        width   : first.getWidth()
-        height  : first.getHeight()
+      if first
+        data.sizes.push
+          width   : first.getWidth()
+          height  : first.getHeight()
 
     return data
 
@@ -404,6 +405,7 @@ module.exports = class IDELayoutManager extends KDObject
       heightRatio = @getRatio currentCanvas.height, data.canvas.height
 
       return  unless splitViews.length
+      return  unless splitViews.length is data.sizes.length
 
       splitViews.forEach (view, index) ->
         size = data.sizes[index]
@@ -413,6 +415,8 @@ module.exports = class IDELayoutManager extends KDObject
         value = if view.isVertical()
         then size.width   * widthRatio
         else size.height  * heightRatio
+
+        value = Math.max 50, value
 
         view._windowDidResize()
         view.resizePanel value
