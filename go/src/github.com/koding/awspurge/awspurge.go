@@ -15,11 +15,17 @@ import (
 )
 
 type Config struct {
-	Regions        []string      `toml:"regions" json:"regions"`
-	RegionsExclude []string      `toml:"regions_exclude" json:"regions_exclude"`
-	AccessKey      string        `toml:"access_key" json:"access_key"`
-	SecretKey      string        `toml:"secret_key" json:"secret_key"`
-	Timeout        time.Duration `toml:"timeout" json:"timeout"`
+	Regions        []string `toml:"regions" json:"regions"`
+	RegionsExclude []string `toml:"regions_exclude" json:"regions_exclude"`
+	AccessKey      string   `toml:"access_key" json:"access_key"`
+	SecretKey      string   `toml:"secret_key" json:"secret_key"`
+
+	// AWS Client timeout
+	Timeout time.Duration `toml:"timeout" json:"timeout"`
+
+	// If enabled it only fetches and lists resources (it doesn't terminate
+	// resources)
+	List bool `toml:"list" json:"list"`
 }
 
 type resources struct {
@@ -41,6 +47,7 @@ type resources struct {
 type Purge struct {
 	services *multiRegion
 	regions  []string // our own defined regions
+	list     bool     // only list, do not terminate if enabled
 
 	// resources represents the current available resources per region. It's
 	// populated by the Fetch() method.
@@ -101,6 +108,7 @@ func New(conf *Config) (*Purge, error) {
 		services:  m,
 		resources: res,
 		regions:   regions,
+		list:      conf.List,
 	}, nil
 }
 
@@ -113,6 +121,10 @@ func (p *Purge) Do() error {
 	log.Println("Printing resources")
 	if err := p.Print(); err != nil {
 		return err
+	}
+
+	if p.list {
+		return nil
 	}
 
 	log.Println("Terminating resources")
