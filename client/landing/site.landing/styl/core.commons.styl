@@ -75,6 +75,12 @@ button
 .hamburger-menu
   display           none
 
+figure.hackathon-header
+  bg                        color, rgba(255, 0, 0, .75)
+  color                     white
+
+
+
 #kdmaincontainer
   width             auto
 
@@ -139,8 +145,16 @@ button
     bg                      color #F7E747
     rounded                 3px
     abs                     -4px 0 0 155px
-    size                    88px 29px
+    size                    auto 29px
+    padding                 0 20px
+    margin-left             30px
+    vendor                  transition, all .3s ease-out
+    opacity                 0
     hidden()
+
+    &:after
+      font-weight           bold
+      content               'Join our Global Hackathon with $100k grand prize!'
 
     &:before
       content               ''
@@ -149,6 +163,11 @@ button
       border-style          solid
       border-width          8px 8px 8px 0
       border-color          transparent #f7e847 transparent transparent
+
+  &.hiring-badge-in
+    .hiring-badge
+      opacity               1
+      margin-left           0
 
   nav.full-menu
     line-height             18px

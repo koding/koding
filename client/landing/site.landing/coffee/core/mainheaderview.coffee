@@ -42,7 +42,8 @@ module.exports = class MainHeaderView extends KDView
     @addSubView @hiringBadge = new KDCustomHTMLView
       tagName   : 'a'
       cssClass  : 'hiring-badge'
-      partial   : 'IS HIRING!'
       attributes:
-        href    : 'https://jobs.lever.co/koding'
-        title   : 'Koding is hiring!'
+        href    : 'http://bit.ly/1MTsnJt'
+        title   : 'Join the Global Virtual Hackathon with $100k grand prize!'
+
+    KD.utils.wait 3000, => @setClass 'hiring-badge-in'
