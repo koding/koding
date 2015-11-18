@@ -1272,19 +1272,20 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 		Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
 	}
 
+	kdLogger := common.NewLogger("koding", true)
 	ec2clients, err := amazon.NewClientPerRegion(auth, []string{
 		"us-east-1",
 		"ap-southeast-1",
 		"us-west-2",
 		"eu-west-1",
-	})
+	}, kdLogger)
 	if err != nil {
 		panic(err)
 	}
 
 	kdp := &koding.Provider{
 		DB:             db,
-		Log:            common.NewLogger("koding", true),
+		Log:            kdLogger,
 		DNSClient:      dnsInstance,
 		DNSStorage:     dnsStorage,
 		Kite:           kloudKite,
