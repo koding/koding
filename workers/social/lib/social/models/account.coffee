@@ -1,3 +1,4 @@
+_           = require 'underscore'
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
@@ -964,48 +965,55 @@ module.exports = class JAccount extends jraphical.Module
     unless appId and version
       return callback new KodingError 'version and appId is not set!'
 
-    oldStorage         = null
-    newStorage         = null
-    accountId          = @getId()
+    accountId    = @getId()
+    newStorage   = null
+    oldStorages  = null
+    luckyStorage = null
 
     queue = [
 
       =>
-        # trying to fetch an old app storage document by relationship
+        # trying to fetch old app storages, there were more than one
+        # appStorages for the same appId and version, probably due to some bug
+        # so we are trying to pick the one that contains data in it
         query = { 'data.appId':appId, 'data.version':version }
-        @fetchAppStorage query, (err, storage) ->
+        @fetchAppStorages query, (err, storages) ->
           return calback err  if err
-          return callback null, null  unless storage
-          oldStorage = storage
+          # returning storage null bcs there was no old storage to be migrated
+          return callback null, null  unless storages.length > 0
+
+          storages.forEach (storage) ->
+            # if storage bucket is not empty pick it as the lucky one
+            luckyStorage = storage  unless _.isEmpty storage?.bucket
+
+          # if there was no lucky storage, pick the first one
+          luckyStorage ?= storages[0]
+          oldStorages   = storages
           queue.next()
 
       =>
         # creating new app storage document
-        options.data = oldStorage.bucket
+        options.data = luckyStorage?.bucket or {}
         @createAppStorage options, (err, storage) ->
           return callback err  if err
           newStorage = storage
           queue.next()
 
       ->
-        # removing relationship
-        query =
-          as          : 'appStorage'
-          data        : { appId, version }
-          targetId    : oldStorage.getId()
-          sourceId    : accountId
-          targetName  : 'JAppStorage'
-          sourceName  : 'JAccount'
+        _queue = []
+        # removing old storages
+        oldStorages.forEach (oldStorage) ->
+          _queue.push ->
+            oldStorage.remove (err) ->
+              return _queue.fin err  if err
+              _queue.fin()
 
-        Relationship.remove query, (err, rel) ->
+        dash _queue, (err) ->
           return callback err  if err
           queue.next()
 
       ->
-        # removing old storage
-        oldStorage.remove (err) ->
-          return callback err  if err
-          return callback null, newStorage
+        callback null, newStorage
 
     ]
 
