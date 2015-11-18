@@ -4,6 +4,7 @@ import (
 	"koding/kites/kloud/awscompat"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/koding/logging"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -78,9 +79,9 @@ func NewAmazon(builder map[string]interface{}, client *Client) (*Amazon, error) 
 	return a, nil
 }
 
-func NewAmazonCreds(builder map[string]interface{}, region, key, secret string) (*Amazon, error) {
+func NewAmazonCreds(builder map[string]interface{}, region, key, secret string, log logging.Logger) (*Amazon, error) {
 	session := awscompat.NewSessionCreds(key, secret)
-	client, err := newClient(session, region)
+	client, err := NewClient(session, region, log)
 	if err != nil {
 		return nil, err
 	}

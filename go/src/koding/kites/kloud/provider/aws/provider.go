@@ -113,6 +113,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		awsRegion.Name,
 		creds.Meta.AccessKey,
 		creds.Meta.SecretKey,
+		p.Log,
 	)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
