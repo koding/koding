@@ -47,6 +47,8 @@ installFuseOnDarwinOnly () {
 
   # unmount dmg after it's finished
   diskutil unmount force "/Volumes/FUSE for OS X"
+
+  echo "Created /Library/Filesystems/osxfusefs.fs"
 }
 
 
