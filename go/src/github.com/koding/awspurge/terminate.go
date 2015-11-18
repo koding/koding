@@ -13,38 +13,24 @@ import (
 const resourceLimit = 100
 
 func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) {
-	for _, s := range p.services.ec2 {
-		p.deleteWg.Add(1)
-
-		deleteFunc := func(svc *ec2.EC2) {
-			err := fn(svc)
-			if err != nil {
-				p.deleteMu.Lock()
-				p.deleteErrs = multierror.Append(p.deleteErrs, err)
-				p.deleteMu.Unlock()
-			}
-			p.deleteWg.Done()
+	for _, svc := range p.services.ec2 {
+		err := fn(svc)
+		if err != nil {
+			p.deleteMu.Lock()
+			p.deleteErrs = multierror.Append(p.deleteErrs, err)
+			p.deleteMu.Unlock()
 		}
-
-		go deleteFunc(s)
 	}
 }
 
 func (p *Purge) terminateELBResources(fn func(*elb.ELB) error) {
-	for _, s := range p.services.elb {
-		p.deleteWg.Add(1)
-
-		deleteFunc := func(svc *elb.ELB) {
-			err := fn(svc)
-			if err != nil {
-				p.deleteMu.Lock()
-				p.deleteErrs = multierror.Append(p.deleteErrs, err)
-				p.deleteMu.Unlock()
-			}
-			p.deleteWg.Done()
+	for _, svc := range p.services.elb {
+		err := fn(svc)
+		if err != nil {
+			p.deleteMu.Lock()
+			p.deleteErrs = multierror.Append(p.deleteErrs, err)
+			p.deleteMu.Unlock()
 		}
-
-		go deleteFunc(s)
 	}
 }
 
@@ -508,24 +494,21 @@ func (p *Purge) DeleteInternetGateways() {
 			return fmt.Errorf("internetGateways are not fetched for region %s", region)
 		}
 
-		internetGateways := make([]*string, len(resources.internetGateways))
-		for i, ig := range resources.internetGateways {
-			internetGateways[i] = ig.InternetGatewayId
-		}
-
-		if len(internetGateways) > resourceLimit {
-			return fmt.Errorf("Too many internetGateways(%d) found for region '%s'. Aborting",
-				len(internetGateways), region)
-		}
-
 		var multiErrors error
 
-		for _, id := range internetGateways {
-			input := &ec2.DeleteInternetGatewayInput{
-				InternetGatewayId: id,
+		for _, ig := range resources.internetGateways {
+			// we need to detach before we can delete it
+			_, err := svc.DetachInternetGateway(&ec2.DetachInternetGatewayInput{
+				InternetGatewayId: ig.InternetGatewayId,
+				VpcId:             ig.Attachments[0].VpcId,
+			})
+			if err != nil {
+				multiErrors = multierror.Append(multiErrors, err)
 			}
 
-			_, err := svc.DeleteInternetGateway(input)
+			_, err = svc.DeleteInternetGateway(&ec2.DeleteInternetGatewayInput{
+				InternetGatewayId: ig.InternetGatewayId,
+			})
 			if err != nil {
 				multiErrors = multierror.Append(multiErrors, err)
 			}
