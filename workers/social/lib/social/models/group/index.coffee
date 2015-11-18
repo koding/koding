@@ -970,16 +970,29 @@ module.exports = class JGroup extends Module
       else policy.remove callback
 
 
-  modify: permit
+  modify     : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.group.admin }
       { permission: 'edit groups',     superadmin   : yes }
     ]
-    success : (client, formData, callback) ->
-      # do not allow people to change there slugs
-      delete formData.slug
-      delete formData.slug_
-      @update { $set:formData }, callback
+    success  : (client, data, callback) ->
+
+      # it's not allowed to change followings
+      blacklist  = ['slug', 'slug_', 'config']
+      data[item] = null  for item in blacklist when data[item]?
+
+      # we need to make sure if given stack template is
+      # valid for the current group plan ~ GG
+      templates = data.stackTemplates
+      if templates?.length > 0 and @getAt 'config.plan'
+        ComputeProvider = require '../computeproviders/computeprovider'
+        ComputeProvider.validateTemplates client, templates, this, (err) =>
+          return callback err  if err
+          @update { $set: data }, callback
+
+      else
+        @update { $set: data }, callback
+
 
   setPlan    : permit
     advanced : [{ permission: 'edit groups', superadmin: yes }]
