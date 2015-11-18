@@ -13,10 +13,10 @@ import (
 const resourceLimit = 100
 
 func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) {
-	for r, s := range p.services.ec2 {
+	for _, s := range p.services.ec2 {
 		p.deleteWg.Add(1)
 
-		go func(region string, svc *ec2.EC2) {
+		deleteFunc := func(svc *ec2.EC2) {
 			err := fn(svc)
 			if err != nil {
 				p.deleteMu.Lock()
@@ -24,15 +24,17 @@ func (p *Purge) terminateEC2Resources(fn func(*ec2.EC2) error) {
 				p.deleteMu.Unlock()
 			}
 			p.deleteWg.Done()
-		}(r, s)
+		}
+
+		go deleteFunc(s)
 	}
 }
 
 func (p *Purge) terminateELBResources(fn func(*elb.ELB) error) {
-	for r, s := range p.services.elb {
+	for _, s := range p.services.elb {
 		p.deleteWg.Add(1)
 
-		go func(region string, svc *elb.ELB) {
+		deleteFunc := func(svc *elb.ELB) {
 			err := fn(svc)
 			if err != nil {
 				p.deleteMu.Lock()
@@ -40,7 +42,9 @@ func (p *Purge) terminateELBResources(fn func(*elb.ELB) error) {
 				p.deleteMu.Unlock()
 			}
 			p.deleteWg.Done()
-		}(r, s)
+		}
+
+		go deleteFunc(s)
 	}
 }
 
