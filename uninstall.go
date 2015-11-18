@@ -130,17 +130,17 @@ func (u *Uninstall) Uninstall() (string, int) {
 	//     // KlientDirectories
 	//     p != "."
 	for p := u.KlientDirectory; p != "" && p != string(filepath.Separator) && p != "."; p = filepath.Dir(p) {
-		delP := filepath.Join(u.KlientParentDirectory, p)
+		rmP := filepath.Join(u.KlientParentDirectory, p)
 
 		// Just to be extra safe, since we're loop removing, lets confirm that it's
 		// not the parent dir. In multiple forms.
-		if delP == u.KlientParentDirectory || filepath.Clean(delP) == filepath.Clean(u.KlientParentDirectory) {
+		if rmP == u.KlientParentDirectory || filepath.Clean(rmP) == filepath.Clean(u.KlientParentDirectory) {
 			break
 		}
 
 		// If there is any error, just bail out of the loop since we can't delete P's
 		// parent if we were unable to delete P to begin with.
-		if err := os.Remove(delP); err != nil {
+		if err := os.Remove(rmP); err != nil {
 			break
 		}
 	}
