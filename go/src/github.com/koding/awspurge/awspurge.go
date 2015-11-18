@@ -196,10 +196,10 @@ func (p *Purge) Terminate() error {
 	log.Println("Deleting VPC resources")
 	p.DeleteSubnets()
 	p.DeleteInternetGateways()
+	p.DeleteRouteTables()
 	p.DeleteVPCs()
-	// p.DeleteRouteTables()
-	// p.DeleteNetworkAcls()
 	// p.DeleteSecurityGroups()
+	// p.DeleteNetworkAcls()
 
 	return p.deleteErrs
 }
