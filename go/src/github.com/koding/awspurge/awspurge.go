@@ -52,8 +52,7 @@ type Purge struct {
 	fetchMu   sync.Mutex
 	fetchErrs error
 
-	// delete synchronization
-	deleteWg   sync.WaitGroup
+	// deleteErrors
 	deleteMu   sync.Mutex
 	deleteErrs error
 }
@@ -172,6 +171,7 @@ func (p *Purge) Fetch() error {
 // Terminate terminates all resources stored internally
 func (p *Purge) Terminate() error {
 	// EC2
+	fmt.Println("Deleting EC2 resources")
 	p.DeleteInstances()
 	p.DeleteVolumes()
 	p.DeleteKeyPairs()
@@ -181,13 +181,13 @@ func (p *Purge) Terminate() error {
 	p.DeleteLoadBalancers()
 
 	// VPC
-	// p.DeleteVPCs()
-	// p.DeleteSubnets()
-	// p.DeleteSecurityGroups()
-	// p.DeleteNetworkAcls()
-	// p.DeleteInternetGateways()
+	fmt.Println("Deleting VPC resources")
+	p.DeleteSubnets()
+	p.DeleteInternetGateways()
+	p.DeleteVPCs()
 	// p.DeleteRouteTables()
+	// p.DeleteNetworkAcls()
+	// p.DeleteSecurityGroups()
 
-	p.deleteWg.Wait()
 	return p.deleteErrs
 }

@@ -329,23 +329,12 @@ func (p *Purge) DeleteVPCs() {
 			return fmt.Errorf("vpcs are not fetched for region %s", region)
 		}
 
-		vpcs := make([]*string, len(resources.vpcs))
-		for i, vpc := range resources.vpcs {
-			vpcs[i] = vpc.VpcId
-		}
-
-		if len(vpcs) > resourceLimit {
-			return fmt.Errorf("Too many vpcs(%d) found for region '%s'. Aborting",
-				len(vpcs), region)
-		}
-
 		var multiErrors error
 
-		for _, id := range vpcs {
-			input := &ec2.DeleteVpcInput{
-				VpcId: id,
-			}
-			_, err := svc.DeleteVpc(input)
+		for _, vpc := range resources.vpcs {
+			_, err := svc.DeleteVpc(&ec2.DeleteVpcInput{
+				VpcId: vpc.VpcId,
+			})
 			if err != nil {
 				multiErrors = multierror.Append(multiErrors, err)
 			}
@@ -533,24 +522,12 @@ func (p *Purge) DeleteRouteTables() {
 			return fmt.Errorf("routeTables are not fetched for region %s", region)
 		}
 
-		routeTables := make([]*string, len(resources.routeTables))
-		for i, rt := range resources.routeTables {
-			routeTables[i] = rt.RouteTableId
-		}
-
-		if len(routeTables) > resourceLimit {
-			return fmt.Errorf("Too many routeTables(%d) found for region '%s'. Aborting",
-				len(routeTables), region)
-		}
-
 		var multiErrors error
 
-		for _, id := range routeTables {
-			input := &ec2.DeleteRouteTableInput{
-				RouteTableId: id,
-			}
-
-			_, err := svc.DeleteRouteTable(input)
+		for _, r := range resources.routeTables {
+			_, err := svc.DeleteRouteTable(&ec2.DeleteRouteTableInput{
+				RouteTableId: r.RouteTableId,
+			})
 			if err != nil {
 				multiErrors = multierror.Append(multiErrors, err)
 			}
