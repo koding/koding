@@ -328,14 +328,15 @@ class Ace extends KDView
     tabView.removePane_ tabView.getActivePane()
 
 
+  setTrimTrailingWhitespaces: (value) -> @isTrimWhiteSpacesEnabled = value
+
+
+  setEnableBraceCompletion: (state) -> @editor.setBehavioursEnabled state
+
+
   ###
   FS REQUESTS
   ###
-
-  setTrimTrailingWhitespaces: (value) ->
-
-    @isTrimWhiteSpacesEnabled = value
-
 
   requestSave: (options = {}) ->
 
@@ -435,6 +436,9 @@ class Ace extends KDView
 
   getEnableEmmet: ->
     @appStorage.getValue('enableEmmet') ? no
+
+  getEnableBraceCompletion: ->
+    @appStorage.getValue('enableBraceCompletion') ? yes
 
 
   getSettings: ->

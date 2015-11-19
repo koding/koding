@@ -391,13 +391,43 @@ func (p *ChannelRequest) createMessage(channelId int64, typeConstant string) (*C
 	cm.TypeConstant = typeConstant
 	cm.AccountId = p.AccountId
 	cm.InitialChannelId = channelId
-	cm.Payload = p.Payload
+
+	err := p.setPayloadWithTypeConstant(cm)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := cm.Create(); err != nil {
 		return nil, err
 	}
 
 	return cm, nil
+}
+
+// setPayloadWithTypeConstant sets the payload of the channel message
+// if message type is the system, we dont need to send all payload data to the client
+// we just need participants and systemType in the paylaod of the system message
+func (p *ChannelRequest) setPayloadWithTypeConstant(cm *ChannelMessage) error {
+	if cm.Payload == nil {
+		cm.Payload = gorm.Hstore{}
+	}
+
+	if cm.TypeConstant == ChannelMessage_TYPE_SYSTEM {
+		cm.Payload["systemType"] = p.Payload["systemType"]
+
+		if p.Payload["initialParticipants"] != nil {
+			cm.Payload["initialParticipants"] = p.Payload["initialParticipants"]
+		}
+
+		if p.Payload["addedBy"] != nil {
+			cm.Payload["addedBy"] = p.Payload["addedBy"]
+		}
+
+	} else {
+		cm.Payload = p.Payload
+	}
+
+	return nil
 }
 
 func getBody(p *ChannelRequest, typeConstant string) string {
