@@ -133,10 +133,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   createEventCheckboxes: ->
 
-    selectedEvents = @getData().selectedEvents or []
-    mainWrapper    = new kd.CustomHTMLView cssClass: 'event-cbes'
-
     return  unless @data.settings?.events
+
+    { selectedEvents, updatedAt, createdAt } = @getData()
+    mainWrapper      = new kd.CustomHTMLView cssClass: 'event-cbes'
+    selectedEvents   = selectedEvents or []
+    isNewIntegration = updatedAt is createdAt
 
     for item in @data.settings.events
 
@@ -147,7 +149,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         type         : 'checkbox'
         name         : name
         label        : label
-        defaultValue : selectedEvents.indexOf(name) > -1
+        defaultValue : (selectedEvents.indexOf(name) > -1) or isNewIntegration
 
       wrapper.addSubView checkbox
       wrapper.addSubView label
