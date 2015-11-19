@@ -18,10 +18,7 @@ loadGlobal = ->
     if err
       dispatch LOAD_GLOBAL_NOTIFICATION_SETTINGS_FAIL, { err, channelId }
 
-      globalNotificationSettings           = getDefaultNotificationSettings()
-      globalNotificationSettings.channelId = channelId
-
-      return createSettings globalNotificationSettings
+      channelNotificationSettings = getDefaultNotificationSettings()
 
     dispatch LOAD_GLOBAL_NOTIFICATION_SETTINGS_SUCCESS, { channelId, channelNotificationSettings }
 
