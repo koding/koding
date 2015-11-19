@@ -1,17 +1,17 @@
-_ = require 'lodash'
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDTabView = kd.TabView
-KDTabPaneView = kd.TabPaneView
-ActivityTabHandle = require './activitytabhandle'
-ActivityWidgetsBar = require './activitywidgetsbar'
-ActivityContentPane = require './activitycontentpane'
-ActivitySearchResultsPane = require './activitysearchresultspane'
-MessagePane = require './messagepane'
-SearchInputView = require './searchinputview'
-showError = require 'app/util/showError'
-getMessageOwner = require 'app/util/getMessageOwner'
-filterTrollActivity = require 'app/util/filterTrollActivity'
+_                           = require 'lodash'
+kd                          = require 'kd'
+KDCustomHTMLView            = kd.CustomHTMLView
+KDTabView                   = kd.TabView
+KDTabPaneView               = kd.TabPaneView
+ActivityTabHandle           = require './activitytabhandle'
+ActivityWidgetsBar          = require './activitywidgetsbar'
+ActivityContentPane         = require './activitycontentpane'
+ActivitySearchResultsPane   = require './activitysearchresultspane'
+MessagePane                 = require './messagepane'
+SearchInputView             = require './searchinputview'
+showError                   = require 'app/util/showError'
+getMessageOwner             = require 'app/util/getMessageOwner'
+filterTrollActivity         = require 'app/util/filterTrollActivity'
 
 
 module.exports = class ActivityPane extends MessagePane
@@ -129,12 +129,11 @@ module.exports = class ActivityPane extends MessagePane
   createMostLikedView: (options, data) ->
     pane = new ActivityContentPane options, data
       .on 'NeedsMoreContent', =>
-        from = null
-        skip = @mostLiked.getLoadedCount()
+        from = @mostLiked.getLoadedCount()
 
         pane.listController.showLazyLoader()
 
-        @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
+        @fetch { from, mostLiked: yes }, @createContentAppender 'mostLiked'
 
       .on 'PaneDidShow', =>
         @setSearchedState no
@@ -144,7 +143,6 @@ module.exports = class ActivityPane extends MessagePane
   createMostRecentView: (options, data) ->
     pane = new ActivityContentPane options, data
       .on 'NeedsMoreContent', =>
-
         @lazyLoad pane.listController, @createContentAppender 'mostRecent'
 
       .on 'PaneDidShow', =>
@@ -199,17 +197,20 @@ module.exports = class ActivityPane extends MessagePane
     @searchResults?.clear()
 
   select: (contentName, options = {}) ->
-    content = @[contentName]
+
+    content         = @[contentName]
+    @activeContent  = content
 
     @clearSearch()
 
-    {router} = kd.singletons
+    { router }      = kd.singletons
+
     unless router.visitedRoutes.last is content.options.route
       router.visitedRoutes.push content.options.route
 
-
     unless content.isLoaded
       @fetch options, @createContentSetter contentName
+
 
   putMessage: (message, index = 0) ->
 

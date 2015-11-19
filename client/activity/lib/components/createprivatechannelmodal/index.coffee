@@ -297,6 +297,9 @@ module.exports = class CreatePrivateChannelModal extends React.Component
     element.focus()
 
 
+  onAfterEnter: -> @createChannel()
+
+
   renderNickname: (participant, isNicknameVisible)->
 
     nickname = participant.getIn ['profile', 'nickname']

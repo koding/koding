@@ -58,7 +58,7 @@ module.exports = class InitialView extends kd.View
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
       if err
-        @showWarning "An error occured:", err.message ? err
+        @showWarning "Failed to set template: \n#{err.message}"
         console.warn err
       else
         @reload()

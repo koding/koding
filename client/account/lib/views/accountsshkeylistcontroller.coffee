@@ -1,16 +1,17 @@
-$ = require 'jquery'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
+$                         = require 'jquery'
+kd                        = require 'kd'
+KDButtonView              = kd.ButtonView
+KDCustomHTMLView          = kd.CustomHTMLView
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-AccountNewSshKeyView = require './accountnewsshkeyview'
-remote = require('app/remote').getInstance()
-KDHeaderView = kd.HeaderView
-showError = require 'app/util/showError'
-Machine = require 'app/providers/machine'
-SshKey = require 'app/util/sshkey'
-KDModalView = kd.ModalView
-nick = require 'app/util/nick'
+AccountNewSshKeyView      = require './accountnewsshkeyview'
+remote                    = require('app/remote').getInstance()
+KDHeaderView              = kd.HeaderView
+showError                 = require 'app/util/showError'
+Machine                   = require 'app/providers/machine'
+SshKey                    = require 'app/util/sshkey'
+KDModalView               = kd.ModalView
+nick                      = require 'app/util/nick'
+environmentDataProvider   = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
@@ -133,30 +134,27 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
   showNewItemForm: ->
 
-    return  if @isFetchingMachines or @currentItem instanceof AccountNewSshKeyView
+    return  if @currentItem instanceof AccountNewSshKeyView
 
-    @isFetchingMachines = yes
-    { computeController } = kd.singletons
-    computeController.fetchMachines (err, machines) =>
-      @isFetchingMachines = no
-      return showError err  if err
+    { ViewType } = AccountNewSshKeyView
+    type         = ViewType.NoMachines
+    machines     = environmentDataProvider.getMyMachines().map (node) ->
+      new Machine { machine : node.machine }
 
-      { ViewType } = AccountNewSshKeyView
-      type = ViewType.NoMachines
-      if machines.length is 1 and @isMachineActive machines.first
-        type = ViewType.SingleMachine
-      else if machines.length > 1
-        for machine in machines when @isMachineActive machine
-          type = ViewType.ManyMachines
-          break
+    if machines.length is 1 and @isMachineActive machines.first
+      type = ViewType.SingleMachine
+    else if machines.length > 1
+      for machine in machines when @isMachineActive machine
+        type = ViewType.ManyMachines
+        break
 
-      newSshKey = new AccountNewSshKeyView {
-        delegate : @getListView()
-        type
-      },
-      { machines }
+    newSshKey = new AccountNewSshKeyView {
+      delegate : @getListView()
+      type
+    },
+    { machines }
 
-      @getListView().addItemView newSshKey, 0
+    @getListView().addItemView newSshKey, 0
 
 
   updateHelpLink: (keys) ->

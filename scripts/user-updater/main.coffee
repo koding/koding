@@ -2,6 +2,7 @@
 Bongo              = require 'bongo'
 { Relationship }   = require 'jraphical'
 { join: joinPath } = require 'path'
+{ dash }           = Bongo
 
 argv      = require('minimist') process.argv
 KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
@@ -20,8 +21,9 @@ console.log "Trying to connect #{mongo} ..."
 koding.once 'dbClientReady', ->
 
   # rekuire your models here like;
-  JAccount  = rekuire 'account.coffee'
-  JUser     = rekuire 'user/index.coffee'
+  JAccount    = rekuire 'account.coffee'
+  JUser       = rekuire 'user/index.coffee'
+  JAppStorage = rekuire 'appstorage.coffee'
 
 
   # Config
@@ -64,12 +66,34 @@ koding.once 'dbClientReady', ->
     JAccount.one {_id}, (err, account)->
       return cb err  if err
       return cb {message: "no account found"}  unless account
+      userCache[_id] = {account}
+      cb null, userCache[_id]
 
-      JUser.one {username: account.profile.nickname}, (err, user)->
-        return cb err  if err
-        return cb {message: "no user found"}  unless user
 
-        cb null, userCache[_id] = {user, account}
+  migrateAppStorages = (account, index, callback) ->
+
+    console.log "Starting migrate app storages, Index: #{index}, AccountId: #{account._id}"
+
+    fetchAccount account._id, (err, { account }) ->
+      return callback err  if err
+      return callback "No account found for id: #{account?._id}, index: #{index}"  unless account
+
+      account.fetchAppStorages (err, storages) ->
+        return callback err  if err
+
+        queue = []
+        storages.forEach (storage) ->
+          { appId, version } = storage
+
+          queue.push ->
+            account.migrateOldAppStorageIfExists { appId, version }, (err) ->
+              console.log "Migrating appStorage with id #{storage._id}"
+              console.log "Error on appStorage with id #{storage._id}"  if err
+              queue.fin()
+
+        dash queue, (err) ->
+          logError err, index
+          return callback err
 
 
   # Main updater
@@ -77,4 +101,14 @@ koding.once 'dbClientReady', ->
 
   # fetch some data and start ~ for more example check history of this file ~GG
 
-  console.log 'Updater completed.'
+  query = {}
+  JAccount.count query, (err, accountCount) ->
+    console.log "#{accountCount - skip} accounts found, starting..."
+
+    fields  = { _id : 1 }
+    options = { sort : { "meta.createdAt" : -1 }, skip }
+    JAccount.someData query, fields, options, (err, cursor) ->
+      iterate cursor, migrateAppStorages, skip, (err, total) ->
+        console.log "ERROR >>", err  if err?
+        console.log "FINAL #{total}"
+        process.exit 0
