@@ -1,6 +1,3 @@
-This is a fork of Terraform. It might include other minor patches which are user in Koding.com.
-
-
 Terraform
 =========
 
