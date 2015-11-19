@@ -631,7 +631,9 @@ module.exports = class DefineStackView extends KDView
     @outputView.add 'Setting this as default group stack template...'
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
-      return  if @outputView.handleError err
+      if @outputView.handleError err
+        @setAsDefaultButton.hideLoader()
+        return
 
       stackTemplate.inuse = yes
 

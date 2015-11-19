@@ -301,6 +301,11 @@ func TestPrivateMesssages(t *testing.T) {
 				pmr.Body = "test private message participants"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"sinan", "devrim"}
+				if pmr.Payload == nil {
+					pmr.Payload = gorm.Hstore{}
+				}
+				pic := "pictureSomethingLikeThat"
+				pmr.Payload["link_embed"] = &pic
 
 				cc, err := rest.SendPrivateChannelRequest(pmr)
 
@@ -345,6 +350,13 @@ func TestPrivateMesssages(t *testing.T) {
 				systemType, ok := history.MessageList[0].Message.Payload["systemType"]
 				So(ok, ShouldBeTrue)
 				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_JOIN)
+
+				// we set link_embed into the payloadof the system message above.
+				// But system message payload data will not have payload defined
+				// by client side or else
+				// As a result, system message will not be able to have link_embed payload data
+				_, k := history.MessageList[0].Message.Payload["link_embed"]
+				So(k, ShouldBeFalse)
 
 				// try to add same participant
 				_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)

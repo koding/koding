@@ -1240,6 +1240,7 @@ module.exports = class JUser extends jraphical.Module
     { slug
       email
       recaptcha
+      disableCaptcha
       userFormData
       foreignAuthType } = options
 
@@ -1248,6 +1249,7 @@ module.exports = class JUser extends jraphical.Module
       ->
         # verifying recaptcha if enabled
         return queue.next()  unless KONFIG.recaptcha.enabled
+        return queue.next()  if disableCaptcha
 
         JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, (err) ->
           return callback err  if err
@@ -1455,14 +1457,14 @@ module.exports = class JUser extends jraphical.Module
   validateConvert = (options, callback) ->
 
     { client, userFormData, foreignAuthType } = options
-    { slug, email, invitationToken, recaptcha } = userFormData
+    { slug, email, invitationToken, recaptcha, disableCaptcha } = userFormData
 
     invitation = null
 
     queue = [
 
       ->
-        params = { slug, email, recaptcha, userFormData, foreignAuthType }
+        params = { slug, email, recaptcha, disableCaptcha, userFormData, foreignAuthType }
         verifyUser params, (err) ->
           return callback err  if err
           queue.next()
