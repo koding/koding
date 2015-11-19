@@ -25,7 +25,7 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
     options.content     = content
     options.contentType = contentType
     options.file        = FSHelper.createFileInstance
-      path: "localfile:/stack.#{contentType}"
+      path: "localfile:/stack-#{Date.now()}.#{contentType}"
 
     super options, data
 

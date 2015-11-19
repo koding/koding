@@ -306,6 +306,8 @@ module.exports = class ComputeProvider extends Base
       { passed, results } = konstraints template, rules, { log: yes }
       return callback new KodingError results.last[1]  unless passed
 
+      callback null
+
 
   # Takes an array of stack template ids and returns the final result ^^
   @validateTemplates = (client, stackTemplates, group, callback) ->

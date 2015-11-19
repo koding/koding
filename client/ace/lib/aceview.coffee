@@ -72,6 +72,8 @@ module.exports = class AceView extends JView
 
   forEachPaneByFile: (path, callback) ->
 
+    return  unless @getDelegate().tabView
+
     { handles, panes } = @getDelegate().tabView
 
     for pane in panes when pane.getData()?.path is path
