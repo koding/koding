@@ -26,6 +26,7 @@ import (
 	"koding/kites/kloud/plans"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/userdata"
 
@@ -248,6 +249,17 @@ func newKite(conf *Config) *kite.Kite {
 		Userdata:   userdata,
 	}
 
+	/// SOFTLAYER PROVIDER ///
+
+	softlayerProvider := &softlayer.Provider{
+		DB:         db,
+		Log:        common.NewLogger("kloud-softlayer", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
+		Userdata:   userdata,
+	}
+
 	// QUEUE STOPPER ///
 
 	q := &queue.Queue{
@@ -297,6 +309,11 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	err = kld.AddProvider("aws", awsProvider)
+	if err != nil {
+		panic(err)
+	}
+
+	err = kld.AddProvider("softlayer", softlayerProvider)
 	if err != nil {
 		panic(err)
 	}
