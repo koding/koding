@@ -19,6 +19,11 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     }
 
 
+  componentWillUpdate: (nextProps, nextState) ->
+
+    @initialSettings = @state.channelNotificationSettings  unless @initialSettings
+
+
   componentDidMount: ->
 
     webNotifications = ReactDOM.findDOMNode @refs.webNotifications
