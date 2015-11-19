@@ -1,7 +1,6 @@
 package amazon
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -11,11 +10,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/mitchellh/goamz/ec2"
-)
-
-var (
-	ErrInstanceTerminated = errors.New("instance is terminated")
-	ErrNoInstances        = errors.New("no instances found")
 )
 
 func (a *Amazon) Build(buildData *ec2.RunInstances) (string, error) {
