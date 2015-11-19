@@ -31,9 +31,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
 
   disableAdminRepos: ->
+
     data = @getData()
     disabledRepos = data.repositories.filter (r) -> return r.disabled
     selectOptions = @settingsForm.inputs.repository?.getElement().options or []
+
     disabledRepos.forEach (repo) ->
       for option in selectOptions when option.value is repo.value
         option.setAttribute 'disabled', 'disabled'
@@ -263,7 +265,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     channels        = []
 
     if data.channels
-      for channel in data.channels
+      for channel in data.channels when channel.name isnt '#public'
         channels.push title: channel.name, value: channel.id
 
     if data.repositories
