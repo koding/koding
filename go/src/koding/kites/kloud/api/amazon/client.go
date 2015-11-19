@@ -30,7 +30,7 @@ type Client struct {
 func newClient(cfg client.ConfigProvider, region string) (*Client, error) {
 	svc := ec2.New(cfg, aws.NewConfig().WithRegion(region))
 	svc.Client.Retryer = awscompat.Retry
-	zones, err := svc.DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
+	zones, err := svc.DescribeAvailabilityZones(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
@@ -101,8 +101,7 @@ func (c *Client) AssociateAddress(instanceID, allocID string) error {
 // If call succeeds but no images were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Images() ([]*ec2.Image, error) {
-	params := &ec2.DescribeImagesInput{}
-	resp, err := c.EC2.DescribeImages(params)
+	resp, err := c.EC2.DescribeImages(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
@@ -138,12 +137,11 @@ func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.Images); n {
-	case 1: // ok
-	case 0:
+	if len(resp.Images) == 0 {
 		return nil, newNotFoundError("Image", fmt.Errorf("no image found with key=%v, value=%v", key, value))
-	default:
-		log.Printf("multiec2: more than one image found with key=%q, value=%q: %d", key, value, n)
+	}
+	if len(resp.Images) > 1 {
+		log.Printf("multiec2: more than one image found with key=%q, value=%q: %+v", key, value, resp.Images)
 	}
 	return resp.Images[0], nil
 }
@@ -171,8 +169,7 @@ func (c *Client) DeregisterImage(imageID string) error {
 // If call succeeds but no snapshots were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
-	params := &ec2.DescribeSnapshotsInput{}
-	resp, err := c.EC2.DescribeSnapshots(params)
+	resp, err := c.EC2.DescribeSnapshots(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
@@ -191,12 +188,11 @@ func (c *Client) SnapshotByID(id string) (*ec2.Snapshot, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.Snapshots); n {
-	case 1: // ok
-	case 0:
+	if len(resp.Snapshots) == 0 {
 		return nil, newNotFoundError("Snapshot", fmt.Errorf("no snapshot found with id=%s", id))
-	default:
-		log.Printf("multiec2: more than one snapshot found  with id=%s: %d", id, n)
+	}
+	if len(resp.Snapshots) > 1 {
+		log.Printf("more than one snapshot found  with id=%s: %+v", id, resp.Snapshots)
 	}
 	return resp.Snapshots[0], nil
 }
@@ -225,8 +221,7 @@ func (c *Client) DeleteSnapshot(id string) error {
 // If call succeeds but no VPCs were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) VPCs() ([]*ec2.Vpc, error) {
-	params := &ec2.DescribeVpcsInput{}
-	resp, err := c.EC2.DescribeVpcs(params)
+	resp, err := c.EC2.DescribeVpcs(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
@@ -241,8 +236,7 @@ func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 // If call succeeds but no subnets were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Subnets() ([]*ec2.Subnet, error) {
-	params := &ec2.DescribeSubnetsInput{}
-	resp, err := c.EC2.DescribeSubnets(params)
+	resp, err := c.EC2.DescribeSubnets(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
@@ -310,7 +304,6 @@ func (c *Client) SecurityGroupFromVPC(vpcID, tag string) (*ec2.SecurityGroup, er
 		"tag-key": {tag},
 	}
 	return c.SecurityGroupByFilters(filters)
-
 }
 
 func (c *Client) securityGroupBy(params *ec2.DescribeSecurityGroupsInput, key interface{}) (*ec2.SecurityGroup, error) {
@@ -318,12 +311,11 @@ func (c *Client) securityGroupBy(params *ec2.DescribeSecurityGroupsInput, key in
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.SecurityGroups); n {
-	case 1: // ok
-	case 0:
+	if len(resp.SecurityGroups) == 0 {
 		return nil, newNotFoundError("SecurityGroup", fmt.Errorf("no security group found with key=%v", key))
-	default:
-		log.Printf("multiec2: more than one security group found with key=%v: %d", key, n)
+	}
+	if len(resp.SecurityGroups) > 1 {
+		log.Printf("more than one security group found with key=%v: %+v", key, resp.SecurityGroups)
 	}
 	return resp.SecurityGroups[0], nil
 }
@@ -353,14 +345,14 @@ func (c *Client) AuthorizeSecurityGroup(id string, perm []*ec2.IpPermission) err
 }
 
 // AddTag is a wrapper for (*ec2.EC2).CreateTags.
-func (c *Client) AddTag(instanceID, key, value string) error {
-	return c.AddTags(instanceID, map[string]string{key: value})
+func (c *Client) AddTag(resourceID, key, value string) error {
+	return c.AddTags(resourceID, map[string]string{key: value})
 }
 
 // AddTags is a wrapper for (*ec2.EC2).CreateTags.
-func (c *Client) AddTags(instanceID string, tags map[string]string) error {
+func (c *Client) AddTags(resourceID string, tags map[string]string) error {
 	params := &ec2.CreateTagsInput{
-		Resources: []*string{aws.String(instanceID)},
+		Resources: []*string{aws.String(resourceID)},
 		Tags:      NewTags(tags),
 	}
 	_, err := c.EC2.CreateTags(params)
@@ -376,14 +368,14 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.Reservations); {
-	case n == 1 && len(resp.Reservations[0].Instances) == 1: // ok
-	case n == 0 || len(resp.Reservations[0].Instances) == 0:
-		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%d", id))
-	default:
-		log.Printf("multiec2: more than one instance found with id=%d", id)
+	instances := collectInstances(resp.Reservations)
+	if len(instances) == 0 {
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%s", id))
 	}
-	return resp.Reservations[0].Instances[0], nil
+	if len(instances) > 1 {
+		log.Printf("more than one instance found with id=%s: %+v", id, instances)
+	}
+	return instances[0], nil
 }
 
 // InstancesByFilters is a wrapper for (*ec2.EC2).DescribeInstances with
@@ -400,16 +392,20 @@ func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error)
 	if err != nil {
 		return nil, awsError(err)
 	}
-	var instances []*ec2.Instance
-	for _, r := range resp.Reservations {
-		for _, i := range r.Instances {
-			instances = append(instances, i)
-		}
-	}
+	instances := collectInstances(resp.Reservations)
 	if len(instances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instances found with filters=%v", filters))
 	}
 	return instances, nil
+}
+
+func collectInstances(reservations []*ec2.Reservation) (instances []*ec2.Instance) {
+	for _, r := range reservations {
+		for _, i := range r.Instances {
+			instances = append(instances, i)
+		}
+	}
+	return instances
 }
 
 // StartInstance is a wrapper for (*ec2.EC2).StartInstances.
@@ -421,12 +417,11 @@ func (c *Client) StartInstance(id string) (*ec2.InstanceStateChange, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.StartingInstances); n {
-	case 1: // ok
-	case 0:
+	if len(resp.StartingInstances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
-	default:
-		log.Printf("multiec2: more than one instance started with id=%q: %d", id, n)
+	}
+	if len(resp.StartingInstances) > 1 {
+		log.Printf("more than one instance started with id=%q: %+v", id, resp.StartingInstances)
 	}
 	return resp.StartingInstances[0], nil
 }
@@ -440,12 +435,11 @@ func (c *Client) StopInstance(id string) (*ec2.InstanceStateChange, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.StoppingInstances); n {
-	case 1: // ok
-	case 0:
+	if len(resp.StoppingInstances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
-	default:
-		log.Printf("multiec2: more than one instance stopped with id=%q: %d", id, n)
+	}
+	if len(resp.StoppingInstances) > 1 {
+		log.Printf("more than one instance stopped with id=%q: %+v", id, resp.StoppingInstances)
 	}
 	return resp.StoppingInstances[0], nil
 }
@@ -468,12 +462,11 @@ func (c *Client) TerminateInstance(id string) (*ec2.InstanceStateChange, error) 
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.TerminatingInstances); n {
-	case 1: // ok
-	case 0:
+	if len(resp.TerminatingInstances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
-	default:
-		log.Printf("multiec2: more than one instance terminated with id=%q: %d", id, n)
+	}
+	if len(resp.TerminatingInstances) > 1 {
+		log.Printf("more than one instance terminated with id=%q: %+v", id, resp.TerminatingInstances)
 	}
 	return resp.TerminatingInstances[0], nil
 }
@@ -487,12 +480,11 @@ func (c *Client) KeyPairByName(name string) (*ec2.KeyPairInfo, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.KeyPairs); n {
-	case 1: // ok
-	case 0:
+	if len(resp.KeyPairs) == 0 {
 		return nil, newNotFoundError("KeyPair", fmt.Errorf("no key pair found with name=%q", name))
-	default:
-		log.Printf("multiec2: more than one key pair found with name=%q", name)
+	}
+	if len(resp.KeyPairs) > 1 {
+		log.Printf("more than one key pair found with name=%q: %+v", name, resp.KeyPairs)
 	}
 	return resp.KeyPairs[0], nil
 }
@@ -528,12 +520,11 @@ func (c *Client) VolumeByID(id string) (*ec2.Volume, error) {
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.Volumes); n {
-	case 1: // ok
-	case 0:
+	if len(resp.Volumes) == 0 {
 		return nil, newNotFoundError("Volume", fmt.Errorf("no volume found with id=%q", id))
-	default:
-		log.Printf("multiec2: more than one volume found with id=%q", id)
+	}
+	if len(resp.Volumes) > 1 {
+		log.Printf("more than one volume found with id=%q: %+v", id, resp.Volumes)
 	}
 	return resp.Volumes[0], nil
 }
@@ -541,7 +532,7 @@ func (c *Client) VolumeByID(id string) (*ec2.Volume, error) {
 // CreateVolume is a wrapper for (*ec2.EC2).Volume.
 func (c *Client) CreateVolume(snapshotID, zone, typ string, size int64) (*ec2.Volume, error) {
 	params := &ec2.CreateVolumeInput{
-		AvailabilityZone: aws.String(typ),
+		AvailabilityZone: aws.String(zone),
 		Size:             aws.Int64(size),
 		SnapshotId:       aws.String(snapshotID),
 		VolumeType:       aws.String(typ),
@@ -588,12 +579,11 @@ func (c *Client) RunInstances(params *ec2.RunInstancesInput) (*ec2.Instance, err
 	if err != nil {
 		return nil, awsError(err)
 	}
-	switch n := len(resp.Instances); n {
-	case 1: // ok
-	case 0:
+	if len(resp.Instances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance ran with params=%v", params))
-	default:
-		log.Printf("multiec2: more than one instance ran with params=%v", params)
+	}
+	if len(resp.Instances) > 1 {
+		log.Printf("more than one instance ran with params=%v: %+v", params, resp.Instances)
 	}
 	return resp.Instances[0], nil
 }

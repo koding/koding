@@ -43,6 +43,9 @@ func (c Clients) Region(region string) (*Client, error) {
 }
 
 // Regions returns all instantiated clients per region.
+//
+// The returned map is meant to be used for a read-only access only,
+/// as it's not safe to mutate the map.
 func (c Clients) Regions() map[string]*Client {
 	return c.regions
 }

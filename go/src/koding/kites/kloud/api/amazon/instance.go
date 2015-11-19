@@ -1,7 +1,6 @@
 package amazon
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -12,8 +11,6 @@ import (
 
 	"github.com/mitchellh/goamz/ec2"
 )
-
-var ErrNoInstances = errors.New("no instances found")
 
 func (a *Amazon) Build(buildData *ec2.RunInstances) (string, error) {
 	resp, err := a.Client.RunInstances(buildData)

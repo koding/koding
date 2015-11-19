@@ -10,6 +10,7 @@ import (
 var (
 	ErrInstanceTerminated = errors.New("instance is terminated")
 	ErrInstanceEmptyID    = errors.New("instance ID is empty")
+	ErrNoInstances        = errors.New("no instances found")
 )
 
 // OrigErr returns (unboxes) the underlying reason for the error.
@@ -71,7 +72,7 @@ func (err *NotFoundError) Error() string {
 	return fmt.Sprintf("%s not found after a call to %s: %s", err.Resource, err.Err)
 }
 
-// IsNotFound returns true if the given error is of *NotFound
+// IsNotFound returns true if the given error is of *NotFoundError type.
 func IsNotFound(err error) bool {
 	_, ok := err.(*NotFoundError)
 	return ok
@@ -117,7 +118,7 @@ func awsError(err error) error {
 	case "InvalidVolume.NotFound":
 		return newNotFoundError("Volume", err)
 	case "InvalidVpcEndpointId.NotFound":
-		return newNotFoundError("VPC", err)
+		return newNotFoundError("VPCEndpoint", err)
 	case "InvalidVpcID.NotFound":
 		return newNotFoundError("VPC", err)
 	case "InvalidZone.NotFound":

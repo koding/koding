@@ -26,7 +26,7 @@ var PermAllPorts = []*ec2.IpPermission{{
 
 // TagsMatch returns true when tags contains all tags described by the m map.
 func TagsMatch(tags []*ec2.Tag, m map[string]string) bool {
-	matches := make(map[string]struct{}, len(m))
+	matches := make(map[string]struct{})
 	for _, tag := range tags {
 		key := aws.StringValue(tag.Key)
 		if v, ok := m[key]; ok && aws.StringValue(tag.Value) == v {
@@ -61,6 +61,9 @@ func StatusToState(status string) machinestate.State {
 	}
 }
 
+// NewTags is a conveniance function for building AWS tag slice from the m map.
+//
+// If the m is empty, the function returns nil.
 func NewTags(tags map[string]string) []*ec2.Tag {
 	if len(tags) == 0 {
 		return nil
@@ -76,6 +79,16 @@ func NewTags(tags map[string]string) []*ec2.Tag {
 	return t
 }
 
+// NewFilters is a conveniance function for building AWS fitler slice from the
+// given values.
+//
+// The resulting filters slice has all elements sorted by key name.
+//
+// Each empty value in the filters will be ignored. If all the values for
+// a given key are empty, the filter will be ignored.
+//
+// If the filters are empty or all the values were ignored due to above behaviour,
+// thus making the filters effectively empty, the function returns nil.
 func NewFilters(filters url.Values) []*ec2.Filter {
 	f := make([]*ec2.Filter, 0, len(filters))
 	for k, v := range filters {
@@ -84,18 +97,22 @@ func NewFilters(filters url.Values) []*ec2.Filter {
 			Values: make([]*string, 0, len(v)),
 		}
 		for _, v := range v {
+			// If value is empty, ignore it.
 			if v == "" {
 				continue
 			}
 			filter.Values = append(filter.Values, aws.String(v))
 		}
+		// If filter has no values, ignore it.
 		if len(filter.Values) != 0 {
 			f = append(f, filter)
 		}
 	}
+	// If no filters are specified or all of them were ignored, return nil.
 	if len(f) == 0 {
 		return nil
 	}
+	// Sort the filters to make the order deterministic.
 	sort.Sort(filtersByName(f))
 	return f
 }
