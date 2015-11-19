@@ -124,6 +124,7 @@ module.exports = class JPermissionSet extends Module
 
     advanced     = wrapPermission advanced  if 'string' is typeof advanced
     anyValidator = (require './validators').any
+    currentGroup = client?.context?.group ? MAIN_GROUP
 
     # permission checker helper, walks on the all required permissions
     # if one of them passes, breaks the loop and returns true
@@ -135,7 +136,7 @@ module.exports = class JPermissionSet extends Module
 
           # if permission requires superadmin and current group is not 'koding'
           # or if somehow 'koding' group (main) not exists then pass ~ GG
-          if current.group.slug isnt MAIN_GROUP or not main
+          if currentGroup isnt MAIN_GROUP or not main
             return queue.next()
 
           # if permission requires superadmin then do the permission check on
