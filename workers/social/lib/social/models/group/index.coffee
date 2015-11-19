@@ -19,8 +19,8 @@ module.exports = class JGroup extends Module
   { throttle, extend }     = require 'underscore'
 
   PERMISSION_EDIT_GROUPS = [
-    { permission: 'edit groups' }
-    { permission: 'edit own groups', validateWith: Validators.own }
+    { permission: 'edit groups',     superadmin: yes }
+    { permission: 'edit own groups', validateWith: Validators.group.admin }
   ]
 
   @trait __dirname, '../../traits/filterable'
@@ -242,6 +242,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         sendNotification:
           (signature String, String, Function)
+        setPlan:
+          (signature String, Function)
     schema          :
       title         :
         type        : String
@@ -298,6 +300,8 @@ module.exports = class JGroup extends Module
       # we create the group - SY
       # cc/ @cihangir
       initalData    : Object
+      # Generic config object for future requirements on groups ~ GG
+      config        : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
@@ -966,16 +970,41 @@ module.exports = class JGroup extends Module
       else policy.remove callback
 
 
-  modify: permit
+  modify     : permit
     advanced : [
-      { permission: 'edit own groups', validateWith: Validators.own }
-      { permission: 'edit groups' }
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
     ]
-    success : (client, formData, callback) ->
-      # do not allow people to change there slugs
-      delete formData.slug
-      delete formData.slug_
-      @update { $set:formData }, callback
+    success  : (client, data, callback) ->
+
+      # it's not allowed to change followings
+      blacklist  = ['slug', 'slug_', 'config']
+      data[item] = null  for item in blacklist when data[item]?
+
+      # we need to make sure if given stack template is
+      # valid for the current group plan ~ GG
+      templates = data.stackTemplates
+      if templates?.length > 0 and @getAt 'config.plan'
+        ComputeProvider = require '../computeproviders/computeprovider'
+        ComputeProvider.validateTemplates client, templates, this, (err) =>
+          return callback err  if err
+          @update { $set: data }, callback
+
+      else
+        @update { $set: data }, callback
+
+
+  setPlan    : permit
+    advanced : [{ permission: 'edit groups', superadmin: yes }]
+    success  : (client, plan, callback) ->
+
+      TEAMPLANS = require '../computeproviders/teamplans'
+
+      if plan not in (plans = Object.keys TEAMPLANS)
+        return callback new KodingError "Plan can be #{plans.join ','}"
+
+      @update { $set: { 'config.plan': plan } }, callback
+
 
   modifyMembershipPolicy: permit
     advanced: PERMISSION_EDIT_GROUPS

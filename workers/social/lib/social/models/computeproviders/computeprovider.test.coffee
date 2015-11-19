@@ -255,13 +255,6 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
       , done
 
 
-  describe '#createStackFromTemplate', ->
-
-    it 'should fail if user doesnt have permission', (done) ->
-
-      expectAccessDenied ComputeProvider, 'createStackFromTemplate', {}, done
-
-
   describe 'createGroupStack', ->
 
     it 'should be able to create group stack', (done) ->
