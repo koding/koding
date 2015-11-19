@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awstesting"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/awstesting"
 )
 
 func buildSigner(serviceName string, region string, signTime time.Time, expireTime time.Duration, body string) signer {
@@ -209,7 +209,11 @@ func TestResignRequestExpiredCreds(t *testing.T) {
 }
 
 func TestPreResignRequestExpiredCreds(t *testing.T) {
-	provider := &credentials.StaticProvider{credentials.Value{"AKID", "SECRET", "SESSION"}}
+	provider := &credentials.StaticProvider{Value: credentials.Value{
+		AccessKeyID:     "AKID",
+		SecretAccessKey: "SECRET",
+		SessionToken:    "SESSION",
+	}}
 	creds := credentials.NewCredentials(provider)
 	svc := awstesting.NewClient(&aws.Config{Credentials: creds})
 	r := svc.NewRequest(
