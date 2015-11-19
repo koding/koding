@@ -33,6 +33,25 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     radio.focus()
 
 
+  getChangedFields: ->
+
+    channelSettings = @state.channelNotificationSettings.toJS()
+    initialSettings = if @initialSettings then @initialSettings.toJS() else channelSettings
+    changedKeys     = Object.keys(initialSettings).filter (key) -> initialSettings[key] isnt channelSettings[key]
+    changedFields   = channelSettings
+
+    if not channelSettings._newlyCreated
+
+      changedFields = {}
+
+      i = 0
+      while i < changedKeys.length
+        changedFields[changedKeys[i]] = channelSettings[changedKeys[i]]
+        i++
+
+    return changedFields
+
+
   onSave: (event) ->
 
     kd.utils.stopDOMEvent event
