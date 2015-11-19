@@ -26,6 +26,9 @@ const (
 	// KlientctlDirectory is full path to directory that holds klientctl.
 	KlientctlDirectory = "/usr/local/bin"
 
+	// KlientctlBinName is the bin named that will be stored in the KlientctlDirectory.
+	KlientctlBinName = "kd"
+
 	// KontrolUrl is the url to connect to authenticate local klient and get
 	// list of machines.
 	KontrolUrl = "https://koding.com/kontrol/kite"

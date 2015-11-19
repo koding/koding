@@ -8,6 +8,13 @@ import (
 	"github.com/koding/klientctl/util"
 )
 
+// ExitCommand is a function that returns an exit code
+type ExitingCommand func(*cli.Context) int
+
+// ExitingWithMessageCommand is a function which prints the given message to
+// Stdout. Useful for printig a message to the user in a convenient single-use way.
+type ExitingWithMessageCommand func(*cli.Context) (string, int)
+
 // sudoRequiredFor is the default list of commands that require sudo.
 // The actual handling of this list is done in the SudoRequired func.
 var sudoRequiredFor = []string{
@@ -103,7 +110,7 @@ func main() {
 			Name:        "uninstall",
 			Usage:       fmt.Sprintf("Uninstall the %s.", KlientName),
 			Description: fmt.Sprintf("Uninstall the %s.", KlientName),
-			Action:      Exit(UninstallCommand),
+			Action:      ExitWithMessage(UninstallCommand),
 		},
 		cli.Command{
 			Name:        "status",
@@ -140,8 +147,18 @@ func main() {
 	app.Run(os.Args)
 }
 
-type ExitingCommand func(*cli.Context) int
-
 func Exit(f ExitingCommand) func(*cli.Context) {
 	return func(c *cli.Context) { os.Exit(f(c)) }
+}
+
+// ExitWithMessage takes a ExitingWithMessageCommand type and returns a
+// codegansta/cli friendly command Action.
+func ExitWithMessage(f ExitingWithMessageCommand) func(*cli.Context) {
+	return func(c *cli.Context) {
+		s, e := f(c)
+		if s != "" {
+			fmt.Println(s)
+		}
+		os.Exit(e)
+	}
 }
