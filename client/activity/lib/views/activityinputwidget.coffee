@@ -202,8 +202,9 @@ module.exports = class ActivityInputWidget extends KDView
         err.message = 'You are not allowed to edit this post.'  unless err.message
         return @showError err
 
-      activity.body = body
-      activity.link = payload
+      activity.body    = body
+      activity.payload = message.payload
+      activity.link    = payload
 
       activity.emit 'update'
 
