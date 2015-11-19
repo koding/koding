@@ -1,3 +1,4 @@
+_                                 = require 'lodash'
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
@@ -56,10 +57,20 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
 
     kd.utils.stopDOMEvent event
 
+    channelName     = @state.selectedThread.getIn ['channel', 'name']
+    route           = "/Channels/#{channelName}"
+    channelSettings = @state.channelNotificationSettings.toJS()
+    changedFields   = @getChangedFields()
+
+    return kd.singletons.router.handleRoute route  if _.isEmpty changedFields
+
+    changedFields.id = channelSettings.id
+
     options =
       channelId       : @state.selectedThread.getIn ['channel', 'id']
-      channelName     : @state.selectedThread.getIn ['channel', 'name']
-      channelSettings : @state.channelNotificationSettings.toJS()
+      channelName     : channelName
+      changedFields   : changedFields
+      channelSettings : channelSettings
 
     { saveSettings } = NotificationSettingsFlux.actions.channel
 
