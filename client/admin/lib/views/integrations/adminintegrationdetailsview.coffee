@@ -280,6 +280,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
             value: repository.full_name
             disabled: yes
 
+      repositories.sort (repo) -> return if repo.disabled then 1 else -1
+
     data.repositories = repositories or []
 
     formOptions         =
