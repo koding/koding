@@ -117,9 +117,9 @@ redirectToChannel: (channelName) ->
 
 saveSettings = (options) ->
 
-  { channelId, channelName, channelSettings } = options
-  globalSettings  = getDefaultNotificationSettings()
+  { channelId, channelName, channelSettings, changedFields } = options
   isEqual         = yes
+  globalSettings  = getDefaultNotificationSettings()
   isNewlyCreated  = channelSettings._newlyCreated
 
   for item of globalSettings
@@ -137,7 +137,7 @@ saveSettings = (options) ->
       .then ->
         kd.singletons.router.handleRoute route
   else if !isNewlyCreated
-    updateSettings channelId, channelSettings
+    updateSettings channelId, changedFields
       .then ->
         kd.singletons.router.handleRoute route
   else
