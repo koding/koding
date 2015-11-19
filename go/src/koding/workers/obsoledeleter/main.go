@@ -219,4 +219,11 @@ var ToBeDeletedNames = []string{
 	"JMail",
 	"JKontrolClient",
 	"JDomain",
+
+	"JPaymentFulfillmentNonce",
+	"JPaymentPack",
+	"JPaymentProduct",
+	"JPaymentMethod",
+	"JPaymentPlan",
+	"JPaymentSubscription",
 }
