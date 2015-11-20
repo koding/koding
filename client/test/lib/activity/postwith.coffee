@@ -33,6 +33,7 @@ module.exports =
   #   activityHelpers.postMessageWithImage(browser)
   #   browser.end()
 
+  # image tests disabled because we won't show embed images
 
   # editMessageWithImage: (browser) ->
 
@@ -147,14 +148,14 @@ module.exports =
       browser.end()
 
 
-  editCommentWithLink: (browser) ->
+  # editCommentWithLink: (browser) ->
 
-    post = helpers.getFakeText()
-    link = 'http://wikipedia.org/'
-    helpers.beginTest(browser)
+  #   post = helpers.getFakeText()
+  #   link = 'http://wikipedia.org/ Hello Koding'
+  #   helpers.beginTest(browser)
 
-    helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, link, yes, yes)
+  #   helpers.doPostActivity(browser, post)
+  #   helpers.doPostComment(browser, link, yes, yes)
 
-    activityHelpers.editAction(browser, "comment", no, no, yes)
-    browser.end()
+  #   activityHelpers.editAction(browser, "comment", no, no, yes)
+  #   browser.end()
