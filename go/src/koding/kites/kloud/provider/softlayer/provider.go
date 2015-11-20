@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -13,18 +12,16 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 
-	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+
+	slclient "github.com/maximilien/softlayer-go/client"
 )
 
 type Provider struct {
@@ -40,8 +37,8 @@ type Credential struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
 	Identifier string        `bson:"identifier"`
 	Meta       struct {
-		AccessKey string `bson:"access_key"`
-		SecretKey string `bson:"secret_key"`
+		Username string `bson:"username"`
+		APIKey   string `bson:"api_key"`
 	} `bson:"meta"`
 }
 
@@ -102,24 +99,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
 
-	awsRegion, ok := aws.Regions[machine.Meta.Region]
-	if !ok {
-		return fmt.Errorf("Malformed region detected: %s", machine.Meta.Region)
-	}
+	username := creds.Meta.Username
+	apiKey := creds.Meta.APIKey
 
-	client := ec2.NewWithClient(
-		aws.Auth{
-			AccessKey: creds.Meta.AccessKey,
-			SecretKey: creds.Meta.SecretKey,
-		},
-		awsRegion,
-		aws.NewClient(multiec2.NewResilientTransport()),
-	)
-
-	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
-	if err != nil {
-		return fmt.Errorf("koding-amazon err: %s", err)
-	}
+	// Create a softLayer-go client
+	client := slclient.NewSoftLayerClient(username, apiKey)
 
 	// attach user specific log
 	machine.Log = p.Log.New(machine.Id.Hex())
@@ -130,7 +114,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
-		AWSClient:  amazonClient,
+		SLClient:   client,
 		Log:        machine.Log,
 	}
 
@@ -138,13 +122,12 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// assign it to a field for easy access
 	machine.Session = sess
 
-	// we pass it also to the context, so other packages, such as plans checker
-	// can make use of it.
+	// we pass it also to the context, so other packages, such as plans
+	// checker can make use of it.
 	ctx = session.NewContext(ctx, sess)
 
 	machine.Username = user.Name
 	machine.User = user
-	machine.cleanFuncs = make([]func(), 0)
 
 	ev, ok := eventer.FromContext(ctx)
 	if ok {

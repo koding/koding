@@ -45,8 +45,4 @@ type Machine struct {
 	Checker  plans.Checker          `bson:"-"`
 	Session  *session.Session       `bson:"-"`
 	Log      logging.Logger         `bson:"-"`
-
-	// cleanFuncs are a list of functions that are called when after a method
-	// is finished
-	cleanFuncs []func()
 }
