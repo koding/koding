@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"koding/db/models"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/session"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -160,7 +160,7 @@ func (p *Plan) Total(username string) error {
 	instances, err := p.userInstances(username)
 
 	// no match, allow to create instance
-	if err == amazon.ErrNoInstances {
+	if amazon.IsNotFound(err) {
 		p.Log.Debug("allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 			username, len(instances), p.TotalLimit, p)
 		return nil
@@ -263,20 +263,18 @@ func (p *Plan) Storage(wantStorage int, username string) error {
 	// of slices
 	currentStorage := 0
 	for _, instance := range instances {
-		for _, blockDevice := range instance.BlockDevices {
-			volumes, err := p.AWSClient.Client.Volumes([]string{blockDevice.VolumeId}, ec2.NewFilter())
+		for _, dev := range instance.BlockDeviceMappings {
+			// When instance is runnig this shouldn't be nil, however
+			// defensive check it either way.
+			if dev.Ebs == nil {
+				return fmt.Errorf("block device %q has not EBS parameters associated",
+					aws.StringValue(dev.DeviceName))
+			}
+			vol, err := p.AWSClient.Client.VolumeByID(aws.StringValue(dev.Ebs.VolumeId))
 			if err != nil {
 				return err
 			}
-
-			for _, volume := range volumes.Volumes {
-				volumeStorage, err := strconv.Atoi(volume.Size)
-				if err != nil {
-					return err
-				}
-
-				currentStorage += volumeStorage
-			}
+			currentStorage += int(aws.Int64Value(vol.Size))
 		}
 	}
 
@@ -288,46 +286,45 @@ func (p *Plan) Storage(wantStorage int, username string) error {
 			p.StorageLimit, currentStorage+wantStorage, p)
 	}
 
-	p.Log.Debug("Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+	p.Log.Debug("Allowing user %q. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
 		username, currentStorage, wantStorage, p.StorageLimit, p)
 
 	// allow to create storage
 	return nil
 }
 
-func (p *Plan) userInstances(username string) ([]ec2.Instance, error) {
-	filter := ec2.NewFilter()
-	filter.Add("tag-value", username)
-
-	// Anything except "terminated" and "shutting-down"
-	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
-
-	instances, err := p.AWSClient.InstancesByFilter(filter)
-	if err != nil {
+func (p *Plan) userInstances(username string) ([]*ec2.Instance, error) {
+	filters := map[string][]string{
+		// Anything except "terminated" and "shutting-down"
+		"instance-state-name": {"pending", "running", "stopping", "stopped"},
+		"tag-value":           {username},
+	}
+	instances, err := p.AWSClient.InstancesByFilters(filters)
+	switch {
+	case amazon.IsNotFound(err):
+		p.Log.Debug("user %q has no machines (aws)", username)
+		return nil, nil
+	case err != nil:
 		return nil, err
 	}
-
-	filtered := []ec2.Instance{}
-
+	var filtered []*ec2.Instance
 	// we don't use filters because they are timing out for us due to high
 	// instances count we have. However it seems the filter `tag-value` has an
 	// index internally inside AWS so somehow that one is not timing out.
+	tags := map[string]string{
+		"koding-user": username,
+		"koding-env":  p.Environment,
+	}
 	for _, instance := range instances {
-		for _, tag := range instance.Tags {
-			if tag.Key == "koding-user" && tag.Value == username {
-				for _, tag := range instance.Tags {
-					if tag.Key == "koding-env" && tag.Value == p.Environment {
-
-						// now we have the instance that matches both the correct username
-						// and environment
-						filtered = append(filtered, instance)
-					}
-				}
-			}
+		if amazon.TagsMatch(instance.Tags, tags) {
+			// now we have the instance that matches both the correct username
+			// and environment
+			filtered = append(filtered, instance)
 		}
 	}
-
-	// garbage collect it
-	instances = nil
+	if len(filtered) == 0 {
+		p.Log.Debug("user %q has no machines (filter)", username)
+		return nil, nil
+	}
 	return filtered, nil
 }

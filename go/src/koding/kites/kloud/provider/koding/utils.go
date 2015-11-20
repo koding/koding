@@ -3,8 +3,9 @@ package koding
 import (
 	"time"
 
+	"koding/kites/kloud/api/amazon"
+
 	"github.com/cenkalti/backoff"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 // retry is a function who calls the given function until it returns a nil
@@ -22,43 +23,5 @@ func retry(totalDuration time.Duration, fn func() error) error {
 }
 
 func isCapacityError(err error) bool {
-	ec2Error, ok := err.(*ec2.Error)
-	if !ok {
-		return false // return back if it's not an ec2.Error type
-	}
-
-	fallbackErrors := []string{
-		"InsufficientInstanceCapacity",
-		"InstanceLimitExceeded",
-	}
-
-	// check wether the incoming error code is one of the fallback
-	// errors
-	for _, fbErr := range fallbackErrors {
-		if ec2Error.Code == fbErr {
-			return true
-		}
-	}
-
-	// return for non fallback errors, because we can't do much
-	// here and probably it's need a more tailored solution
-	return false
-}
-
-func isAddressNotFoundError(err error) bool {
-	ec2Error, ok := err.(*ec2.Error)
-	if !ok {
-		return false
-	}
-
-	return ec2Error.Code == "InvalidAddress.NotFound"
-}
-
-func isInvalidInstanceID(err error) bool {
-	ec2Error, ok := err.(*ec2.Error)
-	if !ok {
-		return false
-	}
-
-	return ec2Error.Code == "InvalidInstanceID.NotFound"
+	return amazon.IsErrCode(err, "InsufficientInstanceCapacity", "InstanceLimitExceeded")
 }

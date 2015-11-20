@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
@@ -17,9 +18,9 @@ import (
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	kiteprotocol "github.com/koding/kite/protocol"
-
-	"github.com/mitchellh/goamz/ec2"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/net/context"
 )
@@ -47,14 +48,14 @@ var (
 
 type BuildData struct {
 	// This is passed directly to goamz to create the final instance
-	EC2Data   *ec2.RunInstances
+	EC2Data   *ec2.RunInstancesInput
 	ImageData *ImageData
 	KiteId    string
 }
 
 type ImageData struct {
-	blockDeviceMapping ec2.BlockDeviceMapping
-	imageId            string
+	blockDeviceMapping *ec2.BlockDeviceMapping
+	imageID            string
 }
 
 func (m *Machine) Build(ctx context.Context) (err error) {
@@ -118,7 +119,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 
-		m.Meta.SourceAmi = buildData.ImageData.imageId
+		m.Meta.SourceAmi = buildData.ImageData.imageID
 		m.QueryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		m.push("Checking limits and quota", 20, machinestate.Building)
@@ -149,7 +150,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 	} else {
-		m.Log.Debug("Continue build process with data, instanceId: '%s' and queryString: '%s'",
+		m.Log.Debug("Continue build process with data, instanceId: %q and queryString: %q",
 			m.Meta.InstanceId, m.QueryString)
 
 		// If this is not the first attempt to build, the first attempt may
@@ -164,7 +165,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			// an error here we do not give AWS a chance to return
 			// successfully.
 			m.Log.Warning(
-				"Failed to recover for pre-existing instance. (username: %s, instanceId: %s, region: %s)",
+				"Failed to recover for pre-existing instance. (username: %q, instanceId: %q, region: %q)",
 				m.Credential, m.Meta.InstanceId, m.Meta.Region,
 			)
 		}
@@ -172,7 +173,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	m.push("Checking build process", 40, machinestate.Building)
-	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
+	m.Log.Debug("Checking build process of instanceId %q", m.Meta.InstanceId)
 
 	// In the event that checkBuild fails, we can log to see how long it took
 	// with this var.
@@ -180,9 +181,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
 	checkBuildDur := time.Since(checkBuildStart)
 
-	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
+	if err == amazon.ErrInstanceTerminated || amazon.IsNotFound(err) {
 		// reset the stored instance id and query string. They will be updated again the next time.
-		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
+		m.Log.Warning("machine with instance id %q has a problem %q. Building a new machine",
 			m.Meta.InstanceId, err)
 
 		// we fallback to us-east-1 (it has the largest quota) because a
@@ -220,9 +221,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
-	m.Meta.InstanceType = instance.InstanceType
-	m.Meta.SourceAmi = instance.ImageId
-	m.IpAddress = instance.PublicIpAddress
+	m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
+	m.Meta.SourceAmi = aws.StringValue(instance.ImageId)
+	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
 	// allocate and associate a new Public IP for paying users, we can do
 	// this after we create the instance
@@ -279,8 +280,17 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(image.BlockDeviceMappings) == 0 {
+		return nil, &amazon.NotFoundError{
+			Resource: "BlockDeviceMapping",
+			Err:      fmt.Errorf("no block device mapping found within image=%q", DefaultCustomAMITag),
+		}
+	}
+	if len(image.BlockDeviceMappings) > 1 {
+		m.Log.Warning("more than one block device mapping for image=%q: %+v", DefaultCustomAMITag, image.BlockDeviceMappings)
+	}
 
-	device := image.BlockDevices[0]
+	device := image.BlockDeviceMappings[0]
 
 	storageSize := 3 // default AMI 3GB size
 	if m.Session.AWSClient.Builder.StorageSize != 0 && m.Session.AWSClient.Builder.StorageSize > 3 {
@@ -289,13 +299,14 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
-	blockDeviceMapping := ec2.BlockDeviceMapping{
-		DeviceName:          device.DeviceName,
-		VirtualName:         device.VirtualName,
-		VolumeType:          "standard", // Use magnetic storage because it is cheaper
-		VolumeSize:          int64(storageSize),
-		DeleteOnTermination: true,
-		Encrypted:           false,
+	blockDeviceMapping := &ec2.BlockDeviceMapping{
+		DeviceName:  device.DeviceName,
+		VirtualName: device.VirtualName,
+		Ebs: &ec2.EbsBlockDevice{
+			VolumeType:          aws.String("standard"), // Use magnetic storage because it is cheaper
+			VolumeSize:          aws.Int64(int64(storageSize)),
+			DeleteOnTermination: aws.Bool(true),
+		},
 	}
 
 	// Before using the snapshot, Check if it exists. If it does not,
@@ -354,21 +365,23 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 	if m.Meta.SnapshotId != "" {
 		m.Log.Debug("creating AMI from the snapshot '%s'", m.Meta.SnapshotId)
 
-		blockDeviceMapping.SnapshotId = m.Meta.SnapshotId
+		blockDeviceMapping.Ebs.SnapshotId = aws.String(m.Meta.SnapshotId)
 		amiDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id.Hex())
 
-		registerOpts := &ec2.RegisterImage{
-			Name:           amiDesc,
-			Description:    amiDesc,
-			Architecture:   image.Architecture,
-			RootDeviceName: image.RootDeviceName,
-			VirtType:       image.VirtualizationType,
-			KernelId:       image.KernelId,
-			RamdiskId:      image.RamdiskId,
-			BlockDevices:   []ec2.BlockDeviceMapping{blockDeviceMapping},
+		registerOpts := &ec2.RegisterImageInput{
+			Name:               aws.String(amiDesc),
+			Description:        aws.String(amiDesc),
+			Architecture:       image.Architecture,
+			RootDeviceName:     image.RootDeviceName,
+			VirtualizationType: image.VirtualizationType,
+			KernelId:           image.KernelId,
+			RamdiskId:          image.RamdiskId,
+			BlockDeviceMappings: []*ec2.BlockDeviceMapping{
+				blockDeviceMapping,
+			},
 		}
 
-		registerResp, err := m.Session.AWSClient.Client.RegisterImage(registerOpts)
+		imageID, err := m.Session.AWSClient.Client.RegisterImage(registerOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -376,9 +389,9 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 		// if we build the instance from a snapshot, it'll create a temporary
 		// AMI. Destroy it after we are finished or if something goes wrong.
 		m.cleanFuncs = append(m.cleanFuncs, func() {
-			m.Log.Debug("Deleting temporary AMI '%s'", registerResp.ImageId)
-			if _, err := m.Session.AWSClient.Client.DeregisterImage(registerResp.ImageId); err != nil {
-				m.Log.Warning("Couldn't delete AMI '%s': %s", registerResp.ImageId, err)
+			m.Log.Debug("Deleting temporary AMI %q", imageID)
+			if err := m.Session.AWSClient.Client.DeregisterImage(imageID); err != nil {
+				m.Log.Warning("Couldn't delete AMI %q: %q", imageID, err)
 			}
 		})
 
@@ -386,36 +399,34 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 		checkAMI := func(currentPercentage int) (machinestate.State, error) {
 			m.push("Checking ami", currentPercentage, machinestate.Building)
 
-			resp, err := m.Session.AWSClient.Client.Images([]string{registerResp.ImageId}, ec2.NewFilter())
+			image, err := m.Session.AWSClient.Client.ImageByID(imageID)
 			if err != nil {
 				return 0, err
 			}
 
-			// shouldn't happen but let's check it anyway
-			if len(resp.Images) == 0 {
-				return machinestate.Pending, nil
-			}
-
-			image := resp.Images[0]
-			if image.State != "available" {
+			if aws.StringValue(image.State) != "available" {
 				return machinestate.Pending, nil
 			}
 
 			return machinestate.NotInitialized, nil
 		}
 
-		ws := waitstate.WaitState{StateFunc: checkAMI, DesiredState: machinestate.NotInitialized}
+		ws := waitstate.WaitState{
+			StateFunc:    checkAMI,
+			DesiredState: machinestate.NotInitialized,
+		}
+
 		if err := ws.Wait(); err != nil {
 			return nil, err
 		}
 
-		image.Id = registerResp.ImageId
+		image.ImageId = aws.String(imageID)
 	}
 
-	m.Log.Debug("Using image Id: %s and block device settings %v", image.Id, blockDeviceMapping)
+	m.Log.Debug("Using image Id: %q and block device settings %+v", aws.StringValue(image.ImageId), blockDeviceMapping)
 
 	return &ImageData{
-		imageId:            image.Id,
+		imageID:            aws.StringValue(image.ImageId),
 		blockDeviceMapping: blockDeviceMapping,
 	}, nil
 }
@@ -423,7 +434,7 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 // buildData returns all necessary data that is needed to build a machine.
 func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	// get all subnets belonging to Kloud
-	m.Log.Debug("Searching for subnet that are tagged with 'kloud-subnet-*'")
+	m.Log.Debug("Searching for subnet that are tagged with %q", DefaultKloudSubnetValue)
 	subnets, err := m.Session.AWSClient.SubnetsWithTag(DefaultKloudSubnetValue)
 	if err != nil {
 		return nil, err
@@ -432,8 +443,8 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	// sort and get the lowest
 	subnet := subnets.WithMostIps()
 
-	m.Log.Debug("Searching for security group for vpc id '%s'", subnet.VpcId)
-	group, err := m.Session.AWSClient.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+	m.Log.Debug("Searching for security group for vpc id %q", aws.StringValue(subnet.VpcId))
+	group, err := m.Session.AWSClient.SecurityGroupFromVPC(aws.StringValue(subnet.VpcId), DefaultKloudKeyName)
 	if err != nil {
 		return nil, err
 	}
@@ -443,8 +454,9 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, err
 	}
 
-	m.Log.Debug("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
+	m.Log.Debug("Using subnet: %q, zone: %q, sg: %q. Subnet has %d available IPs",
+		aws.StringValue(subnet.SubnetId), aws.StringValue(subnet.AvailabilityZone),
+		aws.StringValue(group.GroupId), aws.Int64Value(subnet.AvailableIpAddressCount))
 
 	if m.Session.AWSClient.Builder.InstanceType == "" {
 		m.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro",
@@ -481,23 +493,30 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, err
 	}
 
-	ec2Data := &ec2.RunInstances{
-		ImageId:                  imageData.imageId,
-		MinCount:                 1,
-		MaxCount:                 1,
-		InstanceType:             m.Session.AWSClient.Builder.InstanceType,
-		AssociatePublicIpAddress: true,
-		SubnetId:                 subnet.SubnetId,
-		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
-		AvailZone:                subnet.AvailabilityZone,
-		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
-		UserData:                 userdata,
+	ec2Data := &ec2.RunInstancesInput{
+		ImageId:      aws.String(imageData.imageID),
+		MinCount:     aws.Int64(1),
+		MaxCount:     aws.Int64(1),
+		InstanceType: aws.String(m.Session.AWSClient.Builder.InstanceType),
+		NetworkInterfaces: []*ec2.InstanceNetworkInterfaceSpecification{{
+			DeviceIndex: aws.Int64(0),
+			SubnetId:    subnet.SubnetId,
+			Groups:      []*string{group.GroupId},
+			AssociatePublicIpAddress: aws.Bool(true),
+		}},
+		Placement: &ec2.Placement{
+			AvailabilityZone: subnet.AvailabilityZone,
+		},
+		BlockDeviceMappings: []*ec2.BlockDeviceMapping{
+			imageData.blockDeviceMapping,
+		},
+		UserData: aws.String(base64.StdEncoding.EncodeToString(userdata)),
 	}
 
 	// pass publicKey if only it's available
 	keys, ok := publickeys.FromContext(ctx)
 	if ok {
-		ec2Data.KeyName = keys.KeyName
+		ec2Data.KeyName = aws.String(keys.KeyName)
 	}
 
 	return &BuildData{
@@ -517,17 +536,16 @@ func (m *Machine) checkLimits(buildData *BuildData) error {
 		return err
 	}
 
-	m.Log.Debug("Check if user is allowed to create instance type %s", buildData.EC2Data.InstanceType)
+	m.Log.Debug("Check if user is allowed to create instance type %q", aws.StringValue(buildData.EC2Data.InstanceType))
 
 	// check if the user is egligible to create a vm with this instance type
-	if err := m.Checker.AllowedInstances(plans.Instances[buildData.EC2Data.InstanceType]); err != nil {
-		m.Log.Critical("Instance type (%s) is not allowed. Fallback to t2.micro",
-			buildData.EC2Data.InstanceType)
-		buildData.EC2Data.InstanceType = plans.T2Micro.String()
+	if err := m.Checker.AllowedInstances(plans.Instances[aws.StringValue(buildData.EC2Data.InstanceType)]); err != nil {
+		m.Log.Critical("Instance type %q is not allowed. Fallback to t2.micro", aws.StringValue(buildData.EC2Data.InstanceType))
+		buildData.EC2Data.InstanceType = aws.String(plans.T2Micro.String())
 	}
 
 	// check if the user is egligible to create a vm with this size
-	if err := m.Checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize), m.Username); err != nil {
+	if err := m.Checker.Storage(int(aws.Int64Value(buildData.EC2Data.BlockDeviceMappings[0].Ebs.VolumeSize)), m.Username); err != nil {
 		return err
 	}
 
@@ -550,7 +568,7 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 
 	m.Log.Error("IMPORTANT: %s", err)
 
-	zones, err := m.Session.AWSClients.Zones(m.Session.AWSClient.Client.Region.Name)
+	zones, err := m.Session.AWSClients.Zones(m.Session.AWSClient.Region)
 	if err != nil {
 		return "", err
 	}
@@ -560,7 +578,7 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 		return "", err
 	}
 
-	currentZone := buildData.EC2Data.AvailZone
+	currentZone := aws.StringValue(buildData.EC2Data.Placement.AvailabilityZone)
 
 	// tryAllZones will try to build the given instance type with in all zones
 	// until it's succeed.
@@ -578,19 +596,19 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 				continue // shouldn't be happen, but let be safe
 			}
 
-			group, err := m.Session.AWSClient.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+			group, err := m.Session.AWSClient.SecurityGroupFromVPC(aws.StringValue(subnet.VpcId), DefaultKloudKeyName)
 			if err != nil {
 				return "", err
 			}
 
 			// add now our security group
-			buildData.EC2Data.SecurityGroups = []ec2.SecurityGroup{{Id: group.Id}}
-			buildData.EC2Data.AvailZone = zone
-			buildData.EC2Data.SubnetId = subnet.SubnetId
-			buildData.EC2Data.InstanceType = instanceType
+			buildData.EC2Data.InstanceType = aws.String(instanceType)
+			buildData.EC2Data.NetworkInterfaces[0].Groups[0] = group.GroupId
+			buildData.EC2Data.NetworkInterfaces[0].SubnetId = subnet.SubnetId
+			buildData.EC2Data.Placement.AvailabilityZone = aws.String(zone)
 
-			m.Log.Warning("Fallback build by using availability zone: %s, subnet %s and instance type: %s",
-				zone, subnet.SubnetId, instanceType)
+			m.Log.Warning("Fallback build by using availability zone: %s, subnet %q and instance type: %s",
+				zone, aws.StringValue(subnet.SubnetId), instanceType)
 
 			instanceId, err := m.Session.AWSClient.Build(buildData.EC2Data)
 			if err != nil {
@@ -662,12 +680,12 @@ func (m *Machine) addDomainAndTags() {
 		}
 	}
 
-	tags := []ec2.Tag{
-		{Key: "Name", Value: m.Meta.InstanceName},
-		{Key: "koding-user", Value: m.Username},
-		{Key: "koding-env", Value: m.Session.Kite.Config.Environment},
-		{Key: "koding-machineId", Value: m.Id.Hex()},
-		{Key: "koding-domain", Value: m.Domain},
+	tags := map[string]string{
+		"Name":             m.Meta.InstanceName,
+		"koding-user":      m.Username,
+		"koding-env":       m.Session.Kite.Config.Environment,
+		"koding-machineId": m.Id.Hex(),
+		"koding-domain":    m.Domain,
 	}
 
 	m.Log.Debug("Adding user tags %v", tags)
@@ -715,7 +733,7 @@ func (m *Machine) buildRecovery() error {
 		return err
 	}
 
-	awsState := amazon.StatusToState(instance.State.Name)
+	awsState := amazon.StatusToState(aws.StringValue(instance.State.Name))
 	switch awsState {
 	// No action needed, build method expects these states
 	case machinestate.Starting, machinestate.Running:
@@ -735,9 +753,7 @@ func (m *Machine) buildRecovery() error {
 		// Note that we are *not* locking here. The caller of this
 		// is expected to be Kloud.Build, which will already have
 		// this machine locked.
-		_, err := m.Session.AWSClient.Client.StartInstances(
-			m.Session.AWSClient.Id(),
-		)
+		_, err := m.Session.AWSClient.Client.StartInstance(m.Session.AWSClient.Id())
 		if err != nil {
 			return err
 		}
