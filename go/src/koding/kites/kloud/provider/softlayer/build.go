@@ -6,6 +6,7 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/userdata"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -99,7 +100,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	pretty.Println(obj)
 
 	m.QueryString = protocol.Kite{ID: kiteId}.String()
-	m.IpAddress = o.PrimaryIpAddress
+	m.IpAddress = obj.PrimaryIpAddress
 
 	if !m.IsKlientReady() {
 		return errors.New("klient is not ready")
@@ -112,6 +113,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
 				"queryString":       m.QueryString,
+				"meta.id":           obj.Id,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Build finished",
@@ -121,7 +123,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 }
 
 func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
-	timeout := time.After(time.Minute * 10)
+	timeout := time.After(time.Minute * 5)
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
 
@@ -133,8 +135,8 @@ func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state strin
 				return err
 			}
 
-			fmt.Printf("s = %+v\n", s)
-			if s.KeyName == state {
+			if strings.ToLower(strings.TrimSpace(s.KeyName)) ==
+				strings.ToLower(strings.TrimSpace(state)) {
 				return nil
 			}
 		case <-timeout:
