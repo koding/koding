@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"testing"
 
+	urlhelper "github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/config"
-	urlhelper "github.com/hashicorp/terraform/helper/url"
 )
 
 const fixtureDir = "./test-fixtures"
@@ -51,6 +51,15 @@ func testModule(n string) string {
 
 func testModuleURL(n string) *url.URL {
 	u, err := urlhelper.Parse(testModule(n))
+	if err != nil {
+		panic(err)
+	}
+
+	return u
+}
+
+func testURL(s string) *url.URL {
+	u, err := urlhelper.Parse(s)
 	if err != nil {
 		panic(err)
 	}
