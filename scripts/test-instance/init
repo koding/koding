@@ -23,7 +23,7 @@ scripts/wercker/install-node-modules koding
 scripts/install-npm.sh -u
 
 ./configure --host $HOST:8090 --disable-segment
-./run install
+NODE_ENV=production ./run install
 
 export TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090"
 make -C client/test build
