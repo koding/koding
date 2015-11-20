@@ -27,8 +27,6 @@ begin
       search_result = `git log --merges --grep "\##{story.id}" #{sandbox_tag}`
       if search_result.length > 0
         puts "Found #{story.id}, marking as delivered."
-
-        story.notes.create(:text => "Delivered by sandbox deploy script.")
         story.update({"current_state" => "delivered"})
       else
         puts "Could not find #{story.id} in git repo."

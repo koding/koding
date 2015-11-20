@@ -5,11 +5,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -99,8 +101,13 @@ func Provider() terraform.ResourceProvider {
 			},
 
 			"token": &schema.Schema{
-				Type:        schema.TypeString,
-				Optional:    true,
+				Type:     schema.TypeString,
+				Optional: true,
+				DefaultFunc: func() (interface{}, error) {
+					return getCredDefault("", func() string {
+						return credVal.SessionToken
+					})
+				},
 				Description: descriptions["token"],
 			},
 
@@ -315,3 +322,6 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	return config.Client()
 }
+
+// This is a global MutexKV for use within this plugin.
+var awsMutexKV = mutexkv.NewMutexKV()
