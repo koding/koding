@@ -83,8 +83,8 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
         # region selector, and set it's value to the snapshot region.
         # If it does not have a value (empty), enable the region selector.
         if snapshotId
-          @regionSelector.setValue    @snapshots[snapshotId].region
-          @updateStorageSliderValue   @snapshots[snapshotId].storageSize
+          @regionSelector.setValue @snapshots[snapshotId].region
+          @updateStorageSliderValue @snapshots[snapshotId].storageSize
           @updateRegionText()
           @regionSelector.makeDisabled()
         else
@@ -177,7 +177,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       # Set the selected option to the Modal's option.snapshotId,
       # defaulting to the None item ("" value)
       @snapshotsSelector.setValue defaultSnapshotId ? ""
-      @updateStorageSliderValue   @snapshots[defaultSnapshotId].storageSize  if defaultSnapshotId
+      @updateStorageSliderValue @snapshots[defaultSnapshotId].storageSize  if defaultSnapshotId
       @snapshotsContainer.show()
 
       # Update the usage text with the value of the slider
