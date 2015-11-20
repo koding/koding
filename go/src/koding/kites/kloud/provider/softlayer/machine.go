@@ -3,6 +3,7 @@ package softlayer
 import (
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"time"
@@ -79,3 +80,21 @@ func (m *Machine) State() machinestate.State {
 }
 
 func (m *Machine) ProviderName() string { return m.Provider }
+
+func (m *Machine) IsKlientReady() bool {
+	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
+	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
+	if err != nil {
+		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
+		return false
+	}
+	defer klientRef.Close()
+
+	m.Log.Debug("Sending a ping message")
+	if err := klientRef.Ping(); err != nil {
+		m.Log.Debug("Sending a ping message err: %s", err)
+		return false
+	}
+
+	return true
+}

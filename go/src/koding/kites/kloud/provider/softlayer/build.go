@@ -6,11 +6,15 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/userdata"
-	"log"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
+	"github.com/koding/kite/protocol"
 	"github.com/kr/pretty"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
+	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/net/context"
 )
@@ -81,21 +85,61 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
+	// wait until it's ready
+	if err := waitState(svc, obj.Id, "RUNNING"); err != nil {
+		return err
+	}
+
+	// get final information, such as public IP address and co
+	obj, err = svc.GetObject(obj.Id)
+	if err != nil {
+		return err
+	}
+
 	pretty.Println(obj)
 
-	for i := 0; i < 10; i++ {
-		fmt.Println("------------------")
-		fmt.Println("")
-		time.Sleep(time.Second * 5)
+	m.QueryString = protocol.Kite{ID: kiteId}.String()
+	m.IpAddress = o.PrimaryIpAddress
 
-		o, err := svc.GetObject(obj.Id)
-		if err != nil {
-			log.Println("err", err)
-		}
-
-		pretty.Println(o)
+	if !m.IsKlientReady() {
+		return errors.New("klient is not ready")
 	}
 
 	fmt.Println("build finished!")
-	return nil
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"ipAddress":         m.IpAddress,
+				"queryString":       m.QueryString,
+				"status.state":      machinestate.Running.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Build finished",
+			}},
+		)
+	})
+}
+
+func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
+	timeout := time.After(time.Minute * 10)
+	ticker := time.NewTicker(time.Second * 10)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			s, err := sl.GetPowerState(id)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("s = %+v\n", s)
+			if s.KeyName == state {
+				return nil
+			}
+		case <-timeout:
+			return errors.New("timeout while waiting for state")
+		}
+	}
+
 }
