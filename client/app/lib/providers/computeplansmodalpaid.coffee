@@ -77,7 +77,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       name          : 'snapshots'
       selectOptions : [ title: 'None', value: "" ]
       callback      : (snapshotId) =>
-        { first } = @storageSlider.handles
+        sliderValue = @storageSlider.handles.first.value
 
         # If the selected snapshot has a value (not empty), disable the
         # region selector, and set it's value to the snapshot region.
@@ -94,8 +94,8 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
         #
         # Note that @getValues() just returns the value *option* of the
         # handles, so we're getting the value directly.
-        @updateSnapshotUsageText  first.value
-        @updateCreateVMBtnEnabled first.value
+        @updateSnapshotUsageText  sliderValue
+        @updateCreateVMBtnEnabled sliderValue
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -184,10 +184,10 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       #
       # Note that @getValues() just returns the value *option* of the
       # handles, so we're getting the value directly.
-      { first } = @storageSlider.handles
+      sliderValue = @storageSlider.handles.first.value
 
-      @updateSnapshotUsageText  first.value
-      @updateCreateVMBtnEnabled first.value
+      @updateSnapshotUsageText  sliderValue
+      @updateCreateVMBtnEnabled sliderValue
 
 
   updateRegionText: ->
