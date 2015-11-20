@@ -9,7 +9,7 @@ linkSelector                = "#{activitySelector} .activity-content-wrapper art
 codeSelector                = "#{activitySelector} .has-markdown code"
 editedCode                  = "console.log('123456789')"
 editedPost                  = '```' + editedCode + '```'
-finalLink                   = "https://www.google.com/"
+finalLink                   = 'https://www.google.com/'
 
 module.exports =
 
@@ -45,7 +45,7 @@ module.exports =
     # FIXME: Disabled embeddable assertion because it was failing. -- didem
     # helpers.doPostActivity(browser, comment, yes, yes)
 
-    helpers.doPostActivity(browser, comment, yes)
+    helpers.doPostActivity(browser, comment, yes, yes)
 
     browser.getAttribute linkSelector, 'href', (result) ->
       href = result.value
@@ -75,7 +75,7 @@ module.exports =
 
   editCommentAction: (browser, editWithCode = yes, editWithImage = yes, editWithLink =yes) ->
 
-    imageSelector             = "#{activitySelector} .embed-image-view [width='100%']"
+    imageSelector             = "#{activitySelector} .embed-image-view img"
     firstCommentInputSelector = "#{activitySelector} .comment-input-view"
     commentContanier          = "#{activitySelector} .comment-container"
     commentSendButton         = "#{commentContanier} .submit-button"
@@ -112,17 +112,17 @@ module.exports =
 
     if editWithLink
       browser
-        .setValue               firstCommentInputSelector, finalLink
+        .setValue               firstCommentInputSelector, finalLink + ' Hello Koding'
         .pause                  3500 # wait for image loading
         .click                  commentSendButton
-        .refresh()              #in order for the image thumbnail to regenerate
         .waitForElementVisible  commentLinkSelector, 20000
-        .assert.containsText    commentLinkSelector, finalLink
+        .pause                  3000 # wait for image loading
+        .assert.containsText    commentLinkSelector, finalLink + ' Hello Koding'
 
 
   editMessageAction: (browser, editWithCode = yes, editImage = yes, editLink =yes) ->
 
-    imageSelector               = "#{activitySelector} .link-embed-box .embed-image-view [width='100%']"
+    imageSelector               = "#{activitySelector} .link-embed-box .embed-image-view img"
     doneButtonSelector          = "#{activitySelector} button.done-button span.button-title"
     activiySettingsIconSelector = "#{activitySelector} .settings-menu-wrapper"
     editPostSelector            = '.kdcontextmenu .edit-post .kdview'
@@ -150,20 +150,20 @@ module.exports =
         .click       doneButtonSelector
         .pause       3500
 
-      browser.getAttribute imageSelector, 'height', (result) ->
-        height = result.value
-        assert.equal('111', height)
+      # browser.getAttribute imageSelector, 'height', (result) ->
+      #   height = result.value
+      #   assert.equal('111', height)
 
     if editLink
       browser
-        .setValue               "#{activitySelector}#{activityInputSelector}", finalLink
+        .setValue               "#{activitySelector}#{activityInputSelector}", finalLink + ' Hello Koding'
+        .waitForElementVisible  "#{activitySelector} .activity-input-widget .link-embed-box", 20000
+        .pause                  3000 #for image load
         .waitForElementVisible  doneButtonSelector, 20000
         .moveToElement          doneButtonSelector, 15, 10
         .click                  doneButtonSelector
-        .refresh()
-        .waitForElementVisible  imageSelector, 20000
         .assert.containsText    "#{activitySelector} .activity-content-wrapper .link-embed-box .title", 'Google'
-
-      browser.getAttribute linkSelector, 'href', (result) ->
-        href = result.value
-        assert.equal(finalLink, href)
+        .pause                  3000 #for image load
+        .getAttribute linkSelector, 'href', (result) ->
+          href = result.value
+          assert.equal(finalLink, href)
