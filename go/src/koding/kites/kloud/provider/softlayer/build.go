@@ -4,14 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/userdata"
+	"log"
+	"time"
 
+	"github.com/kr/pretty"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/net/context"
 )
 
 func (m *Machine) Build(ctx context.Context) (err error) {
+	if err := m.UpdateState(machinestate.Building); err != nil {
+		return err
+	}
+
 	keys, ok := publickeys.FromContext(ctx)
 	if !ok {
 		return errors.New("public keys are not available")
@@ -47,7 +55,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
 		Hostname:  "koding-" + m.Username,
-		Domain:    "softlayer.com",
+		Domain:    "koding.io", // this is just a placeholder
 		StartCpus: 1,
 		MaxMemory: 1024,
 		Datacenter: datatypes.Datacenter{
@@ -68,13 +76,26 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	//Create the virtual guest with the service
-	virtualGuest, err := svc.CreateObject(virtualGuestTemplate)
+	obj, err := svc.CreateObject(virtualGuestTemplate)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("virtualGuest = %+v\n", virtualGuest)
-	fmt.Println("build finished!")
+	pretty.Println(obj)
 
+	for i := 0; i < 10; i++ {
+		fmt.Println("------------------")
+		fmt.Println("")
+		time.Sleep(time.Second * 5)
+
+		o, err := svc.GetObject(obj.Id)
+		if err != nil {
+			log.Println("err", err)
+		}
+
+		pretty.Println(o)
+	}
+
+	fmt.Println("build finished!")
 	return nil
 }
