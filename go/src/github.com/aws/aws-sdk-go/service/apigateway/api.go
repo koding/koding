@@ -719,6 +719,7 @@ func (c *APIGateway) GetApiKeys(input *GetApiKeysInput) (*GetApiKeysOutput, erro
 
 func (c *APIGateway) GetApiKeysPages(input *GetApiKeysInput, fn func(p *GetApiKeysOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetApiKeysRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetApiKeysOutput), lastPage)
 	})
@@ -786,6 +787,7 @@ func (c *APIGateway) GetBasePathMappings(input *GetBasePathMappingsInput) (*GetB
 
 func (c *APIGateway) GetBasePathMappingsPages(input *GetBasePathMappingsInput, fn func(p *GetBasePathMappingsOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetBasePathMappingsRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetBasePathMappingsOutput), lastPage)
 	})
@@ -851,6 +853,7 @@ func (c *APIGateway) GetClientCertificates(input *GetClientCertificatesInput) (*
 
 func (c *APIGateway) GetClientCertificatesPages(input *GetClientCertificatesInput, fn func(p *GetClientCertificatesOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetClientCertificatesRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetClientCertificatesOutput), lastPage)
 	})
@@ -918,6 +921,7 @@ func (c *APIGateway) GetDeployments(input *GetDeploymentsInput) (*GetDeployments
 
 func (c *APIGateway) GetDeploymentsPages(input *GetDeploymentsInput, fn func(p *GetDeploymentsOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetDeploymentsRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetDeploymentsOutput), lastPage)
 	})
@@ -986,6 +990,7 @@ func (c *APIGateway) GetDomainNames(input *GetDomainNamesInput) (*GetDomainNames
 
 func (c *APIGateway) GetDomainNamesPages(input *GetDomainNamesInput, fn func(p *GetDomainNamesOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetDomainNamesRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetDomainNamesOutput), lastPage)
 	})
@@ -1189,6 +1194,7 @@ func (c *APIGateway) GetModels(input *GetModelsInput) (*GetModelsOutput, error) 
 
 func (c *APIGateway) GetModelsPages(input *GetModelsInput, fn func(p *GetModelsOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetModelsRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetModelsOutput), lastPage)
 	})
@@ -1256,6 +1262,7 @@ func (c *APIGateway) GetResources(input *GetResourcesInput) (*GetResourcesOutput
 
 func (c *APIGateway) GetResourcesPages(input *GetResourcesInput, fn func(p *GetResourcesOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetResourcesRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetResourcesOutput), lastPage)
 	})
@@ -1323,6 +1330,7 @@ func (c *APIGateway) GetRestApis(input *GetRestApisInput) (*GetRestApisOutput, e
 
 func (c *APIGateway) GetRestApisPages(input *GetRestApisInput, fn func(p *GetRestApisOutput, lastPage bool) (shouldContinue bool)) error {
 	page, _ := c.GetRestApisRequest(input)
+	page.Handlers.Build.PushBack(request.MakeAddToUserAgentFreeFormHandler("Paginator"))
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*GetRestApisOutput), lastPage)
 	})
@@ -2134,6 +2142,11 @@ type CreateDeploymentInput struct {
 	// The name of the Stage resource for the Deployment resource to create.
 	StageName *string `locationName:"stageName" type:"string" required:"true"`
 
+	// A map that defines the stage variables for the Stage resource that is associated
+	// with the new deployment. Variable names can have alphabetic characters, and
+	// the values must match [A-Za-z0-9-._~:/?#&=,]+
+	Variables map[string]*string `locationName:"variables" type:"map"`
+
 	metadataCreateDeploymentInput `json:"-" xml:"-"`
 }
 
@@ -2300,6 +2313,10 @@ type CreateStageInput struct {
 
 	// The name for the Stage resource.
 	StageName *string `locationName:"stageName" type:"string" required:"true"`
+
+	// A map that defines the stage variables for the new Stage resource. Variable
+	// names can have alphabetic characters, and the values must match [A-Za-z0-9-._~:/?#&=,]+
+	Variables map[string]*string `locationName:"variables" type:"map"`
 
 	metadataCreateStageInput `json:"-" xml:"-"`
 }
@@ -4596,6 +4613,10 @@ type Stage struct {
 	// (URI) of a call to Amazon API Gateway.
 	StageName *string `locationName:"stageName" type:"string"`
 
+	// A map that defines the stage variables for a Stage resource. Variable names
+	// can have alphabetic characters, and the values must match [A-Za-z0-9-._~:/?#&=,]+
+	Variables map[string]*string `locationName:"variables" type:"map"`
+
 	metadataStage `json:"-" xml:"-"`
 }
 
@@ -4652,6 +4673,8 @@ type TestInvokeMethodInput struct {
 	ResourceId *string `location:"uri" locationName:"resource_id" type:"string" required:"true"`
 
 	RestApiId *string `location:"uri" locationName:"restapi_id" type:"string" required:"true"`
+
+	StageVariables map[string]*string `locationName:"stageVariables" type:"map"`
 
 	metadataTestInvokeMethodInput `json:"-" xml:"-"`
 }
