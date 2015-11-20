@@ -123,6 +123,15 @@ module.exports = class JStackTemplate extends Module
     }
 
 
+  validateTemplate = (template, group) ->
+
+    plan = group.getAt 'config.plan'
+    return  unless plan # No plan, no pain.
+
+    ComputeProvider = require './computeprovider'
+    return ComputeProvider.validateTemplateContent template, plan
+
+
   @create = permit 'create stack template',
 
     success: revive
@@ -137,6 +146,9 @@ module.exports = class JStackTemplate extends Module
 
       unless data?.title
         return callback new KodingError 'Title required.'
+
+      if validationError = validateTemplate data.template, group
+        return callback validationError
 
       stackTemplate = new JStackTemplate
         originId    : delegate.getId()
@@ -296,6 +308,10 @@ module.exports = class JStackTemplate extends Module
       { template, templateDetails, rawContent } = data
 
       if template?
+
+        if validationError = validateTemplate template, group
+          return callback validationError
+
         data.template = generateTemplateObject \
           template, rawContent, templateDetails
 
