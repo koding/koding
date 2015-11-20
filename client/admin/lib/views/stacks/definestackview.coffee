@@ -250,7 +250,7 @@ module.exports = class DefineStackView extends KDView
 
     @saveTemplate (err, stackTemplate) =>
 
-      if @outputView.handleError err
+      if @outputView.handleError err, "Stack template save failed:"
         @saveButton.hideLoader()
         return
 
