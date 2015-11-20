@@ -513,10 +513,11 @@ module.exports = class DefineStackView extends KDView
     }, (err, stackTemplate) =>
 
       if not err and stackTemplate
+
         @setData { stackTemplate }
         @emit 'Reload'
 
-      stackTemplate._updated = currentSum isnt stackTemplate.template.sum
+        stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
       callback err, stackTemplate
 
