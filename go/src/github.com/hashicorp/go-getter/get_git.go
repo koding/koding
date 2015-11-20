@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	urlhelper "github.com/hashicorp/terraform/helper/url"
+	urlhelper "github.com/hashicorp/go-getter/helper/url"
 )
 
 // GitGetter is a Getter implementation that will download a module from
@@ -39,7 +39,7 @@ func (g *GitGetter) Get(dst string, u *url.URL) error {
 		return err
 	}
 	if err == nil {
-		err = g.update(dst, u)
+		err = g.update(dst, ref)
 	} else {
 		err = g.clone(dst, u)
 	}
@@ -97,13 +97,24 @@ func (g *GitGetter) clone(dst string, u *url.URL) error {
 	return getRunCommand(cmd)
 }
 
-func (g *GitGetter) update(dst string, u *url.URL) error {
+func (g *GitGetter) update(dst string, ref string) error {
+	// Determine if we're a branch. If we're NOT a branch, then we just
+	// switch to master prior to checking out
+	cmd := exec.Command("git", "show-ref", "-q", "--verify", "refs/heads/"+ref)
+	cmd.Dir = dst
+	if getRunCommand(cmd) != nil {
+		// Not a branch, switch to master. This will also catch non-existent
+		// branches, in which case we want to switch to master and then
+		// checkout the proper branch later.
+		ref = "master"
+	}
+
 	// We have to be on a branch to pull
-	if err := g.checkout(dst, "master"); err != nil {
+	if err := g.checkout(dst, ref); err != nil {
 		return err
 	}
 
-	cmd := exec.Command("git", "pull", "--ff-only")
+	cmd = exec.Command("git", "pull", "--ff-only")
 	cmd.Dir = dst
 	return getRunCommand(cmd)
 }
