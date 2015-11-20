@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"koding/kites/kloud/awscompat"
+	"koding/kites/kloud/api/amazon"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/dchest/validator"
 	"github.com/koding/logging"
-	oldaws "github.com/mitchellh/goamz/aws"
 )
 
 var ErrNoRecord = errors.New("no records available")
@@ -24,13 +24,13 @@ type Route53 struct {
 }
 
 // NewRoute53Client initializes a new DNSClient interface instance based on AWS Route53
-func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
-	dns := route53.New(
-		awscompat.NewSession(auth),
-		aws.NewConfig().WithRegion("us-east-1"), // our route53 is based on this region, so we use it
-	)
-	dns.Client.Retryer = awscompat.Retry
-
+func NewRoute53Client(c *credentials.Credentials, hostedZone string) *Route53 {
+	opts := &amazon.ClientOptions{
+		Credentials: c,
+		Regions:     []string{"us-east-1"}, // our route53 is based on this region, so we use it
+		Log:         logging.NewLogger("kloud-dns"),
+	}
+	dns := route53.New(amazon.NewSession(opts))
 	params := &route53.ListHostedZonesInput{
 		MaxItems: aws.String("100"),
 	}
@@ -43,7 +43,7 @@ func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
 	var dnsName = hostedZone + "." // DNS name ends with a ".", e.g. "dev.koding.io."
 	for _, h := range hostedZones.HostedZones {
 		if aws.StringValue(h.Name) == dnsName {
-			zoneId = awscompat.CleanZoneID(aws.StringValue(h.Id))
+			zoneId = aws.StringValue(h.Id)
 			break
 		}
 	}
@@ -56,7 +56,7 @@ func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
 		Route53:    dns,
 		hostedZone: hostedZone,
 		ZoneId:     zoneId,
-		Log:        logging.NewLogger("kloud-dns"),
+		Log:        opts.Log,
 	}
 }
 

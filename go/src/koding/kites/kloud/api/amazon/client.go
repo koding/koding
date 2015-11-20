@@ -4,11 +4,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"koding/kites/kloud/awscompat"
 	"net/url"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/koding/logging"
 )
@@ -29,22 +27,18 @@ type Client struct {
 // NewClient creates new *ec2.EC2 wrapper.
 //
 // If log is non-nil, it's used for debug logging EC2 service.
-func NewClient(auth client.ConfigProvider, region string, log logging.Logger) (*Client, error) {
-	cfg := aws.NewConfig().WithRegion(region)
-	if log != nil {
-		cfg = cfg.WithLogger(NewLogger(log.Debug))
-	}
-	svc := ec2.New(auth, cfg)
-	svc.Client.Retryer = awscompat.Retry
+func NewClient(opts *ClientOptions) (*Client, error) {
+	cfg := NewSession(opts)
+	svc := ec2.New(cfg)
 	zones, err := svc.DescribeAvailabilityZones(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
 	c := &Client{
 		EC2:    svc,
-		Region: region,
+		Region: aws.StringValue(cfg.Config.Region),
 		Zones:  make([]string, len(zones.AvailabilityZones)),
-		Log:    log,
+		Log:    opts.Log,
 	}
 	for i, zone := range zones.AvailabilityZones {
 		c.Zones[i] = aws.StringValue(zone.ZoneName)
