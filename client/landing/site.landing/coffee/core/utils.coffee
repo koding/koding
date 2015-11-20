@@ -185,6 +185,20 @@ utils.extend utils,
         new KDNotificationView title : responseText
 
 
+  confirmToken: (token, callbacks = {}) ->
+
+    _csrf = Cookies.get '_csrf'
+
+    $.ajax
+      url     : '/-/confirm'
+      data    : { token, _csrf }
+      type    : 'GET'
+      success : callbacks.success or ->
+        location.href = '/'
+      error   : callbacks.error or ({responseText}) ->
+        new KDNotificationView { title : responseText }
+
+
   routeIfInvitationTokenIsValid: (token, callbacks) ->
 
     $.ajax
