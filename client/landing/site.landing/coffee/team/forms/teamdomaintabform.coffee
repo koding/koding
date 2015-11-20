@@ -27,6 +27,9 @@ module.exports = class TeamDomainTab extends KDFormView
       attributes   : size : teamName.length or 10
       name         : 'slug'
 
+    @input.on 'ValidationFeedbackCleared', =>
+      @inputView.unsetClass 'validation-error validation-passed'
+
     # Listen text change event in real time
     @input.on 'input', =>
       @input.getElement().removeAttribute 'size'
