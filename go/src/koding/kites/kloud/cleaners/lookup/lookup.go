@@ -4,8 +4,6 @@ import (
 	"koding/kites/kloud/api/amazon"
 
 	"github.com/koding/logging"
-
-	oldaws "github.com/mitchellh/goamz/aws"
 )
 
 var defaultLogger = logging.NewLogger("lookup")
@@ -20,23 +18,19 @@ type Lookup struct {
 
 // NewAWS gives new Lookup client.
 //
-// When log is nil, defaultLogger is used instead.
-func NewAWS(auth oldaws.Auth, log logging.Logger) (*Lookup, error) {
-	if log == nil {
-		log = defaultLogger
+// When opts.Log is nil, defaultLogger is used instead.
+func NewAWS(opts *amazon.ClientOptions) (*Lookup, error) {
+	optsCopy := *opts
+	if optsCopy.Log == nil {
+		optsCopy.Log = defaultLogger
 	}
-	clients, err := amazon.NewClientPerRegion(auth, []string{
-		"us-east-1",
-		"ap-southeast-1",
-		"us-west-2",
-		"eu-west-1",
-	}, log)
+	clients, err := amazon.NewClientPerRegion(&optsCopy)
 	if err != nil {
 		return nil, err
 	}
 	return &Lookup{
 		clients: clients,
-		log:     log,
+		log:     optsCopy.Log,
 	}, nil
 }
 

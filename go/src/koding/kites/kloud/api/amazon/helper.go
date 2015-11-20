@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/machinestate"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
@@ -23,6 +24,22 @@ var PermAllPorts = []*ec2.IpPermission{{
 		CidrIp: aws.String("0.0.0.0/0"),
 	}},
 }}
+
+// NewSession gives new AWS configuration.
+//
+// Each new session uses custom, resilient transport described by TransportConfig.
+func NewSession(opts *ClientOptions) *session.Session {
+	cfg := &aws.Config{
+		Credentials: opts.Credentials,
+	}
+	if len(opts.Regions) != 0 {
+		cfg.Region = aws.String(opts.Regions[0])
+	}
+	if opts.Log != nil {
+		cfg.Logger = NewLogger(opts.Log.Debug)
+	}
+	return session.New(cfg, TransportConfig)
+}
 
 // TagsMatch returns true when tags contains all tags described by the m map.
 func TagsMatch(tags []*ec2.Tag, m map[string]string) bool {

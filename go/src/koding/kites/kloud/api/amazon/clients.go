@@ -3,37 +3,47 @@ package amazon
 import (
 	"fmt"
 
-	"koding/kites/kloud/awscompat"
-
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/logging"
-	oldaws "github.com/mitchellh/goamz/aws"
 )
+
+// ClientOptions describes configuration for a Client.
+type ClientOptions struct {
+	// Credentials contains access key, secret and/or token.
+	Credentials *credentials.Credentials
+
+	// Regions contains 1 or many region names.
+	Regions []string
+
+	// Log, when non-nil, is used for verbose logging by *ec2.EC2 client.
+	Log logging.Logger
+}
 
 // Clients provides wrappers for a EC2 client per region.
 type Clients struct {
 	regions map[string]*Client // read-only, written once on New()
 }
 
-// NewClientPerRegion is returning a new multi clients refernce for the given
+// NewClientPerRegion is returning a new multi clients for the given
 // regions names.
-func NewClientPerRegion(auth oldaws.Auth, regions []string, log logging.Logger) (*Clients, error) {
+func NewClientPerRegion(opts *ClientOptions) (*Clients, error) {
 	// Validate regions - ensure no duplicates or no empty items.
-	uniq := make(map[string]struct{})
-	for i, region := range regions {
+	c := &Clients{
+		regions: make(map[string]*Client, len(opts.Regions)),
+	}
+	for i, region := range opts.Regions {
 		if region == "" {
 			return nil, fmt.Errorf("empty region at i=%d", i)
 		}
-		if _, ok := uniq[region]; ok {
-			return nil, fmt.Errorf("duplicated region %q", region)
+		if _, ok := c.regions[region]; ok {
+			return nil, fmt.Errorf("duplicated region %q at i=%d", region, i)
 		}
-		uniq[region] = struct{}{}
-	}
-	c := &Clients{
-		regions: make(map[string]*Client, len(regions)),
-	}
-	session := awscompat.NewSession(auth)
-	for _, region := range regions {
-		client, err := NewClient(session, region, log)
+		opts := &ClientOptions{
+			Credentials: opts.Credentials,
+			Regions:     []string{region},
+			Log:         opts.Log,
+		}
+		client, err := NewClient(opts)
 		if err != nil {
 			return nil, err
 		}

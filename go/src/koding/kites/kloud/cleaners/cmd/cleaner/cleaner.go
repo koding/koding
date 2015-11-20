@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -11,8 +12,8 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
 )
 
 type Cleaner struct {
@@ -48,23 +49,34 @@ type StopData struct {
 }
 
 func NewCleaner(conf *Config) *Cleaner {
-	auth := aws.Auth{
-		AccessKey: conf.Aws.AccessKey,
-		SecretKey: conf.Aws.SecretKey,
+	creds := credentials.NewStaticCredentials(
+		conf.Aws.AccessKey,
+		conf.Aws.SecretKey,
+		"",
+	)
+
+	opts := &amazon.ClientOptions{
+		Credentials: creds,
+		Regions: []string{
+			"us-east-1",
+			"ap-southeast-1",
+			"us-west-2",
+			"eu-west-1",
+		},
+		Log: logging.NewLogger("cleaner"),
 	}
 
-	log := logging.NewLogger("cleaner")
 	if conf.Debug {
-		log.SetLevel(logging.DEBUG)
+		opts.Log.SetLevel(logging.DEBUG)
 	}
 
-	l, err := lookup.NewAWS(auth, log)
+	l, err := lookup.NewAWS(opts)
 	if err != nil {
 		panic(err)
 	}
 	m := lookup.NewMongoDB(conf.MongoURL)
-	dns := dnsclient.NewRoute53Client(conf.HostedZone, auth)
-	dnsdev := dnsclient.NewRoute53Client("dev.koding.io", auth)
+	dns := dnsclient.NewRoute53Client(creds, conf.HostedZone)
+	dnsdev := dnsclient.NewRoute53Client(creds, "dev.koding.io")
 	domains := dnsstorage.NewMongodbStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
 		Host:     conf.Postgres.Host,
