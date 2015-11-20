@@ -7,6 +7,7 @@ module.exports = class JStackTemplate extends Module
 
   { permit }   = require '../group/permissionset'
   Validators   = require '../group/validators'
+  { revive }   = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
 
@@ -124,8 +125,14 @@ module.exports = class JStackTemplate extends Module
 
   @create = permit 'create stack template',
 
-    success: (client, data, callback) ->
+    success: revive
 
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, data, callback) ->
+
+      { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
 
       unless data?.title
@@ -271,8 +278,14 @@ module.exports = class JStackTemplate extends Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, data, callback) ->
+    success: revive
 
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, data, callback) ->
+
+      { group }    = client.r
       { delegate } = client.connection
 
       # It's not allowed to change a stack template group or owner
