@@ -98,20 +98,15 @@ module.exports = class ChannelInfoContainer extends React.Component
 
     switch @channel 'typeConstant'
       when 'bot'
-        [
-          "This is the very beginning of your chat history with "
-          <strong>Koding Bot</strong>
-          ". He is not so smart :)"
-        ]
+        <span>
+          This is the very beginning of your chat history with <strong>Koding Bot</strong>. He is not so smart :)
+        </span>
       when 'privatemessage'
         null
       when 'topic'
-        [
-          "This is the "
-          <Link onClick=kd.noop>#{channelName}</Link>
-          " channel"
-          @renderProfileLink()
-        ]
+        <span>
+          This is the <Link onClick=kd.noop>#{channelName}</Link> channel {@renderProfileLink()}
+        </span>
 
 
   render: ->
@@ -119,10 +114,12 @@ module.exports = class ChannelInfoContainer extends React.Component
       {@renderChannelName()}
       <div className='ChannelInfoContainer-description'>
         {@renderChannelIntro()}
-        You can start a collaboration session, or drag and drop  VMs and
-        workspaces here from the sidebar to let anyone in this channel access
-        them.
-        (<Link onClick ={@bound 'onCollaborationHelp'}>Show me how?</Link>)
+        <div>
+          You can start a collaboration session, or drag and drop  VMs and
+          workspaces here from the sidebar to let anyone in this channel access
+          them.
+          (<Link onClick ={@bound 'onCollaborationHelp'}>Show me how?</Link>)
+        </div>
       </div>
       <div className='ChannelInfoContainer-actions'>
         <Link
