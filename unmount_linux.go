@@ -1,4 +1,4 @@
-package unmount
+package fuseklient
 
 import (
 	"fmt"
