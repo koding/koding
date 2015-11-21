@@ -5,11 +5,11 @@ import (
 	"koding/db/models"
 	"time"
 
-	"github.com/nu7hatch/gouuid"
-
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+const SessionColl = "jSessions"
 
 func GetSession(clientId string) (*models.Session, error) {
 	session := new(models.Session)
@@ -18,7 +18,7 @@ func GetSession(clientId string) (*models.Session, error) {
 		return c.Find(bson.M{"clientId": clientId}).One(&session)
 	}
 
-	err := Mongo.Run("jSessions", query)
+	err := Mongo.Run(SessionColl, query)
 	if err != nil {
 		return nil, fmt.Errorf("sessionID '%s' is not validated; err: %s", clientId, err)
 	}
@@ -33,7 +33,7 @@ func GetSessionsByUsername(username string) ([]*models.Session, error) {
 		return c.Find(bson.M{"username": username}).All(&sessions)
 	}
 
-	err := Mongo.Run("jSessions", query)
+	err := Mongo.Run(SessionColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func GetSessionFromToken(token string) (*models.Session, error) {
 		return c.Find(bson.M{"otaToken": token}).One(&session)
 	}
 
-	err := Mongo.Run("jSessions", query)
+	err := Mongo.Run(SessionColl, query)
 	if err != nil {
 		return nil, fmt.Errorf("otaToken '%s' is not validated; err: %s", token, err)
 	}
@@ -65,7 +65,7 @@ func RemoveToken(clientId string) error {
 		return c.Update(bson.M{"clientId": clientId}, bson.M{"$unset": updateData})
 	}
 
-	err := Mongo.Run("jSessions", query)
+	err := Mongo.Run(SessionColl, query)
 	if err != nil {
 		return fmt.Errorf("failed to remove the ota token for sessionID '%s'; err: %s", clientId, err)
 	}
@@ -82,7 +82,7 @@ func UpdateSessionIP(token string, ip string) error {
 		return c.Update(bson.M{"clientId": token}, bson.M{"$set": updateData})
 	}
 
-	err := Mongo.Run("jSessions", query)
+	err := Mongo.Run(SessionColl, query)
 	if err != nil {
 		return fmt.Errorf("failed to update ip for sessionID '%s'; err: %s", token, err)
 	}
@@ -91,7 +91,7 @@ func UpdateSessionIP(token string, ip string) error {
 }
 
 func CreateSession(s *models.Session) error {
-	return Mongo.Run("jSessions", insertQuery(s))
+	return Mongo.Run(SessionColl, insertQuery(s))
 }
 
 func CreateSessionForAccount(username, groupName string) (*models.Session, error) {
@@ -127,7 +127,7 @@ func GetOneSessionForAccount(username, groupName string) (*models.Session, error
 		}).One(&session)
 	}
 
-	err := Mongo.Run("jSessions", query)
+	err := Mongo.Run(SessionColl, query)
 	if err != nil {
 		return nil, err
 	}
