@@ -25,11 +25,8 @@ module.exports = class CreateChannelParticipantsDropdown extends React.Component
   closeAction          : CreateChannelFlux.actions.user.setDropdownVisibility
 
 
-  # this method overrides DropboxWrapperMixin-componentDidUpdate handler.
-  # In this component, we use dropdown keyword. In DropboxWrapperMixin/componentDidUpdate handler
-  # expects dropbox component so it occurs an error. Also this component doesn't need any action when
-  # componentDidUpdate event fired.
-  componentDidUpdate: ->
+  # this method overrides DropboxWrapperMixin-getItemKey method to get item by _id instead of id.
+  getItemKey: (item) -> item.get '_id'
 
 
   formatSelectedValue: -> "@#{@props.selectedItem.getIn ['profile', 'nickname']}"
