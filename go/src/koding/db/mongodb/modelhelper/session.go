@@ -26,6 +26,21 @@ func GetSession(clientId string) (*models.Session, error) {
 	return session, nil
 }
 
+func GetSessionsByUsername(username string) ([]*models.Session, error) {
+	sessions := make([]*models.Session, 0)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).All(&sessions)
+	}
+
+	err := Mongo.Run("jSessions", query)
+	if err != nil {
+		return nil, err
+	}
+
+	return sessions, nil
+}
+
 func GetSessionFromToken(token string) (*models.Session, error) {
 	session := new(models.Session)
 
