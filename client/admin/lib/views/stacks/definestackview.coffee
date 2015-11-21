@@ -250,7 +250,7 @@ module.exports = class DefineStackView extends KDView
 
     @saveTemplate (err, stackTemplate) =>
 
-      if @outputView.handleError err
+      if @outputView.handleError err, "Stack template save failed:"
         @saveButton.hideLoader()
         return
 
@@ -513,10 +513,11 @@ module.exports = class DefineStackView extends KDView
     }, (err, stackTemplate) =>
 
       if not err and stackTemplate
+
         @setData { stackTemplate }
         @emit 'Reload'
 
-      stackTemplate._updated = currentSum isnt stackTemplate.template.sum
+        stackTemplate._updated = currentSum isnt stackTemplate.template.sum
 
       callback err, stackTemplate
 

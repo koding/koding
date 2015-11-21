@@ -283,30 +283,38 @@ module.exports = class ComputeProvider extends Base
       daisy queue
 
 
+  # Just takes the plan name and the stack template content generates rules
+  # based on th plan then verifies the content based on the rules generated
+  @validateTemplateContent = (content, plan) ->
+
+    rules = teamutils.generateConstraints plan
+
+    try
+      template = JSON.parse content
+    catch
+      return new KodingError 'Template is not valid'
+
+    { passed, results } = konstraints template, rules, { log: yes }
+    return new KodingError results.last[1]  unless passed
+
+    return null
+
+
   # Template checker, this will fetch the stack template from given id,
   # will generate konstraint rules based on the group's plan and finally
   # validate the stack template based on these informations ~ GG
   @validateTemplate = (client, stackTemplateId, group, callback) ->
 
     plan = group.getAt 'config.plan'
+
     return callback null  unless plan
 
-    rules = teamutils.generateConstraints plan
-
-    JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) ->
+    JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) =>
 
       return callback err  if err
       return callback new KodingError 'Stack template not found'  unless data
 
-      try
-        template = JSON.parse data.template.content
-      catch
-        return callback new KodingError 'Template is not valid'
-
-      { passed, results } = konstraints template, rules, { log: yes }
-      return callback new KodingError results.last[1]  unless passed
-
-      callback null
+      callback @validateTemplateContent data.template.content, plan
 
 
   # Takes an array of stack template ids and returns the final result ^^
