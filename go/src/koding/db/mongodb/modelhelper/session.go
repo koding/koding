@@ -5,6 +5,7 @@ import (
 	"koding/db/models"
 	"time"
 
+	uuid "github.com/nu7hatch/gouuid"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
