@@ -115,7 +115,7 @@ module.exports = class ChannelInfoContainer extends React.Component
       <div className='ChannelInfoContainer-description'>
         {@renderChannelIntro()}
         <div>
-          You can start a collaboration session, or drag and drop  VMs and
+          You can start a collaboration session, or drag and drop VMs and
           workspaces here from the sidebar to let anyone in this channel access
           them.
           (<Link onClick ={@bound 'onCollaborationHelp'}>Show me how?</Link>)
