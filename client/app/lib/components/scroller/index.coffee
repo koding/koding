@@ -11,7 +11,8 @@ module.exports = class Scroller extends React.Component
     threshold             : 1
     onThresholdReached    : kd.noop
     onTopThresholdReached : kd.noop
-
+    minScrollbarLength    : 64
+    useSelectionScroll    : on
 
   renderTopWaypoint: ->
 

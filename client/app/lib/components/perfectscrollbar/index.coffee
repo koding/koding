@@ -5,54 +5,38 @@ Ps = require 'perfect-scrollbar'
 
 { PropTypes, Component } = React
 
-perfectProps = [
-  'wheelSpeed', 'wheelPropagation', 'swipePropagation',
-  'minScrollbarLength', 'maxScrollbarLength', 'useBothWheelAxes',
-  'useKeyboard', 'suppressScrollX', 'suppressScrollY',
-  'scrollXMarginOffset', 'scrollYMarginOffset', 'stopPropagationOnClick',
-  'useSelectionScroll'
-]
-
-mapPerfectPropsWith = (values) ->
-  perfectProps.reduce (result, prop, index) ->
-    result[prop] = values[index]
-    return result
-  , {}
-
 
 module.exports = class PerfectScrollbar extends Component
 
-  @propTypes = mapPerfectPropsWith [
-    PropTypes.number,
-    PropTypes.bool,
-    PropTypes.bool,
-    PropTypes.number,
-    PropTypes.number,
-    PropTypes.bool,
-    PropTypes.bool,
-    PropTypes.bool,
-    PropTypes.bool,
-    PropTypes.number,
-    PropTypes.number,
-    PropTypes.bool,
-    PropTypes.bool
-  ]
+  @propTypes =
+    wheelSpeed             : PropTypes.number,
+    wheelPropagation       : PropTypes.bool,
+    swipePropagation       : PropTypes.bool,
+    minScrollbarLength     : PropTypes.number,
+    maxScrollbarLength     : PropTypes.number,
+    useBothWheelAxes       : PropTypes.bool,
+    useKeyboard            : PropTypes.bool,
+    suppressScrollX        : PropTypes.bool,
+    suppressScrollY        : PropTypes.bool,
+    scrollXMarginOffset    : PropTypes.number,
+    scrollYMarginOffset    : PropTypes.number,
+    stopPropagationOnClick : PropTypes.bool,
+    useSelectionScroll     : PropTypes.bool
 
-  @defaultProps = mapPerfectPropsWith [
-    1,
-    false,
-    true,
-    null,
-    null,
-    false,
-    true,
-    false,
-    false,
-    0,
-    0,
-    true,
-    false
-  ]
+  @defaultProps =
+    wheelSpeed             : 1
+    wheelPropagation       : off
+    swipePropagation       : on
+    minScrollbarLength     : null
+    maxScrollbarLength     : null
+    useBothWheelAxes       : off
+    useKeyboard            : on
+    suppressScrollX        : off
+    suppressScrollY        : off
+    scrollXMarginOffset    : 0
+    scrollYMarginOffset    : 0
+    stopPropagationOnClick : on
+    useSelectionScroll     : off
 
   constructor: (props) ->
 
@@ -69,7 +53,7 @@ module.exports = class PerfectScrollbar extends Component
   componentDidMount: ->
 
     container = ReactDOM.findDOMNode @refs.container
-    props = _.pick @props, perfectProps
+    props     = _.pick @props, Object.keys PerfectScrollbar.defaultProps
 
     Ps.initialize container, props
 
