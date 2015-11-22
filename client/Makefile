@@ -28,7 +28,7 @@ BUILDER_EXCLUDE_TESTRUNNER_FLAG?=--exclude-testrunner
 
 all: landing development
 
-dist: landing minify-with-external-sourcemaps
+dist: landing production
 
 unit-tests: landing minify-with-unit-tests
 
@@ -43,7 +43,7 @@ watch:
 
 development: watch
 
-minify-with-external-sourcemaps:
+production:
 	NODE_ENV=production \
 	$(BUILDER) -v \
 		$(BUILDER_MINIFY_FLAGS) \
