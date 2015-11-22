@@ -24,6 +24,10 @@ var cmdDescriptions = map[string]string{
 		"<machine name>",
 		"Unmount folder which was previously mounted.",
 	),
+	"run": fmtDesc(
+		"<machine name>",
+		fmt.Sprintf("Run command on remote machine and return results.\n    All arguments after run are passed to command on remove machine.\n    TODO: streaming support."),
+	),
 }
 
 func init() {

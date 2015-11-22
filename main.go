@@ -135,6 +135,13 @@ func main() {
 			Description: "Update to latest version.",
 			Action:      Exit(UpdateCommand),
 		},
+		cli.Command{
+			Name:            "run",
+			Usage:           "Run command on remote machine.",
+			Description:     cmdDescriptions["run"],
+			Action:          Exit(RunCommandFactory),
+			SkipFlagParsing: true,
+		},
 	}
 
 	app.Run(os.Args)
