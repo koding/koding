@@ -85,7 +85,7 @@ build:
     - script:
         name: build client
         code: |
-          make -C client dist
+          NODE_ENV=production make -C client dist
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
@@ -236,7 +236,7 @@ deploy:
 
           ./scripts/install-npm.sh -d client -u
 
-          make -C client dist
+          NODE_ENV=production make -C client dist
     - script:
         name: pivotal deliver stories
         code: $WERCKER_ROOT/scripts/deliver-pivotal-stories.rb
