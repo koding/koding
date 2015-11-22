@@ -29,7 +29,10 @@ module.exports = class Scroller extends React.Component
 
   render: ->
 
-    <PerfectScrollbar className='Scrollable' ref='scrollContainer'>
+    <PerfectScrollbar
+      {...@props}
+      className={kd.utils.curry 'Scrollable', @props.className}
+      ref='scrollContainer'>
       {@renderTopWaypoint()}
       {@props.children}
       {@renderBottomWaypoint()}
