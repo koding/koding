@@ -18,12 +18,18 @@ module.exports =
 
   componentDidMount: ->
 
+    @_isMounted = yes
+
     if @props.origin
       if @props.origin.isIntegration
         @setState { account: @props.origin }
       else
         fetchAccount @props.origin, (err, account) =>
+          return  unless @_isMounted
           @setState { err, account }
+
+
+  componentWillUnmount: -> @_isMounted = no
 
 
   renderChildren: ->
