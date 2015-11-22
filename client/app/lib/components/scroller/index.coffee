@@ -2,6 +2,8 @@ kd = require 'kd'
 React = require 'kd-react'
 Waypoint = require 'react-waypoint'
 
+PerfectScrollbar = require 'app/components/perfectscrollbar'
+
 module.exports = class Scroller extends React.Component
 
   @defaultProps =
@@ -27,10 +29,10 @@ module.exports = class Scroller extends React.Component
 
   render: ->
 
-    <div className='Scrollable' ref='scrollContainer'>
+    <PerfectScrollbar className='Scrollable' ref='scrollContainer'>
       {@renderTopWaypoint()}
       {@props.children}
       {@renderBottomWaypoint()}
-    </div>
+    </PerfectScrollbar>
 
 
