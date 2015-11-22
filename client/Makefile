@@ -52,6 +52,7 @@ production:
 		$(BUILDER_ARGS)
 
 minify-with-unit-tests:
+	NODE_ENV=production \
 	$(BUILDER) -v $(BUILDER_MINIFY_FLAGS) $(BUILDER_EXT_SOURCEMAPS_FLAGS) $(BUILDER_ARGS)
 
 minify:
