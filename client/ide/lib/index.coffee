@@ -1443,7 +1443,11 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ paneType, (pane) =>
 
       if paneType in [ 'editor', 'tailer' ]
-        if (pane.getFile()?.path is context.file?.path) and pane.options.paneType is paneType
+        isSameFilePath  = pane.getFile()?.path is context.file?.path
+        isSamePaneType  = pane.options.paneType is paneType
+        isInSameIdeView = pane.ideViewHash is context.ideViewHash
+
+        if isSameFilePath and isSamePaneType and isInSameIdeView
           targetPane = pane
       else
         targetPane = pane  if pane.hash is paneHash
