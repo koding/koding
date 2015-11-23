@@ -13,18 +13,13 @@ module.exports = class TeamDomainTab extends KDFormView
 
     team = KD.utils.getTeamData()
 
-    if name = team.signup?.companyName
-    then teamName = KD.utils.slugify name
-    else teamName = ''
-
     @inputView = new KDCustomHTMLView
       cssClass     : 'login-input-view'
       click        : => @input.setFocus()
 
     @inputView.addSubView @input = new KDInputView
       placeholder  : 'your-team'
-      defaultValue : teamName  if teamName
-      attributes   : size : teamName.length or 10
+      attributes   : 10
       name         : 'slug'
 
     @input.on 'ValidationFeedbackCleared', =>
