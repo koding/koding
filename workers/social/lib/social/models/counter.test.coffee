@@ -1,5 +1,8 @@
+# Bongo
+{ daisy }  = require 'bongo'
+
 # Test Model
-JCounter = require './counter'
+JCounter   = require './counter'
 
 # Helpers
 { expect,
