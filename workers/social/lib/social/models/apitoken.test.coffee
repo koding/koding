@@ -23,15 +23,15 @@ runTests = -> describe 'workers.social.apitoken', ->
       queue = []
 
       invalidData = [
-        { accountId : ''                    , group : '' }
-        { accountId : generateRandomString(), group : '' }
-        { accountId : ''                    , group : generateRandomString() }
+        { account : null, group   : '' }
+        { account : {}  , group   : '' }
+        { account : null  , group : generateRandomString() }
       ]
 
       invalidData.forEach (data) ->
         queue.push ->
           JApiToken.create data, (err, token) ->
-            expect(err?.message).to.be.equal 'accountId and group must be set!'
+            expect(err?.message).to.be.equal 'account and group slug must be set!'
             expect(token).to.not.exist
             queue.next()
 
@@ -45,19 +45,19 @@ runTests = -> describe 'workers.social.apitoken', ->
       group = generateRandomString()
       options   = { context : { group }, createGroup : yes }
 
-      withConvertedUser options, ({ client, account   }) ->
+      withConvertedUser options, ({ client, account }) ->
 
         queue = [
 
           ->
-            data = { group, accountId : generateRandomString() }
+            data = { group, account : {} }
             JApiToken.create data, (err, token) ->
-              expect(err?.message).to.be.equal 'account not found!'
+              expect(err?.message).to.be.equal 'account is not an instance of Jaccount!'
               expect(token).to.not.exist
               queue.next()
 
           ->
-            data = { group : generateRandomString(), accountId : account.getId() }
+            data = { group : generateRandomString(), account }
             JApiToken.create data, (err, token) ->
               expect(err?.message).to.be.equal 'group not found!'
               expect(token).to.not.exist
@@ -77,7 +77,7 @@ runTests = -> describe 'workers.social.apitoken', ->
 
       withConvertedUser options, ({ client, account }) ->
 
-        data = { group, accountId : account.getId() }
+        data = { group, account }
         JApiToken.create data, (err, token) ->
           expect(err).to.not.exist
           expect(token.code).to.be.a 'string'
