@@ -102,8 +102,10 @@ module.exports = class ChannelThreadPane extends React.Component
 
   componentWillUpdate: (nextProps, nextState) ->
 
+    return  unless @state.channelThread and nextState.channelThread
+
     channelId          = @state.channelThread.get 'channelId'
-    nextStateChannelId = nextState.channelThread?.get 'channelId'
+    nextStateChannelId = nextState.channelThread.get 'channelId'
 
     return @setState editingPurpose: no  if channelId isnt nextStateChannelId
 
