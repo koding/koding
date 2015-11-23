@@ -20,7 +20,7 @@ func (r *PushRequest) validate() error {
 	}
 
 	token := strings.ToLower(r.Token)
-	if _, err := uuid.ParseHex(token); err != nil {
+	if _, err := uuid.FromString(token); err != nil {
 		return ErrTokenNotValid
 	}
 

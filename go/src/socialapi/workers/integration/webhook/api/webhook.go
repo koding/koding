@@ -128,7 +128,7 @@ func (h *Handler) FetchGroupBotChannel(u *url.URL, header http.Header, _ interfa
 	}
 
 	// validate token
-	if _, err := uuid.ParseHex(strings.ToLower(token)); err != nil {
+	if _, err := uuid.FromString(strings.ToLower(token)); err != nil {
 		return response.NewInvalidRequest(ErrTokenNotValid)
 	}
 
