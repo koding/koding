@@ -147,6 +147,15 @@ utils.extend utils,
     return {}
 
 
+  slugifyCompanyName: (team) ->
+
+    if name = team.signup?.companyName
+    then teamName = KD.utils.slugify name
+    else teamName = ''
+
+    return teamName
+
+
   createFormData = (teamData) ->
 
     teamData ?= KD.utils.getTeamData()

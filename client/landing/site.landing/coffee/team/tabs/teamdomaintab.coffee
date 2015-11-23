@@ -37,6 +37,20 @@ module.exports = class TeamDomainTab extends KDTabPaneView
             @showError error or 'That domain is invalid or taken, please try another one.'
 
 
+  show: ->
+
+    super
+
+    team = KD.utils.getTeamData()
+
+    if slug = team.domain?.slug
+    then teamName = slug
+    else teamName = KD.utils.slugifyCompanyName team
+
+    @form.input.setValue teamName
+    @form.input.setAttribute 'size', teamName.length
+
+
   showError: (error) ->
 
     track 'entered an invalid domain'
