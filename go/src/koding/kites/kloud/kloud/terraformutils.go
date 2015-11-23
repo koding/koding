@@ -312,10 +312,7 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		countKeys := map[string]string{}
 		for i := 0; i < count; i++ {
 			// create a new kite id for every new aws resource
-			kiteUUID, err := uuid.NewV4()
-			if err != nil {
-				return nil, err
-			}
+			kiteUUID := uuid.NewV4()
 
 			kiteId := kiteUUID.String()
 

@@ -464,10 +464,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		m.Session.AWSClient.Builder.InstanceType = plans.T2Micro.String()
 	}
 
-	kiteUUID, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
+	kiteUUID := uuid.NewV4()
 
 	kiteId := kiteUUID.String()
 

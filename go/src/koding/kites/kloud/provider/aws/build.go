@@ -248,10 +248,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, errors.New("instance type is empty")
 	}
 
-	kiteUUID, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
+	kiteUUID := uuid.NewV4()
 
 	kiteId := kiteUUID.String()
 
