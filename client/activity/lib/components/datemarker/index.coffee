@@ -25,8 +25,12 @@ module.exports = class DateMarker extends React.Component
 
 
   render: ->
-    <div className={kd.utils.curry "DateMarker", @props.className}>
+
+    <div ref='dateMarker' className={kd.utils.curry "DateMarker", @props.className}>
       {@renderDate()}
+      <div ref='fixedDateMarker' className={kd.utils.curry "DateMarker fixedDateMarker", @props.className}>
+        {@renderDate()}
+      </div>
     </div>
 
 
