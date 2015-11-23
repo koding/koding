@@ -5,43 +5,47 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/koding/logging"
 )
 
-var _ Interface = File{}
+var _ Interface = (*File)(nil)
 
 // File provides file based storage
 type File struct {
 	basePath string
+	log      logging.Logger
 }
 
 // NewFile creates a new folder storage
-func NewFile(basePath string) (File, error) {
+func NewFile(basePath string, log logging.Logger) (*File, error) {
 	// if base path is empty create a temp one
 	if basePath == "" {
 		// calling TempDir simultaneously will not choose the same directory.
 		var err error
 		basePath, err = ioutil.TempDir("", "storage")
 		if err != nil {
-			return File{}, err
+			return nil, err
 		}
 	}
 
 	if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
-		return File{}, err
+		return nil, err
 	}
 
-	return File{
+	return &File{
 		basePath: basePath,
+		log:      log,
 	}, nil
 }
 
 // BasePath returns the base path for the storage
-func (f File) BasePath() (string, error) {
+func (f *File) BasePath() (string, error) {
 	return f.basePath, nil
 }
 
 // Write writes to a file with given path
-func (f File) Write(filePath string, file io.Reader) (err error) {
+func (f *File) Write(filePath string, file io.Reader) (err error) {
 	dirPath, err := f.fullPath(path.Dir(filePath))
 	if err != nil {
 		return err
@@ -85,8 +89,10 @@ func (f File) Remove(filePath string) error {
 	return nil
 }
 
-// Read reads a file
-func (f File) Read(filePath string) (io.Reader, error) {
+// Read reads a file.
+//
+// Caller is responsible for closing the file.
+func (f *File) Read(filePath string) (io.Reader, error) {
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
 		return nil, err
@@ -101,7 +107,7 @@ func (f File) Read(filePath string) (io.Reader, error) {
 }
 
 // Clone clones underlying files to the target storage
-func (f File) Clone(filePath string, target Interface) error {
+func (f *File) Clone(filePath string, target Interface) error {
 	fullPath, err := f.fullPath(filePath)
 	if err != nil {
 		return err
@@ -112,7 +118,14 @@ func (f File) Clone(filePath string, target Interface) error {
 		return err
 	}
 
+	// TODO(rjeczalik): glob directories and copy files recursively?
+	// S3 makes deep copy, copies eveything recursively.
 	for _, fileInfo := range fileInfos {
+		// Ignore directory, otherwise calling Read on dir is going to fail.
+		if fileInfo.IsDir() {
+			continue
+		}
+
 		fnPath := path.Join(filePath, fileInfo.Name())
 
 		file, err := f.Read(fnPath)
@@ -121,7 +134,12 @@ func (f File) Clone(filePath string, target Interface) error {
 		}
 
 		fpath := path.Join(filePath, fileInfo.Name())
-		if err := target.Write(fpath, file); err != nil {
+		err = target.Write(fpath, file)
+
+		// If the reader implements io.Closer interface, close the resource.
+		f.ensureClosed(file, fpath)
+
+		if err != nil {
 			return err
 		}
 	}
@@ -129,11 +147,19 @@ func (f File) Clone(filePath string, target Interface) error {
 	return nil
 }
 
-func (f File) fullPath(filePath string) (string, error) {
+func (f *File) fullPath(filePath string) (string, error) {
 	dir, err := f.BasePath()
 	if err != nil {
 		return "", err
 	}
 
 	return path.Join(dir, filePath), nil
+}
+
+func (f *File) ensureClosed(r io.Reader, path string) {
+	if c, ok := r.(io.Closer); ok {
+		if err := c.Close(); err != nil {
+			f.log.Warning("failed closing resource path=%q: %s", path, err)
+		}
+	}
 }
