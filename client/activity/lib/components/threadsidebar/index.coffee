@@ -7,7 +7,7 @@ ChannelMessagesList       = require 'activity/components/channelmessageslist'
 Link                      = require 'app/components/common/link'
 InstallKdModal            = require 'app/providers/managed/installkdmodal'
 isGroupChannel            = require 'app/util/isgroupchannel'
-
+Scroller                  = require 'app/components/scroller'
 
 module.exports = class ThreadSidebar extends React.Component
 
@@ -34,7 +34,7 @@ module.exports = class ThreadSidebar extends React.Component
     return  unless channel.typeConstant is 'topic'
 
     <p className="ThreadSidebarContentBox-info--inviteTeammates">
-      <label>You didn't invite your team yet!</label>
+      <label>You didn&apos;t invite your team yet!</label>
       <a href="/Admin/Invitations">Invite your teammates</a>
     </p>
 
@@ -46,7 +46,7 @@ module.exports = class ThreadSidebar extends React.Component
 
 
   render: ->
-    <div className="ThreadSidebar">
+    <Scroller className="ThreadSidebar">
       <ThreadSidebarContentBox title="PARTICIPANTS">
         {@renderInviteSection()}
       </ThreadSidebarContentBox>
@@ -64,6 +64,6 @@ module.exports = class ThreadSidebar extends React.Component
         <a href="http://learn.koding.com/categories/ssh/">How to ssh into your VMs?</a>
         <a href="http://learn.koding.com"><i>See more...</i></a>
       </ThreadSidebarContentBox>
-    </div>
+    </Scroller>
 
 

@@ -74,6 +74,8 @@ koding = new Bongo {
     [callback, context] = [context, callback] unless callback
     callback            ?= ->
 
+    return callback null  unless JUser
+
     JUser.authenticateClient sessionToken, (err, res = {}) ->
 
       { account, session } = res

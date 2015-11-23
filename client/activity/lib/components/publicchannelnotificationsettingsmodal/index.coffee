@@ -1,3 +1,4 @@
+_                                 = require 'lodash'
 kd                                = require 'kd'
 Link                              = require 'app/components/common/link'
 React                             = require 'kd-react'
@@ -19,6 +20,11 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     }
 
 
+  componentWillUpdate: (nextProps, nextState) ->
+
+    @initialSettings = @state.channelNotificationSettings  unless @initialSettings
+
+
   componentDidMount: ->
 
     webNotifications = ReactDOM.findDOMNode @refs.webNotifications
@@ -28,14 +34,43 @@ module.exports = class PublicChannelNotificationSettingsModal extends React.Comp
     radio.focus()
 
 
+  getChangedFields: ->
+
+    channelSettings = @state.channelNotificationSettings.toJS()
+    initialSettings = if @initialSettings then @initialSettings.toJS() else channelSettings
+    changedKeys     = Object.keys(initialSettings).filter (key) -> initialSettings[key] isnt channelSettings[key]
+    changedFields   = channelSettings
+
+    if not channelSettings._newlyCreated
+
+      changedFields = {}
+
+      i = 0
+      while i < changedKeys.length
+        changedFields[changedKeys[i]] = channelSettings[changedKeys[i]]
+        i++
+
+    return changedFields
+
+
   onSave: (event) ->
 
     kd.utils.stopDOMEvent event
 
+    channelName     = @state.selectedThread.getIn ['channel', 'name']
+    route           = "/Channels/#{channelName}"
+    channelSettings = @state.channelNotificationSettings.toJS()
+    changedFields   = @getChangedFields()
+
+    return kd.singletons.router.handleRoute route  if _.isEmpty changedFields
+
+    changedFields.id = channelSettings.id
+
     options =
       channelId       : @state.selectedThread.getIn ['channel', 'id']
-      channelName     : @state.selectedThread.getIn ['channel', 'name']
-      channelSettings : @state.channelNotificationSettings.toJS()
+      channelName     : channelName
+      changedFields   : changedFields
+      channelSettings : channelSettings
 
     { saveSettings } = NotificationSettingsFlux.actions.channel
 

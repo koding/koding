@@ -103,6 +103,7 @@ module.exports = class ChatPane extends React.Component
     return null  unless @props.thread
 
     <Scroller
+      style={{height: 'auto'}}
       ref='scrollContainer'
       hasMore={@props.thread.get('messages').size}
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
