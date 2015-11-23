@@ -854,7 +854,10 @@ class IDEAppController extends AppController
       delete @generatedPanes[pane.view.hash]
 
       if session = pane.view.remote?.session
-        @mountedMachine.getBaseKite().removeFromActiveSessions session
+        # we need to check against kite existence because while a machine
+        # is getting destroyed/stopped/reinitialized we are invalidating it's
+        # kite instance to make sure every call is stopped. ~ GG
+        @mountedMachine.getBaseKite()?.removeFromActiveSessions? session
 
       @statusBar.showInformation()  if ideViewLength is 0
 
