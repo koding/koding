@@ -25,6 +25,8 @@ type Client struct {
 // NewClient creates new *ec2.EC2 wrapper.
 //
 // If log is non-nil, it's used for debug logging EC2 service.
+// If calling NewClient succeeds, it means the client is authenticated
+// and is ready for issuing requests.
 func NewClient(opts *ClientOptions) (*Client, error) {
 	cfg := NewSession(opts)
 	svc := ec2.New(cfg)

@@ -62,7 +62,7 @@ func (s *S3) Write(path string, file io.Reader) error {
 	}
 	if rs, ok := file.(io.ReadSeeker); ok {
 		params.Body = rs
-		if size := s.guessSize(file); size > 0 {
+		if size := s.guessSize(file); size != 0 {
 			params.ContentLength = aws.Int64(size)
 		}
 	} else {
