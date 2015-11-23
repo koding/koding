@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/userdata"
 	"strings"
 	"time"
 
@@ -18,6 +17,11 @@ import (
 	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/net/context"
+)
+
+const (
+	// Go binary residues at go/src/koding/kites/kloud/scripts/softlayer
+	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-softlayer/softlayer"
 )
 
 func (m *Machine) Build(ctx context.Context) (err error) {
@@ -44,18 +48,18 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 	kiteId := kiteUUID.String()
 
-	cloudInitConfig := &userdata.CloudInitConfig{
-		Username:    m.Username,
-		Groups:      []string{"sudo"},
-		UserSSHKeys: sshKeys,
-		Hostname:    m.Username, // no typo here. hostname = username
-		KiteId:      kiteId,
-	}
+	// cloudInitConfig := &userdata.CloudInitConfig{
+	// 	Username:    m.Username,
+	// 	Groups:      []string{"sudo"},
+	// 	UserSSHKeys: sshKeys,
+	// 	Hostname:    m.Username, // no typo here. hostname = username
+	// 	KiteId:      kiteId,
+	// }
 
-	userdata, err := m.Session.Userdata.Create(cloudInitConfig)
-	if err != nil {
-		return err
-	}
+	// userdata, err := m.Session.Userdata.Create(cloudInitConfig)
+	// if err != nil {
+	// 	return err
+	// }
 
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
@@ -64,14 +68,15 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		StartCpus: 1,
 		MaxMemory: 1024,
 		Datacenter: datatypes.Datacenter{
-			Name: "ams01",
+			Name: "fra02",
 		},
 		HourlyBillingFlag:            true,
 		LocalDiskFlag:                true,
 		OperatingSystemReferenceCode: "UBUNTU_LATEST",
 		UserData: []datatypes.UserData{
-			{Value: string(userdata)},
+			{Value: "vim-go"},
 		},
+		PostInstallScriptUri: PostInstallScriptUri,
 	}
 
 	//Get the SoftLayer virtual guest service
