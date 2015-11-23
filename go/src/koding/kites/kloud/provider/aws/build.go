@@ -296,18 +296,15 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		}
 		subnetID = aws.StringValue(subnet.SubnetId)
 		vpcID = aws.StringValue(subnet.VpcId)
-		// TODO(rjeczalik): stop after first subnet found?
+		break
 	}
 	if subnetID == "" {
 		return nil, errors.New("did not found a subnet with available IPs")
 	}
 
 	var groupID string
-
-	switch group, err := m.Session.AWSClient.SecurityGroupByName(KodingGroupName); {
-	case err == nil:
-		groupID = aws.StringValue(group.GroupId)
-	case amazon.IsNotFound(err):
+	group, err := m.Session.AWSClient.SecurityGroupByName(KodingGroupName)
+	if amazon.IsNotFound(err) {
 		groupID, err = m.Session.AWSClient.Client.CreateSecurityGroup(KodingGroupName, vpcID, KodingGroupDesc)
 		if err != nil {
 			return nil, err
@@ -330,8 +327,10 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		if err != nil {
 			return nil, err
 		}
-	default:
+	} else if err != nil {
 		return nil, err
+	} else {
+		groupID = aws.StringValue(group.GroupId)
 	}
 
 	m.Session.AWSClient.Builder.KeyPair = keys.KeyName
