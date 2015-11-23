@@ -44,7 +44,7 @@ func main() {
 
 	iterOptions := helpers.NewIterOptions()
 	iterOptions.CollectionName = collectionName
-	iterOptions.F = deleteDocuments
+	iterOptions.F = processDocuments
 	iterOptions.Filter = createFilter()
 	iterOptions.Result = &resultDataType
 	iterOptions.Limit = *flagLimit
@@ -69,7 +69,7 @@ func createFilter() helper.Selector {
 	}
 }
 
-func deleteDocuments(doc interface{}) error {
+func processDocuments(doc interface{}) error {
 	result := *(doc.(*map[string]interface{}))
 	id, ok := result["_id"]
 	if !ok {
@@ -95,3 +95,29 @@ func deleteDocuments(doc interface{}) error {
 	}
 	return nil
 }
+
+// func createFilter() helper.Selector {
+// 	return helper.Selector{
+// 		"status": "confirmed",
+// 		"registeredAt": helper.Selector{
+// 			"$gte": time.Date(2015, 11, 15, 0, 0, 0, 0, time.UTC),
+// 			"$lte": time.Date(2015, 11, 19, 0, 0, 0, 0, time.UTC),
+// 		},
+// 	}
+// }
+
+// func processDocuments(doc interface{}) error {
+// 	result := *(doc.(*map[string]interface{}))
+
+// 	fmt.Println(result["username"])
+
+// 	sessions, _ := modelhelper.GetSessionsByUsername(result["username"].(string))
+// 	s := make([]string, 0)
+// 	for _, session := range sessions {
+// 		s = append(s, session.ClientIP)
+// 	}
+
+// 	fmt.Println(strings.Join(s, ","), "\n")
+
+// 	return nil
+// }
