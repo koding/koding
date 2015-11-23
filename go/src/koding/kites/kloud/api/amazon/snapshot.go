@@ -17,19 +17,19 @@ func (a *Amazon) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, error) {
 	}
 
 	checkSnapshot := func(int) (machinestate.State, error) {
-		switch s, err := a.Client.SnapshotByID(aws.StringValue(snapshot.SnapshotId)); {
-		case IsNotFound(err):
+		s, err := a.Client.SnapshotByID(aws.StringValue(snapshot.SnapshotId))
+		if IsNotFound(err) {
 			// shouldn't happen but let's check it anyway
 			return machinestate.Pending, nil
-		case err != nil:
-			return 0, err
-		case aws.StringValue(s.State) != "completed":
-			// TODO(rjeczalik): use state enums
-			return machinestate.Pending, nil
-		default:
-			snapshot = s
-			return machinestate.Stopped, nil
 		}
+		if err != nil {
+			return 0, err
+		}
+		if aws.StringValue(s.State) != ec2.SnapshotStateCompleted {
+			return machinestate.Pending, nil
+		}
+		snapshot = s
+		return machinestate.Stopped, nil
 	}
 
 	ws := waitstate.WaitState{
