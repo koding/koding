@@ -22,7 +22,8 @@ module.exports = class IDEEditorPane extends IDEPane
 
     super options, data
 
-    @hash  = file.paneHash  if file.paneHash
+    @hash        = file.paneHash  if file.paneHash
+    @ideViewHash = options.ideViewHash
 
     @on 'SaveRequested', @bound 'save'
 

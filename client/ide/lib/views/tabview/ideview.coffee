@@ -263,7 +263,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   createEditorAfterFileCheck: (file, content, callback, emitChange, isReadOnly) ->
 
     content     = content or ''
-    editorPane  = new IDEEditorPane { file, content, delegate: this }
+    ideViewHash = @hash
+    editorPane  = new IDEEditorPane { ideViewHash, file, content, delegate: this }
 
     paneOptions =
       name      : file.name
