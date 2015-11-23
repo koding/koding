@@ -14,6 +14,10 @@ JCounter   = require './counter'
 { expect } = require 'chai'
 { generateRandomString, checkBongoConnectivity } = require '../../../testhelper'
 
+NAMESPACES           = []
+LIMIT_EXCEEDED_ERROR = 'Provided limit has been reached'
+
+
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
 
@@ -21,9 +25,6 @@ beforeTests = -> before (done) ->
 
 
 runTests = ->
-
-  LIMIT_EXCEEDED_ERROR = 'Provided limit has been reached'
-  NAMESPACES           = []
 
   describe 'workers.social.counter.increment', ->
 
@@ -181,20 +182,23 @@ runTests = ->
 
       daisy queue
 
-    it 'should reset counters with namespaces', (done) ->
 
-      queue = [ ]
+afterTests = -> after (done) ->
 
-      NAMESPACES.forEach (namespace) -> queue.push ->
-        JCounter.reset { namespace }, (err) ->
-          expect(err).to.not.exist
-          queue.next()
+    queue = [ ]
 
-      queue.push -> done()
+    NAMESPACES.forEach (namespace) -> queue.push ->
+      JCounter.reset { namespace }, (err) ->
+        expect(err).to.not.exist
+        queue.next()
 
-      daisy queue
+    queue.push -> done()
+
+    daisy queue
 
 
 beforeTests()
 
 runTests()
+
+afterTests()
