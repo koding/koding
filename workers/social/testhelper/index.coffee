@@ -78,8 +78,9 @@ withDummyClient = (context, callback) ->
 
 withConvertedUser = (opts, callback) ->
 
-  [opts, callback]          = [callback, opts]  unless callback
-  { context, userFormData } = opts  if opts
+  [opts, callback] = [callback, opts]  unless callback
+  opts ?= {}
+  { context, userFormData } = opts
 
   context      ?= { group : 'koding' }
   userFormData ?= generateDummyUserFormData()
@@ -91,7 +92,7 @@ withConvertedUser = (opts, callback) ->
       client.sessionToken         = newToken
       client.connection.delegate  = account
 
-      fetchGroup client, (group) ->
+      fetchOrCreateGroup client, opts, (group) ->
         if opts?.userFormData?
         then callback { client, user, account, group, sessionToken : newToken }
         else callback { client, user, account, group, sessionToken : newToken, userFormData }
@@ -111,7 +112,7 @@ withCreatedUser = (opts, callback) ->
       expect(err).to.not.exist
       [user, account] = [user_, account_]
 
-      fetchGroup client, (group) ->
+      fetchOrCreateGroup client, opts, (group) ->
         callback { client, user, account, group }
 
 
@@ -198,11 +199,27 @@ fetchRelation = (options, callback) ->
     callback relationship
 
 
-fetchGroup = (client, callback) ->
+fetchOrCreateGroup = (client, opts, callback) ->
 
-  JGroup.one { slug : client?.context?.group }, (err, group) ->
+  [opts, callback] = [callback, opts]  unless callback
+  opts ?= {}
+
+  slug = client?.context?.group
+  JGroup.one { slug }, (err, group) ->
     expect(err).to.not.exist
-    callback group
+    return callback group  if group or not opts.createGroup
+
+    # no group found, let's create one
+    groupData         =
+      slug           : slug
+      title          : slug
+      visibility     : 'visible'
+      allowedDomains : [ 'koding.com' ]
+
+    account = client?.connection?.delegate
+    JGroup.create client, groupData, account, (err, group) ->
+      expect(err).to.not.exist
+      callback group
 
 
 expectRelation = {
@@ -226,7 +243,6 @@ module.exports = {
   expect
   KONFIG
   ObjectId
-  fetchGroup
   expectRelation
   withDummyClient
   withCreatedUser
