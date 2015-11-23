@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/koding/bongo"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 func NewAccount() *Account {

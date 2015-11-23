@@ -8,7 +8,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (

@@ -20,7 +20,7 @@ import (
 	"github.com/koding/integration/helpers"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
-	uuid "github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Handler struct {

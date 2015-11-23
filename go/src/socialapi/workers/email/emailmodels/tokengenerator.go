@@ -6,7 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type TokenGenerator struct {

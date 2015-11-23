@@ -4,7 +4,7 @@ import (
 	"socialapi/workers/integration/webhook"
 	"strings"
 
-	uuid "github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // PushRequest is used as input data for /push endpoint
