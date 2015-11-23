@@ -53,34 +53,33 @@ module.exports = class JApiToken extends jraphical.Module
 
   @create: (data, callback) ->
 
-    { accountId, group } = data
+    { account, group } = data
 
-    unless accountId and group
-      return callback new KodingError 'accountId and group must be set!'
+    unless account and group
+      return callback new KodingError 'account and group slug must be set!'
 
     queue = [
 
       ->
-        JAccount.one { _id : accountId }, (err, account) ->
-          return callback err                                   if err
-          return callback new KodingError 'account not found!'  unless account
-          queue.next()
+        # validating data params
+        unless account instanceof JAccount
+          return callback new KodingError 'account is not an instance of Jaccount!'
 
-      ->
         JGroup.one { slug : group }, (err, group_) ->
           return callback err                                 if err
           return callback new KodingError 'group not found!'  unless group_
           queue.next()
 
       ->
+        # creating token
         token = new JApiToken
           code     : hat()
           group    : group
-          originId : accountId
+          originId : account.getId()
 
         token.save (err) ->
           return callback err  if err
-          callback err, token
+          callback null, token
 
     ]
 
@@ -97,7 +96,7 @@ module.exports = class JApiToken extends jraphical.Module
       unless account and group
         return callback new KodingError 'account and group must be set!'
 
-      data = { group, accountId : account.getId() }
+      data = { group, account }
       JApiToken.create data, callback
 
 
