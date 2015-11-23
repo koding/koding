@@ -1,4 +1,5 @@
 _ = require 'lodash'
+kd = require 'kd'
 React = require 'kd-react'
 ReactDOM = require 'react-dom'
 Ps = require 'perfect-scrollbar'
@@ -56,6 +57,11 @@ module.exports = class PerfectScrollbar extends Component
     props     = _.pick @props, Object.keys PerfectScrollbar.defaultProps
 
     Ps.initialize container, props
+
+    # update once it's rendered so that if the viewport is larger than
+    # scrollable area, it will trigger an ps-y-reach-start. ~500 is approximate.
+    # FIXME: remove `wait` from here and make sure it handles each case.
+    kd.utils.wait 500, -> Ps.update container
 
     @addListener 'resize', @bound 'onResize'
 

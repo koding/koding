@@ -22,11 +22,19 @@ module.exports = class MessageBody extends React.Component
     super props
 
     @state = { message: @props.message }
+    @_mounted = no
 
 
   componentDidMount: ->
 
+    @_mounted = yes
+
     @transformChannelHashtags @state.message
+
+
+  componentWillUnmount: ->
+
+    @_mounted = no
 
 
   contentDidMount: (content) ->
@@ -59,7 +67,7 @@ module.exports = class MessageBody extends React.Component
     return  unless message.has('body')
 
     transformTags message.get('body'), (transformed) =>
-
+      return  unless @_mounted
       @setState { message: message.set 'body', transformed }
 
 

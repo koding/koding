@@ -1,6 +1,5 @@
 kd = require 'kd'
 React = require 'kd-react'
-Waypoint = require 'react-waypoint'
 
 PerfectScrollbar = require 'app/components/perfectscrollbar'
 
@@ -14,18 +13,18 @@ module.exports = class Scroller extends React.Component
     minScrollbarLength    : 64
     useSelectionScroll    : on
 
-  renderTopWaypoint: ->
+  onUpLimitReached: ->
 
-    return null  unless @props.hasMore
+    return  unless @props.hasMore
 
-    <Waypoint onEnter={@props.onTopThresholdReached} threshold={@props.threshold} />
+    @props.onTopThresholdReached?()
 
 
-  renderBottomWaypoint: ->
+  onDownLimitReached: ->
 
-    return null  unless @props.hasMore
+    return  unless @props.hasMore
 
-    <Waypoint onEnter={@props.onThresholdReached} threshold={@props.threshold} />
+    @props.onThresholdReached?()
 
 
   render: ->
@@ -33,10 +32,10 @@ module.exports = class Scroller extends React.Component
     <PerfectScrollbar
       {...@props}
       className={kd.utils.curry 'Scrollable', @props.className}
+      onUpLimitReached={@bound 'onUpLimitReached'}
+      onDownLimitReached={@bound 'onDownLimitReached'}
       ref='scrollContainer'>
-      {@renderTopWaypoint()}
       {@props.children}
-      {@renderBottomWaypoint()}
     </PerfectScrollbar>
 
 
