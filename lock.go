@@ -2,22 +2,23 @@ package fuseklient
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 )
 
-const lockFolderName = ".fuseklient"
+var lockFolderName = filepath.Join(".config", "koding")
 
 // Lock locks a folder by creating a .lock file corresponding to that folder.
 // This lock file is to be used by external tools to understand a particular
 // folder is a Fuse mounted folder.
 //
-// Lock files are stored in `~/.fuseklient`; slashes in path are replaces
+// Lock files are stored in `~/.config/koding`; slashes in path are replaces
 // with _ in file name; ie if `/path/to/mount` folder is mounted then
-// `~/.fuseklient/path_to_mount.lock` will be created.
-func Lock(path string) error {
+// `~/.config/koding/path_to_mount.lock` will be created.
+func Lock(path, machine string) error {
 	lockFile, err := getLockFileName(path)
 	if err != nil {
 		return err
@@ -27,20 +28,24 @@ func Lock(path string) error {
 		return fmt.Errorf("Lock file: '%s' exists. Please remove to continue.", lockFile)
 	}
 
-	fmt.Printf("Creating lock file: '%s'\n\n", lockFile)
+	fmt.Printf("Creating lock file: '%s'\n", lockFile)
 
-	_, err = os.Create(lockFile)
-	return err
+	return ioutil.WriteFile(lockFile, []byte(machine), 0644)
 }
 
-// Unlock removes ~/.fuseklient/path_to_mount.lock file.
+// Unlock removes the lock file.
 func Unlock(path string) error {
 	lockFile, err := getLockFileName(path)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("\nDeleting lock file: '%s'\n", lockFile)
+	// If lock file doesn't exist, return nil instead of error.
+	if _, err := os.Stat(lockFile); os.IsNotExist(err) {
+		return nil
+	}
+
+	fmt.Printf("Deleting lock file: '%s'\n", lockFile)
 
 	return os.Remove(lockFile)
 }
@@ -59,7 +64,7 @@ func getLockFileName(path string) (string, error) {
 	return lockFile, nil
 }
 
-// getOrCreateConfigFolder creates `~/.fuseklient` folder unless it exists.
+// getOrCreateConfigFolder creates config folder unless it exists.
 func getOrCreateConfigFolder() (string, error) {
 	usr, err := user.Current()
 	if err != nil {

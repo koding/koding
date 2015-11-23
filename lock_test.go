@@ -28,7 +28,7 @@ func TestLock(t *testing.T) {
 			_, err = os.Create(lockFile)
 			So(err, ShouldBeNil)
 
-			So(Lock(mountPath), ShouldNotBeNil)
+			So(Lock(mountPath, "machine"), ShouldNotBeNil)
 
 			defer os.Remove(lockFile)
 		})
@@ -36,17 +36,23 @@ func TestLock(t *testing.T) {
 		Convey("It should lock mount", func() {
 			os.Remove(lockFile)
 
-			So(Lock(mountPath), ShouldBeNil)
+			So(Lock(mountPath, "machine"), ShouldBeNil)
 
 			_, err = os.Stat(lockFile)
 			So(err, ShouldBeNil)
+
+			Convey("It should write machine name to file contents", func() {
+				contents, err := ioutil.ReadFile(lockFile)
+				So(err, ShouldBeNil)
+				So(string(contents), ShouldEqual, "machine")
+			})
 
 			defer os.Remove(lockFile)
 		})
 
 		Convey("It should unlock mount", func() {
 			os.Remove(lockFile)
-			So(Lock(mountPath), ShouldBeNil)
+			So(Lock(mountPath, "machine"), ShouldBeNil)
 
 			So(Unlock(mountPath), ShouldBeNil)
 
