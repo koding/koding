@@ -1,18 +1,10 @@
-# DB Connections
-{ argv }   = require 'optimist'
-KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
-mongo      = process.env.MONGO_URL or "mongodb://#{ KONFIG.mongo }"
-
-# Bongo
-Bongo      = require 'bongo'
-{ daisy }  = Bongo
-
 # Test Model
-JCounter   = require './counter'
+JCounter = require './counter'
 
 # Helpers
-{ expect } = require 'chai'
-{ generateRandomString, checkBongoConnectivity } = require '../../../testhelper'
+{ expect,
+  generateRandomString,
+  checkBongoConnectivity } = require '../../../testhelper'
 
 NAMESPACES           = []
 LIMIT_EXCEEDED_ERROR = 'Provided limit has been reached'
@@ -183,7 +175,9 @@ runTests = ->
       daisy queue
 
 
-afterTests = -> after (done) ->
+afterTests = ->
+
+  after (done) ->
 
     queue = [ ]
 
