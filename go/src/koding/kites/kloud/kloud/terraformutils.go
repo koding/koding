@@ -19,11 +19,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/fatih/structs"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite/protocol"
 	"github.com/mitchellh/mapstructure"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // credPermissions defines the permission grid for the given method

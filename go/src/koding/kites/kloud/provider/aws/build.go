@@ -20,7 +20,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
 
