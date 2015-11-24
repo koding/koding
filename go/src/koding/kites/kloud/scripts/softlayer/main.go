@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 const metadataURL = "https://api.service.softlayer.com/rest/v3/SoftLayer_Resource_Metadata/getUserMetadata.txt"
@@ -43,7 +44,7 @@ func realMain() error {
 	}
 
 	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
-	if err := installKlient(val.LatestKlientURL); err != nil {
+	if err := installKlient(val.Username, val.LatestKlientURL); err != nil {
 		return err
 	}
 
@@ -76,20 +77,38 @@ func createUser(username string, groups []string) error {
 	return nil
 }
 
-func installKlient(url string) error {
+func installKlient(username, url string) error {
 	var tmpFile = "/tmp/latest-klient.deb"
 	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
 	download := newCommand("wget", args...)
-	download.Stdout = os.Stdout
-	download.Stderr = os.Stderr
-	download.Stdin = os.Stdin
 	if err := download.Run(); err != nil {
 		return err
 	}
+	defer os.Remove(tmpFile)
 
 	install := newCommand("dpkg", "-i", tmpFile)
-	return install.Run()
+	if err := install.Run(); err != nil {
+		return err
+	}
+
+	content, err := ioutil.ReadFile("/etc/init/klient.conf")
+	if err != nil {
+		return err
+	}
+
+	newContent := strings.Replace(string(content), "./klient", fmt.Sprintf("sudo -E -u %s ./klient", username), -1)
+
+	if err := ioutil.WriteFile("/etc/init/klient.conf", []byte(newContent), 0644); err != nil {
+		return err
+	}
+
+	restart := newCommand("service", "klient", "restart")
+	if err := restart.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func metadata() (*userdata.Value, error) {
