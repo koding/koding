@@ -11,12 +11,14 @@ import (
 	"github.com/koding/kite/protocol"
 )
 
+// GetKodingKitesResult mirrors the Kite GetKitesResult protocol.
 type GetKodingKitesResult struct {
 	Kites []*KodingKiteWithToken `json:"kites"`
 }
 
-// KodingKiteWithToken implements a KiteWithToken with a handful of additional
-// fields pertaining
+// KodingKiteWithToken mirrors the Kite library KiteWithToken with a handful of
+// additional fields pertaining to Koding itself. Such as Machine Label, and
+// Teams information.
 type KodingKiteWithToken struct {
 	// These fields match protocol.KiteWithToken
 	Kite  protocol.Kite `json:"kite"`
@@ -54,7 +56,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		}
 
 		// A map of GroupId a slice of all KodingKiteWithToken that contain that group.
-		kkwtsByGroupId := map[string][]*KodingKiteWithToken{}
+		kkwtsByGroupID := map[string][]*KodingKiteWithToken{}
 
 		// Create our slice of unique group ids that we will use to query all the
 		// groups that we need.
@@ -62,10 +64,10 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 		// Because we are using the Kite's IP as a means to identify the machine,
 		// we are sorting the machines by IP so that we can easily look them up.
-		machinesByIp := map[string]*models.Machine{}
+		machinesByIP := map[string]*models.Machine{}
 		for _, m := range machines {
 			if m.IpAddress != "" {
-				machinesByIp[m.IpAddress] = m
+				machinesByIP[m.IpAddress] = m
 			}
 		}
 
@@ -84,7 +86,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 			}
 			kodingKitesResult.Kites[i] = kkwt
 
-			host, err := hostFromUrl(kwt.URL)
+			host, err := hostFromURL(kwt.URL)
 			if err != nil {
 				req.LocalKite.Log.Warning(
 					"Kite with badly formed URL, unable to extract host. Koding data will not be provided for this Kite. [username:%s, kiteId:%s, host:%s]",
@@ -97,14 +99,14 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 			// With a valid host, get the koding specific information such as Label
 			// or Team names and apply it to each KodingKiteWithToken
-			if machine, ok := machinesByIp[host]; ok {
+			if machine, ok := machinesByIP[host]; ok {
 				kkwt.MachineLabel = machine.Label
 
 				for _, g := range machine.Groups {
 					id := g.Id.Hex()
 					// Get all of the kites (not including this one) which have
 					// a reference to this kite, so we can append this kite to them.
-					kkwts, ok := kkwtsByGroupId[id]
+					kkwts, ok := kkwtsByGroupID[id]
 
 					// If the id is *not* in the kkwts map yet, it is unique.
 					// Store the group id in the unique slice, so we can query for the groups.
@@ -117,7 +119,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 					//
 					// Note that if a Machine somehow has two entries for the same group,
 					// this will be appended twice, but should not cause a problem.
-					kkwtsByGroupId[id] = append(kkwts, kkwt)
+					kkwtsByGroupID[id] = append(kkwts, kkwt)
 				}
 			}
 		}
@@ -137,7 +139,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		for _, group := range groups {
 			id := group.Id.Hex()
 
-			kkwts, ok := kkwtsByGroupId[id]
+			kkwts, ok := kkwtsByGroupID[id]
 
 			// This shouldn't happen, so log a warning to aid in identifying a problem,
 			// and continue.
@@ -159,7 +161,9 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 	}
 }
 
-func hostFromUrl(s string) (string, error) {
+// hostFromURL parses the given string, extracting the host (ip/domain) from the
+// given string. Ignoring other data such as Port or Url Parameters.
+func hostFromURL(s string) (string, error) {
 	u, err := url.Parse(s)
 	if err != nil {
 		return "", err
