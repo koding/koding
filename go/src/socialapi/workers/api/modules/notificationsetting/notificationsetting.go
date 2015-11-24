@@ -143,7 +143,6 @@ func Delete(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int,
 // parseToNotificationSetting updates the given notification settings struct
 // with given map[string]interface.
 // If interface value does exist , then we update notification setting even if interface value is  null
-
 func parseToNotificationSetting(a map[string]interface{}, r *models.NotificationSetting) (*models.NotificationSetting, error) {
 
 	if value, ok := a["desktopSetting"]; ok {
@@ -151,7 +150,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.DesktopSetting = nisql.NullString{}
 
 		} else {
-			data, ok := value.(string)
+			data, k := value.(string)
 			if ok {
 				r.DesktopSetting = nisql.String(data)
 			} else {
@@ -165,7 +164,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.MobileSetting = nisql.NullString{}
 
 		} else {
-			data, ok := value.(string)
+			data, k := value.(string)
 			if ok {
 				r.MobileSetting = nisql.String(data)
 			} else {
@@ -179,7 +178,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsSuppressed = nisql.NullBool{}
 
 		} else {
-			data, ok := value.(bool)
+			data, k := value.(bool)
 			if ok {
 				r.IsSuppressed = nisql.Bool(data)
 			} else {
@@ -193,7 +192,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsMuted = nisql.NullBool{}
 
 		} else {
-			data, ok := value.(bool)
+			data, k := value.(bool)
 			if ok {
 				r.IsMuted = nisql.Bool(data)
 			} else {
