@@ -9,6 +9,13 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+type kiteInfo struct {
+	IP           string
+	VMName       string
+	Hostname     string
+	MountedPaths []string
+}
+
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context) int {
@@ -38,16 +45,9 @@ func ListCommand(c *cli.Context) int {
 	fmt.Fprintf(w, "\tMACHINE NAME\tMACHINE IP\tHOSTNAME\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\n",
-			i+1, info.VmName, info.Ip, info.Hostname, strings.Join(info.MountedPaths, ", "))
+			i+1, info.VMName, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
 	}
 	w.Flush()
 
 	return 0
-}
-
-type kiteInfo struct {
-	Ip           string
-	VmName       string
-	Hostname     string
-	MountedPaths []string
 }

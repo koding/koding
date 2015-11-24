@@ -8,7 +8,7 @@ import (
 	"github.com/koding/klientctl/util"
 )
 
-// ExitCommand is a function that returns an exit code
+// ExitingCommand is a function that returns an exit code
 type ExitingCommand func(*cli.Context) int
 
 // ExitingWithMessageCommand is a function which prints the given message to
@@ -104,7 +104,7 @@ func main() {
 				},
 			},
 			//HideHelp: true,
-			Action: Exit(InstallCommand),
+			Action: Exit(InstallCommandFactory),
 		},
 		cli.Command{
 			Name:        "uninstall",
@@ -154,6 +154,7 @@ func main() {
 	app.Run(os.Args)
 }
 
+// Exit is a wrapper around commands to return to proper error code.
 func Exit(f ExitingCommand) func(*cli.Context) {
 	return func(c *cli.Context) { os.Exit(f(c)) }
 }

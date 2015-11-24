@@ -17,7 +17,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// SSHCommand is the cli command that lets users ssh into their remote machine.
+// SSHCommand is the cli command that lets users ssh into a remote machine.
 // It manages the creating and storing of authorization keys for ease of use.
 //
 // On first run it generates a new SSH key pair and adds it to the requested
@@ -45,6 +45,7 @@ type SSHCommand struct {
 	Transport
 }
 
+// SSHCommandFactory is the factory method for SSHCommand.
 func SSHCommandFactory(c *cli.Context) int {
 	cmd, err := NewSSHCommand()
 	// TODO: Refactor SSHCommand instance to require no initialization,
@@ -54,7 +55,7 @@ func SSHCommandFactory(c *cli.Context) int {
 		return 1
 	}
 
-	return cmd.Run(c)
+	return cmd.run(c)
 }
 
 // NewSSHCommand is the required initializer for SSHCommand.
@@ -80,7 +81,7 @@ func NewSSHCommand() (*SSHCommand, error) {
 	}, nil
 }
 
-func (s *SSHCommand) Run(c *cli.Context) int {
+func (s *SSHCommand) run(c *cli.Context) int {
 	if len(c.Args()) != 1 {
 		cli.ShowCommandHelp(c, "ssh")
 		return 1
@@ -132,8 +133,8 @@ func (s *SSHCommand) getSSHIp(name string) (string, error) {
 	}
 
 	for _, info := range infos {
-		if strings.HasPrefix(info.VmName, name) {
-			return fmt.Sprintf("%s@%s", info.Hostname, info.Ip), nil
+		if strings.HasPrefix(info.VMName, name) {
+			return fmt.Sprintf("%s@%s", info.Hostname, info.IP), nil
 		}
 	}
 

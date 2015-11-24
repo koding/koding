@@ -21,11 +21,11 @@ func TestHealthCheckRemote(t *testing.T) {
 		// We can use the same url for inet and kontrol, since inet just
 		// checks for no error
 		c := &HealthChecker{
-			HttpClient: &http.Client{
+			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
 			RemoteKiteAddress: ts.URL,
-			RemoteHttpAddress: ts.URL,
+			RemoteHTTPAddress: ts.URL,
 		}
 
 		So(c.CheckRemote(), ShouldBeNil)
@@ -34,11 +34,11 @@ func TestHealthCheckRemote(t *testing.T) {
 	Convey("Should return no internet if the inetAddress fails", t, func() {
 		// Simulate no internet with a bad address
 		c := &HealthChecker{
-			HttpClient: &http.Client{
+			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
 			RemoteKiteAddress: "http://foo",
-			RemoteHttpAddress: "http://bar",
+			RemoteHTTPAddress: "http://bar",
 		}
 
 		err := c.CheckRemote()
@@ -58,16 +58,16 @@ func TestHealthCheckRemote(t *testing.T) {
 		defer tsKon.Close()
 
 		c := &HealthChecker{
-			HttpClient: &http.Client{
+			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
 			RemoteKiteAddress: tsKon.URL,
-			RemoteHttpAddress: tsNet.URL,
+			RemoteHTTPAddress: tsNet.URL,
 		}
 
 		err := c.CheckRemote()
 		So(err, ShouldNotBeNil)
-		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHttpResponse{})
+		So(err, ShouldHaveSameTypeAs, ErrHealthNoKontrolHTTPResponse{})
 	})
 
 	Convey("Should return unexpected response if the kontrol response is.. unexpected", t, func() {
@@ -81,11 +81,11 @@ func TestHealthCheckRemote(t *testing.T) {
 		defer tsKon.Close()
 
 		c := &HealthChecker{
-			HttpClient: &http.Client{
+			HTTPClient: &http.Client{
 				Timeout: 4 * time.Second,
 			},
 			RemoteKiteAddress: tsNet.URL,
-			RemoteHttpAddress: tsKon.URL,
+			RemoteHTTPAddress: tsKon.URL,
 		}
 
 		err := c.CheckRemote()
@@ -104,11 +104,11 @@ func TestHealthCheckRemote(t *testing.T) {
 		defer ts.Close()
 
 		c := &HealthChecker{
-			HttpClient: &http.Client{
+			HTTPClient: &http.Client{
 				Timeout: 1 * time.Second,
 			},
 			RemoteKiteAddress: ts.URL,
-			RemoteHttpAddress: ts.URL,
+			RemoteHTTPAddress: ts.URL,
 		}
 
 		err := c.CheckRemote()

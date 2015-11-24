@@ -15,7 +15,7 @@ func TestRunCommand(t *testing.T) {
 				},
 			}
 
-			r.Run("machine", []string{"ls -alh"})
+			r.run("machine", []string{"ls -alh"})
 			//So(err, ShouldBeNil)
 		})
 	})

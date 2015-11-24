@@ -11,8 +11,10 @@ import (
 	"github.com/koding/fuseklient"
 )
 
+// ErrNotInMount happens when command is run from outside a mount.
 var ErrNotInMount = errors.New("command not run on mount")
 
+// RunCommandFactory is the factory method for RunCommand.
 func RunCommandFactory(c *cli.Context) int {
 	if len(c.Args()) < 1 {
 		cli.ShowCommandHelp(c, "run")
@@ -32,7 +34,7 @@ func RunCommandFactory(c *cli.Context) int {
 		return 1
 	}
 
-	res, err := r.Run(localPath, c.Args()[0:])
+	res, err := r.run(localPath, c.Args()[0:])
 	if err != nil && err != fuseklient.ErrNotInMount {
 		fmt.Printf("Error running command: '%s'\n", err)
 		return 1
@@ -66,12 +68,20 @@ func RunCommandFactory(c *cli.Context) int {
 	return 0
 }
 
+// RunCommand is the cli command that lets users run a command a remote
+// machine. All arguments/flags passed to command are sent to command run on
+// remote machine.
+//
+// It currently only supports running commands from inside a mount. It detects
+// if it's inside a mount by parsing the lock files and checking if command path
+// is the same as or inside the mount.
 type RunCommand struct {
 	// Transport is communication layer between this and local klient.
 	// This is used to run the command on the remote machine.
 	Transport
 }
 
+// NewRunCommand is the required initializer for RunCommand.
 func NewRunCommand() (*RunCommand, error) {
 	klientKite, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
@@ -85,7 +95,7 @@ func NewRunCommand() (*RunCommand, error) {
 	return &RunCommand{Transport: klientKite}, nil
 }
 
-func (r *RunCommand) Run(localPath string, cmdWithArgs []string) (*ExecRes, error) {
+func (r *RunCommand) run(localPath string, cmdWithArgs []string) (*ExecRes, error) {
 	machine, err := fuseklient.GetMachineMountedForPath(localPath)
 	if err != nil {
 		return nil, err
@@ -96,10 +106,10 @@ func (r *RunCommand) Run(localPath string, cmdWithArgs []string) (*ExecRes, erro
 		return nil, err
 	}
 
-	return r.RunOnMachine(machine, fullCmdPath, cmdWithArgs)
+	return r.runOnMachine(machine, fullCmdPath, cmdWithArgs)
 }
 
-func (r *RunCommand) RunOnMachine(machine, fullCmdPath string, cmdWithArgs []string) (*ExecRes, error) {
+func (r *RunCommand) runOnMachine(machine, fullCmdPath string, cmdWithArgs []string) (*ExecRes, error) {
 	req := struct {
 		Machine string
 		Command string
@@ -145,6 +155,7 @@ func (r *RunCommand) getCmdRemotePath(machine, localPath string) (string, error)
 	return "", ErrNotInMount
 }
 
+// getMounts returns list of mounts from remote.
 func (r *RunCommand) getMounts() ([]kiteMounts, error) {
 	res, err := r.Tell("remote.mounts")
 	if err != nil {
