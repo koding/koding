@@ -8,6 +8,13 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+type kiteMounts struct {
+	Ip         string `json:"ip"`
+	RemotePath string `json:"remotePath"`
+	LocalPath  string `json:"localPath"`
+	MountName  string `json:"mountName"`
+}
+
 // MountsCommand returns list of previously mounted folders.
 func MountsCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
@@ -25,13 +32,6 @@ func MountsCommand(c *cli.Context) int {
 	if err != nil {
 		fmt.Printf("Error getting list of mounts from %s: '%s'\n", KlientName, err)
 		return 1
-	}
-
-	type kiteMounts struct {
-		Ip         string `json:"ip"`
-		RemotePath string `json:"remotePath"`
-		LocalPath  string `json:"localPath"`
-		MountName  string `json:"mountName"`
 	}
 
 	var mounts []kiteMounts
