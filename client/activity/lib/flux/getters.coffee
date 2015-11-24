@@ -75,7 +75,10 @@ ChannelParticipantsDropdownVisibilityStore = ['ChannelParticipantsDropdownVisibi
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
   allChannels
-  (ids, channels) -> ids.map (id) -> channels.get id
+  (ids, channels) ->
+    ids
+      .map (id) -> channels.get id
+      .filter (channel) -> channel.get('typeConstant') is 'privatemessage'
 ]
 
 popularChannels = [
