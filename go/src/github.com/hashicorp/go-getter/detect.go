@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/hashicorp/terraform/helper/url"
+	"github.com/hashicorp/go-getter/helper/url"
 )
 
 // Detector defines the interface that an invalid URL or a URL with a blank
@@ -24,6 +24,7 @@ func init() {
 	Detectors = []Detector{
 		new(GitHubDetector),
 		new(BitBucketDetector),
+		new(S3Detector),
 		new(FileDetector),
 	}
 }

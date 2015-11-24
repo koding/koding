@@ -71,10 +71,10 @@ Minify scripts and styles:
 λ koding/client make minify
 ```
 
-Minify scripts and styles, but write source maps of scripts to an external `.map` file:
+Minify scripts and styles, but write source maps of scripts to an external `.map` file for production:
 
 ```sh
-λ koding/client make minify-with-external-sourcemaps
+λ koding/client make production
 ```
 
 Vanilla:
@@ -89,7 +89,7 @@ Build [landing](./landing):
 λ koding/client make landing
 ```
 
-And finally there are `make all` and `make dist` which are simply aliases for `make landing development` and `make landing minify-with-external-sourcemaps` respectively.
+And finally there are `make all` and `make dist` which are simply aliases for `make landing development` and `make landing production` respectively.
 
 You can also pass additional [builder](./builder) arguments using `EXTRAS` variable.
 

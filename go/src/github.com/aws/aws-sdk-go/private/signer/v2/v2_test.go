@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awstesting"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/awstesting"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +38,7 @@ func (sb signerBuilder) BuildSigner() signer {
 		req.URL.RawQuery = sb.Query.Encode()
 	}
 
-	signer := signer{
+	sig := signer{
 		Request: req,
 		Time:    sb.SignTime,
 		Credentials: credentials.NewStaticCredentials(
@@ -48,11 +48,11 @@ func (sb signerBuilder) BuildSigner() signer {
 	}
 
 	if os.Getenv("DEBUG") != "" {
-		signer.Debug = aws.LogDebug
-		signer.Logger = aws.NewDefaultLogger()
+		sig.Debug = aws.LogDebug
+		sig.Logger = aws.NewDefaultLogger()
 	}
 
-	return signer
+	return sig
 }
 
 func TestSignRequestWithAndWithoutSession(t *testing.T) {

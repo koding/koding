@@ -31,9 +31,11 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
 
   disableAdminRepos: ->
+
     data = @getData()
     disabledRepos = data.repositories.filter (r) -> return r.disabled
     selectOptions = @settingsForm.inputs.repository?.getElement().options or []
+
     disabledRepos.forEach (repo) ->
       for option in selectOptions when option.value is repo.value
         option.setAttribute 'disabled', 'disabled'
@@ -131,10 +133,12 @@ module.exports = class AdminIntegrationDetailsView extends JView
 
   createEventCheckboxes: ->
 
-    selectedEvents = @getData().selectedEvents or []
-    mainWrapper    = new kd.CustomHTMLView cssClass: 'event-cbes'
-
     return  unless @data.settings?.events
+
+    { selectedEvents, updatedAt, createdAt } = @getData()
+    mainWrapper      = new kd.CustomHTMLView cssClass: 'event-cbes'
+    selectedEvents   = selectedEvents or []
+    isNewIntegration = updatedAt is createdAt
 
     for item in @data.settings.events
 
@@ -145,7 +149,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
         type         : 'checkbox'
         name         : name
         label        : label
-        defaultValue : selectedEvents.indexOf(name) > -1
+        defaultValue : (selectedEvents.indexOf(name) > -1) or isNewIntegration
 
       wrapper.addSubView checkbox
       wrapper.addSubView label
@@ -263,7 +267,7 @@ module.exports = class AdminIntegrationDetailsView extends JView
     channels        = []
 
     if data.channels
-      for channel in data.channels
+      for channel in data.channels when channel.name isnt '#public'
         channels.push title: channel.name, value: channel.id
 
     if data.repositories
@@ -275,6 +279,8 @@ module.exports = class AdminIntegrationDetailsView extends JView
             title: repository.full_name + ' (requires admin perms)'
             value: repository.full_name
             disabled: yes
+
+      repositories.sort (repo) -> return if repo.disabled then 1 else -1
 
     data.repositories = repositories or []
 

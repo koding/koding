@@ -38,8 +38,6 @@ module.exports = class MainView extends KDView
 
   viewAppended: ->
 
-    @bindPulsingRemove()
-    @bindTransitionEnd()
     @createSidebar()
     @createHeader()
     @createPanelWrapper()
@@ -370,28 +368,6 @@ module.exports = class MainView extends KDView
       @enableFullscreen()
 
 
-  bindPulsingRemove:->
-
-    router     = kd.getSingleton 'router'
-    appManager = kd.getSingleton 'appManager'
-
-    appManager.once 'AppCouldntBeCreated', removePulsing
-
-    appManager.on 'AppCreated', (appInstance)->
-      options = appInstance.getOptions()
-      {title, name, appEmitsReady} = options
-      routeArr = global.location.pathname.split('/')
-      routeArr.shift()
-      checkedRoute = if routeArr.first is "Develop" \
-                     then routeArr.last else routeArr.first
-
-      if checkedRoute is name or checkedRoute is title
-        if appEmitsReady
-          appView = appInstance.getView()
-          appView.ready removePulsing
-        else removePulsing()
-
-
   _logoutAnimation: ->
 
     {body}      = global.document
@@ -405,32 +381,3 @@ module.exports = class MainView extends KDView
     @setClass "logout-tv"
 
 
-  removePulsing = ->
-
-    loadingScreen = global.document.getElementById 'main-loading'
-
-    return unless loadingScreen
-
-    logo = loadingScreen.children[0]
-    logo.classList.add 'out'
-
-    kd.utils.wait 750, ->
-
-      loadingScreen.classList.add 'out'
-
-      kd.utils.wait 750, ->
-
-        loadingScreen.parentElement.removeChild loadingScreen
-
-        return if isLoggedIn()
-
-        cdc      = kd.singleton('display')
-        mainView = kd.getSingleton 'mainView'
-
-        return unless Object.keys(cdc.displays).length
-
-        for own id, display of cdc.displays
-          top      = display.$().offset().top
-          duration = 400
-          KDScrollView::scrollTo.call mainView, {top, duration}
-          break

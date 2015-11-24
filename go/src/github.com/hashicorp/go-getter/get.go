@@ -43,7 +43,7 @@ var Getters map[string]Getter
 
 // forcedRegexp is the regular expression that finds forced getters. This
 // syntax is schema::url, example: git::https://foo.com
-var forcedRegexp = regexp.MustCompile(`^([A-Za-z]+)::(.+)$`)
+var forcedRegexp = regexp.MustCompile(`^([A-Za-z0-9]+)::(.+)$`)
 
 func init() {
 	httpGetter := new(HttpGetter)
@@ -52,6 +52,7 @@ func init() {
 		"file":  new(FileGetter),
 		"git":   new(GitGetter),
 		"hg":    new(HgGetter),
+		"s3":    new(S3Getter),
 		"http":  httpGetter,
 		"https": httpGetter,
 	}
