@@ -144,7 +144,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.DesktopSetting = nisql.NullString{}
 
 		} else {
-			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(string)) {
+			if reflect.ValueOf(value).Kind() == reflect.String {
 				r.DesktopSetting = nisql.String(value.(string))
 			}
 		}
@@ -155,7 +155,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.MobileSetting = nisql.NullString{}
 
 		} else {
-			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(string)) {
+			if reflect.ValueOf(value).Kind() == reflect.String {
 				r.MobileSetting = nisql.String(value.(string))
 			}
 		}
@@ -166,7 +166,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsSuppressed = nisql.NullBool{}
 
 		} else {
-			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(bool)) {
+			if reflect.ValueOf(value).Kind() == reflect.Bool {
 				r.IsSuppressed = nisql.Bool(value.(bool))
 			}
 		}
@@ -177,7 +177,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsMuted = nisql.NullBool{}
 
 		} else {
-			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(bool)) {
+			if reflect.ValueOf(value).Kind() == reflect.Bool {
 				r.IsMuted = nisql.Bool(value.(bool))
 			}
 		}
