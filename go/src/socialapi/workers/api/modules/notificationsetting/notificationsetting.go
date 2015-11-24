@@ -1,15 +1,19 @@
 package notificationsetting
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
-	"reflect"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
 
 	"github.com/cihangir/nisql"
 	"github.com/koding/bongo"
+)
+
+var (
+	ErrTypeAssertion = errors.New("type assertion error")
 )
 
 // Create creates the notification settings with the channelId and accountId
@@ -96,7 +100,10 @@ func Update(u *url.URL, h http.Header, a map[string]interface{}, ctx *models.Con
 	// Here we update notification setting with incoming request datas
 	// if field have null or any value, then we update the field
 	// otherwise we dont change any value of notification setting struct
-	req = parseToNotificationSetting(a, req)
+	req, err = parseToNotificationSetting(a, req)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	if err := req.Update(); err != nil {
 		return response.NewBadRequest(err)
@@ -137,15 +144,18 @@ func Delete(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int,
 // with given map[string]interface.
 // If interface value does exist , then we update notification setting even if interface value is  null
 
-func parseToNotificationSetting(a map[string]interface{}, r *models.NotificationSetting) *models.NotificationSetting {
+func parseToNotificationSetting(a map[string]interface{}, r *models.NotificationSetting) (*models.NotificationSetting, error) {
 
 	if value, ok := a["desktopSetting"]; ok {
 		if value == nil {
 			r.DesktopSetting = nisql.NullString{}
 
 		} else {
-			if reflect.ValueOf(value).Kind() == reflect.String {
-				r.DesktopSetting = nisql.String(value.(string))
+			data, ok := value.(string)
+			if ok {
+				r.DesktopSetting = nisql.String(data)
+			} else {
+				return nil, ErrTypeAssertion
 			}
 		}
 	}
@@ -155,8 +165,11 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.MobileSetting = nisql.NullString{}
 
 		} else {
-			if reflect.ValueOf(value).Kind() == reflect.String {
-				r.MobileSetting = nisql.String(value.(string))
+			data, ok := value.(string)
+			if ok {
+				r.MobileSetting = nisql.String(data)
+			} else {
+				return nil, ErrTypeAssertion
 			}
 		}
 	}
@@ -166,8 +179,11 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsSuppressed = nisql.NullBool{}
 
 		} else {
-			if reflect.ValueOf(value).Kind() == reflect.Bool {
-				r.IsSuppressed = nisql.Bool(value.(bool))
+			data, ok := value.(bool)
+			if ok {
+				r.IsSuppressed = nisql.Bool(data)
+			} else {
+				return nil, ErrTypeAssertion
 			}
 		}
 	}
@@ -177,13 +193,16 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsMuted = nisql.NullBool{}
 
 		} else {
-			if reflect.ValueOf(value).Kind() == reflect.Bool {
-				r.IsMuted = nisql.Bool(value.(bool))
+			data, ok := value.(bool)
+			if ok {
+				r.IsMuted = nisql.Bool(data)
+			} else {
+				return nil, ErrTypeAssertion
 			}
 		}
 	}
 
-	return r
+	return r, nil
 }
 
 func fetchChannelIdwithParticipantCheck(u *url.URL, context *models.Context) (int64, error) {
