@@ -65,6 +65,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		LatestKlientURL: klientURL,
 	}
 
+	// pass the values as a json. Our script will unmarshall and use it inside
+	// the instance
 	val, err := json.Marshal(&data)
 	if err != nil {
 		return err
@@ -72,7 +74,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
-		Hostname:  "koding-" + m.Username,
+		Hostname:  m.Username,  // this is correct, we use the username as hostname
 		Domain:    "koding.io", // this is just a placeholder
 		StartCpus: 1,
 		MaxMemory: 1024,

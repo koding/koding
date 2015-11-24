@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"koding/kites/kloud/scripts/softlayer/userdata"
 	"log"
 	"net/http"
 	"os"
@@ -91,14 +92,14 @@ func installKlient(url string) error {
 	return install.Run()
 }
 
-func metadata() (*Value, error) {
+func metadata() (*userdata.Value, error) {
 	resp, err := http.Get(metadataURL)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var val Value
+	var val userdata.Value
 	if err := json.NewDecoder(resp.Body).Decode(&val); err != nil {
 		return nil, err
 	}
