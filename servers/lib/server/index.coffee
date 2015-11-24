@@ -109,6 +109,7 @@ app.get  '/-/jobs'                               , require './handlers/jobs'
 app.post '/recaptcha'                            , require './handlers/recaptcha'
 app.get  '/-/presence/:service'                  , (req, res) -> res.status(200).end()
 app.get  '/-/api/user/:username/flags/:flag'     , require './handlers/flaguser'
+app.post '/-/api/ssotoken/create'                , require './handlers/createssotoken'
 app.get  '/-/image/cache'                        , require './image_cache'
 app.get  '/-/oauth/odesk/callback'               , require './odesk_callback'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
