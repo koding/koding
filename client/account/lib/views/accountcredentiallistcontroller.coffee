@@ -2,6 +2,7 @@ kd                          = require 'kd'
 KDView                      = kd.View
 KDButtonView                = kd.ButtonView
 KDContextMenu               = kd.ContextMenu
+KDCustomScrollView          = kd.CustomScrollView
 KDNotificationView          = kd.NotificationView
 KDFormViewWithFields        = kd.FormViewWithFields
 KDAutoCompleteController    = kd.AutoCompleteController
@@ -170,15 +171,18 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     view = @getView().parent
     view.form?.destroy()
     view.intro?.destroy()
+    view.scrollView?.destroy()
 
     view.setClass "form-open"
 
-    options   = { provider }
-    options.defaultTitle   = defaultTitle    if defaultTitle?
-    options.requiredFields = requiredFields  if requiredFields?
+    view.scrollView = new KDCustomScrollView  cssClass : 'add-credential-scroll'
+
+    options                 = { provider }
+    options.defaultTitle    = defaultTitle    if defaultTitle?
+    options.requiredFields  = requiredFields  if requiredFields?
 
     if provider is 'aws'
-      view.addSubView view.intro = new kd.CustomHTMLView
+      view.scrollView.wrapper.addSubView view.intro = new kd.CustomHTMLView
         cssClass  : 'credential-creation-intro'
         partial   : '''
           <p>Add your AWS credentials</a>
@@ -204,7 +208,12 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
       view.form.destroy()
       @addItem credential
 
-    view.addSubView view.form
+    # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
+    # The KDCustomScroll was hidden while Stacks screen is rendering.
+    view.on 'NotifyResizeListeners', -> kd.singletons.windowController.notifyWindowResizeListeners()
+
+    view.scrollView.wrapper.addSubView view.form
+    view.addSubView view.scrollView
 
 
   showShareCredentialFormFor: (credential) ->
