@@ -48,7 +48,6 @@ func realMain() error {
 
 	return nil
 }
-
 func createUser(username string, groups []string) error {
 	var args = []string{"--disabled-password", "--shell", "/bin/bash", "--gecos", "Koding", username}
 	adduser := newCommand("adduser", args...)
@@ -61,6 +60,16 @@ func createUser(username string, groups []string) error {
 		if err := addGroup.Run(); err != nil {
 			return err
 		}
+	}
+
+	f, err := os.OpenFile("/etc/sudoers", os.O_APPEND|os.O_WRONLY, 0400)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString(fmt.Sprintf("%s ALL=(ALL) NOPASSWD:ALL", username)); err != nil {
+		return err
 	}
 
 	return nil
