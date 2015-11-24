@@ -516,7 +516,8 @@ func fetchTerraformData(method, username, groupname string, db *mongodb.MongoDB,
 		}
 
 		if err := mapstructure.Decode(c.Meta, &cred.Data); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("malformed credential data found: %+v. Please fix it\n\terr:%s",
+				c.Meta, err)
 		}
 
 		data.Creds = append(data.Creds, cred)

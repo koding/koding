@@ -23,6 +23,9 @@
     "/Channels/:channelName/:postSlug": "SinglePublicChannelPost",
     "/Channels/:channelName/NotificationSettings": "ChannelNotificationSettings",
 
+    "/PrivateChannelModals/:modalRoute": "PrivateChannelModals",
+    "/PublicChannelModals/:modalRoute": "PublicChannelModals",
+    "/ActivityModals/:modalRoute": "ActivityModals",
     "/NewMessage": "NewPrivateChannel",
     "/AllMessages": "AllPrivateChannels",
     "/Messages/:privateChannelId": "SinglePrivateChannel",

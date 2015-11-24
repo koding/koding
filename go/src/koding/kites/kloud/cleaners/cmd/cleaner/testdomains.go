@@ -6,7 +6,8 @@ import (
 
 	"koding/kites/kloud/pkg/dnsclient"
 
-	"github.com/mitchellh/goamz/route53"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/route53"
 )
 
 type TestDomains struct {
@@ -66,26 +67,29 @@ func (t *TestDomains) Run() {
 	// fmt.Printf("Removing '%d' test domains\n", len(t.records))
 
 	for _, records := range splittedRecords(t.records, 100) {
-		changes := make([]route53.Change, len(records))
+		params := &route53.ChangeResourceRecordSetsInput{
+			HostedZoneId: aws.String(t.DNS.ZoneId),
+			ChangeBatch: &route53.ChangeBatch{
+				Comment: aws.String("Deleting test domains"),
+				Changes: make([]*route53.Change, len(records)),
+			},
+		}
+
 		for i, r := range records {
-			changes[i] = route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    r.Name,
-					TTL:     r.TTL,
-					Records: []string{r.IP},
+			params.ChangeBatch.Changes[i] = &route53.Change{
+				Action: aws.String("DELETE"),
+				ResourceRecordSet: &route53.ResourceRecordSet{
+					Name: aws.String(r.Name),
+					Type: aws.String("A"),
+					TTL:  aws.Int64(int64(r.TTL)),
+					ResourceRecords: []*route53.ResourceRecord{{
+						Value: aws.String(r.IP),
+					}},
 				},
 			}
-
 		}
 
-		changeResourceSet := &route53.ChangeResourceRecordSetsRequest{
-			Comment: "Deleting domain",
-			Changes: changes,
-		}
-
-		_, err := t.DNS.ChangeResourceRecordSets(t.DNS.ZoneId, changeResourceSet)
+		_, err := t.DNS.ChangeResourceRecordSets(params)
 		if err != nil {
 			t.err = err
 			return

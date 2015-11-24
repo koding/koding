@@ -43,7 +43,7 @@ withConvertedUserAndProvisioner = (options, callback) ->
   [options, callback] = [callback, options]  unless callback
   options            ?= {}
 
-  withConvertedUser (data) ->
+  withConvertedUser options, (data) ->
     { client, account }       = data
     options.originId = account?.getId() ? new ObjectId
     options.group    = client?.context?.group

@@ -1,4 +1,5 @@
 BrowsePrivateChannelsModal = require 'activity/components/browseprivatechannelsmodal'
+helper = require './helper'
 
 module.exports = class AllPrivateChannelsRoute
 
@@ -7,6 +8,8 @@ module.exports = class AllPrivateChannelsRoute
     @path = '/AllMessages'
 
 
-  getComponent: (state, callback) -> callback null, BrowsePrivateChannelsModal
+  getComponents: (state, callback) ->
+
+    helper.renderWithBackgroundChannel BrowsePrivateChannelsModal, callback
 
 

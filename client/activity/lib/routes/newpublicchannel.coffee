@@ -1,4 +1,7 @@
 CreatePublicChannelModal = require 'activity/components/createpublicchannelmodal'
+helper = require './helper'
+
+ChannelThreadPane = require 'activity/components/channelthreadpane'
 
 module.exports = class NewChannelRoute
 
@@ -7,6 +10,8 @@ module.exports = class NewChannelRoute
     @path = '/NewChannel'
 
 
-  getComponent: (state, callback) -> callback null, CreatePublicChannelModal
+  getComponents: (state, callback) ->
+
+    helper.renderWithBackgroundChannel CreatePublicChannelModal, callback
 
 
