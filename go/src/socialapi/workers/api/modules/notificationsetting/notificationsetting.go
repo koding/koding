@@ -7,6 +7,7 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 
+	"github.com/cihangir/nisql"
 	"github.com/koding/bongo"
 )
 
@@ -129,6 +130,51 @@ func Delete(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (int,
 	}
 
 	return response.NewDeleted()
+}
+
+// parseToNotificationSetting updates the given notification settings struct
+// with given map[string]interface.
+// If interface value does exist , then we update notification setting even if interface value is  null
+
+func parseToNotificationSetting(a map[string]interface{}, r *models.NotificationSetting) *models.NotificationSetting {
+
+	if value, ok := a["desktopSetting"]; ok {
+		if value == nil {
+			r.DesktopSetting = nisql.NullString{}
+
+		} else {
+			r.DesktopSetting = nisql.String(value.(string))
+		}
+	}
+
+	if value, ok := a["mobileSetting"]; ok {
+		if value == nil {
+			r.MobileSetting = nisql.NullString{}
+
+		} else {
+			r.MobileSetting = nisql.String(value.(string))
+		}
+	}
+
+	if value, ok := a["isSuppressed"]; ok {
+		if value == nil {
+			r.IsSuppressed = nisql.NullBool{}
+
+		} else {
+			r.IsSuppressed = nisql.Bool(value.(bool))
+		}
+	}
+
+	if value, ok := a["isMuted"]; ok {
+		if value == nil {
+			r.IsMuted = nisql.NullBool{}
+
+		} else {
+			r.IsMuted = nisql.Bool(value.(bool))
+		}
+	}
+
+	return r
 }
 
 func fetchChannelIdwithParticipantCheck(u *url.URL, context *models.Context) (int64, error) {
