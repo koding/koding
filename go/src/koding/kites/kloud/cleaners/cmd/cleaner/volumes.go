@@ -11,10 +11,10 @@ type Volumes struct {
 	Cleaner   *Cleaner
 	IsPaid    func(username string) bool
 	Instances *lookup.MultiInstances
-	Volumes   lookup.MultiVolumes
+	Volumes   *lookup.MultiVolumes
 	MongoDB   *lookup.MongoDB
 
-	notusedVolumes lookup.MultiVolumes
+	notusedVolumes *lookup.MultiVolumes
 	largeInstances *lookup.MultiInstances
 	err            error
 	stopData       map[string]*StopData
@@ -34,7 +34,7 @@ func (v *Volumes) Process() {
 	ids := make([]string, 0)
 	stopData := make(map[string]*StopData, 0)
 
-	for _, volumes := range inUse {
+	for _, volumes := range inUse.Volumes() {
 		volIds := volumes.InstanceIds()
 
 		instanceIds := make([]string, 0)

@@ -499,21 +499,43 @@ func (c *Client) StartInstance(id string) (*ec2.InstanceStateChange, error) {
 }
 
 // StopInstance is a wrapper for (*ec2.EC2).StopInstances.
+//
+// If call succeeds but no instance were stopped, it returns non-nil
+// *NotFoundError error.
 func (c *Client) StopInstance(id string) (*ec2.InstanceStateChange, error) {
+	stopped, err := c.StopInstances(id)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	return stopped[0], nil
+}
+
+// StopInstances is a wrapper for (*ec2.EC2).StopInstances.
+//
+// If call succeeds but no instances were stopped, it returns non-nil
+// *NotFoundError error.
+func (c *Client) StopInstances(ids ...string) ([]*ec2.InstanceStateChange, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("no instances to stop")
+	}
 	params := &ec2.StopInstancesInput{
-		InstanceIds: []*string{aws.String(id)},
+		InstanceIds: make([]*string, len(ids)),
+	}
+	for i := range params.InstanceIds {
+		params.InstanceIds[i] = aws.String(ids[i])
 	}
 	resp, err := c.EC2.StopInstances(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
 	if len(resp.StoppingInstances) == 0 {
-		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instance stopped with ids=%v", ids))
 	}
-	if len(resp.StoppingInstances) > 1 {
-		c.Log.Warning("more than one instance stopped with id=%q: %+v", id, resp.StoppingInstances)
+	if len(resp.StoppingInstances) != len(ids) {
+		c.Log.Warning("requested to stop %d instances; stopped %d: %+v",
+			len(ids), len(resp.StoppingInstances), resp.StoppingInstances)
 	}
-	return resp.StoppingInstances[0], nil
+	return resp.StoppingInstances, nil
 }
 
 // RebootInstance is a wrapper for (*ec2.EC2).RebootInstances.
@@ -526,21 +548,43 @@ func (c *Client) RebootInstance(id string) error {
 }
 
 // TerminateInstance is a wrapper for (*ec2.EC2).TerminateInstances.
+//
+// If call succeeds but no instance were terminated, it returns non-nil
+// *NotFoundError error.
 func (c *Client) TerminateInstance(id string) (*ec2.InstanceStateChange, error) {
+	terminated, err := c.TerminateInstances(id)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	return terminated[0], nil
+}
+
+// TerminateInstances is a wrapper for (*ec2.EC2).TerminateInstances.
+//
+// If call succeeds but no instances were terminated, it returns non-nil
+// *NotFoundError error.
+func (c *Client) TerminateInstances(ids ...string) ([]*ec2.InstanceStateChange, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("no instances to terminate")
+	}
 	params := &ec2.TerminateInstancesInput{
-		InstanceIds: []*string{aws.String(id)},
+		InstanceIds: make([]*string, len(ids)),
+	}
+	for i := range params.InstanceIds {
+		params.InstanceIds[i] = aws.String(ids[i])
 	}
 	resp, err := c.EC2.TerminateInstances(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
 	if len(resp.TerminatingInstances) == 0 {
-		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instance terminated with ids=%v", ids))
 	}
-	if len(resp.TerminatingInstances) > 1 {
-		c.Log.Warning("more than one instance terminated with id=%q: %+v", id, resp.TerminatingInstances)
+	if len(resp.TerminatingInstances) != len(ids) {
+		c.Log.Warning("requested to terminate %d instances; terminated %d: %+v",
+			len(ids), len(resp.TerminatingInstances), resp.TerminatingInstances)
 	}
-	return resp.TerminatingInstances[0], nil
+	return resp.TerminatingInstances, nil
 }
 
 // KeyPairByName is a wrapper for (*ec2.EC2).DescribeKeyPairs with name filter.

@@ -8,7 +8,7 @@ import (
 type ElasticIPs struct {
 	Lookup *lookup.Lookup
 
-	nonused lookup.Addresses
+	nonused *lookup.Addresses
 	err     error
 }
 
@@ -19,11 +19,7 @@ func (e *ElasticIPs) Process() {
 }
 
 func (e *ElasticIPs) Run() {
-	if len(e.nonused) == 0 {
-		return
-	}
-
-	e.Lookup.ReleaseAll(e.nonused)
+	e.nonused.ReleaseAll()
 }
 
 func (e *ElasticIPs) Result() string {

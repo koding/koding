@@ -2,28 +2,22 @@ package lookup
 
 import (
 	"fmt"
-	"log"
-	"strconv"
+	"koding/kites/kloud/api/amazon"
 	"sync"
 	"time"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-type Volumes map[string]ec2.Volume
+type Volumes map[string]*ec2.Volume
 
 // GreaterTan filters out volumes which are greater than the given storage size
 func (v Volumes) GreaterThan(storage int) Volumes {
 	filtered := make(Volumes, 0)
 
 	for id, volume := range v {
-		volSize, err := strconv.Atoi(volume.Size)
-		if err != nil {
-			fmt.Printf("volume err = %+v\n", err)
-			continue
-		}
-
-		if volSize > storage {
+		if aws.Int64Value(volume.Size) > int64(storage) {
 			filtered[id] = volume
 		}
 	}
@@ -53,14 +47,7 @@ func (v Volumes) SizeFromVolumeId(id string) int {
 	if !ok {
 		return 0
 	}
-
-	size, err := strconv.Atoi(vol.Size)
-	if err != nil {
-		log.Printf("volumes.size [%s]: %s\n", id, err)
-		return 0
-	}
-
-	return size
+	return int(aws.Int64Value(vol.Size))
 }
 
 // Ids returns the list of volumeIds of the volumes
@@ -79,7 +66,7 @@ func (v Volumes) Status(status string) Volumes {
 	filtered := make(Volumes, 0)
 
 	for id, volume := range v {
-		if volume.Status == status {
+		if aws.StringValue(volume.State) == status {
 			filtered[id] = volume
 		}
 	}
@@ -89,7 +76,7 @@ func (v Volumes) Status(status string) Volumes {
 }
 
 // Terminate terminates the given volume specified with the volume id
-func (v Volumes) TerminateAll(client *ec2.EC2) {
+func (v Volumes) TerminateAll(client *amazon.Client) {
 	if len(v) == 0 {
 		return
 	}
@@ -116,7 +103,7 @@ func (v Volumes) InstanceIds() map[string]string {
 		}
 
 		if len(volume.Attachments) == 1 {
-			ids[volume.Attachments[0].InstanceId] = id
+			ids[aws.StringValue(volume.Attachments[0].InstanceId)] = id
 		} else if len(volume.Attachments) > 1 {
 			fmt.Printf("volume = %+v\n", volume)
 			panic("No VM should have more than one volume. Something is wrong!!!")

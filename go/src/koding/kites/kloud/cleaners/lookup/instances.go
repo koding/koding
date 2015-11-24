@@ -2,13 +2,15 @@ package lookup
 
 import (
 	"fmt"
+	"koding/kites/kloud/api/amazon"
 	"time"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 // Instances represents a list of ec2.Instances
-type Instances map[string]ec2.Instance
+type Instances map[string]*ec2.Instance
 
 // OlderThan filters out instances that are older than the given duration.
 func (i Instances) OlderThan(duration time.Duration) Instances {
@@ -27,12 +29,12 @@ func (i Instances) OlderThan(duration time.Duration) Instances {
 
 // States filters out instances which that particular state
 func (i Instances) States(states ...string) Instances {
-	filtered := make(Instances, 0)
+	filtered := make(Instances)
 
 	// possible state names:
 	//  (pending | running | shutting-down | terminated | stopping | stopped).
 	for id, instance := range i {
-		if has(instance.State.Name, states...) {
+		if has(aws.StringValue(instance.State.Name), states...) {
 			filtered[id] = instance
 		}
 	}
@@ -58,7 +60,7 @@ func (i Instances) WithTag(key string, values ...string) Instances {
 
 	for id, instance := range i {
 		for _, tag := range instance.Tags {
-			if tag.Key == key && has(tag.Value, values...) {
+			if aws.StringValue(tag.Key) == key && has(aws.StringValue(tag.Value), values...) {
 				filtered[id] = instance
 			}
 		}
@@ -79,33 +81,33 @@ func (i Instances) Ids() []string {
 }
 
 // Terminate terminates all instances
-func (i Instances) TerminateAll(client *ec2.EC2) {
+func (i Instances) TerminateAll(client *amazon.Client) {
 	if len(i) == 0 {
 		return
 	}
 
 	for _, split := range splittedIds(i.Ids(), 500) {
-		_, err := client.TerminateInstances(split)
+		_, err := client.TerminateInstances(split...)
 		if err != nil {
-			fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
+			fmt.Printf("[%s] terminate error: %s\n", client.Region, err)
 		}
 	}
 }
 
 // Terminate terminates the given instance specified with the id
-func (i Instances) Terminate(client *ec2.EC2, id string) {
+func (i Instances) Terminate(client *amazon.Client, id string) {
 	if id == "" {
 		return
 	}
 
-	_, err := client.TerminateInstances([]string{id})
+	_, err := client.TerminateInstance(id)
 	if err != nil {
-		fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
+		fmt.Printf("[%s] terminate error: %s\n", client.Region, err)
 	}
 }
 
 // Stop stop all instances
-func (i Instances) StopAll(client *ec2.EC2) {
+func (i Instances) StopAll(client *amazon.Client) {
 	if len(i) == 0 {
 		return
 	}
@@ -113,7 +115,7 @@ func (i Instances) StopAll(client *ec2.EC2) {
 	for _, split := range splittedIds(i.Ids(), 500) {
 		_, err := client.StopInstances(split...)
 		if err != nil {
-			fmt.Printf("[%s] stop error: %s\n", client.Region.Name, err)
+			fmt.Printf("[%s] stop error: %s\n", client.Region, err)
 		}
 	}
 }
