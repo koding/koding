@@ -1,10 +1,12 @@
 package softlayer
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/scripts/softlayer/userdata"
 	"strings"
 	"time"
 
@@ -15,7 +17,7 @@ import (
 	"github.com/kr/pretty"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
 	"github.com/maximilien/softlayer-go/softlayer"
-	"github.com/nu7hatch/gouuid"
+	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
 
@@ -38,28 +40,35 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	for i, sshKey := range m.User.SshKeys {
 		sshKeys[i] = sshKey.Key
 	}
-
 	// also append our own public key so we can use it ssh into the machine and debug it
 	sshKeys = append(sshKeys, keys.PublicKey)
 
-	kiteUUID, err := uuid.NewV4()
+	kiteID := uuid.NewV4().String()
+
+	kiteKey, err := m.Session.Userdata.Keycreator.Create(m.Username, kiteID)
 	if err != nil {
 		return err
 	}
-	kiteId := kiteUUID.String()
 
-	// cloudInitConfig := &userdata.CloudInitConfig{
-	// 	Username:    m.Username,
-	// 	Groups:      []string{"sudo"},
-	// 	UserSSHKeys: sshKeys,
-	// 	Hostname:    m.Username, // no typo here. hostname = username
-	// 	KiteId:      kiteId,
-	// }
+	klientURL, err := m.Session.Userdata.Bucket.LatestDeb()
+	if err != nil {
+		return err
+	}
+	klientURL = m.Session.Userdata.Bucket.URL(klientURL)
 
-	// userdata, err := m.Session.Userdata.Create(cloudInitConfig)
-	// if err != nil {
-	// 	return err
-	// }
+	data := userdata.Value{
+		Username:        m.Username,
+		Groups:          []string{"sudo"},
+		SSHKeys:         sshKeys,
+		Hostname:        m.Username, // no typo here. hostname = username
+		KiteKey:         kiteKey,
+		LatestKlientURL: klientURL,
+	}
+
+	val, err := json.Marshal(&data)
+	if err != nil {
+		return err
+	}
 
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
@@ -73,10 +82,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		HourlyBillingFlag:            true,
 		LocalDiskFlag:                true,
 		OperatingSystemReferenceCode: "UBUNTU_LATEST",
-		UserData: []datatypes.UserData{
-			{Value: "vim-go"},
-		},
-		PostInstallScriptUri: PostInstallScriptUri,
+		UserData:                     []datatypes.UserData{{Value: string(val)}},
+		PostInstallScriptUri:         PostInstallScriptUri,
 	}
 
 	//Get the SoftLayer virtual guest service
@@ -104,7 +111,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	pretty.Println(obj)
 
-	m.QueryString = protocol.Kite{ID: kiteId}.String()
+	m.QueryString = protocol.Kite{ID: kiteID}.String()
 	m.IpAddress = obj.PrimaryIpAddress
 
 	if !m.IsKlientReady() {
