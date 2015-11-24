@@ -6,7 +6,7 @@ Library that integrates [Fuse](https://github.com/bazil/fuse) and [Klient](https
 
     # ----- Download kd from <your team>.koding.com -----
     # kd is the cli to interact with klient and fuseklient
-    curl -L kodi.ng/d/kd | bash s <token>
+    curl -L kodi.ng/d/kd | bash -s <token>
 
     # Mount the remote machine on `folder1`
     kd mount <machine name> ./folder1 --remotepath=...
