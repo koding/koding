@@ -69,12 +69,35 @@ module.exports = class EmojiSelector extends React.Component
 
     <EmojiSelectorItem
       item         = { item }
-      index        = { rowIndex }
+      index        = { helper.calculateTotalIndex items, sectionIndex, rowIndex }
       isSelected   = { isSelected }
       onSelected   = { @bound 'onItemSelected' }
       onConfirmed  = { @bound 'onItemConfirmed' }
       key          = { item }
     />
+
+
+  renderCategoryFilters: ->
+
+    { items } = @props
+
+    filters = items.map (item) ->
+      iconClassName = "emoji-sprite emoji-#{item.get('emojis').get(0)}"
+
+      <span className='categoryFilterTab' title={item.get 'category'}>
+        <span className='emoji-wrapper'>
+          <span className={iconClassName}></span>
+        </span>
+      </span>
+
+    <div className='EmojiSelector-categoryFilters'>
+      <span className='categoryFilterTab' title='All'>
+        <span className='emoji-wrapper'>
+          <span className='emoji-sprite emoji-clock3'></span>
+        </span>
+      </span>
+      { filters }
+    </div>
 
 
   render: ->
@@ -90,6 +113,7 @@ module.exports = class EmojiSelector extends React.Component
       ref       = 'dropbox'
       resize    = 'custom'
     >
+      { @renderCategoryFilters() }
       <div className="EmojiSelector-list Dropbox-resizable">
         <List
           numberOfSections={@bound 'numberOfSections'}
@@ -110,4 +134,17 @@ module.exports = class EmojiSelector extends React.Component
         <div className="clearfix" />
       </div>
     </Dropbox>
+
+
+  helper =
+
+    calculateTotalIndex: (categoryItems, categoryIndex, emojiIndex) ->
+
+      categoryItems = categoryItems.toJS()
+      totalIndex    = emojiIndex
+
+      for categoryItem, index in categoryItems when index < categoryIndex
+        totalIndex += categoryItem.emojis.length
+
+      return totalIndex
 

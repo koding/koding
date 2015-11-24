@@ -84,25 +84,38 @@ filteredEmojiListSelectedItem = (stateId) -> [
 
 commonEmojiList = EmojisStore
 
-emojiSelectorList = EmojiCategoriesStore
+emojiSelectorItems = EmojiCategoriesStore
 
-commonEmojiListSelectedIndex = (stateId) -> [
+emojiSelectorSelectedIndex = (stateId) -> [
   CommonEmojiListSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
-commonEmojiListVisibility = (stateId) -> [
+emojiSelectorVisibility = (stateId) -> [
   CommonEmojiListVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 
 
 # Returns emoji from emoji list by current selected index
-commonEmojiListSelectedItem = (stateId) -> [
-  commonEmojiList
-  commonEmojiListSelectedIndex stateId
-  getListSelectedItem
+emojiSelectorSelectedItem = (stateId) -> [
+  emojiSelectorItems
+  emojiSelectorSelectedIndex stateId
+  (list, selectedIndex) ->
+    return  unless selectedIndex?
+
+    totalIndex = 0
+
+    categoryItem = list.find (item) ->
+      emojiCount = item.get('emojis').size
+      if (emojiCount + totalIndex) > selectedIndex
+        return yes
+      else
+        totalIndex += emojiCount
+        return no
+
+    result = categoryItem.get('emojis').get selectedIndex - totalIndex
 ]
 
 
@@ -368,11 +381,10 @@ module.exports = {
   filteredEmojiListSelectedItem
   filteredEmojiListSelectedIndex
 
-  commonEmojiList
-  emojiSelectorList
-  commonEmojiListSelectedIndex
-  commonEmojiListVisibility
-  commonEmojiListSelectedItem
+  emojiSelectorItems
+  emojiSelectorSelectedIndex
+  emojiSelectorVisibility
+  emojiSelectorSelectedItem
 
   channelsQuery
   channels

@@ -15,12 +15,14 @@ module.exports = class EmojiCategoriesStore extends KodingFluxStore
   getInitialState: ->
 
     data = []
+
+    for item in emojiCategories
+      data.push { category : item.category, emojis : [] }
+    data.push { category : 'Custom', emojis : [] }
+
     for emoji in emojisKeywords
       categoryName = helper.getCategoryNameForEmoji emoji
       categoryItem = data.filter((item) -> item.category is categoryName)[0]
-      unless categoryItem
-        categoryItem = { category : categoryName, emojis : [] }
-        data.push categoryItem
       categoryItem.emojis.push emoji
 
     toImmutable data
