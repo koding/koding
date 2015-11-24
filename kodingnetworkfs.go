@@ -12,9 +12,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/fkconfig"
-	"github.com/koding/fuseklient/fktransport"
-	"github.com/koding/fuseklient/fkunmount"
+	"github.com/koding/fuseklient/transport"
 )
 
 // KodingNetworkFS implements `fuse.FileSystem` to let users mount folders on
@@ -56,7 +54,7 @@ type KodingNetworkFS struct {
 }
 
 // NewKodingNetworkFS is the required initializer for KodingNetworkFS.
-func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNetworkFS, error) {
+func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, error) {
 	// create mount point if it doesn't exist
 	// TODO: don't allow ~ in conf.LocalPath since Go doesn't expand it
 	if err := os.MkdirAll(c.LocalPath, 0755); err != nil {
@@ -160,6 +158,10 @@ func NewKodingNetworkFS(t fktransport.Transport, c *fkconfig.Config) (*KodingNet
 // Mount mounts an specified folder on user VM using Fuse in the specificed
 // local path.
 func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
+	if err := Lock(k.MountPath, k.MountConfig.FSName); err != nil {
+		return nil, err
+	}
+
 	server := fuseutil.NewFileSystemServer(k)
 	return fuse.Mount(k.MountPath, server, k.MountConfig)
 }
@@ -167,7 +169,11 @@ func (k *KodingNetworkFS) Mount() (*fuse.MountedFileSystem, error) {
 // Unmount un mounts Fuse mounted folder. Mount exists separate to lifecycle of
 // this process and needs to be cleaned up.
 func (k *KodingNetworkFS) Unmount() error {
-	return fkunmount.Unmount(k.MountPath)
+	if err := Unlock(k.MountPath); err != nil {
+		return err
+	}
+
+	return Unmount(k.MountPath)
 }
 
 // GetInodeAttributesOp set attributes for a specified Node.

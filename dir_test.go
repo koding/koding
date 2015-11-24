@@ -8,7 +8,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -40,7 +40,7 @@ func TestDir(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(len(entries), ShouldEqual, 2)
 
-			// reset to empty fktransport, so if remote call is made, it panics
+			// reset to empty transport, so if remote call is made, it panics
 			d.Transport = &fakeTransport{}
 
 			entries, err = d.ReadEntries(0)
@@ -550,16 +550,16 @@ func newDir() *Dir {
 			"fs.createDirectory": true,
 			"fs.remove":          true,
 			"fs.readFile":        map[string]interface{}{"content": c},
-			"fs.getInfo": fktransport.FsGetInfoRes{
+			"fs.getInfo": transport.FsGetInfoRes{
 				Exists:   true,
 				IsDir:    true,
 				FullPath: "/remote",
 				Name:     "remote",
 				Mode:     0700 | os.ModeDir,
 			},
-			"fs.readDirectory": fktransport.FsReadDirectoryRes{
-				Files: []fktransport.FsGetInfoRes{
-					fktransport.FsGetInfoRes{
+			"fs.readDirectory": transport.FsReadDirectoryRes{
+				Files: []transport.FsGetInfoRes{
+					transport.FsGetInfoRes{
 						Exists:   true,
 						FullPath: "/remote/folder",
 						IsDir:    true,
@@ -567,7 +567,7 @@ func newDir() *Dir {
 						Name:     "folder",
 						Size:     1,
 					},
-					fktransport.FsGetInfoRes{
+					transport.FsGetInfoRes{
 						Exists:   true,
 						FullPath: "/remote/file",
 						IsDir:    false,

@@ -1,4 +1,4 @@
-package fktransport
+package transport
 
 import (
 	"testing"

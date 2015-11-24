@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 )
 
 type DirInitializer struct {
 	// Transport is used for two way communication with user VM.
-	fktransport.Transport
+	transport.Transport
 
 	RootDir *Dir
 
@@ -18,7 +18,7 @@ type DirInitializer struct {
 	DirEntriesList map[string]*Dir
 }
 
-func NewDirInitializer(t fktransport.Transport, root *Dir, ignoreFolders []string) *DirInitializer {
+func NewDirInitializer(t transport.Transport, root *Dir, ignoreFolders []string) *DirInitializer {
 	return &DirInitializer{
 		Transport:      t,
 		RootDir:        root,
@@ -35,7 +35,7 @@ func (d *DirInitializer) Initialize() error {
 		Path:          d.RootDir.RemotePath,
 		IgnoreFolders: d.IgnoreFolders,
 	}
-	res := fktransport.FsReadDirectoryRes{}
+	res := transport.FsReadDirectoryRes{}
 
 	if err := d.Trip("fs.readRecursiveDirectory", req, &res); err != nil {
 		return err

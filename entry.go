@@ -6,14 +6,14 @@ import (
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 )
 
 // Entry is the generic structure for File and Dir in KodingNetworkFS. It's
 // a tree, see Entry#Parent.
 type Entry struct {
 	// Transport is used for two way communication with user VM.
-	fktransport.Transport
+	transport.Transport
 
 	// Parent is the parent, ie. folder that holds this file or directory.
 	// This is nil when it's the root entry. A Entry can only have one parent while
@@ -52,7 +52,7 @@ type Entry struct {
 }
 
 // NewRootEntry is the required initializer for the root entry.
-func NewRootEntry(t fktransport.Transport, remotePath, localPath string) *Entry {
+func NewRootEntry(t transport.Transport, remotePath, localPath string) *Entry {
 	return &Entry{
 		Transport:  t,
 		Parent:     nil, // root entry has no parent
@@ -154,7 +154,7 @@ func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
 	var attrs fuseops.InodeAttributes
 
 	req := struct{ Path string }{e.RemotePath}
-	res := fktransport.FsGetInfoRes{}
+	res := transport.FsGetInfoRes{}
 	if err := e.Trip("fs.getInfo", req, &res); err != nil {
 		return attrs, err
 	}

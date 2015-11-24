@@ -1,4 +1,4 @@
-package fktransport
+package transport
 
 // Transport defines communication between this package and user VM.
 type Transport interface {

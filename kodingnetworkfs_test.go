@@ -11,8 +11,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
-	"github.com/koding/fuseklient/fkconfig"
-	"github.com/koding/fuseklient/fktransport"
+	"github.com/koding/fuseklient/transport"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -25,11 +24,11 @@ func TestKodingNetworkFS(tt *testing.T) {
 		Convey("It should mount and unmount a directory", func() {
 			t := &fakeTransport{
 				TripResponses: map[string]interface{}{
-					"fs.readDirectory": fktransport.FsReadDirectoryRes{
-						Files: []fktransport.FsGetInfoRes{},
+					"fs.readDirectory": transport.FsReadDirectoryRes{
+						Files: []transport.FsGetInfoRes{},
 					},
-					"fs.getInfo":                fktransport.FsGetInfoRes{Exists: true},
-					"fs.readRecursiveDirectory": fktransport.FsReadDirectoryRes{},
+					"fs.getInfo":                transport.FsGetInfoRes{Exists: true},
+					"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
 				},
 			}
 			k := newknfs(t)
@@ -53,7 +52,7 @@ func TestKodingNetworkFS(tt *testing.T) {
 				"fs.rename":          true,
 				"fs.remove":          true,
 				"fs.readFile":        map[string]interface{}{"content": c},
-				"fs.getInfo": fktransport.FsGetInfoRes{
+				"fs.getInfo": transport.FsGetInfoRes{
 					Exists:   true,
 					IsDir:    true,
 					FullPath: "/remote",
@@ -61,10 +60,10 @@ func TestKodingNetworkFS(tt *testing.T) {
 					Mode:     0700 | os.ModeDir,
 					Time:     millenium,
 				},
-				"fs.readRecursiveDirectory": fktransport.FsReadDirectoryRes{},
-				"fs.readDirectory": fktransport.FsReadDirectoryRes{
-					Files: []fktransport.FsGetInfoRes{
-						fktransport.FsGetInfoRes{
+				"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
+				"fs.readDirectory": transport.FsReadDirectoryRes{
+					Files: []transport.FsGetInfoRes{
+						transport.FsGetInfoRes{
 							Exists:   true,
 							IsDir:    false,
 							FullPath: "/remote/file",
@@ -620,9 +619,9 @@ func TestKodingNetworkFSUnit(tt *testing.T) {
 	i := fuseops.InodeID(fuseops.RootInodeID + 1)
 	t := &fakeTransport{
 		TripResponses: map[string]interface{}{
-			"fs.readDirectory":          fktransport.FsReadDirectoryRes{},
-			"fs.getInfo":                fktransport.FsGetInfoRes{Exists: true},
-			"fs.readRecursiveDirectory": fktransport.FsReadDirectoryRes{},
+			"fs.readDirectory":          transport.FsReadDirectoryRes{},
+			"fs.getInfo":                transport.FsGetInfoRes{Exists: true},
+			"fs.readRecursiveDirectory": transport.FsReadDirectoryRes{},
 		},
 	}
 
@@ -727,13 +726,13 @@ func _unmount(k *KodingNetworkFS) error {
 	return os.RemoveAll(k.MountPath)
 }
 
-func newknfs(t fktransport.Transport) *KodingNetworkFS {
+func newknfs(t transport.Transport) *KodingNetworkFS {
 	mountDir, err := ioutil.TempDir("", "mounttest")
 	if err != nil {
 		panic(err)
 	}
 
-	c := &fkconfig.Config{
+	c := &Config{
 		LocalPath:     mountDir,
 		IgnoreFolders: []string{"node_modules"},
 		Prefetch:      false,
