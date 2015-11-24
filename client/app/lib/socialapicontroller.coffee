@@ -911,9 +911,11 @@ module.exports = class SocialApiController extends KDController
   account                :
     impersonate          : (username, callback) ->
 
+      csrfToken = encodeURIComponent Cookies.get '_csrf'
+
       doXhrRequest
         type     : 'POST'
-        endPoint :  "/Impersonate/#{username}"
+        endPoint :  "/Impersonate/#{username}?_csrf=#{csrfToken}"
         async    : yes
       , callback
 
