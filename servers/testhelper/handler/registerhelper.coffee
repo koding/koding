@@ -1,4 +1,6 @@
-{ querystring
+{ expect
+  request
+  querystring
   generateUrl
   deepObjectExtend
   generateRandomEmail
@@ -18,7 +20,7 @@ generateRegisterRequestBody = (opts = {}) ->
     inviteCode        : ''
     passwordConfirm   : 'testpass'
 
-  deepObjectExtend defaultBodyObject, opts
+  defaultBodyObject = deepObjectExtend defaultBodyObject, opts
 
   return defaultBodyObject
 
@@ -38,7 +40,23 @@ generateRegisterRequestParams = (opts = {}) ->
   return requestParams
 
 
+withRegisteredUser = (opts, callback) ->
+
+  [opts, callback]      = [callback, opts]  unless callback
+  opts                 ?= {}
+  opts.body             = generateRegisterRequestBody opts.body
+  opts.csrfCookie       = opts.body?._csrf
+  registerRequestParams = generateRegisterRequestParams opts
+
+  request.post registerRequestParams, (err, res, body) ->
+    expect(err).to.not.exist
+    expect(res.statusCode).to.be.equal 200
+    expect(body).to.be.empty
+    callback opts.body
+
+
 module.exports = {
+  withRegisteredUser
   generateRegisterRequestBody
   generateRegisterRequestParams
 }

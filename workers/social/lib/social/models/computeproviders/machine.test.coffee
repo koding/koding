@@ -5,6 +5,8 @@ JMachine                      = require './machine'
   generateMachineParams
   fetchMachinesByUsername }   = require '../../../../testhelper/models/computeproviders/machinehelper'
 
+{ withConvertedUserAndProvisioner } = require '../../../../testhelper/models/computeproviders/provisionerhelper'
+
 { daisy
   expect
   withDummyClient
@@ -731,14 +733,15 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         user             = {}
         client           = {}
         account          = {}
+        provisioner      = null
         userFormData     = generateDummyUserFormData()
         provisionerCount = 0
 
         queue = [
 
           ->
-            withConvertedUser { userFormData }, (data) ->
-              { client } = data
+            withConvertedUserAndProvisioner { userFormData }, (data) ->
+              { client, provisioner } = data
               queue.next()
 
           ->
@@ -746,7 +749,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
               machine = machines[0]
 
               # expecting provisioner to be set on machine
-              machine.setProvisioner client, 'devrim/koding-base', (err) ->
+              machine.setProvisioner client, provisioner.slug, (err) ->
                 expect(err?.message).to.not.exist
                 expect(machine.provisioners).to.exist
                 expect(machine.provisioners.length).to.be.equal provisionerCount + 1

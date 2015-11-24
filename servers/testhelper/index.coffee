@@ -156,6 +156,7 @@ convertToArray = (commaSeparatedData = '') ->
 
 
 module.exports = {
+  _
   hat
   daisy
   expect
