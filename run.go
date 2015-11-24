@@ -14,6 +14,12 @@ import (
 var ErrNotInMount = errors.New("command not run on mount")
 
 func RunCommandFactory(c *cli.Context) int {
+	if len(c.Args()) < 1 {
+		cli.ShowCommandHelp(c, "run")
+		return 1
+	}
+
+	// get the path where the command was run
 	localPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		fmt.Printf("Error running command: '%s'\n", err)
@@ -26,24 +32,30 @@ func RunCommandFactory(c *cli.Context) int {
 		return 1
 	}
 
-	if len(c.Args()) < 1 {
-		cli.ShowCommandHelp(c, "run")
-		return 1
-	}
-
 	res, err := r.Run(localPath, c.Args()[0:])
 	if err != nil && err != fuseklient.ErrNotInMount {
 		fmt.Printf("Error running command: '%s'\n", err)
 		return 1
 	}
 
+	// TODO: how to enable `kd run` outside a mount?
+	//       running outside a folder would require user to send machine name
+	//       with command like `kd run <machine> <cmd>` which is different
+	//       from inside the mount which is `kd run <cmd>`
+	//
+	//       either we'll need to assume differnet semantics based on mount or
+	//			 create seperate command for running outside mount like
+	//			 `kd runm <machine> <cmd>`
+	//
+	//			 can't use flags since they can be part of the command itself and
+	//       we're explicity telling cli library to not parse flags to this
 	if err == fuseklient.ErrNotInMount {
 		fmt.Println("Error: 'run' command only works from inside a mount")
 		return 1
 	}
 
-	// Write to standard out stream.
-	// NOTE: This stream can contain values even if exit status is not 0.
+	// write to standard out stream
+	// this stream can contain values even if exit status is not 0.
 	os.Stderr.WriteString(res.Stdout)
 
 	if res.ExitStatus != 0 {
@@ -110,8 +122,8 @@ func (r *RunCommand) RunOnMachine(machine, fullCmdPath string, cmdWithArgs []str
 	return &res, nil
 }
 
-// getCmdRemotePath return the path on remote machine where the command
-// should be run.
+// getCmdRemotePath return the path on remote machine where the command should
+// be run.
 func (r *RunCommand) getCmdRemotePath(machine, localPath string) (string, error) {
 	relativePath, err := fuseklient.GetRelativeMountPath(localPath)
 	if err != nil {
@@ -145,8 +157,4 @@ func (r *RunCommand) getMounts() ([]kiteMounts, error) {
 	}
 
 	return mounts, nil
-}
-
-func isMachineMatchPartial(m1, m2 string) bool {
-	return m1 == m2 || strings.HasPrefix(m1, m2)
 }
