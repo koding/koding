@@ -64,6 +64,23 @@ module.exports  = class JCounter extends Module
         callback null, counter.current
 
 
+  parse = (options, direction) ->
+
+    { amount, namespace } = options
+
+    unless namespace?
+      return [ new KodingError 'namespace is required' ]
+
+    if not amount or typeof amount isnt 'number' # even it's zero
+      return [ null, direction ]
+
+    # if amount is negative but direction is positive reverse and vice versa
+    if (amount > 0 and direction is -1) or (amount < 0 and direction is 1)
+      amount *= -1
+
+    return [ null, amount ]
+
+
   # Private Methods
   # ---------------
 
@@ -71,12 +88,16 @@ module.exports  = class JCounter extends Module
 
   @increment = (options, callback) ->
 
-    update options,  1, callback
+    [ err, amount ] = parse options, 1
+    return callback err  if err
+    update options, amount, callback
 
 
   @decrement = (options, callback) ->
 
-    update options, -1, callback
+    [ err, amount ] = parse options, -1
+    return callback err  if err
+    update options, amount, callback
 
 
   @reset = (options, callback) ->
