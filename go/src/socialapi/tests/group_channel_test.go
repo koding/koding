@@ -98,7 +98,7 @@ func TestGroupChannel(t *testing.T) {
 
 			Convey("owner should only be able to update name and purpose of the channel", nil)
 
-			Convey("normal user should not be able to update it", func() {
+			Convey("normal user should be able to update it if and only if user is creator or participant", func() {
 				channel1, err := rest.CreateChannelByGroupNameAndType(
 					account.Id,
 					groupName,
@@ -120,7 +120,7 @@ func TestGroupChannel(t *testing.T) {
 				So(ses, ShouldNotBeNil)
 
 				_, err = rest.UpdateChannel(channel1, ses.ClientId)
-				So(err, ShouldNotBeNil)
+				So(err, ShouldBeNil)
 			})
 
 			Convey("owner cant delete it", func() {
