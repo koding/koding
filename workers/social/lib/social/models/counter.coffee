@@ -46,10 +46,10 @@ module.exports  = class JCounter extends Module
 
     if amount > 0
       if max? and typeof max is 'number'
-        query.current = { $lt: max }
+        query.current = { $lte: max - amount }
     else
       if min? and typeof min is 'number'
-        query.current = { $gt: min }
+        query.current = { $gte: min - amount }
 
     operation = { $inc: { current: amount } }
     options   = { new: yes, upsert: yes }
