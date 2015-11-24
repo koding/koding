@@ -48,6 +48,18 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	return c, nil
 }
 
+// Addresses is a wrapper for (*ec2.EC2).DescribeAddresses.
+func (c *Client) Addresses() ([]*ec2.Address, error) {
+	resp, err := c.EC2.DescribeAddresses(nil)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(resp.Addresses) == 0 {
+		return nil, newNotFoundError("Address", errors.New("no addresses found"))
+	}
+	return resp.Addresses, nil
+}
+
 // AddressesByIP is a wrapper for (*ec2.EC2).DescribeAddresses.
 //
 // If call succeeds but no addresses were found, it returns non-nil

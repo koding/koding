@@ -7,6 +7,14 @@ import (
 	"github.com/koding/logging"
 )
 
+// ProductionRegions describes EC2 regions used in production.
+var ProductionRegions = []string{
+	"us-east-1",
+	"ap-southeast-1",
+	"us-west-2",
+	"eu-west-1",
+}
+
 // ClientOptions describes configuration for a Client.
 type ClientOptions struct {
 	// Credentials contains access key, secret and/or token.

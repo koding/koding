@@ -84,7 +84,7 @@ import (
 	"koding/kites/terraformer"
 
 	"github.com/aws/aws-sdk-go/aws"
-	oldaws "github.com/mitchellh/goamz/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var (
@@ -1233,10 +1233,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 }
 
 func providers() (*koding.Provider, *awsprovider.Provider) {
-	auth := oldaws.Auth{
-		AccessKey: os.Getenv("KLOUD_ACCESSKEY"),
-		SecretKey: os.Getenv("KLOUD_SECRETKEY"),
-	}
+	c := credentials.NewStaticCredentials(os.Getenv("KLOUD_ACCESSKEY"), os.Getenv("KLOUD_SECRETKEY"), "")
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
 	if mongoURL == "" {
@@ -1246,7 +1243,7 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
 
-	dnsInstance := dnsclient.NewRoute53Client("dev.koding.io", auth)
+	dnsInstance := dnsclient.NewRoute53Client(c, "dev.koding.io")
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
 	usd := &userdata.Userdata{
 		Keycreator: &keycreator.Key{
@@ -1254,23 +1251,21 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 			KontrolPrivateKey: testkeys.Private,
 			KontrolPublicKey:  testkeys.Public,
 		},
-		Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
+		Bucket: userdata.NewBucket("koding-klient", "development/latest", c),
 	}
-
-	kdLogger := common.NewLogger("koding", true)
-	ec2clients, err := amazon.NewClientPerRegion(auth, []string{
-		"us-east-1",
-		"ap-southeast-1",
-		"us-west-2",
-		"eu-west-1",
-	}, kdLogger)
+	opts := &amazon.ClientOptions{
+		Credentials: c,
+		Regions:     amazon.ProductionRegions,
+		Log:         common.NewLogger("koding", true),
+	}
+	ec2clients, err := amazon.NewClientPerRegion(opts)
 	if err != nil {
 		panic(err)
 	}
 
 	kdp := &koding.Provider{
 		DB:             db,
-		Log:            kdLogger,
+		Log:            opts.Log,
 		DNSClient:      dnsInstance,
 		DNSStorage:     dnsStorage,
 		Kite:           kloudKite,
