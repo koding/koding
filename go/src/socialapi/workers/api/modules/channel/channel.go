@@ -351,9 +351,9 @@ func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (
 		return response.NewBadRequest(errors.New("account is not participant of channel"))
 	}
 
-	// is user is participant in the channel, then user can update only purpose of the channel
-	// other fields cannot be updated participant or else. Only creator can update purpose and
-	// other fields of the channel
+	// if user is participant in the channel, then user can update only purpose of the channel
+	// other fields cannot be updated by participant or anyone else. Only creator can update
+	// purpose and other fields of the channel
 	if participant {
 		if req.Purpose != "" {
 			existingOne.Purpose = req.Purpose
