@@ -3,6 +3,7 @@ package notificationsetting
 import (
 	"net/http"
 	"net/url"
+	"reflect"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
@@ -143,7 +144,9 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.DesktopSetting = nisql.NullString{}
 
 		} else {
-			r.DesktopSetting = nisql.String(value.(string))
+			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(string)) {
+				r.DesktopSetting = nisql.String(value.(string))
+			}
 		}
 	}
 
@@ -152,7 +155,9 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.MobileSetting = nisql.NullString{}
 
 		} else {
-			r.MobileSetting = nisql.String(value.(string))
+			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(string)) {
+				r.MobileSetting = nisql.String(value.(string))
+			}
 		}
 	}
 
@@ -161,7 +166,9 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsSuppressed = nisql.NullBool{}
 
 		} else {
-			r.IsSuppressed = nisql.Bool(value.(bool))
+			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(bool)) {
+				r.IsSuppressed = nisql.Bool(value.(bool))
+			}
 		}
 	}
 
@@ -170,7 +177,9 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 			r.IsMuted = nisql.NullBool{}
 
 		} else {
-			r.IsMuted = nisql.Bool(value.(bool))
+			if reflect.ValueOf(value).Type() == reflect.TypeOf(value.(bool)) {
+				r.IsMuted = nisql.Bool(value.(bool))
+			}
 		}
 	}
 
