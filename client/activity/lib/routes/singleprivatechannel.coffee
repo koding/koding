@@ -11,8 +11,6 @@ changeToChannel          = require 'activity/util/changeToChannel'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
-NewPrivateChannelRoute = require './newprivatechannel'
-AllPrivateChannelsRoute = require './allprivatechannels'
 SingleMessageRoute = require './singlemessage'
 
 
@@ -22,8 +20,6 @@ module.exports = class SinglePrivateChannelRoute
 
     @path = ':privateChannelId'
     @childRoutes = [
-      new NewPrivateChannelRoute
-      new AllPrivateChannelsRoute
       new SingleMessageRoute
     ]
 
@@ -40,14 +36,6 @@ module.exports = class SinglePrivateChannelRoute
     { privateChannelId, postId } = nextState.params
 
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
-
-    # if there is no channel id set on the route (/Messages, /NewMessage)
-    unless privateChannelId
-      # if there is not a selected chat
-      unless selectedThread
-        botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
-        # set channel id to bot channel id.
-        privateChannelId = botChannel.id
 
     if privateChannelId
       transitionToChannel privateChannelId, done
