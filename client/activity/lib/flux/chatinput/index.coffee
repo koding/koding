@@ -12,6 +12,7 @@ module.exports = {
 
   stores  : [
     require './stores/emoji/emojisstore'
+    require './stores/emoji/emojicategoriesstore'
     require './stores/emoji/filteredemojilistquerystore'
     require './stores/emoji/filteredemojilistselectedindexstore'
     require './stores/emoji/commonemojilistselectedindexstore'

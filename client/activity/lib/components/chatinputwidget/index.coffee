@@ -41,7 +41,7 @@ module.exports = class ChatInputWidget extends React.Component
       filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
       filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      commonEmojiList                : getters.commonEmojiList
+      emojiSelectorList              : getters.emojiSelectorList
       commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
       commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
       channels                       : getters.channels @stateId
@@ -345,10 +345,10 @@ module.exports = class ChatInputWidget extends React.Component
 
   renderEmojiSelector: ->
 
-    { commonEmojiList, commonEmojiListVisibility, commonEmojiListSelectedItem } = @state
+    { emojiSelectorList, commonEmojiListVisibility, commonEmojiListSelectedItem } = @state
 
     <EmojiSelector
-      items           = { commonEmojiList }
+      items           = { emojiSelectorList }
       visible         = { commonEmojiListVisibility }
       selectedItem    = { commonEmojiListSelectedItem }
       onItemConfirmed = { @bound 'onSelectorItemConfirmed' }

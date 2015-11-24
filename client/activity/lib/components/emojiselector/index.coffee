@@ -8,6 +8,7 @@ ChatInputFlux         = require 'activity/flux/chatinput'
 Dropbox               = require 'activity/components/dropbox/portaldropbox'
 EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
 EmojiIcon             = require 'activity/components/emojiicon'
+List                  = require 'app/components/list'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 
@@ -44,21 +45,36 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setCommonListVisibility stateId, no
 
 
-  renderList: ->
+  numberOfSections: ->
+
+    return @props.items.size
+
+
+  numberOfRowsInSection: (sectionIndex) ->
+
+    return @props.items.get(sectionIndex).get('emojis').size
+
+
+  renderSectionHeaderAtIndex: (sectionIndex) ->
+
+    <header>{@props.items.get(sectionIndex).get 'category'}</header>
+
+
+  renderRowAtIndex: (sectionIndex, rowIndex) ->
 
     { items, selectedItem } = @props
 
-    items.map (item, index) =>
-      isSelected = selectedItem is item
+    item       = items.get(sectionIndex).get('emojis').get rowIndex
+    isSelected = selectedItem is item
 
-      <EmojiSelectorItem
-        item         = { item }
-        index        = { index }
-        isSelected   = { isSelected }
-        onSelected   = { @bound 'onItemSelected' }
-        onConfirmed  = { @bound 'onItemConfirmed' }
-        key          = { item }
-      />
+    <EmojiSelectorItem
+      item         = { item }
+      index        = { rowIndex }
+      isSelected   = { isSelected }
+      onSelected   = { @bound 'onItemSelected' }
+      onConfirmed  = { @bound 'onItemConfirmed' }
+      key          = { item }
+    />
 
 
   render: ->
@@ -75,7 +91,13 @@ module.exports = class EmojiSelector extends React.Component
       resize    = 'custom'
     >
       <div className="EmojiSelector-list Dropbox-resizable">
-        {@renderList()}
+        <List
+          numberOfSections={@bound 'numberOfSections'}
+          numberOfRowsInSection={@bound 'numberOfRowsInSection'}
+          renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
+          renderRowAtIndex={@bound 'renderRowAtIndex'}
+          sectionClassName='EmojiSelectorSection'
+        />
         <div className='clearfix'></div>
       </div>
       <div className="EmojiSelector-footer">

@@ -13,6 +13,7 @@ withEmptyList = (storeData) -> storeData or immutable.List()
 
 
 EmojisStore                         = [['EmojisStore'], withEmptyList]
+EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
 FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
 FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
 CommonEmojiListSelectedIndexStore   = [['CommonEmojiListSelectedIndexStore'], withEmptyMap]
@@ -83,6 +84,7 @@ filteredEmojiListSelectedItem = (stateId) -> [
 
 commonEmojiList = EmojisStore
 
+emojiSelectorList = EmojiCategoriesStore
 
 commonEmojiListSelectedIndex = (stateId) -> [
   CommonEmojiListSelectedIndexStore
@@ -367,6 +369,7 @@ module.exports = {
   filteredEmojiListSelectedIndex
 
   commonEmojiList
+  emojiSelectorList
   commonEmojiListSelectedIndex
   commonEmojiListVisibility
   commonEmojiListSelectedItem
