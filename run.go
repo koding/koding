@@ -8,31 +8,37 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/fuseklient"
 )
 
-var ErrNotInMount = errors.New("Command was not run on a mounted folder.")
+var ErrNotInMount = errors.New("command not run on mount")
 
 func RunCommandFactory(c *cli.Context) int {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	localPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		fmt.Printf("Error running command: '%s'\n", err)
 		return 1
 	}
 
-	r, err := NewRunCommand(dir)
+	r, err := NewRunCommand()
 	if err != nil {
 		fmt.Printf("Error running command: '%s'\n", err)
 		return 1
 	}
 
-	if len(c.Args()) < 2 {
+	if len(c.Args()) < 1 {
 		cli.ShowCommandHelp(c, "run")
 		return 1
 	}
 
-	res, err := r.Run(c.Args()[0], c.Args()[1:])
-	if err != nil {
+	res, err := r.Run(localPath, c.Args()[0:])
+	if err != nil && err != fuseklient.ErrNotInMount {
 		fmt.Printf("Error running command: '%s'\n", err)
+		return 1
+	}
+
+	if err == fuseklient.ErrNotInMount {
+		fmt.Println("Error: 'run' command only works from inside a mount")
 		return 1
 	}
 
@@ -52,13 +58,9 @@ type RunCommand struct {
 	// Transport is communication layer between this and local klient.
 	// This is used to run the command on the remote machine.
 	Transport
-
-	// Path is the fully qualified path where this command is run. This is used
-	// to lookup the relative path to run command on the remote machine.
-	Path string
 }
 
-func NewRunCommand(path string) (*RunCommand, error) {
+func NewRunCommand() (*RunCommand, error) {
 	klientKite, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		return nil, err
@@ -68,18 +70,24 @@ func NewRunCommand(path string) (*RunCommand, error) {
 		return nil, err
 	}
 
-	return &RunCommand{
-		Transport: klientKite,
-		Path:      path,
-	}, nil
+	return &RunCommand{Transport: klientKite}, nil
 }
 
-func (r *RunCommand) Run(machine string, cmdWithArgs []string) (*ExecRes, error) {
-	fullCmdPath, err := r.getCmdRemotePath(machine)
-	if err != nil && err != ErrNotInMount {
+func (r *RunCommand) Run(localPath string, cmdWithArgs []string) (*ExecRes, error) {
+	machine, err := fuseklient.GetMachineMountedForPath(localPath)
+	if err != nil {
 		return nil, err
 	}
 
+	fullCmdPath, err := r.getCmdRemotePath(machine, localPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.RunOnMachine(machine, fullCmdPath, cmdWithArgs)
+}
+
+func (r *RunCommand) RunOnMachine(machine, fullCmdPath string, cmdWithArgs []string) (*ExecRes, error) {
 	req := struct {
 		Machine string
 		Command string
@@ -104,33 +112,39 @@ func (r *RunCommand) Run(machine string, cmdWithArgs []string) (*ExecRes, error)
 
 // getCmdRemotePath return the path on remote machine where the command
 // should be run.
-func (r *RunCommand) getCmdRemotePath(machine string) (string, error) {
-	res, err := r.Tell("remote.mounts")
+func (r *RunCommand) getCmdRemotePath(machine, localPath string) (string, error) {
+	relativePath, err := fuseklient.GetRelativeMountPath(localPath)
 	if err != nil {
 		return "", err
 	}
 
-	var mounts []kiteMounts
-	if err := res.Unmarshal(&mounts); err != nil {
+	mounts, err := r.getMounts()
+	if err != nil {
 		return "", err
 	}
 
 	for _, m := range mounts {
-		if isMachineMatchPartial(m.MountName, machine) {
-			// hacky way to determine if command was run outside mounted path
-			if len(m.LocalPath) > len(r.Path) {
-				return "", ErrNotInMount
-			}
-
-			s := strings.Split(r.Path, m.LocalPath) // find path in mounted folder
-			p := filepath.Join(s...)                // join split path
-			r := filepath.Join(m.RemotePath, p)     // join path in remote machine
-
-			return r, nil
+		if m.MountName == machine {
+			// join path in remote machine
+			return filepath.Join(m.RemotePath, relativePath), nil
 		}
 	}
 
 	return "", ErrNotInMount
+}
+
+func (r *RunCommand) getMounts() ([]kiteMounts, error) {
+	res, err := r.Tell("remote.mounts")
+	if err != nil {
+		return nil, err
+	}
+
+	var mounts []kiteMounts
+	if err := res.Unmarshal(&mounts); err != nil {
+		return nil, err
+	}
+
+	return mounts, nil
 }
 
 func isMachineMatchPartial(m1, m2 string) bool {
