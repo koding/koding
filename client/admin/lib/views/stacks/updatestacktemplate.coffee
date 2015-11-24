@@ -22,8 +22,9 @@ module.exports = updateStackTemplate = (data, callback) ->
 
     stackTemplate.update dataToUpdate, (err, _stackTemplate) ->
 
-      _stackTemplate._updated = updated
-      _stackTemplate.inuse    = inuse
+      if _stackTemplate
+        _stackTemplate._updated = updated
+        _stackTemplate.inuse    = inuse
 
       callback err, _stackTemplate
 

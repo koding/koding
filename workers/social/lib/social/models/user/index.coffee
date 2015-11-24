@@ -2064,7 +2064,7 @@ module.exports = class JUser extends jraphical.Module
   @getSSHKeys: secure (client, callback) ->
 
     @fetchUser client, (err, user) ->
-      callback user.sshKeys or []
+      return callback user?.sshKeys or []
 
 
   ###*

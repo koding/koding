@@ -96,6 +96,63 @@ func TestGitGetter_branch(t *testing.T) {
 	}
 }
 
+func TestGitGetter_branchUpdate(t *testing.T) {
+	if !testHasGit {
+		t.Log("git not found, skipping")
+		t.Skip()
+	}
+
+	g := new(GitGetter)
+	dst := tempDir(t)
+
+	// First setup the state with a fresh branch
+	moduleDir := filepath.Join(fixtureDir, "git-branch-update")
+	oldName := filepath.Join(moduleDir, "DOTgit-1")
+	newName := filepath.Join(moduleDir, ".git")
+	if err := os.Rename(oldName, newName); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	defer os.Rename(newName, oldName)
+
+	// Get the "test-branch" branch
+	url := testModuleURL("git-branch-update")
+	q := url.Query()
+	q.Add("ref", "test-branch")
+	url.RawQuery = q.Encode()
+	if err := g.Get(dst, url); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// Verify the main file exists
+	mainPath := filepath.Join(dst, "main_branch.tf")
+	if _, err := os.Stat(mainPath); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// Swap the data to have a branch update
+	if err := os.Rename(newName, oldName); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	defer os.Rename(oldName, newName)
+	oldName = filepath.Join(moduleDir, "DOTgit-2")
+	newName = filepath.Join(moduleDir, ".git")
+	if err := os.Rename(oldName, newName); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	defer os.Rename(newName, oldName)
+
+	// Get again should work
+	if err := g.Get(dst, url); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	// Verify the main file exists
+	mainPath = filepath.Join(dst, "main_branch_update.tf")
+	if _, err := os.Stat(mainPath); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+}
+
 func TestGitGetter_tag(t *testing.T) {
 	if !testHasGit {
 		t.Log("git not found, skipping")

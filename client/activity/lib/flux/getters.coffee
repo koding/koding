@@ -355,11 +355,9 @@ notSelectedChannelParticipants = [
   UsersStore
   selectedChannelParticipants
   (users, participants) ->
-    list = users.toList()
-    return list  unless participants
+    return users  unless participants
 
-    list.filterNot (user) ->
-      userId = user.get '_id'
+    users.filterNot (user, userId) ->
       return participants.get(userId) or whoami()._id is userId
 ]
 

@@ -201,6 +201,8 @@ calculateReactivityLink = (post) ->
 
   channel = kd.singletons.socialapi.retrieveCachedItemById post.initialChannelId
 
+  return  unless channel
+
   if isPublicChannel channel
   then "/Channels/#{channel.name.toLowerCase()}/#{post.id}"
   else "/Messages/#{channel.id}/#{post.id}"

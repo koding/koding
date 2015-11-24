@@ -2,6 +2,7 @@ actions                        = require '../actions/actiontypes'
 immutable                      = require 'immutable'
 toImmutable                    = require 'app/util/toImmutable'
 KodingFluxStore                = require 'app/flux/base/store'
+getDefaultNotificationSettings = require 'activity/util/getDefaultNotificationSettings'
 
 ###*
  * Store to handle channel notification settings
@@ -23,6 +24,13 @@ module.exports = class ChannelNotificationSettingsStore extends KodingFluxStore
 
 
   setSettings: (notificationSettings, { channelId, channelNotificationSettings }) ->
+
+    _oldSettings    = notificationSettings.get channelNotificationSettings.channelId
+    defaultSettings = if _oldSettings then _oldSettings.toJS() else getDefaultNotificationSettings()
+
+    for key of channelNotificationSettings
+      if channelNotificationSettings[key] is null
+        channelNotificationSettings[key] = defaultSettings[key]
 
     notificationSettings.set channelId, toImmutable channelNotificationSettings
 

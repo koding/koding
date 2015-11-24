@@ -6,7 +6,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
-	"strings"
 
 	"github.com/mitchellh/goamz/ec2"
 	"golang.org/x/net/context"
@@ -225,29 +224,4 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 		Finish:       finish,
 	}
 	return ws.Wait()
-}
-
-// StatusToState converts a amazon status to a sensible machinestate.State
-// format
-func StatusToState(status string) machinestate.State {
-	status = strings.ToLower(status)
-
-	// Valid values: pending | running | shutting-down | terminated | stopping | stopped
-
-	switch status {
-	case "pending":
-		return machinestate.Starting
-	case "running":
-		return machinestate.Running
-	case "stopped":
-		return machinestate.Stopped
-	case "stopping":
-		return machinestate.Stopping
-	case "shutting-down":
-		return machinestate.Terminating
-	case "terminated":
-		return machinestate.Terminated
-	default:
-		return machinestate.Unknown
-	}
 }

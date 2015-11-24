@@ -7,6 +7,7 @@ module.exports = class JStackTemplate extends Module
 
   { permit }   = require '../group/permissionset'
   Validators   = require '../group/validators'
+  { revive }   = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
 
@@ -122,14 +123,32 @@ module.exports = class JStackTemplate extends Module
     }
 
 
+  validateTemplate = (template, group) ->
+
+    plan = group.getAt 'config.plan'
+    return  unless plan # No plan, no pain.
+
+    ComputeProvider = require './computeprovider'
+    return ComputeProvider.validateTemplateContent template, plan
+
+
   @create = permit 'create stack template',
 
-    success: (client, data, callback) ->
+    success: revive
 
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, data, callback) ->
+
+      { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
 
       unless data?.title
         return callback new KodingError 'Title required.'
+
+      if validationError = validateTemplate data.template, group
+        return callback validationError
 
       stackTemplate = new JStackTemplate
         originId    : delegate.getId()
@@ -271,8 +290,14 @@ module.exports = class JStackTemplate extends Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, data, callback) ->
+    success: revive
 
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, data, callback) ->
+
+      { group }    = client.r
       { delegate } = client.connection
 
       # It's not allowed to change a stack template group or owner
@@ -283,6 +308,10 @@ module.exports = class JStackTemplate extends Module
       { template, templateDetails, rawContent } = data
 
       if template?
+
+        if validationError = validateTemplate template, group
+          return callback validationError
+
         data.template = generateTemplateObject \
           template, rawContent, templateDetails
 

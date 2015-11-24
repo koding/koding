@@ -77,22 +77,24 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       name          : 'snapshots'
       selectOptions : [ title: 'None', value: "" ]
       callback      : (snapshotId) =>
-        # Update the usage text with the value of the slider
-        #
-        # Note that @getValues() just returns the value *option* of the
-        # handles, so we're getting the value directly.
-        @updateSnapshotUsageText @storageSlider.handles.first.value
-        @updateCreateVMBtnEnabled @storageSlider.handles.first.value
 
         # If the selected snapshot has a value (not empty), disable the
         # region selector, and set it's value to the snapshot region.
         # If it does not have a value (empty), enable the region selector.
         if snapshotId
           @regionSelector.setValue @snapshots[snapshotId].region
+          @updateStorageSliderValue @snapshots[snapshotId].storageSize
           @updateRegionText()
           @regionSelector.makeDisabled()
         else
           @regionSelector.makeEnabled()
+          @createVMButton.enable()
+
+        # Update the usage text with the value of the slider
+        #
+        # Note that @getValues() just returns the value *option* of the
+        # handles, so we're getting the value directly.
+        @updateSnapshotUsageText @storageSlider.handles.first.value
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -128,7 +130,8 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     @updateStorageUsageText 5, usage, limits
     @updateSnapshotUsageText 5
     @updateCreateVMBtnEnabled 5
-    @storageSlider.on "ValueIsChanging", (val)=>
+
+    @storageSlider.on 'ValueIsChanging', (val) =>
       @updateStorageUsageText val, usage, limits
       @updateSnapshotUsageText val
       @updateCreateVMBtnEnabled val
@@ -137,6 +140,11 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
     @regionSelector.on "change", @bound 'updateRegionText'
 
     @setPositions()
+
+
+  updateStorageSliderValue: (value, handle = 0) ->
+
+    @storageSlider.handles[handle]?.setValue value
 
 
   ###*
@@ -169,14 +177,17 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       # Set the selected option to the Modal's option.snapshotId,
       # defaulting to the None item ("" value)
       @snapshotsSelector.setValue defaultSnapshotId ? ""
+      @updateStorageSliderValue @snapshots[defaultSnapshotId].storageSize  if defaultSnapshotId
       @snapshotsContainer.show()
 
       # Update the usage text with the value of the slider
       #
       # Note that @getValues() just returns the value *option* of the
       # handles, so we're getting the value directly.
-      @updateSnapshotUsageText @storageSlider.handles.first.value
-      @updateCreateVMBtnEnabled @storageSlider.handles.first.value
+      sliderValue = @storageSlider.handles.first.value
+
+      @updateSnapshotUsageText  sliderValue
+      @updateCreateVMBtnEnabled sliderValue
 
 
   updateRegionText: ->

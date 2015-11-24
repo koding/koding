@@ -4,9 +4,6 @@ dateFormat   = require 'dateformat'
 
 module.exports = class Tooltip extends React.Component
 
-  @propTypes =
-    text     : React.PropTypes.string.isRequired
-
 
   @defaultProps =
     tooltipY : 0
