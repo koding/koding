@@ -8,17 +8,12 @@ module.exports  = class JCounter extends Module
 
   @set
 
-    indexes      :
-
-      # WARNING! ~ GG
-      # to make this working properly we need a compound index here and since
-      # bongo is not supporting them we need to manually define following:
-      #
-      #   - { namespace: 1, type: 1 } (unique)
-      #
-
-      namespace  : 'sparse'
-      type       : 'sparse'
+    # WARNING! ~ GG
+    # to make this working properly we need a compound index here and since
+    # bongo is not supporting them we need to manually define following:
+    #
+    #   - { namespace: 1, type: 1 } (unique)
+    #
 
     sharedEvents :
       static     : [ ]
