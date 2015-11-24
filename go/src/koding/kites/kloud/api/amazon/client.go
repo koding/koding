@@ -15,8 +15,6 @@ import (
 
 // TODO(rjeczalik): make all Create* methods blocking with aws.WaitUntil*
 
-// TODO(rjeczalik): support paginated replies for Describe* calls
-
 // Client wraps *ec.EC2 with an API that hides Input/Output structs
 // while dealing with EC2 service API.
 type Client struct {
@@ -50,6 +48,22 @@ func NewClient(auth client.ConfigProvider, region string, log logging.Logger) (*
 		c.Zones[i] = aws.StringValue(zone.ZoneName)
 	}
 	return c, nil
+}
+
+// Addresses is a wrapper for (*ec2.EC2).DescribeAddresses.
+//
+// If call succeeds but no addresses were found, it returns non-nil
+// *NotFoundError error.
+func (c *Client) Addresses() ([]*ec2.Address, error) {
+	// DescribeAddresses' reply is not paginated.
+	resp, err := c.EC2.DescribeAddresses(nil)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(resp.Addresses) == 0 {
+		return nil, newNotFoundError("Address", errors.New("no addresses found"))
+	}
+	return resp.Addresses, nil
 }
 
 // AddressesByIP is a wrapper for (*ec2.EC2).DescribeAddresses.
@@ -108,6 +122,7 @@ func (c *Client) AssociateAddress(instanceID, allocID string) error {
 // If call succeeds but no images were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Images() ([]*ec2.Image, error) {
+	// DescribeImages' reply is not paginated.
 	resp, err := c.EC2.DescribeImages(nil)
 	if err != nil {
 		return nil, awsError(err)
@@ -176,18 +191,32 @@ func (c *Client) DeregisterImage(imageID string) error {
 // If call succeeds but no snapshots were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
-	resp, err := c.EC2.DescribeSnapshots(nil)
-	if err != nil {
-		return nil, awsError(err)
+	var snapshots []*ec2.Snapshot
+	var params = &ec2.DescribeSnapshotsInput{
+		// NextToken is used to handle a paginated response.
+		NextToken: nil,
 	}
-	if len(resp.Snapshots) == 0 {
+	for {
+		resp, err := c.EC2.DescribeSnapshots(params)
+		if err != nil {
+			return nil, awsError(err)
+		}
+		snapshots = append(snapshots, resp.Snapshots...)
+		// If resp.NextToken is empty there's no more pages to fetch.
+		if aws.StringValue(resp.NextToken) == "" {
+			break
+		}
+		params.NextToken = resp.NextToken
+	}
+	if len(snapshots) == 0 {
 		return nil, newNotFoundError("Snapshot", errors.New("no snapshots found"))
 	}
-	return resp.Snapshots, nil
+	return snapshots, nil
 }
 
 // SnapshotByID is a wrapper for (*ec.EC2).DescribeSnapshots with id filter.
 func (c *Client) SnapshotByID(id string) (*ec2.Snapshot, error) {
+	// DescribeSnapshots' reply is not paginated when SnapshotIds is set.
 	params := &ec2.DescribeSnapshotsInput{
 		SnapshotIds: []*string{aws.String(id)},
 	}
@@ -228,6 +257,7 @@ func (c *Client) DeleteSnapshot(id string) error {
 // If call succeeds but no VPCs were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) VPCs() ([]*ec2.Vpc, error) {
+	// DescribeVpcs' reply is not paginated.
 	resp, err := c.EC2.DescribeVpcs(nil)
 	if err != nil {
 		return nil, awsError(err)
@@ -243,6 +273,7 @@ func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 // If call succeeds but no subnets were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Subnets() ([]*ec2.Subnet, error) {
+	// DescribeSubnets' reply is not paginated.
 	resp, err := c.EC2.DescribeSubnets(nil)
 	if err != nil {
 		return nil, awsError(err)
@@ -366,11 +397,28 @@ func (c *Client) AddTags(resourceID string, tags map[string]string) error {
 	return awsError(err)
 }
 
+// Instances is a wraper for (*ec2.EC2).DescribeInstances.
+func (c *Client) Instances() ([]*ec2.Instance, error) {
+	var params = &ec2.DescribeInstancesInput{
+		// NextToken is used to handle a paginated response.
+		NextToken: nil,
+	}
+	instances, err := c.instancesPaginated(params)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(instances) == 0 {
+		return nil, newNotFoundError("Instance", errors.New("no instance found"))
+	}
+	return instances, nil
+}
+
 // InstaceByID is a wrapper for (*ec2.EC2).DescribeInstances with id filter.
 func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 	params := &ec2.DescribeInstancesInput{
 		InstanceIds: []*string{aws.String(id)},
 	}
+	// DescribeInstances' reply is not paginated when InstanceIds is set.
 	resp, err := c.EC2.DescribeInstances(params)
 	if err != nil {
 		return nil, awsError(err)
@@ -394,14 +442,31 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error) {
 	params := &ec2.DescribeInstancesInput{
 		Filters: NewFilters(filters),
+		// NextToken is used to handle a paginated response.
+		NextToken: nil,
 	}
-	resp, err := c.EC2.DescribeInstances(params)
+	instances, err := c.instancesPaginated(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
-	instances := collectInstances(resp.Reservations)
 	if len(instances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instances found with filters=%v", filters))
+	}
+	return instances, nil
+}
+
+func (c *Client) instancesPaginated(params *ec2.DescribeInstancesInput) (instances []*ec2.Instance, err error) {
+	for {
+		resp, err := c.EC2.DescribeInstances(params)
+		if err != nil {
+			return nil, awsError(err)
+		}
+		instances = append(instances, collectInstances(resp.Reservations)...)
+		// If resp.NextToken is empty there's no more pages to fetch.
+		if aws.StringValue(resp.NextToken) == "" {
+			break
+		}
+		params.NextToken = resp.NextToken
 	}
 	return instances, nil
 }
@@ -518,11 +583,37 @@ func (c *Client) ImportKeyPair(name string, publicKey []byte) (fingerprint strin
 	return aws.StringValue(resp.KeyFingerprint), nil
 }
 
+// Volumes is a wrapper for (*ec2.EC2).DescribeVolumes.
+func (c *Client) Volumes() ([]*ec2.Volume, error) {
+	var volumes []*ec2.Volume
+	var params = &ec2.DescribeVolumesInput{
+		// NextToken is used to handle a paginated response.
+		NextToken: nil,
+	}
+	for {
+		resp, err := c.EC2.DescribeVolumes(params)
+		if err != nil {
+			return nil, awsError(err)
+		}
+		volumes = append(volumes, resp.Volumes...)
+		// If resp.NextToken is empty there's no more pages to fetch.
+		if aws.StringValue(resp.NextToken) == "" {
+			break
+		}
+		params.NextToken = resp.NextToken
+	}
+	if len(volumes) == 0 {
+		return nil, newNotFoundError("Volume", errors.New("no volume found"))
+	}
+	return volumes, nil
+}
+
 // Volume is a wrapper for (*ec2.EC2).DescribeVolumes with id filter.
 func (c *Client) VolumeByID(id string) (*ec2.Volume, error) {
 	params := &ec2.DescribeVolumesInput{
 		VolumeIds: []*string{aws.String(id)},
 	}
+	// DescribeVolumes' reply is not paginated when VolumeIds is set.
 	resp, err := c.EC2.DescribeVolumes(params)
 	if err != nil {
 		return nil, awsError(err)
