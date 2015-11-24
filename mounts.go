@@ -9,7 +9,7 @@ import (
 )
 
 type kiteMounts struct {
-	Ip         string `json:"ip"`
+	IP         string `json:"ip"`
 	RemotePath string `json:"remotePath"`
 	LocalPath  string `json:"localPath"`
 	MountName  string `json:"mountName"`
@@ -43,7 +43,7 @@ func MountsCommand(c *cli.Context) int {
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\n",
 			i+1,
 			mount.MountName,
-			mount.Ip,
+			mount.IP,
 			mount.LocalPath,
 			mount.RemotePath,
 		)

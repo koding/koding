@@ -1,10 +1,11 @@
 package main
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+)
 
 const (
-	KiteVersion = "0.0.1"
-
 	// Name is the user facing name for this binary. Internally we call it
 	// klientctl to avoid confusion.
 	Name = "kd"
@@ -29,9 +30,9 @@ const (
 	// KlientctlBinName is the bin named that will be stored in the KlientctlDirectory.
 	KlientctlBinName = "kd"
 
-	// KontrolUrl is the url to connect to authenticate local klient and get
+	// KontrolURL is the url to connect to authenticate local klient and get
 	// list of machines.
-	KontrolUrl = "https://koding.com/kontrol/kite"
+	KontrolURL = "https://koding.com/kontrol/kite"
 
 	// Version is the current version of klientctl. This number is used
 	// by CheckUpdate to determine if current version is behind or equal to latest
@@ -43,7 +44,7 @@ const (
 	// S3UpdateLocation is publically accessible url to check for new updates.
 	S3UpdateLocation = "https://koding-kd.s3.amazonaws.com/latest-version.txt"
 
-	// S3KlientctlPath is publically accessible url for latest version of klient.
+	// S3KlientPath is publically accessible url for latest version of klient.
 	// Each OS has its own version of binary, identifiable by OS suffix.
 	S3KlientPath = "https://koding-kd.s3.amazonaws.com/klient-" + osName
 
@@ -54,6 +55,9 @@ const (
 	// SSHDefaultKeyDir is the default directory that stores users ssh key pairs.
 	SSHDefaultKeyDir = ".ssh"
 
-	// SSHDefaultKeyDir is the default name of the ssh key pair.
+	// SSHDefaultKeyName is the default name of the ssh key pair.
 	SSHDefaultKeyName = "kd-ssh-key"
 )
+
+// KiteVersion is the version identifier used to connect to Kontrol.
+var KiteVersion = fmt.Sprintf("0.0.%d", Version)

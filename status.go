@@ -9,22 +9,18 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-const (
-	kiteHttpResponse = "Welcome to SockJS!\n"
-)
+const kiteHTTPResponse = "Welcome to SockJS!\n"
 
-var (
-	defaultHealthChecker *HealthChecker
-)
+var defaultHealthChecker *HealthChecker
 
 func init() {
 	defaultHealthChecker = &HealthChecker{
-		HttpClient: &http.Client{
+		HTTPClient: &http.Client{
 			Timeout: 4 * time.Second,
 		},
 		LocalKiteAddress:  KlientAddress,
-		RemoteKiteAddress: KontrolUrl,
-		RemoteHttpAddress: S3UpdateLocation,
+		RemoteKiteAddress: KontrolURL,
+		RemoteHTTPAddress: S3UpdateLocation,
 	}
 }
 
@@ -32,14 +28,14 @@ func init() {
 // ideal for mocking the health check interfaces (local kite, remote http,
 // remote kite, etc)
 type HealthChecker struct {
-	HttpClient *http.Client
+	HTTPClient *http.Client
 
 	// Used for verifying a locally / remotely running kite
 	LocalKiteAddress  string
 	RemoteKiteAddress string
 
 	// Used for verifying a working internet connection
-	RemoteHttpAddress string
+	RemoteHTTPAddress string
 }
 
 // Dialing klient itself is failing. This likely shouldn't happen, but
@@ -48,7 +44,7 @@ type HealthChecker struct {
 type ErrHealthDialFailed struct{ Message string }
 
 // The local klient is not returning an http response.
-type ErrHealthNoHttpReponse struct{ Message string }
+type ErrHealthNoHTTPReponse struct{ Message string }
 
 // We are unable to Read the kite.key, so it either doesn't exist at the
 // specified location or the permissions are broken relative to the
@@ -64,33 +60,33 @@ type ErrHealthUnexpectedResponse struct{ Message string }
 // troubles.
 type ErrHealthNoInternet struct{ Message string }
 
-// The http response from https://koding.com/kontrol/kite failed. Koding
+// The http response from HTTPs://koding.com/kontrol/kite failed. Koding
 // itself might be down, or the users internet might be spotty.
-type ErrHealthNoKontrolHttpResponse struct{ Message string }
+type ErrHealthNoKontrolHTTPResponse struct{ Message string }
 
 func (e ErrHealthDialFailed) Error() string            { return e.Message }
-func (e ErrHealthNoHttpReponse) Error() string         { return e.Message }
+func (e ErrHealthNoHTTPReponse) Error() string         { return e.Message }
 func (e ErrHealthUnreadableKiteKey) Error() string     { return e.Message }
 func (e ErrHealthUnexpectedResponse) Error() string    { return e.Message }
 func (e ErrHealthNoInternet) Error() string            { return e.Message }
-func (e ErrHealthNoKontrolHttpResponse) Error() string { return e.Message }
+func (e ErrHealthNoKontrolHTTPResponse) Error() string { return e.Message }
 
 // Status informs the user about the status of the Klient service. It
 // does this in multiple stages, to help identify specific problems.
 //
 // 1. First it checks if the expected localhost http response is
-// 	available. If it isn't, klient is not running properly or something
-// 	else had taken the port.
+// available. If it isn't, klient is not running properly or something
+// else had taken the port.
 //
 // 2. Next, it checks if the auth is working properly, by dialing
-// 	klient. Because we already checked if the http response was working,
-// 	something else may be wrong. Such as the key not existing, or
-// 	somehow kd using the wrong key, etc.
+// klient. Because we already checked if the http response was working,
+// something else may be wrong. Such as the key not existing, or
+// somehow kd using the wrong key, etc.
 //
 // 3. Lastly it checks if the user's IP has the exposed klient port. This
-// 	is not an error because outgoing klient communication will still work,
-// 	but incoming klient functionality will obviously be limited. So by
-// 	checking, we can inform the user.
+// is not an error because outgoing klient communication will still work,
+// but incoming klient functionality will obviously be limited. So by
+// checking, we can inform the user.
 func StatusCommand(c *cli.Context) int {
 	if err := defaultHealthChecker.CheckLocal(); err != nil {
 		// TODO: Enable debug logs
@@ -98,7 +94,7 @@ func StatusCommand(c *cli.Context) int {
 
 		// Print a friendly message for each of the given health responses.
 		switch err.(type) {
-		case ErrHealthNoHttpReponse:
+		case ErrHealthNoHTTPReponse:
 			fmt.Printf(
 				`Error: The %s does not appear to be running. Please run
 the following command to start it:
@@ -148,7 +144,7 @@ Please run the following command:
 		case ErrHealthNoInternet:
 			fmt.Println(`Error: You do not appear to have a properly working internet connection.`)
 
-		case ErrHealthNoKontrolHttpResponse:
+		case ErrHealthNoKontrolHTTPResponse:
 			fmt.Printf(`Error: koding.com does not appear to be responding.
 If this problem persists, please contact us at: support@koding.com
 `)
@@ -172,10 +168,10 @@ If this problem persists, please contact us at: support@koding.com
 //
 // TODO: Possibly return a set of warnings too? If we have any..
 func (c *HealthChecker) CheckLocal() error {
-	res, err := c.HttpClient.Get(c.LocalKiteAddress)
+	res, err := c.HTTPClient.Get(c.LocalKiteAddress)
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
-		return ErrHealthNoHttpReponse{Message: fmt.Sprintf(
+		return ErrHealthNoHTTPReponse{Message: fmt.Sprintf(
 			"The klient /kite route is returning an error: '%s'", err.Error(),
 		)}
 	}
@@ -185,7 +181,7 @@ func (c *HealthChecker) CheckLocal() error {
 	// since we just want to check the data itself. Handling the error
 	// might aid with debugging any problems though.
 	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != kiteHttpResponse {
+	if string(resData) != kiteHTTPResponse {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The klient /kite route is returning an unexpected response: '%s'",
 			string(resData),
@@ -217,20 +213,20 @@ func (c *HealthChecker) CheckLocal() error {
 func (c *HealthChecker) CheckRemote() error {
 	// Attempt to connect to google (or some reliable service) to
 	// confirm the user's outbound internet connection.
-	res, err := c.HttpClient.Get(c.RemoteHttpAddress)
+	res, err := c.HTTPClient.Get(c.RemoteHTTPAddress)
 	if err != nil {
 		return ErrHealthNoInternet{Message: fmt.Sprintf(
 			"The internet connection fails to '%s'. Reason: %s",
-			c.RemoteHttpAddress, err.Error(),
+			c.RemoteHTTPAddress, err.Error(),
 		)}
 	}
 	defer res.Body.Close()
 
 	// Attempt to connect to kontrol's http page, simply to get an idea
 	// if Koding is running or not.
-	res, err = c.HttpClient.Get(c.RemoteKiteAddress)
+	res, err = c.HTTPClient.Get(c.RemoteKiteAddress)
 	if err != nil {
-		return ErrHealthNoKontrolHttpResponse{Message: fmt.Sprintf(
+		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
 			"A http request to Kontrol failed. Reason: %s", err.Error(),
 		)}
 	}
@@ -238,7 +234,7 @@ func (c *HealthChecker) CheckRemote() error {
 
 	// Kontrol should return a 200 response.
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return ErrHealthNoKontrolHttpResponse{Message: fmt.Sprintf(
+		return ErrHealthNoKontrolHTTPResponse{Message: fmt.Sprintf(
 			"A http request to Kontrol returned bad status code. Code: %d",
 			res.StatusCode,
 		)}
@@ -251,7 +247,7 @@ func (c *HealthChecker) CheckRemote() error {
 	// TODO: Log the response if it's not as expected, to help
 	// debug Cloudflare/nginx issues.
 	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != kiteHttpResponse {
+	if string(resData) != kiteHTTPResponse {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
 			"The '%s' route is returning an unexpected response: '%s'",
 			c.RemoteKiteAddress, string(resData),
@@ -284,7 +280,7 @@ func IsKlientRunning(a string) bool {
 	// since we just want to check the data itself. Handling the error
 	// might aid with debugging any problems though.
 	resData, _ := ioutil.ReadAll(res.Body)
-	if string(resData) != kiteHttpResponse {
+	if string(resData) != kiteHTTPResponse {
 		return false
 	}
 
