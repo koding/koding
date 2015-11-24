@@ -104,6 +104,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 				for _, g := range machine.Groups {
 					id := g.Id.Hex()
+
 					// Get all of the kites (not including this one) which have
 					// a reference to this kite, so we can append this kite to them.
 					kkwts, ok := kkwtsByGroupID[id]
