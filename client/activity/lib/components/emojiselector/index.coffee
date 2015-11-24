@@ -45,6 +45,17 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setCommonListVisibility stateId, no
 
 
+  scrollToCategory: (category) ->
+
+    list = React.findDOMNode @refs.list
+    return list.scrollTop = 0  unless category
+
+    header    = $ ".EmojiSelectorCategory-#{kd.utils.slugify category}"
+    headerTop = header.position().top
+
+    list.scrollTop += headerTop
+
+
   numberOfSections: ->
 
     return @props.items.size
@@ -57,7 +68,8 @@ module.exports = class EmojiSelector extends React.Component
 
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
-    <header>{@props.items.get(sectionIndex).get 'category'}</header>
+    category = @props.items.get(sectionIndex).get 'category'
+    <header className={"EmojiSelectorCategory-#{kd.utils.slugify category}"}>{category}</header>
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
@@ -81,17 +93,18 @@ module.exports = class EmojiSelector extends React.Component
 
     { items } = @props
 
-    filters = items.map (item) ->
+    filters = items.map (item) =>
       iconClassName = "emoji-sprite emoji-#{item.get('emojis').get(0)}"
+      category      = item.get 'category'
 
-      <span className='categoryFilterTab' title={item.get 'category'}>
+      <span className='categoryFilterTab' title={category} onClick={@lazyBound 'scrollToCategory', category}>
         <span className='emoji-wrapper'>
           <span className={iconClassName}></span>
         </span>
       </span>
 
     <div className='EmojiSelector-categoryFilters'>
-      <span className='categoryFilterTab' title='All'>
+      <span className='categoryFilterTab' title='All' onClick={@lazyBound 'scrollToCategory', ''}>
         <span className='emoji-wrapper'>
           <span className='emoji-sprite emoji-clock3'></span>
         </span>
@@ -114,7 +127,7 @@ module.exports = class EmojiSelector extends React.Component
       resize    = 'custom'
     >
       { @renderCategoryFilters() }
-      <div className="EmojiSelector-list Dropbox-resizable">
+      <div className="EmojiSelector-list Dropbox-resizable" ref='list'>
         <List
           numberOfSections={@bound 'numberOfSections'}
           numberOfRowsInSection={@bound 'numberOfRowsInSection'}
