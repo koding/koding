@@ -12,24 +12,32 @@ import (
 
 var (
 	// lockReplaceSep is the seperator for dividing folders in the lock file
-	// using flat structure. note this needs to be unique enough so it doesn't
+	// using flat structure. Note this needs to be unique enough so it doesn't
 	// conflict with common strings in file names.
 	lockReplaceSep = "_-_"
 
-	// folderSeparator is the os specific seperator for diving folders.
+	// folderSeparator is the os specific seperator for dividing folders.
 	folderSeparator = string(filepath.Separator)
-	lockExtension   = ".lock"
-	lockFolderName  = filepath.Join(".config", "koding")
+
+	// lockExtension is the extension of lock files used to identify that file
+	// is a lock file.
+	lockExtension = ".lock"
+
+	// lockFolderName is the name of the folder where the locks are stored.
+	// Klient uses .config/koding folder to store internal files so we store
+	// the lock files there as well.
+	lockFolderName = filepath.Join(".config", "koding")
 
 	ErrNotInMount = errors.New("path not in mount")
 )
 
 // Lock locks a folder by creating a .lock file corresponding to that folder.
 // This lock file is to be used by external tools to understand a particular
-// folder is a Fuse mounted folder.
+// folder is a kd mounted folder.
 //
 // Lock files are stored in lockFolderName; slashes in path are replaced with
-// with lockReplaceSep in file name so it can be stored flat.
+// with lockReplaceSep in file name so it can be stored flat. The file contains
+// the string name of the machine that's mounted in the path.
 func Lock(path, machine string) error {
 	lockFile, err := getLockFileName(path)
 	if err != nil {
@@ -58,9 +66,9 @@ func Unlock(path string) error {
 	return os.Remove(lockFile)
 }
 
-// GetMountedPathsFromLocks returns list of mounted paths based on lock files
-// stored in config folder. It returns proper filepaths regardless of how lock
-// stores it internally.
+// GetMountedPathsFromLocks returns list of mounted paths based on lock files.
+// It returns fully qualified local paths regardless of how lock stores the data
+// internally.
 func GetMountedPathsFromLocks() ([]string, error) {
 	configFolder, err := getOrCreateConfigFolder()
 	if err != nil {
@@ -87,14 +95,21 @@ func GetMountedPathsFromLocks() ([]string, error) {
 }
 
 // GetMachineMountedForPath returns name of the machine that's mounted in the
-// current directory.
+// current directory. Machine name is obtained by the getting the lock file
+// of the folder and reading its contents. Note, this works with nested paths
+// inside a mount.
+//
+// It returns ErrNotInMount if specified local path is not inside or equal to
+// mount.
 func GetMachineMountedForPath(localPath string) (string, error) {
 	relativePath, err := GetRelativeMountPath(localPath)
 	if err != nil {
 		return "", err
 	}
 
+	// remove relative path to get the root path of the mount
 	rootMountPath := strings.TrimSuffix(localPath, relativePath)
+
 	lockFile, err := getLockFileName(rootMountPath)
 	if err != nil {
 		return "", err
@@ -113,10 +128,10 @@ func GetMachineMountedForPath(localPath string) (string, error) {
 }
 
 // GetRelativeMountPath returns the path that's relative to mount path based on
-// specified local path. If the specified path and mount is the same, it returns
-// and empty string.
+// specified local path. If the specified path and mount are equal, it returns
+// an empty string, else it returns the remaining paths.
 //
-// Ex: if mount path is "/a/b" and local path is "/a/b/c", it returns "c".
+// Ex: if mount path is "/a/b" and local path is "/a/b/c/d", it returns "c/d".
 //
 // It returns ErrNotInMount if specified local path is not inside or equal to
 // mount.
@@ -142,15 +157,15 @@ func GetRelativeMountPath(localPath string) (string, error) {
 			}
 		}
 
-		// whatever entries remaining in local path is the relative pat
+		// whatever entries remaining in local path is the relative path
 		return filepath.Join(splitLocal[len(splitMount):]...), nil
 	}
 
 	return "", ErrNotInMount
 }
 
-// IsPathInMountedPath returns bool to indicate if specified local path is equal
-// to mont or inside a mount.
+// IsPathInMountedPath returns true if specified local path is equal to mount
+// or inside a mount.
 func IsPathInMountedPath(localPath string) (bool, error) {
 	mPaths, err := GetMountedPathsFromLocks()
 	if err != nil {
