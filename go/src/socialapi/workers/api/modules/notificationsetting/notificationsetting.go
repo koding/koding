@@ -63,7 +63,7 @@ func Get(u *url.URL, header http.Header, _ interface{}, ctx *models.Context) (in
 }
 
 // Update udpates the notification setting
-func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *models.Context) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, a map[string]interface{}, ctx *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -73,10 +73,7 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
 	}
 
-	desktopSetting := req.DesktopSetting
-	mobileSetting := req.MobileSetting
-	isMuted := req.IsMuted
-	isSuppressed := req.IsSuppressed
+	req := models.NewNotificationSetting()
 
 	if err := req.ById(id); err != nil {
 		if err == bongo.RecordNotFound {
@@ -94,10 +91,10 @@ func Update(u *url.URL, h http.Header, req *models.NotificationSetting, ctx *mod
 		return response.NewInvalidRequest(models.ErrAccountNotFound)
 	}
 
-	req.DesktopSetting = desktopSetting
-	req.MobileSetting = mobileSetting
-	req.IsMuted = isMuted
-	req.IsSuppressed = isSuppressed
+	// Here we update notification setting with incoming request datas
+	// if field have null or any value, then we update the field
+	// otherwise we dont change any value of notification setting struct
+	req = parseToNotificationSetting(a, req)
 
 	if err := req.Update(); err != nil {
 		return response.NewBadRequest(err)
