@@ -1,6 +1,6 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
-HUBSPOT = yes
+HUBSPOT = no
 
 rootPath        = helpers.getUrl()
 legalPageUrl    = rootPath + '/Legal'
