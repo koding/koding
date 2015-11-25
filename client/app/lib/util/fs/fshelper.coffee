@@ -14,7 +14,11 @@ module.exports = class FSHelper
     else if not options?.path?
       return kd.warn "pass a path and type to create a file instance"
 
-    unless options.machine?
+    if options.machine
+      unless options.path.indexOf('localfile:/') is 0
+        # make sure that we machine and it's uid in path
+        options.path = "[#{options.machine.uid}]#{@plainPath options.path}"
+    else
       kd.warn "No machine instance passed, creating dummy file instance"
       options.machine = new DummyMachine
 
