@@ -247,7 +247,6 @@ body.pricing
     height                  auto
     borderBox()
     dFlex()
-    flexWrap()
 
     .single-plan
       flex-basis            25%
@@ -415,7 +414,7 @@ body.pricing
         dd
           min-height        23px
           color             #98a1ad
-          font-size         17px
+          font-size         16px
 
         .cpu:after
           content           '(burstable)'
@@ -455,9 +454,10 @@ body.pricing
   .content-page.pricing
     section.plans
       max-width             525px
+      flexWrap()
 
       .single-plan
-        flex-basis          50%
+        flex-basis          49%
 
         .overflow-hidden
           border            1px solid #cbd4e6
