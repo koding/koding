@@ -464,6 +464,11 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	log.Println("Starting machine")
+	if err := start(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
 	//

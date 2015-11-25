@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	// Go binary residues at go/src/koding/kites/kloud/scripts/softlayer
+	// Go binary source code residues at go/src/koding/kites/kloud/scripts/softlayer
 	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-softlayer/softlayer"
 )
 
