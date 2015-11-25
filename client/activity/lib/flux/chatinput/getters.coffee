@@ -16,6 +16,7 @@ EmojisStore                         = [['EmojisStore'], withEmptyList]
 EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
 FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
 FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
+EmojiSelectorQueryStore             = [['EmojiSelectorQueryStore'], withEmptyMap]
 CommonEmojiListSelectedIndexStore   = [['CommonEmojiListSelectedIndexStore'], withEmptyMap]
 CommonEmojiListVisibilityStore      = [['CommonEmojiListVisibilityStore'], withEmptyMap]
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
@@ -84,7 +85,42 @@ filteredEmojiListSelectedItem = (stateId) -> [
 
 commonEmojiList = EmojisStore
 
-emojiSelectorItems = EmojiCategoriesStore
+emojiSelectorQuery = (stateId) -> [
+  EmojiSelectorQueryStore
+  (queries) -> queries.get stateId
+]
+
+
+emojiSelectorItems = (stateId) -> [
+  EmojiCategoriesStore
+  emojiSelectorQuery stateId
+  (list, query) ->
+    return list  unless query
+
+    isBeginningMatch = query.length < 3
+
+    reduceFn = (reduction, item) ->
+      emojis = item.get('emojis').filter (emoji) ->
+        index = emoji.indexOf(query)
+        if isBeginningMatch then index is 0 else index > -1
+      reduction.concat emojis.toJS()
+
+    searchItems = list.reduce reduceFn, []
+
+    toImmutable [{ category : 'Search Results', emojis : searchItems }]
+]
+
+
+emojiSelectorFilters = [
+  EmojiCategoriesStore
+  (list) ->
+    list.map (item) ->
+      toImmutable {
+        category : item.get('category')
+        iconEmoji : item.get('emojis').get(0)
+      }
+]
+
 
 emojiSelectorSelectedIndex = (stateId) -> [
   CommonEmojiListSelectedIndexStore
@@ -100,7 +136,7 @@ emojiSelectorVisibility = (stateId) -> [
 
 # Returns emoji from emoji list by current selected index
 emojiSelectorSelectedItem = (stateId) -> [
-  emojiSelectorItems
+  emojiSelectorItems stateId
   emojiSelectorSelectedIndex stateId
   (list, selectedIndex) ->
     return  unless selectedIndex?
@@ -382,6 +418,8 @@ module.exports = {
   filteredEmojiListSelectedIndex
 
   emojiSelectorItems
+  emojiSelectorFilters
+  emojiSelectorQuery
   emojiSelectorSelectedIndex
   emojiSelectorVisibility
   emojiSelectorSelectedItem

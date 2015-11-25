@@ -82,6 +82,24 @@ resetFilteredListSelectedIndex = (stateId) ->
   dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId }
 
 
+setEmojiSelectorQuery = (stateId, query) ->
+
+  if query
+    { SET_EMOJI_SELECTOR_QUERY } = actionTypes
+    dispatch SET_EMOJI_SELECTOR_QUERY, { stateId, query }
+    resetCommonListSelectedIndex stateId
+  else
+    unsetEmojiSelectorQuery stateId
+
+
+unsetEmojiSelectorQuery = (stateId) ->
+
+  { UNSET_EMOJI_SELECTOR_QUERY } = actionTypes
+  dispatch UNSET_EMOJI_SELECTOR_QUERY, { stateId }
+
+  resetCommonListSelectedIndex { stateId }
+
+
 ###*
  * Action to set selected index of common emoji list
  *
@@ -129,6 +147,8 @@ module.exports = {
   moveToPrevFilteredListIndex
   resetFilteredListSelectedIndex
 
+  setEmojiSelectorQuery
+  unsetEmojiSelectorQuery
   setCommonListSelectedIndex
   resetCommonListSelectedIndex
   setCommonListVisibility

@@ -21,6 +21,7 @@ module.exports = class EmojiSelector extends React.Component
     items        : immutable.List()
     visible      : no
     selectedItem : ''
+    query        : ''
 
 
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
@@ -54,6 +55,14 @@ module.exports = class EmojiSelector extends React.Component
     headerTop = header.position().top
 
     list.scrollTop += headerTop
+
+
+  onSearch: (event) ->
+
+    { value }   = event.target
+    { stateId } = @props
+
+    ChatInputFlux.actions.emoji.setEmojiSelectorQuery stateId, value
 
 
   numberOfSections: ->
@@ -91,10 +100,10 @@ module.exports = class EmojiSelector extends React.Component
 
   renderCategoryFilters: ->
 
-    { items } = @props
+    { filters } = @props
 
-    filters = items.map (item) =>
-      iconClassName = "emoji-sprite emoji-#{item.get('emojis').get(0)}"
+    components = filters.map (item) =>
+      iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
       category      = item.get 'category'
 
       <span className='categoryFilterTab' title={category} onClick={@lazyBound 'scrollToCategory', category}>
@@ -109,13 +118,13 @@ module.exports = class EmojiSelector extends React.Component
           <span className='emoji-sprite emoji-clock3'></span>
         </span>
       </span>
-      { filters }
+      { components }
     </div>
 
 
   render: ->
 
-    { visible, selectedItem } = @props
+    { query, visible, selectedItem } = @props
 
     <Dropbox
       className = 'EmojiSelector'
@@ -128,6 +137,7 @@ module.exports = class EmojiSelector extends React.Component
     >
       { @renderCategoryFilters() }
       <div className="EmojiSelector-list Dropbox-resizable" ref='list'>
+        <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
           numberOfSections={@bound 'numberOfSections'}
           numberOfRowsInSection={@bound 'numberOfRowsInSection'}
