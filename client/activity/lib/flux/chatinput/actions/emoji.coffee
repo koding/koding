@@ -82,58 +82,58 @@ resetFilteredListSelectedIndex = (stateId) ->
   dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId }
 
 
-setEmojiSelectorQuery = (stateId, query) ->
+setSelectorQuery = (stateId, query) ->
 
   if query
     { SET_EMOJI_SELECTOR_QUERY } = actionTypes
     dispatch SET_EMOJI_SELECTOR_QUERY, { stateId, query }
-    resetCommonListSelectedIndex stateId
+    resetSelectorSelectedIndex stateId
   else
-    unsetEmojiSelectorQuery stateId
+    unsetSelectorQuery stateId
 
 
-unsetEmojiSelectorQuery = (stateId) ->
+unsetSelectorQuery = (stateId) ->
 
   { UNSET_EMOJI_SELECTOR_QUERY } = actionTypes
   dispatch UNSET_EMOJI_SELECTOR_QUERY, { stateId }
 
-  resetCommonListSelectedIndex { stateId }
+  resetSelectorSelectedIndex { stateId }
 
 
 ###*
- * Action to set selected index of common emoji list
+ * Action to set selected index of emoji selector
  *
  * @param {string} stateId
  * @param {number} index
 ###
-setCommonListSelectedIndex = (stateId, index) ->
+setSelectorSelectedIndex = (stateId, index) ->
 
-  { SET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
-  dispatch SET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId, index }
+  { SET_EMOJI_SELECTOR_SELECTED_INDEX } = actionTypes
+  dispatch SET_EMOJI_SELECTOR_SELECTED_INDEX, { stateId, index }
 
 
 ###*
- * Action to reset selected index of common emoji list
+ * Action to reset selected index of emoji selector
  * to initial value
  *
  * @param {string} stateId
 ###
-resetCommonListSelectedIndex = (stateId) ->
+resetSelectorSelectedIndex = (stateId) ->
 
-  { RESET_COMMON_EMOJI_LIST_SELECTED_INDEX } = actionTypes
-  dispatch RESET_COMMON_EMOJI_LIST_SELECTED_INDEX, { stateId }
+  { RESET_EMOJI_SELECTOR_SELECTED_INDEX } = actionTypes
+  dispatch RESET_EMOJI_SELECTOR_SELECTED_INDEX, { stateId }
 
 
 ###*
- * Action to set visibility flag of common emoji list
+ * Action to set visibility flag of emoji selector
  *
  * @param {string} stateId
  * @param {bool} visible
 ###
-setCommonListVisibility = (stateId, visible) ->
+setSelectorVisibility = (stateId, visible) ->
 
-  { SET_COMMON_EMOJI_LIST_VISIBILITY } = actionTypes
-  dispatch SET_COMMON_EMOJI_LIST_VISIBILITY, { stateId, visible }
+  { SET_EMOJI_SELECTOR_VISIBILITY } = actionTypes
+  dispatch SET_EMOJI_SELECTOR_VISIBILITY, { stateId, visible }
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -147,10 +147,10 @@ module.exports = {
   moveToPrevFilteredListIndex
   resetFilteredListSelectedIndex
 
-  setEmojiSelectorQuery
-  unsetEmojiSelectorQuery
-  setCommonListSelectedIndex
-  resetCommonListSelectedIndex
-  setCommonListVisibility
+  setSelectorQuery
+  unsetSelectorQuery
+  setSelectorSelectedIndex
+  resetSelectorSelectedIndex
+  setSelectorVisibility
 }
 

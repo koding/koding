@@ -17,8 +17,8 @@ EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
 FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
 FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
 EmojiSelectorQueryStore             = [['EmojiSelectorQueryStore'], withEmptyMap]
-CommonEmojiListSelectedIndexStore   = [['CommonEmojiListSelectedIndexStore'], withEmptyMap]
-CommonEmojiListVisibilityStore      = [['CommonEmojiListVisibilityStore'], withEmptyMap]
+EmojiSelectorSelectedIndexStore     = [['EmojiSelectorSelectedIndexStore'], withEmptyMap]
+EmojiSelectorVisibilityStore        = [['EmojiSelectorVisibilityStore'], withEmptyMap]
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
@@ -83,8 +83,6 @@ filteredEmojiListSelectedItem = (stateId) -> [
 ]
 
 
-commonEmojiList = EmojisStore
-
 emojiSelectorQuery = (stateId) -> [
   EmojiSelectorQueryStore
   (queries) -> queries.get stateId
@@ -123,13 +121,13 @@ emojiSelectorFilters = [
 
 
 emojiSelectorSelectedIndex = (stateId) -> [
-  CommonEmojiListSelectedIndexStore
+  EmojiSelectorSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
 emojiSelectorVisibility = (stateId) -> [
-  CommonEmojiListVisibilityStore
+  EmojiSelectorVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 

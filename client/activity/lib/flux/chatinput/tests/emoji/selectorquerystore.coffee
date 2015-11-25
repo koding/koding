@@ -2,7 +2,7 @@
 
 Reactor = require 'app/flux/base/reactor'
 
-EmojiSelectorQueryStore = require 'activity/flux/chatinput/stores/emoji/emojiselectorquerystore'
+EmojiSelectorQueryStore = require 'activity/flux/chatinput/stores/emoji/selectorquerystore'
 actions = require 'activity/flux/chatinput/actions/actiontypes'
 
 describe 'EmojiSelectorQueryStore', ->

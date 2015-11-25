@@ -292,7 +292,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
+    ChatInputFlux.actions.emoji.setSelectorVisibility @stateId, yes
 
 
   focus: ->

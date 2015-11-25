@@ -31,7 +31,7 @@ module.exports = class EmojiSelector extends React.Component
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ChatInputFlux.actions.emoji.setCommonListSelectedIndex stateId, index
+    ChatInputFlux.actions.emoji.setSelectorSelectedIndex stateId, index
 
 
   onItemConfirmed: ->
@@ -44,7 +44,7 @@ module.exports = class EmojiSelector extends React.Component
   close: ->
 
     { stateId } = @props
-    ChatInputFlux.actions.emoji.setCommonListVisibility stateId, no
+    ChatInputFlux.actions.emoji.setSelectorVisibility stateId, no
 
 
   scrollToCategory: (category) ->
@@ -63,7 +63,7 @@ module.exports = class EmojiSelector extends React.Component
     { value }   = event.target
     { stateId } = @props
 
-    ChatInputFlux.actions.emoji.setEmojiSelectorQuery stateId, value
+    ChatInputFlux.actions.emoji.setSelectorQuery stateId, value
 
 
   numberOfSections: ->
@@ -97,7 +97,6 @@ module.exports = class EmojiSelector extends React.Component
       onConfirmed  = { @bound 'onItemConfirmed' }
       key          = { item }
     />
-
 
   renderEmptySectionMessageAtIndex: (sectionIndex) ->
 
