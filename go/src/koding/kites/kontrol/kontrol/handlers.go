@@ -50,7 +50,9 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		}
 
 		// Get all machines for the given user.
-		machines, err := modelhelper.GetMachinesByUsername(req.Username)
+		machines, err := modelhelper.GetMachineFieldsByUsername(req.Username, []string{
+			"ipAddress", "label", "groups",
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +129,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 		// Now that we have all of our group ids that we want to query, get our Groups
 		// from that.
-		groups, err := modelhelper.GetGroupsByIds(uniqueGroups...)
+		groups, err := modelhelper.GetGroupFieldsByIds(uniqueGroups, []string{"title"})
 		if err != nil {
 			req.LocalKite.Log.Error(
 				"Error returned when querying Team Names. [groupIds:%s, err:%s",
