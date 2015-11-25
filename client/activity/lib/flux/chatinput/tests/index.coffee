@@ -1,6 +1,7 @@
 require './emoji/emojisstore'
 require './emoji/filteredemojilistquerystore'
 require './emoji/filteredemojilistselectedindexstore'
+require './emoji/emojiselectorquerystore'
 require './emoji/commonemojilistselectedindexstore'
 require './emoji/commonemojilistvisibilitystore'
 require './channel/querystore'
