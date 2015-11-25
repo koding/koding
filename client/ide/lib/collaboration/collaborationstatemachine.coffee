@@ -21,6 +21,6 @@ module.exports = class CollaborationStateMachine extends KDStateMachine
     Prepared      : ['Creating']
     Creating      : ['ErrorCreating', 'Created']
     Created       : ['Active']
-    ErrorCreating : ['Creating', 'NotStarted']
+    ErrorCreating : ['Creating', 'Prepared']
     Active        : ['Ending']
     Ending        : []

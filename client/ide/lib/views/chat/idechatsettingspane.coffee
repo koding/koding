@@ -15,9 +15,18 @@ IDEChatParticipantView      = require './idechatparticipantview'
 ButtonViewWithProgressBar   = require 'app/commonviews/buttonviewwithprogressbar'
 
 
-module.exports          = class IDEChatSettingsPane extends KDTabPaneView
+PROGRESS_DELAYS             = [
+    { delay : 500,  progress : 5 }
+    { delay : 1500, progress : 20 }
+    { delay : 2500, progress : 65 }
+    { delay : 3250, progress : 75 }
+  ]
+
+
+module.exports              = class IDEChatSettingsPane extends KDTabPaneView
 
   JView.mixin @constructor
+
 
   constructor: (options = {}, data)->
 
@@ -25,8 +34,8 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
     super options, data
 
-    @participantViews    = {}
-    {@rtm, @isInSession} = options
+    @participantViews       = {}
+    { @rtm, @isInSession }  = options
 
     @amIHost = not @isInSession # not @isInSession means user is host, bad naming!
 
@@ -42,6 +51,8 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
     @on 'CollaborationStarted', =>
       @toggleButtons 'started'
+
+    @on 'CollaborationNotInitialized', => @startSession.resetProgress()
 
     @bindChannelEvents()
 
@@ -232,10 +243,11 @@ module.exports          = class IDEChatSettingsPane extends KDTabPaneView
 
   initiateSession: ->
 
-    kd.utils.wait 500,  => @startSession.updateProgress 5
-    kd.utils.wait 1500, => @startSession.updateProgress 20
-    kd.utils.wait 2500, => @startSession.updateProgress 65
-    kd.utils.wait 3250, => @startSession.updateProgress 75
+    @startSession.updateProgress 0 # Make sure initial value is 0
+
+    PROGRESS_DELAYS.forEach (item) =>
+      kd.utils.killWait item.timer  if item.timer # Kill already defined waits
+      item.timer = kd.utils.wait item.delay, => @startSession.updateProgress item.progress
 
     { appManager } = kd.singletons
 
