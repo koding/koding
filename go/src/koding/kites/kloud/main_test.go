@@ -453,11 +453,14 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println("-----------------")
-	fmt.Println(userData.PublicKey)
-	fmt.Println("-----------------")
+	machineId := userData.MachineIds[0].Hex()
 
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := build(machineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(machineId, "softlayer", userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 

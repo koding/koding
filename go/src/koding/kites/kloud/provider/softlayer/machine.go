@@ -37,6 +37,7 @@ type Machine struct {
 	Credential string    `bson:"credential"`
 	CreatedAt  time.Time `bson:"createdAt"`
 	Meta       struct {
+		Id         int    `bson:id`
 		AlwaysOn   bool   `bson:"alwaysOn"`
 		Datacenter string `structs:"datacenter" bson:"datacenter"`
 	} `bson:"meta"`
@@ -109,4 +110,28 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 			Status:     state,
 		})
 	}
+}
+
+func (m *Machine) markAsStopped() error {
+	return m.MarkAsStoppedWithReason("Machine is stopped")
+}
+
+func (m *Machine) MarkAsStoppedWithReason(reason string) error {
+	m.Log.Debug("Marking instance as stopped")
+	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"status.state":      machinestate.Stopped.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     reason,
+			}},
+		)
+	}); err != nil {
+		return err
+	}
+
+	// so any State() method returns the correct status
+	m.Status.State = machinestate.Stopped.String()
+	return nil
 }
