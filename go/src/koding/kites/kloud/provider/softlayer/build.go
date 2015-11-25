@@ -83,13 +83,11 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
-		Hostname:  m.Username,  // this is correct, we use the username as hostname
-		Domain:    "koding.io", // this is just a placeholder
-		StartCpus: 1,
-		MaxMemory: 1024,
-		Datacenter: datatypes.Datacenter{
-			Name: "fra02",
-		},
+		Hostname:                     m.Username,  // this is correct, we use the username as hostname
+		Domain:                       "koding.io", // this is just a placeholder
+		StartCpus:                    1,
+		MaxMemory:                    1024,
+		Datacenter:                   datatypes.Datacenter{Name: m.Meta.Datacenter},
 		HourlyBillingFlag:            true,
 		LocalDiskFlag:                true,
 		OperatingSystemReferenceCode: "UBUNTU_LATEST",
@@ -144,6 +142,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				"ipAddress":         m.IpAddress,
 				"queryString":       m.QueryString,
 				"meta.id":           obj.Id,
+				"meta.datacenter":   m.Meta.Datacenter,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Build finished",

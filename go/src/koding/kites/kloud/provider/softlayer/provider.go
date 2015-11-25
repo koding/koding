@@ -64,11 +64,14 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
-	if machine.Meta.Region == "" {
-		return nil, errors.New("region is not set")
+	if machine.Meta.Datacenter == "" {
+		// We choose DALLAS 01 because it has the largest capacity
+		// http://www.softlayer.com/data-centers
+		machine.Meta.Datacenter = "sjc01"
+		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.Id.Hex())
 	}
 
-	p.Log.Debug("Using region: %s", machine.Meta.Region)
+	p.Log.Debug("Using datacenter: %s", machine.Meta.Datacenter)
 
 	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
