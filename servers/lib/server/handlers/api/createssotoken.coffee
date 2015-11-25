@@ -3,7 +3,7 @@
 
 module.exports = (req, res, next) ->
 
-  { JAccount, JGroup, JUser, JApiToken } = (require '../bongo').models
+  { JAccount, JGroup, JUser, JApiToken } = (require '../../bongo').models
 
   # validating req params
   { error, token, username } = validateRequest req

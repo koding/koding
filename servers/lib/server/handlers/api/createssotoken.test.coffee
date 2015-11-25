@@ -3,10 +3,10 @@
   request
   generateRandomString
   generateRandomUsername
-  checkBongoConnectivity }              = require '../../../testhelper'
-{ withConvertedUser }                   = require '../../../../workers/social/testhelper'
-{ withConvertedUserAndApiToken }        = require '../../../../workers/social/testhelper/models/apitokenhelper'
-{ generateCreateSsoTokenRequestParams } = require '../../../testhelper/handler/createssotokenhelper'
+  checkBongoConnectivity }              = require '../../../../testhelper'
+{ withConvertedUser }                   = require '../../../../../workers/social/testhelper'
+{ withConvertedUserAndApiToken }        = require '../../../../../workers/social/testhelper/models/apitokenhelper'
+{ generateCreateSsoTokenRequestParams } = require '../../../../testhelper/handler/createssotokenhelper'
 
 beforeTests = -> before (done) ->
 
