@@ -13,15 +13,19 @@ import (
 	"strings"
 )
 
-// metadataURL is used to retrieve the custom data we pass when we create a new
-// SoftLayer instance
-const metadataURL = "https://api.service.softlayer.com/rest/v3/SoftLayer_Resource_Metadata/getUserMetadata.txt"
+const (
+	// metadataURL is used to retrieve the custom data we pass when we create a new
+	// SoftLayer instance
+	metadataURL = "https://api.service.softlayer.com/rest/v3/SoftLayer_Resource_Metadata/getUserMetadata.txt"
+
+	outputFile = "/var/log/koding-setup.txt"
+)
 
 // output defines the log and command execution outputs
 var output io.Writer = os.Stderr
 
 func main() {
-	file, err := os.OpenFile("/var/log/koding-setup.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println("couldn't crate file, going to log to stdout")
 	} else {
