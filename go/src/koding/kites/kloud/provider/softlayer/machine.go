@@ -135,3 +135,17 @@ func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 	m.Status.State = machinestate.Stopped.String()
 	return nil
 }
+
+// DeleteDocument deletes the associated MongoDB document.
+func (m *Machine) DeleteDocument() error {
+	m.Log.Debug("Deleting machine document")
+	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.RemoveId(m.Id)
+	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't delete document with id: %s err: %s", m.Id.Hex(), err)
+	}
+
+	return nil
+}

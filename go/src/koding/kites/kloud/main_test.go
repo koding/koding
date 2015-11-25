@@ -469,6 +469,11 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	log.Println("Destroying machine")
+	if err := destroy(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
 	//
@@ -561,7 +566,7 @@ func TestStop(t *testing.T) {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -592,7 +597,7 @@ func TestStart(t *testing.T) {
 		t.Error("`start` method can not be called on `started` machines.")
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -638,7 +643,7 @@ func TestSnapshot(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -657,7 +662,7 @@ func TestResize(t *testing.T) {
 
 	defer func() {
 		log.Println("Destroying machine")
-		if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+		if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 			t.Error(err)
 		}
 	}()
@@ -1016,10 +1021,10 @@ resource "aws_instance" "example" {
 
 }
 
-func destroy(id string, remote *kite.Client) error {
+func destroy(id, provider string, remote *kite.Client) error {
 	destroyArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("destroy", destroyArgs)
