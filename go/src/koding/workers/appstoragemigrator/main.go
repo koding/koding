@@ -1,11 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"fmt"
-
-	"github.com/kr/pretty"
 
 	"koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
@@ -67,7 +63,10 @@ func main() {
 
 func createFilter() helper.Selector {
 	return helper.Selector{
-	// "_id": bson.ObjectIdHex("53257671ce0961b05181746e"),
+	// cihangir
+	// "_id": bson.ObjectIdHex("50c4a3fe6b33139354000159"),
+	// sinan
+	// "_id": bson.ObjectIdHex("4f14fa4d519ab4c62e000052"),
 	}
 }
 
@@ -83,11 +82,13 @@ func processDocuments(doc interface{}) error {
 		return err
 	}
 
+	// if target user doesnt have any relationship, no need to continue
 	if len(rels) == 0 {
 		log.Info("couldnt find any relationships")
 		return nil
 	}
 
+	// aggragate all relationship targetIds, because we are going to fetch target JAppStorages
 	ids := make([]bson.ObjectId, 0)
 	for _, rel := range rels {
 		if rel.TargetId.Valid() {
@@ -95,25 +96,28 @@ func processDocuments(doc interface{}) error {
 		}
 	}
 
+	// if result doesnt have any valid id, skip
 	if len(ids) == 0 {
 		log.Info("relationship ids are not valid")
 		return nil
 	}
 
-	aps, err := getAppStoragesByIds(ids...)
+	// fetch old JAppStorages
+	aps, err := helper.GetAppStoragesByIds(ids...)
 	if err != nil {
 		return err
 	}
 
 	if len(aps) == 0 {
+		log.Info("couldnt find any JAppStorages for %s", result.Profile.Nickname)
 		return nil
 	}
 
 	cas := &models.CombinedAppStorage{
 		Id:        bson.NewObjectId(),
 		AccountId: result.Id,
+		Bucket:    make(map[string]map[string]map[string]interface{}),
 	}
-	cas.Bucket = make(map[string]map[string]map[string]interface{})
 
 	for _, ap := range aps {
 		if _, ok := cas.Bucket[ap.AppID]; !ok {
@@ -127,22 +131,26 @@ func processDocuments(doc interface{}) error {
 		if len(cas.Bucket[ap.AppID]["data"]) <= len(ap.Bucket) {
 			cas.Bucket[ap.AppID]["data"] = ap.Bucket
 		} else {
-			log.Info("skipping already set apid: %+v", ap)
+			log.Info("skipping already set apid: %+v", ap.AppID)
 		}
 	}
 
-	cass, err := getCombinedAppStorageById(result.Id)
-	fmt.Printf("err %# v", pretty.Formatter(err))
+	cass, err := helper.GetCombinedAppStorageByAccountId(result.Id)
 	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
 
 	if err == mgo.ErrNotFound {
-		fmt.Println("1-->", 1)
-		b, _ := json.MarshalIndent(cas, "", "	")
-		fmt.Println("string(b)-->", string(b))
+		log.Info("creating new CombinedAppStorage for %s", result.Profile.Nickname)
+		cas = cleanup(cas)
+
+		if err := helper.CreateCombinedAppStorage(cas); err != nil {
+			return err
+		}
 
 	} else {
+		log.Info("updating existing CombinedAppStorage for %s", result.Profile.Nickname)
+
 		for key, data := range cas.Bucket {
 			if _, ok := cass.Bucket[key]; !ok {
 				cass.Bucket[key] = data
@@ -150,41 +158,78 @@ func processDocuments(doc interface{}) error {
 			}
 
 			for k, datum := range data {
+				if k == "data" {
+					continue
+				}
+
 				if _, ok := cass.Bucket[key]["data"][k]; !ok {
 					cass.Bucket[key]["data"][k] = datum
 				}
 			}
-
 		}
-		x, _ := json.MarshalIndent(cass, "", "	")
-		fmt.Println("string(x)-->", string(x))
 
+		cass = cleanup(cass)
+
+		if err := helper.UpdateCombinedAppStorage(cass); err != nil {
+			return err
+		}
 	}
-	// fmt.Printf("cas %# v", pretty.Formatter(cas))
 
-	// b, _ := json.MarshalIndent(cas, "", "	")
-	// fmt.Println("string(b)-->", string(b))
 	return nil
 }
 
-func getAppStoragesByIds(ids ...bson.ObjectId) ([]*models.AppStorage, error) {
-	var appStorages []*models.AppStorage
-	if err := helper.Mongo.Run("jAppStorages", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&appStorages)
-	}); err != nil {
-		return nil, fmt.Errorf("jappStorages lookup error: %v", err)
+// cleanup removed blacklisted app storage items, they are mostly not in use
+// anymore, list is collected with @sinan
+func cleanup(c *models.CombinedAppStorage) *models.CombinedAppStorage {
+	if len(c.Bucket) == 0 {
+		return c
 	}
 
-	return appStorages, nil
+	for _, black := range blacklist {
+		delete(c.Bucket, black)
+	}
+
+	return c
 }
 
-func getCombinedAppStorageById(accountId bson.ObjectId) (*models.CombinedAppStorage, error) {
-	var appStorages *models.CombinedAppStorage
-	if err := helper.Mongo.Run("jCombinedAppStorages", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"accountId": accountId}).One(&appStorages)
-	}); err != nil {
-		return nil, err
-	}
-
-	return appStorages, nil
+var blacklist = []string{
+	"Activity",
+	"Members",
+	"WelcomeModal",
+	"Wordpress",
+	"github-dashboard",
+	"laravel-installer",
+	"OnboardingStatus",
+	"About",
+	"AceTabHistory",
+	"Applications",
+	"Apps",
+	"Brackets",
+	"Brackets",
+	"Bugs",
+	"Dashboard",
+	"DefaultAppConfig",
+	"DevTools",
+	"Dock",
+	"EnvironmentsScene",
+	"Gameoflife",
+	"Hartl",
+	"Helper",
+	"Home",
+	"Installer",
+	"Groups",
+	"IntroductionTooltipStatus",
+	"Julia",
+	"Kodepad",
+	"KodingApps",
+	"Login",
+	"KodingBook",
+	"MainApp",
+	"NewKoding",
+	"PhoneGap",
+	"Numbers",
+	"Rubyonrailsinstaller",
+	"Teamwork",
+	"Topics",
+	"Umlgenerator",
 }
