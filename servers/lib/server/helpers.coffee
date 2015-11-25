@@ -113,7 +113,7 @@ serveHome = (req, res, next) ->
 
       # if user is not logged in and requests the root page, serve the content
       # of hubspot
-      if not state and req.path is '/' and KONFIG.environment not in ["dev", "sandbox"]
+      if not state and req.path is '/' and KONFIG.environment not in ['dev', 'sandbox']
 
         # pipe incoming request directly to hubspot and pipe the response from
         # hubspot as our response
