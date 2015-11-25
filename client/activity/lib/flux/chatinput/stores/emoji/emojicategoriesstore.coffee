@@ -12,6 +12,12 @@ module.exports = class EmojiCategoriesStore extends KodingFluxStore
 
   @getterPath = 'EmojiCategoriesStore'
 
+  ###*
+   * Store data is built based on emojiCategories list taken from Slack.
+   * Emojis which do not exist in emojisKeywords list are filtered out.
+   * Emojis which exist in emojisKeywords and do not exist in
+   * emojiCategories are put to Custom category
+  ###
   getInitialState: ->
 
     data = []

@@ -82,6 +82,16 @@ resetFilteredListSelectedIndex = (stateId) ->
   dispatch RESET_FILTERED_EMOJI_LIST_SELECTED_INDEX, { stateId }
 
 
+###*
+ * Action to set a query of emoji selector.
+ * If query is empty or not defined, unsetSelectorQuery()
+ * is called to unset current query.
+ * Once the query is set, current selected index of
+ * emoji selector should be reset
+ *
+ * @param {string} stateId
+ * @param {string} query
+###
 setSelectorQuery = (stateId, query) ->
 
   if query
@@ -92,6 +102,11 @@ setSelectorQuery = (stateId, query) ->
     unsetSelectorQuery stateId
 
 
+###*
+ * Action to unset current query of emoji selector
+ *
+ * @param {string} stateId
+###
 unsetSelectorQuery = (stateId) ->
 
   { UNSET_EMOJI_SELECTOR_QUERY } = actionTypes

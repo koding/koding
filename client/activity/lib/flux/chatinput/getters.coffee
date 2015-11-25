@@ -83,12 +83,17 @@ filteredEmojiListSelectedItem = (stateId) -> [
 ]
 
 
+# Returns emoji selector query by given stateId
 emojiSelectorQuery = (stateId) -> [
   EmojiSelectorQueryStore
   (queries) -> queries.get stateId
 ]
 
-
+# Returns a list of emoji categories with their emojis
+# - If emoji selector query is not empty, it searches for emojis by
+# specified query and returns a list with the only category named
+# 'Search Results' with a list of found emojis
+# - If emoji selector query is empty, it returns EmojiCategoriesStore data
 emojiSelectorItems = (stateId) -> [
   EmojiCategoriesStore
   emojiSelectorQuery stateId
@@ -109,6 +114,9 @@ emojiSelectorItems = (stateId) -> [
 ]
 
 
+# Returns a list of emoji selector filters (categories)
+# Each filter has category name and emoji name which is used
+# to render filter icon
 emojiSelectorFilters = [
   EmojiCategoriesStore
   (list) ->
@@ -120,19 +128,23 @@ emojiSelectorFilters = [
 ]
 
 
+# Returns selected index of emoji selector
+# It's a total index based on the list of emojis of all categories
 emojiSelectorSelectedIndex = (stateId) -> [
   EmojiSelectorSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
+# Returns visibility flag of emoji selector
 emojiSelectorVisibility = (stateId) -> [
   EmojiSelectorVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 
 
-# Returns emoji from emoji list by current selected index
+# Returns emoji from common emoji list of all categories
+# by current selected index
 emojiSelectorSelectedItem = (stateId) -> [
   emojiSelectorItems stateId
   emojiSelectorSelectedIndex stateId
