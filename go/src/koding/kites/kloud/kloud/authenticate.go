@@ -3,18 +3,15 @@ package kloud
 import (
 	"errors"
 	"fmt"
+
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/session"
 
-	"labix.org/v2/mgo/bson"
-
-	"golang.org/x/net/context"
-
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	awssession "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/koding/kite"
+	"golang.org/x/net/context"
+	"labix.org/v2/mgo/bson"
 )
 
 type AuthenticateRequest struct {
@@ -68,18 +65,14 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}
 
-		svc := ec2.New(awssession.New(&aws.Config{
+		opts := &amazon.ClientOptions{
 			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
-			Region:      aws.String(authRegion),
-		}))
-
-		// We do request to fetch and describe all supported regions. This
-		// doesn't create any resources but validates the request itself before
-		// we can make a request. An error means no validation.
-		verified := true
-		if _, err = svc.DescribeRegions(&ec2.DescribeRegionsInput{}); err != nil {
-			verified = false
+			Regions:     []string{authRegion},
+			Log:         k.Log,
 		}
+
+		_, err := amazon.NewClient(opts)
+		verified := err == nil // verified says whether client was successfully authenticated
 
 		if err := modelhelper.UpdateCredential(cred.Identifier, bson.M{
 			"$set": bson.M{"verified": verified},

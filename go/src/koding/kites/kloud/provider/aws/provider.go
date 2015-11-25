@@ -16,14 +16,12 @@ import (
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
@@ -105,21 +103,13 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
 
-	awsRegion, ok := aws.Regions[machine.Meta.Region]
-	if !ok {
-		return fmt.Errorf("Malformed region detected: %s", machine.Meta.Region)
+	opts := &amazon.ClientOptions{
+		Credentials: credentials.NewStaticCredentials(creds.Meta.AccessKey, creds.Meta.SecretKey, ""),
+		Regions:     []string{machine.Meta.Region},
+		Log:         p.Log,
 	}
 
-	client := ec2.NewWithClient(
-		aws.Auth{
-			AccessKey: creds.Meta.AccessKey,
-			SecretKey: creds.Meta.SecretKey,
-		},
-		awsRegion,
-		aws.NewClient(multiec2.NewResilientTransport()),
-	)
-
-	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
+	amazonClient, err := amazon.NewAmazonOptions(structs.Map(machine.Meta), opts)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}

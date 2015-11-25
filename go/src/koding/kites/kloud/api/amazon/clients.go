@@ -3,25 +3,48 @@ package amazon
 import (
 	"fmt"
 
-	"koding/kites/kloud/awscompat"
-
-	oldaws "github.com/mitchellh/goamz/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/koding/logging"
 )
+
+// ProductionRegions describes EC2 regions used in production.
+var ProductionRegions = []string{
+	"us-east-1",
+	"ap-southeast-1",
+	"us-west-2",
+	"eu-west-1",
+}
+
+// ClientOptions describes configuration for a Client.
+type ClientOptions struct {
+	// Credentials contains access key, secret and/or token.
+	Credentials *credentials.Credentials
+
+	// Regions contains 1 or many region names.
+	Regions []string
+
+	// Log, when non-nil, is used for verbose logging by *ec2.EC2 client.
+	Log logging.Logger
+}
 
 // Clients provides wrappers for a EC2 client per region.
 type Clients struct {
 	regions map[string]*Client // read-only, written once on New()
 }
 
-// NewClientPerRegion is returning a new multi clients refernce for the given
+// NewClientPerRegion is returning a new multi clients for the given
 // regions names.
-func NewClientPerRegion(auth oldaws.Auth, regions []string) (*Clients, error) {
+func NewClientPerRegion(opts *ClientOptions) (*Clients, error) {
 	c := &Clients{
-		regions: make(map[string]*Client, len(regions)),
+		regions: make(map[string]*Client, len(opts.Regions)),
 	}
-	session := awscompat.NewSession(auth)
-	for _, region := range regions {
-		client, err := newClient(session, region)
+	for _, region := range opts.Regions {
+		opts := &ClientOptions{
+			Credentials: opts.Credentials,
+			Regions:     []string{region},
+			Log:         opts.Log,
+		}
+		client, err := NewClient(opts)
 		if err != nil {
 			return nil, err
 		}

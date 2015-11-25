@@ -18,26 +18,24 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/keycreator"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/userdata"
 
-	"koding/kites/kloud/keycreator"
-	"koding/kites/kloud/kloud"
-
-	"koding/kites/kloud/kloudctl/command"
-
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/multiconfig"
-	"github.com/mitchellh/goamz/aws"
 )
 
 var Name = "kloud"
@@ -187,12 +185,9 @@ func newKite(conf *Config) *kite.Kite {
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
-	auth := aws.Auth{
-		AccessKey: conf.AWSAccessKeyId,
-		SecretKey: conf.AWSSecretAccessKey,
-	}
+	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
 
-	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
+	dnsInstance := dnsclient.NewRoute53Client(c, conf.HostedZone)
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
 	userdata := &userdata.Userdata{
 		Keycreator: &keycreator.Key{
@@ -200,14 +195,22 @@ func newKite(conf *Config) *kite.Kite {
 			KontrolPrivateKey: kontrolPrivateKey,
 			KontrolPublicKey:  kontrolPublicKey,
 		},
-		Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
+		Bucket: userdata.NewBucket("koding-klient", klientFolder, c),
 	}
-	ec2clients := multiec2.New(auth, []string{
-		"us-east-1",
-		"ap-southeast-1",
-		"us-west-2",
-		"eu-west-1",
-	})
+	opts := &amazon.ClientOptions{
+		Credentials: c,
+		Regions: []string{
+			"us-east-1",
+			"ap-southeast-1",
+			"us-west-2",
+			"eu-west-1",
+		},
+		Log: common.NewLogger("kloud-koding", conf.DebugMode),
+	}
+	ec2clients, err := amazon.NewClientPerRegion(opts)
+	if err != nil {
+		panic(err)
+	}
 
 	authorizedUsers := map[string]string{
 		"kloudctl":       command.KloudSecretKey,
@@ -220,7 +223,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider := &koding.Provider{
 		DB:         db,
-		Log:        common.NewLogger("kloud-koding", conf.DebugMode),
+		Log:        opts.Log,
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
@@ -291,7 +294,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = kloudLogger
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
