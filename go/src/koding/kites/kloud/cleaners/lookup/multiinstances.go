@@ -38,9 +38,15 @@ func NewMultiInstances(clients *amazon.Clients, log logging.Logger) *MultiInstan
 			for _, instance := range instances {
 				i[aws.StringValue(instance.InstanceId)] = instance
 			}
+			var ok bool
 			mu.Lock()
-			m.m[client] = i
+			if _, ok = m.m[client]; !ok {
+				m.m[client] = i
+			}
 			mu.Unlock()
+			if ok {
+				panic(fmt.Errorf("[%s] duplicated client=%p: %+v", region, client, i))
+			}
 		}(region, client)
 	}
 	wg.Wait()

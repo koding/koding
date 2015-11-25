@@ -38,9 +38,15 @@ func NewMultiVolumes(clients *amazon.Clients, log logging.Logger) *MultiVolumes 
 			for _, volume := range volumes {
 				v[aws.StringValue(volume.VolumeId)] = volume
 			}
+			var ok bool
 			mu.Lock()
-			m.m[client] = v
+			if _, ok = m.m[client]; !ok {
+				m.m[client] = v
+			}
 			mu.Unlock()
+			if ok {
+				panic(fmt.Errorf("[%s] duplicated client=%p: %+v", region, client, v))
+			}
 		}(region, client)
 	}
 	wg.Wait()

@@ -37,9 +37,15 @@ func NewAddresses(clients *amazon.Clients, log logging.Logger) *Addresses {
 				log.Error("[%s] fetching IP addresses error: %s", region, err)
 				return
 			}
+			var ok bool
 			mu.Lock()
-			a.m[client] = addresses
+			if _, ok = a.m[client]; !ok {
+				a.m[client] = addresses
+			}
 			mu.Unlock()
+			if ok {
+				panic(fmt.Errorf("[%s] duplicated client=%p: %+v", region, client, addresses))
+			}
 		}(region, client)
 	}
 	wg.Wait()
