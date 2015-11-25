@@ -111,6 +111,12 @@ func TestCreateNotificationSetting(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(*newNs.DesktopSetting.Get(), ShouldEqual, *ns.DesktopSetting.Get())
 					})
+					Convey("We should be able to update with null value the created notification settings", func() {
+						ns.IsSuppressed = nisql.NullBool{}
+						newNs, err := rest.UpdateNotificationSetting(ns, ses.ClientId)
+						So(err, ShouldBeNil)
+						So(newNs.IsSuppressed.Get(), ShouldEqual, ns.IsSuppressed.Get())
+					})
 				})
 			})
 		})
