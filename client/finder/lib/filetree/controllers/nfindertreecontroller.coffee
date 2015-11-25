@@ -314,13 +314,12 @@ module.exports = class NFinderTreeController extends JTreeViewController
       else
         kd.utils.defer =>
           @notify "#{type} created!", "success"
-          newFilePath = "[#{file.machine.uid}]#{file.path}"
-          node = @nodes[newFilePath]
+          node = @nodes[file.path]
 
           return @showRenameDialog node  if node
 
           @refreshFolder @nodes[parentPath], =>
-            @showRenameDialog @nodes[newFilePath]
+            @showRenameDialog @nodes[file.path]
 
 
   moveFiles:(nodesToBeMoved, targetNodeView, callback)->
