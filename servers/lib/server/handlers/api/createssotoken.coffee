@@ -74,7 +74,7 @@ validateRequest = (req) ->
     return { error : errors.unauthorizedRequest }
   token = parts[1]
 
-  unless typeof token is 'string'
+  unless typeof token is 'string' and token.length > 0
     return { error : errors.unauthorizedRequest }
 
   return { error : null, token, username }
