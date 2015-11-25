@@ -151,7 +151,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 
 		} else {
 			data, k := value.(string)
-			if ok {
+			if k {
 				r.DesktopSetting = nisql.String(data)
 			} else {
 				return nil, ErrTypeAssertion
@@ -165,7 +165,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 
 		} else {
 			data, k := value.(string)
-			if ok {
+			if k {
 				r.MobileSetting = nisql.String(data)
 			} else {
 				return nil, ErrTypeAssertion
@@ -179,7 +179,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 
 		} else {
 			data, k := value.(bool)
-			if ok {
+			if k {
 				r.IsSuppressed = nisql.Bool(data)
 			} else {
 				return nil, ErrTypeAssertion
@@ -193,7 +193,7 @@ func parseToNotificationSetting(a map[string]interface{}, r *models.Notification
 
 		} else {
 			data, k := value.(bool)
-			if ok {
+			if k {
 				r.IsMuted = nisql.Bool(data)
 			} else {
 				return nil, ErrTypeAssertion
