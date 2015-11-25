@@ -16,7 +16,7 @@ generateCreateSsoTokenRequestBody = (opts = {}) ->
 generateCreateSsoTokenRequestParams = (opts = {}) ->
 
   params =
-    url     : generateUrl { route : "-/api/ssotoken/create" }
+    url     : generateUrl { route : '-/api/ssotoken/create' }
     body    : generateCreateSsoTokenRequestBody()
     headers : { Authorization : "Bearer #{generateRandomString()}" }
 
