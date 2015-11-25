@@ -22,7 +22,8 @@ module.exports = class IDEEditorPane extends IDEPane
 
     super options, data
 
-    @hash  = file.paneHash  if file.paneHash
+    @hash        = file.paneHash  if file.paneHash
+    @ideViewHash = options.ideViewHash
 
     @on 'SaveRequested', @bound 'save'
 
@@ -242,12 +243,13 @@ module.exports = class IDEEditorPane extends IDEPane
 
   getInitialChangeObject: ->
 
-    change       =
-      origin     : nick()
-      context    :
-        paneHash : @hash
-        paneType : @getOptions().paneType
-        file     : path: @file.path
+    change          =
+      origin        : nick()
+      context       :
+        file        : path: @file.path
+        paneType    : @getOptions().paneType
+        paneHash    : @hash
+        ideViewHash : @ideViewHash
 
     return change
 
