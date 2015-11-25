@@ -185,51 +185,40 @@ func cleanup(c *models.CombinedAppStorage) *models.CombinedAppStorage {
 		return c
 	}
 
-	for _, black := range blacklist {
-		delete(c.Bucket, black)
+	for key := range c.Bucket {
+		if !IsIn(key, whitelist...) {
+			delete(c.Bucket, key)
+		}
 	}
 
 	return c
 }
 
-var blacklist = []string{
+// IsIn checks if the first param is in the following ones
+func IsIn(s string, ts ...string) bool {
+	for _, t := range ts {
+		if t == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+var whitelist = []string{
+	"Account",
+	"Ace",
 	"Activity",
-	"Members",
-	"WelcomeModal",
-	"Wordpress",
-	"github-dashboard",
-	"laravel-installer",
-	"OnboardingStatus",
-	"About",
-	"AceTabHistory",
-	"Applications",
-	"Apps",
-	"Brackets",
-	"Brackets",
-	"Bugs",
-	"Dashboard",
-	"DefaultAppConfig",
-	"DevTools",
-	"Dock",
-	"EnvironmentsScene",
-	"Gameoflife",
-	"Hartl",
-	"Helper",
-	"Home",
-	"Installer",
-	"Groups",
-	"IntroductionTooltipStatus",
-	"Julia",
-	"Kodepad",
-	"KodingApps",
+	"Compute",
+	"Pricing",
+	"Terminal",
+	"Environments",
+	"Finder",
+	"IDE",
 	"Login",
-	"KodingBook",
-	"MainApp",
-	"NewKoding",
-	"PhoneGap",
-	"Numbers",
-	"Rubyonrailsinstaller",
-	"Teamwork",
-	"Topics",
-	"Umlgenerator",
+	"Admin",
+	"Teams",
+	"WebTerm",
+	"shortcuts-mac",
+	"shortcuts-win",
 }
