@@ -86,7 +86,24 @@ func TestChannelCreation(t *testing.T) {
 							So(channel1.Payload, ShouldNotBeNil)
 							So(*channel1.Payload["key"], ShouldEqual, value)
 						})
+					})
+					Convey("participant should be able to update only purpose, not name or payload", func() {
+						_, err = rest.AddChannelParticipant(channel1.Id, account.Id, nonOwnerAccount.Id)
+						So(err, ShouldBeNil)
 
+						updatedPurpose := "ChannelPurposeUpdated"
+						updatedName := "ChannelNameUpdated"
+						channel1.Name = updatedName
+						channel1.Purpose = updatedPurpose
+
+						channel2, err := rest.UpdateChannel(channel1, noses.ClientId)
+						So(err, ShouldBeNil)
+						So(channel2, ShouldNotBeNil)
+						So(channel2.Name, ShouldNotBeNil)
+						// participant cannot update channel name
+						// can update only purpose of the channel
+						So(channel2.Name, ShouldNotEqual, updatedName)
+						So(channel2.Purpose, ShouldEqual, updatedPurpose)
 					})
 
 					Convey("owner should be get channel by name", func() {

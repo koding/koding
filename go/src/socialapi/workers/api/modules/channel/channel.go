@@ -343,21 +343,32 @@ func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (
 		return response.NewBadRequest(err)
 	}
 
-	if existingOne.CreatorId != c.Client.Account.Id {
-		return response.NewBadRequest(errors.New("creatorId doesnt match"))
+	participant, err := existingOne.IsParticipant(c.Client.Account.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+	if !participant {
+		return response.NewBadRequest(errors.New("account is not participant of channel"))
 	}
 
-	// only allow purpose, name and payload to be updated
-	if req.Purpose != "" {
-		existingOne.Purpose = req.Purpose
+	// if user is participant in the channel, then user can update only purpose of the channel
+	// other fields cannot be updated by participant or anyone else. Only creator can update
+	// purpose and other fields of the channel
+	if participant {
+		if req.Purpose != "" {
+			existingOne.Purpose = req.Purpose
+		}
 	}
 
-	if req.Name != "" {
-		existingOne.Name = req.Name
-	}
+	// if user is the creator of the channel, then can update all fields of the channel
+	if existingOne.CreatorId == c.Client.Account.Id {
+		if req.Name != "" {
+			existingOne.Name = req.Name
+		}
 
-	// some of the channels stores sparse data
-	existingOne.Payload = req.Payload
+		// some of the channels stores sparse data
+		existingOne.Payload = req.Payload
+	}
 
 	// update channel
 	if err := existingOne.Update(); err != nil {
