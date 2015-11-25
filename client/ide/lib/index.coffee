@@ -510,7 +510,7 @@ class IDEAppController extends AppController
           @fakeFinderView   = new KDCustomHTMLView partial: splashes.getFileTree nickname, machineLabel
 
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
-          @fakeEditor.once 'EditorIsReady', => kd.utils.defer => @fakeEditor.setFocus no
+          @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
 
         else
 
