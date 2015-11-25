@@ -34,6 +34,11 @@ noop = ->
 #     <p>{@props.data.sections[sectionIndex].messages[rowIndex].body</p>
 #
 #
+#   renderEmptySectionMessageAtIndex: (sectionIndex) ->
+#
+#     <div>No data found</div>
+#
+#
 #   render: ->
 #     <List
 #       numberOfSections={@bound 'numberOfSections'}
@@ -80,6 +85,11 @@ module.exports = class List extends React.Component
     return @props.renderRowAtIndex sectionIndex, rowIndex
 
 
+  renderEmptySectionMessageAtIndex: (sectionIndex) ->
+
+    return @props.renderEmptySectionMessageAtIndex? sectionIndex  unless @numberOfRowsInSection sectionIndex
+
+
   renderChildren: ->
 
     # this is intentionally left here for further improvements. ~Umut
@@ -97,6 +107,7 @@ module.exports = class List extends React.Component
             {dataSource.renderRowAtIndex sectionIndex, rowIndex}
           </div>
         }
+        {dataSource.renderEmptySectionMessageAtIndex sectionIndex}
       </section>
 
 

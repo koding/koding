@@ -1,6 +1,7 @@
 $                     = require 'jquery'
 kd                    = require 'kd'
 React                 = require 'kd-react'
+ReactDOM              = require 'react-dom'
 classnames            = require 'classnames'
 immutable             = require 'immutable'
 formatEmojiName       = require 'activity/util/formatEmojiName'
@@ -48,7 +49,7 @@ module.exports = class EmojiSelector extends React.Component
 
   scrollToCategory: (category) ->
 
-    list = React.findDOMNode @refs.list
+    list = ReactDOM.findDOMNode @refs.list
     return list.scrollTop = 0  unless category
 
     header    = $ ".EmojiSelectorCategory-#{kd.utils.slugify category}"
@@ -98,6 +99,11 @@ module.exports = class EmojiSelector extends React.Component
     />
 
 
+  renderEmptySectionMessageAtIndex: (sectionIndex) ->
+
+    <div className='EmojiSelector-emptyCategory'>No emoji found</div>
+
+
   renderCategoryFilters: ->
 
     { filters } = @props
@@ -106,7 +112,7 @@ module.exports = class EmojiSelector extends React.Component
       iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
       category      = item.get 'category'
 
-      <span className='categoryFilterTab' title={category} onClick={@lazyBound 'scrollToCategory', category}>
+      <span className='categoryFilterTab' title={category} onClick={@lazyBound 'scrollToCategory', category} key={category}>
         <span className='emoji-wrapper'>
           <span className={iconClassName}></span>
         </span>
@@ -144,6 +150,7 @@ module.exports = class EmojiSelector extends React.Component
           renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
           renderRowAtIndex={@bound 'renderRowAtIndex'}
           sectionClassName='EmojiSelectorSection'
+          renderEmptySectionMessageAtIndex={@bound 'renderEmptySectionMessageAtIndex'}
         />
         <div className='clearfix'></div>
       </div>

@@ -151,6 +151,8 @@ emojiSelectorSelectedItem = (stateId) -> [
         totalIndex += emojiCount
         return no
 
+    return  unless categoryItem
+
     result = categoryItem.get('emojis').get selectedIndex - totalIndex
 ]
 
