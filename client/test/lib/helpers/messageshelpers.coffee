@@ -14,6 +14,9 @@ module.exports =
     sidebarTextSelector = '.activity-sidebar .messages .sidebar-message-text'
     messageSelector     = "#{sidebarTextSelector} [href='/#{users[0].username}']"
     message           or= 'Hello World!'
+    messageWithCode     = "console.log('123456789')"
+    messageWithFullCode = "```console.log('123456789')```"
+    textSelector        = '.message-pane.privatemessage .message-pane-scroller .kdscrollview .kdlistview-privatemessage .consequent'
     sendMessage         = (browser, users, message, purpose) ->
       console.log " ✔ Creating a new message with user #{users[0].username}..."
       browser
@@ -44,16 +47,22 @@ module.exports =
           .setValue                textareaSelector, message + '\n'
           .waitForElementVisible   '.message-pane.privatemessage', 20000
           .waitForElementVisible   '[testpath=activity-list]', 20000
-          .assert.containsText     '.message-pane.privatemessage', message # Assertion
-          .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
-          if purpose
-            browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
-          else
-            browser.assert.containsText '.activity-sidebar .messages', users[0].username # Assertion
+          switch message
+            when messageWithFullCode
+              browser
+                .waitForElementVisible   textSelector, 20000
+                .assert.containsText     textSelector, messageWithCode
+            else
+              browser
+                .assert.containsText     '.message-pane.privatemessage', message # Assertion
+                .waitForElementVisible   '.message-pane.privatemessage .with-parent', 20000
+                if purpose
+                  browser.assert.containsText '.activity-sidebar .messages', purpose # Assertion
+                else
+                  browser.assert.containsText '.activity-sidebar .messages', users[0].username # Assertion
 
-            for user in users
-              browser.waitForElementPresent "#{sidebarTextSelector} [href='/#{user.username}']", 20000
-
+                  for user in users
+                    browser.waitForElementPresent "#{sidebarTextSelector} [href='/#{user.username}']", 20000
 
     if purpose
       browser.element 'css selector', purposeSelector, (result) =>

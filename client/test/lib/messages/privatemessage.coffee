@@ -9,7 +9,7 @@ module.exports =
 
   before: (browser) ->
 
-    @users = utils.getUser(no, -1).slice 1, 7
+    @users = utils.getUser(no, -1).slice 1, 8
 
     for user in @users
       helpers.beginTest(browser, user)
@@ -88,4 +88,37 @@ module.exports =
     helpers.beginTest(browser)
 
     messagesHelpers.startConversation(browser, testUsers)
+    browser.end()
+
+
+  sendPrivateMessageWithCode: (browser) ->
+
+    messageWithFullCode = "```console.log('123456789')```"
+    testUsers           = [ @users[0] ]
+
+    helpers.beginTest(browser)
+
+    messagesHelpers.startConversation(browser, testUsers, messageWithFullCode)
+    browser.end()
+
+
+  sendPrivateMessageWithLink: (browser) ->
+
+    link      = 'http://wikipedia.org/'
+    testUsers = [ @users[1] ]
+
+    helpers.beginTest(browser)
+
+    messagesHelpers.startConversation(browser, testUsers, link)
+    browser.end()
+
+
+  sendPrivateMessageWithImage: (browser) ->
+
+    image     = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png"
+    testUsers = [ @users[6] ]
+
+    helpers.beginTest(browser)
+
+    messagesHelpers.startConversation(browser, testUsers, image)
     browser.end()
