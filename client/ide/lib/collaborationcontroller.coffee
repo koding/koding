@@ -615,16 +615,17 @@ module.exports = CollaborationController =
 
     @stateMachine = new CollaborationStateMachine
       stateHandlers:
-        Initial      : @bound 'onCollaborationInitial'
-        Loading      : @bound 'onCollaborationLoading'
-        Resuming     : @bound 'onCollaborationResuming'
-        NotStarted   : @bound 'onCollaborationNotStarted'
-        Preparing    : @bound 'onCollaborationPreparing'
-        Prepared     : @bound 'onCollaborationPrepared'
-        Creating     : @bound 'onCollaborationCreating'
-        Active       : @bound 'onCollaborationActive'
-        Ending       : @bound 'onCollaborationEnding'
-        Created      : @bound 'onCollaborationCreated'
+        Initial       : @bound 'onCollaborationInitial'
+        Loading       : @bound 'onCollaborationLoading'
+        Resuming      : @bound 'onCollaborationResuming'
+        NotStarted    : @bound 'onCollaborationNotStarted'
+        Preparing     : @bound 'onCollaborationPreparing'
+        Prepared      : @bound 'onCollaborationPrepared'
+        Creating      : @bound 'onCollaborationCreating'
+        Active        : @bound 'onCollaborationActive'
+        Ending        : @bound 'onCollaborationEnding'
+        Created       : @bound 'onCollaborationCreated'
+        ErrorCreating : @bound 'onCollaborationErrorCreating'
 
 
   onCollaborationInitial: ->
@@ -702,6 +703,11 @@ module.exports = CollaborationController =
           @workspaceData.channelId = channel.id
           @chat.ready => callbacks.success()
         .error (err) => callbacks.error err
+
+
+  onCollaborationErrorCreating: ->
+    showError 'Session could not start.'
+    @stateMachine.transition 'Prepared'
 
 
   onCollaborationPreparing: ->
