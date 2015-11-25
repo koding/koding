@@ -7,6 +7,9 @@ module.exports = class IDEChatParticipantSearchController extends ParticipantSea
 
   submitAutoComplete: (item, data) ->
 
+    activeItem = @dropdown.getListView().getActiveItem()
+    return  unless activeItem.item
+
     appManager = kd.getSingleton 'appManager'
 
     @once 'VideoStateReceived', (videoState) =>
