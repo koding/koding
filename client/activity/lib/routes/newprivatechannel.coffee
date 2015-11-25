@@ -1,4 +1,5 @@
 CreatePrivateChannelModal = require 'activity/components/createprivatechannelmodal'
+helper = require './helper'
 
 module.exports = class NewPrivateChannelRoute
 
@@ -7,4 +8,8 @@ module.exports = class NewPrivateChannelRoute
     @path = '/NewMessage'
 
 
-  getComponent: (state, callback) -> callback null, CreatePrivateChannelModal
+  getComponents: (state, callback) ->
+
+    helper.renderWithBackgroundChannel CreatePrivateChannelModal, callback
+
+

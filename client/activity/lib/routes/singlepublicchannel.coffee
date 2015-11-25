@@ -11,8 +11,6 @@ changeToChannel   = require 'activity/util/changeToChannel'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
-NewPublicChannelRoute = require './newpublicchannel'
-AllPublicChannelsRoute = require './allpublicchannels'
 PublicChannelNotificationSettingsRoute = require './publicchannelnotificationsettings'
 SingleMessageRoute = require './singlemessage'
 
@@ -22,8 +20,6 @@ module.exports = class SingleChannelRoute
 
     @path = ':channelName'
     @childRoutes = [
-      new NewPublicChannelRoute
-      new AllPublicChannelsRoute
       new PublicChannelNotificationSettingsRoute
       new SingleMessageRoute
     ]
@@ -42,13 +38,6 @@ module.exports = class SingleChannelRoute
 
     { channelName } = nextState.params
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
-
-    # if there is no channel name set on the route (/NewChannel, /Channels)
-    unless channelName
-      # if there is not a selected chat
-      unless selectedThread
-        # set channel name to group channel name.
-        channelName = getGroup().slug
 
     if channelName
       transitionToChannel channelName, done

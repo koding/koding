@@ -3,9 +3,24 @@ package main
 /* HOW TO RUN THE TEST
 
 Be sure you have a running ngrok instance. This is needed so klient can connect
-to our kontrol. Run it with:
+to our kontrol. Run it with (ensure you use v1 version - https://ngrok.com/download/1):
 
-	./ngrok -authtoken="CMY-UsZMWdx586A3tA0U" -subdomain="kloud-test" 4099
+	$ ngrok -authtoken="CMY-UsZMWdx586A3tA0U" -subdomain="kloud-test" 4099
+
+If the above fails with message like:
+
+    Server failed to allocate tunnel: The tunnel http://kloud-test.ngrok.com is already registered.
+
+You may want to use your own tunnel. Register with https://ngrok.com/, download v2
+and extract the executable as ngrok2 into your $PATH. Authenticate token and start
+tunnel with:
+
+	$ ngrok2 http 4099
+
+The UI will display forward address which you want to export via KLOUD_KONTROL_URL env var
+prior to running kloud tests, e.g.:
+
+	$ export KLOUD_KONTROL_URL=http://80518f26.ngrok.io/kite
 
 Postgres and mongodb url is same is in the koding dev config. below is an example go test command:
 
