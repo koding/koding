@@ -1,23 +1,19 @@
 package amazon
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"golang.org/x/net/context"
 )
 
-var (
-	ErrInstanceIdEmpty = errors.New("instance id is empty")
-)
-
-func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
+func (a *Amazon) Start(ctx context.Context) (*ec2.Instance, error) {
 	if a.Id() == "" {
-		return ec2.Instance{}, ErrInstanceIdEmpty
+		return nil, ErrInstanceEmptyID
 	}
 
 	// if we have eventer, use it
@@ -30,12 +26,12 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 		})
 	}
 
-	_, err := a.Client.StartInstances(a.Id())
+	_, err := a.Client.StartInstance(a.Id())
 	if err != nil {
-		return ec2.Instance{}, err
+		return nil, err
 	}
 
-	var instance ec2.Instance
+	var instance *ec2.Instance
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
 		if withPush {
 			ev.Push(&eventer.Event{
@@ -50,7 +46,7 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 			return 0, err
 		}
 
-		return StatusToState(instance.State.Name), nil
+		return StatusToState(aws.StringValue(instance.State.Name)), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -61,7 +57,7 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 	}
 
 	if err := ws.Wait(); err != nil {
-		return ec2.Instance{}, err
+		return nil, err
 	}
 
 	return instance, nil
@@ -69,7 +65,7 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 
 func (a *Amazon) Stop(ctx context.Context) error {
 	if a.Id() == "" {
-		return ErrInstanceIdEmpty
+		return ErrInstanceEmptyID
 	}
 
 	// if we have eventer, use it
@@ -97,7 +93,7 @@ func (a *Amazon) Stop(ctx context.Context) error {
 				lastError)
 		}
 
-		_, err := a.Client.StopInstances(a.Id())
+		_, err := a.Client.StopInstance(a.Id())
 		if err != nil {
 			lastError = err
 			tried++
@@ -125,7 +121,7 @@ func (a *Amazon) Stop(ctx context.Context) error {
 			return 0, err
 		}
 
-		return StatusToState(instance.State.Name), nil
+		return StatusToState(aws.StringValue(instance.State.Name)), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -139,7 +135,7 @@ func (a *Amazon) Stop(ctx context.Context) error {
 
 func (a *Amazon) Restart(ctx context.Context) error {
 	if a.Id() == "" {
-		return ErrInstanceIdEmpty
+		return ErrInstanceEmptyID
 	}
 
 	ev, withPush := eventer.FromContext(ctx)
@@ -151,7 +147,7 @@ func (a *Amazon) Restart(ctx context.Context) error {
 		})
 	}
 
-	_, err := a.Client.RebootInstances(a.Id())
+	err := a.Client.RebootInstance(a.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +165,7 @@ func (a *Amazon) Restart(ctx context.Context) error {
 			return 0, err
 		}
 
-		return StatusToState(instance.State.Name), nil
+		return StatusToState(aws.StringValue(instance.State.Name)), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -183,7 +179,7 @@ func (a *Amazon) Restart(ctx context.Context) error {
 
 func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	if a.Id() == "" {
-		return ErrInstanceIdEmpty
+		return ErrInstanceEmptyID
 	}
 
 	ev, withPush := eventer.FromContext(ctx)
@@ -195,7 +191,7 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 		})
 	}
 
-	_, err := a.Client.TerminateInstances([]string{a.Id()})
+	_, err := a.Client.TerminateInstance(a.Id())
 	if err != nil {
 		return err
 	}
@@ -214,7 +210,7 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 			return 0, err
 		}
 
-		return StatusToState(instance.State.Name), nil
+		return StatusToState(aws.StringValue(instance.State.Name)), nil
 	}
 
 	ws := waitstate.WaitState{

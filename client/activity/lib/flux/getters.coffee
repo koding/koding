@@ -75,7 +75,10 @@ ChannelParticipantsDropdownVisibilityStore = ['ChannelParticipantsDropdownVisibi
 followedPrivateChannels = [
   FollowedPrivateChannelIdsStore
   allChannels
-  (ids, channels) -> ids.map (id) -> channels.get id
+  (ids, channels) ->
+    ids
+      .map (id) -> channels.get id
+      .filter (channel) -> channel.get('typeConstant') is 'privatemessage'
 ]
 
 popularChannels = [
@@ -141,25 +144,34 @@ selectedChannel = [
   (channels, id) -> if id then channels.get id else null
 ]
 
-# Maps followed public channel ids with relevant channel instances.
-# If this channel is a public channel, we set current channelId as an item of followedPublicChannels,
-# we set this channelId to list this channel on channel list modal and sidebar channel list.
-# If this channel isn't followed by user, user can follow on channel list modal by follow button.
+# Maps followed public channel ids with relevant channel instances
 followedPublicChannels = [
   FollowedPublicChannelIdsStore
-  selectedChannel
   allChannels
-  (ids, channel, channels) ->
-    if channel
-      channelId = channel.get 'id'
-      ids = ids.set channelId, channelId  if isPublicChannel(channel.toJS())
+  (ids, channels) ->
     ids
       .map (id) -> channels.get id
       .sortBy (c) -> c.get 'name'
 ]
 
-allFollowedChannels = [
+# Maps followed public channel ids with relevant channel instances.
+# If selected channel is a public channel, we set current channelId as an item of followedPublicChannels,
+# we set this channelId to list this channel on channel list modal and sidebar channel list.
+# If this channel isn't followed by user, user can follow on channel list modal by follow button.
+followedPublicChannelsWithSelectedChannel = [
   followedPublicChannels
+  selectedChannel
+  allChannels
+  (followedChannels, selectedChannel, channels) ->
+    if selectedChannel and isPublicChannel(selectedChannel.toJS())
+      followedChannels = followedChannels.set selectedChannel.get('id'), selectedChannel
+
+    followedChannels
+      .sortBy (c) -> c.get 'name'
+]
+
+allFollowedChannels = [
+  followedPublicChannelsWithSelectedChannel
   followedPrivateChannels
   (publics, privates) -> publics.concat privates
 ]
@@ -197,9 +209,9 @@ channelByName = (name) ->
 
 # Returns followed public channel threads mapped with relevant channel
 # instances.
-followedPublicChannelThreads = [
+followedPublicChannelThreadsWithSelectedChannel = [
   channelThreads
-  followedPublicChannels
+  followedPublicChannelsWithSelectedChannel
   (threads, channels) ->
     channels.map (channel) ->
       thread = threads.get channel.get('id')
@@ -386,7 +398,7 @@ sidebarPublicChannels      = [
 
 module.exports = {
   allChannels
-  followedPublicChannelThreads
+  followedPublicChannelThreadsWithSelectedChannel
   filteredPublicChannels
   filteredPrivateChannels
   followedPrivateChannelThreads

@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
@@ -115,37 +116,36 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// to it, and many other problems...
 	reason = "Klient is not reachable."
 	instance, err := m.Session.AWSClient.Instance()
-	if err == nil {
-		resultState = amazon.StatusToState(instance.State.Name)
-	} else if err == amazon.ErrNoInstances {
+	switch {
+	case err == nil:
+		resultState = amazon.StatusToState(aws.StringValue(instance.State.Name))
+	case amazon.IsNotFound(err):
 		resultState = machinestate.NotInitialized
-	} else {
+	default:
 		// if it's something else, return it back
 		return nil, err
 	}
 
-	if resultState == machinestate.Unknown {
+	switch resultState {
+	case machinestate.Unknown:
 		return nil, fmt.Errorf("Unknown amazon status: %+v. This needs to be fixed.", instance.State)
-	}
-
-	// this is a case where: 1) klient is unreachable 2) machine is running
-	// we don't want to give away our machines without a klient is running on it,
-	// so mark and return as stopped.
-	if resultState == machinestate.Running {
+	case machinestate.Running:
+		// this is a case where: 1) klient is unreachable 2) machine is running
+		// we don't want to give away our machines without a klient is running on it,
+		// so mark and return as stopped.
 		resultState = machinestate.Stopped
 
 		if m.Meta.AlwaysOn {
 			// machine is always-on. return as running
 			resultState = machinestate.Running
 		}
-	}
-
-	// This happens when a machine was destroyed recently in one hour span.
-	// The machine is still available in AWS but it's been marked as
-	// Terminated. Because we still have the machine document, mark it as
-	// NotInitialized so the user can build again.
-	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
+	case machinestate.Terminated, machinestate.Terminating:
+		// This happens when a machine was destroyed recently in one hour span.
+		// The machine is still available in AWS but it's been marked as
+		// Terminated. Because we still have the machine document, mark it as
+		// NotInitialized so the user can build again.
 		resultState = machinestate.NotInitialized
+
 		if err := m.markAsNotInitialized(); err != nil {
 			return nil, err
 		}

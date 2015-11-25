@@ -18,11 +18,11 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
@@ -202,12 +202,16 @@ func newKite(conf *Config) *kite.Kite {
 		},
 		Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
 	}
-	ec2clients := multiec2.New(auth, []string{
+	kdLogger := common.NewLogger("kloud-koding", conf.DebugMode)
+	ec2clients, err := amazon.NewClientPerRegion(auth, []string{
 		"us-east-1",
 		"ap-southeast-1",
 		"us-west-2",
 		"eu-west-1",
-	})
+	}, kdLogger)
+	if err != nil {
+		panic(err)
+	}
 
 	authorizedUsers := map[string]string{
 		"kloudctl":       command.KloudSecretKey,
@@ -220,7 +224,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider := &koding.Provider{
 		DB:         db,
-		Log:        common.NewLogger("kloud-koding", conf.DebugMode),
+		Log:        kdLogger,
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
@@ -291,7 +295,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = kloudLogger
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}

@@ -2,14 +2,15 @@ package awsprovider
 
 import (
 	"errors"
-	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/machinestate"
 	"time"
 
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/machinestate"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"golang.org/x/net/context"
 )
 
 func (m *Machine) Start(ctx context.Context) (err error) {
@@ -18,8 +19,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	instance, err := m.Session.AWSClient.Instance()
-	if (err == nil && amazon.StatusToState(instance.State.Name) == machinestate.Terminated) ||
-		err == amazon.ErrNoInstances {
+	if (err == nil && amazon.StatusToState(aws.StringValue(instance.State.Name)) == machinestate.Terminated) ||
+		amazon.IsNotFound(err) {
 		// This means the instanceId stored in MongoDB doesn't exist anymore in
 		// AWS. Probably it was deleted and the state was not updated (possible
 		// due a human interaction or a non kloud interaction done somewhere
@@ -49,7 +50,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 	m.push("Starting machine", 25, machinestate.Starting)
 
-	infoState := amazon.StatusToState(instance.State.Name)
+	infoState := amazon.StatusToState(aws.StringValue(instance.State.Name))
 
 	// only start if the machine is stopped, stopping
 	if infoState.In(machinestate.Stopped, machinestate.Stopping) {
@@ -63,8 +64,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			return err
 		}
 
-		m.IpAddress = instance.PublicIpAddress
-		m.Meta.InstanceType = instance.InstanceType
+		m.IpAddress = aws.StringValue(instance.PublicIpAddress)
+		m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
 	}
 
 	m.push("Checking remote machine", 75, machinestate.Starting)
