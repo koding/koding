@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"koding/kites/kloud/scripts/softlayer/userdata"
 	"log"
@@ -12,9 +13,23 @@ import (
 	"strings"
 )
 
+// metadataURL is used to retrieve the custom data we pass when we create a new
+// SoftLayer instance
 const metadataURL = "https://api.service.softlayer.com/rest/v3/SoftLayer_Resource_Metadata/getUserMetadata.txt"
 
+// output defines the log and command execution outputs
+var output io.Writer = os.Stderr
+
 func main() {
+	file, err := os.OpenFile("/var/log/koding-setup.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Println("couldn't crate file, going to log to stdout")
+	} else {
+		output = file
+	}
+
+	log.SetOutput(output)
+
 	if err := realMain(); err != nil {
 		log.Fatalln(err)
 	}
@@ -26,7 +41,8 @@ func realMain() error {
 		return err
 	}
 
-	fmt.Printf("val = %+v\n", val)
+	log.Println("---- Metadata ----")
+	log.Printf("%+v\n", val)
 
 	log.Println(">> Creating /etc/kite folder")
 	if err := os.MkdirAll("/etc/kite", 0755); err != nil {
@@ -128,8 +144,8 @@ func metadata() (*userdata.Value, error) {
 
 func newCommand(name string, args ...string) *exec.Cmd {
 	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = output
+	cmd.Stderr = output
 	cmd.Stdin = os.Stdin
 	return cmd
 }
