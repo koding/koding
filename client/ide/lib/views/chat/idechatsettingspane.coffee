@@ -15,16 +15,18 @@ IDEChatParticipantView      = require './idechatparticipantview'
 ButtonViewWithProgressBar   = require 'app/commonviews/buttonviewwithprogressbar'
 
 
-module.exports          = class IDEChatSettingsPane extends KDTabPaneView
-
-  JView.mixin @constructor
-
-  PROGRESS_DELAYS = [
+PROGRESS_DELAYS             = [
     { delay : 500,  progress : 5 }
     { delay : 1500, progress : 20 }
     { delay : 2500, progress : 65 }
     { delay : 3250, progress : 75 }
   ]
+
+
+module.exports              = class IDEChatSettingsPane extends KDTabPaneView
+
+  JView.mixin @constructor
+
 
   constructor: (options = {}, data)->
 
