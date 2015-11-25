@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"koding/kites/kloud/awscompat"
-	"log"
 	"net/url"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/koding/logging"
 )
 
 // TODO(rjeczalik): make all Create* methods blocking with aws.WaitUntil*
@@ -19,16 +19,22 @@ import (
 
 // Client wraps *ec.EC2 with an API that hides Input/Output structs
 // while dealing with EC2 service API.
-//
-// TODO(rjeczalik): add `Log logging.Logger` & replace log.Printfs
 type Client struct {
 	EC2    *ec2.EC2 // underlying client
 	Region string   // region name
 	Zones  []string // zone list
+	Log    logging.Logger
 }
 
-func newClient(cfg client.ConfigProvider, region string) (*Client, error) {
-	svc := ec2.New(cfg, aws.NewConfig().WithRegion(region))
+// NewClient creates new *ec2.EC2 wrapper.
+//
+// If log is non-nil, it's used for debug logging EC2 service.
+func NewClient(auth client.ConfigProvider, region string, log logging.Logger) (*Client, error) {
+	cfg := aws.NewConfig().WithRegion(region)
+	if log != nil {
+		cfg = cfg.WithLogger(NewLogger(log.Debug))
+	}
+	svc := ec2.New(auth, cfg)
 	svc.Client.Retryer = awscompat.Retry
 	zones, err := svc.DescribeAvailabilityZones(nil)
 	if err != nil {
@@ -38,6 +44,7 @@ func newClient(cfg client.ConfigProvider, region string) (*Client, error) {
 		EC2:    svc,
 		Region: region,
 		Zones:  make([]string, len(zones.AvailabilityZones)),
+		Log:    log,
 	}
 	for i, zone := range zones.AvailabilityZones {
 		c.Zones[i] = aws.StringValue(zone.ZoneName)
@@ -141,7 +148,7 @@ func (c *Client) imageBy(key, value string) (*ec2.Image, error) {
 		return nil, newNotFoundError("Image", fmt.Errorf("no image found with key=%v, value=%v", key, value))
 	}
 	if len(resp.Images) > 1 {
-		log.Printf("multiec2: more than one image found with key=%q, value=%q: %+v", key, value, resp.Images)
+		c.Log.Warning("more than one image found with key=%q, value=%q: %+v", key, value, resp.Images)
 	}
 	return resp.Images[0], nil
 }
@@ -192,7 +199,7 @@ func (c *Client) SnapshotByID(id string) (*ec2.Snapshot, error) {
 		return nil, newNotFoundError("Snapshot", fmt.Errorf("no snapshot found with id=%s", id))
 	}
 	if len(resp.Snapshots) > 1 {
-		log.Printf("more than one snapshot found  with id=%s: %+v", id, resp.Snapshots)
+		c.Log.Warning("more than one snapshot found  with id=%s: %+v", id, resp.Snapshots)
 	}
 	return resp.Snapshots[0], nil
 }
@@ -315,7 +322,7 @@ func (c *Client) securityGroupBy(params *ec2.DescribeSecurityGroupsInput, key in
 		return nil, newNotFoundError("SecurityGroup", fmt.Errorf("no security group found with key=%v", key))
 	}
 	if len(resp.SecurityGroups) > 1 {
-		log.Printf("more than one security group found with key=%v: %+v", key, resp.SecurityGroups)
+		c.Log.Warning("more than one security group found with key=%v: %+v", key, resp.SecurityGroups)
 	}
 	return resp.SecurityGroups[0], nil
 }
@@ -373,7 +380,7 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%s", id))
 	}
 	if len(instances) > 1 {
-		log.Printf("more than one instance found with id=%s: %+v", id, instances)
+		c.Log.Warning("more than one instance found with id=%s: %+v", id, instances)
 	}
 	return instances[0], nil
 }
@@ -421,7 +428,7 @@ func (c *Client) StartInstance(id string) (*ec2.InstanceStateChange, error) {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
 	}
 	if len(resp.StartingInstances) > 1 {
-		log.Printf("more than one instance started with id=%q: %+v", id, resp.StartingInstances)
+		c.Log.Warning("more than one instance started with id=%q: %+v", id, resp.StartingInstances)
 	}
 	return resp.StartingInstances[0], nil
 }
@@ -439,7 +446,7 @@ func (c *Client) StopInstance(id string) (*ec2.InstanceStateChange, error) {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
 	}
 	if len(resp.StoppingInstances) > 1 {
-		log.Printf("more than one instance stopped with id=%q: %+v", id, resp.StoppingInstances)
+		c.Log.Warning("more than one instance stopped with id=%q: %+v", id, resp.StoppingInstances)
 	}
 	return resp.StoppingInstances[0], nil
 }
@@ -466,7 +473,7 @@ func (c *Client) TerminateInstance(id string) (*ec2.InstanceStateChange, error) 
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
 	}
 	if len(resp.TerminatingInstances) > 1 {
-		log.Printf("more than one instance terminated with id=%q: %+v", id, resp.TerminatingInstances)
+		c.Log.Warning("more than one instance terminated with id=%q: %+v", id, resp.TerminatingInstances)
 	}
 	return resp.TerminatingInstances[0], nil
 }
@@ -484,7 +491,7 @@ func (c *Client) KeyPairByName(name string) (*ec2.KeyPairInfo, error) {
 		return nil, newNotFoundError("KeyPair", fmt.Errorf("no key pair found with name=%q", name))
 	}
 	if len(resp.KeyPairs) > 1 {
-		log.Printf("more than one key pair found with name=%q: %+v", name, resp.KeyPairs)
+		c.Log.Warning("more than one key pair found with name=%q: %+v", name, resp.KeyPairs)
 	}
 	return resp.KeyPairs[0], nil
 }
@@ -524,7 +531,7 @@ func (c *Client) VolumeByID(id string) (*ec2.Volume, error) {
 		return nil, newNotFoundError("Volume", fmt.Errorf("no volume found with id=%q", id))
 	}
 	if len(resp.Volumes) > 1 {
-		log.Printf("more than one volume found with id=%q: %+v", id, resp.Volumes)
+		c.Log.Warning("more than one volume found with id=%q: %+v", id, resp.Volumes)
 	}
 	return resp.Volumes[0], nil
 }
@@ -583,7 +590,7 @@ func (c *Client) RunInstances(params *ec2.RunInstancesInput) (*ec2.Instance, err
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance ran with params=%v", params))
 	}
 	if len(resp.Instances) > 1 {
-		log.Printf("more than one instance ran with params=%v: %+v", params, resp.Instances)
+		c.Log.Warning("more than one instance ran with params=%v: %+v", params, resp.Instances)
 	}
 	return resp.Instances[0], nil
 }

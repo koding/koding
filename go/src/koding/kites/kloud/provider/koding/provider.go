@@ -15,7 +15,6 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 
@@ -34,7 +33,7 @@ type Provider struct {
 	Kite       *kite.Kite
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
-	EC2Clients *multiec2.Clients
+	EC2Clients *amazon.Clients
 	Userdata   *userdata.Userdata
 
 	PaymentFetcher plans.PaymentFetcher
@@ -111,7 +110,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
+	amazonClient, err := amazon.NewAmazon(structs.Map(machine.Meta), client)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}

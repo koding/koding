@@ -41,7 +41,8 @@ services=(
   koding/vmwatcher
   koding/workers/janitor
   koding/workers/gatheringestor
-  koding/kites/kloud/cleaners/cmd/cleaner
+  # going to be enabled in separate PR
+  # koding/kites/kloud/cleaners/cmd/cleaner
 
   github.com/koding/kite/kitectl
   github.com/canthefason/go-watcher
