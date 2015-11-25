@@ -11,14 +11,6 @@ module.exports = class PublicChatPane extends React.Component
   @defaultProps =
     thread   : immutable.Map()
 
-  constructor: (props) ->
-
-    super props
-
-    @state =
-      showIntegrationTooltip   : no
-      showCollaborationTooltip : no
-
 
   onFollowChannel: ->
 
