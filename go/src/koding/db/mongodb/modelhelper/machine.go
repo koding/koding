@@ -287,17 +287,21 @@ func findMachine(query bson.M) ([]*models.Machine, error) {
 
 // findMachineFields retreives the machines matching the given query, only returning
 // the given fields.
+//
+// If fields is empty, an empty projection will be sent to mongo. If fields is
+// *nil*, no projection is sent to mongo.
 func findMachineFields(query bson.M, fields []string) ([]*models.Machine, error) {
 	machines := []*models.Machine{}
 
-	selects := bson.M{}
-	for _, f := range fields {
-		selects[f] = 1
-	}
-
 	queryFn := func(c *mgo.Collection) error {
 		q := c.Find(query)
-		if len(fields) > 0 {
+
+		if fields != nil {
+			selects := bson.M{}
+			for _, f := range fields {
+				selects[f] = 1
+			}
+
 			q.Select(selects)
 		}
 
