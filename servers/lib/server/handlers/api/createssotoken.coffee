@@ -1,6 +1,6 @@
 { daisy } = require 'bongo'
 
-module.exports = (req, res, next) ->
+module.exports = createSsoToken = (req, res, next) ->
 
   { JAccount, JGroup, JUser, JApiToken } = (require '../../bongo').models
 
