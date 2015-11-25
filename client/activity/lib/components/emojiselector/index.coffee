@@ -25,6 +25,25 @@ module.exports = class EmojiSelector extends React.Component
     query        : ''
 
 
+  componentDidUpdate: (prevProps, prevState) ->
+
+    { visible, items, query } = @props
+    isChangedToRegularMode    = prevProps.query and not query
+    isBecomeVisible           = visible and not prevProps.visible
+
+    return  unless @props.visible and (isBecomeVisible or isChangedToRegularMode)
+
+    filtersScrollData = items.map (item) ->
+      category = item.get 'category'
+      return {
+        top : $(helper.findFilterTabByCategory category).position().top
+        tab : helper.findFilterTabByCategory category
+      }
+
+    filtersScrollData  = filtersScrollData.toJS()
+    @filtersScrollData = filtersScrollData
+
+
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
 
 
@@ -52,10 +71,29 @@ module.exports = class EmojiSelector extends React.Component
     list = ReactDOM.findDOMNode @refs.list
     return list.scrollTop = 0  unless category
 
-    header    = $ ".EmojiSelectorCategory-#{kd.utils.slugify category}"
+    header    = $(helper.findCategoryHeader category)
     headerTop = header.position().top
 
     list.scrollTop += headerTop
+
+
+  onScroll: ->
+
+    return if @props.query
+
+    list      = ReactDOM.findDOMNode @refs.list
+    scrollTop = list.scrollTop
+
+    activeTab = helper.findFilterTab 'activeTab'
+    activeTab.classList.remove 'activeTab'  if activeTab
+
+    selectedTab = helper.findFilterTabByCategory 'all'
+    for scrollItem, i in @filtersScrollData
+      if scrollTop < scrollItem.top
+        selectedTab = scrollItem.tab[i - 1]  if i > 0
+        break
+
+    selectedTab.classList.add 'activeTab'
 
 
   onSearch: (event) ->
@@ -111,14 +149,14 @@ module.exports = class EmojiSelector extends React.Component
       iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
       category      = item.get 'category'
 
-      <span className='categoryFilterTab' title={category} onClick={@lazyBound 'scrollToCategory', category} key={category}>
+      <span className={"categoryFilterTab #{kd.utils.slugify category}"} title={category} onClick={@lazyBound 'scrollToCategory', category} key={category}>
         <span className='emoji-wrapper'>
           <span className={iconClassName}></span>
         </span>
       </span>
 
     <div className='EmojiSelector-categoryFilters'>
-      <span className='categoryFilterTab' title='All' onClick={@lazyBound 'scrollToCategory', ''}>
+      <span className='categoryFilterTab all' title='All' onClick={@lazyBound 'scrollToCategory', ''}>
         <span className='emoji-wrapper'>
           <span className='emoji-sprite emoji-clock3'></span>
         </span>
@@ -141,7 +179,7 @@ module.exports = class EmojiSelector extends React.Component
       resize    = 'custom'
     >
       { @renderCategoryFilters() }
-      <div className="EmojiSelector-list Dropbox-resizable" ref='list'>
+      <div className="EmojiSelector-list Dropbox-resizable" ref='list' onScroll={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
           numberOfSections={@bound 'numberOfSections'}
@@ -176,4 +214,19 @@ module.exports = class EmojiSelector extends React.Component
         totalIndex += categoryItem.emojis.length
 
       return totalIndex
+
+
+    findCategoryHeader: (category) ->
+
+      return document.querySelector ".EmojiSelectorCategory-#{kd.utils.slugify category}"
+
+
+    findFilterTab: (className) ->
+
+      return document.querySelector ".categoryFilterTab.#{className}"
+
+
+    findFilterTabByCategory: (category) ->
+
+      return helper.findFilterTab kd.utils.slugify category
 
