@@ -1,4 +1,3 @@
-
 { daisy } = require 'bongo'
 
 module.exports = (req, res, next) ->
