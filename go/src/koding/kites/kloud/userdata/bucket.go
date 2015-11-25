@@ -61,6 +61,9 @@ func (b *Bucket) URL(path string) string {
 		Key:    aws.String(path),
 	}
 	req, _ := b.S3.GetObjectRequest(params)
+	// Presign builds the actual URL with specified params, we do not care
+	// about signed request here.
+	req.Presign(0)
 	return req.HTTPRequest.URL.String()
 }
 

@@ -199,13 +199,8 @@ func newKite(conf *Config) *kite.Kite {
 	}
 	opts := &amazon.ClientOptions{
 		Credentials: c,
-		Regions: []string{
-			"us-east-1",
-			"ap-southeast-1",
-			"us-west-2",
-			"eu-west-1",
-		},
-		Log: common.NewLogger("kloud-koding", conf.DebugMode),
+		Regions:     amazon.ProductionRegions,
+		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
 	}
 	ec2clients, err := amazon.NewClientPerRegion(opts)
 	if err != nil {

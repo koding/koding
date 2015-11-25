@@ -57,13 +57,8 @@ func NewCleaner(conf *Config) *Cleaner {
 
 	opts := &amazon.ClientOptions{
 		Credentials: creds,
-		Regions: []string{
-			"us-east-1",
-			"ap-southeast-1",
-			"us-west-2",
-			"eu-west-1",
-		},
-		Log: logging.NewLogger("cleaner"),
+		Regions:     amazon.ProductionRegions,
+		Log:         logging.NewLogger("cleaner"),
 	}
 
 	if conf.Debug {
