@@ -36,6 +36,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return errors.New("public keys are not available")
 	}
 
+	m.push("Generating and fetching build data", 10, machinestate.Building)
+
+	m.Log.Debug("Creating the custom data")
+
 	sshKeys := make([]string, len(m.User.SshKeys))
 	for i, sshKey := range m.User.SshKeys {
 		sshKeys[i] = sshKey.Key
@@ -72,6 +76,11 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
+	m.Log.Debug("Custom data is created:")
+	m.Log.Debug("%s", string(val))
+
+	m.push("Initiating build process", 30, machinestate.Building)
+
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
 		Hostname:  m.Username,  // this is correct, we use the username as hostname
@@ -88,6 +97,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		PostInstallScriptUri:         PostInstallScriptUri,
 	}
 
+	m.Log.Debug("Creating the server instance with following data: %+v", virtualGuestTemplate)
+
 	//Get the SoftLayer virtual guest service
 	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
 	if err != nil {
@@ -100,7 +111,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
+	m.push("Checking build process", 50, machinestate.Building)
+
 	// wait until it's ready
+	m.Log.Debug("Waiting for the state to be RUNNING (%d)", obj.Id)
 	if err := waitState(svc, obj.Id, "RUNNING"); err != nil {
 		return err
 	}
@@ -115,6 +129,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	m.QueryString = protocol.Kite{ID: kiteID}.String()
 	m.IpAddress = obj.PrimaryIpAddress
+
+	m.push("Waiting for Koding Service Connector", 80, machinestate.Building)
 
 	if !m.IsKlientReady() {
 		return errors.New("klient is not ready")

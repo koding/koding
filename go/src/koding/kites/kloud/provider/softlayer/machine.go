@@ -3,6 +3,7 @@ package softlayer
 import (
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
@@ -97,4 +98,15 @@ func (m *Machine) IsKlientReady() bool {
 	}
 
 	return true
+}
+
+// push pushes the given message to the eventer
+func (m *Machine) push(msg string, percentage int, state machinestate.State) {
+	if m.Session.Eventer != nil {
+		m.Session.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Percentage: percentage,
+			Status:     state,
+		})
+	}
 }
