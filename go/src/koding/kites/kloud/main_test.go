@@ -474,6 +474,11 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	log.Println("Reiniting  machine")
+	if err := reinit(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
 	log.Println("Destroying machine")
 	if err := destroy(machineId, "softlayer", userData.Remote); err != nil {
 		t.Fatal(err)
@@ -1106,10 +1111,10 @@ func stop(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Stopped, remote)
 }
 
-func reinit(id string, remote *kite.Client) error {
+func reinit(id, provider string, remote *kite.Client) error {
 	reinitArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("reinit", reinitArgs)
