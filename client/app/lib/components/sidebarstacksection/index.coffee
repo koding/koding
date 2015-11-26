@@ -22,8 +22,10 @@ module.exports = class SidebarStackSection extends React.Component
 
     @props.machines
       .sortBy (machine) -> machine.get '_id'
+      .toList()
       .map (machine) =>
         <SidebarMachinesListItem
+          key={machine.get '_id'}
           machine={machine}
           active={machine.get('_id') is @props.selectedId}
           />

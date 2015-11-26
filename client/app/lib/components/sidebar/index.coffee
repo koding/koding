@@ -40,6 +40,7 @@ module.exports = class Sidebar extends React.Component
     @state.stacks.toList().map (stack) =>
       stackSections.push \
         <SidebarStackSection
+          key={stack.get '_id'}
           previewCount={PREVIEW_COUNT}
           selectedId={@state.selectedThreadId}
           stack={stack}
