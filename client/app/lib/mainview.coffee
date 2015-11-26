@@ -10,7 +10,6 @@ remote                  = require('./remote').getInstance()
 isLoggedIn              = require './util/isLoggedIn'
 whoami                  = require './util/whoami'
 isKoding                = require './util/isKoding'
-ActivitySidebar         = require './activity/sidebar/activitysidebar'
 AvatarArea              = require './avatararea/avatararea'
 CustomLinkView          = require './customlinkview'
 GlobalNotificationView  = require './globalnotificationview'
@@ -159,6 +158,11 @@ module.exports = class MainView extends KDView
 
     @aside.addSubView @logoWrapper
 
+    unless isKoding()
+      SidebarView = require './components/sidebar/view'
+      @aside.addSubView @sidebar = new SidebarView
+      return
+
     @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
       # FW should be checked
@@ -173,6 +177,14 @@ module.exports = class MainView extends KDView
       cssClass  : 'more-items below hidden'
       partial   : 'Unread items'
 
+    @sidebar.on 'OffscreenItemsAbove', -> moreItemsAbove.show()
+    @sidebar.on 'NoOffscreenItemsAbove', -> moreItemsAbove.hide()
+    @sidebar.on 'OffscreenItemsBelow', -> moreItemsBelow.show()
+    @sidebar.on 'NoOffscreenItemsBelow', -> moreItemsBelow.hide()
+    kd.singletons.notificationController.on 'ParticipantUpdated', =>
+      @sidebar.updateOffscreenIndicators()
+
+    ActivitySidebar = require './activity/sidebar/activitysidebar'
     @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
 
     @activitySidebar.on 'MachinesUpdated', =>
@@ -181,23 +193,7 @@ module.exports = class MainView extends KDView
       then @aside.setClass 'has-runningMachine'
       else @aside.unsetClass 'has-runningMachine'
 
-    @sidebar.on 'OffscreenItemsAbove', ->
-      moreItemsAbove.show()
-
-    @sidebar.on 'NoOffscreenItemsAbove', ->
-      moreItemsAbove.hide()
-
-    @sidebar.on 'OffscreenItemsBelow', ->
-      moreItemsBelow.show()
-
-    @sidebar.on 'NoOffscreenItemsBelow', ->
-      moreItemsBelow.hide()
-
-    kd.singletons.notificationController.on 'ParticipantUpdated', =>
-      @sidebar.updateOffscreenIndicators()
-
-    @sidebar.on 'ShowCloseHandle', =>
-      @aside.setClass 'has-runningMachine'
+    @sidebar.on 'ShowCloseHandle', => @aside.setClass 'has-runningMachine'
 
 
   createPanelWrapper:->

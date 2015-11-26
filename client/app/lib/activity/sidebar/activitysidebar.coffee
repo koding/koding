@@ -32,7 +32,6 @@ SidebarSharedMachinesList       = require './sidebarsharedmachineslist'
 SidebarStackMachineList         = require './sidebarstackmachinelist'
 ChannelActivitySideView         = require './channelactivitysideview'
 SidebarStacksNotConfiguredPopup = require 'app/activity/sidebar/sidebarstacksnotconfiguredpopup'
-isReactivityEnabled             = require 'app/util/isReactivityEnabled'
 EnvironmentsModal               = require 'app/environment/environmentsmodal'
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
@@ -489,12 +488,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @addMachineList()
 
     kd.singletons.mainController.ready =>
-      if isReactivityEnabled()
-        @addReactivitySidebarSections()
-        # @addInviteMembersSection()
-      else
-        @addFollowedTopics()
-        @addMessages()
+      @addFollowedTopics()
+      @addMessages()
 
 
   initiateFakeCounter: ->
@@ -782,39 +777,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machinesWrapper.addSubView list
 
     return list
-
-
-  addReactivitySidebarSections: ->
-
-    SidebarSectionsView = require 'app/components/sidebarsections/view'
-
-    @addSubView new SidebarSectionsView
-
-
-  # addInviteMembersSection: ->
-
-  #   { groupsController } = kd.singletons
-  #   groupsController.ready =>
-
-  #     currentGroup = groupsController.getCurrentGroup()
-  #     currentGroup.fetchMyRoles (err, roles = []) =>
-
-  #       return kd.warn err  if err
-  #       return unless 'admin' in roles
-
-  #       @addSubView section = new kd.CustomHTMLView
-  #         tagName  : 'section'
-  #         cssClass : 'warning-section invite'
-  #         partial  : """
-  #           <div class='no-stacks'>
-  #             <label>Invite your team</label>
-  #             <p>
-  #               Send out invites to<br/>
-  #               your teammates.
-  #             </p>
-  #             <a href='/Admin/Invitations'>Invite</a>
-  #           </div>
-  #           """
 
 
   addFollowedTopics: ->
