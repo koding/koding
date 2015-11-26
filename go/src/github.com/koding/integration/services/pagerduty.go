@@ -22,6 +22,7 @@ var (
 	ErrDataIsEmpty         = errors.New("Data is empty")
 	ErrCouldNotValidate    = errors.New("Validation has error")
 	ErrMessageLengthIsZero = errors.New("Length of message less than zero")
+	ErrCouldNotGetEvents   = errors.New("error while getting events")
 )
 
 type Pagerduty struct {
@@ -63,6 +64,19 @@ func (p *Pagerduty) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// fetch events from integration's db, if incoming event is not allowed by user, then stop process
+	events, err := helpers.GetEvents(token, p.integrationURL)
+	if err != nil {
+		p.log.Error("Could not get events %v", ErrCouldNotGetEvents)
+		return
+	}
+
+	// if incoming event is not allowed by user, we dont send the message to the integration worker
+	// don't need to return any error , just stop process
+	if !isAllowedEvent(events, pm.getType()) {
+		return
+	}
+
 	// message will be created according to incoming data with its incident type
 	// there are different incident types; trigger,acknowledge,resolve...
 	// createMessage creates different meaningful message for each incident types
@@ -74,6 +88,16 @@ func (p *Pagerduty) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		p.log.Error("Could not push message: %s", err)
 		return
 	}
+}
+
+//  isAllowedEvent checks if incoming event is in event list or not
+func isAllowedEvent(events []string, incomingEvent string) bool {
+	for _, ev := range events {
+		if ev == incomingEvent {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *Pagerduty) Configure(req *http.Request) (helpers.ConfigureResponse, error) {
