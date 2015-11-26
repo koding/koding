@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"time"
@@ -200,4 +201,34 @@ func CountUsersByQuery(selector bson.M) (int, error) {
 	}
 
 	return count, Mongo.Run(UserColl, query)
+}
+
+// getOwner returns the owner of the machine, if it's not found it returns an
+// error.
+func GetOwner(users []models.Permissions) (*models.User, error) {
+	var ownerId bson.ObjectId
+
+	for _, user := range users {
+		if user.Sudo && user.Owner {
+			ownerId = user.Id
+		}
+	}
+
+	if !ownerId.Valid() {
+		return nil, errors.New("owner not found")
+	}
+
+	var user *models.User
+	err := Mongo.Run(UserColl, func(c *mgo.Collection) error {
+		return c.FindId(users[0].Id).One(&user)
+	})
+
+	if err == mgo.ErrNotFound {
+		return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
+	}
+	if err != nil {
+		return nil, fmt.Errorf("username lookup error: %v", err)
+	}
+
+	return user, nil
 }

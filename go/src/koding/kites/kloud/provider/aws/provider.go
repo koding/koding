@@ -7,6 +7,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -95,7 +96,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return errors.New("permitted users list is empty")
 	}
 
-	user, err := p.getOwner(machine.Users)
+	user, err := modelhelper.GetOwner(machine.Users)
 	if err != nil {
 		return err
 	}
@@ -155,36 +156,6 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	return nil
-}
-
-// getOwner returns the owner of the machine, if it's not found it returns an
-// error.
-func (p *Provider) getOwner(users []models.Permissions) (*models.User, error) {
-	var ownerId bson.ObjectId
-
-	for _, user := range users {
-		if user.Sudo && user.Owner {
-			ownerId = user.Id
-		}
-	}
-
-	if !ownerId.Valid() {
-		return nil, errors.New("owner not found")
-	}
-
-	var user *models.User
-	err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.FindId(users[0].Id).One(&user)
-	})
-
-	if err == mgo.ErrNotFound {
-		return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
-	}
-	if err != nil {
-		return nil, fmt.Errorf("username lookup error: %v", err)
-	}
-
-	return user, nil
 }
 
 func (p *Provider) validate(m *Machine, r *kite.Request) error {
