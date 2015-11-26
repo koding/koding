@@ -22,7 +22,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 IDEView                       = require './views/tabview/ideview'
-
+BaseModalView                 = require 'app/providers/views/basemodalview'
 
 {warn} = kd
 
@@ -643,7 +643,6 @@ module.exports = CollaborationController =
     @statusBar.emit 'CollaborationLoading'
 
     @checkSessionActivity
-
       error      : => @stateMachine.transition 'ErrorLoading'
       active     : => @stateMachine.transition 'Resuming'
       notStarted : => @stateMachine.transition 'NotStarted'
@@ -651,7 +650,8 @@ module.exports = CollaborationController =
 
   checkSessionActivity: (callbacks) ->
 
-    {channelId} = @workspaceData
+    { channelId } = @workspaceData
+    machine       = @mountedMachine
 
     callMethod = (name, args...) -> callbacks[name] args...
 
@@ -661,25 +661,36 @@ module.exports = CollaborationController =
     checkRealtimeSession = (channel) =>
       @isRealtimeSessionActive channel.id, (isActive, file) =>
         if isActive
-        then callMethod 'active', channel, file
-        else callMethod 'notStarted'
+          callMethod 'active', channel, file
+          @updateSessionStartingProgress 40
+        else
+          callMethod 'notStarted'
+
+    if not machine.isMine() and machine.isApproved() and not machine.isPermanent()
+      @showSessionStartingModal()
 
     @fetchSocialChannel (err, channel) =>
       if err
         throwError err
         return callMethod 'notStarted'
 
-      if channel.isParticipant
-      then checkRealtimeSession channel
+      @updateSessionStartingProgress 20
+
+      if channel.isParticipant then checkRealtimeSession channel
       else
         socialHelpers.acceptChannel channel, (err) =>
-          return callMethod 'error', err  if err
+          if err
+            @destroySessionStartingModal()
+            return callMethod 'error', err
+
+          @updateSessionStartingProgress 30
           checkRealtimeSession channel
 
 
   onCollaborationNotStarted: ->
 
     @statusBar.emit 'CollaborationEnded'
+    @destroySessionStartingModal()
 
     owned = @mountedMachine.isMine()
     approved = @mountedMachine.isApproved()
@@ -706,6 +717,7 @@ module.exports = CollaborationController =
 
 
   onCollaborationErrorCreating: ->
+
     showError 'Session could not start.'
     @stateMachine.transition 'Prepared'
 
@@ -766,6 +778,37 @@ module.exports = CollaborationController =
           callbacks.success doc
 
 
+  showSessionStartingModal: ->
+
+    @sessionStartingModal = modal = new BaseModalView
+      cssClass  : 'env-machine-state session-starting'
+      width     : 440
+      container : @getView()
+
+    modal.addSubView modal.container = new kd.CustomHTMLView
+      cssClass: 'content-container'
+
+    modal.container.addSubView new kd.CustomHTMLView
+      tagName  : 'p'
+      partial  : "<span class='icon'></span> Joining to collaboration session..."
+      cssClass : "state-label running"
+
+    modal.container.addSubView modal.progressBar = new kd.ProgressBarView { initial: 10 }
+
+    modal.show()
+
+
+  updateSessionStartingProgress: (percentage) ->
+
+    @sessionStartingModal?.progressBar.updateBar percentage
+
+
+  destroySessionStartingModal: ->
+
+    @sessionStartingModal?.destroy()
+    @sessionStartingModal = null
+
+
   onCollaborationResuming: ->
 
     @showShareButton()
@@ -774,11 +817,19 @@ module.exports = CollaborationController =
       @whenRealtimeReady =>
         @setSocialChannel channel
         @createChatPaneView channel
-        @chat.ready => @stateMachine.transition 'Active'
+        @chat.ready =>
+
+          @stateMachine.transition 'Active'
+          @updateSessionStartingProgress 90
+
+          kd.utils.wait 2000, =>
+            @updateSessionStartingProgress 100
+            kd.utils.wait 500, @bound 'destroySessionStartingModal'
 
       @activateRealtimeManager doc
 
     errorCb = => # @stateMachine.transition 'ErrorResuming'
+      @destroySessionStartingModal()
 
     @resumeCollaborationSession
       success : successCb
@@ -788,10 +839,16 @@ module.exports = CollaborationController =
   resumeCollaborationSession: (callbacks) ->
 
     title = @getRealtimeFileName()
+
     realtimeHelpers.fetchCollaborationFile @rtm, title, (err, file) =>
       return callbacks.error err  if err
+
+      @updateSessionStartingProgress 50
+
       realtimeHelpers.loadCollaborationFile @rtm, file.id, (err, doc) =>
         return callbacks.error err  if err
+
+        @updateSessionStartingProgress 70
         @rtmFileId = file.id
         callbacks.success @socialChannel, doc
 
@@ -966,9 +1023,14 @@ module.exports = CollaborationController =
 
 
   createChatPaneView: (channel) ->
-    return throwError 'RealtimeManager is not set'  unless @rtm
 
-    @chat = new IDEChatView { @rtm, @isInSession, @mountedMachineUId }, channel
+    unless @rtm
+      @destroySessionStartingModal()
+      return throwError 'RealtimeManager is not set'
+
+    chatViewOptions = { @rtm, @isInSession, @mountedMachineUId }
+    @chat           = new IDEChatView chatViewOptions, channel
+
     @getView().addSubView @chat
 
 
