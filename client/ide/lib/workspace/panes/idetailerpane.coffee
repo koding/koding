@@ -16,6 +16,7 @@ module.exports = class IDETailerPane extends IDEPane
     super options, data
 
     @hash = @file.paneHash  if @file.paneHash
+    @ideViewHash = options.ideViewHash
 
     @createEditor()
 

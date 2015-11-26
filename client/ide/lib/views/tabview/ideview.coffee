@@ -332,7 +332,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       content   or= ''
       tailerPane  = new IDETailerPane {
-        file, content, description, delegate: this
+        file, content, description, delegate: this, ideViewHash: @hash
       }
 
       paneOptions =
