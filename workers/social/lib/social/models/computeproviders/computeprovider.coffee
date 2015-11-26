@@ -359,23 +359,55 @@ module.exports = class ComputeProvider extends Base
 
   @createGroupStack = (client, options, callback) ->
 
-    [options, callback] = [callback, options]  unless callback
+    unless callback
+      [options, callback] = [callback, options]
+
     callback ?= ->
     options  ?= {}
+    res       = {}
 
-    fetchGroupStackTemplate client, (err, res) ->
+    { template, account, group } = {}
 
-      return callback err  if err
+    daisy queue = [
 
-      { template, account } = res
-      checkTemplateUsage template, account, (err) ->
-        return callback err  if err
+      ->
+        fetchGroupStackTemplate client, (err, _res) ->
+          return callback err  if err
 
+          { template, account, group } = res = _res
+
+          queue.next()
+
+      ->
+        ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
+          return callback err  if err
+
+          queue.next()
+
+      ->
+        checkTemplateUsage template, account, (err) ->
+          return callback err  if err
+
+          queue.next()
+
+      ->
         account.addStackTemplate template, (err) ->
           return callback err  if err
 
           res.client = client
-          ComputeProvider.generateStackFromTemplate res, options, callback
+
+          queue.next()
+
+      ->
+        ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
+          if err
+            # swallowing errors for followings since we need the real error ~GG
+            account.removeStackTemplate template, ->
+              ComputeProvider.updateGroupStackUsage group, 'decrement', ->
+                callback err
+          else
+            callback null, stack
+    ]
 
 
   do ->
