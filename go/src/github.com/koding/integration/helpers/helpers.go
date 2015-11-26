@@ -31,7 +31,8 @@ type BotChannelResponse struct {
 }
 
 type BotChannelData struct {
-	ChannelId int64 `json:"channelId,string"`
+	ChannelId int64    `json:"channelId,string"`
+	Setting   Settings `json:"settings,omitempty"`
 }
 
 //////////// PushRequest //////////////
@@ -202,6 +203,50 @@ func ParseError(resp *http.Response) error {
 	}
 
 	return ErrUnknown
+}
+
+// GetEvents fetchs the events from integratin's DB.
+// And extracts all events which allowed by user from data
+func GetEvents(token, rootPath string) ([]string, error) {
+	endpoint := fmt.Sprintf("%s/events/%s", rootPath, token)
+
+	resp, err := http.Get(endpoint)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
+	if resp.StatusCode != 200 {
+		err := ParseError(resp)
+
+		return nil, err
+	}
+
+	event := &BotChannelResponse{}
+
+	if err = json.NewDecoder(resp.Body).Decode(event); err != nil {
+		return nil, err
+	}
+
+	events, err := UnmarshalEvents(event.Data.Setting)
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
+
+func UnmarshalEvents(s Settings) ([]string, error) {
+	val := s.GetString("events")
+	if val == "" {
+		return []string{}, nil
+	}
+
+	var events []string
+	err := json.Unmarshal([]byte(val), &events)
+
+	return events, err
 }
 
 // Push makes a request to push endpoint of webhook worker. When the worker is down
