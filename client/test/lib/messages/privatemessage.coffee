@@ -104,7 +104,7 @@ module.exports =
 
   sendPrivateMessageWithLink: (browser) ->
 
-    link      = 'http://wikipedia.org/'
+    link      = 'http://wikipedia.org Hello World'
     testUsers = [ @users[1] ]
 
     helpers.beginTest(browser)
@@ -115,7 +115,7 @@ module.exports =
 
   sendPrivateMessageWithImage: (browser) ->
 
-    image     = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png"
+    image     = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png Hello World"
     testUsers = [ @users[6] ]
 
     helpers.beginTest(browser)

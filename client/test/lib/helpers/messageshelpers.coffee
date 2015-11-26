@@ -19,8 +19,8 @@ module.exports =
     textSelector        = '.message-pane.privatemessage .message-pane-scroller .kdscrollview .kdlistview-privatemessage .consequent'
     imageSelector       = "#{textSelector} .link-embed-box .embed-image-view img"
     linkSelector        = "[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView] .link-embed-box .with-image .preview-text a:nth-of-type(2)"
-    messageWithImage    = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png"
-    messageWithLink     = "http://wikipedia.org/"
+    messageWithImage    = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png Hello World"
+    messageWithLink     = "http://wikipedia.org Hello World"
     sendMessage         = (browser, users, message, purpose) ->
       console.log " ✔ Creating a new message with user #{users[0].username}..."
       browser
