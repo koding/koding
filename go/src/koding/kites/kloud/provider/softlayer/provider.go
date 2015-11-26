@@ -3,7 +3,6 @@ package softlayer
 import (
 	"errors"
 	"fmt"
-	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
@@ -11,8 +10,8 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -79,7 +78,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	// check for validation and permission
-	if err := p.validate(machine, req); err != nil {
+	if err := helpers.ValidateUser(machine.User, machine.Users, req); err != nil {
 		return nil, err
 	}
 
@@ -141,32 +140,6 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	return nil
 }
 
-func (p *Provider) validate(m *Machine, r *kite.Request) error {
-	m.Log.Debug("validating for method '%s'", r.Method)
-
-	// give access to kloudctl immediately
-	if r.Auth != nil {
-		if r.Auth.Key == command.KloudSecretKey {
-			return nil
-		}
-	}
-
-	if r.Username != m.User.Name {
-		return errors.New("username is not permitted to make any action")
-	}
-
-	// check for user permissions
-	if err := p.checkUser(m.User.ObjectId, m.Users); err != nil {
-		return err
-	}
-
-	if m.User.Status != "confirmed" {
-		return kloud.NewError(kloud.ErrUserNotConfirmed)
-	}
-
-	return nil
-}
-
 func (p *Provider) credential(identifier string) (*Credential, error) {
 	credential := &Credential{}
 	// we neglect errors because credential is optional
@@ -178,17 +151,4 @@ func (p *Provider) credential(identifier string) (*Credential, error) {
 	}
 
 	return credential, nil
-}
-
-// checkUser checks whether the given username is available in the users list
-// and has permission
-func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) error {
-	// check if the incoming user is in the list of permitted user list
-	for _, u := range users {
-		if userId == u.Id && u.Owner {
-			return nil // ok he/she is good to go!
-		}
-	}
-
-	return fmt.Errorf("permission denied. user not in the list of permitted users")
 }
