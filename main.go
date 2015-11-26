@@ -144,7 +144,7 @@ func main() {
 		},
 		cli.Command{
 			Name:            "run",
-			Usage:           "Run command on remote machine.",
+			Usage:           "Run command on remote or local machine.",
 			Description:     cmdDescriptions["run"],
 			Action:          Exit(RunCommandFactory),
 			SkipFlagParsing: true,

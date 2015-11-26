@@ -27,10 +27,14 @@ var cmdDescriptions = map[string]string{
 		"Unmount folder which was previously mounted.",
 	),
 	"run": fmtDesc(
-		"<machine name>",
-		fmt.Sprintf(`Run command on remote machine and return results.
-    All arguments after run are passed to command on remove machine.
-    TODO: streaming support.`),
+		"<command> <arguments>",
+		fmt.Sprintf(`Run command on remote or local machine depending on the location
+    where the command was run. If command was run on mount, it runs
+    the command on remote machine and returns the results. If command
+    was run on local, it runs the command on local machine and returns
+    the results. Currently only commands that don't require tty/pty work
+    on remote machines.
+    All arguments after run are passed to command on remote machine.`),
 	),
 }
 

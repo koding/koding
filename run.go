@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/fuseklient"
@@ -34,27 +36,23 @@ func RunCommandFactory(c *cli.Context) int {
 		return 1
 	}
 
-	res, err := r.run(localPath, c.Args()[0:])
+	var (
+		cmdWithArgs    = os.Args[2:]
+		cmdWithArgsStr = strings.Join(cmdWithArgs, " ")
+	)
+
+	res, err := r.runOnRemote(localPath, cmdWithArgsStr)
 	if err != nil && err != fuseklient.ErrNotInMount {
 		fmt.Printf("Error running command: '%s'\n", err)
 		return 1
 	}
 
-	// TODO: how to enable `kd run` outside a mount?
-	//       running outside a folder would require user to send machine name
-	//       with command like `kd run <machine> <cmd>` which is different
-	//       from inside the mount which is `kd run <cmd>`
-	//
-	//       either we'll need to assume differnet semantics based on mount or
-	//			 create seperate command for running outside mount like
-	//			 `kd runm <machine> <cmd>`
-	//
-	//			 can't use flags since they can be part of the command itself and
-	//       we're explicity telling cli library to not parse flags to this
 	if err == fuseklient.ErrNotInMount {
-		fmt.Println("Error: 'run' command only works from inside a mount")
-		return 1
+		fmt.Println("Running on local:", cmdWithArgsStr)
+		return r.runOnLocal(cmdWithArgs)
 	}
+
+	fmt.Println("Running on remote:", cmdWithArgsStr)
 
 	// write to standard out stream
 	// this stream can contain values even if exit status is not 0.
@@ -95,7 +93,7 @@ func NewRunCommand() (*RunCommand, error) {
 	return &RunCommand{Transport: klientKite}, nil
 }
 
-func (r *RunCommand) run(localPath string, cmdWithArgs []string) (*ExecRes, error) {
+func (r *RunCommand) runOnRemote(localPath string, cmdWithArgsStr string) (*ExecRes, error) {
 	machine, err := fuseklient.GetMachineMountedForPath(localPath)
 	if err != nil {
 		return nil, err
@@ -106,17 +104,17 @@ func (r *RunCommand) run(localPath string, cmdWithArgs []string) (*ExecRes, erro
 		return nil, err
 	}
 
-	return r.runOnMachine(machine, fullCmdPath, cmdWithArgs)
+	return r.runOnMachine(machine, fullCmdPath, cmdWithArgsStr)
 }
 
-func (r *RunCommand) runOnMachine(machine, fullCmdPath string, cmdWithArgs []string) (*ExecRes, error) {
+func (r *RunCommand) runOnMachine(machine, fullCmdPath string, cmdWithArgsStr string) (*ExecRes, error) {
 	req := struct {
 		Machine string
 		Command string
 		Path    string
 	}{
 		Machine: machine,
-		Command: strings.Join(cmdWithArgs, " "),
+		Command: cmdWithArgsStr,
 		Path:    fullCmdPath,
 	}
 	raw, err := r.Tell("remote.exec", req)
@@ -168,4 +166,23 @@ func (r *RunCommand) getMounts() ([]kiteMounts, error) {
 	}
 
 	return mounts, nil
+}
+
+func (r *RunCommand) runOnLocal(cmdWithArgs []string) int {
+	cmd := exec.Command(cmdWithArgs[0], cmdWithArgs[1:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		exitErr, ok := err.(*exec.ExitError)
+		if !ok {
+			fmt.Printf("Error running command: '%s'\n", err)
+			return 1
+		}
+
+		return exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+	}
+
+	return 1
 }
