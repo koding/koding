@@ -51,7 +51,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderWorkspaces: ->
 
-    @machine('workspaces').map (workspace) =>
+    @machine('workspaces').toList().map (workspace) =>
       <Link
         key={workspace.get '_id'}
         className='Workspace-link'
