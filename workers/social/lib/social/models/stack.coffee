@@ -270,6 +270,17 @@ module.exports = class JComputeStack extends jraphical.Module
     daisy queue
 
 
+  unuseStackTemplate: (callback) ->
+
+    Relationship.remove
+      targetName : 'JStackTemplate'
+      targetId   : @baseStackId
+      sourceId   : @originId
+      sourceName : 'JAccount'
+      as         : 'user'
+    , callback
+
+
   delete: (callback) ->
 
     @getGroup (err, group) =>
@@ -298,14 +309,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
       ComputeProvider = require './computeproviders/computeprovider'
       ComputeProvider.updateGroupStackUsage group, 'decrement', (err) =>
-
-        Relationship.remove {
-          targetName : 'JStackTemplate'
-          targetId   : @baseStackId
-          sourceId   : @originId
-          sourceName : 'JAccount'
-          as         : 'user'
-        }, (err) => @remove callback
+        @unuseStackTemplate => @remove callback
 
 
   delete$: permit
