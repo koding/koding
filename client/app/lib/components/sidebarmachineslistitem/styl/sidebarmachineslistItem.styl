@@ -1,0 +1,82 @@
+.SidebarListItem.machine
+  borderBox()
+  line-height               20px
+  noTextDeco()
+  margin-bottom             8px
+  padding                   0px 8px 0px 19px
+  opacity                   1
+  rel()
+  size                      218px 20px
+
+  .SidebarListItem-icon
+    abs                     50% 0 0 0px
+    bg                      color transparent
+    border                  3px solid $gray-14
+    borderBox()
+    display                 block
+    rounded                 3px
+    size                    13px 13px
+    vendor                  transform, translateY(-50%)
+    &.Unknown
+    &.Stopped
+    &.NotInitialized
+      border-color          $gray-14
+    &.Running
+    &.Starting
+      border-color          $green
+    &.Building
+    &.Rebooting
+      border-color          $yellow
+    &.Stopping
+    &.Terminating
+    &.Terminated
+      border-color          $red
+
+.Workspaces-section
+  opacity                   1
+  vendor                    transition, all .1s ease
+  &.out
+    opacity                 0
+    height                  0
+  h3
+    antialiased()
+    border-bottom           none
+    color                   $gray-8
+    display                 block
+    font-weight             $fw-regular
+    font-size               $fs-extra-small
+    height                  16px
+    line-height             16px
+    margin-bottom           1px
+    letter-spacing          0.08em
+    padding                 2px 0 0 20px
+    text-transform          uppercase
+    word-spacing            0.2em
+    pointer()
+
+    &:hover
+      color                 white
+
+  .Workspace-link
+    borderBox()
+    color                   $gray-14
+    display                 block
+    ellipsis()
+    font-size               12px
+    line-height             23px
+    max-width               136px
+    noTextDeco()
+    opacity                 1
+    overflow                hidden
+    padding                 0 0 0 35px
+    rel()
+    size                    auto 22px
+
+  .Workspace-icon
+    abs                     8px 0 0 23px
+    border                  2px solid rgba(255, 255, 255, .2)
+    borderBox()
+    display                 block
+    height                  6px
+    rounded                 100%
+    width                   6px
