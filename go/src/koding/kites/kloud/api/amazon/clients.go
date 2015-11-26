@@ -25,6 +25,9 @@ type ClientOptions struct {
 
 	// Log, when non-nil, is used for verbose logging by *ec2.EC2 client.
 	Log logging.Logger
+
+	// MaxResults sets the limit for Describe* calls.
+	MaxResults int64
 }
 
 // Clients provides wrappers for a EC2 client per region.
@@ -49,7 +52,8 @@ func NewClientPerRegion(opts *ClientOptions) (*Clients, error) {
 		opts := &ClientOptions{
 			Credentials: opts.Credentials,
 			Regions:     []string{region},
-			Log:         opts.Log,
+			Log:         opts.Log.New(region),
+			MaxResults:  opts.MaxResults,
 		}
 		client, err := NewClient(opts)
 		if err != nil {

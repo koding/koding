@@ -34,6 +34,7 @@ func NewMultiVolumes(clients *amazon.Clients, log logging.Logger) *MultiVolumes 
 				log.Error("[%s] fetching volumes error: %s", region, err)
 				return
 			}
+			log.Info("[%s] fetched %d volumes", region, len(volumes))
 			v := make(Volumes, len(volumes))
 			for _, volume := range volumes {
 				v[aws.StringValue(volume.VolumeId)] = volume

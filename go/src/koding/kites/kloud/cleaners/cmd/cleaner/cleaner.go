@@ -2,18 +2,19 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
+	"koding/kites/common"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
-	"sync"
-	"time"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/logging"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type Cleaner struct {
@@ -58,11 +59,8 @@ func NewCleaner(conf *Config) *Cleaner {
 	opts := &amazon.ClientOptions{
 		Credentials: creds,
 		Regions:     amazon.ProductionRegions,
-		Log:         logging.NewLogger("cleaner"),
-	}
-
-	if conf.Debug {
-		opts.Log.SetLevel(logging.DEBUG)
+		Log:         common.NewLogger("cleaner", conf.Debug),
+		MaxResults:  int64(conf.MaxResults),
 	}
 
 	l, err := lookup.NewAWS(opts)

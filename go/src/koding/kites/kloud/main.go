@@ -76,6 +76,10 @@ type Config struct {
 	// Defines the default AMI Tag to use for koding provider
 	AMITag string
 
+	// MaxResults limits the max items fetched per page for each
+	// AWS Describe* API calls.
+	MaxResults int `default:"500"`
+
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
 	KontrolURL string `required:"true"`
@@ -201,6 +205,7 @@ func newKite(conf *Config) *kite.Kite {
 		Credentials: c,
 		Regions:     amazon.ProductionRegions,
 		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
+		MaxResults:  int64(conf.MaxResults),
 	}
 	ec2clients, err := amazon.NewClientPerRegion(opts)
 	if err != nil {

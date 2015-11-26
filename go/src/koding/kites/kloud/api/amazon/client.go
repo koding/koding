@@ -16,10 +16,11 @@ import (
 // Client wraps *ec.EC2 with an API that hides Input/Output structs
 // while dealing with EC2 service API.
 type Client struct {
-	EC2    *ec2.EC2 // underlying client
-	Region string   // region name
-	Zones  []string // zone list
-	Log    logging.Logger
+	EC2        *ec2.EC2 // underlying client
+	Region     string   // region name
+	Zones      []string // zone list
+	Log        logging.Logger
+	MaxResults int64
 }
 
 // NewClient creates new *ec2.EC2 wrapper.
@@ -35,10 +36,11 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		return nil, awsError(err)
 	}
 	c := &Client{
-		EC2:    svc,
-		Region: aws.StringValue(cfg.Config.Region),
-		Zones:  make([]string, len(zones.AvailabilityZones)),
-		Log:    opts.Log,
+		EC2:        svc,
+		Region:     aws.StringValue(cfg.Config.Region),
+		Zones:      make([]string, len(zones.AvailabilityZones)),
+		Log:        opts.Log,
+		MaxResults: opts.MaxResults,
 	}
 	for i, zone := range zones.AvailabilityZones {
 		c.Zones[i] = aws.StringValue(zone.ZoneName)
@@ -188,7 +190,14 @@ func (c *Client) DeregisterImage(imageID string) error {
 // *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
 	var snapshots []*ec2.Snapshot
-	err := c.EC2.DescribeSnapshotsPages(nil, func(resp *ec2.DescribeSnapshotsOutput, _ bool) bool {
+	var params ec2.DescribeSnapshotsInput
+	if c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
+	err := c.EC2.DescribeSnapshotsPages(&params, func(resp *ec2.DescribeSnapshotsOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d snapshots (page=%d)", len(resp.Snapshots), page)
 		snapshots = append(snapshots, resp.Snapshots...)
 		return true
 	})
@@ -378,7 +387,13 @@ func (c *Client) TagsByFilters(filters url.Values) (map[string]string, error) {
 	var params = &ec2.DescribeTagsInput{
 		Filters: NewFilters(filters),
 	}
+	if c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
 	err := c.EC2.DescribeTagsPages(params, func(resp *ec2.DescribeTagsOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d tags (page=%d)", len(resp.Tags), page)
 		tags = append(tags, resp.Tags...)
 		return true
 	})
@@ -466,8 +481,18 @@ func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error)
 }
 
 func (c *Client) instances(params *ec2.DescribeInstancesInput) (instances []*ec2.Instance, err error) {
+	if params == nil {
+		params = &ec2.DescribeInstancesInput{}
+	}
+	if c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
 	return instances, c.EC2.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, _ bool) bool {
-		instances = append(instances, collectInstances(resp.Reservations)...)
+		respInstances := collectInstances(resp.Reservations)
+		page++
+		c.Log.Debug("received %d instances (page=%d)", len(respInstances), page)
+		instances = append(instances, respInstances...)
 		return true
 	})
 }
@@ -631,7 +656,14 @@ func (c *Client) ImportKeyPair(name string, publicKey []byte) (fingerprint strin
 // Volumes is a wrapper for (*ec2.EC2).DescribeVolumesPages.
 func (c *Client) Volumes() ([]*ec2.Volume, error) {
 	var volumes []*ec2.Volume
-	err := c.EC2.DescribeVolumesPages(nil, func(resp *ec2.DescribeVolumesOutput, _ bool) bool {
+	var params ec2.DescribeVolumesInput
+	if c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
+	err := c.EC2.DescribeVolumesPages(&params, func(resp *ec2.DescribeVolumesOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d volumes (page=%d)", len(resp.Volumes), page)
 		volumes = append(volumes, resp.Volumes...)
 		return true
 	})
