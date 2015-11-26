@@ -352,7 +352,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
               machine :
                 uid   : file.machine.uid
 
-      @emitChange tailerPane, change
+        @emitChange tailerPane, change
 
       return tailerPane
 
