@@ -17,6 +17,10 @@ module.exports =
     messageWithCode     = "console.log('123456789')"
     messageWithFullCode = "```console.log('123456789')```"
     textSelector        = '.message-pane.privatemessage .message-pane-scroller .kdscrollview .kdlistview-privatemessage .consequent'
+    imageSelector       = "#{textSelector} .link-embed-box .embed-image-view img"
+    linkSelector        = "[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView] .link-embed-box .with-image .preview-text a:nth-of-type(2)"
+    messageWithImage    = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.333.png"
+    messageWithLink     = "http://wikipedia.org/"
     sendMessage         = (browser, users, message, purpose) ->
       console.log " ✔ Creating a new message with user #{users[0].username}..."
       browser
@@ -44,14 +48,26 @@ module.exports =
         browser
           .waitForElementVisible   '.reply-input-widget.private',20000
           .click                   textareaSelector
-          .setValue                textareaSelector, message + '\n'
+          .setValue                textareaSelector, message
+          .pause                   2000 #in order for the previews to load
+          .setValue                textareaSelector, browser.Keys.ENTER
           .waitForElementVisible   '.message-pane.privatemessage', 20000
           .waitForElementVisible   '[testpath=activity-list]', 20000
           switch message
             when messageWithFullCode
               browser
-                .waitForElementVisible   textSelector, 20000
                 .assert.containsText     textSelector, messageWithCode
+            when messageWithImage
+              browser
+                .waitForElementVisible   imageSelector, 20000
+
+              browser.getAttribute imageSelector, 'height', (result) ->
+                height = result.value
+                assert.equal('333', height)
+            when messageWithLink
+              browser
+                .waitForElementVisible    linkSelector, 20000
+                .assert.containsText      linkSelector, 'The Free Encyclopedia' 
             else
               browser
                 .assert.containsText     '.message-pane.privatemessage', message # Assertion
