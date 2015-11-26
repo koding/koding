@@ -7,6 +7,7 @@
   checkBongoConnectivity }          = require '../../../../testhelper'
 { withConvertedUser }               = require '../../../../../workers/social/testhelper'
 { withConvertedUserAndApiToken }    = require '../../../../../workers/social/testhelper/models/apitokenhelper'
+{ generateCreateUserRequestParams } = require '../../../../testhelper/handler/createuserhelper'
 
 JUser = require '../../../../models/user'
 
