@@ -4,7 +4,6 @@
   generateRandomString
   generateRandomUsername
   checkBongoConnectivity }       = require '../../../testhelper'
-{ testCsrfToken }                = require '../../../testhelper/handler'
 { generateConfirmRequestParams } = require '../../../testhelper/handler/confirmhelper'
 { withRegisteredUser }           = require '../../../testhelper/handler/registerhelper'
 { createJWT }                    = require '../../../models/user'
@@ -18,13 +17,6 @@ beforeTests = -> before (done) ->
 
 
 runTests = -> describe 'server.handlers.confirm', ->
-
-  it 'should fail when csrf token is invalid', (done) ->
-
-    withRegisteredUser ({ username }) ->
-      options  = { qs : { token : createJWT { username } } }
-      testCsrfToken generateConfirmRequestParams, 'get', options, done
-
 
   it 'should send HTTP 400 when token is not provided', (done) ->
 
