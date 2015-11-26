@@ -50,7 +50,7 @@
   font-size                 16px
   line-height               36px
 
-.EmojiSelectorSection
+.EmojiSelector-categorySection
   clear                     left
 
   header
@@ -59,20 +59,26 @@
     font-size               20px
     font-weight             bold
 
-.EmojiSelector-categoryFilters
+.EmojiSelector-categoryTabs
   bg                        color, #f7f7f7
   border-bottom             1px solid rgba(0, 0, 0, 0.15);
   padding                   4px 0 0 7px
   boxSizing()
 
-  .categoryFilterTab
+.EmojiSelector-categoryTab
     border-bottom           3px solid transparent
-    border-radius           0.6rem 0.6rem 0 0
+    border-radius           5px 5px 0 0
     color                   #9e9ea6
     display                 inline-block
     margin-right            3px
     padding                 4px 5.8px 6px
     pointer()
+
+  &.activeTab
+    background              #fbfaf8
+    border-bottom           3px solid #2ab27b
+    color                   #9e9ea6
+    padding-top             3px
 
 .EmojiSelector-searchInput
     display                 block

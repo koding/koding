@@ -11,12 +11,10 @@ EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
 EmojiIcon             = require 'activity/components/emojiicon'
 List                  = require 'app/components/list'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
+ListWithTabsMixin     = require './listwithtabsmixin'
 
 
 module.exports = class EmojiSelector extends React.Component
-
-  @include [ImmutableRenderMixin]
-
 
   @defaultProps =
     items        : immutable.List()
@@ -33,15 +31,7 @@ module.exports = class EmojiSelector extends React.Component
 
     return  unless @props.visible and (isBecomeVisible or isChangedToRegularMode)
 
-    filtersScrollData = items.map (item) ->
-      category = item.get 'category'
-      return {
-        top : $(helper.findFilterTabByCategory category).position().top
-        tab : helper.findFilterTabByCategory category
-      }
-
-    filtersScrollData  = filtersScrollData.toJS()
-    @filtersScrollData = filtersScrollData
+    @calculateSectionScrollData()
 
 
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
@@ -66,36 +56,6 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setSelectorVisibility stateId, no
 
 
-  scrollToCategory: (category) ->
-
-    list = ReactDOM.findDOMNode @refs.list
-    return list.scrollTop = 0  unless category
-
-    header    = $(helper.findCategoryHeader category)
-    headerTop = header.position().top
-
-    list.scrollTop += headerTop
-
-
-  onScroll: ->
-
-    return if @props.query
-
-    list      = ReactDOM.findDOMNode @refs.list
-    scrollTop = list.scrollTop
-
-    activeTab = helper.findFilterTab 'activeTab'
-    activeTab.classList.remove 'activeTab'  if activeTab
-
-    selectedTab = helper.findFilterTabByCategory 'all'
-    for scrollItem, i in @filtersScrollData
-      if scrollTop < scrollItem.top
-        selectedTab = scrollItem.tab[i - 1]  if i > 0
-        break
-
-    selectedTab.classList.add 'activeTab'
-
-
   onSearch: (event) ->
 
     { value }   = event.target
@@ -114,10 +74,16 @@ module.exports = class EmojiSelector extends React.Component
     return @props.items.get(sectionIndex).get('emojis').size
 
 
+  sectionId: (sectionIndex) ->
+
+    category = @props.items.get(sectionIndex).get 'category'
+    return "EmojiSelectorCategory-#{kd.utils.slugify category}"
+
+
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     category = @props.items.get(sectionIndex).get 'category'
-    <header className={"EmojiSelectorCategory-#{kd.utils.slugify category}"}>{category}</header>
+    <header>{category}</header>
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
@@ -141,22 +107,22 @@ module.exports = class EmojiSelector extends React.Component
     <div className='EmojiSelector-emptyCategory'>No emoji found</div>
 
 
-  renderCategoryFilters: ->
+  renderCategoryTabs: ->
 
     { filters } = @props
 
-    components = filters.map (item) =>
+    components = filters.map (item, index) =>
       iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
       category      = item.get 'category'
 
-      <span className={"categoryFilterTab #{kd.utils.slugify category}"} title={category} onClick={@lazyBound 'scrollToCategory', category} key={category}>
+      <span id={@sectionTabId index} className='EmojiSelector-categoryTab' title={category} onClick={@lazyBound 'scrollToSection', index} key={category}>
         <span className='emoji-wrapper'>
           <span className={iconClassName}></span>
         </span>
       </span>
 
-    <div className='EmojiSelector-categoryFilters'>
-      <span className='categoryFilterTab all' title='All' onClick={@lazyBound 'scrollToCategory', ''}>
+    <div className='EmojiSelector-categoryTabs' ref='tabs'>
+      <span className='EmojiSelector-categoryTab allTab activeTab' title='All' onClick={@lazyBound 'scrollToSection', null}>
         <span className='emoji-wrapper'>
           <span className='emoji-sprite emoji-clock3'></span>
         </span>
@@ -178,7 +144,7 @@ module.exports = class EmojiSelector extends React.Component
       ref       = 'dropbox'
       resize    = 'custom'
     >
-      { @renderCategoryFilters() }
+      { @renderCategoryTabs() }
       <div className="EmojiSelector-list Dropbox-resizable" ref='list' onScroll={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
@@ -186,7 +152,8 @@ module.exports = class EmojiSelector extends React.Component
           numberOfRowsInSection={@bound 'numberOfRowsInSection'}
           renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
           renderRowAtIndex={@bound 'renderRowAtIndex'}
-          sectionClassName='EmojiSelectorSection'
+          sectionClassName='EmojiSelector-categorySection'
+          sectionId={@bound 'sectionId'}
           renderEmptySectionMessageAtIndex={@bound 'renderEmptySectionMessageAtIndex'}
         />
         <div className='clearfix'></div>
@@ -216,17 +183,5 @@ module.exports = class EmojiSelector extends React.Component
       return totalIndex
 
 
-    findCategoryHeader: (category) ->
-
-      return document.querySelector ".EmojiSelectorCategory-#{kd.utils.slugify category}"
-
-
-    findFilterTab: (className) ->
-
-      return document.querySelector ".categoryFilterTab.#{className}"
-
-
-    findFilterTabByCategory: (category) ->
-
-      return helper.findFilterTab kd.utils.slugify category
+React.Component.include.call EmojiSelector, [ImmutableRenderMixin, ListWithTabsMixin]
 
