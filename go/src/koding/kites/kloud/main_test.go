@@ -459,6 +459,11 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	log.Println("Restarting machine")
+	if err := restart(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
 	log.Println("Stopping machine")
 	if err := stop(machineId, "softlayer", userData.Remote); err != nil {
 		t.Fatal(err)
@@ -1128,10 +1133,10 @@ func reinit(id string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func restart(id string, remote *kite.Client) error {
+func restart(id, provider string, remote *kite.Client) error {
 	restartArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("restart", restartArgs)
