@@ -272,35 +272,40 @@ module.exports = class JComputeStack extends jraphical.Module
 
   delete: (callback) ->
 
-    # TODO Implement delete methods.
-    @update { $set: { status: 'Terminating' } }
+    @getGroup (err, group) =>
 
-    JProposedDomain  = require './domain'
-    JMachine = require './computeproviders/machine'
+      return callback err  if err
 
-    @domains?.forEach (_id) ->
-      JProposedDomain.one { _id }, (err, domain) ->
-        if not err? and domain?
-          domain.remove (err) ->
-            if err then console.error \
-              "Failed to remove domain: #{domain.domain}", err
+      # TODO Implement delete methods.
+      @update { $set: { status: 'Terminating' } }
 
-    @machines?.forEach (_id) ->
-      JMachine.one { _id }, (err, machine) ->
-        if not err? and machine?
-          machine.remove (err) ->
-            if err then console.error \
-              "Failed to remove machine: #{machine.title}", err
+      JProposedDomain  = require './domain'
+      JMachine = require './computeproviders/machine'
 
-    Relationship.remove {
-      targetName : 'JStackTemplate'
-      targetId   : @baseStackId
-      sourceId   : @originId
-      sourceName : 'JAccount'
-      as         : 'user'
-    }, (err) =>
+      @domains?.forEach (_id) ->
+        JProposedDomain.one { _id }, (err, domain) ->
+          if not err? and domain?
+            domain.remove (err) ->
+              if err then console.error \
+                "Failed to remove domain: #{domain.domain}", err
 
-      @remove callback
+      @machines?.forEach (_id) ->
+        JMachine.one { _id }, (err, machine) ->
+          if not err? and machine?
+            machine.remove (err) ->
+              if err then console.error \
+                "Failed to remove machine: #{machine.title}", err
+
+      ComputeProvider = require './computeproviders/computeprovider'
+      ComputeProvider.updateGroupStackUsage group, 'decrement', (err) =>
+
+        Relationship.remove {
+          targetName : 'JStackTemplate'
+          targetId   : @baseStackId
+          sourceId   : @originId
+          sourceName : 'JAccount'
+          as         : 'user'
+        }, (err) => @remove callback
 
 
   delete$: permit
