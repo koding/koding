@@ -3,7 +3,6 @@ package awsprovider
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
@@ -13,7 +12,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/provider/helpers"
@@ -24,6 +22,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
@@ -37,15 +36,6 @@ type Provider struct {
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
-}
-
-type Credential struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	Identifier string        `bson:"identifier"`
-	Meta       struct {
-		AccessKey string `bson:"access_key"`
-		SecretKey string `bson:"secret_key"`
-	} `bson:"meta"`
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -100,9 +90,23 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	creds, err := p.credential(machine.Credential)
+	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(machine.Credential)
 	if err != nil {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
+	}
+	cred := creds[0] // there is only one, pick up the first one
+
+	var awsCred struct {
+		AccessKey string `mapstructure:"access_key"`
+		SecretKey string `mapstructure:"secret_key"`
+	}
+
+	if err := mapstructure.Decode(cred.Meta, &awsCred); err != nil {
+		return err
+	}
+
+	if structs.HasZero(awsCred) {
+		return fmt.Errorf("softlayer data is incomplete: %v", cred.Meta)
 	}
 
 	awsRegion, ok := aws.Regions[machine.Meta.Region]
@@ -112,8 +116,8 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	client := ec2.NewWithClient(
 		aws.Auth{
-			AccessKey: creds.Meta.AccessKey,
-			SecretKey: creds.Meta.SecretKey,
+			AccessKey: awsCred.AccessKey,
+			SecretKey: awsCred.SecretKey,
 		},
 		awsRegion,
 		aws.NewClient(multiec2.NewResilientTransport()),
@@ -152,46 +156,6 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	ev, ok := eventer.FromContext(ctx)
 	if ok {
 		machine.Session.Eventer = ev
-	}
-
-	return nil
-}
-
-func (p *Provider) credential(identifier string) (*Credential, error) {
-	credential := &Credential{}
-	// we neglect errors because credential is optional
-	err := p.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"identifier": identifier}).One(credential)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return credential, nil
-}
-
-func (m *Machine) ProviderName() string { return m.Provider }
-
-func (m *Machine) UpdateState(reason string, state machinestate.State) error {
-	m.Log.Debug("Updating state to '%v'", state)
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
-			bson.M{
-				"_id": m.Id,
-			},
-			bson.M{
-				"$set": bson.M{
-					"status.state":      state.String(),
-					"status.modifiedAt": time.Now().UTC(),
-					"status.reason":     reason,
-				},
-			},
-		)
-	})
-
-	if err != nil {
-		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
-			state, m.Id.Hex(), err)
 	}
 
 	return nil

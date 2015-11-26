@@ -1,6 +1,7 @@
 package awsprovider
 
 import (
+	"fmt"
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
@@ -143,5 +144,32 @@ func (m *Machine) MarkAsNotInitialized() error {
 
 	// so any State() method can return the correct status
 	m.Status.State = machinestate.NotInitialized.String()
+	return nil
+}
+
+func (m *Machine) ProviderName() string { return m.Provider }
+
+func (m *Machine) UpdateState(reason string, state machinestate.State) error {
+	m.Log.Debug("Updating state to '%v'", state)
+	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{
+				"_id": m.Id,
+			},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
+				},
+			},
+		)
+	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
+			state, m.Id.Hex(), err)
+	}
+
 	return nil
 }
