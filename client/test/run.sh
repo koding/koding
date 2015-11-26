@@ -3,7 +3,7 @@
 cd $(dirname $0)
 
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
-NIGHTWATCH_OPTIONS="$NIGHTWATCH_OPTIONS --config ../.nightwatch.json"
+NIGHTWATCH_OPTIONS="$NIGHTWATCH_OPTIONS --retries 3 --config ../.nightwatch.json"
 NIGHTWATCH_CMD="$NIGHTWATCH_BIN $NIGHTWATCH_OPTIONS"
 
 BUILD_DIR=build/lib
@@ -22,7 +22,7 @@ run() {
             echo "skipping $i"
           else
             echo "running $i test suite"
-            $NIGHTWATCH_CMD --retries 3 --group $i
+            $NIGHTWATCH_CMD --group $i
           fi
       fi
     done
@@ -30,9 +30,9 @@ run() {
     echo "running single test suite: $SUITE $SUBSUITE"
 
     if [ -z "$SUBSUITE" ]; then
-      $NIGHTWATCH_CMD --retries 3 --group ./$BUILD_DIR/$SUITE
+      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE
     else
-      $NIGHTWATCH_CMD --retries 3 --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
+      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
     fi
   fi
 }
