@@ -1,5 +1,4 @@
-{ hat
-  daisy
+{ daisy
   expect
   request
   generateRandomEmail
@@ -8,7 +7,6 @@
   checkBongoConnectivity }          = require '../../../../testhelper'
 { withConvertedUser }               = require '../../../../../workers/social/testhelper'
 { withConvertedUserAndApiToken }    = require '../../../../../workers/social/testhelper/models/apitokenhelper'
-{ generateLoginRequestParams }      = require '../../../../testhelper/handler/loginhelper'
 
 JUser = require '../../../../models/user'
 
@@ -153,6 +151,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
           expect(res.statusCode).to.be.equal 200
           expect(body).to.contain apiToken.group.substring 0, 4
           done()
+
 
 beforeTests()
 
