@@ -56,6 +56,9 @@ reviveClient = (client, callback, revive = yes) ->
 
   { connection: { delegate:account }, context: { group } } = client
 
+  return callback new KodingError 'Account not set'  unless account
+  return callback new KodingError 'group not set'  unless group
+
   JGroup = require '../group'
   JGroup.one { slug: group }, (err, groupObj) ->
 
