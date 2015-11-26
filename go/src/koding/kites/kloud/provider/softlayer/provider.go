@@ -14,8 +14,10 @@ import (
 	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
 
+	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	"github.com/mitchellh/mapstructure"
 
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
@@ -31,15 +33,6 @@ type Provider struct {
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
-}
-
-type Credential struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	Identifier string        `bson:"identifier"`
-	Meta       struct {
-		Username string `bson:"username"`
-		APIKey   string `bson:"api_key"`
-	} `bson:"meta"`
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -97,16 +90,27 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	creds, err := p.credential(machine.Credential)
+	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(machine.Credential)
 	if err != nil {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
+	cred := creds[0] // there is only one, pick up the first one
 
-	username := creds.Meta.Username
-	apiKey := creds.Meta.APIKey
+	var slCred struct {
+		Username string `mapstructure:"username"`
+		ApiKey   string `mapstructure:"api_key"`
+	}
+
+	if err := mapstructure.Decode(cred.Meta, &slCred); err != nil {
+		return err
+	}
+
+	if structs.HasZero(slCred) {
+		return fmt.Errorf("softlayer data is incomplete: %v", cred.Meta)
+	}
 
 	// Create a softLayer-go client
-	client := slclient.NewSoftLayerClient(username, apiKey)
+	client := slclient.NewSoftLayerClient(slCred.Username, slCred.ApiKey)
 
 	// attach user specific log
 	machine.Log = p.Log.New(machine.Id.Hex())
@@ -138,17 +142,4 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	return nil
-}
-
-func (p *Provider) credential(identifier string) (*Credential, error) {
-	credential := &Credential{}
-	// we neglect errors because credential is optional
-	err := p.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"identifier": identifier}).One(credential)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return credential, nil
 }
