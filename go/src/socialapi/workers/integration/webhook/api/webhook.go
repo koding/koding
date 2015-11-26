@@ -83,7 +83,7 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 	return response.NewOK(response.NewSuccessResponse(nil))
 }
 
-func (h *Handler) GetEvents(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func (h *Handler) GetSettings(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	token := u.Query().Get("token")
 	if token == "" {
 		return response.NewInvalidRequest(ErrTokenNotSet)
