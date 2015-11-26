@@ -22,7 +22,7 @@ module.exports = createUser = (req, res, next) ->
   queue = [
 
     ->
-      validateCreateUser { token, username }, (err, data) ->
+      validateData { token, username }, (err, data) ->
         return res.status(err.statusCode).send(err.message)  if err
         { username, apiToken } = data
         queue.next()
@@ -71,7 +71,7 @@ module.exports = createUser = (req, res, next) ->
   daisy queue
 
 
-validateCreateUser = (data, callback) ->
+validateData = (data, callback) ->
 
   { JUser, JApiToken } = koding.models
   { token, username }  = data
