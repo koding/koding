@@ -4,12 +4,18 @@ TEAMPLANS   = require './teamplans'
 konstraints = require 'konstraints'
 { clone }   = require 'underscore'
 
+# returns plan data, if plan not found it fallbacks to default
+getPlanData = (plan) ->
+
+  plan = 'default'  if plan not in Object.keys TEAMPLANS
+  return clone TEAMPLANS[plan]
+
+
 # Takes plan name as reference and generates valid konstraint
 # rules based on the TEAMPLANS data ~ GG
 generateConstraints = (plan) ->
 
-  plan  = 'default'  if plan not in Object.keys TEAMPLANS
-  plan  = clone TEAMPLANS[plan]
+  plan  = getPlanData plan
 
   # First rule be an object.
   rules = [ { $typeof : 'object' } ]
@@ -89,4 +95,4 @@ generateConstraints = (plan) ->
   return rules
 
 
-module.exports = { generateConstraints }
+module.exports = { generateConstraints, getPlanData }
