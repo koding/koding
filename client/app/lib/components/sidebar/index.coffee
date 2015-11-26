@@ -16,11 +16,9 @@ module.exports = class Sidebar extends React.Component
 
   getDataBindings: ->
     return {
-      publicChannels          : getters.followedPublicChannelThreads
+      publicChannels          : getters.followedPublicChannelThreadsWithSelectedChannel
       privateChannels         : getters.followedPrivateChannelThreads
       selectedThreadId        : getters.selectedChannelThreadId
-      filteredPublicChannels  : getters.filteredPublicChannels
-      filteredPrivateChannels : getters.filteredPrivateChannels
       stacks                  : EnvironmentFlux.getters.stacks
       ownMachines             : EnvironmentFlux.getters.ownMachines
       sharedMachines          : EnvironmentFlux.getters.sharedMachines
@@ -67,14 +65,14 @@ module.exports = class Sidebar extends React.Component
     <SidebarChannelsSection
       previewCount={PREVIEW_COUNT}
       selectedId={@state.selectedThreadId}
-      threads={@state.filteredPublicChannels.followed} />
+      threads={@state.publicChannels} />
 
 
   renderMessages: ->
     <SidebarMessagesSection
       previewCount={PREVIEW_COUNT}
       selectedId={@state.selectedThreadId}
-      threads={@state.filteredPrivateChannels.followed} />
+      threads={@state.privateChannels} />
 
 
   render: ->
