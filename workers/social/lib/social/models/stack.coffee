@@ -195,6 +195,13 @@ module.exports = class JComputeStack extends jraphical.Module
     return selector
 
 
+  getGroup: (callback) ->
+
+    slug   = @getAt 'group'
+    JGroup = require './group'
+    JGroup.one { slug }, callback
+
+
   @some$ = permit 'list stacks',
 
     success: (client, selector, options, callback) ->
