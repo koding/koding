@@ -22,8 +22,8 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
-	"github.com/nu7hatch/gouuid"
 	"github.com/rcrowley/go-tigertonic/mocking"
+	uuid "github.com/satori/go.uuid"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -109,8 +109,7 @@ func TestWebhookListen(t *testing.T) {
 				So(err.Error(), ShouldEqual, ErrTokenNotValid.Error())
 				So(s, ShouldEqual, http.StatusBadRequest)
 
-				tk, err := uuid.NewV4()
-				So(err, ShouldBeNil)
+				tk := uuid.NewV4()
 				token = tk.String()
 				s, _, _, err = h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
@@ -132,8 +131,7 @@ func TestWebhookListen(t *testing.T) {
 
 			Convey("integrations should not be able to send any message when their request does not include body", func() {
 
-				tk, err := uuid.NewV4()
-				So(err, ShouldBeNil)
+				tk := uuid.NewV4()
 				token := tk.String()
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/push/"+token),
