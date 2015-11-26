@@ -341,6 +341,22 @@ module.exports = class ComputeProvider extends Base
       ComputeProvider.createGroupStack client, callback
 
 
+  @updateGroupStackUsage = (group, change, callback) ->
+
+    plan = group.getAt 'config.plan'
+    return callback null  unless plan
+
+    plan = teamutils.getPlanData plan
+
+    JCounter = require '../counter'
+    JCounter[change]
+      namespace : group.getAt 'slug'
+      type      : 'member-stacks'
+      max       : plan.member
+      min       : 0
+    , callback
+
+
   @createGroupStack = (client, options, callback) ->
 
     [options, callback] = [callback, options]  unless callback
