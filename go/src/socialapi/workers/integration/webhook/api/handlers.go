@@ -42,6 +42,14 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Ratelimit: httpRateLimiter,
 		},
 	)
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:  h.GetEvents,
+			Name:     "webhook-events",
+			Type:     handler.GetRequest,
+			Endpoint: "/events/{token}",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
