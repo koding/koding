@@ -44,10 +44,10 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	)
 	m.AddSessionlessHandler(
 		handler.Request{
-			Handler:  h.GetEvents,
-			Name:     "webhook-events",
+			Handler:  h.GetSettings,
+			Name:     "webhook-settings",
 			Type:     handler.GetRequest,
-			Endpoint: "/events/{token}",
+			Endpoint: "/settings/{token}",
 		},
 	)
 
