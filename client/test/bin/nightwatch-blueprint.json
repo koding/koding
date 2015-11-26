@@ -1,6 +1,7 @@
 {
   "src_folders" : [],
   "output_folder" : "../output",
+  "live_output": true,
 
   "selenium" : {
     "start_process" : false,

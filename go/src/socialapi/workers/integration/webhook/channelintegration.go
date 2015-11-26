@@ -8,7 +8,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -69,10 +69,7 @@ func (i *ChannelIntegration) Create() error {
 		return err
 	}
 
-	token, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
+	token := uuid.NewV4()
 	i.Token = token.String()
 
 	return bongo.B.Create(i)
@@ -121,10 +118,7 @@ func (i *ChannelIntegration) RegenerateToken() error {
 	var token string
 	for {
 		ci := NewChannelIntegration()
-		t, err := uuid.NewV4()
-		if err != nil {
-			return err
-		}
+		t := uuid.NewV4()
 
 		token = t.String()
 		tokenErr := ci.ByToken(token)

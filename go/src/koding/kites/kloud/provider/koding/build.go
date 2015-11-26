@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	kiteprotocol "github.com/koding/kite/protocol"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
 
@@ -464,10 +464,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		m.Session.AWSClient.Builder.InstanceType = plans.T2Micro.String()
 	}
 
-	kiteUUID, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
+	kiteUUID := uuid.NewV4()
 
 	kiteId := kiteUUID.String()
 
