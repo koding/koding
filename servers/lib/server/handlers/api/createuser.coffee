@@ -7,7 +7,7 @@ koding                             = require '../../bongo'
 
 module.exports = createUser = (req, res, next) ->
 
-  { JAccount, JGroup, JUser, JApiToken } = koding.models
+  { JUser } = koding.models
 
   clientId = getClientId req, res
   return handleClientIdNotFound res, req  unless clientId
@@ -22,20 +22,9 @@ module.exports = createUser = (req, res, next) ->
   queue = [
 
     ->
-      # checking if token is valid
-      JApiToken.one { code : token }, (err, apiToken_) ->
-        return res.status(500).send 'an error occurred'  if err
-        return res.status(400).send 'invalid token!'     unless apiToken_
-        apiToken = apiToken_
-        queue.next()
-
-    ->
-      # creating a random username with first letters of group slug in front
-      username or= "#{apiToken.group.substring(0, 4)}#{hat(32)}"
-      # checking if username is available
-      JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
-        return res.status(500).send 'an error occurred'          if err
-        return res.status(400).send 'username is not available'  if kodingUser or forbidden
+      validateCreateUser { token, username }, (err, data) ->
+        return res.status(err.statusCode).send(err.message)  if err
+        { username, apiToken } = data
         queue.next()
 
     ->
@@ -76,6 +65,43 @@ module.exports = createUser = (req, res, next) ->
         { user } = data
         return res.status(500).send 'failed to create user account'  unless user
         return res.status(200).send { username : user.username }     if user
+
+  ]
+
+  daisy queue
+
+
+validateCreateUser = (data, callback) ->
+
+  { JUser, JApiToken } = koding.models
+  { token, username }  = data
+
+  apiToken = null
+
+  queue = [
+
+    ->
+      # checking if token is valid
+      JApiToken.one { code : token }, (err, apiToken_) ->
+        if err
+          return callback { statusCode : 500, message : 'an error occurred' }
+        unless apiToken_
+          return callback { statusCode : 400, message : 'invalid token!' }
+        apiToken = apiToken_
+        queue.next()
+
+    ->
+      # creating a random username with first letters of group slug in front
+      username or= "#{apiToken.group.substring(0, 4)}#{hat(32)}"
+      # checking if username is available
+      JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
+        if err
+          return callback { statusCode : 500, message : 'an error occurred' }
+        if kodingUser or forbidden
+          return callback { statusCode : 400, message : 'username is not available' }
+        queue.next()
+
+    -> callback null, { apiToken, username }
 
   ]
 
