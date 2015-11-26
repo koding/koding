@@ -208,7 +208,7 @@ func ParseError(resp *http.Response) error {
 // GetSettings fetchs the events from integratin's DB.
 // And extracts all events which allowed by user from data
 func GetSettings(token, rootPath string) (Settings, error) {
-	endpoint := fmt.Sprintf("%s/events/%s", rootPath, token)
+	endpoint := fmt.Sprintf("%s/settings/%s", rootPath, token)
 
 	resp, err := http.Get(endpoint)
 	defer func() {
