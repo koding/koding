@@ -8,9 +8,8 @@ generateConfirmRequestParams = (opts = {}) ->
   csrfToken = generateRandomString()
 
   params =
-    qs         : { _csrf : csrfToken, token : 'token' }
-    url        : generateUrl { route : '-/confirm' }
-    csrfCookie : csrfToken
+    qs  : { token : 'token' }
+    url : generateUrl { route : '-/confirm' }
 
   requestParams = generateRequestParamsEncodeBody params, opts
 
