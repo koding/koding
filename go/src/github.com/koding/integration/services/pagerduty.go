@@ -22,6 +22,7 @@ var (
 	ErrDataIsEmpty         = errors.New("Data is empty")
 	ErrCouldNotValidate    = errors.New("Validation has error")
 	ErrMessageLengthIsZero = errors.New("Length of message less than zero")
+	ErrCouldNotGetSettings = errors.New("error while getting settings")
 	ErrCouldNotGetEvents   = errors.New("error while getting events")
 )
 
@@ -65,7 +66,13 @@ func (p *Pagerduty) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// fetch events from integration's db, if incoming event is not allowed by user, then stop process
-	events, err := helpers.GetEvents(token, p.integrationURL)
+	setting, err := helpers.GetSettings(token, p.integrationURL)
+	if err != nil {
+		p.log.Error("Could not get settings %v", ErrCouldNotGetSettings)
+		return
+	}
+
+	events, err := helpers.UnmarshalEvents(setting)
 	if err != nil {
 		p.log.Error("Could not get events %v", ErrCouldNotGetEvents)
 		return
