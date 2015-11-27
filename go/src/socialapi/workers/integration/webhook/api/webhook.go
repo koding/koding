@@ -83,6 +83,29 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *PushRequest) (int, htt
 	return response.NewOK(response.NewSuccessResponse(nil))
 }
 
+func (h *Handler) GetSettings(u *url.URL, header http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	token := u.Query().Get("token")
+	if token == "" {
+		return response.NewInvalidRequest(ErrTokenNotSet)
+	}
+
+	// validate token
+	if _, err := uuid.ParseHex(strings.ToLower(token)); err != nil {
+		return response.NewInvalidRequest(ErrTokenNotValid)
+	}
+
+	ci, err := webhook.Cache.ChannelIntegration.ByToken(token)
+	if err != nil {
+		if err == webhook.ErrChannelIntegrationNotFound {
+			return response.NewInvalidRequest(err)
+		}
+
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(response.NewSuccessResponse(ci))
+}
+
 func (h *Handler) FetchBotChannel(u *url.URL, header http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	if !c.IsLoggedIn() {
 		return response.NewInvalidRequest(models.ErrNotLoggedIn)
