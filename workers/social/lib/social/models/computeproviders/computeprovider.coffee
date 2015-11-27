@@ -351,7 +351,7 @@ module.exports = class ComputeProvider extends Base
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
-      type      : 'member-stacks'
+      type      : 'member_stacks'
       max       : plan.member
       min       : 0
     , (err) ->
@@ -372,7 +372,7 @@ module.exports = class ComputeProvider extends Base
     JCounter[change]
       namespace : group.getAt 'slug'
       amount    : amount
-      type      : 'member-instances'
+      type      : 'member_instances'
       max       : plan.maxInstance
       min       : 0
     , (err) ->
