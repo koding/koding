@@ -170,7 +170,8 @@ module.exports =
   createChannel: (browser) ->
 
     teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel (browser)
+    teamsHelpers.createChannel(browser)
     browser.end()
+
 
 

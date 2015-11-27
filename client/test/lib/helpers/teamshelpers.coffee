@@ -242,7 +242,7 @@ module.exports =
   moveToSidebarHeader: (browser, plus, channelHeader) ->
 
     sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
-    channelPulusSelector          = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
+    channelPlusSelector          = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
       .waitForElementVisible    sidebarSectionsSelector, 20000
@@ -250,19 +250,19 @@ module.exports =
 
     if plus
       browser
-        .waitForElementVisible  channelPulusSelector, 20000
-        .click                  channelPulusSelector
+        .waitForElementVisible  channelPlusSelector, 20000
+        .click                  channelPlusSelector
     else if channelHeader
       browser
         .waitForElementVisible  sidebarSectionsHeaderSelector, 20000
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser) ->
+  createChannel: (browser, channelName) ->
 
     createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
     createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
-    channelName                      = helpers.getFakeText().split(' ')[0] + Date.now()
+    channelName                    or= helpers.getFakeText().split(' ')[0] + Date.now()
     channelLinkOnSidebarSelector     = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
 
     @moveToSidebarHeader(browser, yes)
@@ -276,4 +276,6 @@ module.exports =
       .waitForElementVisible  sidebarSectionsSelector, 20000
       .waitForElementVisible  channelLinkOnSidebarSelector, 20000
       .assert.containsText    sidebarSectionsSelector, channelName
+
+    return channelName
 
