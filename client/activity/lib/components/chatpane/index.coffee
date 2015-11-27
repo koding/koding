@@ -47,30 +47,27 @@ module.exports = class ChatPane extends React.Component
 
     return  unless scrollTop and offsetHeight
 
-    filter  = Array.prototype.filter
-    markers = document.querySelectorAll '.DateMarker'
+    filter   = Array.prototype.filter
+    chatList = ReactDOM.findDOMNode @refs.ChatList
+    markers  = chatList.querySelectorAll '.DateMarker'
 
     filtered = filter.call markers, (node) ->
-      return node.className.indexOf('fixedDateMarker') is -1
+      return node.className.indexOf('DateMarker-fixed') is -1
 
-    i = 0
+    filtered.forEach (dateMarker) ->
 
-    while i < filtered.length
-
-      { offsetTop, offsetWidth } = filtered[i]
-      fixedDateMarker = filtered[i].querySelector '.fixedDateMarker'
+      { offsetTop, offsetWidth } = dateMarker
+      fixedMarker = dateMarker.querySelector '.DateMarker-fixed'
 
       if offsetTop >= scrollTop
 
-        fixedDateMarker.style.display = 'none'
+        fixedMarker.style.display = 'none'
 
       else if scrollTop > offsetTop
 
-        fixedDateMarker.style.left    = "#{left}px"
-        fixedDateMarker.style.width   = "#{offsetWidth}px"
-        fixedDateMarker.style.display = 'block'
-
-      i++
+        fixedMarker.style.left    = "#{left}px"
+        fixedMarker.style.width   = "#{offsetWidth}px"
+        fixedMarker.style.display = 'block'
 
 
   componentWillUnmount: ->
