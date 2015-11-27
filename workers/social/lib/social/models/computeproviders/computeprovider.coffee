@@ -351,10 +351,48 @@ module.exports = class ComputeProvider extends Base
     JCounter = require '../counter'
     JCounter[change]
       namespace : group.getAt 'slug'
-      type      : 'member-stacks'
+      type      : 'member_stacks'
       max       : plan.member
       min       : 0
-    , callback
+    , (err) ->
+      # no worries about `decrement` errors
+      # since 0 is already defined as min ~ GG
+      callback if change is 'increment' then err else null
+
+
+  @updateGroupInstanceUsage = (group, change, amount, callback) ->
+
+    plan = group.getAt 'config.plan'
+    return callback null  unless plan
+    return callback null  if amount is 0
+
+    plan = teamutils.getPlanData plan
+
+    JCounter = require '../counter'
+    JCounter[change]
+      namespace : group.getAt 'slug'
+      amount    : amount
+      type      : 'member_instances'
+      max       : plan.maxInstance
+      min       : 0
+    , (err) ->
+      # no worries about `decrement` errors
+      # since 0 is already defined as min ~ GG
+      callback if change is 'increment' then err else null
+
+
+  @updateGroupResourceUsage = (options, callback) ->
+
+    { group, instanceCount, change } = options
+
+    @updateGroupStackUsage group, change, (err) =>
+      return callback err  if err
+      @updateGroupInstanceUsage group, change, instanceCount, (err) =>
+        if err and change is 'increment'
+          @updateGroupStackUsage group, 'decrement', ->
+            callback err
+        else
+          callback err
 
 
   @createGroupStack = (client, options, callback) ->
@@ -362,9 +400,10 @@ module.exports = class ComputeProvider extends Base
     unless callback
       [options, callback] = [callback, options]
 
-    callback ?= ->
-    options  ?= {}
-    res       = {}
+    callback     ?= ->
+    options      ?= {}
+    res           = {}
+    instanceCount = 0
 
     { template, account, group } = {}
 
@@ -379,7 +418,13 @@ module.exports = class ComputeProvider extends Base
           queue.next()
 
       ->
-        ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
+        instanceCount = template.machines?.length or 0
+        change        = 'increment'
+
+        ComputeProvider.updateGroupResourceUsage {
+          group, change, instanceCount
+        }, (err) ->
+
           return callback err  if err
 
           queue.next()
@@ -403,8 +448,9 @@ module.exports = class ComputeProvider extends Base
           if err
             # swallowing errors for followings since we need the real error ~GG
             account.removeStackTemplate template, ->
-              ComputeProvider.updateGroupStackUsage group, 'decrement', ->
-                callback err
+              ComputeProvider.updateGroupResourceUsage {
+                group, change: 'decrement', instanceCount
+              }, -> callback err
           else
             callback null, stack
     ]
