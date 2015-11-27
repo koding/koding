@@ -448,8 +448,9 @@ module.exports = class ComputeProvider extends Base
           if err
             # swallowing errors for followings since we need the real error ~GG
             account.removeStackTemplate template, ->
-              ComputeProvider.updateGroupStackUsage group, 'decrement', ->
-                callback err
+              ComputeProvider.updateGroupResourceUsage {
+                group, change: 'decrement', instanceCount
+              }, -> callback err
           else
             callback null, stack
     ]
