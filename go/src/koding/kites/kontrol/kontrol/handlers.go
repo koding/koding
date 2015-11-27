@@ -4,8 +4,6 @@ import (
 	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"net"
-	"net/url"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
@@ -51,7 +49,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 		// Get all machines for the given user.
 		machines, err := modelhelper.GetMachineFieldsByUsername(req.Username, []string{
-			"ipAddress", "label", "groups",
+			"queryString", "label", "groups",
 		})
 		if err != nil {
 			return nil, err
@@ -64,12 +62,12 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		// groups that we need.
 		uniqueGroups := []string{}
 
-		// Because we are using the Kite's IP as a means to identify the machine,
-		// we are sorting the machines by IP so that we can easily look them up.
-		machinesByIP := map[string]*models.Machine{}
+		// Because we are using the Kite's queryString as a means to identify the machine,
+		// we are sorting the machines by queryString so that we can easily look them up.
+		machinesByQuery := map[string]*models.Machine{}
 		for _, m := range machines {
-			if m.IpAddress != "" {
-				machinesByIP[m.IpAddress] = m
+			if m.QueryString != "" {
+				machinesByQuery[m.QueryString] = m
 			}
 		}
 
@@ -86,22 +84,22 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 				KeyID: kiteWithToken.KeyID,
 				Token: kiteWithToken.Token,
 			}
+
+			// Populate the result kite regardless of if we can get Label/Team/etc
+			// information about it. This is needed because many kites might not have
+			// jMachine documents.
 			result.Kites[i] = kite
 
-			host, err := hostFromURL(kiteWithToken.URL)
-			if err != nil {
-				req.LocalKite.Log.Warning(
-					"Kite with badly formed URL, unable to extract host. Koding data will not be provided for this Kite. [username:%s, kiteId:%s, host:%s]",
-					kiteWithToken.Kite.Username,
-					kiteWithToken.Kite.ID,
-					kiteWithToken.URL,
-				)
-				continue
-			}
+			// JMachine.QueryString is composed of only the Kite.ID, so to form a
+			// queryString that we can match to the stored queryString in Mongo, String
+			// the Kite protocol with just the ID. Example:
+			//
+			//     ///////b38da9f0-9acf-4c41-bdfe-6ef3c9b8de56
+			queryString := protocol.Kite{ID: kite.Kite.ID}.String()
 
-			// With a valid host, get the koding specific information such as Label
+			// With a valid queryString, get the koding specific information such as Label
 			// or Team names and apply it to each KodingKiteWithToken
-			if machine, ok := machinesByIP[host]; ok {
+			if machine, ok := machinesByQuery[queryString]; ok {
 				kite.MachineLabel = machine.Label
 
 				for _, g := range machine.Groups {
@@ -162,20 +160,4 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 		return result, nil
 	}
-}
-
-// hostFromURL parses the given string, extracting the host (ip/domain) from the
-// given string. Ignoring other data such as Port or Url Parameters.
-func hostFromURL(s string) (string, error) {
-	u, err := url.Parse(s)
-	if err != nil {
-		return "", err
-	}
-
-	host, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		return "", err
-	}
-
-	return host, nil
 }
