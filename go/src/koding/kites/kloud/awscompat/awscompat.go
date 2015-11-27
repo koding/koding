@@ -15,6 +15,10 @@ func NewSession(a oldaws.Auth) *session.Session {
 	return session.New(cfg, Transport)
 }
 
+func NewSessionCreds(key, secret string) *session.Session {
+	return NewSession(oldaws.Auth{AccessKey: key, SecretKey: secret})
+}
+
 func CleanZoneID(id string) string {
 	return id
 }

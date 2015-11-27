@@ -19,11 +19,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/fatih/structs"
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite/protocol"
 	"github.com/mitchellh/mapstructure"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // credPermissions defines the permission grid for the given method
@@ -312,10 +312,7 @@ func injectKodingData(ctx context.Context, template *terraformTemplate, username
 		countKeys := map[string]string{}
 		for i := 0; i < count; i++ {
 			// create a new kite id for every new aws resource
-			kiteUUID, err := uuid.NewV4()
-			if err != nil {
-				return nil, err
-			}
+			kiteUUID := uuid.NewV4()
 
 			kiteId := kiteUUID.String()
 

@@ -132,8 +132,12 @@ module.exports = class DefineStackView extends KDView
 
     @tabView.on 'PaneDidShow', (pane) =>
       @outputView.fall()
-      unless pane is @providersPane
-        pane.getMainView().emit 'FocusToEditor'
+      view = pane.getMainView()
+
+      if pane is @providersPane
+        view.credentialList.emit 'NotifyResizeListeners'
+      else
+        view.emit 'FocusToEditor'
 
     { ace } = @stackTemplateView.editorView.aceView
 

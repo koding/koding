@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/koding/bongo"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 func NewAccount() *Account {
@@ -29,10 +29,7 @@ func (a *Account) BeforeUpdate() error {
 
 func (a *Account) createToken() error {
 	if a.Token == "" {
-		token, err := uuid.NewV4()
-		if err != nil {
-			return err
-		}
+		token := uuid.NewV4()
 		a.Token = token.String()
 	}
 

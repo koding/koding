@@ -75,11 +75,13 @@ module.exports = class CreatePublicChannelModal extends React.Component
 
   getNameFieldClassnames: -> classnames
     'Reactivity-formfield' : yes
+    'channelName'          : yes
     'invalid'              : @state.invalidName
 
 
   getDropboxFieldClassnames: -> classnames
     'Reactivity-formfield' : yes
+    'inviteMembers'        : yes
     'dropdown'             : yes
     'invalid'              : @state.invalidParticipants
 
@@ -323,11 +325,11 @@ module.exports = class CreatePublicChannelModal extends React.Component
           <div>If you want this conversation to be private, you should create a new Private Group instead.</div>
         </div>
         <div className={@getNameFieldClassnames()}>
-          <label className='Reactivity-label channelName'>Name</label>
+          <label className='Reactivity-label'>Name</label>
           <input
             ref='channelNameInput'
             autoFocus=yes
-            maxlength='20'
+            maxLength='20'
             className='Reactivity-input'
             value={@state.name}
             onChange={@bound 'setName'}
@@ -336,18 +338,18 @@ module.exports = class CreatePublicChannelModal extends React.Component
             This is how this thread is going to appear on your sidebar.
           </span>
         </div>
-        <div className='Reactivity-formfield'>
-          <label className='Reactivity-label channelPurpose'>
+        <div className='Reactivity-formfield channelPurpose'>
+          <label className='Reactivity-label'>
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input'value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
+          <input className='Reactivity-input'value={@state.purpose} maxLength='200' onChange={@bound 'setPurpose'} onKeyDown={@bound 'onInputKeydown'}/>
           <span className='Reactivity-fieldMessage'>
             Give your channel a purpose that describes what it will be used for.
           </span>
         </div>
         <div className={@getDropboxFieldClassnames()}>
-          <label className='Reactivity-label inviteMembers'>Invite Members</label>
+          <label className='Reactivity-label'>Invite Members</label>
           {@renderAddParticipantInput()}
         </div>
       </div>

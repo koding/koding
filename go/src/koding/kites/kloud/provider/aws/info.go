@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
@@ -39,15 +40,16 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	}()
 
 	instance, err := m.Session.AWSClient.Instance()
-	if err == nil {
-		resultState = amazon.StatusToState(instance.State.Name)
+	switch {
+	case err == nil:
+		resultState = amazon.StatusToState(aws.StringValue(instance.State.Name))
 		// we don't care about already terminated VM's in AWS provider
 		if resultState == machinestate.Terminating {
 			resultState = machinestate.Terminated
 		}
-	} else if err == amazon.ErrNoInstances {
+	case amazon.IsNotFound(err):
 		resultState = machinestate.NotInitialized
-	} else {
+	default:
 		// if it's something else, return it back
 		return nil, err
 	}

@@ -55,11 +55,12 @@ func (n *NotificationSetting) Update() error {
 	insertSql := "UPDATE " +
 		n.BongoName() +
 		` SET "channel_id" = $1 ,"account_id" = $2,"desktop_setting" = $3,"mobile_setting" = $4,"is_muted" = $5,` +
-		`"is_suppressed" = $6, "updated_at" = $7`
+		`"is_suppressed" = $6, "updated_at" = $7` +
+		`WHERE "id" = $8`
 
 	_, err := bongo.B.DB.DB().Exec(insertSql, n.ChannelId, n.AccountId,
 		n.DesktopSetting, n.MobileSetting, n.IsMuted, n.IsSuppressed,
-		n.UpdatedAt)
+		n.UpdatedAt, n.Id)
 
 	if err == nil {
 		n.AfterUpdate()

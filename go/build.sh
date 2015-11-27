@@ -41,6 +41,7 @@ services=(
   koding/vmwatcher
   koding/workers/janitor
   koding/workers/gatheringestor
+  koding/workers/appstoragemigrator
   koding/kites/kloud/cleaners/cmd/cleaner
 
   github.com/koding/kite/kitectl

@@ -341,25 +341,73 @@ module.exports = class ComputeProvider extends Base
       ComputeProvider.createGroupStack client, callback
 
 
+  @updateGroupStackUsage = (group, change, callback) ->
+
+    plan = group.getAt 'config.plan'
+    return callback null  unless plan
+
+    plan = teamutils.getPlanData plan
+
+    JCounter = require '../counter'
+    JCounter[change]
+      namespace : group.getAt 'slug'
+      type      : 'member-stacks'
+      max       : plan.member
+      min       : 0
+    , callback
+
+
   @createGroupStack = (client, options, callback) ->
 
-    [options, callback] = [callback, options]  unless callback
+    unless callback
+      [options, callback] = [callback, options]
+
     callback ?= ->
     options  ?= {}
+    res       = {}
 
-    fetchGroupStackTemplate client, (err, res) ->
+    { template, account, group } = {}
 
-      return callback err  if err
+    daisy queue = [
 
-      { template, account } = res
-      checkTemplateUsage template, account, (err) ->
-        return callback err  if err
+      ->
+        fetchGroupStackTemplate client, (err, _res) ->
+          return callback err  if err
 
+          { template, account, group } = res = _res
+
+          queue.next()
+
+      ->
+        ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
+          return callback err  if err
+
+          queue.next()
+
+      ->
+        checkTemplateUsage template, account, (err) ->
+          return callback err  if err
+
+          queue.next()
+
+      ->
         account.addStackTemplate template, (err) ->
           return callback err  if err
 
           res.client = client
-          ComputeProvider.generateStackFromTemplate res, options, callback
+
+          queue.next()
+
+      ->
+        ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
+          if err
+            # swallowing errors for followings since we need the real error ~GG
+            account.removeStackTemplate template, ->
+              ComputeProvider.updateGroupStackUsage group, 'decrement', ->
+                callback err
+          else
+            callback null, stack
+    ]
 
 
   do ->

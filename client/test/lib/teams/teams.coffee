@@ -165,3 +165,13 @@ module.exports =
       .waitForElementVisible  pendingMemberView, 20000
       .assert.containsText    pendingMemberView, userEmail
       .end()
+
+
+  createChannel: (browser) ->
+
+    teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser)
+    browser.end()
+
+
+

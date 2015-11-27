@@ -14,7 +14,10 @@ module.exports = (options, callback) ->
 
     # fetch bot channel.
     account.fetchBotChannel (err, botChannel) ->
-      return callback err  if err
+
+      # if there is an error in the botChannel fetch, return all the channels
+      # that has been fetched before.
+      return callback null, pmChannels  if err
 
       # fetch bot account.
       fetchAccount 'bot', (err, botAccount) ->

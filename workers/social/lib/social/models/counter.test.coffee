@@ -7,8 +7,9 @@ JCounter = require './counter'
   generateRandomString,
   checkBongoConnectivity } = require '../../../testhelper'
 
-NAMESPACES           = []
-LIMIT_EXCEEDED_ERROR = 'Provided limit has been reached'
+NAMESPACES              = []
+LIMIT_EXCEEDED_ERROR    = 'Provided limit has been reached'
+NAMESPACE_MISSING_ERROR = 'namespace is required'
 
 
 # this function will be called once before running any test
@@ -58,6 +59,52 @@ runTests = ->
         expect(count).to.equal 1
         done()
 
+    it 'should support increment with amount', (done) ->
+
+      options.max    = 9
+      options.amount = 5
+
+      JCounter.increment options, (err, count) ->
+        expect(err).to.not.exist
+        expect(count).to.equal 6
+        done()
+
+    it 'should not fail when wrong amount provided', (done) ->
+
+      options.amount = -2
+
+      JCounter.increment options, (err, count) ->
+        expect(err).to.not.exist
+        expect(count).to.equal 8
+        done()
+
+    it 'should not fail when amount provided is not a number', (done) ->
+
+      options.amount = 'foo'
+
+      JCounter.increment options, (err, count) ->
+        expect(err).to.not.exist
+        expect(count).to.equal 9
+        done()
+
+    it 'should not allow to pass max value when amount provided', (done) ->
+
+      options.amount = 3
+
+      JCounter.increment options, (err, count) ->
+        expect(err).to.exist
+        expect(err.message).to.equal LIMIT_EXCEEDED_ERROR
+        expect(count).to.not.exist
+        done()
+
+    it 'should fail if namespace not provided', (done) ->
+
+      JCounter.increment {}, (err, count) ->
+        expect(err).to.exist
+        expect(err.message).to.equal NAMESPACE_MISSING_ERROR
+        expect(count).to.not.exist
+        done()
+
 
   describe 'workers.social.counter.decrement', ->
 
@@ -96,6 +143,52 @@ runTests = ->
       JCounter.decrement options, (err, count) ->
         expect(err).to.not.exist
         expect(count).to.equal -1
+        done()
+
+    it 'should support decrement with amount', (done) ->
+
+      options.min    = -9
+      options.amount = 5
+
+      JCounter.decrement options, (err, count) ->
+        expect(err).to.not.exist
+        expect(count).to.equal -6
+        done()
+
+    it 'should not fail when wrong amount provided', (done) ->
+
+      options.amount = 2
+
+      JCounter.decrement options, (err, count) ->
+        expect(err).to.not.exist
+        expect(count).to.equal -8
+        done()
+
+    it 'should not fail when amount provided is not a number', (done) ->
+
+      options.amount = 'bar'
+
+      JCounter.decrement options, (err, count) ->
+        expect(err).to.not.exist
+        expect(count).to.equal -9
+        done()
+
+    it 'should not allow to pass min value when amount provided', (done) ->
+
+      options.amount = -3
+
+      JCounter.decrement options, (err, count) ->
+        expect(err).to.exist
+        expect(err.message).to.equal LIMIT_EXCEEDED_ERROR
+        expect(count).to.not.exist
+        done()
+
+    it 'should fail if namespace not provided', (done) ->
+
+      JCounter.decrement {}, (err, count) ->
+        expect(err).to.exist
+        expect(err.message).to.equal NAMESPACE_MISSING_ERROR
+        expect(count).to.not.exist
         done()
 
 

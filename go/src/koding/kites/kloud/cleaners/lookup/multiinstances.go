@@ -3,63 +3,95 @@ package lookup
 import (
 	"bytes"
 	"fmt"
+	"koding/kites/kloud/api/amazon"
 	"sync"
 	"text/tabwriter"
 	"time"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/koding/logging"
 )
 
+// MultiInstances represents EC2 instance list per region.
 type MultiInstances struct {
-	m map[*ec2.EC2]Instances
-	sync.Mutex
+	m map[*amazon.Client]Instances // read-only, mutated only by NewMultiInstance
 }
 
-func NewMultiInstances() *MultiInstances {
+// NewMultiInstances fetches EC2 instance list from each region.
+func NewMultiInstances(clients *amazon.Clients, log logging.Logger) *MultiInstances {
+	if log == nil {
+		log = defaultLogger
+	}
+	var m = newMultiInstances()
+	var wg sync.WaitGroup
+	var mu sync.Mutex // protects m.m
+	for region, client := range clients.Regions() {
+		wg.Add(1)
+		go func(region string, client *amazon.Client) {
+			defer wg.Done()
+			instances, err := client.Instances()
+			if err != nil {
+				log.Error("[%s] fetching instances error: %s", region, err)
+				return
+			}
+			i := make(Instances, len(instances))
+			for _, instance := range instances {
+				i[aws.StringValue(instance.InstanceId)] = instance
+			}
+			var ok bool
+			mu.Lock()
+			if _, ok = m.m[client]; !ok {
+				m.m[client] = i
+			}
+			mu.Unlock()
+			if ok {
+				panic(fmt.Errorf("[%s] duplicated client=%p: %+v", region, client, i))
+			}
+		}(region, client)
+	}
+	wg.Wait()
+	return m
+}
+
+// NewMultiInstancesMap gives new MultiInstances which is a copy of
+// the given instanceMap.
+func NewMultiInstancesMap(instanceMap map[*amazon.Client]Instances) *MultiInstances {
+	m := newMultiInstances()
+	for client, instances := range instanceMap {
+		m.m[client] = instances
+	}
+	return m
+}
+
+func newMultiInstances() *MultiInstances {
 	return &MultiInstances{
-		m: make(map[*ec2.EC2]Instances, 0),
+		m: make(map[*amazon.Client]Instances),
 	}
 }
 
-func MergeMultiInstances(m ...*MultiInstances) *MultiInstances {
-	merged := NewMultiInstances()
+func MergeMultiInstances(ms ...map[*amazon.Client]Instances) *MultiInstances {
+	merged := newMultiInstances()
 
-	for _, multiInstances := range m {
-		for client, instances := range multiInstances.m {
-			var c Instances
-			var ok bool
-
-			c, ok = merged.m[client]
+	for _, m := range ms {
+		for client, instances := range m {
+			i, ok := merged.m[client]
 			if !ok {
-				// lazy initialize
-				c = make(Instances, 0)
+				i = make(Instances, len(instances))
 			}
-
 			for id, instance := range instances {
-				c[id] = instance
+				i[id] = instance
 			}
-
-			merged.m[client] = c
+			merged.m[client] = i
 		}
 	}
 
 	return merged
 }
 
-func (m *MultiInstances) Add(client *ec2.EC2, instances Instances) {
-	m.Lock()
-	defer m.Unlock()
-
-	m.m[client] = instances
-}
-
 // WithTag filters out instances which contains that particular tag's key and
 // value
 func (m *MultiInstances) WithTag(key string, values ...string) *MultiInstances {
-	m.Lock()
-	defer m.Unlock()
-
-	filtered := NewMultiInstances()
+	filtered := newMultiInstances()
 	for client, instances := range m.m {
 		filtered.m[client] = instances.WithTag(key, values...)
 	}
@@ -68,10 +100,7 @@ func (m *MultiInstances) WithTag(key string, values ...string) *MultiInstances {
 
 // OlderThan filters out instances that are older than the given duration.
 func (m *MultiInstances) OlderThan(duration time.Duration) *MultiInstances {
-	m.Lock()
-	defer m.Unlock()
-
-	filtered := NewMultiInstances()
+	filtered := newMultiInstances()
 	for client, instances := range m.m {
 		filtered.m[client] = instances.OlderThan(duration)
 	}
@@ -80,10 +109,7 @@ func (m *MultiInstances) OlderThan(duration time.Duration) *MultiInstances {
 
 // States filters out instances which that particular state
 func (m *MultiInstances) States(states ...string) *MultiInstances {
-	m.Lock()
-	defer m.Unlock()
-
-	filtered := NewMultiInstances()
+	filtered := newMultiInstances()
 	for client, instances := range m.m {
 		filtered.m[client] = instances.States(states...)
 	}
@@ -92,10 +118,7 @@ func (m *MultiInstances) States(states ...string) *MultiInstances {
 
 // Only returns a new filtered MultiInstances struct with the given ids only.
 func (m *MultiInstances) Only(ids ...string) *MultiInstances {
-	m.Lock()
-	defer m.Unlock()
-
-	filtered := NewMultiInstances()
+	filtered := newMultiInstances()
 	for client, instances := range m.m {
 		filteredInstances := make(Instances, 0)
 
@@ -113,10 +136,7 @@ func (m *MultiInstances) Only(ids ...string) *MultiInstances {
 	return filtered
 }
 
-func (m *MultiInstances) Iter(fn func(client *ec2.EC2, instances Instances)) {
-	m.Lock()
-	defer m.Unlock()
-
+func (m *MultiInstances) Iter(fn func(client *amazon.Client, instances Instances)) {
 	for client, instances := range m.m {
 		fn(client, instances)
 	}
@@ -124,9 +144,6 @@ func (m *MultiInstances) Iter(fn func(client *ec2.EC2, instances Instances)) {
 
 // Has returns true if the given ids exists.
 func (m MultiInstances) Has(id string) bool {
-	m.Lock()
-	defer m.Unlock()
-
 	for _, instances := range m.m {
 		if instances.Has(id) {
 			return true
@@ -137,9 +154,6 @@ func (m MultiInstances) Has(id string) bool {
 
 // TerminateAll terminates all instances
 func (m *MultiInstances) TerminateAll() {
-	m.Lock()
-	defer m.Unlock()
-
 	if len(m.m) == 0 {
 		return
 	}
@@ -149,9 +163,9 @@ func (m *MultiInstances) TerminateAll() {
 	for client, instances := range m.m {
 		wg.Add(1)
 
-		go func(client *ec2.EC2, instances Instances) {
+		go func(client *amazon.Client, instances Instances) {
+			defer wg.Done()
 			instances.TerminateAll(client)
-			wg.Done()
 		}(client, instances)
 	}
 
@@ -160,9 +174,6 @@ func (m *MultiInstances) TerminateAll() {
 
 // TerminateAll terminates all instances
 func (m *MultiInstances) StopAll() {
-	m.Lock()
-	defer m.Unlock()
-
 	if len(m.m) == 0 {
 		return
 	}
@@ -172,9 +183,9 @@ func (m *MultiInstances) StopAll() {
 	for client, instances := range m.m {
 		wg.Add(1)
 
-		go func(client *ec2.EC2, instances Instances) {
+		go func(client *amazon.Client, instances Instances) {
+			defer wg.Done()
 			instances.StopAll(client)
-			wg.Done()
 		}(client, instances)
 	}
 
@@ -183,9 +194,6 @@ func (m *MultiInstances) StopAll() {
 
 // String representation of MultiInstances
 func (m *MultiInstances) String() string {
-	m.Lock()
-	defer m.Unlock()
-
 	fmt.Printf("\n\n")
 	w := new(tabwriter.Writer)
 
@@ -194,8 +202,7 @@ func (m *MultiInstances) String() string {
 
 	total := 0
 	for client, instances := range m.m {
-		region := client.Region.Name
-		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", region, len(instances))
+		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", client.Region, len(instances))
 		total += len(instances)
 	}
 
@@ -207,9 +214,6 @@ func (m *MultiInstances) String() string {
 
 // Total return the number of al instances
 func (m *MultiInstances) Total() int {
-	m.Lock()
-	defer m.Unlock()
-
 	total := 0
 	for _, instances := range m.m {
 		total += len(instances)
@@ -219,9 +223,6 @@ func (m *MultiInstances) Total() int {
 
 // Ids returns the list of ids of all instances.
 func (m *MultiInstances) Ids() []string {
-	m.Lock()
-	defer m.Unlock()
-
 	ids := make([]string, 0)
 
 	for _, instances := range m.m {

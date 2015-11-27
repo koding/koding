@@ -6,7 +6,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -30,7 +29,7 @@ type Session struct {
 
 	// AWS
 	AWSClient  *amazon.Amazon
-	AWSClients *multiec2.Clients
+	AWSClients *amazon.Clients
 
 	// Softlayer
 	SLClient softlayer.Client

@@ -88,7 +88,7 @@ class Modal.Content extends React.Component
 
   render: ->
     <div className="Modal-content">
-      <p>{@props.children}</p>
+      {@props.children}
     </div>
 
 

@@ -54,17 +54,19 @@ module.exports = class SinglePrivateChannelRoute
 
 transitionToChannel = (channelId, done) ->
 
-  successFn = ({ channel }) ->
-    threadActions.changeSelectedThread channel.id
-    channelActions.loadParticipants channel.id
+  { reactor } = kd.singletons
+
+  isChannelOpened = reactor.evaluateToJS ['OpenedChannelsStore', channelId]
+
+  # if we already have a channel in the channel store, just switch to it.
+  if isChannelOpened
+    threadActions.changeSelectedThread channelId
     done()
-
-  channel = kd.singletons.reactor.evaluateToJS ['ChannelsStore', channelId]
-
-  if channel
-    successFn { channel }
-    messageActions.loadMessages channel.id
+  # if not, load necessary things then switch to it.
   else
-    channelActions.loadChannel(channelId).then successFn
+    channelActions.loadChannel(channelId).then ({ channel }) ->
+      threadActions.changeSelectedThread channel.id
+      channelActions.loadParticipants channel.id
+      done()
 
 

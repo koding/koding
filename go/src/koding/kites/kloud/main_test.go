@@ -81,6 +81,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
@@ -90,7 +91,6 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
@@ -99,8 +99,8 @@ import (
 	"koding/kites/kloud/userdata"
 	"koding/kites/terraformer"
 
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/aws/aws-sdk-go/aws"
+	oldaws "github.com/mitchellh/goamz/aws"
 )
 
 var (
@@ -649,7 +649,7 @@ func TestSnapshot(t *testing.T) {
 	// also check AWS, be sure it's been deleted
 	log.Println("Checking snapshot data in AWS")
 	err = checkSnapshotAWS(userData.MachineIds[0].Hex(), snapshotId)
-	if err != nil && !isSnapshotNotFoundError(err) {
+	if err != nil && !amazon.IsNotFound(err) {
 		t.Error(err)
 	}
 
@@ -1289,7 +1289,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 }
 
 func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) {
-	auth := aws.Auth{
+	auth := oldaws.Auth{
 		AccessKey: os.Getenv("KLOUD_ACCESSKEY"),
 		SecretKey: os.Getenv("KLOUD_SECRETKEY"),
 	}
@@ -1313,18 +1313,24 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 		Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
 	}
 
+	kdLogger := common.NewLogger("koding", true)
+	ec2clients, err := amazon.NewClientPerRegion(auth, []string{
+		"us-east-1",
+		"ap-southeast-1",
+		"us-west-2",
+		"eu-west-1",
+	}, kdLogger)
+	if err != nil {
+		panic(err)
+	}
+
 	kdp := &koding.Provider{
-		DB:         db,
-		Log:        common.NewLogger("koding", true),
-		DNSClient:  dnsInstance,
-		DNSStorage: dnsStorage,
-		Kite:       kloudKite,
-		EC2Clients: multiec2.New(auth, []string{
-			"us-east-1",
-			"ap-southeast-1",
-			"us-west-2",
-			"eu-west-1",
-		}),
+		DB:             db,
+		Log:            kdLogger,
+		DNSClient:      dnsInstance,
+		DNSStorage:     dnsStorage,
+		Kite:           kloudKite,
+		EC2Clients:     ec2clients,
 		Userdata:       usd,
 		PaymentFetcher: NewTestFetcher("hobbyist"),
 		CheckerFetcher: NewTestChecker(),
@@ -1412,25 +1418,18 @@ func getAmazonStorageSize(machineId string) (int, error) {
 		return 0, err
 	}
 
-	if len(instance.BlockDevices) == 0 {
+	// TODO(rjeczalik): make this check part of (*Client).Instance(id)
+	if len(instance.BlockDeviceMappings) == 0 {
 		return 0, fmt.Errorf("fatal error: no block device available")
 	}
 
-	// we need in a lot of placages!
-	oldVolumeId := instance.BlockDevices[0].VolumeId
+	oldVolumeId := aws.StringValue(instance.BlockDeviceMappings[0].Ebs.VolumeId)
 
-	oldVolResp, err := machine.Session.AWSClient.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	oldVol, err := machine.Session.AWSClient.VolumeByID(oldVolumeId)
 	if err != nil {
 		return 0, err
 	}
-
-	volSize := oldVolResp.Volumes[0].Size
-	currentSize, err := strconv.Atoi(volSize)
-	if err != nil {
-		return 0, err
-	}
-
-	return currentSize, nil
+	return int(aws.Int64Value(oldVol.Size)), nil
 }
 
 func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
@@ -1460,7 +1459,7 @@ func checkSnapshotAWS(machineId, snapshotId string) error {
 		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
 	}
 
-	_, err = machine.Session.AWSClient.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
+	_, err = machine.Session.AWSClient.SnapshotByID(snapshotId)
 	return err // nil means it exists
 }
 
@@ -1486,15 +1485,6 @@ func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
 	}
 
 	return nil
-}
-
-func isSnapshotNotFoundError(err error) bool {
-	ec2Error, ok := err.(*ec2.Error)
-	if !ok {
-		return false
-	}
-
-	return ec2Error.Code == "InvalidSnapshot.NotFound"
 }
 
 // TestFetcher satisfies the fetcher interface

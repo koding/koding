@@ -31,7 +31,7 @@ type Cleaner struct {
 
 type Artifacts struct {
 	Instances        *lookup.MultiInstances
-	Volumes          lookup.MultiVolumes
+	Volumes          *lookup.MultiVolumes
 	AlwaysOnMachines []lookup.MachineDocument
 	UsersMultiple    map[string][]lookup.MachineDocument
 	MongodbUsers     map[string]lookup.MachineDocument
@@ -53,7 +53,15 @@ func NewCleaner(conf *Config) *Cleaner {
 		SecretKey: conf.Aws.SecretKey,
 	}
 
-	l := lookup.NewAWS(auth)
+	log := logging.NewLogger("cleaner")
+	if conf.Debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
+	l, err := lookup.NewAWS(auth, log)
+	if err != nil {
+		panic(err)
+	}
 	m := lookup.NewMongoDB(conf.MongoURL)
 	dns := dnsclient.NewRoute53Client(conf.HostedZone, auth)
 	dnsdev := dnsclient.NewRoute53Client("dev.koding.io", auth)
@@ -70,11 +78,6 @@ func NewCleaner(conf *Config) *Cleaner {
 		URL:      conf.Slack.URL,
 		Channel:  "#reports",
 		Username: "cleaner",
-	}
-
-	log := logging.NewLogger("cleaner")
-	if conf.Debug {
-		log.SetLevel(logging.DEBUG)
 	}
 
 	return &Cleaner{

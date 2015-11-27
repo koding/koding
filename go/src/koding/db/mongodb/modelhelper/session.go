@@ -5,7 +5,7 @@ import (
 	"koding/db/models"
 	"time"
 
-	uuid "github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -96,10 +96,7 @@ func CreateSession(s *models.Session) error {
 }
 
 func CreateSessionForAccount(username, groupName string) (*models.Session, error) {
-	uuid1, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
+	uuid1 := uuid.NewV4()
 
 	session := &models.Session{
 		Id:           bson.NewObjectId(),

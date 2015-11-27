@@ -13,7 +13,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
 
@@ -21,7 +20,6 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
@@ -114,16 +112,13 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("Malformed region detected: %s", machine.Meta.Region)
 	}
 
-	client := ec2.NewWithClient(
-		aws.Auth{
-			AccessKey: awsCred.AccessKey,
-			SecretKey: awsCred.SecretKey,
-		},
-		awsRegion,
-		aws.NewClient(multiec2.NewResilientTransport()),
+	amazonClient, err := amazon.NewAmazonCreds(
+		structs.Map(machine.Meta),
+		awsRegion.Name,
+		creds.Meta.AccessKey,
+		creds.Meta.SecretKey,
+		p.Log,
 	)
-
-	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}

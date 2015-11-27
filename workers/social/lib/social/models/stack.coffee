@@ -195,6 +195,13 @@ module.exports = class JComputeStack extends jraphical.Module
     return selector
 
 
+  getGroup: (callback) ->
+
+    slug   = @getAt 'group'
+    JGroup = require './group'
+    JGroup.one { slug }, callback
+
+
   @some$ = permit 'list stacks',
 
     success: (client, selector, options, callback) ->
@@ -263,37 +270,46 @@ module.exports = class JComputeStack extends jraphical.Module
     daisy queue
 
 
-  delete: (callback) ->
+  unuseStackTemplate: (callback) ->
 
-    # TODO Implement delete methods.
-    @update { $set: { status: 'Terminating' } }
-
-    JProposedDomain  = require './domain'
-    JMachine = require './computeproviders/machine'
-
-    @domains?.forEach (_id) ->
-      JProposedDomain.one { _id }, (err, domain) ->
-        if not err? and domain?
-          domain.remove (err) ->
-            if err then console.error \
-              "Failed to remove domain: #{domain.domain}", err
-
-    @machines?.forEach (_id) ->
-      JMachine.one { _id }, (err, machine) ->
-        if not err? and machine?
-          machine.remove (err) ->
-            if err then console.error \
-              "Failed to remove machine: #{machine.title}", err
-
-    Relationship.remove {
+    Relationship.remove
       targetName : 'JStackTemplate'
       targetId   : @baseStackId
       sourceId   : @originId
       sourceName : 'JAccount'
       as         : 'user'
-    }, (err) =>
+    , callback
 
-      @remove callback
+
+  delete: (callback) ->
+
+    @getGroup (err, group) =>
+
+      return callback err  if err
+
+      # TODO Implement delete methods.
+      @update { $set: { status: 'Terminating' } }
+
+      JProposedDomain  = require './domain'
+      JMachine = require './computeproviders/machine'
+
+      @domains?.forEach (_id) ->
+        JProposedDomain.one { _id }, (err, domain) ->
+          if not err? and domain?
+            domain.remove (err) ->
+              if err then console.error \
+                "Failed to remove domain: #{domain.domain}", err
+
+      @machines?.forEach (_id) ->
+        JMachine.one { _id }, (err, machine) ->
+          if not err? and machine?
+            machine.remove (err) ->
+              if err then console.error \
+                "Failed to remove machine: #{machine.title}", err
+
+      ComputeProvider = require './computeproviders/computeprovider'
+      ComputeProvider.updateGroupStackUsage group, 'decrement', (err) =>
+        @unuseStackTemplate => @remove callback
 
 
   delete$: permit
