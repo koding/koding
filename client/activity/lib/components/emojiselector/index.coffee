@@ -26,12 +26,10 @@ module.exports = class EmojiSelector extends React.Component
 
   componentDidUpdate: (prevProps, prevState) ->
 
-    { visible, items, query } = @props
-    isBecomeVisible           = visible and not prevProps.visible
+    { visible, query } = @props
+    isBecomeVisible    = visible and not prevProps.visible
 
-    return  unless isBecomeVisible
-
-    @calculateSectionScrollData()
+    @calculateSectionPositions()  if isBecomeVisible
 
 
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
@@ -48,6 +46,9 @@ module.exports = class EmojiSelector extends React.Component
     { selectedItem } = @props
     @props.onItemConfirmed? formatEmojiName selectedItem
     @close()
+
+
+  isTabHighlightingEnabled: -> not @props.query
 
 
   setTabIndex: (tabIndex) ->
@@ -91,24 +92,28 @@ module.exports = class EmojiSelector extends React.Component
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     category = @props.items.get(sectionIndex).get 'category'
-    <header>{category}</header>
+    <header className='EmojiSelector-categorySectionHeader'>{category}</header>
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
     { items, selectedItem } = @props
 
-    item       = items.get(sectionIndex).get('emojis').get rowIndex
+    emojis     = items.get(sectionIndex).get('emojis')
+    item       = emojis.get rowIndex
     isSelected = selectedItem is item
 
-    <EmojiSelectorItem
+    result = [<EmojiSelectorItem
       item         = { item }
       index        = { helper.calculateTotalIndex items, sectionIndex, rowIndex }
       isSelected   = { isSelected }
       onSelected   = { @bound 'onItemSelected' }
       onConfirmed  = { @bound 'onItemConfirmed' }
       key          = { item }
-    />
+    />]
+    result.push <div className='clearfix' key='clearfix' />  if rowIndex is emojis.size - 1
+
+    return result
 
   renderEmptySectionMessageAtIndex: (sectionIndex) ->
 
@@ -145,6 +150,16 @@ module.exports = class EmojiSelector extends React.Component
     </div>
 
 
+  renderFixedCategoryHeader: ->
+
+    { items, tabIndex, query } = @props
+
+    index    = if query then 0 else tabIndex
+    category = items.get(index).get 'category'
+
+    <header className='EmojiSelector-categorySectionHeader fixedHeader hidden' ref='fixedHeader'>{category}</header>
+
+
   render: ->
 
     { query, visible, selectedItem } = @props
@@ -159,6 +174,7 @@ module.exports = class EmojiSelector extends React.Component
       resize    = 'custom'
     >
       { @renderCategoryTabs() }
+      {@renderFixedCategoryHeader()}
       <div className="EmojiSelector-list Dropbox-resizable" ref='list' onScroll={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
@@ -170,7 +186,6 @@ module.exports = class EmojiSelector extends React.Component
           sectionId={@bound 'sectionId'}
           renderEmptySectionMessageAtIndex={@bound 'renderEmptySectionMessageAtIndex'}
         />
-        <div className='clearfix'></div>
       </div>
       <div className="EmojiSelector-footer">
         <span className="EmojiSelector-selectedItemIcon">

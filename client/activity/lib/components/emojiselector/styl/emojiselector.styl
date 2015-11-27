@@ -53,11 +53,23 @@
 .EmojiSelector-categorySection
   clear                     left
 
-  header
-    padding-top             10px
-    padding-bottom          5px
-    font-size               20px
-    font-weight             bold
+.EmojiSelector-categorySectionHeader
+  padding-top               10px
+  padding-bottom            5px
+  font-size                 20px
+  font-weight               bold
+
+  &.fixedHeader
+    abs()
+    top                     41px
+    left                    18px
+    z-index                 100
+    bg                      color, #fcfcfc
+    width                   325px
+    opacity                 0.97
+
+#EmojiSelectorCategory-custom
+  padding-bottom            150px
 
 .EmojiSelector-categoryTabs
   bg                        color, #f7f7f7
@@ -66,13 +78,13 @@
   boxSizing()
 
 .EmojiSelector-categoryTab
-    border-bottom           3px solid transparent
-    border-radius           5px 5px 0 0
-    color                   #9e9ea6
-    display                 inline-block
-    margin-right            3px
-    padding                 4px 5.8px 6px
-    pointer()
+  border-bottom             3px solid transparent
+  border-radius             5px 5px 0 0
+  color                     #9e9ea6
+  display                   inline-block
+  margin-right              3px
+  padding                   4px 5.8px 6px
+  pointer()
 
   &.activeTab
     background              #fbfaf8
@@ -81,12 +93,12 @@
     padding-top             3px
 
 .EmojiSelector-searchInput
-    display                 block
-    boxSizing()
-    border-radius           3px
-    padding                 5px 10px
-    width                   90%
-    bg                      color, #fff
-    border                  1px solid #ccc
-    margin-bottom           10px
+  display                   block
+  boxSizing()
+  border-radius             3px
+  padding                   5px 10px
+  width                     90%
+  bg                        color, #fff
+  border                    1px solid #ccc
+  margin-bottom             10px
 

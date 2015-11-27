@@ -28,51 +28,59 @@ module.exports = ListWithTabsMixin =
     return list.scrollTop = 0  if tabIndex is -1
 
     kd.utils.defer =>
-      sectionId  = @sectionId tabIndex
-      section    = $("##{sectionId}")
-      sectionTop = section.position().top
-
-      list.scrollTop += sectionTop
+      list.scrollTop = @sectionPositions[tabIndex]  if @sectionPositions
 
 
   ###*
-   * Calculates scroll positions of sections and caches it in @sectionScrollData.
+   * Calculates scroll positions of sections and caches it in @sectionPositions.
    * This data is used when it's necessary to check if we need to activate another tab
    * while scrolling the list. Caching helps to avoid performance problems while scrolling
   ###
-  calculateSectionScrollData: ->
+  calculateSectionPositions: ->
 
     { items } = @props
 
-    sectionScrollData = items.map (sectionItem, sectionIndex) =>
+    sectionPositions = items.map (sectionItem, sectionIndex) =>
       sectionId  = @sectionId sectionIndex
       section    = $("##{sectionId}")
       sectionTop = section.position().top
 
-      return { sectionTop }
+      return sectionTop
 
-    sectionScrollData  = sectionScrollData.toJS()
-    @sectionScrollData = sectionScrollData
+    sectionPositions  = sectionPositions.toJS()
+    @sectionPositions = sectionPositions
 
 
   ###*
-   * Checks if we need to activate another tab while scrolling.
+   * Checks if fixed header should be visible depending on scroll position.
+   * Also, checks if we need to highlight another tab while scrolling.
    * If so, it sets @dontScrollOnTabIndexChange to yes to avoid
    * extra scrolling when tabIndex is updated and calls action
-   * to set new tab index
+   * to set new tab index.
+   * Tab highlighting can be enabled/disabled using @isTabHighlightingEnabled()
   ###
   onScroll: ->
 
-    return  unless @sectionScrollData
+    return  unless @sectionPositions
 
-    list      = ReactDOM.findDOMNode @refs.list
-    scrollTop = list.scrollTop
+    fixedHeader = ReactDOM.findDOMNode @refs.fixedHeader
+    list        = ReactDOM.findDOMNode @refs.list
+    scrollTop   = list.scrollTop
+
+    isFixedHeaderVisible = scrollTop > @sectionPositions[0]
+    fixedHeader.classList.toggle 'hidden', not isFixedHeaderVisible
+
+    return  unless @isTabHighlightingEnabled()
+
     tabIndex  = -1
-
-    for scrollItem, i in @sectionScrollData
-      if scrollTop < scrollItem.sectionTop
+    positions = @sectionPositions
+    for position, i in positions
+      if scrollTop < position
         tabIndex = i - 1  if i > 0
         break
+
+    if tabIndex is -1 and positions[positions.length - 1] <= scrollTop
+      tabIndex = positions.length - 1
 
     @dontScrollOnTabIndexChange = yes  unless tabIndex is @props.tabIndex
     @setTabIndex tabIndex
