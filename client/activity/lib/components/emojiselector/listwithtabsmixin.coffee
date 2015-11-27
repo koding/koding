@@ -1,26 +1,45 @@
 kd       = require 'kd'
 ReactDOM = require 'react-dom'
 
+###*
+ * Mixin to handle interaction of tabs and sections:
+ * - when user clicks on tab, list should scroll to corresponding section
+ * - when user scrolls list and gets to the next section, corresponding tab
+ * should become active
+###
 module.exports = ListWithTabsMixin =
 
-  sectionTabId: (sectionIndex) -> "#{@sectionId sectionIndex}-tab"
+  ###*
+   * If tabIndex is changed, we need to scroll to corresponding section.
+   * We don't need to scroll, if action was fired by scrolling the list,
+   * i.e. when dontScrollOnTabIndexChange is yes
+  ###
+  componentDidUpdate: (prevProps, prevState) ->
 
+    { tabIndex } = @props
+    return  if prevProps.tabIndex is tabIndex
 
-  scrollToSection: (sectionIndex) ->
+    dontScrollOnTabIndexChange = @dontScrollOnTabIndexChange
+    @dontScrollOnTabIndexChange = no
+    return  if dontScrollOnTabIndexChange
 
     list = ReactDOM.findDOMNode @refs.list
-    return list.scrollTop = 0  unless sectionIndex?
+    return  unless list
+    return list.scrollTop = 0  if tabIndex is -1
 
-    sectionId  = @sectionId sectionIndex
-    section    = $("##{sectionId}")
-    sectionTop = section.position().top
+    kd.utils.defer =>
+      sectionId  = @sectionId tabIndex
+      section    = $("##{sectionId}")
+      sectionTop = section.position().top
 
-    list.scrollTop += sectionTop
-
-    selectedTab = document.getElementById @sectionTabId sectionIndex
-    kd.utils.wait 10, => @selectTab selectedTab
+      list.scrollTop += sectionTop
 
 
+  ###*
+   * Calculates scroll positions of sections and caches it in @sectionScrollData.
+   * This data is used when it's necessary to check if we need to activate another tab
+   * while scrolling the list. Caching helps to avoid performance problems while scrolling
+  ###
   calculateSectionScrollData: ->
 
     { items } = @props
@@ -29,40 +48,32 @@ module.exports = ListWithTabsMixin =
       sectionId  = @sectionId sectionIndex
       section    = $("##{sectionId}")
       sectionTop = section.position().top
-      sectionTab = document.getElementById @sectionTabId sectionIndex
 
-      return { sectionTop, sectionTab }
+      return { sectionTop }
 
     sectionScrollData  = sectionScrollData.toJS()
     @sectionScrollData = sectionScrollData
 
 
-  resetSectionScrollData: -> @sectionScrollData = null  
-
-
+  ###*
+   * Checks if we need to activate another tab while scrolling.
+   * If so, it sets @dontScrollOnTabIndexChange to yes to avoid
+   * extra scrolling when tabIndex is updated and calls action
+   * to set new tab index
+  ###
   onScroll: ->
 
     return  unless @sectionScrollData
 
-    list        = ReactDOM.findDOMNode @refs.list
-    scrollTop   = list.scrollTop
-    tabs        = ReactDOM.findDOMNode @refs.tabs
-    selectedTab = tabs.querySelector '.allTab'
+    list      = ReactDOM.findDOMNode @refs.list
+    scrollTop = list.scrollTop
+    tabIndex  = -1
 
     for scrollItem, i in @sectionScrollData
       if scrollTop < scrollItem.sectionTop
-        selectedTab = @sectionScrollData[i - 1].sectionTab  if i > 0
+        tabIndex = i - 1  if i > 0
         break
 
-    @selectTab selectedTab
-
-
-  selectTab: (tab) ->
-
-    tabs      = ReactDOM.findDOMNode @refs.tabs
-    activeTab = tabs.querySelector '.activeTab'
-
-    activeTab.classList.remove 'activeTab'  if activeTab
-
-    tab.classList.add 'activeTab'
+    @dontScrollOnTabIndexChange = yes  unless tabIndex is @props.tabIndex
+    @setTabIndex tabIndex
 

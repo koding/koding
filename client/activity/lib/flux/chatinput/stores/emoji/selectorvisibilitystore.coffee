@@ -24,7 +24,7 @@ module.exports = class EmojiSelectorVisibilityStore extends KodingFluxStore
    *
    * @param {Immutable.Map} currentState
    * @param {object} payload
-   * @param {bool} payload.stateId
+   * @param {string} payload.stateId
    * @param {bool} payload.visible
    * @return {Immutable.Map} nextState
   ###

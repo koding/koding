@@ -86,7 +86,7 @@ resetFilteredListSelectedIndex = (stateId) ->
  * Action to set a query of emoji selector.
  * If query is empty or not defined, unsetSelectorQuery()
  * is called to unset current query.
- * Once the query is set, current selected index of
+ * Once the query is set, selected index and tab index of
  * emoji selector should be reset
  *
  * @param {string} stateId
@@ -98,6 +98,7 @@ setSelectorQuery = (stateId, query) ->
     { SET_EMOJI_SELECTOR_QUERY } = actionTypes
     dispatch SET_EMOJI_SELECTOR_QUERY, { stateId, query }
     resetSelectorSelectedIndex stateId
+    resetSelectorTabIndex stateId
   else
     unsetSelectorQuery stateId
 
@@ -141,6 +142,8 @@ resetSelectorSelectedIndex = (stateId) ->
 
 ###*
  * Action to set visibility flag of emoji selector
+ * After visibility is changed, we need to reset
+ * selector query and tab index to initial values
  *
  * @param {string} stateId
  * @param {bool} visible
@@ -149,6 +152,30 @@ setSelectorVisibility = (stateId, visible) ->
 
   { SET_EMOJI_SELECTOR_VISIBILITY } = actionTypes
   dispatch SET_EMOJI_SELECTOR_VISIBILITY, { stateId, visible }
+
+  unsetSelectorQuery stateId
+  resetSelectorTabIndex stateId
+
+
+###*
+ * Action to set current tab index
+ *
+ * @param {string} stateId
+ * @param {number} tabIndex
+###
+setSelectorTabIndex = (stateId, tabIndex) ->
+
+  { SET_EMOJI_SELECTOR_TAB_INDEX } = actionTypes
+
+  dispatch SET_EMOJI_SELECTOR_TAB_INDEX, { stateId, tabIndex }
+
+
+###*
+ * Action to reset current tab index to initial value -1
+ *
+ * @param {string} stateId
+###
+resetSelectorTabIndex = (stateId) -> setSelectorTabIndex stateId, -1
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -167,5 +194,6 @@ module.exports = {
   setSelectorSelectedIndex
   resetSelectorSelectedIndex
   setSelectorVisibility
+  setSelectorTabIndex
 }
 

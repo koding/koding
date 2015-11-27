@@ -21,15 +21,15 @@ module.exports = class EmojiSelector extends React.Component
     visible      : no
     selectedItem : ''
     query        : ''
+    tabIndex     : -1
 
 
   componentDidUpdate: (prevProps, prevState) ->
 
     { visible, items, query } = @props
-    isChangedToRegularMode    = prevProps.query and not query
     isBecomeVisible           = visible and not prevProps.visible
 
-    return  unless @props.visible and (isBecomeVisible or isChangedToRegularMode)
+    return  unless isBecomeVisible
 
     @calculateSectionScrollData()
 
@@ -48,6 +48,14 @@ module.exports = class EmojiSelector extends React.Component
     { selectedItem } = @props
     @props.onItemConfirmed? formatEmojiName selectedItem
     @close()
+
+
+  setTabIndex: (tabIndex) ->
+
+    { stateId } = @props
+
+    ChatInputFlux.actions.emoji.unsetSelectorQuery stateId
+    ChatInputFlux.actions.emoji.setSelectorTabIndex stateId, tabIndex
 
 
   close: ->
@@ -109,20 +117,26 @@ module.exports = class EmojiSelector extends React.Component
 
   renderCategoryTabs: ->
 
-    { filters } = @props
+    { tabs, tabIndex } = @props
 
-    components = filters.map (item, index) =>
+    components = tabs.map (item, index) =>
+      tabClassName  = classnames
+        'EmojiSelector-categoryTab' : yes
+        'activeTab'                 : index is tabIndex
       iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
       category      = item.get 'category'
 
-      <span id={@sectionTabId index} className='EmojiSelector-categoryTab' title={category} onClick={@lazyBound 'scrollToSection', index} key={category}>
+      <span className={tabClassName} title={category} onClick={@lazyBound 'setTabIndex', index} key={category}>
         <span className='emoji-wrapper'>
           <span className={iconClassName}></span>
         </span>
       </span>
 
+    allTabClassName = classnames
+      'EmojiSelector-categoryTab' : yes
+      'activeTab'                 : tabIndex is -1
     <div className='EmojiSelector-categoryTabs' ref='tabs'>
-      <span className='EmojiSelector-categoryTab allTab activeTab' title='All' onClick={@lazyBound 'scrollToSection', null}>
+      <span className={allTabClassName} title='All' onClick={@lazyBound 'setTabIndex', -1}>
         <span className='emoji-wrapper'>
           <span className='emoji-sprite emoji-clock3'></span>
         </span>

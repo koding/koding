@@ -18,6 +18,7 @@ module.exports = {
     require './stores/emoji/selectorquerystore'
     require './stores/emoji/selectorselectedindexstore'
     require './stores/emoji/selectorvisibilitystore'
+    require './stores/emoji/selectortabindexstore'
     require './stores/channel/querystore'
     require './stores/channel/selectedindexstore'
     require './stores/channel/visibilitystore'

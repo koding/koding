@@ -19,6 +19,7 @@ FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], 
 EmojiSelectorQueryStore             = [['EmojiSelectorQueryStore'], withEmptyMap]
 EmojiSelectorSelectedIndexStore     = [['EmojiSelectorSelectedIndexStore'], withEmptyMap]
 EmojiSelectorVisibilityStore        = [['EmojiSelectorVisibilityStore'], withEmptyMap]
+EmojiSelectorTabIndexStore          = [['EmojiSelectorTabIndexStore'], withEmptyMap]
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
@@ -114,10 +115,10 @@ emojiSelectorItems = (stateId) -> [
 ]
 
 
-# Returns a list of emoji selector filters (categories)
-# Each filter has category name and emoji name which is used
-# to render filter icon
-emojiSelectorFilters = [
+# Returns a list of emoji selector tabs
+# Each tab has category name and emoji name which is used
+# to render tab icon
+emojiSelectorTabs = [
   EmojiCategoriesStore
   (list) ->
     list.map (item) ->
@@ -164,6 +165,14 @@ emojiSelectorSelectedItem = (stateId) -> [
     return  unless categoryItem
 
     result = categoryItem.get('emojis').get selectedIndex - totalIndex
+]
+
+
+# Returns current tab index of emoji selector by specified stateId
+# If tab index doesn't exist in the store, returns -1
+emojiSelectorTabIndex = (stateId) -> [
+  EmojiSelectorTabIndexStore
+  (tabIndexes) -> tabIndexes.get(stateId) ? -1
 ]
 
 
@@ -430,11 +439,12 @@ module.exports = {
   filteredEmojiListSelectedIndex
 
   emojiSelectorItems
-  emojiSelectorFilters
+  emojiSelectorTabs
   emojiSelectorQuery
   emojiSelectorSelectedIndex
   emojiSelectorVisibility
   emojiSelectorSelectedItem
+  emojiSelectorTabIndex
 
   channelsQuery
   channels
