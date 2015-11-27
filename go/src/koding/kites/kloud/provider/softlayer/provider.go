@@ -23,16 +23,22 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
-	slclient "github.com/maximilien/softlayer-go/client"
+	"github.com/maximilien/softlayer-go/softlayer"
 )
 
 type Provider struct {
 	DB         *mongodb.MongoDB
 	Log        logging.Logger
 	Kite       *kite.Kite
+	SLClient   softlayer.Client
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
 	Userdata   *userdata.Userdata
+}
+
+type slCred struct {
+	Username string `mapstructure:"username"`
+	ApiKey   string `mapstructure:"api_key"`
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
@@ -90,32 +96,6 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(machine.Credential)
-	if err != nil {
-		return fmt.Errorf("could not fetch credential %q: %s", machine.Credential, err.Error())
-	}
-	if len(creds) == 0 {
-		return fmt.Errorf("softlayer: no credential data available for credential: %s", machine.Credential)
-	}
-
-	cred := creds[0] // there is only one, pick up the first one
-
-	var slCred struct {
-		Username string `mapstructure:"username"`
-		ApiKey   string `mapstructure:"api_key"`
-	}
-
-	if err := mapstructure.Decode(cred.Meta, &slCred); err != nil {
-		return err
-	}
-
-	if structs.HasZero(slCred) {
-		return fmt.Errorf("softlayer data is incomplete: %v", cred.Meta)
-	}
-
-	// Create a softLayer-go client
-	client := slclient.NewSoftLayerClient(slCred.Username, slCred.ApiKey)
-
 	// attach user specific log
 	machine.Log = p.Log.New(machine.Id.Hex())
 
@@ -125,7 +105,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
-		SLClient:   client,
+		SLClient:   p.SLClient,
 		Log:        machine.Log,
 	}
 
@@ -146,4 +126,31 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	return nil
+}
+
+// getUserCredential fetches the credential for the given identifier. This is
+// not used right now, but will be used once we decide to give custom softlayer
+// instances
+func (p *Provider) getUserCredential(identifier string) (*slCred, error) {
+	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(identifier)
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch credential %q: %s", identifier, err.Error())
+	}
+
+	if len(creds) == 0 {
+		return nil, fmt.Errorf("softlayer: no credential data available for credential: %s", identifier)
+	}
+
+	c := creds[0] // there is only one, pick up the first one
+
+	var cred slCred
+	if err := mapstructure.Decode(c.Meta, &cred); err != nil {
+		return nil, err
+	}
+
+	if structs.HasZero(cred) {
+		return nil, fmt.Errorf("softlayer data is incomplete: %v", c.Meta)
+	}
+
+	return &cred, nil
 }

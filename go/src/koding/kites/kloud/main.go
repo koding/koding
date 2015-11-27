@@ -39,6 +39,8 @@ import (
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
+
+	slclient "github.com/maximilien/softlayer-go/client"
 )
 
 var Name = "kloud"
@@ -101,6 +103,9 @@ type Config struct {
 
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
+
+	SLUsername string
+	SLAPIKey   string
 
 	JanitorSecretKey        string
 	VmwatcherSecretKey      string
@@ -217,6 +222,8 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
+	sl := slclient.NewSoftLayerClient(conf.SLUsername, conf.SLAPIKey)
+
 	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
@@ -257,6 +264,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
+		SLClient:   sl,
 		Userdata:   userdata,
 	}
 
@@ -277,6 +285,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		AWSClients: ec2clients,
+		SLClient:   sl,
 		Userdata:   userdata,
 		Log:        kloudLogger,
 	}
