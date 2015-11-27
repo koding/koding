@@ -2,8 +2,9 @@ helpers  = require '../helpers/helpers.js'
 utils    = require '../utils/utils.js'
 
 
-teamsModalSelector  = '.TeamsModal--groupCreation'
-companyNameSelector = '.login-form input[testpath=company-name]'
+teamsModalSelector      = '.TeamsModal--groupCreation'
+companyNameSelector     = '.login-form input[testpath=company-name]'
+sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
 
 module.exports =
 
@@ -237,4 +238,44 @@ module.exports =
       .waitForElementVisible  invitationsPageSelector, 20000 # Assertion
       .pause                  2000 # wait for page load
 
+
+  moveToSidebarHeader: (browser, plus, channelHeader) ->
+
+    sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
+    channelPlusSelector          = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
+
+    browser
+      .waitForElementVisible    sidebarSectionsSelector, 20000
+      .moveToElement            sidebarSectionsSelector, 100, 7
+
+    if plus
+      browser
+        .waitForElementVisible  channelPlusSelector, 20000
+        .click                  channelPlusSelector
+    else if channelHeader
+      browser
+        .waitForElementVisible  sidebarSectionsHeaderSelector, 20000
+        .click                  sidebarSectionsHeaderSelector
+
+
+  createChannel: (browser, channelName) ->
+
+    createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
+    createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
+    channelName                    or= helpers.getFakeText().split(' ')[0] + Date.now()
+    channelLinkOnSidebarSelector     = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
+
+    @moveToSidebarHeader(browser, yes)
+
+    browser
+      .waitForElementVisible  '.CreateChannel-Modal', 20000
+      .waitForElementVisible  createChannelModalNameSelector, 20000
+      .setValue               createChannelModalNameSelector, channelName
+      .waitForElementVisible  createChannelModalButtonSelector, 20000
+      .click                  createChannelModalButtonSelector
+      .waitForElementVisible  sidebarSectionsSelector, 20000
+      .waitForElementVisible  channelLinkOnSidebarSelector, 20000
+      .assert.containsText    sidebarSectionsSelector, channelName
+
+    return channelName
 

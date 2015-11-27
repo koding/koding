@@ -1,4 +1,5 @@
-{ daisy } = require 'bongo'
+{ daisy }                          = require 'bongo'
+{ checkAuthorizationBearerHeader } = require '../../helpers'
 
 module.exports = createSsoToken = (req, res, next) ->
 
@@ -53,6 +54,7 @@ module.exports = createSsoToken = (req, res, next) ->
 
 validateRequest = (req) ->
 
+  token        = null
   { username } = req.body
 
   errors =
@@ -66,15 +68,7 @@ validateRequest = (req) ->
   unless username
     return { error : errors.invalidRequest }
 
-  unless req.headers?.authorization
-    return { error : errors.unauthorizedRequest }
-  parts = req.headers.authorization.split ' '
-
-  unless parts.length is 2 and parts[0] is 'Bearer'
-    return { error : errors.unauthorizedRequest }
-  token = parts[1]
-
-  unless typeof token is 'string' and token.length > 0
+  unless token = checkAuthorizationBearerHeader req
     return { error : errors.unauthorizedRequest }
 
   return { error : null, token, username }

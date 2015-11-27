@@ -1198,7 +1198,7 @@ module.exports = class JGroup extends Module
             JSession.remove {
               username  : account.profile.nickname
               groupName : client.context.group
-            }, callback
+            }, (err) -> callback err
 
           queue = roles.map (role) => =>
             @removeMember account, role, (err) =>
@@ -1214,7 +1214,6 @@ module.exports = class JGroup extends Module
             @addBlockedAccount account, (err) ->
               return callback err  if err
               queue.fin()
-
 
           dash queue, kallback
   ###*

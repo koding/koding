@@ -18,13 +18,15 @@ checkOwnership = (machine, user) ->
 
 setOwnerOfStack = (stack, newOwnerId, oldOwner) ->
 
-  stack.update {
-    $set : {
-      originId : newOwnerId
-      title    : "#{stack.getAt 'title'} (@#{oldOwner})"
-    }
-  }, (err) ->
-    log 'Failed to change ownership of stack:', err  if err
+  stack.unuseStackTemplate (err) ->
+    log 'Failed to mark as unused stack:', err  if err
+    stack.update {
+      $set : {
+        originId : newOwnerId
+        title    : "#{stack.getAt 'title'} (@#{oldOwner})"
+      }
+    }, (err) ->
+      log 'Failed to change ownership of stack:', err  if err
 
 
 updateStacks = ({ reason, stacks, oldOwner, requesterId }) ->

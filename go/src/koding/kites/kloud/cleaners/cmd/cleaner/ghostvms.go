@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"koding/kites/kloud/cleaners/lookup"
 	"strings"
 	"time"
 
-	"github.com/mitchellh/goamz/ec2"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/cleaners/lookup"
 )
 
 type GhostVMs struct {
@@ -18,8 +18,8 @@ type GhostVMs struct {
 }
 
 func (g *GhostVMs) Process() {
-	gi := lookup.NewMultiInstances()
-	ut := lookup.NewMultiInstances()
+	gi := make(map[*amazon.Client]lookup.Instances)
+	ut := make(map[*amazon.Client]lookup.Instances)
 
 	prodInstances := g.Instances.
 		WithTag("koding-env", "production").
@@ -27,10 +27,9 @@ func (g *GhostVMs) Process() {
 
 	// pick 4 days old VMs. Why? Because if something goes wrong during weekend
 	// (starting at Friday), we should be able to pick it up on Monday
-	oldInstances := g.Instances.
-		OlderThan(time.Hour * 96)
+	oldInstances := g.Instances.OlderThan(time.Hour * 96)
 
-	prodInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+	prodInstances.Iter(func(client *amazon.Client, instances lookup.Instances) {
 		ghostIds := make(lookup.Instances, 0)
 
 		for id, instance := range instances {
@@ -41,11 +40,10 @@ func (g *GhostVMs) Process() {
 				ghostIds[id] = instance
 			}
 		}
-
-		gi.Add(client, ghostIds)
+		gi[client] = ghostIds
 	})
 
-	oldInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+	oldInstances.Iter(func(client *amazon.Client, instances lookup.Instances) {
 		ghostIds := make(lookup.Instances, 0)
 
 		for id, instance := range instances {
@@ -60,8 +58,7 @@ func (g *GhostVMs) Process() {
 				ghostIds[id] = instance
 			}
 		}
-
-		ut.Add(client, ghostIds)
+		ut[client] = ghostIds
 	})
 
 	g.ghostInstances = lookup.MergeMultiInstances(gi, ut)

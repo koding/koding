@@ -17,6 +17,7 @@ module.exports = clone
     validFor           : 0  # no expire date
     instancePerMember  : 1  # allows one instance per member
     allowedInstances   : [ 't2.micro' ]
+    maxInstance        : 1  # maximum instance count for this group (total)
     storagePerInstance : 5  # means 5GB storage for this plan in total (max).
                             # 1 member x 1 instancePerMember = 1 instance
                             # 5GB per instance x 1 instances = 5GB in total
@@ -28,6 +29,7 @@ module.exports = clone
     validFor           : 30 # in days (1 month)
     instancePerMember  : 1  # allows one instance per member
     allowedInstances   : [ 't2.micro' ]
+    maxInstance        : 10 # maximum instance count for this group (total)
     storagePerInstance : 5  # means 25GB storage for this plan in total (max).
                             # 5 member x 1 instancePerMember = 5 instances
                             # 5GB per instance x 5 instances = 25GB in total
@@ -39,6 +41,7 @@ module.exports = clone
     validFor           : 30 # in days (1 month)
     instancePerMember  : 2  # allows two instances per member
     allowedInstances   : [ 't2.micro', 't2.small' ]
+    maxInstance        : 20 # maximum instance count for this group (total)
     storagePerInstance : 10 # means 100GB storage for this plan in total (max).
                             # 5 member x 2 instancePerMember   = 10 instances
                             # 10GB per instance x 10 instances = 100GB in total
@@ -52,6 +55,7 @@ module.exports = clone
       't2.micro', 't2.small', 't2.medium', 't2.large'
       'm3.medium', 'm3.large', 'c3.large', 'c3.xlarge'
     ]
+    maxInstance        : 500
     storagePerInstance : 20
     restrictions       : BASIC_RESTRICTIONS
 
@@ -60,5 +64,6 @@ module.exports = clone
     validFor           : 0  # no expire date
     instancePerMember  : 90 # enough to run koding
     allowedInstances   : [] # all types of instances are allowed
+    maxInstance        : 9000
     storagePerInstance : 1000
     restrictions       : {}

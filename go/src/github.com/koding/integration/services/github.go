@@ -53,18 +53,6 @@ type GithubListener struct {
 	Log logging.Logger
 }
 
-func UnmarshalEvents(s helpers.Settings) ([]string, error) {
-	val := s.GetString("events")
-	if val == "" {
-		return []string{}, nil
-	}
-
-	var events []string
-	err := json.Unmarshal([]byte(val), &events)
-
-	return events, err
-}
-
 type ConfigurePostRequest struct {
 	Id     int64    `json:"id"`
 	Name   string   `json:"name"`
@@ -169,7 +157,7 @@ func (g Github) Configure(req *http.Request) (helpers.ConfigureResponse, error) 
 }
 
 func (g Github) configure(cr *helpers.ConfigureRequest, method, url string) (helpers.ConfigureResponse, error) {
-	events, err := UnmarshalEvents(cr.Settings)
+	events, err := helpers.UnmarshalEvents(cr.Settings)
 	if err != nil {
 		g.Log.Error("Could not unmarshal events", err)
 	}
