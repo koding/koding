@@ -129,10 +129,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		// from that.
 		groups, err := modelhelper.GetGroupFieldsByIds(uniqueGroups, []string{"title"})
 		if err != nil {
-			req.LocalKite.Log.Error(
-				"Error returned when querying Team Names. [groupIds:%s, err:%s",
-				uniqueGroups, err.Error(),
-			)
+			return nil, err
 		}
 
 		// Now that we have the groups, go through our KodingKiteWithToken slice and
