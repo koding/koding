@@ -27,7 +27,6 @@ module.exports = class MachineSettingsDiskUsageView extends KDView
 
       .catch (err) ->
         kd.warn 'Failed to fetch system info for machine settings:', err
-        showError 'Failed to fetch disk usage'
 
 
   createProgressBar: (percent) ->
