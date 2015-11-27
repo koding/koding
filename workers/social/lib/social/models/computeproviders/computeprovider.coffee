@@ -400,9 +400,10 @@ module.exports = class ComputeProvider extends Base
     unless callback
       [options, callback] = [callback, options]
 
-    callback ?= ->
-    options  ?= {}
-    res       = {}
+    callback     ?= ->
+    options      ?= {}
+    res           = {}
+    instanceCount = 0
 
     { template, account, group } = {}
 
@@ -417,7 +418,13 @@ module.exports = class ComputeProvider extends Base
           queue.next()
 
       ->
-        ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
+        instanceCount = template.machines?.length or 0
+        change        = 'increment'
+
+        ComputeProvider.updateGroupResourceUsage {
+          group, change, instanceCount
+        }, (err) ->
+
           return callback err  if err
 
           queue.next()
