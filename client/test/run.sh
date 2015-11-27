@@ -3,7 +3,7 @@
 cd $(dirname $0)
 
 NIGHTWATCH_BIN="../node_modules/.bin/nightwatch"
-NIGHTWATCH_OPTIONS="$NIGHTWATCH_OPTIONS --config ../.nightwatch.json"
+NIGHTWATCH_OPTIONS="$NIGHTWATCH_OPTIONS --retries 3 --config ../.nightwatch.json"
 NIGHTWATCH_CMD="$NIGHTWATCH_BIN $NIGHTWATCH_OPTIONS"
 
 BUILD_DIR=build/lib
