@@ -10,15 +10,40 @@ module.exports = class EmojiSelectorItem extends React.Component
 
   @defaultProps =
     item         : ''
-    isSelected   : no
     index        : 0
+
+
+  constructor: (props) ->
+
+    super props
+    @state = { isSelected : no }
+
+
+  onSelected: ->
+
+    @setState { isSelected : yes }
+
+    { onSelected, index } = @props
+    onSelected? index
+
+
+  onUnselected: ->
+
+    @setState { isSelected : no }
+    @props.onUnselected?()
 
 
   render: ->
 
-    { item } = @props
+    { item }       = @props
+    { isSelected } = @state
 
-    <DropboxItem {...@props} className='EmojiSelectorItem'>
-      <EmojiIcon emoji={item} />
+    <DropboxItem
+      isSelected   = { isSelected }
+      onSelected   = { @bound 'onSelected' }
+      onUnselected = { @bound 'onUnselected' }
+      onConfirmed  = { @props.onConfirmed }
+      className    = 'EmojiSelectorItem'>
+        <EmojiIcon emoji={item} />
     </DropboxItem>
 

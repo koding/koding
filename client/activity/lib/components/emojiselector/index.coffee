@@ -7,9 +7,8 @@ immutable             = require 'immutable'
 formatEmojiName       = require 'activity/util/formatEmojiName'
 ChatInputFlux         = require 'activity/flux/chatinput'
 Dropbox               = require 'activity/components/dropbox/portaldropbox'
-EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
 EmojiIcon             = require 'activity/components/emojiicon'
-List                  = require 'app/components/list'
+List                  = require './list'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 ListWithTabsMixin     = require './listwithtabsmixin'
 
@@ -41,11 +40,20 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setSelectorSelectedIndex stateId, index
 
 
+  onItemUnselected: ->
+
+    { stateId } = @props
+    ChatInputFlux.actions.emoji.resetSelectorSelectedIndex stateId
+
+
   onItemConfirmed: ->
 
     { selectedItem } = @props
     @props.onItemConfirmed? formatEmojiName selectedItem
     @close()
+
+
+  sectionId: (sectionIndex) -> @refs.list.sectionId sectionIndex
 
 
   isTabHighlightingEnabled: -> not @props.query
@@ -71,53 +79,6 @@ module.exports = class EmojiSelector extends React.Component
     { stateId } = @props
 
     ChatInputFlux.actions.emoji.setSelectorQuery stateId, value
-
-
-  numberOfSections: ->
-
-    return @props.items.size
-
-
-  numberOfRowsInSection: (sectionIndex) ->
-
-    return @props.items.get(sectionIndex).get('emojis').size
-
-
-  sectionId: (sectionIndex) ->
-
-    category = @props.items.get(sectionIndex).get 'category'
-    return "EmojiSelectorCategory-#{kd.utils.slugify category}"
-
-
-  renderSectionHeaderAtIndex: (sectionIndex) ->
-
-    category = @props.items.get(sectionIndex).get 'category'
-    <header className='EmojiSelector-categorySectionHeader'>{category}</header>
-
-
-  renderRowAtIndex: (sectionIndex, rowIndex) ->
-
-    { items, selectedItem } = @props
-
-    emojis     = items.get(sectionIndex).get('emojis')
-    item       = emojis.get rowIndex
-    isSelected = selectedItem is item
-
-    result = [<EmojiSelectorItem
-      item         = { item }
-      index        = { helper.calculateTotalIndex items, sectionIndex, rowIndex }
-      isSelected   = { isSelected }
-      onSelected   = { @bound 'onItemSelected' }
-      onConfirmed  = { @bound 'onItemConfirmed' }
-      key          = { item }
-    />]
-    result.push <div className='clearfix' key='clearfix' />  if rowIndex is emojis.size - 1
-
-    return result
-
-  renderEmptySectionMessageAtIndex: (sectionIndex) ->
-
-    <div className='EmojiSelector-emptyCategory'>No emoji found</div>
 
 
   renderCategoryTabs: ->
@@ -162,7 +123,7 @@ module.exports = class EmojiSelector extends React.Component
 
   render: ->
 
-    { query, visible, selectedItem } = @props
+    { items, query, visible, selectedItem } = @props
 
     <Dropbox
       className = 'EmojiSelector'
@@ -175,16 +136,14 @@ module.exports = class EmojiSelector extends React.Component
     >
       { @renderCategoryTabs() }
       {@renderFixedCategoryHeader()}
-      <div className="EmojiSelector-list Dropbox-resizable" ref='list' onScroll={@bound 'onScroll'}>
+      <div className="EmojiSelector-list Dropbox-resizable" ref='scrollable' onScroll={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
-          numberOfSections={@bound 'numberOfSections'}
-          numberOfRowsInSection={@bound 'numberOfRowsInSection'}
-          renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
-          renderRowAtIndex={@bound 'renderRowAtIndex'}
-          sectionClassName='EmojiSelector-categorySection'
-          sectionId={@bound 'sectionId'}
-          renderEmptySectionMessageAtIndex={@bound 'renderEmptySectionMessageAtIndex'}
+          items            = { items }
+          onItemSelected   = { @bound 'onItemSelected' }
+          onItemUnselected = { @bound 'onItemUnselected' }
+          onItemConfirmed  = { @bound 'onItemConfirmed' }
+          ref              = 'list'
         />
       </div>
       <div className="EmojiSelector-footer">
@@ -197,19 +156,6 @@ module.exports = class EmojiSelector extends React.Component
         <div className="clearfix" />
       </div>
     </Dropbox>
-
-
-  helper =
-
-    calculateTotalIndex: (categoryItems, categoryIndex, emojiIndex) ->
-
-      categoryItems = categoryItems.toJS()
-      totalIndex    = emojiIndex
-
-      for categoryItem, index in categoryItems when index < categoryIndex
-        totalIndex += categoryItem.emojis.length
-
-      return totalIndex
 
 
 React.Component.include.call EmojiSelector, [ImmutableRenderMixin, ListWithTabsMixin]

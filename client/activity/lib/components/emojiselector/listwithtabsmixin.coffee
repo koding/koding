@@ -23,7 +23,7 @@ module.exports = ListWithTabsMixin =
     @dontScrollOnTabIndexChange = no
     return  if dontScrollOnTabIndexChange
 
-    list = ReactDOM.findDOMNode @refs.list
+    list = ReactDOM.findDOMNode @refs.scrollable
     return  unless list
     return list.scrollTop = 0  if tabIndex is -1
 
@@ -64,7 +64,7 @@ module.exports = ListWithTabsMixin =
     return  unless @sectionPositions
 
     fixedHeader = ReactDOM.findDOMNode @refs.fixedHeader
-    list        = ReactDOM.findDOMNode @refs.list
+    list        = ReactDOM.findDOMNode @refs.scrollable
     scrollTop   = list.scrollTop
 
     isFixedHeaderVisible = scrollTop > @sectionPositions[0]

@@ -20,6 +20,12 @@ module.exports = class DropboxItem extends React.Component
     onSelected? index
 
 
+  handleLeave: ->
+
+    { onUnselected, index } = @props
+    onUnselected? index
+
+
   handleClick: ->
 
     { onConfirmed, item } = @props
@@ -46,6 +52,7 @@ module.exports = class DropboxItem extends React.Component
       className    = {className}
       onMouseEnter = {@bound 'handleSelect'}
       onClick      = {@bound 'handleClick'}
+      onMouseLeave = {@bound 'handleLeave'}
     >
       {@props.children}
     </div>
