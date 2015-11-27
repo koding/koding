@@ -58,7 +58,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		}
 
 		// A map of GroupId a slice of all KodingKiteWithToken that contain that group.
-		kkwtsByGroupID := map[string][]*KodingKiteWithToken{}
+		kitesByGroupID := map[string][]*KodingKiteWithToken{}
 
 		// Create our slice of unique group ids that we will use to query all the
 		// groups that we need.
@@ -74,27 +74,27 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		}
 
 		// Create our KodingKitesResult which will be returned after being populated.
-		kodingKitesResult := &GetKodingKitesResult{
+		result := &GetKodingKitesResult{
 			Kites: make([]*KodingKiteWithToken, len(getKitesResult.Kites)),
 		}
 
 		// Populate the koding kites
-		for i, kwt := range getKitesResult.Kites {
-			kkwt := &KodingKiteWithToken{
-				Kite:  kwt.Kite,
-				URL:   kwt.URL,
-				KeyID: kwt.KeyID,
-				Token: kwt.Token,
+		for i, kiteWithToken := range getKitesResult.Kites {
+			kite := &KodingKiteWithToken{
+				Kite:  kiteWithToken.Kite,
+				URL:   kiteWithToken.URL,
+				KeyID: kiteWithToken.KeyID,
+				Token: kiteWithToken.Token,
 			}
-			kodingKitesResult.Kites[i] = kkwt
+			result.Kites[i] = kite
 
-			host, err := hostFromURL(kwt.URL)
+			host, err := hostFromURL(kiteWithToken.URL)
 			if err != nil {
 				req.LocalKite.Log.Warning(
 					"Kite with badly formed URL, unable to extract host. Koding data will not be provided for this Kite. [username:%s, kiteId:%s, host:%s]",
-					kwt.Kite.Username,
-					kwt.Kite.ID,
-					kwt.URL,
+					kiteWithToken.Kite.Username,
+					kiteWithToken.Kite.ID,
+					kiteWithToken.URL,
 				)
 				continue
 			}
@@ -102,27 +102,27 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 			// With a valid host, get the koding specific information such as Label
 			// or Team names and apply it to each KodingKiteWithToken
 			if machine, ok := machinesByIP[host]; ok {
-				kkwt.MachineLabel = machine.Label
+				kite.MachineLabel = machine.Label
 
 				for _, g := range machine.Groups {
 					id := g.Id.Hex()
 
 					// Get all of the kites (not including this one) which have
 					// a reference to this kite, so we can append this kite to them.
-					kkwts, ok := kkwtsByGroupID[id]
+					kites, ok := kitesByGroupID[id]
 
-					// If the id is *not* in the kkwts map yet, it is unique.
+					// If the id is *not* in the kites map yet, it is unique.
 					// Store the group id in the unique slice, so we can query for the groups.
 					if !ok {
 						uniqueGroups = append(uniqueGroups, id)
 					}
 
-					// kkwts could be a nil map, but that's okay as append will resolve
+					// kites could be a nil map, but that's okay as append will resolve
 					// that issue.
 					//
 					// Note that if a Machine somehow has two entries for the same group,
 					// this will be appended twice, but should not cause a problem.
-					kkwtsByGroupID[id] = append(kkwts, kkwt)
+					kitesByGroupID[id] = append(kites, kite)
 				}
 			}
 		}
@@ -142,7 +142,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 		for _, group := range groups {
 			id := group.Id.Hex()
 
-			kkwts, ok := kkwtsByGroupID[id]
+			kites, ok := kitesByGroupID[id]
 
 			// This shouldn't happen, so log a warning to aid in identifying a problem,
 			// and continue.
@@ -155,12 +155,12 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 			}
 
 			// Append this groups team title to the KodingKiteWithToken Teams slice.
-			for _, kkwt := range kkwts {
-				kkwt.Teams = append(kkwt.Teams, group.Title)
+			for _, kite := range kites {
+				kite.Teams = append(kite.Teams, group.Title)
 			}
 		}
 
-		return kodingKitesResult, nil
+		return result, nil
 	}
 }
 
