@@ -360,6 +360,26 @@ module.exports = class ComputeProvider extends Base
       callback if change is 'increment' then err else null
 
 
+  @updateGroupInstanceUsage = (group, change, amount, callback) ->
+
+    plan = group.getAt 'config.plan'
+    return callback null  unless plan
+    return callback null  if amount is 0
+
+    plan = teamutils.getPlanData plan
+
+    JCounter = require '../counter'
+    JCounter[change]
+      namespace : group.getAt 'slug'
+      amount    : amount
+      type      : 'member-instances'
+      max       : plan.maxInstance
+      min       : 0
+    , (err) ->
+      # no worries about `decrement` errors
+      # since 0 is already defined as min ~ GG
+      callback if change is 'increment' then err else null
+
 
   @createGroupStack = (client, options, callback) ->
 
