@@ -203,13 +203,15 @@ module.exports = class TeamMembersCommonView extends KDView
   search: (useSearchMembersMethod = no) ->
 
     query = @searchInput.getValue()
+    isQueryEmpty   = query is ''
+    isQueryChanged = query isnt @lastQuery
 
-    if query is ''
+    if isQueryEmpty or isQueryChanged
       @page = 0
       @skip = 0
       @searchClear.hide()
       @resetListItems()
-      return @fetchMembers()
+      return @fetchMembers()  if isQueryEmpty
 
     @page      = 0  if query isnt @lastQuery
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
