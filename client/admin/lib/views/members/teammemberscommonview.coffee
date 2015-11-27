@@ -213,10 +213,10 @@ module.exports = class TeamMembersCommonView extends KDView
       @resetListItems()
       return @fetchMembers()  if isQueryEmpty
 
-    @page      = 0  if query isnt @lastQuery
+    @page      = if query is @lastQuery then @page + 1 else 0
+    group      = @getData()
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
-    group      = @getData()
 
     @searchClear.show()
 
