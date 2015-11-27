@@ -63,7 +63,10 @@ module.exports = class SidebarMachineBox extends KDView
     @addSubView @machineItem = new NavigationMachineItem {}, machineData
 
     @machineItem.on 'click', =>
-      if @isMachineRunning() then @toggleList()
+      if @isMachineRunning()
+        if @machine.isMine() or @machine.isApproved()
+          @toggleList()
+
       else kd.singletons.router.handleRoute @machineItem.machineRoute
 
 

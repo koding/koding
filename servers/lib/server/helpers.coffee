@@ -259,6 +259,19 @@ setSessionCookie = (res, sessionId, options = {}) ->
   res.cookie 'clientId', sessionId, options
 
 
+checkAuthorizationBearerHeader = (req) ->
+
+  return null  unless req.headers?.authorization
+  parts = req.headers.authorization.split ' '
+
+  return null  unless parts.length is 2 and parts[0] is 'Bearer'
+  token = parts[1]
+
+  return null  unless typeof token is 'string' and token.length > 0
+
+  return token
+
+
 module.exports = {
   error_
   error_404
@@ -280,4 +293,5 @@ module.exports = {
   isInAppRoute
   isMainDomain
   setSessionCookie
+  checkAuthorizationBearerHeader
 }

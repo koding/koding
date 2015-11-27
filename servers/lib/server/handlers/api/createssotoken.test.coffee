@@ -14,7 +14,7 @@ beforeTests = -> before (done) ->
 
 
 # here we have actual tests
-runTests = -> describe 'server.handlers.createssotoken', ->
+runTests = -> describe 'server.handlers.api.createssotoken', ->
 
   it 'should send HTTP 401 if Authorization: Bearer header is not set', (done) ->
 
@@ -53,7 +53,7 @@ runTests = -> describe 'server.handlers.createssotoken', ->
 
   it 'should send HTTP 400 if user is non-existent', (done) ->
 
-    withConvertedUserAndApiToken ({ client, userFormData, apiToken }) ->
+    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
 
       createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
         headers : { Authorization : "Bearer #{apiToken.code}" }
@@ -70,7 +70,7 @@ runTests = -> describe 'server.handlers.createssotoken', ->
 
     # creating user, group, and api token
     options = { createGroup : yes }
-    withConvertedUserAndApiToken options, ({ client, userFormData, apiToken }) ->
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       # creating another user, which is not a member of the previously created group
       withConvertedUser ({ userFormData }) ->
@@ -91,7 +91,7 @@ runTests = -> describe 'server.handlers.createssotoken', ->
 
     # creating user, group, and api token
     options = { createGroup : yes }
-    withConvertedUserAndApiToken options, ({ client, userFormData, apiToken }) ->
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
         headers : { Authorization : "Bearer #{apiToken.code}" }

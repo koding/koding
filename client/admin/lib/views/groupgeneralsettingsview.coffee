@@ -95,7 +95,7 @@ module.exports = class GroupGeneralSettingsView extends KDCustomScrollView
 
     section.addSubView @uploadButton = new KDButtonView
       cssClass : 'compact solid green upload'
-      title    : 'UPLOAD IMAGE'
+      title    : 'UPLOAD LOGO'
       loader   : yes
 
     section.addSubView @removeLogoButton = new KDButtonView

@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
 	"strings"
-
-	"github.com/mitchellh/goamz/ec2"
 )
 
 type TagInstances struct {
@@ -13,21 +12,21 @@ type TagInstances struct {
 	MongoDB   *lookup.MongoDB
 	Machines  map[string]lookup.MachineDocument
 
-	untagged map[*ec2.EC2][]tagData
+	untagged map[*amazon.Client][]tagData
 	err      error
 }
 
 type tagData struct {
 	id   string
-	tags []ec2.Tag
+	tags map[string]string
 }
 
 func (t *TagInstances) Process() {
-	emptyInstances := lookup.NewMultiInstances()
+	emptyInstanceMap := make(map[*amazon.Client]lookup.Instances)
 
 	// first collect all untagged instances. We can untagged instances when
 	// `instance.Tags` is empty
-	t.Instances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+	t.Instances.Iter(func(client *amazon.Client, instances lookup.Instances) {
 		untaggedInstances := make(lookup.Instances, 0)
 
 		for id, instance := range instances {
@@ -37,8 +36,10 @@ func (t *TagInstances) Process() {
 			}
 		}
 
-		emptyInstances.Add(client, untaggedInstances)
+		emptyInstanceMap[client] = untaggedInstances
 	})
+
+	emptyInstances := lookup.NewMultiInstancesMap(emptyInstanceMap)
 
 	// this is just here for debugging, remove once you are finished
 	if emptyInstances.Total() > 50 {
@@ -46,18 +47,18 @@ func (t *TagInstances) Process() {
 			emptyInstances.Total())
 
 		// log instance struct so we can see why this happened
-		emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+		emptyInstances.Iter(func(client *amazon.Client, instances lookup.Instances) {
 			for _, instance := range instances {
 				fmt.Printf("----------> [%s] instance = %+v tags %+v\n",
-					client.Region.Name, instance, instance.Tags)
+					client.Region, instance, instance.Tags)
 			}
 		})
 	}
 
 	// next fetch the necessary tag data from MongoDB, so we can tag again the
 	// untagged instances
-	t.untagged = make(map[*ec2.EC2][]tagData, 0)
-	emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+	t.untagged = make(map[*amazon.Client][]tagData, 0)
+	emptyInstances.Iter(func(client *amazon.Client, instances lookup.Instances) {
 		regionUntagged := make([]tagData, 0)
 		for id := range instances {
 			// probably a ghost vm (an instance without a MongoDB document), we
@@ -80,12 +81,12 @@ func (t *TagInstances) Process() {
 			machineId := machine.Id.Hex()
 			domain := machine.Domain
 
-			tags := []ec2.Tag{
-				{Key: "Name", Value: instanceName},
-				{Key: "koding-user", Value: username},
-				{Key: "koding-env", Value: env},
-				{Key: "koding-machineId", Value: machineId},
-				{Key: "koding-domain", Value: domain},
+			tags := map[string]string{
+				"Name":             instanceName,
+				"koding-user":      username,
+				"koding-env":       env,
+				"koding-machineId": machineId,
+				"koding-domain":    domain,
 			}
 
 			regionUntagged = append(regionUntagged, tagData{
@@ -113,7 +114,7 @@ func (t *TagInstances) Run() {
 
 	for client, untaggedInstances := range t.untagged {
 		for _, instance := range untaggedInstances {
-			_, err := client.CreateTags([]string{instance.id}, instance.tags)
+			err := client.AddTags(instance.id, instance.tags)
 			if err != nil {
 				fmt.Printf("tagInstances: creating tags err %s\n", err.Error())
 			}

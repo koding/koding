@@ -104,6 +104,7 @@ module.exports = class CreatePrivateChannelModal extends React.Component
 
   getDropboxFieldClassnames: -> classnames
     'Reactivity-formfield' : yes
+    'inviteMembers'        : yes
     'dropdown'             : yes
     'invalid'              : @state.invalidParticipants
 
@@ -383,26 +384,26 @@ module.exports = class CreatePrivateChannelModal extends React.Component
           <div>{@props.extraInformation}</div>
         </div>
         <div className={@getDropboxFieldClassnames()}>
-          <label className='Reactivity-label inviteMembers'>Invite Members</label>
+          <label className='Reactivity-label'>Invite Members</label>
           {@renderAddParticipantInput()}
         </div>
         {@renderPreExistingChannelBox()}
-        <div className='Reactivity-formfield'>
-          <label className='Reactivity-label channelName'>
+        <div className='Reactivity-formfield channelName'>
+          <label className='Reactivity-label'>
             Name
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input' value={@state.name} maxlength='20' onChange={@bound 'setName'}/>
+          <input className='Reactivity-input' value={@state.name} maxLength='20' onChange={@bound 'setName'}/>
           <span className='Reactivity-fieldMessage'>
             This is how this conversation is going to appear on your sidebar.
           </span>
         </div>
-        <div className='Reactivity-formfield'>
-          <label className='Reactivity-label channelPurpose'>
+        <div className='Reactivity-formfield channelPurpose'>
+          <label className='Reactivity-label'>
             Purpose
             <span className='Reactivity-notRequired'> (optional)</span>
           </label>
-          <input className='Reactivity-input' value={@state.purpose} maxlength='200' onChange={@bound 'setPurpose'}/>
+          <input className='Reactivity-input' value={@state.purpose} maxLength='200' onChange={@bound 'setPurpose'}/>
           <span className='Reactivity-fieldMessage'>
             Set a purpose to your conversation that describes what it will be used for.
           </span>

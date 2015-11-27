@@ -15,8 +15,6 @@ import (
 
 // TODO(rjeczalik): make all Create* methods blocking with aws.WaitUntil*
 
-// TODO(rjeczalik): support paginated replies for Describe* calls
-
 // Client wraps *ec.EC2 with an API that hides Input/Output structs
 // while dealing with EC2 service API.
 type Client struct {
@@ -50,6 +48,22 @@ func NewClient(auth client.ConfigProvider, region string, log logging.Logger) (*
 		c.Zones[i] = aws.StringValue(zone.ZoneName)
 	}
 	return c, nil
+}
+
+// Addresses is a wrapper for (*ec2.EC2).DescribeAddresses.
+//
+// If call succeeds but no addresses were found, it returns non-nil
+// *NotFoundError error.
+func (c *Client) Addresses() ([]*ec2.Address, error) {
+	// DescribeAddresses' reply is not paginated.
+	resp, err := c.EC2.DescribeAddresses(nil)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(resp.Addresses) == 0 {
+		return nil, newNotFoundError("Address", errors.New("no addresses found"))
+	}
+	return resp.Addresses, nil
 }
 
 // AddressesByIP is a wrapper for (*ec2.EC2).DescribeAddresses.
@@ -108,6 +122,7 @@ func (c *Client) AssociateAddress(instanceID, allocID string) error {
 // If call succeeds but no images were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Images() ([]*ec2.Image, error) {
+	// DescribeImages' reply is not paginated.
 	resp, err := c.EC2.DescribeImages(nil)
 	if err != nil {
 		return nil, awsError(err)
@@ -171,23 +186,28 @@ func (c *Client) DeregisterImage(imageID string) error {
 	return awsError(err)
 }
 
-// Snapshots is a wrapper for (*ec2.EC2).DescribeSnapshots.
+// Snapshots is a wrapper for (*ec2.EC2).DescribeSnapshotsPages.
 //
 // If call succeeds but no snapshots were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
-	resp, err := c.EC2.DescribeSnapshots(nil)
+	var snapshots []*ec2.Snapshot
+	err := c.EC2.DescribeSnapshotsPages(nil, func(resp *ec2.DescribeSnapshotsOutput, _ bool) bool {
+		snapshots = append(snapshots, resp.Snapshots...)
+		return true
+	})
 	if err != nil {
 		return nil, awsError(err)
 	}
-	if len(resp.Snapshots) == 0 {
+	if len(snapshots) == 0 {
 		return nil, newNotFoundError("Snapshot", errors.New("no snapshots found"))
 	}
-	return resp.Snapshots, nil
+	return snapshots, nil
 }
 
 // SnapshotByID is a wrapper for (*ec.EC2).DescribeSnapshots with id filter.
 func (c *Client) SnapshotByID(id string) (*ec2.Snapshot, error) {
+	// DescribeSnapshots' reply is not paginated when SnapshotIds is set.
 	params := &ec2.DescribeSnapshotsInput{
 		SnapshotIds: []*string{aws.String(id)},
 	}
@@ -228,6 +248,7 @@ func (c *Client) DeleteSnapshot(id string) error {
 // If call succeeds but no VPCs were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) VPCs() ([]*ec2.Vpc, error) {
+	// DescribeVpcs' reply is not paginated.
 	resp, err := c.EC2.DescribeVpcs(nil)
 	if err != nil {
 		return nil, awsError(err)
@@ -243,6 +264,7 @@ func (c *Client) VPCs() ([]*ec2.Vpc, error) {
 // If call succeeds but no subnets were found, it returns non-nil
 // *NotFoundError error.
 func (c *Client) Subnets() ([]*ec2.Subnet, error) {
+	// DescribeSubnets' reply is not paginated.
 	resp, err := c.EC2.DescribeSubnets(nil)
 	if err != nil {
 		return nil, awsError(err)
@@ -351,6 +373,37 @@ func (c *Client) AuthorizeSecurityGroup(id string, perm []*ec2.IpPermission) err
 	return awsError(err)
 }
 
+// TagsByFilters is a wrapper for (*ec.EC2).DescribeTagsPages.
+//
+// If call succeeds but no subnets were found, it returns non-nil
+// *NotFoundError error.
+func (c *Client) TagsByFilters(filters url.Values) (map[string]string, error) {
+	var tags []*ec2.TagDescription
+	var params = &ec2.DescribeTagsInput{
+		Filters: NewFilters(filters),
+	}
+	err := c.EC2.DescribeTagsPages(params, func(resp *ec2.DescribeTagsOutput, _ bool) bool {
+		tags = append(tags, resp.Tags...)
+		return true
+	})
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(tags) == 0 {
+		return nil, newNotFoundError("Tag", errors.New("no tags found"))
+	}
+	m := make(map[string]string, len(tags))
+	for _, tag := range tags {
+		key := aws.StringValue(tag.Key)
+		val := aws.StringValue(tag.Value)
+		if _, ok := m[key]; ok {
+			c.Log.Error("duplicated tag key=%q, value=%q for ", key, val)
+		}
+		m[key] = val
+	}
+	return m, nil
+}
+
 // AddTag is a wrapper for (*ec2.EC2).CreateTags.
 func (c *Client) AddTag(resourceID, key, value string) error {
 	return c.AddTags(resourceID, map[string]string{key: value})
@@ -366,16 +419,27 @@ func (c *Client) AddTags(resourceID string, tags map[string]string) error {
 	return awsError(err)
 }
 
-// InstaceByID is a wrapper for (*ec2.EC2).DescribeInstances with id filter.
+// Instances is a wraper for (*ec2.EC2).DescribeInstancesPages.
+func (c *Client) Instances() ([]*ec2.Instance, error) {
+	instances, err := c.instances(nil)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(instances) == 0 {
+		return nil, newNotFoundError("Instance", errors.New("no instance found"))
+	}
+	return instances, nil
+}
+
+// InstaceByID is a wrapper for (*ec2.EC2).DescribeInstancesPages with id filter.
 func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 	params := &ec2.DescribeInstancesInput{
 		InstanceIds: []*string{aws.String(id)},
 	}
-	resp, err := c.EC2.DescribeInstances(params)
+	instances, err := c.instances(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
-	instances := collectInstances(resp.Reservations)
 	if len(instances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%s", id))
 	}
@@ -385,7 +449,7 @@ func (c *Client) InstanceByID(id string) (*ec2.Instance, error) {
 	return instances[0], nil
 }
 
-// InstancesByFilters is a wrapper for (*ec2.EC2).DescribeInstances with
+// InstancesByFilters is a wrapper for (*ec2.EC2).DescribeInstancesPages  with
 // user-defined filters.
 //
 // If the value of a certain filter is an empty string, the filter is ignored.
@@ -395,15 +459,21 @@ func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error)
 	params := &ec2.DescribeInstancesInput{
 		Filters: NewFilters(filters),
 	}
-	resp, err := c.EC2.DescribeInstances(params)
+	instances, err := c.instances(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
-	instances := collectInstances(resp.Reservations)
 	if len(instances) == 0 {
 		return nil, newNotFoundError("Instance", fmt.Errorf("no instances found with filters=%v", filters))
 	}
 	return instances, nil
+}
+
+func (c *Client) instances(params *ec2.DescribeInstancesInput) (instances []*ec2.Instance, err error) {
+	return instances, c.EC2.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, _ bool) bool {
+		instances = append(instances, collectInstances(resp.Reservations)...)
+		return true
+	})
 }
 
 func collectInstances(reservations []*ec2.Reservation) (instances []*ec2.Instance) {
@@ -434,21 +504,43 @@ func (c *Client) StartInstance(id string) (*ec2.InstanceStateChange, error) {
 }
 
 // StopInstance is a wrapper for (*ec2.EC2).StopInstances.
+//
+// If call succeeds but no instance were stopped, it returns non-nil
+// *NotFoundError error.
 func (c *Client) StopInstance(id string) (*ec2.InstanceStateChange, error) {
+	stopped, err := c.StopInstances(id)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	return stopped[0], nil
+}
+
+// StopInstances is a wrapper for (*ec2.EC2).StopInstances.
+//
+// If call succeeds but no instances were stopped, it returns non-nil
+// *NotFoundError error.
+func (c *Client) StopInstances(ids ...string) ([]*ec2.InstanceStateChange, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("no instances to stop")
+	}
 	params := &ec2.StopInstancesInput{
-		InstanceIds: []*string{aws.String(id)},
+		InstanceIds: make([]*string, len(ids)),
+	}
+	for i := range params.InstanceIds {
+		params.InstanceIds[i] = aws.String(ids[i])
 	}
 	resp, err := c.EC2.StopInstances(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
 	if len(resp.StoppingInstances) == 0 {
-		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instance stopped with ids=%v", ids))
 	}
-	if len(resp.StoppingInstances) > 1 {
-		c.Log.Warning("more than one instance stopped with id=%q: %+v", id, resp.StoppingInstances)
+	if len(resp.StoppingInstances) != len(ids) {
+		c.Log.Warning("requested to stop %d instances; stopped %d: %+v",
+			len(ids), len(resp.StoppingInstances), resp.StoppingInstances)
 	}
-	return resp.StoppingInstances[0], nil
+	return resp.StoppingInstances, nil
 }
 
 // RebootInstance is a wrapper for (*ec2.EC2).RebootInstances.
@@ -461,21 +553,43 @@ func (c *Client) RebootInstance(id string) error {
 }
 
 // TerminateInstance is a wrapper for (*ec2.EC2).TerminateInstances.
+//
+// If call succeeds but no instance were terminated, it returns non-nil
+// *NotFoundError error.
 func (c *Client) TerminateInstance(id string) (*ec2.InstanceStateChange, error) {
+	terminated, err := c.TerminateInstances(id)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	return terminated[0], nil
+}
+
+// TerminateInstances is a wrapper for (*ec2.EC2).TerminateInstances.
+//
+// If call succeeds but no instances were terminated, it returns non-nil
+// *NotFoundError error.
+func (c *Client) TerminateInstances(ids ...string) ([]*ec2.InstanceStateChange, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("no instances to terminate")
+	}
 	params := &ec2.TerminateInstancesInput{
-		InstanceIds: []*string{aws.String(id)},
+		InstanceIds: make([]*string, len(ids)),
+	}
+	for i := range params.InstanceIds {
+		params.InstanceIds[i] = aws.String(ids[i])
 	}
 	resp, err := c.EC2.TerminateInstances(params)
 	if err != nil {
 		return nil, awsError(err)
 	}
 	if len(resp.TerminatingInstances) == 0 {
-		return nil, newNotFoundError("Instance", fmt.Errorf("no instance found with id=%q", id))
+		return nil, newNotFoundError("Instance", fmt.Errorf("no instance terminated with ids=%v", ids))
 	}
-	if len(resp.TerminatingInstances) > 1 {
-		c.Log.Warning("more than one instance terminated with id=%q: %+v", id, resp.TerminatingInstances)
+	if len(resp.TerminatingInstances) != len(ids) {
+		c.Log.Warning("requested to terminate %d instances; terminated %d: %+v",
+			len(ids), len(resp.TerminatingInstances), resp.TerminatingInstances)
 	}
-	return resp.TerminatingInstances[0], nil
+	return resp.TerminatingInstances, nil
 }
 
 // KeyPairByName is a wrapper for (*ec2.EC2).DescribeKeyPairs with name filter.
@@ -518,11 +632,28 @@ func (c *Client) ImportKeyPair(name string, publicKey []byte) (fingerprint strin
 	return aws.StringValue(resp.KeyFingerprint), nil
 }
 
+// Volumes is a wrapper for (*ec2.EC2).DescribeVolumesPages.
+func (c *Client) Volumes() ([]*ec2.Volume, error) {
+	var volumes []*ec2.Volume
+	err := c.EC2.DescribeVolumesPages(nil, func(resp *ec2.DescribeVolumesOutput, _ bool) bool {
+		volumes = append(volumes, resp.Volumes...)
+		return true
+	})
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(volumes) == 0 {
+		return nil, newNotFoundError("Volume", errors.New("no volume found"))
+	}
+	return volumes, nil
+}
+
 // Volume is a wrapper for (*ec2.EC2).DescribeVolumes with id filter.
 func (c *Client) VolumeByID(id string) (*ec2.Volume, error) {
 	params := &ec2.DescribeVolumesInput{
 		VolumeIds: []*string{aws.String(id)},
 	}
+	// DescribeVolumes' reply is not paginated when VolumeIds is set.
 	resp, err := c.EC2.DescribeVolumes(params)
 	if err != nil {
 		return nil, awsError(err)

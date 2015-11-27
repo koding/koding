@@ -1,8 +1,6 @@
 package strconv
 
-import (
-	"testing"
-)
+import "testing"
 
 type quoteTest struct {
 	in    string
@@ -38,6 +36,9 @@ var unquotetests = []unQuoteTest{
 	{`"\a\b\f\n\r\t\v\\\""`, "\a\b\f\n\r\t\v\\\""},
 	{`"'"`, "'"},
 	{`"${file("foo")}"`, `${file("foo")}`},
+	{`"${file(\"foo\")}"`, `${file("foo")}`},
+	{`"echo ${var.region}${element(split(",",var.zones),0)}"`,
+		`echo ${var.region}${element(split(",",var.zones),0)}`},
 }
 
 var misquoted = []string{
@@ -72,7 +73,7 @@ var misquoted = []string{
 
 func TestUnquote(t *testing.T) {
 	for _, tt := range unquotetests {
-		if out, err := Unquote(tt.in); err != nil && out != tt.out {
+		if out, err := Unquote(tt.in); err != nil || out != tt.out {
 			t.Errorf("Unquote(%#q) = %q, %v want %q, nil", tt.in, out, err, tt.out)
 		}
 	}

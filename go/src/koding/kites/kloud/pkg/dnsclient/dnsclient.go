@@ -140,8 +140,10 @@ func (r *Route53) GetAll(name string) ([]*Record, error) {
 
 func (r *Route53) get(name string) ([]*route53.ResourceRecordSet, error) {
 	params := &route53.ListResourceRecordSetsInput{
-		HostedZoneId:    aws.String(r.ZoneId),
-		StartRecordName: aws.String(name),
+		HostedZoneId: aws.String(r.ZoneId),
+	}
+	if name != "" {
+		params.StartRecordName = aws.String(name)
 	}
 	resp, err := r.ListResourceRecordSets(params)
 	if err != nil {

@@ -22,7 +22,7 @@ run() {
             echo "skipping $i"
           else
             echo "running $i test suite"
-            $NIGHTWATCH_CMD --retries 3 --group $i
+            $NIGHTWATCH_CMD --group $i
           fi
       fi
     done
@@ -30,9 +30,9 @@ run() {
     echo "running single test suite: $SUITE $SUBSUITE"
 
     if [ -z "$SUBSUITE" ]; then
-      $NIGHTWATCH_CMD --retries 3 --group ./$BUILD_DIR/$SUITE
+      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE
     else
-      $NIGHTWATCH_CMD --retries 3 --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
+      $NIGHTWATCH_CMD --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js
     fi
   fi
 }
