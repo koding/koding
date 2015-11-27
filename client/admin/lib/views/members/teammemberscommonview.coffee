@@ -194,7 +194,10 @@ module.exports = class TeamMembersCommonView extends KDView
 
     if listHeight <= viewHeight
       listCtrl.lazyLoader.show()
-      @fetchMembers yes
+
+      if query = @searchInput.getValue() then @search()
+      else
+        @fetchMembers yes
 
 
   search: (useSearchMembersMethod = no) ->
