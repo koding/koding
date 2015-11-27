@@ -78,7 +78,7 @@ module.exports = class PrivateMessageForm extends KDFormViewWithFields
       # so just pass the callback to .then():
       .then callback
       .timeout 1e4
-      .catch Promise.TimeoutError, callback.bind this, []
+      .catch callback.bind this, []
 
 
   handleRecipientKeydown: (event) ->
