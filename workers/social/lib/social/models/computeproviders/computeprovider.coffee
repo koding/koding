@@ -354,7 +354,11 @@ module.exports = class ComputeProvider extends Base
       type      : 'member-stacks'
       max       : plan.member
       min       : 0
-    , callback
+    , (err) ->
+      # no worries about `decrement` errors
+      # since 0 is already defined as min ~ GG
+      callback if change is 'increment' then err else null
+
 
 
   @createGroupStack = (client, options, callback) ->
