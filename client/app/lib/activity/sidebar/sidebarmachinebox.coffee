@@ -64,9 +64,8 @@ module.exports = class SidebarMachineBox extends KDView
 
     @machineItem.on 'click', =>
       if @isMachineRunning()
-        if @machine.isMine() then @toggleList()
-        else
-          if @machine.isApproved() then @toggleList()
+        if @machine.isMine() or @machine.isApproved()
+          @toggleList()
 
       else kd.singletons.router.handleRoute @machineItem.machineRoute
 
