@@ -381,6 +381,20 @@ module.exports = class ComputeProvider extends Base
       callback if change is 'increment' then err else null
 
 
+  @updateGroupResourceUsage = (options, callback) ->
+
+    { group, instanceCount, change } = options
+
+    @updateGroupStackUsage group, change, (err) =>
+      return callback err  if err
+      @updateGroupInstanceUsage group, change, instanceCount, (err) =>
+        if err and change is 'increment'
+          @updateGroupStackUsage group, 'decrement', ->
+            callback err
+        else
+          callback err
+
+
   @createGroupStack = (client, options, callback) ->
 
     unless callback
