@@ -36,7 +36,20 @@ module.exports = class ChatPane extends React.Component
   onScroll: -> @setDateMarkersPosition()
 
 
-  afterScrollDidUpdate: -> @setDateMarkersPosition()
+  afterScrollDidUpdate: ->
+
+    @setFilteredMarkers()
+    @setDateMarkersPosition()
+
+
+  setFilteredMarkers: ->
+
+    filter   = Array.prototype.filter
+    chatList = ReactDOM.findDOMNode @refs.ChatList
+    @markers = chatList.querySelectorAll '.DateMarker'
+
+    @filteredMarkers = filter.call @markers, (node) ->
+      return node.className.indexOf('DateMarker-fixed') is -1
 
 
   setDateMarkersPosition: ->
@@ -47,14 +60,7 @@ module.exports = class ChatPane extends React.Component
 
     return  unless scrollTop and offsetHeight
 
-    filter   = Array.prototype.filter
-    chatList = ReactDOM.findDOMNode @refs.ChatList
-    markers  = chatList.querySelectorAll '.DateMarker'
-
-    filtered = filter.call markers, (node) ->
-      return node.className.indexOf('DateMarker-fixed') is -1
-
-    filtered.forEach (dateMarker) ->
+    @filteredMarkers.forEach (dateMarker) ->
 
       { offsetTop, offsetWidth } = dateMarker
       fixedMarker = dateMarker.querySelector '.DateMarker-fixed'
