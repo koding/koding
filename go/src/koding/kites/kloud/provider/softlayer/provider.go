@@ -92,8 +92,12 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(machine.Credential)
 	if err != nil {
-		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
+		return fmt.Errorf("could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
+	if len(creds) == 0 {
+		return fmt.Errorf("softlayer: no credential data available for credential: %s", machine.Credential)
+	}
+
 	cred := creds[0] // there is only one, pick up the first one
 
 	var slCred struct {
