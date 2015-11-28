@@ -133,7 +133,11 @@ module.exports = class OnboardingController extends KDController
   ###
   getItemsIfResetOnboarding: (onboarding) ->
 
-    return onboarding.partial.items  if @isResetOnboarding onboarding.name
+    if @isResetOnboarding onboarding.name
+      items = onboarding.partial.items
+
+    items = []  unless Array.isArray items
+    return items
 
 
   ###*
@@ -176,7 +180,11 @@ module.exports = class OnboardingController extends KDController
    *
    * @return {Array}
   ###
-  getResetOnboardings: -> @appStorage.getValue OnboardingConstants.RESET_ONBOARDINGS
+  getResetOnboardings: ->
+
+    list = @appStorage.getValue OnboardingConstants.RESET_ONBOARDINGS
+    list = []  unless Array.isArray list
+    return list
 
 
   ###*
@@ -185,7 +193,7 @@ module.exports = class OnboardingController extends KDController
    * @param {string} name - onboarding name
    * @return {bool}
   ###
-  isResetOnboarding: (name) -> @getResetOnboardings()?.indexOf(name) > -1
+  isResetOnboarding: (name) -> @getResetOnboardings().indexOf(name) > -1
 
 
   ###*
@@ -196,9 +204,8 @@ module.exports = class OnboardingController extends KDController
   removeFromResetOnboardings: (name) ->
 
     resetOnboardings = @getResetOnboardings()
-    index            = resetOnboardings?.indexOf name
 
-    if index > -1
+    if (index = resetOnboardings.indexOf name) > -1
       resetOnboardings.splice index, 1
       @appStorage.setValue OnboardingConstants.RESET_ONBOARDINGS, resetOnboardings
 

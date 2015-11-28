@@ -6,7 +6,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -25,7 +24,7 @@ type Session struct {
 	DNSStorage dnsstorage.Storage
 	Eventer    eventer.Eventer
 	AWSClient  *amazon.Amazon
-	AWSClients *multiec2.Clients
+	AWSClients *amazon.Clients
 	Userdata   *userdata.Userdata
 	Log        logging.Logger
 }

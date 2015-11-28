@@ -1,4 +1,5 @@
 BrowsePublicChannelsModal = require 'activity/components/browsepublicchannelsmodal'
+helper = require './helper'
 
 module.exports = class AllPublicChannelsRoute
 
@@ -7,5 +8,8 @@ module.exports = class AllPublicChannelsRoute
     @path = '/AllChannels'
 
 
-  getComponent: (state, callback) -> callback null, BrowsePublicChannelsModal
+  getComponents: (state, callback) ->
+
+    helper.renderWithBackgroundChannel BrowsePublicChannelsModal, callback
+
 

@@ -5,6 +5,7 @@ import (
 
 	"koding/kites/kloud/awscompat"
 
+	"github.com/koding/logging"
 	oldaws "github.com/mitchellh/goamz/aws"
 )
 
@@ -15,13 +16,24 @@ type Clients struct {
 
 // NewClientPerRegion is returning a new multi clients refernce for the given
 // regions names.
-func NewClientPerRegion(auth oldaws.Auth, regions []string) (*Clients, error) {
+func NewClientPerRegion(auth oldaws.Auth, regions []string, log logging.Logger) (*Clients, error) {
+	// Validate regions - ensure no duplicates or no empty items.
+	uniq := make(map[string]struct{})
+	for i, region := range regions {
+		if region == "" {
+			return nil, fmt.Errorf("empty region at i=%d", i)
+		}
+		if _, ok := uniq[region]; ok {
+			return nil, fmt.Errorf("duplicated region %q", region)
+		}
+		uniq[region] = struct{}{}
+	}
 	c := &Clients{
 		regions: make(map[string]*Client, len(regions)),
 	}
 	session := awscompat.NewSession(auth)
 	for _, region := range regions {
-		client, err := newClient(session, region)
+		client, err := NewClient(session, region, log)
 		if err != nil {
 			return nil, err
 		}

@@ -4,7 +4,7 @@ import (
 	"socialapi/workers/integration/webhook"
 	"strings"
 
-	uuid "github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // PushRequest is used as input data for /push endpoint
@@ -20,7 +20,7 @@ func (r *PushRequest) validate() error {
 	}
 
 	token := strings.ToLower(r.Token)
-	if _, err := uuid.ParseHex(token); err != nil {
+	if _, err := uuid.FromString(token); err != nil {
 		return ErrTokenNotValid
 	}
 

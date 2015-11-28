@@ -42,6 +42,14 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Ratelimit: httpRateLimiter,
 		},
 	)
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:  h.GetSettings,
+			Name:     "webhook-settings",
+			Type:     handler.GetRequest,
+			Endpoint: "/settings/{token}",
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{

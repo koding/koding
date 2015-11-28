@@ -6,7 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type TokenGenerator struct {
@@ -45,14 +45,8 @@ func (tg *TokenGenerator) validateToken() error {
 }
 
 func (tg *TokenGenerator) Generate() (string, error) {
-	uuid1, err := uuid.NewV4()
-	if err != nil {
-		return "", err
-	}
-	uuid2, err := uuid.NewV4()
-	if err != nil {
-		return "", err
-	}
+	uuid1 := uuid.NewV4()
+	uuid2 := uuid.NewV4()
 
 	return fmt.Sprintf("%s%s", uuid1, uuid2), nil
 }

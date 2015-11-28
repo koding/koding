@@ -11,8 +11,6 @@ changeToChannel          = require 'activity/util/changeToChannel'
 
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
-NewPrivateChannelRoute = require './newprivatechannel'
-AllPrivateChannelsRoute = require './allprivatechannels'
 SingleMessageRoute = require './singlemessage'
 
 
@@ -22,8 +20,6 @@ module.exports = class SinglePrivateChannelRoute
 
     @path = ':privateChannelId'
     @childRoutes = [
-      new NewPrivateChannelRoute
-      new AllPrivateChannelsRoute
       new SingleMessageRoute
     ]
 
@@ -40,14 +36,6 @@ module.exports = class SinglePrivateChannelRoute
     { privateChannelId, postId } = nextState.params
 
     selectedThread = kd.singletons.reactor.evaluate selectedChannelThread
-
-    # if there is no channel id set on the route (/Messages, /NewMessage)
-    unless privateChannelId
-      # if there is not a selected chat
-      unless selectedThread
-        botChannel = kd.singletons.socialapi.getPrefetchedData 'bot'
-        # set channel id to bot channel id.
-        privateChannelId = botChannel.id
 
     if privateChannelId
       transitionToChannel privateChannelId, done
@@ -66,17 +54,19 @@ module.exports = class SinglePrivateChannelRoute
 
 transitionToChannel = (channelId, done) ->
 
-  successFn = ({ channel }) ->
-    threadActions.changeSelectedThread channel.id
-    channelActions.loadParticipants channel.id
+  { reactor } = kd.singletons
+
+  isChannelOpened = reactor.evaluateToJS ['OpenedChannelsStore', channelId]
+
+  # if we already have a channel in the channel store, just switch to it.
+  if isChannelOpened
+    threadActions.changeSelectedThread channelId
     done()
-
-  channel = kd.singletons.reactor.evaluateToJS ['ChannelsStore', channelId]
-
-  if channel
-    successFn { channel }
-    messageActions.loadMessages channel.id
+  # if not, load necessary things then switch to it.
   else
-    channelActions.loadChannel(channelId).then successFn
+    channelActions.loadChannel(channelId).then ({ channel }) ->
+      threadActions.changeSelectedThread channel.id
+      channelActions.loadParticipants channel.id
+      done()
 
 

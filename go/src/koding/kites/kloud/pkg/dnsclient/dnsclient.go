@@ -3,6 +3,7 @@ package dnsclient
 import (
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 
 	"koding/kites/kloud/awscompat"
@@ -43,7 +44,11 @@ func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
 	var dnsName = hostedZone + "." // DNS name ends with a ".", e.g. "dev.koding.io."
 	for _, h := range hostedZones.HostedZones {
 		if aws.StringValue(h.Name) == dnsName {
-			zoneId = awscompat.CleanZoneID(aws.StringValue(h.Id))
+			// The h.Id looks like "/hostedzone/Z2T644TMIB2JZM", we're interested
+			// only in the last part - "Z2T644TMIB2JZM".
+			if s := aws.StringValue(h.Id); s != "" {
+				zoneId = path.Base(s)
+			}
 			break
 		}
 	}
@@ -65,7 +70,7 @@ func NewRoute53Client(hostedZone string, auth oldaws.Auth) *Route53 {
 func (r *Route53) Upsert(domain string, newIP string) error {
 	r.Log.Debug("upserting domain name: %s to be associated with following ip: %v", domain, newIP)
 	params := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: aws.String(r.ZoneId), // TODO(rjeczalik): ensure it's valid - awscompat.ClearZoneID
+		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
 			Comment: aws.String("Upserting domain"),
 			Changes: []*route53.Change{{
@@ -135,8 +140,10 @@ func (r *Route53) GetAll(name string) ([]*Record, error) {
 
 func (r *Route53) get(name string) ([]*route53.ResourceRecordSet, error) {
 	params := &route53.ListResourceRecordSetsInput{
-		HostedZoneId:    aws.String(r.ZoneId),
-		StartRecordName: aws.String(name),
+		HostedZoneId: aws.String(r.ZoneId),
+	}
+	if name != "" {
+		params.StartRecordName = aws.String(name)
 	}
 	resp, err := r.ListResourceRecordSets(params)
 	if err != nil {
@@ -156,7 +163,7 @@ func (r *Route53) Rename(oldDomain, newDomain string) error {
 	}
 	r.Log.Debug("updating domain name of IP %s from %q to %q", record.IP, oldDomain, newDomain)
 	params := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: aws.String(r.ZoneId), // ensure it's valid
+		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
 			Comment: aws.String("Renaming domain"),
 			Changes: []*route53.Change{{
@@ -198,7 +205,7 @@ func (r *Route53) Delete(domain string) error {
 	}
 	r.Log.Debug("deleting domain name: %s which was associated to following ip: %s", domain, record.IP)
 	params := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: aws.String(r.ZoneId), // ensure it's valid
+		HostedZoneId: aws.String(r.ZoneId),
 		ChangeBatch: &route53.ChangeBatch{
 			Comment: aws.String("Renaming domain"),
 			Changes: []*route53.Change{{

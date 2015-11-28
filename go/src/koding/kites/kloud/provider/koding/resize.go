@@ -6,13 +6,12 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/sshutil"
-	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"golang.org/x/net/context"
 )
 
 // Resize increases the current machines underling volume to a larger volume
@@ -67,23 +66,19 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		return err
 	}
 
-	if len(instance.BlockDevices) == 0 {
+	if len(instance.BlockDeviceMappings) == 0 {
 		return fmt.Errorf("fatal error: no block device available")
 	}
 
 	// we need it in a lot of places!
-	oldVolumeId := instance.BlockDevices[0].VolumeId
+	oldVolumeId := aws.StringValue(instance.BlockDeviceMappings[0].Ebs.VolumeId)
 
-	oldVolResp, err := a.ExistingVolume(oldVolumeId)
+	oldVol, err := a.ExistingVolume(oldVolumeId)
 	if err != nil {
 		return fmt.Errorf("couldn't retrieve existing volume '%s': %s", oldVolumeId, err)
 	}
 
-	volSize := oldVolResp.Size
-	currentSize, err := strconv.Atoi(volSize)
-	if err != nil {
-		return err
-	}
+	currentSize := int(aws.Int64Value(oldVol.Size))
 
 	// reset to current size in DB if something goes wrong, so the user can
 	// again apply resize if wished
@@ -140,7 +135,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	if err != nil {
 		return err
 	}
-	newSnapshotId := snapshot.Id
+	newSnapshotId := aws.StringValue(snapshot.SnapshotId)
 
 	defer func() {
 		m.Log.Info("deleting snapshot %s (not needed anymore)", newSnapshotId)
@@ -151,21 +146,21 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	m.Log.Info("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
 
 	// Go on with the current volume type. SSD(gp2) or Magnetic(standard)
-	volType := oldVolResp.VolumeType
+	volType := aws.StringValue(oldVol.VolumeType)
+	availZone := aws.StringValue(instance.Placement.AvailabilityZone)
 
-	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, volType, desiredSize)
+	volume, err := a.CreateVolume(newSnapshotId, availZone, volType, desiredSize)
 	if err != nil {
 		return err
 	}
-	newVolumeId := volume.VolumeId
+	newVolumeId := aws.StringValue(volume.VolumeId)
 	m.Log.Info("new volume was created with id %s", newVolumeId)
 
 	// delete volume if something goes wrong in following steps
 	defer func() {
 		if resErr != nil {
 			m.Log.Info("(an error occurred) deleting new volume %s ", newVolumeId)
-			_, err := a.Client.DeleteVolume(newVolumeId)
-			if err != nil {
+			if err := a.DeleteVolume(newVolumeId); err != nil {
 				m.Log.Error(err.Error())
 			}
 		}
@@ -194,7 +189,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		} else {
 			// if not just delete, it's not used anymore
 			m.Log.Info("deleting old volume %s (not needed anymore)", oldVolumeId)
-			go a.Client.DeleteVolume(oldVolumeId)
+			go a.DeleteVolume(oldVolumeId)
 		}
 	}()
 
@@ -213,7 +208,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	if err != nil {
 		return err
 	}
-	m.IpAddress = instance.PublicIpAddress
+	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
 	// optionally, we execute resize2fs to reclaim the underlying storage. This
 	// needs to be called because for some instances it doesn't get reclaimed
