@@ -431,6 +431,65 @@ func (c *Client) AddTags(resourceID string, tags map[string]string) error {
 	return awsError(err)
 }
 
+// InstanceStatusByID is a wrapper for (*ec2.EC2).DescribeInstanceStatusPages.
+//
+// If call succeeds but no instances were found, it returns non-nil
+// *NotFoundError error.
+func (c *Client) InstanceStatuses() ([]*ec2.InstanceStatus, error) {
+	return c.InstanceStatusesByFilter(nil)
+}
+
+// InstanceStatusByID is a wrapper for (*ec2.EC2).DescribeInstanceStatusPages
+// with id filter.
+func (c *Client) InstanceStatusByID(id string) (*ec2.InstanceStatus, error) {
+	params := &ec2.DescribeInstanceStatusInput{
+		InstanceIds: []*string{aws.String(id)},
+	}
+	statuses, err := c.instanceStatuses(params)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	if len(statuses) > 1 {
+		c.Log.Warning("more than one instance status found with id=%s: %+v", id, statuses)
+	}
+	return statuses[0], nil
+}
+
+// InstanceStatusByFilter is a wrapper for (*ec2.EC2).DescribeInstanceStatusPages
+// with user-defined filters.
+//
+// If filters are nil statuses for all running are returned.
+// If the value of a certain filter is an empty string, the filter is ignored.
+// If call succeeds but no instances were found, it returns non-nil
+// *NotFoundError error.
+func (c *Client) InstanceStatusesByFilter(filters url.Values) ([]*ec2.InstanceStatus, error) {
+	params := &ec2.DescribeInstanceStatusInput{
+		Filters: NewFilters(filters),
+	}
+	statuses, err := c.instanceStatuses(params)
+	if err != nil {
+		return nil, awsError(err)
+	}
+	return statuses, nil
+}
+
+func (c *Client) instanceStatuses(params *ec2.DescribeInstanceStatusInput) (statuses []*ec2.InstanceStatus, err error) {
+	if params == nil {
+		params = &ec2.DescribeInstanceStatusInput{}
+	}
+	// Update MaxResults param if no filtering options were set.
+	if params.Filters == nil && params.InstanceIds == nil && c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
+	return statuses, c.EC2.DescribeInstanceStatusPages(params, func(resp *ec2.DescribeInstanceStatusOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d instance statuses (page=%d)", len(resp.InstanceStatuses), page)
+		statuses = append(statuses, resp.InstanceStatuses...)
+		return true
+	})
+}
+
 // Instances is a wraper for (*ec2.EC2).DescribeInstancesPages.
 func (c *Client) Instances() ([]*ec2.Instance, error) {
 	instances, err := c.instances(nil)
