@@ -108,6 +108,21 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	return findMachine(query)
 }
 
+// GetMachineFieldsByUsername retrieves a slice of machines owned by the given user,
+// limited to the specified fields.
+func GetMachineFieldsByUsername(username string, fields []string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.M{"users": bson.M{
+		"$elemMatch": bson.M{"id": user.ObjectId, "owner": true},
+	}}
+
+	return findMachineFields(query, fields)
+}
+
 func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	query := bson.M{
 		"users": bson.M{
@@ -267,10 +282,30 @@ func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
 }
 
 func findMachine(query bson.M) ([]*models.Machine, error) {
+	return findMachineFields(query, nil)
+}
+
+// findMachineFields retreives the machines matching the given query, only returning
+// the given fields.
+//
+// If fields is empty, an empty projection will be sent to mongo. If fields is
+// *nil*, no projection is sent to mongo.
+func findMachineFields(query bson.M, fields []string) ([]*models.Machine, error) {
 	machines := []*models.Machine{}
 
 	queryFn := func(c *mgo.Collection) error {
-		iter := c.Find(query).Iter()
+		q := c.Find(query)
+
+		if fields != nil {
+			selects := bson.M{}
+			for _, f := range fields {
+				selects[f] = 1
+			}
+
+			q.Select(selects)
+		}
+
+		iter := q.Iter()
 
 		var machine models.Machine
 		for iter.Next(&machine) {

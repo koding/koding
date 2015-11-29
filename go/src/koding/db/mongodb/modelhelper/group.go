@@ -20,6 +20,39 @@ func GetGroupById(id string) (*models.Group, error) {
 	return group, Mongo.Run(GroupsCollectionName, query)
 }
 
+// GetGroupFieldsByIds retrieves a slice of groups matching the given ids and
+// limited to the specified fields.
+func GetGroupFieldsByIds(ids []string, fields []string) ([]*models.Group, error) {
+	groups := []*models.Group{}
+
+	objectIds := make([]bson.ObjectId, len(ids))
+	for i, id := range ids {
+		objectIds[i] = bson.ObjectIdHex(id)
+	}
+
+	selects := bson.M{}
+	for _, f := range fields {
+		selects[f] = 1
+	}
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{
+			"_id": bson.M{"$in": objectIds},
+		}).Select(selects).Iter()
+
+		var group models.Group
+		for iter.Next(&group) {
+			var newGroup models.Group
+			newGroup = group
+			groups = append(groups, &newGroup)
+		}
+
+		return iter.Close()
+	}
+
+	return groups, Mongo.Run(GroupsCollectionName, query)
+}
+
 func GetGroup(slugName string) (*models.Group, error) {
 	group := new(models.Group)
 
