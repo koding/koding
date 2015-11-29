@@ -387,7 +387,8 @@ func (c *Client) TagsByFilters(filters url.Values) (map[string]string, error) {
 	var params = &ec2.DescribeTagsInput{
 		Filters: NewFilters(filters),
 	}
-	if c.MaxResults != 0 {
+	// Update MaxResults param if no filtering options were set.
+	if params.Filters == nil && c.MaxResults != 0 {
 		params.MaxResults = aws.Int64(c.MaxResults)
 	}
 	var page int
@@ -484,7 +485,8 @@ func (c *Client) instances(params *ec2.DescribeInstancesInput) (instances []*ec2
 	if params == nil {
 		params = &ec2.DescribeInstancesInput{}
 	}
-	if c.MaxResults != 0 {
+	// Update MaxResults param if no filtering options were set.
+	if params.Filters == nil && params.InstanceIds == nil && c.MaxResults != 0 {
 		params.MaxResults = aws.Int64(c.MaxResults)
 	}
 	var page int
