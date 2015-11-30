@@ -9,6 +9,7 @@ lazyrouter     = require './lazyrouter'
 registerRoutes = require './util/registerRoutes'
 isKoding       = require './util/isKoding'
 
+EnvironmentsModal       = require 'app/environment/environmentsmodal'
 
 getAction = (formName) -> switch formName
   when 'login'    then 'log in'
@@ -101,3 +102,9 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       recoverPath.clear()
       kd.singletons.mainController.doLogout()
       global.location.href = path
+
+    when 'stacks'
+      { stack } = info.params
+      # TODO: fetch/get stack by slug and send it to modal
+      # new EnvironmentsModal selected: @getOption 'stack'
+      new EnvironmentsModal()

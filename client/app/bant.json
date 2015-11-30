@@ -11,6 +11,7 @@
     "/member/:username": "member",
     "/Unsubscribe/:token/:email/:opt?": "unsubscribe",
     "/Reset/:token": "reset",
+    "/Stacks/:stack?": "stacks",
     "/:slug/:name": "members",
     "/:name": "name"
   },
