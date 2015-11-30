@@ -7,7 +7,16 @@ module.exports = class StacksStore extends KodingFluxStore
 
   @getterPath = 'StacksStore'
 
+  _convertMachinesToIds = (jStack) ->
+    stack      = toImmutable jStack
+    machines   = stack.get('machines').toJS()
+    machineIds = machines.map (m) -> m._id
+    stack      = stack.set 'machines', machineIds
+    return stack
+
+
   getInitialState: -> immutable.Map()
+
 
   initialize: ->
 
@@ -18,12 +27,10 @@ module.exports = class StacksStore extends KodingFluxStore
   load: (stacks, jstacks) ->
 
     stacks.withMutations (stacks) ->
-      jstacks.forEach (stack) ->
-        stack.machines = stack.machines.map (m) -> m._id
-        stacks.set stack._id, toImmutable stack
+      jstacks.forEach _convertMachinesToIds
 
 
   updateStack: (stacks, stack) ->
 
     stacks.withMutations (stacks) ->
-      stacks.set stack._id, toImmutable stack
+      stacks.set stack._id, _convertMachinesToIds stack
