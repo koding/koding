@@ -205,6 +205,7 @@ type writeFileParams struct {
 	Content        []byte
 	DoNotOverwrite bool
 	Append         bool
+	ExpectedHash   string
 }
 
 func WriteFile(r *kite.Request) (interface{}, error) {
@@ -213,7 +214,7 @@ func WriteFile(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("{ path: [string] }")
 	}
 
-	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append)
+	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append, params.ExpectedHash)
 }
 
 func UniquePath(r *kite.Request) (interface{}, error) {

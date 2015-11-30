@@ -1,6 +1,8 @@
 package fs
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -106,7 +108,28 @@ func readFile(path string) (map[string]interface{}, error) {
 	return map[string]interface{}{"content": buf}, nil
 }
 
-func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, error) {
+// compareFileWithHash reads from the given file, comparing it with te given hash.
+// If the given hash and the hashed contents of the file do not match, an error is
+// returned. If there is any problem reading, an error is also returned.
+func compareFileWithHash(file *os.File, h string) error {
+	// Grab the current hash, and compare it to the expectedHash
+	hash := md5.New()
+	_, err := io.Copy(hash, file)
+	if err != nil {
+		return err
+	}
+
+	if h != hex.EncodeToString(hash.Sum(nil)) {
+		return errors.New(fmt.Sprintf(
+			"expected %q's contents to match the %q hash, it does not.",
+			file.Name(), h,
+		))
+	}
+
+	return nil
+}
+
+func writeFile(filename string, data []byte, doNotOverwrite, Append bool, expectedHash string) (int, error) {
 	flags := os.O_RDWR | os.O_CREATE
 	if doNotOverwrite {
 		flags |= os.O_EXCL
@@ -118,12 +141,46 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool) (int, 
 		flags |= os.O_APPEND
 	}
 
+	// If Append is false, we want to read it first, because it will be truncated.
+	//
+	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
+	// it there's no point in comparing hashes since no damage can be done.
+	if expectedHash != "" && !Append && !doNotOverwrite {
+		// Note that we're manually closing the file in all places, since we
+		// can't use a defer. Why can't we? The file gets opened a second time, so
+		// it should be closed before that, not at the end of this return.
+		file, err := os.OpenFile(filename, os.O_RDONLY, 0666)
+
+		if err != nil {
+			file.Close()
+			return 0, err
+		}
+
+		if err := compareFileWithHash(file, expectedHash); err != nil {
+			file.Close()
+			return 0, err
+		}
+
+		file.Close()
+	}
+
 	file, err := os.OpenFile(filename, flags, 0666)
 	if err != nil {
 		return 0, err
 	}
 
 	defer file.Close()
+
+	// If Append is true, we *did not* check the hash above, so we need to check it
+	// here before we write.
+	//
+	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
+	// it there's no point in comparing hashes since no damage can be done.
+	if expectedHash != "" && Append && !doNotOverwrite {
+		if err := compareFileWithHash(file, expectedHash); err != nil {
+			return 0, err
+		}
+	}
 
 	return file.Write(data)
 }
