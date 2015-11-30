@@ -46,6 +46,7 @@ module.exports = class Sidebar extends React.Component
           sectionTitle={stack.getIn [ 'title' ]}
           titleLink='/Stacks'
           secondaryLink='/Settings/Stacks'
+          unreadCount={stack.getIn [ '_revisionStatus', 'status', 'code' ]}
           />
 
     return stackSections
