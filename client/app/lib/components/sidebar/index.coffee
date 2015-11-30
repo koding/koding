@@ -42,7 +42,7 @@ module.exports = class Sidebar extends React.Component
           previewCount={PREVIEW_COUNT}
           selectedId={@state.selectedThreadId}
           stack={stack}
-          machines={stack.getIn [ 'machines' ]}
+          machines={stack.get 'machines'}
           />
 
     return stackSections
