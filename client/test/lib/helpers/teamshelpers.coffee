@@ -287,7 +287,7 @@ module.exports =
     return channelName
 
 
-  sendToComment: (browser) ->
+  sendComment: (browser) ->
 
     chatMessage       = helpers.getFakeText()
     chatInputSelector = '.ChatPaneFooter .ChatInputWidget textarea'
