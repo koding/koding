@@ -16,7 +16,8 @@ module.exports = class SidebarStackSection extends React.Component
     machines      : immutable.List()
     stack         : immutable.Map()
     previewCount  : 0
-    unreadCount   : 1
+    unreadCount   : 0
+
 
   renderMachines: ->
 
