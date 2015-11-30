@@ -9,37 +9,29 @@ SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 module.exports = class SidebarStackSection extends React.Component
 
   @defaultProps =
-    sectionTitle  : 'Default Stack'
-    titleLink     : '#'
-    secondaryLink : '#'
     selectedId    : null
-    machines      : immutable.List()
     stack         : immutable.Map()
-    previewCount  : 0
-    unreadCount   : 0
 
 
   renderMachines: ->
 
-    @props.machines
-      .sortBy (machine) -> machine.get '_id'
-      .toList()
-      .map (machine) =>
-        <SidebarMachinesListItem
-          key={machine.get '_id'}
-          machine={machine}
-          active={machine.get('_id') is @props.selectedId}
-          />
+    @props.stack.get('machines').map (machine) =>
+      <SidebarMachinesListItem
+        key={machine.get '_id'}
+        machine={machine}
+        active={machine.get('_id') is @props.selectedId}
+        />
 
 
   render: ->
 
     <SidebarSection
-      unreadCount={@props.unreadCount}
-      title={@props.sectionTitle}
-      titleLink={@props.titleLink}
-      secondaryLink={@props.secondaryLink}
-      className={kd.utils.curry 'SidebarStackSection', @props.className}>
+      className={kd.utils.curry 'SidebarStackSection', @props.className}
+      secondaryLink='/Settings/Stacks'
+      title={@props.stack.get 'title'}
+      titleLink='/Stacks'
+      unreadCount={@props.stack.getIn [ '_revisionStatus', 'status', 'code' ]}
+      >
       {@renderMachines()}
     </SidebarSection>
 
