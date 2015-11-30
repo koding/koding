@@ -62,6 +62,12 @@ func New(c *Config) *kontrol.Kontrol {
 		metricKiteHandler(met, "HandleMachine", kon.HandleMachine),
 	).DisableAuthentication()
 
+	kon.Kite.HandleFunc("getKodingKites",
+		metricKiteHandler(
+			met, "HandleGetKodingKites", HandleGetKodingKites(kon.HandleGetKites),
+		),
+	)
+
 	kon.Kite.HandleFunc("getKites",
 		metricKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
 	)
