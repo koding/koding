@@ -11,7 +11,6 @@ PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
 showNotification     = require 'app/util/showNotification'
-VideoComingSoonModal = require 'activity/components/videocomingsoonmodal'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 Link                 = require 'app/components/common/link'
 
@@ -33,17 +32,11 @@ module.exports = class ChannelThreadPane extends React.Component
 
     @state =
       showDropTarget        : no
-      isComingSoonModalOpen : no
       channelThread         : immutable.Map()
       channelParticipants   : immutable.List()
 
 
   channel: (args...) -> @state.channelThread.getIn ['channel'].concat args
-
-
-  onVideoStart: ->
-
-    @setState isComingSoonModalOpen: yes
 
 
   onDragEnter: (event) ->
@@ -66,11 +59,6 @@ module.exports = class ChannelThreadPane extends React.Component
     kd.utils.stopDOMEvent event
     @setState showDropTarget: no
     showNotification 'Coming soon...', type: 'main'
-
-
-  onCollabModalClose: ->
-
-    @setState isComingSoonModalOpen: no
 
 
   showNotificationSettingsModal: ->
@@ -99,16 +87,8 @@ module.exports = class ChannelThreadPane extends React.Component
       thread={thread}
       onInvitePeople={@bound 'invitePeople'}
       onLeaveChannel={@bound 'leaveChannel'}
-      onVideoStart={@bound 'onVideoStart'}
       onShowNotificationSettings={@bound 'showNotificationSettingsModal'}>
     </ThreadHeader>
-
-
-  renderComingSoonModal: ->
-
-    <CollaborationComingSoonModal
-      onClose={@bound 'onCollabModalClose'}
-      isOpen={@state.isComingSoonModalOpen}/>
 
 
   renderChannelDropContainer: ->
@@ -141,7 +121,6 @@ module.exports = class ChannelThreadPane extends React.Component
     return null  unless thread = @state.channelThread
 
     <div className='ChannelThreadPane is-withChat'>
-      {@renderComingSoonModal()}
       <section className='ChannelThreadPane-content'
         onDragEnter={@bound 'onDragEnter'}>
         {@renderChannelDropContainer()}
