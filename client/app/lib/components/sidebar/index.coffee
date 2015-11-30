@@ -34,6 +34,7 @@ module.exports = class Sidebar extends React.Component
 
 
   renderStacks: ->
+
     stackSections = []
     @state.stacks.toList().map (stack) =>
       stackSections.push \
@@ -43,10 +44,6 @@ module.exports = class Sidebar extends React.Component
           selectedId={@state.selectedThreadId}
           stack={stack}
           machines={stack.getIn [ 'machines' ]}
-          sectionTitle={stack.getIn [ 'title' ]}
-          titleLink='/Stacks'
-          secondaryLink='/Settings/Stacks'
-          unreadCount={stack.getIn [ '_revisionStatus', 'status', 'code' ]}
           />
 
     return stackSections
