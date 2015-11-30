@@ -8,9 +8,9 @@ formatEmojiName       = require 'activity/util/formatEmojiName'
 ChatInputFlux         = require 'activity/flux/chatinput'
 Dropbox               = require 'activity/components/dropbox/portaldropbox'
 EmojiIcon             = require 'activity/components/emojiicon'
-List                  = require './list'
+ScrollableList        = require './scrollablelist'
+Tabs                  = require './tabs'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
-ListWithTabsMixin     = require './listwithtabsmixin'
 
 
 module.exports = class EmojiSelector extends React.Component
@@ -20,6 +20,7 @@ module.exports = class EmojiSelector extends React.Component
     visible      : no
     selectedItem : ''
     query        : ''
+    tabs         : immutable.List()
     tabIndex     : -1
 
 
@@ -28,7 +29,7 @@ module.exports = class EmojiSelector extends React.Component
     { visible, query } = @props
     isBecomeVisible    = visible and not prevProps.visible
 
-    @calculateSectionPositions()  if isBecomeVisible
+    @refs.list.ready()  if isBecomeVisible
 
 
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
@@ -53,13 +54,7 @@ module.exports = class EmojiSelector extends React.Component
     @close()
 
 
-  sectionId: (sectionIndex) -> @refs.list.sectionId sectionIndex
-
-
-  isTabHighlightingEnabled: -> not @props.query
-
-
-  setTabIndex: (tabIndex) ->
+  onTabChange: (tabIndex) ->
 
     { stateId } = @props
 
@@ -73,57 +68,15 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setSelectorVisibility stateId, no
 
 
-  onSearch: (event) ->
+  onSearch: (value) ->
 
-    { value }   = event.target
     { stateId } = @props
-
     ChatInputFlux.actions.emoji.setSelectorQuery stateId, value
-
-
-  renderCategoryTabs: ->
-
-    { tabs, tabIndex } = @props
-
-    components = tabs.map (item, index) =>
-      tabClassName  = classnames
-        'EmojiSelector-categoryTab' : yes
-        'activeTab'                 : index is tabIndex
-      iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
-      category      = item.get 'category'
-
-      <span className={tabClassName} title={category.capitalize()} onClick={@lazyBound 'setTabIndex', index} key={category}>
-        <span className='emoji-wrapper'>
-          <span className={iconClassName}></span>
-        </span>
-      </span>
-
-    allTabClassName = classnames
-      'EmojiSelector-categoryTab' : yes
-      'activeTab'                 : tabIndex is -1
-    <div className='EmojiSelector-categoryTabs' ref='tabs'>
-      <span className={allTabClassName} title='All' onClick={@lazyBound 'setTabIndex', -1}>
-        <span className='emoji-wrapper'>
-          <span className='emoji-sprite emoji-clock3'></span>
-        </span>
-      </span>
-      { components }
-    </div>
-
-
-  renderFixedCategoryHeader: ->
-
-    { items, tabIndex, query } = @props
-
-    index    = if query then 0 else tabIndex
-    category = items.get(index).get 'category'
-
-    <header className='EmojiSelector-categorySectionHeader fixedHeader hidden' ref='fixedHeader'>{category}</header>
 
 
   render: ->
 
-    { items, query, visible, selectedItem } = @props
+    { items, query, visible, selectedItem, tabs, tabIndex } = @props
 
     <Dropbox
       className = 'EmojiSelector'
@@ -134,18 +87,18 @@ module.exports = class EmojiSelector extends React.Component
       ref       = 'dropbox'
       resize    = 'custom'
     >
-      { @renderCategoryTabs() }
-      {@renderFixedCategoryHeader()}
-      <div className="EmojiSelector-list Dropbox-resizable" ref='scrollable' onScroll={@bound 'onScroll'}>
-        <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
-        <List
-          items            = { items }
-          onItemSelected   = { @bound 'onItemSelected' }
-          onItemUnselected = { @bound 'onItemUnselected' }
-          onItemConfirmed  = { @bound 'onItemConfirmed' }
-          ref              = 'list'
-        />
-      </div>
+      <Tabs tabs={tabs} tabIndex={tabIndex} onTabChange={@bound 'onTabChange'} />
+      <ScrollableList
+        items            = { items }
+        query            = { query }
+        sectionIndex     = { tabIndex }
+        onItemSelected   = { @bound 'onItemSelected' }
+        onItemUnselected = { @bound 'onItemUnselected' }
+        onItemConfirmed  = { @bound 'onItemConfirmed' }
+        onSectionChange  = { @bound 'onTabChange' }
+        onSearch         = { @bound 'onSearch' }
+        ref              = 'list'
+      />
       <div className="EmojiSelector-footer">
         <span className="EmojiSelector-selectedItemIcon">
           <EmojiIcon emoji={selectedItem or 'cow'} />
@@ -158,5 +111,5 @@ module.exports = class EmojiSelector extends React.Component
     </Dropbox>
 
 
-EmojiSelector.include [ImmutableRenderMixin, ListWithTabsMixin]
+EmojiSelector.include [ImmutableRenderMixin]
 

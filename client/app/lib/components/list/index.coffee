@@ -78,11 +78,6 @@ module.exports = class List extends React.Component
     return @props.numberOfRowsInSection sectionIndex
 
 
-  sectionId: (sectionIndex) ->
-
-    return @props.sectionId?(sectionIndex) ? ''
-
-
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     return @props.renderSectionHeaderAtIndex sectionIndex
@@ -106,7 +101,6 @@ module.exports = class List extends React.Component
     [0...dataSource.numberOfSections()].map (sectionIndex) =>
       <section
         key="section_#{sectionIndex}"
-        id={dataSource.sectionId sectionIndex}
         className="ListView-section #{@props.sectionClassName}">
         {dataSource.renderSectionHeaderAtIndex sectionIndex}
         {[0...dataSource.numberOfRowsInSection sectionIndex].map (rowIndex) =>

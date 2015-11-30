@@ -29,10 +29,17 @@ module.exports = class EmojiSelectorList extends React.Component
     return "EmojiSelectorCategory-#{kd.utils.slugify category}"
 
 
+  getSectionAnchorByIndex: (sectionIndex) ->
+
+    return document.getElementById @sectionId sectionIndex
+
+
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     category = @props.items.getIn [sectionIndex, 'category']
-    <header className='EmojiSelector-categorySectionHeader'>{category}</header>
+    <header id={@sectionId sectionIndex} className='EmojiSelector-categorySectionHeader'>
+      {category}
+    </header>
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
@@ -42,17 +49,14 @@ module.exports = class EmojiSelectorList extends React.Component
     emojis     = items.getIn [sectionIndex, 'emojis']
     item       = emojis.get rowIndex
 
-    result = [<EmojiSelectorItem
+    <EmojiSelectorItem
       item         = { item }
       index        = { helper.calculateTotalIndex items, sectionIndex, rowIndex }
       onSelected   = { @props.onItemSelected }
       onUnselected = { @props.onItemUnselected }
       onConfirmed  = { @props.onItemConfirmed }
       key          = { item }
-    />]
-    result.push <div className='clearfix' key='clearfix' />  if rowIndex is emojis.size - 1
-
-    return result
+    />
 
 
   renderEmptySectionAtIndex: (sectionIndex) ->
@@ -68,7 +72,6 @@ module.exports = class EmojiSelectorList extends React.Component
       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       sectionClassName='EmojiSelector-categorySection'
-      sectionId={@bound 'sectionId'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
     />
 
