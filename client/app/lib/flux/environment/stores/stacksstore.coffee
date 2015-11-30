@@ -12,6 +12,7 @@ module.exports = class StacksStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_STACKS_SUCCESS, @load
+    @on actions.STACK_UPDATED, @updateStack
 
 
   load: (stacks, jstacks) ->
@@ -20,3 +21,9 @@ module.exports = class StacksStore extends KodingFluxStore
       jstacks.forEach (stack) ->
         stack.machines = stack.machines.map (m) -> m._id
         stacks.set stack._id, toImmutable stack
+
+
+  updateStack: (stacks, stack) ->
+
+    stacks.withMutations (stacks) ->
+      stacks.set stack._id, toImmutable stack
