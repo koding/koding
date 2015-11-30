@@ -161,6 +161,8 @@ module.exports = class TeamMembersCommonView extends KDView
 
   listMembers: (members) ->
 
+    { memberType, itemLimit } = @getOptions()
+
     if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()
       @listController.noItemView.show()
@@ -168,16 +170,16 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip += members.length
 
-    if @getOptions().memberType is 'Blocked'
+    if memberType is 'Blocked'
       @listController.addItem member  for member in members
-      @calculateAndFetchMoreIfNeeded()  if members.length
+      @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
     else
       @fetchUserRoles members, (members) =>
         members.forEach (member) =>
           member.loggedInUserRoles = @loggedInUserRoles # FIXME
           item = @listController.addItem member
 
-        @calculateAndFetchMoreIfNeeded()  if members.length
+        @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
@@ -192,24 +194,29 @@ module.exports = class TeamMembersCommonView extends KDView
 
     if listHeight <= viewHeight
       listCtrl.lazyLoader.show()
-      @fetchMembers yes
+
+      if query = @searchInput.getValue() then @search()
+      else
+        @fetchMembers yes
 
 
   search: (useSearchMembersMethod = no) ->
 
     query = @searchInput.getValue()
+    isQueryEmpty   = query is ''
+    isQueryChanged = query isnt @lastQuery
 
-    if query is ''
+    if isQueryEmpty or isQueryChanged
       @page = 0
       @skip = 0
       @searchClear.hide()
       @resetListItems()
-      return @fetchMembers()
+      return @fetchMembers()  if isQueryEmpty
 
-    @page      = 0  if query isnt @lastQuery
+    @page      = if query is @lastQuery then @page + 1 else 0
+    group      = @getData()
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
-    group      = @getData()
 
     @searchClear.show()
 
