@@ -10,7 +10,6 @@ ThreadHeader         = require 'activity/components/threadheader'
 PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
-showNotification     = require 'app/util/showNotification'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
 Link                 = require 'app/components/common/link'
 
@@ -37,28 +36,6 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   channel: (args...) -> @state.channelThread.getIn ['channel'].concat args
-
-
-  onDragEnter: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState showDropTarget: yes
-
-
-  onDragOver: (event) -> kd.utils.stopDOMEvent event
-
-
-  onDragLeave: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState showDropTarget: no
-
-
-  onDrop: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState showDropTarget: no
-    showNotification 'Coming soon...', type: 'main'
 
 
   showNotificationSettingsModal: ->
@@ -91,15 +68,6 @@ module.exports = class ChannelThreadPane extends React.Component
     </ThreadHeader>
 
 
-  renderChannelDropContainer: ->
-
-    <ChannelDropContainer
-      onDrop={@bound 'onDrop'}
-      onDragOver={@bound 'onDragOver'}
-      onDragLeave={@bound 'onDragLeave'}
-      showDropTarget={@state.showDropTarget}/>
-
-
   renderBody: ->
 
     return null  unless thread = @state.channelThread
@@ -125,12 +93,10 @@ module.exports = class ChannelThreadPane extends React.Component
     return null  unless thread = @state.channelThread
 
     <div className='ChannelThreadPane is-withChat'>
-      <section className='ChannelThreadPane-content'
-        onDragEnter={@bound 'onDragEnter'}>
-        {@renderChannelDropContainer()}
+      <ChannelDropContainer className='ChannelThreadPane-content'>
         {@renderHeader()}
         {@renderBody()}
-      </section>
+      </ChannelDropContainer>
       <aside className='ChannelThreadPane-sidebar'>
         {@renderSidebar()}
       </aside>
