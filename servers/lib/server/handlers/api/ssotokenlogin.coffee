@@ -7,7 +7,7 @@ hat        = require 'hat'
 
 { setSessionCookie } = require '../../helpers'
 
-module.exports = (req, res, next) ->
+module.exports = ssoTokenLogin = (req, res, next) ->
 
   { JUser, JSession, JAccount } = (require '../../bongo').models
 
