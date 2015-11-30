@@ -16,6 +16,7 @@ module.exports = class ThreadHeader extends React.Component
     onUpdatePurpose            : kd.noop
     onLeaveChannel             : kd.noop
     onShowNotificationSettings : kd.noop
+    onVideoStart               : kd.noop
 
 
   constructor: (props) ->
@@ -134,7 +135,7 @@ module.exports = class ThreadHeader extends React.Component
         listClass='ChannelThreadPane-menuItems'
         items={@getMenuItems()} />
       {@renderPurposeArea()}
-      <StartVideoCallLink onStart={@bound 'onVideoStart'}/>
+      <StartVideoCallLink onStart={@props.onVideoStart}/>
     </div>
 
 

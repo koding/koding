@@ -99,6 +99,7 @@ module.exports = class ChannelThreadPane extends React.Component
       thread={thread}
       onInvitePeople={@bound 'invitePeople'}
       onLeaveChannel={@bound 'leaveChannel'}
+      onVideoStart={@bound 'onVideoStart'}
       onShowNotificationSettings={@bound 'showNotificationSettingsModal'}>
     </ThreadHeader>
 
