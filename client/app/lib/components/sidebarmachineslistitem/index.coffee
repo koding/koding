@@ -77,8 +77,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
   render: ->
 
     status = @machine ['status', 'state']
+    activeClass = if @props.active then ' active' else ''
+
     <div className="SidebarMachinesListItem #{status}">
       <Link
+        className={"SidebarMachinesListItem--MainLink#{activeClass}"}
         # make this link dynamic pointing to latest open workspace
         href={"/IDE/#{@machine 'slug'}"}
         onClick={@bound 'handleMachineClick'}
