@@ -1,3 +1,6 @@
+$transGreen = rgba(26, 175, 93, .25)
+$transRed   = rgba(233, 72, 53, .25)
+
 .SidebarListItem.machine
   borderBox()
   line-height               20px
@@ -40,6 +43,43 @@
   &.Terminated
     .SidebarListItem-icon
       border-color          $red
+
+  &.Starting
+    .SidebarListItem-progressbar
+      bg                    color $transGreen
+
+  &.Stopping
+    .SidebarListItem-progressbar
+      bg                    color $transRed
+      > cite
+        bg                  color $red
+
+.SidebarListItem-progressbar
+  abs                       0 0 -5px 19px
+  background                none
+  bg                        color transparent
+  border                    none
+  height                    3px
+  kalc                      width, (100% \- 19px)
+  overflow                  hidden
+  rounded                   2px
+  vendor                    transition, color .1s ease
+  &.full
+    > cite
+      margin-left           100%
+
+  > cite
+    bg                      color $green
+    border                  none
+    display                 block
+    height                  100%
+    max-width               100%
+    rounded                 2px
+    shadow                  none
+    vendor                  transition, width .1s ease .05s\,\
+                                        margin .3s ease
+
+
 
 .MachineSettings
   abs                       4px -5px 0 0
