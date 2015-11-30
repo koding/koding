@@ -18,7 +18,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
     }
 
 
-  machine: (key) -> @props.machine.get key
+  machine: (key) ->
+
+    if typeof key is 'string'
+    then @props.machine.get key
+    else @props.machine.getIn key
 
 
   getClassName: ->
@@ -73,7 +77,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
 
   render: ->
-    status = @state.status
+
+    status = @machine ['status', 'state']
     <div className="SidebarMachinesListItem #{status}">
       <Link
         className={@getClassName()}
