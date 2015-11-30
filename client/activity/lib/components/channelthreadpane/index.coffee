@@ -129,6 +129,13 @@ module.exports = class ChannelThreadPane extends React.Component
     </div>
 
 
+  renderSidebar: ->
+
+    <ThreadSidebar
+      channelThread={thread}
+      channelParticipants={@state.channelParticipants} />
+
+
   render: ->
 
     return null  unless thread = @state.channelThread
@@ -142,12 +149,8 @@ module.exports = class ChannelThreadPane extends React.Component
         {@renderBody()}
       </section>
       <aside className='ChannelThreadPane-sidebar'>
-        <ThreadSidebar
-          channelThread={thread}
-          channelParticipants={@state.channelParticipants} />
+        {@renderSidebar()}
       </aside>
-
-      {@props.children}
     </div>
 
 
