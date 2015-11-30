@@ -74,14 +74,14 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   render: ->
     status = @state.status
-    <div>
+    <div className="SidebarMachinesListItem #{status}">
       <Link
         className={@getClassName()}
         # make this link dynamic pointing to latest open workspace
         href={"/IDE/#{@machine 'slug'}"}
         onClick={@bound 'handleMachineClick'}
         >
-        <cite className={"SidebarListItem-icon #{status}"} title={"Machine status: #{status}"}/>
+        <cite className={"SidebarListItem-icon"} title={"Machine status: #{status}"}/>
         <span className='SidebarListItem-title'>{@machine 'label'}</span>
         {@renderUnreadCount()}
         {@renderProgressbar()}
