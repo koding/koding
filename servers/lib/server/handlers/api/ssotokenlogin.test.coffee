@@ -24,21 +24,21 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
   it 'should send HTTP 400 if api token is not set', (done) ->
 
     ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
-      body : { token : '' }
+      qs : { token : '' }
 
-    request.post ssoTokenLoginRequestParams, (err, res, body) ->
+    request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'invalid request'
+      expect(body).to.be.equal 'token is required'
       done()
 
 
   it 'should send HTTP 400 if there is no username in jwt token', (done) ->
 
     ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
-      body : { token : JUser.createJWT { group : 'someGroup' } }
+      qs : { token : JUser.createJWT { group : 'someGroup' } }
 
-    request.post ssoTokenLoginRequestParams, (err, res, body) ->
+    request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
       expect(body).to.be.equal 'no username in token'
@@ -48,9 +48,9 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
   it 'should send HTTP 400 if there is no group in jwt token', (done) ->
 
     ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
-      body : { token : JUser.createJWT { username : 'someUsername' } }
+      qs : { token : JUser.createJWT { username : 'someUsername' } }
 
-    request.post ssoTokenLoginRequestParams, (err, res, body) ->
+    request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
       expect(body).to.be.equal 'no group slug in token'
@@ -62,9 +62,10 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     withConvertedUserAndApiToken { createGroup : yes }, ({ group }) ->
       token = JUser.createJWT { username: 'non-existent-user', group : group.slug }
       ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
-        body : { token }
+        qs  : { token }
+        url : { subdomain : group.slug }
 
-      request.post ssoTokenLoginRequestParams, (err, res, body) ->
+      request.get ssoTokenLoginRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
         expect(body).to.be.equal 'invalid username!'
@@ -104,9 +105,10 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
         ->
           # trying to use sso token without being a member of the group
           ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
-            body : { token }
+            qs : { token }
+            url : { subdomain : group.slug }
 
-          request.post ssoTokenLoginRequestParams, (err, res, body) ->
+          request.get ssoTokenLoginRequestParams, (err, res, body) ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 400
             expect(body).to.be.equal 'user is not a member of the group'
@@ -117,6 +119,23 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
       ]
 
       daisy queue
+
+
+  it 'should send HTTP and be able to login user with valid request', (done) ->
+
+    withConvertedUserAndApiToken { createGroup : yes }, ({ group, apiToken }) ->
+      createUserAndSsoToken apiToken.code, ({ token }) ->
+
+        ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
+          qs : { token }
+          url : { subdomain : group.slug }
+
+        request.get ssoTokenLoginRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(body).not.to.be.empty
+          done()
+
 
 
 beforeTests()
