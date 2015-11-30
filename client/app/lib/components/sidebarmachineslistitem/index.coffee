@@ -14,7 +14,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     @state = {
       collapsed : status isnt 'Running' and not @props.active
-      status
     }
 
 
@@ -35,7 +34,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
   handleMachineClick: (event) ->
 
     kd.utils.stopDOMEvent event
-    console.log @state.collapsed
     @setState { collapsed: not @state.collapsed }
 
 
