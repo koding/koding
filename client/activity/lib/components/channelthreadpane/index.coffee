@@ -102,6 +102,8 @@ module.exports = class ChannelThreadPane extends React.Component
 
   renderBody: ->
 
+    return null  unless thread = @state.channelThread
+
     <div className='ChannelThreadPane-body'>
       <section className='ChannelThreadPane-chatWrapper'>
         <PublicChatPane ref='pane' thread={thread}/>
@@ -110,6 +112,8 @@ module.exports = class ChannelThreadPane extends React.Component
 
 
   renderSidebar: ->
+
+    return null  unless thread = @state.channelThread
 
     <ThreadSidebar
       channelThread={thread}
