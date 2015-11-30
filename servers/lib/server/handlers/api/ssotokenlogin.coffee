@@ -11,14 +11,14 @@ module.exports = (req, res, next) ->
 
   { JUser, JSession, JAccount } = (require '../../bongo').models
 
-  { token } = req.body
+  { token } = req.query
   user      = null
   group     = null
   account   = null
   username  = null
 
   unless token
-    return res.status(400).send 'invalid request'
+    return res.status(400).send 'token is required'
 
   queue = [
 
@@ -26,6 +26,11 @@ module.exports = (req, res, next) ->
       validateToken token, (err, data) ->
         return res.status(err.statusCode).send(err.message)  if err
         { username, group } = data
+
+        # making sure subdomain is same with group slug
+        unless group in req.subdomains
+          return res.status(400).send('invalid request')
+
         queue.next()
 
     ->
@@ -45,12 +50,13 @@ module.exports = (req, res, next) ->
         queue.next()
 
     ->
-      JSession.createNewSession { username, groupName }, (err, session) ->
+      # creating a user session for the group if everything is ok
+      JSession.createNewSession { username, groupName : group }, (err, session) ->
         return res.status(500).send 'an error occurred'         if err
         return res.status(500).send 'failed to create session'  unless session
 
         setSessionCookie res, session.clientId
-        res.status(200)
+        res.redirect('/')
 
   ]
 
