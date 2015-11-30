@@ -1,6 +1,5 @@
 kd                  = require 'kd'
 React               = require 'kd-react'
-classnames          = require 'classnames'
 toImmutable         = require 'app/util/toImmutable'
 Link                = require 'app/components/common/link'
 Machine             = require 'app/providers/machine'
@@ -25,13 +24,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     if typeof key is 'string'
     then @props.machine.get key
     else @props.machine.getIn key
-
-
-  getClassName: ->
-    classnames
-      SidebarListItem : yes
-      active          : @props.active
-      machine         : yes
 
 
   handleMachineClick: (event) ->
@@ -87,7 +79,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     status = @machine ['status', 'state']
     <div className="SidebarMachinesListItem #{status}">
       <Link
-        className={@getClassName()}
         # make this link dynamic pointing to latest open workspace
         href={"/IDE/#{@machine 'slug'}"}
         onClick={@bound 'handleMachineClick'}
