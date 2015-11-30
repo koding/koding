@@ -43,12 +43,7 @@ module.exports = class ChannelThreadPane extends React.Component
   invitePeople: -> @refs.pane.onInviteOthers()
 
 
-  leaveChannel: ->
-
-    actions.channel.unfollowChannel @channel 'id'
-
-    { unfollowChannel } = ActivityFlux.actions.channel
-    unfollowChannel @channel 'id'
+  leaveChannel: -> actions.channel.unfollowChannel @channel 'id'
 
 
   renderHeader: ->
