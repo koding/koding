@@ -4,6 +4,7 @@ React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 classnames           = require 'classnames'
 immutable            = require 'immutable'
+Scroller             = require 'app/components/scroller'
 List                 = require './list'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
@@ -22,10 +23,10 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     return  if prevProps.sectionIndex is sectionIndex
     return  unless @sectionPositions
 
-    list      = ReactDOM.findDOMNode @refs.scrollable
-    scrollTop = list.scrollTop
+    scroller  = ReactDOM.findDOMNode @refs.scroller
+    scrollTop = scroller.scrollTop
 
-    return list.scrollTop = 0  if sectionIndex is -1
+    return scroller.scrollTop = 0  if sectionIndex is -1
 
     # this check avoids useless scrolling when section is changed
     # while user is scrolling the list with scrollbar
@@ -35,7 +36,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
 
     # scrolling works only when user changes a section clicking on the tab
     kd.utils.defer =>
-      list.scrollTop = @sectionPositions[sectionIndex]
+      scroller.scrollTop = @sectionPositions[sectionIndex]
 
 
   ready: ->
@@ -57,8 +58,8 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     return  unless @sectionPositions
 
     fixedHeader = ReactDOM.findDOMNode @refs.fixedHeader
-    list        = ReactDOM.findDOMNode @refs.scrollable
-    scrollTop   = list.scrollTop
+    scroller    = ReactDOM.findDOMNode @refs.scroller
+    scrollTop   = scroller.scrollTop
 
     isFixedHeaderVisible = scrollTop > @sectionPositions[0]
     fixedHeader.classList.toggle 'hidden', not isFixedHeaderVisible
@@ -106,7 +107,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
 
     <div>
       { @renderFixedCategoryHeader() }
-      <div className="EmojiSelector-list Dropbox-resizable" ref='scrollable' onScroll={@bound 'onScroll'}>
+      <Scroller className="EmojiSelector-list Dropbox-resizable" ref='scroller' onScrollY={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
           items            = { items }
@@ -115,7 +116,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
           onItemConfirmed  = { @props.onItemConfirmed }
           ref              = 'list'
         />
-      </div>
+      </Scroller>
     </div>
 
 
