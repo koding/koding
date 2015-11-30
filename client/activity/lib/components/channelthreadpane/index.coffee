@@ -112,12 +112,8 @@ module.exports = class ChannelThreadPane extends React.Component
 
   updatePurpose: ->
 
-    @setState editingPurpose: yes
-
-    input = @refs.purposeInput
-
-    kd.utils.defer ->
-      kd.utils.moveCaretToEnd input
+    @setState { editingPurpose: yes }, =>
+      kd.utils.moveCaretToEnd @refs.purposeInput
 
 
   showNotificationSettingsModal: ->
