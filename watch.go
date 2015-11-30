@@ -3,6 +3,7 @@ package fuseklient
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/koding/fuseklient/transport"
@@ -13,6 +14,7 @@ var WatchInterval = 1 * time.Second
 
 type Watcher interface {
 	Watch() (<-chan string, <-chan error)
+	AddTimedIgnore(string, time.Duration)
 }
 
 type FindWatcher struct {
@@ -25,6 +27,23 @@ type FindWatcher struct {
 	LastRan time.Time
 
 	WatchInterval time.Duration
+
+	sync.Mutex
+
+	ignoredPaths map[string]time.Time
+}
+
+func (f *FindWatcher) AddTimedIgnore(path string, duration time.Duration) {
+	f.Lock()
+	path = trimPrefix(path, f.RemotePath)
+	f.ignoredPaths[path] = time.Now().Add(duration)
+	f.Unlock()
+}
+
+func (f *FindWatcher) RemoveTimedIgnore(path string) {
+	f.Lock()
+	delete(f.ignoredPaths, path)
+	f.Unlock()
 }
 
 func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
@@ -42,13 +61,24 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 				continue
 			}
 
-			for _, s := range entries {
-				resChan <- s
+			for _, e := range entries {
+				if f.isPathValid(e) {
+					resChan <- e
+				}
 			}
 		}
 	}()
 
 	return resChan, errChan
+}
+
+func (f *FindWatcher) isPathValid(path string) bool {
+	expiration, ok := f.ignoredPaths[path]
+	if ok && expiration.After(time.Now().UTC()) {
+		return false
+	}
+
+	return true
 }
 
 func (f *FindWatcher) getChangedFiles() ([]string, error) {
@@ -75,8 +105,7 @@ func (f *FindWatcher) getChangedFiles() ([]string, error) {
 
 	splitStrs := strings.Split(res.Stdout, "\n")
 	for i, s := range splitStrs {
-		// TODO: how to remove '/' at end of find results cmd
-		splitStrs[i] = strings.TrimPrefix(s, f.RemotePath+"/")
+		splitStrs[i] = trimPrefix(s, f.RemotePath)
 	}
 
 	return splitStrs, nil
@@ -89,6 +118,7 @@ func NewFindWatcher(t transport.Transport, r string) *FindWatcher {
 		Transport:     t,
 		RemotePath:    r,
 		WatchInterval: WatchInterval,
+		ignoredPaths:  map[string]time.Time{},
 	}
 }
 
@@ -119,4 +149,9 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 	}
 
 	return nil
+}
+
+// TODO: how to remove '/' at end of find results cmd
+func trimPrefix(p, remotePath string) string {
+	return strings.TrimPrefix(p, remotePath+"/")
 }

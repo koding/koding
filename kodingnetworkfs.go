@@ -41,6 +41,8 @@ type KodingNetworkFS struct {
 	// MountConfig is optional config sent to `fuse.Mount`.
 	MountConfig *fuse.MountConfig
 
+	Watcher Watcher
+
 	// ignoredFolderList is folders for which all operations will return empty
 	// response. If a file has same name as entry in list, it'll NOT be ignored.
 	ignoredFolderList map[string]struct{}
@@ -111,9 +113,9 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
+	watcher := NewFindWatcher(t, rootDir.RemotePath)
 
 	if !c.NoWatch {
-		watcher := NewFindWatcher(t, rootDir.RemotePath)
 		go WatchForRemoteChanges(rootDir, watcher)
 	}
 
@@ -155,6 +157,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		MountPath:         c.LocalPath,
 		MountConfig:       mountConfig,
 		RWMutex:           sync.RWMutex{},
+		Watcher:           watcher,
 		ignoredFolderList: ignoredFolderList,
 		liveNodes:         liveNodes,
 	}, nil
@@ -359,7 +362,7 @@ func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error 
 
 	k.deleteEntry(entry.GetID())
 
-	return err
+	return nil
 }
 
 ///// File Operations
@@ -421,6 +424,8 @@ func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp
 	}
 
 	file.WriteAt(op.Data, op.Offset)
+
+	k.entryChanged(file)
 
 	return nil
 }
@@ -628,4 +633,11 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 func (k *KodingNetworkFS) isDirIgnored(t fuseutil.DirentType, name string) bool {
 	_, ok := k.ignoredFolderList[name]
 	return ok && t == fuseutil.DT_Directory
+}
+
+func (k *KodingNetworkFS) entryChanged(e Node) {
+	file, ok := e.(*File)
+	if ok {
+		k.Watcher.AddTimedIgnore(file.LocalPath, 1*time.Minute)
+	}
 }
