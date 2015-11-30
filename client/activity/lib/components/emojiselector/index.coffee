@@ -92,7 +92,7 @@ module.exports = class EmojiSelector extends React.Component
       iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
       category      = item.get 'category'
 
-      <span className={tabClassName} title={category} onClick={@lazyBound 'setTabIndex', index} key={category}>
+      <span className={tabClassName} title={category.capitalize()} onClick={@lazyBound 'setTabIndex', index} key={category}>
         <span className='emoji-wrapper'>
           <span className={iconClassName}></span>
         </span>
