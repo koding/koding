@@ -96,7 +96,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     { items, sectionIndex, query } = @props
 
     index    = if query then 0 else sectionIndex
-    category = items.get(index).get 'category'
+    category = if index is -1 then '' else items.get(index).get 'category'
 
     <header className='EmojiSelector-categorySectionHeader fixedHeader hidden' ref='fixedHeader'>{category}</header>
 
@@ -107,7 +107,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
 
     <div>
       { @renderFixedCategoryHeader() }
-      <Scroller className="EmojiSelector-list Dropbox-resizable" ref='scroller' onScrollY={@bound 'onScroll'}>
+      <Scroller className="EmojiSelector-list Dropbox-resizable" ref='scroller' onScroll={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
           items            = { items }
