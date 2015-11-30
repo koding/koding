@@ -42,7 +42,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
 
   renderProgressbar: ->
-    status = @machine ['status', 'state']
+
+    status     = @machine ['status', 'state']
     percentage = @machine('percentage') or 0
     percentage = 100 - percentage  if status is Machine.State.Stopping
     fullClass  = if percentage is 100 then ' full' else ''
@@ -77,7 +78,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   render: ->
 
-    status = @machine ['status', 'state']
+    status      = @machine ['status', 'state']
     activeClass = if @props.active then ' active' else ''
 
     <div className="SidebarMachinesListItem #{status}">
