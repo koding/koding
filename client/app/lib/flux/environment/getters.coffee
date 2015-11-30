@@ -42,8 +42,7 @@ stacks = [
       .sortBy (stack) -> stack.get '_id'
       .map (stack) ->
         stack.update 'machines', (machines) ->
-          machines.map (machine) ->
-            machinesWorkspaces.get machine.get '_id'
+          machines.map (id) -> machinesWorkspaces.get id
 ]
 
 module.exports = {

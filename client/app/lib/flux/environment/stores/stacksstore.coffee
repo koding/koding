@@ -18,4 +18,5 @@ module.exports = class StacksStore extends KodingFluxStore
 
     stacks.withMutations (stacks) ->
       jstacks.forEach (stack) ->
+        stack.machines = stack.machines.map (m) -> m._id
         stacks.set stack._id, toImmutable stack
