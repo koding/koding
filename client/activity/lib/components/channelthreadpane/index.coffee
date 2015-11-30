@@ -3,15 +3,11 @@ React                = require 'kd-react'
 KDReactorMixin       = require 'app/flux/base/reactormixin'
 ActivityFlux         = require 'activity/flux'
 immutable            = require 'immutable'
-getGroup             = require 'app/util/getGroup'
-classnames           = require 'classnames'
 ThreadSidebar        = require 'activity/components/threadsidebar'
 ThreadHeader         = require 'activity/components/threadheader'
-PublicChannelLink    = require 'activity/components/publicchannellink'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 PublicChatPane       = require 'activity/components/publicchatpane'
 ChannelDropContainer = require 'activity/components/channeldropcontainer'
-Link                 = require 'app/components/common/link'
 
 
 module.exports = class ChannelThreadPane extends React.Component
