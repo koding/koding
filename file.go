@@ -104,6 +104,13 @@ func (f *File) GetType() fuseutil.DirentType {
 	return fuseutil.DT_File
 }
 
+func (f *File) Expire() error {
+	f.Lock()
+	defer f.Unlock()
+
+	return f.updateContentFromRemote()
+}
+
 ///// Helpers
 
 func (f *File) syncToRemote() error {

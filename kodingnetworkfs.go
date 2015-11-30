@@ -112,6 +112,11 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
 
+	if !c.NoWatch {
+		watcher := NewFindWatcher(t, rootDir.RemotePath)
+		go WatchForRemoteChanges(rootDir, watcher)
+	}
+
 	// update entries for root directory
 	if err := rootDir.updateEntriesFromRemote(); err != nil {
 		return nil, err
@@ -176,7 +181,7 @@ func (k *KodingNetworkFS) Unmount() error {
 	return Unmount(k.MountPath)
 }
 
-// GetInodeAttributesOp set attributes for a specified Node.
+// GetInodeAttributes set attributes for a specified Node.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
@@ -269,7 +274,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 	return nil
 }
 
-// Mkdir creates new directory inside specified parent directory. It returns
+// MkDir creates new directory inside specified parent directory. It returns
 // `fuse.EEXIST` if a file or directory already exists with specified name.
 //
 // Required for fuse.FileSystem.
@@ -496,6 +501,8 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 	return nil
 }
 
+// FlushFile saves file contents from local to remote.
+//
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
@@ -508,6 +515,8 @@ func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp
 	return file.Flush()
 }
 
+// SyncFile sends file contents from local to remote.
+//
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
@@ -541,8 +550,18 @@ func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) erro
 	return nil
 }
 
+// StatFS is currently not implemented.
+//
+// Required for fuse.FileSystem.
 func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	return nil
+}
+
+///// Watcher
+
+// WatchForRemoteChanges listens for changes on remote and invaliates local
+// cache.
+func (k *KodingNetworkFS) WatchForRemoteChanges() {
 }
 
 ///// Helpers

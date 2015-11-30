@@ -33,4 +33,9 @@ type Config struct {
 	// mounts slightly slower, however it speeds up regular read directory a LOT.
 	// It fetches metadata recursively directories, but not contents of files.
 	Prefetch bool `default:true`
+
+	// NoWatch determines if we should watch for remote file changes and send
+	// them to local. Without this any changes that happen on remote won't be
+	// visible after mount.
+	NoWatch bool `default:false`
 }

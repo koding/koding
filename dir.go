@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jacobsa/fuse"
@@ -264,7 +265,35 @@ func (d *Dir) GetType() fuseutil.DirentType {
 	return fuseutil.DT_Directory
 }
 
+func (d *Dir) Expire() error {
+	return d.reset()
+}
+
 ///// Helpers
+
+func (d *Dir) findEntryRecursive(path string) (Node, error) {
+	d.RLock()
+	defer d.RUnlock()
+
+	var (
+		last  Node = d
+		paths      = strings.Split(path, folderSeparator)
+	)
+
+	for _, p := range paths {
+		d, ok := last.(*Dir)
+		if !ok {
+			return nil, fuse.ENOENT
+		}
+
+		var err error
+		if last, err = d.findEntry(p); err != nil {
+			return nil, fuse.ENOENT
+		}
+	}
+
+	return last, nil
+}
 
 func (d *Dir) findEntry(name string) (Node, error) {
 	d.RLock()
@@ -397,10 +426,12 @@ func (d *Dir) removeChild(name string) (Node, error) {
 	return listEntry, nil
 }
 
-func (d *Dir) reset() {
+func (d *Dir) reset() error {
 	d.Lock()
 	defer d.Unlock()
 
 	d.Entries = []fuseutil.Dirent{}
 	d.EntriesList = map[string]Node{}
+
+	return nil
 }
