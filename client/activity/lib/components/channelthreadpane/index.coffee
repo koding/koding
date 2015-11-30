@@ -12,24 +12,18 @@ ImmutableRenderMixin         = require 'react-immutable-render-mixin'
 PublicChatPane               = require 'activity/components/publicchatpane'
 showNotification             = require 'app/util/showNotification'
 CollaborationComingSoonModal = require 'activity/components/collaborationcomingsoonmodal'
-StartVideoCallLink           = require 'activity/components/common/startvideocalllink'
 ChannelDropContainer         = require 'activity/components/channeldropcontainer'
 Link                         = require 'app/components/common/link'
-ButtonWithMenu               = require 'app/components/buttonwithmenu'
-KeyboardKeys                 = require 'app/util/keyboardKeys'
-Encoder                      = require 'htmlencode'
 
 
 module.exports = class ChannelThreadPane extends React.Component
 
-  { getters } = ActivityFlux
+  { getters, actions } = ActivityFlux
 
   getDataBindings: ->
     return {
-      channelThread         : getters.selectedChannelThread
-      messageThread         : getters.selectedMessageThread
-      messageThreadComments : getters.selectedMessageThreadComments
-      channelParticipants   : getters.selectedChannelParticipants
+      channelThread       : getters.selectedChannelThread
+      channelParticipants : getters.selectedChannelParticipants
     }
 
 
@@ -38,13 +32,9 @@ module.exports = class ChannelThreadPane extends React.Component
     super props
 
     @state =
-      editingPurpose        : no
-      originalPurpose       : ''
       showDropTarget        : no
       isComingSoonModalOpen : no
       channelThread         : immutable.Map()
-      messageThread         : immutable.Map()
-      messageThreadComments : immutable.List()
       channelParticipants   : immutable.List()
 
 
@@ -83,13 +73,10 @@ module.exports = class ChannelThreadPane extends React.Component
     @setState isComingSoonModalOpen: no
 
 
-  getMenuItems: ->
-    return [
-      {title: 'Invite people'         , key: 'invitepeople'         , onClick: @bound 'invitePeople'}
-      {title: 'Leave channel'         , key: 'leavechannel'         , onClick: @bound 'leaveChannel'}
-      {title: 'Update purpose'        , key: 'updatepurpose'        , onClick: @bound 'updatePurpose'}
-      {title: 'Notification settings' , key: 'notificationsettings' , onClick: @bound 'showNotificationSettingsModal'}
-    ]
+  showNotificationSettingsModal: ->
+
+    route = "/Channels/#{@channel 'name'}/NotificationSettings"
+    kd.singletons.router.handleRoute route
 
 
   invitePeople: -> @refs.pane.onInviteOthers()
@@ -97,97 +84,39 @@ module.exports = class ChannelThreadPane extends React.Component
 
   leaveChannel: ->
 
+    actions.channel.unfollowChannel @channel 'id'
+
     { unfollowChannel } = ActivityFlux.actions.channel
     unfollowChannel @channel 'id'
-
-
-  componentWillUpdate: (nextProps, nextState) ->
-
-    return  unless @state.channelThread and nextState.channelThread
-
-    channelId          = @state.channelThread.get 'channelId'
-    nextStateChannelId = nextState.channelThread.get 'channelId'
-
-    return @setState editingPurpose: no  if channelId isnt nextStateChannelId
-
-
-  updatePurpose: ->
-
-    @setState { editingPurpose: yes }, =>
-      kd.utils.moveCaretToEnd @refs.purposeInput
-
-
-  showNotificationSettingsModal: ->
-
-    route = "/Channels/#{@channel 'name'}/NotificationSettings"
-    kd.singletons.router.handleRoute route
-
-
-  onKeyDown: (event) ->
-
-    { ENTER, ESC } = KeyboardKeys
-    thread         = @state.channelThread
-
-    if event.which is ESC
-      _originalPurpose = @channel '_originalPurpose'
-      purpose = _originalPurpose or @channel 'purpose'
-      thread  = thread.setIn ['channel', 'purpose'], purpose
-      @setState channelThread: thread
-      return @setState editingPurpose: no
-
-    if event.which is ENTER
-      id = @channel 'id'
-      purpose = @channel('purpose').trim()
-      { updateChannel } = ActivityFlux.actions.channel
-
-      updateChannel({ id, purpose }).then => @setState editingPurpose: no
-
-
-  getPurposeAreaClassNames: -> classnames
-    'ChannelThreadPane-purposeWrapper': yes
-    'editing': @state.editingPurpose
-
-
-  handlePurposeInputChange: (newValue) ->
-
-    thread = @state.channelThread
-
-    unless @channel '_originalPurpose'
-      thread = thread.setIn ['channel', '_originalPurpose'], @channel 'purpose'
-
-    channelThread = thread.setIn ['channel', 'purpose'], newValue
-    @setState { channelThread }
-
-
-  renderPurposeArea: ->
-
-    return  unless @state.channelThread
-
-    purpose = Encoder.htmlDecode @channel 'purpose'
-
-    valueLink =
-      value         : purpose
-      requestChange : @bound 'handlePurposeInputChange'
-
-    <div className={@getPurposeAreaClassNames()}>
-      <span className='ChannelThreadPane-purpose'>{purpose}</span>
-      <input
-        ref='purposeInput'
-        type='text'
-        valueLink={valueLink}
-        onKeyDown={@bound 'onKeyDown'} />
-    </div>
 
 
   renderHeader: ->
 
     return  unless thread = @state.channelThread
 
-    <ThreadHeader thread={thread}>
-      <PublicChannelLink to={thread}>
-        {"##{@channel 'name'}"}
-      </PublicChannelLink>
+    <ThreadHeader
+      className="ChannelThreadPane-header"
+      thread={thread}
+      onInvitePeople={@bound 'invitePeople'}
+      onLeaveChannel={@bound 'leaveChannel'}
+      onShowNotificationSettings={@bound 'showNotificationSettingsModal'}>
     </ThreadHeader>
+
+
+  renderComingSoonModal: ->
+
+    <CollaborationComingSoonModal
+      onClose={@bound 'onCollabModalClose'}
+      isOpen={@state.isComingSoonModalOpen}/>
+
+
+  renderChannelDropContainer: ->
+
+    <ChannelDropContainer
+      onDrop={@bound 'onDrop'}
+      onDragOver={@bound 'onDragOver'}
+      onDragLeave={@bound 'onDragLeave'}
+      showDropTarget={@state.showDropTarget}/>
 
 
   render: ->
@@ -195,22 +124,11 @@ module.exports = class ChannelThreadPane extends React.Component
     return null  unless thread = @state.channelThread
 
     <div className='ChannelThreadPane is-withChat'>
-      <CollaborationComingSoonModal
-        onClose={@bound 'onCollabModalClose'}
-        isOpen={@state.isComingSoonModalOpen}/>
+      {@renderComingSoonModal()}
       <section className='ChannelThreadPane-content'
         onDragEnter={@bound 'onDragEnter'}>
-        <ChannelDropContainer
-          onDrop={@bound 'onDrop'}
-          onDragOver={@bound 'onDragOver'}
-          onDragLeave={@bound 'onDragLeave'}
-          showDropTarget={@state.showDropTarget}/>
-        <header className='ChannelThreadPane-header'>
-          {@renderHeader()}
-          <ButtonWithMenu listClass='ChannelThreadPane-menuItems' items={@getMenuItems()} />
-          {@renderPurposeArea()}
-          <StartVideoCallLink onStart={@bound 'onVideoStart'}/>
-        </header>
+        {@renderChannelDropContainer()}
+        {@renderHeader()}
         <div className='ChannelThreadPane-body'>
           <section className='ChannelThreadPane-chatWrapper'>
             <PublicChatPane ref='pane' thread={thread}/>
