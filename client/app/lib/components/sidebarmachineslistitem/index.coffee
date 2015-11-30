@@ -1,8 +1,11 @@
-kd          = require 'kd'
-React       = require 'kd-react'
-classnames  = require 'classnames'
-toImmutable = require 'app/util/toImmutable'
-Link        = require 'app/components/common/link'
+kd                  = require 'kd'
+React               = require 'kd-react'
+classnames          = require 'classnames'
+toImmutable         = require 'app/util/toImmutable'
+Link                = require 'app/components/common/link'
+Machine             = require 'app/providers/machine'
+remote              = require('app/remote').getInstance()
+MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
 
 module.exports = class SidebarMachinesListItem extends React.Component
 
@@ -69,7 +72,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  if @state.collapsed
 
     <section className='Workspaces-section'>
-      <h3>WORKSPACES</h3>
+      <h3 onClick={@bound 'handleWorkspacesTitleClick'}>WORKSPACES</h3>
       {@renderWorkspaces()}
     </section>
 
@@ -95,4 +98,29 @@ module.exports = class SidebarMachinesListItem extends React.Component
         />
       {@renderWorkspaceSection()}
     </div>
+
+
+  #
+  # LEGACY METHODS
+  #
+
+  handleWorkspacesTitleClick: (event) ->
+
+    { computeController } = kd.singletons
+
+    status  = @machine ['status', 'state']
+    users   = (@machine 'users').toJS()
+    isOwner = yes for user in users when user.owner
+
+    return  unless isOwner
+    return  unless status is Machine.State.Running
+
+    workspaces = []
+    @props.machine.get('workspaces').map (ws) ->
+      workspaces.push remote.revive ws.toJS()
+    modal = new MoreWorkspacesModal {}, workspaces
+
+    # TODO: handle new workspace creation
+    # modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
+
 
