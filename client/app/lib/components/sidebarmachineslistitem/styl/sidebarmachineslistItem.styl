@@ -1,8 +1,14 @@
 $transGreen = rgba(26, 175, 93, .25)
 $transRed   = rgba(233, 72, 53, .25)
 
-.SidebarListItem.machine
+.SidebarMachinesListItem--MainLink
+  antialiased()
   borderBox()
+  color                     $gray-14
+  display                   block
+  font-size                 $fs-regular
+  font-weight               $fw-regular
+  height                    28px
   line-height               20px
   noTextDeco()
   margin-bottom             8px
@@ -10,6 +16,7 @@ $transRed   = rgba(233, 72, 53, .25)
   opacity                   1
   rel()
   size                      218px 20px
+  text-decoration           none
 
 .SidebarMachinesListItem
   rel()
