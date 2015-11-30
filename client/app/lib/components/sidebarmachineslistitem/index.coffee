@@ -86,6 +86,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
         {@renderUnreadCount()}
         {@renderProgressbar()}
       </Link>
+      <Link
+        className='MachineSettings'
+        href={"/Machines/#{@machine 'slug'}"}
+        />
       {@renderWorkspaceSection()}
     </div>
 

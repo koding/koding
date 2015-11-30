@@ -8,6 +8,11 @@
   rel()
   size                      218px 20px
 
+.SidebarMachinesListItem
+  rel()
+  &:hover > .MachineSettings
+    opacity                 1
+
   .SidebarListItem-icon
     abs                     50% 0 0 0px
     bg                      color transparent
@@ -31,6 +36,15 @@
     &.Terminating
     &.Terminated
       border-color          $red
+
+.MachineSettings
+  abs                       4px -5px 0 0
+  opacity                   0
+  r-sprite                  app vm-settings-icon
+  right                     2px
+  top                       5px
+  vendor                    transition, opacity .1s .1s ease
+
 
 .Workspaces-section
   opacity                   1
