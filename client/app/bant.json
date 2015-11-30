@@ -12,6 +12,7 @@
     "/Unsubscribe/:token/:email/:opt?": "unsubscribe",
     "/Reset/:token": "reset",
     "/Stacks/:stack?": "stacks",
+    "/Machines/:slug": "machine-settings",
     "/:slug/:name": "members",
     "/:name": "name"
   },
