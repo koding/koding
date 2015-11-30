@@ -115,8 +115,8 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	amazonClient, err := amazon.NewAmazonCreds(
 		structs.Map(machine.Meta),
 		awsRegion.Name,
-		creds.Meta.AccessKey,
-		creds.Meta.SecretKey,
+		awsCred.AccessKey,
+		awsCred.SecretKey,
 		p.Log,
 	)
 	if err != nil {
