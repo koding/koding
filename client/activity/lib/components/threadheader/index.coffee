@@ -17,7 +17,6 @@ module.exports = class ThreadHeader extends React.Component
     onUpdatePurpose            : kd.noop
     onLeaveChannel             : kd.noop
     onShowNotificationSettings : kd.noop
-    onVideoStart               : kd.noop
 
 
   constructor: (props) ->
