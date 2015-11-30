@@ -49,5 +49,6 @@ module.exports = {
   ownMachines
   sharedMachines
   collaborationMachines
+  machinesWithWorkspaces
   stacks
 }
