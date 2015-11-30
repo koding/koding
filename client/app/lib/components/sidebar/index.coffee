@@ -20,7 +20,6 @@ module.exports = class Sidebar extends React.Component
       privateChannels         : getters.followedPrivateChannelThreads
       selectedThreadId        : getters.selectedChannelThreadId
       stacks                  : EnvironmentFlux.getters.stacks
-      ownMachines             : EnvironmentFlux.getters.ownMachines
       sharedMachines          : EnvironmentFlux.getters.sharedMachines
       collaborationMachines   : EnvironmentFlux.getters.collaborationMachines
     }
