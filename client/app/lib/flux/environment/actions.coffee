@@ -2,6 +2,7 @@ kd                      = require 'kd'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 actions                 = require './actiontypes'
 getters                 = require './getters'
+Promise                 = require 'bluebird'
 
 _bindMachineEvents = (environmentData) ->
 
