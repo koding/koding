@@ -20,16 +20,22 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
 
     { sectionIndex } = @props
     return  if prevProps.sectionIndex is sectionIndex
+    return  unless @sectionPositions
 
-    dontScrollOnSectionIndexChange = @dontScrollOnSectionIndexChange
-    @dontScrollOnSectionIndexChange = no
-    return  if dontScrollOnSectionIndexChange
+    list      = ReactDOM.findDOMNode @refs.scrollable
+    scrollTop = list.scrollTop
 
-    list = ReactDOM.findDOMNode @refs.scrollable
     return list.scrollTop = 0  if sectionIndex is -1
 
+    # this check avoids useless scrolling when section is changed
+    # while user is scrolling the list with scrollbar
+    isBelowCurrentSection = scrollTop >= @sectionPositions[sectionIndex]
+    isAboveNextSection    = sectionIndex is @sectionPositions.length - 1 or @sectionPositions[sectionIndex + 1] > scrollTop
+    return  if isBelowCurrentSection and isAboveNextSection
+
+    # scrolling works only when user changes a section clicking on the tab
     kd.utils.defer =>
-      list.scrollTop = @sectionPositions[sectionIndex]  if @sectionPositions
+      list.scrollTop = @sectionPositions[sectionIndex]
 
 
   ready: ->
@@ -70,7 +76,6 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
       sectionIndex = positions.length - 1
 
     if sectionIndex isnt @props.sectionIndex
-      @dontScrollOnSectionIndexChange = yes
       @onSectionChange sectionIndex
 
 
