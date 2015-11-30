@@ -61,3 +61,10 @@ module.exports = class EnvironmentsModal extends kd.ModalView
       computeController
         .once 'RenderStacks', @bound 'destroy'
         .reinitGroupStack stack
+
+
+  destroy: ->
+
+    super
+
+    kd.singletons.router.back()
