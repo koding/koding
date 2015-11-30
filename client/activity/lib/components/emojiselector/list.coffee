@@ -20,18 +20,18 @@ module.exports = class EmojiSelectorList extends React.Component
 
   numberOfRowsInSection: (sectionIndex) ->
 
-    return @props.items.get(sectionIndex).get('emojis').size
+    return @props.items.getIn([sectionIndex, 'emojis']).size
 
 
   sectionId: (sectionIndex) ->
 
-    category = @props.items.get(sectionIndex).get 'category'
+    category = @props.items.getIn [sectionIndex, 'category']
     return "EmojiSelectorCategory-#{kd.utils.slugify category}"
 
 
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
-    category = @props.items.get(sectionIndex).get 'category'
+    category = @props.items.getIn [sectionIndex, 'category']
     <header className='EmojiSelector-categorySectionHeader'>{category}</header>
 
 
@@ -39,7 +39,7 @@ module.exports = class EmojiSelectorList extends React.Component
 
     { items } = @props
 
-    emojis     = items.get(sectionIndex).get('emojis')
+    emojis     = items.getIn [sectionIndex, 'emojis']
     item       = emojis.get rowIndex
 
     result = [<EmojiSelectorItem
@@ -55,7 +55,7 @@ module.exports = class EmojiSelectorList extends React.Component
     return result
 
 
-  renderEmptySectionMessageAtIndex: (sectionIndex) ->
+  renderEmptySectionAtIndex: (sectionIndex) ->
 
     <div className='EmojiSelector-emptyCategory'>No emoji found</div>
 
@@ -69,7 +69,7 @@ module.exports = class EmojiSelectorList extends React.Component
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       sectionClassName='EmojiSelector-categorySection'
       sectionId={@bound 'sectionId'}
-      renderEmptySectionMessageAtIndex={@bound 'renderEmptySectionMessageAtIndex'}
+      renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
     />
 
 
@@ -86,5 +86,5 @@ module.exports = class EmojiSelectorList extends React.Component
       return totalIndex
 
 
-React.Component.include.call EmojiSelectorList, [ImmutableRenderMixin]
+EmojiSelectorList.include [ImmutableRenderMixin]
 

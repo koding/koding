@@ -158,5 +158,5 @@ module.exports = class EmojiSelector extends React.Component
     </Dropbox>
 
 
-React.Component.include.call EmojiSelector, [ImmutableRenderMixin, ListWithTabsMixin]
+EmojiSelector.include [ImmutableRenderMixin, ListWithTabsMixin]
 

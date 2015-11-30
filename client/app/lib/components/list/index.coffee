@@ -34,7 +34,7 @@ noop = ->
 #     <p>{@props.data.sections[sectionIndex].messages[rowIndex].body</p>
 #
 #
-#   renderEmptySectionMessageAtIndex: (sectionIndex) ->
+#   renderEmptySectionAtIndex: (sectionIndex) ->
 #
 #     <div>No data found</div>
 #
@@ -45,6 +45,7 @@ noop = ->
 #       numberOfRowsInSection={@bound 'numberOfRowsInSection'}
 #       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
 #       renderRowAtIndex={@bound 'renderRowAtIndex'}
+#       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
 #     />
 ###
 module.exports = class List extends React.Component
@@ -55,6 +56,7 @@ module.exports = class List extends React.Component
     renderSectionHeaderAtIndex : PropTypes.func
     renderRowAtIndex           : PropTypes.func.isRequired
     onScroll                   : PropTypes.func
+    renderEmptySectionAtIndex  : PropTypes.func
 
 
   @defaultProps =
@@ -63,6 +65,7 @@ module.exports = class List extends React.Component
     renderSectionHeaderAtIndex : minimumRenderFn
     renderRowAtIndex           : minimumRenderFn
     onScroll                   : noop
+    renderEmptySectionAtIndex  : minimumRenderFn
 
 
   numberOfSections: ->
@@ -90,9 +93,9 @@ module.exports = class List extends React.Component
     return @props.renderRowAtIndex sectionIndex, rowIndex
 
 
-  renderEmptySectionMessageAtIndex: (sectionIndex) ->
+  renderEmptySectionAtIndex: (sectionIndex) ->
 
-    return @props.renderEmptySectionMessageAtIndex? sectionIndex  unless @numberOfRowsInSection sectionIndex
+    return @props.renderEmptySectionAtIndex? sectionIndex  unless @numberOfRowsInSection sectionIndex
 
 
   renderChildren: ->
@@ -113,7 +116,7 @@ module.exports = class List extends React.Component
             {dataSource.renderRowAtIndex sectionIndex, rowIndex}
           </div>
         }
-        {dataSource.renderEmptySectionMessageAtIndex sectionIndex}
+        {dataSource.renderEmptySectionAtIndex sectionIndex}
       </section>
 
 
