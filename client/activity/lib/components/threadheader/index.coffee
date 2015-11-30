@@ -1,12 +1,13 @@
-kd                 = require 'kd'
-React              = require 'kd-react'
-classnames         = require 'classnames'
-Encoder            = require 'htmlencode'
-KeyboardKeys       = require 'app/util/keyboardKeys'
-ActivityFlux       = require 'activity/flux'
-ButtonWithMenu     = require 'app/components/buttonwithmenu'
-StartVideoCallLink = require 'activity/components/common/startvideocalllink'
-ChannelLabel       = require 'activity/components/channellabel'
+kd                   = require 'kd'
+React                = require 'kd-react'
+classnames           = require 'classnames'
+Encoder              = require 'htmlencode'
+KeyboardKeys         = require 'app/util/keyboardKeys'
+ActivityFlux         = require 'activity/flux'
+ButtonWithMenu       = require 'app/components/buttonwithmenu'
+StartVideoCallLink   = require 'activity/components/common/startvideocalllink'
+VideoComingSoonModal = require 'activity/components/videocomingsoonmodal'
+ChannelLabel         = require 'activity/components/channellabel'
 
 module.exports = class ThreadHeader extends React.Component
 
@@ -23,7 +24,10 @@ module.exports = class ThreadHeader extends React.Component
 
     super props
 
-    @state = { editingPurpose: no, thread: @props.thread }
+    @state =
+      editingPurpose : no
+      isModalOpen    : no
+      thread         : @props.thread
 
 
   channel: (keyPath...) -> @state.thread.getIn ['channel'].concat keyPath
@@ -70,9 +74,16 @@ module.exports = class ThreadHeader extends React.Component
       kd.utils.moveCaretToEnd @refs.purposeInput
 
 
-  getPurposeAreaClassNames: -> classnames
-    'ChannelThreadPane-purposeWrapper': yes
-    'editing': @state.editingPurpose
+  onVideoStart: -> @setState { isModalOpen: yes }
+
+
+  onModalClose: -> @setState { isModalOpen: no }
+
+
+  getPurposeAreaClassNames: ->
+    classnames
+      'ChannelThreadPane-purposeWrapper': yes
+      'editing': @state.editingPurpose
 
 
   handlePurposeInputChange: (newValue) ->
@@ -135,7 +146,10 @@ module.exports = class ThreadHeader extends React.Component
         listClass='ChannelThreadPane-menuItems'
         items={@getMenuItems()} />
       {@renderPurposeArea()}
-      <StartVideoCallLink onStart={@props.onVideoStart}/>
+      <StartVideoCallLink onStart={@bound 'onVideoStart'}/>
+      <VideoComingSoonModal
+        onClose={@bound 'onModalClose'}
+        isOpen={@state.isModalOpen}/>
     </div>
 
 
