@@ -45,8 +45,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
     status = @machine ['status', 'state']
     percentage = @machine('percentage') or 0
     percentage = 100 - percentage  if status is Machine.State.Stopping
+    fullClass  = if percentage is 100 then ' full' else ''
 
-    <div className={"SidebarListItem-progressbar#{if percentage is 100 then ' full' else ''}"}>
+    <div className={"SidebarListItem-progressbar#{fullClass}"}>
       <cite style={width: "#{percentage}%"} />
     </div>
 
