@@ -159,9 +159,9 @@ module.exports = class TeamMembersCommonView extends KDView
       kd.warn err
 
 
-  listMembers: (members) ->
+  listMembers: (members, filterForDefaultRole) ->
 
-    { memberType, itemLimit } = @getOptions()
+    { memberType, itemLimit, defaultMemberRole } = @getOptions()
 
     if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()
@@ -175,6 +175,11 @@ module.exports = class TeamMembersCommonView extends KDView
       @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
     else
       @fetchUserRoles members, (members) =>
+
+        if filterForDefaultRole and defaultMemberRole
+          members = members.filter (member) ->
+            return defaultMemberRole in member.roles
+
         members.forEach (member) =>
           member.loggedInUserRoles = @loggedInUserRoles # FIXME
           item = @listController.addItem member
@@ -229,11 +234,11 @@ module.exports = class TeamMembersCommonView extends KDView
     else
       kd.singletons.search.searchAccounts query, options
         .then (accounts) => @handleSearchResult accounts
-        .catch (err) =>
-          @handleError err
+        .catch (err)     => @handleError err
 
 
   handleSearchResult: (accounts) ->
+
 
     usernames = (profile.nickname for { profile } in accounts)
 
@@ -247,7 +252,7 @@ module.exports = class TeamMembersCommonView extends KDView
         profile.email = emails[profile.nickname]
 
       @resetListItems no  if @page is 0
-      @listMembers accounts
+      @listMembers accounts, yes
       @isFetching = no
 
 

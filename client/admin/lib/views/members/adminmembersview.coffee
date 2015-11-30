@@ -35,6 +35,7 @@ module.exports = class AdminMembersView extends kd.View
 
     admins.addSubView @adminsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchAdminsWithEmail'
+      defaultMemberRole : 'admin'
       noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No admins found!'
         cssClass        : 'no-item-view'
@@ -42,6 +43,7 @@ module.exports = class AdminMembersView extends kd.View
 
     mods.addSubView @modsView = new TeamMembersCommonView
       fetcherMethod     : 'fetchModeratorsWithEmail'
+      defaultMemberRole : 'moderator'
       noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No moderators found!'
         cssClass        : 'no-item-view'
