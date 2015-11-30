@@ -13,10 +13,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     super
 
-    status = @props.machine.getIn ['status', 'state']
+    status = @machine ['status', 'state']
 
     @state = {
-      collapsed : status isnt 'Running' and not @props.active
+      collapsed : status isnt Machine.State.Running and not @props.active
     }
 
 
