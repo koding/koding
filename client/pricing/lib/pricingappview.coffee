@@ -226,6 +226,7 @@ module.exports = class PricingAppView extends KDView
    * if this method will be called or not.
   ###
   planSelected: (options) ->
+
     return  if @state.inProcess
 
     @state.inProcess = yes
@@ -251,7 +252,7 @@ module.exports = class PricingAppView extends KDView
         'expired'             isnt subscriptionState
 
       if isCurrentPlan
-        inProcess = no
+        @state.inProcess = no
         return showError "That's already your current plan."
 
       { PAYPAL, KODING } = PaymentConstants.provider
