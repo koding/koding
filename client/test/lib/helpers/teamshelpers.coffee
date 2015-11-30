@@ -263,6 +263,7 @@ module.exports =
     createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
     createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
     channelName                    or= helpers.getFakeText().split(' ')[0] + Date.now()
+    channelName                      = channelName.substring(0, 19)
     channelLinkOnSidebarSelector     = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
 
     @moveToSidebarHeader(browser, yes)
