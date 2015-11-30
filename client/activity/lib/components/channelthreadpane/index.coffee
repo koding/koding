@@ -120,6 +120,15 @@ module.exports = class ChannelThreadPane extends React.Component
       showDropTarget={@state.showDropTarget}/>
 
 
+  renderBody: ->
+
+    <div className='ChannelThreadPane-body'>
+      <section className='ChannelThreadPane-chatWrapper'>
+        <PublicChatPane ref='pane' thread={thread}/>
+      </section>
+    </div>
+
+
   render: ->
 
     return null  unless thread = @state.channelThread
@@ -130,11 +139,7 @@ module.exports = class ChannelThreadPane extends React.Component
         onDragEnter={@bound 'onDragEnter'}>
         {@renderChannelDropContainer()}
         {@renderHeader()}
-        <div className='ChannelThreadPane-body'>
-          <section className='ChannelThreadPane-chatWrapper'>
-            <PublicChatPane ref='pane' thread={thread}/>
-          </section>
-        </div>
+        {@renderBody()}
       </section>
       <aside className='ChannelThreadPane-sidebar'>
         <ThreadSidebar
