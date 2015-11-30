@@ -3,6 +3,18 @@ environmentDataProvider = require 'app/userenvironmentdataprovider'
 actions                 = require './actiontypes'
 
 
+_bindStackEvents = ->
+
+  { reactor, computeController } = kd.singletons
+
+  computeController.on 'StackRevisionChecked', (stack) ->
+
+    return  if _revisionStatus?.error? and not stack._revisionStatus.status
+
+    reactor.dispatch actions.STACK_UPDATED, stack
+
+
+
 loadMachines = do (isPayloadUsed = no) ->->
 
   { reactor } = kd.singletons
@@ -43,6 +55,7 @@ loadStacks = ->
       else
         reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
         resolve stacks
+        _bindStackEvents()
 
 
 module.exports = {
