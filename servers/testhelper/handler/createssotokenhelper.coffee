@@ -49,12 +49,9 @@ createUserAndSsoToken = (apiToken, opts, callback) ->
   [opts, callback] = [callback, opts]  unless callback
   opts ?= {}
 
-  console.log 1
   createUser apiToken, opts, ({ username, email }) ->
     opts.username = username
-    console.log 2
     createSsoToken apiToken, opts, ({ token }) ->
-      console.log 3
       callback { username, email, token }
 
 
