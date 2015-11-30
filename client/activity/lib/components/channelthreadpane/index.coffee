@@ -48,6 +48,9 @@ module.exports = class ChannelThreadPane extends React.Component
       channelParticipants   : immutable.List()
 
 
+  channel: (args...) -> @state.channelThread.getIn ['channel'].concat args
+
+
   onVideoStart: ->
 
     @setState isComingSoonModalOpen: yes
@@ -95,9 +98,7 @@ module.exports = class ChannelThreadPane extends React.Component
   leaveChannel: ->
 
     { unfollowChannel } = ActivityFlux.actions.channel
-    channelId   = @state.channelThread.get 'channelId'
-
-    unfollowChannel channelId
+    unfollowChannel @channel 'id'
 
 
   componentWillUpdate: (nextProps, nextState) ->
@@ -118,9 +119,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
   showNotificationSettingsModal: ->
 
-    channelName = @state.channelThread.getIn ['channel', 'name']
-    route = "/Channels/#{channelName}/NotificationSettings"
-
+    route = "/Channels/#{@channel 'name'}/NotificationSettings"
     kd.singletons.router.handleRoute route
 
 
@@ -128,25 +127,20 @@ module.exports = class ChannelThreadPane extends React.Component
 
     { ENTER, ESC } = KeyboardKeys
     thread         = @state.channelThread
-    purpose        = thread.getIn(['channel', 'purpose'])
 
     if event.which is ESC
-
-      _originalPurpose = thread.getIn ['channel', '_originalPurpose']
-      purpose = _originalPurpose or thread.getIn ['channel', 'purpose']
+      _originalPurpose = @channel '_originalPurpose'
+      purpose = _originalPurpose or @channel 'purpose'
       thread  = thread.setIn ['channel', 'purpose'], purpose
       @setState channelThread: thread
       return @setState editingPurpose: no
 
     if event.which is ENTER
-
-      id        = thread.get 'channelId'
-      purpose   = thread.getIn(['channel', 'purpose']).trim()
-
+      id = @channel 'id'
+      purpose = @channel('purpose').trim()
       { updateChannel } = ActivityFlux.actions.channel
 
-      updateChannel({ id, purpose }).then (response) =>
-        @setState editingPurpose: no
+      updateChannel({ id, purpose }).then => @setState editingPurpose: no
 
 
   getPurposeAreaClassNames: -> classnames
@@ -158,20 +152,18 @@ module.exports = class ChannelThreadPane extends React.Component
 
     thread = @state.channelThread
 
-    unless thread.getIn ['channel', '_originalPurpose']
-      _originalPurpose = thread.getIn ['channel', 'purpose']
-      thread = thread.setIn ['channel', '_originalPurpose'], _originalPurpose
+    unless @channel '_originalPurpose'
+      thread = thread.setIn ['channel', '_originalPurpose'], @channel 'purpose'
 
     channelThread = thread.setIn ['channel', 'purpose'], newValue
-    @setState channelThread: channelThread
+    @setState { channelThread }
 
 
   renderPurposeArea: ->
 
     return  unless @state.channelThread
 
-    purpose = @state.channelThread.getIn ['channel', 'purpose']
-    purpose = Encoder.htmlDecode purpose
+    purpose = Encoder.htmlDecode @channel 'purpose'
 
     valueLink =
       value         : purpose
@@ -189,22 +181,18 @@ module.exports = class ChannelThreadPane extends React.Component
 
   renderHeader: ->
 
-    return  unless @state.channelThread
-    thread = @state.channelThread
-    channelName = thread.getIn ['channel', 'name']
+    return  unless thread = @state.channelThread
 
     <ThreadHeader thread={thread}>
       <PublicChannelLink to={thread}>
-        {"##{channelName}"}
+        {"##{@channel 'name'}"}
       </PublicChannelLink>
     </ThreadHeader>
 
 
   render: ->
 
-    return null  unless @state.channelThread
-    thread = @state.channelThread
-    channelName = thread.getIn ['channel', 'name']
+    return null  unless thread = @state.channelThread
 
     <div className='ChannelThreadPane is-withChat'>
       <CollaborationComingSoonModal
@@ -225,14 +213,14 @@ module.exports = class ChannelThreadPane extends React.Component
         </header>
         <div className='ChannelThreadPane-body'>
           <section className='ChannelThreadPane-chatWrapper'>
-            <PublicChatPane ref='pane' thread={@state.channelThread}/>
+            <PublicChatPane ref='pane' thread={thread}/>
           </section>
         </div>
       </section>
       <aside className='ChannelThreadPane-sidebar'>
         <ThreadSidebar
-          channelThread={@state.channelThread}
-          channelParticipants={@state.channelParticipants}/>
+          channelThread={thread}
+          channelParticipants={@state.channelParticipants} />
       </aside>
 
       {@props.children}
