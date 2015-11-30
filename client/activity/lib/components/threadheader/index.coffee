@@ -6,6 +6,7 @@ KeyboardKeys       = require 'app/util/keyboardKeys'
 ActivityFlux       = require 'activity/flux'
 ButtonWithMenu     = require 'app/components/buttonwithmenu'
 StartVideoCallLink = require 'activity/components/common/startvideocalllink'
+ChannelLabel       = require 'activity/components/channellabel'
 
 module.exports = class ThreadHeader extends React.Component
 
@@ -128,7 +129,7 @@ module.exports = class ThreadHeader extends React.Component
     return null  unless @state.thread
 
     <div className={kd.utils.curry "ThreadHeader", @props.className}>
-      #{@channel 'name'}
+      <ChannelLabel thread={@state.thread} />
       <ButtonWithMenu
         listClass='ChannelThreadPane-menuItems'
         items={@getMenuItems()} />
