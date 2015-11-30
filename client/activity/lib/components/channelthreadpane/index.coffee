@@ -48,7 +48,7 @@ module.exports = class ChannelThreadPane extends React.Component
       channelParticipants   : immutable.List()
 
 
-  onStart: ->
+  onVideoStart: ->
 
     @setState isComingSoonModalOpen: yes
 
@@ -75,7 +75,7 @@ module.exports = class ChannelThreadPane extends React.Component
     showNotification 'Coming soon...', type: 'main'
 
 
-  onClose: ->
+  onCollabModalClose: ->
 
     @setState isComingSoonModalOpen: no
 
@@ -158,7 +158,7 @@ module.exports = class ChannelThreadPane extends React.Component
     'editing': @state.editingPurpose
 
 
-  handleChange: (newValue) ->
+  handlePurposeInputChange: (newValue) ->
 
     thread = @state.channelThread
 
@@ -178,12 +178,16 @@ module.exports = class ChannelThreadPane extends React.Component
     purpose = Encoder.htmlDecode purpose
 
     valueLink =
-      value: purpose
-      requestChange: @bound 'handleChange'
+      value         : purpose
+      requestChange : @bound 'handlePurposeInputChange'
 
     <div className={@getPurposeAreaClassNames()}>
       <span className='ChannelThreadPane-purpose'>{purpose}</span>
-      <input ref='purposeInput' type='text' valueLink={valueLink} onKeyDown={@bound 'onKeyDown'} />
+      <input
+        ref='purposeInput'
+        type='text'
+        valueLink={valueLink}
+        onKeyDown={@bound 'onKeyDown'} />
     </div>
 
 
@@ -208,7 +212,7 @@ module.exports = class ChannelThreadPane extends React.Component
 
     <div className='ChannelThreadPane is-withChat'>
       <CollaborationComingSoonModal
-        onClose={@bound 'onClose'}
+        onClose={@bound 'onCollabModalClose'}
         isOpen={@state.isComingSoonModalOpen}/>
       <section className='ChannelThreadPane-content'
         onDragEnter={@bound 'onDragEnter'}>
@@ -221,7 +225,7 @@ module.exports = class ChannelThreadPane extends React.Component
           {@renderHeader()}
           <ButtonWithMenu listClass='ChannelThreadPane-menuItems' items={@getMenuItems()} />
           {@renderPurposeArea()}
-          <StartVideoCallLink onStart={@bound 'onStart'}/>
+          <StartVideoCallLink onStart={@bound 'onVideoStart'}/>
         </header>
         <div className='ChannelThreadPane-body'>
           <section className='ChannelThreadPane-chatWrapper'>
