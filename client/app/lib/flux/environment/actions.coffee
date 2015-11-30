@@ -1,6 +1,24 @@
 kd                      = require 'kd'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 actions                 = require './actiontypes'
+getters                 = require './getters'
+
+_bindMachineEvents = (environmentData) ->
+
+  { reactor, computeController } = kd.singletons
+
+  machines = reactor.evaluate getters.machinesWithWorkspaces
+
+  machines.map (machine, id) ->
+
+    computeController.on "public-#{id}", (event) ->
+      reactor.dispatch actions.MACHINE_UPDATED, { id, event }
+
+    computeController.on "revive-#{id}", (newMachine) ->
+
+      return loadMachines()  unless newMachine
+
+      reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
 
 
 _bindStackEvents = ->
@@ -30,12 +48,14 @@ loadMachines = do (isPayloadUsed = no) ->->
       else
         reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, data
         resolve data
+        _bindMachineEvents data
 
     if environmentDataProvider.hasData() and not isPayloadUsed
       isPayloadUsed = yes
       return kd.utils.defer ->
+        environmentData = environmentDataProvider.get()
         environmentDataProvider.revive()
-        kallback null, environmentDataProvider.get()
+        kallback null, environmentData
 
     environmentDataProvider.fetch kallback
 
