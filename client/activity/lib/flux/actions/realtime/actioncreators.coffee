@@ -34,6 +34,14 @@ bindChannelEvents = (channel) ->
       dispatch actions.REMOVE_PARTICIPANT_FROM_CHANNEL, { channelId, accountId }
 
 
+    channel.on 'AddedToChannel', (account) ->
+
+      userId    = account._id
+      channelId = channel.id
+
+      dispatch actions.ADD_PARTICIPANTS_TO_CHANNEL_SUCCESS, { channelId, userId }
+
+
 bindMessageEvents = (message) ->
 
   messageId = message.id
