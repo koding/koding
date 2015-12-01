@@ -159,13 +159,13 @@ module.exports = class TeamMembersCommonView extends KDView
       kd.warn err
 
 
-  listMembers: (members) ->
+  listMembers: (members, filterForDefaultRole) ->
 
-    { memberType, itemLimit } = @getOptions()
+    { memberType, itemLimit, defaultMemberRole } = @getOptions()
 
     if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()
-      @listController.noItemView.show()
+      @listController.showNoItemWidget()
       return
 
     @skip += members.length
@@ -175,11 +175,19 @@ module.exports = class TeamMembersCommonView extends KDView
       @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
     else
       @fetchUserRoles members, (members) =>
-        members.forEach (member) =>
-          member.loggedInUserRoles = @loggedInUserRoles # FIXME
-          item = @listController.addItem member
 
-        @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
+        if filterForDefaultRole and defaultMemberRole
+          members = members.filter (member) ->
+            return defaultMemberRole in member.roles
+
+        if members.length
+          members.forEach (member) =>
+            member.loggedInUserRoles = @loggedInUserRoles # FIXME
+            item = @listController.addItem member
+
+          @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
+        else
+          @listController.showNoItemWidget()
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
@@ -226,14 +234,15 @@ module.exports = class TeamMembersCommonView extends KDView
           @handleSearchResult accounts
         else
           @handleError err
+          @listController.showNoItemWidget()
     else
       kd.singletons.search.searchAccounts query, options
         .then (accounts) => @handleSearchResult accounts
-        .catch (err) =>
-          @handleError err
+        .catch (err)     => @handleError err
 
 
   handleSearchResult: (accounts) ->
+
 
     usernames = (profile.nickname for { profile } in accounts)
 
@@ -247,7 +256,7 @@ module.exports = class TeamMembersCommonView extends KDView
         profile.email = emails[profile.nickname]
 
       @resetListItems no  if @page is 0
-      @listMembers accounts
+      @listMembers accounts, yes
       @isFetching = no
 
 
@@ -255,6 +264,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip = 0
     @listController.removeAllItems()
+    @listController.hideNoItemWidget()
     @listController.lazyLoader.show()
 
 
