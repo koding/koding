@@ -45,7 +45,6 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// get final information, such as public IP address and co
 	state, err := svc.GetPowerState(m.Meta.Id)
 	if err == nil {
-		var err error
 		resultState, err = statusToState(state.Name)
 		if err != nil {
 			return nil, err

@@ -26,7 +26,7 @@ const (
 	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-softlayer/softlayer"
 )
 
-func (m *Machine) Build(ctx context.Context) (err error) {
+func (m *Machine) Build(ctx context.Context) error {
 	if err := modelhelper.ChangeMachineState(m.Id, "Building started", machinestate.Building); err != nil {
 		return err
 	}
