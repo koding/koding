@@ -70,12 +70,12 @@ runTests = -> describe 'workers.social.apitoken', ->
         daisy queue
 
 
-    it 'should fail if isApiTokenEnabled field is not true for the group', (done) ->
+    it 'should fail if isApiEnabled field is not true for the group', (done) ->
 
       group         = generateRandomString()
       groupData     = {}
       options       = { context : { group }, createGroup : yes, groupData }
-      expectedError = 'api token usage is not enabled for this group'
+      expectedError = 'api usage is not enabled for this group'
 
       withConvertedUser options, ({ client, account }) ->
 
@@ -89,7 +89,7 @@ runTests = -> describe 'workers.social.apitoken', ->
     it 'should be able to create api token with valid request', (done) ->
 
       group     = generateRandomString()
-      groupData = { isApiTokenEnabled : yes }
+      groupData = { isApiEnabled : yes }
       options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client, account }) ->
@@ -115,7 +115,7 @@ runTests = -> describe 'workers.social.apitoken', ->
     it 'should be able to create with valid request', (done) ->
 
       group     = generateRandomString()
-      groupData = { isApiTokenEnabled : yes }
+      groupData = { isApiEnabled : yes }
       options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client, account }) ->
@@ -135,7 +135,7 @@ runTests = -> describe 'workers.social.apitoken', ->
     it 'should return access denied if user is not an admin', (done) ->
 
       group     = generateRandomString()
-      groupData = { isApiTokenEnabled : yes }
+      groupData = { isApiEnabled : yes }
       options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client }) ->
@@ -146,7 +146,7 @@ runTests = -> describe 'workers.social.apitoken', ->
     it 'should be able to delete token with valid request', (done) ->
 
       group     = generateRandomString()
-      groupData = { isApiTokenEnabled : yes }
+      groupData = { isApiEnabled : yes }
       options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client }) ->

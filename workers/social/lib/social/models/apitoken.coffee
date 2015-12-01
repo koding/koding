@@ -74,8 +74,8 @@ module.exports = class JApiToken extends jraphical.Module
           return callback err                                 if err
           return callback new KodingError 'group not found!'  unless group_
 
-          unless !!group_.getAt 'isApiTokenEnabled'
-            return callback new KodingError 'api token usage is not enabled for this group'
+          unless !!group_.getAt 'isApiEnabled'
+            return callback new KodingError 'api usage is not enabled for this group'
 
           queue.next()
 
