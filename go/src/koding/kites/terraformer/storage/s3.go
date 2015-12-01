@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -60,22 +58,17 @@ func (s *S3) Write(path string, file io.Reader) error {
 		Key:         aws.String(path),
 		ContentType: aws.String("application/json"),
 	}
-	if rs, ok := file.(io.ReadSeeker); ok {
-		params.Body = rs
-		if size := s.guessSize(file); size != 0 {
-			params.ContentLength = aws.Int64(size)
-		}
-	} else {
+	body, ok := file.(io.ReadSeeker)
+	if !ok {
 		// The file does not support seeking, thus can't be used
 		// by the AWS streaming api - read it in-memory instead.
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
 			return err
 		}
-		params.Body = bytes.NewReader(content)
-		params.ContentLength = aws.Int64(int64(len(content)))
+		body = bytes.NewReader(content)
 	}
-
+	params.Body = body
 	_, err := s.s3.PutObject(params)
 	// TODO(rjeczalik): make the write blocking with s3.WaitUntilObjectExists?
 	return err
@@ -129,8 +122,8 @@ func (s *S3) Clone(path string, target Interface) error {
 		path = path + "/"
 		params.Prefix = aws.String(path)
 	}
-	// read all elements in a bucket, we are gonna have more than 1000 items in
-	// that bucket/folder, so we handle paginated response to copy them all.
+	// read all elements in a folder of the bucket, we are gonna have more than
+	// 1000 items in it, so we handle paginated response to copy them all.
 	var targetErr error
 	err := s.s3.ListObjectsPages(params, func(resp *s3.ListObjectsOutput, _ bool) bool {
 		for _, obj := range resp.Contents {
@@ -171,25 +164,4 @@ func (s *S3) ensureClosed(r io.Reader, path string) {
 			s.log.Warning("failed closing resource path=%q: %s", path, err)
 		}
 	}
-}
-
-func (s *S3) guessSize(r io.Reader) int64 {
-	// trying to be smart here:
-	//
-	//  https://github.com/golang/go/blob/0417872/src/net/http/request.go#L602-L609
-	//
-	switch v := r.(type) {
-	case *bytes.Buffer:
-		return int64(v.Len())
-	case *bytes.Reader:
-		return int64(v.Len())
-	case *strings.Reader:
-		return int64(v.Len())
-	case *os.File:
-		if fi, err := v.Stat(); err == nil {
-			return fi.Size()
-		}
-	}
-	s.log.Warning("unable to guess body size for %T", r)
-	return 0
 }
