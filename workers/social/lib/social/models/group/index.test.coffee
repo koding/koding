@@ -447,15 +447,14 @@ runTests = -> describe 'workers.social.group.index', ->
           ->
             # expecting isApiTokenEnabled field to be empty before request
             expect(group.isApiTokenEnabled).to.be.empty
-            options = { isApiTokenEnabled : true }
-            group.setApiTokenAvailability$ client, options, (err) ->
+            group.setApiTokenAvailability$ client, false, (err) ->
               expect(err?.message).to.not.exist
               queue.next()
 
           ->
             JGroup.one { slug : group.slug }, (err, group_) ->
               expect(err).to.not.exist
-              expect(group_.isApiTokenEnabled).to.be.truthy
+              expect(group_.isApiTokenEnabled).to.be.falsy
               queue.next()
 
           -> done()
@@ -472,8 +471,8 @@ runTests = -> describe 'workers.social.group.index', ->
       options = { createGroup : yes, context : { group : generateRandomString() } }
       withConvertedUser options, ({ group }) ->
 
-        group.setApiTokenAvailability {}, (err) ->
-          expect(err?.message).to.be.equal 'isApiTokenEnabled is a required field'
+        group.setApiTokenAvailability null, (err) ->
+          expect(err?.message).to.be.equal 'availability must be set'
           done()
 
 
@@ -487,8 +486,7 @@ runTests = -> describe 'workers.social.group.index', ->
           ->
             # expecting isApiTokenEnabled field to be empty before request
             expect(group.isApiTokenEnabled).to.be.empty
-            options = { isApiTokenEnabled : true }
-            group.setApiTokenAvailability options, (err) ->
+            group.setApiTokenAvailability true, (err) ->
               expect(err).to.not.exist
               queue.next()
 
