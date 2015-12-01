@@ -12,11 +12,15 @@ import (
 // WatchInterval is the default interval to watch for changes on remote.
 var WatchInterval = 1 * time.Second
 
+// Watcher is the interface that defines watching files on a remote machine
+// and sending the results to local.
 type Watcher interface {
 	Watch() (<-chan string, <-chan error)
 	AddTimedIgnore(string, time.Duration)
 }
 
+// FindWatcher implements Watcher interface. It runs `find` command on remote
+// to see which files and folders have been modified in an interval.
 type FindWatcher struct {
 	// Transport is used for two way communication with user VM.
 	transport.Transport
@@ -24,15 +28,19 @@ type FindWatcher struct {
 	// RemotePath is full path on user VM.
 	RemotePath string
 
+	// LastRan stores when the last time this command was run. Note it's not
+	// 'successfully' run.
 	LastRan time.Time
 
-	WatchInterval time.Duration
+	watchInterval time.Duration
 
-	sync.Mutex
+	// Mutex protects the fields below.
+	sync.RWMutex
 
 	ignoredPaths map[string]time.Time
 }
 
+// AddTimedIgnore ignores a specified path for specified duration of time.
 func (f *FindWatcher) AddTimedIgnore(path string, duration time.Duration) {
 	f.Lock()
 	path = trimPrefix(path, f.RemotePath)
@@ -40,13 +48,15 @@ func (f *FindWatcher) AddTimedIgnore(path string, duration time.Duration) {
 	f.Unlock()
 }
 
-func (f *FindWatcher) RemoveTimedIgnore(path string) {
+func (f *FindWatcher) removeTimedIgnore(path string) {
 	f.Lock()
 	path = trimPrefix(path, f.RemotePath)
 	delete(f.ignoredPaths, path)
 	f.Unlock()
 }
 
+// Watch asks for changes on remote in an interval. It returns two channels:
+// one for paths that've been changed and another one for error.
 func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 	resChan := make(chan string)
 	errChan := make(chan error)
@@ -74,17 +84,21 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 }
 
 func (f *FindWatcher) isPathIgnored(path string) bool {
+	f.RLock()
+
+	path = trimPrefix(path, f.RemotePath)
 	expiration, ok := f.ignoredPaths[path]
 	if !ok {
+		f.RUnlock()
 		return false
 	}
 
 	if expiration.After(time.Now().UTC()) {
+		f.RUnlock()
 		return true
 	}
 
-	// remove expired entries from list of paths
-	delete(f.ignoredPaths, path)
+	f.removeTimedIgnore(path)
 
 	return false
 }
@@ -125,15 +139,15 @@ func NewFindWatcher(t transport.Transport, r string) *FindWatcher {
 	return &FindWatcher{
 		Transport:     t,
 		RemotePath:    r,
-		WatchInterval: WatchInterval,
+		watchInterval: WatchInterval,
 		ignoredPaths:  map[string]time.Time{},
 	}
 }
 
-// Watch is used to keep local synced with remote. It accepts a channel to
-// listen for file or folder changes; when an item is sent to channel, it
-// searches for the item in the specified Dir and invalidates the item's
-// cache. If item is not matched, it simply ignores it.
+// WatchForRemoteChanges is used to keep local synced with remote. It accepts
+// a channel to listen for file or folder changes; when an item is sent to
+// channel, it searches for the item in the specified Dir and invalidates the
+// item's cache. If item is not matched, it simply ignores it.
 //
 // This is blocking operation and should be run in a goroutine.
 func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
@@ -147,9 +161,7 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 			}
 
 			if item, err := dir.findEntryRecursive(item); err == nil {
-				if item != nil {
-					item.Expire()
-				}
+				item.Expire()
 			}
 		case err := <-errs:
 			return err

@@ -32,7 +32,7 @@ func TestFindWatcher(t *testing.T) {
 	Convey("FindWatcher#RemoveTimedIgnore", t, func() {
 		Convey("It should removes path with remote prefix", func() {
 			fw.AddTimedIgnore("/remote/a", du)
-			fw.RemoveTimedIgnore("/remote/a")
+			fw.removeTimedIgnore("/remote/a")
 
 			_, ok := fw.ignoredPaths["a"]
 			So(ok, ShouldBeFalse)
@@ -40,7 +40,7 @@ func TestFindWatcher(t *testing.T) {
 
 		Convey("It should removes path without remote prefix", func() {
 			fw.AddTimedIgnore("/remote/a", du)
-			fw.RemoveTimedIgnore("a")
+			fw.removeTimedIgnore("a")
 
 			_, ok := fw.ignoredPaths["a"]
 			So(ok, ShouldBeFalse)

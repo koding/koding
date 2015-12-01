@@ -261,10 +261,12 @@ func (d *Dir) RemoveEntry(name string) (Node, error) {
 
 ///// Node interface
 
+// GetType returns fuseutil.DT_Directory for identification for fuse library.
 func (d *Dir) GetType() fuseutil.DirentType {
 	return fuseutil.DT_Directory
 }
 
+// Expire removes the local cache of directory.
 func (d *Dir) Expire() error {
 	return d.reset()
 }
