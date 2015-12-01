@@ -44,6 +44,7 @@ func main() {
 	r.Register(models.ParticipantEvent{}).On(models.ChannelParticipant_Added_To_Channel_Event).Handle((*realtime.Controller).ChannelParticipantsAdded)
 	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*realtime.Controller).ChannelParticipantUpdatedEvent)
 	r.Register(models.Channel{}).OnDelete().Handle((*realtime.Controller).ChannelDeletedEvent)
+	r.Register(models.Channel{}).OnUpdate().Handle((*realtime.Controller).ChannelUpdatedEvent)
 	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*realtime.Controller).NotifyUser)
 	r.Register(notificationmodels.Notification{}).OnUpdate().Handle((*realtime.Controller).NotifyUser)
 	r.Listen()
