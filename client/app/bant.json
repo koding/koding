@@ -8,13 +8,13 @@
     "/Login": "login",
     "/Register": "register",
     "/Logout": "logout",
+    "/:slug/:name": "members",
     "/member/:username": "member",
     "/Unsubscribe/:token/:email/:opt?": "unsubscribe",
+    "/:name": "name",
     "/Reset/:token": "reset",
     "/Stacks/:stack?": "stacks",
-    "/Machines/:slug": "machine-settings",
-    "/:slug/:name": "members",
-    "/:name": "name"
+    "/Machines/:slug": "machine-settings"
   },
   "sprites": [
     "./lib/sprites"
