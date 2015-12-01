@@ -146,6 +146,47 @@ func (f *Controller) RemoveGuestAccounts() error {
 	return nil
 }
 
+func (f *Controller) FetchAllGuestsNicks() ([]string, error) {
+	guest := "guest-"
+
+	index, err := f.indexes.GetIndex(IndexAccounts)
+	if err != nil {
+		return nil, err
+	}
+	params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
+	record, _ := index.Search(guest, params)
+
+	hist, ok := record.(map[string]interface{})["hits"]
+
+	nicks := make([]string, 0)
+	if ok {
+
+		hinter, ok := hist.([]interface{})
+		if ok {
+			for _, v := range hinter {
+				val, k := v.(map[string]interface{})
+				if k {
+					value := val["nick"].(string)
+					if strings.HasPrefix(value, guest) {
+						nicks = append(nicks, value)
+					}
+				}
+			}
+		}
+	}
+	return nicks, nil
+}
+
+func (f *Controller) deleteAllGuestNicks(indexName string, objectIDs []string) error {
+	for _, val := range objectIDs {
+		if err := f.delete(indexName, val); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 var errDeadline = errors.New("deadline reached")
 
 // makeSureAccount checks if the given id's get request returns the desired err,
