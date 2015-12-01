@@ -2,6 +2,7 @@ package softlayer
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"strings"
@@ -31,7 +32,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
 				resultState, reason)
 
-			if err := m.checkAndUpdateState(resultState); err != nil {
+			if err := modelhelper.CheckAndUpdateState(m.Id, resultState); err != nil {
 				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
 			}
 		}

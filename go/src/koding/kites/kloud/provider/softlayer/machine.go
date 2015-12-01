@@ -125,29 +125,3 @@ func (m *Machine) DeleteDocument() error {
 
 	return nil
 }
-
-// CheckAndUpdate state updates only if the given machine id is not used by
-// anyone else
-func (m *Machine) checkAndUpdateState(state machinestate.State) error {
-	m.Log.Info("storage state update request to state %v", state)
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
-			bson.M{
-				"_id": m.Id,
-				"assignee.inProgress": false, // only update if it's not locked by someone else
-			},
-			bson.M{
-				"$set": bson.M{
-					"status.state":      state.String(),
-					"status.modifiedAt": time.Now().UTC(),
-				},
-			},
-		)
-	})
-
-	if err == mgo.ErrNotFound {
-		m.Log.Info("info can't update db state because lock is acquired by someone else")
-	}
-
-	return err
-}
