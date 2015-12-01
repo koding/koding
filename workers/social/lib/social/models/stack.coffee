@@ -319,6 +319,10 @@ module.exports = class JComputeStack extends jraphical.Module
 
   delete: (callback) ->
 
+    if @baseStackId
+      return callback new KodingError \
+        "Stacks generated from templates can only be destroyed by Kloud."
+
     @getGroup (err, group) =>
 
       return callback err  if err
