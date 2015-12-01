@@ -9,7 +9,8 @@
 { withConvertedUserAndApiToken }    = require '../../../../../workers/social/testhelper/models/apitokenhelper'
 { generateCreateUserRequestParams } = require '../../../../testhelper/handler/createuserhelper'
 
-JUser = require '../../../../models/user'
+apiErrors = require './errors'
+JUser     = require '../../../../models/user'
 
 beforeTests = -> before (done) ->
 
@@ -27,7 +28,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
     request.post createUserRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 401
-      expect(body).to.be.equal 'unauthorized request'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.unauthorizedRequest }
       done()
 
 
@@ -38,7 +39,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
     request.post createUserRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'invalid token!'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidApiToken }
       done()
 
 
@@ -46,6 +47,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { email  : '' }
@@ -53,44 +55,47 @@ runTests = -> describe 'server.handlers.api.createuser', ->
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'invalid request'
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidInput }
         done()
 
 
-  it 'should send HTTP 400 if username is already in use', (done) ->
+  it 'should send HTTP 409 if username is already in use', (done) ->
 
     options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { username : userFormData.username }
 
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'username is not available'
+        expect(res.statusCode).to.be.equal 409
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.usernameAlreadyExists }
         done()
 
 
-  it 'should send HTTP 400 if username is a banned one', (done) ->
+  it 'should send HTTP 409 if username is a banned one', (done) ->
 
     options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { username : JUser.bannedUserList[0] }
 
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'username is not available'
+        expect(res.statusCode).to.be.equal 409
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.usernameAlreadyExists }
         done()
 
 
-  it 'should send HTTP 400 if email is in use', (done) ->
+  it 'should send HTTP 409 if email is in use', (done) ->
 
     options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { email : userFormData.email }
@@ -98,8 +103,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
       # api token creator tries to register himself
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'Email is already in use!'
+        expect(res.statusCode).to.be.equal 409
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.emailAlreadyExists }
         done()
 
 
@@ -117,7 +122,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal expectedBody
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidEmailDomain }
         done()
 
 
@@ -139,7 +144,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         request.post createUserRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 403
-          expect(body).to.be.equal expectedBody
+          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiTokenIsDisabled }
           done()
 
 
@@ -161,7 +166,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         request.post createUserRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 200
-          expect(body).to.contain username
+          expect(JSON.parse body).to.be.deep.equal { data : { username } }
           done()
 
     it 'should send HTTP 200 and create user without username provided', (done) ->
