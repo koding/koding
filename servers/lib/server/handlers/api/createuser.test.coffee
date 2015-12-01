@@ -91,19 +91,19 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         done()
 
 
-  it 'should send HTTP 409 if username has invalid characters', (done) ->
+  it 'should send HTTP 500 if username has invalid characters', (done) ->
 
     options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
-        body     : { username : '@$_?()' }
+        body     : { username : "@$_?()=&#{generateRandomString(10)}" }
 
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 409
-        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.usernameAlreadyExists }
+        expect(res.statusCode).to.be.equal 500
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.internalError }
         done()
 
 
