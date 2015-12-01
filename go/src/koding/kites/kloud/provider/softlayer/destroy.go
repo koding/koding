@@ -35,5 +35,5 @@ func (m *Machine) Destroy(ctx context.Context) error {
 	m.IpAddress = ""
 	m.QueryString = ""
 
-	return m.DeleteDocument()
+	return modelhelper.DeleteMachine(m.Id)
 }
