@@ -1,12 +1,13 @@
-kookies            = require 'kookies'
-getGroup           = require 'app/util/getGroup'
-whoami             = require 'app/util/whoami'
-envDataProvider    = require 'app/userenvironmentdataprovider'
-kd                 = require 'kd'
-articlize          = require 'indefinite-article'
-KDModalView        = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDObject           = kd.Object
+kookies             = require 'kookies'
+getGroup            = require 'app/util/getGroup'
+whoami              = require 'app/util/whoami'
+envDataProvider     = require 'app/userenvironmentdataprovider'
+kd                  = require 'kd'
+articlize           = require 'indefinite-article'
+KDModalView         = kd.ModalView
+KDNotificationView  = kd.NotificationView
+KDObject            = kd.Object
+IDEHelpers          = require 'ide/idehelpers'
 
 
 module.exports = class NotificationController extends KDObject
