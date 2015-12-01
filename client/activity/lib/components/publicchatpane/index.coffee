@@ -5,29 +5,41 @@ ActivityFlux         = require 'activity/flux'
 ChatPane             = require 'activity/components/chatpane'
 ChatInputWidget      = require 'activity/components/chatinputwidget'
 ChatPaneWrapperMixin = require 'activity/components/chatpane/chatpanewrappermixin'
+FollowChannelBox     = require 'activity/components/followchannelbox'
+
+{ message: messageActions, command: commandActions } = ActivityFlux.actions
 
 module.exports = class PublicChatPane extends React.Component
 
   @defaultProps =
     thread   : immutable.Map()
 
-
-  onFollowChannel: ->
-
-    ActivityFlux.actions.channel.followChannel @channel 'id'
+  channel: (keyPath...) -> @props.thread?.getIn ['channel'].concat keyPath
 
 
-  renderFollowChannel: ->
+  onSubmit: ({ value }) ->
 
-    <div className="PublicChatPane-subscribeContainer">
-      This is a preview of <strong>#{@channel 'name'}</strong>
-      <button
-        ref       = "button"
-        className = "Button Button-followChannel"
-        onClick   = { @bound 'onFollowChannel' }>
-          Join
-      </button>
-    </div>
+    return  unless value
+
+    messageActions.createMessage @channel('id'), value
+
+
+  onCommand: ({ command }) -> commandActions.executeCommand command, @channel()
+
+
+  onLoadMore: ->
+
+    return  unless (messages = @props.thread.get 'messages').size
+
+    messageActions.loadMessages @channel('id'),
+      from: messages.first().get 'createdAt'
+
+
+  onInviteOthers: ->
+
+    return  unless input = @refs.chatInputWidget
+
+    input.setCommand '/invite @'
 
 
   renderFooter: ->
@@ -35,19 +47,23 @@ module.exports = class PublicChatPane extends React.Component
     return null  unless @props.thread?.get 'messages'
 
     isParticipant = @channel 'isParticipant'
+    isPrivate = 'privatemessage' is @channel 'typeConstant'
+
+    disabledFeatures = []
+    disabledFeatures = disabledFeatures.concat ['search']  if isPrivate
 
     <footer className="PublicChatPane-footer ChatPaneFooter">
-      <div className={unless isParticipant then 'hidden'}>
-        <ChatInputWidget
-           ref       = 'chatInputWidget'
-           onSubmit  = { @bound 'onSubmit' }
-           onCommand = { @bound 'onCommand' }
-           channelId = { @channel 'id' }
-           onResize  = { @bound 'onResize' }/>
-      </div>
-      <div className={if isParticipant then 'hidden'}>
-        { @renderFollowChannel() }
-      </div>
+      <ChatInputWidget
+        ref='chatInputWidget'
+        className={unless isParticipant then 'hidden'}
+        onSubmit={@bound 'onSubmit'}
+        onCommand={@bound 'onCommand'}
+        channelId={@channel 'id'}
+        onResize={@bound 'onResize'}
+        disabledFeatures={disabledFeatures} />
+      <FollowChannelBox
+        className={if isParticipant then 'hidden'}
+        thread={@props.thread} />
     </footer>
 
 
@@ -57,17 +73,17 @@ module.exports = class PublicChatPane extends React.Component
 
     <div>
       <ChatPane
-        key            = { @props.thread.get 'channelId' }
-        thread         = { @props.thread }
-        className      = 'PublicChatPane'
-        onSubmit       = { @bound 'onSubmit' }
-        onLoadMore     = { @bound 'onLoadMore' }
-        onInviteOthers = {@bound 'onInviteOthers'}
-        ref            = 'chatPane'
+        ref='chatPane'
+        key={@props.thread.get 'channelId'}
+        thread={@props.thread}
+        className='PublicChatPane'
+        onSubmit={@bound 'onSubmit'}
+        onLoadMore={@bound 'onLoadMore'}
+        onInviteOthers={@bound 'onInviteOthers'}
       />
       {@renderFooter()}
     </div>
 
 
-React.Component.include.call PublicChatPane, [ChatPaneWrapperMixin]
+PublicChatPane.include [ChatPaneWrapperMixin]
 
