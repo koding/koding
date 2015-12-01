@@ -314,7 +314,7 @@ module.exports = class JComputeStack extends jraphical.Module
           }, (err) =>
 
             if err
-              console.warn "Failed to mark stack machines as Terminated:", err
+              console.warn 'Failed to mark stack machines as Terminated:', err
 
             @unuseStackTemplate callback
 
@@ -323,7 +323,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
     if @baseStackId
       return callback new KodingError \
-        "Stacks generated from templates can only be destroyed by Kloud."
+        'Stacks generated from templates can only be destroyed by Kloud.'
 
     @getGroup (err, group) =>
 
