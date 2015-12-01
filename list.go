@@ -13,7 +13,9 @@ type kiteInfo struct {
 	IP           string
 	VMName       string
 	Hostname     string
+	MachineLabel string
 	MountedPaths []string
+	Teams        []string
 }
 
 // ListCommand returns list of remote machines belonging to user or that can be
@@ -42,10 +44,13 @@ func ListCommand(c *cli.Context) int {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tMACHINE NAME\tMACHINE IP\tHOSTNAME\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tMACHINE NAME\tTEAM\tLABEL\tMACHINE IP\tHOSTNAME\tMOUNTED PATHS\n")
 	for i, info := range infos {
-		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\n",
-			i+1, info.VMName, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
+		// Join multiple teams into a single identifier
+		team := strings.Join(info.Teams, ",")
+
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
+			i+1, info.VMName, team, info.MachineLabel, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
 	}
 	w.Flush()
 
