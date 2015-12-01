@@ -5,7 +5,7 @@ KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 { checkAuthorizationBearerHeader } = require '../../helpers'
 { sendApiError
   sendApiResponse
-  checkApiTokenAvailability }      = require './helpers'
+  checkApiAvailability }           = require './helpers'
 
 apiErrors = require './errors'
 
@@ -32,7 +32,7 @@ module.exports = createSsoToken = (req, res, next) ->
         queue.next()
 
     ->
-      checkApiTokenAvailability { apiToken }, (err) ->
+      checkApiAvailability { apiToken }, (err) ->
         return sendApiError res, err  if err
         queue.next()
 

@@ -6,10 +6,9 @@ Jwt        = require 'jsonwebtoken'
 hat        = require 'hat'
 apiErrors  = require './errors'
 
-{ setSessionCookie }          = require '../../helpers'
+{ setSessionCookie } = require '../../helpers'
 { sendApiError
-  sendApiResponse
-  checkApiTokenAvailability } = require './helpers'
+  sendApiResponse }  = require './helpers'
 
 module.exports = ssoTokenLogin = (req, res, next) ->
 

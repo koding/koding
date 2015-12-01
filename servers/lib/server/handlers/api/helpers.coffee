@@ -13,7 +13,7 @@ sendApiResponse = (res, data) ->
   return res.status(200).send response
 
 
-checkApiTokenAvailability = (options, callback) ->
+checkApiAvailability = (options, callback) ->
 
   { JGroup }  = koding.models
   { apiToken } = options
@@ -26,8 +26,8 @@ checkApiTokenAvailability = (options, callback) ->
     unless group
       return callback errors.groupNotFound
 
-    unless group.isApiTokenEnabled is true
-      return callback errors.apiTokenIsDisabled
+    unless group.isApiEnabled is true
+      return callback errors.apiIsDisabled
 
     return callback null
 
@@ -55,7 +55,7 @@ module.exports = {
   sendApiError
   sendApiResponse
   isUsernameLengthValid
-  checkApiTokenAvailability
+  checkApiAvailability
   isSuggestedUsernameLengthValid
 }
 

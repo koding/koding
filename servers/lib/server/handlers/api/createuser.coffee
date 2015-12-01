@@ -7,8 +7,8 @@ apiErrors                          = require './errors'
   checkAuthorizationBearerHeader } = require '../../helpers'
 { sendApiError
   sendApiResponse
+  checkApiAvailability
   isUsernameLengthValid
-  checkApiTokenAvailability
   isSuggestedUsernameLengthValid } = require './helpers'
 
 
@@ -118,7 +118,7 @@ validateData = (data, callback) ->
         queue.next()
 
     ->
-      checkApiTokenAvailability { apiToken }, (err) ->
+      checkApiAvailability { apiToken }, (err) ->
         return callback err  if err
         queue.next()
 

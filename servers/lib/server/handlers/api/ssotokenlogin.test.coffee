@@ -60,7 +60,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
 
   it 'should send HTTP 400 if user is non-existent', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ group }) ->
       token = JUser.createJWT { username: 'non-existent-user', group : group.slug }
       ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
@@ -76,7 +76,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
 
   it 'should send HTTP 400 if user is not a member of the apiToken group', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ group, apiToken }) ->
 
       token    = null
@@ -126,7 +126,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
 
   it 'should send HTTP and be able to login user with valid request', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ group, apiToken }) ->
       createUserAndSsoToken apiToken.code, ({ token }) ->
 

@@ -55,7 +55,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
 
   it 'should send HTTP 400 if user is non-existent', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
@@ -72,7 +72,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
   it 'should send HTTP 400 if user is not a member of the api token group', (done) ->
 
     # creating user, group, and api token
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       # creating another user, which is not a member of the previously created group
@@ -90,14 +90,14 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
           done()
 
 
-  it 'should send HTTP 403 if group.isApiTokenEnabled is not true', (done) ->
+  it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
 
     # creating user, group, and api token
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken, group }) ->
 
       # setting api token availability false for the group
-      group.setApiTokenAvailability false, (err) ->
+      group.modify false, (err) ->
         expect(err).to.not.exist
 
         createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
@@ -114,7 +114,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
   it 'should send HTTP 200 with token in body if request is valid', (done) ->
 
     # creating user, group, and api token
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createSsoTokenRequestParams = generateCreateSsoTokenRequestParams

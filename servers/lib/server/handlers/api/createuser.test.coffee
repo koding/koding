@@ -45,7 +45,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if email is not set', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createUserRequestParams = generateCreateUserRequestParams
@@ -61,7 +61,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 409 if username is already in use', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createUserRequestParams = generateCreateUserRequestParams
@@ -77,7 +77,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 409 if username is a banned one', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createUserRequestParams = generateCreateUserRequestParams
@@ -93,7 +93,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 500 if username has invalid characters', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createUserRequestParams = generateCreateUserRequestParams
@@ -109,7 +109,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 409 if email is in use', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createUserRequestParams = generateCreateUserRequestParams
@@ -126,7 +126,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if given email is not in allowed domains', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       username = generateRandomUsername()
@@ -142,9 +142,9 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         done()
 
 
-  it 'should send HTTP 403 if group.isApiTokenEnabled is not true', (done) ->
+  it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken, group }) ->
 
       # setting api token availability false for the group
@@ -166,7 +166,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 when both username and suggestedUsername not present', (done) ->
 
-    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       username = generateRandomUsername()
@@ -190,7 +190,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     values.forEach (length) ->
       queue.push ->
-        options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+        options = { createGroup : yes, groupData : { isApiEnabled : yes } }
         withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
           suggestedUsername = generateRandomString length
@@ -218,7 +218,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     values.forEach (length) ->
       queue.push ->
-        options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+        options = { createGroup : yes, groupData : { isApiEnabled : yes } }
         withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
           username = generateRandomString length
@@ -243,7 +243,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     it 'should send HTTP 200 and create user with username provided', (done) ->
 
-      options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+      options = { createGroup : yes, groupData : { isApiEnabled : yes } }
       withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
         username = generateRandomUsername()
@@ -261,7 +261,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     it 'should send HTTP 200 and create user with suggested username', (done) ->
 
-      options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+      options = { createGroup : yes, groupData : { isApiEnabled : yes } }
       withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
         suggestedUsername = generateRandomString 10
