@@ -10,7 +10,7 @@ import (
 )
 
 // WatchInterval is the default interval to watch for changes on remote.
-var WatchInterval = 1 * time.Second
+var WatchInterval = 15 * time.Second
 
 // Watcher is the interface that defines watching files on a remote machine
 // and sending the results to local.
