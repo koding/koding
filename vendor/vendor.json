@@ -23,6 +23,11 @@
 			"revisionTime": "2015-09-29T16:18:37-07:00"
 		},
 		{
+			"path": "github.com/smartystreets/goconvey/convey",
+			"revision": "bf05a3a16dad006e63e899124a2c6125028f6b31",
+			"revisionTime": "2015-07-25T22:31:33-06:00"
+		},
+		{
 			"path": "golang.org/x/crypto/ssh",
 			"revision": "beef0f4390813b96e8e68fd78570396d0f4751fc",
 			"revisionTime": "2015-11-15T11:40:09-08:00"
