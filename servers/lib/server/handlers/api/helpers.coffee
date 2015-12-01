@@ -32,8 +32,29 @@ checkApiTokenAvailability = (options, callback) ->
     return callback null
 
 
+
+isSuggestedUsernameLengthValid = (suggestedUsername) ->
+
+  if 4 <= suggestedUsername?.length <= 15
+  then yes
+  else no
+
+
+isUsernameLengthValid = (username) ->
+
+  { JUser } = koding.models
+  { minLength, maxLength } = JUser.getValidUsernameLengthRange()
+
+  if minLength <= username?.length <= maxLength
+  then yes
+  else no
+
+
+
 module.exports = {
   sendApiError
   sendApiResponse
+  isUsernameLengthValid
   checkApiTokenAvailability
+  isSuggestedUsernameLengthValid
 }
