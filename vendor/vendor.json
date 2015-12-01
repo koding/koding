@@ -8,6 +8,11 @@
 			"revisionTime": "2015-06-29T21:01:06-07:00"
 		},
 		{
+			"path": "github.com/koding/fuseklient",
+			"revision": "6363f732cb199ec0c0104db0a4283908698e606c",
+			"revisionTime": "2015-11-24T13:46:08-08:00"
+		},
+		{
 			"path": "github.com/koding/sshkey",
 			"revision": "1394f67258c7dca5203b1dc75c50d0b9f5762cd0",
 			"revisionTime": "2015-09-25T12:46:11-07:00"
