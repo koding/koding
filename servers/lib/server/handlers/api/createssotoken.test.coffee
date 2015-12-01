@@ -101,6 +101,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
       request.post createSsoTokenRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 200
+        expect(body).to.contain 'token'
         expect(body).to.contain 'loginUrl'
         done()
 
