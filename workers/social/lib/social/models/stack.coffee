@@ -44,9 +44,11 @@ module.exports = class JComputeStack extends jraphical.Module
       instance           :
         delete           :
           (signature Function)
+        destroy          :
+          (signature Function)
         modify           :
           (signature Object, Function)
-        checkRevision     :
+        checkRevision    :
           (signature Function)
 
     sharedEvents         :
@@ -361,6 +363,17 @@ module.exports = class JComputeStack extends jraphical.Module
     success: (client, callback) ->
 
       @delete callback
+
+
+  destroy$: permit
+
+    advanced: [
+      { permission: 'delete own stack', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      @destroy callback
 
 
   SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']
