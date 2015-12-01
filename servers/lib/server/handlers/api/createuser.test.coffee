@@ -44,7 +44,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if email is not set', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { email  : '' }
@@ -58,7 +59,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if username is already in use', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { username : userFormData.username }
@@ -72,7 +74,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if username is a banned one', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { username : JUser.bannedUserList[0] }
@@ -86,7 +89,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if email is in use', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { email : userFormData.email }
@@ -101,7 +105,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 if given email is not in allowed domains', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       username = generateRandomUsername()
       createUserRequestParams = generateCreateUserRequestParams
@@ -120,7 +125,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     it 'should send HTTP 200 and create user with username provided', (done) ->
 
-      withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+      options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
         username = generateRandomUsername()
         password = passwordConfirm = generateRandomString()
@@ -138,7 +144,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
     it 'should send HTTP 200 and create user without username provided', (done) ->
 
-      withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+      options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
         password = passwordConfirm = generateRandomString()
 
