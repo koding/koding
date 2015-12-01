@@ -129,7 +129,7 @@ func compareFileWithHash(file *os.File, h string) error {
 	return nil
 }
 
-func writeFile(filename string, data []byte, doNotOverwrite, Append bool, expectedHash string) (int, error) {
+func writeFile(filename string, data []byte, doNotOverwrite, Append bool, lastHash string) (int, error) {
 	flags := os.O_RDWR | os.O_CREATE
 	if doNotOverwrite {
 		flags |= os.O_EXCL
@@ -145,7 +145,7 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool, expect
 	//
 	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
 	// it there's no point in comparing hashes since no damage can be done.
-	if expectedHash != "" && !Append && !doNotOverwrite {
+	if lastHash != "" && !Append && !doNotOverwrite {
 		// Note that we're manually closing the file in all places, since we
 		// can't use a defer. Why can't we? The file gets opened a second time, so
 		// it should be closed before that, not at the end of this return.
@@ -156,7 +156,7 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool, expect
 			return 0, err
 		}
 
-		if err := compareFileWithHash(file, expectedHash); err != nil {
+		if err := compareFileWithHash(file, lastHash); err != nil {
 			file.Close()
 			return 0, err
 		}
@@ -176,8 +176,8 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool, expect
 	//
 	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
 	// it there's no point in comparing hashes since no damage can be done.
-	if expectedHash != "" && Append && !doNotOverwrite {
-		if err := compareFileWithHash(file, expectedHash); err != nil {
+	if lastHash != "" && Append && !doNotOverwrite {
+		if err := compareFileWithHash(file, lastHash); err != nil {
 			return 0, err
 		}
 	}

@@ -205,7 +205,13 @@ type writeFileParams struct {
 	Content        []byte
 	DoNotOverwrite bool
 	Append         bool
-	ExpectedHash   string
+
+	// If specified, this option will cause fs.writeFile to hash the file on
+	// filesystem and compare the hash to this value. If the values do not match,
+	// an error is returned.
+	//
+	// The current hashing algorithm is md5
+	LastContentHash string
 }
 
 func WriteFile(r *kite.Request) (interface{}, error) {
@@ -214,7 +220,7 @@ func WriteFile(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("{ path: [string] }")
 	}
 
-	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append, params.ExpectedHash)
+	return writeFile(params.Path, params.Content, params.DoNotOverwrite, params.Append, params.LastContentHash)
 }
 
 func UniquePath(r *kite.Request) (interface{}, error) {

@@ -465,13 +465,13 @@ func TestWriteFile(t *testing.T) {
 
 	t.Log("writeFile try to write with an invalid expectedHash")
 	_, err = remote.Tell("writeFile", struct {
-		Path         string
-		Content      []byte
-		ExpectedHash string
+		Path            string
+		Content         []byte
+		LastContentHash string
 	}{
-		Path:         testFile.Name(),
-		Content:      []byte("bar"),
-		ExpectedHash: "fakehash",
+		Path:            testFile.Name(),
+		Content:         []byte("bar"),
+		LastContentHash: "fakehash",
 	})
 
 	if err == nil {
@@ -485,13 +485,13 @@ func TestWriteFile(t *testing.T) {
 
 	t.Log("writeFile try to write with a correct expectedHash")
 	_, err = remote.Tell("writeFile", struct {
-		Path         string
-		Content      []byte
-		ExpectedHash string
+		Path            string
+		Content         []byte
+		LastContentHash string
 	}{
-		Path:         testFile.Name(),
-		Content:      []byte("bar"),
-		ExpectedHash: expectedHash,
+		Path:            testFile.Name(),
+		Content:         []byte("bar"),
+		LastContentHash: expectedHash,
 	})
 
 	if err != nil {
@@ -520,15 +520,15 @@ func TestWriteFile(t *testing.T) {
 	expectedHash = "37b51d194a7513e45b56f6524f2d51f2"
 
 	_, err = remote.Tell("writeFile", struct {
-		Path         string
-		Content      []byte
-		Append       bool
-		ExpectedHash string
+		Path            string
+		Content         []byte
+		Append          bool
+		LastContentHash string
 	}{
-		Path:         testFile.Name(),
-		Content:      []byte("baz"),
-		Append:       true,
-		ExpectedHash: expectedHash,
+		Path:            testFile.Name(),
+		Content:         []byte("baz"),
+		Append:          true,
+		LastContentHash: expectedHash,
 	})
 
 	if err != nil {
