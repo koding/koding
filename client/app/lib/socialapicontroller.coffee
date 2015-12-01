@@ -269,7 +269,7 @@ module.exports = class SocialApiController extends KDController
 
     channel = options.channel
 
-    # if we find the channel in cache, replace item with it
+    # since this is already an instance event, we will use find that channel instance and update it.
     cacheItem = socialapi.retrieveCachedItem channel.typeConstant, channel.id
 
     cacheItem.purpose = channel.purpose
