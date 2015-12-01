@@ -47,7 +47,7 @@ generateUrl = (opts = {}) ->
     else  ''
 
   urlParts =
-    host      : 'localhost'
+    hostname  : if KONFIG.environment is 'dev' then 'dev.koding.com' else 'localhost'
     port      : ':8090'
     route     : ''
     protocol  : 'http://'
@@ -58,7 +58,7 @@ generateUrl = (opts = {}) ->
   url =
     urlParts.protocol +
     getSubdomain(urlParts.subdomain) +
-    urlParts.host +
+    urlParts.hostname +
     urlParts.port +
     getRoute(urlParts.route)
 
@@ -113,7 +113,7 @@ generateRequestParamsEncodeBody = (params, opts = {}) ->
 
   if requestParams.body
     # after deep extending object, encodes body param to a query string
-    requestParams.body    = querystring.stringify requestParams.body
+    requestParams.body = querystring.stringify requestParams.body
 
   return requestParams
 

@@ -1,4 +1,6 @@
-{ generateUrl
+{ expect
+  request
+  generateUrl
   deepObjectExtend
   generateRandomEmail
   generateRandomString
@@ -33,7 +35,24 @@ generateCreateUserRequestParams = (opts = {}) ->
   return requestParams
 
 
+createUser = (apiToken, opts, callback) ->
+
+  [opts, callback] = [callback, opts]  unless callback
+  opts ?= {}
+
+  createUserRequestBody   = generateCreateUserRequestBody opts
+  createUserRequestParams = generateCreateUserRequestParams
+    body    : createUserRequestBody
+    headers : { Authorization : "Bearer #{apiToken}" }
+
+  request.post createUserRequestParams, (err, res, body) ->
+    expect(err).to.not.exist
+    expect(res.statusCode).to.be.equal 200
+    callback createUserRequestBody
+
+
 module.exports = {
+  createUser
   generateCreateUserRequestParams
 }
 
