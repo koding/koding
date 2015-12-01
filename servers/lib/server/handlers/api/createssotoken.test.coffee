@@ -8,6 +8,8 @@
 { withConvertedUserAndApiToken }        = require '../../../../../workers/social/testhelper/models/apitokenhelper'
 { generateCreateSsoTokenRequestParams } = require '../../../../testhelper/handler/createssotokenhelper'
 
+apiErrors = require './errors'
+
 beforeTests = -> before (done) ->
 
   checkBongoConnectivity done
@@ -24,7 +26,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
     request.post createSsoTokenRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 401
-      expect(body).to.be.equal 'unauthorized request'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.unauthorizedRequest }
       done()
 
 
@@ -35,7 +37,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
     request.post createSsoTokenRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'invalid token!'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidApiToken }
       done()
 
 
@@ -47,7 +49,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
     request.post createSsoTokenRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'invalid request'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidUsername }
       done()
 
 
@@ -63,7 +65,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
       request.post createSsoTokenRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'invalid username!'
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidUsername }
         done()
 
 
@@ -84,7 +86,28 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
         request.post createSsoTokenRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 400
-          expect(body).to.be.equal 'invalid request'
+          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.notGroupMember }
+          done()
+
+
+  it 'should send HTTP 403 if group.isApiTokenEnabled is not true', (done) ->
+
+    # creating user, group, and api token
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken, group }) ->
+
+      # setting api token availability false for the group
+      group.setApiTokenAvailability false, (err) ->
+        expect(err).to.not.exist
+
+        createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
+          headers : { Authorization : "Bearer #{apiToken.code}" }
+          body    : { username : userFormData.username }
+
+        request.post createSsoTokenRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 403
+          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiTokenIsDisabled }
           done()
 
 
