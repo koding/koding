@@ -28,9 +28,9 @@ module.exports = class EmojiSelector extends React.Component
   componentDidUpdate: (prevProps, prevState) ->
 
     { visible, query } = @props
-    isBecomeVisible    = visible and not prevProps.visible
+    hasBecomeVisible   = visible and not prevProps.visible
 
-    @refs.list.ready()  if isBecomeVisible
+    @refs.list.ready()  if hasBecomeVisible
 
 
   updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
