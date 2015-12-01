@@ -18,6 +18,11 @@
 			"revisionTime": "2015-09-25T12:46:11-07:00"
 		},
 		{
+			"path": "github.com/leeola/service",
+			"revision": "eab14f1b24d2678fb133bc6c8635b469dfa3c647",
+			"revisionTime": "2015-09-29T16:18:37-07:00"
+		},
+		{
 			"path": "golang.org/x/crypto/ssh",
 			"revision": "beef0f4390813b96e8e68fd78570396d0f4751fc",
 			"revisionTime": "2015-11-15T11:40:09-08:00"
