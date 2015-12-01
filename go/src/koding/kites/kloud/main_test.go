@@ -106,6 +106,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	slclient "github.com/maximilien/softlayer-go/client"
 )
 
 var (
@@ -1324,6 +1325,10 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 	if err != nil {
 		panic(err)
 	}
+	slclient := slclient.NewSoftLayerClient(
+		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
+		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
+	)
 
 	kdp := &koding.Provider{
 		DB:             db,
@@ -1346,16 +1351,17 @@ func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) 
 		Userdata:   usd,
 	}
 
-	sl := &softlayer.Provider{
+	slp := &softlayer.Provider{
 		DB:         db,
 		Log:        common.NewLogger("kloud-provider", true),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
+		SLClient:   slclient,
 		Kite:       kloudKite,
 		Userdata:   usd,
 	}
 
-	return kdp, awsp, sl
+	return kdp, awsp, slp
 }
 
 func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider, s *softlayer.Provider) *kloud.Kloud {
