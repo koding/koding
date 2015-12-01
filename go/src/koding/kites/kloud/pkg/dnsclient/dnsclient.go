@@ -28,7 +28,7 @@ type Route53 struct {
 func NewRoute53Client(c *credentials.Credentials, hostedZone string) *Route53 {
 	opts := &amazon.ClientOptions{
 		Credentials: c,
-		Regions:     []string{"us-east-1"}, // our route53 is based on this region, so we use it
+		Region:      "us-east-1", // our route53 is based on this region, so we use it
 		Log:         logging.NewLogger("kloud-dns"),
 	}
 	dns := route53.New(amazon.NewSession(opts))

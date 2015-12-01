@@ -207,7 +207,7 @@ func newKite(conf *Config) *kite.Kite {
 		Log:         common.NewLogger("kloud-koding", conf.DebugMode),
 		MaxResults:  int64(conf.MaxResults),
 	}
-	ec2clients, err := amazon.NewClientPerRegion(opts)
+	ec2clients, err := amazon.NewClients(opts)
 	if err != nil {
 		panic(err)
 	}

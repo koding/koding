@@ -63,7 +63,7 @@ type Amazon struct {
 	}
 }
 
-func NewAmazon(builder map[string]interface{}, client *Client) (*Amazon, error) {
+func New(builder map[string]interface{}, client *Client) (*Amazon, error) {
 	a := &Amazon{
 		Client: client,
 	}
@@ -76,12 +76,12 @@ func NewAmazon(builder map[string]interface{}, client *Client) (*Amazon, error) 
 	return a, nil
 }
 
-func NewAmazonOptions(builder map[string]interface{}, opts *ClientOptions) (*Amazon, error) {
+func NewWithOptions(builder map[string]interface{}, opts *ClientOptions) (*Amazon, error) {
 	client, err := NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
-	return NewAmazon(builder, client)
+	return New(builder, client)
 }
 
 // Id returns the instances unique Id

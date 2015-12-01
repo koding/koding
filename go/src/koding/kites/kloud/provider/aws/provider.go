@@ -105,11 +105,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(creds.Meta.AccessKey, creds.Meta.SecretKey, ""),
-		Regions:     []string{machine.Meta.Region},
+		Region:      machine.Meta.Region,
 		Log:         p.Log,
 	}
 
-	amazonClient, err := amazon.NewAmazonOptions(structs.Map(machine.Meta), opts)
+	amazonClient, err := amazon.NewWithOptions(structs.Map(machine.Meta), opts)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}

@@ -20,7 +20,10 @@ type ClientOptions struct {
 	// Credentials contains access key, secret and/or token.
 	Credentials *credentials.Credentials
 
-	// Regions contains 1 or many region names.
+	// Region is used when instantiating a single Client.
+	Region string
+
+	// Regions is used when instantiating Clients, one for each region.
 	Regions []string
 
 	// Log, when non-nil, is used for verbose logging by *ec2.EC2 client.
@@ -35,9 +38,9 @@ type Clients struct {
 	regions map[string]*Client // read-only, written once on New()
 }
 
-// NewClientPerRegion is returning a new multi clients for the given
+// NewClients is returning a new multi clients for the given
 // regions names.
-func NewClientPerRegion(opts *ClientOptions) (*Clients, error) {
+func NewClients(opts *ClientOptions) (*Clients, error) {
 	// Validate regions - ensure no duplicates or no empty items.
 	c := &Clients{
 		regions: make(map[string]*Client, len(opts.Regions)),
@@ -51,7 +54,7 @@ func NewClientPerRegion(opts *ClientOptions) (*Clients, error) {
 		}
 		opts := &ClientOptions{
 			Credentials: opts.Credentials,
-			Regions:     []string{region},
+			Region:      region,
 			Log:         opts.Log.New(region),
 			MaxResults:  opts.MaxResults,
 		}

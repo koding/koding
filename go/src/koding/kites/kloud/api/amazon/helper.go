@@ -32,8 +32,8 @@ func NewSession(opts *ClientOptions) *session.Session {
 	cfg := &aws.Config{
 		Credentials: opts.Credentials,
 	}
-	if len(opts.Regions) != 0 {
-		cfg.Region = aws.String(opts.Regions[0])
+	if opts.Region != "" {
+		cfg.Region = aws.String(opts.Region)
 	}
 	if opts.Log != nil {
 		cfg.Logger = NewLogger(opts.Log.Debug)

@@ -24,7 +24,7 @@ func NewAWS(opts *amazon.ClientOptions) (*Lookup, error) {
 	if optsCopy.Log == nil {
 		optsCopy.Log = defaultLogger
 	}
-	clients, err := amazon.NewClientPerRegion(&optsCopy)
+	clients, err := amazon.NewClients(&optsCopy)
 	if err != nil {
 		return nil, err
 	}
