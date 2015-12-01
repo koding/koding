@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/scripts/softlayer/userdata"
@@ -27,7 +28,7 @@ const (
 )
 
 func (m *Machine) Build(ctx context.Context) (err error) {
-	if err := m.UpdateState(machinestate.Building); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Building started", machinestate.Building); err != nil {
 		return err
 	}
 

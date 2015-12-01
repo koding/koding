@@ -1,6 +1,7 @@
 package awsprovider
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func (m *Machine) Reinit(ctx context.Context) (err error) {
-	if err := m.UpdateState("Machine is starting", machinestate.Starting); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Machine is starting", machinestate.Starting); err != nil {
 		return err
 	}
 
@@ -21,7 +22,7 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 	latestState := m.State()
 	defer func() {
 		if err != nil {
-			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.Id, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 

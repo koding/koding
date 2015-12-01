@@ -1,6 +1,7 @@
 package softlayer
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -8,7 +9,7 @@ import (
 
 // Stop stops the given machine
 func (m *Machine) Stop(ctx context.Context) error {
-	if err := m.UpdateState(machinestate.Stopping); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Machine is stopping", machinestate.Stopping); err != nil {
 		return err
 	}
 

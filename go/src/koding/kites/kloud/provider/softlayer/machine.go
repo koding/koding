@@ -53,30 +53,6 @@ type Machine struct {
 	Log      logging.Logger         `bson:"-"`
 }
 
-func (m *Machine) UpdateState(state machinestate.State) error {
-	m.Log.Debug("Updating state to '%v'", state)
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Update(
-			bson.M{
-				"_id": m.Id,
-			},
-			bson.M{
-				"$set": bson.M{
-					"status.state":      state.String(),
-					"status.modifiedAt": time.Now().UTC(),
-				},
-			},
-		)
-	})
-
-	if err != nil {
-		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
-			state, m.Id.Hex(), err)
-	}
-
-	return nil
-}
-
 func (m *Machine) State() machinestate.State {
 	return machinestate.States[m.Status.State]
 }

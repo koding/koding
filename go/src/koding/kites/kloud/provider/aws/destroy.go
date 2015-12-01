@@ -2,6 +2,7 @@ package awsprovider
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
@@ -13,7 +14,7 @@ import (
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
 func (m *Machine) Destroy(ctx context.Context) (err error) {
-	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Machine is termating", machinestate.Terminating); err != nil {
 		return err
 	}
 
@@ -23,7 +24,7 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	latestState := m.State()
 	defer func() {
 		if err != nil {
-			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.Id, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 

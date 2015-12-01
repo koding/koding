@@ -1,6 +1,7 @@
 package softlayer
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 
 	"golang.org/x/net/context"
@@ -9,7 +10,8 @@ import (
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
 func (m *Machine) Destroy(ctx context.Context) (err error) {
-	if err := m.UpdateState(machinestate.Terminating); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Machine is terminating",
+		machinestate.Terminating); err != nil {
 		return err
 	}
 

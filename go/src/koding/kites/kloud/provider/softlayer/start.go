@@ -2,6 +2,7 @@ package softlayer
 
 import (
 	"errors"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 
 // Start starts the given machine
 func (m *Machine) Start(ctx context.Context) error {
-	if err := m.UpdateState(machinestate.Starting); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Machine is starting", machinestate.Starting); err != nil {
 		return err
 	}
 

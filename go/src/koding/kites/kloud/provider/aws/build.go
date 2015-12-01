@@ -10,6 +10,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
@@ -64,7 +65,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		reason += "Custom reason: " + args.Reason
 	}
 
-	if err := m.UpdateState(reason, machinestate.Building); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, reason, machinestate.Building); err != nil {
 		return err
 	}
 
@@ -75,7 +76,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 		// if there is any error mark it as NotInitialized
 		if err != nil {
-			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.Id, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 

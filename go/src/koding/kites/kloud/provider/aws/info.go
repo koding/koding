@@ -59,7 +59,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// Terminated. Because we still have the machine document, mark it as
 	// Terminated so the client side knows what to do
 	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
-		if err := modelhelper.ChangeMachineState(m.Id, machinestate.Terminated.String()); err != nil {
+		if err := modelhelper.ChangeMachineState(m.Id, "Machine was terminated in last one hour span",
+			machinestate.Terminated); err != nil {
 			return nil, err
 		}
 	}

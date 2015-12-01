@@ -2,6 +2,7 @@ package softlayer
 
 import (
 	"errors"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 )
 
 func (m *Machine) Restart(ctx context.Context) (err error) {
-	if err := m.UpdateState(machinestate.Rebooting); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, "Machine is restarting", machinestate.Rebooting); err != nil {
 		return err
 	}
 
