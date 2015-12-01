@@ -48,7 +48,7 @@ module.exports = createSsoToken = (req, res, next) ->
 
       protocol   = req.protocol
       publicPort = KONFIG.publicPort
-      host       = "#{apiToken.group}.#{req.host}"
+      host       = "#{apiToken.group}.#{req.hostname}"
       URL        = "-/api/ssotoken/login?token=#{token}"
       port       = if publicPort in ['80', '443'] then '' else ":#{publicPort}"
 
