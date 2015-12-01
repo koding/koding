@@ -11,10 +11,11 @@
 generateCreateUserRequestBody = (opts = {}) ->
 
   defaultBodyObject =
-    email     : generateRandomEmail()
-    username  : generateRandomUsername()
-    lastName  : generateRandomString()
-    firstName : generateRandomString()
+    email             : generateRandomEmail()
+    username          : generateRandomUsername()
+    lastName          : generateRandomString()
+    firstName         : generateRandomString()
+    suggestedUsername : ''
 
   defaultBodyObject = deepObjectExtend defaultBodyObject, opts
 
@@ -22,8 +23,6 @@ generateCreateUserRequestBody = (opts = {}) ->
 
 
 generateCreateUserRequestParams = (opts = {}) ->
-
-  body = generateCreateUserRequestBody()
 
   params =
     url     : generateUrl { route : '-/api/user/create' }
