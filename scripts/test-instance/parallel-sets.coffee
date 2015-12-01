@@ -22,75 +22,59 @@
 module.exports = [
 
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'activity likeunlike' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'pricing payment' }
-    { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name: 'messages privatemessage' }
-    { name: 'account accountsettings' }
-    { name: 'activity postwith' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'activity edit' }
-    { name : 'activity delete' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'unittests' }
-    { name : 'activity others' }
-    { name : 'account accountpage' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'ide file' }
-    { name : 'ide folder' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'ide search' }
-    { name : 'ide workspace' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'ide terminal' }
-    { name : 'pricing invalidCardDetails' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'ide general' }
-    { name : 'ide layout' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'collaboration collaboration' }
-    { name : 'environments snapshot' }
-  ]
-
-  # [
-  #   { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
-  # ]
-
-  [
-    { name : 'environments vm' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'environments paidaccount' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
   [
-    { name : 'environments domain' }
-    { name : 'teams teams' }
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+  ]
+
+  [
+    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
   ]
 
 ]

@@ -19,6 +19,8 @@ startSession = (browser, firstUser, secondUser) ->
   helpers.beginTest browser, firstUser
   helpers.waitForVMRunning browser
 
+  ideHelpers.closeAllTabs(browser)
+
   collaborationHelpers.isSessionActive browser, (isActive) ->
 
     if isActive then browser.end()
@@ -49,6 +51,7 @@ joinSession = (browser, firstUser, secondUser) ->
   chatUsers        = "#{chatBox} .chat-heads"
   userAvatar       = ".avatars .avatarview.online[href='/#{firstUserName}']"
   chatTextSelector = '.status-bar a.active'
+  sessionLoading   = '.session-starting'
 
   helpers.beginTest browser, secondUser
 
@@ -68,6 +71,7 @@ joinSession = (browser, firstUser, secondUser) ->
         .waitForElementNotPresent  shareModal, 50000
         .pause                     3000 # wait for sidebar redraw
         .waitForElementVisible     selectedMachine, 50000
+        .waitForElementNotPresent  sessionLoading, 50000
         .waitForElementVisible     chatBox, 50000
         .waitForElementVisible     chatUsers, 50000
         .waitForElementVisible     message, 50000
@@ -138,23 +142,30 @@ module.exports =
 
   runCommandOnInviteUserTerminal: (browser) ->
 
-    host         = utils.getUser no, 0
-    hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
-    participant  = utils.getUser no, 1
-    terminalText = host.teamSlug
+    host           = utils.getUser no, 0
+    hostBrowser    = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+    participant    = utils.getUser no, 1
+    terminalText   = host.teamSlug
+    activeTerminal = '.kdtabpaneview.terminal.active'
 
     start(browser)
     collaborationHelpers.closeChatPage(browser)
 
     if hostBrowser
-      helpers.runCommandOnTerminal(browser, terminalText)
+      browser.element 'css selector', activeTerminal, (result) ->
+        if result.status is 0
+          helpers.runCommandOnTerminal(browser, terminalText)
+        else
+          terminalHelpers.openNewTerminalMenu(browser)
+          terminalHelpers.openTerminal(browser)
+          helpers.runCommandOnTerminal(browser, terminalText)
     else
       # wait for terminal command appears on participant
       # we couldn't find a better way to avoid this pause
       # because there is no way to be sure when some text
       # is inserted to terminal or we couldn't find a way. - acetgiller
-      browser.pause 5000
-      browser.assert.containsText '.kdtabpaneview.terminal', terminalText
+      browser.pause 13000
+      browser.assert.containsText activeTerminal, terminalText
 
     leave(browser)
     waitAndEndSession(browser)
@@ -167,20 +178,20 @@ module.exports =
     host                   = utils.getUser no, 0
     hostBrowser            = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant            = utils.getUser no, 1
-    paneSelector           = '.pane-wrapper .application-tab-handle-holder'
+    paneSelector           = '.kdsplitview-panel.panel-1 .pane-wrapper .application-tab-handle-holder'
     lineWidgetSelector     = ".kdtabpaneview.active .ace-line-widget-"
     participantFileName    = 'python.py'
     participantFileContent = 'Hello World from Python by Koding'
 
     start(browser)
+
     collaborationHelpers.closeChatPage(browser)
 
     if hostBrowser
       ideHelpers.openFileFromWebFolder browser, host
 
       # wait for participant file opening
-      browser
-        .waitForElementVisible "#{paneSelector} .pythonpy",  60000
+      browser.waitForElementVisible "#{paneSelector} .pythonpy",  60000
         # .waitForElementVisible "#{lineWidgetSelector}#{participant.username}", 60000
     else
       # wait for host file opening
@@ -204,24 +215,21 @@ module.exports =
     host         = utils.getUser no, 0
     hostBrowser  = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
     participant  = utils.getUser no, 1
-    paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
-    terminalTabs = "#{paneSelector} .terminal"
+    paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1'
+    terminalTab  = "#{paneSelector} .application-tab-handle-holder .kdtabhandle.terminal.active"
+    terminalPane = "#{paneSelector} .kdtabpaneview.terminal.active .terminal-pane"
 
     start(browser)
     collaborationHelpers.closeChatPage(browser)
 
-    browser.elements 'css selector', terminalTabs, (result) =>
-      length = result.value.length
+    unless hostBrowser
+      terminalHelpers.openNewTerminalMenu(browser)
+      terminalHelpers.openTerminal(browser)
 
-      if hostBrowser then browser.pause 10000
-      else
-        terminalHelpers.openNewTerminalMenu(browser)
-        terminalHelpers.openTerminal(browser)
-
-      browser.elements 'css selector', terminalTabs, (result) =>
-        newLength = result.value.length
-
-        assert.equal newLength, length + 1
+    browser
+      .waitForElementVisible terminalTab,  35000
+      .pause                 6000 # wait for connecting text
+      .assert.containsText   terminalPane, host.username
 
     leave(browser)
     waitAndEndSession(browser)
