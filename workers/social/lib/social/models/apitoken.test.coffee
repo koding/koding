@@ -88,8 +88,9 @@ runTests = -> describe 'workers.social.apitoken', ->
 
     it 'should be able to create api token with valid request', (done) ->
 
-      group   = generateRandomString()
-      options = { context : { group }, createGroup : yes }
+      group     = generateRandomString()
+      groupData = { isApiTokenEnabled : yes }
+      options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client, account }) ->
 
@@ -113,8 +114,9 @@ runTests = -> describe 'workers.social.apitoken', ->
 
     it 'should be able to create with valid request', (done) ->
 
-      group   = generateRandomString()
-      options = { context : { group }, createGroup : yes }
+      group     = generateRandomString()
+      groupData = { isApiTokenEnabled : yes }
+      options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client, account }) ->
 
@@ -132,8 +134,10 @@ runTests = -> describe 'workers.social.apitoken', ->
 
     it 'should return access denied if user is not an admin', (done) ->
 
-      group   = generateRandomString()
-      options = { context : { group }, createGroup : yes }
+      group     = generateRandomString()
+      groupData = { isApiTokenEnabled : yes }
+      options   = { context : { group }, createGroup : yes, groupData }
+
       withConvertedUser options, ({ client }) ->
         JApiToken.create$ client, (err, token) ->
           expectAccessDenied token, 'remove$', done
@@ -141,8 +145,9 @@ runTests = -> describe 'workers.social.apitoken', ->
 
     it 'should be able to delete token with valid request', (done) ->
 
-      group   = generateRandomString()
-      options = { context : { group }, createGroup : yes }
+      group     = generateRandomString()
+      groupData = { isApiTokenEnabled : yes }
+      options   = { context : { group }, createGroup : yes, groupData }
 
       withConvertedUser options, ({ client }) ->
 
