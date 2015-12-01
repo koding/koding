@@ -100,8 +100,18 @@ func (f *File) Sync() error {
 
 ///// Node interface
 
+// GetType returns fuseutil.DT_File for identification for fuse library.
 func (f *File) GetType() fuseutil.DirentType {
 	return fuseutil.DT_File
+}
+
+// Expire removes the local cache of file and fetches it from remote. It's
+// required to update from remote since Kernel caches file attrs.
+func (f *File) Expire() error {
+	f.Lock()
+	defer f.Unlock()
+
+	return f.updateContentFromRemote()
 }
 
 ///// Helpers

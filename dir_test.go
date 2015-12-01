@@ -82,7 +82,45 @@ func TestDir(t *testing.T) {
 		})
 	})
 
-	Convey("Dir#FindEntry", t, func() {
+	Convey("Dir#findEntryRecursive", t, func() {
+		d := newDir()
+		n1, err := d.CreateEntryDir("nested1", os.FileMode(0700))
+		So(err, ShouldBeNil)
+
+		n2, err := n1.CreateEntryDir("nested2", os.FileMode(0700))
+		So(err, ShouldBeNil)
+
+		Convey("It should return error if entry doesn't exist", func() {
+			_, err = d.findEntryRecursive("nested1/nested2/error")
+			So(err, ShouldEqual, fuse.ENOENT)
+		})
+
+		Convey("It should return specified file if it exists recursively", func() {
+			_, err = n2.CreateEntryFile("file", os.FileMode(0700))
+			So(err, ShouldBeNil)
+
+			n, err := d.findEntryRecursive("nested1/nested2/file")
+			So(err, ShouldBeNil)
+
+			f, ok := n.(*File)
+			So(ok, ShouldBeTrue)
+			So(f.Name, ShouldEqual, "file")
+		})
+
+		Convey("It should return specified dir if it exists recursively", func() {
+			_, err = n2.CreateEntryDir("dir", os.FileMode(0700))
+			So(err, ShouldBeNil)
+
+			n, err := d.findEntryRecursive("nested1/nested2/dir")
+			So(err, ShouldBeNil)
+
+			d, ok := n.(*Dir)
+			So(ok, ShouldBeTrue)
+			So(d.Name, ShouldEqual, "dir")
+		})
+	})
+
+	Convey("Dir#findEntry", t, func() {
 		Convey("It should return specified entry if it exists", func() {
 			d := newDir()
 			n := NewEntry(d, "file")
