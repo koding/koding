@@ -263,6 +263,21 @@ module.exports = class SocialApiController extends KDController
     }
 
 
+  mapUpdatedChannel = (options) ->
+
+    { socialapi } = kd.singletons
+
+    channel = options.channel
+
+    # if we find the channel in cache, replace item with it
+    cacheItem = socialapi.retrieveCachedItem channel.typeConstant, channel.id
+
+    cacheItem.purpose = channel.purpose
+    cacheItem.payload = channel.payload
+
+    return cacheItem
+
+
   mapChannel = (channel) ->
     { socialapi } = kd.singletons
 
@@ -609,6 +624,7 @@ module.exports = class SocialApiController extends KDController
       {event: "AddedToChannel",     mapperFn: mapParticipant}
       {event: "RemovedFromChannel", mapperFn: mapParticipant}
       {event: "ChannelDeleted",     mapperFn: mapChannel}
+      {event: "ChannelUpdated",     mapperFn: mapUpdatedChannel}
     ]
 
   serialize = (obj) ->
