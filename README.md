@@ -11,10 +11,10 @@ needed, but for convenience we've compiled some quick-start instructions:
 
 ### Installing
 
-After installing Go 1.5, the `GO15VENDOREXPERIMENT` flag needs to be set 
-to the value of `1`. This flag tells Go to import packages from the 
-vendor directory first. This can be done in your Shell RC _(`.bashrc`, 
-`.config/fish/config.fish`, etc)_. Example:
+After installing Go 1.5, the `GO15VENDOREXPERIMENT` environment variable 
+needs to be set to the value of `1`. This environment variable tells Go 
+to import packages from the vendor directory first. This can be done in 
+your Shell RC _(`.bashrc`, `.config/fish/config.fish`, etc)_. Example:
 
 Bash:
 
