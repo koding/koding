@@ -46,9 +46,9 @@ module.exports = class ChatPane extends React.Component
 
     filter   = Array.prototype.filter
     chatList = ReactDOM.findDOMNode @refs.ChatList
-    @markers = chatList.querySelectorAll '.DateMarker'
+    markers  = chatList.querySelectorAll '.DateMarker'
 
-    @filteredMarkers = filter.call @markers, (node) ->
+    @filteredMarkers = filter.call markers, (node) ->
       return node.className.indexOf('DateMarker-fixed') is -1
 
 
