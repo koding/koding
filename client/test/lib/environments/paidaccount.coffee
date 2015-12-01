@@ -110,6 +110,7 @@ module.exports =
     vmName = 'koding-vm-1'
 
     helpers.beginTest(browser)
+    browser.pause  5000 # wait for load koding-vm-1
 
     browser.element 'css selector', "#{vmSelector} .running", (result) =>
       if result.status is 0

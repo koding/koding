@@ -10,7 +10,8 @@ module.exports = (text = '') ->
     if blockquote
       if match = part.match /^\w+/
         [lang] = match
-        part = "\n#{part}"  unless hljs.getLanguage lang
+        if not hljs.getLanguage(lang) or not part.match /^\w+\s*\n/
+          part = "\n#{part}"
 
       parts[index] = "\n```#{Encoder.htmlDecode part}\n```\n"
 

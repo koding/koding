@@ -430,7 +430,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   render: ->
 
-    <div className="ChatInputWidget">
+    <div className={kd.utils.curry "ChatInputWidget", @props.className}>
       { @renderEmojiDropbox() }
       { @renderEmojiSelector() }
       { @renderChannelDropbox() }

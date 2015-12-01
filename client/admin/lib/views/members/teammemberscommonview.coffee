@@ -159,25 +159,35 @@ module.exports = class TeamMembersCommonView extends KDView
       kd.warn err
 
 
-  listMembers: (members) ->
+  listMembers: (members, filterForDefaultRole) ->
+
+    { memberType, itemLimit, defaultMemberRole } = @getOptions()
 
     if members.length is 0 and @listController.getItemCount() is 0
       @listController.lazyLoader.hide()
-      @listController.noItemView.show()
+      @listController.showNoItemWidget()
       return
 
     @skip += members.length
 
-    if @getOptions().memberType is 'Blocked'
+    if memberType is 'Blocked'
       @listController.addItem member  for member in members
-      @calculateAndFetchMoreIfNeeded()  if members.length
+      @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
     else
       @fetchUserRoles members, (members) =>
-        members.forEach (member) =>
-          member.loggedInUserRoles = @loggedInUserRoles # FIXME
-          item = @listController.addItem member
 
-        @calculateAndFetchMoreIfNeeded()  if members.length
+        if filterForDefaultRole and defaultMemberRole
+          members = members.filter (member) ->
+            return defaultMemberRole in member.roles
+
+        if members.length
+          members.forEach (member) =>
+            member.loggedInUserRoles = @loggedInUserRoles # FIXME
+            item = @listController.addItem member
+
+          @calculateAndFetchMoreIfNeeded()  if members.length is itemLimit
+        else
+          @listController.showNoItemWidget()
 
     @listController.lazyLoader.hide()
     @searchContainer.show()
@@ -192,24 +202,29 @@ module.exports = class TeamMembersCommonView extends KDView
 
     if listHeight <= viewHeight
       listCtrl.lazyLoader.show()
-      @fetchMembers yes
+
+      if query = @searchInput.getValue() then @search()
+      else
+        @fetchMembers yes
 
 
   search: (useSearchMembersMethod = no) ->
 
     query = @searchInput.getValue()
+    isQueryEmpty   = query is ''
+    isQueryChanged = query isnt @lastQuery
 
-    if query is ''
+    if isQueryEmpty or isQueryChanged
       @page = 0
       @skip = 0
       @searchClear.hide()
       @resetListItems()
-      return @fetchMembers()
+      return @fetchMembers()  if isQueryEmpty
 
-    @page      = 0  if query isnt @lastQuery
+    @page      = if query is @lastQuery then @page + 1 else 0
+    group      = @getData()
     options    = { @page, restrictSearchableAttributes: [ 'nick', 'email' ] }
     @lastQuery = query
-    group      = @getData()
 
     @searchClear.show()
 
@@ -219,14 +234,15 @@ module.exports = class TeamMembersCommonView extends KDView
           @handleSearchResult accounts
         else
           @handleError err
+          @listController.showNoItemWidget()
     else
       kd.singletons.search.searchAccounts query, options
         .then (accounts) => @handleSearchResult accounts
-        .catch (err) =>
-          @handleError err
+        .catch (err)     => @handleError err
 
 
   handleSearchResult: (accounts) ->
+
 
     usernames = (profile.nickname for { profile } in accounts)
 
@@ -240,7 +256,7 @@ module.exports = class TeamMembersCommonView extends KDView
         profile.email = emails[profile.nickname]
 
       @resetListItems no  if @page is 0
-      @listMembers accounts
+      @listMembers accounts, yes
       @isFetching = no
 
 
@@ -248,6 +264,7 @@ module.exports = class TeamMembersCommonView extends KDView
 
     @skip = 0
     @listController.removeAllItems()
+    @listController.hideNoItemWidget()
     @listController.lazyLoader.show()
 
 

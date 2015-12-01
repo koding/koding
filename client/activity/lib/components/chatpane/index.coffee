@@ -33,6 +33,49 @@ module.exports = class ChatPane extends React.Component
     _showScroller scroller
 
 
+  onScroll: -> @setDateMarkersPosition()
+
+
+  afterScrollDidUpdate: ->
+
+    @setFilteredMarkers()
+    @setDateMarkersPosition()
+
+
+  setFilteredMarkers: ->
+
+    filter   = Array.prototype.filter
+    chatList = ReactDOM.findDOMNode @refs.ChatList
+    markers  = chatList.querySelectorAll '.DateMarker'
+
+    @filteredMarkers = filter.call markers, (node) ->
+      return node.className.indexOf('DateMarker-fixed') is -1
+
+
+  setDateMarkersPosition: ->
+
+    scroller = ReactDOM.findDOMNode @refs.scrollContainer
+    left = scroller.getBoundingClientRect().left
+    { scrollTop, offsetHeight } = scroller
+
+    return  unless scrollTop and offsetHeight
+
+    @filteredMarkers.forEach (dateMarker) ->
+
+      { offsetTop, offsetWidth } = dateMarker
+      fixedMarker = dateMarker.querySelector '.DateMarker-fixed'
+
+      if offsetTop >= scrollTop
+
+        fixedMarker.style.display = 'none'
+
+      else if scrollTop > offsetTop
+
+        fixedMarker.style.left    = "#{left}px"
+        fixedMarker.style.width   = "#{offsetWidth}px"
+        fixedMarker.style.display = 'block'
+
+
   componentWillUnmount: ->
 
     scroller = ReactDOM.findDOMNode @refs.scrollContainer
@@ -105,6 +148,7 @@ module.exports = class ChatPane extends React.Component
     <Scroller
       style={{height: 'auto'}}
       ref='scrollContainer'
+      onScroll={@bound 'onScroll'}
       hasMore={@props.thread.get('messages').size}
       onTopThresholdReached={@bound 'onTopThresholdReached'}>
       {@renderChannelInfoContainer()}

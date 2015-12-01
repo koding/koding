@@ -7,6 +7,7 @@ module.exports = class Scroller extends React.Component
 
   @defaultProps =
     hasMore               : no
+    onScroll              : kd.noop
     threshold             : 1
     onThresholdReached    : kd.noop
     onTopThresholdReached : kd.noop

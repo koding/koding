@@ -1,8 +1,8 @@
-kd                       = require 'kd'
-PrivateMessageThreadPane = require 'activity/components/privatemessagethreadpane'
-ActivityFlux             = require 'activity/flux'
-getGroup                 = require 'app/util/getGroup'
-changeToChannel          = require 'activity/util/changeToChannel'
+kd                = require 'kd'
+ActivityFlux      = require 'activity/flux'
+getGroup          = require 'app/util/getGroup'
+changeToChannel   = require 'activity/util/changeToChannel'
+ChannelThreadPane = require 'activity/components/channelthreadpane'
 
 {
   thread  : threadActions,
@@ -12,7 +12,6 @@ changeToChannel          = require 'activity/util/changeToChannel'
 { selectedChannelThread, channelByName } = ActivityFlux.getters
 
 SingleMessageRoute = require './singlemessage'
-
 
 module.exports = class SinglePrivateChannelRoute
 
@@ -27,7 +26,7 @@ module.exports = class SinglePrivateChannelRoute
   getComponents: (state, callback) ->
 
     callback null,
-      content: PrivateMessageThreadPane
+      content: ChannelThreadPane
       modal: null
 
 
