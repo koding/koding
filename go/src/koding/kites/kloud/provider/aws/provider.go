@@ -92,6 +92,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	if err != nil {
 		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
 	}
+
+	if len(creds) == 0 {
+		return fmt.Errorf("aws no credential data available for credential: %s", machine.Credential)
+	}
+
 	cred := creds[0] // there is only one, pick up the first one
 
 	var awsCred struct {
@@ -104,7 +109,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	if structs.HasZero(awsCred) {
-		return fmt.Errorf("softlayer data is incomplete: %v", cred.Meta)
+		return fmt.Errorf("aws data is incomplete: %v", cred.Meta)
 	}
 
 	awsRegion, ok := aws.Regions[machine.Meta.Region]
