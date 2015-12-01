@@ -5,10 +5,9 @@
 ## Vendoring
 
 klientctl uses a combination of the Go 1.5 Vendoring Experiment and the
-[GoVendor](https://github.com/kardianos/govendor) package. You will 
-likely want both of these. Please refer to the respective 
-documentation(s) as needed, but for convenience we've compiled some 
-quick-start instructions:
+[GoVendor](https://github.com/kardianos/govendor) tool. You will likely 
+want both of these. Please refer to the respective documentation(s) as 
+needed, but for convenience we've compiled some quick-start instructions:
 
 ### Installing
 
@@ -26,7 +25,7 @@ export GO15VENDOREXPERIMENT=1
 Fish:
 
 ```fish
-set -Ux GO15VENDOREXPERIMENT
+set -Ux GO15VENDOREXPERIMENT 1
 ```
 
 Go 1.5 handles the importing of vendored packages, but we use the tool 
@@ -34,7 +33,7 @@ GoVendor to handle adding packages to that directory, and pinning them to
 the specified versions. This can be installed simply with:
 
 ```bash
-go vet github.com/kardianos/govendor
+go get github.com/kardianos/govendor
 ```
 
 ### Adding to Vendor
