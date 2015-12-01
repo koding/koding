@@ -1,32 +1,26 @@
-{ argv }                      = require 'optimist'
-{ expect }                    = require 'chai'
-{ env : { MONGO_URL } }       = process
-KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
-mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
-Bongo                         = require 'bongo'
-{ daisy }                     = Bongo
 JUser                         = require '../user'
 JGroup                        = require './index'
 JAccount                      = require '../account'
 JSession                      = require '../session'
 JInvitation                   = require '../invitation'
-{ Relationship }              = require 'jraphical'
-{ generateRandomEmail
+{ daisy
+  expect
+  expectRelation
+  withDummyClient
+  withConvertedUser
+  expectAccessDenied
+  generateRandomEmail
   generateDummyClient
   generateRandomString
+  generateRandomUsername
+  checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
 
 
 # making sure we have mongo connection before tests
 beforeTests = -> before (done) ->
 
-  bongo = new Bongo
-    root   : __dirname
-    mongo  : mongo
-    models : ''
-
-  bongo.once 'dbClientReady', ->
-    done()
+  checkBongoConnectivity done
 
 
 # here we have actual tests
@@ -49,84 +43,23 @@ runTests = -> describe 'workers.social.group.index', ->
 
       it 'should pass error if client doesnt have permission to kick', (done) ->
 
-        client  = {}
-        account = {}
-
-        queue = [
-
-          ->
-            # generating client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client  = client_
-              account = client.connection.delegate
-              queue.next()
-
-          ->
-            # expecting error to exist
-            kodingGroup.kickMember client, account._id, (err) ->
-              expect(err?.message).to.be.equal 'Access denied'
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        expectAccessDenied kodingGroup, 'kickMember', 'someAccountId', done
 
 
     describe 'when group slug is not koding', ->
 
-      group             = {}
-      groupSlug         = generateRandomString()
-      adminClient       = {}
-      adminAccount      = {}
-
-      groupData         =
-        slug           : groupSlug
-        title          : generateRandomString()
-        visibility     : 'visible'
-        allowedDomains : [ 'koding.com' ]
+      group        = {}
+      groupSlug    = generateRandomString()
+      adminClient  = {}
+      adminAccount = {}
 
       # before running test cases creating a group
       before (done) ->
 
-        adminUserFormData = generateDummyUserFormData()
-
-        queue = [
-
-          ->
-            # generating admin client to create group
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              adminClient = client_
-              queue.next()
-
-          ->
-            # registering admin client
-            JUser.convert adminClient, adminUserFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken } = data
-
-              # set credentials
-              adminClient.sessionToken        = newToken
-              adminClient.connection.delegate = account
-              adminClient.context.group       = groupSlug
-              adminAccount                    = account
-              queue.next()
-
-          ->
-            # creating a new group
-            JGroup.create adminClient, groupData, adminAccount, (err, group_) ->
-              expect(err).to.not.exist
-              group = group_
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        options = { createGroup : yes, context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { group, client : adminClient, account : adminAccount } = data
+          done()
 
 
       it 'should pass error if user tries kick own account', (done) ->
@@ -140,94 +73,79 @@ runTests = -> describe 'workers.social.group.index', ->
 
       it 'should be able to kick member if client has permission', (done) ->
 
-        client       = {}
-        account      = {}
-        userFormData = generateDummyUserFormData()
+        options = { context : { group : groupSlug } }
+        withConvertedUser options, ({ client, account, userFormData }) ->
 
-        queue = [
+          queue = [
 
-          ->
-            # generating a client which will be kicked from the group
-            generateDummyClient { group : groupSlug }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+            ->
+              # making sure client is a member of the group before trying to kick
+              group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
+                expect(err).to.not.exist
+                expect(members.length).to.be.equal 1
+                queue.next()
 
-          ->
-            # registering client
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account, newToken }   = data
-              queue.next()
+            ->
+              # expecting session to exist before kicking member
+              params =
+                username  : account.profile.nickname
+                groupName : client.context.group
 
-          ->
-            # making sure client is a member of the group before trying to kick
-            group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
-              expect(err).to.not.exist
-              expect(members.length).to.be.equal 1
-              queue.next()
+              JSession.one params, (err, data) ->
+                expect(err).to.not.exist
+                expect(data).to.exist
+                expect(data).to.be.an 'object'
+                queue.next()
 
-          ->
-            # expecting session to exist before kicking member
-            params =
-              username  : account.profile.nickname
-              groupName : client.context.group
+            ->
+              # expecting no error from kick member request
+              group.kickMember adminClient, account._id, (err) ->
+                expect(err).to.not.exist
+                queue.next()
 
-            JSession.one params, (err, data) ->
-              expect(err).to.not.exist
-              expect(data).to.exist
-              expect(data).to.be.an 'object'
-              queue.next()
+            ->
+              # admin client search for kicked member within group member
+              group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
+                expect(err).to.not.exist
+                expect(members.length).to.be.equal 0
+                queue.next()
 
-          ->
-            # expecting no error from kick member request
-            group.kickMember adminClient, account._id, (err) ->
-              expect(err).to.not.exist
-              queue.next()
+            ->
+              # expecting session to be deleted after kicking member
+              params =
+                username  : account.profile.nickname
+                groupName : client.context.group
 
-          ->
-            # admin client search for kicked member within group member
-            group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
-              expect(err).to.not.exist
-              expect(members.length).to.be.equal 0
-              queue.next()
+              JSession.one params, (err, data) ->
+                expect(err).to.not.exist
+                expect(data).to.not.exist
+                queue.next()
 
-          ->
-            # expecting session to be deleted after kicking member
-            params =
-              username  : account.profile.nickname
-              groupName : client.context.group
+            ->
+              # we cannot add blocked user to group
+              group.approveMember account, (err) ->
+                expect(err).to.exist
+                expect(err.message).to.be.equal 'This account is blocked'
+                queue.next()
 
-            JSession.one params, (err, data) ->
-              expect(err).to.not.exist
-              expect(data).to.not.exist
-              queue.next()
+            ->
+              # we should be able to unblock the member
+              group.unblockMember adminClient, account.getId(), (err) ->
+                expect(err).to.not.exist
+                queue.next()
 
-          ->
-            # we cannot add blocked user to group
-            group.approveMember account, (err) ->
-              expect(err).to.exist
-              expect(err.message).to.be.equal 'This account is blocked'
-              queue.next()
+            ->
+              # unblocked member can be added again
+              group.approveMember account, (err) ->
+                expect(err).to.not.exist
+                queue.next()
 
-          ->
-            # we should be able to unblock the member
-            group.unblockMember adminClient, account.getId(), (err) ->
-              expect(err).to.not.exist
-              queue.next()
+            ->
+              done()
 
-          ->
-            # unblocked member can be added again
-            group.approveMember account, (err) ->
-              expect(err).to.not.exist
-              queue.next()
+          ]
 
-          ->
-            done()
-
-        ]
-
-        daisy queue
+          daisy queue
 
 
   describe '#searchMembers()', ->
@@ -237,315 +155,148 @@ runTests = -> describe 'workers.social.group.index', ->
       it 'should not fetch any data', (done) ->
 
         group    = {}
-        client   = {}
         username = 'someRandomNonExistingUsername'
 
-        queue = [
+        withDummyClient ({ client }) ->
 
-          ->
-            # generating client which well make searchMembers request
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+          queue = [
 
-          ->
-            # fetching koding group
-            JGroup.one { slug : 'koding' }, (err, group_) ->
-              expect(err).to.not.exist
-              group = group_
-              queue.next()
+            ->
+              # fetching koding group
+              JGroup.one { slug : 'koding' }, (err, group_) ->
+                expect(err).to.not.exist
+                group = group_
+                queue.next()
 
-          ->
-            # expecting to not be able to fetch members data
-            group.searchMembers client, username, {}, (err, members) ->
-              expect(err).to.not.exist
-              expect(members.length).to.be.equal 0
-              queue.next()
+            ->
+              # expecting to not be able to fetch members data
+              group.searchMembers client, username, {}, (err, members) ->
+                expect(err).to.not.exist
+                expect(members.length).to.be.equal 0
+                queue.next()
 
-          -> done()
+            -> done()
 
-        ]
+          ]
 
-        daisy queue
+          daisy queue
 
 
     describe 'if username is registered', ->
 
       it 'should be able to fetch by username for koding group slug', (done) ->
 
-        group             = {}
-        client            = {}
-        userFormData      = generateDummyUserFormData()
-
-        groupData         =
-          slug           : 'koding'
-          title          : generateRandomString()
-          visibility     : 'visible'
-          allowedDomains : [ 'koding.com' ]
-
-        queue = [
-
-          ->
-            # fetching group
-            JGroup.one { slug : 'koding' }, (err, group_) ->
-              expect(err).to.not.exist
-              group = group_
-              queue.next()
-
-          ->
-            # generating client which well make searchMembers request
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
-
-          ->
-            # registering user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              queue.next()
-
-          ->
-            # expecting to find newly registered member
-            group.searchMembers client, userFormData.username, {}, (err, members) ->
-              expect(err).to.not.exist
-              expect(members.length).to.be.equal 1
-              expect(members[0].profile.nickname).to.be.equal userFormData.username
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
-
-
-      describe 'when group is not koding', (done) ->
-
-        group             = {}
-        client            = {}
-        account           = {}
-        groupSlug         = generateRandomString()
-        adminClient       = {}
-
-        groupData         =
-          slug           : groupSlug
-          title          : generateRandomString()
-          visibility     : 'visible'
-          allowedDomains : [ 'koding.com' ]
-
-        # before running test cases creating a group
-        before (done) ->
-
-          adminAccount      = {}
-          adminUserFormData = generateDummyUserFormData()
+        withConvertedUser ({ client, userFormData }) ->
+          group = {}
 
           queue = [
 
             ->
-              # generating admin client to create group
-              generateDummyClient { group : 'koding' }, (err, client_) ->
-                expect(err).to.not.exist
-                adminClient = client_
-                queue.next()
-
-            ->
-              # registering admin client
-              JUser.convert adminClient, adminUserFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken } = data
-
-                # set credentials
-                adminClient.sessionToken        = newToken
-                adminClient.connection.delegate = account
-                adminClient.context.group       = groupSlug
-                adminAccount                    = account
-                queue.next()
-
-            ->
-              # creating a new group
-              JGroup.create adminClient, groupData, adminAccount, (err, group_) ->
+              # fetching group
+              JGroup.one { slug : 'koding' }, (err, group_) ->
                 expect(err).to.not.exist
                 group = group_
                 queue.next()
 
+            ->
+              # expecting to find newly registered member
+              group.searchMembers client, userFormData.username, {}, (err, members) ->
+                expect(err).to.not.exist
+                expect(members.length).to.be.equal 1
+                expect(members[0].profile.nickname).to.be.equal userFormData.username
+                queue.next()
+
             -> done()
 
           ]
 
           daisy queue
 
+
+      describe 'when group is not koding', (done) ->
+
+        group       = {}
+        groupSlug   = generateRandomString()
+        adminClient = {}
+
+        # before running test cases creating a group
+        before (done) ->
+          options = { createGroup : yes, context : { group : groupSlug } }
+          withConvertedUser options, (data) ->
+            { group, client : adminClient } = data
+            done()
 
         it 'should not be able to fetch search result if not a member of group', (done) ->
 
-          client       = {}
-          userFormData = generateDummyUserFormData()
+          username = generateRandomUsername()
 
-          queue = [
-
-            ->
-              # generating client which will make search member request
-              generateDummyClient { group : 'koding' }, (err, client_) ->
-                expect(err).to.not.exist
-                client = client_
-                queue.next()
-
-            ->
-              # expecting not to be able to fetch member data
-              group.searchMembers client, userFormData.username, {}, (err, members) ->
-                expect(err?.message).to.be.equal 'Access denied'
-                queue.next()
-
-            -> done()
-
-          ]
-
-          daisy queue
+          withDummyClient ({ client }) ->
+            # expecting not to be able to fetch member data
+            group.searchMembers client, username, {}, (err, members) ->
+              expect(err?.message).to.be.equal 'Access denied'
+              done()
 
 
         it 'should be able to fetch member data after registering to group', (done) ->
 
-          client       = {}
-          userFormData = generateDummyUserFormData()
+          options = { context : { group : groupSlug } }
+          withConvertedUser options, ({ client, account, userFormData }) ->
 
-          queue = [
+            queue = [
 
-            ->
-              # generating client which will make search member request
-              generateDummyClient { group : groupSlug }, (err, client_) ->
-                expect(err).to.not.exist
-                client = client_
-                queue.next()
+              ->
+                # expecting new member client to be able fetch self data
+                group.searchMembers client, userFormData.username, {}, (err, members) ->
+                  expect(err).to.not.exist
+                  expect(members[0].profile.nickname).to.be.equal userFormData.username
+                  queue.next()
 
-            ->
-              # registering client
-              JUser.convert client, userFormData, (err, data) ->
-                expect(err).to.not.exist
-                { account, newToken }   = data
+              ->
+                # expecting admin to be able to fetch new member's data
+                group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
+                  expect(err).to.not.exist
+                  expect(members[0].profile.nickname).to.be.equal userFormData.username
+                  queue.next()
 
-                # set credentials
-                client.sessionToken        = newToken
-                client.connection.delegate = account
-                queue.next()
+              -> done()
 
-            ->
-              # expecting new member client to be able fetch self data
-              group.searchMembers client, userFormData.username, {}, (err, members) ->
-                expect(err).to.not.exist
-                expect(members[0].profile.nickname).to.be.equal userFormData.username
-                queue.next()
+            ]
 
-            ->
-              # expecting admin to be able to fetch new member's data
-              group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
-                expect(err).to.not.exist
-                expect(members[0].profile.nickname).to.be.equal userFormData.username
-                queue.next()
-
-            -> done()
-
-          ]
-
-          daisy queue
+            daisy queue
 
 
   describe '#isInAllowedDomain()', ->
 
     it 'should return true if group slug is koding', (done) ->
 
-      client            = {}
-      account           = {}
-      groupSlug         = 'koding'
-      userFormData      = generateDummyUserFormData()
-
-      groupData         =
-        slug           : groupSlug
-        title          : generateRandomString()
-        visibility     : 'visible'
-        allowedDomains : [ 'koding.com' ]
-
-      queue = [
-
-        ->
-          # generating client
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
-            client = client_
-            queue.next()
-
-        ->
-          # registering user
-          JUser.convert client, userFormData, (err, data) ->
-            expect(err).to.not.exist
-            { account } = data
-            queue.next()
-
-        ->
-          # expecting to return true for any domain
-          JGroup.one { slug : groupSlug }, (err, group) ->
-            expect(err).to.not.exist
-            expect(group.isInAllowedDomain 'someRandomDomain').to.be.ok
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
+      # expecting to return true for any domain
+      JGroup.one { slug : 'koding' }, (err, group) ->
+        expect(err).to.not.exist
+        expect(group.isInAllowedDomain 'someRandomDomain').to.be.ok
+        done()
 
 
     it 'should return false if group does not have allowedDomains', (done) ->
 
-      client            = {}
-      account           = {}
-      groupSlug         = generateRandomString()
-      userFormData      = generateDummyUserFormData()
+      groupSlug = generateRandomString()
 
-      groupData         =
+      groupData =
         slug           : groupSlug
         title          : generateRandomString()
         visibility     : 'visible'
         allowedDomains : []
 
-      queue = [
-
-        ->
-          # generating client
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
-            client = client_
-            queue.next()
-
-        ->
-          # registering user
-          JUser.convert client, userFormData, (err, data) ->
-            expect(err).to.not.exist
-            { account } = data
-            queue.next()
-
-        ->
-          # expecting to return false when there are no allowedDomains
-          JGroup.create client, groupData, account, (err, group) ->
-            expect(err).to.not.exist
-            expect(group.isInAllowedDomain 'someRandomDomain').not.to.be.ok
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
+      options = { createGroup : yes, context : { group : groupSlug }, groupData }
+      withConvertedUser options, ({ client, account, group }) ->
+        expect(group.isInAllowedDomain 'someRandomDomain').not.to.be.ok
+        done()
 
 
     it 'should return true if group is in allowedDomains', (done) ->
 
-      client            = {}
-      account           = {}
-      groupSlug         = generateRandomString()
-      userFormData      = generateDummyUserFormData()
+      groupSlug = generateRandomString()
 
-      groupData         =
+      groupData =
         slug           : groupSlug
         title          : generateRandomString()
         visibility     : 'visible'
@@ -553,34 +304,10 @@ runTests = -> describe 'workers.social.group.index', ->
 
       allowedDomainEmail = generateRandomEmail groupData.allowedDomains[0]
 
-      queue = [
-
-        ->
-          # generating client
-          generateDummyClient { group : 'koding' }, (err, client_) ->
-            expect(err).to.not.exist
-            client = client_
-            queue.next()
-
-        ->
-          # registering user
-          JUser.convert client, userFormData, (err, data) ->
-            expect(err).to.not.exist
-            { account } = data
-            queue.next()
-
-        ->
-          # expecting to return false when there are no allowedDomains
-          JGroup.create client, groupData, account, (err, group) ->
-            expect(err).to.not.exist
-            expect(group.isInAllowedDomain allowedDomainEmail).to.be.ok
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
+      options = { createGroup : yes, context : { group : groupSlug }, groupData }
+      withConvertedUser options, ({ client, account, group }) ->
+        expect(group.isInAllowedDomain allowedDomainEmail).to.be.ok
+        done()
 
 
   describe '#create()', ->
@@ -589,14 +316,14 @@ runTests = -> describe 'workers.social.group.index', ->
 
       it 'should be able to create group', (done) ->
 
-        group             = {}
-        client            = {}
-        account           = {}
-        groupSlug         = generateRandomString()
-        groupTitle        = generateRandomString()
-        userFormData      = generateDummyUserFormData()
+        group        = {}
+        client       = {}
+        account      = {}
+        groupSlug    = generateRandomString()
+        groupTitle   = generateRandomString()
+        userFormData = generateDummyUserFormData()
 
-        groupData         =
+        groupData =
           slug           : groupSlug
           title          : groupTitle
           visibility     : 'visible'
@@ -639,9 +366,7 @@ runTests = -> describe 'workers.social.group.index', ->
               ]
 
             # expecting relationship to be created
-            Relationship.one params, (err, relationship) ->
-              expect(err)          .to.not.exist
-              expect(relationship) .to.exist
+            expectRelation.toExist params, ->
               queue.next()
 
           ->
@@ -653,9 +378,7 @@ runTests = -> describe 'workers.social.group.index', ->
                 { targetId : account._id }
               ]
 
-            Relationship.one params, (err, relationship) ->
-              expect(err)          .to.not.exist
-              expect(relationship) .to.exist
+            expectRelation.toExist params, ->
               queue.next()
 
           -> done()
@@ -669,100 +392,56 @@ runTests = -> describe 'workers.social.group.index', ->
 
       it 'should pass error if slug is empty or set as koding', (done) ->
 
-        client            = {}
-        account           = {}
-        userFormData      = generateDummyUserFormData()
-
-        groupData         =
+        groupData =
           slug       : ''
           title      : generateRandomString()
           visibility : 'visible'
 
-        queue = [
+        withConvertedUser ({ client, account }) ->
 
-          ->
-            # generating client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+          queue = [
 
-          ->
-            # registering user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account } = data
-              queue.next()
+            ->
+              # expecting error for 'koding' slug
+              groupData.slug = 'koding'
 
-          ->
-            # expecting error for 'koding' slug
-            groupData.slug = 'koding'
+              expectedError = 'The slug koding is not available.'
+              JGroup.create client, groupData, account, (err, data) ->
+                expect(err?.message).to.be.equal expectedError
+                queue.next()
 
-            expectedError = 'The slug koding is not available.'
-            JGroup.create client, groupData, account, (err, data) ->
-              expect(err?.message).to.be.equal expectedError
-              queue.next()
+            ->
+              # expecting validaton error when slug is empty
+              groupData.slug = ''
 
-          ->
-            # expecting validaton error when slug is empty
-            groupData.slug = ''
+              JGroup.create client, groupData, account, (err, data) ->
+                expect(err).to.exist
+                queue.next()
 
-            JGroup.create client, groupData, account, (err, data) ->
-              expect(err).to.exist
-              queue.next()
+            -> done()
 
-          -> done()
+          ]
 
-        ]
-
-        daisy queue
+          daisy queue
 
 
       it 'should pass error if slug is in use', (done) ->
 
-        client            = {}
-        account           = {}
-        groupSlug         = generateRandomString()
-        userFormData      = generateDummyUserFormData()
+        groupSlug = generateRandomString()
 
-        groupData         =
+        groupData =
           slug       : groupSlug
           title      : generateRandomString()
           visibility : 'visible'
 
-        queue = [
+        options = { createGroup : yes, context : { group : groupSlug }, groupData }
+        withConvertedUser options, ({ client, account, group }) ->
 
-          ->
-            # generating client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+          # expecting error using already claimed slug
+          JGroup.create client, groupData, account, (err, data) ->
+            expect(err?.message).to.be.equal "The slug #{groupSlug} is not available."
+            done()
 
-          ->
-            # registering user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account } = data
-              queue.next()
-
-          ->
-            # expecting group to be created
-            JGroup.create client, groupData, account, (err, data) ->
-              expect(err).to.not.exist
-              queue.next()
-
-          ->
-            # expecting error using already claimed slug
-            JGroup.create client, groupData, account, (err, data) ->
-              expect(err?.message).to.be.equal "The slug #{groupSlug} is not available."
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
 
 
 beforeTests()
