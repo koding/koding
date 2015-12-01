@@ -94,7 +94,7 @@ func (f *FindWatcher) getChangedFiles() ([]string, error) {
 	if min < 1 {
 		min = 1
 	}
-	cmd := fmt.Sprintf("find %s -mmin -%v", f.RemotePath, min)
+	cmd := fmt.Sprintf("find '%s' -mmin -%v", f.RemotePath, min)
 
 	req := struct{ Command string }{cmd}
 	var res struct {
