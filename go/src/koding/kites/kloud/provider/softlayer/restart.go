@@ -4,10 +4,6 @@ import (
 	"errors"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
-	"time"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 )
@@ -41,14 +37,5 @@ func (m *Machine) Restart(ctx context.Context) (err error) {
 		return errors.New("klient is not ready")
 	}
 
-	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			m.Id,
-			bson.M{"$set": bson.M{
-				"status.state":      machinestate.Running.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Machine is running",
-			}},
-		)
-	})
+	return modelhelper.ChangeMachineState(m.Id, "Machine is Running", machinestate.Running)
 }
