@@ -70,6 +70,22 @@ runTests = -> describe 'workers.social.apitoken', ->
         daisy queue
 
 
+    it 'should fail if isApiTokenEnabled field is not true for the group', (done) ->
+
+      group         = generateRandomString()
+      groupData     = {}
+      options       = { context : { group }, createGroup : yes, groupData }
+      expectedError = 'api token usage is not enabled for this group'
+
+      withConvertedUser options, ({ client, account }) ->
+
+        data = { group, account }
+        JApiToken.create data, (err, token) ->
+          expect(err?.message).to.be.equal expectedError
+          expect(token).to.not.exist
+          done()
+
+
     it 'should be able to create api token with valid request', (done) ->
 
       group   = generateRandomString()
