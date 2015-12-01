@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
@@ -9,8 +10,130 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
+	"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func TestAccountTesting(t *testing.T) {
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
+	// init mongo connection
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("given some fake account", t, func() {
+		acc, _, name := models.CreateRandomGroupDataWithChecks()
+		fmt.Println("group name is :", name)
+		So(name, ShouldNotBeNil)
+		So(acc, ShouldNotBeNil)
+
+		Convey("it should save the document to algolia", func() {
+			err := handler.AccountCreated(acc)
+			So(err, ShouldBeNil)
+
+			Convey("it should have email in it", func() {
+				// make sure account is there
+				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+				user, err := modelhelper.GetUser(acc.Nick)
+				So(err, ShouldBeNil)
+
+				fmt.Println("user is :", user)
+
+				// update user's email
+				selector := bson.M{"username": acc.Nick}
+				newEmail := "mehmetalixsavasx1x2x" + models.RandomGroupName() + "@koding.com"
+				updateQuery := bson.M{"email": newEmail}
+				err = modelhelper.UpdateUser(selector, updateQuery)
+				So(err, ShouldBeNil)
+
+				err = handler.AccountUpdated(acc)
+				So(err, ShouldBeNil)
+
+				user2, err := modelhelper.GetUser(acc.Nick)
+				So(err, ShouldBeNil)
+
+				fmt.Println("user2 is :", user2)
+
+				index, _ := handler.indexes.GetIndex(IndexAccounts)
+				fmt.Println("index is:", index)
+
+				// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
+				params := make(map[string]interface{})
+				record, _ := index.Search("mehmetalixsavasx1x2x", params)
+
+				hist, ok := record.(map[string]interface{})["hits"]
+
+				fmt.Println("hist is :", hist)
+
+				if ok {
+
+					hinter, ok := hist.([]interface{})
+					if ok {
+						usernames := make([]string, 0)
+						for _, v := range hinter {
+							val, k := v.(map[string]interface{})
+							if k {
+								fmt.Println("val", k, "is:", val["nick"])
+								value := val["nick"].(string)
+								usernames = append(usernames, value)
+								fmt.Println("usernames is :", usernames)
+							}
+
+						}
+					}
+				}
+
+				fmt.Printf("record %# v", pretty.Formatter(record))
+
+				// fmt.Println("record is:", record)
+
+				type Record struct {
+					Hits []interface{} `json:"hits"`
+				}
+
+				type Hits struct {
+					Nick string `json:"nick"`
+					// Nick string `json:"nick"`
+					// Nick string `json:"nick"`
+				}
+				// hit := &Record{}
+				// hit, _ = json.Marshal(id)
+
+				err = makeSureWithSearch(
+					handler,
+					IndexAccounts,
+					user.Email,
+					map[string]interface{}{"restrictSearchableAttributes": "nick"},
+					func(record map[string]interface{}, err error) bool {
+						if err != nil {
+							return false
+						}
+
+						if record == nil {
+							return false
+						}
+
+						hits, ok := record["nbHits"]
+						if hits == nil || !ok {
+							return false
+						}
+
+						if hits.(float64) <= 0 {
+							return false
+						}
+
+						return true
+					},
+				)
+
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
 
 func TestAccountSaved(t *testing.T) {
 	runner, handler := getTestHandler()
