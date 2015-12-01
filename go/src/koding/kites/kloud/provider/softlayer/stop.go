@@ -28,5 +28,5 @@ func (m *Machine) Stop(ctx context.Context) error {
 		return err
 	}
 
-	return m.markAsStopped()
+	return m.MarkAsStoppedWithReason("Machine is stopped")
 }

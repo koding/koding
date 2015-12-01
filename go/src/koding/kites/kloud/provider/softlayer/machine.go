@@ -2,6 +2,7 @@ package softlayer
 
 import (
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
@@ -11,7 +12,6 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 
 	"github.com/koding/logging"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -87,22 +87,9 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 	}
 }
 
-func (m *Machine) markAsStopped() error {
-	return m.MarkAsStoppedWithReason("Machine is stopped")
-}
-
 func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 	m.Log.Debug("Marking instance as stopped")
-	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			m.Id,
-			bson.M{"$set": bson.M{
-				"status.state":      machinestate.Stopped.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     reason,
-			}},
-		)
-	}); err != nil {
+	if err := modelhelper.ChangeMachineState(m.Id, reason, machinestate.Stopped); err != nil {
 		return err
 	}
 
