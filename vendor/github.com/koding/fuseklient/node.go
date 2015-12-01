@@ -12,4 +12,5 @@ type Node interface {
 	SetAttrs(fuseops.InodeAttributes)
 	Forget()
 	IsForgotten() bool
+	Expire() error
 }

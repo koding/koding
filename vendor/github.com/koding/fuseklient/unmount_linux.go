@@ -8,7 +8,7 @@ import (
 // Unmount un mounts Fuse mounted local folder. Mount exists separate to
 // lifecycle of this program and needs to be cleaned up when this exists.
 func Unmount(folder string) error {
-	if err := Unlock(k.MountPath); err != nil {
+	if err := Unlock(folder); err != nil {
 		return err
 	}
 

@@ -41,6 +41,8 @@ type KodingNetworkFS struct {
 	// MountConfig is optional config sent to `fuse.Mount`.
 	MountConfig *fuse.MountConfig
 
+	Watcher Watcher
+
 	// ignoredFolderList is folders for which all operations will return empty
 	// response. If a file has same name as entry in list, it'll NOT be ignored.
 	ignoredFolderList map[string]struct{}
@@ -111,6 +113,11 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	// create root directory
 	rootDir := NewDir(rootEntry, NewIDGen())
+	watcher := NewFindWatcher(t, rootDir.RemotePath)
+
+	if !c.NoWatch {
+		go WatchForRemoteChanges(rootDir, watcher)
+	}
 
 	// update entries for root directory
 	if err := rootDir.updateEntriesFromRemote(); err != nil {
@@ -150,6 +157,7 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 		MountPath:         c.LocalPath,
 		MountConfig:       mountConfig,
 		RWMutex:           sync.RWMutex{},
+		Watcher:           watcher,
 		ignoredFolderList: ignoredFolderList,
 		liveNodes:         liveNodes,
 	}, nil
@@ -176,7 +184,7 @@ func (k *KodingNetworkFS) Unmount() error {
 	return Unmount(k.MountPath)
 }
 
-// GetInodeAttributesOp set attributes for a specified Node.
+// GetInodeAttributes set attributes for a specified Node.
 //
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
@@ -269,7 +277,7 @@ func (k *KodingNetworkFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) er
 	return nil
 }
 
-// Mkdir creates new directory inside specified parent directory. It returns
+// MkDir creates new directory inside specified parent directory. It returns
 // `fuse.EEXIST` if a file or directory already exists with specified name.
 //
 // Required for fuse.FileSystem.
@@ -354,7 +362,7 @@ func (k *KodingNetworkFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) error 
 
 	k.deleteEntry(entry.GetID())
 
-	return err
+	return nil
 }
 
 ///// File Operations
@@ -416,6 +424,8 @@ func (k *KodingNetworkFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp
 	}
 
 	file.WriteAt(op.Data, op.Offset)
+
+	k.entryChanged(file)
 
 	return nil
 }
@@ -496,6 +506,8 @@ func (k *KodingNetworkFS) SetInodeAttributes(ctx context.Context, op *fuseops.Se
 	return nil
 }
 
+// FlushFile saves file contents from local to remote.
+//
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
@@ -508,6 +520,8 @@ func (k *KodingNetworkFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp
 	return file.Flush()
 }
 
+// SyncFile sends file contents from local to remote.
+//
 // Required for fuse.FileSystem.
 func (k *KodingNetworkFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
 	defer debug(time.Now(), "ID=%v", op.Inode)
@@ -541,8 +555,18 @@ func (k *KodingNetworkFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) erro
 	return nil
 }
 
+// StatFS is currently not implemented.
+//
+// Required for fuse.FileSystem.
 func (k *KodingNetworkFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	return nil
+}
+
+///// Watcher
+
+// WatchForRemoteChanges listens for changes on remote and invaliates local
+// cache.
+func (k *KodingNetworkFS) WatchForRemoteChanges() {
 }
 
 ///// Helpers
@@ -609,4 +633,11 @@ func (k *KodingNetworkFS) deleteEntry(id fuseops.InodeID) {
 func (k *KodingNetworkFS) isDirIgnored(t fuseutil.DirentType, name string) bool {
 	_, ok := k.ignoredFolderList[name]
 	return ok && t == fuseutil.DT_Directory
+}
+
+func (k *KodingNetworkFS) entryChanged(e Node) {
+	file, ok := e.(*File)
+	if ok {
+		k.Watcher.AddTimedIgnore(file.LocalPath, 1*time.Minute)
+	}
 }

@@ -9,8 +9,8 @@
 		},
 		{
 			"path": "github.com/koding/fuseklient",
-			"revision": "6363f732cb199ec0c0104db0a4283908698e606c",
-			"revisionTime": "2015-11-24T13:46:08-08:00"
+			"revision": "57e1081f2fbc8db00e31bebe67550f4511eef77f",
+			"revisionTime": "2015-12-01T13:05:22-08:00"
 		},
 		{
 			"path": "github.com/koding/kite",
