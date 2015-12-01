@@ -141,7 +141,11 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool, lastHa
 		flags |= os.O_APPEND
 	}
 
-	// If Append is false, we want to read it first, because it will be truncated.
+	// if lastHash isn't empty, the caller is requesting to compare it to a hash before
+	// being modified.
+	//
+	// If Append is false, we want to read it first, because it will be truncated and
+	// be modified before we are able to compare it.
 	//
 	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
 	// it there's no point in comparing hashes since no damage can be done.
@@ -171,8 +175,8 @@ func writeFile(filename string, data []byte, doNotOverwrite, Append bool, lastHa
 
 	defer file.Close()
 
-	// If Append is true, we *did not* check the hash above, so we need to check it
-	// here before we write.
+	// If lastHash isn't empty, but Append is true - we *did not* check the hash above,
+	// so we need to check it here before we write.
 	//
 	// Only hash the file if doNotOverwrite is false. If we're not able to overwrite
 	// it there's no point in comparing hashes since no damage can be done.
