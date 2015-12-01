@@ -36,12 +36,13 @@ type FindWatcher struct {
 func (f *FindWatcher) AddTimedIgnore(path string, duration time.Duration) {
 	f.Lock()
 	path = trimPrefix(path, f.RemotePath)
-	f.ignoredPaths[path] = time.Now().Add(duration)
+	f.ignoredPaths[path] = time.Now().UTC().Add(duration)
 	f.Unlock()
 }
 
 func (f *FindWatcher) RemoveTimedIgnore(path string) {
 	f.Lock()
+	path = trimPrefix(path, f.RemotePath)
 	delete(f.ignoredPaths, path)
 	f.Unlock()
 }
@@ -62,7 +63,7 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 			}
 
 			for _, e := range entries {
-				if f.isPathValid(e) {
+				if !f.isPathIgnored(e) {
 					resChan <- e
 				}
 			}
@@ -72,13 +73,20 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 	return resChan, errChan
 }
 
-func (f *FindWatcher) isPathValid(path string) bool {
+func (f *FindWatcher) isPathIgnored(path string) bool {
 	expiration, ok := f.ignoredPaths[path]
-	if ok && expiration.After(time.Now().UTC()) {
+	if !ok {
 		return false
 	}
 
-	return true
+	if expiration.After(time.Now().UTC()) {
+		return true
+	}
+
+	// remove expired entries from list of paths
+	delete(f.ignoredPaths, path)
+
+	return false
 }
 
 func (f *FindWatcher) getChangedFiles() ([]string, error) {
