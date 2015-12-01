@@ -53,7 +53,8 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
 
   it 'should send HTTP 400 if user is non-existent', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
         headers : { Authorization : "Bearer #{apiToken.code}" }
@@ -69,7 +70,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
   it 'should send HTTP 400 if user is not a member of the api token group', (done) ->
 
     # creating user, group, and api token
-    options = { createGroup : yes }
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       # creating another user, which is not a member of the previously created group
@@ -90,7 +91,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
   it 'should send HTTP 200 with token in body if request is valid', (done) ->
 
     # creating user, group, and api token
-    options = { createGroup : yes }
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
     withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
@@ -100,7 +101,6 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
       request.post createSsoTokenRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 200
-        expect(body).to.contain 'token'
         expect(body).to.contain 'loginUrl'
         done()
 
