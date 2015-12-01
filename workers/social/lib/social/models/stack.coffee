@@ -187,10 +187,10 @@ module.exports = class JComputeStack extends jraphical.Module
     { delegate } = client.connection
     { group }    = client.context
 
-    selector ?= {}
-    selector.originId = delegate.getId()
-    selector.status   = { $ne: 'Terminated' }
-    selector.group    = group
+    selector                ?= {}
+    selector.group           = group
+    selector.originId        = delegate.getId()
+    selector['status.state'] = { $ne: 'Destroying' }
 
     return selector
 
@@ -287,8 +287,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
       return callback err  if err
 
-      # TODO Implement delete methods.
-      @update { $set: { status: 'Terminating' } }
+      @update { $set: { status: { state: 'Destroying' } } }
 
       JProposedDomain  = require './domain'
       JMachine = require './computeproviders/machine'
