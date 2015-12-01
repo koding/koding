@@ -328,8 +328,6 @@ module.exports = class JComputeStack extends jraphical.Module
       JProposedDomain  = require './domain'
       JMachine = require './computeproviders/machine'
 
-      instanceCount = (@getAt('machines') ? []).length
-
       @domains?.forEach (_id) ->
         JProposedDomain.one { _id }, (err, domain) ->
           if not err? and domain?
@@ -344,10 +342,7 @@ module.exports = class JComputeStack extends jraphical.Module
               if err then console.error \
                 "Failed to remove machine: #{machine.title}", err
 
-      ComputeProvider = require './computeproviders/computeprovider'
-      ComputeProvider.updateGroupResourceUsage {
-        group, change: 'decrement', instanceCount
-      }, => @unuseStackTemplate => @remove callback
+      @destroy => @remove callback
 
 
   delete$: permit
