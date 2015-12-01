@@ -58,3 +58,4 @@ module.exports = {
   checkApiTokenAvailability
   isSuggestedUsernameLengthValid
 }
+
