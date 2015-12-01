@@ -4,6 +4,7 @@ React                = require 'kd-react'
 ReactDOM             = require 'react-dom'
 classnames           = require 'classnames'
 immutable            = require 'immutable'
+EmojiIcon            = require 'activity/components/emojiicon'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
@@ -17,15 +18,15 @@ module.exports = class EmojiSelectorTabs extends React.Component
     { tabs, tabIndex } = @props
 
     components = tabs.map (item, index) =>
-      tabClassName  = classnames
+      category     = item.get 'category'
+      iconEmoji    = item.get 'iconEmoji'
+      tabClassName = classnames
         'EmojiSelector-categoryTab' : yes
         'activeTab'                 : index is tabIndex
-      iconClassName = "emoji-sprite emoji-#{item.get('iconEmoji')}"
-      category      = item.get 'category'
 
       <span className={tabClassName} title={category.capitalize()} onClick={@lazyBound 'onTabChange', index} key={category}>
         <span className='emoji-wrapper'>
-          <span className={iconClassName}></span>
+          <EmojiIcon emoji={iconEmoji} />
         </span>
       </span>
 
