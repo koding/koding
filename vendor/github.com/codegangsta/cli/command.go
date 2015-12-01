@@ -36,11 +36,21 @@ type Command struct {
 	SkipFlagParsing bool
 	// Boolean to hide built-in help command
 	HideHelp bool
+
+	commandNamePath []string
+}
+
+// Returns the full name of the command.
+// For subcommands this ensures that parent commands are part of the command path
+func (c Command) FullName() string {
+	if c.commandNamePath == nil {
+		return c.Name
+	}
+	return strings.Join(c.commandNamePath, " ")
 }
 
 // Invokes the command given the context, parses ctx.Args() to generate command-specific flags
 func (c Command) Run(ctx *Context) error {
-
 	if len(c.Subcommands) > 0 || c.Before != nil || c.After != nil {
 		return c.startApp(ctx)
 	}
@@ -91,9 +101,9 @@ func (c Command) Run(ctx *Context) error {
 	}
 
 	if err != nil {
-		fmt.Fprint(ctx.App.Writer, "Incorrect Usage.\n\n")
-		ShowCommandHelp(ctx, c.Name)
+		fmt.Fprintln(ctx.App.Writer, "Incorrect Usage.")
 		fmt.Fprintln(ctx.App.Writer)
+		ShowCommandHelp(ctx, c.Name)
 		return err
 	}
 
@@ -102,7 +112,6 @@ func (c Command) Run(ctx *Context) error {
 		fmt.Fprintln(ctx.App.Writer, nerr)
 		fmt.Fprintln(ctx.App.Writer)
 		ShowCommandHelp(ctx, c.Name)
-		fmt.Fprintln(ctx.App.Writer)
 		return nerr
 	}
 	context := NewContext(ctx.App, set, ctx)
@@ -179,6 +188,13 @@ func (c Command) startApp(ctx *Context) error {
 	} else {
 		app.Action = helpSubcommand.Action
 	}
+
+	var newCmds []Command
+	for _, cc := range app.Commands {
+		cc.commandNamePath = []string{c.Name, cc.Name}
+		newCmds = append(newCmds, cc)
+	}
+	app.Commands = newCmds
 
 	return app.RunAsSubcommand(ctx)
 }
