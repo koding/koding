@@ -1524,20 +1524,19 @@ module.exports = class JGroup extends Module
       return callback null, accounts
 
 
-  setApiTokenAvailability: (options, callback) ->
+  setApiTokenAvailability: (availability, callback) ->
 
-    { isApiTokenEnabled } = options
-    unless isApiTokenEnabled
-      return callback new KodingError 'isApiTokenEnabled is a required field'
+    unless availability?
+      return callback new KodingError 'availability must be set'
 
-    query = { $set : { isApiTokenEnabled } }
+    query = { $set : { isApiTokenEnabled : availability } }
     @update query, callback
 
 
   setApiTokenAvailability$: permit
     advanced: PERMISSION_EDIT_GROUPS
-    success: (client, options, callback) ->
-      @setApiTokenAvailability options, callback
+    success: (client, availability, callback) ->
+      @setApiTokenAvailability availability, callback
 
 
 
