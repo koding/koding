@@ -3,7 +3,6 @@ package softlayer
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/machinestate"
@@ -135,7 +134,6 @@ func (m *Machine) Build(ctx context.Context) error {
 		return errors.New("klient is not ready")
 	}
 
-	fmt.Println("build finished!")
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			m.Id,
