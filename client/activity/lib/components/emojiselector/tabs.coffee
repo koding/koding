@@ -24,9 +24,9 @@ module.exports = class EmojiSelectorTabs extends React.Component
         'EmojiSelector-categoryTab' : yes
         'activeTab'                 : index is tabIndex
 
-      <span className={tabClassName} title={category.capitalize()} onClick={@lazyBound 'onTabChange', index} key={category}>
+      <span className={tabClassName} title={category} onClick={@lazyBound 'onTabChange', index} key={category}>
         <span className='emoji-wrapper'>
-          <EmojiIcon emoji={iconEmoji} />
+          <EmojiIcon emoji={iconEmoji} showTooltip=no />
         </span>
       </span>
 

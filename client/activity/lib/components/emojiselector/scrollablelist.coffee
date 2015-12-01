@@ -107,7 +107,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
 
     <div>
       { @renderFixedCategoryHeader() }
-      <Scroller className="EmojiSelector-list Dropbox-resizable" ref='scroller' onScroll={@bound 'onScroll'}>
+      <Scroller className='EmojiSelector-list Dropbox-resizable' ref='scroller' onScroll={@bound 'onScroll'}>
         <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
           items            = { items }
