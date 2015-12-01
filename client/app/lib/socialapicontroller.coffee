@@ -272,6 +272,9 @@ module.exports = class SocialApiController extends KDController
     # since this is already an instance event, we will use find that channel instance and update it.
     cacheItem = socialapi.retrieveCachedItem channel.typeConstant, channel.id
 
+    unless cacheItem
+      return console.error 'SocialApiController#mapUpdatedChannel: Channel got updated event without it\'s being cached, something is wrong here'
+
     cacheItem.purpose = channel.purpose
     cacheItem.payload = channel.payload
 
