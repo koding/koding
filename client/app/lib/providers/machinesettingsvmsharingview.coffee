@@ -1,14 +1,15 @@
-kd                               = require 'kd'
-nick                             = require 'app/util/nick'
-remote                           = require('app/remote').getInstance()
-KDView                           = kd.View
-Machine                          = require 'app/providers/machine'
-UserItem                         = require 'app/useritem'
-KDCustomHTMLView                 = kd.CustomHTMLView
-ComputeErrorUsageModal           = require './computeerrorusagemodal'
-KDAutoCompleteController         = kd.AutoCompleteController
-MachineSettingsCommonView        = require './machinesettingscommonview'
-ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+kd                                = require 'kd'
+nick                              = require 'app/util/nick'
+remote                            = require('app/remote').getInstance()
+KDView                            = kd.View
+Machine                           = require 'app/providers/machine'
+UserItem                          = require 'app/useritem'
+IDEHelpers                        = require 'ide/idehelpers'
+KDCustomHTMLView                  = kd.CustomHTMLView
+ComputeErrorUsageModal            = require './computeerrorusagemodal'
+KDAutoCompleteController          = kd.AutoCompleteController
+MachineSettingsCommonView         = require './machinesettingscommonview'
+ActivityAutoCompleteUserItemView  = require 'activity/views/activityautocompleteuseritemview'
 
 
 module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommonView
