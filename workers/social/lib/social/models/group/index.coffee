@@ -244,10 +244,6 @@ module.exports = class JGroup extends Module
           (signature String, String, Function)
         setPlan:
           (signature String, Function)
-        setApiTokenAvailability: [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
     schema          :
       title         :
         type        : String
@@ -306,8 +302,8 @@ module.exports = class JGroup extends Module
       initalData    : Object
       # Generic config object for future requirements on groups ~ GG
       config        : Object
-      # Api token can be disabled or enabled for the group
-      isApiTokenEnabled : Boolean
+      # Api usage can be disabled or enabled for the group
+      isApiEnabled : Boolean
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
@@ -1522,21 +1518,4 @@ module.exports = class JGroup extends Module
             account.profile.email = user.email
 
       return callback null, accounts
-
-
-  setApiTokenAvailability: (availability, callback) ->
-
-    unless availability?
-      return callback new KodingError 'availability must be set'
-
-    query = { $set : { isApiTokenEnabled : availability } }
-    @update query, callback
-
-
-  setApiTokenAvailability$: permit
-    advanced: PERMISSION_EDIT_GROUPS
-    success: (client, availability, callback) ->
-      @setApiTokenAvailability availability, callback
-
-
 
