@@ -11,9 +11,19 @@
 
   &:hover
   &.active
+    width                   100%
+    rounded                 0 4px 4px 0
+    left                    -20px
+    padding-left            20px
     color                   $white
     .SidebarListItem-icon:before
       color                 $white
+
+  &:hover
+    bg                      color, $gray-6
+
+  &.active
+    bg                      color, $gray-5
 
 .SidebarListItem-title
   display                   inline-block
@@ -23,7 +33,7 @@
 
 
 .SidebarListItem-unreadCount
-  abs                       0 -5px 0 0
+  abs                       0 5px 0 0
   bg                        color, $red
   color                     white
   font-size                 11px

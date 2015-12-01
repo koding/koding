@@ -1,3 +1,6 @@
+{ argv } = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+
 { daisy }                          = require 'bongo'
 { checkAuthorizationBearerHeader } = require '../../helpers'
 
@@ -39,12 +42,18 @@ module.exports = createSsoToken = (req, res, next) ->
         queue.next()
 
     ->
-      # creating and sending an SSO token
       data    = { username, group : apiToken.group }
       options = { expiresInMinutes : 60 }
       token   = JUser.createJWT data, options
 
-      return res.status(200).send { token }
+      protocol   = req.protocol
+      publicPort = KONFIG.publicPort
+      host       = "#{apiToken.group}.#{req.host}"
+      URL        = "-/api/ssotoken/login?token=#{token}"
+      port       = if publicPort in ['80', '443'] then '' else ":#{publicPort}"
+
+      loginUrl = "#{protocol}://#{host}#{port}/#{URL}"
+      return res.status(200).send { token, loginUrl }
 
   ]
 

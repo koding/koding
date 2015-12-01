@@ -44,7 +44,7 @@ module.exports = createUser = (req, res, next) ->
         queue.next()
 
     ->
-      # registering a new user user to the apiToken group
+      # registering a new user to the apiToken group
       password = passwordConfirm = hat()
 
       userData = {
