@@ -26,9 +26,6 @@ module.exports = class JApiToken extends jraphical.Module
     sharedEvents       :
       static           : []
       instance         : []
-    permissions        :
-      'edit groups'    : ['moderator']
-      'edit own groups': ['member', 'moderator']
     indexes            :
       code             : 'unique'
     sharedMethods      :
