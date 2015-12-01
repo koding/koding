@@ -4,8 +4,12 @@ KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
 { secret } = KONFIG.jwt
 Jwt        = require 'jsonwebtoken'
 hat        = require 'hat'
+apiErrors  = require './errors'
 
-{ setSessionCookie } = require '../../helpers'
+{ setSessionCookie }          = require '../../helpers'
+{ sendApiError
+  sendApiResponse
+  checkApiTokenAvailability } = require './helpers'
 
 module.exports = ssoTokenLogin = (req, res, next) ->
 
@@ -17,27 +21,26 @@ module.exports = ssoTokenLogin = (req, res, next) ->
   account   = null
   username  = null
 
-  unless token
-    return res.status(400).send 'token is required'
+  return sendApiError res, apiErrors.missingRequiredQueryParameter  unless token
 
   queue = [
 
     ->
       validateToken token, (err, data) ->
-        return res.status(err.statusCode).send(err.message)  if err
+        return sendApiError res, err  if err
         { username, group } = data
 
         # making sure subdomain is same with group slug
         unless group in req.subdomains
-          return res.status(400).send('invalid request')
+          return sendApiError res, apiErrors.invalidRequest
 
         queue.next()
 
     ->
       # checking if user exists
       JAccount.one { 'profile.nickname' : username }, (err, account_) ->
-        return res.status(500).send 'an error occurred'  if err
-        return res.status(400).send 'invalid username!'  unless account_
+        return sendApiError res, apiErrors.internalError    if err
+        return sendApiError res, apiErrors.invalidUsername  unless account_
         account = account_
         queue.next()
 
@@ -45,15 +48,15 @@ module.exports = ssoTokenLogin = (req, res, next) ->
       # checking if user is a member of the group of api token
       client = { connection : { delegate : account } }
       account.checkGroupMembership client, group, (err, isMember) ->
-        return res.status(500).send 'an error occurred'                  if err
-        return res.status(400).send 'user is not a member of the group'  unless isMember
+        return sendApiError res, apiErrors.internalError   if err
+        return sendApiError res, apiErrors.notGroupMember  unless isMember
         queue.next()
 
     ->
       # creating a user session for the group if everything is ok
       JSession.createNewSession { username, groupName : group }, (err, session) ->
-        return res.status(500).send 'an error occurred'         if err
-        return res.status(500).send 'failed to create session'  unless session
+        return sendApiError res, apiErrors.internalError           if err
+        return sendApiError res, apiErrors.failedToCreateSession   unless session
 
         setSessionCookie res, session.clientId
         res.redirect('/')
@@ -66,13 +69,10 @@ module.exports = ssoTokenLogin = (req, res, next) ->
 validateToken = (token, callback) ->
 
   Jwt.verify token, secret, { algorithms: ['HS256'] }, (err, decoded) ->
-    if err
-      return callback { statusCode : 400, message : 'failed to parse token' }
+    { username, group } = decoded
 
-    unless username = decoded.username
-      return callback { statusCode : 400, message : 'no username in token' }
-
-    unless group = decoded.group
-      return callback { statusCode : 400, message : 'no group slug in token' }
-
+    return callback apiErrors.ssoTokenFailedToParse   if err
+    return callback apiErrors.invalidSSOTokenPayload  unless username
+    return callback apiErrors.invalidSSOTokenPayload  unless group
     return callback null, { username, group }
+
