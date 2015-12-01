@@ -94,10 +94,10 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
 
     # creating user, group, and api token
     options = { createGroup : yes, groupData : { isApiEnabled : yes } }
-    withConvertedUserAndApiToken options, ({ userFormData, apiToken, group }) ->
+    withConvertedUserAndApiToken options, ({ client, userFormData, apiToken, group }) ->
 
       # setting api token availability false for the group
-      group.modify false, (err) ->
+      group.modify client, { isApiEnabled : false }, (err) ->
         expect(err).to.not.exist
 
         createSsoTokenRequestParams = generateCreateSsoTokenRequestParams
@@ -107,7 +107,7 @@ runTests = -> describe 'server.handlers.api.createssotoken', ->
         request.post createSsoTokenRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 403
-          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiTokenIsDisabled }
+          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiIsDisabled }
           done()
 
 

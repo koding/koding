@@ -145,10 +145,10 @@ runTests = -> describe 'server.handlers.api.createuser', ->
   it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
 
     options = { createGroup : yes, groupData : { isApiEnabled : yes } }
-    withConvertedUserAndApiToken options, ({ userFormData, apiToken, group }) ->
+    withConvertedUserAndApiToken options, ({ client, userFormData, apiToken, group }) ->
 
       # setting api token availability false for the group
-      group.setApiTokenAvailability false, (err) ->
+      group.modify client, { isApiEnabled : false }, (err) ->
         expect(err).to.not.exist
 
         username = generateRandomUsername()
@@ -160,7 +160,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         request.post createUserRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 403
-          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiTokenIsDisabled }
+          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiIsDisabled }
           done()
 
 
