@@ -316,12 +316,9 @@ runTests = -> describe 'workers.social.group.index', ->
 
       it 'should be able to create group', (done) ->
 
-        group        = {}
-        client       = {}
-        account      = {}
-        groupSlug    = generateRandomString()
-        groupTitle   = generateRandomString()
-        userFormData = generateDummyUserFormData()
+        group      = null
+        groupSlug  = generateRandomString()
+        groupTitle = generateRandomString()
 
         groupData =
           slug           : groupSlug
@@ -329,63 +326,51 @@ runTests = -> describe 'workers.social.group.index', ->
           visibility     : 'visible'
           allowedDomains : [ 'koding.com' ]
 
-        queue = [
+        withConvertedUser ({ client, account, userFormData }) ->
 
-          ->
-            # generating client
-            generateDummyClient { group : 'koding' }, (err, client_) ->
-              expect(err).to.not.exist
-              client = client_
-              queue.next()
+          queue = [
 
-          ->
-            # registering user
-            JUser.convert client, userFormData, (err, data) ->
-              expect(err).to.not.exist
-              { account } = data
-              queue.next()
+            ->
+              # expecting group to be created successfully
+              JGroup.create client, groupData, account, (err, group_) ->
+                expect(err)                  .to.not.exist
+                group = group_
+                expect(group.slug)           .to.be.equal groupSlug
+                expect(group.title)          .to.be.equal groupTitle
+                expect(group.visibility)     .to.be.equal groupData.visibility
+                expect(group.allowedDomains) .to.include groupData.allowedDomains[0]
+                queue.next()
 
-          ->
-            # expecting group to be created successfully
-            JGroup.create client, groupData, account, (err, group_) ->
-              expect(err)                  .to.not.exist
-              group = group_
-              expect(group.slug)           .to.be.equal groupSlug
-              expect(group.title)          .to.be.equal groupTitle
-              expect(group.visibility)     .to.be.equal groupData.visibility
-              expect(group.allowedDomains) .to.include groupData.allowedDomains[0]
-              queue.next()
+            ->
+              # expecting owner account and group relationship to be created
+              params =
+                $and : [
+                  { as       : 'owner' }
+                  { sourceId : group._id }
+                  { targetId : account._id }
+                ]
 
-          ->
-            # expecting owner account and group relationship to be created
-            params =
-              $and : [
-                { as       : 'owner' }
-                { sourceId : group._id }
-                { targetId : account._id }
-              ]
+              # expecting relationship to be created
+              expectRelation.toExist params, ->
+                queue.next()
 
-            # expecting relationship to be created
-            expectRelation.toExist params, ->
-              queue.next()
+            ->
+              # expecting account to be saved as a member
+              params =
+                $and : [
+                  { as       : 'member' }
+                  { sourceId : group._id }
+                  { targetId : account._id }
+                ]
 
-          ->
-            # expecting account to be saved as a member
-            params =
-              $and : [
-                { as       : 'member' }
-                { sourceId : group._id }
-                { targetId : account._id }
-              ]
+              expectRelation.toExist params, ->
+                queue.next()
 
-            expectRelation.toExist params, ->
-              queue.next()
+            -> done()
 
-          -> done()
+          ]
 
-        ]
-
-        daisy queue
+          daisy queue
 
 
     describe 'when group data is not valid', ->
