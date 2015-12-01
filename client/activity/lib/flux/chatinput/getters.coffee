@@ -7,6 +7,7 @@ getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
 findNameByQuery            = require 'activity/util/findNameByQuery'
 isGroupChannel             = require 'app/util/isgroupchannel'
+getEmojiSynonyms           = require 'activity/util/getEmojiSynonyms'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -99,14 +100,37 @@ emojiSelectorItems = (stateId) -> [
   EmojiCategoriesStore
   emojiSelectorQuery stateId
   (list, query) ->
-    return list  unless query
+    unless query
+      # For each emoji we need to check if it has synonyms and if so,
+      # only first emoji synonym should be in the result list
+      return list.map (categoryItem) ->
+        toImmutable {
+          category : categoryItem.get 'category'
+          emojis   : categoryItem.get('emojis').filterNot (emoji) ->
+            synonyms = getEmojiSynonyms emoji
+            return synonyms and synonyms.indexOf(emoji) > 0
+        }
 
     isBeginningMatch = query.length < 3
 
+    matchedSynonyms = []
     reduceFn = (reduction, item) ->
       emojis = item.get('emojis').filter (emoji) ->
         index = emoji.indexOf(query)
         if isBeginningMatch then index is 0 else index > -1
+
+      # Once emojis are filtered out by query, it's necessary to make sure
+      # that emojis with synonyms should be mapped to their first synonyms.
+      # During this process it's important to filter out possible emoji duplicates
+      emojis = emojis.map (emoji) ->
+        synonyms = getEmojiSynonyms emoji
+        return emoji  unless synonyms
+        return  if matchedSynonyms.indexOf(emoji) > -1
+        matchedSynonyms = matchedSynonyms.concat synonyms
+        return synonyms[0]
+
+      emojis = emojis.filter (emoji) -> emoji?
+
       reduction.concat emojis.toJS()
 
     searchItems = list.reduce reduceFn, []

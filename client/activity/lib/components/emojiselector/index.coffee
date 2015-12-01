@@ -4,12 +4,13 @@ React                 = require 'kd-react'
 ReactDOM              = require 'react-dom'
 classnames            = require 'classnames'
 immutable             = require 'immutable'
-formatEmojiName       = require 'activity/util/formatEmojiName'
 ChatInputFlux         = require 'activity/flux/chatinput'
 Dropbox               = require 'activity/components/dropbox/portaldropbox'
 EmojiIcon             = require 'activity/components/emojiicon'
 ScrollableList        = require './scrollablelist'
 Tabs                  = require './tabs'
+formatEmojiName       = require 'activity/util/formatEmojiName'
+getEmojiSynonyms      = require 'activity/util/getEmojiSynonyms'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 
@@ -74,6 +75,23 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setSelectorQuery stateId, value
 
 
+  renderSelectedItemName: ->
+
+    { selectedItem } = @props
+
+    unless selectedItem
+      return <div className='EmojiSelector-noSelectedItem'>Choose your emoji!</div>
+
+    synonyms = getEmojiSynonyms(selectedItem) ? [ selectedItem ]
+    synonyms = synonyms.map (emoji) -> formatEmojiName emoji
+    synonyms = synonyms.join '  '
+
+    <div>
+      <div className='EmojiSelector-selectedItemMainName'>{selectedItem}</div>
+      <div className='EmojiSelector-selectedItemSynonyms'>{synonyms}</div>
+    </div>
+
+
   render: ->
 
     { items, query, visible, selectedItem, tabs, tabIndex } = @props
@@ -104,7 +122,7 @@ module.exports = class EmojiSelector extends React.Component
           <EmojiIcon emoji={selectedItem or 'cow'} />
         </span>
         <div className="EmojiSelector-selectedItemName">
-          {if selectedItem then formatEmojiName selectedItem else 'Choose your emoji!'}
+          { @renderSelectedItemName() }
         </div>
         <div className="clearfix" />
       </div>
