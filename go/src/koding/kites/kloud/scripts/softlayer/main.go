@@ -101,17 +101,20 @@ func installKlient(username, url string) error {
 	var tmpFile = "/tmp/latest-klient.deb"
 	var args = []string{url, "--retry-connrefused", "--tries", "5", "-O", tmpFile}
 
+	log.Println(">> Downloading klient")
 	download := newCommand("wget", args...)
 	if err := download.Run(); err != nil {
 		return err
 	}
 	defer os.Remove(tmpFile)
 
+	log.Println(">> Installing deb package via dpkg")
 	install := newCommand("dpkg", "-i", tmpFile)
 	if err := install.Run(); err != nil {
 		return err
 	}
 
+	log.Println(">> Replacing and updating /etc/init/klient.conf file")
 	content, err := ioutil.ReadFile("/etc/init/klient.conf")
 	if err != nil {
 		return err
@@ -123,6 +126,7 @@ func installKlient(username, url string) error {
 		return err
 	}
 
+	log.Println(">> Restarting klient")
 	restart := newCommand("service", "klient", "restart")
 	if err := restart.Run(); err != nil {
 		return err
