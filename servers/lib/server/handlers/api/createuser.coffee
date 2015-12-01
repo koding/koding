@@ -1,9 +1,14 @@
 hat                                = require 'hat'
 koding                             = require '../../bongo'
+apiErrors                          = require './errors'
 { daisy }                          = require 'bongo'
 { getClientId
   handleClientIdNotFound
   checkAuthorizationBearerHeader } = require '../../helpers'
+{ sendApiError
+  sendApiResponse
+  checkApiTokenAvailability }       = require './helpers'
+
 
 module.exports = createUser = (req, res, next) ->
 
@@ -14,7 +19,7 @@ module.exports = createUser = (req, res, next) ->
 
   # validating req params
   { error, token, username, email, firstName, lastName } = validateRequest req
-  return res.status(error.statusCode).send(error.message)  if error
+  return sendApiError res, error  if error
 
   client   = null
   apiToken = null
@@ -23,7 +28,7 @@ module.exports = createUser = (req, res, next) ->
 
     ->
       validateData { token, username }, (err, data) ->
-        return res.status(err.statusCode).send(err.message)  if err
+        return sendApiError res, err  if err
         { username, apiToken } = data
         queue.next()
 
@@ -35,8 +40,7 @@ module.exports = createUser = (req, res, next) ->
 
         # when there is an error in the fetchClient, it returns message in it
         if client.message
-          console.error JSON.stringify { req, client }
-          return res.status(500).send client.message
+          return sendApiError res, apiErrors.internalError
 
         clientIPAddress = req.headers['x-forwarded-for'] or req.connection?.remoteAddress
         client.clientIP = (clientIPAddress.split ',')[0]  if clientIPAddress
@@ -55,16 +59,17 @@ module.exports = createUser = (req, res, next) ->
 
       JUser.convert client, userData, (err, data) ->
 
-        if err
-          response = if err.errors?
-          then "#{err.message}: #{Object.keys err.errors}"
-          else err.message
+        if err?.message is 'Email is already in use!'
+          return sendApiError res, apiErrors.emailAlreadyExists
 
-          return res.status(400).send response
+        if err?.message is 'Your email domain is not in allowed domains for this group'
+          return sendApiError res, apiErrors.invalidEmailDomain
+
+        return sendApiError res, apiErrors.internalError  if err
 
         { user } = data
-        return res.status(500).send 'failed to create user account'  unless user
-        return res.status(200).send { username : user.username }     if user
+        return sendApiError    res, apiErrors.failedToCreateUser   unless user
+        return sendApiResponse res, { username : user.username }
 
   ]
 
@@ -83,12 +88,8 @@ validateData = (data, callback) ->
     ->
       # checking if token is valid
       JApiToken.one { code : token }, (err, apiToken_) ->
-
-        if err
-          return callback { statusCode : 500, message : 'an error occurred' }
-
-        unless apiToken_
-          return callback { statusCode : 400, message : 'invalid token!' }
+        return callback apiErrors.internalError    if err
+        return callback apiErrors.invalidApiToken  unless apiToken_
 
         apiToken = apiToken_
         queue.next()
@@ -98,28 +99,13 @@ validateData = (data, callback) ->
       username or= "#{apiToken.group.substring(0, 4)}#{hat(32)}"
       # checking if username is available
       JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
-
-        if err
-          return callback { statusCode : 500, message : 'an error occurred' }
-
-        if kodingUser or forbidden
-          return callback { statusCode : 400, message : 'username is not available' }
-
+        return callback apiErrors.internalError          if err
+        return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
         queue.next()
 
     ->
-      # checking if apiToken is enabled for the Group
-      JGroup.one { slug : apiToken.group }, (err, group) ->
-
-        if err
-          return callback { statusCode : 500, message : 'an error occurred' }
-
-        unless group
-          return callback { statusCode : 400, message : 'group does not exist!' }
-
-        unless group.isApiTokenEnabled is true
-          return callback { statusCode : 403, message : 'api token usage is not enabled for this group' }
-
+      checkApiTokenAvailability { apiToken }, (err) ->
+        return callback err  if err
         queue.next()
 
     -> callback null, { apiToken, username }
@@ -129,25 +115,16 @@ validateData = (data, callback) ->
   daisy queue
 
 
-
 validateRequest = (req) ->
 
   token = null
   { username, email, firstName, lastName } = req.body
 
-  errors =
-    invalidRequest      :
-      statusCode        : 400
-      message           : 'invalid request'
-    unauthorizedRequest :
-      statusCode        : 401
-      message           : 'unauthorized request'
-
   unless email
-    return { error : errors.invalidRequest }
+    return { error : apiErrors.invalidInput }
 
   unless token = checkAuthorizationBearerHeader req
-    return { error : errors.unauthorizedRequest }
+    return { error : apiErrors.unauthorizedRequest }
 
   return { error : null, token, username, email, firstName, lastName }
 
