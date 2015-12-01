@@ -73,8 +73,8 @@ module.exports = createUser = (req, res, next) ->
 
 validateData = (data, callback) ->
 
-  { JUser, JApiToken } = koding.models
-  { token, username }  = data
+  { JUser, JGroup, JApiToken } = koding.models
+  { token, username }          = data
 
   apiToken = null
 
@@ -83,10 +83,13 @@ validateData = (data, callback) ->
     ->
       # checking if token is valid
       JApiToken.one { code : token }, (err, apiToken_) ->
+
         if err
           return callback { statusCode : 500, message : 'an error occurred' }
+
         unless apiToken_
           return callback { statusCode : 400, message : 'invalid token!' }
+
         apiToken = apiToken_
         queue.next()
 
@@ -95,10 +98,28 @@ validateData = (data, callback) ->
       username or= "#{apiToken.group.substring(0, 4)}#{hat(32)}"
       # checking if username is available
       JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
+
         if err
           return callback { statusCode : 500, message : 'an error occurred' }
+
         if kodingUser or forbidden
           return callback { statusCode : 400, message : 'username is not available' }
+
+        queue.next()
+
+    ->
+      # checking if apiToken is enabled for the Group
+      JGroup.one { slug : apiToken.group }, (err, group) ->
+
+        if err
+          return callback { statusCode : 500, message : 'an error occurred' }
+
+        unless group
+          return callback { statusCode : 400, message : 'group does not exist!' }
+
+        unless group.isApiTokenEnabled is true
+          return callback { statusCode : 403, message : 'api token usage is not enabled for this group' }
+
         queue.next()
 
     -> callback null, { apiToken, username }
