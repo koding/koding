@@ -121,6 +121,28 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         done()
 
 
+  it 'should send HTTP 403 if group.isApiTokenEnabled is not true', (done) ->
+
+    options = { createGroup : yes, groupData : { isApiTokenEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken, group }) ->
+
+      # setting api token availability false for the group
+      group.setApiTokenAvailability false, (err) ->
+        expect(err).to.not.exist
+
+        username = generateRandomUsername()
+        createUserRequestParams = generateCreateUserRequestParams
+          headers  : { Authorization : "Bearer #{apiToken.code}" }
+          body     : { username, email : generateRandomEmail 'yandex.com' }
+
+        expectedBody = 'api token usage is not enabled for this group'
+        request.post createUserRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 403
+          expect(body).to.be.equal expectedBody
+          done()
+
+
   describe 'when request is valid', ->
 
     it 'should send HTTP 200 and create user with username provided', (done) ->
