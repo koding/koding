@@ -443,6 +443,83 @@ runTests = -> describe 'workers.social.group.index', ->
             done()
 
 
+  describe 'setApiTokenAvailability$()', ->
+
+    it 'should fail if user doesnt have access', (done) ->
+
+      options = { createGroup : yes, context : { group : generateRandomString() } }
+      withConvertedUser options, ({ group }) ->
+        expectAccessDenied group, 'setApiTokenAvailability$', {}, done
+
+
+    it 'should be able to update isApiTokenEnabled field with valid request', (done) ->
+
+      options = { createGroup : yes, context : { group : generateRandomString() } }
+      withConvertedUser options, ({ client, group }) ->
+
+        queue = [
+
+          ->
+            # expecting isApiTokenEnabled field to be empty before request
+            expect(group.isApiTokenEnabled).to.be.empty
+            options = { isApiTokenEnabled : true }
+            group.setApiTokenAvailability$ client, options, (err) ->
+              expect(err?.message).to.not.exist
+              queue.next()
+
+          ->
+            JGroup.one { slug : group.slug }, (err, group_) ->
+              expect(err).to.not.exist
+              expect(group_.isApiTokenEnabled).to.be.truthy
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
+
+  describe 'setApiTokenAvailability()', ->
+
+    it 'should fail if isApiTokenEnabled field is not set', (done) ->
+
+      options = { createGroup : yes, context : { group : generateRandomString() } }
+      withConvertedUser options, ({ group }) ->
+
+        group.setApiTokenAvailability {}, (err) ->
+          expect(err?.message).to.be.equal 'isApiTokenEnabled is a required field'
+          done()
+
+
+    it 'should be able to update isApiTokenEnabled field with valid request', (done) ->
+
+      options = { createGroup : yes, context : { group : generateRandomString() } }
+      withConvertedUser options, ({ group }) ->
+
+        queue = [
+
+          ->
+            # expecting isApiTokenEnabled field to be empty before request
+            expect(group.isApiTokenEnabled).to.be.empty
+            options = { isApiTokenEnabled : true }
+            group.setApiTokenAvailability options, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            # expecting isApiTokenEnabled field to be set as true after request
+            JGroup.one { slug : group.slug }, (err, group_) ->
+              expect(err).to.not.exist
+              expect(group_.isApiTokenEnabled).to.be.true
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
+
 
 beforeTests()
 
