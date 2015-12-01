@@ -7,7 +7,9 @@ apiErrors                          = require './errors'
   checkAuthorizationBearerHeader } = require '../../helpers'
 { sendApiError
   sendApiResponse
-  checkApiTokenAvailability }       = require './helpers'
+  isUsernameLengthValid
+  checkApiTokenAvailability
+  isSuggestedUsernameLengthValid } = require './helpers'
 
 
 module.exports = createUser = (req, res, next) ->
@@ -18,7 +20,9 @@ module.exports = createUser = (req, res, next) ->
   return handleClientIdNotFound res, req  unless clientId
 
   # validating req params
-  { error, token, username, email, firstName, lastName } = validateRequest req
+  { error, token, username, email
+    firstName, lastName, suggestedUsername } = validateRequest req
+
   return sendApiError res, error  if error
 
   client   = null
@@ -27,7 +31,7 @@ module.exports = createUser = (req, res, next) ->
   queue = [
 
     ->
-      validateData { token, username }, (err, data) ->
+      validateData { token, username, suggestedUsername }, (err, data) ->
         return sendApiError res, err  if err
         { username, apiToken } = data
         queue.next()
@@ -79,7 +83,7 @@ module.exports = createUser = (req, res, next) ->
 validateData = (data, callback) ->
 
   { JUser, JGroup, JApiToken } = koding.models
-  { token, username }          = data
+  { token, username, suggestedUsername } = data
 
   apiToken = null
 
@@ -95,8 +99,18 @@ validateData = (data, callback) ->
         queue.next()
 
     ->
-      # creating a random username with first letters of group slug in front
-      username or= "#{apiToken.group.substring(0, 4)}#{hat(32)}"
+      # if username is not provided and suggestedUsername is too long return error
+      unless username
+        unless isSuggestedUsernameLengthValid suggestedUsername
+          return callback apiErrors.outOfRangeSuggestedUsername
+
+      # if username is not set generate a username by suggestedUsername with a suffix
+      username or= "#{suggestedUsername}#{hat(32)}"
+
+      # checking if username has valid length
+      unless isUsernameLengthValid username
+        return callback apiErrors.outOfRangeUsername
+
       # checking if username is available
       JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
         return callback apiErrors.internalError          if err
@@ -118,13 +132,16 @@ validateData = (data, callback) ->
 validateRequest = (req) ->
 
   token = null
-  { username, email, firstName, lastName } = req.body
+  { username, suggestedUsername, email, firstName, lastName } = req.body
 
   unless email
+    return { error : apiErrors.invalidInput }
+
+  unless username or suggestedUsername
     return { error : apiErrors.invalidInput }
 
   unless token = checkAuthorizationBearerHeader req
     return { error : apiErrors.unauthorizedRequest }
 
-  return { error : null, token, username, email, firstName, lastName }
+  return { error : null, token, username, email, firstName, lastName, suggestedUsername }
 
