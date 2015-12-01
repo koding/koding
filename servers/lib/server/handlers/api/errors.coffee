@@ -85,4 +85,14 @@ module.exports = {
     message                     : 'A required query parameter was not specified for this request.'
     code                        : 'MissingRequiredQueryParameter'
 
+  outOfRangeUsername            :
+    status                      : 400
+    message                     : 'Given username is out of range.'
+    code                        : 'OutOfRangeSuggestedUsername'
+
+  outOfRangeSuggestedUsername   :
+    status                      : 400
+    message                     : 'Given suggested username is out of range.'
+    code                        : 'OutOfRangeSuggestedUsername'
+
 }
