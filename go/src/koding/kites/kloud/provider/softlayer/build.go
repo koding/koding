@@ -15,7 +15,6 @@ import (
 	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/kite/protocol"
-	"github.com/kr/pretty"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
 	"github.com/maximilien/softlayer-go/softlayer"
 	"github.com/satori/go.uuid"
@@ -124,7 +123,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
-	pretty.Println(obj)
+	m.Log.Debug("Final object:")
+	m.Log.Debug("%+v", obj)
 
 	m.QueryString = protocol.Kite{ID: kiteID}.String()
 	m.IpAddress = obj.PrimaryIpAddress
