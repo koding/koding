@@ -10,8 +10,9 @@
 { generateSsoTokenLoginRequestParams } = require '../../../../testhelper/handler/ssotokenloginhelper'
 { createUserAndSsoToken }              = require '../../../../testhelper/handler/createssotokenhelper'
 
-JUser    = require '../../../../models/user'
-JAccount = require '../../../../models/account'
+JUser     = require '../../../../models/user'
+JAccount  = require '../../../../models/account'
+apiErrors = require './errors'
 
 beforeTests = -> before (done) ->
 
@@ -29,7 +30,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'token is required'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.missingRequiredQueryParameter }
       done()
 
 
@@ -41,7 +42,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'no username in token'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidSSOTokenPayload }
       done()
 
 
@@ -53,7 +54,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'no group slug in token'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidSSOTokenPayload }
       done()
 
 
@@ -69,7 +70,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
       request.get ssoTokenLoginRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'invalid username!'
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidUsername }
         done()
 
 
@@ -113,7 +114,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
           request.get ssoTokenLoginRequestParams, (err, res, body) ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 400
-            expect(body).to.be.equal 'user is not a member of the group'
+            expect(JSON.parse body).to.be.deep.equal { error : apiErrors.notGroupMember }
             queue.next()
 
         -> done()
