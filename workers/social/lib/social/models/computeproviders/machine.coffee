@@ -150,12 +150,13 @@ module.exports = class JMachine extends Module
     slug = slugify slug
 
     JMachine.count {
-      users        :
-        $elemMatch :
-          id       : user.getId()
-      groups       :
-        $elemMatch :
-          id       : group.getId()
+      'status.state' : { $ne: 'Terminated' }
+      users          :
+        $elemMatch   :
+          id         : user.getId()
+      groups         :
+        $elemMatch   :
+          id         : group.getId()
       slug
     }, (err, count) ->
 
