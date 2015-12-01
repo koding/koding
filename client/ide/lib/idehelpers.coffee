@@ -159,3 +159,31 @@ module.exports = helpers =
           remote.api.JWorkspace.deleteById workspace._id, callback
 
       updateWorkspace_ w for w in workspaces when w.rootPath.indexOf(searchPath) > -1
+
+
+  ###*
+   * Clear snapshot and layout data of participants when participant is kicked
+   * or leaved from a shared vm.
+  ###
+  deleteSnapshotAndLayoutSizeData: (machine, nickname, callback = kd.noop) ->
+    kite = machine.getBaseKite()
+
+    dataProvider.fetchMachineByUId machine.uid, (m, workspaces) ->
+      workspaces.forEach (ws) ->
+
+        snapshotKey   = "#{nickname}.wss.#{ws.slug}"
+        layoutSizeKey = "#{nickname}-LayoutSize.wss.#{ws.slug}"
+
+        kite.storageDelete snapshotKey    # Remove snapshot
+        kite.storageDelete layoutSizeKey  # Remove layout size data
+
+      callback()
+
+
+  getOpenedIDEInstancesByMachineUId: (machineUId) ->
+
+    { appManager } = kd.singletons
+
+    return appManager.getIDEInstances()?.filter (instance) ->
+      instance.mountedMachineUId is machineUId
+

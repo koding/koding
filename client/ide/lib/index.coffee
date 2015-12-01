@@ -1641,7 +1641,7 @@ class IDEAppController extends AppController
           @goToTabNumber parseInt(match[1], 10) - 1
 
 
-  showUserRemovedModal: ->
+  showUserRemovedModal: (callback = kd.noop) ->
 
     options        =
       title        : 'Machine access revoked'
@@ -1652,9 +1652,8 @@ class IDEAppController extends AppController
           style    : 'solid light-gray medium'
           title    : 'OK'
           callback : =>
-
             @modal.destroy()
-            @quit()
+            callback()
 
     @showModal options
 
