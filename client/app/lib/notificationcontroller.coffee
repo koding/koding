@@ -76,7 +76,9 @@ module.exports = class NotificationController extends KDObject
         @emit event, contents  if event
 
 
-  setListeners:->
+  setListeners: ->
+
+    { appManager } = kd.singletons
 
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
@@ -90,19 +92,21 @@ module.exports = class NotificationController extends KDObject
         deleteUserCookie()
 
     @once 'EmailShouldBeConfirmed', ->
-      {firstName, nickname} = whoami().profile
-      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
+      { firstName, nickname } = whoami().profile
+      appManager.tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
     @on 'MachineListUpdated', ({machineUId, action}) ->
       switch action
         when 'removed'
+
+          { IDE }   = appManager.appControllers
           instances = IDEHelpers.getOpenedIDEInstancesByMachineUId machineUId
 
           return  unless instances.length
 
-          instances.last.showUserRemovedModal ->
+          IDE.instances[IDE.lastActiveIndex].showUserRemovedModal ->
             instances.forEach (instance) -> instance.quit()
 
       kd.singletons.computeController.reset yes

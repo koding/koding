@@ -270,9 +270,9 @@ class ApplicationManager extends KDObject
       null
 
 
-  getIDEInstances: ->
+  getInstances: (name) ->
 
-    @appControllers['IDE']?.instances
+    @appControllers[name]?.instances
 
 
   getByView: (view)->

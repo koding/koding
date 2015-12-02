@@ -90,10 +90,13 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
       return @showNotification err  if err
 
-      kite   = @machine.getBaseKite()
-      method = if task is 'add' then 'klientShare' else 'klientUnshare'
+      kite = @machine.getBaseKite()
 
-      IDEHelpers.deleteSnapshotData @machine, nickname  if task is 'kick'
+      if task is 'add'
+        method = 'klientShare'
+      else
+        method = 'klientUnshare'
+        IDEHelpers.deleteSnapshotData @machine, nickname
 
       kite[method] { username: nickname, permanent: yes }
 
