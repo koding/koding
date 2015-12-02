@@ -153,6 +153,8 @@ class IDEAppController extends AppController
 
     {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
 
+    @finderPane.on 'ChangeHappened', @bound 'syncChange'
+
     @bindRouteHandler()
     @initiateAutoSave()
     @emit 'ready'
