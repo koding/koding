@@ -25,10 +25,18 @@ const (
 	PostInstallScriptUri = "https://s3.amazonaws.com/kodingdev-softlayer/softlayer"
 )
 
-func (m *Machine) Build(ctx context.Context) error {
+func (m *Machine) Build(ctx context.Context) (err error) {
 	if err := modelhelper.ChangeMachineState(m.ObjectId, "Building started", machinestate.Building); err != nil {
 		return err
 	}
+
+	latestState := m.State()
+	defer func() {
+		// if there is any error mark it as NotInitialized
+		if err != nil {
+			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
 
 	keys, ok := publickeys.FromContext(ctx)
 	if !ok {
@@ -159,7 +167,7 @@ func (m *Machine) Build(ctx context.Context) error {
 }
 
 func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
-	timeout := time.After(time.Minute * 5)
+	timeout := time.After(time.Minute * 10)
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
 

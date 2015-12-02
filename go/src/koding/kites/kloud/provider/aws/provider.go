@@ -128,7 +128,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		Log:         p.Log,
 	}
 
-	amazonClient, err := amazon.NewWithOptions(structs.Map(machine.Meta), opts)
+	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
