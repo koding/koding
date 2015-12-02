@@ -146,19 +146,18 @@ func (f *Controller) RemoveGuestAccounts() error {
 	return nil
 }
 
-func (f *Controller) FetchAllGuestsNicks() ([]string, error) {
-	guest := "guest-"
+func (f *Controller) FetchIdOfNicksWithQuery(queryName string) ([]string, error) {
 
 	index, err := f.indexes.GetIndex(IndexAccounts)
 	if err != nil {
 		return nil, err
 	}
 	params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
-	record, _ := index.Search(guest, params)
+	record, _ := index.Search(queryName, params)
 
 	hist, ok := record.(map[string]interface{})["hits"]
 
-	nicks := make([]string, 0)
+	objects := make([]string, 0)
 	if ok {
 
 		hinter, ok := hist.([]interface{})
@@ -167,14 +166,15 @@ func (f *Controller) FetchAllGuestsNicks() ([]string, error) {
 				val, k := v.(map[string]interface{})
 				if k {
 					value := val["nick"].(string)
-					if strings.HasPrefix(value, guest) {
-						nicks = append(nicks, value)
+					object := val["objectID"].(string)
+					if strings.HasPrefix(value, queryName) {
+						objects = append(objects, object)
 					}
 				}
 			}
 		}
 	}
-	return nicks, nil
+	return objects, nil
 }
 
 func (f *Controller) deleteAllGuestNicks(indexName string, objectIDs []string) error {
