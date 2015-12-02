@@ -16,9 +16,10 @@ import (
 )
 
 type Meta struct {
-	Id         int    `bson:id`
-	AlwaysOn   bool   `bson:"alwaysOn"`
-	Datacenter string `bson:"datacenter"`
+	Id          int    `bson:id`
+	AlwaysOn    bool   `bson:"alwaysOn"`
+	Datacenter  string `structs:"datacenter" bson:"datacenter"`
+	SourceImage string `structs:"sourceImage" bson:"sourceImage"`
 }
 
 // Machine represents a single MongodDB document from the jMachines collection.
