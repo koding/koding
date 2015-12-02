@@ -26,7 +26,7 @@ const (
 )
 
 func (m *Machine) Build(ctx context.Context) error {
-	if err := modelhelper.ChangeMachineState(m.Id, "Building started", machinestate.Building); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Building started", machinestate.Building); err != nil {
 		return err
 	}
 
@@ -80,13 +80,18 @@ func (m *Machine) Build(ctx context.Context) error {
 
 	m.push("Initiating build process", 30, machinestate.Building)
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	//Create a template for the virtual guest (changing properties as needed)
 	virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
 		Hostname:                     m.Username,  // this is correct, we use the username as hostname
 		Domain:                       "koding.io", // this is just a placeholder
 		StartCpus:                    1,
 		MaxMemory:                    1024,
-		Datacenter:                   datatypes.Datacenter{Name: m.Meta.Datacenter},
+		Datacenter:                   datatypes.Datacenter{Name: meta.Datacenter},
 		HourlyBillingFlag:            true,
 		LocalDiskFlag:                true,
 		OperatingSystemReferenceCode: "UBUNTU_LATEST",
@@ -136,12 +141,12 @@ func (m *Machine) Build(ctx context.Context) error {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
 				"queryString":       m.QueryString,
 				"meta.id":           obj.Id,
-				"meta.datacenter":   m.Meta.Datacenter,
+				"meta.datacenter":   meta.Datacenter,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Build finished",

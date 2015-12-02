@@ -34,6 +34,11 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		}, nil
 	}
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
 	// On Defer, update db state if the up-to-date state from the
 	// provider is different than the state stored in the database.
 	defer func() {
@@ -50,9 +55,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		// This ensures that the machine will never store Stopped in the
 		// database, while still running on the provider.
 		if resultState == machinestate.Stopped {
-			if m.Meta.AlwaysOn {
+			if meta.AlwaysOn {
 				m.Log.Info("Info decision was to stop the machine, but it is an AlwaysOn machine. Ignoring decision. (username: %s, instanceId: %s, region: %s)",
-					m.Username, m.Meta.InstanceId, m.Meta.Region,
+					m.Username, meta.InstanceId, meta.Region,
 				)
 				return
 			}
@@ -71,15 +76,15 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 				err := machine.Stop(ctx)
 				if err != nil {
 					machine.Log.Debug("Info decision: Error while Stopping machine. Err: %v",
-						machine.Id, err)
+						machine.ObjectId, err)
 				}
 				machine.Log.Info("======> STOP finished (inconsistent state)<======")
 			}(m)
 			return
 		}
 
-		if err := modelhelper.CheckAndUpdateState(m.Id, resultState); err != nil {
-			m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+		if err := modelhelper.CheckAndUpdateState(m.ObjectId, resultState); err != nil {
+			m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.ObjectId, err)
 		}
 	}()
 
@@ -134,7 +139,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		// so mark and return as stopped.
 		resultState = machinestate.Stopped
 
-		if m.Meta.AlwaysOn {
+		if meta.AlwaysOn {
 			// machine is always-on. return as running
 			resultState = machinestate.Running
 		}

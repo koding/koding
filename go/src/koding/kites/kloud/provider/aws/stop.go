@@ -12,7 +12,7 @@ import (
 )
 
 func (m *Machine) Stop(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.Id, "Machine is stopping", machinestate.Stopping); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is stopping", machinestate.Stopping); err != nil {
 		return err
 	}
 
@@ -22,7 +22,7 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 	latestState := m.State()
 	defer func() {
 		if err != nil {
-			modelhelper.ChangeMachineState(m.Id, "Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 
@@ -35,7 +35,7 @@ func (m *Machine) Stop(ctx context.Context) (err error) {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         "",
 				"status.state":      machinestate.Stopped.String(),

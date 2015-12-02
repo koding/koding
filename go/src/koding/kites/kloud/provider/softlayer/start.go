@@ -10,7 +10,7 @@ import (
 
 // Start starts the given machine
 func (m *Machine) Start(ctx context.Context) error {
-	if err := modelhelper.ChangeMachineState(m.Id, "Machine is starting", machinestate.Starting); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is starting", machinestate.Starting); err != nil {
 		return err
 	}
 
@@ -20,12 +20,17 @@ func (m *Machine) Start(ctx context.Context) error {
 		return err
 	}
 
-	_, err = svc.PowerOn(m.Meta.Id)
+	meta, err := m.GetMeta()
 	if err != nil {
 		return err
 	}
 
-	if err := waitState(svc, m.Meta.Id, "RUNNING"); err != nil {
+	_, err = svc.PowerOn(meta.Id)
+	if err != nil {
+		return err
+	}
+
+	if err := waitState(svc, meta.Id, "RUNNING"); err != nil {
 		return err
 	}
 
@@ -34,5 +39,5 @@ func (m *Machine) Start(ctx context.Context) error {
 		return errors.New("klient is not ready")
 	}
 
-	return modelhelper.ChangeMachineState(m.Id, "Machine is Running", machinestate.Running)
+	return modelhelper.ChangeMachineState(m.ObjectId, "Machine is Running", machinestate.Running)
 }

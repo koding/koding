@@ -9,7 +9,7 @@ import (
 )
 
 func (m *Machine) Restart(ctx context.Context) (err error) {
-	if err := modelhelper.ChangeMachineState(m.Id, "Machine is restarting", machinestate.Rebooting); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is restarting", machinestate.Rebooting); err != nil {
 		return err
 	}
 
@@ -19,7 +19,12 @@ func (m *Machine) Restart(ctx context.Context) (err error) {
 		return err
 	}
 
-	ok, err := svc.RebootSoft(m.Meta.Id)
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
+	ok, err := svc.RebootSoft(meta.Id)
 	if err != nil {
 		return err
 	}
@@ -28,7 +33,7 @@ func (m *Machine) Restart(ctx context.Context) (err error) {
 		m.Log.Warning("softlayer rebooting returned false instead of true")
 	}
 
-	if err := waitState(svc, m.Meta.Id, "RUNNING"); err != nil {
+	if err := waitState(svc, meta.Id, "RUNNING"); err != nil {
 		return err
 	}
 
@@ -37,5 +42,5 @@ func (m *Machine) Restart(ctx context.Context) (err error) {
 		return errors.New("klient is not ready")
 	}
 
-	return modelhelper.ChangeMachineState(m.Id, "Machine is Running", machinestate.Running)
+	return modelhelper.ChangeMachineState(m.ObjectId, "Machine is Running", machinestate.Running)
 }

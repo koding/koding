@@ -22,7 +22,7 @@ func (m *Machine) Restart(ctx context.Context) error {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),

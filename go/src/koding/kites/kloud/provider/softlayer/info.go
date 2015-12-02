@@ -32,8 +32,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
 				resultState, reason)
 
-			if err := modelhelper.CheckAndUpdateState(m.Id, resultState); err != nil {
-				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+			if err := modelhelper.CheckAndUpdateState(m.ObjectId, resultState); err != nil {
+				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.ObjectId, err)
 			}
 		}
 	}()
@@ -43,8 +43,13 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		return nil, err
 	}
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
 	// get final information, such as public IP address and co
-	state, err := svc.GetPowerState(m.Meta.Id)
+	state, err := svc.GetPowerState(meta.Id)
 	if err == nil {
 		resultState, err = statusToState(state.Name)
 		if err != nil {

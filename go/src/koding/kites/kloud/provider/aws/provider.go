@@ -58,11 +58,16 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
-	if machine.Meta.Region == "" {
+	meta, err := machine.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
+	if meta.Region == "" {
 		return nil, errors.New("region is not set")
 	}
 
-	p.Log.Debug("Using region: %s", machine.Meta.Region)
+	p.Log.Debug("Using region: %s", meta.Region)
 
 	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
@@ -84,6 +89,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	user, err := modelhelper.GetOwner(machine.Users)
+	if err != nil {
+		return err
+	}
+
+	meta, err := machine.GetMeta()
 	if err != nil {
 		return err
 	}
@@ -114,7 +124,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
-		Region:      machine.Meta.Region,
+		Region:      meta.Region,
 		Log:         p.Log,
 	}
 
@@ -124,7 +134,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	// attach user specific log
-	machine.Log = p.Log.New(machine.Id.Hex())
+	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	sess := &session.Session{
 		DB:         p.DB,

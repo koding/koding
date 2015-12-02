@@ -10,7 +10,7 @@ import (
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
 func (m *Machine) Destroy(ctx context.Context) error {
-	if err := modelhelper.ChangeMachineState(m.Id, "Machine is terminating",
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is terminating",
 		machinestate.Terminating); err != nil {
 		return err
 	}
@@ -21,7 +21,12 @@ func (m *Machine) Destroy(ctx context.Context) error {
 		return err
 	}
 
-	ok, err := svc.DeleteObject(m.Meta.Id)
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
+	ok, err := svc.DeleteObject(meta.Id)
 	if err != nil {
 		return err
 	}
@@ -31,9 +36,9 @@ func (m *Machine) Destroy(ctx context.Context) error {
 	}
 
 	// clean up these details, the instance doesn't exist anymore
-	m.Meta.Id = 0
+	m.Meta["id"] = 0
 	m.IpAddress = ""
 	m.QueryString = ""
 
-	return modelhelper.DeleteMachine(m.Id)
+	return modelhelper.DeleteMachine(m.ObjectId)
 }

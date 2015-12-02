@@ -17,6 +17,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/userdata"
 
+	"github.com/fatih/structs"
 	kiteprotocol "github.com/koding/kite/protocol"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -65,7 +66,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		reason += "Custom reason: " + args.Reason
 	}
 
-	if err := modelhelper.ChangeMachineState(m.Id, reason, machinestate.Building); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, reason, machinestate.Building); err != nil {
 		return err
 	}
 
@@ -76,16 +77,21 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 		// if there is any error mark it as NotInitialized
 		if err != nil {
-			modelhelper.ChangeMachineState(m.Id, "Machine is marked as "+latestState.String(), latestState)
+			modelhelper.ChangeMachineState(m.ObjectId, "Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 
-	if m.Meta.InstanceName == "" {
-		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
+	if meta.InstanceName == "" {
+		meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
 	// if there is already a machine just check it again
-	if m.Meta.InstanceId == "" {
+	if meta.InstanceId == "" {
 		m.push("Generating and fetching build data", 10, machinestate.Building)
 
 		m.Log.Debug("Generating and fetching build data")
@@ -94,24 +100,24 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 
-		m.Meta.SourceAmi = buildData.ImageData.imageID
+		meta.SourceAmi = buildData.ImageData.imageID
 		m.QueryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		m.push("Initiating build process", 30, machinestate.Building)
 		m.Log.Debug("Initiating creating process of instance")
 
-		m.Meta.InstanceId, err = m.Session.AWSClient.Build(buildData.EC2Data)
+		meta.InstanceId, err = m.Session.AWSClient.Build(buildData.EC2Data)
 		if err != nil {
 			return err
 		}
 
 		if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
-				m.Id,
+				m.ObjectId,
 				bson.M{"$set": bson.M{
-					"meta.instanceId": m.Meta.InstanceId,
-					"meta.source_ami": m.Meta.SourceAmi,
-					"meta.region":     m.Meta.Region,
+					"meta.instanceId": meta.InstanceId,
+					"meta.source_ami": meta.SourceAmi,
+					"meta.region":     meta.Region,
 					"queryString":     m.QueryString,
 				}},
 			)
@@ -120,13 +126,13 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		}
 	} else {
 		m.Log.Debug("Continue build process with data, instanceId: '%s' and queryString: '%s'",
-			m.Meta.InstanceId, m.QueryString)
+			meta.InstanceId, m.QueryString)
 	}
 
 	m.push("Checking build process", 40, machinestate.Building)
-	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
+	m.Log.Debug("Checking build process of instanceId '%s'", meta.InstanceId)
 
-	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
+	instance, err := m.Session.AWSClient.CheckBuild(ctx, meta.InstanceId, 50, 70)
 	if amazon.IsNotFound(err) || err == amazon.ErrInstanceTerminated {
 		if err := m.MarkAsNotInitialized(); err != nil {
 			return err
@@ -139,12 +145,14 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
-	m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
-	m.Meta.SourceAmi = aws.StringValue(instance.ImageId)
+	meta.InstanceType = aws.StringValue(instance.InstanceType)
+	meta.SourceAmi = aws.StringValue(instance.ImageId)
 	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
-	m.addDomainAndTags()
+	if err := m.addDomainAndTags(); err != nil {
+		m.Log.Error("couldn't add domain tags", err)
+	}
 
 	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 80, machinestate.Building)
 	if !m.IsKlientReady() {
@@ -152,7 +160,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
-		m.Username, m.Meta.InstanceId, m.IpAddress, m.QueryString)
+		m.Username, meta.InstanceId, m.IpAddress, m.QueryString)
 
 	m.Log.Info("========== BUILD results ========== %s", resultInfo)
 
@@ -161,16 +169,18 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		reason += "Custom reason: " + args.Reason
 	}
 
+	m.Meta = structs.Map(meta) // update meta
+
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
 				"queryString":       m.QueryString,
-				"meta.instanceType": m.Meta.InstanceType,
-				"meta.instanceName": m.Meta.InstanceName,
-				"meta.instanceId":   m.Meta.InstanceId,
-				"meta.source_ami":   m.Meta.SourceAmi,
+				"meta.instanceType": meta.InstanceType,
+				"meta.instanceName": meta.InstanceName,
+				"meta.instanceId":   meta.InstanceId,
+				"meta.source_ami":   meta.SourceAmi,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     reason,
@@ -180,13 +190,18 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 }
 
 func (m *Machine) imageData() (*ImageData, error) {
-	if m.Meta.StorageSize == 0 {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
+	if meta.StorageSize == 0 {
 		return nil, errors.New("storage size is zero")
 	}
 
-	m.Log.Debug("Fetching image which is tagged with '%s'", m.Meta.SourceAmi)
+	m.Log.Debug("Fetching image which is tagged with '%s'", meta.SourceAmi)
 
-	imageID := m.Meta.SourceAmi
+	imageID := meta.SourceAmi
 	if imageID == "" {
 		m.Log.Critical("Source AMI is not set, using default Ubuntu AMI: %s", DefaultUbuntuImage)
 		imageID = DefaultUbuntuImage
@@ -212,8 +227,8 @@ func (m *Machine) imageData() (*ImageData, error) {
 	// The lowest commong storage size for public Images is 8. To have a
 	// smaller storage size (like we do have for Koding, one must create new
 	// image). We assume that nodody did this :)
-	if m.Meta.StorageSize < 8 {
-		m.Meta.StorageSize = 8
+	if meta.StorageSize < 8 {
+		meta.StorageSize = 8
 	}
 
 	// Increase storage if it's passed to us, otherwise the default 3GB is
@@ -223,7 +238,7 @@ func (m *Machine) imageData() (*ImageData, error) {
 		VirtualName: device.VirtualName,
 		Ebs: &ec2.EbsBlockDevice{
 			VolumeType:          aws.String("standard"), // Use magnetic storage because it is cheaper
-			VolumeSize:          aws.Int64(int64(m.Meta.StorageSize)),
+			VolumeSize:          aws.Int64(int64(meta.StorageSize)),
 			DeleteOnTermination: aws.Bool(true),
 		},
 	}
@@ -231,6 +246,8 @@ func (m *Machine) imageData() (*ImageData, error) {
 	imageID = aws.StringValue(image.ImageId)
 
 	m.Log.Debug("Using image Id: %q and block device settings %+v", imageID, blockDeviceMapping)
+
+	m.Meta = structs.Map(meta) // update meta
 
 	return &ImageData{
 		imageID:            imageID,
@@ -363,14 +380,19 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}, nil
 }
 
-func (m *Machine) addDomainAndTags() {
+func (m *Machine) addDomainAndTags() error {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
 	m.Log.Debug("Adding and setting up domain and tags")
-	if m.Meta.InstanceName == "terminated-instance" {
-		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", m.Meta.InstanceName)
+	if meta.InstanceName == "terminated-instance" {
+		meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", meta.InstanceName)
 	}
 
 	m.push("Updating/Creating domain", 70, machinestate.Building)
@@ -385,7 +407,7 @@ func (m *Machine) addDomainAndTags() {
 	}
 
 	m.push("Updating domain aliases", 72, machinestate.Building)
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for setting err: %s", err.Error())
 	}
@@ -400,15 +422,17 @@ func (m *Machine) addDomainAndTags() {
 	}
 
 	tags := map[string]string{
-		"Name":             m.Meta.InstanceName,
+		"Name":             meta.InstanceName,
 		"koding-user":      m.Username,
 		"koding-env":       m.Session.Kite.Config.Environment,
-		"koding-machineId": m.Id.Hex(),
+		"koding-machineId": m.ObjectId.Hex(),
 		"koding-domain":    m.Domain,
 	}
 
 	m.Log.Debug("Adding user tags %v", tags)
-	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
+	if err := m.Session.AWSClient.AddTags(meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
+
+	return nil
 }

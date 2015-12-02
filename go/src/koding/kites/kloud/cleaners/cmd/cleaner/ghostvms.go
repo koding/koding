@@ -5,13 +5,14 @@ import (
 	"strings"
 	"time"
 
+	"koding/db/models"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
 )
 
 type GhostVMs struct {
 	Instances *lookup.MultiInstances
-	Ids       map[string]lookup.MachineDocument
+	Ids       map[string]models.Machine
 
 	ghostInstances *lookup.MultiInstances
 	err            error

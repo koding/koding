@@ -1,6 +1,7 @@
 package models
 
 import (
+	"koding/kites/kloud/machinestate"
 	"time"
 
 	"labix.org/v2/mgo/bson"
@@ -12,6 +13,7 @@ type MachineGroup struct {
 
 type MachineStatus struct {
 	State      string    `bson:"state" json:"state"`
+	Reason     string    `bons:"reason" json:"reason"`
 	ModifiedAt time.Time `bson:"modifiedAt" json:"modifiedAt"`
 }
 
@@ -25,8 +27,9 @@ type MachineUser struct {
 }
 
 type MachineAssignee struct {
-	AssignedAt time.Time `bson:"assignedAt" json:"assignedAt"`
-	InProgress bool      `bson:"inProgress" json:"inProgress"`
+	AssignedAt      time.Time `bson:"assignedAt" json:"assignedAt"`
+	InProgress      bool      `bson:"inProgress" json:"inProgress"`
+	KlientMissingAt time.Time `bson:"klientMissingAt" json:"klientMissingAt"`
 }
 
 type MachineGeneratedFrom struct {
@@ -49,16 +52,10 @@ type Machine struct {
 	Groups        []MachineGroup       `bson:"groups" json:"groups"`
 	CreatedAt     time.Time            `bson:"createdAt" json:"createdAt" `
 	Status        MachineStatus        `bson:"status" json:"status"`
-	Meta          interface{}          `bson:"meta" json:"meta"`
+	Meta          bson.M               `bson:"meta" json:"meta"`
 	Assignee      MachineAssignee      `bson:"assignee" json:"assignee"`
 	UserDeleted   bool                 `bson:"userDeleted" json:"userDeleted"`
 	GeneratedFrom MachineGeneratedFrom `bson:"generatedFrom,omitempty" json:"generatedFrom,omitempty"`
-}
-
-type Permissions struct {
-	Id    bson.ObjectId `bson:"id"`
-	Sudo  bool          `bson:"sudo"`
-	Owner bool          `bson:"owner"`
 }
 
 // Owner returns the owner of a machine
@@ -72,4 +69,9 @@ func (m *Machine) Owner() *MachineUser {
 	}
 
 	return nil
+}
+
+// State returns the machinestate of the machine
+func (m *Machine) State() machinestate.State {
+	return machinestate.States[m.Status.State]
 }

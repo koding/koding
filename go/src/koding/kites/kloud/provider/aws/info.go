@@ -31,8 +31,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			m.Log.Info("Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
 				resultState, reason)
 
-			if err := modelhelper.CheckAndUpdateState(m.Id, resultState); err != nil {
-				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+			if err := modelhelper.CheckAndUpdateState(m.ObjectId, resultState); err != nil {
+				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.ObjectId, err)
 			}
 		}
 	}()
@@ -57,7 +57,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// Terminated. Because we still have the machine document, mark it as
 	// Terminated so the client side knows what to do
 	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
-		if err := modelhelper.ChangeMachineState(m.Id, "Machine was terminated in last one hour span",
+		if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine was terminated in last one hour span",
 			machinestate.Terminated); err != nil {
 			return nil, err
 		}

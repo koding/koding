@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/fatih/structs"
 	"golang.org/x/net/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -46,6 +47,11 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		}
 	}()
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// if it's something else (the error from Instance() call above) return it
 	// back
 	if err != nil {
@@ -61,7 +67,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	if strings.ToLower(m.Payment.State) == "expired" {
-		return fmt.Errorf("[%s] Plan is expired", m.Id.Hex())
+		return fmt.Errorf("[%s] Plan is expired", m.ObjectId.Hex())
 	}
 
 	m.push("Starting machine", 10, machinestate.Starting)
@@ -70,19 +76,19 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	// and revert back to t2.micro. This is lazy auto healing of instances that
 	// were created because there were no capacity for their specific instance
 	// type.
-	if aws.StringValue(instance.InstanceType) != m.Meta.InstanceType {
+	if aws.StringValue(instance.InstanceType) != meta.InstanceType {
 		m.Log.Warning("instance is using '%s'. Changing back to '%s'",
-			instance.InstanceType, m.Meta.InstanceType)
+			instance.InstanceType, meta.InstanceType)
 
 		params := &ec2.ModifyInstanceAttributeInput{
-			InstanceId: aws.String(m.Meta.InstanceId),
+			InstanceId: aws.String(meta.InstanceId),
 			InstanceType: &ec2.AttributeValue{
-				Value: aws.String(plans.Instances[m.Meta.InstanceType].String()),
+				Value: aws.String(plans.Instances[meta.InstanceType].String()),
 			},
 		}
 		if err := m.Session.AWSClient.ModifyInstance(params); err != nil {
 			m.Log.Warning("couldn't change instance to '%s' again. err: %s",
-				m.Meta.InstanceType, err)
+				meta.InstanceType, err)
 		}
 
 		// Because of AWS's eventually consistency state, we wait for maximum
@@ -96,12 +102,12 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 				return err
 			}
 
-			if aws.StringValue(instance.InstanceType) != m.Meta.InstanceType {
+			if aws.StringValue(instance.InstanceType) != meta.InstanceType {
 				return fmt.Errorf("Instance is still '%s', waiting until it changed to '%s'",
-					instance.InstanceType, m.Meta.InstanceType)
+					instance.InstanceType, meta.InstanceType)
 			}
 
-			m.Log.Debug("Instance type successfully changed to %s", m.Meta.InstanceType)
+			m.Log.Debug("Instance type successfully changed to %s", meta.InstanceType)
 			return nil
 		})
 	}
@@ -125,11 +131,11 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			_, err = m.Session.AWSClient.AddressesByIP(m.IpAddress)
 			if amazon.IsNotFound(err) {
 				oldIp := m.IpAddress
-				elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
+				elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(meta.InstanceId)
 
 				m.Log.Info(
 					"Paying user without Elastic IP detected. Assigning IP. (username: %s, instanceId: %s, region: %s, oldIp: %s, newIp: %s)",
-					m.Credential, m.Meta.InstanceId, m.Meta.Region, oldIp, elasticIp,
+					m.Credential, meta.InstanceId, meta.Region, oldIp, elasticIp,
 				)
 
 				if err != nil {
@@ -140,7 +146,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			} else if err != nil {
 				m.Log.Error(
 					"Failed to retrieve Elastic IP information: %s (username: %s, instanceId: %s, region: %s, ip: %s)",
-					err.Error(), m.Credential, m.Meta.InstanceId, m.Meta.Region, m.IpAddress,
+					err.Error(), m.Credential, meta.InstanceId, meta.Region, m.IpAddress,
 				)
 			}
 		}
@@ -149,7 +155,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			instance, err := m.Session.AWSClient.Start(ctx)
 			if err == nil {
 				m.IpAddress = aws.StringValue(instance.PublicIpAddress)
-				m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
+				meta.InstanceType = aws.StringValue(instance.InstanceType)
 				return nil
 			}
 
@@ -164,12 +170,12 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 			for _, instanceType := range InstancesList {
 				m.Log.Warning("Fallback: starting again with using instance: %s instead of %s",
-					instanceType, m.Meta.InstanceType)
+					instanceType, meta.InstanceType)
 
 				// now change the instance type before we start so we can
 				// avoid the instance capacity problem
 				params := &ec2.ModifyInstanceAttributeInput{
-					InstanceId: aws.String(m.Meta.InstanceId),
+					InstanceId: aws.String(meta.InstanceId),
 					InstanceType: &ec2.AttributeValue{
 						Value: aws.String(instanceType),
 					},
@@ -186,7 +192,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 				instance, err = m.Session.AWSClient.Start(ctx)
 				if err == nil {
 					m.IpAddress = aws.StringValue(instance.PublicIpAddress)
-					m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
+					meta.InstanceType = aws.StringValue(instance.InstanceType)
 					return nil
 				}
 
@@ -214,7 +220,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 	// also get all domain aliases that belongs to this machine and unset
 	m.push("Updating domain aliases", 80, machinestate.Starting)
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for starting err: %s", err.Error())
 	}
@@ -233,14 +239,16 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		return errors.New("klient is not ready")
 	}
 
+	m.Meta = structs.Map(meta)
+
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
-				"meta.instanceName": m.Meta.InstanceName,
-				"meta.instanceId":   m.Meta.InstanceId,
-				"meta.instanceType": m.Meta.InstanceType,
+				"meta.instanceName": meta.InstanceName,
+				"meta.instanceId":   meta.InstanceId,
+				"meta.instanceType": meta.InstanceType,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Machine is running",

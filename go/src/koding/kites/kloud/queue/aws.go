@@ -35,7 +35,7 @@ func (q *Queue) CheckAWS() {
 			klient.ErrDialingFailed:
 		default:
 			q.Log.Debug("[%s] check usage of AWS klient kite [%s] err: %v",
-				machine.Id.Hex(), machine.IpAddress, err)
+				machine.ObjectId.Hex(), machine.IpAddress, err)
 		}
 	}
 }
@@ -46,7 +46,12 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 		return errors.New("checking machine. document is nil")
 	}
 
-	if m.Meta.Region == "" {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
+	if meta.Region == "" {
 		return errors.New("region is not set in.")
 	}
 
@@ -93,14 +98,14 @@ func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
 		m.IpAddress, usg.InactiveDuration)
 
 	// Hasta la vista, baby!
-	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
+	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.ObjectId.Hex())
 	if err := m.Stop(ctx); err != nil {
 		// returning is ok, because Kloud will mark it anyways as stopped if
 		// Klient is not rechable anymore with the `info` method
-		q.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.Id.Hex(), err)
+		q.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", m.ObjectId.Hex(), err)
 		return err
 	}
 
-	q.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
+	q.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.ObjectId.Hex())
 	return nil
 }

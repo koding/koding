@@ -9,7 +9,7 @@ import (
 
 // Stop stops the given machine
 func (m *Machine) Stop(ctx context.Context) error {
-	if err := modelhelper.ChangeMachineState(m.Id, "Machine is stopping", machinestate.Stopping); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine is stopping", machinestate.Stopping); err != nil {
 		return err
 	}
 
@@ -19,12 +19,17 @@ func (m *Machine) Stop(ctx context.Context) error {
 		return err
 	}
 
-	_, err = svc.PowerOff(m.Meta.Id)
+	meta, err := m.GetMeta()
 	if err != nil {
 		return err
 	}
 
-	if err := waitState(svc, m.Meta.Id, "HALTED"); err != nil {
+	_, err = svc.PowerOff(meta.Id)
+	if err != nil {
+		return err
+	}
+
+	if err := waitState(svc, meta.Id, "HALTED"); err != nil {
 		return err
 	}
 

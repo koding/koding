@@ -12,36 +12,18 @@ import (
 	"koding/kites/kloud/contexthelper/session"
 
 	"github.com/koding/logging"
-	"labix.org/v2/mgo/bson"
+	"github.com/mitchellh/mapstructure"
 )
 
-// Machine represents a single MongodDB document from the jMachines
-// collection.
+type Meta struct {
+	Id         int    `bson:id`
+	AlwaysOn   bool   `bson:"alwaysOn"`
+	Datacenter string `bson:"datacenter"`
+}
+
+// Machine represents a single MongodDB document from the jMachines collection.
 type Machine struct {
-	Id          bson.ObjectId `bson:"_id" json:"-"`
-	Label       string        `bson:"label"`
-	Domain      string        `bson:"domain"`
-	QueryString string        `bson:"queryString"`
-	IpAddress   string        `bson:"ipAddress"`
-	Assignee    struct {
-		InProgress bool      `bson:"inProgress"`
-		AssignedAt time.Time `bson:"assignedAt"`
-	} `bson:"assignee"`
-	Status struct {
-		State      string    `bson:"state"`
-		Reason     string    `bson:"reason"`
-		ModifiedAt time.Time `bson:"modifiedAt"`
-	} `bson:"status"`
-	Provider   string    `bson:"provider"`
-	Credential string    `bson:"credential"`
-	CreatedAt  time.Time `bson:"createdAt"`
-	Meta       struct {
-		Id         int    `bson:id`
-		AlwaysOn   bool   `bson:"alwaysOn"`
-		Datacenter string `structs:"datacenter" bson:"datacenter"`
-	} `bson:"meta"`
-	Users  []models.Permissions `bson:"users"`
-	Groups []models.Permissions `bson:"groups"`
+	*models.Machine
 
 	// internal fields, not availabile in MongoDB schema
 	Username string                 `bson:"-"`
@@ -52,8 +34,13 @@ type Machine struct {
 	Log      logging.Logger         `bson:"-"`
 }
 
-func (m *Machine) State() machinestate.State {
-	return machinestate.States[m.Status.State]
+func (m *Machine) GetMeta() (*Meta, error) {
+	var mt Meta
+	if err := mapstructure.Decode(m.Meta, &mt); err != nil {
+		return nil, err
+	}
+
+	return &mt, nil
 }
 
 func (m *Machine) ProviderName() string { return m.Provider }
@@ -89,7 +76,7 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 
 func (m *Machine) MarkAsStoppedWithReason(reason string) error {
 	m.Log.Debug("Marking instance as stopped")
-	if err := modelhelper.ChangeMachineState(m.Id, reason, machinestate.Stopped); err != nil {
+	if err := modelhelper.ChangeMachineState(m.ObjectId, reason, machinestate.Stopped); err != nil {
 		return err
 	}
 

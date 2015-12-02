@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/fatih/structs"
 	kiteprotocol "github.com/koding/kite/protocol"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/net/context"
@@ -75,8 +76,13 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	if args.SnapshotId != "" {
-		m.Meta.SnapshotId = args.SnapshotId
+		meta.SnapshotId = args.SnapshotId
 	}
 
 	reason := "Machine is building."
@@ -99,8 +105,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		}
 	}()
 
-	if m.Meta.InstanceName == "" {
-		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	if meta.InstanceName == "" {
+		meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
 	// Keep track of whether or not this build process is creating a new
@@ -108,7 +114,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	var creatingNewInstance bool
 
 	// if there is already a machine just check it again
-	if m.Meta.InstanceId == "" {
+	if meta.InstanceId == "" {
 		creatingNewInstance = true
 
 		m.push("Generating and fetching build data", 10, machinestate.Building)
@@ -119,7 +125,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			return err
 		}
 
-		m.Meta.SourceAmi = buildData.ImageData.imageID
+		meta.SourceAmi = buildData.ImageData.imageID
 		m.QueryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		m.push("Checking limits and quota", 20, machinestate.Building)
@@ -131,18 +137,18 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 		m.push("Initiating build process", 30, machinestate.Building)
 		m.Log.Debug("Initiating creating process of instance")
-		m.Meta.InstanceId, err = m.create(buildData)
+		meta.InstanceId, err = m.create(buildData)
 		if err != nil {
 			return err
 		}
 
 		if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.UpdateId(
-				m.Id,
+				m.ObjectId,
 				bson.M{"$set": bson.M{
-					"meta.instanceId": m.Meta.InstanceId,
-					"meta.source_ami": m.Meta.SourceAmi,
-					"meta.region":     m.Meta.Region,
+					"meta.instanceId": meta.InstanceId,
+					"meta.source_ami": meta.SourceAmi,
+					"meta.region":     meta.Region,
 					"queryString":     m.QueryString,
 				}},
 			)
@@ -151,7 +157,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		}
 	} else {
 		m.Log.Debug("Continue build process with data, instanceId: %q and queryString: %q",
-			m.Meta.InstanceId, m.QueryString)
+			meta.InstanceId, m.QueryString)
 
 		// If this is not the first attempt to build, the first attempt may
 		// have timed out or failed in some other way. To heal this and
@@ -166,25 +172,25 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			// successfully.
 			m.Log.Warning(
 				"Failed to recover for pre-existing instance. (username: %q, instanceId: %q, region: %q)",
-				m.Credential, m.Meta.InstanceId, m.Meta.Region,
+				m.Credential, meta.InstanceId, meta.Region,
 			)
 		}
 
 	}
 
 	m.push("Checking build process", 40, machinestate.Building)
-	m.Log.Debug("Checking build process of instanceId %q", m.Meta.InstanceId)
+	m.Log.Debug("Checking build process of instanceId %q", meta.InstanceId)
 
 	// In the event that checkBuild fails, we can log to see how long it took
 	// with this var.
 	checkBuildStart := time.Now()
-	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
+	instance, err := m.Session.AWSClient.CheckBuild(ctx, meta.InstanceId, 50, 70)
 	checkBuildDur := time.Since(checkBuildStart)
 
 	if err == amazon.ErrInstanceTerminated || amazon.IsNotFound(err) {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		m.Log.Warning("machine with instance id %q has a problem %q. Building a new machine",
-			m.Meta.InstanceId, err)
+			meta.InstanceId, err)
 
 		// we fallback to us-east-1 (it has the largest quota) because a
 		// terminated or no instances error only appears if the given region
@@ -214,15 +220,15 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		// verbose information for metrics.
 		m.Log.Warning(
 			"CheckBuild failed. (newInstance: %t, username: %s, instanceId: %s, region: %s, provider: %s, CheckBuild duration: %fs) err: %s",
-			creatingNewInstance, m.Credential, m.Meta.InstanceId,
-			m.Meta.Region, m.Provider, checkBuildDur.Seconds(), err.Error(),
+			creatingNewInstance, m.Credential, meta.InstanceId,
+			meta.Region, m.Provider, checkBuildDur.Seconds(), err.Error(),
 		)
 
 		return err
 	}
 
-	m.Meta.InstanceType = aws.StringValue(instance.InstanceType)
-	m.Meta.SourceAmi = aws.StringValue(instance.ImageId)
+	meta.InstanceType = aws.StringValue(instance.InstanceType)
+	meta.SourceAmi = aws.StringValue(instance.ImageId)
 	m.IpAddress = aws.StringValue(instance.PublicIpAddress)
 
 	// allocate and associate a new Public IP for paying users, we can do
@@ -230,7 +236,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if m.Payment.Plan != "free" {
 		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
-		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
+		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(meta.InstanceId)
 		if err != nil {
 			m.Log.Warning("couldn't not create elastic IP: %s", err)
 		} else {
@@ -247,7 +253,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	}
 
 	resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
-		m.Username, m.Meta.InstanceId, m.IpAddress, m.QueryString)
+		m.Username, meta.InstanceId, m.IpAddress, m.QueryString)
 
 	m.Log.Info("========== BUILD results ========== %s", resultInfo)
 
@@ -256,16 +262,18 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		reason += "Custom reason: " + args.Reason
 	}
 
+	m.Meta = structs.Map(meta)
+
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
 				"queryString":       m.QueryString,
-				"meta.instanceType": m.Meta.InstanceType,
-				"meta.instanceName": m.Meta.InstanceName,
-				"meta.instanceId":   m.Meta.InstanceId,
-				"meta.source_ami":   m.Meta.SourceAmi,
+				"meta.instanceType": meta.InstanceType,
+				"meta.instanceName": meta.InstanceName,
+				"meta.instanceId":   meta.InstanceId,
+				"meta.source_ami":   meta.SourceAmi,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     reason,
@@ -309,9 +317,14 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 		},
 	}
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
 	// Before using the snapshot, Check if it exists. If it does not,
 	// unset it.
-	if m.Meta.SnapshotId != "" {
+	if meta.SnapshotId != "" {
 		m.Log.Debug("checking for snapshot permissions")
 		// If the querying the snapshot returns an error, it may not exist,
 		// or it may not be owned by the Machine's owner.
@@ -346,10 +359,10 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 			}
 
 			m.Log.Debug("SnapshotId '%s' not found, Removing it from the Machine",
-				m.Meta.SnapshotId)
+				meta.SnapshotId)
 			if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 				return c.UpdateId(
-					m.Id,
+					m.ObjectId,
 					bson.M{"$unset": bson.M{
 						"meta.snapshotId": "",
 					}},
@@ -357,16 +370,16 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 			}); err != nil {
 				return nil, err
 			}
-			m.Meta.SnapshotId = ""
+			meta.SnapshotId = ""
 		}
 	}
 
 	// The snapshot exists, create an AMI from it
-	if m.Meta.SnapshotId != "" {
-		m.Log.Debug("creating AMI from the snapshot '%s'", m.Meta.SnapshotId)
+	if meta.SnapshotId != "" {
+		m.Log.Debug("creating AMI from the snapshot '%s'", meta.SnapshotId)
 
-		blockDeviceMapping.Ebs.SnapshotId = aws.String(m.Meta.SnapshotId)
-		amiDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id.Hex())
+		blockDeviceMapping.Ebs.SnapshotId = aws.String(meta.SnapshotId)
+		amiDesc := fmt.Sprintf("user-%s-%s", m.Username, m.ObjectId.Hex())
 
 		registerOpts := &ec2.RegisterImageInput{
 			Name:               aws.String(amiDesc),
@@ -423,7 +436,9 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 		image.ImageId = aws.String(imageID)
 	}
 
-	m.Log.Debug("Using image Id: %q and block device settings %+v", aws.StringValue(image.ImageId), blockDeviceMapping)
+	m.Log.Debug("Using image ObjectId: %q and block device settings %+v", aws.StringValue(image.ImageId), blockDeviceMapping)
+
+	m.Meta = structs.Map(meta)
 
 	return &ImageData{
 		imageID:            aws.StringValue(image.ImageId),
@@ -460,7 +475,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 
 	if m.Session.AWSClient.Builder.InstanceType == "" {
 		m.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro",
-			m.Id.Hex())
+			m.ObjectId.Hex())
 		m.Session.AWSClient.Builder.InstanceType = plans.T2Micro.String()
 	}
 
@@ -641,14 +656,19 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 	return "", errors.New("build reached the end. all fallback mechanism steps failed.")
 }
 
-func (m *Machine) addDomainAndTags() {
+func (m *Machine) addDomainAndTags() error {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
 	m.Log.Debug("Adding and setting up domain and tags")
-	if m.Meta.InstanceName == "terminated-instance" {
-		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", m.Meta.InstanceName)
+	if meta.InstanceName == "terminated-instance" {
+		meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", meta.InstanceName)
 	}
 
 	m.push("Updating/Creating domain", 70, machinestate.Building)
@@ -663,7 +683,7 @@ func (m *Machine) addDomainAndTags() {
 	}
 
 	m.push("Updating domain aliases", 72, machinestate.Building)
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for setting err: %s", err.Error())
 	}
@@ -678,17 +698,19 @@ func (m *Machine) addDomainAndTags() {
 	}
 
 	tags := map[string]string{
-		"Name":             m.Meta.InstanceName,
+		"Name":             meta.InstanceName,
 		"koding-user":      m.Username,
 		"koding-env":       m.Session.Kite.Config.Environment,
-		"koding-machineId": m.Id.Hex(),
+		"koding-machineId": m.ObjectId.Hex(),
 		"koding-domain":    m.Domain,
 	}
 
 	m.Log.Debug("Adding user tags %v", tags)
-	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
+	if err := m.Session.AWSClient.AddTags(meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
+
+	return nil
 }
 
 // buildRecovery attempts to get the status of the machine from AWS
@@ -714,9 +736,14 @@ func (m *Machine) addDomainAndTags() {
 // 3. Running (running): An AWS state of Running typically means that
 // 	the machine building was completed. No action is needed.
 func (m *Machine) buildRecovery() error {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// If there is no instanceId, we shouldn't be recovering from anything,
 	// we should be creating the instance. Return an error.
-	if m.Meta.InstanceId == "" {
+	if meta.InstanceId == "" {
 		return errors.New(
 			"buildRecovery: Unable to recover from build if InstanceId has not been created",
 		)
@@ -739,7 +766,7 @@ func (m *Machine) buildRecovery() error {
 	case machinestate.Stopped:
 		m.Log.Info(
 			"Manually starting previously stopped instance. (username: %s, instanceId: %s, region: %s)",
-			m.Credential, m.Meta.InstanceId, m.Meta.Region,
+			m.Credential, meta.InstanceId, meta.Region,
 		)
 
 		// We're calling the client start api directly, rather than

@@ -64,11 +64,16 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
-	if machine.Meta.Region == "" {
-		machine.Meta.Region = "us-east-1"
-		p.Log.Critical("[%s] region is not set in. Fallback to us-east-1.", machine.Id.Hex())
+	meta, err := machine.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
+	if meta.Region == "" {
+		machine.Meta["region"] = "us-east-1"
+		p.Log.Critical("[%s] region is not set in. Fallback to us-east-1.", machine.ObjectId.Hex())
 	} else {
-		p.Log.Debug("[%s] using region: %s", machine.Id.Hex(), machine.Meta.Region)
+		p.Log.Debug("[%s] using region: %s", machine.ObjectId.Hex(), meta.Region)
 	}
 
 	if err := p.AttachSession(ctx, machine); err != nil {
@@ -97,6 +102,11 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		requesterUsername = req.Username
 	}
 
+	meta, err := machine.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// get the user from the permitted list. If the list contains more than one
 	// allowed person, fetch the one that is the same as requesterUsername, if
 	// not pick up the first one.
@@ -105,18 +115,18 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	client, err := p.EC2Clients.Region(machine.Meta.Region)
+	client, err := p.EC2Clients.Region(meta.Region)
 	if err != nil {
 		return err
 	}
 
-	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
+	amazonClient, err := amazon.New(structs.Map(meta), client)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
 	// attach user specific log
-	machine.Log = p.Log.New(machine.Id.Hex())
+	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	sess := &session.Session{
 		DB:         p.DB,
@@ -168,7 +178,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 // error. The requestName is optional, if it's not empty and the the users list
 // has more than one valid allowed users, we return the one that matches the
 // requesterName.
-func (p *Provider) getOwner(requesterName string, users []models.Permissions) (*models.User, error) {
+func (p *Provider) getOwner(requesterName string, users []models.MachineUser) (*models.User, error) {
 	allowedIds := make([]bson.ObjectId, 0)
 	for _, perm := range users {
 		// we only going to fetch users that are allowed
@@ -251,7 +261,7 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 
 // checkUser checks whether the given username is available in the users list
 // and has permission
-func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) error {
+func (p *Provider) checkUser(userId bson.ObjectId, users []models.MachineUser) error {
 	// check if the incoming user is in the list of permitted user list
 	for _, u := range users {
 		if userId == u.Id && u.Owner {
@@ -269,7 +279,7 @@ func (m *Machine) UpdateState(reason string, state machinestate.State) error {
 	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Update(
 			bson.M{
-				"_id": m.Id,
+				"_id": m.ObjectId,
 			},
 			bson.M{
 				"$set": bson.M{
@@ -283,7 +293,7 @@ func (m *Machine) UpdateState(reason string, state machinestate.State) error {
 
 	if err != nil {
 		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
-			state, m.Id.Hex(), err)
+			state, m.ObjectId.Hex(), err)
 	}
 
 	return nil

@@ -12,7 +12,7 @@ import (
 	"github.com/koding/kite"
 )
 
-func ValidateUser(user *models.User, users []models.Permissions, r *kite.Request) error {
+func ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
 	// give access to kloudctl immediately
 	if r.Auth != nil {
 		if r.Auth.Key == command.KloudSecretKey {
@@ -38,7 +38,7 @@ func ValidateUser(user *models.User, users []models.Permissions, r *kite.Request
 
 // checkUser checks whether the given username is available in the users list
 // and has permission
-func checkUser(userId bson.ObjectId, users []models.Permissions) error {
+func checkUser(userId bson.ObjectId, users []models.MachineUser) error {
 	// check if the incoming user is in the list of permitted user list
 	for _, u := range users {
 		if userId == u.Id && u.Owner {

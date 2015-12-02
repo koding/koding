@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/models"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/cleaners/lookup"
 	"strings"
@@ -10,7 +11,7 @@ import (
 type TagInstances struct {
 	Instances *lookup.MultiInstances
 	MongoDB   *lookup.MongoDB
-	Machines  map[string]lookup.MachineDocument
+	Machines  map[string]models.Machine
 
 	untagged map[*amazon.Client][]tagData
 	err      error
@@ -78,7 +79,7 @@ func (t *TagInstances) Process() {
 
 			username := machine.Credential
 			env := "production"
-			machineId := machine.Id.Hex()
+			machineId := machine.ObjectId.Hex()
 			domain := machine.Domain
 
 			tags := map[string]string{

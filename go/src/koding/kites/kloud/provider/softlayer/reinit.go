@@ -7,6 +7,11 @@ import (
 )
 
 func (m *Machine) Reinit(ctx context.Context) (err error) {
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// go and terminate the old instance, we don't need to wait for it
 	go func(id int) {
 		//Get the SoftLayer virtual guest service
@@ -20,12 +25,12 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 		if err != nil {
 			m.Log.Warning("couldn't terminate instance (code 2)")
 		}
-	}(m.Meta.Id)
+	}(meta.Id)
 
 	// cleanup this too so "build" can continue with a clean setup
 	m.IpAddress = ""
 	m.QueryString = ""
-	m.Meta.Id = 0
+	m.Meta["id"] = 0
 	m.Status.State = machinestate.NotInitialized.String()
 
 	// this updates/creates domain

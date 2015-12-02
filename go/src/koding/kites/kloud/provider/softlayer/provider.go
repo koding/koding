@@ -63,14 +63,19 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
-	if machine.Meta.Datacenter == "" {
-		// We choose DALLAS 01 because it has the largest capacity
-		// http://www.softlayer.com/data-centers
-		machine.Meta.Datacenter = "sjc01"
-		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.Id.Hex())
+	meta, err := machine.GetMeta()
+	if err != nil {
+		return nil, err
 	}
 
-	p.Log.Debug("Using datacenter: %s", machine.Meta.Datacenter)
+	if meta.Datacenter == "" {
+		// We choose DALLAS 01 because it has the largest capacity
+		// http://www.softlayer.com/data-centers
+		machine.Meta["datacenter"] = "sjc01"
+		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.ObjectId.Hex())
+	}
+
+	p.Log.Debug("Using datacenter: %s", meta.Datacenter)
 
 	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err
@@ -97,7 +102,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	}
 
 	// attach user specific log
-	machine.Log = p.Log.New(machine.Id.Hex())
+	machine.Log = p.Log.New(machine.ObjectId.Hex())
 
 	sess := &session.Session{
 		DB:         p.DB,

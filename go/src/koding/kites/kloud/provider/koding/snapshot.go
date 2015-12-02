@@ -70,7 +70,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 		}
 	}()
 
-	if err := m.Checker.SnapshotTotal(m.Id.Hex(), m.Username); err != nil {
+	if err := m.Checker.SnapshotTotal(m.ObjectId.Hex(), m.Username); err != nil {
 		return err
 	}
 
@@ -87,7 +87,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 	}
 
 	volumeId := aws.StringValue(instance.BlockDeviceMappings[0].Ebs.VolumeId)
-	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id.Hex())
+	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.ObjectId.Hex())
 
 	m.Log.Debug("Creating snapshot '%s'", snapshotDesc)
 	m.push("Creating snapshot", 50, machinestate.Snapshotting)
@@ -101,7 +101,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 		Username:    m.Username,
 		Region:      a.Region,
 		SnapshotId:  aws.StringValue(snapshot.SnapshotId),
-		MachineId:   m.Id,
+		MachineId:   m.ObjectId,
 		StorageSize: strconv.FormatInt(aws.Int64Value(snapshot.VolumeSize), 10),
 		Label:       args.Label,
 	}
@@ -113,7 +113,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 	tags := map[string]string{
 		"Name":             snapshotDesc,
 		"koding-user":      m.Username,
-		"koding-machineId": m.Id.Hex(),
+		"koding-machineId": m.ObjectId.Hex(),
 	}
 
 	if err := a.AddTags(aws.StringValue(snapshot.SnapshotId), tags); err != nil {
@@ -125,7 +125,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
@@ -186,16 +186,21 @@ func (m *Machine) checkSnapshotExistence() (bool, error) {
 	var err error
 	var count int
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return false, err
+	}
+
 	err = m.Session.DB.Run(snapshotCollection, func(c *mgo.Collection) error {
 		count, err = c.Find(bson.M{
 			"originId":   account.Id,
-			"snapshotId": m.Meta.SnapshotId,
+			"snapshotId": meta.SnapshotId,
 		}).Count()
 		return err
 	})
 
 	if err != nil {
-		m.Log.Error("Could not fetch %v: err: %v", m.Meta.SnapshotId, err)
+		m.Log.Error("Could not fetch %v: err: %v", meta.SnapshotId, err)
 		return false, errors.New("could not check Snapshot existency")
 	}
 
