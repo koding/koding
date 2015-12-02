@@ -7,6 +7,7 @@ ActivityItemMenuItem = require 'activity/views/activityitemmenuitem'
 ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
+isMyPost             = require 'app/util/isMyPost'
 envDataProvider      = require 'app/userenvironmentdataprovider'
 
 CollaborationChannelParticipantsModel = require 'activity/models/collaborationchannelparticipants'
@@ -323,3 +324,14 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @onboarding?.destroy()
     @onboarding = null
+
+
+  editLastMessage: ->
+
+    items = @listController.getListItems().slice(0).reverse()
+
+    for item in items when isMyPost item.getData()
+      item.showEditWidget()
+      @scrollView.wrapper.scrollToSubView item, 500
+      return
+
