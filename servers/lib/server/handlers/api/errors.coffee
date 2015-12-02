@@ -88,7 +88,7 @@ module.exports = {
   outOfRangeUsername            :
     status                      : 400
     message                     : 'Given username is out of range.'
-    code                        : 'OutOfRangeSuggestedUsername'
+    code                        : 'OutOfRangeUsername'
 
   outOfRangeSuggestedUsername   :
     status                      : 400
