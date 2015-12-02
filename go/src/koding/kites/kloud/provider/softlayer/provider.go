@@ -83,7 +83,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	if meta.SourceImage == "" {
-		meta.SourceImage = DefaultImageID
+		machine.Meta["sourceImage"] = DefaultImageID
 		p.Log.Critical("[%s] image template ID is not set, using default one: %q",
 			machine.ObjectId.Hex(), DefaultImageID)
 	}

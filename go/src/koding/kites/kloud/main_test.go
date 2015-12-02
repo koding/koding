@@ -915,6 +915,7 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 			Provider:  provider,
 			CreatedAt: time.Now().UTC(),
 			Users:     users,
+			Meta:      make(bson.M, 0),
 			Groups:    make([]models.MachineGroup, 0),
 		}
 
