@@ -41,7 +41,9 @@ createSsoToken = (apiToken, opts, callback) ->
   request.post createSsoTokenRequestParams, (err, res, body) ->
     expect(err).to.not.exist
     expect(res.statusCode).to.be.equal 200
-    return callback { token : JSON.parse(body).token }
+    expect(JSON.parse(body).error).to.not.exist
+    expect(JSON.parse(body).data).to.exist
+    return callback { token : JSON.parse(body).data.token }
 
 
 createUserAndSsoToken = (apiToken, opts, callback) ->
