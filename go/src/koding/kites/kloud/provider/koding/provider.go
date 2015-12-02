@@ -18,7 +18,6 @@ import (
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 
-	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
@@ -54,7 +53,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	// where the id exist but someone else is the assignee).
 	machine := &Machine{}
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine.Machine)
 	}); err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
@@ -120,7 +119,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
-	amazonClient, err := amazon.New(structs.Map(meta), client)
+	amazonClient, err := amazon.New(machine.Meta, client)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
