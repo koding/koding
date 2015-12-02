@@ -98,9 +98,12 @@ module.exports = class NotificationController extends KDObject
     @on 'MachineListUpdated', ({machineUId, action}) ->
       switch action
         when 'removed'
-          if ideInstance = envDataProvider.getIDEFromUId machineUId
-            if ideInstance.mountedMachine.isPermanent()
-              ideInstance.showUserRemovedModal()
+          instances = IDEHelpers.getOpenedIDEInstancesByMachineUId machineUId
+
+          return  unless instances.length
+
+          instances.last.showUserRemovedModal ->
+            instances.forEach (instance) -> instance.quit()
 
       kd.singletons.computeController.reset yes
 

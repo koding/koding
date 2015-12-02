@@ -93,6 +93,8 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
       kite   = @machine.getBaseKite()
       method = if task is 'add' then 'klientShare' else 'klientUnshare'
 
+      IDEHelpers.deleteSnapshotData @machine, nickname  if task is 'kick'
+
       kite[method] { username: nickname, permanent: yes }
 
         .then => @updateUserList task, user, userItem
