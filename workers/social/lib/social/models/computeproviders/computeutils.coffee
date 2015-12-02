@@ -1,7 +1,7 @@
 # coffeelint: disable=cyclomatic_complexity
-KodingError = require '../../error'
+KodingError    = require '../../error'
 
-PROVIDERS =
+PROVIDERS      =
   aws          : require './aws'
   koding       : require './koding'
   rackspace    : require './rackspace'
@@ -353,14 +353,15 @@ fetchUsage = (client, options, callback) ->
   JSnapshot = require './snapshot'
 
   { r: { user, account } } = client
-  { provider }    = options
 
+  { provider }     = options
   selector         = { provider }
   selector.users   =
-    $elemMatch :
-      id       : user.getId()
-      sudo     : yes
-      owner    : yes
+    $elemMatch     :
+      id           : user.getId()
+      sudo         : yes
+      owner        : yes
+
   snapshotSelector = { originId: account.getId() }
 
   JSnapshot.some snapshotSelector, {}, (err, snapshots = []) ->
