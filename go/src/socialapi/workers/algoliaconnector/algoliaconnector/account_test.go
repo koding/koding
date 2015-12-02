@@ -95,6 +95,7 @@ func TestAccountTesting(t *testing.T) {
 			Convey("it should be able to fetch many account with given query", func() {
 				// make sure account is there
 				fmt.Println("==================>>>>>>>>>>>>>>>>>>>>>>>>>>")
+				fmt.Println("it should be able to fetch many account with given query")
 				fmt.Println("==================>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
 				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
@@ -158,6 +159,13 @@ func TestAccountTesting(t *testing.T) {
 						}
 					}
 				}
+				// nbHits
+
+				// nbHits, _ := record.(map[string]interface{})["nbHits"]
+				// nbPages, _ := record.(map[string]interface{})["nbPages"]
+				// fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHits)
+				// fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", nbPages)
+
 				lenghtUsernames := len(usernames)
 				lenghtObjects := len(objects)
 				So(lenghtUsernames, ShouldBeGreaterThan, 10)
@@ -175,7 +183,13 @@ func TestAccountTesting(t *testing.T) {
 
 				Convey("it should be able to delete many account with given query", func() {
 					// make sure account is there
-
+					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("it should be able to delete many account with given query")
+					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
 					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
 					for i := 0; i < 10; i++ {
@@ -204,37 +218,75 @@ func TestAccountTesting(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
-					params := make(map[string]interface{})
-					record, err := index.Search("mehmetali-test", params)
-					So(err, ShouldBeNil)
+					// params := make(map[string]interface{})
+					// record, err := index.Search("mehmetali-test", params)
+					// So(err, ShouldBeNil)
 
-					hist, ok := record.(map[string]interface{})["hits"]
+					// hist, ok := record.(map[string]interface{})["hits"]
 
 					// fmt.Println("hist is :", hist)
+
+					// fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHits)
+					// fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", nbPages)
+
 					usernames := make([]string, 0)
 					objects := make([]string, 0)
 
-					if ok {
+					////////////////
+					////////////////
+					////////////////
+					////////////////
 
-						hinter, ok := hist.([]interface{})
+					nbHits, _ := record.(map[string]interface{})["nbHits"]
+					nbPages, _ := record.(map[string]interface{})["nbPages"]
+
+					var pages float64 = nbPages.(float64)
+					var nbHit float64 = nbHits.(float64)
+
+					fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
+					fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
+
+					for pages > 0 && nbHit != 0 {
+						record, err := index.Search("mehmetali-test", params)
+						hist, ok := record.(map[string]interface{})["hits"]
+
+						// fmt.Println("hist is :", hist)
+						nbHits, _ := record.(map[string]interface{})["nbHits"]
+						nbPages, _ := record.(map[string]interface{})["nbPages"]
+
+						pages = nbPages.(float64)
+						nbHit = nbHits.(float64)
+
+						fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
+						fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
+						fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
+						fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
+						fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
+						fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
+
 						if ok {
-							for _, v := range hinter {
-								val, k := v.(map[string]interface{})
-								if k {
-									// fmt.Println("val", k, "is:", val["nick"])
-									object := val["objectID"].(string)
+							hinter, ok := hist.([]interface{})
+							if ok {
+								for _, v := range hinter {
+									val, k := v.(map[string]interface{})
+									if k {
+										// fmt.Println("val", k, "is:", val["nick"])
+										object := val["objectID"].(string)
 
-									value := val["nick"].(string)
-									usernames = append(usernames, value)
-									objects = append(objects, object)
-									// err = handler.delete(IndexAccounts, object)
-									_, err = index.DeleteObject(object)
-									So(err, ShouldBeNil)
+										value := val["nick"].(string)
+										usernames = append(usernames, value)
+										objects = append(objects, object)
+										// err = handler.delete(IndexAccounts, object)
+										_, err = index.DeleteObject(object)
+										So(err, ShouldBeNil)
+									}
+
 								}
-
 							}
 						}
-					}
+
+					} // end for
+
 					lenghtUsernames := len(usernames)
 					lenghtObjects := len(objects)
 					So(lenghtUsernames, ShouldBeGreaterThan, 10)
