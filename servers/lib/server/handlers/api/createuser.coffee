@@ -157,7 +157,7 @@ validateUsername = (username, callback) ->
 
   # checking if username has valid length
   unless isUsernameLengthValid username
-     return callback apiErrors.outOfRangeUsername
+    return callback apiErrors.outOfRangeUsername
 
   # checking if username is available
   JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
