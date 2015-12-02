@@ -17,6 +17,20 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     sectionIndex : -1
 
 
+  componentDidMount: ->
+
+    { items } = @props
+
+    sectionPositions = items.map (sectionItem, sectionIndex) =>
+      sectionAnchor = $(@refs.list.getSectionAnchorByIndex sectionIndex)
+      sectionTop    = sectionAnchor.position().top
+
+      return sectionTop
+
+    sectionPositions  = sectionPositions.toJS()
+    @sectionPositions = sectionPositions
+
+
   componentDidUpdate: (prevProps, prevState) ->
 
     { sectionIndex } = @props
@@ -37,20 +51,6 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     # scrolling works only when user changes a section clicking on the tab
     kd.utils.defer =>
       scroller.scrollTop = @sectionPositions[sectionIndex]
-
-
-  ready: ->
-
-    { items } = @props
-
-    sectionPositions = items.map (sectionItem, sectionIndex) =>
-      sectionAnchor = $(@refs.list.getSectionAnchorByIndex sectionIndex)
-      sectionTop    = sectionAnchor.position().top
-
-      return sectionTop
-
-    sectionPositions  = sectionPositions.toJS()
-    @sectionPositions = sectionPositions
 
 
   onScroll: ->
@@ -98,7 +98,11 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     index    = if query then 0 else sectionIndex
     category = if index is -1 then '' else items.get(index).get 'category'
 
-    <header className='EmojiSelector-categorySectionHeader fixedHeader hidden' ref='fixedHeader'>{category}</header>
+    <header
+      className = 'EmojiSelector-categorySectionHeader fixedHeader hidden'
+      ref       = 'fixedHeader'>
+        {category}
+    </header>
 
 
   render: ->

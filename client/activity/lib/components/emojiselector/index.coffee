@@ -25,15 +25,9 @@ module.exports = class EmojiSelector extends React.Component
     tabIndex     : -1
 
 
-  componentDidUpdate: (prevProps, prevState) ->
+  updatePosition: (inputDimensions) ->
 
-    { visible, query } = @props
-    hasBecomeVisible   = visible and not prevProps.visible
-
-    @refs.list.ready()  if hasBecomeVisible
-
-
-  updatePosition: (inputDimensions) -> @refs.dropbox.setInputDimensions inputDimensions
+    @refs.dropbox.setInputDimensions inputDimensions
 
 
   onItemSelected: (index) ->
@@ -84,12 +78,31 @@ module.exports = class EmojiSelector extends React.Component
 
     synonyms = getEmojiSynonyms(selectedItem) ? [ selectedItem ]
     synonyms = synonyms.map (emoji) -> formatEmojiName emoji
-    synonyms = synonyms.join '  '
+    synonyms = synonyms.join ' '
 
     <div>
       <div className='EmojiSelector-selectedItemMainName'>{selectedItem}</div>
       <div className='EmojiSelector-selectedItemSynonyms'>{synonyms}</div>
     </div>
+
+
+  renderList: ->
+
+    { visible, items, query, tabIndex } = @props
+
+    return  unless visible
+
+    <ScrollableList
+      items            = { items }
+      query            = { query }
+      sectionIndex     = { tabIndex }
+      onItemSelected   = { @bound 'onItemSelected' }
+      onItemUnselected = { @bound 'onItemUnselected' }
+      onItemConfirmed  = { @bound 'onItemConfirmed' }
+      onSectionChange  = { @bound 'onTabChange' }
+      onSearch         = { @bound 'onSearch' }
+      ref              = 'list'
+    />
 
 
   render: ->
@@ -106,17 +119,7 @@ module.exports = class EmojiSelector extends React.Component
       resize    = 'custom'
     >
       <Tabs tabs={tabs} tabIndex={tabIndex} onTabChange={@bound 'onTabChange'} />
-      <ScrollableList
-        items            = { items }
-        query            = { query }
-        sectionIndex     = { tabIndex }
-        onItemSelected   = { @bound 'onItemSelected' }
-        onItemUnselected = { @bound 'onItemUnselected' }
-        onItemConfirmed  = { @bound 'onItemConfirmed' }
-        onSectionChange  = { @bound 'onTabChange' }
-        onSearch         = { @bound 'onSearch' }
-        ref              = 'list'
-      />
+      { @renderList() }
       <div className="EmojiSelector-footer">
         <span className="EmojiSelector-selectedItemIcon">
           <EmojiIcon emoji={selectedItem or 'cow'} />
