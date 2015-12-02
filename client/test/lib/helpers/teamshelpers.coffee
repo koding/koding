@@ -5,6 +5,7 @@ utils    = require '../utils/utils.js'
 teamsModalSelector      = '.TeamsModal--groupCreation'
 companyNameSelector     = '.login-form input[testpath=company-name]'
 sidebarSectionsSelector = '.activity-sidebar .SidebarSections'
+chatItem                = '.ChatPane-body .ChatList .ChatItem'
 
 module.exports =
 
@@ -242,11 +243,12 @@ module.exports =
   moveToSidebarHeader: (browser, plus, channelHeader) ->
 
     sidebarSectionsHeaderSelector = "#{sidebarSectionsSelector} .SidebarSection-header"
-    channelPlusSelector          = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
+    channelPlusSelector           = "#{sidebarSectionsHeaderSelector} a[href='/NewChannel']"
 
     browser
       .waitForElementVisible    sidebarSectionsSelector, 20000
       .moveToElement            sidebarSectionsSelector, 100, 7
+      .pause                    2000 # wait for side bar channel list
 
     if plus
       browser
@@ -258,11 +260,12 @@ module.exports =
         .click                  sidebarSectionsHeaderSelector
 
 
-  createChannel: (browser, channelName) ->
+  createChannel: (browser, user, channelName) ->
 
     createChannelModalNameSelector   = '.CreateChannel-Modal .CreateChannel-content .channelName input'
     createChannelModalButtonSelector = '.CreateChannel-Modal .Modal-buttons .Button--danger'
     channelName                    or= helpers.getFakeText().split(' ')[0] + Date.now()
+    channelName                      = channelName.substring(0, 19)
     channelLinkOnSidebarSelector     = "#{sidebarSectionsSelector} a[href='/Channels/#{channelName}']"
 
     @moveToSidebarHeader(browser, yes)
@@ -272,10 +275,26 @@ module.exports =
       .waitForElementVisible  createChannelModalNameSelector, 20000
       .setValue               createChannelModalNameSelector, channelName
       .waitForElementVisible  createChannelModalButtonSelector, 20000
+      .moveToElement          createChannelModalButtonSelector, 32, 12
       .click                  createChannelModalButtonSelector
+      .waitForElementVisible  chatItem, 20000
+      .assert.containsText    chatItem, user.username
       .waitForElementVisible  sidebarSectionsSelector, 20000
+      .pause                  2000 # wait for side bar channel list
       .waitForElementVisible  channelLinkOnSidebarSelector, 20000
       .assert.containsText    sidebarSectionsSelector, channelName
 
     return channelName
 
+
+  sendComment: (browser) ->
+
+    chatMessage       = helpers.getFakeText()
+    chatInputSelector = '.ChatPaneFooter .ChatInputWidget textarea'
+
+    browser
+      .waitForElementVisible  chatItem, 20000
+      .waitForElementVisible  chatInputSelector, 20000
+      .setValue               chatInputSelector, chatMessage + '\n'
+      .waitForElementVisible  chatItem, 20000
+      .assert.containsText    '.ChatPane-body .ChatList', chatMessage

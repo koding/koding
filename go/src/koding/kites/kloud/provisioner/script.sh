@@ -1,11 +1,17 @@
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y ubuntu-standard ubuntu-minimal htop git net-tools aptitude apache2 php5 libapache2-mod-php5 php5-cgi ruby screen fish sudo mc iotop iftop software-properties-common python-fcgi ruby-fcgi silversearcher-ag
+
+export DEBIAN_FRONTEND=noninteractive
+
+sudo -E apt-get update -q
+sudo -E apt-get install -y -q ubuntu-standard ubuntu-minimal htop git net-tools \
+	aptitude apache2 php5 libapache2-mod-php5 php5-cgi ruby screen fish sudo \
+	mc iotop iftop software-properties-common python-fcgi ruby-fcgi \
+	silversearcher-ag ruby-dev ri rake python mercurial subversion cvs bzr \
+	default-jdk golang-go
+
+sudo -E apt-get install --only-upgrade bash
+
 wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv
-
-sudo apt-get install -y ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go
-sudo apt-get install --only-upgrade bash
-
 
 # add this for backwards compability with our cloud-init script. Cloud
 # init tries to add the user to the docker group, but if it doesn't

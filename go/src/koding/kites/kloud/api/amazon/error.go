@@ -69,7 +69,7 @@ type NotFoundError struct {
 
 // Error implements the builtin error interface.
 func (err *NotFoundError) Error() string {
-	return fmt.Sprintf("%s not found after a call to %s: %s", err.Resource, err.Err)
+	return fmt.Sprintf("%s not found after: %s", err.Resource, err.Err)
 }
 
 // IsNotFound returns true if the given error is of *NotFoundError type.

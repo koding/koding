@@ -16,10 +16,10 @@ import (
 	"koding/kites/kloud/provider/helpers"
 	"koding/kites/kloud/userdata"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
@@ -112,18 +112,13 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("aws data is incomplete: %v", cred.Meta)
 	}
 
-	awsRegion, ok := aws.Regions[machine.Meta.Region]
-	if !ok {
-		return fmt.Errorf("Malformed region detected: %s", machine.Meta.Region)
+	opts := &amazon.ClientOptions{
+		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
+		Region:      machine.Meta.Region,
+		Log:         p.Log,
 	}
 
-	amazonClient, err := amazon.NewAmazonCreds(
-		structs.Map(machine.Meta),
-		awsRegion.Name,
-		awsCred.AccessKey,
-		awsCred.SecretKey,
-		p.Log,
-	)
+	amazonClient, err := amazon.NewWithOptions(structs.Map(machine.Meta), opts)
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
