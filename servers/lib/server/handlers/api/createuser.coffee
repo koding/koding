@@ -104,22 +104,9 @@ validateData = (data, callback) ->
         queue.next()
 
     ->
-      # if username is not provided and suggestedUsername is too long return error
-      unless username
-        unless isSuggestedUsernameLengthValid suggestedUsername
-          return callback apiErrors.outOfRangeSuggestedUsername
-
-      # if username is not set generate a username by suggestedUsername with a suffix
-      username or= "#{suggestedUsername}#{hat(32)}"
-
-      # checking if username has valid length
-      unless isUsernameLengthValid username
-        return callback apiErrors.outOfRangeUsername
-
-      # checking if username is available
-      JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
-        return callback apiErrors.internalError          if err
-        return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
+      handleUsername username, suggestedUsername, (err, username_) ->
+        return callback err  if err
+        username = username_
         queue.next()
 
     -> callback null, { apiToken, username }
@@ -127,6 +114,57 @@ validateData = (data, callback) ->
   ]
 
   daisy queue
+
+
+handleUsername = (username, suggestedUsername, callback) ->
+
+  queue         = []
+  luckyUsername = null
+  returnNow     = no
+
+  if username
+    unless suggestedUsername
+      returnNow = yes
+
+    queue.push ->
+      validateUsername username, (err) ->
+        # return if there is no suggestedUsername, or username is valid
+        return callback err, username  if returnNow or not err
+        queue.next()
+
+  if suggestedUsername
+    # if suggestedUsername length is not valid, return error without trying
+    unless isSuggestedUsernameLengthValid suggestedUsername
+      return callback apiErrors.outOfRangeSuggestedUsername
+
+    # try usernames with different suffixes 10 times
+    for i in [0..10]
+      queue.push ->
+        _username = "#{suggestedUsername}#{hat(32)}"
+        validateUsername _username, (err) ->
+          return callback null, _username  unless err
+          queue.next()
+
+    # if username is still invalid, let it go
+    queue.push -> callback apiErrors.usernameAlreadyExists
+
+  daisy queue
+
+
+validateUsername = (username, callback) ->
+
+  { JUser } = koding.models
+
+  # checking if username has valid length
+  unless isUsernameLengthValid username
+     return callback apiErrors.outOfRangeUsername
+
+  # checking if username is available
+  JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
+    return callback apiErrors.internalError          if err
+    return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
+    return callback null
+
 
 
 validateRequest = (req) ->
