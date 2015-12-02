@@ -111,9 +111,7 @@ module.exports =
     @attemptEnterEmailAndPasswordOnRegister(browser, user)
     @attemptEnterUsernameOnRegister(browser, user)
 
-    browser
-      .waitForElementVisible '[testpath=main-header]', 50000 # Assertion
-      .waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
+    browser.waitForElementVisible '[testpath=AvatarAreaIconLink]', 50000 # Assertion
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
@@ -474,10 +472,11 @@ module.exports =
       .waitForElementVisible   paymentModal + ' .cardname', 20000
       .click                   'input[name=cardName]'
       .clearValue              'input[name=cardName]'
-      .setValue                'input[name=cardName]', name  
+      .setValue                'input[name=cardName]', name
+
 
   submitForm: (browser, validCardDetails = yes) ->
-  
+
     upgradePlanButton = '.kdmodal-inner .green'
     planType          = 'developer'
 
