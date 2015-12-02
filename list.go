@@ -49,6 +49,8 @@ func ListCommand(c *cli.Context) int {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
 
+		// For a more clear UX, replace the team name of the default Koding team,
+		// with Koding.com
 		if team == "Koding" {
 			team = "koding.com"
 		}
