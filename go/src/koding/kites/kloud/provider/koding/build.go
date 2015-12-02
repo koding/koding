@@ -442,7 +442,7 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 
 	m.Log.Debug("Using image ObjectId: %q and block device settings %+v", aws.StringValue(image.ImageId), blockDeviceMapping)
 
-	m.Meta = structs.Map(meta)
+	m.Meta = structs.Map(meta) // update meta
 
 	return &ImageData{
 		imageID:            aws.StringValue(image.ImageId),
@@ -714,6 +714,8 @@ func (m *Machine) addDomainAndTags() error {
 		m.Log.Error("Adding tags failed: %v", err)
 		return err
 	}
+
+	m.Meta = structs.Map(meta) // update meta
 
 	return nil
 }
