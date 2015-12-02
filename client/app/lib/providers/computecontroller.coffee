@@ -115,12 +115,16 @@ module.exports = class ComputeController extends KDController
       message : 'Operation is not supported for this VM'
     }
 
-    if machine?.provider is 'managed'
+    return unless provider = machine?.provider
+
+    if provider is 'managed'
       return NotSupported
 
     if method?
       switch method
-        when 'reinit', 'createSnapshot'
+        when 'reinit'
+          return NotSupported  if provider is 'aws'
+        when 'createSnapshot'
           return NotSupported  if provider in ['aws', 'softlayer']
 
 
