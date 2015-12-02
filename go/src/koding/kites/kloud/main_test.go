@@ -894,7 +894,7 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 	}
 
 	// later we can add more users with "Owner:false" to test sharing capabilities
-	users := []models.Permissions{
+	users := []models.MachineUser{
 		{Id: userId, Sudo: true, Owner: true},
 	}
 
@@ -908,14 +908,15 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 		}
 
 		machineId := bson.NewObjectId()
-		machine := &awsprovider.Machine{
-			Id:        machineId,
+		machine := &models.Machine{
+			ObjectId:  machineId,
 			Label:     label,
 			Domain:    username + ".dev.koding.io",
 			Provider:  provider,
 			CreatedAt: time.Now().UTC(),
 			Users:     users,
-			Groups:    make([]models.Permissions, 0),
+			Meta:      make(bson.M, 0),
+			Groups:    make([]models.MachineGroup, 0),
 		}
 
 		switch provider {
@@ -926,17 +927,17 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 			machine.Credential = credentials[provider][0]
 		}
 
-		machine.Meta.Region = region
-		machine.Meta.InstanceType = "t2.micro"
-		machine.Meta.StorageSize = 3
-		machine.Meta.AlwaysOn = false
+		machine.Meta["region"] = region
+		machine.Meta["instanceType"] = "t2.micro"
+		machine.Meta["storage_size"] = 3
+		machine.Meta["alwaysOn"] = false
 		machine.Assignee.InProgress = false
 		machine.Assignee.AssignedAt = time.Now().UTC()
 		machine.Status.State = machinestate.NotInitialized.String()
 		machine.Status.ModifiedAt = time.Now().UTC()
 
 		machineLabels[i] = machine.Label
-		machineIds[i] = machine.Id
+		machineIds[i] = machine.ObjectId
 
 		if err := awsProvider.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.Insert(&machine)
