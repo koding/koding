@@ -99,6 +99,11 @@ validateData = (data, callback) ->
         queue.next()
 
     ->
+      checkApiAvailability { apiToken }, (err) ->
+        return callback err  if err
+        queue.next()
+
+    ->
       # if username is not provided and suggestedUsername is too long return error
       unless username
         unless isSuggestedUsernameLengthValid suggestedUsername
@@ -115,11 +120,6 @@ validateData = (data, callback) ->
       JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
         return callback apiErrors.internalError          if err
         return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
-        queue.next()
-
-    ->
-      checkApiAvailability { apiToken }, (err) ->
-        return callback err  if err
         queue.next()
 
     -> callback null, { apiToken, username }
