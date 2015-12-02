@@ -167,7 +167,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 }
 
 func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state string) error {
-	timeout := time.After(time.Minute * 5)
+	timeout := time.After(time.Minute * 10)
 	ticker := time.NewTicker(time.Second * 10)
 	defer ticker.Stop()
 
