@@ -26,6 +26,13 @@ import (
 	"github.com/maximilien/softlayer-go/softlayer"
 )
 
+// DefaultImageID is a standard image template for sjc01 region.
+//
+// TODO(rjeczalik): this is going to be replaced by querying
+// Softlayer for image tagged production / testing depending
+// on the env kloud is started in (cmd line switch).
+const DefaultImageID = "a2f93d90-5df9-44ee-afb2-931a98186836"
+
 type Provider struct {
 	DB         *mongodb.MongoDB
 	Log        logging.Logger
@@ -70,7 +77,13 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		p.Log.Critical("[%s] datacenter is not set in. Fallback to sjc01", machine.Id.Hex())
 	}
 
-	p.Log.Debug("Using datacenter: %s", machine.Meta.Datacenter)
+	if machine.Meta.SourceImage == "" {
+		machine.Meta.SourceImage = DefaultImageID
+		p.Log.Critical("[%s] image template ID is not set, using default one: %q",
+			machine.Id.Hex(), DefaultImageID)
+	}
+
+	p.Log.Debug("Using datacenter=%q, image=%q", machine.Meta.Datacenter, machine.Meta.SourceImage)
 
 	if err := p.AttachSession(ctx, machine); err != nil {
 		return nil, err

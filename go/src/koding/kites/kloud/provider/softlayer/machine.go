@@ -36,9 +36,10 @@ type Machine struct {
 	Credential string    `bson:"credential"`
 	CreatedAt  time.Time `bson:"createdAt"`
 	Meta       struct {
-		Id         int    `bson:id`
-		AlwaysOn   bool   `bson:"alwaysOn"`
-		Datacenter string `structs:"datacenter" bson:"datacenter"`
+		Id          int    `bson:id`
+		AlwaysOn    bool   `bson:"alwaysOn"`
+		Datacenter  string `structs:"datacenter" bson:"datacenter"`
+		SourceImage string `structs:"sourceImage" bson:"sourceImage"`
 	} `bson:"meta"`
 	Users  []models.Permissions `bson:"users"`
 	Groups []models.Permissions `bson:"groups"`
