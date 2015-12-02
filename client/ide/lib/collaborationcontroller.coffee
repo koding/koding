@@ -142,6 +142,10 @@ module.exports = CollaborationController =
     # remove participant's all data persisted in realtime appInfo
     @removeParticipant username
 
+    # Remove leaved / kicked participants from the mounted machine
+    @setMachineUser [username], no, (err) ->
+      throwError err  if err
+
 
   handleParticipantAction: (actionType, changeData) ->
 
@@ -956,17 +960,11 @@ module.exports = CollaborationController =
 
   endCollaborationForParticipant: (callback) ->
 
-    socialHelpers.leaveChannel @socialChannel, (err) =>
+    socialHelpers.leaveChannel @socialChannel, (err) ->
       throwError err  if err
 
     @removeWorkspaceSnapshot()
-
-    unless @mountedMachine.isPermanent()
-      @setMachineUser [nick()], no, (err) =>
-        throwError err  if err
-
     @broadcastMessage type: 'ParticipantWantsToLeave'
-
     callback()
 
 
