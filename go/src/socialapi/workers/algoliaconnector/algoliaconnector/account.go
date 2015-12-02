@@ -187,8 +187,6 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 
 		hist, ok = record.(map[string]interface{})["hits"]
 
-		// objects := make([]string, 0)
-
 		if ok {
 			hinter, ok := hist.([]interface{})
 			if ok {
