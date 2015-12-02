@@ -20,6 +20,8 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
+    options.position =
+        top : '78'
 
     super options, data
 
