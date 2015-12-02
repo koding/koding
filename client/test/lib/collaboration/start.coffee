@@ -126,18 +126,22 @@ waitAndEndSession = (browser) ->
 module.exports =
 
 
-  before: -> utils.getUser()
+  before: (browser) ->
+
+    hostBrowser = process.env.__NIGHTWATCH_ENV_KEY is 'host_1'
+
+    if hostBrowser
+      utils.getUser()
 
 
   start: (browser) ->
 
-    browser.pause 2500 # wait for user.json creation
+    browser.pause 2500, -> # wait for user.json creation
+      start(browser)
+      leave(browser)
+      waitAndEndSession(browser)
 
-    start(browser)
-    leave(browser)
-    waitAndEndSession(browser)
-
-    browser.end()
+      browser.end()
 
 
   runCommandOnInviteUserTerminal: (browser) ->
