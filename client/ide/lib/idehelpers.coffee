@@ -165,7 +165,7 @@ module.exports = helpers =
    * Clear snapshot and layout data of participants when participant is kicked
    * or leaved from a shared vm.
   ###
-  deleteSnapshotAndLayoutSizeData: (machine, nickname, callback = kd.noop) ->
+  deleteSnapshotData: (machine, nickname, callback = kd.noop) ->
     kite = machine.getBaseKite()
 
     dataProvider.fetchMachineByUId machine.uid, (m, workspaces) ->
