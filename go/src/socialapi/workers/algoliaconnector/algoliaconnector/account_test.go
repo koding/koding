@@ -3,10 +3,12 @@ package algoliaconnector
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"strconv"
 	"testing"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 
@@ -33,103 +35,310 @@ func TestAccountTesting(t *testing.T) {
 			err := handler.AccountCreated(acc)
 			So(err, ShouldBeNil)
 
-			Convey("it should have email in it", func() {
+			Convey("it should be able to fetch algolia data", func() {
 				// make sure account is there
 				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
-				user, err := modelhelper.GetUser(acc.Nick)
+				_, err = modelhelper.GetUser(acc.Nick)
 				So(err, ShouldBeNil)
-
-				fmt.Println("user is :", user)
 
 				// update user's email
 				selector := bson.M{"username": acc.Nick}
 				newEmail := "mehmetalixsavasx1x2x" + models.RandomGroupName() + "@koding.com"
 				updateQuery := bson.M{"email": newEmail}
+
 				err = modelhelper.UpdateUser(selector, updateQuery)
 				So(err, ShouldBeNil)
 
 				err = handler.AccountUpdated(acc)
 				So(err, ShouldBeNil)
 
-				user2, err := modelhelper.GetUser(acc.Nick)
+				index, err := handler.indexes.GetIndex(IndexAccounts)
 				So(err, ShouldBeNil)
 
-				fmt.Println("user2 is :", user2)
-
-				index, _ := handler.indexes.GetIndex(IndexAccounts)
-				fmt.Println("index is:", index)
-
-				// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
 				params := make(map[string]interface{})
-				record, _ := index.Search("mehmetalixsavasx1x2x", params)
+				record, err := index.Search("mehmetalixsavasx1x2x", params)
+				So(err, ShouldBeNil)
 
 				hist, ok := record.(map[string]interface{})["hits"]
 
-				fmt.Println("hist is :", hist)
+				usernames := make([]string, 0)
+				objects := make([]string, 0)
 
 				if ok {
-
 					hinter, ok := hist.([]interface{})
 					if ok {
-						usernames := make([]string, 0)
 						for _, v := range hinter {
 							val, k := v.(map[string]interface{})
 							if k {
-								fmt.Println("val", k, "is:", val["nick"])
+								object := val["objectID"].(string)
 								value := val["nick"].(string)
+
 								usernames = append(usernames, value)
-								fmt.Println("usernames is :", usernames)
+								objects = append(objects, object)
+
+								_, err = index.DeleteObject(object)
+								if err != nil {
+									fmt.Println("err is :", err)
+								}
 							}
 
 						}
 					}
 				}
 
-				fmt.Printf("record %# v", pretty.Formatter(record))
+				fmt.Println("usernames is :", usernames)
+				fmt.Println("object name is:", objects)
 
-				// fmt.Println("record is:", record)
+			})
 
-				type Record struct {
-					Hits []interface{} `json:"hits"`
+			Convey("it should be able to fetch many account with given query", func() {
+				// make sure account is there
+				fmt.Println("==================>>>>>>>>>>>>>>>>>>>>>>>>>>")
+				fmt.Println("==================>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+				for i := 0; i < 10; i++ {
+					ac, _, _ := models.CreateRandomGroupDataWithChecks()
+
+					err := handler.AccountCreated(ac)
+					So(err, ShouldBeNil)
+
+					selector := bson.M{"username": ac.Nick}
+					newEmail := "mehmetali-test" + models.RandomGroupName() + "@koding.com"
+					updateQuery := bson.M{"email": newEmail}
+					err = modelhelper.UpdateUser(selector, updateQuery)
+					So(err, ShouldBeNil)
+
+					err = handler.AccountUpdated(ac)
+					So(err, ShouldBeNil)
+					time.Sleep(1 * time.Second)
 				}
 
-				type Hits struct {
-					Nick string `json:"nick"`
-					// Nick string `json:"nick"`
-					// Nick string `json:"nick"`
-				}
-				// hit := &Record{}
-				// hit, _ = json.Marshal(id)
+				time.Sleep(5 * time.Second)
 
-				err = makeSureWithSearch(
-					handler,
-					IndexAccounts,
-					user.Email,
-					map[string]interface{}{"restrictSearchableAttributes": "nick"},
-					func(record map[string]interface{}, err error) bool {
-						if err != nil {
-							return false
-						}
-
-						if record == nil {
-							return false
-						}
-
-						hits, ok := record["nbHits"]
-						if hits == nil || !ok {
-							return false
-						}
-
-						if hits.(float64) <= 0 {
-							return false
-						}
-
-						return true
-					},
-				)
-
+				_, err = modelhelper.GetUser(acc.Nick)
 				So(err, ShouldBeNil)
+
+				index, err := handler.indexes.GetIndex(IndexAccounts)
+				So(err, ShouldBeNil)
+				fmt.Println("index is:", index)
+
+				// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
+				params := make(map[string]interface{})
+				record, err := index.Search("mehmetali-test", params)
+				So(err, ShouldBeNil)
+
+				hist, ok := record.(map[string]interface{})["hits"]
+
+				// fmt.Println("hist is :", hist)
+				usernames := make([]string, 0)
+				objects := make([]string, 0)
+
+				if ok {
+
+					hinter, ok := hist.([]interface{})
+					if ok {
+						for _, v := range hinter {
+							val, k := v.(map[string]interface{})
+							if k {
+								object := val["objectID"].(string)
+								value := val["nick"].(string)
+
+								usernames = append(usernames, value)
+								objects = append(objects, object)
+								// err = handler.delete(IndexAccounts, object)
+								// _, err = index.DeleteObject(object)
+								// if err != nil {
+								// 	fmt.Println("err is :", err)
+								// }
+							}
+
+						}
+					}
+				}
+				lenghtUsernames := len(usernames)
+				lenghtObjects := len(objects)
+				So(lenghtUsernames, ShouldBeGreaterThan, 10)
+				So(lenghtObjects, ShouldBeGreaterThan, 10)
+
+				fmt.Println("usernames is :", usernames)
+				fmt.Println("object name is:", objects)
+				///
+				///
+
+				param := make(map[string]interface{})
+				_, _ = index.Search("mehmetali-test", param)
+
+				// fmt.Printf("r %# v", pretty.Formatter(r))
+
+				Convey("it should be able to delete many account with given query", func() {
+					// make sure account is there
+
+					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+					for i := 0; i < 10; i++ {
+						ac, _, _ := models.CreateRandomGroupDataWithChecks()
+
+						err := handler.AccountCreated(ac)
+						So(err, ShouldBeNil)
+
+						selector := bson.M{"username": ac.Nick}
+						newEmail := "mehmetali-test" + models.RandomGroupName() + "@koding.com"
+						updateQuery := bson.M{"email": newEmail}
+						err = modelhelper.UpdateUser(selector, updateQuery)
+						So(err, ShouldBeNil)
+
+						err = handler.AccountUpdated(ac)
+						So(err, ShouldBeNil)
+						time.Sleep(1 * time.Second)
+					}
+
+					time.Sleep(5 * time.Second)
+
+					_, err = modelhelper.GetUser(acc.Nick)
+					So(err, ShouldBeNil)
+
+					_, err := handler.indexes.GetIndex(IndexAccounts)
+					So(err, ShouldBeNil)
+
+					// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
+					params := make(map[string]interface{})
+					record, err := index.Search("mehmetali-test", params)
+					So(err, ShouldBeNil)
+
+					hist, ok := record.(map[string]interface{})["hits"]
+
+					// fmt.Println("hist is :", hist)
+					usernames := make([]string, 0)
+					objects := make([]string, 0)
+
+					if ok {
+
+						hinter, ok := hist.([]interface{})
+						if ok {
+							for _, v := range hinter {
+								val, k := v.(map[string]interface{})
+								if k {
+									// fmt.Println("val", k, "is:", val["nick"])
+									object := val["objectID"].(string)
+
+									value := val["nick"].(string)
+									usernames = append(usernames, value)
+									objects = append(objects, object)
+									// err = handler.delete(IndexAccounts, object)
+									_, err = index.DeleteObject(object)
+									So(err, ShouldBeNil)
+								}
+
+							}
+						}
+					}
+					lenghtUsernames := len(usernames)
+					lenghtObjects := len(objects)
+					So(lenghtUsernames, ShouldBeGreaterThan, 10)
+					So(lenghtObjects, ShouldBeGreaterThan, 10)
+
+					fmt.Println("usernames is :", usernames)
+					fmt.Println("object name is:", objects)
+					///
+					///
+
+					param := make(map[string]interface{})
+					r, _ := index.Search("mehmetali-test", param)
+
+					fmt.Printf("r %# v", pretty.Formatter(r))
+
+				})
+
+				Convey("it should have delete algolia accounts", func() {
+					// make sure account is there
+					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+					for i := 0; i < 10; i++ {
+						// ac, _, _ := models.CreateRandomGroupDataWithChecks()
+						rand.Seed(time.Now().UnixNano())
+						strconv.FormatInt(rand.Int63(), 10)
+						name := "guest-" + strconv.FormatInt(rand.Int63(), 10)
+						// fmt.Sprintf("guest-%v", i)
+						ac, _ := models.CreateAccountInBothDbsWithNick(name)
+
+						err := handler.AccountCreated(ac)
+						So(err, ShouldBeNil)
+
+						selector := bson.M{"username": ac.Nick}
+						newEmail := "mehmetali-test" + models.RandomGroupName() + "@koding.com"
+						updateQuery := bson.M{"email": newEmail}
+						err = modelhelper.UpdateUser(selector, updateQuery)
+						So(err, ShouldBeNil)
+
+						err = handler.AccountUpdated(ac)
+						So(err, ShouldBeNil)
+						time.Sleep(1 * time.Second)
+					}
+
+					time.Sleep(5 * time.Second)
+
+					user2, err := modelhelper.GetUser(acc.Nick)
+					fmt.Println("user2:", user2)
+					So(err, ShouldBeNil)
+
+					index, _ := handler.indexes.GetIndex(IndexAccounts)
+					fmt.Println("index is:", index)
+
+					// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
+					// params := make(map[string]interface{})
+					params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
+					record, _ := index.Search("guest-", params)
+
+					fmt.Printf("record %# v", pretty.Formatter(record))
+
+					hist, ok := record.(map[string]interface{})["hits"]
+
+					// fmt.Println("hist is :", hist)
+					usernames := make([]string, 0)
+					objects := make([]string, 0)
+
+					if ok {
+
+						hinter, ok := hist.([]interface{})
+						if ok {
+							for _, v := range hinter {
+								val, k := v.(map[string]interface{})
+								if k {
+									// fmt.Println("val", k, "is:", val["nick"])
+									object := val["objectID"].(string)
+
+									value := val["nick"].(string)
+									usernames = append(usernames, value)
+									objects = append(objects, object)
+									// err = handler.delete(IndexAccounts, object)
+									// _, err = index.DeleteObject(object)
+									// if err != nil {
+									// 	fmt.Println("err is :", err)
+									// }
+								}
+
+							}
+						}
+					}
+
+					fmt.Println("usernames is :", usernames)
+					fmt.Println("object name is:", objects)
+					///
+					///
+
+					time.Sleep(5 * time.Second)
+					param := make(map[string]interface{})
+					r, _ := index.Search("guest-", param)
+
+					fmt.Printf("r %# v", pretty.Formatter(r))
+
+					str, _ := handler.FetchIdOfNicksWithQuery("gaest-")
+					fmt.Println("gaest string array is ::===>", str)
+					_ = handler.deleteAllGuestNicks(IndexAccounts, str)
+				})
 			})
 		})
 	})
