@@ -137,10 +137,15 @@ func installKlient(username, url string) error {
 
 func metadata() (*userdata.Value, error) {
 	resp, err := http.Get(metadataURL)
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
+
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	var val userdata.Value
 	if err := json.NewDecoder(resp.Body).Decode(&val); err != nil {
