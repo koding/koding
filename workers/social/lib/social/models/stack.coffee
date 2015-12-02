@@ -197,7 +197,7 @@ module.exports = class JComputeStack extends jraphical.Module
     return selector
 
 
-  getGroup: (callback) ->
+  fetchGroup: (callback) ->
 
     slug   = @getAt 'group'
     JGroup = require './group'
@@ -285,7 +285,7 @@ module.exports = class JComputeStack extends jraphical.Module
 
   destroy: (callback) ->
 
-    @getGroup (err, group) =>
+    @fetchGroup (err, group) =>
       return callback err  if err
 
       @update { $set: { status: { state: 'Destroying' } } }, (err) =>
@@ -325,7 +325,7 @@ module.exports = class JComputeStack extends jraphical.Module
       return callback new KodingError \
         'Stacks generated from templates can only be destroyed by Kloud.'
 
-    @getGroup (err, group) =>
+    @fetchGroup (err, group) =>
 
       return callback err  if err
 
