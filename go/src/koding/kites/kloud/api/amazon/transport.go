@@ -1,14 +1,17 @@
-package awscompat
+package amazon
 
 import (
-	"koding/kites/kloud/httputil"
 	"net"
 	"time"
+
+	"koding/kites/common"
+	"koding/kites/kloud/httputil"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/koding/logging"
 )
 
 var transportParams = &httputil.ClientConfig{
@@ -19,10 +22,19 @@ var transportParams = &httputil.ClientConfig{
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
 }
 
-// Transport configures resiliant transport used for default AWS client.
-var Transport *aws.Config
+// TransportConfig configures resiliant transport used for default AWS client.
+var TransportConfig *aws.Config
 
-// Retry provides strategy for deciding whether we should retry a request.
+func init() {
+	cfg := aws.NewConfig().WithHTTPClient(httputil.NewClient(transportParams))
+	retryer := &transportRetryer{
+		MaxTries: 3,
+		Log:      common.NewLogger("transport", true),
+	}
+	TransportConfig = request.WithRetryer(cfg, retryer)
+}
+
+// transportRetryer provides strategy for deciding whether we should retry a request.
 //
 // In general, the criteria for retrying a request are described here:
 //
@@ -30,25 +42,21 @@ var Transport *aws.Config
 //
 // ShouldRetry gives true when the underlying error was either temporary or
 // caused by a timeout.
-var Retry request.Retryer = transportRetryer{
-	MaxTries: 3,
-}
-
-func init() {
-	Transport = aws.NewConfig().WithHTTPClient(httputil.NewClient(transportParams))
-}
-
 type transportRetryer struct {
 	client.DefaultRetryer
 	MaxTries int
+	Log      logging.Logger
 }
 
-func (tr transportRetryer) MaxRetries() int {
+func (tr *transportRetryer) MaxRetries() int {
 	return tr.MaxTries
 }
 
-func (tr transportRetryer) ShouldRetry(r *request.Request) bool {
-	return isNetworkRecoverable(r.Error, true) || tr.DefaultRetryer.ShouldRetry(r)
+func (tr *transportRetryer) ShouldRetry(r *request.Request) bool {
+	doretry := isNetworkRecoverable(r.Error, true) || tr.DefaultRetryer.ShouldRetry(r)
+	tr.Log.Warning("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %+v",
+		r.RetryCount, r.Operation, doretry, r.Error)
+	return doretry
 }
 
 func isNetworkRecoverable(err error, initial bool) bool {

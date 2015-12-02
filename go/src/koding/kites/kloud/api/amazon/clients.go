@@ -3,37 +3,62 @@ package amazon
 import (
 	"fmt"
 
-	"koding/kites/kloud/awscompat"
-
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/logging"
-	oldaws "github.com/mitchellh/goamz/aws"
 )
+
+// ProductionRegions describes EC2 regions used in production.
+var ProductionRegions = []string{
+	"us-east-1",
+	"ap-southeast-1",
+	"us-west-2",
+	"eu-west-1",
+}
+
+// ClientOptions describes configuration for a Client.
+type ClientOptions struct {
+	// Credentials contains access key, secret and/or token.
+	Credentials *credentials.Credentials
+
+	// Region is used when instantiating a single Client.
+	Region string
+
+	// Regions is used when instantiating Clients, one for each region.
+	Regions []string
+
+	// Log, when non-nil, is used for verbose logging by *ec2.EC2 client.
+	Log logging.Logger
+
+	// MaxResults sets the limit for Describe* calls.
+	MaxResults int64
+}
 
 // Clients provides wrappers for a EC2 client per region.
 type Clients struct {
 	regions map[string]*Client // read-only, written once on New()
 }
 
-// NewClientPerRegion is returning a new multi clients refernce for the given
+// NewClients is returning a new multi clients for the given
 // regions names.
-func NewClientPerRegion(auth oldaws.Auth, regions []string, log logging.Logger) (*Clients, error) {
+func NewClients(opts *ClientOptions) (*Clients, error) {
 	// Validate regions - ensure no duplicates or no empty items.
-	uniq := make(map[string]struct{})
-	for i, region := range regions {
+	c := &Clients{
+		regions: make(map[string]*Client, len(opts.Regions)),
+	}
+	for i, region := range opts.Regions {
 		if region == "" {
 			return nil, fmt.Errorf("empty region at i=%d", i)
 		}
-		if _, ok := uniq[region]; ok {
-			return nil, fmt.Errorf("duplicated region %q", region)
+		if _, ok := c.regions[region]; ok {
+			return nil, fmt.Errorf("duplicated region %q at i=%d", region, i)
 		}
-		uniq[region] = struct{}{}
-	}
-	c := &Clients{
-		regions: make(map[string]*Client, len(regions)),
-	}
-	session := awscompat.NewSession(auth)
-	for _, region := range regions {
-		client, err := NewClient(session, region, log)
+		opts := &ClientOptions{
+			Credentials: opts.Credentials,
+			Region:      region,
+			Log:         opts.Log.New(region),
+			MaxResults:  opts.MaxResults,
+		}
+		client, err := NewClient(opts)
 		if err != nil {
 			return nil, err
 		}

@@ -4,21 +4,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
-	"strconv"
-	"time"
 
-	"labix.org/v2/mgo/bson"
-
-	"golang.org/x/net/context"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	awssession "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/koding/kite"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/iam"
 	"github.com/mitchellh/mapstructure"
+	"golang.org/x/net/context"
+	"labix.org/v2/mgo/bson"
 )
 
 type AwsBootstrapOutput struct {
@@ -114,21 +115,20 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 			return nil, err
 		}
 
-		iamClient := iam.New(
-			aws.Auth{
-				AccessKey: awsCred.AccessKey,
-				SecretKey: awsCred.SecretKey,
-			},
-			aws.Regions[awsCred.Region],
-		)
+		session := awssession.New(&aws.Config{
+			Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
+			Region:      aws.String(awsCred.Region),
+		})
+
+		iamClient := iam.New(session)
 
 		k.Log.Debug("Fetching the AWS user information to get the account ID")
-		user, err := iamClient.GetDefaultUser() // will default to username making the request
+		user, err := iamClient.GetUser(nil) // will default to username making the request
 		if err != nil {
 			return nil, err
 		}
 
-		awsAccountID, err := parseAccountID(user.User.Arn)
+		awsAccountID, err := parseAccountID(aws.StringValue(user.User.Arn))
 		if err != nil {
 			return nil, err
 		}

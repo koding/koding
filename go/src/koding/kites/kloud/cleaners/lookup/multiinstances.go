@@ -34,6 +34,7 @@ func NewMultiInstances(clients *amazon.Clients, log logging.Logger) *MultiInstan
 				log.Error("[%s] fetching instances error: %s", region, err)
 				return
 			}
+			log.Info("[%s] fetched %d instances", region, len(instances))
 			i := make(Instances, len(instances))
 			for _, instance := range instances {
 				i[aws.StringValue(instance.InstanceId)] = instance

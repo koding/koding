@@ -5,8 +5,6 @@ package terraformer
 import (
 	"errors"
 	"fmt"
-	"koding/kites/terraformer/kodingcontext"
-	"koding/kites/terraformer/storage"
 	"os"
 	"os/signal"
 	"strings"
@@ -14,6 +12,8 @@ import (
 	"syscall"
 
 	"koding/kites/common"
+	"koding/kites/terraformer/kodingcontext"
+	"koding/kites/terraformer/storage"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
@@ -61,12 +61,12 @@ type TerraformRequest struct {
 
 // New creates a new terraformer
 func New(conf *Config, log logging.Logger) (*Terraformer, error) {
-	ls, err := storage.NewFile(conf.LocalStorePath)
+	ls, err := storage.NewFile(conf.LocalStorePath, log)
 	if err != nil {
 		return nil, fmt.Errorf("err while creating local store %s", err)
 	}
 
-	rs, err := storage.NewS3(conf.AWS.Key, conf.AWS.Secret, conf.AWS.Bucket)
+	rs, err := storage.NewS3(conf.AWS.Key, conf.AWS.Secret, conf.AWS.Bucket, log)
 	if err != nil {
 		return nil, fmt.Errorf("err while creating remote store %s", err)
 	}
