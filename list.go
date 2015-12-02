@@ -49,6 +49,12 @@ func ListCommand(c *cli.Context) int {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
 
+		// For a more clear UX, replace the team name of the default Koding team,
+		// with Koding.com
+		if team == "Koding" {
+			team = "koding.com"
+		}
+
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			i+1, info.VMName, team, info.MachineLabel, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
 	}
