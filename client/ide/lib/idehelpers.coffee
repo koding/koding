@@ -166,13 +166,14 @@ module.exports = helpers =
    * or leaved from a shared vm.
   ###
   deleteSnapshotData: (machine, nickname, callback = kd.noop) ->
+
     kite = machine.getBaseKite()
 
-    dataProvider.fetchMachineByUId machine.uid, (m, workspaces) ->
-      workspaces.forEach (ws) ->
+    dataProvider.fetchMachineByUId machine.uid, (m, workspaces) =>
+      workspaces.forEach (ws) =>
 
-        snapshotKey   = "#{nickname}.wss.#{ws.slug}"
-        layoutSizeKey = "#{nickname}-LayoutSize.wss.#{ws.slug}"
+        snapshotKey   = @getWorkspaceStorageKey ws, nickname
+        layoutSizeKey = @getWorkspaceLayoutSizeStorageKey ws, nickname
 
         kite.storageDelete snapshotKey    # Remove snapshot
         kite.storageDelete layoutSizeKey  # Remove layout size data
@@ -186,4 +187,17 @@ module.exports = helpers =
 
     return appManager.getInstances('IDE')?.filter (instance) ->
       instance.mountedMachineUId is machineUId
+
+
+  getWorkspaceStorageKey: (workspace, prefix) ->
+
+    if prefix
+      return "#{prefix}.wss.#{workspace.slug}"
+    else
+      return "wss.#{workspace.slug}"
+
+
+  getWorkspaceLayoutSizeStorageKey: (workspace, username) ->
+
+    return @getWorkspaceStorageKey workspace, "#{username}-LayoutSize"
 
