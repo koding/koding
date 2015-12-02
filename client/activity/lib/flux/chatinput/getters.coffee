@@ -6,7 +6,7 @@ calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
 findNameByQuery            = require 'activity/util/findNameByQuery'
-getGroup                   = require 'app/util/getGroup'
+isGroupChannel             = require 'app/util/isgroupchannel'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -315,11 +315,10 @@ commands = (stateId, disabledFeatures = []) -> [
     return immutable.List()  if disabledFeatures.indexOf('commands') > -1
 
     ignoredFeatures  = []
-    selectedChannel  = selectedChannelThread.get 'channel'
-    isPrivateChannel = selectedChannel.get('typeConstant') is 'privatemessage'
-    isTeamChannel    = selectedChannel.get('name') is getGroup().slug
+    selectedChannel  = selectedChannelThread.get('channel').toJS()
+    isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
     ignoredFeatures.push 'search'  if isPrivateChannel
-    ignoredFeatures.push 'leave'   if isTeamChannel
+    ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
 
     ignoredFeatures = disabledFeatures.concat ignoredFeatures
 
