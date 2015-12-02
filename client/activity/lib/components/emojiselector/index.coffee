@@ -1,16 +1,13 @@
-$                     = require 'jquery'
 kd                    = require 'kd'
 React                 = require 'kd-react'
 ReactDOM              = require 'react-dom'
-classnames            = require 'classnames'
 immutable             = require 'immutable'
 ChatInputFlux         = require 'activity/flux/chatinput'
 Dropbox               = require 'activity/components/dropbox/portaldropbox'
-EmojiIcon             = require 'activity/components/emojiicon'
 ScrollableList        = require './scrollablelist'
 Tabs                  = require './tabs'
+Footer                = require './footer'
 formatEmojiName       = require 'activity/util/formatEmojiName'
-getEmojiSynonyms      = require 'activity/util/getEmojiSynonyms'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 
@@ -69,23 +66,6 @@ module.exports = class EmojiSelector extends React.Component
     ChatInputFlux.actions.emoji.setSelectorQuery stateId, value
 
 
-  renderSelectedItemName: ->
-
-    { selectedItem } = @props
-
-    unless selectedItem
-      return <div className='EmojiSelector-noSelectedItem'>Choose your emoji!</div>
-
-    synonyms = getEmojiSynonyms(selectedItem) ? [ selectedItem ]
-    synonyms = synonyms.map (emoji) -> formatEmojiName emoji
-    synonyms = synonyms.join ' '
-
-    <div>
-      <div className='EmojiSelector-selectedItemMainName'>{selectedItem}</div>
-      <div className='EmojiSelector-selectedItemSynonyms'>{synonyms}</div>
-    </div>
-
-
   renderList: ->
 
     { visible, items, query, tabIndex } = @props
@@ -120,15 +100,7 @@ module.exports = class EmojiSelector extends React.Component
     >
       <Tabs tabs={tabs} tabIndex={tabIndex} onTabChange={@bound 'onTabChange'} />
       { @renderList() }
-      <div className="EmojiSelector-footer">
-        <span className="EmojiSelector-selectedItemIcon">
-          <EmojiIcon emoji={selectedItem or 'cow'} />
-        </span>
-        <div className="EmojiSelector-selectedItemName">
-          { @renderSelectedItemName() }
-        </div>
-        <div className="clearfix" />
-      </div>
+      <Footer selectedItem={selectedItem} />
     </Dropbox>
 
 
