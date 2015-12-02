@@ -118,24 +118,23 @@ validateData = (data, callback) ->
 
 handleUsername = (username, suggestedUsername, callback) ->
 
-  queue         = []
-  luckyUsername = null
-  returnNow     = no
+  queue = []
 
   if username
-    unless suggestedUsername
-      returnNow = yes
-
     queue.push ->
       validateUsername username, (err) ->
-        # return if there is no suggestedUsername, or username is valid
-        return callback err, username  if returnNow or not err
+        # return username if it is valid
+        return callback null, username  unless err
+        # return if there is no suggestedUsername
+        return callback err  unless suggestedUsername
         queue.next()
 
   if suggestedUsername
-    # if suggestedUsername length is not valid, return error without trying
-    unless isSuggestedUsernameLengthValid suggestedUsername
-      return callback apiErrors.outOfRangeSuggestedUsername
+    queue.push ->
+      # if suggestedUsername length is not valid, return error without trying
+      unless isSuggestedUsernameLengthValid suggestedUsername
+        return callback apiErrors.outOfRangeSuggestedUsername
+      queue.next()
 
     # try usernames with different suffixes 10 times
     for i in [0..10]
