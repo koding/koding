@@ -1548,7 +1548,7 @@ module.exports = class JUser extends jraphical.Module
 
     { slug, email, agree, username, lastName, referrer,
       password, firstName, recaptcha, emailFrequency,
-      invitationToken, passwordConfirm } = userFormData
+      invitationToken, passwordConfirm, disableCaptcha } = userFormData
 
     { clientIP, connection }    = client
     { delegate : account }      = connection
@@ -1634,6 +1634,8 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
+        return queue.next()  if disableCaptcha
+
         jwtToken = JUser.createJWT { username }
 
         { status, lastLoginDate } = user
@@ -1668,6 +1670,8 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
+        return queue.next()  if disableCaptcha
+
         subject             = Tracker.types.START_REGISTER
         { username, email } = user
 
