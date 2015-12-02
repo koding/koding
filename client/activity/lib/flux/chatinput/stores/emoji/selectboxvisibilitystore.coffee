@@ -4,22 +4,22 @@ toImmutable     = require 'app/util/toImmutable'
 immutable       = require 'immutable'
 
 ###*
- * Store to handle emoji selector visibility flags
+ * Store to handle emoji selectbox visibility flags
 ###
-module.exports = class EmojiSelectorVisibilityStore extends KodingFluxStore
+module.exports = class EmojiSelectBoxVisibilityStore extends KodingFluxStore
 
-  @getterPath = 'EmojiSelectorVisibilityStore'
+  @getterPath = 'EmojiSelectBoxVisibilityStore'
 
   getInitialState: -> immutable.Map()
 
 
   initialize: ->
 
-    @on actions.SET_EMOJI_SELECTOR_VISIBILITY, @setVisibility
+    @on actions.SET_EMOJI_SELECTBOX_VISIBILITY, @setVisibility
 
 
   ###*
-   * Handler of SET_EMOJI_SELECTOR_VISIBILITY action
+   * Handler of SET_EMOJI_SELECTBOX_VISIBILITY action
    * It updates visible flag for a given stateId
    *
    * @param {Immutable.Map} currentState

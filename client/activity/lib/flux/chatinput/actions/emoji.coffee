@@ -83,78 +83,78 @@ resetFilteredListSelectedIndex = (stateId) ->
 
 
 ###*
- * Action to set a query of emoji selector.
- * If query is empty or not defined, unsetSelectorQuery()
+ * Action to set a query of emoji selectbox.
+ * If query is empty or not defined, unsetSelectBoxQuery()
  * is called to unset current query.
  * Once the query is set, selected index and tab index of
- * emoji selector should be reset
+ * emoji selectbox should be reset
  *
  * @param {string} stateId
  * @param {string} query
 ###
-setSelectorQuery = (stateId, query) ->
+setSelectBoxQuery = (stateId, query) ->
 
   if query
-    { SET_EMOJI_SELECTOR_QUERY } = actionTypes
-    dispatch SET_EMOJI_SELECTOR_QUERY, { stateId, query }
-    resetSelectorSelectedIndex stateId
-    resetSelectorTabIndex stateId
+    { SET_EMOJI_SELECTBOX_QUERY } = actionTypes
+    dispatch SET_EMOJI_SELECTBOX_QUERY, { stateId, query }
+    resetSelectBoxSelectedIndex stateId
+    resetSelectBoxTabIndex stateId
   else
-    unsetSelectorQuery stateId
+    unsetSelectBoxQuery stateId
 
 
 ###*
- * Action to unset current query of emoji selector
+ * Action to unset current query of emoji selectbox
  *
  * @param {string} stateId
 ###
-unsetSelectorQuery = (stateId) ->
+unsetSelectBoxQuery = (stateId) ->
 
-  { UNSET_EMOJI_SELECTOR_QUERY } = actionTypes
-  dispatch UNSET_EMOJI_SELECTOR_QUERY, { stateId }
+  { UNSET_EMOJI_SELECTBOX_QUERY } = actionTypes
+  dispatch UNSET_EMOJI_SELECTBOX_QUERY, { stateId }
 
-  resetSelectorSelectedIndex { stateId }
+  resetSelectBoxSelectedIndex { stateId }
 
 
 ###*
- * Action to set selected index of emoji selector
+ * Action to set selected index of emoji selectbox
  *
  * @param {string} stateId
  * @param {number} index
 ###
-setSelectorSelectedIndex = (stateId, index) ->
+setSelectBoxSelectedIndex = (stateId, index) ->
 
-  { SET_EMOJI_SELECTOR_SELECTED_INDEX } = actionTypes
-  dispatch SET_EMOJI_SELECTOR_SELECTED_INDEX, { stateId, index }
+  { SET_EMOJI_SELECTBOX_SELECTED_INDEX } = actionTypes
+  dispatch SET_EMOJI_SELECTBOX_SELECTED_INDEX, { stateId, index }
 
 
 ###*
- * Action to reset selected index of emoji selector
+ * Action to reset selected index of emoji selectbox
  * to initial value
  *
  * @param {string} stateId
 ###
-resetSelectorSelectedIndex = (stateId) ->
+resetSelectBoxSelectedIndex = (stateId) ->
 
-  { RESET_EMOJI_SELECTOR_SELECTED_INDEX } = actionTypes
-  dispatch RESET_EMOJI_SELECTOR_SELECTED_INDEX, { stateId }
+  { RESET_EMOJI_SELECTBOX_SELECTED_INDEX } = actionTypes
+  dispatch RESET_EMOJI_SELECTBOX_SELECTED_INDEX, { stateId }
 
 
 ###*
- * Action to set visibility flag of emoji selector
+ * Action to set visibility flag of emoji selectbox
  * After visibility is changed, we need to reset
- * selector query and tab index to initial values
+ * selectbox query and tab index to initial values
  *
  * @param {string} stateId
  * @param {bool} visible
 ###
-setSelectorVisibility = (stateId, visible) ->
+setSelectBoxVisibility = (stateId, visible) ->
 
-  { SET_EMOJI_SELECTOR_VISIBILITY } = actionTypes
-  dispatch SET_EMOJI_SELECTOR_VISIBILITY, { stateId, visible }
+  { SET_EMOJI_SELECTBOX_VISIBILITY } = actionTypes
+  dispatch SET_EMOJI_SELECTBOX_VISIBILITY, { stateId, visible }
 
-  unsetSelectorQuery stateId
-  resetSelectorTabIndex stateId
+  unsetSelectBoxQuery stateId
+  resetSelectBoxTabIndex stateId
 
 
 ###*
@@ -163,11 +163,11 @@ setSelectorVisibility = (stateId, visible) ->
  * @param {string} stateId
  * @param {number} tabIndex
 ###
-setSelectorTabIndex = (stateId, tabIndex) ->
+setSelectBoxTabIndex = (stateId, tabIndex) ->
 
-  { SET_EMOJI_SELECTOR_TAB_INDEX } = actionTypes
+  { SET_EMOJI_SELECTBOX_TAB_INDEX } = actionTypes
 
-  dispatch SET_EMOJI_SELECTOR_TAB_INDEX, { stateId, tabIndex }
+  dispatch SET_EMOJI_SELECTBOX_TAB_INDEX, { stateId, tabIndex }
 
 
 ###*
@@ -175,7 +175,7 @@ setSelectorTabIndex = (stateId, tabIndex) ->
  *
  * @param {string} stateId
 ###
-resetSelectorTabIndex = (stateId) -> setSelectorTabIndex stateId, -1
+resetSelectBoxTabIndex = (stateId) -> setSelectBoxTabIndex stateId, -1
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -189,11 +189,11 @@ module.exports = {
   moveToPrevFilteredListIndex
   resetFilteredListSelectedIndex
 
-  setSelectorQuery
-  unsetSelectorQuery
-  setSelectorSelectedIndex
-  resetSelectorSelectedIndex
-  setSelectorVisibility
-  setSelectorTabIndex
+  setSelectBoxQuery
+  unsetSelectBoxQuery
+  setSelectBoxSelectedIndex
+  resetSelectBoxSelectedIndex
+  setSelectBoxVisibility
+  setSelectBoxTabIndex
 }
 

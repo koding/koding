@@ -7,7 +7,7 @@ getEmojiSynonyms      = require 'activity/util/getEmojiSynonyms'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 
-module.exports = class EmojiSelectorFooter extends React.Component
+module.exports = class EmojiSelectBoxFooter extends React.Component
 
   @defaultProps =
     selectedItem : ''
@@ -18,7 +18,7 @@ module.exports = class EmojiSelectorFooter extends React.Component
     { selectedItem } = @props
     return  if selectedItem
 
-    <div className='EmojiSelector-noSelectedItem'>Choose your emoji!</div>
+    <div className='EmojiSelectBox-noSelectedItem'>Choose your emoji!</div>
 
 
   renderSelectedItemName: ->
@@ -31,8 +31,8 @@ module.exports = class EmojiSelectorFooter extends React.Component
     synonyms = synonyms.join ' '
 
     <div>
-      <div className='EmojiSelector-selectedItemMainName'>{selectedItem}</div>
-      <div className='EmojiSelector-selectedItemSynonyms'>{synonyms}</div>
+      <div className='EmojiSelectBox-selectedItemMainName'>{selectedItem}</div>
+      <div className='EmojiSelectBox-selectedItemSynonyms'>{synonyms}</div>
     </div>
 
 
@@ -40,16 +40,16 @@ module.exports = class EmojiSelectorFooter extends React.Component
 
     { selectedItem } = @props
 
-    <div className="EmojiSelector-footer">
-      <span className="EmojiSelector-selectedItemIcon">
+    <div className="EmojiSelectBox-footer">
+      <span className="EmojiSelectBox-selectedItemIcon">
         <EmojiIcon emoji={selectedItem or 'cow'} />
       </span>
-      <div className="EmojiSelector-selectedItemName">
+      <div className="EmojiSelectBox-selectedItemName">
         { @renderNoItemName() }
         { @renderSelectedItemName() }
       </div>
       <div className="clearfix" />
     </div>
 
-EmojiSelectorFooter.include [ImmutableRenderMixin]
+EmojiSelectBoxFooter.include [ImmutableRenderMixin]
 

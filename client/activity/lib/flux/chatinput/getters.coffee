@@ -17,10 +17,10 @@ EmojisStore                         = [['EmojisStore'], withEmptyList]
 EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
 FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
 FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
-EmojiSelectorQueryStore             = [['EmojiSelectorQueryStore'], withEmptyMap]
-EmojiSelectorSelectedIndexStore     = [['EmojiSelectorSelectedIndexStore'], withEmptyMap]
-EmojiSelectorVisibilityStore        = [['EmojiSelectorVisibilityStore'], withEmptyMap]
-EmojiSelectorTabIndexStore          = [['EmojiSelectorTabIndexStore'], withEmptyMap]
+EmojiSelectBoxQueryStore            = [['EmojiSelectBoxQueryStore'], withEmptyMap]
+EmojiSelectBoxSelectedIndexStore    = [['EmojiSelectBoxSelectedIndexStore'], withEmptyMap]
+EmojiSelectBoxVisibilityStore       = [['EmojiSelectBoxVisibilityStore'], withEmptyMap]
+EmojiSelectBoxTabIndexStore         = [['EmojiSelectBoxTabIndexStore'], withEmptyMap]
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
@@ -85,20 +85,20 @@ filteredEmojiListSelectedItem = (stateId) -> [
 ]
 
 
-# Returns emoji selector query by given stateId
-emojiSelectorQuery = (stateId) -> [
-  EmojiSelectorQueryStore
+# Returns emoji selectbox query by given stateId
+emojiSelectBoxQuery = (stateId) -> [
+  EmojiSelectBoxQueryStore
   (queries) -> queries.get stateId
 ]
 
 # Returns a list of emoji categories with their emojis
-# - If emoji selector query is not empty, it searches for emojis by
+# - If emoji selectbox query is not empty, it searches for emojis by
 # specified query and returns a list with the only category named
 # 'Search Results' with a list of found emojis
-# - If emoji selector query is empty, it returns EmojiCategoriesStore data
-emojiSelectorItems = (stateId) -> [
+# - If emoji selectbox query is empty, it returns EmojiCategoriesStore data
+emojiSelectBoxItems = (stateId) -> [
   EmojiCategoriesStore
-  emojiSelectorQuery stateId
+  emojiSelectBoxQuery stateId
   (list, query) ->
     unless query
       # For each emoji we need to check if it has synonyms and if so,
@@ -139,10 +139,10 @@ emojiSelectorItems = (stateId) -> [
 ]
 
 
-# Returns a list of emoji selector tabs
+# Returns a list of emoji selectbox tabs
 # Each tab has category name and emoji name which is used
 # to render tab icon
-emojiSelectorTabs = [
+emojiSelectBoxTabs = [
   EmojiCategoriesStore
   (list) ->
     list.map (item) ->
@@ -153,26 +153,26 @@ emojiSelectorTabs = [
 ]
 
 
-# Returns selected index of emoji selector
+# Returns selected index of emoji selectbox
 # It's a total index based on the list of emojis of all categories
-emojiSelectorSelectedIndex = (stateId) -> [
-  EmojiSelectorSelectedIndexStore
+emojiSelectBoxSelectedIndex = (stateId) -> [
+  EmojiSelectBoxSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
-# Returns visibility flag of emoji selector
-emojiSelectorVisibility = (stateId) -> [
-  EmojiSelectorVisibilityStore
+# Returns visibility flag of emoji selectbox
+emojiSelectBoxVisibility = (stateId) -> [
+  EmojiSelectBoxVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 
 
 # Returns emoji from common emoji list of all categories
 # by current selected index
-emojiSelectorSelectedItem = (stateId) -> [
-  emojiSelectorItems stateId
-  emojiSelectorSelectedIndex stateId
+emojiSelectBoxSelectedItem = (stateId) -> [
+  emojiSelectBoxItems stateId
+  emojiSelectBoxSelectedIndex stateId
   (list, selectedIndex) ->
     return  unless selectedIndex?
 
@@ -192,10 +192,10 @@ emojiSelectorSelectedItem = (stateId) -> [
 ]
 
 
-# Returns current tab index of emoji selector by specified stateId
+# Returns current tab index of emoji selectbox by specified stateId
 # If tab index doesn't exist in the store, returns -1
-emojiSelectorTabIndex = (stateId) -> [
-  EmojiSelectorTabIndexStore
+emojiSelectBoxTabIndex = (stateId) -> [
+  EmojiSelectBoxTabIndexStore
   (tabIndexes) -> tabIndexes.get(stateId) ? -1
 ]
 
@@ -462,13 +462,13 @@ module.exports = {
   filteredEmojiListSelectedItem
   filteredEmojiListSelectedIndex
 
-  emojiSelectorItems
-  emojiSelectorTabs
-  emojiSelectorQuery
-  emojiSelectorSelectedIndex
-  emojiSelectorVisibility
-  emojiSelectorSelectedItem
-  emojiSelectorTabIndex
+  emojiSelectBoxItems
+  emojiSelectBoxTabs
+  emojiSelectBoxQuery
+  emojiSelectBoxSelectedIndex
+  emojiSelectBoxVisibility
+  emojiSelectBoxSelectedItem
+  emojiSelectBoxTabIndex
 
   channelsQuery
   channels

@@ -3,11 +3,11 @@ React                 = require 'kd-react'
 ReactDOM              = require 'react-dom'
 classnames            = require 'classnames'
 immutable             = require 'immutable'
-EmojiSelectorItem     = require 'activity/components/emojiselectoritem'
+EmojiSelectBoxItem    = require 'activity/components/emojiselectboxitem'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 List                  = require 'app/components/list'
 
-module.exports = class EmojiSelectorList extends React.Component
+module.exports = class EmojiSelectBoxList extends React.Component
 
   @defaultProps =
     items        : immutable.List()
@@ -26,7 +26,7 @@ module.exports = class EmojiSelectorList extends React.Component
   sectionId: (sectionIndex) ->
 
     category = @props.items.getIn [sectionIndex, 'category']
-    return "EmojiSelectorCategory-#{kd.utils.slugify category}"
+    return "EmojiSelectBoxCategory-#{kd.utils.slugify category}"
 
 
   getSectionAnchorByIndex: (sectionIndex) ->
@@ -37,7 +37,7 @@ module.exports = class EmojiSelectorList extends React.Component
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     category = @props.items.getIn [sectionIndex, 'category']
-    <header id={@sectionId sectionIndex} className='EmojiSelector-categorySectionHeader'>
+    <header id={@sectionId sectionIndex} className='EmojiSelectBox-categorySectionHeader'>
       {category}
     </header>
 
@@ -49,7 +49,7 @@ module.exports = class EmojiSelectorList extends React.Component
     emojis     = items.getIn [sectionIndex, 'emojis']
     item       = emojis.get rowIndex
 
-    <EmojiSelectorItem
+    <EmojiSelectBoxItem
       item         = { item }
       index        = { helper.calculateTotalIndex items, sectionIndex, rowIndex }
       onSelected   = { @props.onItemSelected }
@@ -61,7 +61,7 @@ module.exports = class EmojiSelectorList extends React.Component
 
   renderEmptySectionAtIndex: (sectionIndex) ->
 
-    <div className='EmojiSelector-emptyCategory'>No emoji found</div>
+    <div className='EmojiSelectBox-emptyCategory'>No emoji found</div>
 
 
   render: ->
@@ -71,7 +71,7 @@ module.exports = class EmojiSelectorList extends React.Component
       numberOfRowsInSection={@bound 'numberOfRowsInSection'}
       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
-      sectionClassName='EmojiSelector-categorySection'
+      sectionClassName='EmojiSelectBox-categorySection'
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
     />
 
@@ -89,5 +89,5 @@ module.exports = class EmojiSelectorList extends React.Component
       return totalIndex
 
 
-EmojiSelectorList.include [ImmutableRenderMixin]
+EmojiSelectBoxList.include [ImmutableRenderMixin]
 

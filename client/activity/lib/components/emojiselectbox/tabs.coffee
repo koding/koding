@@ -8,7 +8,7 @@ EmojiIcon            = require 'activity/components/emojiicon'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
-module.exports = class EmojiSelectorTabs extends React.Component
+module.exports = class EmojiSelectBoxTabs extends React.Component
 
   onTabChange: (tabIndex) -> @props.onTabChange? tabIndex
 
@@ -21,7 +21,7 @@ module.exports = class EmojiSelectorTabs extends React.Component
       category     = item.get 'category'
       iconEmoji    = item.get 'iconEmoji'
       tabClassName = classnames
-        'EmojiSelector-categoryTab' : yes
+        'EmojiSelectBox-categoryTab' : yes
         'activeTab'                 : index is tabIndex
 
       <span className={tabClassName} title={category} onClick={@lazyBound 'onTabChange', index} key={category}>
@@ -31,9 +31,9 @@ module.exports = class EmojiSelectorTabs extends React.Component
       </span>
 
     allTabClassName = classnames
-      'EmojiSelector-categoryTab' : yes
+      'EmojiSelectBox-categoryTab' : yes
       'activeTab'                 : tabIndex is -1
-    <div className='EmojiSelector-categoryTabs' ref='tabs'>
+    <div className='EmojiSelectBox-categoryTabs' ref='tabs'>
       <span className={allTabClassName} title='All' onClick={@lazyBound 'onTabChange', -1}>
         <span className='emoji-wrapper'>
           <span className='emoji-sprite emoji-clock3'></span>
@@ -43,5 +43,5 @@ module.exports = class EmojiSelectorTabs extends React.Component
     </div>
 
 
-EmojiSelectorTabs.include [ImmutableRenderMixin]
+EmojiSelectBoxTabs.include [ImmutableRenderMixin]
 

@@ -4,22 +4,22 @@ toImmutable     = require 'app/util/toImmutable'
 immutable       = require 'immutable'
 
 ###*
- * Store to handle emoji selector current tab index
+ * Store to handle emoji selectbox current tab index
 ###
-module.exports = class EmojiSelectorTabIndexStore extends KodingFluxStore
+module.exports = class EmojiSelectBoxTabIndexStore extends KodingFluxStore
 
-  @getterPath = 'EmojiSelectorTabIndexStore'
+  @getterPath = 'EmojiSelectBoxTabIndexStore'
 
   getInitialState: -> immutable.Map()
 
 
   initialize: ->
 
-    @on actions.SET_EMOJI_SELECTOR_TAB_INDEX, @setTabIndex
+    @on actions.SET_EMOJI_SELECTBOX_TAB_INDEX, @setTabIndex
 
 
   ###*
-   * Handler of SET_EMOJI_SELECTOR_TAB_INDEX action
+   * Handler of SET_EMOJI_SELECTBOX_TAB_INDEX action
    * It updates current tab index for a given stateId
    *
    * @param {Immutable.Map} currentState

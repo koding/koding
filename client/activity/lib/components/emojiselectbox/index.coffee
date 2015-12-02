@@ -11,7 +11,7 @@ formatEmojiName       = require 'activity/util/formatEmojiName'
 ImmutableRenderMixin  = require 'react-immutable-render-mixin'
 
 
-module.exports = class EmojiSelector extends React.Component
+module.exports = class EmojiSelectBox extends React.Component
 
   @defaultProps =
     items        : immutable.List()
@@ -30,13 +30,13 @@ module.exports = class EmojiSelector extends React.Component
   onItemSelected: (index) ->
 
     { stateId } = @props
-    ChatInputFlux.actions.emoji.setSelectorSelectedIndex stateId, index
+    ChatInputFlux.actions.emoji.setSelectBoxSelectedIndex stateId, index
 
 
   onItemUnselected: ->
 
     { stateId } = @props
-    ChatInputFlux.actions.emoji.resetSelectorSelectedIndex stateId
+    ChatInputFlux.actions.emoji.resetSelectBoxSelectedIndex stateId
 
 
   onItemConfirmed: ->
@@ -50,20 +50,20 @@ module.exports = class EmojiSelector extends React.Component
 
     { stateId } = @props
 
-    ChatInputFlux.actions.emoji.unsetSelectorQuery stateId
-    ChatInputFlux.actions.emoji.setSelectorTabIndex stateId, tabIndex
+    ChatInputFlux.actions.emoji.unsetSelectBoxQuery stateId
+    ChatInputFlux.actions.emoji.setSelectBoxTabIndex stateId, tabIndex
 
 
   close: ->
 
     { stateId } = @props
-    ChatInputFlux.actions.emoji.setSelectorVisibility stateId, no
+    ChatInputFlux.actions.emoji.setSelectBoxVisibility stateId, no
 
 
   onSearch: (value) ->
 
     { stateId } = @props
-    ChatInputFlux.actions.emoji.setSelectorQuery stateId, value
+    ChatInputFlux.actions.emoji.setSelectBoxQuery stateId, value
 
 
   renderList: ->
@@ -90,7 +90,7 @@ module.exports = class EmojiSelector extends React.Component
     { items, query, visible, selectedItem, tabs, tabIndex } = @props
 
     <Dropbox
-      className = 'EmojiSelector'
+      className = 'EmojiSelectBox'
       visible   = { visible }
       onClose   = { @bound 'close' }
       type      = 'dropup'
@@ -104,5 +104,5 @@ module.exports = class EmojiSelector extends React.Component
     </Dropbox>
 
 
-EmojiSelector.include [ImmutableRenderMixin]
+EmojiSelectBox.include [ImmutableRenderMixin]
 

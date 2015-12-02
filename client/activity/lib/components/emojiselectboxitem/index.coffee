@@ -4,7 +4,7 @@ DropboxItem          = require 'activity/components/dropboxitem'
 EmojiIcon            = require 'activity/components/emojiicon'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
-module.exports = class EmojiSelectorItem extends React.Component
+module.exports = class EmojiSelectBoxItem extends React.Component
 
   @include [ ImmutableRenderMixin ]
 
@@ -43,7 +43,7 @@ module.exports = class EmojiSelectorItem extends React.Component
       onSelected   = { @bound 'onSelected' }
       onUnselected = { @bound 'onUnselected' }
       onConfirmed  = { @props.onConfirmed }
-      className    = 'EmojiSelectorItem'>
+      className    = 'EmojiSelectBoxItem'>
         <EmojiIcon emoji={item} />
     </DropboxItem>
 

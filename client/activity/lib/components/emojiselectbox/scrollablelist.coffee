@@ -9,7 +9,7 @@ List                 = require './list'
 ImmutableRenderMixin = require 'react-immutable-render-mixin'
 
 
-module.exports = class EmojiSelectorScrollableList extends React.Component
+module.exports = class EmojiSelectBoxScrollableList extends React.Component
 
   @defaultProps =
     items        : immutable.List()
@@ -99,7 +99,7 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     category = if index is -1 then '' else items.get(index).get 'category'
 
     <header
-      className = 'EmojiSelector-categorySectionHeader fixedHeader hidden'
+      className = 'EmojiSelectBox-categorySectionHeader fixedHeader hidden'
       ref       = 'fixedHeader'>
         {category}
     </header>
@@ -111,8 +111,8 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
 
     <div>
       { @renderFixedCategoryHeader() }
-      <Scroller className='EmojiSelector-list Dropbox-resizable' ref='scroller' onScroll={@bound 'onScroll'}>
-        <input className='EmojiSelector-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
+      <Scroller className='EmojiSelectBox-list Dropbox-resizable' ref='scroller' onScroll={@bound 'onScroll'}>
+        <input className='EmojiSelectBox-searchInput' placeholder='Search' value={query} onChange={@bound 'onSearch'} />
         <List
           items            = { items }
           onItemSelected   = { @props.onItemSelected }
@@ -124,5 +124,5 @@ module.exports = class EmojiSelectorScrollableList extends React.Component
     </div>
 
 
-EmojiSelectorScrollableList.include [ImmutableRenderMixin]
+EmojiSelectBoxScrollableList.include [ImmutableRenderMixin]
 
