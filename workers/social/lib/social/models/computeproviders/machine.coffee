@@ -25,6 +25,7 @@ module.exports = class JMachine extends Module
       users             : 'sparse'
       groups            : 'sparse'
       domain            : 'sparse'
+      status            : 'sparse'
 
     sharedEvents        :
       static            : [ ]
