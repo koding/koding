@@ -2,6 +2,9 @@
     "variables": {
         "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
         "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+        "softlayer_username": "{{env `SOFTLAYER_USERNAME`}}",
+        "softlayer_api_key": "{{env `SOFTLAYER_API_KEY`}}",
+        "softlayer_private_key": "{{env `SOFTLAYER_PRIVATE_KEY`}}",
         "template_dir": "website/",
         "bash_dir": "bash/",
         "screen_dir": "screen/",
@@ -21,13 +24,33 @@
             "ssh_username": "ubuntu",
             "type": "amazon-ebs",
             "ami_regions": [
-		    "eu-west-1", 
-		    "us-west-2", 
-		    "ap-southeast-1"
-	    ],
-	    "tags": {
-	      "Name": "koding-test"
-	    }
+                "eu-west-1",
+                "us-west-2",
+                "ap-southeast-1"
+            ],
+            "tags": {
+                "Name": "koding-test"
+            }
+        },
+        {
+            "type": "softlayer",
+            "username": "{{user `softlayer_username`}}",
+            "api_key": "{{user `softlayer_api_key`}}",
+            "datacenter_name": "sjc01",
+            "base_os_code": "UBUNTU_14_64",
+            "image_name": "koding-base-latest-{{timestamp}}",
+            "image_description": "Koding Base Image",
+            "image_type": "standard",
+            "instance_name": "koding-base-latest-{{timestamp}}",
+            "instance_domain": "koding.com",
+            "instance_cpu": 1,
+            "instance_memory": 1024,
+            "instance_network_speed": 10,
+            "instance_disk_capacity": 25,
+            "ssh_private_key_file": "{{user `softlayer_private_key`}}",
+            "ssh_port": 22,
+            "ssh_timeout": "15m",
+            "instance_state_timeout": "25m"
         }
     ],
     "provisioners": [

@@ -40,9 +40,10 @@ type Config struct {
 		URL string
 	}
 
-	DryRun   bool
-	Interval string `required:"true"`
-	Debug    bool
+	DryRun     bool
+	Interval   string `required:"true"`
+	Debug      bool
+	MaxResults int `default:"500"`
 }
 
 type task interface {
@@ -98,13 +99,15 @@ func realMain() error {
 	m.MustLoad(conf)
 
 	cl := NewCleaner(conf)
+	if cl.Debug {
+		cl.Log.Warning("Debug mode is enabled.")
+	}
 	if cl.DryRun {
 		cl.Log.Warning("Dry run is enabled.")
 		if !cl.Debug {
 			cl.Slack("Cleaner started in dry-run mode", "", "")
 		}
 	}
-
 	interval, err := time.ParseDuration(conf.Interval)
 	if err != nil {
 		return err
@@ -123,6 +126,7 @@ func (c *Cleaner) Run() {
 	if err := c.collectAndProcess(); err != nil {
 		c.Log.Error(err.Error())
 	}
+	c.Log.Info("Cleaner is done collecting artifacts.")
 }
 
 // collectAndRun collects any necessary resource and processes all task
