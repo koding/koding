@@ -27,7 +27,6 @@ func TestAccountTesting(t *testing.T) {
 
 	Convey("given some fake account", t, func() {
 		acc, _, name := models.CreateRandomGroupDataWithChecks()
-		fmt.Println("group name is :", name)
 		So(name, ShouldNotBeNil)
 		So(acc, ShouldNotBeNil)
 
@@ -78,28 +77,22 @@ func TestAccountTesting(t *testing.T) {
 								objects = append(objects, object)
 
 								_, err = index.DeleteObject(object)
-								if err != nil {
-									fmt.Println("err is :", err)
-								}
+								So(err, ShouldBeNil)
 							}
 
 						}
 					}
 				}
 
-				fmt.Println("usernames is :", usernames)
-				fmt.Println("object name is:", objects)
+				So(usernames, ShouldNotBeNil)
+				So(objects, ShouldNotBeNil)
 
 			})
 
 			Convey("it should be able to fetch many account with given query", func() {
-				// make sure account is there
-				fmt.Println("==================>>>>>>>>>>>>>>>>>>>>>>>>>>")
-				fmt.Println("it should be able to fetch many account with given query")
-				fmt.Println("==================>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
 				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
+				// we create 10 acc for algolia test
 				for i := 0; i < 10; i++ {
 					ac, _, _ := models.CreateRandomGroupDataWithChecks()
 
@@ -117,6 +110,7 @@ func TestAccountTesting(t *testing.T) {
 					time.Sleep(1 * time.Second)
 				}
 
+				//required for getting algolia datas correctly
 				time.Sleep(5 * time.Second)
 
 				_, err = modelhelper.GetUser(acc.Nick)
@@ -124,21 +118,17 @@ func TestAccountTesting(t *testing.T) {
 
 				index, err := handler.indexes.GetIndex(IndexAccounts)
 				So(err, ShouldBeNil)
-				fmt.Println("index is:", index)
 
-				// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
 				params := make(map[string]interface{})
 				record, err := index.Search("mehmetali-test", params)
 				So(err, ShouldBeNil)
 
 				hist, ok := record.(map[string]interface{})["hits"]
 
-				// fmt.Println("hist is :", hist)
 				usernames := make([]string, 0)
 				objects := make([]string, 0)
 
 				if ok {
-
 					hinter, ok := hist.([]interface{})
 					if ok {
 						for _, v := range hinter {
@@ -149,47 +139,17 @@ func TestAccountTesting(t *testing.T) {
 
 								usernames = append(usernames, value)
 								objects = append(objects, object)
-								// err = handler.delete(IndexAccounts, object)
-								// _, err = index.DeleteObject(object)
-								// if err != nil {
-								// 	fmt.Println("err is :", err)
-								// }
 							}
 
 						}
 					}
 				}
-				// nbHits
 
-				// nbHits, _ := record.(map[string]interface{})["nbHits"]
-				// nbPages, _ := record.(map[string]interface{})["nbPages"]
-				// fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHits)
-				// fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", nbPages)
-
-				lenghtUsernames := len(usernames)
-				lenghtObjects := len(objects)
-				So(lenghtUsernames, ShouldBeGreaterThan, 10)
-				So(lenghtObjects, ShouldBeGreaterThan, 10)
-
-				fmt.Println("usernames is :", usernames)
-				fmt.Println("object name is:", objects)
-				///
-				///
-
-				param := make(map[string]interface{})
-				_, _ = index.Search("mehmetali-test", param)
-
-				// fmt.Printf("r %# v", pretty.Formatter(r))
+				So(len(usernames), ShouldBeGreaterThan, 10)
+				So(len(objects), ShouldBeGreaterThan, 10)
 
 				Convey("it should be able to delete many account with given query", func() {
-					// make sure account is there
-					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
-					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
-					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
-					fmt.Println("it should be able to delete many account with given query")
-					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
-					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
-					fmt.Println("================>>>>>>>>>>>>>>>>>>>>>")
+
 					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
 					for i := 0; i < 10; i++ {
@@ -217,34 +177,14 @@ func TestAccountTesting(t *testing.T) {
 					_, err := handler.indexes.GetIndex(IndexAccounts)
 					So(err, ShouldBeNil)
 
-					// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
-					// params := make(map[string]interface{})
-					// record, err := index.Search("mehmetali-test", params)
-					// So(err, ShouldBeNil)
-
-					// hist, ok := record.(map[string]interface{})["hits"]
-
-					// fmt.Println("hist is :", hist)
-
-					// fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHits)
-					// fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", nbPages)
-
 					usernames := make([]string, 0)
 					objects := make([]string, 0)
-
-					////////////////
-					////////////////
-					////////////////
-					////////////////
 
 					nbHits, _ := record.(map[string]interface{})["nbHits"]
 					nbPages, _ := record.(map[string]interface{})["nbPages"]
 
 					var pages float64 = nbPages.(float64)
 					var nbHit float64 = nbHits.(float64)
-
-					fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
-					fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
 
 					for pages > 0 && nbHit != 0 {
 						record, err := index.Search("mehmetali-test", params)
@@ -256,13 +196,6 @@ func TestAccountTesting(t *testing.T) {
 
 						pages = nbPages.(float64)
 						nbHit = nbHits.(float64)
-
-						fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
-						fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
-						fmt.Println("NBHITSNBHITSNBHITSNBHITSNBHITSNBHITS:", nbHit)
-						fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
-						fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
-						fmt.Println("NBPAGERNBPAGERNBPAGERNBPAGERNBPAGERNBPAGER:", pages)
 
 						if ok {
 							hinter, ok := hist.([]interface{})
@@ -284,27 +217,21 @@ func TestAccountTesting(t *testing.T) {
 								}
 							}
 						}
-
-					} // end for
+					}
 
 					lenghtUsernames := len(usernames)
 					lenghtObjects := len(objects)
 					So(lenghtUsernames, ShouldBeGreaterThan, 10)
 					So(lenghtObjects, ShouldBeGreaterThan, 10)
 
-					fmt.Println("usernames is :", usernames)
-					fmt.Println("object name is:", objects)
-					///
-					///
-
-					param := make(map[string]interface{})
-					r, _ := index.Search("mehmetali-test", param)
-
-					fmt.Printf("r %# v", pretty.Formatter(r))
-
 				})
 
 				Convey("it should have delete algolia accounts", func() {
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("it should have delete algolia accounts")
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
 					// make sure account is there
 					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
 
@@ -312,7 +239,7 @@ func TestAccountTesting(t *testing.T) {
 						// ac, _, _ := models.CreateRandomGroupDataWithChecks()
 						rand.Seed(time.Now().UnixNano())
 						strconv.FormatInt(rand.Int63(), 10)
-						name := "guest-" + strconv.FormatInt(rand.Int63(), 10)
+						name := "guter-" + strconv.FormatInt(rand.Int63(), 10)
 						// fmt.Sprintf("guest-%v", i)
 						ac, _ := models.CreateAccountInBothDbsWithNick(name)
 
@@ -332,64 +259,37 @@ func TestAccountTesting(t *testing.T) {
 
 					time.Sleep(5 * time.Second)
 
-					user2, err := modelhelper.GetUser(acc.Nick)
-					fmt.Println("user2:", user2)
-					So(err, ShouldBeNil)
-
 					index, _ := handler.indexes.GetIndex(IndexAccounts)
 					fmt.Println("index is:", index)
 
 					// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
 					// params := make(map[string]interface{})
 					params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
-					record, _ := index.Search("guest-", params)
+					record, _ := index.Search("guter-", params)
+
+					hits, _ := record.(map[string]interface{})["nbHits"]
+					hit := hits.(float64)
+					So(hit, ShouldBeLessThan, 10)
 
 					fmt.Printf("record %# v", pretty.Formatter(record))
 
-					hist, ok := record.(map[string]interface{})["hits"]
+					// Here, we delete all nick whick starts with "guter-"
+					err = handler.DeleteNicksWithQuery("guter-")
+					So(err, ShouldBeNil)
 
-					// fmt.Println("hist is :", hist)
-					usernames := make([]string, 0)
-					objects := make([]string, 0)
-
-					if ok {
-
-						hinter, ok := hist.([]interface{})
-						if ok {
-							for _, v := range hinter {
-								val, k := v.(map[string]interface{})
-								if k {
-									// fmt.Println("val", k, "is:", val["nick"])
-									object := val["objectID"].(string)
-
-									value := val["nick"].(string)
-									usernames = append(usernames, value)
-									objects = append(objects, object)
-									// err = handler.delete(IndexAccounts, object)
-									// _, err = index.DeleteObject(object)
-									// if err != nil {
-									// 	fmt.Println("err is :", err)
-									// }
-								}
-
-							}
-						}
-					}
-
-					fmt.Println("usernames is :", usernames)
-					fmt.Println("object name is:", objects)
-					///
-					///
-
+					// necessary for getting datas from algolia,
 					time.Sleep(5 * time.Second)
-					param := make(map[string]interface{})
-					r, _ := index.Search("guest-", param)
+					fmt.Println("AFTERDELETIONAFTERDELETIONAFTERDELETION")
+					fmt.Println("AFTERDELETIONAFTERDELETIONAFTERDELETION")
+					fmt.Println("AFTERDELETIONAFTERDELETIONAFTERDELETION")
+					fmt.Println("AFTERDELETIONAFTERDELETIONAFTERDELETION")
+					fmt.Println("AFTERDELETIONAFTERDELETIONAFTERDELETION")
+					r, _ := index.Search("guter-", params)
+					nbHits, _ := r.(map[string]interface{})["nbHits"]
+					nbHit := nbHits.(float64)
+					So(nbHit, ShouldBeLessThan, 10)
 
 					fmt.Printf("r %# v", pretty.Formatter(r))
-
-					str, _ := handler.FetchIdOfNicksWithQuery("gaest-")
-					fmt.Println("gaest string array is ::===>", str)
-					_ = handler.deleteAllGuestNicks(IndexAccounts, str)
 				})
 			})
 		})
