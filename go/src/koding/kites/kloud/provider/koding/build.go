@@ -175,7 +175,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 				m.Credential, meta.InstanceId, meta.Region,
 			)
 		}
-
 	}
 
 	m.push("Checking build process", 40, machinestate.Building)
@@ -209,6 +208,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		retryCount++
 
 		ctx = context.WithValue(ctx, "retryKey", retryCount) // increase
+
+		m.Meta = structs.Map(meta) // update meta
 
 		// call it again recursively
 		return m.Build(ctx)
@@ -244,8 +245,13 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		}
 	}
 
+	m.Meta = structs.Map(meta) // update meta
+
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
-	m.addDomainAndTags()
+
+	if err := m.addDomainAndTags(); err != nil {
+		return err
+	}
 
 	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 80, machinestate.Building)
 	if !m.isKlientReady() {
@@ -261,8 +267,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if args.Reason != "" {
 		reason += "Custom reason: " + args.Reason
 	}
-
-	m.Meta = structs.Map(meta)
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
@@ -705,9 +709,10 @@ func (m *Machine) addDomainAndTags() error {
 		"koding-domain":    m.Domain,
 	}
 
-	m.Log.Debug("Adding user tags %v", tags)
+	m.Log.Debug("Adding user tags to instance=%q: %v", meta.InstanceId, tags)
 	if err := m.Session.AWSClient.AddTags(meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
+		return err
 	}
 
 	return nil
