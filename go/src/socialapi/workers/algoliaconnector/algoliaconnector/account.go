@@ -146,6 +146,73 @@ func (f *Controller) RemoveGuestAccounts() error {
 	return nil
 }
 
+func (f *Controller) DeleteNicksWithQuery(queryName string) error {
+	index, err := f.indexes.GetIndex(IndexAccounts)
+	params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
+	record, err := index.Search(queryName, params)
+	if err != nil {
+		return err
+	}
+	var nbHit float64
+	var pages float64
+
+	nbHits, ok := record.(map[string]interface{})["nbHits"]
+	if ok {
+		nbHit = nbHits.(float64)
+	}
+
+	nbPages, ok := record.(map[string]interface{})["nbPages"]
+	if ok {
+		pages = nbPages.(float64)
+	}
+
+	for pages > 0 && nbHit != 0 {
+		record, err := index.Search(queryName, params)
+		hist, ok := record.(map[string]interface{})["hits"]
+
+		nbHits, _ := record.(map[string]interface{})["nbHits"]
+		nbPages, _ := record.(map[string]interface{})["nbPages"]
+		pages = nbPages.(float64)
+		nbHit = nbHits.(float64)
+
+		index, err := f.indexes.GetIndex(IndexAccounts)
+		if err != nil {
+			return err
+		}
+
+		record, err = index.Search(queryName, params)
+		if err != nil {
+			return err
+		}
+
+		hist, ok = record.(map[string]interface{})["hits"]
+
+		// objects := make([]string, 0)
+
+		if ok {
+			hinter, ok := hist.([]interface{})
+			if ok {
+				for _, v := range hinter {
+					val, k := v.(map[string]interface{})
+					if k {
+						value := val["nick"].(string)
+						object := val["objectID"].(string)
+						if strings.HasPrefix(value, queryName) {
+							_, err = index.DeleteObject(object)
+							if err != nil {
+								return nil
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+
+}
+
 func (f *Controller) FetchIdOfNicksWithQuery(queryName string) ([]string, error) {
 
 	index, err := f.indexes.GetIndex(IndexAccounts)
