@@ -61,7 +61,7 @@ joinSession = (browser, firstUser, secondUser) ->
       browser.end()
     else
       browser
-        .waitForElementVisible     shareModal, 200000 # wait for vm turn on for host
+        .waitForElementVisible     shareModal, 500000 # wait for vm turn on for host
         .waitForElementVisible     fullName, 50000
         .assert.containsText       shareModal, firstUserName
         .waitForElementVisible     acceptButton, 50000
