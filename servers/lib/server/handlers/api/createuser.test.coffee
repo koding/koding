@@ -259,6 +259,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
           expect(JSON.parse body).to.be.deep.equal { data : { username } }
           done()
 
+
     it 'should send HTTP 200 and create user with suggested username', (done) ->
 
       options = { createGroup : yes, groupData : { isApiEnabled : yes } }
@@ -269,6 +270,25 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         createUserRequestParams = generateCreateUserRequestParams
           headers  : { Authorization : "Bearer #{apiToken.code}" }
           body     : { username : '', suggestedUsername }
+
+        # expecting to see randomly generated username
+        request.post createUserRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(body).to.contain suggestedUsername
+          done()
+
+
+    it 'should send HTTP 200 and use suggestedUsername if username is invalid', (done) ->
+
+      options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+        suggestedUsername = generateRandomString 10
+
+        createUserRequestParams = generateCreateUserRequestParams
+          headers  : { Authorization : "Bearer #{apiToken.code}" }
+          body     : { username : userFormData.username, suggestedUsername }
 
         # expecting to see randomly generated username
         request.post createUserRequestParams, (err, res, body) ->
