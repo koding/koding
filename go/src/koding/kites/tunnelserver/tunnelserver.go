@@ -4,17 +4,18 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"koding/artifact"
-	"koding/kites/common"
-	dnsclient "koding/kites/kloud/pkg/dnsclient"
 	"os"
 
+	"koding/artifact"
+	"koding/kites/common"
+	"koding/kites/kloud/pkg/dnsclient"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/ec2dynamicdata"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 	"github.com/koding/tunnel"
-	"github.com/mitchellh/goamz/aws"
 )
 
 const Name = "tunnelserver"
@@ -48,10 +49,7 @@ func main() {
 	m.MustLoad(t)
 	m.MustValidate(t)
 
-	auth := aws.Auth{
-		AccessKey: t.AccessKey,
-		SecretKey: t.SecretKey,
-	}
+	c := credentials.NewStaticCredentials(t.AccessKey, t.SecretKey, "")
 
 	// get from ec2 meta-data if it's not passed explicitly
 	if t.ServerAddr == "" {
@@ -72,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	t.Dns = dnsclient.NewRoute53Client(t.HostedZone, auth)
+	t.Dns = dnsclient.NewRoute53Client(c, t.HostedZone)
 	t.Log = common.NewLogger("tunnelkite", t.Debug)
 
 	k := kite.New(Name, "0.0.1")

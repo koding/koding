@@ -169,9 +169,15 @@ module.exports =
 
   createChannel: (browser) ->
 
-    teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser)
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
     browser.end()
 
 
+  sendComment: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.sendComment(browser)
+    browser.end()
 
