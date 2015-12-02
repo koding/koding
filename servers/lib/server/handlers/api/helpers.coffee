@@ -1,10 +1,10 @@
 errors = require './errors'
 koding = require '../../bongo'
 
-sendApiError = (res, err) ->
+sendApiError = (res, error) ->
 
-  response = { error : err }
-  return res.status(err.status).send response
+  response = { error }
+  return res.status(error.status).send response
 
 
 sendApiResponse = (res, data) ->
