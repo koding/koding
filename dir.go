@@ -268,7 +268,7 @@ func (d *Dir) GetType() fuseutil.DirentType {
 
 // Expire removes the local cache of directory.
 func (d *Dir) Expire() error {
-	return d.reset()
+	return nil
 }
 
 ///// Helpers
