@@ -4,6 +4,7 @@ KodingError    = require '../../error'
 PROVIDERS      =
   aws          : require './aws'
   koding       : require './koding'
+  softlayer    : require './softlayer' # remove this line to disable softlayer ~ GG
   rackspace    : require './rackspace'
   digitalocean : require './digitalocean'
   azure        : require './azure'
