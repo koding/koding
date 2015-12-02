@@ -17,6 +17,8 @@ PLANS          = require './plans'
 # the default value to add, if no storage is defined.
 DEFAULT_STORAGE_USAGE = 3
 
+PROVIDERS_WITHOUT_CREDS = ['koding', 'managed', 'softlayer']
+
 reviveProvisioners = (client, provisioners, callback, revive = no) ->
 
   if not revive or not provisioners or provisioners.length is 0
@@ -182,7 +184,7 @@ revive = do -> (
       # since the user session is enough for koding provider for now.
 
       if shouldPassCredential and not credential?
-        unless provider in ['koding', 'managed']
+        unless provider in PROVIDERS_WITHOUT_CREDS
           return callback new KodingError \
             'Credential is required.', 'MissingCredential'
 
@@ -191,7 +193,7 @@ revive = do -> (
         if err then return callback err
 
         if shouldPassCredential and not cred?
-          unless provider in ['koding', 'managed']
+          unless provider in PROVIDERS_WITHOUT_CREDS
             return callback \
               new KodingError 'Credential failed.', 'AccessDenied'
         else
