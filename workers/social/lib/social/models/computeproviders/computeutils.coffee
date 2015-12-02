@@ -344,7 +344,7 @@ checkUsage = (usage, plan, storage) ->
   err = null
   if usage.total + 1 > plan.total
     err = "Total limit of #{plan.total} machines has been reached."
-  else if usage.storage + storage > plan.storage
+  else if storage? and usage.storage + storage > plan.storage
     err = "Total limit of #{plan.storage}GB storage limit has been reached."
 
   if err then return new KodingError err
