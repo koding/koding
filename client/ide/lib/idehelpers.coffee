@@ -184,6 +184,6 @@ module.exports = helpers =
 
     { appManager } = kd.singletons
 
-    return appManager.getIDEInstances()?.filter (instance) ->
+    return appManager.getInstances('IDE')?.filter (instance) ->
       instance.mountedMachineUId is machineUId
 
