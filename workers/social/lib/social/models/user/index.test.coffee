@@ -105,7 +105,7 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
-    describe 'when user is data valid', ->
+    describe 'when user data is valid', ->
 
       testCreateUserWithValidData = (userInfo, callback) ->
 
