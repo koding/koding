@@ -106,7 +106,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     describe 'when user is data valid', ->
 
-      testWithValidData = (userInfo, callback) ->
+      testCreateUserWithValidData = (userInfo, callback) ->
 
         queue = [
 
@@ -123,16 +123,16 @@ runTests = -> describe 'workers.social.user.index', ->
             # expecting user to be saved
             params = { username : userInfo.username }
             JUser.one params, (err, user) ->
-              expect(err)           .to.not.exist
-              expect(user.username) .to.be.equal userInfo.username
+              expect(err).to.not.exist
+              expect(user.username).to.be.equal userInfo.username
               queue.next()
 
           ->
             # expecting account to be created and saved
             params = { 'profile.nickname' : userInfo.username }
             JAccount.one params, (err, account) ->
-              expect(err)     .to.not.exist
-              expect(account) .to.exist
+              expect(err).to.not.exist
+              expect(account).to.exist
               queue.next()
 
           ->
@@ -155,7 +155,7 @@ runTests = -> describe 'workers.social.user.index', ->
         userInfo          = generateUserInfo()
         userInfo.username = userInfo.username.toLowerCase()
 
-        testWithValidData userInfo, done
+        testCreateUserWithValidData userInfo, done
 
 
       it 'should be able to create user with upper case username', (done) ->
@@ -163,7 +163,7 @@ runTests = -> describe 'workers.social.user.index', ->
         userInfo          = generateUserInfo()
         userInfo.username = userInfo.username.toUpperCase()
 
-        testWithValidData userInfo, done
+        testCreateUserWithValidData userInfo, done
 
 
       it 'should save email frequencies correctly', (done) ->
@@ -176,28 +176,15 @@ runTests = -> describe 'workers.social.user.index', ->
           followActions  : off
           privateMessage : off
 
-        queue = [
-
-          ->
-            JUser.createUser userInfo, (err) ->
-              expect(err).to.not.exist
-              queue.next()
-
-          ->
-            params = { username : userInfo.username }
-            JUser.one params, (err, user) ->
-              expect(err)                                 .to.not.exist
-              expect(user.emailFrequency.global)          .to.be.false
-              expect(user.emailFrequency.daily)           .to.be.false
-              expect(user.emailFrequency.privateMessage)  .to.be.false
-              expect(user.emailFrequency.followActions)   .to.be.false
-              queue.next()
-
-          -> done()
-
-        ]
-
-        daisy queue
+        testCreateUserWithValidData userInfo, ->
+          params = { username : userInfo.username }
+          JUser.one params, (err, user) ->
+            expect(err).to.not.exist
+            expect(user.emailFrequency.global).to.be.false
+            expect(user.emailFrequency.daily).to.be.false
+            expect(user.emailFrequency.privateMessage).to.be.false
+            expect(user.emailFrequency.followActions).to.be.false
+            done()
 
 
   describe '#login()', ->
