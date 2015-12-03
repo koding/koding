@@ -9,7 +9,8 @@
 { withConvertedUserAndApiToken }    = require '../../../../../workers/social/testhelper/models/apitokenhelper'
 { generateCreateUserRequestParams } = require '../../../../testhelper/handler/createuserhelper'
 
-JUser = require '../../../../models/user'
+apiErrors = require './errors'
+JUser     = require '../../../../models/user'
 
 beforeTests = -> before (done) ->
 
@@ -27,7 +28,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
     request.post createUserRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 401
-      expect(body).to.be.equal 'unauthorized request'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.unauthorizedRequest }
       done()
 
 
@@ -38,13 +39,15 @@ runTests = -> describe 'server.handlers.api.createuser', ->
     request.post createUserRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'invalid token!'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidApiToken }
       done()
 
 
   it 'should send HTTP 400 if email is not set', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { email  : '' }
@@ -52,41 +55,63 @@ runTests = -> describe 'server.handlers.api.createuser', ->
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'invalid request'
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidInput }
         done()
 
 
-  it 'should send HTTP 400 if username is already in use', (done) ->
+  it 'should send HTTP 409 if username is already in use', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { username : userFormData.username }
 
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'username is not available'
+        expect(res.statusCode).to.be.equal 409
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.usernameAlreadyExists }
         done()
 
 
-  it 'should send HTTP 400 if username is a banned one', (done) ->
+  it 'should send HTTP 409 if username is a banned one', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { username : JUser.bannedUserList[0] }
 
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'username is not available'
+        expect(res.statusCode).to.be.equal 409
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.usernameAlreadyExists }
         done()
 
 
-  it 'should send HTTP 400 if email is in use', (done) ->
+  it 'should send HTTP 500 if username has invalid characters', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+      createUserRequestParams = generateCreateUserRequestParams
+        headers  : { Authorization : "Bearer #{apiToken.code}" }
+        body     : { username : "@$_?()=&#{generateRandomString(10)}" }
+
+      request.post createUserRequestParams, (err, res, body) ->
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 500
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.internalError }
+        done()
+
+
+  it 'should send HTTP 409 if email is in use', (done) ->
+
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
       createUserRequestParams = generateCreateUserRequestParams
         headers  : { Authorization : "Bearer #{apiToken.code}" }
         body     : { email : userFormData.email }
@@ -94,14 +119,15 @@ runTests = -> describe 'server.handlers.api.createuser', ->
       # api token creator tries to register himself
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
-        expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'Email is already in use!'
+        expect(res.statusCode).to.be.equal 409
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.emailAlreadyExists }
         done()
 
 
   it 'should send HTTP 400 if given email is not in allowed domains', (done) ->
 
-    withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
       username = generateRandomUsername()
       createUserRequestParams = generateCreateUserRequestParams
@@ -112,18 +138,115 @@ runTests = -> describe 'server.handlers.api.createuser', ->
       request.post createUserRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal expectedBody
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidEmailDomain }
         done()
+
+
+  it 'should send HTTP 403 if group.isApiEnabled is not true', (done) ->
+
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ client, userFormData, apiToken, group }) ->
+
+      # setting api token availability false for the group
+      group.modify client, { isApiEnabled : false }, (err) ->
+        expect(err).to.not.exist
+
+        username = generateRandomUsername()
+        createUserRequestParams = generateCreateUserRequestParams
+          headers  : { Authorization : "Bearer #{apiToken.code}" }
+          body     : { username, email : generateRandomEmail 'yandex.com' }
+
+        expectedBody = 'api token usage is not enabled for this group'
+        request.post createUserRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 403
+          expect(JSON.parse body).to.be.deep.equal { error : apiErrors.apiIsDisabled }
+          done()
+
+
+  it 'should send HTTP 400 when both username and suggestedUsername not present', (done) ->
+
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+      username = generateRandomUsername()
+
+      createUserRequestParams = generateCreateUserRequestParams
+        headers  : { Authorization : "Bearer #{apiToken.code}" }
+        body     : { username : '', suggestedUsername : '' }
+
+      # creating user
+      request.post createUserRequestParams, (err, res, body) ->
+        expect(err).to.not.exist
+        expect(res.statusCode).to.be.equal 400
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidInput }
+        done()
+
+
+  it 'should send HTTP 400 when suggested username length is not valid', (done) ->
+
+    values = [1, 3, 16]
+    queue  = []
+
+    values.forEach (length) ->
+      queue.push ->
+        options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+        withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+          suggestedUsername = generateRandomString length
+
+          createUserRequestParams = generateCreateUserRequestParams
+            headers  : { Authorization : "Bearer #{apiToken.code}" }
+            body     : { username : '', suggestedUsername }
+
+          # creating user
+          request.post createUserRequestParams, (err, res, body) ->
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 400
+            expect(JSON.parse body).to.be.deep.equal { error : apiErrors.outOfRangeSuggestedUsername }
+            queue.next()
+
+    queue.push -> done()
+
+    daisy queue
+
+
+  it 'should send HTTP 400 when username length is not valid', (done) ->
+
+    values = [1, 3, 26]
+    queue  = []
+
+    values.forEach (length) ->
+      queue.push ->
+        options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+        withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+          username = generateRandomString length
+
+          createUserRequestParams = generateCreateUserRequestParams
+            headers  : { Authorization : "Bearer #{apiToken.code}" }
+            body     : { username }
+
+          # creating user
+          request.post createUserRequestParams, (err, res, body) ->
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 400
+            expect(JSON.parse body).to.be.deep.equal { error : apiErrors.outOfRangeUsername }
+            queue.next()
+
+    queue.push -> done()
+
+    daisy queue
 
 
   describe 'when request is valid', ->
 
     it 'should send HTTP 200 and create user with username provided', (done) ->
 
-      withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+      options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
 
         username = generateRandomUsername()
-        password = passwordConfirm = generateRandomString()
 
         createUserRequestParams = generateCreateUserRequestParams
           headers  : { Authorization : "Bearer #{apiToken.code}" }
@@ -133,24 +256,45 @@ runTests = -> describe 'server.handlers.api.createuser', ->
         request.post createUserRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 200
-          expect(body).to.contain username
+          expect(JSON.parse body).to.be.deep.equal { data : { username } }
           done()
 
-    it 'should send HTTP 200 and create user without username provided', (done) ->
 
-      withConvertedUserAndApiToken ({ userFormData, apiToken }) ->
+    it 'should send HTTP 200 and create user with suggested username', (done) ->
 
-        password = passwordConfirm = generateRandomString()
+      options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+        suggestedUsername = generateRandomString 10
 
         createUserRequestParams = generateCreateUserRequestParams
           headers  : { Authorization : "Bearer #{apiToken.code}" }
-          body     : { username : '' }
+          body     : { username : '', suggestedUsername }
 
         # expecting to see randomly generated username
         request.post createUserRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 200
-          expect(body).to.contain apiToken.group.substring 0, 4
+          expect(body).to.contain suggestedUsername
+          done()
+
+
+    it 'should send HTTP 200 and use suggestedUsername if username is invalid', (done) ->
+
+      options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+      withConvertedUserAndApiToken options, ({ userFormData, apiToken }) ->
+
+        suggestedUsername = generateRandomString 10
+
+        createUserRequestParams = generateCreateUserRequestParams
+          headers  : { Authorization : "Bearer #{apiToken.code}" }
+          body     : { username : userFormData.username, suggestedUsername }
+
+        # expecting to see randomly generated username
+        request.post createUserRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(body).to.contain suggestedUsername
           done()
 
 

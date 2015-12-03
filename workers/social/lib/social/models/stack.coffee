@@ -44,9 +44,11 @@ module.exports = class JComputeStack extends jraphical.Module
       instance           :
         delete           :
           (signature Function)
+        destroy          :
+          (signature Function)
         modify           :
           (signature Object, Function)
-        checkRevision     :
+        checkRevision    :
           (signature Function)
 
     sharedEvents         :
@@ -187,15 +189,15 @@ module.exports = class JComputeStack extends jraphical.Module
     { delegate } = client.connection
     { group }    = client.context
 
-    selector ?= {}
-    selector.originId = delegate.getId()
-    selector.status   = { $ne: 'Terminated' }
-    selector.group    = group
+    selector                ?= {}
+    selector.group           = group
+    selector.originId        = delegate.getId()
+    selector['status.state'] = { $ne: 'Destroying' }
 
     return selector
 
 
-  getGroup: (callback) ->
+  fetchGroup: (callback) ->
 
     slug   = @getAt 'group'
     JGroup = require './group'
@@ -281,19 +283,56 @@ module.exports = class JComputeStack extends jraphical.Module
     , callback
 
 
+  destroy: (callback) ->
+
+    @fetchGroup (err, group) =>
+      return callback err  if err
+
+      @update { $set: { status: { state: 'Destroying' } } }, (err) =>
+        return callback err  if err
+
+        JMachine        = require './computeproviders/machine'
+        ComputeProvider = require './computeproviders/computeprovider'
+
+        instanceCount   = (@getAt('machines') ? []).length
+
+        ComputeProvider.updateGroupResourceUsage {
+          group, change: 'decrement', instanceCount
+        }, =>
+
+          machineIds = (machineId for machineId in @machines)
+
+          JMachine.update {
+            _id  : { $in: machineIds }
+          }, {
+            $set : {
+              status : { state: 'Terminated' }
+              users  : [] # remove users from machines since
+                          # it's going to be terminated so users of this
+                          # machine won't be able to see it ~ GG
+            }
+          }, (err) =>
+
+            if err
+              console.warn 'Failed to mark stack machines as Terminated:', err
+
+            @unuseStackTemplate callback
+
+
   delete: (callback) ->
 
-    @getGroup (err, group) =>
+    if @baseStackId
+      return callback new KodingError \
+        'Stacks generated from templates can only be destroyed by Kloud.'
+
+    @fetchGroup (err, group) =>
 
       return callback err  if err
 
-      # TODO Implement delete methods.
-      @update { $set: { status: 'Terminating' } }
+      @update { $set: { status: { state: 'Destroying' } } }
 
       JProposedDomain  = require './domain'
       JMachine = require './computeproviders/machine'
-
-      instanceCount = (@getAt('machines') ? []).length
 
       @domains?.forEach (_id) ->
         JProposedDomain.one { _id }, (err, domain) ->
@@ -309,10 +348,7 @@ module.exports = class JComputeStack extends jraphical.Module
               if err then console.error \
                 "Failed to remove machine: #{machine.title}", err
 
-      ComputeProvider = require './computeproviders/computeprovider'
-      ComputeProvider.updateGroupResourceUsage {
-        group, change: 'decrement', instanceCount
-      }, => @unuseStackTemplate => @remove callback
+      @destroy => @remove callback
 
 
   delete$: permit
@@ -327,6 +363,17 @@ module.exports = class JComputeStack extends jraphical.Module
     success: (client, callback) ->
 
       @delete callback
+
+
+  destroy$: permit
+
+    advanced: [
+      { permission: 'delete own stack', validateWith: Validators.own }
+    ]
+
+    success: (client, callback) ->
+
+      @destroy callback
 
 
   SUPPORTED_CREDS = (Object.keys PROVIDERS).concat ['userInput', 'custom']

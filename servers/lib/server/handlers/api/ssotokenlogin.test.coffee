@@ -10,8 +10,9 @@
 { generateSsoTokenLoginRequestParams } = require '../../../../testhelper/handler/ssotokenloginhelper'
 { createUserAndSsoToken }              = require '../../../../testhelper/handler/createssotokenhelper'
 
-JUser    = require '../../../../models/user'
-JAccount = require '../../../../models/account'
+JUser     = require '../../../../models/user'
+JAccount  = require '../../../../models/account'
+apiErrors = require './errors'
 
 beforeTests = -> before (done) ->
 
@@ -29,7 +30,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'token is required'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.missingRequiredQueryParameter }
       done()
 
 
@@ -41,7 +42,7 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'no username in token'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidSSOTokenPayload }
       done()
 
 
@@ -53,13 +54,14 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
     request.get ssoTokenLoginRequestParams, (err, res, body) ->
       expect(err).to.not.exist
       expect(res.statusCode).to.be.equal 400
-      expect(body).to.be.equal 'no group slug in token'
+      expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidSSOTokenPayload }
       done()
 
 
   it 'should send HTTP 400 if user is non-existent', (done) ->
 
-    withConvertedUserAndApiToken { createGroup : yes }, ({ group }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ group }) ->
       token = JUser.createJWT { username: 'non-existent-user', group : group.slug }
       ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
         qs  : { token }
@@ -68,13 +70,14 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
       request.get ssoTokenLoginRequestParams, (err, res, body) ->
         expect(err).to.not.exist
         expect(res.statusCode).to.be.equal 400
-        expect(body).to.be.equal 'invalid username!'
+        expect(JSON.parse body).to.be.deep.equal { error : apiErrors.invalidUsername }
         done()
 
 
   it 'should send HTTP 400 if user is not a member of the apiToken group', (done) ->
 
-    withConvertedUserAndApiToken { createGroup : yes }, ({ group, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ group, apiToken }) ->
 
       token    = null
       account  = null
@@ -105,13 +108,13 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
         ->
           # trying to use sso token without being a member of the group
           ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams
-            qs : { token }
+            qs  : { token }
             url : { subdomain : group.slug }
 
           request.get ssoTokenLoginRequestParams, (err, res, body) ->
             expect(err).to.not.exist
             expect(res.statusCode).to.be.equal 400
-            expect(body).to.be.equal 'user is not a member of the group'
+            expect(JSON.parse body).to.be.deep.equal { error : apiErrors.notGroupMember }
             queue.next()
 
         -> done()
@@ -123,7 +126,8 @@ runTests = -> describe 'server.handlers.api.ssotokenlogin', ->
 
   it 'should send HTTP and be able to login user with valid request', (done) ->
 
-    withConvertedUserAndApiToken { createGroup : yes }, ({ group, apiToken }) ->
+    options = { createGroup : yes, groupData : { isApiEnabled : yes } }
+    withConvertedUserAndApiToken options, ({ group, apiToken }) ->
       createUserAndSsoToken apiToken.code, ({ token }) ->
 
         ssoTokenLoginRequestParams = generateSsoTokenLoginRequestParams

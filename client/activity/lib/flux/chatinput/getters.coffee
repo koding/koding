@@ -6,7 +6,7 @@ calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
 findNameByQuery            = require 'activity/util/findNameByQuery'
-
+isGroupChannel             = require 'app/util/isgroupchannel'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -310,12 +310,21 @@ commandsQuery = (stateId) -> [
 commands = (stateId, disabledFeatures = []) -> [
   CommandsStore
   commandsQuery stateId
-  (allCommands, query) ->
+  ActivityFluxGetters.selectedChannelThread
+  (allCommands, query, selectedChannelThread) ->
     return immutable.List()  if disabledFeatures.indexOf('commands') > -1
+
+    ignoredFeatures  = []
+    selectedChannel  = selectedChannelThread.get('channel').toJS()
+    isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
+    ignoredFeatures.push 'search'  if isPrivateChannel
+    ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
+
+    ignoredFeatures = disabledFeatures.concat ignoredFeatures
 
     availableCommands = allCommands.filterNot (command) ->
       featureName = command.get('name').replace '/', ''
-      return disabledFeatures.indexOf(featureName) > -1
+      return ignoredFeatures.indexOf(featureName) > -1
 
     return availableCommands  if query is '/'
 

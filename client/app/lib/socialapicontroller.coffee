@@ -263,6 +263,24 @@ module.exports = class SocialApiController extends KDController
     }
 
 
+  mapUpdatedChannel = (options) ->
+
+    { socialapi } = kd.singletons
+
+    channel = options.channel
+
+    # since this is already an instance event, we will use find that channel instance and update it.
+    cacheItem = socialapi.retrieveCachedItem channel.typeConstant, channel.id
+
+    unless cacheItem
+      return console.error 'SocialApiController#mapUpdatedChannel: Channel got updated event without it\'s being cached, something is wrong here'
+
+    cacheItem.purpose = channel.purpose
+    cacheItem.payload = channel.payload
+
+    return cacheItem
+
+
   mapChannel = (channel) ->
     { socialapi } = kd.singletons
 
@@ -609,6 +627,7 @@ module.exports = class SocialApiController extends KDController
       {event: "AddedToChannel",     mapperFn: mapParticipant}
       {event: "RemovedFromChannel", mapperFn: mapParticipant}
       {event: "ChannelDeleted",     mapperFn: mapChannel}
+      {event: "ChannelUpdated",     mapperFn: mapUpdatedChannel}
     ]
 
   serialize = (obj) ->

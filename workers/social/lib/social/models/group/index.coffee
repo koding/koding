@@ -302,6 +302,8 @@ module.exports = class JGroup extends Module
       initalData    : Object
       # Generic config object for future requirements on groups ~ GG
       config        : Object
+      # Api usage can be disabled or enabled for the group
+      isApiEnabled : Boolean
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
@@ -1516,5 +1518,4 @@ module.exports = class JGroup extends Module
             account.profile.email = user.email
 
       return callback null, accounts
-
 
