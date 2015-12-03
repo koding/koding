@@ -215,11 +215,12 @@ fetchOrCreateGroup = (client, opts, callback) ->
     return callback group  if group or not opts.createGroup
 
     # no group found, let's create one
-    groupData         =
+    groupData = _.extend
       slug           : slug
       title          : slug
       visibility     : 'visible'
       allowedDomains : [ 'koding.com' ]
+    , opts.groupData
 
     account = client?.connection?.delegate
     JGroup.create client, groupData, account, (err, group) ->

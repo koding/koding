@@ -317,11 +317,15 @@ module.exports = class ComputeController_UI
     modal = new kd.ModalView
       cssClass       : 'AppModal AppModal--admin'
       title          : 'Build Requirements'
+      width          : 630
       overlay        : yes
       view           : missingDataView
-      overlayOptions :
-        cssClass     : 'second-overlay'
-      width          : 630
+      overlayClick   : no
+      overlayOptions : cssClass: 'second-overlay'
+
+    modal.overlay.on 'click', ->
+      lc = missingDataView.listController
+      modal.destroy()  unless lc.isAddCredentialFormOpen
 
     missingDataView.on 'RequirementsProvided', ({ stack, credential }) ->
       callback { stack, credential }

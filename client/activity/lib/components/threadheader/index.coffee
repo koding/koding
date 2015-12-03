@@ -8,6 +8,8 @@ ButtonWithMenu       = require 'app/components/buttonwithmenu'
 StartVideoCallLink   = require 'activity/components/common/startvideocalllink'
 VideoComingSoonModal = require 'activity/components/videocomingsoonmodal'
 ChannelLabel         = require 'activity/components/channellabel'
+isGroupChannel       = require 'app/util/isgroupchannel'
+
 
 module.exports = class ThreadHeader extends React.Component
 
@@ -48,14 +50,12 @@ module.exports = class ThreadHeader extends React.Component
 
 
   getMenuItems: ->
-    return [
+
+    channel = @state.thread.get('channel').toJS()
+    result  = [
       title   : 'Invite people'
       key     : 'invitepeople'
       onClick : @props.onInvitePeople
-    ,
-      title   : 'Leave channel'
-      key     : 'leavechannel'
-      onClick : @props.onLeaveChannel
     ,
       title   : 'Update purpose'
       key     : 'updatepurpose'
@@ -65,6 +65,17 @@ module.exports = class ThreadHeader extends React.Component
       key     : 'notificationsettings'
       onClick : @props.onShowNotificationSettings
     ]
+
+    # if channel isn't a team channel,
+    # add "Leave channel" at the 2nd position of the list
+    unless isGroupChannel channel
+      result.splice 1, 0, {
+        title   : 'Leave channel'
+        key     : 'leavechannel'
+        onClick : @props.onLeaveChannel
+      }
+
+    return result
 
 
   onUpdatePurpose: ->

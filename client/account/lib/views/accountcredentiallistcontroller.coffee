@@ -173,7 +173,8 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     view.intro?.destroy()
     view.scrollView?.destroy()
 
-    view.setClass "form-open"
+    view.setClass 'form-open'
+    @isAddCredentialFormOpen = yes
 
     view.scrollView = new KDCustomScrollView  cssClass : 'add-credential-scroll'
 
@@ -198,12 +199,14 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
     view.form = ui.generateAddCredentialFormFor options
     view.form.setClass 'credentials-form-view'
 
-    view.form.on "Cancel", ->
-      view.unsetClass "form-open"
+    view.form.on 'Cancel', =>
+      view.unsetClass 'form-open'
+      @isAddCredentialFormOpen = no
       view.form.destroy()
 
-    view.form.on "CredentialAdded", (credential) =>
-      view.unsetClass "form-open"
+    view.form.on 'CredentialAdded', (credential) =>
+      view.unsetClass 'form-open'
+      @isAddCredentialFormOpen  = no
       credential.owner = yes
       view.form.destroy()
       @addItem credential

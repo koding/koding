@@ -6,17 +6,21 @@ calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
 getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
 findNameByQuery            = require 'activity/util/findNameByQuery'
-
+isGroupChannel             = require 'app/util/isgroupchannel'
+getEmojiSynonyms           = require 'activity/util/getEmojiSynonyms'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
 
 
 EmojisStore                         = [['EmojisStore'], withEmptyList]
+EmojiCategoriesStore                = [['EmojiCategoriesStore'], withEmptyList]
 FilteredEmojiListQueryStore         = [['FilteredEmojiListQueryStore'], withEmptyMap]
 FilteredEmojiListSelectedIndexStore = [['FilteredEmojiListSelectedIndexStore'], withEmptyMap]
-CommonEmojiListSelectedIndexStore   = [['CommonEmojiListSelectedIndexStore'], withEmptyMap]
-CommonEmojiListVisibilityStore      = [['CommonEmojiListVisibilityStore'], withEmptyMap]
+EmojiSelectBoxQueryStore            = [['EmojiSelectBoxQueryStore'], withEmptyMap]
+EmojiSelectBoxSelectedIndexStore    = [['EmojiSelectBoxSelectedIndexStore'], withEmptyMap]
+EmojiSelectBoxVisibilityStore       = [['EmojiSelectBoxVisibilityStore'], withEmptyMap]
+EmojiSelectBoxTabIndexStore         = [['EmojiSelectBoxTabIndexStore'], withEmptyMap]
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
@@ -81,26 +85,118 @@ filteredEmojiListSelectedItem = (stateId) -> [
 ]
 
 
-commonEmojiList = EmojisStore
+# Returns emoji selectbox query by given stateId
+emojiSelectBoxQuery = (stateId) -> [
+  EmojiSelectBoxQueryStore
+  (queries) -> queries.get stateId
+]
+
+# Returns a list of emoji categories with their emojis
+# - If emoji selectbox query is not empty, it searches for emojis by
+# specified query and returns a list with the only category named
+# 'Search Results' with a list of found emojis
+# - If emoji selectbox query is empty, it returns EmojiCategoriesStore data
+emojiSelectBoxItems = (stateId) -> [
+  EmojiCategoriesStore
+  emojiSelectBoxQuery stateId
+  (list, query) ->
+    unless query
+      # For each emoji we need to check if it has synonyms and if so,
+      # only first emoji synonym should be in the result list
+      return list.map (categoryItem) ->
+        toImmutable {
+          category : categoryItem.get 'category'
+          emojis   : categoryItem.get('emojis').filterNot (emoji) ->
+            synonyms = getEmojiSynonyms emoji
+            return synonyms and synonyms.indexOf(emoji) > 0
+        }
+
+    isBeginningMatch = query.length < 3
+
+    matchedSynonyms = []
+    reduceFn = (reduction, item) ->
+      emojis = item.get('emojis').filter (emoji) ->
+        index = emoji.indexOf(query)
+        if isBeginningMatch then index is 0 else index > -1
+
+      # Once emojis are filtered out by query, it's necessary to make sure
+      # that emojis with synonyms should be mapped to their first synonyms.
+      # During this process it's important to filter out possible emoji duplicates
+      emojis = emojis.map (emoji) ->
+        synonyms = getEmojiSynonyms emoji
+        return emoji  unless synonyms
+        return  if matchedSynonyms.indexOf(emoji) > -1
+        matchedSynonyms = matchedSynonyms.concat synonyms
+        return synonyms[0]
+
+      emojis = emojis.filter (emoji) -> emoji?
+
+      reduction.concat emojis.toJS()
+
+    searchItems = list.reduce reduceFn, []
+
+    toImmutable [{ category : 'Search Results', emojis : searchItems }]
+]
 
 
-commonEmojiListSelectedIndex = (stateId) -> [
-  CommonEmojiListSelectedIndexStore
+# Returns a list of emoji selectbox tabs
+# Each tab has category name and emoji name which is used
+# to render tab icon
+emojiSelectBoxTabs = [
+  EmojiCategoriesStore
+  (list) ->
+    list.map (item) ->
+      toImmutable {
+        category : item.get('category')
+        iconEmoji : item.get('emojis').get(0)
+      }
+]
+
+
+# Returns selected index of emoji selectbox
+# It's a total index based on the list of emojis of all categories
+emojiSelectBoxSelectedIndex = (stateId) -> [
+  EmojiSelectBoxSelectedIndexStore
   (indexes) -> indexes.get stateId
 ]
 
 
-commonEmojiListVisibility = (stateId) -> [
-  CommonEmojiListVisibilityStore
+# Returns visibility flag of emoji selectbox
+emojiSelectBoxVisibility = (stateId) -> [
+  EmojiSelectBoxVisibilityStore
   (visibilities) -> visibilities.get stateId
 ]
 
 
-# Returns emoji from emoji list by current selected index
-commonEmojiListSelectedItem = (stateId) -> [
-  commonEmojiList
-  commonEmojiListSelectedIndex stateId
-  getListSelectedItem
+# Returns emoji from common emoji list of all categories
+# by current selected index
+emojiSelectBoxSelectedItem = (stateId) -> [
+  emojiSelectBoxItems stateId
+  emojiSelectBoxSelectedIndex stateId
+  (list, selectedIndex) ->
+    return  unless selectedIndex?
+
+    totalIndex = 0
+
+    categoryItem = list.find (item) ->
+      emojiCount = item.get('emojis').size
+      if (emojiCount + totalIndex) > selectedIndex
+        return yes
+      else
+        totalIndex += emojiCount
+        return no
+
+    return  unless categoryItem
+
+    result = categoryItem.get('emojis').get selectedIndex - totalIndex
+]
+
+
+# Returns current tab index of emoji selectbox by specified stateId
+# If tab index doesn't exist in the store, returns -1
+emojiSelectBoxTabIndex = (stateId) -> [
+  EmojiSelectBoxTabIndexStore
+  (tabIndexes) -> tabIndexes.get(stateId) ? -1
 ]
 
 
@@ -310,12 +406,21 @@ commandsQuery = (stateId) -> [
 commands = (stateId, disabledFeatures = []) -> [
   CommandsStore
   commandsQuery stateId
-  (allCommands, query) ->
+  ActivityFluxGetters.selectedChannelThread
+  (allCommands, query, selectedChannelThread) ->
     return immutable.List()  if disabledFeatures.indexOf('commands') > -1
+
+    ignoredFeatures  = []
+    selectedChannel  = selectedChannelThread.get('channel').toJS()
+    isPrivateChannel = selectedChannel.typeConstant is 'privatemessage'
+    ignoredFeatures.push 'search'  if isPrivateChannel
+    ignoredFeatures.push 'leave'   if isGroupChannel selectedChannel
+
+    ignoredFeatures = disabledFeatures.concat ignoredFeatures
 
     availableCommands = allCommands.filterNot (command) ->
       featureName = command.get('name').replace '/', ''
-      return disabledFeatures.indexOf(featureName) > -1
+      return ignoredFeatures.indexOf(featureName) > -1
 
     return availableCommands  if query is '/'
 
@@ -357,10 +462,13 @@ module.exports = {
   filteredEmojiListSelectedItem
   filteredEmojiListSelectedIndex
 
-  commonEmojiList
-  commonEmojiListSelectedIndex
-  commonEmojiListVisibility
-  commonEmojiListSelectedItem
+  emojiSelectBoxItems
+  emojiSelectBoxTabs
+  emojiSelectBoxQuery
+  emojiSelectBoxSelectedIndex
+  emojiSelectBoxVisibility
+  emojiSelectBoxSelectedItem
+  emojiSelectBoxTabIndex
 
   channelsQuery
   channels

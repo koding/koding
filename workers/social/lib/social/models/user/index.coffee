@@ -1548,7 +1548,7 @@ module.exports = class JUser extends jraphical.Module
 
     { slug, email, agree, username, lastName, referrer,
       password, firstName, recaptcha, emailFrequency,
-      invitationToken, passwordConfirm } = userFormData
+      invitationToken, passwordConfirm, disableCaptcha } = userFormData
 
     { clientIP, connection }    = client
     { delegate : account }      = connection
@@ -1607,18 +1607,6 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        JUser.emit 'UserRegistered', { user, account }
-        queue.next()
-
-      ->
-        # Auto confirm accounts for development environment or Teams ~ GG
-        options = { group : client.context.group, user, email, username }
-        confirmAccountIfNeeded options, (err, pin_) ->
-          return callback err  if err
-          pin = pin_
-          queue.next()
-
-      ->
         date = new Date 0
         subscription =
           accountId          : account.getId()
@@ -1634,51 +1622,32 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        jwtToken = JUser.createJWT { username }
-
-        { status, lastLoginDate } = user
-        { createdAt } = account.meta
-
-        sshKeysCount = user.sshKeys.length
-
-        emailFrequency =
-          global       : user.emailFrequency.global
-          marketing    : user.emailFrequency.marketing
-
-        traits = {
-          email
-          createdAt
-          lastLoginDate
-          status
-
-          firstName
-          lastName
-
-          subscription
-          sshKeysCount
-          emailFrequency
-
-          pin
-          jwtToken
-        }
-
-        Tracker.identify username, traits
-        Tracker.alias oldUsername, username
+        args = { user, account, subscription, pin, oldUsername }
+        identifyUserOnRegister disableCaptcha, args
 
         queue.next()
 
       ->
-        subject             = Tracker.types.START_REGISTER
-        { username, email } = user
-
-        opts = { pin, email, group: client.context.group, user : { user_id : username, email } }
-        Tracker.track username, { to : email, subject }, opts
-
+        JUser.emit 'UserRegistered', { user, account }
         queue.next()
+
+      ->
+        # Auto confirm accounts for development environment or Teams ~ GG
+        options = { group : client.context.group, user, email, username }
+        confirmAccountIfNeeded options, (err, pin_) ->
+          return callback err  if err
+          pin = pin_
+          queue.next()
 
       ->
         # don't block register
         callback error, { account, newToken, user }
+        queue.next()
+
+      ->
+        group = client.context.group
+        trackUserOnRegister disableCaptcha, { user, group, pin }
+
         queue.next()
 
       ->
@@ -1688,6 +1657,56 @@ module.exports = class JUser extends jraphical.Module
     ]
 
     daisy queue
+
+
+  identifyUserOnRegister = (disableCaptcha, args) ->
+
+    return  if disableCaptcha
+
+    { user, account, subscription, pin, oldUsername } = args
+    { status, lastLoginDate, username, email } = user
+    { createdAt, profile } = account.meta
+    { firstName, lastName } = account.profile
+
+    jwtToken = JUser.createJWT { username }
+
+    sshKeysCount = user.sshKeys.length
+
+    emailFrequency =
+      global       : user.emailFrequency.global
+      marketing    : user.emailFrequency.marketing
+
+    traits = {
+      email
+      createdAt
+      lastLoginDate
+      status
+
+      firstName
+      lastName
+
+      subscription
+      sshKeysCount
+      emailFrequency
+
+      pin
+      jwtToken
+    }
+
+    Tracker.identify username, traits
+    Tracker.alias oldUsername, username
+
+
+  trackUserOnRegister = (disableCaptcha, args) ->
+
+    return  if disableCaptcha
+
+    subject              = Tracker.types.START_REGISTER
+    { user, group, pin } = args
+    { username, email }  = user
+
+    opts = { pin, email, group, user : { user_id : username, email } }
+    Tracker.track username, { to : email, subject }, opts
 
 
   @createJWT: (data, options = {}) ->
