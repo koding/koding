@@ -786,6 +786,9 @@ module.exports = class JUser extends jraphical.Module
     if password isnt passwordConfirm
       return new KodingError 'Passwords must match!'
 
+    unless typeof username is 'string'
+      return new KodingError 'Username must be a string!'
+
     return null
 
 
@@ -1020,8 +1023,11 @@ module.exports = class JUser extends jraphical.Module
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
+    if typeof username isnt 'string'
+      return callback new KodingError 'Username must be a string!'
+
     # lower casing username is necessary to prevent conflicts with JName documents
-    username       = username.toLowerCase()  if typeof username is 'string'
+    username       = username.toLowerCase()
     email          = emailsanitize email
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
@@ -1564,12 +1570,12 @@ module.exports = class JUser extends jraphical.Module
     userFormData.firstName = username  unless firstName
     userFormData.lastName  = ''        unless lastName
 
-    # lower casing username is necessary to prevent conflicts with JName documents
-    username = username.toLowerCase()  if typeof username is 'string'
-    email    = userFormData.email = emailsanitize email
-
     if error = validateConvertInput userFormData, client
       return callback error
+
+    # lower casing username is necessary to prevent conflicts with other JModels
+    username = userFormData.username = username.toLowerCase()
+    email    = userFormData.email    = emailsanitize email
 
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
