@@ -109,7 +109,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	// get the user from the permitted list. If the list contains more than one
 	// allowed person, fetch the one that is the same as requesterUsername, if
 	// not pick up the first one.
-	user, err := p.getOwner(requesterUsername, machine.Users)
+	user, err := p.getPermittedUser(requesterUsername, machine.Users)
 	if err != nil {
 		return err
 	}
@@ -173,15 +173,15 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	return nil
 }
 
-// getOwner returns the owner of the machine, if it's not found it returns an
-// error. The requestName is optional, if it's not empty and the the users list
-// has more than one valid allowed users, we return the one that matches the
-// requesterName.
-func (p *Provider) getOwner(requesterName string, users []models.MachineUser) (*models.User, error) {
+// getPermittedUser returns the permitted user of the machine (owner or shared
+// user), if it's not found it returns an error. The requestName is optional,
+// if it's not empty and the the users list has more than one valid allowed
+// users, we return the one that matches the requesterName.
+func (p *Provider) getPermittedUser(requesterName string, users []models.MachineUser) (*models.User, error) {
 	allowedIds := make([]bson.ObjectId, 0)
 	for _, perm := range users {
 		// we only going to fetch users that are allowed
-		if perm.Sudo && perm.Owner {
+		if perm.Owner || (perm.Permanent && perm.Approved) {
 			allowedIds = append(allowedIds, perm.Id)
 		}
 	}
@@ -263,7 +263,7 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 func (p *Provider) checkUser(userId bson.ObjectId, users []models.MachineUser) error {
 	// check if the incoming user is in the list of permitted user list
 	for _, u := range users {
-		if userId == u.Id && u.Owner {
+		if userId == u.Id && (u.Owner || (u.Permanent && u.Approved)) {
 			return nil // ok he/she is good to go!
 		}
 	}
