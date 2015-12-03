@@ -1,6 +1,9 @@
 errors = require './errors'
 koding = require '../../bongo'
 
+SUGGESTED_USERNAME_MIN_LENGTH = 4
+SUGGESTED_USERNAME_MAX_LENGTH = 15
+
 sendApiError = (res, error) ->
 
   response = { error }
@@ -32,12 +35,9 @@ checkApiAvailability = (options, callback) ->
     return callback null
 
 
-
 isSuggestedUsernameLengthValid = (suggestedUsername) ->
 
-  if 4 <= suggestedUsername?.length <= 15
-  then yes
-  else no
+  return SUGGESTED_USERNAME_MIN_LENGTH <= suggestedUsername?.length <= SUGGESTED_USERNAME_MAX_LENGTH
 
 
 isUsernameLengthValid = (username) ->
@@ -45,17 +45,17 @@ isUsernameLengthValid = (username) ->
   { JUser } = koding.models
   { minLength, maxLength } = JUser.getValidUsernameLengthRange()
 
-  if minLength <= username?.length <= maxLength
-  then yes
-  else no
-
+  return minLength <= username?.length <= maxLength
 
 
 module.exports = {
   sendApiError
   sendApiResponse
-  isUsernameLengthValid
   checkApiAvailability
+  isUsernameLengthValid
   isSuggestedUsernameLengthValid
+
+  SUGGESTED_USERNAME_MIN_LENGTH
+  SUGGESTED_USERNAME_MAX_LENGTH
 }
 
