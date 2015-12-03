@@ -19,7 +19,7 @@ module.exports = class EmojiSelectBox extends React.Component
     selectedItem : ''
     query        : ''
     tabs         : immutable.List()
-    tabIndex     : -1
+    tabIndex     : 0
 
 
   updatePosition: (inputDimensions) ->

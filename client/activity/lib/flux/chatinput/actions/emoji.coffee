@@ -171,11 +171,23 @@ setSelectBoxTabIndex = (stateId, tabIndex) ->
 
 
 ###*
- * Action to reset current tab index to initial value -1
+ * Action to reset current tab index to initial value 0
  *
  * @param {string} stateId
 ###
-resetSelectBoxTabIndex = (stateId) -> setSelectBoxTabIndex stateId, -1
+resetSelectBoxTabIndex = (stateId) -> setSelectBoxTabIndex stateId, 0
+
+
+###*
+ * Action to increment emoji usage count
+ *
+ * @param {string} emoji
+###
+incrementUsageCount = (emoji) ->
+
+  { INCREMENT_EMOJI_USAGE_COUNT } = actionTypes
+
+  dispatch INCREMENT_EMOJI_USAGE_COUNT, { emoji }
 
 
 dispatch = (args...) -> kd.singletons.reactor.dispatch args...
@@ -195,5 +207,7 @@ module.exports = {
   resetSelectBoxSelectedIndex
   setSelectBoxVisibility
   setSelectBoxTabIndex
+
+  incrementUsageCount
 }
 

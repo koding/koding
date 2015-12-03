@@ -21,6 +21,7 @@ EmojiSelectBoxQueryStore            = [['EmojiSelectBoxQueryStore'], withEmptyMa
 EmojiSelectBoxSelectedIndexStore    = [['EmojiSelectBoxSelectedIndexStore'], withEmptyMap]
 EmojiSelectBoxVisibilityStore       = [['EmojiSelectBoxVisibilityStore'], withEmptyMap]
 EmojiSelectBoxTabIndexStore         = [['EmojiSelectBoxTabIndexStore'], withEmptyMap]
+EmojiUsageCountsStore               = [['EmojiUsageCountsStore'], withEmptyMap]
 ChannelsQueryStore                  = [['ChatInputChannelsQueryStore'], withEmptyMap]
 ChannelsSelectedIndexStore          = [['ChatInputChannelsSelectedIndexStore'], withEmptyMap]
 ChannelsVisibilityStore             = [['ChatInputChannelsVisibilityStore'], withEmptyMap]
@@ -91,6 +92,21 @@ emojiSelectBoxQuery = (stateId) -> [
   (queries) -> queries.get stateId
 ]
 
+
+# Returns a list of frequently used emojis
+frequentlyUsedEmojis = [
+  EmojiUsageCountsStore
+  (usageCounts) ->
+    maxCount = 9
+    usageCounts
+      .filter (count, emoji) -> count > 0
+      .sort (count1, count2) -> count2 - count1
+      .take maxCount
+      .map (count, emoji) -> emoji
+      .toList()
+]
+
+
 # Returns a list of emoji categories with their emojis
 # - If emoji selectbox query is not empty, it searches for emojis by
 # specified query and returns a list with the only category named
@@ -98,9 +114,15 @@ emojiSelectBoxQuery = (stateId) -> [
 # - If emoji selectbox query is empty, it returns EmojiCategoriesStore data
 emojiSelectBoxItems = (stateId) -> [
   EmojiCategoriesStore
+  frequentlyUsedEmojis
   emojiSelectBoxQuery stateId
-  (list, query) ->
+  (list, frequentlyUsed, query) ->
     unless query
+      list = list.splice 0, 0, toImmutable {
+        category : 'Frequently Used'
+        emojis   : frequentlyUsed.toJS()
+      }
+
       # For each emoji we need to check if it has synonyms and if so,
       # only first emoji synonym should be in the result list
       return list.map (categoryItem) ->
@@ -145,11 +167,16 @@ emojiSelectBoxItems = (stateId) -> [
 emojiSelectBoxTabs = [
   EmojiCategoriesStore
   (list) ->
-    list.map (item) ->
-      toImmutable {
-        category : item.get('category')
-        iconEmoji : item.get('emojis').get(0)
-      }
+    list = list.map (item) ->
+      category  : item.get('category')
+      iconEmoji : item.get('emojis').get(0)
+
+    list = list.splice 0, 0, toImmutable {
+      category  : 'All'
+      iconEmoji : 'clock3'
+    }
+
+    return toImmutable list
 ]
 
 
@@ -193,10 +220,10 @@ emojiSelectBoxSelectedItem = (stateId) -> [
 
 
 # Returns current tab index of emoji selectbox by specified stateId
-# If tab index doesn't exist in the store, returns -1
+# If tab index doesn't exist in the store, returns 0
 emojiSelectBoxTabIndex = (stateId) -> [
   EmojiSelectBoxTabIndexStore
-  (tabIndexes) -> tabIndexes.get(stateId) ? -1
+  (tabIndexes) -> tabIndexes.get(stateId) ? 0
 ]
 
 
@@ -470,6 +497,8 @@ module.exports = {
   emojiSelectBoxVisibility
   emojiSelectBoxSelectedItem
   emojiSelectBoxTabIndex
+
+  frequentlyUsedEmojis
 
   channelsQuery
   channels
