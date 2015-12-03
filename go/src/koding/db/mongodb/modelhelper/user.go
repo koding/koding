@@ -205,11 +205,11 @@ func CountUsersByQuery(selector bson.M) (int, error) {
 
 // GetOwner returns the owner of the machine, if it's not found it returns an
 // error.
-func GetOwner(users []models.MachineUser) (*models.User, error) {
+func GetPermittedUser(users []models.MachineUser) (*models.User, error) {
 	var ownerId bson.ObjectId
 
 	for _, user := range users {
-		if user.Sudo && user.Owner {
+		if user.Owner || (user.Permanent && user.Approved) {
 			ownerId = user.Id
 		}
 	}

@@ -41,7 +41,7 @@ func ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request
 func checkUser(userId bson.ObjectId, users []models.MachineUser) error {
 	// check if the incoming user is in the list of permitted user list
 	for _, u := range users {
-		if userId == u.Id && u.Owner {
+		if userId == u.Id && (u.Owner || (u.Permanent && u.Approved)) {
 			return nil // ok he/she is good to go!
 		}
 	}
