@@ -33,7 +33,9 @@ func (m *Machine) Reinit(ctx context.Context) error {
 
 	// go and terminate the old instance, we don't need to wait for it
 	go func(machine *Machine) {
-		if err := machine.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
+		instanceId := machine.Session.AWSClient.Id()
+		_, err := machine.Session.AWSClient.TerminateInstance(instanceId)
+		if err != nil {
 			m.Log.Warning("couldn't terminate instance: %s", err)
 		}
 	}(m)
