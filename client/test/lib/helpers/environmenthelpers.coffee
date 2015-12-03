@@ -285,3 +285,51 @@ module.exports =
       .waitForElementVisible  nicknameInput, 20000
       .clearValue             nicknameInput
       .setValue               nicknameInput, name + '\n'
+  
+  reinitVM: (browser) ->
+
+    reinitSelector  = '.kdmodal.AppModal .advanced .advanced.reinit'
+    proceedSelector = '.kdmodal.with-buttons .kdbutton.red'
+    vmStateModal    = '.env-machine-state .kdmodal-content'
+    vmSelector      = '.sidebar-machine-box'
+
+    browser
+      .waitForElementVisible  reinitSelector, 20000
+      .click                  reinitSelector
+      .waitForElementVisible  proceedSelector, 20000
+      .click                  proceedSelector
+      .waitForElementVisible  vmStateModal + ' .content-container .terminating', 20000
+      .waitForElementVisible  vmSelector + ' .vm.terminating', 20000
+      .waitForElementVisible  vmSelector + ' .vm.building', 300000
+      .waitForElementVisible  vmSelector + ' .vm.running', 600000
+
+
+  terminateVM: (browser) ->
+
+    terminateSelector       = '.kdmodal.AppModal .advanced .advanced.terminate'
+    proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
+    terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
+
+    browser
+      .waitForElementVisible  terminateSelector, 20000
+      .click                  terminateSelector
+      .waitForElementVisible  proceedSelector, 20000
+      .click                  proceedSelector
+      .waitForElementVisible  terminatedLabelSelector, 100000
+      .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
+
+
+  createAnewVMforNonPayingUsers: (browser) ->
+
+  	createVMbutton    = '.content-container .kdbutton'
+  	addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
+  	vmSelector        = '.sidebar-machine-box .notinitialized'
+
+  	browser
+  	  .waitForElementVisible  createVMbutton, 20000
+  	  .click                  createVMbutton
+  	  .waitForElementVisible  addKodingVmButton, 20000
+  	  .click                  addKodingVmButton
+  	  .waitForElementVisible  vmSelector, 20000
+
+  	  .assert.containsText    vmSelector, 'koding-vm-0'

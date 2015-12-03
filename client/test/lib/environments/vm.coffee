@@ -23,12 +23,35 @@ module.exports =
       .waitForElementVisible   vmStateModal + ' .state-label.stopped', 300000
       .waitForElementVisible   vmStateModal + ' .turn-on.state-button', 20000 # Assertion
       .end()
-
+  
 
   turnOnVm: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
+    browser.end()
+
+
+  terminateVMforNonPayingUserAndCreateAnewOne: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    environmentHelpers.openAdvancedSettings(browser)
+    environmentHelpers.terminateVM(browser)
+    environmentHelpers.createAnewVMforNonPayingUsers(browser)
+
+    browser.end()
+
+
+  reinitVM: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    environmentHelpers.openAdvancedSettings(browser)
+    environmentHelpers.reinitVM(browser)
+
     browser.end()
 
 
@@ -76,24 +99,13 @@ module.exports =
 
   terminateVm: (browser) ->
 
-    terminateSelector       = '.kdmodal.AppModal .advanced .advanced.terminate'
-    proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
-    terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
-
     helpers.beginTest(browser)
-    browser.pause 1000
     helpers.waitForVMRunning(browser)
 
     environmentHelpers.openAdvancedSettings(browser)
+    environmentHelpers.terminateVM(browser)
 
-    browser
-      .waitForElementVisible  terminateSelector, 20000
-      .click                  terminateSelector
-      .waitForElementVisible  proceedSelector, 20000
-      .click                  proceedSelector
-      .waitForElementVisible  terminatedLabelSelector, 100000
-      .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
-      .end()
+    browser.end()
 
 ### DISABLED - takes too long (10m 41s)
   resizeVm: (browser) ->
