@@ -8,6 +8,8 @@
 { withConvertedUser }               = require '../../../../../workers/social/testhelper'
 { withConvertedUserAndApiToken }    = require '../../../../../workers/social/testhelper/models/apitokenhelper'
 { generateCreateUserRequestParams } = require '../../../../testhelper/handler/createuserhelper'
+{ SUGGESTED_USERNAME_MIN_LENGTH
+  SUGGESTED_USERNAME_MAX_LENGTH }   = require './helpers'
 
 apiErrors = require './errors'
 JUser     = require '../../../../models/user'
@@ -185,7 +187,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 when suggested username length is not valid', (done) ->
 
-    values = [1, 3, 16]
+    values = [SUGGESTED_USERNAME_MIN_LENGTH - 1, SUGGESTED_USERNAME_MAX_LENGTH + 1]
     queue  = []
 
     values.forEach (length) ->
@@ -213,7 +215,8 @@ runTests = -> describe 'server.handlers.api.createuser', ->
 
   it 'should send HTTP 400 when username length is not valid', (done) ->
 
-    values = [1, 3, 26]
+    { minLength, maxLength } = JUser.getValidUsernameLengthRange()
+    values = [minLength - 1, maxLength + 1]
     queue  = []
 
     values.forEach (length) ->
