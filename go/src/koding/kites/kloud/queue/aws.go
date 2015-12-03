@@ -15,7 +15,7 @@ import (
 
 func (q *Queue) CheckAWS() {
 	var machine *awsprovider.Machine
-	err := q.FetchProvider("aws", &machine)
+	err := q.FetchProvider("aws", &machine.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
