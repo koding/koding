@@ -64,6 +64,11 @@ module.exports = (req, res, next) ->
         queue.next()
 
     ->
+      # checking if group slug is same with the username
+      if slug.toLowerCase?() is body.username?.toLowerCase?()
+        message = 'Sorry, your group domain and your username can not be the same!'
+        return  res.status(400).send message
+
       # checking if group slug was already used
       JGroup.one { slug }, (err, group) ->
         return res.status(500).send 'an error occured'  if err
