@@ -12,13 +12,14 @@ module.exports = class EmojiIcon extends React.Component
   @include [ ImmutableRenderMixin ]
 
   @defaultProps =
-    emoji : ''
+    emoji       : ''
+    showTooltip : yes
 
 
   emojifyIcon: ->
 
     icon = ReactDOM.findDOMNode @refs.icon
-    renderEmojis icon
+    renderEmojis icon, @props.showTooltip
 
 
   componentDidMount: -> @emojifyIcon()

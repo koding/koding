@@ -21,19 +21,19 @@ IMAGE_EMOJIS = [
   'wink'
 ]
 
-renderEmojiIcon = (emoji, emojiName) ->
+module.exports = renderEmojis = (element, showTooltip = yes) ->
 
-  element = document.createElement 'span'
-  element.className = 'emoji-wrapper'
+  emojify.run element, (emoji, emojiName) ->
+    element = document.createElement 'span'
+    element.className = 'emoji-wrapper'
 
-  if emojiName in IMAGE_EMOJIS
-    imagePath = 'https://s3.amazonaws.com/koding-cdn/emojis/'
-    element.innerHTML = "<img src='#{imagePath}#{emojiName}.png' class='emoji' title='#{emoji}' />"
-  else
-    element.innerHTML = "<span class='emoji-sprite emoji-#{emojiName}' title='#{emoji}' />"
+    titleAttr = if showTooltip then "title='#{emoji}'" else ''
 
-  return element
+    if emojiName in IMAGE_EMOJIS
+      imagePath = 'https://s3.amazonaws.com/koding-cdn/emojis/'
+      element.innerHTML = "<img src='#{imagePath}#{emojiName}.png' class='emoji' #{titleAttr} />"
+    else
+      element.innerHTML = "<span class='emoji-sprite emoji-#{emojiName}' #{titleAttr} />"
 
-
-module.exports = renderEmojis = (element) -> emojify.run element, renderEmojiIcon
+    return element
 
