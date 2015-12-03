@@ -13,8 +13,6 @@ export WERCKER="true"
 
 export CONFIG_DEBUGMODE="true"
 
-service nginx stop
-
 ulimit -n 10240
 
 cd $REPOSITORY_PATH
