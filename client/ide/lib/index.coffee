@@ -584,15 +584,12 @@ class IDEAppController extends AppController
       return no  if withFakeViews
 
       if machineItem
-        {state}         = machineItem.status
-        machineId       = machineItem._id
-        baseMachineKite = machineItem.getBaseKite()
-        isKiteConnected = baseMachineKite._state is 1
+        { state } = machineItem.status
+        machineId = machineItem._id
 
-
-        if state is Running and isKiteConnected
+        if state is Running
+          machineItem.getBaseKite()?.fetchTerminalSessions()
           @mountMachine machineItem
-          baseMachineKite.fetchTerminalSessions()
           @prepareCollaboration()
           @bindKlientEvents machineItem
           @runOnboarding()
