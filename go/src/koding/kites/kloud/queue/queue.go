@@ -72,7 +72,7 @@ func (q *Queue) CheckKoding() {
 // certain inactivity time.
 func (q *Queue) CheckKodingUsage(m *koding.Machine) error {
 	q.Log.Debug("Checking Koding machine\n%+v\n", m)
-	if m == nil {
+	if m == nil || m.Meta == nil {
 		return errors.New("checking machine. document is nil")
 	}
 
