@@ -1,6 +1,5 @@
 kd                         = require 'kd'
 immutable                  = require 'immutable'
-isPublicChatChannel        = require 'activity/util/isPublicChatChannel'
 whoami                     = require 'app/util/whoami'
 isPublicChannel            = require 'app/util/isPublicChannel'
 calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
@@ -202,10 +201,10 @@ selectedChannelThread = [
     return thread.set 'channel', channel
 ]
 
-channelByName = (name) ->
+channelByName = (name, types = ['topic', 'group']) ->
   channels = kd.singletons.reactor.evaluateToJS allChannels
-  channel = _channel for id, _channel of channels when _channel.name is name
-  return channel
+  for id, _channel of channels when _channel.name is name and _channel.typeConstant in types
+    return _channel
 
 # Returns followed public channel threads mapped with relevant channel
 # instances.
