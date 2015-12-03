@@ -1,39 +1,26 @@
-{ argv }                      = require 'optimist'
-{ expect }                    = require 'chai'
-{ env : { MONGO_URL } }       = process
+JLog      = require '../log/index'
+JUser     = require './index'
+JName     = require '../name'
+JAccount  = require '../account'
+JSession  = require '../session'
+Speakeasy = require 'speakeasy'
 
-KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
-
-JLog                          = require '../log/index'
-Bongo                         = require 'bongo'
-JUser                         = require './index'
-JName                         = require '../name'
-mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
-JAccount                      = require '../account'
-JSession                      = require '../session'
-Speakeasy                     = require 'speakeasy'
-TestHelper                    = require '../../../../testhelper'
-
-{ daisy }                     = Bongo
-{ generateUserInfo
+{ daisy
+  expect
+  generateUserInfo
   generateDummyClient
   generateCredentials
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDummyUserFormData } = TestHelper
+  checkBongoConnectivity
+  generateDummyUserFormData } = require '../../../../testhelper'
 
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
 
-  bongo = new Bongo
-    root   : __dirname
-    mongo  : mongo
-    models : ''
-
-  bongo.once 'dbClientReady', ->
-    done()
+  checkBongoConnectivity done
 
 
 # this function will be called after all tests are executed
@@ -117,73 +104,100 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
-    it 'should create and save a new user when valid in case data is valid', (done) ->
+    describe 'when user is data valid', ->
 
-      userInfo = generateUserInfo()
+      testWithValidData = (userInfo, callback) ->
 
-      queue = [
+        queue = [
 
-        ->
-          # expecting user to be created
-          JUser.createUser userInfo, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # expecting user to be created
+            JUser.createUser userInfo, (err) ->
+              expect(err).to.not.exist
+              # after the user is created, lower casing username because
+              # we expect to see the username to be lower cased in jmodel documents
+              userInfo.username = userInfo.username.toLowerCase()
+              queue.next()
 
-        ->
-          # expecting user to be saved
-          params = { username : userInfo.username }
-          JUser.one params, (err, user) ->
-            expect(err)           .to.not.exist
-            expect(user.username) .to.be.equal userInfo.username
-            queue.next()
+          ->
+            # expecting user to be saved
+            params = { username : userInfo.username }
+            JUser.one params, (err, user) ->
+              expect(err)           .to.not.exist
+              expect(user.username) .to.be.equal userInfo.username
+              queue.next()
 
-        ->
-          # expecting account to be created and saved
-          params = { 'profile.nickname' : userInfo.username }
-          JAccount.one params, (err, account) ->
-            expect(err)     .to.not.exist
-            expect(account) .to.exist
-            queue.next()
+          ->
+            # expecting account to be created and saved
+            params = { 'profile.nickname' : userInfo.username }
+            JAccount.one params, (err, account) ->
+              expect(err)     .to.not.exist
+              expect(account) .to.exist
+              queue.next()
 
-        -> done()
+          ->
+            # expecting name to be created and saved
+            params = { 'name' : userInfo.username }
+            JName.one params, (err, name) ->
+              expect(err).to.not.exist
+              expect(name).to.exist
+              queue.next()
 
-      ]
+          -> callback()
 
-      daisy queue
+        ]
+
+        daisy queue
 
 
-    it 'should save email frequencies correctly', (done) ->
+      it 'should be able to create user with lower case username', (done) ->
 
-      userInfo = generateUserInfo()
+        userInfo          = generateUserInfo()
+        userInfo.username = userInfo.username.toLowerCase()
 
-      userInfo.emailFrequency =
-        global         : off
-        daily          : off
-        followActions  : off
-        privateMessage : off
+        testWithValidData userInfo, done
 
-      queue = [
 
-        ->
-          JUser.createUser userInfo, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+      it 'should be able to create user with upper case username', (done) ->
 
-        ->
-          params = { username : userInfo.username }
-          JUser.one params, (err, user) ->
-            expect(err)                                 .to.not.exist
-            expect(user.emailFrequency.global)          .to.be.false
-            expect(user.emailFrequency.daily)           .to.be.false
-            expect(user.emailFrequency.privateMessage)  .to.be.false
-            expect(user.emailFrequency.followActions)   .to.be.false
-            queue.next()
+        userInfo          = generateUserInfo()
+        userInfo.username = userInfo.username.toUpperCase()
 
-        -> done()
+        testWithValidData userInfo, done
 
-      ]
 
-      daisy queue
+      it 'should save email frequencies correctly', (done) ->
+
+        userInfo = generateUserInfo()
+
+        userInfo.emailFrequency =
+          global         : off
+          daily          : off
+          followActions  : off
+          privateMessage : off
+
+        queue = [
+
+          ->
+            JUser.createUser userInfo, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            params = { username : userInfo.username }
+            JUser.one params, (err, user) ->
+              expect(err)                                 .to.not.exist
+              expect(user.emailFrequency.global)          .to.be.false
+              expect(user.emailFrequency.daily)           .to.be.false
+              expect(user.emailFrequency.privateMessage)  .to.be.false
+              expect(user.emailFrequency.followActions)   .to.be.false
+              queue.next()
+
+          -> done()
+
+        ]
+
+        daisy queue
 
 
   describe '#login()', ->
