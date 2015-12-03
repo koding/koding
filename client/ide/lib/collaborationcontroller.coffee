@@ -348,6 +348,20 @@ module.exports = CollaborationController =
       .on 'AddedToChannel', @bound 'participantAdded'
       .on 'MessageAdded',   @bound 'channelMessageAdded'
       .on 'ChannelDeleted', => @stopCollaborationSession()  # Don't pass any arguments.
+      .on 'RemovedFromChannel', @bound 'participantRemoved'
+
+
+  participantRemoved: (participant) ->
+
+    socialHelpers.fetchAccount participant, (err, account) =>
+
+      return throwError err  if err
+      return  unless account
+
+      { nickname } = account.profile
+
+      @statusBar.removeParticipantAvatar nickname
+      @unwatchParticipant nickname
 
 
   participantAdded: (participant) ->
@@ -1247,6 +1261,13 @@ module.exports = CollaborationController =
 
     permission ?= if @settings.get 'readOnly' then 'read' else 'edit'
     @permissions.set nickname, permission
+
+
+  removeParticipantPermissions: (nickname) ->
+
+    return  unless @permissions.get nickname
+
+    @permissions.delete nickname
 
 
   getMyWatchers: ->
