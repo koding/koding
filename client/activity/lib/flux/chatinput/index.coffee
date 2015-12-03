@@ -12,10 +12,13 @@ module.exports = {
 
   stores  : [
     require './stores/emoji/emojisstore'
+    require './stores/emoji/emojicategoriesstore'
     require './stores/emoji/filteredemojilistquerystore'
     require './stores/emoji/filteredemojilistselectedindexstore'
-    require './stores/emoji/commonemojilistselectedindexstore'
-    require './stores/emoji/commonemojilistvisibilitystore'
+    require './stores/emoji/selectboxquerystore'
+    require './stores/emoji/selectboxselectedindexstore'
+    require './stores/emoji/selectboxvisibilitystore'
+    require './stores/emoji/selectboxtabindexstore'
     require './stores/channel/querystore'
     require './stores/channel/selectedindexstore'
     require './stores/channel/visibilitystore'
