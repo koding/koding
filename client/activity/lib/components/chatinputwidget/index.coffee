@@ -6,7 +6,7 @@ AutoSizeTextarea     = require 'app/components/common/autosizetextarea'
 EmojiDropbox         = require 'activity/components/emojidropbox'
 ChannelDropbox       = require 'activity/components/channeldropbox'
 MentionDropbox       = require 'activity/components/mentiondropbox'
-EmojiSelector        = require 'activity/components/emojiselector'
+EmojiSelectBox       = require 'activity/components/emojiselectbox'
 SearchDropbox        = require 'activity/components/searchdropbox'
 CommandDropbox       = require 'activity/components/commanddropbox'
 ActivityFlux         = require 'activity/flux'
@@ -41,9 +41,12 @@ module.exports = class ChatInputWidget extends React.Component
       filteredEmojiListSelectedIndex : getters.filteredEmojiListSelectedIndex @stateId
       filteredEmojiListSelectedItem  : getters.filteredEmojiListSelectedItem @stateId
       filteredEmojiListQuery         : getters.filteredEmojiListQuery @stateId
-      commonEmojiList                : getters.commonEmojiList
-      commonEmojiListSelectedItem    : getters.commonEmojiListSelectedItem @stateId
-      commonEmojiListVisibility      : getters.commonEmojiListVisibility @stateId
+      emojiSelectBoxItems            : getters.emojiSelectBoxItems @stateId
+      emojiSelectBoxTabs             : getters.emojiSelectBoxTabs
+      emojiSelectBoxQuery            : getters.emojiSelectBoxQuery @stateId
+      emojiSelectBoxSelectedItem     : getters.emojiSelectBoxSelectedItem @stateId
+      emojiSelectBoxVisibility       : getters.emojiSelectBoxVisibility @stateId
+      emojiSelectBoxTabIndex         : getters.emojiSelectBoxTabIndex @stateId
       channels                       : getters.channels @stateId
       channelsSelectedIndex          : getters.channelsSelectedIndex @stateId
       channelsSelectedItem           : getters.channelsSelectedItem @stateId
@@ -135,7 +138,7 @@ module.exports = class ChatInputWidget extends React.Component
   getInputDropboxes: -> [ @refs.emojiDropbox, @refs.channelDropbox, @refs.mentionDropbox, @refs.searchDropbox, @refs.commandDropbox ]
 
 
-  getDropboxes: -> @getInputDropboxes().concat @refs.emojiSelector
+  getDropboxes: -> @getInputDropboxes().concat @refs.emojiSelectBox
 
 
   setValue: (value) ->
@@ -263,7 +266,7 @@ module.exports = class ChatInputWidget extends React.Component
       helpers.setCursorPosition textInput, cursorPosition
 
 
-  onSelectorItemConfirmed: (item) ->
+  onSelectBoxItemConfirmed: (item) ->
 
     { value } = @state
 
@@ -290,7 +293,7 @@ module.exports = class ChatInputWidget extends React.Component
 
   handleEmojiButtonClick: (event) ->
 
-    ChatInputFlux.actions.emoji.setCommonListVisibility @stateId, yes
+    ChatInputFlux.actions.emoji.setSelectBoxVisibility @stateId, yes
 
 
   focus: ->
@@ -343,16 +346,20 @@ module.exports = class ChatInputWidget extends React.Component
     />
 
 
-  renderEmojiSelector: ->
+  renderEmojiSelectBox: ->
 
-    { commonEmojiList, commonEmojiListVisibility, commonEmojiListSelectedItem } = @state
+    { emojiSelectBoxItems, emojiSelectBoxTabs, emojiSelectBoxQuery } = @state
+    { emojiSelectBoxVisibility, emojiSelectBoxSelectedItem, emojiSelectBoxTabIndex } = @state
 
-    <EmojiSelector
-      items           = { commonEmojiList }
-      visible         = { commonEmojiListVisibility }
-      selectedItem    = { commonEmojiListSelectedItem }
-      onItemConfirmed = { @bound 'onSelectorItemConfirmed' }
-      ref             = 'emojiSelector'
+    <EmojiSelectBox
+      items           = { emojiSelectBoxItems }
+      tabs            = { emojiSelectBoxTabs }
+      query           = { emojiSelectBoxQuery }
+      visible         = { emojiSelectBoxVisibility }
+      selectedItem    = { emojiSelectBoxSelectedItem }
+      tabIndex        = { emojiSelectBoxTabIndex }
+      onItemConfirmed = { @bound 'onSelectBoxItemConfirmed' }
+      ref             = 'emojiSelectBox'
       stateId         = { @stateId }
     />
 
@@ -432,7 +439,7 @@ module.exports = class ChatInputWidget extends React.Component
 
     <div className={kd.utils.curry "ChatInputWidget", @props.className}>
       { @renderEmojiDropbox() }
-      { @renderEmojiSelector() }
+      { @renderEmojiSelectBox() }
       { @renderChannelDropbox() }
       { @renderMentionDropbox() }
       { @renderSearchDropbox() }
