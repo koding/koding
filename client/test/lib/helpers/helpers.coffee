@@ -334,9 +334,10 @@ module.exports =
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
       .clearValue              'li.selected .rename-container .hitenterview'
       .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
+      .pause                   3000 # wait for
       .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
-      .pause                    3000 # required
-      .waitForElementPresent    folderSelector, 50000 # Assertion
+      .pause                   3000 # required
+      .waitForElementPresent   folderSelector, 50000 # Assertion
 
     data = {
       name: folderName

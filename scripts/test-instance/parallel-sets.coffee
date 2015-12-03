@@ -87,8 +87,3 @@ module.exports = [
   [
     { name : 'teams teams' }
   ]
-
-  [
-    { name : 'teams teams' }
-    { name : 'teams teams' }
-  ]
