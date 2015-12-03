@@ -22,73 +22,73 @@
 module.exports = [
 
   [
-    { name: 'register' }
-    { name: 'login' }
-    { name: 'logout' }
-    { name: 'activity likeunlike' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
   ]
 
   [
-    { name: 'pricing payment' }
-    { name: 'activity post' }
-    { name: 'staticpages loggedout' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
   ]
 
   [
-    { name: 'messages privatemessage' }
-    { name: 'account accountsettings' }
-    { name: 'activity postwith' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
+    { name: 'teams teams' }
   ]
 
   [
-    { name : 'activity edit' }
-    { name : 'activity delete' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'unittests' }
-    { name : 'activity others' }
-    { name : 'account accountpage' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'ide file' }
-    { name : 'ide folder' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'ide search' }
-    { name : 'ide workspace' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'ide terminal' }
-    { name : 'pricing invalidCardDetails' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'ide general' }
-    { name : 'ide layout' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'collaboration collaboration' }
-    { name : 'environments snapshot' }
+    { name : 'teams teams' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'collaboration start', NIGHTWATCH_OPTIONS: '--env host,participant' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'environments vm' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'environments paidaccount' }
+    { name : 'teams teams' }
   ]
 
   [
-    { name : 'environments domain' }
+    { name : 'teams teams' }
     { name : 'teams teams' }
   ]
