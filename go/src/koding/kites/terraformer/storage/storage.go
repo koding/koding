@@ -16,7 +16,7 @@ func nonil(err ...error) error {
 // Interface is a contract between different types of storage systems
 type Interface interface {
 	Write(string, io.Reader) error
-	Read(string) (io.Reader, error)
+	Read(string) (io.Reader, error) // TODO(rjeczalik): io.Reader -> io.ReadCloser?
 	Remove(string) error
 	Clone(string, Interface) error
 	BasePath() (string, error)

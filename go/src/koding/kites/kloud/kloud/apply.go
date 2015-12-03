@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
@@ -14,16 +18,11 @@ import (
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
-	"strconv"
-	"strings"
-	"time"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
-
-	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
+	"golang.org/x/net/context"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 // Stack is struct that contains all necessary information Apply needs to

@@ -47,10 +47,6 @@ module.exports = class PublicChatPane extends React.Component
     return null  unless @props.thread?.get 'messages'
 
     isParticipant = @channel 'isParticipant'
-    isPrivate = 'privatemessage' is @channel 'typeConstant'
-
-    disabledFeatures = []
-    disabledFeatures = disabledFeatures.concat ['search']  if isPrivate
 
     <footer className="PublicChatPane-footer ChatPaneFooter">
       <ChatInputWidget
@@ -60,7 +56,7 @@ module.exports = class PublicChatPane extends React.Component
         onCommand={@bound 'onCommand'}
         channelId={@channel 'id'}
         onResize={@bound 'onResize'}
-        disabledFeatures={disabledFeatures} />
+      />
       <FollowChannelBox
         className={if isParticipant then 'hidden'}
         thread={@props.thread} />

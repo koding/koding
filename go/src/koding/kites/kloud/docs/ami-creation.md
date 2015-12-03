@@ -122,3 +122,22 @@ AWS Region: us-west-2 (2 images):
 [1] koding-base-latest-1443775399	ami-50a54063	available	[Name:koding-stable-old]
 [2] koding-base-latest-1446024878	ami-cfabbeae	available	[Name:koding-stable]
 ```
+
+### Updating Softlayer base image
+
+Install packer-builder-softlayer plugin from my fork:
+
+```
+$ # assuming ~ is your $GOPATH
+$ git clone git@github.com:rjeczalik/packer-builder-softlayer ~/src/github.com/leonidlm/packer-builder-softlayer
+$ # assuming ~/bin is your $GOBIN where packer executable is located
+$ go install github.com/leonidlm/packer-builder-softlayer
+```
+
+Navigate to koding repo and build the image:
+
+```
+koding $ cd go/src/kites/kloud/provisioner
+koding $ export SOFTLAYER\_USERNAME=<?> SOFTLAYER\_API\_KEY=<?>
+koding $ packer build -only=softlayer template.json
+```

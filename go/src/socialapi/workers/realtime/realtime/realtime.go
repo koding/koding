@@ -20,6 +20,7 @@ const (
 	MessageAddedEventName       = "MessageAdded"
 	MessageRemovedEventName     = "MessageRemoved"
 	ChannelDeletedEventName     = "ChannelDeleted"
+	ChannelUpdatedEventName     = "ChannelUpdated"
 
 	NotificationSettingCreatedEvent = "NotificationSettingCreated"
 	NotificationSettingUpdatedEvent = "NotificationSettingUpdated"
@@ -622,6 +623,10 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 
 func (f *Controller) ChannelDeletedEvent(c *models.Channel) error {
 	return f.publishToChannel(c.Id, ChannelDeletedEventName, &models.ChannelContainer{Channel: c})
+}
+
+func (f *Controller) ChannelUpdatedEvent(c *models.Channel) error {
+	return f.publishToChannel(c.Id, ChannelUpdatedEventName, &models.ChannelContainer{Channel: c})
 }
 
 func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
