@@ -575,7 +575,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if account is already registered', (done) ->
 
-      withDummyClient ({ client })->
+      withDummyClient ({ client }) ->
         userFormData = generateDummyUserFormData()
         client.connection.delegate.type = 'registered'
         JUser.convert client, userFormData, (err) ->
@@ -586,7 +586,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if username is a reserved one', (done) ->
 
-      withDummyClient ({ client })->
+      withDummyClient ({ client }) ->
         queue             = []
         userFormData      = generateDummyUserFormData()
         reservedUsernames = ['guestuser', 'guest-']
@@ -607,7 +607,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if passwords do not match', (done) ->
 
-      withDummyClient ({ client })->
+      withDummyClient ({ client }) ->
         userFormData                  = generateDummyUserFormData()
         userFormData.password         = 'somePassword'
         userFormData.passwordConfirm  = 'anotherPassword'
@@ -620,7 +620,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if username is in use', (done) ->
 
-      withDummyClient ({ client })->
+      withDummyClient ({ client }) ->
         userFormData = generateDummyUserFormData()
 
         queue = [
@@ -647,7 +647,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if email is in use', (done) ->
 
-      withDummyClient ({ client })->
+      withDummyClient ({ client }) ->
         userFormData = generateDummyUserFormData()
 
         queue = [
@@ -709,7 +709,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
       it 'should be able to register user with lower case username', (done) ->
 
-        withDummyClient ({ client })->
+        withDummyClient ({ client }) ->
           userFormData          = generateDummyUserFormData()
           userFormData.username = userFormData.username.toLowerCase()
           testConvertWithValidData client, userFormData, done
@@ -717,7 +717,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
       it 'should be able to register user with upper case username', (done) ->
 
-        withDummyClient ({ client })->
+        withDummyClient ({ client }) ->
           userFormData          = generateDummyUserFormData()
           userFormData.username = userFormData.username.toUpperCase()
           testConvertWithValidData client, userFormData, done
