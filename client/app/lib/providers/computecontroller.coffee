@@ -126,10 +126,11 @@ module.exports = class ComputeController extends KDController
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
-      if @_trials[machine.uid][task]++ < 2
+      if @_trials[machine.uid][task]++ <= 3
         kd.info "Trying again to do '#{task}'..."
         @_force = yes
-        this[task] machine
+        kd.utils.wait @_trials[machine.uid][task] * 3000, =>
+          this[task] machine
         return yes
 
 
