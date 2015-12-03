@@ -201,7 +201,7 @@ selectedChannelThread = [
     return thread.set 'channel', channel
 ]
 
-channelByName = (name, types = ['topic', 'group']) ->
+channelByName = (name, types = ['topic', 'group', 'announcement']) ->
   channels = kd.singletons.reactor.evaluateToJS allChannels
   for id, _channel of channels when _channel.name is name and _channel.typeConstant in types
     return _channel
