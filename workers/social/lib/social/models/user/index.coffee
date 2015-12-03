@@ -1020,7 +1020,9 @@ module.exports = class JUser extends jraphical.Module
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
-    email = emailsanitize email
+    # lower casing username is necessary to prevent conflicts with JName documents
+    username       = username.toLowerCase()  if typeof username is 'string'
+    email          = emailsanitize email
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     emailFrequencyDefaults = {
@@ -1562,7 +1564,9 @@ module.exports = class JUser extends jraphical.Module
     userFormData.firstName = username  unless firstName
     userFormData.lastName  = ''        unless lastName
 
-    email = userFormData.email = emailsanitize email
+    # lower casing username is necessary to prevent conflicts with JName documents
+    username = username.toLowerCase()  if typeof username is 'string'
+    email    = userFormData.email = emailsanitize email
 
     if error = validateConvertInput userFormData, client
       return callback error
