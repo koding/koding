@@ -1048,7 +1048,7 @@ module.exports = class JUser extends jraphical.Module
       usedAsPath      : 'username'
       collectionName  : 'jUsers'
 
-    JName.claim username, [slug], 'JUser', (err) ->
+    JName.claim username, [slug], 'JUser', (err, nameDoc) ->
 
       return callback err  if err
 
@@ -1067,8 +1067,9 @@ module.exports = class JUser extends jraphical.Module
 
       user.save (err) ->
 
-        return  if err
-          if err.code is 11000
+        if err
+          nameDoc.remove?()
+          return if err.code is 11000
           then callback new KodingError "Sorry, \"#{email}\" is already in use!"
           else callback err
 
@@ -1082,7 +1083,10 @@ module.exports = class JUser extends jraphical.Module
 
         account.save (err) ->
 
-          if err then callback err
+          if err
+            user.remove?()
+            nameDoc.remove?()
+            callback err
           else user.addOwnAccount account, (err) ->
             if err then callback err
             else callback null, user, account
