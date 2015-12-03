@@ -133,7 +133,7 @@ module.exports = class ComputeController extends KDController
         return yes
 
 
-    (err)=>
+    (err) =>
 
       retried = no
       @_force = no
@@ -267,18 +267,18 @@ module.exports = class ComputeController extends KDController
       else callback null, (new Machine { machine } for machine in machines)
 
 
-  findMachineFromMachineId: (machineId)->
+  findMachineFromMachineId: (machineId) ->
     return @machinesById[machineId]
 
-  findStackFromStackId: (stackId)->
+  findStackFromStackId: (stackId) ->
     return @stacksById[stackId]
 
-  findStackFromMachineId: (machineId)->
+  findStackFromMachineId: (machineId) ->
     for stack in @stacks
       for machine in stack.machines
         return stack  if machine._id is machineId
 
-  findMachineFromQueryString: (queryString)->
+  findMachineFromQueryString: (queryString) ->
 
     return  unless queryString
 
