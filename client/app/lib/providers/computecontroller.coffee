@@ -270,6 +270,10 @@ module.exports = class ComputeController extends KDController
   findMachineFromMachineId: (machineId) ->
     return @machinesById[machineId]
 
+  findMachineFromMachineUId: (machineUId) ->
+    for machine in @machines when machine.uid is machineUId
+      return machine
+
   findStackFromStackId: (stackId) ->
     return @stacksById[stackId]
 
