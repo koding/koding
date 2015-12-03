@@ -343,8 +343,17 @@ channelParticipantsInputUsers = [
 
     query = query.toLowerCase()
     users.toList().filter (user) ->
-      return  if participants.get user.get '_id'
+
+      # filter not loaded users.
+      return no  if participants.get user.get '_id'
+
+      # filter me out.
+      return no  if user.get('_id') is whoami()._id
+
+      # get username of current iterated user.
       userName = user.getIn(['profile', 'nickname']).toLowerCase()
+
+      # filter out non matching users.
       return userName.indexOf(query) is 0
 ]
 
