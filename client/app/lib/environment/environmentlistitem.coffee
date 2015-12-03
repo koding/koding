@@ -2,6 +2,7 @@ kd                        = require 'kd'
 JView                     = require 'app/jview'
 
 isKoding                  = require 'app/util/isKoding'
+checkFlag                 = require 'app/util/checkFlag'
 showError                 = require 'app/util/showError'
 showNotification          = require 'app/util/showNotification'
 isManagedVMStack          = require 'app/util/isManagedVMStack'
@@ -43,10 +44,11 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
   createButtons: ->
 
-    @reinitButton      = new kd.CustomHTMLView cssClass: 'hidden'
-    @addVMButton       = new kd.CustomHTMLView cssClass: 'hidden'
-    @addManagedButton  = new kd.CustomHTMLView cssClass: 'hidden'
-    @deleteStackButton = new kd.CustomHTMLView cssClass: 'hidden'
+    @reinitButton         = new kd.CustomHTMLView cssClass: 'hidden'
+    @addVMButton          = new kd.CustomHTMLView cssClass: 'hidden'
+    @addManagedButton     = new kd.CustomHTMLView cssClass: 'hidden'
+    @deleteStackButton    = new kd.CustomHTMLView cssClass: 'hidden'
+    @addSoftlayerVMButton = new kd.CustomHTMLView cssClass: 'hidden'
 
     { title } = stack = @getData()
 
@@ -67,6 +69,12 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
         title      : 'Add a Koding VM'
         cssClass   : 'add-vm-button solid green compact'
         callback   : => @handleMachineRequest 'koding'
+
+      if checkFlag 'softlayer'
+        @addSoftlayerVMButton = new kd.ButtonView
+          title      : 'Add a Softlayer VM'
+          cssClass   : 'add-vm-button solid green compact'
+          callback   : => @handleMachineRequest 'softlayer'
 
     if hasManagedVMStack()
       if isManagedVMStack stack
@@ -267,6 +275,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           {{> @deleteStackButton}}
           {{> @reinitButton}}
           {{> @addManagedButton}}
+          {{> @addSoftlayerVMButton}}
           {{> @addVMButton}}
         </div>
       </div>

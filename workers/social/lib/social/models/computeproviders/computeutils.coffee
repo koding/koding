@@ -1,9 +1,10 @@
 # coffeelint: disable=cyclomatic_complexity
-KodingError = require '../../error'
+KodingError    = require '../../error'
 
-PROVIDERS =
+PROVIDERS      =
   aws          : require './aws'
   koding       : require './koding'
+  softlayer    : require './softlayer' # remove this line to disable softlayer ~ GG
   rackspace    : require './rackspace'
   digitalocean : require './digitalocean'
   azure        : require './azure'
@@ -15,6 +16,8 @@ PLANS          = require './plans'
 # When adding up the storage usage totals, the DEFAULT_STORAGE_USAGE is
 # the default value to add, if no storage is defined.
 DEFAULT_STORAGE_USAGE = 3
+
+PROVIDERS_WITHOUT_CREDS = ['koding', 'managed', 'softlayer']
 
 reviveProvisioners = (client, provisioners, callback, revive = no) ->
 
@@ -181,7 +184,7 @@ revive = do -> (
       # since the user session is enough for koding provider for now.
 
       if shouldPassCredential and not credential?
-        unless provider in ['koding', 'managed']
+        unless provider in PROVIDERS_WITHOUT_CREDS
           return callback new KodingError \
             'Credential is required.', 'MissingCredential'
 
@@ -190,7 +193,7 @@ revive = do -> (
         if err then return callback err
 
         if shouldPassCredential and not cred?
-          unless provider in ['koding', 'managed']
+          unless provider in PROVIDERS_WITHOUT_CREDS
             return callback \
               new KodingError 'Credential failed.', 'AccessDenied'
         else
@@ -341,7 +344,7 @@ checkUsage = (usage, plan, storage) ->
   err = null
   if usage.total + 1 > plan.total
     err = "Total limit of #{plan.total} machines has been reached."
-  else if usage.storage + storage > plan.storage
+  else if storage? and usage.storage + storage > plan.storage
     err = "Total limit of #{plan.storage}GB storage limit has been reached."
 
   if err then return new KodingError err
@@ -353,14 +356,15 @@ fetchUsage = (client, options, callback) ->
   JSnapshot = require './snapshot'
 
   { r: { user, account } } = client
-  { provider }    = options
 
+  { provider }     = options
   selector         = { provider }
   selector.users   =
-    $elemMatch :
-      id       : user.getId()
-      sudo     : yes
-      owner    : yes
+    $elemMatch     :
+      id           : user.getId()
+      sudo         : yes
+      owner        : yes
+
   snapshotSelector = { originId: account.getId() }
 
   JSnapshot.some snapshotSelector, {}, (err, snapshots = []) ->

@@ -108,12 +108,26 @@ module.exports = class ComputeController extends KDController
     @_trials[machine.uid] = {}
 
 
-  methodNotSupportedBy = (machine)->
-    if machine?.provider is 'managed'
-      return {
-        name    : 'NotSupported'
-        message : 'Operation is not supported for this VM'
-      }
+  methodNotSupportedBy = (machine, method) ->
+
+    NotSupported = {
+      name    : 'NotSupported'
+      message : 'Operation is not supported for this VM'
+    }
+
+    return unless provider = machine?.provider
+
+    if provider is 'managed'
+      return NotSupported
+
+    if method?
+      switch method
+        when 'reinit'
+          return NotSupported  if provider is 'aws'
+        when 'createSnapshot'
+          return NotSupported  if provider in ['aws', 'softlayer']
+
+
 
   errorHandler: (call, task, machine)->
 
@@ -484,7 +498,7 @@ module.exports = class ComputeController extends KDController
 
   reinit: (machine, snapshotId) ->
 
-    return  if methodNotSupportedBy(machine) or machine.provider is 'aws'
+    return  if methodNotSupportedBy machine, 'reinit'
 
     startReinit = =>
 
@@ -545,9 +559,9 @@ module.exports = class ComputeController extends KDController
       else askFor 'reinitNoSnapshot', startReinit
 
 
-  resize: (machine, resizeTo = 10)->
+  resize: (machine, resizeTo = 10) ->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy machine, 'resize'
 
     @ui.askFor 'resize', {
       machine, force: @_force, resizeTo
@@ -583,7 +597,7 @@ module.exports = class ComputeController extends KDController
 
   build: (machine)->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
       status      : Machine.State.Building
@@ -645,7 +659,7 @@ module.exports = class ComputeController extends KDController
 
   start: (machine) ->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
       status      : Machine.State.Starting
@@ -670,7 +684,7 @@ module.exports = class ComputeController extends KDController
 
   stop: (machine) ->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
       status      : Machine.State.Stopping
@@ -769,7 +783,7 @@ module.exports = class ComputeController extends KDController
   ###
   createSnapshot: (machine, label) ->
 
-    return if methodNotSupportedBy machine
+    return  if methodNotSupportedBy machine, 'createSnapshot'
 
     @eventListener.triggerState machine,
       status      : Machine.State.Snapshotting

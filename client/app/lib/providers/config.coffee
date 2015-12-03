@@ -137,6 +137,20 @@ module.exports = globals.config.providers =
         label              : "API Key"
         placeholder        : "rackspace api key"
 
+  softlayer                :
+    name                   : "Softlayer"
+    link                   : "http://www.softlayer.com"
+    title                  : "Softlayer"
+    color                  : "#B52025"
+    description            : "Softlayer resources"
+    credentialFields       :
+      username             :
+        label              : "Username"
+        placeholder        : "username for softlayer"
+      api_key              :
+        label              : "API Key"
+        placeholder        : "softlayer api key"
+
   userInput                :
     name                   : "User Input"
     title                  : "User Input"
