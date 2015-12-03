@@ -239,7 +239,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		return errors.New("klient is not ready")
 	}
 
-	m.Meta = structs.Map(meta)
+	m.Meta = structs.Map(meta) // update meta
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
