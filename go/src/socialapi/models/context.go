@@ -73,5 +73,5 @@ func (c *Context) MustGetRedisConn() *redis.RedisSession {
 var superAdmins = []string{
 	"sinan", "devrim", "gokmen", "fatihacet", "arslan",
 	"sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
-	"szkl", "canthefason", "nitin", "usirin",
+	"szkl", "nitin", "usirin",
 }
