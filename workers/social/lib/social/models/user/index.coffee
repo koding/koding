@@ -1026,7 +1026,7 @@ module.exports = class JUser extends jraphical.Module
     if typeof username isnt 'string'
       return callback new KodingError 'Username must be a string!'
 
-    # lower casing username is necessary to prevent conflicts with JName documents
+    # lower casing username is necessary to prevent conflicts with other JModels
     username       = username.toLowerCase()
     email          = emailsanitize email
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
