@@ -33,8 +33,6 @@ userData =
     - echo 127.0.0.1 freegeoip.net >> /etc/hosts
     - cd /opt/koding
     - ip -s -s neigh flush all
-    - echo 'Checking connectivity to GitHub over ssh'
-    - scripts/test-instance/check-connectivity github.com 22 1m 3
     - #{git_fetch}
     - #{git_checkout}
     - git submodule update --recursive
