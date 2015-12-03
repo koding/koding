@@ -14,7 +14,7 @@ import (
 )
 
 func (q *Queue) CheckAWS() {
-	var machine *awsprovider.Machine
+	var machine awsprovider.Machine
 	err := q.FetchProvider("aws", &machine.Machine)
 	if err != nil {
 		// do not show an error if the query didn't find anything, that
@@ -27,7 +27,7 @@ func (q *Queue) CheckAWS() {
 		return
 	}
 
-	if err := q.CheckAWSUsage(machine); err != nil {
+	if err := q.CheckAWSUsage(&machine); err != nil {
 		// only log if it's something else
 		switch err {
 		case kite.ErrNoKitesAvailable,
