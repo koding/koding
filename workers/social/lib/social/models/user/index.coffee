@@ -786,6 +786,9 @@ module.exports = class JUser extends jraphical.Module
     if password isnt passwordConfirm
       return new KodingError 'Passwords must match!'
 
+    unless typeof username is 'string'
+      return new KodingError 'Username must be a string!'
+
     return null
 
 
@@ -1020,7 +1023,12 @@ module.exports = class JUser extends jraphical.Module
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
-    email = emailsanitize email
+    if typeof username isnt 'string'
+      return callback new KodingError 'Username must be a string!'
+
+    # lower casing username is necessary to prevent conflicts with other JModels
+    username       = username.toLowerCase()
+    email          = emailsanitize email
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     emailFrequencyDefaults = {
@@ -1048,7 +1056,7 @@ module.exports = class JUser extends jraphical.Module
       usedAsPath      : 'username'
       collectionName  : 'jUsers'
 
-    JName.claim username, [slug], 'JUser', (err) ->
+    JName.claim username, [slug], 'JUser', (err, nameDoc) ->
 
       return callback err  if err
 
@@ -1067,8 +1075,9 @@ module.exports = class JUser extends jraphical.Module
 
       user.save (err) ->
 
-        return  if err
-          if err.code is 11000
+        if err
+          nameDoc.remove?()
+          return if err.code is 11000
           then callback new KodingError "Sorry, \"#{email}\" is already in use!"
           else callback err
 
@@ -1082,7 +1091,10 @@ module.exports = class JUser extends jraphical.Module
 
         account.save (err) ->
 
-          if err then callback err
+          if err
+            user.remove?()
+            nameDoc.remove?()
+            callback err
           else user.addOwnAccount account, (err) ->
             if err then callback err
             else callback null, user, account
@@ -1558,10 +1570,12 @@ module.exports = class JUser extends jraphical.Module
     userFormData.firstName = username  unless firstName
     userFormData.lastName  = ''        unless lastName
 
-    email = userFormData.email = emailsanitize email
-
     if error = validateConvertInput userFormData, client
       return callback error
+
+    # lower casing username is necessary to prevent conflicts with other JModels
+    username = userFormData.username = username.toLowerCase()
+    email    = userFormData.email    = emailsanitize email
 
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP

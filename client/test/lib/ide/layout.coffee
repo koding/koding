@@ -49,6 +49,7 @@ module.exports =
           layoutHelpers.undoSplit(browser, no)
           fn()
 
+    layoutHelpers.waitForSnapshotRestore(browser)
     fn()
 
 
