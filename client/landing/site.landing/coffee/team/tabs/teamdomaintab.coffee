@@ -50,6 +50,8 @@ module.exports = class TeamDomainTab extends KDTabPaneView
     @form.input.setValue teamName
     @form.input.setAttribute 'size', teamName.length
 
+    @form.input.emit 'ValidationFeedbackCleared'
+
 
   showError: (error) ->
 
