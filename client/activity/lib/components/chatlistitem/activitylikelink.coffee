@@ -33,7 +33,7 @@ module.exports = class ActivityLikeLink extends React.Component
 
     for id, account of actorsPreview when account
 
-      <ProfileText account={account} />
+      <ProfileText key={id} account={account} />
 
 
   renderTooltip: ->

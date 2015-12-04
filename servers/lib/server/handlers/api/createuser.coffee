@@ -1,9 +1,16 @@
 hat                                = require 'hat'
 koding                             = require '../../bongo'
+apiErrors                          = require './errors'
 { daisy }                          = require 'bongo'
 { getClientId
   handleClientIdNotFound
   checkAuthorizationBearerHeader } = require '../../helpers'
+{ sendApiError
+  sendApiResponse
+  checkApiAvailability
+  isUsernameLengthValid
+  isSuggestedUsernameLengthValid } = require './helpers'
+
 
 module.exports = createUser = (req, res, next) ->
 
@@ -13,8 +20,10 @@ module.exports = createUser = (req, res, next) ->
   return handleClientIdNotFound res, req  unless clientId
 
   # validating req params
-  { error, token, username, email, firstName, lastName } = validateRequest req
-  return res.status(error.statusCode).send(error.message)  if error
+  { error, token, username, email
+    firstName, lastName, suggestedUsername } = validateRequest req
+
+  return sendApiError res, error  if error
 
   client   = null
   apiToken = null
@@ -22,8 +31,8 @@ module.exports = createUser = (req, res, next) ->
   queue = [
 
     ->
-      validateData { token, username }, (err, data) ->
-        return res.status(err.statusCode).send(err.message)  if err
+      validateData { token, username, suggestedUsername }, (err, data) ->
+        return sendApiError res, err  if err
         { username, apiToken } = data
         queue.next()
 
@@ -35,8 +44,7 @@ module.exports = createUser = (req, res, next) ->
 
         # when there is an error in the fetchClient, it returns message in it
         if client.message
-          console.error JSON.stringify { req, client }
-          return res.status(500).send client.message
+          return sendApiError res, apiErrors.internalError
 
         clientIPAddress = req.headers['x-forwarded-for'] or req.connection?.remoteAddress
         client.clientIP = (clientIPAddress.split ',')[0]  if clientIPAddress
@@ -55,16 +63,17 @@ module.exports = createUser = (req, res, next) ->
 
       JUser.convert client, userData, (err, data) ->
 
-        if err
-          response = if err.errors?
-          then "#{err.message}: #{Object.keys err.errors}"
-          else err.message
+        if err?.message is 'Email is already in use!'
+          return sendApiError res, apiErrors.emailAlreadyExists
 
-          return res.status(400).send response
+        if err?.message is 'Your email domain is not in allowed domains for this group'
+          return sendApiError res, apiErrors.invalidEmailDomain
+
+        return sendApiError res, apiErrors.internalError  if err
 
         { user } = data
-        return res.status(500).send 'failed to create user account'  unless user
-        return res.status(200).send { username : user.username }     if user
+        return sendApiError    res, apiErrors.failedToCreateUser   unless user
+        return sendApiResponse res, { username : user.username }
 
   ]
 
@@ -73,8 +82,8 @@ module.exports = createUser = (req, res, next) ->
 
 validateData = (data, callback) ->
 
-  { JUser, JApiToken } = koding.models
-  { token, username }  = data
+  { JUser, JGroup, JApiToken } = koding.models
+  { token, username, suggestedUsername } = data
 
   apiToken = null
 
@@ -83,22 +92,21 @@ validateData = (data, callback) ->
     ->
       # checking if token is valid
       JApiToken.one { code : token }, (err, apiToken_) ->
-        if err
-          return callback { statusCode : 500, message : 'an error occurred' }
-        unless apiToken_
-          return callback { statusCode : 400, message : 'invalid token!' }
+        return callback apiErrors.internalError    if err
+        return callback apiErrors.invalidApiToken  unless apiToken_
+
         apiToken = apiToken_
         queue.next()
 
     ->
-      # creating a random username with first letters of group slug in front
-      username or= "#{apiToken.group.substring(0, 4)}#{hat(32)}"
-      # checking if username is available
-      JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
-        if err
-          return callback { statusCode : 500, message : 'an error occurred' }
-        if kodingUser or forbidden
-          return callback { statusCode : 400, message : 'username is not available' }
+      checkApiAvailability { apiToken }, (err) ->
+        return callback err  if err
+        queue.next()
+
+    ->
+      handleUsername username, suggestedUsername, (err, username_) ->
+        return callback err  if err
+        username = username_
         queue.next()
 
     -> callback null, { apiToken, username }
@@ -108,25 +116,69 @@ validateData = (data, callback) ->
   daisy queue
 
 
+handleUsername = (username, suggestedUsername, callback) ->
+
+  queue = []
+
+  if username
+    queue.push ->
+      validateUsername username, (err) ->
+        # return username if it is valid
+        return callback null, username  unless err
+        # return if there is no suggestedUsername
+        return callback err  unless suggestedUsername
+        queue.next()
+
+  if suggestedUsername
+    queue.push ->
+      # if suggestedUsername length is not valid, return error without trying
+      unless isSuggestedUsernameLengthValid suggestedUsername
+        return callback apiErrors.outOfRangeSuggestedUsername
+      queue.next()
+
+    # try usernames with different suffixes 10 times
+    for i in [0..10]
+      queue.push ->
+        _username = "#{suggestedUsername}#{hat(32)}"
+        validateUsername _username, (err) ->
+          return callback null, _username  unless err
+          queue.next()
+
+    # if username is still invalid, let it go
+    queue.push -> callback apiErrors.usernameAlreadyExists
+
+  daisy queue
+
+
+validateUsername = (username, callback) ->
+
+  { JUser } = koding.models
+
+  # checking if username has valid length
+  unless isUsernameLengthValid username
+    return callback apiErrors.outOfRangeUsername
+
+  # checking if username is available
+  JUser.usernameAvailable username, (err, { kodingUser, forbidden }) ->
+    return callback apiErrors.internalError          if err
+    return callback apiErrors.usernameAlreadyExists  if kodingUser or forbidden
+    return callback null
+
+
 
 validateRequest = (req) ->
 
   token = null
-  { username, email, firstName, lastName } = req.body
-
-  errors =
-    invalidRequest      :
-      statusCode        : 400
-      message           : 'invalid request'
-    unauthorizedRequest :
-      statusCode        : 401
-      message           : 'unauthorized request'
+  { username, suggestedUsername, email, firstName, lastName } = req.body
 
   unless email
-    return { error : errors.invalidRequest }
+    return { error : apiErrors.invalidInput }
+
+  unless username or suggestedUsername
+    return { error : apiErrors.invalidInput }
 
   unless token = checkAuthorizationBearerHeader req
-    return { error : errors.unauthorizedRequest }
+    return { error : apiErrors.unauthorizedRequest }
 
-  return { error : null, token, username, email, firstName, lastName }
+  return { error : null, token, username, email, firstName, lastName, suggestedUsername }
 

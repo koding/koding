@@ -12,18 +12,23 @@ KodingError   = require '../error'
 
 module.exports = class JApiToken extends jraphical.Module
 
+  Validators = require './group/validators'
+
+  PERMISSION_EDIT_GROUPS = [
+    { permission: 'edit groups',     superadmin: yes }
+    { permission: 'edit own groups', validateWith: Validators.group.admin }
+  ]
+
+
   @share()
 
   @set
-    sharedEvents     :
-      static         : []
-      instance       : []
-    permissions      :
-      'create token' : ['admin']
-      'remove token' : ['admin']
-    indexes          :
-      code           : 'unique'
-    sharedMethods    :
+    sharedEvents       :
+      static           : []
+      instance         : []
+    indexes            :
+      code             : 'unique'
+    sharedMethods      :
       static:
         create: [
           (signature Function)
@@ -32,23 +37,23 @@ module.exports = class JApiToken extends jraphical.Module
       instance:
         remove:
           (signature Function)
-    schema           :
-      code           :
-        type         : String
-        required     : yes
-        default      : hat
-      group          :
-        type         : String
-        required     : yes
-      originId       :
-        type         : ObjectId
-        required     : yes
-      createdAt      :
-        type         : Date
-        default      : -> new Date
-      modifiedAt     :
-        type         : Date
-        default      : -> new Date
+    schema             :
+      code             :
+        type           : String
+        required       : yes
+        default        : hat
+      group            :
+        type           : String
+        required       : yes
+      originId         :
+        type           : ObjectId
+        required       : yes
+      createdAt        :
+        type           : Date
+        default        : -> new Date
+      modifiedAt       :
+        type           : Date
+        default        : -> new Date
 
 
   @create: (data, callback) ->
@@ -68,6 +73,10 @@ module.exports = class JApiToken extends jraphical.Module
         JGroup.one { slug : group }, (err, group_) ->
           return callback err                                 if err
           return callback new KodingError 'group not found!'  unless group_
+
+          unless !!group_.getAt 'isApiEnabled'
+            return callback new KodingError 'api usage is not enabled for this group'
+
           queue.next()
 
       ->
@@ -86,8 +95,8 @@ module.exports = class JApiToken extends jraphical.Module
     daisy queue
 
 
-  @create$: permit 'create token',
-
+  @create$: permit
+    advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
 
       group    = client?.context?.group
@@ -100,8 +109,8 @@ module.exports = class JApiToken extends jraphical.Module
       JApiToken.create data, callback
 
 
-  remove$: permit 'remove token',
-
+  remove$: permit
+    advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
       @remove callback
 

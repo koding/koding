@@ -37,6 +37,7 @@ func NewAddresses(clients *amazon.Clients, log logging.Logger) *Addresses {
 				log.Error("[%s] fetching IP addresses error: %s", region, err)
 				return
 			}
+			log.Info("[%s] fetched %d addresses", region, len(addresses))
 			var ok bool
 			mu.Lock()
 			if _, ok = a.m[client]; !ok {

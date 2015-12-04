@@ -73,10 +73,21 @@ module.exports = class CreatePrivateChannelModal extends React.Component
       { loadChannelByParticipants } = ActivityFlux.actions.channel
 
       loadChannelByParticipants(participants).then ({ channels }) =>
-        if channels.length
-          @setState { preExistingChannel: toImmutable channels[0] }
-        else
-          @setState { preExistingChannel: null }
+
+      loadChannelByParticipants(participants).then ({ channels }) =>
+        preExistingChannel = @getPreExistingChannel(channels, participants)
+        @setState { preExistingChannel }
+
+
+  getPreExistingChannel: (channels, participants) ->
+
+    preExistingChannel = null
+
+    channels.forEach (channel) ->
+      if (channel.participantsPreview.length - 1) is participants.length
+        preExistingChannel = toImmutable channel
+
+    return preExistingChannel
 
 
   getDataBindings: ->

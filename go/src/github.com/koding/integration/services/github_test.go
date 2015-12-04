@@ -163,6 +163,22 @@ func TestGithubPullRequestAssigned(t *testing.T) {
 	equals(t, exp, d)
 }
 
+func TestGithubPullRequestSynchronized(t *testing.T) {
+	whd := &webhook.PullRequestEvent{}
+	err := json.Unmarshal([]byte(pullRequestSynchronizedData), whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	g := GithubListener{}
+	d, err := g.pullRequest(whd)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	exp := `[stefanbc](https://github.com/stefanbc) synchronized pull request [Fixes: Not all elements are aligned in the sidebar [fixes #108226170]](https://github.com/koding/koding/pull/5980) at [koding/koding](https://github.com/koding/koding)`
+	equals(t, exp, d)
+}
+
 func SkipTestGithubPullRequestMerged(t *testing.T) {
 	whd := &webhook.PullRequestEvent{}
 	err := json.Unmarshal([]byte(mergePullRequestData), whd)

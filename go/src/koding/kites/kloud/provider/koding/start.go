@@ -97,8 +97,8 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			}
 
 			if aws.StringValue(instance.InstanceType) != m.Meta.InstanceType {
-				return fmt.Errorf("Instance is still '%s', waiting until it changed to '%s'",
-					instance.InstanceType, m.Meta.InstanceType)
+				return fmt.Errorf("Instance is still %q, waiting until it changed to %q",
+					aws.StringValue(instance.InstanceType), m.Meta.InstanceType)
 			}
 
 			m.Log.Debug("Instance type successfully changed to %s", m.Meta.InstanceType)

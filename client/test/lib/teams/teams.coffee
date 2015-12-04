@@ -129,6 +129,8 @@ module.exports =
       .waitForElementVisible  githubSelector, 20000 # Assertion
       .waitForElementVisible  bitbucketSelector, 20000 # Assertion
       .waitForElementVisible  nextButtonSelector, 20000
+      .moveToElement          nextButtonSelector, 15, 10
+      .pause                  2000
       .click                  nextButtonSelector
       .waitForElementVisible  "#{modalSelector} .define-stack-view", 20000
       .waitForElementVisible  editorSelector, 20000
@@ -169,9 +171,15 @@ module.exports =
 
   createChannel: (browser) ->
 
-    teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser)
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
     browser.end()
 
 
+  sendComment: (browser) ->
+
+    user = teamsHelpers.loginTeam(browser)
+    teamsHelpers.createChannel(browser, user)
+    teamsHelpers.sendComment(browser)
+    browser.end()
 

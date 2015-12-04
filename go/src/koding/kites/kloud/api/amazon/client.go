@@ -4,11 +4,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"koding/kites/kloud/awscompat"
 	"net/url"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/koding/logging"
 )
@@ -18,31 +16,31 @@ import (
 // Client wraps *ec.EC2 with an API that hides Input/Output structs
 // while dealing with EC2 service API.
 type Client struct {
-	EC2    *ec2.EC2 // underlying client
-	Region string   // region name
-	Zones  []string // zone list
-	Log    logging.Logger
+	EC2        *ec2.EC2 // underlying client
+	Region     string   // region name
+	Zones      []string // zone list
+	Log        logging.Logger
+	MaxResults int64
 }
 
 // NewClient creates new *ec2.EC2 wrapper.
 //
 // If log is non-nil, it's used for debug logging EC2 service.
-func NewClient(auth client.ConfigProvider, region string, log logging.Logger) (*Client, error) {
-	cfg := aws.NewConfig().WithRegion(region)
-	if log != nil {
-		cfg = cfg.WithLogger(NewLogger(log.Debug))
-	}
-	svc := ec2.New(auth, cfg)
-	svc.Client.Retryer = awscompat.Retry
+// If calling NewClient succeeds, it means the client is authenticated
+// and is ready for issuing requests.
+func NewClient(opts *ClientOptions) (*Client, error) {
+	cfg := NewSession(opts)
+	svc := ec2.New(cfg)
 	zones, err := svc.DescribeAvailabilityZones(nil)
 	if err != nil {
 		return nil, awsError(err)
 	}
 	c := &Client{
-		EC2:    svc,
-		Region: region,
-		Zones:  make([]string, len(zones.AvailabilityZones)),
-		Log:    log,
+		EC2:        svc,
+		Region:     aws.StringValue(cfg.Config.Region),
+		Zones:      make([]string, len(zones.AvailabilityZones)),
+		Log:        opts.Log,
+		MaxResults: opts.MaxResults,
 	}
 	for i, zone := range zones.AvailabilityZones {
 		c.Zones[i] = aws.StringValue(zone.ZoneName)
@@ -192,7 +190,14 @@ func (c *Client) DeregisterImage(imageID string) error {
 // *NotFoundError error.
 func (c *Client) Snapshots() ([]*ec2.Snapshot, error) {
 	var snapshots []*ec2.Snapshot
-	err := c.EC2.DescribeSnapshotsPages(nil, func(resp *ec2.DescribeSnapshotsOutput, _ bool) bool {
+	var params ec2.DescribeSnapshotsInput
+	if c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
+	err := c.EC2.DescribeSnapshotsPages(&params, func(resp *ec2.DescribeSnapshotsOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d snapshots (page=%d)", len(resp.Snapshots), page)
 		snapshots = append(snapshots, resp.Snapshots...)
 		return true
 	})
@@ -382,7 +387,14 @@ func (c *Client) TagsByFilters(filters url.Values) (map[string]string, error) {
 	var params = &ec2.DescribeTagsInput{
 		Filters: NewFilters(filters),
 	}
+	// Update MaxResults param if no filtering options were set.
+	if params.Filters == nil && c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
 	err := c.EC2.DescribeTagsPages(params, func(resp *ec2.DescribeTagsOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d tags (page=%d)", len(resp.Tags), page)
 		tags = append(tags, resp.Tags...)
 		return true
 	})
@@ -397,7 +409,7 @@ func (c *Client) TagsByFilters(filters url.Values) (map[string]string, error) {
 		key := aws.StringValue(tag.Key)
 		val := aws.StringValue(tag.Value)
 		if _, ok := m[key]; ok {
-			c.Log.Error("duplicated tag key=%q, value=%q for ", key, val)
+			c.Log.Error("duplicated tag key=%q, value=%q", key, val)
 		}
 		m[key] = val
 	}
@@ -470,8 +482,19 @@ func (c *Client) InstancesByFilters(filters url.Values) ([]*ec2.Instance, error)
 }
 
 func (c *Client) instances(params *ec2.DescribeInstancesInput) (instances []*ec2.Instance, err error) {
+	if params == nil {
+		params = &ec2.DescribeInstancesInput{}
+	}
+	// Update MaxResults param if no filtering options were set.
+	if params.Filters == nil && params.InstanceIds == nil && c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
 	return instances, c.EC2.DescribeInstancesPages(params, func(resp *ec2.DescribeInstancesOutput, _ bool) bool {
-		instances = append(instances, collectInstances(resp.Reservations)...)
+		respInstances := collectInstances(resp.Reservations)
+		page++
+		c.Log.Debug("received %d instances (page=%d)", len(respInstances), page)
+		instances = append(instances, respInstances...)
 		return true
 	})
 }
@@ -635,7 +658,14 @@ func (c *Client) ImportKeyPair(name string, publicKey []byte) (fingerprint strin
 // Volumes is a wrapper for (*ec2.EC2).DescribeVolumesPages.
 func (c *Client) Volumes() ([]*ec2.Volume, error) {
 	var volumes []*ec2.Volume
-	err := c.EC2.DescribeVolumesPages(nil, func(resp *ec2.DescribeVolumesOutput, _ bool) bool {
+	var params ec2.DescribeVolumesInput
+	if c.MaxResults != 0 {
+		params.MaxResults = aws.Int64(c.MaxResults)
+	}
+	var page int
+	err := c.EC2.DescribeVolumesPages(&params, func(resp *ec2.DescribeVolumesOutput, _ bool) bool {
+		page++
+		c.Log.Debug("received %d volumes (page=%d)", len(resp.Volumes), page)
 		volumes = append(volumes, resp.Volumes...)
 		return true
 	})

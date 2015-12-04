@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
-	"koding/kites/kloud/cleaners/lookup"
-	"koding/kites/kloud/dnsstorage"
-	"koding/kites/kloud/pkg/dnsclient"
 	"sync"
 	"time"
 
+	"koding/kites/common"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/cleaners/lookup"
+	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/pkg/dnsclient"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/koding/logging"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
 )
 
 type Cleaner struct {
@@ -48,23 +50,26 @@ type StopData struct {
 }
 
 func NewCleaner(conf *Config) *Cleaner {
-	auth := aws.Auth{
-		AccessKey: conf.Aws.AccessKey,
-		SecretKey: conf.Aws.SecretKey,
+	creds := credentials.NewStaticCredentials(
+		conf.Aws.AccessKey,
+		conf.Aws.SecretKey,
+		"",
+	)
+
+	opts := &amazon.ClientOptions{
+		Credentials: creds,
+		Regions:     amazon.ProductionRegions,
+		Log:         common.NewLogger("cleaner", conf.Debug),
+		MaxResults:  int64(conf.MaxResults),
 	}
 
-	log := logging.NewLogger("cleaner")
-	if conf.Debug {
-		log.SetLevel(logging.DEBUG)
-	}
-
-	l, err := lookup.NewAWS(auth, log)
+	l, err := lookup.NewAWS(opts)
 	if err != nil {
 		panic(err)
 	}
 	m := lookup.NewMongoDB(conf.MongoURL)
-	dns := dnsclient.NewRoute53Client(conf.HostedZone, auth)
-	dnsdev := dnsclient.NewRoute53Client("dev.koding.io", auth)
+	dns := dnsclient.NewRoute53Client(creds, conf.HostedZone)
+	dnsdev := dnsclient.NewRoute53Client(creds, "dev.koding.io")
 	domains := dnsstorage.NewMongodbStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
 		Host:     conf.Postgres.Host,

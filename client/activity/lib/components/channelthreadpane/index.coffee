@@ -91,6 +91,7 @@ module.exports = class ChannelThreadPane extends React.Component
       <aside className='ChannelThreadPane-sidebar'>
         {@renderSidebar()}
       </aside>
+      {@props.children}
     </div>
 
 

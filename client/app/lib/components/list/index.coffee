@@ -34,12 +34,18 @@ noop = ->
 #     <p>{@props.data.sections[sectionIndex].messages[rowIndex].body</p>
 #
 #
+#   renderEmptySectionAtIndex: (sectionIndex) ->
+#
+#     <div>No data found</div>
+#
+#
 #   render: ->
 #     <List
 #       numberOfSections={@bound 'numberOfSections'}
 #       numberOfRowsInSection={@bound 'numberOfRowsInSection'}
 #       renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
 #       renderRowAtIndex={@bound 'renderRowAtIndex'}
+#       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
 #     />
 ###
 module.exports = class List extends React.Component
@@ -50,6 +56,7 @@ module.exports = class List extends React.Component
     renderSectionHeaderAtIndex : PropTypes.func
     renderRowAtIndex           : PropTypes.func.isRequired
     onScroll                   : PropTypes.func
+    renderEmptySectionAtIndex  : PropTypes.func
 
 
   @defaultProps =
@@ -58,6 +65,7 @@ module.exports = class List extends React.Component
     renderSectionHeaderAtIndex : minimumRenderFn
     renderRowAtIndex           : minimumRenderFn
     onScroll                   : noop
+    renderEmptySectionAtIndex  : minimumRenderFn
 
 
   numberOfSections: ->
@@ -80,6 +88,11 @@ module.exports = class List extends React.Component
     return @props.renderRowAtIndex sectionIndex, rowIndex
 
 
+  renderEmptySectionAtIndex: (sectionIndex) ->
+
+    return @props.renderEmptySectionAtIndex? sectionIndex  unless @numberOfRowsInSection sectionIndex
+
+
   renderChildren: ->
 
     # this is intentionally left here for further improvements. ~Umut
@@ -97,6 +110,7 @@ module.exports = class List extends React.Component
             {dataSource.renderRowAtIndex sectionIndex, rowIndex}
           </div>
         }
+        {dataSource.renderEmptySectionAtIndex sectionIndex}
       </section>
 
 

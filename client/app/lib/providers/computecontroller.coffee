@@ -642,6 +642,31 @@ module.exports = class ComputeController extends KDController
       (@errorHandler call, 'buildStack', stack) err
 
 
+  destroyStack: (stack, callback) ->
+
+    return  unless stack
+
+    stack.machines.forEach (machineId) =>
+      return  unless machine = @findMachineFromMachineId machineId
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Terminating
+        percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+    call = @getKloud().buildStack { stackId: stack._id, destroy: yes }
+
+    .then (res) =>
+
+      stack.destroy callback
+
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
+
+    .catch (err) ->
+      console.error "Destroy stack failed:", err
+      callback err
+
 
   start: (machine) ->
 
@@ -1059,7 +1084,8 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'reinitStack', {}, =>
 
-      stack.delete (err) =>
+      @destroyStack stack, (err) =>
+
         return showError err  if err
 
         @reset()

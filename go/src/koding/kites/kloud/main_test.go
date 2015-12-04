@@ -17,10 +17,15 @@ tunnel with:
 
 	$ ngrok2 http 4099
 
-The UI will display forward address which you want to export via KLOUD_KONTROL_URL env var
+The UI will display tunnel address which you want to export via KLOUD_KONTROL_URL env var
 prior to running kloud tests, e.g.:
 
 	$ export KLOUD_KONTROL_URL=http://80518f26.ngrok.io/kite
+
+The most handy way for setting up the kloud kontrol url is to query for the
+tunnel address via the ngrok api, e.g.:
+
+	$ export KLOUD_KONTROL_URL="$(curl -sS localhost:4040/api/tunnels | jq -r .tunnels[0].public_url)/kite"
 
 Postgres and mongodb url is same is in the koding dev config. below is an example go test command:
 
@@ -99,7 +104,7 @@ import (
 	"koding/kites/terraformer"
 
 	"github.com/aws/aws-sdk-go/aws"
-	oldaws "github.com/mitchellh/goamz/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
 var (
@@ -667,7 +672,7 @@ func TestResize(t *testing.T) {
 			t.Error(err)
 		}
 
-		storageGot, err := getAmazonStorageSize(userData.MachineIds[0].Hex())
+		storageGot, err := getAmazonStorageSize(username, userData.MachineIds[0].Hex())
 		if err != nil {
 			t.Error(err)
 		}
@@ -1248,10 +1253,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 }
 
 func providers() (*koding.Provider, *awsprovider.Provider) {
-	auth := oldaws.Auth{
-		AccessKey: os.Getenv("KLOUD_ACCESSKEY"),
-		SecretKey: os.Getenv("KLOUD_SECRETKEY"),
-	}
+	c := credentials.NewStaticCredentials(os.Getenv("KLOUD_ACCESSKEY"), os.Getenv("KLOUD_SECRETKEY"), "")
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
 	if mongoURL == "" {
@@ -1261,7 +1263,7 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
 
-	dnsInstance := dnsclient.NewRoute53Client("dev.koding.io", auth)
+	dnsInstance := dnsclient.NewRoute53Client(c, "dev.koding.io")
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
 	usd := &userdata.Userdata{
 		Keycreator: &keycreator.Key{
@@ -1269,23 +1271,21 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 			KontrolPrivateKey: testkeys.Private,
 			KontrolPublicKey:  testkeys.Public,
 		},
-		Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
+		Bucket: userdata.NewBucket("koding-klient", "development/latest", c),
 	}
-
-	kdLogger := common.NewLogger("koding", true)
-	ec2clients, err := amazon.NewClientPerRegion(auth, []string{
-		"us-east-1",
-		"ap-southeast-1",
-		"us-west-2",
-		"eu-west-1",
-	}, kdLogger)
+	opts := &amazon.ClientOptions{
+		Credentials: c,
+		Regions:     amazon.ProductionRegions,
+		Log:         common.NewLogger("koding", true),
+	}
+	ec2clients, err := amazon.NewClients(opts)
 	if err != nil {
 		panic(err)
 	}
 
 	kdp := &koding.Provider{
 		DB:             db,
-		Log:            kdLogger,
+		Log:            opts.Log,
 		DNSClient:      dnsInstance,
 		DNSStorage:     dnsStorage,
 		Kite:           kloudKite,
@@ -1344,9 +1344,9 @@ func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider) *kloud.Klou
 	return kld
 }
 
-func getAmazonStorageSize(machineId string) (int, error) {
+func getAmazonStorageSize(username, machineId string) (int, error) {
 	ctx := request.NewContext(context.Background(), &kite.Request{
-		Username: "testuser5",
+		Username: username,
 	})
 	ctx = eventer.NewContext(ctx, eventer.New(machineId))
 

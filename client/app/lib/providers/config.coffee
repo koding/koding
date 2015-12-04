@@ -48,7 +48,7 @@ module.exports = globals.config.providers =
           { title: 'US West (Oregon) (us-west-2)',              value: 'us-west-2' }
           { title: 'US West (N. California) (us-west-1)',       value: 'us-west-1' }
           { title: 'EU (Ireland) (eu-west-1)',                  value: 'eu-west-1' }
-        # { title: 'EU (Frankfurt) (eu-central-1)',             value: 'eu-central-1' }
+          { title: 'EU (Frankfurt) (eu-central-1)',             value: 'eu-central-1' }
           { title: 'Asia Pacific (Singapore) (ap-southeast-1)', value: 'ap-southeast-1' }
           { title: 'Asia Pacific (Sydney) (ap-southeast-2)',    value: 'ap-southeast-2' }
           { title: 'Asia Pacific (Tokyo) (ap-northeast-1)',     value: 'ap-northeast-1' }

@@ -786,6 +786,9 @@ module.exports = class JUser extends jraphical.Module
     if password isnt passwordConfirm
       return new KodingError 'Passwords must match!'
 
+    unless typeof username is 'string'
+      return new KodingError 'Username must be a string!'
+
     return null
 
 
@@ -1020,7 +1023,12 @@ module.exports = class JUser extends jraphical.Module
     { username, email, password, passwordStatus,
       firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
 
-    email = emailsanitize email
+    if typeof username isnt 'string'
+      return callback new KodingError 'Username must be a string!'
+
+    # lower casing username is necessary to prevent conflicts with other JModels
+    username       = username.toLowerCase()
+    email          = emailsanitize email
     sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
 
     emailFrequencyDefaults = {
@@ -1048,7 +1056,7 @@ module.exports = class JUser extends jraphical.Module
       usedAsPath      : 'username'
       collectionName  : 'jUsers'
 
-    JName.claim username, [slug], 'JUser', (err) ->
+    JName.claim username, [slug], 'JUser', (err, nameDoc) ->
 
       return callback err  if err
 
@@ -1067,8 +1075,9 @@ module.exports = class JUser extends jraphical.Module
 
       user.save (err) ->
 
-        return  if err
-          if err.code is 11000
+        if err
+          nameDoc.remove?()
+          return if err.code is 11000
           then callback new KodingError "Sorry, \"#{email}\" is already in use!"
           else callback err
 
@@ -1082,7 +1091,10 @@ module.exports = class JUser extends jraphical.Module
 
         account.save (err) ->
 
-          if err then callback err
+          if err
+            user.remove?()
+            nameDoc.remove?()
+            callback err
           else user.addOwnAccount account, (err) ->
             if err then callback err
             else callback null, user, account
@@ -1548,7 +1560,7 @@ module.exports = class JUser extends jraphical.Module
 
     { slug, email, agree, username, lastName, referrer,
       password, firstName, recaptcha, emailFrequency,
-      invitationToken, passwordConfirm } = userFormData
+      invitationToken, passwordConfirm, disableCaptcha } = userFormData
 
     { clientIP, connection }    = client
     { delegate : account }      = connection
@@ -1558,10 +1570,12 @@ module.exports = class JUser extends jraphical.Module
     userFormData.firstName = username  unless firstName
     userFormData.lastName  = ''        unless lastName
 
-    email = userFormData.email = emailsanitize email
-
     if error = validateConvertInput userFormData, client
       return callback error
+
+    # lower casing username is necessary to prevent conflicts with other JModels
+    username = userFormData.username = username.toLowerCase()
+    email    = userFormData.email    = emailsanitize email
 
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
@@ -1607,18 +1621,6 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        JUser.emit 'UserRegistered', { user, account }
-        queue.next()
-
-      ->
-        # Auto confirm accounts for development environment or Teams ~ GG
-        options = { group : client.context.group, user, email, username }
-        confirmAccountIfNeeded options, (err, pin_) ->
-          return callback err  if err
-          pin = pin_
-          queue.next()
-
-      ->
         date = new Date 0
         subscription =
           accountId          : account.getId()
@@ -1634,51 +1636,32 @@ module.exports = class JUser extends jraphical.Module
         queue.next()
 
       ->
-        jwtToken = JUser.createJWT { username }
-
-        { status, lastLoginDate } = user
-        { createdAt } = account.meta
-
-        sshKeysCount = user.sshKeys.length
-
-        emailFrequency =
-          global       : user.emailFrequency.global
-          marketing    : user.emailFrequency.marketing
-
-        traits = {
-          email
-          createdAt
-          lastLoginDate
-          status
-
-          firstName
-          lastName
-
-          subscription
-          sshKeysCount
-          emailFrequency
-
-          pin
-          jwtToken
-        }
-
-        Tracker.identify username, traits
-        Tracker.alias oldUsername, username
+        args = { user, account, subscription, pin, oldUsername }
+        identifyUserOnRegister disableCaptcha, args
 
         queue.next()
 
       ->
-        subject             = Tracker.types.START_REGISTER
-        { username, email } = user
-
-        opts = { pin, email, group: client.context.group, user : { user_id : username, email } }
-        Tracker.track username, { to : email, subject }, opts
-
+        JUser.emit 'UserRegistered', { user, account }
         queue.next()
+
+      ->
+        # Auto confirm accounts for development environment or Teams ~ GG
+        options = { group : client.context.group, user, email, username }
+        confirmAccountIfNeeded options, (err, pin_) ->
+          return callback err  if err
+          pin = pin_
+          queue.next()
 
       ->
         # don't block register
         callback error, { account, newToken, user }
+        queue.next()
+
+      ->
+        group = client.context.group
+        trackUserOnRegister disableCaptcha, { user, group, pin }
+
         queue.next()
 
       ->
@@ -1688,6 +1671,56 @@ module.exports = class JUser extends jraphical.Module
     ]
 
     daisy queue
+
+
+  identifyUserOnRegister = (disableCaptcha, args) ->
+
+    return  if disableCaptcha
+
+    { user, account, subscription, pin, oldUsername } = args
+    { status, lastLoginDate, username, email } = user
+    { createdAt, profile } = account.meta
+    { firstName, lastName } = account.profile
+
+    jwtToken = JUser.createJWT { username }
+
+    sshKeysCount = user.sshKeys.length
+
+    emailFrequency =
+      global       : user.emailFrequency.global
+      marketing    : user.emailFrequency.marketing
+
+    traits = {
+      email
+      createdAt
+      lastLoginDate
+      status
+
+      firstName
+      lastName
+
+      subscription
+      sshKeysCount
+      emailFrequency
+
+      pin
+      jwtToken
+    }
+
+    Tracker.identify username, traits
+    Tracker.alias oldUsername, username
+
+
+  trackUserOnRegister = (disableCaptcha, args) ->
+
+    return  if disableCaptcha
+
+    subject              = Tracker.types.START_REGISTER
+    { user, group, pin } = args
+    { username, email }  = user
+
+    opts = { pin, email, group, user : { user_id : username, email } }
+    Tracker.track username, { to : email, subject }, opts
 
 
   @createJWT: (data, options = {}) ->
