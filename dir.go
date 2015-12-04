@@ -310,21 +310,22 @@ func (d *Dir) findEntry(name string) (Node, error) {
 }
 
 func (d *Dir) updateEntriesFromRemote() error {
-	d.Lock()
-	defer d.Unlock()
-
 	entries, err := d.getEntriesFromRemote()
 	if err != nil {
 		return err
 	}
 
-	d.Entries = []fuseutil.Dirent{}
-	d.EntriesList = map[string]Node{}
-
 	for _, e := range entries {
-		if _, err := d.initializeChild(e); err != nil {
-			return err
+		localEntry, err := d.findEntry(e.Name)
+		if err != nil {
+			if _, err := d.initializeChild(e); err != nil {
+				return err
+			}
+			continue
 		}
+
+		attrs := d.initializeAttrs(e)
+		localEntry.SetAttrs(attrs)
 	}
 
 	return nil
@@ -359,6 +360,24 @@ func (d *Dir) getEntriesFromRemote() ([]*tempEntry, error) {
 	}
 
 	return entries, nil
+}
+
+func (d *Dir) initializeAttrs(e *tempEntry) fuseops.InodeAttributes {
+	var t = e.Time
+	if t.IsZero() {
+		t = time.Now()
+	}
+
+	return fuseops.InodeAttributes{
+		Size:   e.Size,
+		Uid:    d.Attrs.Uid,
+		Gid:    d.Attrs.Gid,
+		Mode:   e.Mode,
+		Atime:  t,
+		Mtime:  t,
+		Ctime:  t,
+		Crtime: t,
+	}
 }
 
 func (d *Dir) initializeChild(e *tempEntry) (Node, error) {
