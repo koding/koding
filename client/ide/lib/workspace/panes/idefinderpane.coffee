@@ -67,6 +67,7 @@ module.exports = class IDEFinderPane extends IDEPane
       @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
 
 
+    fc.on 'RootFolderChanged', (path) => @emitChangeHappened 'RootFolderChanged', path
     tc.on 'FolderCollapsed',   (path) => @emitChangeHappened 'Collapsed', path
     tc.on 'FolderExpanded',    (path) => @emitChangeHappened 'Expanded', path
 
@@ -90,6 +91,7 @@ module.exports = class IDEFinderPane extends IDEPane
       context  :
         action : action
         path   : path
+        uid    : @mountedMachine.uid
 
     return change
 
@@ -98,16 +100,22 @@ module.exports = class IDEFinderPane extends IDEPane
 
     return  unless change.type is 'FileTreeInteraction'
 
-    {context} = change
+    { context } = change
     return  unless context
 
-    {action} = context
+    { action, path, uid } = context
+
     fc = @finderController
     tc = fc.treeController
 
     tc.dontEmitChangeEvent = yes
+    fc.dontEmitChangeEvent = yes
 
-    if      action is 'Expanded'  then fc.expandFolders context.path
-    else if action is 'Collapsed' then tc.collapseFolder tc.nodes[context.path]
+    switch action
+      when 'Expanded'           then fc.expandFolders  path
+      when 'Collapsed'          then tc.collapseFolder tc.nodes[path]
+      when 'RootFolderChanged'  then fc.updateMachineRoot uid, path
+
 
     tc.dontEmitChangeEvent = no
+    fc.dontEmitChangeEvent = no
