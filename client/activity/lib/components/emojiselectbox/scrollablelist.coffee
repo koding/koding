@@ -41,7 +41,7 @@ module.exports = class EmojiSelectBoxScrollableList extends React.Component
     scroller  = ReactDOM.findDOMNode @refs.scroller
     scrollTop = scroller.scrollTop
 
-    return scroller.scrollTop = 0  if sectionIndex is 0
+    return scroller.scrollTop = 0  unless sectionIndex
 
     # this check avoids useless scrolling when section is changed
     # while user is scrolling the list with scrollbar
@@ -97,7 +97,7 @@ module.exports = class EmojiSelectBoxScrollableList extends React.Component
     { items, sectionIndex, query } = @props
 
     index    = if query then 0 else sectionIndex
-    category = if index is 0 then '' else items.get(index).get 'category'
+    category = if index > 0 then items.get(index).get 'category' else ''
 
     <header
       className = 'EmojiSelectBox-categorySectionHeader fixedHeader hidden'

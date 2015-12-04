@@ -7,7 +7,8 @@ getListSelectedItem        = require 'activity/util/getListSelectedItem'
 parseStringToCommand       = require 'activity/util/parseStringToCommand'
 findNameByQuery            = require 'activity/util/findNameByQuery'
 isGroupChannel             = require 'app/util/isgroupchannel'
-getEmojiSynonyms           = require 'activity/util/getEmojiSynonyms'
+searchListByQuery          = require 'activity/util/searchListByQuery'
+convertSynonymEmojis       = require 'activity/util/convertSynonymEmojis'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -54,12 +55,8 @@ filteredEmojiList = (stateId) -> [
   (emojis, query) ->
     return immutable.List()  unless query
 
-    isBeginningMatch = query.length < 3
-    emojis
-      .filter (emoji) ->
-        index = emoji.indexOf(query)
-        if isBeginningMatch then index is 0 else index > -1
-      .sort (emoji1, emoji2) ->
+    emojis = searchListByQuery emojis, query
+    emojis.sort (emoji1, emoji2) ->
         return -1  if emoji1.indexOf(query) is 0
         return 1  if emoji2.indexOf(query) is 0
         return 0
@@ -93,7 +90,8 @@ emojiSelectBoxQuery = (stateId) -> [
 ]
 
 
-# Returns a list of frequently used emojis
+# Returns a list of top frequently used emojis
+# sorted by usage count descending
 frequentlyUsedEmojis = [
   EmojiUsageCountsStore
   (usageCounts) ->
@@ -116,43 +114,20 @@ emojiSelectBoxItems = (stateId) -> [
   EmojiCategoriesStore
   frequentlyUsedEmojis
   emojiSelectBoxQuery stateId
-  (list, frequentlyUsed, query) ->
+  (list, frequentlyUsedItems, query) ->
     unless query
-      list = list.splice 0, 0, toImmutable {
+      frequentlyUsedCategory = toImmutable {
         category : 'Frequently Used'
-        emojis   : frequentlyUsed.toJS()
+        emojis   : frequentlyUsedItems
       }
+      list = list.splice 0, 0, frequentlyUsedCategory
 
-      # For each emoji we need to check if it has synonyms and if so,
-      # only first emoji synonym should be in the result list
-      return list.map (categoryItem) ->
-        toImmutable {
-          category : categoryItem.get 'category'
-          emojis   : categoryItem.get('emojis').filterNot (emoji) ->
-            synonyms = getEmojiSynonyms emoji
-            return synonyms and synonyms.indexOf(emoji) > 0
-        }
+      return list.map (item) ->
+        item.set 'emojis', convertSynonymEmojis item.get('emojis')
 
-    isBeginningMatch = query.length < 3
-
-    matchedSynonyms = []
     reduceFn = (reduction, item) ->
-      emojis = item.get('emojis').filter (emoji) ->
-        index = emoji.indexOf(query)
-        if isBeginningMatch then index is 0 else index > -1
-
-      # Once emojis are filtered out by query, it's necessary to make sure
-      # that emojis with synonyms should be mapped to their first synonyms.
-      # During this process it's important to filter out possible emoji duplicates
-      emojis = emojis.map (emoji) ->
-        synonyms = getEmojiSynonyms emoji
-        return emoji  unless synonyms
-        return  if matchedSynonyms.indexOf(emoji) > -1
-        matchedSynonyms = matchedSynonyms.concat synonyms
-        return synonyms[0]
-
-      emojis = emojis.filter (emoji) -> emoji?
-
+      emojis = searchListByQuery item.get('emojis'), query
+      emojis = convertSynonymEmojis emojis
       reduction.concat emojis.toJS()
 
     searchItems = list.reduce reduceFn, []
