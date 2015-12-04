@@ -1283,3 +1283,9 @@ module.exports = CollaborationController =
       return IDELayoutManager.convertSnapshotToFlatArray layout
 
     return layout
+
+
+  saveOpenFoldersToDrive: ->
+
+    openFolders = @finderPane.getOpenFolders()
+    @rtm.getFromModel('commonStore').set 'openFolders', openFolders
