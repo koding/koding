@@ -117,8 +117,6 @@ func realMain() error {
 		cl.Run()
 		time.Sleep(interval)
 	}
-
-	return nil
 }
 
 func (c *Cleaner) Run() {
