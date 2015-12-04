@@ -83,7 +83,7 @@ func InstallCommandFactory(c *cli.Context) int {
 	// Create the installation dir, if needed.
 	err = os.MkdirAll(KlientDirectory, 0755)
 	if err != nil {
-		fmt.Printf("Error creating directory to hold: '%s'\n", KlientName, err)
+		fmt.Printf("Error creating directory to hold %s: %q\n", KlientName, err)
 		return 1
 	}
 

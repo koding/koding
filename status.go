@@ -203,7 +203,7 @@ func (c *HealthChecker) CheckLocal() error {
 	// responses.
 	if err = k.Dial(); err != nil {
 		return ErrHealthDialFailed{Message: fmt.Sprintf(
-			"Dailing klient failed. Reason:", err.Error(),
+			"Dailing klient failed. Reason: %s", err.Error(),
 		)}
 	}
 
