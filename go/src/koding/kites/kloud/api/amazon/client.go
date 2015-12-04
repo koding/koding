@@ -409,7 +409,7 @@ func (c *Client) TagsByFilters(filters url.Values) (map[string]string, error) {
 		key := aws.StringValue(tag.Key)
 		val := aws.StringValue(tag.Value)
 		if _, ok := m[key]; ok {
-			c.Log.Error("duplicated tag key=%q, value=%q for ", key, val)
+			c.Log.Error("duplicated tag key=%q, value=%q", key, val)
 		}
 		m[key] = val
 	}

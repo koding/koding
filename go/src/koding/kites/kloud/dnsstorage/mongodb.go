@@ -137,7 +137,7 @@ func (m *MongodbStorage) UpdateMachine(name, machineId string) error {
 
 	if machineId != "" {
 		if !bson.IsObjectIdHex(machineId) {
-			return fmt.Errorf("'%m' is not a valid object Id", machineId)
+			return fmt.Errorf("%q is not a valid object Id", machineId)
 		}
 
 		updateData["machineId"] = bson.ObjectIdHex(machineId)
