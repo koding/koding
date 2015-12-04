@@ -362,6 +362,7 @@ module.exports = CollaborationController =
 
       @statusBar.removeParticipantAvatar nickname
       @unwatchParticipant nickname
+      @removeParticipantPermissions nickname
 
 
   participantAdded: (participant) ->
