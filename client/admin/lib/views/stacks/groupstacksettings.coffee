@@ -4,9 +4,9 @@ remote          = require('app/remote').getInstance()
 curryIn         = require 'app/util/curryIn'
 showError       = require 'app/util/showError'
 
-InitialView     = require './stacks/initialview'
-DefineStackView = require './stacks/definestackview'
-OnboardingView  = require './stacks/onboarding/onboardingview'
+InitialView     = require './initialview'
+DefineStackView = require './definestackview'
+OnboardingView  = require './onboarding/onboardingview'
 
 
 module.exports = class GroupStackSettings extends kd.View

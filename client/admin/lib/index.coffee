@@ -1,19 +1,19 @@
 kd                         = require 'kd'
 AppController              = require 'app/appcontroller'
-AdminAppView               = require './adminappview'
-TeamInviteView             = require './views/teaminviteview'
+
+AdminAppView               = require './views/customviews/adminappview'
+TeamInviteView             = require './views/koding-admin/teaminviteview'
 AdminMembersView           = require './views/members/adminmembersview'
-AdministrationView         = require './views/administrationview'
+AdministrationView         = require './views/koding-admin/administrationview'
 CustomViewsManager         = require './views/customviews/customviewsmanager'
 TopicModerationView        = require './views/moderation/topicmoderationview'
-GroupStackSettingsV1       = require './views/groupstacksettingsv1'
-GroupStackSettings         = require './views/groupstacksettings'
+GroupStackSettings         = require './views/stacks/groupstacksettings'
 OnboardingAdminView        = require './views/onboarding/onboardingadminview'
 AdminInvitationsView       = require './views/invitations/admininvitationsview'
-GroupPermissionsView       = require './views/grouppermissionsview'
-GroupsBlockedUserView      = require './views/groupsblockeduserview'
+GroupPermissionsView       = require './views/permissions/grouppermissionsview'
+GroupsBlockedUserView      = require './views/members/groupsblockeduserview'
 AdminIntegrationsView      = require './views/integrations/adminintegrationsview'
-GroupGeneralSettingsView   = require './views/groupgeneralsettingsview'
+GroupGeneralSettingsView   = require './views/general/groupgeneralsettingsview'
 AdminIntegrationParentView = require './views/integrations/adminintegrationparentview'
 
 
@@ -44,7 +44,6 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
-      # { slug : 'StacksV1',       title : 'Compute Stacks',    viewClass : GroupStackSettingsV1     }
       ]
     koding     :
       title    : 'Koding Administration'
