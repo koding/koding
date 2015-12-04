@@ -46,6 +46,7 @@ func (m *Machine) addDomains() error {
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			continue
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
