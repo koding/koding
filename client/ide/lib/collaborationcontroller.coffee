@@ -879,6 +879,12 @@ module.exports = CollaborationController =
     @on 'SetMachineUser',   @bound 'broadcastMachineUserChange'
     @on 'SnapshotUpdated',  @bound 'handleSnapshotUpdated'
 
+    unless @amIHost
+      openFolders = @rtm.getFromModel('commonStore').get 'openFolders'
+
+      for path in openFolders
+        @finderPane.finderController.expandFolder path
+
 
   transitionViewsToActive: ->
 
