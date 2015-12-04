@@ -12,6 +12,11 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 		return err
 	}
 
+	// delete old domains
+	if err := m.deleteDomains(); err != nil {
+		m.Log.Warning("couldn't delete domains while reiniting machine: %s", err)
+	}
+
 	// go and terminate the old instance, we don't need to wait for it
 	go func(id int) {
 		//Get the SoftLayer virtual guest service
