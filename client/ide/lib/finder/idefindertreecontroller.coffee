@@ -43,20 +43,27 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
   collapseFolder: (nodeView, callback, silence) ->
 
-    super nodeView, callback, silence
+    kallback = (nodeView) =>
+      callback?.call this, nodeView
 
-    return  if @dontEmitChangeEvent
+      return  if @dontEmitChangeEvent
 
-    @emit 'FolderCollapsed', nodeView.getData().path
+      @emit 'FolderCollapsed', nodeView.getData().path
+
+
+    super nodeView, kallback, silence
 
 
   expandFolder: (nodeView, callback, silence) ->
 
-    super nodeView, callback, silence
+    kallback = (err, nodeView) =>
+      callback?.call this, err, nodeView
 
-    return  if @dontEmitChangeEvent
+      return  if @dontEmitChangeEvent
 
-    @emit 'FolderExpanded', nodeView.getData().path
+      @emit 'FolderExpanded', nodeView.getData().path
+
+    super nodeView, kallback, silence
 
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->

@@ -146,6 +146,7 @@ getReferences = (manager, channelId, initialSnapshot) ->
     permissions       : getFromManager manager, 'permissions', 'map', {}
     broadcastMessages : getFromManager manager, 'broadcastMessages', 'list', []
     pingTime          : getFromManager manager, 'pingTime', 'list', []
+    commonStore       : getFromManager manager, 'commonStore', 'map', {}
     watchMap          : getFromManager manager, watchMapName, 'map', {}
     snapshot          : getFromManager manager, snapshotName, 'map', layout: initialSnapshot
 

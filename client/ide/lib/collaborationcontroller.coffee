@@ -879,6 +879,12 @@ module.exports = CollaborationController =
     @on 'SetMachineUser',   @bound 'broadcastMachineUserChange'
     @on 'SnapshotUpdated',  @bound 'handleSnapshotUpdated'
 
+    unless @amIHost
+      openFolders = @rtm.getFromModel('commonStore').get 'openFolders'
+
+      for path in openFolders
+        @finderPane.finderController.expandFolder path
+
 
   transitionViewsToActive: ->
 
@@ -1283,3 +1289,9 @@ module.exports = CollaborationController =
       return IDELayoutManager.convertSnapshotToFlatArray layout
 
     return layout
+
+
+  saveOpenFoldersToDrive: ->
+
+    openFolders = @finderPane.getOpenFolders()
+    @rtm.getFromModel('commonStore').set 'openFolders', openFolders

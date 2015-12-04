@@ -32,6 +32,17 @@ module.exports = class IDEFinderPane extends IDEPane
       @bindListeners()
 
 
+  getOpenFolders: (filterRootFolder = yes) ->
+
+    fc          = @finderController
+    folderPaths = fc.treeController.getOpenFolders()
+
+    return folderPaths  unless filterRootFolder
+
+    machineNodePath = fc.getMachineNode(@mountedMachine.uid).getData().path
+    return folderPaths.filter (path) -> path isnt machineNodePath
+
+
   bindListeners: ->
 
     mgr = kd.getSingleton 'appManager'
