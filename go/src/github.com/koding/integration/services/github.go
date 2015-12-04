@@ -373,6 +373,10 @@ func (g GithubListener) pullRequest(e *webhook.PullRequestEvent) (string, error)
 		action = "merged"
 	}
 
+	if action == "synchronize" {
+		action = "synchronized"
+	}
+
 	return fmt.Sprintf("%s %s pull request %s at %s",
 		user,
 		action,

@@ -47,8 +47,8 @@ module.exports =
         path     = ' a[href="/IDE/' + vmName + '/' + folderData.name + '"]'
 
         browser
+          .pause                  5000 # wait for new workspace on side bar
           .waitForElementVisible  selector + path, 20000 #Assertion
-          .pause                  3000
           .waitForElementVisible  '.vm-info', 20000
           .assert.containsText    '.vm-info', name # Assertion
           .end()
