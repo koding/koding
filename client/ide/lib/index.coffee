@@ -1315,12 +1315,13 @@ class IDEAppController extends AppController
         if context.file?.content
           delete context.file.content
 
+      if @amIHost and change.type is 'FileTreeInteraction'
+        @saveOpenFoldersToDrive()
+
       @changes.push change
 
 
   ###*
-   * Am I watching to change's owner?
-   *
    * @param {string} origin  Nickname of the change's owner
    * @return {boolean}
   ###
