@@ -1,16 +1,287 @@
 package algoliaconnector
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
 	"strconv"
 	"testing"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func TestAccountTesting(t *testing.T) {
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
+	// init mongo connection
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("given some fake account", t, func() {
+		acc, _, name := models.CreateRandomGroupDataWithChecks()
+		So(name, ShouldNotBeNil)
+		So(acc, ShouldNotBeNil)
+
+		Convey("it should save the document to algolia", func() {
+			err := handler.AccountCreated(acc)
+			So(err, ShouldBeNil)
+
+			Convey("it should be able to fetch algolia data", func() {
+				// make sure account is there
+				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+				_, err = modelhelper.GetUser(acc.Nick)
+				So(err, ShouldBeNil)
+
+				// update user's email
+				selector := bson.M{"username": acc.Nick}
+				newEmail := "mehmetalixsavasx1x2x" + models.RandomGroupName() + "@koding.com"
+				updateQuery := bson.M{"email": newEmail}
+
+				err = modelhelper.UpdateUser(selector, updateQuery)
+				So(err, ShouldBeNil)
+
+				err = handler.AccountUpdated(acc)
+				So(err, ShouldBeNil)
+
+				index, err := handler.indexes.GetIndex(IndexAccounts)
+				So(err, ShouldBeNil)
+
+				params := make(map[string]interface{})
+				record, err := index.Search("mehmetalixsavasx1x2x", params)
+				So(err, ShouldBeNil)
+
+				hist, ok := record.(map[string]interface{})["hits"]
+
+				usernames := make([]string, 0)
+				objects := make([]string, 0)
+
+				if ok {
+					hinter, ok := hist.([]interface{})
+					if ok {
+						for _, v := range hinter {
+							val, k := v.(map[string]interface{})
+							if k {
+								object := val["objectID"].(string)
+								value := val["nick"].(string)
+
+								usernames = append(usernames, value)
+								objects = append(objects, object)
+
+								_, err = index.DeleteObject(object)
+								So(err, ShouldBeNil)
+							}
+
+						}
+					}
+				}
+
+				So(usernames, ShouldNotBeNil)
+				So(objects, ShouldNotBeNil)
+
+			})
+
+			Convey("it should be able to fetch many account with given query", func() {
+				So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+				// we create 10 acc for algolia test
+				for i := 0; i < 10; i++ {
+					ac, _, _ := models.CreateRandomGroupDataWithChecks()
+
+					err := handler.AccountCreated(ac)
+					So(err, ShouldBeNil)
+
+					selector := bson.M{"username": ac.Nick}
+					newEmail := "mehmetali-test" + models.RandomGroupName() + "@koding.com"
+					updateQuery := bson.M{"email": newEmail}
+					err = modelhelper.UpdateUser(selector, updateQuery)
+					So(err, ShouldBeNil)
+
+					err = handler.AccountUpdated(ac)
+					So(err, ShouldBeNil)
+					time.Sleep(1 * time.Second)
+				}
+
+				//required for getting algolia datas correctly
+				time.Sleep(5 * time.Second)
+
+				_, err = modelhelper.GetUser(acc.Nick)
+				So(err, ShouldBeNil)
+
+				index, err := handler.indexes.GetIndex(IndexAccounts)
+				So(err, ShouldBeNil)
+
+				params := make(map[string]interface{})
+				record, err := index.Search("mehmetali-test", params)
+				So(err, ShouldBeNil)
+
+				hist, ok := record.(map[string]interface{})["hits"]
+
+				usernames := make([]string, 0)
+				objects := make([]string, 0)
+
+				if ok {
+					hinter, ok := hist.([]interface{})
+					if ok {
+						for _, v := range hinter {
+							val, k := v.(map[string]interface{})
+							if k {
+								object := val["objectID"].(string)
+								value := val["nick"].(string)
+
+								usernames = append(usernames, value)
+								objects = append(objects, object)
+							}
+
+						}
+					}
+				}
+
+				So(len(usernames), ShouldBeGreaterThan, 0)
+				So(len(objects), ShouldBeGreaterThan, 0)
+
+				Convey("it should be able to delete many account with given query", func() {
+
+					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+					for i := 0; i < 10; i++ {
+						ac, _, _ := models.CreateRandomGroupDataWithChecks()
+
+						err := handler.AccountCreated(ac)
+						So(err, ShouldBeNil)
+
+						selector := bson.M{"username": ac.Nick}
+						newEmail := "mehmetali-test" + models.RandomGroupName() + "@koding.com"
+						updateQuery := bson.M{"email": newEmail}
+						err = modelhelper.UpdateUser(selector, updateQuery)
+						So(err, ShouldBeNil)
+
+						err = handler.AccountUpdated(ac)
+						So(err, ShouldBeNil)
+						time.Sleep(1 * time.Second)
+					}
+
+					time.Sleep(5 * time.Second)
+
+					_, err = modelhelper.GetUser(acc.Nick)
+					So(err, ShouldBeNil)
+
+					_, err := handler.indexes.GetIndex(IndexAccounts)
+					So(err, ShouldBeNil)
+
+					usernames := make([]string, 0)
+					objects := make([]string, 0)
+
+					nbHits, _ := record.(map[string]interface{})["nbHits"]
+					nbPages, _ := record.(map[string]interface{})["nbPages"]
+
+					var pages float64 = nbPages.(float64)
+					var nbHit float64 = nbHits.(float64)
+
+					for pages > 0 && nbHit != 0 {
+						record, err := index.Search("mehmetali-test", params)
+						hist, ok := record.(map[string]interface{})["hits"]
+
+						// fmt.Println("hist is :", hist)
+						nbHits, _ := record.(map[string]interface{})["nbHits"]
+						nbPages, _ := record.(map[string]interface{})["nbPages"]
+
+						pages = nbPages.(float64)
+						nbHit = nbHits.(float64)
+
+						if ok {
+							hinter, ok := hist.([]interface{})
+							if ok {
+								for _, v := range hinter {
+									val, k := v.(map[string]interface{})
+									if k {
+										object := val["objectID"].(string)
+										value := val["nick"].(string)
+
+										usernames = append(usernames, value)
+										objects = append(objects, object)
+										_, err = index.DeleteObject(object)
+										So(err, ShouldBeNil)
+									}
+
+								}
+							}
+						}
+					}
+
+					lenghtUsernames := len(usernames)
+					lenghtObjects := len(objects)
+					So(lenghtUsernames, ShouldBeGreaterThan, 10)
+					So(lenghtObjects, ShouldBeGreaterThan, 10)
+
+				})
+
+				Convey("it should have delete algolia accounts", func() {
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("it should have delete algolia accounts")
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					fmt.Println("=============>>>>>>>>>>>>>>>>>>>")
+					// make sure account is there
+					So(doBasicTestForAccount(handler, acc.OldId), ShouldBeNil)
+
+					for i := 0; i < 10; i++ {
+						rand.Seed(time.Now().UnixNano())
+						strconv.FormatInt(rand.Int63(), 10)
+						name := "guter-" + strconv.FormatInt(rand.Int63(), 10)
+						ac, _ := models.CreateAccountInBothDbsWithNick(name)
+
+						err := handler.AccountCreated(ac)
+						So(err, ShouldBeNil)
+
+						selector := bson.M{"username": ac.Nick}
+						newEmail := "mehmetali-test" + models.RandomGroupName() + "@koding.com"
+						updateQuery := bson.M{"email": newEmail}
+						err = modelhelper.UpdateUser(selector, updateQuery)
+						So(err, ShouldBeNil)
+
+						err = handler.AccountUpdated(ac)
+						So(err, ShouldBeNil)
+						time.Sleep(1 * time.Second)
+					}
+
+					time.Sleep(5 * time.Second)
+
+					_, err = handler.indexes.GetIndex(IndexAccounts)
+					So(err, ShouldBeNil)
+
+					// record, _ := index.Search("mehmetalisa", map[string]interface{}{"restrictSearchableAttributes": "email"})
+					// params := make(map[string]interface{})
+					params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
+					record, _ := index.Search("guter-", params)
+
+					hits, _ := record.(map[string]interface{})["nbHits"]
+					hit := hits.(float64)
+					So(hit, ShouldBeGreaterThan, 0)
+
+					err = handler.DeleteNicksWithQuery("guter-")
+					So(err, ShouldBeNil)
+
+					// necessary for getting datas from algolia,
+					time.Sleep(5 * time.Second)
+
+					r, err := index.Search("guter-", params)
+					So(err, ShouldBeNil)
+					nbHits, _ := r.(map[string]interface{})["nbHits"]
+					nbHit := nbHits.(float64)
+					So(nbHit, ShouldBeLessThan, 10)
+				})
+			})
+		})
+	})
+}
 
 func TestAccountSaved(t *testing.T) {
 	runner, handler := getTestHandler()
