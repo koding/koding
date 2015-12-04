@@ -239,7 +239,7 @@ func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	for _, key := range c.UserSSHKeys {
 		_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
 		if err != nil {
-			log.Print(`User (%s) has an invalid public SSH key. Not adding it to the authorized keys. Key: %s. Err: %v`,
+			log.Printf(`User (%s) has an invalid public SSH key. Not adding it to the authorized keys. Key: %s. Err: %v`,
 				c.Username, key, err)
 			continue
 		}

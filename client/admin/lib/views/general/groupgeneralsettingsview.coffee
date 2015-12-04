@@ -16,7 +16,6 @@ KDInputView        = kd.InputView
 KDButtonView       = kd.ButtonView
 KDToggleButton     = kd.ToggleButton
 KDCustomHTMLView   = kd.CustomHTMLView
-GroupLogoSettings  = require '../grouplogosettings'
 KDNotificationView = kd.NotificationView
 
 

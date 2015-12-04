@@ -672,7 +672,7 @@ func TestResize(t *testing.T) {
 			t.Error(err)
 		}
 
-		storageGot, err := getAmazonStorageSize(userData.MachineIds[0].Hex())
+		storageGot, err := getAmazonStorageSize(username, userData.MachineIds[0].Hex())
 		if err != nil {
 			t.Error(err)
 		}
@@ -1278,7 +1278,7 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 		Regions:     amazon.ProductionRegions,
 		Log:         common.NewLogger("koding", true),
 	}
-	ec2clients, err := amazon.NewClientPerRegion(opts)
+	ec2clients, err := amazon.NewClients(opts)
 	if err != nil {
 		panic(err)
 	}
@@ -1344,9 +1344,9 @@ func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider) *kloud.Klou
 	return kld
 }
 
-func getAmazonStorageSize(machineId string) (int, error) {
+func getAmazonStorageSize(username, machineId string) (int, error) {
 	ctx := request.NewContext(context.Background(), &kite.Request{
-		Username: "testuser5",
+		Username: username,
 	})
 	ctx = eventer.NewContext(ctx, eventer.New(machineId))
 
