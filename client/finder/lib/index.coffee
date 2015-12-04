@@ -27,8 +27,9 @@ module.exports = class FinderController extends KDController
     options.addAppTitle       ?= yes
     options.bindMachineEvents ?= yes
     options.delegate          ?= this
+    options.controllerClass  or= NFinderController
 
-    controller = new NFinderController options
+    controller = new options.controllerClass options
     finderView = controller.getView()
 
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
