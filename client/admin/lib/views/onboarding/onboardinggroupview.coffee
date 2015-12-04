@@ -3,9 +3,9 @@ KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomHTMLView = kd.CustomHTMLView
 KDModalView = kd.ModalView
 CustomViewsAdminView = require '../customviews/customviewsadminview'
-OnboardingChildItem = require '../../onboardingchilditem'
+OnboardingChildItem = require './onboardingchilditem'
 OnboardingSectionForm = require './onboardingsectionform'
-OnboardingSettingsMenuItem = require '../../onboardingsettingsmenuitem'
+OnboardingSettingsMenuItem = require './onboardingsettingsmenuitem'
 
 
 module.exports = class OnboardingGroupView extends CustomViewsAdminView

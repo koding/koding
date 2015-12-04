@@ -1,7 +1,7 @@
 kd                    = require 'kd'
 isKoding              = require 'app/util/isKoding'
 TeamMembersCommonView = require './teammemberscommonview'
-GroupsBlockedUserView = require '../groupsblockeduserview'
+GroupsBlockedUserView = require './groupsblockeduserview'
 BlockedMemberItemView = require './blockedmemberitemview'
 
 

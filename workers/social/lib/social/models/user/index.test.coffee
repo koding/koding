@@ -1,39 +1,27 @@
-{ argv }                      = require 'optimist'
-{ expect }                    = require 'chai'
-{ env : { MONGO_URL } }       = process
+JLog      = require '../log/index'
+JUser     = require './index'
+JName     = require '../name'
+JAccount  = require '../account'
+JSession  = require '../session'
+Speakeasy = require 'speakeasy'
 
-KONFIG                        = require('koding-config-manager').load("main.#{argv.c}")
-
-JLog                          = require '../log/index'
-Bongo                         = require 'bongo'
-JUser                         = require './index'
-JName                         = require '../name'
-mongo                         = MONGO_URL or "mongodb://#{ KONFIG.mongo }"
-JAccount                      = require '../account'
-JSession                      = require '../session'
-Speakeasy                     = require 'speakeasy'
-TestHelper                    = require '../../../../testhelper'
-
-{ daisy }                     = Bongo
-{ generateUserInfo
+{ daisy
+  expect
+  withDummyClient
+  generateUserInfo
   generateDummyClient
   generateCredentials
   generateRandomEmail
   generateRandomString
   generateRandomUsername
-  generateDummyUserFormData } = TestHelper
+  checkBongoConnectivity
+  generateDummyUserFormData } = require '../../../../testhelper'
 
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
 
-  bongo = new Bongo
-    root   : __dirname
-    mongo  : mongo
-    models : ''
-
-  bongo.once 'dbClientReady', ->
-    done()
+  checkBongoConnectivity done
 
 
 # this function will be called after all tests are executed
@@ -117,73 +105,87 @@ runTests = -> describe 'workers.social.user.index', ->
       daisy queue
 
 
-    it 'should create and save a new user when valid in case data is valid', (done) ->
+    describe 'when user data is valid', ->
 
-      userInfo = generateUserInfo()
+      testCreateUserWithValidData = (userInfo, callback) ->
 
-      queue = [
+        queue = [
 
-        ->
-          # expecting user to be created
-          JUser.createUser userInfo, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+          ->
+            # expecting user to be created
+            JUser.createUser userInfo, (err) ->
+              expect(err).to.not.exist
+              # after the user is created, lower casing username because
+              # we expect to see the username to be lower cased in jmodel documents
+              userInfo.username = userInfo.username.toLowerCase()
+              queue.next()
 
-        ->
-          # expecting user to be saved
+          ->
+            # expecting user to be saved
+            params = { username : userInfo.username }
+            JUser.one params, (err, user) ->
+              expect(err).to.not.exist
+              expect(user.username).to.be.equal userInfo.username
+              queue.next()
+
+          ->
+            # expecting account to be created and saved
+            params = { 'profile.nickname' : userInfo.username }
+            JAccount.one params, (err, account) ->
+              expect(err).to.not.exist
+              expect(account).to.exist
+              queue.next()
+
+          ->
+            # expecting name to be created and saved
+            params = { 'name' : userInfo.username }
+            JName.one params, (err, name) ->
+              expect(err).to.not.exist
+              expect(name).to.exist
+              queue.next()
+
+          -> callback()
+
+        ]
+
+        daisy queue
+
+
+      it 'should be able to create user with lower case username', (done) ->
+
+        userInfo          = generateUserInfo()
+        userInfo.username = userInfo.username.toLowerCase()
+
+        testCreateUserWithValidData userInfo, done
+
+
+      it 'should be able to create user with upper case username', (done) ->
+
+        userInfo          = generateUserInfo()
+        userInfo.username = userInfo.username.toUpperCase()
+
+        testCreateUserWithValidData userInfo, done
+
+
+      it 'should save email frequencies correctly', (done) ->
+
+        userInfo = generateUserInfo()
+
+        userInfo.emailFrequency =
+          global         : off
+          daily          : off
+          followActions  : off
+          privateMessage : off
+
+        testCreateUserWithValidData userInfo, ->
           params = { username : userInfo.username }
           JUser.one params, (err, user) ->
-            expect(err)           .to.not.exist
-            expect(user.username) .to.be.equal userInfo.username
-            queue.next()
-
-        ->
-          # expecting account to be created and saved
-          params = { 'profile.nickname' : userInfo.username }
-          JAccount.one params, (err, account) ->
-            expect(err)     .to.not.exist
-            expect(account) .to.exist
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
-
-
-    it 'should save email frequencies correctly', (done) ->
-
-      userInfo = generateUserInfo()
-
-      userInfo.emailFrequency =
-        global         : off
-        daily          : off
-        followActions  : off
-        privateMessage : off
-
-      queue = [
-
-        ->
-          JUser.createUser userInfo, (err) ->
             expect(err).to.not.exist
-            queue.next()
-
-        ->
-          params = { username : userInfo.username }
-          JUser.one params, (err, user) ->
-            expect(err)                                 .to.not.exist
-            expect(user.emailFrequency.global)          .to.be.false
-            expect(user.emailFrequency.daily)           .to.be.false
-            expect(user.emailFrequency.privateMessage)  .to.be.false
-            expect(user.emailFrequency.followActions)   .to.be.false
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
+            expect(user.emailFrequency.global).to.be.false
+            expect(user.emailFrequency.daily).to.be.false
+            expect(user.emailFrequency.privateMessage).to.be.false
+            expect(user.emailFrequency.followActions).to.be.false
+            done()
 
 
   describe '#login()', ->
@@ -571,145 +573,154 @@ runTests = -> describe 'workers.social.user.index', ->
 
   describe '#convert()', ->
 
-    # variables that will be used in the convert test suite scope
-    client       = {}
-    userFormData = {}
-
-    # this function will be called everytime before each test case under this test suite
-    beforeEach (done) ->
-
-      # generating new form data
-      userFormData = generateDummyUserFormData()
-
-      # generating a dummy client before each test case
-      generateDummyClient { group : 'koding' }, (err, client_) ->
-        expect(err).to.not.exist
-        client = client_
-        done()
-
-
     it 'should pass error if account is already registered', (done) ->
 
-      client.connection.delegate.type = 'registered'
-
-      JUser.convert client, userFormData, (err) ->
-        expect(err)         .to.exist
-        expect(err.message) .to.be.equal 'This account is already registered.'
-        done()
+      withDummyClient ({ client }) ->
+        userFormData = generateDummyUserFormData()
+        client.connection.delegate.type = 'registered'
+        JUser.convert client, userFormData, (err) ->
+          expect(err)         .to.exist
+          expect(err.message) .to.be.equal 'This account is already registered.'
+          done()
 
 
     it 'should pass error if username is a reserved one', (done) ->
 
-      queue             = []
-      reservedUsernames = ['guestuser', 'guest-']
+      withDummyClient ({ client }) ->
+        queue             = []
+        userFormData      = generateDummyUserFormData()
+        reservedUsernames = ['guestuser', 'guest-']
 
-      for username in reservedUsernames
-        userFormData.username = username
+        for username in reservedUsernames
+          userFormData.username = username
 
-        queue.push ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.exist
-            queue.next()
+          queue.push ->
+            JUser.convert client, userFormData, (err) ->
+              expect(err.message).to.exist
+              queue.next()
 
-      # done callback will be called after all usernames checked
-      queue.push -> done()
+        # done callback will be called after all usernames checked
+        queue.push -> done()
 
-      daisy queue
+        daisy queue
 
 
     it 'should pass error if passwords do not match', (done) ->
 
-      userFormData.password         = 'somePassword'
-      userFormData.passwordConfirm  = 'anotherPassword'
+      withDummyClient ({ client }) ->
+        userFormData                  = generateDummyUserFormData()
+        userFormData.password         = 'somePassword'
+        userFormData.passwordConfirm  = 'anotherPassword'
 
-      JUser.convert client, userFormData, (err) ->
-        expect(err)         .to.exist
-        expect(err.message) .to.be.equal 'Passwords must match!'
-        done()
+        JUser.convert client, userFormData, (err) ->
+          expect(err)         .to.exist
+          expect(err.message) .to.be.equal 'Passwords must match!'
+          done()
 
 
     it 'should pass error if username is in use', (done) ->
 
-      queue = [
+      withDummyClient ({ client }) ->
+        userFormData = generateDummyUserFormData()
 
-        ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+        queue = [
 
-        ->
-          # sending a different email address, username will remain same(duplicate)
-          userFormData.email = generateRandomEmail()
+          ->
+            JUser.convert client, userFormData, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-          JUser.convert client, userFormData, (err) ->
-            expect(err.message).to.be.equal 'Errors were encountered during validation'
-            queue.next()
+          ->
+            # sending a different email address, username will remain same(duplicate)
+            userFormData.email = generateRandomEmail()
 
-        -> done()
+            JUser.convert client, userFormData, (err) ->
+              expect(err.message).to.be.equal 'Errors were encountered during validation'
+              queue.next()
 
-      ]
+          -> done()
 
-      daisy queue
+        ]
+
+        daisy queue
 
 
     it 'should pass error if email is in use', (done) ->
 
-      queue = [
+      withDummyClient ({ client }) ->
+        userFormData = generateDummyUserFormData()
 
-        ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err).to.not.exist
-            queue.next()
+        queue = [
 
-        ->
-          # sending a different username, email address will remain same(duplicate)
-          userFormData.username = generateRandomUsername()
+          ->
+            JUser.convert client, userFormData, (err) ->
+              expect(err).to.not.exist
+              queue.next()
 
-          JUser.convert client, userFormData, (err) ->
-            expect(err?.message).to.be.equal 'Email is already in use!'
-            queue.next()
+          ->
+            # sending a different username, email address will remain same(duplicate)
+            userFormData.username = generateRandomUsername()
 
-        -> done()
+            JUser.convert client, userFormData, (err) ->
+              expect(err?.message).to.be.equal 'Email is already in use!'
+              queue.next()
 
-      ]
+          -> done()
 
-      daisy queue
+        ]
+
+        daisy queue
 
 
-    it.skip 'should set a random password when signed up with github', (done) ->
+    describe 'when user data is valid', ->
+
+      testConvertWithValidData = (client, userFormData, callback) ->
+
+        queue = [
+
+          ->
+            JUser.convert client, userFormData, (err) ->
+              expect(err).to.not.exist
+              queue.next()
+
+          ->
+            params = { username : userFormData.username }
+
+            JUser.one params, (err, { data : { email, registeredFrom } }) ->
+              expect(err).to.not.exist
+              expect(email).to.be.equal userFormData.email
+              expect(registeredFrom.ip).to.be.equal client.clientIP
+              queue.next()
+
+          ->
+            params = { 'profile.nickname' : userFormData.username }
+
+            JAccount.one params, (err, { data : { profile } }) ->
+              expect(err).to.not.exist
+              expect(profile.nickname).to.be.equal userFormData.username
+              queue.next()
+
+          -> callback()
+
+        ]
+
+        daisy queue
 
 
-    it 'should register user and create account when valid data passed to convert method', (done) ->
+      it 'should be able to register user with lower case username', (done) ->
 
-      queue = [
+        withDummyClient ({ client }) ->
+          userFormData          = generateDummyUserFormData()
+          userFormData.username = userFormData.username.toLowerCase()
+          testConvertWithValidData client, userFormData, done
 
-        ->
-          JUser.convert client, userFormData, (err) ->
-            expect(err).to.not.exist
-            queue.next()
 
-        ->
-          params = { username : userFormData.username }
+      it 'should be able to register user with upper case username', (done) ->
 
-          JUser.one params, (err, { data : { email, registeredFrom } }) ->
-            expect(err)               .to.not.exist
-            expect(email)             .to.be.equal userFormData.email
-            expect(registeredFrom.ip) .to.be.equal client.clientIP
-            queue.next()
-
-        ->
-          params = { 'profile.nickname' : userFormData.username }
-
-          JAccount.one params, (err, { data : { profile } }) ->
-            expect(err)               .to.not.exist
-            expect(profile.nickname)  .to.be.equal userFormData.username
-            queue.next()
-
-        -> done()
-
-      ]
-
-      daisy queue
+        withDummyClient ({ client }) ->
+          userFormData          = generateDummyUserFormData()
+          userFormData.username = userFormData.username.toUpperCase()
+          testConvertWithValidData client, userFormData, done
 
 
   describe '#unregister()', ->

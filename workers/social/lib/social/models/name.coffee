@@ -166,7 +166,7 @@ module.exports = class JName extends Model
       else if err
         callback err
       else
-        callback null, fullName
+        callback null, nameDoc
 
   @claimAll = (sources, callback = -> ) ->
     i = 0
