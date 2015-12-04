@@ -894,9 +894,9 @@ module.exports = CollaborationController =
     @on 'SetMachineUser',   @bound 'broadcastMachineUserChange'
     @on 'SnapshotUpdated',  @bound 'handleSnapshotUpdated'
 
-    unless @amIHost
-      openFolders = @rtm.getFromModel('commonStore').get 'openFolders'
+    openFolders = @rtm.getFromModel('commonStore').get 'openFolders'
 
+    if openFolders and not @amIHost
       for path in openFolders
         @finderPane.finderController.expandFolder path
 
