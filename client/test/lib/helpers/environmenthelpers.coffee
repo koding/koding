@@ -286,6 +286,7 @@ module.exports =
       .clearValue             nicknameInput
       .setValue               nicknameInput, name + '\n'
   
+
   reinitVM: (browser) ->
 
     reinitSelector  = '.kdmodal.AppModal .advanced .advanced.reinit'
@@ -331,5 +332,4 @@ module.exports =
   	  .waitForElementVisible  addKodingVmButton, 20000
   	  .click                  addKodingVmButton
   	  .waitForElementVisible  vmSelector, 20000
-
   	  .assert.containsText    vmSelector, 'koding-vm-0'
