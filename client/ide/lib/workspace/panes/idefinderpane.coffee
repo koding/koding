@@ -1,11 +1,13 @@
-kd = require 'kd'
-nick = require 'app/util/nick'
-showError = require 'app/util/showError'
+kd                             = require 'kd'
+nick                           = require 'app/util/nick'
+IDEPane                        = require './idepane'
+showError                      = require 'app/util/showError'
+IDEHelpers                     = require '../../idehelpers'
+IDEFinderItem                  = require '../../finder/idefinderitem'
+IDEFinderController            = require '../../finder/idefindercontroller'
+IDEFinderTreeController        = require '../../finder/idefindertreecontroller'
 IDEFinderContextMenuController = require '../../finder/idefindercontextmenucontroller'
-IDEFinderItem = require '../../finder/idefinderitem'
-IDEFinderTreeController = require '../../finder/idefindertreecontroller'
-IDEPane = require './idepane'
-IDEHelpers = require '../../idehelpers'
+
 
 module.exports = class IDEFinderPane extends IDEPane
 
@@ -21,6 +23,7 @@ module.exports = class IDEFinderPane extends IDEPane
       fc = @finderController = finderApp.create
         addAppTitle          : no
         bindMachineEvents    : no
+        controllerClass      : IDEFinderController
         treeItemClass        : IDEFinderItem
         treeControllerClass  : IDEFinderTreeController
         contextMenuClass     : IDEFinderContextMenuController
