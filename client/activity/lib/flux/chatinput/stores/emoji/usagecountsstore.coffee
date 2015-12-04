@@ -15,8 +15,8 @@ module.exports = class EmojiUsageCountsStore extends KodingFluxStore
 
   initialize: ->
 
-    @on actions.INCREMENT_EMOJI_USAGE_COUNT, @incrementUsageCount
     @on actions.SET_EMOJI_USAGE_COUNT,       @setUsageCount
+    @on actions.INCREMENT_EMOJI_USAGE_COUNT, @incrementUsageCount
 
 
   ###*
