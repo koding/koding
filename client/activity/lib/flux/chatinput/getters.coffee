@@ -1,14 +1,15 @@
-kd                         = require 'kd'
-immutable                  = require 'immutable'
-toImmutable                = require 'app/util/toImmutable'
-ActivityFluxGetters        = require 'activity/flux/getters'
-calculateListSelectedIndex = require 'activity/util/calculateListSelectedIndex'
-getListSelectedItem        = require 'activity/util/getListSelectedItem'
-parseStringToCommand       = require 'activity/util/parseStringToCommand'
-findNameByQuery            = require 'activity/util/findNameByQuery'
-isGroupChannel             = require 'app/util/isgroupchannel'
-searchListByQuery          = require 'activity/util/searchListByQuery'
-convertEmojisWithSynonyms  = require 'activity/util/convertEmojisWithSynonyms'
+kd                            = require 'kd'
+immutable                     = require 'immutable'
+toImmutable                   = require 'app/util/toImmutable'
+ActivityFluxGetters           = require 'activity/flux/getters'
+calculateListSelectedIndex    = require 'activity/util/calculateListSelectedIndex'
+getListSelectedItem           = require 'activity/util/getListSelectedItem'
+parseStringToCommand          = require 'activity/util/parseStringToCommand'
+findNameByQuery               = require 'activity/util/findNameByQuery'
+isGroupChannel                = require 'app/util/isgroupchannel'
+searchListByQuery             = require 'activity/util/searchListByQuery'
+convertEmojisWithSynonyms     = require 'activity/util/convertEmojisWithSynonyms'
+Constants                     = require './constants'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -95,13 +96,12 @@ emojiSelectBoxQuery = (stateId) -> [
 frequentlyUsedEmojis = [
   EmojiUsageCountsStore
   (usageCounts) ->
-    minUsageCount = 5
-    maxListSize   = 9
+    { FREQUENTLY_USED_EMOJIS_MIN_USAGE_COUNT, FREQUENTLY_USED_EMOJIS_MAX_LIST_SIZE } = Constants
 
     usageCounts
-      .filter (count, emoji) -> count >= minUsageCount
+      .filter (count, emoji) -> count >= FREQUENTLY_USED_EMOJIS_MIN_USAGE_COUNT
       .sort (count1, count2) -> count2 - count1
-      .take maxListSize
+      .take FREQUENTLY_USED_EMOJIS_MAX_LIST_SIZE
       .map (count, emoji) -> emoji
       .toList()
 ]
@@ -122,7 +122,7 @@ emojiSelectBoxItems = (stateId) -> [
         category : 'Frequently Used'
         emojis   : frequentlyUsedItems
       }
-      list = list.splice 0, 0, frequentlyUsedCategory
+      list = list.unshift frequentlyUsedCategory
 
       return list.map (item) ->
         item.set 'emojis', convertEmojisWithSynonyms item.get('emojis')
