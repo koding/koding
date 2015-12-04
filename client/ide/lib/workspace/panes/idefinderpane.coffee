@@ -34,11 +34,12 @@ module.exports = class IDEFinderPane extends IDEPane
 
   getOpenFolders: (filterRootFolder = yes) ->
 
-    fc              = @finderController
-    machineNodePath = fc.getMachineNode(@mountedMachine.uid).getData().path
-    folderPaths     = fc.treeController.getOpenFolders()
+    fc          = @finderController
+    folderPaths = fc.treeController.getOpenFolders()
 
     return folderPaths  unless filterRootFolder
+
+    machineNodePath = fc.getMachineNode(@mountedMachine.uid).getData().path
     return folderPaths.filter (path) -> path isnt machineNodePath
 
 
