@@ -153,6 +153,9 @@ class IDEAppController extends AppController
 
     {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
 
+    @finderPane.on 'ChangeHappened', @bound 'syncChange'
+    @finderPane.mountedMachine = @mountedMachine
+
     @bindRouteHandler()
     @initiateAutoSave()
     @emit 'ready'
@@ -857,18 +860,14 @@ class IDEAppController extends AppController
         @mountedMachine.getBaseKite()?.removeFromActiveSessions? session
 
       @statusBar.showInformation()  if ideViewLength is 0
-
       @writeSnapshot()
 
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
       @writeSnapshot()
 
-    ideView.on 'ChangeHappened', (change) =>
-      @syncChange change  if @rtm?.isReady
-
-    ideView.on 'UpdateWorkspaceSnapshot', =>
-      @writeSnapshot()
+    ideView.on 'ChangeHappened', (change) => @syncChange change
+    ideView.on 'UpdateWorkspaceSnapshot', => @writeSnapshot()
 
     ideView.on 'NewEditorPaneCreated', (pane) =>
       @emit 'EditorPaneDidOpen', pane
@@ -932,8 +931,7 @@ class IDEAppController extends AppController
     @generatedPanes or= {}
     @generatedPanes[view.hash] = yes
 
-    view.on 'ChangeHappened', (change) =>
-      @syncChange change  if @rtm?.isReady
+    view.on 'ChangeHappened', (change) => @syncChange change
 
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->

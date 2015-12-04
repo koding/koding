@@ -1,11 +1,13 @@
-kd = require 'kd'
-nick = require 'app/util/nick'
-showError = require 'app/util/showError'
+kd                             = require 'kd'
+nick                           = require 'app/util/nick'
+IDEPane                        = require './idepane'
+showError                      = require 'app/util/showError'
+IDEHelpers                     = require '../../idehelpers'
+IDEFinderItem                  = require '../../finder/idefinderitem'
+IDEFinderController            = require '../../finder/idefindercontroller'
+IDEFinderTreeController        = require '../../finder/idefindertreecontroller'
 IDEFinderContextMenuController = require '../../finder/idefindercontextmenucontroller'
-IDEFinderItem = require '../../finder/idefinderitem'
-IDEFinderTreeController = require '../../finder/idefindertreecontroller'
-IDEPane = require './idepane'
-IDEHelpers = require '../../idehelpers'
+
 
 module.exports = class IDEFinderPane extends IDEPane
 
@@ -21,6 +23,7 @@ module.exports = class IDEFinderPane extends IDEPane
       fc = @finderController = finderApp.create
         addAppTitle          : no
         bindMachineEvents    : no
+        controllerClass      : IDEFinderController
         treeItemClass        : IDEFinderItem
         treeControllerClass  : IDEFinderTreeController
         contextMenuClass     : IDEFinderContextMenuController
@@ -49,14 +52,10 @@ module.exports = class IDEFinderPane extends IDEPane
       mgr.tell 'IDE', 'tailFile', options
       kd.getSingleton('windowController').setKeyView null
 
+
     tc.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
-    tc.on 'FolderCollapsed', (path) =>
-      @emit 'ChangeHappened', @getChangeObject 'Collapsed', path
-
-    tc.on 'FolderExpanded', (path) =>
-      @emit 'ChangeHappened', @getChangeObject 'Expanded', path
 
     @on 'MachineMountRequested', (machine, rootPath) ->
       fc.mountMachine machine, { mountPath: rootPath }
@@ -66,6 +65,16 @@ module.exports = class IDEFinderPane extends IDEPane
 
     @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
       @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
+
+
+    fc.on 'RootFolderChanged', (path) => @emitChangeHappened 'RootFolderChanged', path
+    tc.on 'FolderCollapsed',   (path) => @emitChangeHappened 'Collapsed', path
+    tc.on 'FolderExpanded',    (path) => @emitChangeHappened 'Expanded', path
+
+
+  emitChangeHappened: (changeName, path) ->
+
+    @emit 'ChangeHappened', @getChangeObject changeName, path
 
 
   makeReadOnly: -> @finderController.setReadOnly yes
@@ -82,6 +91,7 @@ module.exports = class IDEFinderPane extends IDEPane
       context  :
         action : action
         path   : path
+        uid    : @mountedMachine.uid
 
     return change
 
@@ -90,16 +100,22 @@ module.exports = class IDEFinderPane extends IDEPane
 
     return  unless change.type is 'FileTreeInteraction'
 
-    {context} = change
+    { context } = change
     return  unless context
 
-    {action} = context
+    { action, path, uid } = context
+
     fc = @finderController
     tc = fc.treeController
 
     tc.dontEmitChangeEvent = yes
+    fc.dontEmitChangeEvent = yes
 
-    if      action is 'Expanded'  then fc.expandFolders context.path
-    else if action is 'Collapsed' then tc.collapseFolder tc.nodes[context.path]
+    switch action
+      when 'Expanded'           then fc.expandFolders  path
+      when 'Collapsed'          then tc.collapseFolder tc.nodes[path]
+      when 'RootFolderChanged'  then fc.updateMachineRoot uid, path
+
 
     tc.dontEmitChangeEvent = no
+    fc.dontEmitChangeEvent = no
