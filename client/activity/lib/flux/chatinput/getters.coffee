@@ -95,11 +95,13 @@ emojiSelectBoxQuery = (stateId) -> [
 frequentlyUsedEmojis = [
   EmojiUsageCountsStore
   (usageCounts) ->
-    maxCount = 9
+    minUsageCount = 5
+    maxListSize   = 9
+
     usageCounts
-      .filter (count, emoji) -> count > 0
+      .filter (count, emoji) -> count >= minUsageCount
       .sort (count1, count2) -> count2 - count1
-      .take maxCount
+      .take maxListSize
       .map (count, emoji) -> emoji
       .toList()
 ]

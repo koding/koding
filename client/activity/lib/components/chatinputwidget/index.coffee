@@ -266,12 +266,6 @@ module.exports = class ChatInputWidget extends React.Component
       helpers.setCursorPosition textInput, cursorPosition
 
 
-  onEmojiDropboxItemConfirmed: (item) ->
-
-    onDropboxItemConfirmed item
-    @onEmojiItemConfirmed item
-
-
   onEmojiSelectBoxItemConfirmed: (item) ->
 
     { value } = @state
@@ -280,14 +274,6 @@ module.exports = class ChatInputWidget extends React.Component
     @setValue newValue
 
     @focus()
-
-    @onEmojiItemConfirmed item
-
-
-  onEmojiItemConfirmed: (item) ->
-
-    emoji = item.replace /\:/g, ''
-    ChatInputFlux.actions.emoji.incrementUsageCount emoji
 
 
   onSearchItemConfirmed: (message) ->
@@ -354,7 +340,7 @@ module.exports = class ChatInputWidget extends React.Component
       selectedIndex   = { filteredEmojiListSelectedIndex }
       selectedItem    = { filteredEmojiListSelectedItem }
       query           = { filteredEmojiListQuery }
-      onItemConfirmed = { @bound 'onEmojiDropboxItemConfirmed' }
+      onItemConfirmed = { @bound 'onDropboxItemConfirmed' }
       ref             = 'emojiDropbox'
       stateId         = { @stateId }
     />

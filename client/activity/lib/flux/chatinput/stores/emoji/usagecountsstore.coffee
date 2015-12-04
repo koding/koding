@@ -16,15 +16,31 @@ module.exports = class EmojiUsageCountsStore extends KodingFluxStore
   initialize: ->
 
     @on actions.INCREMENT_EMOJI_USAGE_COUNT, @incrementUsageCount
+    @on actions.SET_EMOJI_USAGE_COUNT,       @setUsageCount
 
 
   ###*
-   * Handler of incrementUsageCount action
+   * Handler of SET_EMOJI_USAGE_COUNT action
+   * It sets usage count for a given emoji
+   *
+   * @param {Immutable.Map} currentState
+   * @param {object} payload
+   * @param {string} payload.emoji
+   * @param {number} payload.count
+   * @return {Immutable.Map} nextState
+  ###
+  setUsageCount: (currentState, { emoji, count }) ->
+
+    currentState.set emoji, count
+
+
+  ###*
+   * Handler of INCREMENT_EMOJI_USAGE_COUNT action
    * It increments usage count for a given emoji
    *
    * @param {Immutable.Map} currentState
    * @param {object} payload
-   * @param {emoji} payload.emoji
+   * @param {string} payload.emoji
    * @return {Immutable.Map} nextState
   ###
   incrementUsageCount: (currentState, { emoji }) ->
