@@ -2,7 +2,7 @@ kd                   = require 'kd'
 globals              = require 'globals'
 KDTabPaneView        = kd.TabPaneView
 KDCustomHTMLView     = kd.CustomHTMLView
-AdminMainTabPaneView = require './views/adminmaintabpaneview'
+AdminMainTabPaneView = require './adminmaintabpaneview'
 
 
 module.exports = class AdminAppView extends kd.ModalView
