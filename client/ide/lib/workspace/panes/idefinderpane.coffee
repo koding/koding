@@ -52,14 +52,10 @@ module.exports = class IDEFinderPane extends IDEPane
       mgr.tell 'IDE', 'tailFile', options
       kd.getSingleton('windowController').setKeyView null
 
+
     tc.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
-    tc.on 'FolderCollapsed', (path) =>
-      @emit 'ChangeHappened', @getChangeObject 'Collapsed', path
-
-    tc.on 'FolderExpanded', (path) =>
-      @emit 'ChangeHappened', @getChangeObject 'Expanded', path
 
     @on 'MachineMountRequested', (machine, rootPath) ->
       fc.mountMachine machine, { mountPath: rootPath }
@@ -69,6 +65,15 @@ module.exports = class IDEFinderPane extends IDEPane
 
     @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
       @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
+
+
+    tc.on 'FolderCollapsed',   (path) => @emitChangeHappened 'Collapsed', path
+    tc.on 'FolderExpanded',    (path) => @emitChangeHappened 'Expanded', path
+
+
+  emitChangeHappened: (changeName, path) ->
+
+    @emit 'ChangeHappened', @getChangeObject changeName, path
 
 
   makeReadOnly: -> @finderController.setReadOnly yes
