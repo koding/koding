@@ -3,14 +3,26 @@ _        = require 'lodash'
 recorder = require 'record-shortcuts'
 Pane     = require './accounteditshortcutspane'
 facade   = require './accounteditshortcutsfacade'
+KDModalView = kd.ModalView
 
 RESTORE_CONFIRM_TEXT = 'Are you sure you want to restore the default shortcuts?'
 
 restoreDefaults = ->
 
-  return  unless confirm RESTORE_CONFIRM_TEXT
-  kd.getSingleton('shortcuts').restore()
-  @domElement.blur()
+  @restoreModal = KDModalView.confirm
+    title        : 'Are you sure?'
+    description  : RESTORE_CONFIRM_TEXT
+    ok           :
+      style      : 'solid medium red'
+      title      : 'Restore'
+      callback   : =>
+        kd.getSingleton('shortcuts').restore()
+        @domElement.blur()
+        @restoreModal.destroy()
+    cancel       :
+      style      : 'solid medium light-gray'
+      title      : 'Cancel'
+      callback   : => @restoreModal.destroy()
 
 
 module.exports =
