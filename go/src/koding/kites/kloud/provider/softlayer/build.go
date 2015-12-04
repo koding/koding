@@ -143,6 +143,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.QueryString = protocol.Kite{ID: kiteID}.String()
 	m.IpAddress = obj.PrimaryIpAddress
 
+	m.addDomains()
+
 	m.push("Waiting for Koding Service Connector", 80, machinestate.Building)
 
 	if !m.IsKlientReady() {
@@ -188,4 +190,29 @@ func waitState(sl softlayer.SoftLayer_Virtual_Guest_Service, id int, state strin
 		}
 	}
 
+}
+
+func (m *Machine) addDomains() {
+	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
+		m.Log.Error("couldn't update machine domain: %s", err.Error())
+	}
+
+	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
+		m.Log.Error("couldn't update machine domain: %s", err.Error())
+	}
+
+	m.push("Updating domain aliases", 72, machinestate.Building)
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
+	if err != nil {
+		m.Log.Error("fetching domains for setting err: %s", err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
+			m.Log.Error("couldn't update machine domain: %s", err.Error())
+		}
+		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
+			m.Log.Error("couldn't update machine domain: %s", err.Error())
+		}
+	}
 }
