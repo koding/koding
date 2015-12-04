@@ -148,7 +148,7 @@ emojiSelectBoxTabs = [
       category  : item.get('category')
       iconEmoji : item.get('emojis').get(0)
 
-    list = list.splice 0, 0, toImmutable {
+    list = list.unshift toImmutable {
       category  : 'All'
       iconEmoji : 'clock3'
     }
