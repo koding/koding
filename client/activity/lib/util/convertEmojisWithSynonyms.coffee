@@ -7,7 +7,7 @@ getEmojiSynonyms = require 'activity/util/getEmojiSynonyms'
  * @param {Immatable.List} emojis
  * @return {Immatable.List}
 ###
-module.exports = convertSynonymEmojis = (emojis) ->
+module.exports = convertEmojisWithSynonyms = (emojis) ->
 
   matchedSynonyms = []
   emojis = emojis.map (emoji) ->

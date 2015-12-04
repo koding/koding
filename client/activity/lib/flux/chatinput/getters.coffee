@@ -8,7 +8,7 @@ parseStringToCommand       = require 'activity/util/parseStringToCommand'
 findNameByQuery            = require 'activity/util/findNameByQuery'
 isGroupChannel             = require 'app/util/isgroupchannel'
 searchListByQuery          = require 'activity/util/searchListByQuery'
-convertSynonymEmojis       = require 'activity/util/convertSynonymEmojis'
+convertEmojisWithSynonyms  = require 'activity/util/convertEmojisWithSynonyms'
 
 withEmptyMap  = (storeData) -> storeData or immutable.Map()
 withEmptyList = (storeData) -> storeData or immutable.List()
@@ -125,11 +125,11 @@ emojiSelectBoxItems = (stateId) -> [
       list = list.splice 0, 0, frequentlyUsedCategory
 
       return list.map (item) ->
-        item.set 'emojis', convertSynonymEmojis item.get('emojis')
+        item.set 'emojis', convertEmojisWithSynonyms item.get('emojis')
 
     reduceFn = (reduction, item) ->
       emojis = searchListByQuery item.get('emojis'), query
-      emojis = convertSynonymEmojis emojis
+      emojis = convertEmojisWithSynonyms emojis
       reduction.concat emojis.toJS()
 
     searchItems = list.reduce reduceFn, []
