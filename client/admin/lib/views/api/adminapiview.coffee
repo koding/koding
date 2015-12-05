@@ -21,7 +21,7 @@ module.exports = class AdminApiView extends kd.View
   createSwitch: ->
 
     @addSubView @settingsView = new kd.CustomHTMLView
-      partial: 'API Token status'
+      partial: 'API Status'
       cssClass: 'settings-row'
 
     @settingsView.addSubView @apiSwitch = new KodingSwitch
