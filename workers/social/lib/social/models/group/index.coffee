@@ -12,7 +12,7 @@ module.exports = class JGroup extends Module
   JPermissionSet = require './permissionset'
   { permit }     = JPermissionSet
 
-  JAccount     = require '../account'
+  JAccount       = require '../account'
 
   KodingError    = require '../../error'
   Validators     = require './validators'
@@ -244,6 +244,10 @@ module.exports = class JGroup extends Module
           (signature String, String, Function)
         setPlan:
           (signature String, Function)
+        fetchApiTokens: [
+          (signature Function)
+          (signature Object, Function)
+        ]
     schema          :
       title         :
         type        : String
@@ -863,6 +867,19 @@ module.exports = class JGroup extends Module
         client
         rest
       }
+
+
+  fetchApiTokens$: permit
+    advanced: PERMISSION_EDIT_GROUPS
+    success: (client, callback) ->
+      JApiToken = require '../apitoken'
+      selector  = { group : @getAt 'slug' }
+      #options   = { createdAt : 1, code : 1, originId : 1 }
+
+      JApiToken.some selector, {}, (err, apiTokens) ->
+        return callback err, []  if err or not apiTokens
+        JGroup.mergeApiTokensWithUsername apiTokens, callback
+
 
   baseFetcherOfGroupStaff: (options) ->
 
@@ -1518,4 +1535,20 @@ module.exports = class JGroup extends Module
             account.profile.email = user.email
 
       return callback null, accounts
+
+
+  @mergeApiTokensWithUsername: (apiTokens, callback) ->
+
+    JAccount  = require '../account'
+    originIds = apiTokens.map (apiToken) -> apiToken.originId
+
+    JAccount.some { _id: { $in: originIds } }, {}, (err, accounts) ->
+      return callback err, []  if err or not accounts
+
+      accounts.forEach (account) ->
+        apiTokens.forEach (apiToken) ->
+          if account._id.toString() is apiToken.originId.toString?()
+            apiToken.username = account.profile.nickname
+
+      return callback null, apiTokens
 
