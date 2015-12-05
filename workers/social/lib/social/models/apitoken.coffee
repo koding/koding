@@ -88,6 +88,7 @@ module.exports = class JApiToken extends jraphical.Module
 
         token.save (err) ->
           return callback err  if err
+          token.username = account.profile.nickname
           callback null, token
 
     ]
