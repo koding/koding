@@ -967,10 +967,10 @@ module.exports = class JUser extends jraphical.Module
   @addToGroup = (account, slug, email, invitation, options, callback) ->
 
     [options, callback] = [{}, options]  unless callback
-    { skipAllowedDomainCheck } = options
 
-    options = { email: email, groupName: slug, skipAllowedDomainCheck }
-    options.invitationToken = invitation.code if invitation?.code
+    options.email           = email
+    options.groupName       = slug
+    options.invitationToken = invitation.code  if invitation?.code
 
     JUser.verifyEnrollmentEligibility options, (err, res) ->
       return callback err  if err
@@ -1285,27 +1285,6 @@ module.exports = class JUser extends jraphical.Module
     daisy queue
 
 
-  verifyEnrollmentEligibility = (options, callback) ->
-
-    { email, client, invitationToken, skipAllowedDomainCheck } = options
-
-    # check if user can register to regarding group
-    _options = {
-      email, invitationToken, skipAllowedDomainCheck
-      groupName : client.context.group
-    }
-
-    JUser.verifyEnrollmentEligibility _options, (err, res) ->
-      return callback err  if err
-
-      { isEligible, invitation } = res
-
-      if not isEligible
-        return callback new Error "you can not register to #{client.context.group}"
-
-      callback null, invitation
-
-
   createUser = (options, callback) ->
 
     { userInfo } = options
@@ -1478,10 +1457,18 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        params = { email, client, invitationToken, skipAllowedDomainCheck }
-        verifyEnrollmentEligibility params, (err, invitation_) ->
+        params = {
+          groupName : client.context.group
+          invitationToken, skipAllowedDomainCheck, email
+        }
+
+        JUser.verifyEnrollmentEligibility options, (err, res) ->
           return callback err  if err
-          invitation = invitation_
+
+          { isEligible, invitation } = res
+
+          if not isEligible
+            return callback new Error "you can not register to #{client.context.group}"
           queue.next()
 
 
@@ -1533,7 +1520,7 @@ module.exports = class JUser extends jraphical.Module
 
       ->
         groupNames = [client.context.group, 'koding']
-        options = { skipAllowedDomainCheck }
+        options    = { skipAllowedDomainCheck }
         JUser.addToGroups account, groupNames, user.email, invitation, options, (err) ->
           error = err
           queue.next()
@@ -1617,7 +1604,6 @@ module.exports = class JUser extends jraphical.Module
           ip, country, region, client, invitation
           userFormData, skipAllowedDomainCheck
         }
-
         processConvert params, (err, data) ->
           return callback err  if err
           { error, newToken, user, account } = data
