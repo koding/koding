@@ -5,6 +5,7 @@ import (
 	"github.com/jacobsa/fuse/fuseutil"
 )
 
+// Node is the interface representations of filesystem need to implement.
 type Node interface {
 	GetID() fuseops.InodeID
 	GetType() fuseutil.DirentType

@@ -14,17 +14,10 @@ import (
 	"github.com/koding/fuseklient/transport"
 )
 
-type tempEntry struct {
-	Offset fuseops.DirOffset
-	Name   string
-	Type   fuseutil.DirentType
-	Mode   os.FileMode
-	Size   uint64
-	Time   time.Time
-}
-
+// Dir represents a file system directory and implements Node interface. It can
+// contain one or more files and directories.
 type Dir struct {
-	// Node is generic structure that contains commonality between File and Dir.
+	// Entry is generic structure that contains commonality between File and Dir.
 	*Entry
 
 	// IDGen is responsible for generating ids for newly created nodes.
@@ -38,8 +31,8 @@ type Dir struct {
 	// Note even if an entry is deleted, it'll still be in this list however
 	// the deleted entry's type will be set to `fuseutil.DT_Unknown`, so requests
 	// to return entries can be filtered. This is done so we set proper offset
-	// position for newly created entries. In other words once an entry is given
-	// an offset position, it should maintain that position throughout.
+	// position for newly created entries. In other words once an entry is set in
+	// an offset position, it should maintain that position always.
 	Entries []fuseutil.Dirent
 
 	// EntriesList contains list of files and directories that belong to this
@@ -47,6 +40,7 @@ type Dir struct {
 	EntriesList map[string]Node
 }
 
+// NewDir is the required initializer for Dir.
 func NewDir(e *Entry, idGen *IDGen) *Dir {
 	return &Dir{
 		Entry:       e,
@@ -58,15 +52,18 @@ func NewDir(e *Entry, idGen *IDGen) *Dir {
 
 ///// Directory operations
 
+// ReadEntries returns entries starting from specified offset position. If local
+// cache is empty, it'll fetch from remote.
 func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
-	d.RLock()
-	var entries = d.Entries
-	d.RUnlock()
+	d.Lock()
+	defer d.Unlock()
 
+	var entries = d.Entries
 	if len(entries) == 0 {
 		if err := d.updateEntriesFromRemote(); err != nil {
 			return nil, err
 		}
+
 		entries = d.Entries
 	}
 
@@ -86,7 +83,11 @@ func (d *Dir) ReadEntries(offset fuseops.DirOffset) ([]fuseutil.Dirent, error) {
 	return liveEntries, nil
 }
 
+// FindEntryDir finds a directory with the specified name.
 func (d *Dir) FindEntryDir(name string) (*Dir, error) {
+	d.RLock()
+	defer d.RUnlock()
+
 	n, err := d.findEntry(name)
 	if err != nil {
 		return nil, err
@@ -100,7 +101,11 @@ func (d *Dir) FindEntryDir(name string) (*Dir, error) {
 	return d, nil
 }
 
+// CreateEntryDir creates an empty directory with specified name and mode.
 func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
+	d.Lock()
+	defer d.Unlock()
+
 	if _, err := d.findEntry(name); err != fuse.ENOENT {
 		return nil, fuse.EEXIST
 	}
@@ -136,7 +141,11 @@ func (d *Dir) CreateEntryDir(name string, mode os.FileMode) (*Dir, error) {
 
 ///// File operations
 
+// FindEntryFile finds file with specified name.
 func (d *Dir) FindEntryFile(name string) (*File, error) {
+	d.RLock()
+	defer d.RUnlock()
+
 	n, err := d.findEntry(name)
 	if err != nil {
 		return nil, err
@@ -150,7 +159,11 @@ func (d *Dir) FindEntryFile(name string) (*File, error) {
 	return f, nil
 }
 
+// CreateEntryFile creates an empty file with specified name and mode.
 func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
+	d.Lock()
+	defer d.Unlock()
+
 	if _, err := d.findEntry(name); err != fuse.ENOENT {
 		return nil, fuse.EEXIST
 	}
@@ -176,13 +189,23 @@ func (d *Dir) CreateEntryFile(name string, mode os.FileMode) (*File, error) {
 	return file, nil
 }
 
-///// File and Directory operations
+///// Entry operations
 
+// FindEntry finds an entry with specified name.
 func (d *Dir) FindEntry(name string) (Node, error) {
+	d.RLock()
+	defer d.RUnlock()
+
 	return d.findEntry(name)
 }
 
+// MoveEntry moves specified entry from here to specified directory. Note
+// "move" actually means delete from current directory and add to new directory,
+// ie InodeID will be different.
 func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
+	d.Lock()
+	defer d.Unlock()
+
 	child, err := d.findEntry(oldName)
 	if err != nil {
 		return nil, err
@@ -234,7 +257,11 @@ func (d *Dir) MoveEntry(oldName, newName string, newDir *Dir) (Node, error) {
 	return newEntry, nil
 }
 
+// RemoveEntry removes entry with specified name.
 func (d *Dir) RemoveEntry(name string) (Node, error) {
+	d.Lock()
+	defer d.Unlock()
+
 	entry, err := d.findEntry(name)
 	if err != nil {
 		return nil, err
@@ -266,14 +293,21 @@ func (d *Dir) GetType() fuseutil.DirentType {
 	return fuseutil.DT_Directory
 }
 
-// Expire removes the local cache of directory.
+// Expire updates the internal cache of the directory. This is used when watcher
+// indicates directory has changed in remote. If file exists in local already,
+// we update the attributes.
 func (d *Dir) Expire() error {
-	return nil
+	d.Lock()
+	defer d.Unlock()
+
+	return d.updateEntriesFromRemote()
 }
 
 ///// Helpers
 
-func (d *Dir) findEntryRecursive(path string) (Node, error) {
+// FindEntryRecursive finds entry with specified path by recursively traversing
+// all directories.
+func (d *Dir) FindEntryRecursive(path string) (Node, error) {
 	d.RLock()
 	defer d.RUnlock()
 
@@ -297,10 +331,20 @@ func (d *Dir) findEntryRecursive(path string) (Node, error) {
 	return last, nil
 }
 
-func (d *Dir) findEntry(name string) (Node, error) {
-	d.RLock()
-	defer d.RUnlock()
+// Reset removes internal cache of files and directories.
+func (d *Dir) Reset() error {
+	d.Lock()
+	defer d.Unlock()
 
+	d.Entries = []fuseutil.Dirent{}
+	d.EntriesList = map[string]Node{}
+
+	return nil
+}
+
+///// Private helpers
+
+func (d *Dir) findEntry(name string) (Node, error) {
 	child, ok := d.EntriesList[name]
 	if !ok {
 		return nil, fuse.ENOENT
@@ -332,7 +376,7 @@ func (d *Dir) updateEntriesFromRemote() error {
 }
 
 func newTempEntry(file transport.FsGetInfoRes) *tempEntry {
-	var fileType fuseutil.DirentType = fuseutil.DT_File
+	fileType := fuseutil.DT_File
 	if file.IsDir {
 		fileType = fuseutil.DT_Directory
 	}
@@ -430,9 +474,6 @@ func (d *Dir) removeChild(name string) (Node, error) {
 		return nil, err
 	}
 
-	d.Lock()
-	defer d.Unlock()
-
 	listEntry.Forget()
 
 	delete(d.EntriesList, name)
@@ -447,12 +488,11 @@ func (d *Dir) removeChild(name string) (Node, error) {
 	return listEntry, nil
 }
 
-func (d *Dir) reset() error {
-	d.Lock()
-	defer d.Unlock()
-
-	d.Entries = []fuseutil.Dirent{}
-	d.EntriesList = map[string]Node{}
-
-	return nil
+type tempEntry struct {
+	Offset fuseops.DirOffset
+	Name   string
+	Type   fuseutil.DirentType
+	Mode   os.FileMode
+	Size   uint64
+	Time   time.Time
 }

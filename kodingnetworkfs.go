@@ -120,12 +120,12 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 	}
 
 	// update entries for root directory
-	if err := rootDir.updateEntriesFromRemote(); err != nil {
+	if err := rootDir.Expire(); err != nil {
 		return nil, err
 	}
 
 	// update info about root directory
-	if err := rootDir.updateAttrsFromRemote(); err != nil {
+	if err := rootDir.UpdateAttrsFromRemote(); err != nil {
 		return nil, err
 	}
 
@@ -143,7 +143,8 @@ func NewKodingNetworkFS(t transport.Transport, c *Config) (*KodingNetworkFS, err
 
 	if c.Prefetch {
 		// remove entries fetched above or it'll have double entries
-		rootDir.reset()
+		rootDir.Reset()
+
 		dirInit := NewDirInitializer(t, rootDir, ignoreFolders)
 		if err := dirInit.Initialize(); err != nil {
 			return nil, err

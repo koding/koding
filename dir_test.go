@@ -82,7 +82,7 @@ func TestDir(t *testing.T) {
 		})
 	})
 
-	Convey("Dir#findEntryRecursive", t, func() {
+	Convey("Dir#FindEntryRecursive", t, func() {
 		d := newDir()
 		n1, err := d.CreateEntryDir("nested1", os.FileMode(0700))
 		So(err, ShouldBeNil)
@@ -91,7 +91,7 @@ func TestDir(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should return error if entry doesn't exist", func() {
-			_, err = d.findEntryRecursive("nested1/nested2/error")
+			_, err = d.FindEntryRecursive("nested1/nested2/error")
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 
@@ -99,7 +99,7 @@ func TestDir(t *testing.T) {
 			_, err = n2.CreateEntryFile("file", os.FileMode(0700))
 			So(err, ShouldBeNil)
 
-			n, err := d.findEntryRecursive("nested1/nested2/file")
+			n, err := d.FindEntryRecursive("nested1/nested2/file")
 			So(err, ShouldBeNil)
 
 			f, ok := n.(*File)
@@ -111,7 +111,7 @@ func TestDir(t *testing.T) {
 			_, err = n2.CreateEntryDir("dir", os.FileMode(0700))
 			So(err, ShouldBeNil)
 
-			n, err := d.findEntryRecursive("nested1/nested2/dir")
+			n, err := d.FindEntryRecursive("nested1/nested2/dir")
 			So(err, ShouldBeNil)
 
 			d, ok := n.(*Dir)

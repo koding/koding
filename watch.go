@@ -160,7 +160,7 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 				continue
 			}
 
-			if item, err := dir.findEntryRecursive(item); err == nil {
+			if item, err := dir.FindEntryRecursive(item); err == nil {
 				item.Expire()
 			}
 		case err := <-errs:
