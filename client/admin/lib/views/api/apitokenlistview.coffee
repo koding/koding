@@ -1,6 +1,7 @@
 kd                = require 'kd'
 KDView            = kd.View
 remote            = require('app/remote').getInstance()
+ApiTokenList      = require './apitokenlist'
 ApiTokenItemView  = require './apitokenitemview'
 KDCustomHTMLView  = kd.CustomHTMLView
 ApiListController = require './apilistcontroller'
@@ -21,10 +22,10 @@ module.exports = class ApiTokenListView extends KDView
 
   createListController: ->
 
+    @list           = new ApiTokenList
     @listController = new ApiListController
-      viewOptions :
-        wrapper   : yes
-        itemClass : ApiTokenItemView
+      view    : @list
+      wrapper : yes
 
     @listView = @listController.getView()
     @listController.fetchApiTokens()
