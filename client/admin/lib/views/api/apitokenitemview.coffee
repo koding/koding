@@ -15,28 +15,12 @@ module.exports = class ApiTokenItemView extends kd.ListItemView
 
     super options, data
 
+    listView = @getDelegate()
+
     @deleteButton = new kd.ButtonView
       title    : 'Delete'
       cssClass : 'solid medium red'
-      callback : =>
-        @delete()
-
-
-  delete: ->
-
-    apiToken = @getData()
-    listView = @getDelegate()
-
-    modal   = KDModalView.confirm
-      title       : 'Remove stack'
-      description : 'Do you want to remove ?'
-      ok          :
-        title     : 'Yes'
-        callback  :  =>
-          apiToken.remove (err) =>
-            console.log this
-            modal.destroy()
-            listView.lazyBound 'deleteItem', this
+      callback : listView.lazyBound 'deleteItem', this
 
 
   pistachio: ->
