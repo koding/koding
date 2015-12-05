@@ -874,7 +874,6 @@ module.exports = class JGroup extends Module
     success: (client, callback) ->
       JApiToken = require '../apitoken'
       selector  = { group : @getAt 'slug' }
-      #options   = { createdAt : 1, code : 1, originId : 1 }
 
       JApiToken.some selector, {}, (err, apiTokens) ->
         return callback err, []  if err or not apiTokens
