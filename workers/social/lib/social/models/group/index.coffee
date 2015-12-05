@@ -23,6 +23,8 @@ module.exports = class JGroup extends Module
     { permission: 'edit own groups', validateWith: Validators.group.admin }
   ]
 
+  @API_TOKEN_LIMIT = 10
+
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/taggable'
