@@ -17,7 +17,7 @@ module.exports = class APIListController extends KDListViewController
       spinnerOptions :
         size : width : 28
     options.noItemFoundWidget   or= new KDCustomHTMLView
-      partial  : 'No api tokens found!'
+      partial  : 'No API tokens found!'
       cssClass : 'no-item-view'
 
     super options, data

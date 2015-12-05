@@ -44,11 +44,11 @@ module.exports = class AdminAPIView extends kd.View
           kd.utils.defer =>
             @apiTokenListView.listController.addItem apiToken
 
-    tabView.addPane apiTokens = new kd.TabPaneView name: 'Api Tokens'
+    tabView.addPane apiTokens = new kd.TabPaneView name: 'API Tokens'
 
     apiTokens.addSubView @apiTokenListView = new APITokenListView
       noItemFoundWidget : new kd.CustomHTMLView
-        partial         : 'No api token found!'
+        partial         : 'No API token found!'
         cssClass        : 'no-item-view'
     , data
 

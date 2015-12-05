@@ -22,7 +22,7 @@ module.exports = class APITokenList extends KDListView
     overlay = new KDOverlayView cssClass: 'second-overlay'
 
     modal   = KDModalView.confirm
-      title       : 'Remove Api Token'
+      title       : 'Remove API Token'
       description : 'Do you want to remove ?'
       ok          :
         title     : 'Yes'
