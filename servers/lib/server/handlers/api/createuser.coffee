@@ -61,7 +61,12 @@ module.exports = createUser = (req, res, next) ->
         groupName : apiToken.group
       }
 
-      JUser.convert client, userData, (err, data) ->
+      # here we don't check if email is in allowed domains
+      # because the user who has the api token must be a group admin
+      # they should be able to use any email they want for their own team  ~ OK
+      options  = { ignoreAllowedDomainCheck : yes }
+
+      JUser.convert client, userData, options, (err, data) ->
 
         if err?.message is 'Email is already in use!'
           return sendApiError res, apiErrors.emailAlreadyExists
