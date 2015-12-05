@@ -51,8 +51,6 @@ module.exports = class ApiListController extends KDListViewController
 
     super
 
-    view = @getView()
-    console.log view
-    view.on 'ItemDeleted', (item) =>
+    @listView.on 'ItemDeleted', (item) =>
       @removeItem item
       @noItemView.show()  if @listView.items.length is 0
