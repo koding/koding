@@ -64,7 +64,7 @@ module.exports = createUser = (req, res, next) ->
       # here we don't check if email is in allowed domains
       # because the user who has the api token must be a group admin
       # they should be able to use any email they want for their own team  ~ OK
-      options  = { ignoreAllowedDomainCheck : yes }
+      options  = { skipAllowedDomainCheck : yes }
 
       JUser.convert client, userData, options, (err, data) ->
 
