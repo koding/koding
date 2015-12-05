@@ -934,7 +934,7 @@ module.exports = class JUser extends jraphical.Module
 
   @verifyEnrollmentEligibility = (options, callback) ->
 
-    { email, invitationToken, groupName } = options
+    { email, invitationToken, groupName, ignoreAllowedDomainCheck } = options
 
     # this is legacy but still in use, just checks if registeration is enabled or not
     JRegistrationPreferences = require '../registrationpreferences'
@@ -945,8 +945,10 @@ module.exports = class JUser extends jraphical.Module
       unless prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
 
-      # check if email domain is in allowed domains
-      return checkWithDomain groupName, email, callback  unless invitationToken
+      unleess invitationToken
+        return callback  null  if ignoreAllowedDomainCheck
+        # check if email domain is in allowed domains
+        return checkWithDomain groupName, email, callback
 
       JInvitation.byCode invitationToken, (err, invitation) ->
         # check if invitation exists
@@ -1456,7 +1458,7 @@ module.exports = class JUser extends jraphical.Module
 
   validateConvert = (options, callback) ->
 
-    { client, userFormData, foreignAuthType } = options
+    { client, userFormData, foreignAuthType, ignoreAllowedDomainCheck } = options
     { slug, email, invitationToken, recaptcha, disableCaptcha } = userFormData
 
     invitation = null
@@ -1470,7 +1472,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        params = { email, client, invitationToken }
+        params = { email, client, invitationToken, ignoreAllowedDomainCheck }
         verifyEnrollmentEligibility params, (err, invitation_) ->
           return callback err  if err
           invitation = invitation_
@@ -1544,15 +1546,19 @@ module.exports = class JUser extends jraphical.Module
 
 
 
-  @convert = secure (client, userFormData, callback) ->
+  @convert = secure (client, userFormData, options, callback) ->
+
+    [options, callback] = [callback, options]  unless callback
+    options ?= {}
 
     { slug, email, agree, username, lastName, referrer,
       password, firstName, recaptcha, emailFrequency,
       invitationToken, passwordConfirm, disableCaptcha } = userFormData
 
-    { clientIP, connection }    = client
-    { delegate : account }      = connection
-    { nickname : oldUsername }  = account.profile
+    { ignoreAllowedDomainCheck } = options
+    { clientIP, connection }     = client
+    { delegate : account }       = connection
+    { nickname : oldUsername }   = account.profile
 
     # if firstname is not received use username as firstname
     userFormData.firstName = username  unless firstName
@@ -1594,7 +1600,8 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        validateConvert { client, userFormData, foreignAuthType }, (err, data) ->
+        options = { client, userFormData, foreignAuthType, ignoreAllowedDomainCheck }
+        validateConvert options, (err, data) ->
           return callback err  if err
           { invitation } = data
           queue.next()
