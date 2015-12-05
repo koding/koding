@@ -21,7 +21,7 @@ module.exports = class AdminAPIView extends kd.View
   createSwitch: ->
 
     @addSubView @settingsView = new kd.CustomHTMLView
-      partial: 'Enable API access'
+      partial: 'Enable API Access'
       cssClass: 'settings-row'
 
     @settingsView.addSubView @apiSwitch = new KodingSwitch
