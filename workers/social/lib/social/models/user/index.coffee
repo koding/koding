@@ -1462,7 +1462,7 @@ module.exports = class JUser extends jraphical.Module
           invitationToken, skipAllowedDomainCheck, email
         }
 
-        JUser.verifyEnrollmentEligibility options, (err, res) ->
+        JUser.verifyEnrollmentEligibility params, (err, res) ->
           return callback err  if err
 
           { isEligible, invitation } = res
