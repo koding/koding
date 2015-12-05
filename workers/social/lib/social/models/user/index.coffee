@@ -945,7 +945,7 @@ module.exports = class JUser extends jraphical.Module
       unless prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
 
-      unleess invitationToken
+      unless invitationToken
         return callback  null  if ignoreAllowedDomainCheck
         # check if email domain is in allowed domains
         return checkWithDomain groupName, email, callback
