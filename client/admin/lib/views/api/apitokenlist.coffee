@@ -3,14 +3,14 @@ showError             = require 'app/util/showError'
 KDListView            = kd.ListView
 KDModalView           = kd.ModalView
 KDOverlayView         = kd.OverlayView
-ApiTokenItemView      = require './apitokenitemview'
+APITokenItemView      = require './apitokenitemview'
 
 
-module.exports = class ApiTokenList extends KDListView
+module.exports = class APITokenList extends KDListView
 
   constructor: (options = {}, data) ->
     options.wrapper   ?= yes
-    options.itemClass ?= ApiTokenItemView
+    options.itemClass ?= APITokenItemView
 
     super options, data
 

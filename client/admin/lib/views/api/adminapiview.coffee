@@ -3,10 +3,10 @@ remote           = require('app/remote').getInstance()
 getGroup         = require 'app/util/getGroup'
 showError        = require 'app/util/showError'
 KodingSwitch     = require 'app/commonviews/kodingswitch'
-ApiTokenListView = require './apitokenlistview'
+APITokenListView = require './apitokenlistview'
 
 
-module.exports = class AdminApiView extends kd.View
+module.exports = class AdminAPIView extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -21,7 +21,7 @@ module.exports = class AdminApiView extends kd.View
   createSwitch: ->
 
     @addSubView @settingsView = new kd.CustomHTMLView
-      partial: 'API Status'
+      partial: 'Enable API access'
       cssClass: 'settings-row'
 
     @settingsView.addSubView @apiSwitch = new KodingSwitch
@@ -46,7 +46,7 @@ module.exports = class AdminApiView extends kd.View
 
     tabView.addPane apiTokens = new kd.TabPaneView name: 'Api Tokens'
 
-    apiTokens.addSubView @apiTokenListView = new ApiTokenListView
+    apiTokens.addSubView @apiTokenListView = new APITokenListView
       noItemFoundWidget : new kd.CustomHTMLView
         partial         : 'No api token found!'
         cssClass        : 'no-item-view'

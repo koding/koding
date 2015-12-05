@@ -5,7 +5,7 @@ KDModalView   = kd.ModalView
 KDOverlayView = kd.OverlayView
 
 
-module.exports = class ApiTokenItemView extends kd.ListItemView
+module.exports = class APITokenItemView extends kd.ListItemView
 
   JView.mixin @prototype
 

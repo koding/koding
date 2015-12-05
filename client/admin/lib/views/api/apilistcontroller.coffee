@@ -6,7 +6,7 @@ KDCustomHTMLView     = kd.CustomHTMLView
 KDListViewController = kd.ListViewController
 
 
-module.exports = class ApiListController extends KDListViewController
+module.exports = class APIListController extends KDListViewController
 
   constructor: (options = {}, data) ->
 
@@ -23,7 +23,7 @@ module.exports = class ApiListController extends KDListViewController
     super options, data
 
 
-  fetchApiTokens: ->
+  fetchAPITokens: ->
 
     return if @isFetching
 
