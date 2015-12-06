@@ -303,6 +303,9 @@ module.exports =
       .waitForElementVisible  vmSelector + ' .vm.terminating', 20000
       .waitForElementVisible  vmSelector + ' .vm.building', 300000
       .waitForElementVisible  vmSelector + ' .vm.running', 600000
+      .waitForElementVisible  vmSelector, 20000
+      .assert.containsText    vmSelector, 'koding-vm-0'
+
 
 
   terminateVM: (browser) ->
@@ -310,26 +313,31 @@ module.exports =
     terminateSelector       = '.kdmodal.AppModal .advanced .advanced.terminate'
     proceedSelector         = '.kdmodal.with-buttons .kdbutton.red'
     terminatedLabelSelector = '.kdmodal.env-modal .state-label.terminated'
+    vmSelector              = '.sidebar-machine-box'
 
     browser
       .waitForElementVisible  terminateSelector, 20000
       .click                  terminateSelector
       .waitForElementVisible  proceedSelector, 20000
       .click                  proceedSelector
-      .waitForElementVisible  terminatedLabelSelector, 100000
+      .waitForElementVisible  vmSelector + ' .vm.terminating', 200000
+      .waitForElementVisible  terminatedLabelSelector, 200000
       .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
 
 
   createAnewVMforNonPayingUsers: (browser) ->
 
-  	createVMbutton    = '.content-container .kdbutton'
-  	addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
-  	vmSelector        = '.sidebar-machine-box .notinitialized'
+    createVMbutton    = '.content-container .kdbutton'
+    addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
+    vmSelector        = '.sidebar-machine-box .notinitialized'
+    vmStateModal      = '.env-machine-state .kdmodal-content'
 
-  	browser
-  	  .waitForElementVisible  createVMbutton, 20000
-  	  .click                  createVMbutton
-  	  .waitForElementVisible  addKodingVmButton, 20000
-  	  .click                  addKodingVmButton
-  	  .waitForElementVisible  vmSelector, 20000
-  	  .assert.containsText    vmSelector, 'koding-vm-0'
+    browser
+      .waitForElementVisible  createVMbutton, 20000
+      .click                  createVMbutton
+      .waitForElementVisible  addKodingVmButton, 20000
+      .click                  addKodingVmButton
+      .waitForElementVisible  vmSelector, 20000
+      .assert.containsText    vmSelector, 'koding-vm-0'
+      .waitForElementVisible  vmStateModal + ' .turn-on', 20000
+      .assert.containsText    vmStateModal + ' .turn-on', 'TURN IT ON'
