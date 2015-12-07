@@ -300,12 +300,11 @@ module.exports =
       .waitForElementVisible  proceedSelector, 20000
       .click                  proceedSelector
       .waitForElementVisible  vmStateModal + ' .content-container .terminating', 20000
-      .waitForElementVisible  vmSelector + ' .vm.terminating', 20000
-      .waitForElementVisible  vmSelector + ' .vm.building', 300000
-      .waitForElementVisible  vmSelector + ' .vm.running', 600000
-      .waitForElementVisible  vmSelector, 20000
+      .waitForElementVisible  vmSelector   + ' .vm.terminating', 20000
+      .waitForElementVisible  vmSelector   + ' .vm.building', 200000
+      .waitForElementVisible  vmStateModal + ' .content-container .building', 200000
+      .waitForElementVisible  vmSelector   + ' .vm.running', 600000
       .assert.containsText    vmSelector, 'koding-vm-0'
-
 
 
   terminateVM: (browser) ->
@@ -325,7 +324,7 @@ module.exports =
       .assert.containsText    terminatedLabelSelector, "successfully deleted" #Assertion
 
 
-  createAnewVMforNonPayingUsers: (browser) ->
+  createNewVMForNonPayingUsers: (browser) ->
 
     createVMbutton    = '.content-container .kdbutton'
     addKodingVmButton = '.environments-modal .kdbutton.add-vm-button'
@@ -339,5 +338,5 @@ module.exports =
       .click                  addKodingVmButton
       .waitForElementVisible  vmSelector, 20000
       .assert.containsText    vmSelector, 'koding-vm-0'
-      .waitForElementVisible  vmStateModal + ' .turn-on', 20000
+      .waitForElementVisible  vmStateModal + ' .turn-on', 50000
       .assert.containsText    vmStateModal + ' .turn-on', 'TURN IT ON'

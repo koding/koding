@@ -32,14 +32,14 @@ module.exports =
     browser.end()
 
 
-  terminateVMforNonPayingUserAndCreateAnewOne: (browser) ->
+  terminateVMForNonPayingUserAndCreateNewOne: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
     environmentHelpers.openAdvancedSettings(browser)
     environmentHelpers.terminateVM(browser)
-    environmentHelpers.createAnewVMforNonPayingUsers(browser)
+    environmentHelpers.createNewVMForNonPayingUsers(browser)
 
     browser.end()
 
