@@ -18,18 +18,24 @@ func UnmountCommand(c *cli.Context) int {
 
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to remote machine: '%s'", err,
+		))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to remote machine: '%s'", err,
+		))
 		return 1
 	}
 
 	// unmount using mount name
 	if err := unmount(k, name, ""); err != nil {
-		fmt.Printf("Error unmounting '%s': '%s'\n", name, err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error unmounting '%s': '%s'\n", name, err,
+		))
 		return 1
 	}
 
