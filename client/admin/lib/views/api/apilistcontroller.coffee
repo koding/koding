@@ -11,11 +11,6 @@ module.exports = class APIListController extends KDListViewController
   constructor: (options = {}, data) ->
 
     options.startWithLazyLoader or= yes
-    options.lazyLoadThreshold   or= .99
-    options.lazyLoaderOptions   or= {}
-    options.lazyLoaderOptions   or=
-      spinnerOptions :
-        size : width : 28
     options.noItemFoundWidget   or= new KDCustomHTMLView
       partial  : 'No API tokens found!'
       cssClass : 'no-item-view'
@@ -50,6 +45,8 @@ module.exports = class APIListController extends KDListViewController
   loadView: ->
 
     super
+
+    @hideNoItemWidget()
 
     @listView.on 'ItemDeleted', (item) =>
       @removeItem item
