@@ -9,46 +9,13 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-type kiteInfo struct {
-	IP           string
-	VMName       string
-	Hostname     string
-	MachineLabel string
-	MountedPaths []string
-	Teams        []string
-}
-
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context) int {
-	k, err := CreateKlientClient(NewKlientOptions())
+	infos, err := getListOfMachines()
 	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
-		))
+		fmt.Print(err)
 		return 1
-	}
-
-	if err = k.Dial(); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
-		))
-		return 1
-	}
-
-	res, err := k.Tell("remote.list")
-	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error fetching list of machines from %s: '%s'", KlientName, err,
-		))
-		return 1
-	}
-
-	var infos []kiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error fetching list of machines from %s: '%s'", KlientName, err,
-		))
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
@@ -69,4 +36,44 @@ func ListCommand(c *cli.Context) int {
 	w.Flush()
 
 	return 0
+}
+
+type kiteInfo struct {
+	IP           string
+	VMName       string
+	Hostname     string
+	MachineLabel string
+	MountedPaths []string
+	Teams        []string
+}
+
+func getListOfMachines() ([]kiteInfo, error) {
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to %s: '%s'", KlientName, err,
+		))
+	}
+
+	if err = k.Dial(); err != nil {
+		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to %s: '%s'", KlientName, err,
+		))
+	}
+
+	res, err := k.Tell("remote.list")
+	if err != nil {
+		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error fetching list of machines from %s: '%s'", KlientName, err,
+		))
+	}
+
+	var infos []kiteInfo
+	if err := res.Unmarshal(&infos); err != nil {
+		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error fetching list of machines from %s: '%s'", KlientName, err,
+		))
+	}
+
+	return infos, nil
 }
