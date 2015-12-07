@@ -11,9 +11,8 @@ module.exports = class APITokenListView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass            = 'members-commonview'
-    options.itemLimit          ?= 20
-    options.noItemFoundWidget or= new KDCustomHTMLView
+    options.cssClass   = 'members-commonview'
+    options.itemLimit ?= 20
 
     super options, data
 
@@ -35,8 +34,3 @@ module.exports = class APITokenListView extends KDView
 
     @addSubView @listView
 
-
-  refresh: ->
-
-    @resetListItems()
-    @fetchAPITokens()
