@@ -20,7 +20,7 @@ module.exports = class APITokenItemView extends kd.ListItemView
 
     @deleteButton = new kd.ButtonView
       title    : 'Delete'
-      cssClass : 'solid medium red'
+      cssClass : 'solid compact red delete'
       callback : listView.lazyBound 'deleteItem', this
 
 
