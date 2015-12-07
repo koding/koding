@@ -68,8 +68,11 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
 
   submit: (value) ->
 
-    return  if @locked
-    return @reset yes  unless body = value.trim()
+    super value
+    kd.utils.defer @bound 'focus'
+
+
+  submitOnEmbedBoxReady: (clientRequestId, body) ->
 
     activity = @getData()
     {app}    = @getOptions()
@@ -77,11 +80,6 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
     embedBoxPayload = @getEmbedBoxPayload()
 
     payload = _.assign {}, activity?.payload, embedBoxPayload
-
-    timestamp = Date.now()
-    clientRequestId = generateFakeIdentifier timestamp
-
-    @lockSubmit()
 
     obj = { body, payload, clientRequestId }
 
@@ -91,9 +89,7 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
 
     fn(obj, @bound 'submissionCallback')
 
-    @emit 'SubmitStarted', body, clientRequestId
-
-    kd.utils.defer @bound 'focus'
+    @embedBox.close()
 
 
   create: ({body, payload, clientRequestId}, callback) ->
