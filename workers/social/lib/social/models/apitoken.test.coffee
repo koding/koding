@@ -102,7 +102,6 @@ runTests = -> describe 'workers.social.apitoken', ->
             expect(err).to.not.exist
             expect(token.code).to.be.a 'string'
             expect(token.createdAt).to.exist
-            expect(token.modifiedAt).to.exist
             expect(token.group).to.equal group
             expect(token.originId).to.deep.equal account._id
             done()
@@ -157,7 +156,6 @@ runTests = -> describe 'workers.social.apitoken', ->
           expect(err).to.not.exist
           expect(token.code).to.be.a 'string'
           expect(token.createdAt).to.exist
-          expect(token.modifiedAt).to.exist
           expect(token.group).to.equal group
           expect(token.originId).to.deep.equal account._id
           done()
