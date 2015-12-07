@@ -886,10 +886,13 @@ class IDEAppController extends AppController
 
   writeToKiteStorage: (key, value) ->
 
-    # we need to check against kite existence because while a machine
-    # is getting destroyed/stopped/reinitialized we are invalidating it's
-    # kite instance to make sure every call is stopped. ~ GG
-    @mountedMachine.getBaseKite()?.storageSetQueued? key, value
+    machine = @mountedMachine
+    return  unless machine.isRunning()
+
+    kite = machine.getBaseKite()
+    kite.init().then ->
+      kite.storageSetQueued key, value
+    .catch kd.noop
 
 
   saveLayoutSize: ->
