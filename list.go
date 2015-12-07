@@ -7,12 +7,24 @@ import (
 	"text/tabwriter"
 
 	"github.com/codegangsta/cli"
+	"github.com/koding/kite"
 )
 
 // ListCommand returns list of remote machines belonging to user or that can be
 // accessed by the user.
 func ListCommand(c *cli.Context) int {
-	infos, err := getListOfMachines()
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		return 1
+	}
+
+	if err := k.Dial(); err != nil {
+		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		return 1
+	}
+
+	infos, err := getListOfMachines(k)
 	if err != nil {
 		fmt.Print(err)
 		return 1
@@ -47,21 +59,8 @@ type kiteInfo struct {
 	Teams        []string
 }
 
-func getListOfMachines() ([]kiteInfo, error) {
-	k, err := CreateKlientClient(NewKlientOptions())
-	if err != nil {
-		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
-		))
-	}
-
-	if err = k.Dial(); err != nil {
-		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to %s: '%s'", KlientName, err,
-		))
-	}
-
-	res, err := k.Tell("remote.list")
+func getListOfMachines(kite *kite.Client) ([]kiteInfo, error) {
+	res, err := kite.Tell("remote.list")
 	if err != nil {
 		return nil, fmt.Errorf(defaultHealthChecker.CheckAllFailureOrMessagef(
 			"Error fetching list of machines from %s: '%s'", KlientName, err,

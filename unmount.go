@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
@@ -29,6 +30,22 @@ func UnmountCommand(c *cli.Context) int {
 			"Error connecting to remote machine: '%s'", err,
 		))
 		return 1
+	}
+
+	infos, err := getListOfMachines(k)
+	if err != nil {
+		fmt.Print(err)
+		return 1
+	}
+
+	// remove lock file
+	for _, info := range infos {
+		if strings.HasPrefix(info.VMName, name) {
+			name = info.VMName
+			if err := Unlock(info.MountedPaths[0]); err != nil {
+				fmt.Printf("Warning: unlocking failed: %s", err)
+			}
+		}
 	}
 
 	// unmount using mount name

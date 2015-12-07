@@ -55,6 +55,34 @@ func MountCommand(c *cli.Context) int {
 		return 1
 	}
 
+	k, err := CreateKlientClient(NewKlientOptions())
+	if err != nil {
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to remote machine: '%s'", err,
+		))
+		return 1
+	}
+
+	if err := k.Dial(); err != nil {
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to remote machine: '%s'", err,
+		))
+		return 1
+	}
+
+	infos, err := getListOfMachines(k)
+	if err != nil {
+		fmt.Print(err)
+		return 1
+	}
+
+	// allow for shortcuts when specifying name
+	for _, info := range infos {
+		if strings.HasPrefix(info.VMName, name) {
+			name = info.VMName
+		}
+	}
+
 	mountRequest := struct {
 		Name       string `json:"name"`
 		LocalPath  string `json:"localPath"`
@@ -71,21 +99,6 @@ func MountCommand(c *cli.Context) int {
 	// RemotePath is optional
 	if remotePath != "" {
 		mountRequest.RemotePath = remotePath
-	}
-
-	k, err := CreateKlientClient(NewKlientOptions())
-	if err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to remote machine: '%s'", err,
-		))
-		return 1
-	}
-
-	if err := k.Dial(); err != nil {
-		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connecting to remote machine: '%s'", err,
-		))
-		return 1
 	}
 
 	resp, err := k.Tell("remote.mountFolder", mountRequest)
@@ -125,6 +138,11 @@ func MountCommand(c *cli.Context) int {
 		if len(warning) > 0 {
 			fmt.Printf("Warning: %s\n", warning)
 		}
+	}
+
+	if err := Lock(localPath, name); err != nil {
+		fmt.Printf("Error locking: %s\n", err)
+		return 1
 	}
 
 	fmt.Println("Mount success.")
