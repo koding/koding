@@ -36,9 +36,7 @@ module.exports = class AdminAPIView extends kd.View
             else apiSwitch.setOn no
 
           else
-            if state
-            then @addNewButton.enable()
-            else @addNewButton.disable()
+            toggleButtonState @addNewButton, state
 
     apiSwitch.setDefaultValue @initialAPIAccessState
 
@@ -57,9 +55,7 @@ module.exports = class AdminAPIView extends kd.View
           kd.utils.defer =>
             @apiTokenListView.listController.addItem apiToken
 
-    if @initialAPIAccessState
-    then @addNewButton.enable()
-    else @addNewButton.disable()
+    toggleButtonState @addNewButton, @initialAPIAccessState
 
     tabView.addPane apiTokens = new kd.TabPaneView name: 'API Tokens'
 
@@ -73,3 +69,8 @@ module.exports = class AdminAPIView extends kd.View
     @addSubView tabView
 
 
+toggleButtonState = (button, state) ->
+
+  if state
+  then button.enable()
+  else button.disable()
