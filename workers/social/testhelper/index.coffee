@@ -1,5 +1,6 @@
 _                       = require 'underscore'
 hat                     = require 'hat'
+async                   = require 'async'
 JUser                   = require '../lib/social/models/user'
 JGroup                  = require '../lib/social/models/group'
 JAccount                = require '../lib/social/models/account'
@@ -245,6 +246,7 @@ expectRelation = {
 
 module.exports = {
   _
+  async
   daisy
   expect
   KONFIG
