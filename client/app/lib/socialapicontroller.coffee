@@ -637,6 +637,8 @@ module.exports = class SocialApiController extends KDController
 
     return str.join "&"
 
+# Handler:  GetWithRelated,
+# Endpoint: "/message/{id}/related", is not set yet.
   message:
 
     byId : (options, callback) ->
@@ -669,11 +671,87 @@ module.exports = class SocialApiController extends KDController
       , callback
 
     post : (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{channelId}/message"
+        data     : options
+      , callback
+
+    reply : (options, callback) ->
+      { messageId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/message/#{messageId}/reply"
+        data     : options
+      , callback
+
+    listReplies : (options, callback) ->
+      { messageId } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/message/#{messageId}/reply"
+      , callback
+
+    like : (options, callback) ->
       { id } = options
       doXhrRequest
         type     : 'POST'
-        endPoint : "/api/social/channel/#{id}/message"
+        endPoint : "/api/social/message/#{id}/interaction/like/add"
         data     : options
+      , callback
+
+    unlike : (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/message/#{id}/interaction/like/delete"
+        data     : options
+      , callback
+
+    listLikers : (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/message/#{id}/interaction/like"
+      , callback
+
+    sendMessageToChannel : (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/sendwithparticipants"
+        data     : options
+      , callback
+
+    initPrivateMessage : (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/privatechannel/init"
+        data     : options
+      , callback
+
+    sendPrivateMessage : (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/privatechannel/send"
+        data     : options
+      , callback
+
+    fetchPrivateMessages : (options, callback) ->
+      { channelId } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/privatechannel/list"
+      , callback
+
+    search : (options, callback) ->
+      { name } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/privatechannel/search"
       , callback
 
 
