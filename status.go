@@ -38,22 +38,22 @@ type HealthChecker struct {
 	RemoteHTTPAddress string
 }
 
-// ErrHealthDialFailed is used when dialing klient itself is failing.
-// This likely shouldn't happen, but it is in theory possible for
-// invalid auth or if simply klient is not running properly.
+// ErrHealthDialFailed is used when dialing klient itself is failing. Local or remote,
+// it depends on the error message.
 type ErrHealthDialFailed struct{ Message string }
 
-// ErrHealthNoHTTPReponse is used when klient is not returning an http
-// response.
+// ErrHealthNoHTTPReponse is used when a klient is not returning an http
+// response. Local or remote, it depends on the error message.
 type ErrHealthNoHTTPReponse struct{ Message string }
 
-// ErrHealthUnreadableKiteKey is used when we are unable to Read the kite.key,
+// ErrHealthUnreadableKiteKey is used when we are unable to read the kite.key,
 // so it either doesn't exist at the specified location or the permissions are
 // broken relative to the current user.
 type ErrHealthUnreadableKiteKey struct{ Message string }
 
-// ErrHealthUnexpectedResponse is used when the http response on /kite does
-// not match the "Welcome to SockJS!" klient response.
+// ErrHealthUnexpectedResponse is used when a klient's http response on
+// kiteAddress:/kite does not match the "Welcome to SockJS!" response. Local or
+// remote, it depends on the error message.
 type ErrHealthUnexpectedResponse struct{ Message string }
 
 // ErrHealthNoInternet is used when the http response to a reliable endpoint
@@ -174,7 +174,7 @@ func (c *HealthChecker) CheckLocal() error {
 	// If there was an error even talking to Klient, something is wrong.
 	if err != nil {
 		return ErrHealthNoHTTPReponse{Message: fmt.Sprintf(
-			"The klient /kite route is returning an error: '%s'", err.Error(),
+			"The local klient /kite route is returning an error: '%s'", err,
 		)}
 	}
 	defer res.Body.Close()
@@ -185,7 +185,7 @@ func (c *HealthChecker) CheckLocal() error {
 	resData, _ := ioutil.ReadAll(res.Body)
 	if string(resData) != kiteHTTPResponse {
 		return ErrHealthUnexpectedResponse{Message: fmt.Sprintf(
-			"The klient /kite route is returning an unexpected response: '%s'",
+			"The local klient /kite route is returning an unexpected response: '%s'",
 			string(resData),
 		)}
 	}
@@ -203,7 +203,7 @@ func (c *HealthChecker) CheckLocal() error {
 	// responses.
 	if err = k.Dial(); err != nil {
 		return ErrHealthDialFailed{Message: fmt.Sprintf(
-			"Dailing klient failed. Reason: %s", err,
+			"Dailing local klient failed. Reason: %s", err,
 		)}
 	}
 

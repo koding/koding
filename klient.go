@@ -36,7 +36,7 @@ type KlientOptions struct {
 }
 
 // CreateKlientClient creates a kite to the klient specified by KlientOptions, and
-// returns a Kite Client for that Klient.
+// returns a Kite Client to talk to that Klient.
 func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 	k := kite.New("klientctl", opts.Version)
 	c := k.NewClient(opts.Address)
