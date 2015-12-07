@@ -62,9 +62,9 @@ build:
           echo $INSTANCE_OPTIONS
           scripts/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
           cat INSTANCE_DATA
-    - script:
-        name: copy prod creds
-        code: ./scripts/copy-prod-creds.sh
+    # - script:
+    #     name: copy prod creds
+    #     code: ./scripts/copy-prod-creds.sh
     # - script:
     #     name: check configs
     #     code: |
