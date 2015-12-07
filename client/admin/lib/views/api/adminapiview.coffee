@@ -14,20 +14,33 @@ module.exports = class AdminAPIView extends kd.View
 
     super options, data
 
+    @initialAPIAccessState = getGroup().isApiEnabled is yes
     @createSwitch()
     @createTabView()
 
 
   createSwitch: ->
 
-    @addSubView @settingsView = new kd.CustomHTMLView
+    @addSubView settingsView = new kd.CustomHTMLView
       partial: 'Enable API Access'
       cssClass: 'settings-row'
 
-    @settingsView.addSubView @apiSwitch = new KodingSwitch
-      callback      : (state) ->
-        getGroup().modify { isApiEnabled : state }, (err) ->
-          showError err  if err
+    settingsView.addSubView apiSwitch = new KodingSwitch
+      callback : (state) =>
+        getGroup().modify { isApiEnabled : state }, (err) =>
+          if err
+            showError err
+            # revert switch state in case of error
+            if state
+            then apiSwitch.setOff no
+            else apiSwitch.setOn no
+
+          else
+            if state
+            then @addNewButton.enable()
+            else @addNewButton.disable()
+
+    apiSwitch.setDefaultValue @initialAPIAccessState
 
 
   createTabView: ->
@@ -35,7 +48,7 @@ module.exports = class AdminAPIView extends kd.View
     data    = @getData()
     tabView = new kd.TabView hideHandleCloseIcons: yes
 
-    tabView.tabHandleContainer.addSubView new kd.ButtonView
+    @addNewButton = tabView.tabHandleContainer.addSubView new kd.ButtonView
       cssClass : 'solid compact green add-new'
       title    : 'Add new API Token'
       callback : =>
@@ -43,6 +56,10 @@ module.exports = class AdminAPIView extends kd.View
           return showError err  if err
           kd.utils.defer =>
             @apiTokenListView.listController.addItem apiToken
+
+    if @initialAPIAccessState
+    then @addNewButton.enable()
+    else @addNewButton.disable()
 
     tabView.addPane apiTokens = new kd.TabPaneView name: 'API Tokens'
 
@@ -54,12 +71,5 @@ module.exports = class AdminAPIView extends kd.View
 
     tabView.showPaneByIndex 0
     @addSubView tabView
-
-
-  viewAppended: ->
-
-    super
-    status = getGroup().isApiEnabled is yes
-    @apiSwitch.setDefaultValue status
 
 
