@@ -200,6 +200,11 @@ func (r *Route53) Delete(domain string) error {
 	// and IP
 	record, err := r.Get(domain)
 	if err != nil {
+		// domains can be removed via other bussiness logics, so this can
+		// happen
+		if err == ErrNoRecord {
+			return nil
+		}
 		return err
 	}
 	r.Log.Debug("deleting domain name: %s which was associated to following ip: %s", domain, record.IP)
