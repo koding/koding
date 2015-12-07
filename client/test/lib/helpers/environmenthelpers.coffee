@@ -338,5 +338,6 @@ module.exports =
       .click                  addKodingVmButton
       .waitForElementVisible  vmSelector, 20000
       .assert.containsText    vmSelector, 'koding-vm-0'
+      .pause                   2500 # wait for correct pop-up to appear
       .waitForElementVisible  vmStateModal + ' .turn-on', 50000
       .assert.containsText    vmStateModal + ' .turn-on', 'TURN IT ON'
