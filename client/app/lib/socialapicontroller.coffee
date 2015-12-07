@@ -638,6 +638,47 @@ module.exports = class SocialApiController extends KDController
     return str.join "&"
 
   message:
+
+    byId : (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/message/#{id}"
+      , callback
+
+    delete : (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'DELETE'
+        endPoint : "/api/social/message/#{id}"
+      , callback
+
+    edit : (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/message/#{id}"
+        data     : options
+      , callback
+
+    bySlug : (options, callback) ->
+      { slug } = options
+      doXhrRequest
+        type     : 'GET'
+        endPoint : "/api/social/message/slug/#{slug}"
+      , callback
+
+    post : (options, callback) ->
+      { id } = options
+      doXhrRequest
+        type     : 'POST'
+        endPoint : "/api/social/channel/#{id}/message"
+        data     : options
+      , callback
+
+
+
+  message:
     byId                 : messageRequesterFn
       fnName             : 'byId'
       validateOptionsWith: ['id']
