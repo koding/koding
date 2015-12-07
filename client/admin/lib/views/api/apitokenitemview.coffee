@@ -3,6 +3,7 @@ JView         = require 'app/jview'
 showError     = require 'app/util/showError'
 KDModalView   = kd.ModalView
 KDOverlayView = kd.OverlayView
+timeago       = require 'timeago'
 
 
 module.exports = class APITokenItemView extends kd.ListItemView
@@ -25,10 +26,12 @@ module.exports = class APITokenItemView extends kd.ListItemView
 
   pistachio: ->
 
+    { createdAt } = @getData()
+
     """
       <div class="details">
-        {p.fullname{ 'Code:' + #(code)} }
-        {p.nickname{ '@' + #(username)} }
+        <p class="code">{code{#(code)}}</p>
+        <p class="time">Created #{timeago createdAt} by {{#(username)}}</p>
       </div>
       {div.role{> @deleteButton }}
     """
