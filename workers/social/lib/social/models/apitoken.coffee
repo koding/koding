@@ -51,9 +51,6 @@ module.exports = class JApiToken extends jraphical.Module
       createdAt        :
         type           : Date
         default        : -> new Date
-      modifiedAt       :
-        type           : Date
-        default        : -> new Date
 
 
   @create: (data, callback) ->
