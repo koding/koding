@@ -69,7 +69,7 @@ build:
         name: check configs
         code: |
           ./configure --config sandbox
-          # ./configure --config prod
+#          ./configure --config prod
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
