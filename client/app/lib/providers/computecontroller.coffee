@@ -126,14 +126,15 @@ module.exports = class ComputeController extends KDController
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
-      if @_trials[machine.uid][task]++ < 2
+      if @_trials[machine.uid][task]++ <= 3
         kd.info "Trying again to do '#{task}'..."
         @_force = yes
-        this[task] machine
+        kd.utils.wait @_trials[machine.uid][task] * 3000, =>
+          this[task] machine
         return yes
 
 
-    (err)=>
+    (err) =>
 
       retried = no
       @_force = no
@@ -267,18 +268,22 @@ module.exports = class ComputeController extends KDController
       else callback null, (new Machine { machine } for machine in machines)
 
 
-  findMachineFromMachineId: (machineId)->
+  findMachineFromMachineId: (machineId) ->
     return @machinesById[machineId]
 
-  findStackFromStackId: (stackId)->
+  findMachineFromMachineUId: (machineUId) ->
+    for machine in @machines when machine.uid is machineUId
+      return machine
+
+  findStackFromStackId: (stackId) ->
     return @stacksById[stackId]
 
-  findStackFromMachineId: (machineId)->
+  findStackFromMachineId: (machineId) ->
     for stack in @stacks
       for machine in stack.machines
         return stack  if machine._id is machineId
 
-  findMachineFromQueryString: (queryString)->
+  findMachineFromQueryString: (queryString) ->
 
     return  unless queryString
 
