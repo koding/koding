@@ -45,7 +45,7 @@ module.exports = class AdminAppController extends AppController
           ]
         }
         { slug : 'Stacks',         title : 'Compute Stacks',    viewClass : GroupStackSettings       }
-        { slug : 'API Access',     title : 'API Access',        viewClass : AdminAPIView             }      ]
+        { slug : 'APIAccess',      title : 'API Access',        viewClass : AdminAPIView             }      ]
     koding     :
       title    : 'Koding Administration'
       items    : [
