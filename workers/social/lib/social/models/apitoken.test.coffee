@@ -5,6 +5,7 @@
   generateRandomString
   checkBongoConnectivity } = require '../../../testhelper'
 
+JGroup    = require './group'
 JApiToken = require './apitoken'
 
 # making sure we have db connection before tests
@@ -75,7 +76,7 @@ runTests = -> describe 'workers.social.apitoken', ->
       group         = generateRandomString()
       groupData     = {}
       options       = { context : { group }, createGroup : yes, groupData }
-      expectedError = 'api usage is not enabled for this group'
+      expectedError = 'API usage is not enabled for this group.'
 
       withConvertedUser options, ({ client, account }) ->
 
@@ -86,23 +87,54 @@ runTests = -> describe 'workers.social.apitoken', ->
           done()
 
 
-    it 'should be able to create api token with valid request', (done) ->
+    describe 'when request is valid', ->
 
-      group     = generateRandomString()
-      groupData = { isApiEnabled : yes }
-      options   = { context : { group }, createGroup : yes, groupData }
+      it 'should be able to create api token with valid request', (done) ->
 
-      withConvertedUser options, ({ client, account }) ->
+        group     = generateRandomString()
+        groupData = { isApiEnabled : yes }
+        options   = { context : { group }, createGroup : yes, groupData }
 
-        data = { group, account }
-        JApiToken.create data, (err, token) ->
-          expect(err).to.not.exist
-          expect(token.code).to.be.a 'string'
-          expect(token.createdAt).to.exist
-          expect(token.modifiedAt).to.exist
-          expect(token.group).to.equal group
-          expect(token.originId).to.deep.equal account._id
-          done()
+        withConvertedUser options, ({ client, account }) ->
+
+          data = { group, account }
+          JApiToken.create data, (err, token) ->
+            expect(err).to.not.exist
+            expect(token.code).to.be.a 'string'
+            expect(token.createdAt).to.exist
+            expect(token.group).to.equal group
+            expect(token.originId).to.deep.equal account._id
+            done()
+
+
+      it 'should fail if group exceeds api token count limit', (done) ->
+
+        group     = generateRandomString()
+        groupData = { isApiEnabled : yes }
+        options   = { context : { group }, createGroup : yes, groupData }
+
+        withConvertedUser options, ({ client, account }) ->
+
+          data  = { group, account }
+          queue = []
+
+          for i in [0...JGroup.API_TOKEN_LIMIT]
+            queue.push ->
+              JApiToken.create data, (err, token) ->
+                expect(err).to.not.exist
+                expect(token).to.exist
+                queue.next()
+
+          queue.push ->
+            expectedError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} api tokens"
+            JApiToken.create data, (err, token) ->
+              expect(err?.message).to.be.equal expectedError
+              expect(token).to.not.exist
+              queue.next()
+
+          queue.push -> done()
+
+          daisy queue
 
 
   describe '#create$()', ->
@@ -124,7 +156,6 @@ runTests = -> describe 'workers.social.apitoken', ->
           expect(err).to.not.exist
           expect(token.code).to.be.a 'string'
           expect(token.createdAt).to.exist
-          expect(token.modifiedAt).to.exist
           expect(token.group).to.equal group
           expect(token.originId).to.deep.equal account._id
           done()

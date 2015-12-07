@@ -1,4 +1,5 @@
 {
+  "globals_path": "./globals.js",
   "src_folders" : [],
   "output_folder" : "../output",
   "live_output": true,

@@ -38,7 +38,7 @@ func NewSession(opts *ClientOptions) *session.Session {
 	if opts.Log != nil {
 		cfg.Logger = NewLogger(opts.Log.Debug)
 	}
-	return session.New(cfg, TransportConfig)
+	return session.New(cfg, NewTransport(opts))
 }
 
 // TagsMatch returns true when tags contains all tags described by the m map.

@@ -21,6 +21,7 @@ module.exports = class KodingKite extends KDObject
 
 
   constructor: (options) ->
+
     super options
 
     { name } = options
@@ -29,13 +30,13 @@ module.exports = class KodingKite extends KDObject
       @isDisconnected = no # This one is the manual disconnect request ~ GG
       @_state = CONNECTED
 
-    @on 'close', (reason)=>
+    @on 'close', (reason) =>
       kd.log "Disconnected with reason:", reason
       @_state = DISCONNECTED
 
       return  unless @transport?
 
-      {options:{autoReconnect}} = @transport
+      { options: { autoReconnect } } = @transport
       @emit 'reconnect'  if not @isDisconnected and autoReconnect
 
 
