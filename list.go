@@ -31,11 +31,12 @@ func ListCommand(c *cli.Context) int {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-	fmt.Fprintf(w, "\tMACHINE NAME\tTEAM\tLABEL\tMACHINE IP\tHOSTNAME\tMOUNTED PATHS\n")
+	fmt.Fprintf(w, "\tTEAM\tLABEL\tIP\tALIAS\tMOUNTED PATHS\n")
 	for i, info := range infos {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
 
+<<<<<<< e70e49264fa0af642e8e0908df7b4996b425570e
 		// For a more clear UX, replace the team name of the default Koding team,
 		// with Koding.com
 		if team == "Koding" {
@@ -44,6 +45,10 @@ func ListCommand(c *cli.Context) int {
 
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			i+1, info.VMName, team, info.MachineLabel, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
+=======
+		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\n",
+			i+1, team, info.MachineLabel, info.IP, info.VMName, strings.Join(info.MountedPaths, ", "))
+>>>>>>> change items in list view
 	}
 	w.Flush()
 
