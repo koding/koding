@@ -1,6 +1,6 @@
-package main
-
 // +build linux darwin
+
+package main
 
 import (
 	"errors"

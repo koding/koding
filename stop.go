@@ -31,6 +31,8 @@ func StopCommand(c *cli.Context) int {
 	return 0
 }
 
+// WaitUntilStopped repeatedly checks to see if Klient is running, and waiting until
+// it is no longer running.
 func WaitUntilStopped(address string, attempts int, pauseIntv time.Duration) error {
 	// Wait for klient
 	for i := 0; i < 5; i++ {

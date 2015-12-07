@@ -30,6 +30,10 @@ func StartCommand(c *cli.Context) int {
 	return 0
 }
 
+// WaitUntilStarted uses the default health checker to wait until the local client is
+// running healthily.
+//
+// TODO: Change address to a HealthChecker.
 func WaitUntilStarted(address string, attempts int, pauseIntv time.Duration) error {
 	var err error
 	// Try multiple times to connect to Klient, and return the final error
