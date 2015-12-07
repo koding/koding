@@ -65,11 +65,11 @@ build:
     - script:
         name: copy prod creds
         code: ./scripts/copy-prod-creds.sh
-    - script:
-        name: check configs
-        code: |
-          ./configure --config sandbox
-#          ./configure --config prod
+    # - script:
+    #     name: check configs
+    #     code: |
+    #       ./configure --config sandbox
+    #       ./configure --config prod
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
