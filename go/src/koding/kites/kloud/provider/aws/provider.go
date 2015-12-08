@@ -125,7 +125,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
 		Region:      meta.Region,
-		Log:         p.Log.New(fmt.Sprintf("user=%d, machine=%s", user.Uid, machine.Id.Hex())),
+		Log:         p.Log.New(fmt.Sprintf("user=%d, machine=%s", user.Uid, machine.ObjectId.Hex())),
 	}
 
 	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)
