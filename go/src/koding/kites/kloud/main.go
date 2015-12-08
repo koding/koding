@@ -29,6 +29,7 @@ import (
 	"koding/kites/kloud/plans"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/userdata"
 
@@ -36,6 +37,8 @@ import (
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/multiconfig"
+
+	slclient "github.com/maximilien/softlayer-go/client"
 )
 
 var Name = "kloud"
@@ -102,6 +105,9 @@ type Config struct {
 
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
+
+	SLUsername string
+	SLAPIKey   string
 
 	JanitorSecretKey        string
 	VmwatcherSecretKey      string
@@ -219,6 +225,8 @@ func newKite(conf *Config) *kite.Kite {
 		"paymentwebhook": conf.PaymentwebhookSecretKey,
 	}
 
+	sl := slclient.NewSoftLayerClient(conf.SLUsername, conf.SLAPIKey)
+
 	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
@@ -251,6 +259,18 @@ func newKite(conf *Config) *kite.Kite {
 		Userdata:   userdata,
 	}
 
+	/// SOFTLAYER PROVIDER ///
+
+	softlayerProvider := &softlayer.Provider{
+		DB:         db,
+		Log:        common.NewLogger("kloud-softlayer", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
+		SLClient:   sl,
+		Userdata:   userdata,
+	}
+
 	// QUEUE STOPPER ///
 
 	q := &queue.Queue{
@@ -268,6 +288,7 @@ func newKite(conf *Config) *kite.Kite {
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		AWSClients: ec2clients,
+		SLClient:   sl,
 		Userdata:   userdata,
 		Log:        kloudLogger,
 	}
@@ -300,6 +321,11 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	err = kld.AddProvider("aws", awsProvider)
+	if err != nil {
+		panic(err)
+	}
+
+	err = kld.AddProvider("softlayer", softlayerProvider)
 	if err != nil {
 		panic(err)
 	}

@@ -1,12 +1,8 @@
-package awsprovider
+package softlayer
 
 import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/machinestate"
-	"time"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 
 	"golang.org/x/net/context"
 )
@@ -26,25 +22,19 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 		}
 	}()
 
-	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
+	meta, err := m.GetMeta()
+	if err != nil {
 		return err
 	}
 
-	// clean up old data, so if build fails below at least we give the chance to build it again
-	err = m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			m.ObjectId,
-			bson.M{"$set": bson.M{
-				"ipAddress":         "",
-				"queryString":       "",
-				"meta.instanceId":   "",
-				"meta.instanceName": "",
-				"status.state":      machinestate.NotInitialized.String(),
-				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Reinit cleanup",
-			}},
-		)
-	})
+	// go and terminate the old instance, we don't need to wait for it
+	//Get the SoftLayer virtual guest service
+	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
+	if err != nil {
+		return err
+	}
+
+	_, err = svc.DeleteObject(meta.Id)
 	if err != nil {
 		return err
 	}
@@ -52,8 +42,7 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 	// cleanup this too so "build" can continue with a clean setup
 	m.IpAddress = ""
 	m.QueryString = ""
-	m.Meta["instanceName"] = ""
-	m.Meta["instanceId"] = ""
+	m.Meta["id"] = 0
 	m.Status.State = machinestate.NotInitialized.String()
 
 	// this updates/creates domain

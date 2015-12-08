@@ -32,7 +32,7 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 	// clean up old data, so if build fails below at least we give the chance to build it again
 	err = m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         "",
 				"queryString":       "",
@@ -51,8 +51,8 @@ func (m *Machine) Reinit(ctx context.Context) (err error) {
 	// cleanup this too so "build" can continue with a clean setup
 	m.IpAddress = ""
 	m.QueryString = ""
-	m.Meta.InstanceId = ""
-	m.Meta.InstanceName = ""
+	m.Meta["instance_name"] = ""
+	m.Meta["instanceId"] = ""
 	m.Status.State = machinestate.NotInitialized.String()
 
 	// this updates/creates domain

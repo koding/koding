@@ -10,6 +10,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	"github.com/maximilien/softlayer-go/softlayer"
 	"golang.org/x/net/context"
 )
 
@@ -23,10 +24,15 @@ type Session struct {
 	DNSClient  dnsclient.Client
 	DNSStorage dnsstorage.Storage
 	Eventer    eventer.Eventer
-	AWSClient  *amazon.Amazon
-	AWSClients *amazon.Clients
 	Userdata   *userdata.Userdata
 	Log        logging.Logger
+
+	// AWS
+	AWSClient  *amazon.Amazon
+	AWSClients *amazon.Clients
+
+	// Softlayer
+	SLClient softlayer.Client
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {

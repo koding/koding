@@ -99,12 +99,14 @@ import (
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
 	"koding/kites/terraformer"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	slclient "github.com/maximilien/softlayer-go/client"
 )
 
 var (
@@ -113,6 +115,8 @@ var (
 	conf           *config.Config
 	kodingProvider *koding.Provider
 	awsProvider    *awsprovider.Provider
+	slProvider     *softlayer.Provider
+
 	// testRegion     = "us-east-1"
 	testRegion = "ap-northeast-1"
 
@@ -203,10 +207,10 @@ func init() {
 		log.Fatal("kloud ", err.Error())
 	}
 
-	kodingProvider, awsProvider = providers()
+	kodingProvider, awsProvider, slProvider = providers()
 
 	// Add Kloud handlers
-	kld := kloudWithProviders(kodingProvider, awsProvider)
+	kld := kloudWithProviders(kodingProvider, awsProvider, slProvider)
 	kloudKite.HandleFunc("plan", kld.Plan)
 	kloudKite.HandleFunc("apply", kld.Apply)
 	kloudKite.HandleFunc("bootstrap", kld.Bootstrap)
@@ -450,12 +454,39 @@ func TestTerraformStack(t *testing.T) {
 func TestBuild(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
-	userData, err := createUser(username, "koding", "eu-west-1", "koding")
+	userData, err := createUser(username, "koding", "eu-west-1", "softlayer")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	machineId := userData.MachineIds[0].Hex()
+
+	if err := build(machineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Restarting machine")
+	if err := restart(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Starting machine")
+	if err := start(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Reiniting  machine")
+	if err := reinit(machineId, "softlayer", userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Destroying machine")
+	if err := destroy(machineId, "softlayer", userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
@@ -473,13 +504,13 @@ func TestBuild(t *testing.T) {
 	// }
 
 	// invalid calls after build
-	if err := build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
-		t.Error("`build` method can not be called on `running` machines.")
-	}
+	// if err := build(userData.MachineIds[0].Hex(), userData.Remote); err == nil {
+	// 	t.Error("`build` method can not be called on `running` machines.")
+	// }
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
-		t.Error(err)
-	}
+	// if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	// 	t.Error(err)
+	// }
 }
 
 func checkSSHKey(id, privateKey string) error {
@@ -551,7 +582,7 @@ func TestStop(t *testing.T) {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -582,7 +613,7 @@ func TestStart(t *testing.T) {
 		t.Error("`start` method can not be called on `started` machines.")
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -628,7 +659,7 @@ func TestSnapshot(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+	if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -647,7 +678,7 @@ func TestResize(t *testing.T) {
 
 	defer func() {
 		log.Println("Destroying machine")
-		if err := destroy(userData.MachineIds[0].Hex(), userData.Remote); err != nil {
+		if err := destroy(userData.MachineIds[0].Hex(), "koding", userData.Remote); err != nil {
 			t.Error(err)
 		}
 	}()
@@ -839,6 +870,14 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 		return nil, err
 	}
 
+	err = addCredential("softlayer", map[string]interface{}{
+		"username": os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
+		"api_key":  os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	// jComputeStack and jStackTemplates
 	stackTemplateId := bson.NewObjectId()
 	stackTemplate := &models.StackTemplate{
@@ -855,7 +894,7 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 	}
 
 	// later we can add more users with "Owner:false" to test sharing capabilities
-	users := []models.Permissions{
+	users := []models.MachineUser{
 		{Id: userId, Sudo: true, Owner: true},
 	}
 
@@ -869,32 +908,36 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 		}
 
 		machineId := bson.NewObjectId()
-		machine := &awsprovider.Machine{
-			Id:         machineId,
-			Label:      label,
-			Domain:     username + ".dev.koding.io",
-			Credential: credentials["aws"][0], // just pick one
-			Provider:   provider,
-			CreatedAt:  time.Now().UTC(),
-			Users:      users,
-			Groups:     make([]models.Permissions, 0),
+		machine := &models.Machine{
+			ObjectId:  machineId,
+			Label:     label,
+			Domain:    username + ".dev.koding.io",
+			Provider:  provider,
+			CreatedAt: time.Now().UTC(),
+			Users:     users,
+			Meta:      make(bson.M, 0),
+			Groups:    make([]models.MachineGroup, 0),
 		}
 
-		if provider == "koding" {
+		switch provider {
+		case "koding":
 			machine.Credential = username
+		default:
+			// aws, softlayer
+			machine.Credential = credentials[provider][0]
 		}
 
-		machine.Meta.Region = region
-		machine.Meta.InstanceType = "t2.micro"
-		machine.Meta.StorageSize = 3
-		machine.Meta.AlwaysOn = false
+		machine.Meta["region"] = region
+		machine.Meta["instanceType"] = "t2.micro"
+		machine.Meta["storage_size"] = 3
+		machine.Meta["alwaysOn"] = false
 		machine.Assignee.InProgress = false
 		machine.Assignee.AssignedAt = time.Now().UTC()
 		machine.Status.State = machinestate.NotInitialized.String()
 		machine.Status.ModifiedAt = time.Now().UTC()
 
 		machineLabels[i] = machine.Label
-		machineIds[i] = machine.Id
+		machineIds[i] = machine.ObjectId
 
 		if err := awsProvider.DB.Run("jMachines", func(c *mgo.Collection) error {
 			return c.Insert(&machine)
@@ -959,7 +1002,7 @@ func createUser(username, groupname, region, provider string) (*singleUser, erro
 func build(id string, remote *kite.Client) error {
 	buildArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  "softlayer",
 		TerraformContext: `
 provider "aws" {
     access_key = "${var.aws_access_key}"
@@ -995,10 +1038,10 @@ resource "aws_instance" "example" {
 
 }
 
-func destroy(id string, remote *kite.Client) error {
+func destroy(id, provider string, remote *kite.Client) error {
 	destroyArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("destroy", destroyArgs)
@@ -1075,10 +1118,10 @@ func stop(id, provider string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Stopped, remote)
 }
 
-func reinit(id string, remote *kite.Client) error {
+func reinit(id, provider string, remote *kite.Client) error {
 	reinitArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("reinit", reinitArgs)
@@ -1102,10 +1145,10 @@ func reinit(id string, remote *kite.Client) error {
 	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func restart(id string, remote *kite.Client) error {
+func restart(id, provider string, remote *kite.Client) error {
 	restartArgs := &args{
 		MachineId: id,
-		Provider:  "koding",
+		Provider:  provider,
 	}
 
 	resp, err := remote.Tell("restart", restartArgs)
@@ -1252,7 +1295,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *
 	}
 }
 
-func providers() (*koding.Provider, *awsprovider.Provider) {
+func providers() (*koding.Provider, *awsprovider.Provider, *softlayer.Provider) {
 	c := credentials.NewStaticCredentials(os.Getenv("KLOUD_ACCESSKEY"), os.Getenv("KLOUD_SECRETKEY"), "")
 
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
@@ -1278,10 +1321,15 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 		Regions:     amazon.ProductionRegions,
 		Log:         common.NewLogger("koding", true),
 	}
+
 	ec2clients, err := amazon.NewClients(opts)
 	if err != nil {
 		panic(err)
 	}
+	slclient := slclient.NewSoftLayerClient(
+		os.Getenv("KLOUD_TESTACCOUNT_SLUSERNAME"),
+		os.Getenv("KLOUD_TESTACCOUNT_SLAPIKEY"),
+	)
 
 	kdp := &koding.Provider{
 		DB:             db,
@@ -1304,10 +1352,20 @@ func providers() (*koding.Provider, *awsprovider.Provider) {
 		Userdata:   usd,
 	}
 
-	return kdp, awsp
+	slp := &softlayer.Provider{
+		DB:         db,
+		Log:        common.NewLogger("kloud-provider", true),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		SLClient:   slclient,
+		Kite:       kloudKite,
+		Userdata:   usd,
+	}
+
+	return kdp, awsp, slp
 }
 
-func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider) *kloud.Kloud {
+func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider, s *softlayer.Provider) *kloud.Kloud {
 	debugEnabled := true
 	kloudLogger := common.NewLogger("kloud", debugEnabled)
 	sess := &session.Session{
@@ -1341,6 +1399,7 @@ func kloudWithProviders(p *koding.Provider, a *awsprovider.Provider) *kloud.Klou
 	kld.Locker = p
 	kld.AddProvider("koding", p)
 	kld.AddProvider("aws", a)
+	kld.AddProvider("softlayer", s)
 	return kld
 }
 

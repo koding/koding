@@ -1,14 +1,15 @@
-package awsprovider
+package softlayer
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
+
 	"golang.org/x/net/context"
 )
 
@@ -32,35 +33,36 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 				resultState, reason)
 
 			if err := modelhelper.CheckAndUpdateState(m.ObjectId, resultState); err != nil {
-				m.Log.Debug("Info decision: Error while updating the machine %q state. Err: %v", m.ObjectId, err)
+				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.ObjectId, err)
 			}
 		}
 	}()
 
-	instance, err := m.Session.AWSClient.Instance()
-	switch {
-	case err == nil:
-		resultState = amazon.StatusToState(aws.StringValue(instance.State.Name))
+	svc, err := m.Session.SLClient.GetSoftLayer_Virtual_Guest_Service()
+	if err != nil {
+		return nil, err
+	}
+
+	meta, err := m.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+
+	// get final information, such as public IP address and co
+	state, err := svc.GetPowerState(meta.Id)
+	if err == nil {
+		resultState, err = statusToState(state.Name)
+		if err != nil {
+			return nil, err
+		}
+
 		// we don't care about already terminated VM's in AWS provider
 		if resultState == machinestate.Terminating {
 			resultState = machinestate.Terminated
 		}
-	case amazon.IsNotFound(err):
-		resultState = machinestate.NotInitialized
-	default:
+	} else {
 		// if it's something else, return it back
 		return nil, err
-	}
-
-	// This happens when a machine was destroyed recently in one hour span.
-	// The machine is still available in AWS but it's been marked as
-	// Terminated. Because we still have the machine document, mark it as
-	// Terminated so the client side knows what to do
-	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
-		if err := modelhelper.ChangeMachineState(m.ObjectId, "Machine was terminated in last one hour span",
-			machinestate.Terminated); err != nil {
-			return nil, err
-		}
 	}
 
 	if resultState == machinestate.Running {
@@ -93,8 +95,19 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		}
 	}
 
-	m.Log.Debug("Info result: '%s'. Username: %s", resultState, m.Username)
+	// m.Log.Debug("Info result: '%s'. Username: %s", resultState, m.Username)
 	return map[string]string{
 		"State": resultState.String(),
 	}, nil
+}
+
+func statusToState(status string) (machinestate.State, error) {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "running":
+		return machinestate.Running, nil
+	case "halted":
+		return machinestate.Stopped, nil
+	default:
+		return machinestate.Unknown, fmt.Errorf("softlayer state '%s' is unknown", status)
+	}
 }

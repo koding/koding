@@ -46,6 +46,11 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		return err
 	}
 
+	meta, err := m.GetMeta()
+	if err != nil {
+		return err
+	}
+
 	// update the state to intiial state if something goes wrong, we are going
 	// to change latestate to a more safe state if we passed a certain step
 	// below
@@ -258,7 +263,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	m.push("Updating domain aliases", 87, machinestate.Pending)
 	// also get all domain aliases that belongs to this machine and unset
-	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
+	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for unsetting err: %s", err)
 	}
@@ -280,12 +285,12 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
-			m.Id,
+			m.ObjectId,
 			bson.M{"$set": bson.M{
 				"ipAddress":         m.IpAddress,
-				"meta.instanceName": m.Meta.InstanceName,
-				"meta.instanceId":   m.Meta.InstanceId,
-				"meta.instanceType": m.Meta.InstanceType,
+				"meta.instanceName": meta.InstanceName,
+				"meta.instanceId":   meta.InstanceId,
+				"meta.instanceType": meta.InstanceType,
 				"status.state":      machinestate.Running.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Machine is running",

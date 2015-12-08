@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	"koding/db/models"
 	"koding/kites/kloud/cleaners/lookup"
 )
 
 type AlwaysOn struct {
 	MongoDB          *lookup.MongoDB
 	IsPaid           func(username string) bool
-	AlwaysOnMachines []lookup.MachineDocument
+	AlwaysOnMachines []models.Machine
 
 	nonvalidUsers []string
 	err           error

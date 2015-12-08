@@ -74,7 +74,12 @@ func (p *Provider) CleanDeletedVMs() error {
 			return err
 		}
 
-		if m.Meta.InstanceId == "" {
+		meta, err := m.GetMeta()
+		if err != nil {
+			return err
+		}
+
+		if meta.InstanceId == "" {
 			// if there is no instance Id just remove the document
 			return m.DeleteDocument()
 		}
@@ -86,7 +91,8 @@ func (p *Provider) CleanDeletedVMs() error {
 	for _, machine := range machines {
 		go func(m Machine) {
 			if err := deleteMachine(m); err != nil {
-				p.Log.Error("[%s] couldn't terminate user deleted machine: %s", m.Id.Hex(), err)
+				p.Log.Error("[%s] couldn't terminate user deleted machine: %s", m.ObjectId.Hex(),
+					err)
 			}
 		}(machine)
 	}

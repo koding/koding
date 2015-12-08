@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/models"
 	"koding/kites/kloud/cleaners/lookup"
 	"strings"
 	"time"
@@ -10,7 +11,7 @@ import (
 type MultipleVMs struct {
 	Cleaner       *Cleaner
 	IsPaid        func(username string) bool
-	UsersMultiple map[string][]lookup.MachineDocument
+	UsersMultiple map[string][]models.Machine
 	Instances     *lookup.MultiInstances
 
 	multipleInstances *lookup.MultiInstances
@@ -24,7 +25,7 @@ func (m *MultipleVMs) Process() {
 		OlderThan(time.Hour).
 		WithTag("koding-env", "production")
 
-	freeUsersWithMultipleVMs := make(map[string][]lookup.MachineDocument, 0)
+	freeUsersWithMultipleVMs := make(map[string][]models.Machine, 0)
 	for user, machines := range m.UsersMultiple {
 		// if not paid user, add it to the map
 		if !m.IsPaid(user) {
@@ -43,7 +44,7 @@ func (m *MultipleVMs) Process() {
 
 			// only add if there is an instanceId
 			data := &StopData{
-				id:         machine.Id,
+				id:         machine.ObjectId,
 				instanceId: instanceId,
 				domain:     machine.Domain,
 				ipAddress:  machine.IpAddress,
