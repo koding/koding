@@ -158,10 +158,10 @@ module.exports = class ActivityInputWidget extends KDView
     options = { channelId, body, payload, clientRequestId }
 
     if activity
-    then @update options, @bound 'submissionCallback'
-    else @create options, @bound 'submissionCallback'
-
-    @embedBox.close()
+      @update options, @bound 'submissionCallback'
+    else
+      @create options, @bound 'submissionCallback'
+      @embedBox.close()
 
 
   submissionCallback: (err, activity) ->
