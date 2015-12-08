@@ -15,12 +15,16 @@ import (
 func ListCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
-		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connectionting to %s: '%s'", KlientName, err,
+		))
 		return 1
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Printf("Error connecting to remote machine: %s\n", err)
+		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
+			"Error connecting to %s: '%s'", KlientName, err,
+		))
 		return 1
 	}
 
@@ -36,19 +40,14 @@ func ListCommand(c *cli.Context) int {
 		// Join multiple teams into a single identifier
 		team := strings.Join(info.Teams, ",")
 
-<<<<<<< e70e49264fa0af642e8e0908df7b4996b425570e
 		// For a more clear UX, replace the team name of the default Koding team,
 		// with Koding.com
 		if team == "Koding" {
 			team = "koding.com"
 		}
 
-		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\t%s\n",
-			i+1, info.VMName, team, info.MachineLabel, info.IP, info.Hostname, strings.Join(info.MountedPaths, ", "))
-=======
 		fmt.Fprintf(w, "  %d.\t%s\t%s\t%s\t%s\t%s\n",
 			i+1, team, info.MachineLabel, info.IP, info.VMName, strings.Join(info.MountedPaths, ", "))
->>>>>>> change items in list view
 	}
 	w.Flush()
 

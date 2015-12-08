@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -73,47 +74,47 @@ func TestLock(t *testing.T) {
 			})
 		})
 
-		//Convey("GetRelativeMountPath", func() {
-		//  Convey("It should return empty string if local path is same as mount", func() {
-		//    err := Lock(mountPath, "machine")
-		//    So(err, ShouldBeNil)
+		Convey("GetRelativeMountPath", func() {
+			Convey("It should return empty string if local path is same as mount", func() {
+				err := Lock(mountPath, "machine")
+				So(err, ShouldBeNil)
 
-		//    relativePath, err := GetRelativeMountPath(mountPath)
-		//    So(err, ShouldBeNil)
-		//    So(relativePath, ShouldEqual, "")
-		//  })
+				relativePath, err := GetRelativeMountPath(mountPath)
+				So(err, ShouldBeNil)
+				So(relativePath, ShouldEqual, "")
+			})
 
-		//  Convey("It should return relative path if local path is inside the mount", func() {
-		//    err := Lock(mountPath, "machine")
-		//    So(err, ShouldBeNil)
+			Convey("It should return relative path if local path is inside the mount", func() {
+				err := Lock(mountPath, "machine")
+				So(err, ShouldBeNil)
 
-		//    nestedMountedpath := filepath.Join(mountPath, "nested", "onelevel")
-		//    relativePath, err := GetRelativeMountPath(nestedMountedpath)
-		//    So(err, ShouldBeNil)
-		//    So(relativePath, ShouldEqual, filepath.Join("nested", "onelevel"))
-		//  })
+				nestedMountedpath := filepath.Join(mountPath, "nested", "onelevel")
+				relativePath, err := GetRelativeMountPath(nestedMountedpath)
+				So(err, ShouldBeNil)
+				So(relativePath, ShouldEqual, filepath.Join("nested", "onelevel"))
+			})
 
-		//  Convey("It should return error if local path is not inside mount", func() {
-		//    _, err := GetRelativeMountPath(filepath.Join("/", "random"))
-		//    So(err, ShouldEqual, ErrNotInMount)
-		//  })
-		//})
+			Convey("It should return error if local path is not inside mount", func() {
+				_, err := GetRelativeMountPath(filepath.Join("/", "random"))
+				So(err, ShouldEqual, ErrNotInMount)
+			})
+		})
 
-		//Convey("GetMountedPathsFromLocks", func() {
-		//  Convey("It should return machine name for mount", func() {
-		//    err := Lock(mountPath, "machine")
-		//    So(err, ShouldBeNil)
+		Convey("GetMountedPathsFromLocks", func() {
+			Convey("It should return machine name for mount", func() {
+				err := Lock(mountPath, "machine")
+				So(err, ShouldBeNil)
 
-		//    machineName, err := GetMachineMountedForPath(mountPath)
-		//    So(err, ShouldBeNil)
-		//    So(machineName, ShouldEqual, "machine")
-		//  })
+				machineName, err := GetMachineMountedForPath(mountPath)
+				So(err, ShouldBeNil)
+				So(machineName, ShouldEqual, "machine")
+			})
 
-		//  Convey("It should return error if local path is not inside mount", func() {
-		//    _, err = GetMachineMountedForPath(mountPath)
-		//    So(err, ShouldEqual, ErrNotInMount)
-		//  })
-		//})
+			Convey("It should return error if local path is not inside mount", func() {
+				_, err = GetMachineMountedForPath(mountPath)
+				So(err, ShouldEqual, ErrNotInMount)
+			})
+		})
 
 		defer os.Remove(lockFile)
 	})
