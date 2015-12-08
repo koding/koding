@@ -15,7 +15,7 @@ module.exports = {
     message                     : 'The group of the given api token does not exist.'
     code                        : 'GroupNotFound'
 
-  apiIsDisabled            :
+  apiIsDisabled                 :
     status                      : 403
     message                     : 'Api usage for this group is disabled.'
     code                        : 'ApiIsDisabled'

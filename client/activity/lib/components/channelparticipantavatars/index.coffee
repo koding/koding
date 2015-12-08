@@ -40,6 +40,14 @@ module.exports = class ChannelParticipantAvatars extends React.Component
       addNewParticipantMode : no
 
 
+  componentWillReceiveProps: (nextProps) ->
+
+    channelId    = @props.channelThread.get 'channelId'
+    oldChannelId = nextProps.channelThread.get 'channelId'
+
+    @setState addNewParticipantMode: no  if channelId isnt oldChannelId
+
+
   getDataBindings: ->
 
     { getters } = ActivityFlux

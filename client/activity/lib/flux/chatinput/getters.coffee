@@ -408,7 +408,8 @@ commands = (stateId, disabledFeatures = []) -> [
   commandsQuery stateId
   ActivityFluxGetters.selectedChannelThread
   (allCommands, query, selectedChannelThread) ->
-    return immutable.List()  if disabledFeatures.indexOf('commands') > -1
+    if disabledFeatures.indexOf('commands') > -1 or not selectedChannelThread
+      return immutable.List()
 
     ignoredFeatures  = []
     selectedChannel  = selectedChannelThread.get('channel').toJS()

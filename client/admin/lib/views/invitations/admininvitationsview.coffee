@@ -4,7 +4,7 @@ KDTabView               = kd.TabView
 KDButtonView            = kd.ButtonView
 KDTabPaneView           = kd.TabPaneView
 InviteSomeoneView       = require './invitesomeoneview'
-AdminSubTabHandleView   = require './../adminsubtabhandleview'
+AdminSubTabHandleView   = require './../customviews/adminsubtabhandleview'
 PendingInvitationsView  = require './pendinginvitationsview'
 AcceptedInvitationsView = require './acceptedinvitationsview'
 

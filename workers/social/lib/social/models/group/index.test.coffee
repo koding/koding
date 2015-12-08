@@ -2,8 +2,10 @@ JUser                         = require '../user'
 JGroup                        = require './index'
 JAccount                      = require '../account'
 JSession                      = require '../session'
+JApiToken                     = require '../apitoken'
 JInvitation                   = require '../invitation'
-{ daisy
+{ async
+  daisy
   expect
   expectRelation
   withDummyClient
@@ -426,6 +428,44 @@ runTests = -> describe 'workers.social.group.index', ->
           JGroup.create client, groupData, account, (err, data) ->
             expect(err?.message).to.be.equal "The slug #{groupSlug} is not available."
             done()
+
+
+  describe 'fetchApiTokens$()', ->
+
+    it 'should fail if user doesnt have permission', (done) ->
+
+      groupSlug = generateRandomString()
+      options = { createGroup : yes, context : { group : groupSlug } }
+      withConvertedUser options, ({ client, group }) ->
+        expectAccessDenied group, 'fetchApiTokens$', done
+
+
+    it 'should be able to fetch api tokens with valid request', (done) ->
+
+      groupSlug = generateRandomString()
+      groupData = { isApiEnabled : yes }
+      options = { createGroup : yes, context : { group : groupSlug }, groupData }
+      withConvertedUser options, ({ client, account, group }) ->
+
+        queue = []
+        count = 5
+
+        for i in [0...count]
+          queue.push (next) ->
+            JApiToken.create { account, group : groupSlug }, (err, apiToken) ->
+              expect(err).to.not.exist
+              expect(apiToken).to.exist
+              next()
+
+        queue.push (next) ->
+          group.fetchApiTokens$ client, (err, apiTokens) ->
+            expect(err).to.not.exist
+            expect(apiTokens).to.be.an 'array'
+            expect(apiTokens).to.have.length count
+            expect(apiTokens[0].bongo_.constructorName).to.equal 'JApiToken'
+            done()
+
+        async.series queue
 
 
 beforeTests()

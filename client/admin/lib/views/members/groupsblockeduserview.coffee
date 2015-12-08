@@ -1,9 +1,10 @@
-_ = require 'lodash'
-kd = require 'kd'
-KDListViewController = kd.ListViewController
+_                             = require 'lodash'
+kd                            = require 'kd'
+JView                         = require 'app/jview'
+remote                        = require('app/remote').getInstance()
+
+KDListViewController          = kd.ListViewController
 GroupsBlockedUserListItemView = require './groupsblockeduserlistitemview'
-remote = require('app/remote').getInstance()
-JView = require 'app/jview'
 
 
 module.exports = class GroupsBlockedUserView extends JView

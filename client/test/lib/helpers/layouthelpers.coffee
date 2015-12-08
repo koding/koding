@@ -12,7 +12,6 @@ module.exports =
   openMenuAndClick: (browser, selector) ->
 
     browser
-      .pause                   5000
       .waitForElementVisible   paneSelector, 20000
       .moveToElement           plusSelector, 60, 17
       .click                   plusSelector
@@ -20,7 +19,14 @@ module.exports =
       .click                   '.context-list-wrapper ' + selector
 
 
+  waitForSnapshotRestore: (browser) ->
+
+    browser.pause 7500 # find a better way
+
+
   undoSplit: (browser, shouldAssert = yes) ->
+
+    @waitForSnapshotRestore browser
 
     browser
       .waitForElementVisible '.panel-1', 20000
@@ -45,17 +51,19 @@ module.exports =
       splitButtonSelector = 'li.split-horizontally'
       splitViewSelector   = '.panel-1 .kdsplitview-horizontal'
 
+    @waitForSnapshotRestore browser
+    browser
+      .waitForElementVisible '.panel-1', 20000
+      .elements 'css selector', splitViewSelector, (result) =>
+        length = result.value.length
 
-    browser.waitForElementVisible '.panel-1', 20000
+        if length >= 1
+          console.log(' ✔ Views already splitted. Ending test...')
+          browser.end()
+        else
+          @openMenuAndClick(browser, splitButtonSelector)
+          browser.pause 2000
 
-    browser.elements 'css selector', splitViewSelector, (result) =>
-      length = result.value.length
-
-      if length >= 2
-        console.log(' ✔ Views already splitted. Ending test...')
-        browser.end()
-      else
-        @openMenuAndClick(browser, splitButtonSelector)
-
-        browser.elements 'css selector', splitViewSelector, (result) =>
-          assert.equal result.value.length, length + 1
+          browser.elements 'css selector', splitViewSelector, (result) =>
+            assert.equal result.value.length, length + 1
+            browser.pause 2000 # wait for snapshot write

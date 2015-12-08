@@ -87,7 +87,7 @@ func (r *Route53) Upsert(domain string, newIP string) error {
 	}
 	_, err := r.ChangeResourceRecordSets(params)
 	if err != nil {
-		return r.errorf("could not upsert domain %q: ", domain, err)
+		return r.errorf("could not upsert domain %q: %v", domain, err)
 	}
 	return nil
 }

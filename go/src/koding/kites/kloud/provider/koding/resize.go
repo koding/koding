@@ -135,7 +135,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	m.push("Creating new snapshot", 40, machinestate.Pending)
 	m.Log.Info("creating new snapshot from volume id %s", oldVolumeId)
-	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
+	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", aws.StringValue(instance.InstanceId))
 	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
 	if err != nil {
 		return err
@@ -297,6 +297,4 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 			}},
 		)
 	})
-
-	return nil
 }
