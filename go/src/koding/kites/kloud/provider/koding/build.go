@@ -215,7 +215,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		m.Log.Warning(
 			"CheckBuild failed. (newInstance: %t, username: %s, instanceId: %s, region: %s, provider: %s, CheckBuild duration: %fs) err: %s",
 			creatingNewInstance, m.Credential, m.Meta.InstanceId,
-			m.Meta.Region, m.Provider, checkBuildDur.Seconds(), err.Error(),
+			m.Meta.Region, m.Provider, checkBuildDur.Seconds(), err,
 		)
 
 		return err
@@ -391,7 +391,7 @@ func (m *Machine) imageData(ctx context.Context) (*ImageData, error) {
 		m.cleanFuncs = append(m.cleanFuncs, func() {
 			m.Log.Debug("Deleting temporary AMI %q", imageID)
 			if err := m.Session.AWSClient.Client.DeregisterImage(imageID); err != nil {
-				m.Log.Warning("Couldn't delete AMI %q: %q", imageID, err)
+				m.Log.Warning("Couldn't delete AMI %q: %s", imageID, err)
 			}
 		})
 
@@ -580,7 +580,7 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 	// tryAllZones will try to build the given instance type with in all zones
 	// until it's succeed.
 	tryAllZones := func(instanceType string) (string, error) {
-		m.Log.Debug("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
+		m.Log.Debug("Fallback: Searching for a zone that has capacity amongst zones: %+v", zones)
 		for _, zone := range zones {
 			if zone == currentZone {
 				// skip it because that's one is causing problems and doesn't have any capacity
@@ -655,25 +655,25 @@ func (m *Machine) addDomainAndTags() {
 	m.Log.Debug("Updating/Creating domain %s", m.IpAddress)
 
 	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 
 	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 
 	m.push("Updating domain aliases", 72, machinestate.Building)
 	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for setting err: %s", err.Error())
+		m.Log.Error("fetching domains for setting err: %s", err)
 	}
 
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 	}
 
@@ -687,7 +687,7 @@ func (m *Machine) addDomainAndTags() {
 
 	m.Log.Debug("Adding user tags %v", tags)
 	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
-		m.Log.Error("Adding tags failed: %v", err)
+		m.Log.Error("Adding tags failed: %s", err)
 	}
 }
 

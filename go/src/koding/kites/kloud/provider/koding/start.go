@@ -72,7 +72,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	// type.
 	if aws.StringValue(instance.InstanceType) != m.Meta.InstanceType {
 		m.Log.Warning("instance is using '%s'. Changing back to '%s'",
-			instance.InstanceType, m.Meta.InstanceType)
+			aws.StringValue(instance.InstanceType), m.Meta.InstanceType)
 
 		params := &ec2.ModifyInstanceAttributeInput{
 			InstanceId: aws.String(m.Meta.InstanceId),
@@ -140,7 +140,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			} else if err != nil {
 				m.Log.Error(
 					"Failed to retrieve Elastic IP information: %s (username: %s, instanceId: %s, region: %s, ip: %s)",
-					err.Error(), m.Credential, m.Meta.InstanceId, m.Meta.Region, m.IpAddress,
+					err, m.Credential, m.Meta.InstanceId, m.Meta.Region, m.IpAddress,
 				)
 			}
 		}
@@ -205,26 +205,26 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 	m.push("Initializing domain instance", 65, machinestate.Starting)
 	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 
 	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
-		m.Log.Error("couldn't update machine domain: %s", err.Error())
+		m.Log.Error("couldn't update machine domain: %s", err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
 	m.push("Updating domain aliases", 80, machinestate.Starting)
 	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for starting err: %s", err.Error())
+		m.Log.Error("fetching domains for starting err: %s", err)
 	}
 
 	for _, domain := range domains {
 		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
-			m.Log.Error("couldn't update machine domain: %s", err.Error())
+			m.Log.Error("couldn't update machine domain: %s", err)
 		}
 	}
 

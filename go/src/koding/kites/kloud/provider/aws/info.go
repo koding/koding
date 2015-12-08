@@ -34,7 +34,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 				resultState, reason)
 
 			if err := m.checkAndUpdateState(resultState); err != nil {
-				m.Log.Debug("Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+				m.Log.Debug("Info decision: Error while updating the machine %q state. Err: %v", m.Id, err)
 			}
 		}
 	}()

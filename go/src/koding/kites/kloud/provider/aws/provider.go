@@ -100,13 +100,13 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	creds, err := p.credential(machine.Credential)
 	if err != nil {
-		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
+		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err)
 	}
 
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(creds.Meta.AccessKey, creds.Meta.SecretKey, ""),
 		Region:      machine.Meta.Region,
-		Log:         p.Log.New(machine.Id.Hex()),
+		Log:         p.Log.New(fmt.Sprintf("user=%d, machine=%s", user.Uid, machine.Id.Hex())),
 	}
 
 	amazonClient, err := amazon.NewWithOptions(structs.Map(machine.Meta), opts)
