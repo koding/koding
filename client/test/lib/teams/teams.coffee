@@ -176,10 +176,4 @@ module.exports =
     browser.end()
 
 
-  sendComment: (browser) ->
-
-    user = teamsHelpers.loginTeam(browser)
-    teamsHelpers.createChannel(browser, user)
-    teamsHelpers.sendComment(browser)
-    browser.end()
 
