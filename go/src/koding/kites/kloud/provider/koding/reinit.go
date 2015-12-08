@@ -10,10 +10,27 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (m *Machine) Reinit(ctx context.Context) error {
-	// clean up old data, so if build fails below at least we give the chance
-	// to build it again
-	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+func (m *Machine) Reinit(ctx context.Context) (err error) {
+	if err := m.UpdateState("Machine is starting", machinestate.Starting); err != nil {
+		return err
+	}
+
+	// update the state to intiial state if something goes wrong, we are going
+	// to change latestate to a more safe state if we passed a certain step
+	// below
+	latestState := m.State()
+	defer func() {
+		if err != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
+
+	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
+		return err
+	}
+
+	// clean up old data, so if build fails below at least we give the chance to build it again
+	err = m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			m.ObjectId,
 			bson.M{"$set": bson.M{
@@ -23,22 +40,13 @@ func (m *Machine) Reinit(ctx context.Context) error {
 				"meta.instanceName": "",
 				"status.state":      machinestate.NotInitialized.String(),
 				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Reinit initalized",
+				"status.reason":     "Reinit cleanup",
 			}},
 		)
 	})
 	if err != nil {
-		m.Log.Warning("couldn't update reinit db: %s", err)
+		return err
 	}
-
-	// go and terminate the old instance, we don't need to wait for it
-	go func(machine *Machine) {
-		instanceId := machine.Session.AWSClient.Id()
-		_, err := machine.Session.AWSClient.TerminateInstance(instanceId)
-		if err != nil {
-			m.Log.Warning("couldn't terminate instance: %s", err)
-		}
-	}(m)
 
 	// cleanup this too so "build" can continue with a clean setup
 	m.IpAddress = ""
