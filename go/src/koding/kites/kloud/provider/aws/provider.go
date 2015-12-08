@@ -106,7 +106,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(creds.Meta.AccessKey, creds.Meta.SecretKey, ""),
 		Region:      machine.Meta.Region,
-		Log:         p.Log,
+		Log:         p.Log.New(machine.Id.Hex()),
 	}
 
 	amazonClient, err := amazon.NewWithOptions(structs.Map(machine.Meta), opts)
@@ -114,8 +114,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	// attach user specific log
-	machine.Log = p.Log.New(machine.Id.Hex())
+	machine.Log = opts.Log // attach user specific log
 
 	sess := &session.Session{
 		DB:         p.DB,
