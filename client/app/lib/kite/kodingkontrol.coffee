@@ -191,13 +191,9 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     # Machine.uid is kite correlation name
     cc = kd.singletons.computeController
 
-    emit = (status) ->
-      if cc.findMachineFromMachineUId(machineUId)?.isRunning()
-        cc.emit "#{status}-#{machineUId}"
-
-    kite.on 'open',      -> emit 'connected'
-    kite.on 'close',     -> emit 'disconnected'
-    kite.on 'reconnect', -> emit 'reconnecting'
+    kite.on 'open',      cc.lazyBound 'emit', "connected-#{machineUId}"
+    kite.on 'close',     cc.lazyBound 'emit', "disconnected-#{machineUId}"
+    kite.on 'reconnect', cc.lazyBound 'emit', "reconnecting-#{machineUId}"
 
 
   getKite: (options = {}) ->

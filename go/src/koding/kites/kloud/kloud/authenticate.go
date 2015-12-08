@@ -68,7 +68,7 @@ func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
 		opts := &amazon.ClientOptions{
 			Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
 			Region:      authRegion,
-			Log:         nil, // do not log warnings, as they're expected
+			Log:         k.Log,
 		}
 
 		_, err := amazon.NewClient(opts)

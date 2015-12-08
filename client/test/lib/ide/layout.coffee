@@ -61,20 +61,16 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    fn = ->
-      browser.elements 'css selector', handleSelector, (result) ->
-        if result.value.length > 0
-          console.log(' ✔ A drawing board is already opened. Ending test...')
-          browser.end()
-        else
-          layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
+    browser.elements 'css selector', handleSelector, (result) ->
+      if result.value.length > 0
+        console.log(' ✔ A drawing board is already opened. Ending test...')
+        browser.end()
+      else
+        layoutHelpers.openMenuAndClick(browser, '.new-drawing-board')
 
-          browser
-            .pause 4000
-            .waitForElementVisible handleSelector + '.active', 20000
-            .waitForElementVisible activePaneSelector, 20000 # Assertion
-            .waitForElementVisible activePaneSelector + ' .drawing-board-toolbar', 20000 # Assertion
-            .end()
-
-    layoutHelpers.waitForSnapshotRestore(browser)
-    fn()
+        browser
+          .pause 4000
+          .waitForElementVisible handleSelector + '.active', 20000
+          .waitForElementVisible activePaneSelector, 20000 # Assertion
+          .waitForElementVisible activePaneSelector + ' .drawing-board-toolbar', 20000 # Assertion
+          .end()

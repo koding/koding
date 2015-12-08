@@ -46,17 +46,6 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
     super
 
-    @on 'close', (reason) =>
-
-      if reason?.code is 1002
-
-        cc         = kd.singletons.computeController
-        machineUId = @getOption 'correlationName'
-        machine    = cc.findMachineFromMachineUId(machineUId)
-
-        if not machine or not machine.isRunning()
-          @disconnect()
-
     @terminalSessions = []
 
 
