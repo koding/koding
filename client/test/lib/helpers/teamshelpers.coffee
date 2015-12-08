@@ -155,7 +155,7 @@ module.exports =
     emailSelector       = "#{modalSelector} input[name=email]"
     companyNameSelector = "#{modalSelector} input[name=companyName]"
     signUpButton        = "#{modalSelector} button[type=submit]"
-    user                = utils.getUser(yes)
+    user                = utils.getUser()
     adminUser           =
       username          : 'devrim'
       password          : 'devrim'
