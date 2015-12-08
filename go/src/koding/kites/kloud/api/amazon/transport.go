@@ -4,6 +4,7 @@ import (
 	"net"
 	"time"
 
+	"koding/kites/common"
 	"koding/kites/kloud/httputil"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -21,16 +22,16 @@ var transportParams = &httputil.ClientConfig{
 	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
 }
 
-// NewTransport gives new resilient transport for the given ClientOptions.
-func NewTransport(opts *ClientOptions) *aws.Config {
+// TransportConfig configures resiliant transport used for default AWS client.
+var TransportConfig *aws.Config
+
+func init() {
 	cfg := aws.NewConfig().WithHTTPClient(httputil.NewClient(transportParams))
 	retryer := &transportRetryer{
 		MaxTries: 3,
+		Log:      common.NewLogger("transport", true),
 	}
-	if opts.Log != nil {
-		retryer.Log = opts.Log.New("transport")
-	}
-	return request.WithRetryer(cfg, retryer)
+	TransportConfig = request.WithRetryer(cfg, retryer)
 }
 
 // transportRetryer provides strategy for deciding whether we should retry a request.
@@ -53,15 +54,9 @@ func (tr *transportRetryer) MaxRetries() int {
 
 func (tr *transportRetryer) ShouldRetry(r *request.Request) bool {
 	doretry := isNetworkRecoverable(r.Error, true) || tr.DefaultRetryer.ShouldRetry(r)
-	tr.logf("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %+v",
+	tr.Log.Warning("request failed (RetryCount=%d, Operation=%+v, ShouldRetry=%t): %+v",
 		r.RetryCount, r.Operation, doretry, r.Error)
 	return doretry
-}
-
-func (tr *transportRetryer) logf(format string, args ...interface{}) {
-	if tr.Log != nil {
-		tr.Log.Warning(format, args...)
-	}
 }
 
 func isNetworkRecoverable(err error, initial bool) bool {

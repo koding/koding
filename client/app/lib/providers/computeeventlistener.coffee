@@ -129,8 +129,7 @@ module.exports = class ComputeEventListener extends KDObject
       responses.forEach (res) =>
 
         if res.err? and not res.event?
-
-          kd.warn "Error on '#{res.event_id}':", res
+          kd.warn "Error on '#{res.event_id}':", res.err
           computeController.stateChecker.watch res.event_id
 
           # TODO We need to think about this again ~ GG

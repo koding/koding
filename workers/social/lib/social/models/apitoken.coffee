@@ -51,13 +51,14 @@ module.exports = class JApiToken extends jraphical.Module
       createdAt        :
         type           : Date
         default        : -> new Date
+      modifiedAt       :
+        type           : Date
+        default        : -> new Date
 
 
   @create: (data, callback) ->
 
     { account, group } = data
-
-    groupObj = null
 
     unless account and group
       return callback new KodingError 'account and group slug must be set!'
@@ -74,16 +75,8 @@ module.exports = class JApiToken extends jraphical.Module
           return callback new KodingError 'group not found!'  unless group_
 
           unless !!group_.getAt 'isApiEnabled'
-            return callback new KodingError 'API usage is not enabled for this group.'
+            return callback new KodingError 'api usage is not enabled for this group'
 
-          groupObj = group_
-          queue.next()
-
-      ->
-        limitError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} api tokens"
-        JApiToken.count { group : groupObj.slug }, (err, count) ->
-          return callback err                         if err
-          return callback new KodingError limitError  if count >= JGroup.API_TOKEN_LIMIT
           queue.next()
 
       ->
@@ -95,7 +88,6 @@ module.exports = class JApiToken extends jraphical.Module
 
         token.save (err) ->
           return callback err  if err
-          token.username = account.profile.nickname
           callback null, token
 
     ]
