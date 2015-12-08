@@ -16,7 +16,7 @@ func ListCommand(c *cli.Context) int {
 	k, err := CreateKlientClient(NewKlientOptions())
 	if err != nil {
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(
-			"Error connectionting to %s: '%s'", KlientName, err,
+			"Error connecting to %s: '%s'", KlientName, err,
 		))
 		return 1
 	}
