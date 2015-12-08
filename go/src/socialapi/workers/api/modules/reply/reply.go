@@ -9,7 +9,7 @@ import (
 	"socialapi/workers/common/response"
 )
 
-func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Create(u *url.URL, h http.Header, reply *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 	parentId, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -17,6 +17,10 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 
 	// first create reply as a message
 	reply.TypeConstant = models.ChannelMessage_TYPE_REPLY
+
+	if reply.AccountId == 0 {
+		reply.AccountId = c.Client.Account.Id
+	}
 
 	if err := reply.Create(); err != nil {
 		// todo this should be internal server error
