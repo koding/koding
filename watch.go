@@ -10,7 +10,7 @@ import (
 )
 
 // WatchInterval is the default interval to watch for changes on remote.
-var WatchInterval = 15 * time.Second
+var WatchInterval = 5 * time.Second
 
 // Watcher is the interface that defines watching files on a remote machine
 // and sending the results to local.
@@ -62,7 +62,7 @@ func (f *FindWatcher) Watch() (<-chan string, <-chan error) {
 	errChan := make(chan error)
 
 	go func() {
-		ticker := time.Tick(1 * time.Second)
+		ticker := time.Tick(WatchInterval)
 		for _ = range ticker {
 			f.LastRan = time.Now().UTC()
 
@@ -160,7 +160,7 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 				continue
 			}
 
-			if item, err := dir.findEntryRecursive(item); err == nil {
+			if item, err := dir.FindEntryRecursive(item); err == nil {
 				item.Expire()
 			}
 		case err := <-errs:

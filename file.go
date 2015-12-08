@@ -7,11 +7,12 @@ import (
 	"github.com/koding/fuseklient/transport"
 )
 
+// File represents a file system file and implements Node interface.
 type File struct {
 	// Entry is generic structure that contains commonality between File and Dir.
 	*Entry
 
-	////// Node#RWLock protects the fields below.
+	////// Entry#RWLock protects the fields below.
 
 	// IsDirty indicates if File has been written to, but not yet been synced
 	// with remote.
@@ -21,10 +22,13 @@ type File struct {
 	Content []byte
 }
 
+// NewFile is the required initializeChild for File. If internal cache is empty,
+// it'll fetch from remote.
 func NewFile(n *Entry) *File {
 	return &File{Entry: n, Content: []byte{}}
 }
 
+// ReadAt returns contents of file at specified offset.
 func (f *File) ReadAt(offset int64) ([]byte, error) {
 	f.Lock()
 	defer f.Unlock()
@@ -44,10 +48,16 @@ func (f *File) ReadAt(offset int64) ([]byte, error) {
 	return f.Content[offset:], nil
 }
 
+// Create creates a new file on remote with existing content.
 func (f *File) Create() error {
+	f.Lock()
+	defer f.Unlock()
+
 	return f.writeContentToRemote(f.Content)
 }
 
+// WriteAt saves specified content at specified offset. Note, this saves to
+// internal cache only.
 func (f *File) WriteAt(content []byte, offset int64) {
 	f.Lock()
 	defer f.Unlock()
@@ -69,8 +79,10 @@ func (f *File) WriteAt(content []byte, offset int64) {
 	f.Attrs.Size = uint64(len(f.Content))
 }
 
+// TruncateTo reduces file contents to specified length.
 func (f *File) TruncateTo(size uint64) error {
 	f.Lock()
+	defer f.Unlock()
 
 	s := int(size)
 	switch {
@@ -85,16 +97,22 @@ func (f *File) TruncateTo(size uint64) error {
 		// specified size is same as size of file, so nothing to be done
 	}
 
-	f.Unlock()
-
 	return f.writeContentToRemote(f.Content)
 }
 
+// Flush saves internal cache to remote.
 func (f *File) Flush() error {
+	f.Lock()
+	defer f.Unlock()
+
 	return f.syncToRemote()
 }
 
+// Sync saves internal cache to remote.
 func (f *File) Sync() error {
+	f.Lock()
+	defer f.Unlock()
+
 	return f.syncToRemote()
 }
 
@@ -105,7 +123,7 @@ func (f *File) GetType() fuseutil.DirentType {
 	return fuseutil.DT_File
 }
 
-// Expire removes the local cache of file and fetches it from remote. It's
+// Expire removes the internal cache of file and fetches it from remote. It's
 // required to update from remote since Kernel caches file attrs.
 func (f *File) Expire() error {
 	f.Lock()
@@ -117,10 +135,7 @@ func (f *File) Expire() error {
 ///// Helpers
 
 func (f *File) syncToRemote() error {
-	f.RLock()
 	var isDirty = f.IsDirty
-	f.RUnlock()
-
 	if !isDirty {
 		return nil
 	}
@@ -129,9 +144,6 @@ func (f *File) syncToRemote() error {
 }
 
 func (f *File) writeContentToRemote(content []byte) error {
-	f.Lock()
-	defer f.Unlock()
-
 	f.IsDirty = false
 
 	req := struct {

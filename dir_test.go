@@ -82,7 +82,7 @@ func TestDir(t *testing.T) {
 		})
 	})
 
-	Convey("Dir#findEntryRecursive", t, func() {
+	Convey("Dir#FindEntryRecursive", t, func() {
 		d := newDir()
 		n1, err := d.CreateEntryDir("nested1", os.FileMode(0700))
 		So(err, ShouldBeNil)
@@ -91,7 +91,7 @@ func TestDir(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should return error if entry doesn't exist", func() {
-			_, err = d.findEntryRecursive("nested1/nested2/error")
+			_, err = d.FindEntryRecursive("nested1/nested2/error")
 			So(err, ShouldEqual, fuse.ENOENT)
 		})
 
@@ -99,7 +99,7 @@ func TestDir(t *testing.T) {
 			_, err = n2.CreateEntryFile("file", os.FileMode(0700))
 			So(err, ShouldBeNil)
 
-			n, err := d.findEntryRecursive("nested1/nested2/file")
+			n, err := d.FindEntryRecursive("nested1/nested2/file")
 			So(err, ShouldBeNil)
 
 			f, ok := n.(*File)
@@ -111,7 +111,7 @@ func TestDir(t *testing.T) {
 			_, err = n2.CreateEntryDir("dir", os.FileMode(0700))
 			So(err, ShouldBeNil)
 
-			n, err := d.findEntryRecursive("nested1/nested2/dir")
+			n, err := d.FindEntryRecursive("nested1/nested2/dir")
 			So(err, ShouldBeNil)
 
 			d, ok := n.(*Dir)
@@ -397,6 +397,42 @@ func TestDir(t *testing.T) {
 	})
 
 	Convey("Dir#updateEntriesFromRemote", t, func() {
+		Convey("It should update entry attrs if they exist in local", func() {
+			d := newDir()
+			err := d.updateEntriesFromRemote()
+			So(err, ShouldBeNil)
+
+			o1 := d.EntriesList["file"]
+			o2 := d.EntriesList["folder"]
+
+			oldInodeId1 := o1.GetID()
+			oldInodeId2 := o2.GetID()
+
+			ft := newFakeTransport()
+			kt := ft.TripResponses["fs.readDirectory"]
+			fl := kt.(transport.FsReadDirectoryRes).Files
+
+			d.Transport = ft
+
+			// change attrs to emulate them changing on remote
+			fl[1].Size = 3
+			fl[0].Size = 4
+
+			err = d.updateEntriesFromRemote()
+			So(err, ShouldBeNil)
+
+			n1 := d.EntriesList["file"]
+			n2 := d.EntriesList["folder"]
+
+			// check inodes are the same
+			So(oldInodeId1, ShouldEqual, n1.GetID())
+			So(oldInodeId2, ShouldEqual, n2.GetID())
+
+			// check attrs have been updated
+			So(n1.GetAttrs().Size, ShouldEqual, 3)
+			So(n2.GetAttrs().Size, ShouldEqual, 4)
+		})
+
 		Convey("It should fetch directory entries from remote", func() {
 			d := newDir()
 			d.Entries = []fuseutil.Dirent{}
@@ -579,9 +615,9 @@ func TestDir(t *testing.T) {
 	})
 }
 
-func newDir() *Dir {
+func newFakeTransport() *fakeTransport {
 	c := base64.StdEncoding.EncodeToString([]byte("Hello World!"))
-	t := &fakeTransport{
+	return &fakeTransport{
 		TripResponses: map[string]interface{}{
 			"fs.writeFile":       1,
 			"fs.rename":          true,
@@ -617,6 +653,10 @@ func newDir() *Dir {
 			},
 		},
 	}
+}
+
+func newDir() *Dir {
+	t := newFakeTransport()
 	n := NewRootEntry(t, "/remote", "/local")
 	n.ID = fuseops.InodeID(fuseops.RootInodeID + 1)
 

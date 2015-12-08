@@ -66,6 +66,7 @@ func NewRootEntry(t transport.Transport, remotePath, localPath string) *Entry {
 	}
 }
 
+// NewEntry is the required initializer for Entry.
 func NewEntry(p *Dir, name string) *Entry {
 	e := &Entry{
 		Transport:  p.Transport,
@@ -135,20 +136,21 @@ func (e *Entry) GetID() fuseops.InodeID {
 	return e.ID
 }
 
-///// Helpers
+func (e *Entry) UpdateAttrsFromRemote() error {
+	e.Lock()
+	defer e.Unlock()
 
-func (e *Entry) updateAttrsFromRemote() error {
 	attrs, err := e.getAttrsFromRemote()
 	if err != nil {
 		return err
 	}
 
-	e.Lock()
 	e.Attrs = attrs
-	e.Unlock()
 
 	return nil
 }
+
+///// Helpers
 
 func (e *Entry) getAttrsFromRemote() (fuseops.InodeAttributes, error) {
 	var attrs fuseops.InodeAttributes
