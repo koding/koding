@@ -49,12 +49,12 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
 		// if it's already deleted, for example because of a STOP, than we just
 		// log it here instead of returning the error
-		m.Log.Error("deleting domain during destroying err: %s", err.Error())
+		m.Log.Error("deleting domain during destroying err: %s", err)
 	}
 
 	domains, err := m.Session.DNSStorage.GetByMachine(m.ObjectId.Hex())
 	if err != nil {
-		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
+		m.Log.Error("fetching domains for unsetting err: %s", err)
 	}
 
 	m.push("Deleting custom domain", 90, machinestate.Terminating)
@@ -65,7 +65,7 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 
 		err := m.Session.DNSStorage.UpdateMachine(domain.Name, "")
 		if err != nil {
-			m.Log.Error("couldn't unset machine domain: %s", err.Error())
+			m.Log.Error("couldn't unset machine domain: %s", err)
 		}
 	}
 

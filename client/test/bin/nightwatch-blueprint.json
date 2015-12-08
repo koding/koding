@@ -1,11 +1,12 @@
 {
+  "globals_path": "./globals.js",
   "src_folders" : [],
   "output_folder" : "../output",
   "live_output": true,
 
   "selenium" : {
     "start_process" : false,
-    "server_path" : "../vendor/selenium-server-standalone-2.46.0.jar",
+    "server_path" : "../vendor/selenium-server-standalone.jar",
     "log_path" : "../logs",
     "host" : "127.0.0.1",
     "port" : 42424,

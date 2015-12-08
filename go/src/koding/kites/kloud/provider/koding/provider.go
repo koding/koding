@@ -121,7 +121,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	amazonClient, err := amazon.New(machine.Meta, client)
 	if err != nil {
-		return fmt.Errorf("koding-amazon err: %s", err)
+		return fmt.Errorf("koding-amazon error: %s", err)
 	}
 
 	// attach user specific log
@@ -217,7 +217,7 @@ func (p *Provider) getPermittedUser(requesterName string, users []models.Machine
 	if err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"_id": bson.M{"$in": allowedIds}}).All(&allowedUsers)
 	}); err != nil {
-		return nil, fmt.Errorf("username lookup error: %v", err)
+		return nil, fmt.Errorf("username lookup error: %s", err)
 	}
 
 	// now we have all allowed users, if we have someone that is in match with

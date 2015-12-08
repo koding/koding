@@ -100,7 +100,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 
 	creds, err := modelhelper.GetCredentialDatasFromIdentifiers(machine.Credential)
 	if err != nil {
-		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err.Error())
+		return fmt.Errorf("Could not fetch credential %q: %s", machine.Credential, err)
 	}
 
 	if len(creds) == 0 {
@@ -125,7 +125,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 	opts := &amazon.ClientOptions{
 		Credentials: credentials.NewStaticCredentials(awsCred.AccessKey, awsCred.SecretKey, ""),
 		Region:      meta.Region,
-		Log:         p.Log,
+		Log:         p.Log.New(fmt.Sprintf("user=%d, machine=%s", user.Uid, machine.Id.Hex())),
 	}
 
 	amazonClient, err := amazon.NewWithOptions(machine.Meta, opts)
@@ -133,8 +133,7 @@ func (p *Provider) AttachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	// attach user specific log
-	machine.Log = p.Log.New(machine.ObjectId.Hex())
+	machine.Log = opts.Log // attach user specific log
 
 	sess := &session.Session{
 		DB:         p.DB,
