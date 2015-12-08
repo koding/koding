@@ -33,6 +33,8 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 
 	req.InitialChannelId = channelId
 
+	req.AccountId = c.Client.Account.Id
+
 	if req.Payload == nil {
 		req.Payload = gorm.Hstore{}
 	}
