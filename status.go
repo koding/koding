@@ -297,9 +297,9 @@ If this problem persists, please contact us at: support@koding.com
 func (c *HealthChecker) CheckAllFailureOrMessagef(f string, i ...interface{}) string {
 	if s, ok := c.CheckAllWithResponse(); !ok {
 		return s
-	} else {
-		return fmt.Sprintf(f, i...)
 	}
+
+	return fmt.Sprintf(f, i...)
 }
 
 // IsKlientRunning does a quick check against klient's http server
